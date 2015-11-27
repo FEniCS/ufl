@@ -1,10 +1,9 @@
 **********
 Algorithms
 **********
-\label{chapter:algorithms}
 
 Algorithms to work with UFL forms and expressions can be found in the
-submodule \texttt{ufl.algorithms}.  You can import all of them with
+submodule ``ufl.algorithms``.  You can import all of them with
 the line::
 
   from ufl.algorithms import *
@@ -38,16 +37,16 @@ form for the formatting sections below::
 str
 ---
 Compact human readable pretty printing.  Useful in interactive Python
-sessions.  Example output of \texttt{str(a)}::
+sessions.  Example output of ``str(a)``::
 
   TODO
 
 repr
 ----
 Accurate description of expression, with the property that
-\texttt{eval(repr(a)) == a}.  Useful to see which representation types
-occur in an expression, especially if \texttt{str(a)} is ambiguous.
-Example output of \texttt{repr(a)}::
+``eval(repr(a)) == a``.  Useful to see which representation types
+occur in an expression, especially if ``str(a)`` is ambiguous.
+Example output of ``repr(a)``::
 
   TODO
 
@@ -57,7 +56,7 @@ Tree formatting
 
 Ascii tree formatting, useful to inspect the tree structure of
 an expression in interactive Python sessions.  Example output of
-\texttt{tree\_format(a)}::
+``tree\_format(a)``::
 
   TODO
 
@@ -136,7 +135,7 @@ to modify expressions, either to apply mathematical transformations or
 to change their representation. Usually, different expression node types
 need different treatment.
 
-To assist in such algorithms, UFL provides the \texttt{Transformer}
+To assist in such algorithms, UFL provides the ``Transformer``
 class. This implements a variant of the Visitor pattern to enable easy
 definition of transformation rules for the types you wish to handle.
 
@@ -159,19 +158,19 @@ Shown here is maybe the simplest transformer possible::
   p = Printer()
   p.visit(a)
 
-The call to \texttt{visit} will traverse \texttt{a} and call
-\texttt{Printer.expr} on all expression nodes in post--order, with the
-argument \texttt{operands} holding the return values from visits to the
-operands of \texttt{o}. The output is::
+The call to ``visit`` will traverse ``a`` and call
+``Printer.expr`` on all expression nodes in post--order, with the
+argument ``operands`` holding the return values from visits to the
+operands of ``o``. The output is::
 
   TODO
 
-Implementing \texttt{expr} above provides a default handler for any
-expression node type. For each subclass of \texttt{Expr} you can
+Implementing ``expr`` above provides a default handler for any
+expression node type. For each subclass of ``Expr`` you can
 define a handler function to override the default by using the name
-of the type in underscore notation, e.g. \texttt{vector\_constant}
-for \texttt{VectorConstant}.  The constructor of \texttt{Transformer}
-and implementation of \texttt{Transformer.visit} handles the mapping
+of the type in underscore notation, e.g. ``vector\_constant``
+for ``VectorConstant``.  The constructor of ``Transformer``
+and implementation of ``Transformer.visit`` handles the mapping
 from type to handler function automatically.
 
 Here is a simple example to show how to override default behaviour::
@@ -195,25 +194,25 @@ Here is a simple example to show how to override default behaviour::
   b = r.visit(a)
   print b
 
-The output of this code is the transformed expression \texttt{b ==
-3.14*v}.  This code also demonstrates how to reuse existing handlers.
-The handler \texttt{Transformer.reuse\_if\_possible} will return the
+The output of this code is the transformed expression ``b ==
+3.14*v``.  This code also demonstrates how to reuse existing handlers.
+The handler ``Transformer.reuse\_if\_possible`` will return the
 input object if the operands have not changed, and otherwise reconstruct
 a new instance of the same type but with the new transformed operands.
-The handler \texttt{Transformer.always\_reuse} always reuses the instance
+The handler ``Transformer.always\_reuse`` always reuses the instance
 without recursing into its children, usually applied to terminals.
-To set these defaults with less code, inherit \texttt{ReuseTransformer}
-instead of \texttt{Transformer}. This ensures that the parts of the
+To set these defaults with less code, inherit ``ReuseTransformer``
+instead of ``Transformer``. This ensures that the parts of the
 expression tree that are not changed by the transformation algorithms
 always reuse the same instances.
 
 We have already mentioned the difference between pre--traversal
 and post--traversal, and some times you need to combine the
-two. \texttt{Transformer} makes this easy by checking the number of
+two. ``Transformer`` makes this easy by checking the number of
 arguments to your handler functions to see if they take transformed
 operands as input or not.  If a handler function does not take more
 than a single argument in addition to self, its children are not visited
-automatically, and the handler function must call \texttt{visit} on its
+automatically, and the handler function must call ``visit`` on its
 operands itself.
 
 Here is an example of mixing pre- and post-traversal::
@@ -239,12 +238,12 @@ Here is an example of mixing pre- and post-traversal::
   b = r.visit(a)
   print b
 
-This code inherits the \texttt{ReuseTransformer} like explained above,
+This code inherits the ``ReuseTransformer`` like explained above,
 so the default behaviour is to recurse into children first and then call
-\texttt{Transformer.reuse\_if\_possible} to reuse or reconstruct each
-expression node.  Since \texttt{sum} only takes \texttt{self} and the
-expression node instance \texttt{o} as arguments, its children are not
-visited automatically, and \texttt{sum} calls on \texttt{self.visit}
+``Transformer.reuse\_if\_possible`` to reuse or reconstruct each
+expression node.  Since ``sum`` only takes ``self`` and the
+expression node instance ``o`` as arguments, its children are not
+visited automatically, and ``sum`` calls on ``self.visit``
 to do this explicitly.
 
 
@@ -303,12 +302,12 @@ TODO: finish graph.py:
 
 Consider the expression:
 
-.. math:
+.. math::
 
   f = (a + b) * (c + d)
 
-where a, b, c, d are arbitrary scalar expressions.  The \emph{expression
-tree} for f looks like this::
+where a, b, c, d are arbitrary scalar expressions.
+The *expression tree* for f looks like this::
 
   TODO: Make figures.
    a   b  c  d
@@ -328,7 +327,7 @@ distinct Coefficient instances, the UFL representation will look like this::
 
 If we instead have the expression
 
-.. math:
+.. math::
 
   f = (a + b) * (a - b)
 
@@ -356,7 +355,7 @@ representation::
   E = [(6,2), (6,5), (5,3), (5,4), (2,0), (2,1)]
 
 In the following this representation of an expression will be called
-the \emph{computational graph}.  To construct this graph from a UFL
+the *computational graph*.  To construct this graph from a UFL
 expression, simply do::
 
   G = Graph(expression)
@@ -373,12 +372,12 @@ algorithms::
 The ordering of the vertices in the graph can in principle be arbitrary,
 but here they are ordered such that
 
-.. math:
+.. math::
 
    v_i \prec v_j, \quad \forall j > i,
 
-where $a \prec b$ means that $a$ does not depend on $b$ directly or
-indirectly.
+where :math:`a \prec b` means that :math:a does not depend on :math:b
+directly or indirectly.
 
 Another property of the computational graph built by UFL is that no
 identical expression is assigned to more than one vertex. This is
@@ -399,15 +398,3 @@ the quadrature loop if they don't depend (directly or indirectly) on
 the spatial coordinates. This is done simply by::
 
   P = partition(G) # TODO
-
-TODO: finish dependencies.py
-
-
-
-%\subsection{Reordering graph vertices}
-%TODO: finish scheduling.py
-
-%\begin{code}
-%TODO
-%\end{code}
-

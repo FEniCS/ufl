@@ -91,37 +91,6 @@ where
     to UFL. These are defined in a problem solving environment such as DOLFIN,
     which uses UFL to specify forms.
 
-.. topic:: Advanced usage
-
-  A feature for advanced users is attaching metadata to integrals.
-  This can be used to define different quadrature degrees for different
-  terms in a form, and to override other form compiler specific options
-  separately for different terms::
-
-    a = c0*dx(0, metadata0) + c1*dx(1, metadata1)
-
-  The convention is that metadata should be a dict with any of the
-  following keys:
-
-  * ``"integration_order"``: Integer defining the polynomial order
-    that should be integrated exactly. This is a compilation hint, and the
-    form compiler is free to ignore this if for example exact integration
-    is being used.
-
-  * ``"ffc"``: A dict with further FFC specific options, see the
-    FFC manual.
-
-  * Other string: A dict with further options specific to some other
-    external code.
-
-  Other standardized options may be added in later versions. ::
-
-    metadata0 = {"ffc": {"representation": "quadrature"}}
-    metadata1 = {"integration_order": 7,
-             "ffc": {"representation": "tensor"}}
-
-    a = v*u*dx(0, metadata1) + f*v*dx(0, metadata2)
-
 
 Finite element spaces
 =====================
@@ -131,7 +100,7 @@ the finite element spaces over which the integration takes place.
 UFL can represent very flexible general hierarchies of mixed finite elements,
 and has predefined names for most common element families.
 A finite element space is defined by an element domain, shape functions and nodal variables.
-In UFL, the element domain is called a ``cell``.
+In UFL, the element domain is called a ``Cell``.
 
 Cells
 -----
@@ -216,13 +185,6 @@ possible values include:
   ``finite elements'' with degrees of freedom being function evaluation
   at quadrature points on the boundary;
 
-.. topic:: Advanced usage
-
-  New elements can be added dynamically by the form compiler using the
-  function ``register_element``. See the docstring for details.
-  To see which elements are registered (including the standard built in
-  ones listed above) call the function ``show_elements``.
-
 
 Basic elements
 --------------
@@ -301,12 +263,14 @@ Shorthand notation for two subelements::
 
   element = element1 * element2
 
-Note: Multiplication is a binary operator, such that ::
+.. note::
 
-  element = element1 * element2 * element3
+    The ``\*`` operator is left-associative, such that::
 
-represents ``(e1 * e2) * e3``, i.e. this is a mixed element with two
-sub-elements ``(e1 * e2)`` and ``e3``.
+      element = element1 * element2 * element3
+
+    represents ``(e1 * e2) * e3``, i.e. this is a mixed element with two
+    sub-elements ``(e1 * e2)`` and ``e3``.
 
 See `Form arguments`_ for details on how defining
 functions on mixed spaces can differ from functions on other
@@ -418,7 +382,7 @@ of the function.
 .. note::
 
     Note that more than one function can be declared for the same
-    ``FiniteElement``. The following example declares two ``Argument``_s
+    ``FiniteElement``. The following example declares two ``Argument``\ s
     and two ``Coefficient``\ s for the same ``FiniteElement``::
 
       v = Argument(element)
@@ -499,16 +463,6 @@ as in this example::
 
   # Kronecker delta
   delta_ij = I[i,j]
-
-.. note:: Advanced usage
-
-  Note that there are some differences from FFC.
-  In particular, using ``FacetNormal`` or ``cell.n``
-  does not implicitly add another coefficient Coefficient to the form,
-  the normal should be automatically computed in UFC code.
-  Note also that ``MeshSize`` has been removed because the
-  meaning is ambiguous (does it mean min, max, avg, cell radius?),
-  so use a ``Constant`` instead.
 
 
 Indexing and tensor components
@@ -804,6 +758,32 @@ obvious.
 * ``cos(f)``
 
 * ``sin(f)``
+
+* ``tan(f)``
+
+* ``cosh(f)``
+
+* ``sinh(f)``
+
+* ``tanh(f)``
+
+* ``acos(f)``
+
+* ``asin(f)``
+
+* ``atan(f)``
+
+* ``atan2(f1, f2)``
+
+* ``erf(f)``
+
+* ``bessel_J(nu, f)``
+
+* ``bessel_Y(nu, f)``
+
+* ``bessel_I(nu, f)``
+
+* ``bessel_K(nu, f)``
 
 These functions do not accept non-scalar operands or operands with free
 indices or ``Argument`` dependencies.
