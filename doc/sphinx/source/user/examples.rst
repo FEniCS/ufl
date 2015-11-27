@@ -20,7 +20,7 @@ mass matrix,
 
 .. math::
 
-   a(v, u) = \int_{\Omega} v \, u dx,
+   a(v, u) = \int_{\Omega} v \, u \mathop{dx},
 
 which can be implemented in UFL as follows::
 
@@ -31,7 +31,7 @@ which can be implemented in UFL as follows::
 
   a = v*u*dx
 
-This example is implemented in the file ``mass.ufl`` in the collection
+This example is implemented in the file ``demo/Mass.ufl`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 Poisson equation
@@ -40,8 +40,8 @@ Poisson equation
 The bilinear and linear forms form for Poisson's equation,
 
 .. math::
-   a(v, u) &=& \int_{\Omega} \nabla v \cdot \nabla u dx, \\
-   L(v; f)  &=& \int_{\Omega} v \, f dx,
+   a(v, u) &=& \int_{\Omega} \nabla v \cdot \nabla u \mathop{dx}, \\
+   L(v; f)  &=& \int_{\Omega} v \, f \mathop{dx},
 
 can be implemented as follows::
 
@@ -63,7 +63,7 @@ or like this::
 
   a = v.dx(i)*u.dx(i)*dx
 
-This example is implemented in the file ``poisson.ufl`` in the collection
+This example is implemented in the file ``demo/Poisson.ufl`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 
@@ -75,8 +75,8 @@ equations,
 
 .. math::
 
-   a(v, u) &=& \int_{\Omega} \nabla v : \nabla u dx, \\
-   L(v; f) &=& \int_{\Omega} v \cdot f dx,
+   a(v, u) &=& \int_{\Omega} \nabla v : \nabla u \mathop{dx}, \\
+   L(v; f) &=& \int_{\Omega} v \cdot f \mathop{dx},
 
 with :math:`v`, :math:`u` and :math:`f` vector-valued can be implemented
 as follows::
@@ -100,7 +100,7 @@ or like this::
   a = v[i].dx(j)*u[i].dx(j)*dx
   L = v[i]*f[i]*dx
 
-This example is implemented in the file ``poisson\_system.ufl`` in
+This example is implemented in the file ``demo/PoissonSystem.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -112,7 +112,7 @@ The strain-strain term of linear elasticity,
 
 .. math::
 
-   a(v, u) = \int_{\Omega} \epsilon(v) : \epsilon(u) dx,
+   a(v, u) = \int_{\Omega} \epsilon(v) : \epsilon(u) \mathop{dx},
 
 where
 
@@ -143,7 +143,7 @@ or like this::
   a = 0.25*(v[j].dx(i) + v[i].dx(j))* \
            (u[j].dx(i) + u[i].dx(j))*dx
 
-This example is implemented in the file ``elasticity.ufl`` in the
+This example is implemented in the file ``demo/Elasticity.ufl`` in the
 collection of demonstration forms included with the UFL source
 distribution.
 
@@ -156,7 +156,7 @@ the incompressible Navier--Stokes equations,
 
 .. math::
 
-   a(v, u; w) = \int_{\Omega} (w \cdot \nabla u) \cdot v dx,
+   a(v, u; w) = \int_{\Omega} (w \cdot \nabla u) \cdot v \mathop{dx},
 
 with :math:`w` the frozen velocity from a previous iteration, can be
 implemented as follows::
@@ -177,7 +177,7 @@ or like this::
 
   a = v[i]*w[j]*u[i].dx(j)*dx
 
-This example is implemented in the file ``navier\_stokes.ufl`` in
+This example is implemented in the file ``demo/NavierStokes.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -197,9 +197,9 @@ obtain the following variational problem for the discrete solution :math:`u_h
 
 .. math::
 
-   \frac{1}{k_n} \int_{\Omega} v \, (u_h^n - u_h^{n-1}) dx +
-   \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n dx =
-   \int_{\Omega} v \, f^n dx
+   \frac{1}{k_n} \int_{\Omega} v \, (u_h^n - u_h^{n-1}) \mathop{dx} +
+   \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n \mathop{dx} =
+   \int_{\Omega} v \, f^n \mathop{dx}
 
 for all test functions :math:`v`, where :math:`k = t_n - t_{n-1}`
 denotes the time step . In the example below, we implement this
@@ -212,9 +212,9 @@ linear forms:
 
 .. math::
 
-  a(v, u_h^n; c, k) &=& \int_{\Omega} v \, u_h^n dx +
-  k_n \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n dx, \\
-  L(v; u_h^{n-1}, f, k) &=& \int_{\Omega} v \, u_h^{n-1} dx + k_n \int_{\Omega} v \, f^n dx,
+  a(v, u_h^n; c, k) &=& \int_{\Omega} v \, u_h^n \mathop{dx} +
+  k_n \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n \mathop{dx}, \\
+  L(v; u_h^{n-1}, f, k) &=& \int_{\Omega} v \, u_h^{n-1} \mathop{dx} + k_n \int_{\Omega} v \, f^n \mathop{dx},
 
 which can be implemented as follows::
 
@@ -230,7 +230,7 @@ which can be implemented as follows::
   a = v*u1*dx + k*c*dot(grad(v), grad(u1))*dx
   L = v*u0*dx + k*v*f*dx
 
-This example is implemented in the file ``heat.ufl`` in the collection
+This example is implemented in the file ``demo/Heat.ufl`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 
@@ -251,8 +251,8 @@ linear forms:
 .. math::
 
    a((v, q), (u, p)) &=& \int_{\Omega} \nabla v : \nabla u - (\nabla \cdot v) \, p +
-   q \, (\nabla \cdot u) dx, \\
-   L((v, q); f) &=& \int_{\Omega} v \cdot f dx.
+   q \, (\nabla \cdot u) \mathop{dx}, \\
+   L((v, q); f) &=& \int_{\Omega} v \cdot f \mathop{dx}.
 
 Using a mixed formulation with Taylor-Hood elements, this can be
 implemented as follows::
@@ -270,7 +270,7 @@ implemented as follows::
   a = (inner(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
   L = dot(v, f)*dx
 
-This example is implemented in the file ``stokes.ufl`` in the collection
+This example is implemented in the file ``demo/Stokes.ufl`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 Mixed formulation of Poisson
@@ -297,9 +297,9 @@ where
 .. math::
 
    a((\tau, w), (\sigma, u)) &=& \int_{\Omega} \tau \cdot \sigma - \nabla \cdot \tau \, u
-   + w \nabla \cdot \sigma dx,
+   + w \nabla \cdot \sigma \mathop{dx},
    \\
-   L((\tau, w); f) &=& \int_{\Omega} w \cdot f dx.
+   L((\tau, w); f) &=& \int_{\Omega} w \cdot f \mathop{dx}.
 
 We may implement the corresponding forms in our form language using
 first order BDM H(div)-conforming elements for
@@ -320,7 +320,7 @@ first order BDM H(div)-conforming elements for
   a = (dot(tau, sigma) - div(tau)*u + w*div(sigma))*dx
   L = w*f*dx
 
-This example is implemented in the file ``mixed\_poisson.ufl`` in
+This example is implemented in the file ``demo/MixedPoisson.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -338,7 +338,7 @@ where
 
 .. math::
 
-   a(v, u; h) &= \int_{\Omega} \nabla v \cdot \nabla u dx \\
+   a(v, u; h) &= \int_{\Omega} \nabla v \cdot \nabla u \mathop{dx} \\
    &+ \sum_S \int_S
    - \langle \nabla v \rangle \cdot \llbracket u \rrbracket_n
    - \llbracket v \rrbracket_n \cdot \langle \nabla u \rangle
@@ -346,7 +346,7 @@ where
    &+ \int_{\partial\Omega}
    - \nabla v \cdot \llbracket u \rrbracket_n - \llbracket v \rrbracket_n \cdot \nabla u
    + (\gamma/h) v u \ds \\
-   L(v; f, g) &= \int_{\Omega} v f dx + \int_{\partial\Omega} v g \ds.
+   L(v; f, g) &= \int_{\Omega} v f \mathop{dx} + \int_{\partial\Omega} v g \ds.
 
 The corresponding finite element variational problem for discontinuous
 first order elements may be implemented as follows::
@@ -373,7 +373,7 @@ first order elements may be implemented as follows::
     + gamma/h*v*u*ds
   L = v*f*dx + v*g*ds
 
-This example is implemented in the file ``poisson\_dg.ufl`` in
+This example is implemented in the file ``demo/PoissonDG.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -401,11 +401,11 @@ The linearised bilinear and linear forms for this equation,
 
 .. math:
 
-   a(v, u; u_0) &=& \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u dx
-   + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 dx,
+   a(v, u; u_0) &=& \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u \mathop{dx}
+   + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 \mathop{dx},
    \\
-   L(v; u_0, f)    &=& \int_{\Omega} v \, f dx
-   - \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u_0 dx,
+   L(v; u_0, f)    &=& \int_{\Omega} v \, f \mathop{dx}
+   - \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u_0 \mathop{dx},
 
 can be implemented in a single form file as follows::
 
@@ -431,11 +431,11 @@ and :math:`\sigma_0 = (1+u_{0}^2) \nabla u_0` as given functions (to be
 computed elsewhere). Substituting into bilinear linear forms, we obtain
 
 .. math:
-   a(v, u) &=& \int_{\Omega} \text{C} \nabla v \cdot \nabla u dx
-   + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 dx,
+   a(v, u) &=& \int_{\Omega} \text{C} \nabla v \cdot \nabla u \mathop{dx}
+   + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 \mathop{dx},
    \\
-   L(v; \sigma_0, f)    &=& \int_{\Omega} v \, f dx
-   - \int_{\Omega} \nabla v \cdot \sigma_0 dx.
+   L(v; \sigma_0, f)    &=& \int_{\Omega} v \, f \mathop{dx}
+   - \int_{\Omega} \nabla v \cdot \sigma_0 \mathop{dx}.
 
 Then, two additional forms are created to compute the tangent C and
 the gradient of :math:`u_0`. This situation shows up in plasticity and
