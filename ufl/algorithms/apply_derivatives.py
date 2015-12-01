@@ -56,6 +56,8 @@ from ufl.checks import is_cellwise_constant
 # - ReferenceDivRuleset
 
 
+CONDITIONAL_WORKAROUND = True
+
 class GenericDerivativeRuleset(MultiFunction):
     def __init__(self, var_shape):
         MultiFunction.__init__(self)
@@ -414,14 +416,21 @@ class GenericDerivativeRuleset(MultiFunction):
         return None
 
     def conditional(self, o, unused_dc, dt, df):
+        global CONDITIONAL_WORKAROUND
         if isinstance(dt, Zero) and isinstance(df, Zero):
             # Assuming dt and df have the same indices here, which should be the case
             return dt
-        else:
-            # Placing t[1],f[1] outside here to avoid getting arguments inside conditionals
-            c, t, f = o.ufl_operands
+        elif CONDITIONAL_WORKAROUND:
+            # Placing t[1],f[1] outside here to avoid getting arguments inside conditionals.
+            # This will fail when dt or df become NaN or Inf in floating point computations!
+            c = o.ufl_operands[0]
             dc = conditional(c, 1, 0)
             return dc*dt + (1.0 - dc)*df
+        else:
+            # Not placing t[1],f[1] outside, allowing arguments inside conditionals.
+            # This will make legacy ffc fail, but should work with uflacs.
+            c = o.ufl_operands[0]
+            return conditional(c, dt, df)
 
     def max_value(self, o, df, dg):
         #d/dx max(f, g) =
