@@ -56,7 +56,9 @@ from ufl.checks import is_cellwise_constant
 # - ReferenceDivRuleset
 
 
-CONDITIONAL_WORKAROUND = True
+# Set this to True to enable workaround for bug in FFC handling of conditionals
+CONDITIONAL_WORKAROUND = False
+
 
 class GenericDerivativeRuleset(MultiFunction):
     def __init__(self, var_shape):
