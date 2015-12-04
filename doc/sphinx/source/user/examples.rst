@@ -223,9 +223,9 @@ which can be implemented as follows::
 
   v  = TestFunction(element)  # Test function
   u1 = TrialFunction(element) # Value at t_n
-  u0 = Coefficient(element)      # Value at t_n-1
-  c  = Coefficient(element)      # Heat conductivity
-  f  = Coefficient(element)      # Heat source
+  u0 = Coefficient(element)   # Value at t_n-1
+  c  = Coefficient(element)   # Heat conductivity
+  f  = Coefficient(element)   # Heat source
   k  = Constant("triangle")   # Time step
 
   a = v*u1*dx + k*c*dot(grad(v), grad(u1))*dx

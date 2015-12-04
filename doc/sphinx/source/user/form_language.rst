@@ -1343,12 +1343,12 @@ or the Python syntax ``(true_value if condition else false_value)``.
 Conditions
 ----------
 
-* `eq(a, b)` represents the condition that a == b
-* `ne(a, b)` represents the condition that a != b
-* `le(a, b)` represents the condition that a <= b
-* `ge(a, b)` represents the condition that a >= b
-* `lt(a, b)` represents the condition that a <  b
-* `gt(a, b)` represents the condition that a >  b
+* ``eq(a, b)`` represents the condition that a == b
+* ``ne(a, b)`` represents the condition that a != b
+* ``le(a, b)`` represents the condition that a <= b
+* ``ge(a, b)`` represents the condition that a >= b
+* ``lt(a, b)`` represents the condition that a < b
+* ``gt(a, b)`` represents the condition that a > b
 
 .. note::
 
@@ -1611,7 +1611,7 @@ defined on the mixed finite element::
 
 There is a subtle difference between defining ``x`` and ``y``
 separately and this alternative implementation
-(reusing the elements ``X`, ``Y``, ``M``)::
+(reusing the elements ``X``, ``Y``, ``M``)::
 
   u = Coefficient(M)
   x, y = split(u)
