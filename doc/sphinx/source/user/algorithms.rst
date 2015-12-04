@@ -39,7 +39,8 @@ str
 Compact human readable pretty printing.  Useful in interactive Python
 sessions.  Example output of ``str(a)``::
 
-  TODO
+  { v_0 * v_1 * w_0 } * dx(<Mesh #-1 with coordinates parameterized by <Lagrange vector element of degree 1 on a triangle: 2 x <CG1 on a triangle>>>[everywhere], {})
+  +  { v_0 * w_1 } * ds(<Mesh #-1 with coordinates parameterized by <Lagrange vector element of degree 1 on a triangle: 2 x <CG1 on a triangle>>>[everywhere], {})
 
 repr
 ----
@@ -48,7 +49,7 @@ Accurate description of expression, with the property that
 occur in an expression, especially if ``str(a)`` is ambiguous.
 Example output of ``repr(a)``::
 
-  TODO
+  Form([Integral(Product(Argument(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 0, None), Product(Argument(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 1, None), Coefficient(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 0))), 'cell', Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), 'everywhere', {}, None), Integral(Product(Argument(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 0, None), Coefficient(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 1)), 'exterior_facet', Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), 'everywhere', {}, None)])
 
 
 Tree formatting
@@ -58,7 +59,29 @@ Ascii tree formatting, useful to inspect the tree structure of
 an expression in interactive Python sessions.  Example output of
 ``tree_format(a)``::
 
-  TODO
+  Form:
+    Integral:
+      integral type: cell
+      subdomain id: everywhere
+      integrand:
+        Product
+        (
+          Argument(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 0, None)
+          Product
+          (
+            Argument(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 1, None)
+            Coefficient(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 0)
+          )
+        )
+  Integral:
+    integral type: exterior_facet
+    subdomain id: everywhere
+    integrand:
+      Product
+      (
+        Argument(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 0, None)
+        Coefficient(FunctionSpace(Mesh(VectorElement('Lagrange', triangle, 1, dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 1)
+      )
 
 
 Inspecting and manipulating the expression tree
@@ -66,9 +89,6 @@ Inspecting and manipulating the expression tree
 
 This subsection is mostly for form compiler developers and technically
 interested users.
-
-TODO: More details about traversal and transformation algorithms for
-developers.
 
 Traversing expressions
 ----------------------
@@ -78,12 +98,14 @@ Traversing expressions
 
 Example usage::
 
-  q = f*v
-  r = g*v
-  s = u*v
-  a = q*dx(0) + r*dx(1) + s*ds(0)
   for e in iter_expressions(a):
       print str(e)
+
+outputs::
+
+  v_0 * v_1 * w_0
+  v_0 * w_1
+
 
 ``post_traversal``
 ^^^^^^^^^^^^^^^^^^^
@@ -151,7 +173,10 @@ The call to ``visit`` will traverse ``a`` and call
 argument ``operands`` holding the return values from visits to the
 operands of ``o``. The output is::
 
-  TODO
+  Visiting v_0 * v_1 with operands:
+  v_0, v_1
+
+:math:`(v^0_h)(v^1_h)`
 
 Implementing ``expr`` above provides a default handler for any
 expression node type. For each subclass of ``Expr`` you can
@@ -163,6 +188,7 @@ from type to handler function automatically.
 
 Here is a simple example to show how to override default behaviour::
 
+  from ufl.classes import *
   class CoefficientReplacer(Transformer):
       def __init__(self):
           Transformer.__init__(self)
@@ -181,6 +207,10 @@ Here is a simple example to show how to override default behaviour::
   r = CoefficientReplacer()
   b = r.visit(a)
   print b
+
+outputs::
+
+  3.14 * v_0
 
 The output of this code is the transformed expression ``b ==
 3.14*v``.  This code also demonstrates how to reuse existing handlers.
@@ -297,21 +327,20 @@ Consider the expression:
 where a, b, c, d are arbitrary scalar expressions.
 The *expression tree* for f looks like this::
 
-  TODO: Make figures.
-   a   b  c  d
-   \  /    \  /
-    +      +
-      \    /
-        *
+   a   b   c   d
+   \   /   \   /
+     +       +
+      \     /
+         *
 
 In UFL f is represented like this expression tree.  If a,b,c,d are all
 distinct Coefficient instances, the UFL representation will look like this::
 
-  Coefficient   Coefficient  Coefficient  Coefficient
-  \  /    \  /
-  Sum      Sum
-    \    /
-      Product
+  Coefficient Coefficient Coefficient Coefficient
+            \     /             \     /
+              Sum                 Sum
+                 \               /
+                  --- Product ---
 
 If we instead have the expression
 
@@ -322,13 +351,13 @@ If we instead have the expression
 the tree will in fact look like this, with the functions a and b only
 represented once::
 
-  Coefficient   Coefficient
-  |         \       /       |
-  |          Sum        Product -- IntValue(-1)
-  |             |            |
-  |           Product   |
-  |             |           |
-  |---------- Sum ------|
+  Coefficient     Coefficient
+     |       \   /       |
+     |        Sum      Product -- IntValue(-1)
+     |         |         |
+     |       Product     |
+     |         |         |
+     |------- Sum -------|
 
 The expression tree is a directed acyclic graph (DAG) where the vertices
 are Expr instances and each edge represents a direct dependency between
@@ -364,7 +393,7 @@ but here they are ordered such that
 
    v_i \prec v_j, \quad \forall j > i,
 
-where :math:`a \prec b` means that :math:a does not depend on :math:b
+where :math:`a \prec b` means that :math:`a` does not depend on :math:`b`
 directly or indirectly.
 
 Another property of the computational graph built by UFL is that no

@@ -10,10 +10,8 @@ of ``Expr``.  You can import all of them from the submodule
 
   from ufl.classes import *
 
-
 Structure of a form
 ===================
-
 
 Each ``Form`` owns multiple ``Integral`` instances, each associated
 with a different ``Measure``.  An ``Integral`` owns a ``Measure``
@@ -25,7 +23,7 @@ Subclasses of ``Terminal`` represent atomic quantities which
 terminate the expression tree, e.g. they have no subexpressions.
 Subclasses of ``Operator`` represent operations on one or more
 other expressions, which may usually be ``Expr`` subclasses of
-arbitrary type. Different ``Operator``s may have restrictions
+arbitrary type. Different ``Operator``\ s may have restrictions
 on some properties of their arguments.
 
 All the types mentioned here are conceptually immutable, i.e. they
@@ -74,18 +72,18 @@ property is used in some algorithms.
 of ``u``.
 
 
-``free\_indices``
+``free_indices``
 -----------------
 
-``u.free\_indices()`` returns a tuple of ``Index`` objects, which
+``u.free_indices()`` returns a tuple of ``Index`` objects, which
 are the unassigned, free indices of ``u``.
 
 
-``index\_dimensions``
+``index_dimensions``
 ---------------------
 
-``u.index\_dimensions()`` returns a ``dict`` mapping from each
-``Index`` instance in ``u.free\_indices()`` to the integer dimension
+``u.index_dimensions()`` returns a ``dict`` mapping from each
+``Index`` instance in ``u.free_indices()`` to the integer dimension
 of the value space each index can range over.
 
 
@@ -95,7 +93,7 @@ of the value space each index can range over.
 ``str(u)`` returns a human-readable string representation of ``u``.
 
 
-''repr(u)''
+``repr(u)``
 -----------
 
 ``repr(u)`` returns a Python string representation of ``u``, such
@@ -154,9 +152,6 @@ not possible, but since all ``Expr`` instances are immutable,
 ``reconstruct`` for terminals can simply return self. This feature
 and the immutability property is used extensively in algorithms.
 
-TODO: Describe all Terminal representation classes here.
-
-
 Operators
 =========
 
@@ -167,9 +162,6 @@ positional arguments, and only that. This way, a unified implementation
 of ``reconstruct`` is possible, by simply calling the constructor
 with new operands. This feature is used extensively in algorithms.
 
-TODO: Describe all Operator representation classes here.
-
-
 Extending UFL
 =============
 
@@ -179,11 +171,8 @@ existing ones, that is the easiest route. The reason is that only some
 of the properties of an operator is represented by the ``Expr``
 subclass. Other properties are part of the various algorithms in
 UFL. One example is derivatives, which are defined in the differentiation
-algorithm, and how to render a type to the \LaTeX{`` or dot formats. These
+algorithm, and how to render a type to the ``LaTeX`` or dot formats. These
 properties could be merged into the class hierarchy, but other properties
-like how to map a UFL type to some \ffc{`` or \sfc{`` or \dolfin{`` type
-can not be part of UFL. So before adding a new class, consider that doing
+like how to map a UFL type to some ``ffc`` or ``dolfin`` type
+cannot be part of UFL. So before adding a new class, consider that doing
 so may require changes in multiple algorithms and even other projects.
-
-TODO: More issues to consider when adding stuff to ufl.
-

@@ -1254,7 +1254,7 @@ methods. These include the evaluation of the jump and average
 of a function (or in general an expression) over the interior facets
 (edges or faces) of a mesh.
 
-Restriction: ``v('+')`` and ``v('-')}``
+Restriction: ``v('+')`` and ``v('-')``
 -----------------------------------------------------------
 
 When integrating over interior facets (``*dS``), one may restrict
@@ -1362,7 +1362,7 @@ User-defined operators
 ======================
 
 A user may define new operators, using standard Python syntax. As an
-example, consider the strain-rate operator :math:\epsilon of linear elasticity,
+example, consider the strain-rate operator :math:`\epsilon` of linear elasticity,
 defined by
 
 .. math::
