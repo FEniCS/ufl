@@ -515,7 +515,7 @@ class GradRuleset(GenericDerivativeRuleset):
     def reference_grad(self, o):
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
-        ufl_assert(f._ufl_is_in_reference_frame_, "ReferenceGrad can only wrap a reference frame type!")
+        # ufl_assert(f._ufl_is_in_reference_frame_, "ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
         r = indices(len(o.ufl_shape))
@@ -566,7 +566,8 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
     def spatial_coordinate(self, o):
         "dx/dX = J"
-        return Jacobian(o.ufl_domain())
+        # Don't convert back to J, otherwise we get in a loop
+        return ReferenceGrad(o)
 
     def cell_coordinate(self, o):
         "dX/dX = I"
