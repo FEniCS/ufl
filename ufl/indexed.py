@@ -19,6 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from six.moves import zip
+from ufl.constantvalue import Zero
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
@@ -33,6 +34,25 @@ from ufl.core.ufl_type import ufl_type
 @ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions",)
+
+    def __new__(cls, expression, multiindex):
+        if isinstance(expression, Zero):
+            # Zero-simplify indexed Zero objects
+            shape = expression.ufl_shape
+            efi = expression.ufl_free_indices
+            efid = expression.ufl_index_dimensions
+            fi = list(zip(efi, efid))
+            for pos, ind in enumerate(multiindex._indices):
+                if isinstance(ind, Index):
+                    fi.append((ind.count(), shape[pos]))
+            fi = unique_sorted_indices(sorted(fi))
+            if fi:
+                fi, fid = zip(*fi)
+            else:
+                fi, fid = (), ()
+            return Zero(shape=(), free_indices=fi, index_dimensions=fid)
+        else:
+            return Operator.__new__(cls)
 
     def __init__(self, expression, multiindex):
         # Store operands
