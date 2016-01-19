@@ -25,7 +25,7 @@ from itertools import chain
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 
-from ufl.classes import GeometricFacetQuantity, Coefficient
+from ufl.classes import GeometricFacetQuantity, Coefficient, Form
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData#, ExprData
@@ -40,10 +40,12 @@ from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions
+from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 
 # See TODOs at the call sites of these below:
 from ufl.algorithms.domain_analysis import build_integral_data
 from ufl.algorithms.domain_analysis import reconstruct_form_from_integral_data
+from ufl.algorithms.domain_analysis import group_form_integrals
 
 
 def _auto_select_degree(elements):
@@ -184,6 +186,23 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
 
     return new_coefficients, replace_map
 
+def attach_estimated_degrees(form):
+    """Attach estimated polynomial degree to a form's integrals.
+
+    :arg form: The :class:`~.Form` to inspect.
+    :returns: A new Form with estimate degrees attached.
+    """
+    integrals = form.integrals()
+
+    new_integrals = []
+    for integral in integrals:
+        md = {}
+        md.update(integral.metadata())
+        degree = estimate_total_polynomial_degree(integral.integrand())
+        md["estimated_polynomial_degree"] = degree
+        new_integrals.append(integral.reconstruct(metadata=md))
+    return Form(new_integrals)
+
 def compute_form_data(form,
                       # Default arguments configured to behave the way old FFC expects it:
                       do_apply_function_pullbacks=False,
@@ -191,6 +210,7 @@ def compute_form_data(form,
                       do_apply_geometry_lowering=False,
                       preserve_geometry_types=(),
                       do_apply_restrictions=True,
+                      do_estimate_degrees=True,
                       ):
 
     # TODO: Move this to the constructor instead
@@ -218,6 +238,18 @@ def compute_form_data(form,
     # coefficient derivatives are more complicated to derive after coefficients
     # are rewritten, and in particular for user-defined coefficient relations it just gets too messy
     form = apply_derivatives(form)
+
+    # --- Group form integrals
+    # TODO: Refactor this, it's rather opaque what this does
+    # TODO: Is self.original_form.ufl_domains() right here?
+    #       It will matter when we start including 'num_domains' in ufc form.
+    form = group_form_integrals(form, self.original_form.ufl_domains())
+
+    # Estimate polynomial degree of integrands now, before applying
+    # any pullbacks and geometric lowering.  Otherwise quad degrees
+    # blow up horrifically.
+    if do_estimate_degrees:
+        form = attach_estimated_degrees(form)
 
     if do_apply_function_pullbacks:
         # Rewrite coefficients and arguments in terms of their reference cell values
@@ -252,11 +284,9 @@ def compute_form_data(form,
         form = apply_restrictions(form)
 
 
-    # --- Group and collect data about integrals
-    # TODO: Refactor this, it's rather opaque what this does
-    # TODO: Is self.original_form.ufl_domains() right here?
-    #       It will matter when we start including 'num_domains' in ufc form.
-    self.integral_data = build_integral_data(form.integrals(), self.original_form.ufl_domains())
+    # --- Group integrals into IntegralData objects
+    # Most of the heavy lifting is done above in group_form_integrals.
+    self.integral_data = build_integral_data(form.integrals())
 
 
     # --- Create replacements for arguments and coefficients
