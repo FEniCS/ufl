@@ -471,6 +471,17 @@ class GradRuleset(GenericDerivativeRuleset):
         else:
             # TODO: Which types does this involve? I don't think the form compilers will handle this.
             return Grad(o)
+
+    def jacobian_inverse(self, o):
+        # grad(K) == K_ji rgrad(K)_rj
+        if is_cellwise_constant(o):
+            return self.independent_terminal(o)
+        ufl_assert(o._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
+        r = indices(len(o.ufl_shape))
+        i, j = indices(2)
+        Do = as_tensor(o[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
+        return Do
+
     # TODO: Add more explicit geometry type handlers here, with non-affine domains several should be non-zero.
 
     def spatial_coordinate(self, o):
