@@ -41,7 +41,7 @@ A very brief overview of the language contents follows:
 
 * Cells::
 
-    AbstractCell, Cell, TensorProductCell, OuterProductCell,
+    AbstractCell, Cell, TensorProductCell
     vertex, interval, triangle, tetrahedron, quadrilateral, hexahedron
 
 * Domains::

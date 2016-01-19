@@ -39,7 +39,7 @@ class TensorProductElement(FiniteElementBase):
     __slots__ = ("_A", "_B", "_mapping")
 
     def __init__(self, A, B, cell=None):
-        "Create OuterProductElement from a given pair of elements."
+        "Create TensorProductElement from a given pair of elements."
         self._A = A
         self._B = B
         family = "TensorProductElement"
