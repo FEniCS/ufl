@@ -182,6 +182,9 @@ Expr.__add__ = _add
 def _radd(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
+    if isinstance(o, int) and o == 0:
+        # Allow adding scalar int 0 as a no-op, even for shaped self, needed for sum([a,b])
+        return self
     return Sum(o, self)
 Expr.__radd__ = _radd
 
