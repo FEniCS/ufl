@@ -2,6 +2,11 @@
 Internal representation details
 *******************************
 
+FIXME: This chapter is very much outdated.
+Most of the concepts are still the same but
+a lot of the details are different.
+
+
 This chapter explains how UFL forms and expressions are represented
 in detail. Most operations are mirrored by a representation class,
 e.g., ``Sum`` and ``Product``, which are subclasses

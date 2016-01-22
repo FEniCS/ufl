@@ -56,6 +56,8 @@ representing an integral over either of:
 
     * the set of interior facets :math:`\Gamma` (``dS``, interior facet integral).
 
+(Note that newer versions of UFL supports several other integral
+types currently not documented here).
 As a basic example, assume ``v`` is a scalar-valued expression and
 consider the integral of ``v`` over the interior of :math:`\Omega`. This
 may be expressed as::
@@ -105,22 +107,20 @@ In UFL, the element domain is called a ``Cell``.
 Cells
 -----
 
-A polygonal cell is defined by a basic shape and a degree (note
-that the other components of FEniCS do not yet handle cells of higher
-degree, so this will only be useful in the future), written as::
+A polygonal cell is defined by a shape name and a geometric dimension, written as::
 
-  cell = Cell(shape, degree)
+  cell = Cell(shape, gdim)
 
 Valid shapes are "interval", "triangle", "tetrahedron", "quadrilateral",
 and "hexahedron".  Some examples::
 
-  # Cubic triangle cell
+  # Regular triangle cell
+  cell = Cell("triangle")
+
+  # Triangle cell embedded in 3D space
   cell = Cell("triangle", 3)
 
-  # Quadratic tetrahedron cell
-  cell = Cell("tetrahedron", 2)
-
-Objects for linear cells of all basic shapes are predefined::
+Objects for regular cells of all basic shapes are predefined::
 
   # Predefined linear cells
   cell = interval
@@ -184,6 +184,9 @@ possible values include:
 * ``"Boundary Quadrature"`` or ``"BQ"``, representing artificial
   "finite elements" with degrees of freedom being function evaluation
   at quadrature points on the boundary;
+
+Note that new versions of UFL also support notation from the Periodic Table
+of Finite Elements, currently not documented here.
 
 
 Basic elements
@@ -358,6 +361,13 @@ not matter).  Their usage is otherwise the same as for ``Argument``::
   u, p = TrialFunctions(TH)
 
 
+Meshes and function spaces
+--------------------------
+
+Note that newer versions of UFL introduce the concept of a
+Mesh and a FunctionSpace. These are currently not documented here.
+
+
 Coefficient functions
 ---------------------
 
@@ -432,21 +442,21 @@ Literals and geometric quantities
 
 Some atomic quantities are derived from the cell.  For example, the
 (global) spatial coordinates are available as a vector valued expression
-``cell.x``::
+``SpatialCoordinate(cell)``::
 
   # Linear form for a load vector with a sin(y) coefficient
   v = TestFunction(element)
-  x = cell.x
+  x = SpatialCoordinate(cell)
   L = sin(x[1])*v*dx
 
-Another quantity is the (outwards pointing) facet normal ``cell.n``.
+Another quantity is the (outwards pointing) facet normal ``FacetNormal(cell)``.
 The normal vector is only defined on the boundary, so it can't be used
 in a cell integral.
 
 Example functional ``M``, an integral of the normal component of a
 function ``g`` over the boundary::
 
-  n = cell.n
+  n = FacetNormal(cell)
   g = Coefficient(VectorElement("CG", cell, 1))
   M = dot(n, g)*ds
 
@@ -456,7 +466,7 @@ represents an :math:`n\times n` unit matrix of given size :math:`n`,
 as in this example::
 
   # Geometric dimension
-  d = cell.d
+  d = cell.geometric_dimension()
 
   # d x d identiy matrix
   I = Identity(d)
@@ -1343,18 +1353,17 @@ or the Python syntax ``(true_value if condition else false_value)``.
 Conditions
 ----------
 
-* ``eq(a, b)`` represents the condition that a == b
-* ``ne(a, b)`` represents the condition that a != b
-* ``le(a, b)`` represents the condition that a <= b
-* ``ge(a, b)`` represents the condition that a >= b
-* ``lt(a, b)`` represents the condition that a < b
-* ``gt(a, b)`` represents the condition that a > b
+* ``eq(a, b)`` must be used in place of the notation ``a == b``
+* ``ne(a, b)`` must be used in place of the notation ``a != b``
+* ``le(a, b)`` is equivalent to ``a <= b``
+* ``ge(a, b)`` is equivalent to ``a >= b``
+* ``lt(a, b)`` is equivalent to ``a < b``
+* ``gt(a, b)`` is equivalent to ``a > b``
 
 .. note::
 
   Because of details in the way Python behaves, we cannot overload
-  the builtin comparison operators for this purpose, hence these named
-  operators.
+  the == operator hence these named operators.
 
 .. _user-defined:
 
@@ -1704,68 +1713,6 @@ a form, because ``derivative`` changes the arity of the form::
   Jpa = action(Jp, w)
   g = Coefficient(element)
   Jnorm = energy_norm(J, g)
-
-
-Tuple notation
-==============
-
-In addition to the standard integrand notation described above, UFL
-supports a simplified *tuple notation* by which :math:`L^2` inner
-products may be expressed as tuples. Consider for example the following
-bilinear form as part of a variational problem for a reaction--diffusion
-problem:
-
-.. math::
-
-  a(v, u)
-  &= \int_{\Omega} \nabla v \cdot \nabla u + v u \mathop{dx} \\
-  &= (\nabla v, \nabla u) + (v, u)
-
-In standard UFL notation, this bilinear form may be expressed as::
-
-  a = inner(grad(v), grad(u))*dx + v*u*dx
-
-In tuple notation, this may alternatively be expressed as::
-
-  a = (grad(v), grad(u)) + (v, u)
-
-In general, a form may be expressed as a sum of tuples or triples of
-the form::
-
-  (v, w)
-  (v, w, dm)
-
-where ``v`` and ``w`` are expressions of matching rank (so that ``inner(v,
-w)`` makes sense), and ``dm`` is a measure. If the measure is left out,
-it is assumed that it is ``dx``.
-
-The following example illustrates how to express a form containing
-integrals over subdomains and facets::
-
-  a = (grad(v), grad(u)) + (v, b*grad(u), dx(2)) + (v, u, ds) + (jump(v), jump(u), dS)
-
-.. note::
-
-    The following caveats should be noted:
-
-    * The only operation allowed on a tuple is addition. In particular,
-      tuples may not subtracted. Thus,
-      ``a = (grad(v), grad(u)) - (v, u)}`` must be expressed as
-      ``a = (grad(v), grad(u)) + (-v, u)``.
-
-    * Tuple notation may not be mixed with standard UFL integrand
-      notation. Thus, ``a = (grad(v), grad(u)) + inner(v, u)*dx`` is not
-      valid.
-
-.. note:: Advanced usage
-
-  Tuple notation is strictly speaking not a part of the form
-  language, but tuples may be converted to UFL forms using
-  the function ``tuple2form`` available from the module
-  ``ufl.algorithms``. This is normally handled automatically by
-  form compilers, but the ``tuple2form`` utility may useful when
-  working with UFL from a Python script. Automatic conversion is also
-  carried out by UFL form operators such as ``lhs`` and ``rhs``.
 
 
 Form files
