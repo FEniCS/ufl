@@ -1,9 +1,17 @@
 1.7.0dev
+ - Updates to old manual for publishing on fenics-ufl.readthedocs.org
+ - Bugfix for ufl files with utf-8 encoding
+ - Bugfix in conditional derivatives, currently must be manually enabled for compatibility
+ - Allow sum([expressions]) where expressions are nonscalar by defining expr+0==expr
+ - Allow form=0; form -= other;
  - Deprecate .cell(), .domain(), .element() in favour of .ufl_cell(),
 	.ufl_domain(), .ufl_element(), in multiple classes, to allow
 	closer integration with dolfin.
  - Remove deprecated properties cell.{d,x,n,volume,circumradius,facet_area}.
  - Remove ancient form2ufl script
+ - Add new class Mesh to replace Domain
+ - Add new class FunctionSpace(mesh, element)
+ - Make FiniteElement classes take Cell, not Domain.
  - Large reworking of symbolic geometry pipeline
  - Implement symbolic Piola mappings
 1.6.0 [2015-07-28]
