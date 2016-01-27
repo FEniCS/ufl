@@ -23,6 +23,10 @@ from ufl.corealg.traversal import post_traversal, cutoff_post_traversal
 from ufl.corealg.multifunction import MultiFunction
 
 def map_expr_dag(function, expression, compress=True):
+    result, = map_expr_dags(function, [expression], compress=compress)
+    return result
+
+def map_expr_dags(function, expressions, compress=True):
     """Apply a function to each subexpression node in expression dag.
 
     If compress is True (default), the output object from
@@ -52,35 +56,39 @@ def map_expr_dag(function, expression, compress=True):
         def traversal(expression):
             return post_traversal(expression)
 
-    # Iterate over all subexpression nodes, child before parent
-    for v in traversal(expression):
+    is_ = []
+    for expression in expressions:
+        # Iterate over all subexpression nodes, child before parent
+        for v in traversal(expression):
 
-        # Check if v is in vcache (to be able to skip transformations)
-        i = vcache.get(v)
+            # Check if v is in vcache (to be able to skip transformations)
+            i = vcache.get(v)
 
-        # Cache hit: skip transformation
-        if i is not None:
-            continue
+            # Cache hit: skip transformation
+            if i is not None:
+                continue
 
-        # Cache miss: Get transformed operands, then apply transformation
-        if cutoff_types[v._ufl_typecode_]:
-            r = function(v)
-        else:
-            rops = [results[vcache[u]] for u in v.ufl_operands]
-            r = function(v, *rops)
+            # Cache miss: Get transformed operands, then apply transformation
+            if cutoff_types[v._ufl_typecode_]:
+                r = function(v)
+            else:
+                rops = [results[vcache[u]] for u in v.ufl_operands]
+                r = function(v, *rops)
 
-        # Optionally check if r is in rcache (to be able to keep representation of result compact)
-        i = rcache.get(r) if compress else None
+            # Optionally check if r is in rcache (to be able to keep representation of result compact)
+            i = rcache.get(r) if compress else None
 
-        if i is None:
-            # Cache miss: Assign result index and store in results list
-            i = len(results)
-            results.append(r)
-            # Store in rcache
-            if compress:
-                rcache[r] = i
+            if i is None:
+                # Cache miss: Assign result index and store in results list
+                i = len(results)
+                results.append(r)
+                # Store in rcache
+                if compress:
+                    rcache[r] = i
 
-        # Store in vcache
-        vcache[v] = i
+            # Store in vcache
+            vcache[v] = i
 
-    return results[i]
+        is_.append(i)
+
+    return [results[i_] for i_ in is_]
