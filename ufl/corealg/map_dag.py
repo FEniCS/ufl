@@ -46,9 +46,11 @@ def map_expr_dag(function, expression, compress=True):
 
     # Pick faster traversal algorithm if we have no cutoffs
     if any(cutoff_types):
-        traversal = lambda expression: cutoff_post_traversal(expression, cutoff_types)
+        def traversal(expression):
+            return cutoff_post_traversal(expression, cutoff_types)
     else:
-        traversal = lambda expression: post_traversal(expression)
+        def traversal(expression):
+            return post_traversal(expression)
 
     # Iterate over all subexpression nodes, child before parent
     for v in traversal(expression):
