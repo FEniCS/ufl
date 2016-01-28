@@ -61,8 +61,8 @@ class FiniteElement(FiniteElementBase):
             from ufl.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
 
             if family in ["RTCF", "RTCE"]:
-                ufl_assert(cell._A.cellname() == "interval", "%s is available on TensorProductCell(interval, interval) only." % family)
-                ufl_assert(cell._B.cellname() == "interval", "%s is available on TensorProductCell(interval, interval) only." % family)
+                ufl_assert(cell._cells[0].cellname() == "interval", "%s is available on TensorProductCell(interval, interval) only." % family)
+                ufl_assert(cell._cells[1].cellname() == "interval", "%s is available on TensorProductCell(interval, interval) only." % family)
 
                 C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
                 D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
@@ -76,8 +76,8 @@ class FiniteElement(FiniteElementBase):
                     return EnrichedElement(HCurl(CxD_elt), HCurl(DxC_elt))
 
             elif family == "NCF":
-                ufl_assert(cell._A.cellname() == "quadrilateral", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
-                ufl_assert(cell._B.cellname() == "interval", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._cells[0].cellname() == "quadrilateral", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._cells[1].cellname() == "interval", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
                 Qc_elt = FiniteElement("RTCF", "quadrilateral", degree, 1, quad_scheme)
                 Qd_elt = FiniteElement("DQ", "quadrilateral", degree - 1, 2, quad_scheme)
@@ -89,8 +89,8 @@ class FiniteElement(FiniteElementBase):
                                        HDiv(TensorProductElement(Qd_elt, Ic_elt, cell)))
 
             elif family == "NCE":
-                ufl_assert(cell._A.cellname() == "quadrilateral", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
-                ufl_assert(cell._B.cellname() == "interval", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._cells[0].cellname() == "quadrilateral", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._cells[1].cellname() == "interval", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
                 Qc_elt = FiniteElement("Q", "quadrilateral", degree, 0, quad_scheme)
                 Qd_elt = FiniteElement("RTCE", "quadrilateral", degree, 1, quad_scheme)
@@ -102,15 +102,15 @@ class FiniteElement(FiniteElementBase):
                                        HCurl(TensorProductElement(Qd_elt, Ic_elt, cell)))
 
             elif family == "Q":
-                return TensorProductElement(FiniteElement("CG", cell._A, degree, 0, quad_scheme),
-                                           FiniteElement("CG", cell._B, degree, 0, quad_scheme),
+                return TensorProductElement(FiniteElement("CG", cell._cells[0], degree, 0, quad_scheme),
+                                           FiniteElement("CG", cell._cells[1], degree, 0, quad_scheme),
                                            cell)
 
             elif family == "DQ":
-                family_A = "DG" if cell._A.cellname() in simplices else "DQ"
-                family_B = "DG" if cell._B.cellname() in simplices else "DQ"
-                return TensorProductElement(FiniteElement(family_A, cell._A, degree, cell._A.topological_dimension(), quad_scheme),
-                                           FiniteElement(family_B, cell._B, degree, cell._B.topological_dimension(), quad_scheme),
+                family_A = "DG" if cell._cells[0].cellname() in simplices else "DQ"
+                family_B = "DG" if cell._cells[1].cellname() in simplices else "DQ"
+                return TensorProductElement(FiniteElement(family_A, cell._cells[0], degree, cell._cells[0].topological_dimension(), quad_scheme),
+                                           FiniteElement(family_B, cell._cells[1], degree, cell._cells[1].topological_dimension(), quad_scheme),
                                            cell)
 
         return super(FiniteElement, cls).__new__(cls,

@@ -196,16 +196,25 @@ class Cell(AbstractCell):
     def _ufl_hash_data_(self):
         return (self._geometric_dimension, self._topological_dimension, self._cellname)
 
+
 @attach_operators_from_hash_data
 class TensorProductCell(AbstractCell):
     __slots__ = ("_cells",)
-    def __init__(self, cells):
+
+    def __init__(self, *cells, **kwargs):
+        if kwargs and kwargs.keys() != "geometric_dimension":
+            raise TypeError(
+                "TensorProductCell got an unexpected keyword argument '%s'" %
+                kwargs.keys()[0])
+
         self._cells = tuple(as_cell(cell) for cell in cells)
 
-        gdims = [cell.geometric_dimension() for cell in self._cells]
-        tdims = [cell.topological_dimension() for cell in self._cells]
-        gdim = sum(gdims)
-        tdim = sum(tdims)
+        tdim = sum([cell.topological_dimension() for cell in self._cells])
+
+        if kwargs:
+            gdim = kwargs
+        else:
+            gdim = sum([cell.geometric_dimension() for cell in self._cells])
 
         AbstractCell.__init__(self, tdim, gdim)
 
