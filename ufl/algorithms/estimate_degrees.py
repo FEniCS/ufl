@@ -22,7 +22,7 @@
 # Modified by Jan Blechta, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.log import warning
+from ufl.log import warning, error
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.algorithms.transformer import Transformer
