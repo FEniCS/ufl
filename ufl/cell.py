@@ -23,11 +23,8 @@
 # Modified by Marie E. Rognes 2012
 # Modified by Andrew T. T. McRae, 2014
 
-from ufl.log import warning, error
+from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.utils.formatting import istr
-from ufl.utils.dicts import EmptyDict
-from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
 
@@ -40,6 +37,7 @@ __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 class AbstractCell(object):
     "Representation of an abstract finite element cell with only the dimensions known."
     __slots__ = ("_topological_dimension", "_geometric_dimension", "_cellname")
+
     def __init__(self, cellname, topological_dimension, geometric_dimension):
 
         self._cellname = cellname
@@ -257,10 +255,15 @@ class TensorProductCell(AbstractCell):
         return repr(self)
 
     def __repr__(self):
-        return "TensorProductCell(%s)" % ", ".join(repr(c) for c in self._cells)
+
+        if self.geometric_dimension() == self.topological_dimension():
+            return "TensorProductCell(%r, %r)" % self._cells
+        else:
+            return "TensorProductCell(%r, %r, geometric_dimension=%d)" % \
+                self._cells + [self._geometric_dimension]
 
     def _ufl_hash_data_(self):
-        return tuple(c._ufl_hash_data_() for c in self._cells)
+        return tuple(c._ufl_hash_data_() for c in self._cells) + (self._geometric_dimension,)
 
 
 # --- Utility conversion functions
