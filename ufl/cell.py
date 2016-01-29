@@ -212,7 +212,7 @@ class TensorProductCell(AbstractCell):
         tdim = sum([cell.topological_dimension() for cell in self._cells])
 
         if kwargs:
-            gdim = kwargs
+            gdim = kwargs["geometric_dimension"]
         else:
             gdim = sum([cell.geometric_dimension() for cell in self._cells])
 
