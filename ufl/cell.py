@@ -39,8 +39,11 @@ __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 class AbstractCell(object):
     "Representation of an abstract finite element cell with only the dimensions known."
-    __slots__ = ("_topological_dimension", "_geometric_dimension")
-    def __init__(self, topological_dimension, geometric_dimension):
+    __slots__ = ("_topological_dimension", "_geometric_dimension", "_cellname")
+    def __init__(self, cellname, topological_dimension, geometric_dimension):
+
+        self._cellname = cellname
+
         # Validate dimensions
         ufl_assert(isinstance(geometric_dimension, int),
                    "Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
@@ -52,6 +55,10 @@ class AbstractCell(object):
         # Store validated dimensions
         self._topological_dimension = topological_dimension
         self._geometric_dimension = geometric_dimension
+
+    def cellname(self):
+        "Return the cellname of the cell."
+        return self._cellname
 
     def topological_dimension(self):
         "Return the dimension of the topology of this cell."
@@ -112,11 +119,8 @@ cellname2facetname = {
 @attach_operators_from_hash_data
 class Cell(AbstractCell):
     "Representation of a named finite element cell with known structure."
-    __slots__ = ("_cellname",)
     def __init__(self, cellname, geometric_dimension=None):
         "Initialize basic cell description."
-
-        self._cellname = cellname
 
         # The topological dimension is defined by the cell type,
         # so the cellname must be among the known ones,
@@ -130,7 +134,7 @@ class Cell(AbstractCell):
             geometric_dimension = topological_dimension
 
         # Initialize and validate dimensions
-        AbstractCell.__init__(self, topological_dimension, geometric_dimension)
+        AbstractCell.__init__(self, cellname, topological_dimension, geometric_dimension)
 
     # --- Overrides of AbstractCell methods ---
 
@@ -146,10 +150,6 @@ class Cell(AbstractCell):
         return self.is_simplex() or self.cellname() == "quadrilateral"
 
     # --- Specific cell properties ---
-
-    def cellname(self):
-        "Return the cellname of the cell."
-        return self._cellname
 
     def num_vertices(self):
         "The number of cell vertices."
@@ -216,7 +216,14 @@ class TensorProductCell(AbstractCell):
         else:
             gdim = sum([cell.geometric_dimension() for cell in self._cells])
 
-        AbstractCell.__init__(self, tdim, gdim)
+        cellname = " * ".join([cell._cellname for cell in self._cells])
+
+        AbstractCell.__init__(self, cellname, tdim, gdim)
+
+    def reconstruct(self, geometric_dimension=None):
+        if geometric_dimension is None:
+            geometric_dimension = self._geometric_dimension
+        return TensorProductCell(*(self._cells), geometric_dimension=geometric_dimension)
 
     def is_simplex(self):
         "Return True if this is a simplex cell."
