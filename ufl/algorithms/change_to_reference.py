@@ -45,7 +45,7 @@ from ufl.operators import sqrt, max_value, min_value, sign
 from ufl.permutation import compute_indices
 
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
-from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, TensorProductElement, TensorProductVectorElement, TensorElement, FacetElement, InteriorElement, BrokenElement, TraceElement
+from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, TensorProductElement, TensorElement, FacetElement, InteriorElement, BrokenElement, TraceElement
 
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
