@@ -202,7 +202,7 @@ class TensorProductCell(AbstractCell):
     __slots__ = ("_cells",)
 
     def __init__(self, *cells, **kwargs):
-        if kwargs and kwargs.keys() != "geometric_dimension":
+        if kwargs and kwargs.keys() != ["geometric_dimension"]:
             raise TypeError(
                 "TensorProductCell got an unexpected keyword argument '%s'" %
                 kwargs.keys()[0])
