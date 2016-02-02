@@ -131,6 +131,28 @@ def unique_post_traversal(expr, visited=None):
             stacksize -= 1
 
 
+def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
+    """Yields o for each node o in expr, child before parent.
+
+    Never visits a node twice."""
+    stack = [None]*_recursion_limit_
+    stack[0] = (expr, () if cutofftypes[expr._ufl_typecode_] else list(expr.ufl_operands))
+    stacksize = 1
+    visited = visited or set()
+    while stacksize > 0:
+        expr, ops = stack[stacksize - 1]
+        for i, o in enumerate(ops):
+            if o is not None and o not in visited:
+                stack[stacksize] = (o, () if cutofftypes[o._ufl_typecode_] else list(o.ufl_operands))
+                stacksize += 1
+                ops[i] = None
+                break
+        else:
+            yield expr
+            visited.add(expr)
+            stacksize -= 1
+
+
 def traverse_terminals(expr):
     "Iterate over all terminal objects in expression, including duplicates."
     stack = [None]*_recursion_limit_
