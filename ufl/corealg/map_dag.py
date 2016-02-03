@@ -19,7 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.core.expr import Expr
-from ufl.corealg.traversal import post_traversal, cutoff_post_traversal
+from ufl.corealg.traversal import unique_post_traversal, cutoff_unique_post_traversal
 from ufl.corealg.multifunction import MultiFunction
 
 def map_expr_dag(function, expression, compress=True):
@@ -51,10 +51,10 @@ def map_expr_dags(function, expressions, compress=True):
     # Pick faster traversal algorithm if we have no cutoffs
     if any(cutoff_types):
         def traversal(expression):
-            return cutoff_post_traversal(expression, cutoff_types)
+            return cutoff_unique_post_traversal(expression, cutoff_types)
     else:
         def traversal(expression):
-            return post_traversal(expression)
+            return unique_post_traversal(expression)
 
     is_ = []
     for expression in expressions:
