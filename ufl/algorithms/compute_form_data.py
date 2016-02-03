@@ -26,7 +26,7 @@ from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 
 from ufl.classes import GeometricFacetQuantity, Coefficient
-from ufl.corealg.traversal import traverse_terminals
+from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData#, ExprData
 from ufl.algorithms.formtransformations import compute_form_arities
@@ -153,7 +153,7 @@ def _check_facet_geometry(integral_data):
             # Allowing custom integrals to pass as well, although that's not really strict enough.
             if not ("facet" in it or "custom" in it or "interface" in it):
                 # Not a facet integral
-                for expr in traverse_terminals(itg.integrand()):
+                for expr in traverse_unique_terminals(itg.integrand()):
                     cls = expr._ufl_class_
                     if issubclass(cls, GeometricFacetQuantity):
                         error("Integral of type %s cannot contain a %s." % (it, cls.__name__))
