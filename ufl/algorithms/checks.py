@@ -32,7 +32,7 @@ from ufl.integral import Measure
 
 # UFL algorithms
 from ufl.algorithms.traversal import iter_expressions
-from ufl.corealg.traversal import traverse_terminals
+from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.check_restrictions import check_restrictions
 from ufl.measure import integral_type_to_measure_name
 
@@ -57,7 +57,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # FIXME DOMAIN: Add check for consistency between domains somehow
     domains = set(t.ufl_domain()
                   for e in iter_expressions(form)
-                  for t in traverse_terminals(e)) - {None}
+                  for t in traverse_unique_terminals(e)) - {None}
     if not domains:
         errors.append("Missing domain definition in form.")
 
@@ -73,7 +73,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     coefficients = {}
     arguments = {}
     for e in iter_expressions(form):
-        for f in traverse_terminals(e):
+        for f in traverse_unique_terminals(e):
             if isinstance(f, Coefficient):
                 c = f.count()
                 if c in coefficients:

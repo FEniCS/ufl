@@ -39,7 +39,7 @@ from ufl.core.multiindex import Index, MultiIndex
 from ufl.integral import Measure, Integral
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
-from ufl.corealg.traversal import pre_traversal, traverse_terminals
+from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
 
 
 # TODO: Some of these can possibly be optimised by implementing inlined stack based traversal algorithms
@@ -67,7 +67,7 @@ def __unused__extract_classes(a):
     The argument a can be a Form, Integral or Expr."""
     return set(o._ufl_class_
                for e in iter_expressions(a)
-               for o in pre_traversal(e))
+               for o in unique_pre_traversal(e))
 
 def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
@@ -75,11 +75,11 @@ def extract_type(a, ufl_type):
     if issubclass(ufl_type, Terminal):
         # Optimization
         return set(o for e in iter_expressions(a)
-                   for o in traverse_terminals(e)
+                   for o in traverse_unique_terminals(e)
                    if isinstance(o, ufl_type))
     else:
         return set(o for e in iter_expressions(a)
-                   for o in pre_traversal(e)
+                   for o in unique_pre_traversal(e)
                    if isinstance(o, ufl_type))
 
 def has_type(a, ufl_type):
@@ -87,9 +87,9 @@ def has_type(a, ufl_type):
     The argument a can be a Form, Integral or Expr."""
     if issubclass(ufl_type, Terminal):
         # Optimization
-        traversal = traverse_terminals
+        traversal = traverse_unique_terminals
     else:
-        traversal = pre_traversal
+        traversal = unique_pre_traversal
     return any(isinstance(o, ufl_type) for e in iter_expressions(a) for o in traversal(e))
 
 def has_exact_type(a, ufl_type):
@@ -98,9 +98,9 @@ def has_exact_type(a, ufl_type):
     tc = ufl_type._ufl_typecode_
     if issubclass(ufl_type, Terminal):
         # Optimization
-        traversal = traverse_terminals
+        traversal = traverse_unique_terminals
     else:
-        traversal = pre_traversal
+        traversal = unique_pre_traversal
     return any(o._ufl_typecode_ == tc for e in iter_expressions(a) for o in traversal(e))
 
 def extract_arguments(a):

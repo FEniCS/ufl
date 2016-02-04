@@ -22,18 +22,19 @@
 # Modified by Jan Blechta, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.log import warning
+from ufl.log import warning, error
 from ufl.form import Form
 from ufl.integral import Integral
-from ufl.algorithms.transformer import Transformer
+from ufl.algorithms.multifunction import MultiFunction
+from ufl.corealg.map_dag import map_expr_dags
 from ufl.checks import is_cellwise_constant
 
 
-class SumDegreeEstimator(Transformer):
+class SumDegreeEstimator(MultiFunction):
     "This algorithm is exact for a few operators and heuristic for many."
 
     def __init__(self, default_degree, element_replace_map):
-        Transformer.__init__(self)
+        MultiFunction.__init__(self)
         self.default_degree = default_degree
         self.element_replace_map = element_replace_map
 
@@ -279,11 +280,11 @@ def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}
     de = SumDegreeEstimator(default_degree, element_replace_map)
     if isinstance(e, Form):
         ufl_assert(e.integrals(), "Got form with no integrals!")
-        degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
+        degrees = map_expr_dags(de, [it.integrand() for it in e.integrals()])
     elif isinstance(e, Integral):
-        degrees = [de.visit(e.integrand())]
+        degrees = map_expr_dags(de, [e.integrand()])
     else:
-        degrees = [de.visit(e)]
+        degrees = map_expr_dags(de, [e])
     degree = max(degrees) if degrees else default_degree
     return degree
 

@@ -51,6 +51,7 @@ from ufl.classes import terminal_classes
 from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.transformer import Transformer
+from ufl.corealg.traversal import unique_post_traversal
 
 from ufl.formatting.graph import build_graph, partition, extract_outgoing_vertex_connections
 from ufl.formatting.latextools import align, document, verbatim
@@ -67,7 +68,7 @@ def _extract_variables(a):
     handled = set()
     variables = []
     for e in iter_expressions(a):
-        for o in post_traversal(e):
+        for o in unique_post_traversal(e):
             if isinstance(o, Variable):
                 expr, label = o.ufl_operands
                 if label not in handled:
