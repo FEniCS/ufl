@@ -26,6 +26,7 @@
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import attach_operators_from_hash_data
+from six.moves import reduce
 
 
 # Export list for ufl.classes
@@ -237,7 +238,7 @@ class TensorProductCell(AbstractCell):
 
     def num_vertices(self):
         "The number of cell vertices."
-        return product(c.num_vertices() for c in self._cells)
+        return reduce(lambda x, y: x * y, [c.num_vertices() for c in self._cells])
 
     def num_edges(self):
         "The number of cell edges."
@@ -257,10 +258,10 @@ class TensorProductCell(AbstractCell):
     def __repr__(self):
 
         if self.geometric_dimension() == self.topological_dimension():
-            return "TensorProductCell(%r, %r)" % self._cells
+            return "TensorProductCell(%s)" % ", ".join(map(repr, self._cells))
         else:
-            return "TensorProductCell(%r, %r, geometric_dimension=%d)" % \
-                self._cells + [self._geometric_dimension]
+            return "TensorProductCell(%s, geometric_dimension=%d)" % \
+                (", ".join(map(repr, self._cells)), self._geometric_dimension)
 
     def _ufl_hash_data_(self):
         return tuple(c._ufl_hash_data_() for c in self._cells) + (self._geometric_dimension,)
