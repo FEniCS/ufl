@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Basic algorithms for applying functions to subexpressions."""
 
-# Copyright (C) 2014 Martin Sandve Alnæs
+# Copyright (C) 2014-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -22,11 +22,8 @@ from ufl.core.expr import Expr
 from ufl.corealg.traversal import unique_post_traversal, cutoff_unique_post_traversal
 from ufl.corealg.multifunction import MultiFunction
 
-def map_expr_dag(function, expression, compress=True):
-    result, = map_expr_dags(function, [expression], compress=compress)
-    return result
 
-def map_expr_dags(function, expressions, compress=True):
+def map_expr_dag(function, expression, compress=True):
     """Apply a function to each subexpression node in expression dag.
 
     If compress is True (default), the output object from
@@ -35,11 +32,23 @@ def map_expr_dags(function, expressions, compress=True):
 
     Returns the result of the final function call.
     """
+    result, = map_expr_dags(function, [expression], compress=compress)
+    return result
+
+
+def map_expr_dags(function, expressions, compress=True):
+    """Apply a function to each subexpression node in expression dag.
+
+    If compress is True (default), the output object from
+    the function is cached in a dict and reused such that the
+    resulting expression dag does not contain duplicate objects.
+
+    Returns a list with the result of the final function call for each expression.
+    """
 
     # Temporary data structures
-    vcache = {}
-    rcache = {}
-    results = []
+    vcache = {}  # expr -> r = function(expr,...),  cache of intermediate results
+    rcache = {}  # r -> r,  cache of result objects for memory reuse
 
     # Build mapping typecode:bool, for which types to skip the subtree of
     if isinstance(function, MultiFunction):
@@ -48,47 +57,43 @@ def map_expr_dags(function, expressions, compress=True):
         # Regular function: no skipping supported
         cutoff_types = [False]*Expr._ufl_num_typecodes_
 
+    # Create visited set here to share between traversal calls
+    visited = set()
+
     # Pick faster traversal algorithm if we have no cutoffs
     if any(cutoff_types):
         def traversal(expression):
-            return cutoff_unique_post_traversal(expression, cutoff_types)
+            return cutoff_unique_post_traversal(expression, cutoff_types, visited)
     else:
         def traversal(expression):
-            return unique_post_traversal(expression)
+            return unique_post_traversal(expression, visited)
 
-    is_ = []
     for expression in expressions:
         # Iterate over all subexpression nodes, child before parent
         for v in traversal(expression):
-
-            # Check if v is in vcache (to be able to skip transformations)
-            i = vcache.get(v)
-
-            # Cache hit: skip transformation
-            if i is not None:
+            # Skip transformations on cache hit
+            if v in vcache:
                 continue
 
             # Cache miss: Get transformed operands, then apply transformation
             if cutoff_types[v._ufl_typecode_]:
                 r = function(v)
             else:
-                rops = [results[vcache[u]] for u in v.ufl_operands]
-                r = function(v, *rops)
+                r = function(v, *[vcache[u] for u in v.ufl_operands])
 
-            # Optionally check if r is in rcache (to be able to keep representation of result compact)
-            i = rcache.get(r) if compress else None
+            # Optionally check if r is in rcache, a memory optimization
+            # to be able to keep representation of result compact
+            if compress:
+                r2 = rcache.get(r)
+                if r2 is None:
+                    # Cache miss: store in rcache
+                    rcache[r] = r
+                else:
+                    # Cache hit: Use previously computed object r2,
+                    # allowing r to be garbage collected as soon as possible
+                    r = r2
 
-            if i is None:
-                # Cache miss: Assign result index and store in results list
-                i = len(results)
-                results.append(r)
-                # Store in rcache
-                if compress:
-                    rcache[r] = i
+            # Store result in cache
+            vcache[v] = r
 
-            # Store in vcache
-            vcache[v] = i
-
-        is_.append(i)
-
-    return [results[i_] for i_ in is_]
+    return [vcache[expression] for expression in expressions]
