@@ -36,7 +36,7 @@ from ufl.constantvalue import Zero
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.differentiation import Grad
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.corealg.traversal import pre_traversal
+from ufl.corealg.traversal import unique_pre_traversal
 
 
 class IndexExpander(ReuseTransformer):
@@ -214,6 +214,6 @@ def purge_list_tensors(expr):
     """Get rid of all ListTensor instances by expanding
     expressions to use their components directly.
     Will usually increase the size of the expression."""
-    if any(isinstance(subexpr, ListTensor) for subexpr in pre_traversal(expr)):
+    if any(isinstance(subexpr, ListTensor) for subexpr in unique_pre_traversal(expr)):
         return expand_indices(expr) # TODO: Only expand what's necessary to get rid of list tensors
     return expr

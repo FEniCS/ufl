@@ -23,7 +23,7 @@ from six.moves import xrange as range
 from six.moves import map
 from heapq import heapify, heappop, heappush
 
-from ufl.corealg.traversal import pre_traversal
+from ufl.corealg.traversal import unique_pre_traversal
 from ufl.corealg.multifunction import MultiFunction
 
 # O(n) = O(|V|) = O(|E|), since |E| < c|V| for a fairly small c.
@@ -51,7 +51,7 @@ def build_graph(expr): # O(n)
     E = []
     handled = {}
     #for v in post_traversal(expr):
-    for v in reversed(list(pre_traversal(expr))):
+    for v in reversed(list(unique_pre_traversal(expr))):
         i = handled.get(v)
         if i is None:
             i = len(V)

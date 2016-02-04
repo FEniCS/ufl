@@ -4,7 +4,7 @@
 from itertools import chain
 
 from ufl.log import UFLException
-from ufl.corealg.traversal import traverse_terminals
+from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.classes import Argument, Zero
@@ -29,7 +29,7 @@ class ArityChecker(MultiFunction):
     def nonlinear_operator(self, o):
         # Cutoff traversal by not having *ops in argument list of this handler.
         # Traverse only the terminals under here the fastest way we know of:
-        for t in traverse_terminals(o):
+        for t in traverse_unique_terminals(o):
             if t._ufl_typecode_ == Argument._ufl_typecode_:
                 raise ArityMismatch("Applying nonlinear operator {0} to expression depending on form argument {1}.".format(o._ufl_class_.__name__, t))
         return self._et

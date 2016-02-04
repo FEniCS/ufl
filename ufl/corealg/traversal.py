@@ -5,7 +5,7 @@ The algorithms here are non-recursive, which is faster than recursion
 by a factor 10 or so because of the function call overhead.
 """
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs
+# Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -97,7 +97,8 @@ def unique_pre_traversal(expr, visited=None):
     stack = [None]*_recursion_limit_
     stack[0] = expr
     stacksize = 1
-    visited = visited or set()
+    if visited is None:
+        visited = set()
     while stacksize > 0:
         stacksize -= 1
         expr = stack[stacksize]
@@ -116,12 +117,36 @@ def unique_post_traversal(expr, visited=None):
     stack = [None]*_recursion_limit_
     stack[0] = (expr, list(expr.ufl_operands))
     stacksize = 1
-    visited = visited or set()
+    if visited is None:
+        visited = set()
     while stacksize > 0:
         expr, ops = stack[stacksize - 1]
         for i, o in enumerate(ops):
             if o is not None and o not in visited:
                 stack[stacksize] = (o, list(o.ufl_operands))
+                stacksize += 1
+                ops[i] = None
+                break
+        else:
+            yield expr
+            visited.add(expr)
+            stacksize -= 1
+
+
+def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
+    """Yields o for each node o in expr, child before parent.
+
+    Never visits a node twice."""
+    stack = [None]*_recursion_limit_
+    stack[0] = (expr, () if cutofftypes[expr._ufl_typecode_] else list(expr.ufl_operands))
+    stacksize = 1
+    if visited is None:
+        visited = set()
+    while stacksize > 0:
+        expr, ops = stack[stacksize - 1]
+        for i, o in enumerate(ops):
+            if o is not None and o not in visited:
+                stack[stacksize] = (o, () if cutofftypes[o._ufl_typecode_] else list(o.ufl_operands))
                 stacksize += 1
                 ops[i] = None
                 break
@@ -147,12 +172,13 @@ def traverse_terminals(expr):
                 stacksize += 1
 
 
-def traverse_unique_terminals(expr):
+def traverse_unique_terminals(expr, visited=None):
     "Iterate over all terminal objects in expression, not including duplicates."
     stack = [None]*_recursion_limit_
     stack[0] = expr
     stacksize = 1
-    visited = set()
+    if visited is None:
+        visited = set()
     while stacksize > 0:
         stacksize -= 1
         expr = stack[stacksize]
