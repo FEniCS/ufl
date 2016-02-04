@@ -60,7 +60,7 @@ from ufl.checks import is_cellwise_constant
 # TODO: Flip this to make the correct behaviour default.
 # Not doing that right now because I don't want to deal
 # with the breakage until the fix in uflacs is confirmed.
-CONDITIONAL_WORKAROUND = True
+CONDITIONAL_WORKAROUND = False
 
 
 class GenericDerivativeRuleset(MultiFunction):
