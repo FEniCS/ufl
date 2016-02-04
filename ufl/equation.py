@@ -21,7 +21,7 @@
 # Export list for ufl.classes
 __all_classes__ = ["Equation"]
 
-class Equation:
+class Equation(object):
     """This class is used to represent equations expressed by the "=="
     operator. Examples include a == L and F == 0 where a, L and F are
     Form objects."""
@@ -32,7 +32,14 @@ class Equation:
         self.rhs = rhs
 
     def __bool__(self):
-        "Evaluate bool(lhs_form == rhs_form)."
+        """Evaluate bool(lhs_form == rhs_form).
+
+        This will not trigger when setting 'equation = a == L',
+        but when e.g. running 'if equation:'.
+        """
+        # NB!: pep8 will say you should use isinstance here, but we do
+        #      actually want to compare the exact types in this case.
+        # Not equal if types are not identical (i.e. not accepting subclasses)
         if type(self.lhs) != type(self.rhs):
             return False
         # Try to delegate to equals function

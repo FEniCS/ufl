@@ -28,6 +28,8 @@
 #from ufl.cell import as_cell, AbstractCell, Cell, ProductCell
 
 from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.domain import join_domains
+from ufl.finiteelement import MixedElement
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -57,6 +59,9 @@ class FunctionSpace(AbstractFunctionSpace):
     def ufl_element(self):
         return self._ufl_element
 
+    def ufl_domains(self):
+        return (self.ufl_domain(),)
+
     def _ufl_hash_data_(self):
         edata = repr(self.ufl_element())
         domain = self.ufl_domain()
@@ -77,9 +82,28 @@ class MixedFunctionSpace(AbstractFunctionSpace):
     def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
         self._ufl_function_spaces = function_spaces
+        self._ufl_element = MixedElement(*[fs.ufl_element() for fs in function_spaces])
 
     def ufl_sub_spaces(self):
-        return (self._ufl_function_spaces,)
+        return self._ufl_function_spaces
+
+    def ufl_element(self):
+        return self._ufl_element
+
+    def ufl_domains(self):
+        domainlist = []
+        for s in self._ufl_function_spaces:
+            domainlist.extend(s.ufl_domains())
+        return join_domains(domainlist)
+
+    def ufl_domain(self):
+        domains = self.ufl_domains()
+        if len(domains) == 1:
+            return domains[0]
+        elif domains:
+            error("Found multiple domains, cannot return just one.")
+        else:
+            return None
 
     def _ufl_hash_data_(self):
         return ("MixedFunctionSpace",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
@@ -97,7 +121,7 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
         self._ufl_function_spaces = function_spaces
 
     def ufl_sub_spaces(self):
-        return (self._ufl_function_spaces,)
+        return self._ufl_function_spaces
 
     def _ufl_hash_data_(self):
         return ("TensorProductFunctionSpace",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())

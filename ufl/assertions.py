@@ -17,19 +17,25 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2009-01-28
-# Last changed: 2011-06-02
 
 from ufl.log import error
 
 #--- Standardized error messages ---
 
-expecting_instance        = lambda v, c: error("Expecting %s instance, not %s." % (c.__name__, repr(v)))
-expecting_python_scalar   = lambda v:    error("Expecting Python scalar, not %s." % repr(v))
-expecting_expr            = lambda v:    error("Expecting Expr instance, not %s." % repr(v))
-expecting_terminal        = lambda v:    error("Expecting Terminal instance, not %s." % repr(v))
-expecting_true_ufl_scalar = lambda v:    error("Expecting UFL scalar expression with no free indices, not %s." % repr(v))
+def expecting_instance(v, c):
+    error("Expecting %s instance, not %s." % (c.__name__, repr(v)))
+
+def expecting_python_scalar(v):
+    error("Expecting Python scalar, not %s." % repr(v))
+
+def expecting_expr(v):
+    error("Expecting Expr instance, not %s." % repr(v))
+
+def expecting_terminal(v):
+    error("Expecting Terminal instance, not %s." % repr(v))
+
+def expecting_true_ufl_scalar(v):
+    error("Expecting UFL scalar expression with no free indices, not %s." % repr(v))
 
 #--- Standardized assertions ---
 

@@ -88,11 +88,7 @@ class Coefficient(FormArgument):
 
     def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
-        d = self.ufl_domain() # TODO: Can we get more than one domain from a mixed function space?
-        if d is None:
-            return ()
-        else:
-            return (d,)
+        return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."

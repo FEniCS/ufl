@@ -283,6 +283,10 @@ class Form(object):
         "Subtract other form from this one."
         return self + (-other)
 
+    def __rsub__(self, other):
+        "Subtract this form from other."
+        return other + (-self)
+
     def __neg__(self):
         """Negate all integrals in form.
 

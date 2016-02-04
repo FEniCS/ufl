@@ -7,7 +7,7 @@ from ufl.log import UFLException
 from ufl.corealg.traversal import traverse_terminals
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
-from ufl.classes import Argument
+from ufl.classes import Argument, Zero
 
 
 class ArityMismatch(UFLException):
@@ -89,6 +89,23 @@ class ArityChecker(MultiFunction):
     # Does it make sense to have a Variable(Argument)? I see no problem.
     def variable(self, o, f, l):
         return f
+
+    # Conditional is linear on each side of the condition
+    def conditional(self, o, c, a, b):
+        if c:
+            raise ArityMismatch("Condition cannot depend on form arguments ({0}).".format(a))
+        if a and isinstance(o.ufl_operands[2], Zero):
+            # Allow conditional(c, arg, 0)
+            return a
+        elif b and isinstance(o.ufl_operands[1], Zero):
+            # Allow conditional(c, 0, arg)
+            return b
+        elif a == b:
+            # Allow conditional(c, test, test)
+            return a
+        else:
+            # Do not allow e.g. conditional(c, test, trial), conditional(c, test, nonzeroconstant)
+            raise ArityMismatch("Conditional subexpressions with non-matching form arguments {0} vs {1}.".format(a, b))
 
     def linear_indexed_type(self, o, a, i):
         return a
