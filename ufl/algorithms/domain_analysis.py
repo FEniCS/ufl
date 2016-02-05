@@ -252,8 +252,13 @@ def build_integral_data(integrals):
         # possibly different metadata).
         itgs[(domain, integral_type, subdomain_id)].append(integral)
 
-    return tuple(IntegralData(d, itype, sid, integrals, {}) for
-                 (d, itype, sid), integrals in itgs.items())
+    # Build list with canonical ordering, iteration over dicts
+    # is not deterministic across python versions
+    integral_datas = []
+    for (d, itype, sid), integrals in sorted(itgs.items(), key=lambda x: x[0]):
+        integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
+    return integral_datas
+
 
 def group_form_integrals(form, domains):
     """Group integrals by domain and type, performing canonical simplification.
