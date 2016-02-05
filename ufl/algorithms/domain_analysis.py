@@ -228,6 +228,7 @@ def accumulate_integrands_with_same_metadata(integrals):
     # Sort integrands canonically by integrand first then compiler data
     return sorted(by_cdid.values(), key=ExprTupleKey)
 
+
 def build_integral_data(integrals):
     """Build integral data given a list of integrals.
 
@@ -254,7 +255,6 @@ def build_integral_data(integrals):
     return tuple(IntegralData(d, itype, sid, integrals, {}) for
                  (d, itype, sid), integrals in itgs.items())
 
-
 def group_form_integrals(form, domains):
     """Group integrals by domain and type, performing canonical simplification.
 
@@ -262,11 +262,9 @@ def group_form_integrals(form, domains):
     :arg domains: an iterable of :class:`~.Domain`\s.
     :returns: A new :class:`~.Form` with gathered integrands.
     """
-    integrals = form.integrals()
-
     # Group integrals by domain and type
     integrals_by_domain_and_type = \
-        group_integrals_by_domain_and_type(integrals, domains)
+        group_integrals_by_domain_and_type(form.integrals(), domains)
 
     integrals = []
     for domain in domains:
