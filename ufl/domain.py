@@ -202,7 +202,7 @@ class TensorProductMesh(AbstractDomain):
 
         # TODO: Is this what we want to do?
         # Build cell from mesh cells
-        self._ufl_cell = TensorProductCell([mesh.ufl_cell() for mesh in meshes])
+        self._ufl_cell = TensorProductCell(*[mesh.ufl_cell() for mesh in meshes])
 
         # TODO: Is this what we want to do?
         # Build coordinate element from mesh coordinate elements

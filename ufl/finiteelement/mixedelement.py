@@ -251,18 +251,18 @@ class VectorElement(MixedElement):
     def __new__(cls, family, cell, degree, dim=None,
                 form_degree=None, quad_scheme=None):
         """Intercepts construction, such that it returns an
-        OuterProductVectorElement when FiniteElement returns an
-        OuterProductElement.
+        TensorProductVectorElement when FiniteElement returns an
+        TensorProductElement.
         """
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, cell, degree,
                                     form_degree=form_degree,
                                     quad_scheme=quad_scheme)
 
-        from ufl.finiteelement.outerproductelement import OuterProductElement
-        from ufl.finiteelement.outerproductelement import OuterProductVectorElement
-        if isinstance(sub_element, OuterProductElement):
-            return OuterProductVectorElement(sub_element, dim=dim)
+        from ufl.finiteelement.tensorproductelement import TensorProductElement
+        from ufl.finiteelement.tensorproductelement import TensorProductVectorElement
+        if isinstance(sub_element, TensorProductElement):
+            return TensorProductVectorElement(sub_element, dim=dim)
 
         return super(VectorElement, cls).__new__(cls)
 
@@ -343,16 +343,16 @@ class TensorElement(MixedElement):
     def __new__(cls, family, cell, degree, shape=None,
                 symmetry=None, quad_scheme=None):
         """Intercepts construction, such that it returns an
-        OuterProductTensorElement when FiniteElement returns an
-        OuterProductElement.
+        TensorProductTensorElement when FiniteElement returns an
+        TensorProductElement.
         """
         # Compute sub element
         sub_element = FiniteElement(family, cell, degree, quad_scheme)
 
-        from ufl.finiteelement.outerproductelement import OuterProductElement
-        from ufl.finiteelement.outerproductelement import OuterProductTensorElement
-        if isinstance(sub_element, OuterProductElement):
-            return OuterProductTensorElement(sub_element, shape=shape, symmetry=symmetry)
+        from ufl.finiteelement.tensorproductelement import TensorProductElement
+        from ufl.finiteelement.tensorproductelement import TensorProductTensorElement
+        if isinstance(sub_element, TensorProductElement):
+            return TensorProductTensorElement(sub_element, shape=shape, symmetry=symmetry)
 
         return super(TensorElement, cls).__new__(cls)
 

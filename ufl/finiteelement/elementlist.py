@@ -93,9 +93,9 @@ any_cell  = (None,
              "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of periodic table element description instead of the other way around
-register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell + ("OuterProductCell",))  # "P", "Q"
+register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell + ("TensorProductCell",))  # "P", "Q"
 register_element("Brezzi-Douglas-Marini", "BDM",         1, HDiv,  "contravariant Piola", (1, None), simplices[1:])          # "BDMF" (2d), "N2F" (3d)
-register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell + ("OuterProductCell",))  # "DP", "DQ"
+register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell + ("TensorProductCell",))  # "DP", "DQ"
 register_element("Discontinuous Taylor", "TDG",         0, L2,    "identity", (0, None), ("interval",)) 
 register_element("Nedelec 1st kind H(curl)", "N1curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])              # "RTE"  (2d), "N1E" (3d)
 register_element("Nedelec 2nd kind H(curl)", "N2curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])              # "BDME" (2d), "N2E" (3d)
@@ -116,7 +116,7 @@ register_element("Morley", "MOR",                        0, H2,   "identity", No
 register_element("Boundary Quadrature", "BQ", 0, L2, "identity", (0, None), any_cell)
 register_element("Bubble", "B",               0, H1, "identity", (2, None), simplices)
 register_element("Quadrature", "Quadrature",  0, L2, "identity", (0, None), any_cell)
-register_element("Real", "R",                 0, L2, "identity", (0, 0),    any_cell + ("OuterProductCell",))
+register_element("Real", "R",                 0, L2, "identity", (0, 0),    any_cell + ("TensorProductCell",))
 register_element("Undefined", "U",            0, L2, "identity", (0, None), any_cell)
 register_element("Lobatto", "Lob",            0, L2, "identity", (1, None), ("interval",))
 register_element("Radau",   "Rad",            0, L2, "identity", (0, None), ("interval",))
@@ -135,12 +135,12 @@ register_alias("N2div",
                lambda family, dim, order, degree: ("Brezzi-Douglas-Marini", order))
 
 # New elements introduced for the periodic table 2014
-register_element2("Q",     0, H1,    "identity",            (1, None), cubes + ("OuterProductCell",))
-register_element2("DQ",    0, L2,    "identity",            (0, None), cubes + ("OuterProductCell",))
-register_element2("RTCE",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral", "OuterProductCell"))
-register_element2("RTCF",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral", "OuterProductCell"))
-register_element2("NCE",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron", "OuterProductCell"))
-register_element2("NCF",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron", "OuterProductCell"))
+register_element2("Q",     0, H1,    "identity",            (1, None), cubes + ("TensorProductCell",))
+register_element2("DQ",    0, L2,    "identity",            (0, None), cubes + ("TensorProductCell",))
+register_element2("RTCE",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral", "TensorProductCell"))
+register_element2("RTCF",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral", "TensorProductCell"))
+register_element2("NCE",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron", "TensorProductCell"))
+register_element2("NCF",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron", "TensorProductCell"))
 
 register_element2("S",     0, H1,    "identity",            (1, None), cubes)
 register_element2("DPC",   0, L2,    "identity",            (1, None), cubes)

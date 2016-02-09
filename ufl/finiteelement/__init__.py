@@ -31,9 +31,8 @@ from ufl.finiteelement.mixedelement import TensorElement
 from ufl.finiteelement.enrichedelement import EnrichedElement
 from ufl.finiteelement.restrictedelement import RestrictedElement
 from ufl.finiteelement.tensorproductelement import TensorProductElement
-from ufl.finiteelement.outerproductelement import OuterProductElement
-from ufl.finiteelement.outerproductelement import OuterProductVectorElement
-from ufl.finiteelement.outerproductelement import OuterProductTensorElement
+from ufl.finiteelement.tensorproductelement import TensorProductVectorElement
+from ufl.finiteelement.tensorproductelement import TensorProductTensorElement
 from ufl.finiteelement.hdivcurl import HDivElement, HCurlElement
 from ufl.finiteelement.brokenelement import BrokenElement
 from ufl.finiteelement.traceelement import TraceElement
@@ -50,8 +49,8 @@ __all_classes__ = [
     "EnrichedElement",
     "RestrictedElement",
     "TensorProductElement",
-    "OuterProductElement",
-    "OuterProductVectorElement",
+    "TensorProductVectorElement",
+    "TensorProductTensorElement",
     "HDivElement",
     "HCurlElement",
     "BrokenElement",

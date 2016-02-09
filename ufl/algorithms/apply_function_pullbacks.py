@@ -35,7 +35,7 @@ from ufl.constantvalue import as_ufl, Identity
 from ufl.tensors import as_tensor, as_vector
 
 from ufl.finiteelement import (FiniteElement, EnrichedElement, VectorElement, MixedElement,
-                               OuterProductElement, OuterProductVectorElement, TensorElement,
+                               TensorProductElement, TensorProductVectorElement, TensorElement,
                                FacetElement, InteriorElement, BrokenElement, TraceElement)
 from ufl.utils.sequences import product
 

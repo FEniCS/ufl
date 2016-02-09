@@ -16,11 +16,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.finiteelement.outerproductelement import OuterProductElement
+from ufl.finiteelement.tensorproductelement import TensorProductElement
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
-class HDivElement(OuterProductElement):
+class HDivElement(TensorProductElement):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
     __slots__ = ("_element")
@@ -30,14 +30,14 @@ class HDivElement(OuterProductElement):
         self._repr = "HDivElement(%r)" % (element,)
         self._mapping = "contravariant Piola"
 
-        family = "OuterProductElement"
+        family = "TensorProductElement"
         cell = element.cell()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = (element.cell().geometric_dimension(),)
         reference_value_shape = (element.cell().topological_dimension(),)
 
-        # Skipping OuterProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
+        # Skipping TensorProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
@@ -51,7 +51,7 @@ class HDivElement(OuterProductElement):
         return self._repr
 
 
-class HCurlElement(OuterProductElement):
+class HCurlElement(TensorProductElement):
     """A curl-conforming version of an outer product element, assuming
     this makes mathematical sense."""
     __slots__ = ("_element")
@@ -61,14 +61,14 @@ class HCurlElement(OuterProductElement):
         self._repr = "HCurlElement(%r)" % (element,)
         self._mapping = "covariant Piola"
 
-        family = "OuterProductElement"
+        family = "TensorProductElement"
         cell = element.cell()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         cell = element.cell()
         value_shape = (cell.geometric_dimension(),)
         reference_value_shape = (cell.topological_dimension(),) # TODO: Is this right?
-        # Skipping OuterProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
+        # Skipping TensorProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
         FiniteElementBase.__init__(self, family, cell, degree,
                                     quad_scheme, value_shape, reference_value_shape)
 

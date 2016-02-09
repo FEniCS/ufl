@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Andrew T. T. McRae
 #
 # This file is part of UFL.
 #
@@ -18,80 +18,213 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Kristian B. Oelgaard
-# Modified by Marie E. Rognes 2010, 2012
+# Based on tensorproductelement.py
+# Modified by Andrew T. T. McRae 2014
+# Modified by Lawrence Mitchell 2014
 
 from ufl.assertions import ufl_assert
-from ufl.cell import as_cell, TensorProductCell
-from ufl.log import info_blue, warning, warning_blue, error
-
+from ufl.cell import TensorProductCell, as_cell
+from ufl.finiteelement.mixedelement import MixedElement, _tensor_sub_elements
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class TensorProductElement(FiniteElementBase):
-    r"""The tensor product of d element spaces:
+    r"""The outer (tensor) product of 2 element spaces:
 
-    .. math:: V = V_0 \otimes V_1 \otimes ...  \otimes V_d
+    .. math:: V = A \otimes B
 
-    Given bases {phi_i} for V_i for i = 1, ...., d,
-    { phi_0 * phi_1 * ... * phi_d } forms a basis for V.
+    Given bases :math:`{\phi_A, \phi_B}` for :math:`A, B`,
+    :math:`{\phi_A * \phi_B}` forms a basis for :math:`V`.
     """
-    __slots__ = ("_sub_elements",)
+    __slots__ = ("_A", "_B", "_mapping")
 
-    def __init__(self, elements):
-        "Create TensorProductElement from a given list of elements."
-
-        warning("The TensorProductElement is work in progress and the design may change at any moment without notice.")
-
-        self._sub_elements = elements
-        ufl_assert(len(self._sub_elements) > 0,
-                   "Cannot create TensorProductElement from empty list.")
-        self._repr = "TensorProductElement(%s)" % ", ".join(repr(e) for e in self._sub_elements)
-
+    def __init__(self, A, B, cell=None):
+        "Create TensorProductElement from a given pair of elements."
+        self._A = A
+        self._B = B
         family = "TensorProductElement"
 
-        # Define cell as the product of each elements cell
-        cell = TensorProductCell([e.cell() for e in self._sub_elements])
+        if cell is None:
+            # Define cell as the product of sub-cells
+            cell = TensorProductCell(A.cell(), B.cell())
+        else:
+            cell = as_cell(cell)
 
-        # Define polynomial degree as the maximal of each subelement
-        degrees = { e.degree() for e in self._sub_elements } - { None }
-        degree = max(degrees) if degrees else None
+        self._repr = "TensorProductElement(%r, %r, %r)" % (self._A, self._B, cell)
 
-        # No quadrature scheme defined
-        quad_scheme = None
+        # Define polynomial degree as a tuple of sub-degrees
+        degree = (A.degree(), B.degree())
 
-        # For now, check that all subelements have the same value
-        # shape, and use this.
-        # TODO: Not sure if this makes sense, what kind of product is used to build the basis?
-        value_shape = self._sub_elements[0].value_shape()
-        reference_value_shape = self._sub_elements[0].reference_value_shape()
-        ufl_assert(all(e.value_shape() == value_shape
-                       for e in self._sub_elements),
-                   "All subelements in must have same value shape")
+        # match FIAT implementation
+        value_shape = A.value_shape() + B.value_shape()
+        reference_value_shape = A.reference_value_shape() + B.reference_value_shape()
+        ufl_assert(len(value_shape) <= 1, "Product of vector-valued elements not supported")
+        ufl_assert(len(reference_value_shape) <= 1, "Product of vector-valued elements not supported")
+
+        if A.mapping() == "identity" and B.mapping() == "identity":
+            self._mapping = "identity"
+        else:
+            self._mapping = "undefined"
 
         FiniteElementBase.__init__(self, family, cell, degree,
-                                   quad_scheme, value_shape, reference_value_shape)
+                                   None, value_shape, reference_value_shape)
 
     def mapping(self):
-        if all(e.mapping() == "identity" for e in self._sub_elements):
-            return "identity"
-        else:
-            return "undefined"
-
-    def num_sub_elements(self):
-        "Return number of subelements."
-        return len(self._sub_elements)
-
-    def sub_elements(self):
-        "Return subelements (factors)."
-        return self._sub_elements
+        return self._mapping
 
     def __str__(self):
         "Pretty-print."
         return "TensorProductElement(%s)" \
-            % str([str(e) for e in self.sub_elements()])
+            % str([str(self._A), str(self._B)])
 
     def shortstr(self):
         "Short pretty-print."
         return "TensorProductElement(%s)" \
-            % str([e.shortstr() for e in self.sub_elements()])
+            % str([self._A.shortstr(), self._B.shortstr()])
+
+
+class TensorProductVectorElement(MixedElement):
+    """A special case of a mixed finite element where all
+    elements are equal TensorProductElements"""
+    __slots__ = ("_sub_element")
+
+    def __init__(self, *args, **kwargs):
+        if isinstance(args[0], TensorProductElement):
+            self._from_sub_element(*args, **kwargs)
+        else:
+            self._from_product_parts(*args, **kwargs)
+
+    def _from_product_parts(self, A, B, cell=None, dim=None):
+        sub_element = TensorProductElement(A, B, cell=cell)
+        self._from_sub_element(sub_element, dim=dim)
+
+    def _from_sub_element(self, sub_element, dim=None):
+        assert isinstance(sub_element, TensorProductElement)
+
+        dim = dim or sub_element.cell().geometric_dimension()
+        sub_elements = [sub_element]*dim
+
+        # Get common family name (checked in FiniteElement.__init__)
+        family = sub_element.family()
+
+        # Compute value shape
+        value_shape = (dim,) + sub_element.value_shape()
+
+        # Initialize element data
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
+        self._family = family
+        self._degree = sub_element.degree()
+
+        self._sub_element = sub_element
+
+        # Cache repr string
+        self._repr = "TensorProductVectorElement(%r, dim=%d)" % \
+            (self._sub_element, len(self._sub_elements))
+
+    @property
+    def _A(self):
+        return self._sub_element._A
+
+    @property
+    def _B(self):
+        return self._sub_element._B
+
+    def mapping(self):
+        return self._sub_element.mapping()
+
+    def __str__(self):
+        "Format as string for pretty printing."
+        return "<Outer product vector element: %r x %r>" % \
+               (self._sub_element, self.num_sub_elements())
+
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "OPVector"
+
+
+class TensorProductTensorElement(MixedElement):
+    """A special case of a mixed finite element where all
+    elements are equal TensorProductElements"""
+    __slots__ = ("_sub_element", "_shape", "_symmetry",
+                 "_sub_element_mapping", "_flattened_sub_element_mapping",
+                 "_mapping")
+
+    def __init__(self, *args, **kwargs):
+        if isinstance(args[0], TensorProductElement):
+            self._from_sub_element(*args, **kwargs)
+        else:
+            self._from_product_parts(*args, **kwargs)
+
+    def _from_product_parts(self, A, B, cell=None,
+                            shape=None, symmetry=None, quad_scheme=None):
+        sub_element = TensorProductElement(A, B, cell=cell,
+                                          quad_scheme=quad_scheme)
+        self._from_sub_element(sub_element, shape=shape, symmetry=symmetry)
+
+    def _from_sub_element(self, sub_element, shape=None, symmetry=None):
+        assert isinstance(sub_element, TensorProductElement)
+
+        shape, symmetry, sub_elements, sub_element_mapping, flattened_sub_element_mapping, \
+          reference_value_shape, mapping = _tensor_sub_elements(sub_element, shape, symmetry)
+
+        # Initialize element data
+        MixedElement.__init__(self, sub_elements, value_shape=shape,
+                              reference_value_shape=reference_value_shape)
+        self._family = sub_element.family()
+        self._degree = sub_element.degree()
+        self._sub_element = sub_element
+        self._shape = shape
+        self._symmetry = symmetry
+        self._sub_element_mapping = sub_element_mapping
+        self._flattened_sub_element_mapping = flattened_sub_element_mapping
+        self._mapping = mapping
+
+        # Cache repr string
+        self._repr = "TensorProductTensorElement(%r, shape=%r, symmetry=%r)" % \
+            (self._sub_element, self._shape, self._symmetry)
+
+    @property
+    def _A(self):
+        return self._sub_element._A
+
+    @property
+    def _B(self):
+        return self._sub_element._B
+
+    def signature_data(self, renumbering):
+        data = ("TensorProductTensorElement", self._A, self._B,
+                self._shape, self._symmetry, self._quad_scheme,
+                ("no cell" if self._cell is None else
+                    self._cell.signature_data(renumbering)))
+        return data
+
+    def reconstruct(self, **kwargs):
+        """Construct a new TensorProductTensorElement with some properties
+        replaced with new values."""
+        cell = kwargs.get("cell", self.cell())
+        shape = kwargs.get("shape", self._shape)
+        symmetry = kwargs.get("symmetry", self._symmetry)
+        return TensorProductTensorElement(self._A, self._B, cell=cell,
+                                         shape=shape, symmetry=symmetry)
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "TensorProductTensorElement(%r, %r, %r, %r)" % (
+            self._sub_element, self._shape,
+            self._symmetry, self._quad_scheme)
+
+    def __str__(self):
+        "Format as string for pretty printing."
+        return "<Outer product tensor element: %r x %r>" % \
+               (self._sub_element, self._shape)
+
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "OPTensor"

@@ -83,7 +83,7 @@ class SumDegreeEstimator(MultiFunction):
 
     def _reduce_degree(self, v, f):
         """Reduces the estimated degree by one; used when derivatives
-        are taken. Does not reduce the degree when OuterProduct elements
+        are taken. Does not reduce the degree when TensorProduct elements
         or quadrilateral elements are involved."""
         if isinstance(f, int) and not isinstance(f, IrreducibleInt):
             return max(f-1, 0)
