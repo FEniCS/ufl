@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-from distutils.core import setup
+
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+
 from os.path import join as pjoin, split as psplit
 import re
 import sys
@@ -59,6 +64,7 @@ setup(name="UFL",
           "ufl.formatting",
           ],
       package_dir = {"ufl": "ufl"},
+      install_requires = ["numpy", "six"],
       data_files = [(pjoin("share", "man", "man1"),
                      [pjoin("doc", "man", "man1", "ufl-analyse.1.gz"),
                       pjoin("doc", "man", "man1", "ufl-convert.1.gz"),
