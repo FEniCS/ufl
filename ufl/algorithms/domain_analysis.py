@@ -255,7 +255,7 @@ def build_integral_data(integrals):
     # Build list with canonical ordering, iteration over dicts
     # is not deterministic across python versions
     integral_datas = []
-    for (d, itype, sid), integrals in sorted(itgs.items(), key=lambda x: x[0]):
+    for (d, itype, sid), integrals in sorted_by_key(itgs):
         integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
     return integral_datas
 
