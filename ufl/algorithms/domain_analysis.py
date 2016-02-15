@@ -23,15 +23,12 @@ from six.moves import zip
 from six import iteritems
 
 import ufl
-from ufl.utils.sorting import sorted_by_key
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.measure import Measure
 from ufl.integral import Integral
 from ufl.form import Form
-
-from ufl.sorting import cmp_expr
-from ufl.sorting import sorted_expr
+from ufl.sorting import cmp_expr, sorted_expr, sorted_by_key, sorted_by_tuple_key
 from ufl.utils.sorting import canonicalize_metadata
 
 
@@ -255,7 +252,7 @@ def build_integral_data(integrals):
     # Build list with canonical ordering, iteration over dicts
     # is not deterministic across python versions
     integral_datas = []
-    for (d, itype, sid), integrals in sorted_by_key(itgs):
+    for (d, itype, sid), integrals in sorted_by_tuple_key(itgs):
         integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
     return integral_datas
 
