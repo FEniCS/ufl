@@ -28,8 +28,8 @@ from ufl.assertions import ufl_assert
 from ufl.measure import Measure
 from ufl.integral import Integral
 from ufl.form import Form
-from ufl.sorting import cmp_expr, sorted_expr, sorted_by_key, sorted_by_tuple_key
-from ufl.utils.sorting import canonicalize_metadata
+from ufl.sorting import cmp_expr, sorted_expr
+from ufl.utils.sorting import canonicalize_metadata, sorted_by_key, sorted_by_tuple_key
 
 
 class IntegralData(object):
