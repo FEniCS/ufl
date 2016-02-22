@@ -57,8 +57,8 @@ A very brief overview of the language contents follows:
     FiniteElement,
     MixedElement, VectorElement, TensorElement
     EnrichedElement, RestrictedElement,
-    TensorProductElement, TensorProductVectorElement, TensorProductTensorElement,
-    HDiv, HCurl
+    TensorProductElement,
+    HDivElement, HCurlElement
     BrokenElement, TraceElement
     FacetElement, InteriorElement
 
@@ -215,7 +215,6 @@ from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     RestrictedElement, TensorProductElement, \
-    TensorProductVectorElement, TensorProductTensorElement, \
     HDivElement, HCurlElement, BrokenElement, TraceElement, \
     FacetElement, InteriorElement
 
@@ -313,7 +312,7 @@ __all__ = [
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',
-    'TensorProductVectorElement', 'TensorProductTensorElement', 'HDivElement', 'HCurlElement',
+    'HDivElement', 'HCurlElement',
     'BrokenElement', 'TraceElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
     'FunctionSpace',
