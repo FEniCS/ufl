@@ -23,16 +23,13 @@ from six.moves import zip
 from six import iteritems
 
 import ufl
-from ufl.utils.sorting import sorted_by_key
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.measure import Measure
 from ufl.integral import Integral
 from ufl.form import Form
-
-from ufl.sorting import cmp_expr
-from ufl.sorting import sorted_expr
-from ufl.utils.sorting import canonicalize_metadata
+from ufl.sorting import cmp_expr, sorted_expr
+from ufl.utils.sorting import canonicalize_metadata, sorted_by_key, sorted_by_tuple_key
 
 
 class IntegralData(object):
@@ -228,13 +225,50 @@ def accumulate_integrands_with_same_metadata(integrals):
     # Sort integrands canonically by integrand first then compiler data
     return sorted(by_cdid.values(), key=ExprTupleKey)
 
-def build_integral_data(integrals, domains):
-    integral_data = []
 
+def build_integral_data(integrals):
+    """Build integral data given a list of integrals.
+
+    :arg integrals: An iterable of :class:`~.Integral` objects.
+    :returns: A tuple of :class:`IntegralData` objects.
+
+    The integrals you pass in here must have been rearranged and
+    gathered (removing the "everywhere" subdomain_id.  To do this, you
+    should call :func:`group_form_integrals`.
+    """
+    itgs = defaultdict(list)
+
+    for integral in integrals:
+        domain = integral.ufl_domain()
+        integral_type = integral.integral_type()
+        subdomain_id = integral.subdomain_id()
+        if subdomain_id == "everywhere":
+            raise ValueError("'everywhere' not a valid subdomain id.  Did you forget to call group_form_integrals?")
+        # Group for integral data (One integral data object for all
+        # integrals with same domain, itype, subdomain_id (but
+        # possibly different metadata).
+        itgs[(domain, integral_type, subdomain_id)].append(integral)
+
+    # Build list with canonical ordering, iteration over dicts
+    # is not deterministic across python versions
+    integral_datas = []
+    for (d, itype, sid), integrals in sorted_by_tuple_key(itgs):
+        integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
+    return integral_datas
+
+
+def group_form_integrals(form, domains):
+    """Group integrals by domain and type, performing canonical simplification.
+
+    :arg form: the :class:`~.Form` to group the integrals of.
+    :arg domains: an iterable of :class:`~.Domain`\s.
+    :returns: A new :class:`~.Form` with gathered integrands.
+    """
     # Group integrals by domain and type
     integrals_by_domain_and_type = \
-        group_integrals_by_domain_and_type(integrals, domains)
+        group_integrals_by_domain_and_type(form.integrals(), domains)
 
+    integrals = []
     for domain in domains:
         for integral_type in ufl.measure.integral_types():
             # Get integrals with this domain and type
@@ -254,22 +288,10 @@ def build_integral_data(integrals, domains):
                 integrands_and_cds = \
                     accumulate_integrands_with_same_metadata(ss_integrals)
 
-                # Reconstruct integrals with new integrands and the right domain object
-                integrals = [Integral(integrand, integral_type, domain, subdomain_id, metadata, None)
-                             for integrand, metadata in integrands_and_cds]
-
-                # Create new metadata dict for each integral data,
-                # this is filled in by ffc to associate compiler
-                # specific information with this integral data
-                metadata = {}
-
-                # Finally wrap it all in IntegralData object!
-                ida = IntegralData(domain, integral_type, subdomain_id, integrals, {})
-
-                # Store integral data objects in list with canonical ordering
-                integral_data.append(ida)
-
-    return integral_data
+                for integrand, metadata in integrands_and_cds:
+                    integrals.append(Integral(integrand, integral_type, domain,
+                                              subdomain_id, metadata, None))
+    return Form(integrals)
 
 def reconstruct_form_from_integral_data(integral_data):
     integrals = []
