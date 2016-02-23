@@ -24,32 +24,58 @@ Compiler (FFC) and in combination with the problem solving environment
 DOLFIN.
 
 
-Preliminaries
-=============
 
 Installation
-------------
+============
 
-Ubuntu package
-^^^^^^^^^^^^^^
+Debian/Ubuntu packages
+----------------------
 
-UFL may be installed directly from source, but the Debian (Ubuntu)
-package ``python-ufl`` is also available for UFL, as for other FEniCS
-components.
+Debian/Ubuntu
+^^^^^^^^^^^^^
 
-Manual from source
-^^^^^^^^^^^^^^^^^^
+A Debian/Ubuntu package ``python-ufl`` is available for UFL:
 
-To retrieve the latest development version of UFL::
+    sudo apt-get install python-ufl
 
-    git clone https://bitbucket.org/fenics-project/ufl
 
-To install UFL::
+Ubuntu PPA
+^^^^^^^^^^
+
+UFL is available in the FEniCS Project PPA. The version of UFL
+available in the PPA will generally more recent than the Debian/Ubuntu
+package. To install UFL from the PPA:
+
+    sudo add-apt-repository ppa:fenics-packages/fenics
+    sudo apt-get update
+    sudo apt-get install fenics
+
+
+From source
+-----------
+
+Dependencies
+^^^^^^^^^^^^
+
+UFL depends on the Python packages ``numpy`` and ``six``, and
+``setuptools`` is recommended. If ``setuptools`` is available, the UFL
+installer will install missing dependencies automatically.
+
+
+Installation
+^^^^^^^^^^^^
+
+The source for UFL releases can be downloaded from
+http://fenicsproject.org/pub/software/ufl/. To install UFL
+system-wide, from the source directory use:
 
     python setup.py install
 
+To install into a specified directory, use the ``--prefix`` option.
+
+
 Help and support
-----------------
+================
 
 Send help requests and questions to fenics-support@googlegroups.com.
 
@@ -61,22 +87,23 @@ Development and reporting bugs
 
 The git source repository for UFL is located at
 https://bitbucket.org/fenics-project/ufl. For general UFL development
-questions and to make feature requests, use fenics-dev@googlegroups.com
+questions and to make feature requests, use
+fenics-dev@googlegroups.com.
 
 Bugs can be registered at
 https://bitbucket.org/fenics-project/ufl/issues.
 
 
-Manual and API Reference
+
+Manual and API reference
 ========================
 
 .. toctree::
    :titlesonly:
 
    User Manual <user/user_manual>
-   API Reference <api-doc/ufl>
+   API Reference <api-doc/modules>
    Releases <releases>
-
 
 * :ref:`modindex`
 * :ref:`genindex`

@@ -23,16 +23,13 @@ from six.moves import zip
 from six import iteritems
 
 import ufl
-from ufl.utils.sorting import sorted_by_key
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.measure import Measure
 from ufl.integral import Integral
 from ufl.form import Form
-
-from ufl.sorting import cmp_expr
-from ufl.sorting import sorted_expr
-from ufl.utils.sorting import canonicalize_metadata
+from ufl.sorting import cmp_expr, sorted_expr
+from ufl.utils.sorting import canonicalize_metadata, sorted_by_key, sorted_by_tuple_key
 
 
 class IntegralData(object):
@@ -228,6 +225,7 @@ def accumulate_integrands_with_same_metadata(integrals):
     # Sort integrands canonically by integrand first then compiler data
     return sorted(by_cdid.values(), key=ExprTupleKey)
 
+
 def build_integral_data(integrals):
     """Build integral data given a list of integrals.
 
@@ -251,8 +249,12 @@ def build_integral_data(integrals):
         # possibly different metadata).
         itgs[(domain, integral_type, subdomain_id)].append(integral)
 
-    return tuple(IntegralData(d, itype, sid, integrals, {}) for
-                 (d, itype, sid), integrals in itgs.items())
+    # Build list with canonical ordering, iteration over dicts
+    # is not deterministic across python versions
+    integral_datas = []
+    for (d, itype, sid), integrals in sorted_by_tuple_key(itgs):
+        integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
+    return integral_datas
 
 
 def group_form_integrals(form, domains):
@@ -262,11 +264,9 @@ def group_form_integrals(form, domains):
     :arg domains: an iterable of :class:`~.Domain`\s.
     :returns: A new :class:`~.Form` with gathered integrands.
     """
-    integrals = form.integrals()
-
     # Group integrals by domain and type
     integrals_by_domain_and_type = \
-        group_integrals_by_domain_and_type(integrals, domains)
+        group_integrals_by_domain_and_type(form.integrals(), domains)
 
     integrals = []
     for domain in domains:

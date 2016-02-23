@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 "Utilites for sorting."
 
-# Copyright (C) 2008-2015 Johan Hake
+# Copyright (C) 2008-2016 Johan Hake
 #
 # This file is part of UFL.
 #
@@ -56,18 +56,31 @@ def topological_sorting(nodes, edges):
 
     return L
 
+
 def sorted_by_count(seq):
     "Sort a sequence by the item.count()."
     return sorted(seq, key=lambda x: x.count())
+
 
 def sorted_by_ufl_id(seq):
     "Sort a sequence by the item.ufl_id()."
     return sorted(seq, key=lambda x: x.ufl_id())
 
+
 def sorted_by_key(mapping):
     "Sort dict items by key, allowing different key types."
     # Python3 doesn't allow comparing builtins of different type, therefore the typename trick here
-    return sorted(iteritems(mapping), key=lambda x: (type(x[0]).__name__, x[0]))
+    def _key(x):
+        return (type(x[0]).__name__, x[0])
+    return sorted(iteritems(mapping), key=_key)
+
+
+def sorted_by_tuple_key(mapping):
+    "Sort dict items by tuple valued keys, allowing different types as items of the key tuples."
+    # Python3 doesn't allow comparing builtins of different type, therefore the typename trick here
+    def _tuple_key(x):
+        return tuple((type(k).__name__, k) for k in x[0])
+    return sorted(iteritems(mapping), key=_tuple_key)
 
 
 def canonicalize_metadata(metadata):
