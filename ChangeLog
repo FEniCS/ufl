@@ -1,4 +1,5 @@
 1.7.0dev
+ - Add operator A^(i,j) := as_tensor(A, (i,j))
  - Updates to old manual for publishing on fenics-ufl.readthedocs.org
  - Bugfix for ufl files with utf-8 encoding
  - Bugfix in conditional derivatives, currently must be manually enabled for compatibility
