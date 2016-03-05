@@ -8,12 +8,13 @@ all these operators and atomic expressions in detail.
 
 UFL is built on top of the Python language, and any Python code is
 valid in the definition of a form.
-In particular, comments (lines starting with ``#`` and functions (keyword ``def``, see _user-defined
+In particular, comments (lines starting with ``#``) and functions
+(keyword ``def``, see user-defined_
 below) are useful in the definition of a form.  However, it is usually a
 good idea to avoid using advanced Python features in the form definition,
 to stay close to the mathematical notation.
 
-The entire form language can be imported in Python with the line:
+The entire form language can be imported in Python with the line
 
 .. code-block:: python
 
@@ -48,7 +49,7 @@ to define form arguments and integrand expressions is detailed in the
 rest of this chapter.
 
 Integrals are expressed through multiplication with a measure,
-representing an integral over either of:
+representing an integral over either
 
     * the interior of the domain :math:`\Omega` (``dx``, cell integral);
 
@@ -56,7 +57,7 @@ representing an integral over either of:
 
     * the set of interior facets :math:`\Gamma` (``dS``, interior facet integral).
 
-(Note that newer versions of UFL supports several other integral
+(Note that newer versions of UFL support several other integral
 types currently not documented here).
 As a basic example, assume ``v`` is a scalar-valued expression and
 consider the integral of ``v`` over the interior of :math:`\Omega`. This
@@ -66,10 +67,10 @@ may be expressed as::
 
 and the integral of ``v`` over :math:`\partial\Omega` is written as::
 
-  a = v*ds
+  a = v*ds.
 
 Alternatively, measures can be redefined to represent numbered subsets of
-a domain, such that a form can take on different expressions on different
+a domain, such that a form evaluates to different expressions on different
 parts of the domain.  If ``c``, ``e0`` and ``e1`` are scalar-valued
 expressions, then::
 
@@ -79,7 +80,7 @@ represents
 
 .. math::
 
-   a = \int_\Omega c\,dx + \int_{\partial\Omega_0} e_0 \, ds + \int_{\partial\Omega_1} e_1 \, ds.
+   a = \int_\Omega c\,dx + \int_{\partial\Omega_0} e_0 \, ds + \int_{\partial\Omega_1} e_1 \, ds,
 
 where
 

@@ -3,7 +3,7 @@ Sphinx documentation
 ====================
 
 UFL is documented using Sphinx and reStructured text. The
-documnentation is hosted at http://fenics-ufl.readthedocs.org/. The
+documentation is hosted at http://fenics-ufl.readthedocs.org/. The
 online documentation is automatically updated upon pushes to the UFL
 master branch.
 
