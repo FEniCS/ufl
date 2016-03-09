@@ -53,9 +53,11 @@ def map_expr_dags(function, expressions, compress=True):
     # Build mapping typecode:bool, for which types to skip the subtree of
     if isinstance(function, MultiFunction):
         cutoff_types = function._is_cutoff_type
+        handlers = function._handlers  # Optimization
     else:
         # Regular function: no skipping supported
         cutoff_types = [False]*Expr._ufl_num_typecodes_
+        handlers = [function]*Expr._ufl_num_typecodes_
 
     # Create visited set here to share between traversal calls
     visited = set()
@@ -77,9 +79,9 @@ def map_expr_dags(function, expressions, compress=True):
 
             # Cache miss: Get transformed operands, then apply transformation
             if cutoff_types[v._ufl_typecode_]:
-                r = function(v)
+                r = handlers[v._ufl_typecode_](v)
             else:
-                r = function(v, *[vcache[u] for u in v.ufl_operands])
+                r = handlers[v._ufl_typecode_](v, *[vcache[u] for u in v.ufl_operands])
 
             # Optionally check if r is in rcache, a memory optimization
             # to be able to keep representation of result compact
