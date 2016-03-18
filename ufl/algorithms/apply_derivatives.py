@@ -56,10 +56,9 @@ from ufl.checks import is_cellwise_constant
 # - ReferenceDivRuleset
 
 
-# Set this to True to enable workaround for bug in FFC handling of conditionals
-# TODO: Flip this to make the correct behaviour default.
-# Not doing that right now because I don't want to deal
-# with the breakage until the fix in uflacs is confirmed.
+# Set this to True to enable previously default workaround
+# for bug in FFC handling of conditionals, uflacs does not
+# have this bug.
 CONDITIONAL_WORKAROUND = False
 
 

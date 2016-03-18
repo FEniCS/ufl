@@ -35,8 +35,8 @@ from ufl.constantvalue import as_ufl, Identity
 from ufl.tensors import as_tensor, as_vector
 
 from ufl.finiteelement import (FiniteElement, EnrichedElement, VectorElement, MixedElement,
-                               TensorProductElement, FacetElement, InteriorElement,
-                               BrokenElement, TraceElement)
+                               TensorProductElement, TensorElement,
+                               FacetElement, InteriorElement, BrokenElement, TraceElement)
 from ufl.utils.sequences import product
 
 def sub_elements_with_mappings(element):

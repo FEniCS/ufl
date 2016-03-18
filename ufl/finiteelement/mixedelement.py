@@ -255,19 +255,20 @@ class VectorElement(MixedElement):
 
         *Arguments*
             family (string)
-               The finite element family (or a FiniteElement)
+               The finite element family (or an existing FiniteElement)
             cell
-               The geometric cell (ignored if family is FiniteElement)
+               The geometric cell, ignored if family is a FiniteElement
             degree (int)
-               The polynomial degree (ignored if family is a FiniteElement)
+               The polynomial degree, ignored if family is a FiniteElement
             dim (int)
                The value dimension of the element (optional)
             form_degree (int)
                The form degree (FEEC notation, used when field is
-               viewed as k-form)
+               viewed as k-form), ignored if family is a FiniteElement
             quad_scheme
-               The quadrature scheme (optional)
+               The quadrature scheme (optional), ignored if family is a FiniteElement
         """
+
         if isinstance(family, FiniteElementBase):
             sub_element = family
             cell = sub_element.cell()
@@ -301,16 +302,12 @@ class VectorElement(MixedElement):
         self._form_degree = form_degree # Storing for signature_data, not sure if it's needed
 
         # Cache repr string
-        qs = self.quadrature_scheme()
-        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
-        self._repr = ("VectorElement(%r, dim=%d%s)" %
-            (sub_element, len(self._sub_elements), quad_str))
+        self._repr = "VectorElement(%r, dim=%d)" % (sub_element, len(self._sub_elements))
 
     def __str__(self):
         "Format as string for pretty printing."
-        return ("<%s vector element of degree %s on a %s: %d x %s>" %
-               (self.family(), istr(self.degree()), self.cell(),
-                len(self._sub_elements), self._sub_element))
+        return ("<vector element with %d components of %s>" %
+               (len(self._sub_elements), self._sub_element))
 
     def shortstr(self):
         "Format as string for pretty printing."
@@ -323,15 +320,28 @@ class TensorElement(MixedElement):
     __slots__ = ("_sub_element", "_shape", "_symmetry",
                  "_sub_element_mapping", "_flattened_sub_element_mapping",
                  "_mapping")
+    def __init__(self, family, cell=None, degree=None, shape=None,
+                 symmetry=None, quad_scheme=None):
+        """Create tensor element (repeated mixed element with optional symmetries).
 
-    def __init__(self, family, cell=None, degree=None, shape=None, symmetry=None, quad_scheme=None):
-        "Create tensor element (repeated mixed element with optional symmetries)"
+        :arg family: The family string, or an existing FiniteElement.
+        :arg cell: The geometric cell (ignored if family is a FiniteElement).
+        :arg degree: The polynomial degree (ignored if family is a FiniteElement).
+        :arg shape: The shape of the element (defaults to a square
+             tensor given by the geometric dimension of the cell).
+        :arg symmetry: Optional symmetries.
+        :arg quad_scheme: Optional quadrature scheme (ignored if
+             family is a FiniteElement)."""
+
         if isinstance(family, FiniteElementBase):
             sub_element = family
+            cell = sub_element.cell()
         else:
             if cell is not None:
                 cell = as_cell(cell)
+            # Create scalar sub element
             sub_element = FiniteElement(family, cell, degree, quad_scheme)
+
         ufl_assert(sub_element.value_shape() == (),
                    "Expecting only scalar valued subelement for TensorElement.")
 
@@ -403,10 +413,7 @@ class TensorElement(MixedElement):
         self._mapping = mapping
 
         # Cache repr string
-        qs = self.quadrature_scheme()
-        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
-        self._repr = ("TensorElement(%r, shape=%r, symmetry=%r%s)" %
-            (sub_element, self._shape, self._symmetry, quad_str))
+        self._repr = "TensorElement(%r, shape=%r, symmetry=%r)" % (sub_element, self._shape, self._symmetry)
 
     def mapping(self):
         if self._symmetry:
@@ -445,8 +452,8 @@ class TensorElement(MixedElement):
             sym = " with symmetries (%s)" % tmp
         else:
             sym = ""
-        return ("<%s tensor element of degree %s and shape %s on a %s%s>" %
-            (self.family(), istr(self.degree()), self.value_shape(), self.cell(), sym))
+        return ("<tensor element with shape %s of %s%s>" %
+                (self.value_shape(), self._sub_element, sym))
 
     def shortstr(self):
         "Format as string for pretty printing."
