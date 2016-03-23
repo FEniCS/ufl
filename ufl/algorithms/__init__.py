@@ -77,6 +77,8 @@ from ufl.algorithms.formtransformations import (
     compute_form_lhs, compute_form_rhs,
     compute_form_functional, compute_form_arities)
 
+from ufl.algorithms.formsplitter import FormSplitter
+
 # Utilities for Automatic Functional Differentiation
 from ufl.algorithms.ad import expand_derivatives
 
