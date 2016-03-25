@@ -18,7 +18,6 @@ import pickle
 p = pickle.HIGHEST_PROTOCOL
 
 
-@pytest.mark.xfail
 def testConstant():
 
     element = FiniteElement("Lagrange", "triangle", 1)
@@ -44,7 +43,6 @@ def testConstant():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testElasticity():
 
     element = VectorElement("Lagrange", "tetrahedron", 1)
@@ -65,7 +63,6 @@ def testElasticity():
     assert(a.signature() == a_restore.signature())
 
 
-@pytest.mark.xfail
 def testEnergyNorm():
 
     element = FiniteElement("Lagrange", "tetrahedron", 1)
@@ -79,7 +76,6 @@ def testEnergyNorm():
     assert(a.signature() == a_restore.signature())
 
 
-@pytest.mark.xfail
 def testEquation():
 
     element = FiniteElement("Lagrange", "triangle", 1)
@@ -104,7 +100,6 @@ def testEquation():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testFunctionOperators():
 
     element = FiniteElement("Lagrange", "triangle", 1)
@@ -125,7 +120,6 @@ def testFunctionOperators():
     assert(a.signature() == a_restore.signature())
 
 
-@pytest.mark.xfail
 def testHeat():
 
     element = FiniteElement("Lagrange", "triangle", 1)
@@ -149,7 +143,6 @@ def testHeat():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testMass():
 
     element = FiniteElement("Lagrange", "tetrahedron", 3)
@@ -165,7 +158,6 @@ def testMass():
     assert(a.signature() == a_restore.signature())
 
 
-@pytest.mark.xfail
 def testMixedMixedElement():
 
     P3 = FiniteElement("Lagrange", "triangle", 3)
@@ -178,7 +170,6 @@ def testMixedMixedElement():
     assert(element == element_restore)
 
 
-@pytest.mark.xfail
 def testMixedPoisson():
 
     q = 1
@@ -205,7 +196,6 @@ def testMixedPoisson():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testNavierStokes():
 
     element = VectorElement("Lagrange", "tetrahedron", 1)
@@ -224,7 +214,6 @@ def testNavierStokes():
     assert(a.signature() == a_restore.signature())
 
 
-@pytest.mark.xfail
 def testNeumannProblem():
 
     element = VectorElement("Lagrange", "triangle", 1)
@@ -249,7 +238,6 @@ def testNeumannProblem():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testOptimization():
 
     element = FiniteElement("Lagrange", "triangle", 3)
@@ -270,7 +258,6 @@ def testOptimization():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testP5tet():
 
     element = FiniteElement("Lagrange", tetrahedron, 5)
@@ -281,7 +268,6 @@ def testP5tet():
     assert(element == element_restore)
 
 
-@pytest.mark.xfail
 def testP5tri():
 
     element = FiniteElement("Lagrange", triangle, 5)
@@ -290,7 +276,6 @@ def testP5tri():
     element_restore = pickle.loads(element_pickle)
 
 
-@pytest.mark.xfail
 def testPoissonDG():
 
     element = FiniteElement("Discontinuous Lagrange", triangle, 1)
@@ -337,7 +322,6 @@ def testPoissonDG():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testPoisson():
 
     element = FiniteElement("Lagrange", "triangle", 1)
@@ -359,7 +343,6 @@ def testPoisson():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testPoissonSystem():
 
     element = VectorElement("Lagrange", "triangle", 1)
@@ -383,7 +366,6 @@ def testPoissonSystem():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testQuadratureElement():
 
     element = FiniteElement("Lagrange", "triangle", 2)
@@ -414,7 +396,6 @@ def testQuadratureElement():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testStokes():
 
     # UFLException: Shape mismatch in sum.
@@ -443,7 +424,6 @@ def testStokes():
     assert(L.signature() == L_restore.signature())
 
 
-@pytest.mark.xfail
 def testSubDomain():
 
     element = FiniteElement("CG", "tetrahedron", 1)
@@ -460,7 +440,6 @@ def testSubDomain():
     assert(M.signature() == M_restore.signature())
 
 
-@pytest.mark.xfail
 def testSubDomains():
 
     element = FiniteElement("CG", "tetrahedron", 1)
@@ -477,7 +456,6 @@ def testSubDomains():
     assert(a.signature() == a_restore.signature())
 
 
-@pytest.mark.xfail
 def testTensorWeightedPoisson():
 
     # FFC notation:
@@ -512,7 +490,6 @@ def testTensorWeightedPoisson():
     assert(a.signature() == a_restore.signature())
 
 
-@pytest.mark.xfail
 def testVectorLaplaceGradCurl():
 
     def HodgeLaplaceGradCurl(element, felement):
@@ -559,7 +536,6 @@ def testIdentity():
     assert(i == i_restore)
 
 
-@pytest.mark.xfail
 def testFormData():
 
     element = FiniteElement("Lagrange", "tetrahedron", 3)
