@@ -27,7 +27,7 @@ from ufl.assertions import ufl_assert
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
+from ufl.algorithms.analysis import extract_coefficients, extract_unique_elements, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData#, ExprData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
@@ -65,8 +65,14 @@ def _compute_element_mapping(form):
     # - Expression with missing cell or element TODO: Implement proper Expression handling in UFL and get rid of this
     # - Constant with missing cell TODO: Fix anything that needs to be worked around to drop this requirement
 
-    # Extract all elements and include subelements of mixed elements
-    elements = [obj.ufl_element() for obj in chain(form.arguments(), form.coefficients())]
+    # Extract all elements
+    #elements = [obj.ufl_element() for obj in chain(form.arguments(), form.coefficients())]
+    # This includes coordinate elements of domains.
+    # They will map to themselves but it's convenient
+    # to have all elements in the mapping.
+    elements = extract_unique_elements(form)
+
+    # Include subelements of mixed elements
     elements = extract_sub_elements(elements)
 
     # Try to find a common degree for elements
