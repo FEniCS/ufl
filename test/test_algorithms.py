@@ -59,7 +59,7 @@ def test_extract_coefficients_vs_fixture(coefficients, forms):
     assert coefficients == tuple(extract_coefficients(forms[2]))
 
 
-def test_extract_elements_and_extract_unique_elements(forms):
+def test_extract_unique_elements(forms):
     b = forms[2]
     integrals = b.integrals_by_type("cell")
     integrand = integrals[0].integrand()
@@ -67,12 +67,16 @@ def test_extract_elements_and_extract_unique_elements(forms):
     element1 = FiniteElement("CG", triangle, 1)
     element2 = FiniteElement("CG", triangle, 1)
 
-    v = TestFunction(element1)
-    u = TrialFunction(element2)
+    xelement = VectorElement("CG", triangle, 2)
+    mesh = Mesh(xelement)
+    V1 = FunctionSpace(mesh, element1)
+    V2 = FunctionSpace(mesh, element2)
+
+    v = TestFunction(V1)
+    u = TrialFunction(V2)
 
     a = u * v * dx
-    assert extract_elements(a) == (element1, element2)
-    assert extract_unique_elements(a) == (element1,)
+    assert extract_unique_elements(a) == (xelement, element1)
 
 
 def test_pre_and_post_traversal():

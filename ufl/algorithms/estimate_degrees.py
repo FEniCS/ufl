@@ -295,7 +295,7 @@ def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}
 def __unused__extract_max_quadrature_element_degree(integral):
     """Extract quadrature integration order from quadrature
     elements in integral. Returns None if not found."""
-    quadrature_elements = [e for e in extract_elements(integral) if "Quadrature" in e.family()]
+    quadrature_elements = [e for e in extract_unique_elements(integral) if "Quadrature" in e.family()]
     degrees = [element.degree() for element in quadrature_elements]
     degrees = [q for q in degrees if q is not None]
     if not degrees:

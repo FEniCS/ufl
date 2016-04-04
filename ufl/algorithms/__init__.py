@@ -40,7 +40,6 @@ from ufl.algorithms.analysis import (
     extract_arguments,
     extract_coefficients,
     extract_arguments_and_coefficients,
-    extract_elements,
     extract_unique_elements,
     extract_sub_elements,
     sort_elements,

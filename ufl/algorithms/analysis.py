@@ -31,6 +31,7 @@ from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal, FormArgument
+from ufl.geometry import GeometricQuantity
 from ufl.finiteelement import MixedElement, RestrictedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
@@ -149,15 +150,21 @@ The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
     return arguments, coefficients
 
 
-def extract_elements(form):
-    "Build sorted tuple of all elements used in form."
-    args = chain(*extract_arguments_and_coefficients(form))
-    return tuple(f.ufl_element() for f in args)
-
-
 def extract_unique_elements(form):
     "Build sorted tuple of all unique elements used in form."
-    return unique_tuple(extract_elements(form))
+    terminals = extract_type(form, Terminal)
+    elements = []
+    for t in terminals:
+        if isinstance(t, GeometricQuantity):
+            for domain in t.ufl_domains():
+                elements.append(domain.ufl_coordinate_element())
+        elif isinstance(t, FormArgument):
+            for domain in t.ufl_domains():
+                elements.append(domain.ufl_coordinate_element())
+            # TODO: Multiple elements in TensorFunctionSpace or MixedFunctionSpace?
+            elements.append(t.ufl_element())
+    elements = tuple(e for e in elements if e is not None)
+    return unique_tuple(elements)
 
 
 def extract_sub_elements(elements):
