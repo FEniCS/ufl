@@ -25,11 +25,11 @@
 from ufl.assertions import ufl_assert
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
-from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.cell import TensorProductCell
 from ufl.finiteelement.elementlist import canonical_element_description, simplices
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+
 
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
@@ -37,7 +37,7 @@ class FiniteElement(FiniteElementBase):
     __slots__ = ("_short_name",
                  "_sobolev_space",
                  "_mapping",
-                )
+                 )
 
     def __new__(cls,
                 family,
@@ -52,7 +52,7 @@ class FiniteElement(FiniteElementBase):
             cell = as_cell(cell)
 
         family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
-          canonical_element_description(family, cell, degree, form_degree)
+            canonical_element_description(family, cell, degree, form_degree)
 
         if isinstance(cell, TensorProductCell):
             # Delay import to avoid circular dependency at module load time
@@ -103,22 +103,17 @@ class FiniteElement(FiniteElementBase):
 
             elif family == "Q":
                 return TensorProductElement(FiniteElement("CG", cell._cells[0], degree, 0, quad_scheme),
-                                           FiniteElement("CG", cell._cells[1], degree, 0, quad_scheme),
-                                           cell)
+                                            FiniteElement("CG", cell._cells[1], degree, 0, quad_scheme),
+                                            cell)
 
             elif family == "DQ":
                 family_A = "DG" if cell._cells[0].cellname() in simplices else "DQ"
                 family_B = "DG" if cell._cells[1].cellname() in simplices else "DQ"
                 return TensorProductElement(FiniteElement(family_A, cell._cells[0], degree, cell._cells[0].topological_dimension(), quad_scheme),
-                                           FiniteElement(family_B, cell._cells[1], degree, cell._cells[1].topological_dimension(), quad_scheme),
-                                           cell)
+                                            FiniteElement(family_B, cell._cells[1], degree, cell._cells[1].topological_dimension(), quad_scheme),
+                                            cell)
 
-        return super(FiniteElement, cls).__new__(cls,
-                                                 family,
-                                                 cell,
-                                                 degree,
-                                                 form_degree,
-                                                 quad_scheme)
+        return super(FiniteElement, cls).__new__(cls)
 
     def __init__(self,
                  family,
@@ -146,7 +141,7 @@ class FiniteElement(FiniteElementBase):
             cell = as_cell(cell)
 
         family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
-          canonical_element_description(family, cell, degree, form_degree)
+            canonical_element_description(family, cell, degree, form_degree)
 
         # TODO: Move these to base? Might be better to instead simplify base though.
         self._sobolev_space = sobolev_space
@@ -180,9 +175,19 @@ class FiniteElement(FiniteElementBase):
         qs = self.quadrature_scheme()
         qs = "" if qs is None else "(%s)" % qs
         return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),
-                                           qs, self.cell())
+                                     qs, self.cell())
 
     def shortstr(self):
         "Format as string for pretty printing."
         return "%s%s(%s)" % (self._short_name, istr(self.degree()),
                              istr(self.quadrature_scheme()))
+
+    def __getnewargs__(self):
+        """Return the arguments which pickle needs to recreate the object."""
+        return (
+            self.family(),
+            self.cell(),
+            self.degree(),
+            None,
+            self.quadrature_scheme()
+        )
