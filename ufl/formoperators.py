@@ -50,10 +50,24 @@ from ufl.algorithms import compute_form_adjoint, \
                            compute_form_rhs, \
                            compute_form_functional, \
                            expand_derivatives, \
-                           extract_arguments
+                           extract_arguments, \
+                           FormSplitter
 
 # Part of the external interface
 from ufl.algorithms import replace
+
+def block_split(form, ix, iy=0):
+    """UFL form operator:
+    Given a linear or bilinear form on a mixed space,
+    extract the block correspoinding to the indices ix, iy.
+
+    Example:
+
+       a = inner(grad(u), grad(v))*dx + div(u)*q*dx + div(v)*p*dx
+       a = block_split(a, 0, 0) -> inner(grad(u), grad(v))*dx
+    """
+    fs = FormSplitter()
+    return fs.split(form, ix, iy)
 
 def lhs(form):
     """UFL form operator:
