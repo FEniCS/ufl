@@ -34,6 +34,7 @@ from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
 from ufl.classes import Jacobian, JacobianInverse
+from ufl.classes import SpatialCoordinate
 
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.operators import (dot, inner, outer, lt, eq, conditional, sign,
@@ -470,6 +471,17 @@ class GradRuleset(GenericDerivativeRuleset):
         else:
             # TODO: Which types does this involve? I don't think the form compilers will handle this.
             return Grad(o)
+
+    def jacobian_inverse(self, o):
+        # grad(K) == K_ji rgrad(K)_rj
+        if is_cellwise_constant(o):
+            return self.independent_terminal(o)
+        ufl_assert(o._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
+        r = indices(len(o.ufl_shape))
+        i, j = indices(2)
+        Do = as_tensor(o[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
+        return Do
+
     # TODO: Add more explicit geometry type handlers here, with non-affine domains several should be non-zero.
 
     def spatial_coordinate(self, o):
@@ -514,7 +526,8 @@ class GradRuleset(GenericDerivativeRuleset):
     def reference_grad(self, o):
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
-        ufl_assert(f._ufl_is_in_reference_frame_, "ReferenceGrad can only wrap a reference frame type!")
+        valid_operand = f._ufl_is_in_reference_frame_ or isinstance(f, (JacobianInverse, SpatialCoordinate))
+        ufl_assert(valid_operand, "ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
         r = indices(len(o.ufl_shape))
@@ -565,7 +578,8 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
     def spatial_coordinate(self, o):
         "dx/dX = J"
-        return Jacobian(o.ufl_domain())
+        # Don't convert back to J, otherwise we get in a loop
+        return ReferenceGrad(o)
 
     def cell_coordinate(self, o):
         "dX/dX = I"
