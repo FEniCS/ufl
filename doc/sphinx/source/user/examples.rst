@@ -202,8 +202,8 @@ obtain the following variational problem for the discrete solution :math:`u_h
    \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n \mathop{dx} =
    \int_{\Omega} v \, f^n \mathop{dx}
 
-for all test functions :math:`v`, where :math:`k = t_n - t_{n-1}`
-denotes the time step . In the example below, we implement this
+for all test functions :math:`v`, where :math:`k_n = t_n - t_{n-1}`
+denotes the time step. In the example below, we implement this
 variational problem with piecewise linear test and trial functions,
 but other choices are possible (just choose another finite element).
 
@@ -279,15 +279,15 @@ Mixed formulation of Poisson
 
 We next consider the following formulation of Poisson's equation as a
 pair of first order equations for :math:`\sigma \in H(\mathrm{div})`
-and :math:`u \in L_2`:
+and :math:`u \in L^2`:
 
 .. math::
    \sigma + \nabla u &= 0, \\
    \nabla \cdot \sigma &= f.
 
-We multiply the two equations by a pair of test functions $\tau$ and
-$w$ and integrate by parts to obtain the following variational
-problem: Find $(\sigma, u) \in V = H(\mathrm{div}) \times L_2$ such that
+We multiply the two equations by a pair of test functions :math:`\tau` and
+:math:`w` and integrate by parts to obtain the following variational
+problem: Find :math:`(\sigma, u) \in V = H(\mathrm{div}) \times L^2` such that
 
 .. math::
 
@@ -304,8 +304,8 @@ where
 
 We may implement the corresponding forms in our form language using
 first order BDM H(div)-conforming elements for
-:math:\sigma and piecewise constant :math`L_2`-conforming elements for
-:math:u as follows::
+:math:`\sigma` and piecewise constant :math:`L^2`-conforming elements for
+:math:`u` as follows::
 
   cell = triangle
   BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1)
@@ -329,7 +329,7 @@ Poisson equation with DG elements
 =================================
 
 We consider again Poisson's equation, but now in an (interior penalty)
-discontinuous Galerkin formulation: Find :math:`u \in V = L_2` such that
+discontinuous Galerkin formulation: Find :math:`u \in V = L^2` such that
 
 .. math::
 
@@ -360,8 +360,7 @@ first order elements may be implemented as follows::
 
   f = Coefficient(DG1)
   g = Coefficient(DG1)
-  #h = MeshSize(cell) # TODO: Do we include MeshSize in UFL?
-  h = Constant(cell)
+  #h = 2.0*Circumradius(cell)
   alpha = 1 # TODO: Set to proper value
   gamma = 1 # TODO: Set to proper value
 
@@ -393,13 +392,13 @@ We consider here a nonlinear version of the Poisson's equation to
 illustrate the main point of the ``Quadrature`` finite element
 family. The strong equation looks as follows:
 
-.. math:
+.. math::
 
   - \nabla \cdot (1+u^2)\nabla u = f.
 
 The linearised bilinear and linear forms for this equation,
 
-.. math:
+.. math::
 
    a(v, u; u_0) &= \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u \mathop{dx}
    + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 \mathop{dx},
@@ -422,15 +421,15 @@ can be implemented in a single form file as follows::
 Here, :math:`u_0` represents the solution from the previous Newton-Raphson
 iteration.
 
-The above form will be denoted REF1 and serve as our reference
+The above form will be denoted REF1 and serves as our reference
 implementation for linear elements. A similar form (REF2) using quadratic
 elements will serve as a reference for quadratic elements.
 
 Now, assume that we want to treat the quantities :math:`C = (1 + u_{0}^2)`
 and :math:`\sigma_0 = (1+u_{0}^2) \nabla u_0` as given functions (to be
-computed elsewhere). Substituting into bilinear linear forms, we obtain
+computed elsewhere). Substituting into the bilinear and linear forms, we obtain
 
-.. math:
+.. math::
    a(v, u) &= \int_{\Omega} \text{C} \nabla v \cdot \nabla u \mathop{dx}
    + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 \mathop{dx},
    \\
@@ -441,8 +440,11 @@ Then, two additional forms are created to compute the tangent C and
 the gradient of :math:`u_0`. This situation shows up in plasticity and
 other problems where certain quantities need to be computed elsewhere
 (in user-defined functions).  The three forms using the standard
-``FiniteElement`` (linear elements) can then be implemented as::
+``FiniteElement`` (linear elements) can then be implemented as
 
+::
+
+  # NonlinearPoisson.ufl
   element = FiniteElement("Lagrange", triangle, 1)
   DG = FiniteElement("Discontinuous Lagrange", triangle, 0)
   sig = VectorElement("Discontinuous Lagrange", triangle, 0)
@@ -457,8 +459,11 @@ other problems where certain quantities need to be computed elsewhere
   a = v.dx(i)*C*u.dx(i)*dx + v.dx(i)*2*u0*u*u0.dx(i)*dx
   L = v*f*dx - dot(grad(v), sig0)*dx
 
-and::
+and
 
+::
+
+  # Tangent.ufl
   element = FiniteElement("Lagrange", triangle, 1)
   DG = FiniteElement("Discontinuous Lagrange", triangle, 0)
 
@@ -469,8 +474,11 @@ and::
   a = v*u*dx
   L = v*(1.0 + u0**2)*dx
 
-and::
+and
 
+::
+
+  # Gradient.ufl
   element = FiniteElement("Lagrange", triangle, 1)
   DG = VectorElement("Discontinuous Lagrange", triangle, 0)
 
@@ -479,7 +487,7 @@ and::
   u0 = Coefficient(element)
 
   a = dot(v, u)*dx
-  L = dot(v, grad(u0))*dx
+  L = dot(v, (1.0 + u0**2)*grad(u0))*dx
 
 The three forms can be implemented using the ``QuadratureElement``
 in a similar fashion in which only the element declaration is different::
@@ -489,26 +497,30 @@ in a similar fashion in which only the element declaration is different::
   QE = FiniteElement("Quadrature", triangle, 2)
   sig = VectorElement("Quadrature", triangle, 2)
 
-and::
+and
+
+::
 
   # QE1Tangent.ufl
   element = FiniteElement("Lagrange", triangle, 1)
   QE = FiniteElement("Quadrature", triangle, 2)
 
-and::
+and
+
+::
 
   # QE1Gradient.ufl
   element = FiniteElement("Lagrange", triangle, 1)
   QE = VectorElement("Quadrature", triangle, 2)
 
 Note that we use two points when declaring the ``QuadratureElement``. This
-is because the RHS of the ``Tangent.form`` is second order and therefore
+is because the RHS of ``Tangent.form`` is second order and therefore
 we need two points for exact integration. Due to consistency issues,
 when passing functions around between the forms, we also need to use
 two points when declaring the ``QuadratureElement`` in the other forms.
 
 Typical values of the relative residual for each Newton iteration for all
-three approaches are shown in Table~\ref{tab:convergence1}. It is noted
+three approaches are shown in the table below. It is to be noted
 that the convergence rate is quadratic as it should be for all 3 methods.
 
 Relative residuals for each approach for linear elements::
@@ -520,9 +532,9 @@ Relative residuals for each approach for linear elements::
   3         3.7e-08   3.7e-08  3.7e-08
   4         2.9e-16   2.9e-16  2.5e-16
 
-However, if quadratic elements are used to interpolate the unknown field u,
+However, if quadratic elements are used to interpolate the unknown field :math:`u`,
 the order of all elements in the above forms is increased by 1. This influences
-the convergence rate as seen in Table (tab:convergence2). Clearly, using
+the convergence rate as seen in the table below. Clearly, using
 the standard ``FiniteElement`` leads to a poor convergence whereas
 the ``QuadratureElement`` still leads to quadratic convergence.
 
