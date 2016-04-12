@@ -360,9 +360,9 @@ first order elements may be implemented as follows::
 
   f = Coefficient(DG1)
   g = Coefficient(DG1)
-  #h = 2.0*Circumradius(cell)
-  alpha = 1 # TODO: Set to proper value
-  gamma = 1 # TODO: Set to proper value
+  h = 2.0*Circumradius(cell)
+  alpha = 1
+  gamma = 1
 
   a = dot(grad(v), grad(u))*dx \
     - dot(avg(grad(v)), jump(u))*dS \
@@ -373,20 +373,24 @@ first order elements may be implemented as follows::
     + gamma/h*v*u*ds
   L = v*f*dx + v*g*ds
 
+..
+    TODO: set alpha and gamma to proper values
+
 This example is implemented in the file ``PoissonDG.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
 
-Quadrature elements
-===================
+The Quadrature family
+=====================
 
-*FIXME: The code examples in this section have been mostly converted
-to UFL syntax, but the quadrature elements need some more updating, as
-well as the text.  In UFL, I think we should define the element order
-and not the number of points for quadrature elements, and let the form
-compiler choose a quadrature rule.  This way the form depends less on
-the cell in use.*
+..
+    *FIXME: The code examples in this section have been mostly converted
+    to UFL syntax, but the quadrature elements need some more updating, as
+    well as the text.  In UFL, I think we should define the element order
+    and not the number of points for quadrature elements, and let the form
+    compiler choose a quadrature rule.  This way the form depends less on
+    the cell in use.*
 
 We consider here a nonlinear version of the Poisson's equation to
 illustrate the main point of the ``Quadrature`` finite element
@@ -521,7 +525,7 @@ two points when declaring the ``QuadratureElement`` in the other forms.
 
 Typical values of the relative residual for each Newton iteration for all
 three approaches are shown in the table below. It is to be noted
-that the convergence rate is quadratic as it should be for all 3 methods.
+that the convergence rate is quadratic as it should be for all three methods.
 
 Relative residuals for each approach for linear elements::
 
@@ -554,4 +558,5 @@ More examples
 Feel free to send additional demo form files for your favourite PDE to
 the UFL mailing list.
 
-%TODO: Modify rest of FFC example forms to UFL syntax and add here.
+..
+    %TODO: Modify rest of FFC example forms to UFL syntax and add here.

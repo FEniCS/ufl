@@ -4,7 +4,9 @@ Algorithms
 
 Algorithms to work with UFL forms and expressions can be found in the
 submodule ``ufl.algorithms``.  You can import all of them with
-the line::
+the line
+
+::
 
   from ufl.algorithms import *
 
@@ -36,7 +38,7 @@ form for the formatting sections below::
 
 str
 ---
-Compact human readable pretty printing.  Useful in interactive Python
+Compact, human readable pretty printing.  Useful in interactive Python
 sessions.  Example output of ``str(a)``::
 
   { v_0 * v_1 * w_0 } * dx(<Mesh #-1 with coordinates parameterized by <Lagrange vector element of degree 1 on a triangle: 2 x <CG1 on a triangle>>>[everywhere], {})
@@ -44,7 +46,7 @@ sessions.  Example output of ``str(a)``::
 
 repr
 ----
-Accurate description of expression, with the property that
+Accurate description of an expression, with the property that
 ``eval(repr(a)) == a``.  Useful to see which representation types
 occur in an expression, especially if ``str(a)`` is ambiguous.
 Example output of ``repr(a)``::
@@ -55,7 +57,7 @@ Example output of ``repr(a)``::
 Tree formatting
 ---------------
 
-Ascii tree formatting, useful to inspect the tree structure of
+ASCII tree formatting, useful to inspect the tree structure of
 an expression in interactive Python sessions.  Example output of
 ``tree_format(a)``::
 
@@ -106,40 +108,49 @@ outputs::
   v_0 * v_1 * w_0
   v_0 * w_1
 
+..
+    ``post_traversal``
+    ^^^^^^^^^^^^^^^^^^^
 
-``post_traversal``
-^^^^^^^^^^^^^^^^^^^
+..
+    TODO: traversal.py
 
-TODO: traversal.py
+..
+    ``pre_traversal``
+    ^^^^^^^^^^^^^^^^^^
 
-``pre_traversal``
-^^^^^^^^^^^^^^^^^^
-
-TODO: traversal.py
-
-
-``walk``
-^^^^^^^^
-
-TODO: traversal.py
+..
+    TODO: traversal.py
 
 
-``traverse_terminals``
-^^^^^^^^^^^^^^^^^^^^^^^
+..
+    ``walk``
+    ^^^^^^^^
 
-TODO: traversal.py
+..
+    TODO: traversal.py
 
 
-Extracting information
-----------------------
+..
+    ``traverse_terminals``
+    ^^^^^^^^^^^^^^^^^^^^^^^
 
-TODO: analysis.py
+..
+    TODO: traversal.py
+
+
+..
+    Extracting information
+    ----------------------
+
+..
+    TODO: analysis.py
 
 
 Transforming expressions
 ------------------------
 
-So far the algorithms presented has been about inspecting expressions
+So far we presented algorithms meant to inspect expressions
 in various ways. Some recurring patterns occur when writing algorithms
 to modify expressions, either to apply mathematical transformations or
 to change their representation. Usually, different expression node types
@@ -208,7 +219,9 @@ Here is a simple example to show how to override default behaviour::
   b = r.visit(a)
   print b
 
-outputs::
+which outputs
+
+::
 
   3.14 * v_0
 
@@ -222,7 +235,7 @@ without recursing into its children, usually applied to terminals.
 To set these defaults with less code, inherit ``ReuseTransformer``
 instead of ``Transformer``. This ensures that the parts of the
 expression tree that are not changed by the transformation algorithms
-always reuse the same instances.
+will always reuse the same instances.
 
 We have already mentioned the difference between pre--traversal
 and post--traversal, and some times you need to combine the
@@ -256,13 +269,13 @@ Here is an example of mixing pre- and post-traversal::
   b = r.visit(a)
   print b
 
-This code inherits the ``ReuseTransformer`` like explained above,
+This code inherits the ``ReuseTransformer`` as explained above,
 so the default behaviour is to recurse into children first and then call
-``Transformer.reuse\_if\_possible`` to reuse or reconstruct each
+``Transformer.reuse_if_possible`` to reuse or reconstruct each
 expression node.  Since ``sum`` only takes ``self`` and the
 expression node instance ``o`` as arguments, its children are not
-visited automatically, and ``sum`` calls on ``self.visit``
-to do this explicitly.
+visited automatically, and ``sum`` explicitly calls ``self.visit``
+to do this.
 
 
 Automatic differentiation implementation
@@ -271,24 +284,92 @@ Automatic differentiation implementation
 This subsection is mostly for form compiler developers and technically
 interested users.
 
-TODO: More details about AD algorithms for developers.
+First of all, we give a brief explanation of the algorithm.
+Recall that a ``Coefficient`` represents a
+sum of unknown coefficients multiplied with unknown
+basis functions in some finite element space.
+
+.. math::
+
+   w(x) = \sum_k w_k \phi_k(x)
+
+Also recall that an ``Argument`` represents any (unknown) basis
+function in some finite element space.
+
+.. math::
+
+   v(x) = \phi_k(x), \qquad \phi_k \in V_h .
+
+A form :math:`L(v; w)` implemented in UFL is intended for discretization
+like
+
+.. math::
+
+   b_i = L(\phi_i; \sum_k w_k \phi_k), \qquad \forall \phi_i \in V_h .
+
+The Jacobi matrix :math:`A_{ij}` of this vector can be obtained by
+differentiation of :math:`b_i` w.r.t. :math:`w_j`, which can be written
+
+.. math::
+
+   A_{ij} = \frac{d b_i}{d w_j} = a(\phi_i, \phi_j; \sum_k w_k \phi_k), \qquad \forall \phi_i \in V_h, \quad \forall \phi_j \in V_h ,
+
+for some form `a`. In UFL, the form `a` can be obtained by
+differentiating `L`.  To manage this, we note that as long as the domain
+:math:`\Omega` is independent of :math:`w_j`, :math:`\int_\Omega` commutes with :math:`\frac{d}{d
+w_j}`, and we can differentiate the integrand expression instead, e.g.,
+
+.. math::
+
+   L(v; w) = \int_\Omega I_c(v; w) \, dx + \int_{\partial\Omega} I_e(v; w) \, ds, \\
+      \frac{d}{d w_j} L(v; w) = \int_\Omega \frac{d I_c}{d w_j} \, dx + \int_{\partial\Omega} \frac{d I_e}{d w_j} \, ds.
+
+In addition, we need that
+
+.. math::
+
+   \frac{d w}{d w_j} = \phi_j, \qquad \forall \phi_j \in V_h ,
+
+which in UFL can be represented as
+
+.. math::
+
+   w &= \mathtt{Coefficient(element)}, \\
+   v &= \mathtt{Argument(element)}, \\
+   \frac{dw}{d w_j} &= v,
+
+since :math:`w` represents the sum and :math:`v` represents any and all
+basis functions in :math:`V_h`.
+
+Other operators have well defined derivatives, and by repeatedly applying
+the chain rule we can differentiate the integrand automatically.
 
 
-Forward mode
-------------
-
-TODO: forward_ad.py
+..
+    TODO: More details about AD algorithms for developers.
 
 
-Reverse mode
-------------
+..
+    Forward mode
+    ------------
 
-TODO: reverse_ad.py
+..
+    TODO: forward_ad.py
 
-Mixed derivatives
------------------
 
-TODO: ad.py
+..
+    Reverse mode
+    ------------
+
+..
+    TODO: reverse_ad.py
+
+..
+    Mixed derivatives
+    -----------------
+
+..
+    TODO: ad.py
 
 
 Computational graphs
@@ -299,26 +380,26 @@ interest to end-users.
 
 An expression tree can be seen as a directed acyclic graph (DAG).
 To aid in the implementation of form compilers, UFL includes tools to
-build a linearized\footnote{Linearized as in a linear datastructure,
-do not confuse this with automatic differentiation.} computational graph
-from the abstract expression tree.
+build a linearized [#]_ computational graph from the abstract expression tree.
 
 A graph can be partitioned into subgraphs based on dependencies of
 subexpressions, such that a quadrature based compiler can easily place
 subexpressions inside the right sets of loops.
 
-% TODO: Finish and test this before writing about it :)
-%The vertices of a graph can be reordered to improve the efficiency
-%of the generated code, an operation usually called operation scheduling.
+.. [#] Linearized as in a linear datastructure,
+   do not confuse this with automatic differentiation.
+
+..
+    TODO: Finish and test this before writing about it :)
+    The vertices of a graph can be reordered to improve the efficiency
+    of the generated code, an operation usually called operation scheduling.
 
 The computational graph
 -----------------------
+..
+    TODO: finish graph.py:
 
-TODO: finish graph.py:
-
-  TODO
-
-Consider the expression:
+Consider the expression
 
 .. math::
 
@@ -333,7 +414,7 @@ The *expression tree* for f looks like this::
       \     /
          *
 
-In UFL f is represented like this expression tree.  If a,b,c,d are all
+In UFL f is represented like this expression tree.  If a, b, c, d are all
 distinct Coefficient instances, the UFL representation will look like this::
 
   Coefficient Coefficient Coefficient Coefficient
@@ -365,15 +446,17 @@ two vertices, i.e. that one vertex is among the operands of another.
 A graph can also be represented in a linearized data structure, consisting
 of an array of vertices and an array of edges. This representation is
 convenient for many algorithms. An example to illustrate this graph
-representation::
+representation follows::
 
   G = V, E
   V = [a, b, a+b, c, d, c+d, (a+b)*(c+d)]
   E = [(6,2), (6,5), (5,3), (5,4), (2,0), (2,1)]
 
-In the following this representation of an expression will be called
+In the following, this representation of an expression will be called
 the *computational graph*.  To construct this graph from a UFL
-expression, simply do::
+expression, simply do
+
+::
 
   G = Graph(expression)
   V, E = G
@@ -412,6 +495,11 @@ Partitioning the graph
 To help generate better code efficiently, we can partition vertices by
 their dependencies, which allows us to, e.g., place expressions outside
 the quadrature loop if they don't depend (directly or indirectly) on
-the spatial coordinates. This is done simply by::
+the spatial coordinates. This is done simply by
 
-  P = partition(G) # TODO
+..
+    TODO
+
+::
+
+  P = partition(G)
