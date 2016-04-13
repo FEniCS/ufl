@@ -21,6 +21,7 @@
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Anders Logg 2014
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.assertions import ufl_assert
 from ufl.utils.formatting import istr
@@ -31,7 +32,7 @@ from ufl.finiteelement.elementlist import canonical_element_description
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 class FiniteElement(FiniteElementBase):
-    "The basic finite element class for all simple finite elements"
+    "The basic finite element class for all simple finite elements."
     # TODO: Move these to base?
     __slots__ = ("_short_name",
                  "_sobolev_space",
@@ -84,6 +85,7 @@ class FiniteElement(FiniteElementBase):
         return self._mapping
 
     def sobolev_space(self):
+        "Return the underlying Sobolev space."
         return self._sobolev_space
 
     def __str__(self):

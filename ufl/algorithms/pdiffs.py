@@ -17,9 +17,10 @@ all relevant operands for use with reverse mode AD."""
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# along with UFL. If not, see <http://www.gnu.org/liceses/>.
 #
 # Modified by Kristian B. Oelgaard, 2011
+# Modified by Massimiliano Leoni, 2016
 
 from math import pi
 from ufl.log import error

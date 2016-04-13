@@ -15,13 +15,15 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class InteriorElement(FiniteElementBase):
     """A version of an existing Finite Element space in which only the dofs
-    associated with the interior have been kept"""
+    associated with the interior have been kept."""
     def __init__(self, element):
         self._element = element
         self._repr = "InteriorElement(%r)" % (element,)
@@ -42,6 +44,7 @@ class InteriorElement(FiniteElementBase):
         return "InteriorElement(%s)" % str(self._element)
 
     def shortstr(self):
+        "Format as string for pretty printing."
         return "InteriorElement(%s)" % str(self._element.shortstr())
 
     def __repr__(self):

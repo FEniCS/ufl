@@ -15,13 +15,15 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class FacetElement(FiniteElementBase):
     """A version of an existing Finite Element space in which all dofs
-    associated with the interior have been discarded"""
+    associated with the interior have been discarded."""
     def __init__(self, element):
         self._element = element
         self._repr = "FacetElement(%r)" % (element,)
@@ -42,6 +44,7 @@ class FacetElement(FiniteElementBase):
         return "FacetElement(%s)" % str(self._element)
 
     def shortstr(self):
+        "Format as string for pretty printing."
         return "FacetElement(%s)" % str(self._element.shortstr())
 
     def __repr__(self):

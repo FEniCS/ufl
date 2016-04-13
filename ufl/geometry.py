@@ -21,6 +21,7 @@
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
@@ -153,6 +154,8 @@ class SpatialCoordinate(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
+        """Return the number of coordinates defined (i.e. the geometric dimension
+        of the domain)."""
         g = self._domain.geometric_dimension()
         return (g,)
 
@@ -163,6 +166,7 @@ class SpatialCoordinate(GeometricCellQuantity):
         return t == 0
 
     def evaluate(self, x, mapping, component, index_values):
+        "Return the value of the coordinate."
         if component == ():
             if isinstance(x, (tuple, list)):
                 return float(x[0])
@@ -270,13 +274,15 @@ class CellFacetOrigin(GeometricFacetQuantity):
 class Jacobian(GeometricCellQuantity):
     """UFL geometry representation: The Jacobian of the mapping from reference cell to spatial coordinates.
 
-    J_ij = dx_i/dX_j
+    .. math:: J_{ij} = \\frac{dx_i}{dX_j}
     """
     __slots__ = ()
     name = "J"
 
     @property
     def ufl_shape(self):
+        """Return the number of coordinates defined (i.e. the geometric dimension
+        of the domain)."""
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
         return (g, t)
@@ -439,6 +445,8 @@ class JacobianInverse(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
+        """Return the number of coordinates defined (i.e. the geometric dimension
+        of the domain)."""
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
         return (t, g)
@@ -502,6 +510,8 @@ class FacetNormal(GeometricFacetQuantity):
 
     @property
     def ufl_shape(self):
+        """Return the number of coordinates defined (i.e. the geometric dimension
+        of the domain)."""
         g = self._domain.geometric_dimension()
         return (g,)
 
@@ -520,6 +530,8 @@ class CellNormal(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
+        """Return the number of coordinates defined (i.e. the geometric dimension
+        of the domain)."""
         g = self._domain.geometric_dimension()
         #t = self._domain.topological_dimension()
         #return (g-t,g) # TODO: Should it be CellNormals? For interval in 3D we have two!
