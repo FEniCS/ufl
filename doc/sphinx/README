@@ -25,3 +25,8 @@ Building the documentation locally
 The HTML documentation can be built locally using::
 
     make html
+
+In order for changes in the docstring to be propagated to the html pages,
+ufl must be installed anew.
+In other words, sphinx reads the docstrings from the installed code,
+not the source code.
