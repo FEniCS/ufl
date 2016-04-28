@@ -439,47 +439,47 @@ def conditional(condition, true_value, false_value):
     return Conditional(condition, true_value, false_value)
 
 def eq(left, right):
-    """UFL operator: A boolean expresion (left == right) for use with
+    """UFL operator: A boolean expression (left == right) for use with
     ``conditional``."""
     return EQ(left, right)
 
 def ne(left, right):
-    """UFL operator: A boolean expresion (left != right) for use with
+    """UFL operator: A boolean expression (left != right) for use with
     ``conditional``."""
     return NE(left, right)
 
 def le(left, right):
-    """UFL operator: A boolean expresion (left <= right) for use with
+    """UFL operator: A boolean expression (left <= right) for use with
     ``conditional``."""
     return as_ufl(left) <= as_ufl(right)
 
 def ge(left, right):
-    """UFL operator: A boolean expresion (left >= right) for use with
+    """UFL operator: A boolean expression (left >= right) for use with
     ``conditional``."""
     return as_ufl(left) >= as_ufl(right)
 
 def lt(left, right):
-    """UFL operator: A boolean expresion (left < right) for use with
+    """UFL operator: A boolean expression (left < right) for use with
     ``conditional``."""
     return as_ufl(left) < as_ufl(right)
 
 def gt(left, right):
-    """UFL operator: A boolean expresion (left > right) for use with
+    """UFL operator: A boolean expression (left > right) for use with
     ``conditional``."""
     return as_ufl(left) > as_ufl(right)
 
 def And(left, right):
-    """UFL operator: A boolean expresion (left and right) for use with
+    """UFL operator: A boolean expression (left and right) for use with
     ``conditional``."""
     return AndCondition(left, right)
 
 def Or(left, right):
-    """UFL operator: A boolean expresion (left or right) for use with
+    """UFL operator: A boolean expression (left or right) for use with
     ``conditional``."""
     return OrCondition(left, right)
 
 def Not(condition):
-    """UFL operator: A boolean expresion (not condition) for use with
+    """UFL operator: A boolean expression (not condition) for use with
     ``conditional``."""
     return NotCondition(condition)
 

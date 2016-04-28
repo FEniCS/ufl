@@ -19,6 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009
+# Modified by Massimiliano Leoni, 2016
 
 from six import iteritems
 from six.moves import zip
@@ -60,7 +61,7 @@ def lhs(form):
     Given a combined bilinear and linear form,
     extract the left hand side (bilinear form part).
 
-    Example:
+    Example::
 
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
@@ -74,7 +75,7 @@ def rhs(form):
     Given a combined bilinear and linear form,
     extract the right hand side (negated linear form part).
 
-    Example:
+    Example::
 
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
@@ -84,7 +85,8 @@ def rhs(form):
     return compute_form_rhs(form)
 
 def system(form):
-    "UFL form operator: Split a form into the left hand side and right hand side, see lhs and rhs."
+    """UFL form operator: Split a form into the left hand side and right hand
+    side, see ``lhs`` and ``rhs``."""
     return lhs(form), rhs(form)
 
 def functional(form): # TODO: Does this make sense for anything other than testing?
@@ -105,8 +107,8 @@ def action(form, coefficient=None):
 
 def energy_norm(form, coefficient=None):
     """UFL form operator:
-    Given a bilinear form a and a coefficient f,
-    return the functional a(f,f)."""
+    Given a bilinear form *a* and a coefficient *f*,
+    return the functional :math:`a(f,f)`."""
     form = as_form(form)
     form = expand_derivatives(form)
     return compute_energy_norm(form, coefficient)
@@ -116,10 +118,10 @@ def adjoint(form, reordered_arguments=None):
     Given a combined bilinear form, compute the adjoint form by
     changing the ordering (count) of the test and trial functions.
 
-    By default, new Argument objects will be created with
+    By default, new ``Argument`` objects will be created with
     opposite ordering. However, if the adjoint form is to
     be added to other forms later, their arguments must match.
-    In that case, the user must provide a tuple reordered_arguments=(u2,v2).
+    In that case, the user must provide a tuple *reordered_arguments*=(u2,v2).
     """
     form = as_form(form)
     form = expand_derivatives(form)
@@ -226,25 +228,26 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
 def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     """UFL form operator:
-    Compute the Gateaux derivative of form w.r.t. coefficient in direction of argument.
+    Compute the Gateaux derivative of *form* w.r.t. *coefficient* in direction
+    of *argument*.
 
-    If the argument is omitted, a new Argument is created
+    If the argument is omitted, a new ``Argument`` is created
     in the same space as the coefficient, with argument number
     one higher than the highest one in the form.
 
-    The resulting form has one additional Argument
+    The resulting form has one additional ``Argument``
     in the same finite element space as the coefficient.
 
-    A tuple of Coefficients may be provided in place of
-    a single Coefficient, in which case the new Argument
-    argument is based on a MixedElement created from this tuple.
+    A tuple of ``Coefficient`` s may be provided in place of
+    a single ``Coefficient``, in which case the new ``Argument``
+    argument is based on a ``MixedElement`` created from this tuple.
 
-    An indexed Coefficient from a mixed space may be provided,
+    An indexed ``Coefficient`` from a mixed space may be provided,
     in which case the argument should be in the corresponding
     subspace of the coefficient space.
 
-    If provided, coefficient_derivatives should be a mapping from
-    Coefficient instances to their derivatives w.r.t. 'coefficient'.
+    If provided, *coefficient_derivatives* should be a mapping from
+    ``Coefficient`` instances to their derivatives w.r.t. *coefficient*.
     """
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
@@ -278,44 +281,54 @@ def sensitivity_rhs(a, u, L, v):
     Compute the right hand side for a sensitivity calculation system.
 
     The derivation behind this computation is as follows.
-    Assume a, L to be bilinear and linear forms
+    Assume *a*, *L* to be bilinear and linear forms
     corresponding to the assembled linear system
+
+    .. math::
 
         Ax = b.
 
-    Where x is the vector of the discrete function corresponding to u.
-    Let v be some scalar variable this equation depends on.
+    Where *x* is the vector of the discrete function corresponding to *u*.
+    Let *v* be some scalar variable this equation depends on.
     Then we can write
 
-        0 = d/dv[Ax-b] = dA/dv x + A dx/dv - db/dv,
-        A dx/dv = db/dv - dA/dv x,
+    .. math::
+        0 = \\frac{d}{dv}(Ax-b) = \\frac{dA}{dv} x + A \\frac{dx}{dv} -
+        \\frac{db}{dv},
 
-    and solve this system for dx/dv, using the same bilinear form a
-    and matrix A from the original system.
+        A \\frac{dx}{dv} = \\frac{db}{dv} - \\frac{dA}{dv} x,
+
+    and solve this system for :math:`\\frac{dx}{dv}`, using the same bilinear
+    form *a* and matrix *A* from the original system.
     Assume the forms are written
+    ::
 
         v = variable(v_expression)
         L = IL(v)*dx
         a = Ia(v)*dx
 
-    where IL and Ia are integrand expressions.
-    Define a Coefficient u representing the solution
-    to the equations. Then we can compute db/dv
-    and dA/dv from the forms
+    where ``IL`` and ``Ia`` are integrand expressions.
+    Define a ``Coefficient u`` representing the solution
+    to the equations. Then we can compute :math:`\\frac{db}{dv}`
+    and :math:`\\frac{dA}{dv}` from the forms
+    ::
 
         da = diff(a, v)
         dL = diff(L, v)
 
-    and the action of da on u by
+    and the action of ``da`` on ``u`` by
+    ::
 
         dau = action(da, u)
 
     In total, we can build the right hand side of the system
-    to compute du/dv with the single line
+    to compute :math:`\\frac{du}{dv}` with the single line
+    ::
 
         dL = diff(L, v) - action(diff(a, v), u)
 
-    or, using this function
+    or, using this function,
+    ::
 
         dL = sensitivity_rhs(a, u, L, v)
     """
