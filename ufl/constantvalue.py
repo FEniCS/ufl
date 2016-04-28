@@ -19,6 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2011.
+# Modified by Massimiliano Leoni, 2016.
 
 from six.moves import zip
 from six.moves import xrange as range
@@ -309,6 +310,7 @@ class Identity(ConstantValue):
         self.ufl_shape = (dim, dim)
 
     def evaluate(self, x, mapping, component, index_values):
+        "Evaluates the identity matrix on the given components."
         a, b = component
         return 1 if a == b else 0
 
@@ -343,6 +345,7 @@ class PermutationSymbol(ConstantValue):
         self.ufl_shape = (dim,)*dim
 
     def evaluate(self, x, mapping, component, index_values):
+        "Evaluates the permutation symbol."
         return self.__eps(component)
 
     def __getitem__(self, key):

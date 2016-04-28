@@ -22,6 +22,7 @@ objects."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Kristian B. Oelgaard, 2011
+# Modified by Massimiliano Leoni, 2016.
 
 import operator
 from six.moves import map
@@ -52,12 +53,12 @@ from ufl.domain import extract_domains
 #--- Basic operators ---
 
 def rank(f):
-    "UFL operator: The rank of f."
+    "UFL operator: The rank of *f*."
     f = as_ufl(f)
     return len(f.ufl_shape)
 
 def shape(f):
-    "UFL operator: The shape of f."
+    "UFL operator: The shape of *f*."
     f = as_ufl(f)
     return f.ufl_shape
 
@@ -75,7 +76,7 @@ def elem_op_items(op_ind, indices, *args):
         return [elem_op_items(op_ind, extind(i), *args) for i in range(n)]
 
 def elem_op(op, *args):
-    "UFL operator: Take the elementwise application of operator op on scalar values from one or more tensor arguments."
+    "UFL operator: Take the elementwise application of operator *op* on scalar values from one or more tensor arguments."
     args = list(map(as_ufl, args))
     sh = args[0].ufl_shape
     ufl_assert(all(sh == x.ufl_shape for x in args),
@@ -87,15 +88,15 @@ def elem_op(op, *args):
     return as_tensor(elem_op_items(op_ind, (), *args))
 
 def elem_mult(A, B):
-    "UFL operator: Take the elementwise multiplication of the tensors A and B with the same shape."
+    "UFL operator: Take the elementwise multiplication of tensors *A* and *B* with the same shape."
     return elem_op(operator.mul, A, B)
 
 def elem_div(A, B):
-    "UFL operator: Take the elementwise division of the tensors A and B with the same shape."
+    "UFL operator: Take the elementwise division of tensors *A* and *B* with the same shape."
     return elem_op(operator.truediv, A, B)
 
 def elem_pow(A, B):
-    "UFL operator: Take the elementwise power of the tensors A and B with the same shape."
+    "UFL operator: Take the elementwise power of tensors *A* and *B* with the same shape."
     return elem_op(operator.pow, A, B)
 
 
@@ -125,7 +126,7 @@ def outer(*operands):
     return Outer(a, b)
 
 def inner(a, b):
-    "UFL operator: Take the inner product of a and b."
+    "UFL operator: Take the inner product of *a* and *b*."
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
@@ -141,7 +142,7 @@ def _partial_inner(a, b):
     return contraction(a, list(range(n-ar, n-ar+n)), b, list(range(n)))
 
 def dot(a, b):
-    "UFL operator: Take the dot product of a and b."
+    "UFL operator: Take the dot product of *a* and *b*."
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
@@ -171,13 +172,13 @@ def contraction(a, a_axes, b, b_axes):
     return as_tensor(s, ii)
 
 def perp(v):
-    "UFL operator: Take the perp of v, i.e. (-v1, +v0)."
+    "UFL operator: Take the perp of *v*, i.e. :math:`(-v_1, +v_0)`."
     v = as_ufl(v)
     ufl_assert(v.ufl_shape == (2,), "Expecting a 2D vector expression.")
     return as_vector((-v[1], v[0]))
 
 def cross(a, b):
-    "UFL operator: Take the cross product of a and b."
+    "UFL operator: Take the cross product of *a* and *b*."
     a = as_ufl(a)
     b = as_ufl(b)
     #ufl_assert(a.ufl_shape == (3,) and b.ufl_shape == (3,),
@@ -185,34 +186,34 @@ def cross(a, b):
     return Cross(a, b)
 
 def det(A):
-    "UFL operator: Take the determinant of A."
+    "UFL operator: Take the determinant of *A*."
     A = as_ufl(A)
     if A.ufl_shape == ():
         return A
     return Determinant(A)
 
 def inv(A):
-    "UFL operator: Take the inverse of A."
+    "UFL operator: Take the inverse of *A*."
     A = as_ufl(A)
     if A.ufl_shape == ():
         return 1 / A
     return Inverse(A)
 
 def cofac(A):
-    "UFL operator: Take the cofactor of A."
+    "UFL operator: Take the cofactor of *A*."
     A = as_ufl(A)
     return Cofactor(A)
 
 def tr(A):
-    "UFL operator: Take the trace of A."
+    "UFL operator: Take the trace of *A*."
     A = as_ufl(A)
     return Trace(A)
 
 def diag(A):
-    """UFL operator: Take the diagonal part of rank 2 tensor A _or_
+    """UFL operator: Take the diagonal part of rank 2 tensor *A* **or**
     make a diagonal rank 2 tensor from a rank 1 tensor.
 
-    Always returns a rank 2 tensor. See also diag_vector."""
+    Always returns a rank 2 tensor. See also ``diag_vector``."""
 
     # TODO: Make a compound type or two for this operator
 
@@ -235,9 +236,9 @@ def diag(A):
     return as_matrix(rows)
 
 def diag_vector(A):
-    """UFL operator: Take the diagonal part of rank 2 tensor A and return as a vector.
+    """UFL operator: Take the diagonal part of rank 2 tensor *A* and return as a vector.
 
-    See also diag."""
+    See also ``diag``."""
 
     # TODO: Make a compound type for this operator
 
@@ -250,35 +251,35 @@ def diag_vector(A):
     return as_vector([A[i, i] for i in range(n)])
 
 def dev(A):
-    "UFL operator: Take the deviatoric part of A."
+    "UFL operator: Take the deviatoric part of *A*."
     A = as_ufl(A)
     return Deviatoric(A)
 
 def skew(A):
-    "UFL operator: Take the skew symmetric part of A."
+    "UFL operator: Take the skew symmetric part of *A*."
     A = as_ufl(A)
     return Skew(A)
 
 def sym(A):
-    "UFL operator: Take the symmetric part of A."
+    "UFL operator: Take the symmetric part of *A*."
     A = as_ufl(A)
     return Sym(A)
 
 #--- Differential operators
 
 def Dx(f, *i):
-    """UFL operator: Take the partial derivative of f with respect
-    to spatial variable number i. Equivalent to f.dx(\*i)."""
+    """UFL operator: Take the partial derivative of *f* with respect
+    to spatial variable number *i*. Equivalent to ``f.dx(*i)``."""
     f = as_ufl(f)
     return f.dx(*i)
 
 def Dt(f):
-    "UFL operator: <Not implemented yet!> The partial derivative of f with respect to time."
+    "UFL operator: <Not implemented yet!> The partial derivative of *f* with respect to time."
     #return TimeDerivative(f) # TODO: Add class
     raise NotImplementedError
 
 def Dn(f):
-    """UFL operator: Take the directional derivative of f in the
+    """UFL operator: Take the directional derivative of *f* in the
     facet normal direction, Dn(f) := dot(grad(f), n)."""
     f = as_ufl(f)
     if is_cellwise_constant(f):
@@ -286,9 +287,9 @@ def Dn(f):
     return dot(grad(f), FacetNormal(f.ufl_domain()))
 
 def diff(f, v):
-    """UFL operator: Take the derivative of f with respect to the variable v.
+    """UFL operator: Take the derivative of *f* with respect to the variable *v*.
 
-    If f is a form, diff is applied to each integrand.
+    If *f* is a form, ``diff`` is applied to each integrand.
     """
     # Apply to integrands
     if isinstance(f, Form):
@@ -305,7 +306,7 @@ def diff(f, v):
         error("Expecting a Variable or SpatialCoordinate in diff.")
 
 def grad(f):
-    """UFL operator: Take the gradient of f.
+    """UFL operator: Take the gradient of *f*.
 
     This operator follows the grad convention where
 
@@ -324,7 +325,7 @@ def grad(f):
     return Grad(f)
 
 def div(f):
-    """UFL operator: Take the divergence of f.
+    """UFL operator: Take the divergence of *f*.
 
     This operator follows the div convention where
 
@@ -341,7 +342,7 @@ def div(f):
     return Div(f)
 
 def nabla_grad(f):
-    """UFL operator: Take the gradient of f.
+    """UFL operator: Take the gradient of *f*.
 
     This operator follows the grad convention where
 
@@ -360,7 +361,7 @@ def nabla_grad(f):
     return NablaGrad(f)
 
 def nabla_div(f):
-    """UFL operator: Take the divergence of f.
+    """UFL operator: Take the divergence of *f*.
 
     This operator follows the div convention where
 
@@ -377,7 +378,7 @@ def nabla_div(f):
     return NablaDiv(f)
 
 def curl(f):
-    "UFL operator: Take the curl of f."
+    "UFL operator: Take the curl of *f*."
     f = as_ufl(f)
     return Curl(f)
 rot = curl
@@ -385,7 +386,7 @@ rot = curl
 #--- DG operators ---
 
 def jump(v, n=None):
-    "UFL operator: Take the jump of v across a facet."
+    "UFL operator: Take the jump of *v* across a facet."
     v = as_ufl(v)
     is_constant = len(extract_domains(v)) > 0
     if is_constant:
@@ -406,18 +407,18 @@ def jump(v, n=None):
         return Zero(v.ufl_shape, v.ufl_free_indices, v.ufl_index_dimensions)
 
 def avg(v):
-    "UFL operator: Take the average of v across a facet."
+    "UFL operator: Take the average of *v* across a facet."
     v = as_ufl(v)
     return 0.5*(v('+') + v('-'))
 
 def cell_avg(f):
-    "UFL operator: Take the average of v over a cell."
+    "UFL operator: Take the average of *v* over a cell."
     #ufl_assert((isinstance(f, Restricted) and isinstance(f.ufl_operands[0], FormArgument)) or
     #    isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
     return CellAvg(f)
 
 def facet_avg(f):
-    "UFL operator: Take the average of v over a facet."
+    "UFL operator: Take the average of *v* over a facet."
     #ufl_assert((isinstance(f, Restricted) and isinstance(f.ufl_operands[0], FormArgument)) or
     #    isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
     return FacetAvg(f)
@@ -425,77 +426,87 @@ def facet_avg(f):
 #--- Other operators ---
 
 def variable(e):
-    "UFL operator: Define a variable representing the given expression, see also diff()."
+    """UFL operator: Define a variable representing the given expression, see also
+    ``diff()``."""
     e = as_ufl(e)
     return Variable(e)
 
 #--- Conditional expressions ---
 
 def conditional(condition, true_value, false_value):
-    """UFL operator: A conditional expression, taking the value of true_value
-    when condition evaluates to true and false_value otherwise."""
+    """UFL operator: A conditional expression, taking the value of *true_value*
+    when *condition* evaluates to ``true`` and *false_value* otherwise."""
     return Conditional(condition, true_value, false_value)
 
 def eq(left, right):
-    "UFL operator: A boolean expresion (left == right) for use with conditional."
+    """UFL operator: A boolean expresion (left == right) for use with
+    ``conditional``."""
     return EQ(left, right)
 
 def ne(left, right):
-    "UFL operator: A boolean expresion (left != right) for use with conditional."
+    """UFL operator: A boolean expresion (left != right) for use with
+    ``conditional``."""
     return NE(left, right)
 
 def le(left, right):
-    "UFL operator: A boolean expresion (left <= right) for use with conditional."
+    """UFL operator: A boolean expresion (left <= right) for use with
+    ``conditional``."""
     return as_ufl(left) <= as_ufl(right)
 
 def ge(left, right):
-    "UFL operator: A boolean expresion (left >= right) for use with conditional."
+    """UFL operator: A boolean expresion (left >= right) for use with
+    ``conditional``."""
     return as_ufl(left) >= as_ufl(right)
 
 def lt(left, right):
-    "UFL operator: A boolean expresion (left < right) for use with conditional."
+    """UFL operator: A boolean expresion (left < right) for use with
+    ``conditional``."""
     return as_ufl(left) < as_ufl(right)
 
 def gt(left, right):
-    "UFL operator: A boolean expresion (left > right) for use with conditional."
+    """UFL operator: A boolean expresion (left > right) for use with
+    ``conditional``."""
     return as_ufl(left) > as_ufl(right)
 
 def And(left, right):
-    "UFL operator: A boolean expresion (left and right) for use with conditional."
+    """UFL operator: A boolean expresion (left and right) for use with
+    ``conditional``."""
     return AndCondition(left, right)
 
 def Or(left, right):
-    "UFL operator: A boolean expresion (left or right) for use with conditional."
+    """UFL operator: A boolean expresion (left or right) for use with
+    ``conditional``."""
     return OrCondition(left, right)
 
 def Not(condition):
-    "UFL operator: A boolean expresion (not condition) for use with conditional."
+    """UFL operator: A boolean expresion (not condition) for use with
+    ``conditional``."""
     return NotCondition(condition)
 
 def sign(x):
-    "UFL operator: Take the sign (+1 or -1) of x."
+    "UFL operator: Take the sign (+1 or -1) of *x*."
     # TODO: Add a Sign type for this?
     return conditional(eq(x, 0), 0, conditional(lt(x, 0), -1, +1))
 
 def max_value(x, y):
-    "UFL operator: Take the maximum of x and y."
+    "UFL operator: Take the maximum of *x* and *y*."
     x = as_ufl(x)
     y = as_ufl(y)
     return MaxValue(x, y)
 
 def min_value(x, y):
-    "UFL operator: Take the minimum of x and y."
+    "UFL operator: Take the minimum of *x* and *y*."
     x = as_ufl(x)
     y = as_ufl(y)
     return MinValue(x, y)
 
 def Max(x, y): # TODO: Deprecate this notation?
-    "UFL operator: Take the maximum of x and y."
+    "UFL operator: Take the maximum of *x* and *y*."
     #return conditional(gt(x, y), x, y)
     return max_value(x, y)
 
 def Min(x, y): # TODO: Deprecate this notation?
-    "UFL operator: Take the minimum of x and y."
+    "UFL operator: Take the minimum of *x* and *y*."
     #return conditional(lt(x, y), x, y)
     return min_value(x, y)
 
@@ -509,55 +520,55 @@ def _mathfunction(f, cls):
     return r
 
 def sqrt(f):
-    "UFL operator: Take the square root of f."
+    "UFL operator: Take the square root of *f*."
     return _mathfunction(f, Sqrt)
 
 def exp(f):
-    "UFL operator: Take the exponential of f."
+    "UFL operator: Take the exponential of *f*."
     return _mathfunction(f, Exp)
 
 def ln(f):
-    "UFL operator: Take the natural logarithm of f."
+    "UFL operator: Take the natural logarithm of *f*."
     return _mathfunction(f, Ln)
 
 def cos(f):
-    "UFL operator: Take the cosinus of f."
+    "UFL operator: Take the cosine of *f*."
     return _mathfunction(f, Cos)
 
 def sin(f):
-    "UFL operator: Take the sinus of f."
+    "UFL operator: Take the sine of *f*."
     return _mathfunction(f, Sin)
 
 def tan(f):
-    "UFL operator: Take the tangent of f."
+    "UFL operator: Take the tangent of *f*."
     return _mathfunction(f, Tan)
 
 def cosh(f):
-    "UFL operator: Take the cosinus hyperbolicus of f."
+    "UFL operator: Take the hyperbolic cosine of *f*."
     return _mathfunction(f, Cosh)
 
 def sinh(f):
-    "UFL operator: Take the sinus hyperbolicus of f."
+    "UFL operator: Take the hyperbolic sine of *f*."
     return _mathfunction(f, Sinh)
 
 def tanh(f):
-    "UFL operator: Take the tangent hyperbolicus of f."
+    "UFL operator: Take the hyperbolic tangent of *f*."
     return _mathfunction(f, Tanh)
 
 def acos(f):
-    "UFL operator: Take the inverse cosinus of f."
+    "UFL operator: Take the inverse cosine of *f*."
     return _mathfunction(f, Acos)
 
 def asin(f):
-    "UFL operator: Take the inverse sinus of f."
+    "UFL operator: Take the inverse sine of *f*."
     return _mathfunction(f, Asin)
 
 def atan(f):
-    "UFL operator: Take the inverse tangent of f."
+    "UFL operator: Take the inverse tangent of *f*."
     return _mathfunction(f, Atan)
 
 def atan_2(f1, f2):
-    "UFL operator: Take the inverse tangent of f."
+    "UFL operator: Take the inverse tangent with two the arguments *f1* and *f2*."
     f1 = as_ufl(f1)
     f2 = as_ufl(f2)
     r = Atan2(f1, f2)
@@ -566,7 +577,7 @@ def atan_2(f1, f2):
     return r
 
 def erf(f):
-    "UFL operator: Take the error function of f."
+    "UFL operator: Take the error function of *f*."
     return _mathfunction(f, Erf)
 
 def bessel_J(nu, f):
@@ -597,13 +608,13 @@ def bessel_K(nu, f):
 #--- Special function for exterior_derivative
 
 def exterior_derivative(f):
-    """UFL operator: Take the exterior derivative of f.
+    """UFL operator: Take the exterior derivative of *f*.
 
     The exterior derivative uses the element family to
-    determine whether id, grad, curl or div should be used.
+    determine whether ``id``, ``grad``, ``curl`` or ``div`` should be used.
 
-    Note that this uses the 'grad' and 'div' operators,
-    as opposed to 'nabla_grad' and 'nabla_div'.
+    Note that this uses the ``grad`` and ``div`` operators,
+    as opposed to ``nabla_grad`` and ``nabla_div``.
     """
 
     # Extract the element from the input f

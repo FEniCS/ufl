@@ -17,6 +17,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016.
 
 from six.moves import xrange as range
 
@@ -232,5 +234,5 @@ def as_multi_index(ii, shape=None):
 
 
 def indices(n):
-    "UFL value: Return a tuple of n new Index objects."
+    "UFL value: Return a tuple of :math:`n` new Index objects."
     return tuple(Index() for i in range(n))

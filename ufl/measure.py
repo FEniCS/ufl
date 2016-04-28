@@ -19,6 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg 2008-2015
+# Modified by Massimiliano Leoni, 2016.
 
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning, deprecate
@@ -171,6 +172,7 @@ class Measure(object):
         return self._integral_type
 
     def domain(self):
+        "Deprecated, please use .ufl_domain() instead."
         deprecate("Measure.domain() is deprecated, please use .ufl_domain() instead.")
         return self.ufl_domain()
 

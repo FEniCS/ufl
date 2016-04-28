@@ -20,6 +20,7 @@ of related classes, including Constant."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008-2009.
+# Modified by Massimiliano Leoni, 2016.
 
 from ufl.log import deprecate
 from ufl.assertions import ufl_assert
@@ -64,6 +65,7 @@ class Coefficient(FormArgument):
 
     @property
     def ufl_shape(self):
+        "Return the associated UFL shape."
         return self._ufl_shape
 
     def ufl_function_space(self):
@@ -79,6 +81,7 @@ class Coefficient(FormArgument):
         return self._ufl_function_space.ufl_element()
 
     def element(self):
+        "Deprecated, please use Coefficient.ufl_element() instead."
         deprecate("Coefficient.element() is deprecated, please use Coefficient.ufl_element() instead.")
         return self.ufl_element()
 
