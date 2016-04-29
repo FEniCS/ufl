@@ -3,26 +3,29 @@
 for definition of variational forms intended for finite element
 discretization. More precisely, it defines a fixed interface for choosing
 finite element spaces and defining expressions for weak forms in a
-notation close to mathematical notation.
+notation close to the mathematical one.
 
 This Python module contains the language as well as algorithms to work
 with it.
 
-* To import the language, type::
+* To import the language, type
+::
 
     from ufl import *
 
 * To import the underlying classes an UFL expression tree is built
-  from, type::
+  from, type
+  ::
 
     from ufl.classes import *
 
 * Various algorithms for working with UFL expression trees can be
-  found in::
+  accessed by
+  ::
 
     from ufl.algorithms import *
 
-The classes and algorithms are considered implementation details and
+Classes and algorithms are considered implementation details and
 should not be used in form definitions.
 
 For more details on the language, see
@@ -41,119 +44,180 @@ A very brief overview of the language contents follows:
 
 * Cells::
 
-    AbstractCell, Cell, TensorProductCell, OuterProductCell,
-    vertex, interval, triangle, tetrahedron, quadrilateral, hexahedron
+    - AbstractCell
+    - Cell
+    - TensorProductCell
+    - OuterProductCell
+    - vertex
+    - interval
+    - triangle
+    - tetrahedron
+    - quadrilateral
+    - hexahedron
 
 * Domains::
 
-    AbstractDomain, Mesh, MeshView, TensorProductMesh
+    - AbstractDomain
+    - Mesh
+    - MeshView
+    - TensorProductMesh
 
 * Sobolev spaces::
 
-    L2, H1, H2, HDiv, HCurl
+    - L2
+    - H1
+    - H2
+    - HDiv
+    - HCurl
 
 * Elements::
 
-    FiniteElement,
-    MixedElement, VectorElement, TensorElement
-    EnrichedElement, RestrictedElement,
-    TensorProductElement, OuterProductElement,
-    OuterProductVectorElement, HDivElement, HCurlElement
-    BrokenElement, TraceElement
-    FacetElement, InteriorElement
+    - FiniteElement
+    - MixedElement
+    - VectorElement
+    - TensorElement
+    - EnrichedElement
+    - RestrictedElement
+    - TensorProductElement
+    - OuterProductElement
+    - OuterProductVectorElement
+    - HDivElement
+    - HCurlElement
+    - BrokenElement
+    - TraceElement
+    - FacetElement
+    - InteriorElement
 
 * Function spaces::
 
-    FunctionSpace
+    - FunctionSpace
 
 * Arguments::
 
-    Argument, TestFunction, TrialFunction,
-    Arguments, TestFunctions, TrialFunctions
+    - Argument
+    - TestFunction
+    - TrialFunction
+    - Arguments
+    - TestFunctions
+    - TrialFunctions
 
 * Coefficients::
 
-    Coefficient, Constant, VectorConstant, TensorConstant
+    - Coefficient
+    - Constant
+    - VectorConstant
+    - TensorConstant
 
 * Splitting form arguments in mixed spaces::
 
-    split
+    - split
 
 * Literal constants::
 
-    Identity, PermutationSymbol
+    - Identity
+    - PermutationSymbol
 
 * Geometric quantities::
 
-    SpatialCoordinate,
-    FacetNormal, CellNormal,
-    CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
-    FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    Jacobian, JacobianDeterminant, JacobianInverse
+    - SpatialCoordinate
+    - FacetNormal
+    - CellNormal
+    - CellVolume
+    - Circumradius
+    - MinCellEdgeLength
+    - MaxCellEdgeLength
+    - FacetArea
+    - MinFacetEdgeLength
+    - MaxFacetEdgeLength
+    - Jacobian
+    - JacobianDeterminant
+    - JacobianInverse
 
 * Indices::
 
-    Index, indices,
-    i, j, k, l, p, q, r, s
+    - Index
+    - indices
+    - i, j, k, l
+    - p, q, r, s
 
 * Scalar to tensor expression conversion::
 
-    as_tensor, as_vector, as_matrix
+    - as_tensor
+    - as_vector
+    - as_matrix
 
 * Unit vectors and matrices::
 
-    unit_vector, unit_vectors,
-    unit_matrix, unit_matrices
+    - unit_vector
+    - unit_vectors
+    - unit_matrix
+    - unit_matrices
 
 * Tensor algebra operators::
 
-    outer, inner, dot, cross, perp,
-    det, inv, cofac,
-    transpose, tr, diag, diag_vector,
-    dev, skew, sym
+    - outer, inner, dot, cross, perp
+    - det, inv, cofac
+    - transpose, tr, diag, diag_vector
+    - dev, skew, sym
 
 * Elementwise tensor operators::
 
-    elem_mult, elem_div, elem_pow, elem_op
+    - elem_mult
+    - elem_div
+    - elem_pow
+    - elem_op
 
 * Differential operators::
 
-    variable, diff,
-    grad, div, nabla_grad, nabla_div,
-    Dx, Dn, curl, rot
+    - variable
+    - diff,
+    - grad, nabla_grad
+    - div, nabla_div
+    - curl, rot
+    - Dx, Dn
 
 * Nonlinear functions::
 
-    max_value, min_value,
-    abs, sign, sqrt,
-    exp, ln, erf,
-    cos, sin, tan,
-    acos, asin, atan, atan_2,
-    cosh, sinh, tanh,
-    bessel_J, bessel_Y, bessel_I, bessel_K
+    - max_value, min_value
+    - abs, sign
+    - sqrt
+    - exp, ln, erf
+    - cos, sin, tan
+    - acos, asin, atan, atan_2
+    - cosh, sinh, tanh
+    - bessel_J, bessel_Y, bessel_I, bessel_K
 
-* Discontinuous Galerkin operators:
-    jump, avg, v('+'), v('-'), cell_avg, facet_avg
+* Discontinuous Galerkin operators::
+
+    - v('+'), v('-')
+    - jump
+    - avg
+    - cell_avg, facet_avg
 
 * Conditional operators::
 
-    eq, ne, le, ge, lt, gt,
-    <, >, <=, >=,
-    And, Or, Not,
-    conditional
+    - eq, ne, le, ge, lt, gt
+    - <, >, <=, >=
+    - And, Or, Not
+    - conditional
 
 * Integral measures::
 
-    dx, ds, dS, dP,
-    dc, dC, dO, dI, dX
-    ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
+    - dx, ds, dS, dP
+    - dc, dC, dO, dI, dX
+    - ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
 
 * Form transformations::
 
-    rhs, lhs, system, functional,
-    replace, replace_integral_domains,
-    adjoint, action, energy_norm,
-    sensitivity_rhs, derivative
+    - rhs, lhs
+    - system
+    - functional
+    - replace, replace_integral_domains
+    - adjoint
+    - action
+    - energy_norm,
+    - sensitivity_rhs
+    - derivative
 """
 
 # Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
