@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-"""This module defines the Expr class, the superclass
+"""This module defines the ``Expr`` class, the superclass
 for all expression tree node types in UFL.
 
 NB! A note about other operators not implemented here:
 
-More operators (special functions) on Exprs are defined in exproperators.py,
-as well as the transpose "A.T" and spatial derivative "a.dx(i)".
-This is to avoid circular dependencies between Expr and its subclasses.
+More operators (special functions) on ``Expr`` instances are defined in
+``exproperators.py``, as well as the transpose ``A.T`` and spatial derivative
+``a.dx(i)``.
+This is to avoid circular dependencies between ``Expr`` and its subclasses.
 """
 
 # Copyright (C) 2008-2015 Martin Sandve Alnæs
@@ -27,6 +28,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
+# Modified by Massimiliano Leoni, 2016
 
 from six.moves import xrange as range
 
@@ -38,18 +40,18 @@ class Expr(object):
     """Base class for all UFL expression types.
 
     *Instance properties*
-        Every expression instance will have certain properties.
-        Most important are the ``ufl_operands``, ``ufl_shape``,
+        Every ``Expr`` instance will have certain properties.
+        The most important ones are ``ufl_operands``, ``ufl_shape``,
         ``ufl_free_indices``, and ``ufl_index_dimensions`` properties.
         Expressions are immutable and hashable.
 
     *Type traits*
-        The Expr API defines a number of type traits that each subclass
+        The ``Expr`` API defines a number of type traits that each subclass
         needs to provide. Most of these are specified indirectly via
         the arguments to the ``ufl_type`` class decorator, allowing UFL
         to do some consistency checks and automate most of the traits
-        for most types. The type traits are accessed via a class or
-        instance object on the form obj._ufl_traitname_. See the source
+        for most types. Type traits are accessed via a class or
+        instance object of the form ``obj._ufl_traitname_``. See the source
         code for description of each type trait.
 
     *Operators*
@@ -67,7 +69,7 @@ class Expr(object):
         ``ufl_type`` to understand all the properties that may need to
         be specified is also a good idea. Note that many algorithms in
         UFL and form compilers will need handlers implemented for each
-        new type.
+        new type::.
 
         .. code-block:: python
 
@@ -270,7 +272,7 @@ class Expr(object):
 
     @staticmethod
     def ufl_enable_profiling():
-        "Turn on object counting mechanism and reset counts to zero."
+        "Turn on the object counting mechanism and reset counts to zero."
         Expr.__init__ = Expr._ufl_profiling__init__
         Expr.__del__ = Expr._ufl_profiling__del__
         for i in range(len(Expr._ufl_obj_init_counts_)):
@@ -279,7 +281,7 @@ class Expr(object):
 
     @staticmethod
     def ufl_disable_profiling():
-        "Turn off object counting mechanism. Returns object init and del counts."
+        "Turn off the object counting mechanism. Return object init and del counts."
         Expr.__init__ = Expr._ufl_regular__init__
         Expr.__del__ = Expr._ufl_regular__del__
         return (Expr._ufl_obj_init_counts_, Expr._ufl_obj_del_counts_)
@@ -301,7 +303,7 @@ class Expr(object):
         return extract_domains(self)
 
     def ufl_domain(self): # TODO: Deprecate this and use extract_unique_domain(expr)
-        "Return the single unique domain this expression is defined on or throw an error."
+        "Return the single unique domain this expression is defined on, or throw an error."
         from ufl.domain import extract_unique_domain
         return extract_unique_domain(self)
 
@@ -418,51 +420,59 @@ class Expr(object):
     #--- Deprecated functions
 
     def reconstruct(self, *operands):
-        "Return a new object of the same type with new operands."
+        """Return a new object of the same type with new operands.
+        Deprecated, please use Expr._ufl_expr_reconstruct_() instead."""
         deprecate("Expr.reconstruct() is deprecated, please use Expr._ufl_expr_reconstruct_() instead.")
         return self._ufl_expr_reconstruct_(*operands)
 
     def geometric_dimension(self):
         "Return the geometric dimension this expression lives in."
         from ufl.domain import find_geometric_dimension
-        deprecate("Expr.geometric_dimension() is deprecated, please use find_geometric_dimension(expr) instead.")
         return find_geometric_dimension(self)
 
     def domains(self):
+        "Deprecated, please use .ufl_domains() instead." 
         deprecate("Expr.domains() is deprecated, please use .ufl_domains() instead.")
         return self.ufl_domains()
 
     def cell(self):
+        "Deprecated, please use .ufl_domain().ufl_cell() instead." 
         deprecate("Expr.cell() is deprecated, please use .ufl_domain() instead.")
         domain = self.ufl_domain()
         return domain.ufl_cell() if domain is not None else None
 
     def domain(self):
+        "Deprecated, please use .ufl_domain() instead." 
         deprecate("Expr.domain() is deprecated, please use .ufl_domain() instead.")
         return self.ufl_domain()
 
     def operands(self):
+        "Deprecated, please use Expr.ufl_operands instead." 
         deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
         return self.ufl_operands
 
     def shape(self):
-        "Return the tensor shape of the expression."
-        deprecate("Expr.shape() is deprecated, please use expr.ufl_shape instead.")
+        """Return the tensor shape of the expression.
+        Deprecated, please use Expr.ufl_shape instead."""
+        deprecate("Expr.shape() is deprecated, please use Expr.ufl_shape instead.")
         return self.ufl_shape
 
     def rank(self):
-        "Return the tensor rank of the expression."
+        """Return the tensor rank of the expression.
+        Deprecated, please use len(expr.ufl_shape) instead."""
         deprecate("Expr.rank() is deprecated," +
                   " please use len(expr.ufl_shape) instead.")
         return len(self.ufl_shape)
 
     def free_indices(self):
+        "Deprecated, please use property Expr.ufl_free_indices instead." 
         from ufl.core.multiindex import Index
         deprecate("Expr.free_indices() is deprecated," +
                   " please use property Expr.ufl_free_indices instead.")
         return tuple(Index(count=i) for i in self.ufl_free_indices)
 
     def index_dimensions(self):
+        "Deprecated, please use property Expr.ufl_index_dimensions instead." 
         from ufl.core.multiindex import Index
         from ufl.utils.dicts import EmptyDict
         deprecate("Expr.index_dimensions() is deprecated," +

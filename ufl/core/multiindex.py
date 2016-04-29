@@ -34,6 +34,7 @@ __all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
 
 class IndexBase(object):
+    """Base class for all indices."""
     __slots__ = ()
     def __init__(self):
         pass
@@ -151,6 +152,7 @@ class MultiIndex(Terminal):
         self._indices = indices
 
     def indices(self):
+        "Return tuple of indices."
         return self._indices
 
     def _ufl_compute_hash_(self):
@@ -161,6 +163,7 @@ class MultiIndex(Terminal):
             self._indices == other._indices
 
     def evaluate(self, x, mapping, component, index_values):
+        "Evaluate index."
         # Build component from index values
         component = []
         for i in self._indices:
@@ -172,17 +175,21 @@ class MultiIndex(Terminal):
 
     @property
     def ufl_shape(self):
+        "This shall not be used."
         error("Multiindex has no shape (it is not a tensor expression).")
 
     @property
     def ufl_free_indices(self):
+        "This shall not be used."
         error("Multiindex has no free indices (it is not a tensor expression).")
 
     @property
     def ufl_index_dimensions(self):
+        "This shall not be used."
         error("Multiindex has no free indices (it is not a tensor expression).")
 
     def is_cellwise_constant(self):
+        "Always True."
         return True
 
     def ufl_domains(self):
@@ -226,6 +233,7 @@ class MultiIndex(Terminal):
 
 
 def as_multi_index(ii, shape=None):
+    "Return a ``MultiIndex`` version of *ii*."
     if isinstance(ii, MultiIndex):
         return ii
     elif not isinstance(ii, tuple):

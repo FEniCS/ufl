@@ -242,6 +242,7 @@ A very brief overview of the language contents follows:
 # Modified by Johannes Ring, 2014.
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Lawrence Mitchell, 2014
+# Modified by Massimiliano Leoni, 2016
 
 __version__ = "1.7.0dev"
 

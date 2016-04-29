@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-"Base class for all operators, i.e. non-terminal expr types."
 
 # Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
@@ -19,6 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
+# Modified by Massimiliano Leoni, 2016
 
 from six import iteritems
 
@@ -31,6 +31,7 @@ from ufl.core.ufl_type import ufl_type
 
 @ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
+    "Base class for all operators, i.e. non-terminal expression types."
     __slots__ = ("ufl_operands",)
 
     def __init__(self, operands=None):

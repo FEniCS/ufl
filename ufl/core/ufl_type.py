@@ -1,5 +1,23 @@
 # -*- coding: utf-8 -*-
 
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
+#
+# This file is part of UFL.
+#
+# UFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# UFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.core.expr import Expr
 from ufl.core.compute_expr_hash import compute_expr_hash
@@ -11,9 +29,9 @@ from ufl.utils.dicts import EmptyDict
 #as_ufl = Expr._ufl_coerce_
 
 def attach_operators_from_hash_data(cls):
-    """Class decorator to attach __hash__, __eq__ and __ne__ implementations.
+    """Class decorator to attach ``__hash__``, ``__eq__`` and ``__ne__`` implementations.
 
-    These are implemented in terms of a ._ufl_hash_data() method on the class,
+    These are implemented in terms of a ``._ufl_hash_data()`` method on the class,
     which should return a tuple or hashable and comparable data.
     """
     assert hasattr(cls, "_ufl_hash_data_")
@@ -36,7 +54,7 @@ def attach_operators_from_hash_data(cls):
     return cls
 
 def get_base_attr(cls, name):
-    "Return first non-None attribute of given name among base classes."
+    "Return first non-``None`` attribute of given name among base classes."
     for base in cls.mro():
         if hasattr(base, name):
             attr = getattr(base, name)
@@ -45,9 +63,9 @@ def get_base_attr(cls, name):
     return None
 
 def set_trait(cls, basename, value, inherit=False):
-    """Assign a trait to class with namespacing _ufl_basename_ applied.
+    """Assign a trait to class with namespacing ``_ufl_basename_`` applied.
 
-    If trait value is None, optionally inherit it from the closest base class that has it.
+    If trait value is ``None``, optionally inherit it from the closest base class that has it.
     """
     name = "_ufl_" + basename + "_"
     if value is None and inherit:
@@ -55,6 +73,7 @@ def set_trait(cls, basename, value, inherit=False):
     setattr(cls, name, value)
 
 def determine_num_ops(cls, num_ops, unop, binop, rbinop):
+    "Determine number of operands for this type."
     # Try to determine num_ops from other traits or baseclass,
     # or require num_ops to be set for non-abstract classes
     # if it cannot be determined automatically
@@ -71,7 +90,7 @@ def determine_num_ops(cls, num_ops, unop, binop, rbinop):
         return get_base_attr(cls, "_ufl_num_ops_")
 
 def check_is_terminal_consistency(cls):
-    "Check for consistency in is_terminal trait among superclasses."
+    "Check for consistency in ``is_terminal`` trait among superclasses."
     if cls._ufl_is_terminal_ is None:
         msg = ("Class {0.__name__} has not specified the is_terminal trait."
             + " Did you forget to inherit from Terminal or Operator?")
@@ -84,7 +103,7 @@ def check_is_terminal_consistency(cls):
         raise TypeError(msg.format(cls))
 
 def check_abstract_trait_consistency(cls):
-    "Check that the first base classes up to Expr are other UFL types."
+    "Check that the first base classes up to ``Expr`` are other UFL types."
     for base in cls.mro():
         if base is Expr:
             break
@@ -94,7 +113,8 @@ def check_abstract_trait_consistency(cls):
             raise TypeError(msg.format(base, cls, Expr))
 
 def check_has_slots(cls):
-    "Check if type has __slots__ unless it is marked as exception with _ufl_noslots_"
+    """Check if type has ``__slots__`` unless it is marked as exception with
+    ``_ufl_noslots_``."""
     if "_ufl_noslots_" in cls.__dict__:
         return
 
@@ -191,7 +211,7 @@ def attach_implementations_of_indexing_interface(cls, inherit_shape_from_operand
         cls.ufl_index_dimensions = property(_inherited_ufl_index_dimensions)
 
 def update_global_expr_attributes(cls):
-    "Update global Expr attributes, mainly by adding cls to global collections of ufl types."
+    "Update global ``Expr`` attributes, mainly by adding *cls* to global collections of ufl types."
     Expr._ufl_all_classes_.append(cls)
     Expr._ufl_all_handler_names_.add(cls._ufl_handler_name_)
 
@@ -229,7 +249,7 @@ def ufl_type(is_abstract=False,
              binop=None,
              rbinop=None
              ):
-    """This decorator is to be applied to every subclass in the UFL Expr hierarchy.
+    """This decorator is to be applied to every subclass in the UFL ``Expr`` hierarchy.
 
     This decorator contains a number of checks that are
     intended to enforce uniform behaviour across UFL types.

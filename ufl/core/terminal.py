@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module defines the Terminal class, the superclass
-for all types that are terminal nodes in the expression trees."""
+"""This module defines the ``Terminal`` class, the superclass
+for all types that are terminal nodes in an expression tree."""
 
 # Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
@@ -20,6 +20,7 @@ for all types that are terminal nodes in the expression trees."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
@@ -51,7 +52,7 @@ class Terminal(Expr):
         raise NotImplementedError("Missing implementation of domains().")
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
-        "Get self from mapping and return the component asked for."
+        "Get *self* from *mapping* and return the component asked for."
         f = mapping.get(self)
         # No mapping, trying to evaluate self as a constant
         if f is None:
@@ -104,6 +105,7 @@ class Terminal(Expr):
 
 @ufl_type(is_abstract=True)
 class FormArgument(Terminal):
+    "An abstract class for a form argument."
     __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
