@@ -17,6 +17,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.core.expr import Expr
 from ufl.corealg.traversal import unique_post_traversal, cutoff_unique_post_traversal
@@ -24,26 +26,26 @@ from ufl.corealg.multifunction import MultiFunction
 
 
 def map_expr_dag(function, expression, compress=True):
-    """Apply a function to each subexpression node in expression dag.
+    """Apply a function to each subexpression node in an expression DAG.
 
-    If compress is True (default), the output object from
-    the function is cached in a dict and reused such that the
-    resulting expression dag does not contain duplicate objects.
+    If *compress* is ``True`` (default) the output object from
+    the function is cached in a ``dict`` and reused such that the
+    resulting expression DAG does not contain duplicate objects.
 
-    Returns the result of the final function call.
+    Return the result of the final function call.
     """
     result, = map_expr_dags(function, [expression], compress=compress)
     return result
 
 
 def map_expr_dags(function, expressions, compress=True):
-    """Apply a function to each subexpression node in expression dag.
+    """Apply a function to each subexpression node in an expression DAG.
 
-    If compress is True (default), the output object from
-    the function is cached in a dict and reused such that the
-    resulting expression dag does not contain duplicate objects.
+    If *compress* is ``True`` (default) the output object from
+    the function is cached in a ``dict`` and reused such that the
+    resulting expression DAG does not contain duplicate objects.
 
-    Returns a list with the result of the final function call for each expression.
+    Return a list with the result of the final function call for each expression.
     """
 
     # Temporary data structures

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Base class for multifunctions with UFL Expr type dispatch."""
+"""Base class for multifunctions with UFL ``Expr`` type dispatch."""
 
 # Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
@@ -17,6 +17,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 from inspect import getargspec
 
@@ -24,11 +26,12 @@ from ufl.log import error
 from ufl.core.expr import Expr
 
 def get_num_args(function):
+    "Return the number of arguments accepted by *function*."
     insp = getargspec(function)
     return len(insp[0]) + int(insp[1] is not None)
 
 def memoized_handler(handler):
-    "Function decorator to memoize MultiFunction handlers."
+    "Function decorator to memoize ``MultiFunction`` handlers."
     def _memoized_handler(self, o):
         c = getattr(self, "_memoized_handler_cache")
         r = c.get(o)
@@ -39,15 +42,16 @@ def memoized_handler(handler):
     return _memoized_handler
 
 class MultiFunction(object):
-    """Base class for collections of nonrecursive expression node handlers.
+    """Base class for collections of non-recursive expression node handlers.
 
-    Subclass this (remember to call the __init__ method of this class),
-    and implement handler functions for each Expr type, using the lower case
-    handler name of the type (exprtype._ufl_handler_name_).
+    Subclass this (remember to call the ``__init__`` method of this class),
+    and implement handler functions for each ``Expr`` type, using the lower case
+    handler name of the type (``exprtype._ufl_handler_name_``).
 
-    This class is optimized for efficient type based dispatch in the __call__
+    This class is optimized for efficient type based dispatch in the
+    ``__call__``
     operator via typecode based lookup of the handler function bound to the
-    algorithm object. Of course function call overhead of Python still applies.
+    algorithm object. Of course Python's function call overhead still applies.
     """
 
     _handlers_cache = {}
@@ -94,6 +98,7 @@ class MultiFunction(object):
         """Reuse object if operands are the same objects.
 
         Use in your own subclass by setting e.g.
+        ::
 
             expr = MultiFunction.reuse_if_untouched
 
