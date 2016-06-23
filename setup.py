@@ -39,12 +39,18 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
 version = re.findall('__version__ = "(.*)"',
                      codecs.open('ufl/__init__.py', 'r', encoding='utf-8').read())[0]
 
+url = "https://bitbucket.org/fenics-project/ufl/"
+tarball = None
+if not 'dev' in version:
+    tarball = url + "downloads/ufl-%s.tar.gz" % version
+
 setup(name="UFL",
       version = version,
       description = "Unified Form Language",
       author = "Martin Sandve Alnæs, Anders Logg",
       author_email = "fenics-dev@googlegroups.com",
-      url = "http://www.fenicsproject.org",
+      url = url,
+      download_url = tarball,
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
