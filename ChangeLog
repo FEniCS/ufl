@@ -1,7 +1,12 @@
 1.7.0dev
+ - Add operator A^(i,j) := as_tensor(A, (i,j))
  - Updates to old manual for publishing on fenics-ufl.readthedocs.org
  - Bugfix for ufl files with utf-8 encoding
- - Bugfix in conditional derivatives, currently must be manually enabled for compatibility
+ - Bugfix in conditional derivatives to avoid inf/nan values in generated
+   code. This bugfix may break ffc if uflacs is not used, to get around
+   that the old workaround in ufl can be enabled by setting
+   ufl.algorithms.apply_derivatives.CONDITIONAL_WORKAROUND = True
+   at the top of your program.
  - Allow sum([expressions]) where expressions are nonscalar by defining expr+0==expr
  - Allow form=0; form -= other;
  - Deprecate .cell(), .domain(), .element() in favour of .ufl_cell(),

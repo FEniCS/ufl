@@ -62,6 +62,7 @@ def _gt(left, right):
     "UFL operator: A boolean expresion (left > right) for use with conditional."
     return GT(left, right)
 
+
 # '==' needs to implement comparison of expression representations for use in
 # hashmaps (dict and set), but the others can be overloaded in the language.
 # It is possible that we can overload eq as well, but we'll need to fix some
@@ -83,9 +84,19 @@ Expr.__gt__ = _gt
 Expr.__le__ = _le
 Expr.__ge__ = _ge
 
-#Expr.__and__ = And
-#Expr.__or__ = Or
-#Expr.__xor__ = Xor
+# Python operators 'and'/'or' cannot be overloaded, and bitwise
+# operators &/| don't have the right precedence levels
+#Expr.__and__ = _and
+#Expr.__or__ = _or
+
+def _as_tensor(self, indices):
+    "UFL operator: A^indices := as_tensor(A, indices)."
+    if not isinstance(indices, tuple):
+        error("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
+    if not all(isinstance(i, Index) for i in indices):
+        error("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
+    return as_tensor(self, indices)
+Expr.__xor__ = _as_tensor
 
 
 #--- Helper functions for product handling ---

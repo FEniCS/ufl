@@ -11,6 +11,7 @@ from os.path import join as pjoin, split as psplit
 import re
 import sys
 import platform
+import codecs
 
 if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")
@@ -34,8 +35,9 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
         batch_files.append(batch_file)
     scripts.extend(batch_files)
 
+# __init__.py has UTF-8 characters. Works in Python 2 and 3.
 version = re.findall('__version__ = "(.*)"',
-                     open('ufl/__init__.py', 'r').read())[0]
+                     codecs.open('ufl/__init__.py', 'r', encoding='utf-8').read())[0]
 
 setup(name="UFL",
       version = version,
