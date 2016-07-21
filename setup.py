@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
@@ -30,14 +29,15 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
     for script in scripts:
         batch_file = script + ".bat"
         f = open(batch_file, "w")
-        f.write('python "%%~dp0\%s" %%*' % psplit(script)[1])
+        f.write(sys.executable + ' "%%~dp0\%s" %%*' % psplit(script)[1])
         f.close()
         batch_files.append(batch_file)
     scripts.extend(batch_files)
 
 # __init__.py has UTF-8 characters. Works in Python 2 and 3.
 version = re.findall('__version__ = "(.*)"',
-                     codecs.open('ufl/__init__.py', 'r', encoding='utf-8').read())[0]
+                     codecs.open('ufl/__init__.py', 'r',
+                                 encoding='utf-8').read())[0]
 
 url = "https://bitbucket.org/fenics-project/ufl/"
 tarball = None
