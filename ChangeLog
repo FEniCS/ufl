@@ -1,3 +1,4 @@
+ - Add pipelines testing
 2016.1.0 [2016-06-23]
  - Add operator A^(i,j) := as_tensor(A, (i,j))
  - Updates to old manual for publishing on fenics-ufl.readthedocs.org
