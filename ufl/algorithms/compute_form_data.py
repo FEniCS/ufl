@@ -83,10 +83,10 @@ def _compute_element_mapping(form):
         cell = element.cell()
         if cell is None:
             domains = form.ufl_domains()
-            ufl_assert(len(domains) == 1,
+            ufl_assert(all(domains[0].ufl_cell() == d.ufl_cell() for
+                           d in domains),
                        "Cannot replace unknown element cell without unique common cell in form.")
-            domain, = domains
-            cell = domain.ufl_cell()
+            cell = domains[0].ufl_cell()
             info("Adjusting missing element cell to %s." % (cell,))
             reconstruct = True
 
