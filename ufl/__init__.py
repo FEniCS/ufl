@@ -179,7 +179,7 @@ A very brief overview of the language contents follows:
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Lawrence Mitchell, 2014
 
-__version__ = "1.7.0dev"
+__version__ = "2016.2.0.dev0"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -282,7 +282,7 @@ import ufl.measureoperators as __measureoperators
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
-    system, functional, adjoint, sensitivity_rhs #, dirichlet_functional
+    system, functional, adjoint, sensitivity_rhs, block_split #, dirichlet_functional
 
 # Predefined convenience objects
 from ufl.objects import (
@@ -342,7 +342,7 @@ __all__ = [
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
     'Form',
     'Integral', 'Measure', 'register_integral_type', 'integral_types', 'custom_integral_types',
-    'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
+    'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'block_split',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'dx', 'ds', 'dS', 'dP',
     'dc', 'dC', 'dO', 'dI', 'dX',

@@ -34,6 +34,7 @@ from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
 from ufl.classes import Jacobian, JacobianInverse
+from ufl.classes import SpatialCoordinate
 
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.operators import (dot, inner, outer, lt, eq, conditional, sign,
@@ -525,7 +526,8 @@ class GradRuleset(GenericDerivativeRuleset):
     def reference_grad(self, o):
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
-        # ufl_assert(f._ufl_is_in_reference_frame_, "ReferenceGrad can only wrap a reference frame type!")
+        valid_operand = f._ufl_is_in_reference_frame_ or isinstance(f, (JacobianInverse, SpatialCoordinate))
+        ufl_assert(valid_operand, "ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
         r = indices(len(o.ufl_shape))
