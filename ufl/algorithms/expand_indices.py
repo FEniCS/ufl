@@ -99,6 +99,23 @@ class IndexExpander(ReuseTransformer):
 
         return x._ufl_class_(x.value())
 
+    def conditional(self, x):
+        c, t, f = x.ufl_operands
+
+        # Not accepting nonscalars in condition
+        ufl_assert(c.ufl_shape == (), "Not expecting tensor in condition.")
+
+        # Conditional may be indexed, push empty component
+        self._components.push(())
+        c = self.visit(c)
+        self._components.pop()
+
+        # Keep possibly non-scalar components for values
+        t = self.visit(t)
+        f = self.visit(f)
+
+        return self.reuse_if_possible(x, c, t, f)
+
     def division(self, x):
         a, b = x.ufl_operands
 
