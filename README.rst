@@ -8,6 +8,30 @@ forms. More precisely, it defines a flexible interface for choosing
 finite element spaces and defining expressions for weak forms in a
 notation close to mathematical notation.
 
+UFL is described in the paper:
+
+Alnæs, M. S., Logg A., Ølgaard, K. B., Rognes, M. E. and Wells,
+G. N. (2014).  Unified Form Language: A domain-specific language for
+weak formulations of partial differential equations.  *ACM
+Transactions on Mathematical Software* 40(2), Article 9, 37 pages.
+<http://dx.doi.org/doi:10.1145/2566630>,
+<http://arxiv.org/abs/1211.4047>
+
+
+Documentation
+=============
+
+The UFL documentation can be views at
+http://fenics-ufl.readthedocs.org/.
+
+.. image:: https://readthedocs.org/projects/fenics-ufl/badge/?version=latest
+   :target: http://fenics.readthedocs.io/projects/ufl/en/latest/?badge=latest
+   :alt: Documentation Status
+
+
+Authors
+=======
+
 Authors:
   | Martin Sandve Alnæs   <martinal@simula.no>
   | Anders Logg           <logg@chalmers.se>
@@ -24,20 +48,6 @@ Contributors:
   | Lawrence Mitchell     <lawrence.mitchell@imperial.ac.uk>
   | Johannes Ring         <johannr@simula.no>
 
-UFL is described in the paper:
-
-Alnæs, M. S., Logg A., Ølgaard, K. B., Rognes, M. E. and Wells,
-G. N. (2014).  Unified Form Language: A domain-specific language for
-weak formulations of partial differential equations.  *ACM
-Transactions on Mathematical Software* 40(2), Article 9, 37 pages.
-<http://dx.doi.org/doi:10.1145/2566630>,
-<http://arxiv.org/abs/1211.4047>
-
-
-Documentation
-=============
-
-The UFL documentation is hosted at http://fenics-ufl.rtfd.org/.
 
 
 Installation
