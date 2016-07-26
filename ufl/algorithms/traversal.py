@@ -25,7 +25,8 @@ from ufl.core.expr import Expr
 from ufl.integral import Integral
 from ufl.form import Form
 
-#--- Traversal utilities ---
+
+# --- Traversal utilities ---
 
 def iter_expressions(a):
     """Utility function to handle Form, Integral and any Expr
@@ -42,6 +43,3 @@ def iter_expressions(a):
     elif isinstance(a, Expr):
         return (a,)
     error("Not an UFL type: %s" % str(type(a)))
-
-# The rest is moved here:
-#from ufl.corealg.traversal import pre_traversal, post_traversal, traverse_terminals, traverse_unique_terminals

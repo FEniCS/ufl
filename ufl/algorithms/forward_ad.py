@@ -30,29 +30,24 @@ from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 from ufl.utils.sequences import unzip
-from ufl.utils.dicts import subdict
 from ufl.utils.formatting import lstr
 
 # All classes:
 from ufl.core.terminal import Terminal
 from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity, is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
-from ufl.coefficient import Coefficient, FormArgument
-from ufl.core.multiindex import MultiIndex, Index, FixedIndex, indices
+from ufl.coefficient import FormArgument
+from ufl.core.multiindex import MultiIndex, FixedIndex, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar, unit_indexed_tensor, unwrap_list_tensor
-from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Atan2, Erf, BesselJ, BesselY, BesselI, BesselK
-from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
+from ufl.tensors import ListTensor, as_tensor, as_scalar, unit_indexed_tensor, unwrap_list_tensor
+from ufl.algebra import Product
 from ufl.differentiation import Derivative, CoefficientDerivative, VariableDerivative, Grad
-from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.operators import (dot, inner, outer, lt, eq, conditional, sign,
-    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2,
-    erf, bessel_J, bessel_Y, bessel_I, bessel_K,
-    cell_avg, facet_avg)
+from ufl.operators import (dot, inner, outer, conditional, sign,
+                           sqrt, exp, ln, cos, sin, sinh, cosh,
+                           bessel_J, bessel_Y, bessel_I, bessel_K,
+                           cell_avg, facet_avg)
 from ufl.algorithms.transformer import Transformer
 from ufl.domain import find_geometric_dimension
 from ufl.checks import is_cellwise_constant
@@ -104,9 +99,10 @@ class ForwardAD(Transformer):
     def variable(self, o):
         """Variable objects are just 'labels', so by default the derivative
         of a variable is the derivative of its referenced expression."""
-        # Check variable cache to reuse previously transformed variable if possible
+        # Check variable cache to reuse previously transformed
+        # variable if possible
         e, l = o.ufl_operands
-        r = self._variable_cache.get(l) # cache contains (v, vp) tuple
+        r = self._variable_cache.get(l)  # cache contains (v, vp) tuple
         if r is not None:
             return r
 
@@ -124,7 +120,7 @@ class ForwardAD(Transformer):
     # --- Indexing and component handling
 
     def multi_index(self, o):
-        return (o, None) # oprime here should never be used, this might even not be called?
+        return (o, None)  # oprime here should never be used, this might even not be called?
 
     def indexed(self, o):
         A, jj = o.ufl_operands
@@ -204,10 +200,10 @@ class ForwardAD(Transformer):
         ufl_assert(is_ufl_scalar(f), "Not expecting nonscalar nominator")
         ufl_assert(is_true_ufl_scalar(g), "Not expecting nonscalar denominator")
 
-        #do_df = 1/g
-        #do_dg = -h/g
-        #op = do_df*fp + do_df*gp
-        #op = (fp - o*gp) / g
+        # do_df = 1/g
+        # do_dg = -h/g
+        # op = do_df*fp + do_df*gp
+        # op = (fp - o*gp) / g
 
         # Get o and gp as scalars, multiply, then wrap as a tensor again
         so, oi = as_scalar(o)
@@ -229,21 +225,23 @@ class ForwardAD(Transformer):
             print("f =", str(f))
             print("g =", str(g))
             print(":"*80)
-        ufl_assert(is_true_ufl_scalar(f), "Expecting scalar expression f in f**g.")
-        ufl_assert(is_true_ufl_scalar(g), "Expecting scalar expression g in f**g.")
+        ufl_assert(is_true_ufl_scalar(f),
+                   "Expecting scalar expression f in f**g.")
+        ufl_assert(is_true_ufl_scalar(g),
+                   "Expecting scalar expression g in f**g.")
 
         # Derivation of the general case: o = f(x)**g(x)
         #
-        #do_df = g * f**(g-1)
-        #do_dg = ln(f) * f**g
-        #op = do_df*fp + do_dg*gp
+        # do_df = g * f**(g-1)
+        # do_dg = ln(f) * f**g
+        # op = do_df*fp + do_dg*gp
         #
-        #do_df = o * g / f # f**g * g / f
-        #do_dg = ln(f) * o
-        #op = do_df*fp + do_dg*gp
+        # do_df = o * g / f # f**g * g / f
+        # do_dg = ln(f) * o
+        # op = do_df*fp + do_dg*gp
 
         # Got two possible alternatives here:
-        if True: # This version looks better.
+        if True:  # This version looks better.
             # Rewriting o as f*f**(g-1) we can do:
             f_g_m1 = f**(g-1)
             op = f_g_m1*(fp*g + f*ln(f)*gp)
@@ -261,14 +259,14 @@ class ForwardAD(Transformer):
     def abs(self, o, a):
         f, fprime = a
         o = self.reuse_if_possible(o, f)
-        #oprime = conditional(eq(f, 0), 0, Product(sign(f), fprime))
+        # oprime = conditional(eq(f, 0), 0, Product(sign(f), fprime))
         oprime = sign(f)*fprime
         return (o, oprime)
 
     # --- Mathfunctions
 
     def math_function(self, o, a):
-        if hasattr(o, 'derivative'): # FIXME: Introduce a UserOperator type instead of this hack
+        if hasattr(o, 'derivative'):  # FIXME: Introduce a UserOperator type instead of this hack
             f, fp = a
             o = self.reuse_if_possible(o, f)
             op = fp * o.derivative()
@@ -326,6 +324,7 @@ class ForwardAD(Transformer):
     def tanh(self, o, a):
         f, fp = a
         o = self.reuse_if_possible(o, f)
+
         def sech(y):
             return (2.0*cosh(y)) / (cosh(2.0*y) + 1.0)
         op = fp*sech(f)**2
@@ -417,16 +416,16 @@ class ForwardAD(Transformer):
         f, fp = a
         o = self.reuse_if_possible(o, f)
         if isinstance(fp, ConstantValue):
-            return (o, fp) # TODO: Necessary? Can't restriction simplify directly instead?
+            return (o, fp)  # TODO: Necessary? Can't restriction simplify directly instead?
         else:
-            return (o, fp(o._side)) # (f+-)' == (f')+-
+            return (o, fp(o._side))  # (f+-)' == (f')+-
 
     def cell_avg(self, o, a):
         # Cell average of a single function and differentiation commutes.
         f, fp = a
         o = self.reuse_if_possible(o, f)
         if isinstance(fp, ConstantValue):
-            return (o, fp) # TODO: Necessary? Can't CellAvg simplify directly instead?
+            return (o, fp)  # TODO: Necessary? Can't CellAvg simplify directly instead?
         else:
             return (o, cell_avg(fp))
 
@@ -435,7 +434,7 @@ class ForwardAD(Transformer):
         f, fp = a
         o = self.reuse_if_possible(o, f)
         if isinstance(fp, ConstantValue):
-            return (o, fp) # TODO: Necessary? Can't FacetAvg simplify directly instead?
+            return (o, fp)  # TODO: Necessary? Can't FacetAvg simplify directly instead?
         else:
             return (o, facet_avg(fp))
 
@@ -443,43 +442,45 @@ class ForwardAD(Transformer):
 
     def binary_condition(self, o, l, r):
         o = self.reuse_if_possible(o, l[0], r[0])
-        #if any(not (isinstance(op[1], Zero) or op[1] is None) for op in (l, r)):
+        # if any(not (isinstance(op[1], Zero) or op[1] is None) for op in (l, r)):
         #    warning("Differentiating a conditional with a condition "
         #                "that depends on the differentiation variable."
         #                "Assuming continuity of conditional. The condition "
         #                "will not be differentiated.")
-        oprime = None # Shouldn't be used anywhere
+        oprime = None  # Shouldn't be used anywhere
         return (o, oprime)
 
     def not_condition(self, o, c):
         o = self.reuse_if_possible(o, c[0])
-        #if not (isinstance(c[1], Zero) or c[1] is None):
+        # if not (isinstance(c[1], Zero) or c[1] is None):
         #    warning("Differentiating a conditional with a condition "
         #                "that depends on the differentiation variable."
         #                "Assuming continuity of conditional. The condition "
         #                "will not be differentiated.")
-        oprime = None # Shouldn't be used anywhere
+        oprime = None  # Shouldn't be used anywhere
         return (o, oprime)
 
     def conditional(self, o, c, t, f):
         o = self.reuse_if_possible(o, c[0], t[0], f[0])
         if isinstance(t[1], Zero) and isinstance(f[1], Zero):
-            # Assuming t[1] and f[1] have the same indices here, which should be the case
+            # Assuming t[1] and f[1] have the same indices here, which
+            # should be the case
             op = t[1]
         else:
-            # Placing t[1],f[1] outside here to avoid getting arguments inside conditionals
+            # Placing t[1],f[1] outside here to avoid getting
+            # arguments inside conditionals
             op = conditional(c[0], 1, 0)*t[1] + conditional(c[0], 0, 1)*f[1]
         return (o, op)
 
     def max_value(self, o, x, y):
-        #d/dx max(f, g) =
+        # d/dx max(f, g) =
         # f > g: df/dx
         # f < g: dg/dx
         op = conditional(x[0] > y[0], x[1], y[1])
         return (o, op)
 
     def min_value(self, o, x, y):
-        #d/dx min(f, g) =
+        # d/dx min(f, g) =
         # f < g: df/dx
         # else: dg/dx
         op = conditional(x[0] < y[0], x[1], y[1])
@@ -492,6 +493,7 @@ class ForwardAD(Transformer):
 
     def grad(self, o):
         error("FIXME")
+
 
 # TODO: Add a ReferenceGradAD ruleset
 class GradAD(ForwardAD):
@@ -545,7 +547,7 @@ class GradAD(ForwardAD):
         "Represent grad(f) as Grad(f)."
         # Collapse gradient of cellwise constant function to zero
         # FIXME: Enable this after fixing issue#13
-        #if is_cellwise_constant(o):
+        # if is_cellwise_constant(o):
         #    return zero(...) # TODO: zero annotated with argument
         return (o, Grad(o))
 
@@ -561,8 +563,8 @@ class GradAD(ForwardAD):
 
         # TODO: Not sure how to detect that gradient of f is cellwise constant.
         #       Can we trust element degrees?
-        #if is_cellwise_constant(o):
-        #    return self.terminal(o)
+        # if is_cellwise_constant(o):
+        #     return self.terminal(o)
         # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
         #       if we should make a zero here?
         # 1) n = count number of Grads, get f
@@ -573,15 +575,18 @@ class GradAD(ForwardAD):
                    "Expecting derivatives of child to be already expanded.")
         return (o, Grad(o))
 
+
 class VariableAD(ForwardAD):
     def __init__(self, var, cache=None):
         ForwardAD.__init__(self, var_shape=var.ufl_shape, cache=cache)
-        ufl_assert(not var.ufl_free_indices, "Differentiation variable cannot have free indices.")
+        ufl_assert(not var.ufl_free_indices,
+                   "Differentiation variable cannot have free indices.")
         self._variable = var
 
     def grad(self, o):
-        # If we hit this type, it has already been propagated
-        # to a coefficient, so it cannot depend on the variable. # FIXME: Assert this!
+        # If we hit this type, it has already been propagated to a
+        # coefficient, so it cannot depend on the variable. # FIXME:
+        # Assert this!
         return self.terminal(o)
 
     def _make_self_diff_identity(self, o):
@@ -632,13 +637,16 @@ class VariableAD(ForwardAD):
         self._variable_cache[l] = c
         return c
 
+
 class CoefficientAD(ForwardAD):
     "Apply AFD (Automatic Functional Differentiation) to expression."
-    def __init__(self, coefficients, arguments, coefficient_derivatives, cache=None):
+    def __init__(self, coefficients, arguments, coefficient_derivatives,
+                 cache=None):
         ForwardAD.__init__(self, var_shape=(), cache=cache)
         ufl_assert(isinstance(coefficients, ExprList), "Expecting a ExprList.")
         ufl_assert(isinstance(arguments, ExprList), "Expecting a ExprList.")
-        ufl_assert(isinstance(coefficient_derivatives, ExprMapping), "Expecting a ExprList.")
+        ufl_assert(isinstance(coefficient_derivatives, ExprMapping),
+                   "Expecting a ExprList.")
         self._v = arguments
         self._w = coefficients
         cd = coefficient_derivatives.ufl_operands
@@ -669,8 +677,9 @@ class CoefficientAD(ForwardAD):
             # Make sure we have a tuple to match the self._v tuple
             if not isinstance(oprimes, tuple):
                 oprimes = (oprimes,)
-                ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
-                               "expecting a matching tuple of coefficient derivatives.")
+                ufl_assert(len(oprimes) == len(self._v),
+                           "Got a tuple of arguments, " +
+                           "expecting a matching tuple of coefficient derivatives.")
 
             # Compute do/dw_j = do/dw_h : v.
             # Since we may actually have a tuple of oprimes and vs in a
@@ -695,10 +704,11 @@ class CoefficientAD(ForwardAD):
         return (o, oprimesum)
 
     def grad(self, g):
-        # If we hit this type, it has already been propagated
-        # to a coefficient (or grad of a coefficient), # FIXME: Assert this!
-        # so we need to take the gradient of the variation or return zero.
-        # Complications occur when dealing with derivatives w.r.t. single components...
+        # If we hit this type, it has already been propagated to a
+        # coefficient (or grad of a coefficient), # FIXME: Assert
+        # this!  so we need to take the gradient of the variation or
+        # return zero.  Complications occur when dealing with
+        # derivatives w.r.t. single components...
 
         # Figure out how many gradients are around the inner terminal
         ngrads = 0
@@ -777,17 +787,24 @@ class CoefficientAD(ForwardAD):
                     for wcomp, vsub in unwrap_list_tensor(v):
                         if not isinstance(vsub, Zero):
                             vval, vcomp = analyse_variation_argument(vsub)
-                            gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
+                            gprimesum = gprimesum + compute_gprimeterm(ngrads,
+                                                                       vval,
+                                                                       vcomp,
+                                                                       wshape,
+                                                                       wcomp)
 
                 else:
-                    ufl_assert(wshape == (), "Expecting scalar coefficient in this branch.")
+                    ufl_assert(wshape == (),
+                               "Expecting scalar coefficient in this branch.")
                     # Case: d/dt [w + t v[...]]
                     wval, wcomp = w, ()
 
                     vval, vcomp = analyse_variation_argument(v)
-                    gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
+                    gprimesum = gprimesum + compute_gprimeterm(ngrads, vval,
+                                                               vcomp, wshape,
+                                                               wcomp)
 
-            elif isinstance(w, Indexed): # This path is tested in unit tests, but not actually used?
+            elif isinstance(w, Indexed):  # This path is tested in unit tests, but not actually used?
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
                 wval, wcomp = w.ufl_operands
@@ -799,7 +816,8 @@ class CoefficientAD(ForwardAD):
                 wshape = wval.ufl_shape
 
                 vval, vcomp = analyse_variation_argument(v)
-                gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
+                gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp,
+                                                           wshape, wcomp)
 
             else:
                 error("Expecting coefficient or component of coefficient.")
@@ -810,15 +828,17 @@ class CoefficientAD(ForwardAD):
             oprimes = self._cd.get(o)
             if oprimes is None:
                 if self._cd:
-                    # TODO: Make it possible to silence this message in particular?
-                    #       It may be good to have for debugging...
+                    # TODO: Make it possible to silence this message
+                    #       in particular?  It may be good to have for
+                    #       debugging...
                     warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
             else:
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):
                     oprimes = (oprimes,)
-                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
-                                   "expecting a matching tuple of coefficient derivatives.")
+                    ufl_assert(len(oprimes) == len(self._v),
+                               "Got a tuple of arguments, " +
+                               "expecting a matching tuple of coefficient derivatives.")
 
                 # Compute dg/dw_j = dg/dw_h : v.
                 # Since we may actually have a tuple of oprimes and vs in a
@@ -839,7 +859,8 @@ class CoefficientAD(ForwardAD):
         return (g, gprimesum)
 
     def variable(self, o):
-        # Check variable cache to reuse previously transformed variable if possible
+        # Check variable cache to reuse previously transformed
+        # variable if possible
         e, l = o.ufl_operands
         c = self._variable_cache.get(l)
         if c is not None:
@@ -857,20 +878,24 @@ class CoefficientAD(ForwardAD):
         self._variable_cache[l] = c
         return c
 
+
 def compute_grad_forward_ad(f, geometric_dimension):
     alg = GradAD(geometric_dimension)
     e, ediff = alg.visit(f)
     return ediff
+
 
 def compute_variable_forward_ad(f, v):
     alg = VariableAD(v)
     e, ediff = alg.visit(f)
     return ediff
 
+
 def compute_coefficient_forward_ad(f, w, v, cd):
     alg = CoefficientAD(w, v, cd)
     e, ediff = alg.visit(f)
     return ediff
+
 
 def apply_nested_forward_ad(expr):
     if expr._ufl_is_terminal_:
@@ -881,7 +906,7 @@ def apply_nested_forward_ad(expr):
         preops = expr.ufl_operands
         postops = tuple(apply_nested_forward_ad(o) for o in preops)
         # Reconstruct if necessary
-        need_reconstruct = not (preops == postops) # FIXME: Is this efficient? O(n)?
+        need_reconstruct = not (preops == postops)  # FIXME: Is this efficient? O(n)?
         if need_reconstruct:
             expr = expr._ufl_expr_reconstruct_(*postops)
         return expr
@@ -907,14 +932,17 @@ def apply_nested_forward_ad(expr):
     else:
         error("Unknown type.")
 
+
 # TODO: We could expand only the compound objects that have no rule
-#       before differentiating, to allow the AD to work on a coarser graph
+#       before differentiating, to allow the AD to work on a coarser
+#       graph
 class UnusedADRules(object):
 
     def _variable_derivative(self, o, f, v):
         f, fp = f
         v, vp = v
-        ufl_assert(isinstance(vp, Zero), "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
+        ufl_assert(isinstance(vp, Zero),
+                   "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
         # Are there any issues with indices here? Not sure, think through it...
         oprime = o._ufl_expr_reconstruct_(fp, v)
         return (o, oprime)
@@ -924,7 +952,7 @@ class UnusedADRules(object):
     def outer(self, o, a, b):
         a, ap = a
         b, bp = b
-        return (o, outer(ap, b) + outer(a, bp)) # FIXME: Not valid for derivatives w.r.t. nonscalar variables!
+        return (o, outer(ap, b) + outer(a, bp))  # FIXME: Not valid for derivatives w.r.t. nonscalar variables!
 
     def inner(self, o, a, b):
         a, ap = a
@@ -932,7 +960,7 @@ class UnusedADRules(object):
         # FIXME: Rewrite with index notation (if necessary, depends on shapes)
         # NB! Using b : ap because derivative axis should be
         # last, in case of nonscalar differentiation variable!
-        return (o, inner(b, ap) + inner(a, bp)) # FIXME: Not correct, inner requires equal shapes!
+        return (o, inner(b, ap) + inner(a, bp))  # FIXME: Not correct, inner requires equal shapes!
 
     def dot(self, o, a, b):
         a, ap = a
@@ -955,8 +983,9 @@ class UnusedADRules(object):
     # --- Compound differential operators, probably do not want...
 
     # FIXME: nabla_div, nabla_grad
-    div  = commute
+    div = commute
     curl = commute
+
     def grad(self, o, a):
         a, aprime = a
         if is_cellwise_constant(aprime):
@@ -965,13 +994,14 @@ class UnusedADRules(object):
             oprime = o._ufl_expr_reconstruct_(aprime)
         return (o, oprime)
 
+
 class UnimplementedADRules(object):
 
     def cross(self, o, a, b):
         error("Derivative of cross product not implemented, apply expand_compounds before AD.")
         u, up = a
         v, vp = b
-        #oprime = ...
+        # oprime = ...
         return (o, oprime)
 
     def determinant(self, o, a):
@@ -991,14 +1021,14 @@ class UnimplementedADRules(object):
         """
         error("Derivative of determinant not implemented, apply expand_compounds before AD.")
         A, Ap = a
-        #oprime = ...
+        # oprime = ...
         return (o, oprime)
 
     def cofactor(self, o, a):
         error("Derivative of cofactor not implemented, apply expand_compounds before AD.")
         A, Ap = a
-        #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
-        #oprime = ...
+        # cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
+        # oprime = ...
         return (o, oprime)
 
     def inverse(self, o, a):
@@ -1015,4 +1045,4 @@ class UnimplementedADRules(object):
         d/dv[r] K[i,s] = -K[i,j] (d/dv[r] J[j,k]) K[k,s]
         """
         A, Ap = a
-        return (o, -o*Ap*o) # FIXME: Need reshaping move derivative axis to the end of this expression
+        return (o, -o*Ap*o)  # FIXME: Need reshaping move derivative axis to the end of this expression

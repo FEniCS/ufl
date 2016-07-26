@@ -19,13 +19,13 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from six.moves import zip
-from ufl.utils.stacks import Stack, StackDict
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.variable import Label, Variable
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.assertions import ufl_assert
+from ufl.classes import Zero
+
 
 class VariableRenumberingTransformer(ReuseTransformer):
     def __init__(self):
@@ -41,6 +41,7 @@ class VariableRenumberingTransformer(ReuseTransformer):
             v = Variable(e, l2)
             self.variable_map[l] = v
         return v
+
 
 class IndexRenumberingTransformer(VariableRenumberingTransformer):
     "This is a poorly designed algorithm. It is used in some tests, please do not use for anything else."
@@ -71,10 +72,10 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
         new_indices = tuple(self.index(i) for i in o.indices())
         return MultiIndex(new_indices)
 
+
 def renumber_indices(expr):
     if isinstance(expr, Expr):
         num_free_indices = len(expr.ufl_free_indices)
-        #error("Not expecting any free indices left in expression.")
 
     result = apply_transformer(expr, IndexRenumberingTransformer())
 

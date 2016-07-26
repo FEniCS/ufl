@@ -23,12 +23,12 @@
 # which drags in a lot of stuff.
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.constantvalue import Zero
+
 
 def map_integrands(function, form, only_integral_type=None):
     """Apply transform(expression) to each integrand
@@ -48,7 +48,7 @@ def map_integrands(function, form, only_integral_type=None):
             return itg
 
     elif isinstance(form, Expr):
-        #ufl_assert(only_integral_type is None, "Restricting integral type is only valid with Form and Integral.")
+        # ufl_assert(only_integral_type is None, "Restricting integral type is only valid with Form and Integral.")
         integrand = form
         return function(integrand)
 
@@ -57,4 +57,5 @@ def map_integrands(function, form, only_integral_type=None):
 
 
 def map_integrand_dags(function, form, only_integral_type=None, compress=True):
-    return map_integrands(lambda expr: map_expr_dag(function, expr, compress), form, only_integral_type)
+    return map_integrands(lambda expr: map_expr_dag(function, expr, compress),
+                          form, only_integral_type)

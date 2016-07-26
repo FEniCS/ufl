@@ -32,12 +32,13 @@ from ufl.core.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 
+
 class FileData(object):
     def __init__(self):
-        self.elements     = []
+        self.elements = []
         self.coefficients = []
-        self.expressions  = []
-        self.forms        = []
+        self.expressions = []
+        self.forms = []
         self.object_names = {}
         self.object_by_name = {}
         self.reserved_objects = {}
@@ -47,10 +48,12 @@ class FileData(object):
                     self.object_names or self.object_by_name or self.reserved_objects)
     __nonzero__ = __bool__
 
+
 infostring = """An exception occured during evaluation of form file.
 To help you find the location of the error, a temporary script
 '%s'
 has been created and will now be executed with debug output enabled:"""
+
 
 def replace_include_statements(code):
     "Replace '#include foo.ufl' statements with contents of foo.ufl."
@@ -70,6 +73,7 @@ def replace_include_statements(code):
         return "\n".join(l.rstrip() for l in newlines)
     return code
 
+
 def read_ufl_file(filename):
     "Read a .ufl file, handling file extension, file existance, and #include replacement."
     if not os.path.exists(filename) and filename[-4:] != ".ufl":
@@ -79,6 +83,7 @@ def read_ufl_file(filename):
     with open(filename) as f:
         code = replace_include_statements(f.read())
     return code
+
 
 def execute_ufl_code(uflcode, filename):
     # Execute code
@@ -95,9 +100,9 @@ def execute_ufl_code(uflcode, filename):
         with open(pyname, "w") as f:
             f.write(pycode)
         warning(infostring % pyname)
-        m = __import__(basename)
         error("An error occured, aborting load_forms.")
     return namespace
+
 
 def interpret_ufl_namespace(namespace):
     "Takes a namespace dict from an executed ufl file and converts it to a FileData object."
@@ -110,7 +115,7 @@ def interpret_ufl_namespace(namespace):
     # and not just between objects with different values.
     for name, value in sorted_by_key(namespace):
         # Store objects by reserved name OR instance id
-        reserved_names = ("unknown",) # Currently only one reserved name
+        reserved_names = ("unknown",)  # Currently only one reserved name
         if name in reserved_names:
             # Store objects with reserved names
             ufd.reserved_objects[name] = value
@@ -118,14 +123,16 @@ def interpret_ufl_namespace(namespace):
             ufd.object_names[name] = value
             ufd.object_by_name[name] = value
         elif isinstance(value, (FiniteElementBase, Coefficient, Argument, Form, Expr)):
-            # Store instance <-> name mappings for important objects without a reserved name
+            # Store instance <-> name mappings for important objects
+            # without a reserved name
             ufd.object_names[id(value)] = name
             ufd.object_by_name[name] = value
 
     # Get list of exported forms
     forms = namespace.get("forms")
     if forms is None:
-        # Get forms from object_by_name, which has already mapped tuple->Form where needed
+        # Get forms from object_by_name, which has already mapped
+        # tuple->Form where needed
         def get_form(name):
             form = ufd.object_by_name.get(name)
             return form if isinstance(form, Form) else None
@@ -144,9 +151,9 @@ def interpret_ufl_namespace(namespace):
 
     # Validate types
     ufl_assert(isinstance(ufd.forms, (list, tuple)),
-        "Expecting 'forms' to be a list or tuple, not '%s'." % type(ufd.forms))
+               "Expecting 'forms' to be a list or tuple, not '%s'." % type(ufd.forms))
     ufl_assert(all(isinstance(a, Form) for a in ufd.forms),
-        "Expecting 'forms' to be a list of Form instances.")
+               "Expecting 'forms' to be a list of Form instances.")
 
     # Get list of exported elements
     elements = namespace.get("elements")
@@ -156,36 +163,37 @@ def interpret_ufl_namespace(namespace):
     ufd.elements = elements
 
     # Validate types
-    ufl_assert(isinstance(ufd.elements,  (list, tuple)),
-        "Expecting 'elements' to be a list or tuple, not '%s'." % type(ufd.elements))
+    ufl_assert(isinstance(ufd.elements, (list, tuple)),
+               "Expecting 'elements' to be a list or tuple, not '%s'." % type(ufd.elements))
     ufl_assert(all(isinstance(e, FiniteElementBase) for e in ufd.elements),
-        "Expecting 'elements' to be a list of FiniteElementBase instances.")
+               "Expecting 'elements' to be a list of FiniteElementBase instances.")
 
     # Get list of exported coefficients
-    # TODO: Temporarily letting 'coefficients' override 'functions', but allow 'functions' for compatibility
+    # TODO: Temporarily letting 'coefficients' override 'functions',
+    # but allow 'functions' for compatibility
     functions = namespace.get("functions", [])
     if functions:
         warning("Deprecation warning: Rename 'functions' to 'coefficients' to export coefficients.")
     ufd.coefficients = namespace.get("coefficients", functions)
-    #ufd.coefficients = namespace.get("coefficients", [])
 
     # Validate types
     ufl_assert(isinstance(ufd.coefficients, (list, tuple)),
-        "Expecting 'coefficients' to be a list or tuple, not '%s'." % type(ufd.coefficients))
+               "Expecting 'coefficients' to be a list or tuple, not '%s'." % type(ufd.coefficients))
     ufl_assert(all(isinstance(e, Coefficient) for e in ufd.coefficients),
-        "Expecting 'coefficients' to be a list of Coefficient instances.")
+               "Expecting 'coefficients' to be a list of Coefficient instances.")
 
     # Get list of exported expressions
     ufd.expressions = namespace.get("expressions", [])
 
     # Validate types
     ufl_assert(isinstance(ufd.expressions, (list, tuple)),
-        "Expecting 'expressions' to be a list or tuple, not '%s'." % type(ufd.expressions))
+               "Expecting 'expressions' to be a list or tuple, not '%s'." % type(ufd.expressions))
     ufl_assert(all(isinstance(e, Expr) for e in ufd.expressions),
-        "Expecting 'expressions' to be a list of Expr instances.")
+               "Expecting 'expressions' to be a list of Expr instances.")
 
     # Return file data
     return ufd
+
 
 def load_ufl_file(filename):
     "Load a .ufl file with elements, coefficients and forms."
@@ -193,6 +201,7 @@ def load_ufl_file(filename):
     uflcode = read_ufl_file(filename)
     namespace = execute_ufl_code(uflcode, filename)
     return interpret_ufl_namespace(namespace)
+
 
 def load_forms(filename):
     "Return a list of all forms in a file."

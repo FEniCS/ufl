@@ -30,6 +30,7 @@ from ufl.operators import cos, sin, cosh, sinh, exp, ln, sqrt, conditional, sign
 from ufl.tensors import unit_vectors, ListTensor
 from ufl.algorithms.multifunction import MultiFunction
 
+
 class PartialDerivativeComputer(MultiFunction):
     """NB! The main reason for keeping this out of the Expr hierarchy is
     to avoid user mistakes in the form of mixups with total derivatives,
@@ -37,9 +38,9 @@ class PartialDerivativeComputer(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
 
-    # TODO: Make sure we have implemented partial derivatives of all operators.
-    #        At least non-compound ones should be covered, but compound ones
-    #        may be a good idea in future versions.
+    # TODO: Make sure we have implemented partial derivatives of all
+    #        operators.  At least non-compound ones should be covered,
+    #        but compound ones may be a good idea in future versions.
 
     def expr(self, o):
         error("No partial derivative defined for %s" % type(o))
@@ -52,12 +53,12 @@ class PartialDerivativeComputer(MultiFunction):
 
     def sum(self, f):
         "d/dx_i sum_j x_j = 1"
-        _1 = IntValue(1) # TODO: Handle non-scalars
+        _1 = IntValue(1)  # TODO: Handle non-scalars
         return (_1,)*len(f.ufl_operands)
 
     def product(self, f):
-        a, b = f.ufl_operands # TODO: Assuming binary operator for now
-        da = b # TODO: Is this right even for non-scalar b?
+        a, b = f.ufl_operands  # TODO: Assuming binary operator for now
+        da = b  # TODO: Is this right even for non-scalar b?
         db = a
         return (da, db)
 
@@ -167,39 +168,39 @@ class PartialDerivativeComputer(MultiFunction):
 
     # --- Shape and indexing manipulators
 
-    def indexed(self, f): # TODO: Is this right? Fix for non-scalars too.
+    def indexed(self, f):  # TODO: Is this right? Fix for non-scalars too.
         "d/dx x_i = (1)_i = 1"
         s = f.ufl_shape
         ufl_assert(s == (), "TODO: Assuming a scalar expression.")
-        _1 = IntValue(1) # TODO: Non-scalars
+        _1 = IntValue(1)  # TODO: Non-scalars
         return (_1, None)
 
-    def list_tensor(self, f): # TODO: Is this right? Fix for higher order tensors too.
+    def list_tensor(self, f):  # TODO: Is this right? Fix for higher order tensors too.
         "d/dx_i [x_0, ..., x_n-1] = e_i (unit vector)"
         ops = f.ufl_operands
         n = len(ops)
         s = ops[0].ufl_shape
         ufl_assert(s == (), "TODO: Assuming a vector, i.e. scalar operands.")
-        return unit_vectors(n) # TODO: Non-scalars
+        return unit_vectors(n)  # TODO: Non-scalars
 
     def component_tensor(self, f):
         x, i = f.ufl_operands
         s = f.ufl_shape
         ufl_assert(len(s) == 1, "TODO: Assuming a vector, i.e. scalar operands.")
         n, = s
-        d = ListTensor([1]*n) # TODO: Non-scalars
+        d = ListTensor([1]*n)  # TODO: Non-scalars
         return (d, None)
 
     # --- Restrictions
 
     def positive_restricted(self, f):
         _1 = IntValue(1)
-        return (_1,) # or _1('+')? TODO: is this right?
+        return (_1,)  # or _1('+')? TODO: is this right?
         # Note that _1('+') would become 0 with the current implementation
 
     def negative_restricted(self, f):
         _1 = IntValue(1)
-        return (_1,) # or _1('-')? TODO: is this right?
+        return (_1,)  # or _1('-')? TODO: is this right?
 
     def cell_avg(self, f):
         error("Not sure how to implement partial derivative of this operator at all actually.")
@@ -212,7 +213,7 @@ class PartialDerivativeComputer(MultiFunction):
     def condition(self, f):
         return (None, None)
 
-    def conditional(self, f): # TODO: Is this right? What about non-scalars?
+    def conditional(self, f):   # TODO: Is this right? What about non-scalars?
         c, a, b = f.ufl_operands
         s = f.ufl_shape
         ufl_assert(s == (), "TODO: Assuming scalar valued expressions.")
@@ -241,6 +242,7 @@ class PartialDerivativeComputer(MultiFunction):
               "when is this called? apply_ad should make sure it isn't called.")
         a, w, v = f.ufl_operands
         return (None, None, None)
+
 
 # Example usage:
 def pdiffs(exprs):

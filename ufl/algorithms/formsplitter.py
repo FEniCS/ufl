@@ -25,6 +25,7 @@ from ufl.tensors import as_vector
 from ufl.argument import Argument
 from ufl.functionspace import FunctionSpace
 
+
 class FormSplitter(MultiFunction):
 
     def split(self, form, ix, iy=0):
@@ -47,7 +48,7 @@ class FormSplitter(MultiFunction):
             Q_i = FunctionSpace(dom, sub_elem)
             a = Argument(Q_i, obj.number(), part=obj.part())
 
-            indices =[()]
+            indices = [()]
             for m in a.ufl_shape:
                 indices = [(k + (j,)) for k in indices for j in range(m)]
 
@@ -62,6 +63,7 @@ class FormSplitter(MultiFunction):
         return obj
 
     expr = MultiFunction.reuse_if_untouched
+
 
 def block_split(form, ix, iy=0):
     fs = FormSplitter()

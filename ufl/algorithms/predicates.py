@@ -22,14 +22,18 @@ from ufl.log import warning, debug
 from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.argument_dependencies import extract_argument_dependencies, NotMultiLinearException
 
-#--- Utilities for checking properties of forms ---
+
+# --- Utilities for checking properties of forms ---
 
 def is_multilinear(form):
     "Check if form is multilinear in arguments."
-    # An attempt at implementing is_multilinear using extract_argument_dependencies.
-    # TODO: This has some false negatives for "multiple configurations". (Does it still? Needs testing!)
-    # TODO: FFC probably needs a variant of this which checks for some sorts of linearity
-    #       in Coefficients as well, this should be a fairly simple extension of the current algorithm.
+    # An attempt at implementing is_multilinear using
+    # extract_argument_dependencies.
+    # TODO: This has some false negatives for "multiple
+    # configurations". (Does it still? Needs testing!)
+    # TODO: FFC probably needs a variant of this which checks for some
+    #       sorts of linearity in Coefficients as well, this should be
+    #       a fairly simple extension of the current algorithm.
     try:
         for e in iter_expressions(form):
             deps = extract_argument_dependencies(e)
@@ -40,8 +44,8 @@ def is_multilinear(form):
                 debug("This form is linear in %d arguments." % nargs[0])
             if len(nargs) > 1:
                 warning("This form has more than one argument "
-                    "'configuration', it has terms that are linear in %s "
-                    "arguments respectively." % str(nargs))
+                        "'configuration', it has terms that are linear in %s "
+                        "arguments respectively." % str(nargs))
 
     except NotMultiLinearException as msg:
         warning("Form is not multilinear, the offending term is: %s" % msg)
