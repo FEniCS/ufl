@@ -20,6 +20,7 @@
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
+# Modified by Massimiliano Leoni, 2016
 
 from six.moves import zip
 from ufl.assertions import ufl_assert
@@ -30,7 +31,7 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 class EnrichedElement(FiniteElementBase):
     """The vector sum of two finite element spaces:
 
-        EnrichedElement(V, Q) = {v + q | v in V, q in Q}.
+        .. math:: \\textrm{EnrichedElement}(V, Q) = \\{v + q | v \\in V, q \\in Q\\}.
     """
     def __init__(self, *elements):
         self._elements = elements

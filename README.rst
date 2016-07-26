@@ -76,7 +76,7 @@ Directories
 - doc/
 
   The UFL documentation resides here. See doc/sphinx/README for how to
-  generate the docucmentation.
+  generate the documentation.
 
 - test/
 

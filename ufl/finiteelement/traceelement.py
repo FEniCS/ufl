@@ -15,11 +15,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 class TraceElement(FiniteElementBase):
-    """A finite element space: the trace of a given hdiv element.
+    """A finite element space: the trace of a given H-div element.
     This is effectively a scalar-valued restriction which is
     non-zero only on cell facets."""
 
@@ -43,6 +45,7 @@ class TraceElement(FiniteElementBase):
         return "TraceElement(%s)" % str(self._element)
 
     def shortstr(self):
+        "Format as string for pretty printing."
         return "TraceElement(%s)" % str(self._element.shortstr())
 
     def __repr__(self):

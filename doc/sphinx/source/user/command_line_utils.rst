@@ -8,11 +8,15 @@ Validation and debugging: ``ufl-analyse``
 
 The command ``ufl-analyse`` loads all forms found in a ``.ufl``
 file, tries to discover any errors in them, and prints various kinds of
-information about each form.  Basic usage is::
+information about each form.  Basic usage is
+
+::
 
   # ufl-analyse myform.ufl
 
-For more information, type::
+For more information, type
+
+::
 
   # ufl-analyse --help
 

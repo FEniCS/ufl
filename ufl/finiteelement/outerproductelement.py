@@ -21,6 +21,7 @@
 # Based on tensorproductelement.py
 # Modified by Andrew T. T. McRae 2014
 # Modified by Lawrence Mitchell 2014
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.assertions import ufl_assert
 from ufl.cell import OuterProductCell, as_cell
@@ -34,7 +35,7 @@ class OuterProductElement(FiniteElementBase):
     .. math:: V = A \otimes B
 
     Given bases :math:`{\phi_A, \phi_B}` for :math:`A, B`,
-    :math:`{\phi_A * \phi_B}` forms a basis for :math:`V`.
+    :math:`{\phi_A \otimes \phi_B}` forms a basis for :math:`V`.
     """
     __slots__ = ("_A", "_B", "_mapping")
 

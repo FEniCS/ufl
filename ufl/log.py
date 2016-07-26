@@ -20,6 +20,7 @@ output messages. These may be redirected by the user of UFL."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Johan Hake, 2009.
+# Modified by Massimiliano Leoni, 2016
 
 import sys
 import types
@@ -89,10 +90,11 @@ class Logger:
         self._prefix = ""
 
     def add_logfile(self, filename=None, mode="a", level=DEBUG):
+        "Add a log file."
         if filename is None:
             filename = "%s.log" % self._name
         if filename in self._logfiles:
-            self.warning("Trying to add logfile %s multiple times." % filename)
+            self.warning("Adding logfile %s multiple times." % filename)
             return
         h = logging.FileHandler(filename, mode)
         h.emit = types.MethodType(emit, h)
@@ -102,10 +104,11 @@ class Logger:
         return h
 
     def get_logfile_handler(self, filename):
+        "Gets the handler to the file identified by the given file name."
         return self._logfiles[filename]
 
     def log(self, level, *message):
-        "Write a log message on given log level"
+        "Write a log message on given log level."
         text = self._format_raw(*message)
         if len(text) >= 3 and text[-3:] == "...":
             self._log.log(level, self._format(*message), extra={"continued": True})
@@ -199,9 +202,8 @@ class Logger:
 
     def set_handler(self, handler):
         """Replace handler for logging.
-        To add additional handlers instead
-        of replacing the existing, use
-        log.get_logger().addHandler(myhandler).
+        To add additional handlers instead of replacing the existing one, use
+        `log.get_logger().addHandler(myhandler)`.
         See the logging module for more details.
         """
         self._log.removeHandler(self._handler)
@@ -230,7 +232,7 @@ class Logger:
 
 # Base class for UFL exceptions
 class UFLException(Exception):
-    "Base class for UFL exceptions"
+    "Base class for UFL exceptions."
     pass
 
 ufl_logger = Logger("UFL", UFLException)

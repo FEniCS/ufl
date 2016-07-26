@@ -20,6 +20,7 @@
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.assertions import ufl_assert
 from ufl.cell import as_cell, TensorProductCell
@@ -29,12 +30,13 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class TensorProductElement(FiniteElementBase):
-    r"""The tensor product of d element spaces:
+    r"""The tensor product of :math:`d` element spaces:
 
-    .. math:: V = V_0 \otimes V_1 \otimes ...  \otimes V_d
+    .. math:: V = V_1 \otimes V_2 \otimes ...  \otimes V_d
 
-    Given bases {phi_i} for V_i for i = 1, ...., d,
-    { phi_0 * phi_1 * ... * phi_d } forms a basis for V.
+    Given bases :math:`\{\phi_{j_i}\}` of the spaces :math:`V_i` for :math:`i = 1, ...., d`,
+    :math:`\{ \phi_{j_1} \otimes \phi_{j_2} \otimes \cdots \otimes \phi_{j_d}
+    \}` forms a basis for :math:`V`.
     """
     __slots__ = ("_sub_elements",)
 

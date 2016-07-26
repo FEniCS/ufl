@@ -19,6 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008-2009
+# Modified by Massimiliano Leoni, 2016.
 
 import ufl
 from ufl.log import error, warning, deprecate
@@ -76,7 +77,7 @@ class Integral(object):
         return Integral(integrand, integral_type, domain, subdomain_id, metadata, subdomain_data)
 
     def integrand(self):
-        "Return the integrand expression, which is an Expr instance."
+        "Return the integrand expression, which is an ``Expr`` instance."
         return self._integrand
 
     def integral_type(self):
@@ -84,6 +85,7 @@ class Integral(object):
         return self._integral_type
 
     def domain(self):
+        "Deprecated, please use .ufl_domain() instead."
         deprecate("Integral.domain() is deprecated, please use .ufl_domain() instead.")
         return self.ufl_domain()
 

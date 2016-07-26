@@ -19,6 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009-2011.
+# Modified by Massimiliano Leoni, 2016.
 
 import hashlib
 from itertools import chain
@@ -136,6 +137,7 @@ class Form(object):
         return self.integrals() == ()
 
     def domains(self):
+        "Deprecated, please use .ufl_domains() instead."
         deprecate("Form.domains() is deprecated, please use .ufl_domains() instead.")
         return self.ufl_domains()
 
@@ -151,10 +153,12 @@ class Form(object):
         return self._integration_domains
 
     def cell(self):
+        "Deprecated, please use .ufl_cell() instead."
         deprecate("Form.cell() is deprecated, please use .ufl_cell() instead.")
         return self.ufl_cell()
 
     def domain(self):
+        "Deprecated, please use .ufl_domain() instead."
         deprecate("Form.domain() is deprecated, please use .ufl_domain() instead.")
         return self.ufl_domain()
 
@@ -186,37 +190,41 @@ class Form(object):
         return gdims[0]
 
     def domain_numbering(self):
-        "Return a contiguous numbering of domains in a mapping { domain: number }."
+        """Return a contiguous numbering of domains in a mapping
+        ``{domain:number}``."""
         if self._domain_numbering is None:
             self._analyze_domains()
         return self._domain_numbering
 
     def subdomain_data(self):
-        "Returns a mapping on the form { domain: { integral_type: subdomain_data } }."
+        """Returns a mapping on the form ``{domain:{integral_type:
+            subdomain_data}}``."""
         if self._subdomain_data is None:
             self._analyze_subdomain_data()
         return self._subdomain_data
 
     def max_subdomain_ids(self):
-        "Returns a mapping on the form { domain: { integral_type: max_subdomain_id } }."
+        """Returns a mapping on the form
+        ``{domain:{integral_type:max_subdomain_id}}``."""
         if self._max_subdomain_ids is None:
             self._analyze_subdomain_data()
         return self._max_subdomain_ids
 
     def arguments(self):
-        "Return all Argument objects found in form."
+        "Return all ``Argument`` objects found in form."
         if self._arguments is None:
             self._analyze_form_arguments()
         return self._arguments
 
     def coefficients(self):
-        "Return all Coefficient objects found in form."
+        "Return all ``Coefficient`` objects found in form."
         if self._coefficients is None:
             self._analyze_form_arguments()
         return self._coefficients
 
     def coefficient_numbering(self):
-        "Return a contiguous numbering of coefficients in a mapping { coefficient: number }."
+        """Return a contiguous numbering of coefficients in a mapping
+        ``{coefficient:number}``."""
         if self._coefficient_numbering is None:
             self._analyze_form_arguments()
         return self._coefficient_numbering
@@ -249,7 +257,7 @@ class Form(object):
         return not self.equals(other)
 
     def equals(self, other):
-        "Evaluate 'bool(lhs_form == rhs_form)'."
+        "Evaluate ``bool(lhs_form == rhs_form)``."
         if type(other) != Form:
             return False
         if len(self._integrals) != len(other._integrals):
@@ -411,9 +419,9 @@ def as_form(form):
 def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
     """Given a form and a domain, assign a common integration domain to all integrals.
 
-    Does not modify the input form (Form should always be immutable).
+    Does not modify the input form (``Form`` should always be immutable).
     This is to support ill formed forms with no domain specified,
-    some times occuring in pydolfin, e.g. assemble(1*dx, mesh=mesh).
+    sometimes occurring in pydolfin, e.g. assemble(1*dx, mesh=mesh).
     """
     domains = form.ufl_domains()
     if common_domain is not None:

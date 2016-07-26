@@ -21,6 +21,7 @@
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Anders Logg 2014
+# Modified by Massimiliano Leoni, 2016
 
 from itertools import chain
 
@@ -42,7 +43,8 @@ from ufl.finiteelement.finiteelement import FiniteElement
 
 
 class MixedElement(FiniteElementBase):
-    "A finite element composed of a nested hierarchy of mixed or simple elements"
+    """A finite element composed of a nested hierarchy of mixed or simple
+    elements."""
     __slots__ = ("_sub_elements", "_cells")
 
     def __init__(self, *elements, **kwargs):
@@ -114,8 +116,9 @@ class MixedElement(FiniteElementBase):
         return MixedElement(*elements)
 
     def symmetry(self):
-        """Return the symmetry dict, which is a mapping c0 -> c1
-        meaning that component c0 is represented by component c1.
+        """Return the symmetry dict, which is a mapping :math:`c_0 \\to c_1`
+        meaning that component :math:`c_0` is represented by component
+        :math:`c_1`.
         A component is a tuple of one or more ints."""
         # Build symmetry map from symmetries of subelements
         sm = {}
@@ -151,7 +154,7 @@ class MixedElement(FiniteElementBase):
 
     def extract_subelement_component(self, i):
         """Extract direct subelement index and subelement relative
-        component index for a given component index"""
+        component index for a given component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
@@ -184,13 +187,13 @@ class MixedElement(FiniteElementBase):
 
     def extract_component(self, i):
         """Recursively extract component index relative to a (simple) element
-        and that element for given value component index"""
+        and that element for given value component index."""
         sub_element_index, component = self.extract_subelement_component(i)
         return self._sub_elements[sub_element_index].extract_component(component)
 
     def extract_subelement_reference_component(self, i):
         """Extract direct subelement index and subelement relative
-        reference_component index for a given reference_component index"""
+        reference_component index for a given reference_component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_reference_component(i)
@@ -216,7 +219,7 @@ class MixedElement(FiniteElementBase):
 
     def extract_reference_component(self, i):
         """Recursively extract reference_component index relative to a (simple) element
-        and that element for given value reference_component index"""
+        and that element for given value reference_component index."""
         sub_element_index, reference_component = self.extract_subelement_reference_component(i)
         return self._sub_elements[sub_element_index].extract_reference_component(reference_component)
 
@@ -230,7 +233,7 @@ class MixedElement(FiniteElementBase):
             return e.is_cellwise_constant()
 
     def degree(self, component=None):
-        "Return polynomial degree of finite element"
+        "Return polynomial degree of finite element."
         if component is None:
             return self._degree # from FiniteElementBase, computed as max of subelements in __init__
         else:
@@ -249,7 +252,7 @@ class MixedElement(FiniteElementBase):
 
 
 class VectorElement(MixedElement):
-    "A special case of a mixed finite element where all elements are equal"
+    "A special case of a mixed finite element where all elements are equal."
 
     def __init__(self, family, cell=None, degree=None, dim=None,
                  form_degree=None, quad_scheme=None):
@@ -318,7 +321,7 @@ class VectorElement(MixedElement):
                                     self._sub_element.shortstr())
 
 class TensorElement(MixedElement):
-    "A special case of a mixed finite element where all elements are equal"
+    "A special case of a mixed finite element where all elements are equal."
     __slots__ = ("_sub_element", "_shape", "_symmetry",
                  "_sub_element_mapping", "_flattened_sub_element_mapping",
                  "_mapping")
@@ -429,7 +432,7 @@ class TensorElement(MixedElement):
 
     def extract_subelement_component(self, i):
         """Extract direct subelement index and subelement relative
-        component index for a given component index"""
+        component index for a given component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
@@ -444,8 +447,10 @@ class TensorElement(MixedElement):
         return (k, jj)
 
     def symmetry(self):
-        """Return the symmetry dict, which is a mapping c0 -> c1
-        meaning that component c0 is represented by component c1."""
+        """Return the symmetry dict, which is a mapping :math:`c_0 \\to c_1`
+        meaning that component :math:`c_0` is represented by component
+        :math:`c_1`.
+        A component is a tuple of one or more ints."""
         return self._symmetry
 
     def __str__(self):
