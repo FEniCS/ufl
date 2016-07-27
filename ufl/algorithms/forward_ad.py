@@ -999,10 +999,10 @@ class UnimplementedADRules(object):
 
     def cross(self, o, a, b):
         error("Derivative of cross product not implemented, apply expand_compounds before AD.")
-        u, up = a
-        v, vp = b
+        # u, up = a
+        # v, vp = b
         # oprime = ...
-        return (o, oprime)
+        # return (o, oprime)
 
     def determinant(self, o, a):
         """FIXME: Some possible rules:
@@ -1020,16 +1020,16 @@ class UnimplementedADRules(object):
         d detA / d A = [cross(row1, row2), cross(row2, row0), cross(row0, row1)] # or transposed or something
         """
         error("Derivative of determinant not implemented, apply expand_compounds before AD.")
-        A, Ap = a
+        # A, Ap = a
         # oprime = ...
-        return (o, oprime)
+        # return (o, oprime)
 
     def cofactor(self, o, a):
         error("Derivative of cofactor not implemented, apply expand_compounds before AD.")
-        A, Ap = a
+        # A, Ap = a
         # cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
         # oprime = ...
-        return (o, oprime)
+        # return (o, oprime)
 
     def inverse(self, o, a):
         """Derivation:
@@ -1045,4 +1045,5 @@ class UnimplementedADRules(object):
         d/dv[r] K[i,s] = -K[i,j] (d/dv[r] J[j,k]) K[k,s]
         """
         A, Ap = a
-        return (o, -o*Ap*o)  # FIXME: Need reshaping move derivative axis to the end of this expression
+        oprime = -o*Ap*o  # FIXME: Need reshaping move derivative axis to the end of this expression
+        return (o, oprime)

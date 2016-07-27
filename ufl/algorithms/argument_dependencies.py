@@ -108,15 +108,16 @@ class ArgumentDependencyExtracter(Transformer):
 
     def conditional(self, o, cond, t, f):
         "Considering EQ, NE, LE, GE, LT, GT nonlinear in this context."
-        if cond or (not t == f):
+        d = frozenset(t | f)
+        if cond:
             raise NotMultiLinearException(repr(o))
-        return t
+        return d
 
     def min_value(self, o, l, r):
         "Considering min, max nonlinear in this context."
         if l or r:
             raise NotMultiLinearException(repr(o))
-        return t
+        return self._empty
     max_value = min_value
 
     def division(self, o, a, b):
@@ -129,20 +130,14 @@ class ArgumentDependencyExtracter(Transformer):
         "Index sums inherit the dependencies of their summand."
         return f
 
-    def sum(self, o, *opdeps):
+    def sum(self, o, a, b):
         """Sums can contain both linear and bilinear terms (we could change
         this to require that all operands have the same dependencies)."""
-        # convert frozenset to a mutable set
-        deps = set(opdeps[0])
-        for d in opdeps[1:]:
-            # d is a frozenset of frozensets
-            deps.update(d)
-        return frozenset(deps)
+        return frozenset(a | b)
 
-    def product(self, o, *opdeps):
+    def product(self, o, adeps, bdeps):
         # Product operands should not depend on the same Arguments
         c = []
-        adeps, bdeps = opdeps  # TODO: Generalize to any number of operands using permutations
         # for each frozenset ad in the frozenset adeps
         ufl_assert(isinstance(adeps, frozenset), "Type error")
         ufl_assert(isinstance(bdeps, frozenset), "Type error")

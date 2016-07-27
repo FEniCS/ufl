@@ -301,30 +301,3 @@ def estimate_total_polynomial_degree(e, default_degree=1,
         degrees = map_expr_dags(de, [e])
     degree = max(degrees) if degrees else default_degree
     return degree
-
-
-# TODO: Do these contain useful ideas or should we just delete them?
-
-def __unused__extract_max_quadrature_element_degree(integral):
-    """Extract quadrature integration order from quadrature
-    elements in integral. Returns None if not found."""
-    quadrature_elements = [e for e in extract_elements(integral) if "Quadrature" in e.family()]
-    degrees = [element.degree() for element in quadrature_elements]
-    degrees = [q for q in degrees if q is not None]
-    if not degrees:
-        return None
-    max_degree = quadrature_elements[0].degree()
-    ufl_assert(all(max_degree == q for q in degrees),
-               "Incompatible quadrature elements specified (orders must be equal).")
-    return max_degree
-
-
-def __unused__estimate_quadrature_degree(integral):
-    "Estimate the necessary quadrature order for integral using the sum of argument degrees."
-    arguments = extract_arguments(integral)
-    degrees = [v.ufl_element().degree() for v in arguments]
-    if len(arguments) == 0:
-        return None
-    if len(arguments) == 1:
-        return 2*degrees[0]
-    return sum(degrees)

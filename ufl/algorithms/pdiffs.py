@@ -49,7 +49,7 @@ class PartialDerivativeComputer(MultiFunction):
 
     def index_sum(self, f):
         "d/dx sum_j x = TODO"
-        TODO
+        #TODO
 
     def sum(self, f):
         "d/dx_i sum_j x_j = 1"
@@ -57,7 +57,7 @@ class PartialDerivativeComputer(MultiFunction):
         return (_1,)*len(f.ufl_operands)
 
     def product(self, f):
-        a, b = f.ufl_operands  # TODO: Assuming binary operator for now
+        a, b = f.ufl_operands
         da = b  # TODO: Is this right even for non-scalar b?
         db = a
         return (da, db)
@@ -101,7 +101,7 @@ class PartialDerivativeComputer(MultiFunction):
     def ln(self, f):
         "d/dx ln x = 1 / x"
         x, = f.ufl_operands
-        return (1/x,)
+        return (1.0/x,)
 
     def cos(self, f):
         "d/dx cos x = -sin(x)"
