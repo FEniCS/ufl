@@ -20,10 +20,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from ufl.log import error
 from ufl.finiteelement import FiniteElement, VectorElement, TensorElement, \
-        MixedElement, EnrichedElement
+    MixedElement, EnrichedElement
 
 __all__ = ['increase_order', 'tear']
+
 
 def increase_order(element):
     "Return element of same family, but a polynomial degree higher."

@@ -28,10 +28,7 @@ from six.moves import xrange as range
 from ufl.log import error
 from ufl.utils.stacks import Stack, StackDict
 from ufl.assertions import ufl_assert
-from ufl.finiteelement import TensorElement
-from ufl.classes import Expr, Terminal, ListTensor, IndexSum, Indexed, FormArgument
-from ufl.tensors import as_tensor, ComponentTensor
-from ufl.permutation import compute_indices
+from ufl.classes import Terminal, ListTensor
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.differentiation import Grad
@@ -121,14 +118,15 @@ class IndexExpander(ReuseTransformer):
 
         # Not accepting nonscalars in division anymore
         ufl_assert(a.ufl_shape == (), "Not expecting tensor in division.")
-        ufl_assert(self.component() == (), "Not expecting component in division.")
+        ufl_assert(self.component() == (),
+                   "Not expecting component in division.")
 
         ufl_assert(b.ufl_shape == (), "Not expecting division by tensor.")
         a = self.visit(a)
 
-        #self._components.push(())
+        # self._components.push(())
         b = self.visit(b)
-        #self._components.pop()
+        # self._components.pop()
 
         return self.reuse_if_possible(x, a, b)
 
@@ -167,16 +165,16 @@ class IndexExpander(ReuseTransformer):
         self._components.push(self._multi_index_values(ii))
 
         # Hide index values (doing this is not correct behaviour)
-        #for i in ii:
-        #    if isinstance(i, Index):
-        #        self._index2value.push(i, None)
+        # for i in ii:
+        #     if isinstance(i, Index):
+        #         self._index2value.push(i, None)
 
         result = self.visit(A)
 
         # Un-hide index values
-        #for i in ii:
-        #    if isinstance(i, Index):
-        #        self._index2value.pop()
+        # for i in ii:
+        #     if isinstance(i, Index):
+        #         self._index2value.pop()
 
         # Reset component
         self._components.pop()
@@ -232,5 +230,5 @@ def purge_list_tensors(expr):
     expressions to use their components directly.
     Will usually increase the size of the expression."""
     if any(isinstance(subexpr, ListTensor) for subexpr in unique_pre_traversal(expr)):
-        return expand_indices(expr) # TODO: Only expand what's necessary to get rid of list tensors
+        return expand_indices(expr)  # TODO: Only expand what's necessary to get rid of list tensors
     return expr

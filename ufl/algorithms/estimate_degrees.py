@@ -61,14 +61,14 @@ class SumDegreeEstimator(MultiFunction):
     def argument(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
-        return v.ufl_element().degree() # FIXME: Use component to improve accuracy for mixed elements
+        return v.ufl_element().degree()  # FIXME: Use component to improve accuracy for mixed elements
 
     def coefficient(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
         e = v.ufl_element()
         e = self.element_replace_map.get(e, e)
-        d = e.degree() # FIXME: Use component to improve accuracy for mixed elements
+        d = e.degree()  # FIXME: Use component to improve accuracy for mixed elements
         if d is None:
             d = self.default_degree
         return d
@@ -111,35 +111,47 @@ class SumDegreeEstimator(MultiFunction):
     # Utility types with no degree concept
     def multi_index(self, v):
         return None
+
     def label(self, v):
         return None
+
     # Fall-through, indexing and similar types
     def reference_value(self, rv, f):
         return f
+
     def variable(self, v, e, l):
         return e
+
     def transposed(self, v, A):
         return A
+
     def index_sum(self, v, A, ii):
         return A
+
     def indexed(self, v, A, ii):
         return A
+
     def component_tensor(self, v, A, ii):
         return A
+
     list_tensor = _max_degrees
+
     def positive_restricted(self, v, a):
         return a
+
     def negative_restricted(self, v, a):
         return a
 
     # A sum takes the max degree of its operands:
     sum = _max_degrees
 
-    # TODO: Need a new algorithm which considers direction of derivatives of form arguments
-    # A spatial derivative reduces the degree with one
+    # TODO: Need a new algorithm which considers direction of
+    # derivatives of form arguments A spatial derivative reduces the
+    # degree with one
     grad = _reduce_degree
     reference_grad = _reduce_degree
-    # Handling these types although they should not occur... please apply preprocessing before using this algorithm:
+    # Handling these types although they should not occur... please
+    # apply preprocessing before using this algorithm:
     nabla_grad = _reduce_degree
     div = _reduce_degree
     reference_div = _reduce_degree
@@ -157,16 +169,18 @@ class SumDegreeEstimator(MultiFunction):
 
     # A product accumulates the degrees of its operands:
     product = _add_degrees
-    # Handling these types although they should not occur... please apply preprocessing before using this algorithm:
+    # Handling these types although they should not occur... please
+    # apply preprocessing before using this algorithm:
     inner = _add_degrees
     dot = _add_degrees
     outer = _add_degrees
     cross = _add_degrees
 
-    # Explicitly not handling these types, please apply preprocessing before using this algorithm:
-    derivative = _not_handled # base type
-    compound_derivative = _not_handled # base type
-    compound_tensor_operator = _not_handled # base class
+    # Explicitly not handling these types, please apply preprocessing
+    # before using this algorithm:
+    derivative = _not_handled  # base type
+    compound_derivative = _not_handled  # base type
+    compound_tensor_operator = _not_handled  # base class
     variable_derivative = _not_handled
     trace = _not_handled
     determinant = _not_handled
@@ -201,7 +215,8 @@ class SumDegreeEstimator(MultiFunction):
                 return tuple(foo*gi for foo in a)
         except:
             pass
-        # Something to a non-integer power, this is just a heuristic with no background
+        # Something to a non-integer power, this is just a heuristic
+        # with no background
         if isinstance(a, int):
             return a*2
         else:
@@ -214,12 +229,10 @@ class SumDegreeEstimator(MultiFunction):
         which can be wildly inaccurate but at least
         gives a somewhat high integration degree.
         """
-        #print "estimate",a,b
         if a or b:
             return self._add_degrees(v, self._max_degrees(v, a, b), 2)
         else:
             return self._max_degrees(v, a, b)
-
 
     def math_function(self, v, a):
         """Using the heuristic
@@ -266,7 +279,8 @@ class SumDegreeEstimator(MultiFunction):
     max_value = min_value
 
 
-def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}):
+def estimate_total_polynomial_degree(e, default_degree=1,
+                                     element_replace_map={}):
     """Estimate total polynomial degree of integrand.
 
     NB! Although some compound types are supported here,
@@ -290,7 +304,6 @@ def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}
 
 
 # TODO: Do these contain useful ideas or should we just delete them?
-
 
 def __unused__extract_max_quadrature_element_degree(integral):
     """Extract quadrature integration order from quadrature

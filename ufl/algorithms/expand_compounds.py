@@ -23,5 +23,6 @@ equivalent representations using basic operators."""
 
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 
+
 def expand_compounds(e):
     return apply_algebra_lowering(e)

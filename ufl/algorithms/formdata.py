@@ -21,7 +21,7 @@
 # Modified by Anders Logg, 2008.
 
 from ufl.utils.formatting import lstr, tstr, estr
-from ufl.assertions import ufl_assert
+
 
 class FormData(object):
     """
@@ -36,22 +36,23 @@ class FormData(object):
         "Return formatted summary of form data"
         types = sorted(self.max_subdomain_ids.keys())
         geometry = (
-                   ("Geometric dimension", self.geometric_dimension),
-                   )
+            ("Geometric dimension", self.geometric_dimension),
+        )
         subdomains = tuple(("Number of %s subdomains" % integral_type,
                             self.max_subdomain_ids[integral_type]) for integral_type in types)
         functions = (
-                # Arguments
-                ("Rank",                               self.rank),
-                ("Arguments",                          lstr(self.original_form.arguments())),
-                # Coefficients
-                ("Number of coefficients",             self.num_coefficients),
-                ("Coefficients",                       lstr(self.reduced_coefficients)),
-                # Elements
-                ("Unique elements",                    estr(self.unique_elements)),
-                ("Unique sub elements",                estr(self.unique_sub_elements)),
-                    )
+            # Arguments
+            ("Rank", self.rank),
+            ("Arguments", lstr(self.original_form.arguments())),
+            # Coefficients
+            ("Number of coefficients", self.num_coefficients),
+            ("Coefficients", lstr(self.reduced_coefficients)),
+            # Elements
+            ("Unique elements", estr(self.unique_elements)),
+            ("Unique sub elements", estr(self.unique_sub_elements)),
+        )
         return tstr(geometry + subdomains + functions)
+
 
 class ExprData(object):
     """
@@ -64,18 +65,17 @@ class ExprData(object):
 
     def __str__(self):
         "Return formatted summary of expr data"
-        return tstr((("Name",                               self.name),
-                     ("Cell",                               self.cell),
-                     ("Topological dimension",              self.topological_dimension),
-                     ("Geometric dimension",                self.geometric_dimension),
-                     ("Rank",                               self.rank),
-                     ("Number of coefficients",             self.num_coefficients),
-                     ("Arguments",                          lstr(self.arguments)),
-                     ("Coefficients",                       lstr(self.coefficients)),
-                     ("Argument names",                     lstr(self.argument_names)),
-                     ("Coefficient names",                  lstr(self.coefficient_names)),
-                     ("Unique elements",                    estr(self.unique_elements)),
-                     ("Unique sub elements",                estr(self.unique_sub_elements)),
+        return tstr((("Name", self.name),
+                     ("Cell", self.cell),
+                     ("Topological dimension", self.topological_dimension),
+                     ("Geometric dimension", self.geometric_dimension),
+                     ("Rank", self.rank),
+                     ("Number of coefficients", self.num_coefficients),
+                     ("Arguments", lstr(self.arguments)),
+                     ("Coefficients", lstr(self.coefficients)),
+                     ("Argument names", lstr(self.argument_names)),
+                     ("Coefficient names", lstr(self.coefficient_names)),
+                     ("Unique elements", estr(self.unique_elements)),
+                     ("Unique sub elements", estr(self.unique_sub_elements)),
                      # FIXME DOMAINS what is "the domain(s)" for an expression?
-                     ("Domains",                            self.domains),
-                     ))
+                     ("Domains", self.domains), ))

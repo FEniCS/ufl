@@ -21,14 +21,14 @@ equivalent representations using basic operators."""
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.assertions import ufl_assert
 
 from ufl.classes import Product, Grad
 from ufl.core.multiindex import indices, Index, FixedIndex
 from ufl.tensors import as_tensor, as_matrix, as_vector
 
-from ufl.compound_expressions import deviatoric_expr, determinant_expr, cofactor_expr, adj_expr, inverse_expr
+from ufl.compound_expressions import deviatoric_expr, determinant_expr, cofactor_expr, inverse_expr
 
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -63,23 +63,24 @@ class LowerCompoundAlgebra(MultiFunction):
 
     def skew(self, o, A):
         i, j = indices(2)
-        return as_matrix( (A[i, j] - A[j, i]) / 2, (i, j) )
+        return as_matrix((A[i, j] - A[j, i]) / 2, (i, j))
 
     def sym(self, o, A):
         i, j = indices(2)
-        return as_matrix( (A[i, j] + A[j, i]) / 2, (i, j) )
+        return as_matrix((A[i, j] + A[j, i]) / 2, (i, j))
 
     def cross(self, o, a, b):
         def c(i, j):
             return Product(a[i], b[j]) - Product(a[j], b[i])
         return as_vector((c(1, 2), c(2, 0), c(0, 1)))
 
-    def altenative_dot(self, o, a, b): # TODO: Test this
+    def altenative_dot(self, o, a, b):  # TODO: Test this
         ash = a.ufl_shape
         bsh = b.ufl_shape
-        ai = indices(len(ash)-1)
-        bi = indices(len(bsh)-1)
-        # Simplification for tensors where the dot-sum dimension has length 1
+        ai = indices(len(ash) - 1)
+        bi = indices(len(bsh) - 1)
+        # Simplification for tensors where the dot-sum dimension has
+        # length 1
         if ash[-1] == 1:
             k = (FixedIndex(0),)
         else:
@@ -96,11 +97,12 @@ class LowerCompoundAlgebra(MultiFunction):
         s = a[ai+k]*b[k+bi]
         return as_tensor(s, ai+bi)
 
-    def alternative_inner(self, o, a, b): # TODO: Test this
+    def alternative_inner(self, o, a, b):  # TODO: Test this
         ash = a.ufl_shape
         bsh = b.ufl_shape
         ufl_assert(ash == bsh)
-        # Simplification for tensors with one or more dimensions of length 1
+        # Simplification for tensors with one or more dimensions of
+        # length 1
         ii = []
         zi = FixedIndex(0)
         for n in ash:
@@ -109,7 +111,7 @@ class LowerCompoundAlgebra(MultiFunction):
             else:
                 ii.append(Index())
         ii = tuple(ii)
-        #ii = indices(len(a.ufl_shape))
+        # ii = indices(len(a.ufl_shape))
         # Potentially creates multiple IndexSums over a Product
         s = a[ii]*b[ii]
         return s

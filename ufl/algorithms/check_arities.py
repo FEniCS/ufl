@@ -27,8 +27,9 @@ class ArityChecker(MultiFunction):
         return (o,)
 
     def nonlinear_operator(self, o):
-        # Cutoff traversal by not having *ops in argument list of this handler.
-        # Traverse only the terminals under here the fastest way we know of:
+        # Cutoff traversal by not having *ops in argument list of this
+        # handler.  Traverse only the terminals under here the fastest
+        # way we know of:
         for t in traverse_unique_terminals(o):
             if t._ufl_typecode_ == Argument._ufl_typecode_:
                 raise ArityMismatch("Applying nonlinear operator {0} to expression depending on form argument {1}.".format(o._ufl_class_.__name__, t))
@@ -48,14 +49,16 @@ class ArityChecker(MultiFunction):
 
     def product(self, o, a, b):
         if a and b:
-            # Check that we don't have test*test, trial*trial, even for different parts in a block system
+            # Check that we don't have test*test, trial*trial, even
+            # for different parts in a block system
             anumbers = set(x.number() for x in a)
             for x in b:
                 if x.number() in anumbers:
                     raise ArityMismatch("Multiplying expressions with overlapping form argument number {0}, argument is {1}.".format(x.number(), x))
             # Combine argument lists
             c = tuple(sorted(set(a + b), key=lambda x: (x.number(), x.part())))
-            # Check that we don't have any arguments shared between a and b
+            # Check that we don't have any arguments shared between a
+            # and b
             if len(c) != len(a) + len(b):
                 raise ArityMismatch("Multiplying expressions with overlapping form arguments {0} vs {1}.".format(a, b))
             # It's fine for argument parts to overlap
@@ -86,7 +89,8 @@ class ArityChecker(MultiFunction):
     reference_grad = linear_operator
     reference_value = linear_operator
 
-    # Does it make sense to have a Variable(Argument)? I see no problem.
+    # Does it make sense to have a Variable(Argument)? I see no
+    # problem.
     def variable(self, o, f, l):
         return f
 
@@ -104,7 +108,8 @@ class ArityChecker(MultiFunction):
             # Allow conditional(c, test, test)
             return a
         else:
-            # Do not allow e.g. conditional(c, test, trial), conditional(c, test, nonzeroconstant)
+            # Do not allow e.g. conditional(c, test, trial),
+            # conditional(c, test, nonzeroconstant)
             raise ArityMismatch("Conditional subexpressions with non-matching form arguments {0} vs {1}.".format(a, b))
 
     def linear_indexed_type(self, o, a, i):
@@ -118,9 +123,10 @@ class ArityChecker(MultiFunction):
     def list_tensor(self, o, *ops):
         args = set(chain(*ops))
         if args:
-            # Check that each list tensor component has the same argument numbers (ignoring parts)
+            # Check that each list tensor component has the same
+            # argument numbers (ignoring parts)
             numbers = set(tuple(sorted(set(arg.number() for arg in op))) for op in ops)
-            if () in numbers: # Allow e.g. <v[0], 0, v[1]> but not <v[0], u[0]>
+            if () in numbers:  # Allow e.g. <v[0], 0, v[1]> but not <v[0], u[0]>
                 numbers.remove(())
             if len(numbers) > 1:
                 raise ArityMismatch("Listtensor components must depend on the same argument numbers, found {0}.".format(numbers))
@@ -131,12 +137,15 @@ class ArityChecker(MultiFunction):
             # No argument dependencies
             return self._et
 
+
 def check_integrand_arity(expr, arguments):
-    arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), x.part())))
+    arguments = tuple(sorted(set(arguments),
+                             key=lambda x: (x.number(), x.part())))
     rules = ArityChecker(arguments)
     args = map_expr_dag(rules, expr, compress=False)
     if args != arguments:
         raise ArityMismatch("Integrand arguments {0} differ from form arguments {1}.".format(args, arguments))
+
 
 def check_form_arity(form, arguments):
     for itg in form.integrals():

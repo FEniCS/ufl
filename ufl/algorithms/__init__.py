@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 "This module collects algorithms and utility functions operating on UFL objects."
 
 # Copyright (C) 2008-2015 Martin Sandve Alnæs
@@ -21,15 +22,17 @@
 # Modified by Anders Logg, 2008-2009.
 
 
-# FIXME: Clean up this to become a more official set of supported algorithms.
-#        Currently contains too much stuff that's not recommended to use.
+# FIXME: Clean up this to become a more official set of supported
+#        algorithms.  Currently contains too much stuff that's not
+#        recommended to use.
 
 
 # Utilities for traversing over expression trees in different ways
 from ufl.algorithms.traversal import iter_expressions
 
-# Keeping these imports here for backwards compatibility, doesn't cost anything.
-# Prefer importing from ufl.corealg.traversal in future code.
+# Keeping these imports here for backwards compatibility, doesn't cost
+# anything.  Prefer importing from ufl.corealg.traversal in future
+# code.
 from ufl.corealg.traversal import pre_traversal, post_traversal
 from ufl.corealg.traversal import traverse_terminals, traverse_unique_terminals
 

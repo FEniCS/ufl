@@ -22,28 +22,20 @@
 # Modified by Johan Hake, 2010.
 
 from itertools import chain
-from six.moves import zip
-from collections import namedtuple
 
-from ufl.log import error, warning, info
+from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
-from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal, FormArgument
-from ufl.finiteelement import MixedElement, RestrictedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.variable import Variable
-from ufl.core.multiindex import Index, MultiIndex
-from ufl.integral import Measure, Integral
-from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
 
 
-# TODO: Some of these can possibly be optimised by implementing inlined stack based traversal algorithms
-
+# TODO: Some of these can possibly be optimised by implementing
+# inlined stack based traversal algorithms
 
 def _sorted_by_number_and_part(seq):
     return sorted(seq, key=lambda x: (x.number(), x.part()))
@@ -60,7 +52,7 @@ def unique_tuple(objects):
     return tuple(unique_objects)
 
 
-#--- Utilities to extract information from an expression ---
+# --- Utilities to extract information from an expression ---
 
 def __unused__extract_classes(a):
     """Build a set of all unique Expr subclasses used in a.
@@ -68,6 +60,7 @@ def __unused__extract_classes(a):
     return set(o._ufl_class_
                for e in iter_expressions(a)
                for o in unique_pre_traversal(e))
+
 
 def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
@@ -82,6 +75,7 @@ def extract_type(a, ufl_type):
                    for o in unique_pre_traversal(e)
                    if isinstance(o, ufl_type))
 
+
 def has_type(a, ufl_type):
     """Return if an object of class ufl_type can be found in a.
     The argument a can be a Form, Integral or Expr."""
@@ -91,6 +85,7 @@ def has_type(a, ufl_type):
     else:
         traversal = unique_pre_traversal
     return any(isinstance(o, ufl_type) for e in iter_expressions(a) for o in traversal(e))
+
 
 def has_exact_type(a, ufl_type):
     """Return if an object of class ufl_type can be found in a.
@@ -103,15 +98,18 @@ def has_exact_type(a, ufl_type):
         traversal = unique_pre_traversal
     return any(o._ufl_typecode_ == tc for e in iter_expressions(a) for o in traversal(e))
 
+
 def extract_arguments(a):
     """Build a sorted list of all arguments in a,
     which can be a Form, Integral or Expr."""
     return _sorted_by_number_and_part(extract_type(a, Argument))
 
+
 def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or Expr."""
     return sorted_by_count(extract_type(a, Coefficient))
+
 
 def extract_arguments_and_coefficients(a):
     """Build two sorted lists of all arguments and coefficients

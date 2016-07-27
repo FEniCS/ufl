@@ -19,9 +19,9 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.core.expr import Expr
-from ufl.classes import Measure
 from ufl.assertions import ufl_assert
 from ufl.algorithms.transformer import Transformer
+
 
 class RestrictionChecker(Transformer):
     def __init__(self, require_restriction):
@@ -34,7 +34,7 @@ class RestrictionChecker(Transformer):
 
     def restricted(self, o):
         ufl_assert(self.current_restriction is None,
-            "Not expecting twice restricted expression.")
+                   "Not expecting twice restricted expression.")
         self.current_restriction = o._side
         e, = o.ufl_operands
         self.visit(e)
@@ -55,6 +55,7 @@ class RestrictionChecker(Transformer):
         else:
             ufl_assert(self.current_restriction is None,
                        "Restrictions are only allowed for interior facet integrals.")
+
 
 def check_restrictions(expression, require_restriction):
     ufl_assert(isinstance(expression, Expr), "Expecting Expr instance.")

@@ -32,6 +32,7 @@ class NotMultiLinearException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
+
 class ArgumentDependencyExtracter(Transformer):
     def __init__(self):
         Transformer.__init__(self)
@@ -49,7 +50,8 @@ class ArgumentDependencyExtracter(Transformer):
         return self._empty
 
     def variable(self, o):
-        # Check variable cache to reuse previously transformed variable if possible
+        # Check variable cache to reuse previously transformed
+        # variable if possible
         e, l = o.ufl_operands
         d = self._variable_cache.get(l)
         if d is None:
@@ -140,7 +142,7 @@ class ArgumentDependencyExtracter(Transformer):
     def product(self, o, *opdeps):
         # Product operands should not depend on the same Arguments
         c = []
-        adeps, bdeps = opdeps # TODO: Generalize to any number of operands using permutations
+        adeps, bdeps = opdeps  # TODO: Generalize to any number of operands using permutations
         # for each frozenset ad in the frozenset adeps
         ufl_assert(isinstance(adeps, frozenset), "Type error")
         ufl_assert(isinstance(bdeps, frozenset), "Type error")
@@ -155,9 +157,11 @@ class ArgumentDependencyExtracter(Transformer):
         for ad in adeps:
             # for each frozenset bd in the frozenset bdeps
             for bd in bdeps:
-                # build frozenset cd with the combined Argument dependencies from ad and bd
+                # build frozenset cd with the combined Argument
+                # dependencies from ad and bd
                 cd = (ad | bd) - none
-                # build frozenset cd with the combined Argument dependencies from ad and bd
+                # build frozenset cd with the combined Argument
+                # dependencies from ad and bd
                 if not len(cd) == len(ad - none) + len(bd - none):
                     raise NotMultiLinearException(repr(o))
                 # remember this dependency combination
@@ -168,6 +172,7 @@ class ArgumentDependencyExtracter(Transformer):
     outer = product
     dot = product
     cross = product
+
 
 def extract_argument_dependencies(e):
     "Extract a set of sets of Arguments."

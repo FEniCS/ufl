@@ -32,18 +32,18 @@ from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.corealg.map_dag import map_expr_dag
 
 from ufl.classes import (Expr, Form, Integral,
-                         ReferenceGrad, ReferenceValue,
+                         ReferenceGrad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          CellOrientation, CellOrigin, CellCoordinate,
                          FacetJacobian, FacetJacobianDeterminant,
                          CellFacetJacobian,
                          CellEdgeVectors, FacetEdgeVectors,
-                         FacetNormal, CellNormal, ReferenceNormal,
+                         ReferenceNormal,
                          ReferenceCellVolume, ReferenceFacetVolume,
                          CellVolume, FacetArea,
                          SpatialCoordinate)
-#FacetJacobianInverse,
-#FacetOrientation, QuadratureWeight,
+# FacetJacobianInverse,
+# FacetOrientation, QuadratureWeight,
 
 from ufl.tensors import as_tensor, as_vector
 from ufl.operators import sqrt, max_value, min_value
@@ -71,16 +71,19 @@ class GeometryLoweringApplier(MultiFunction):
         domain = o.ufl_domain()
         if domain.ufl_coordinate_element().mapping() != "identity":
             error("Piola mapped coordinates are not implemented.")
-        # Note: No longer supporting domain.coordinates(), always preserving SpatialCoordinate object.
-        # However if Jacobians are not preserved, using ReferenceGrad(SpatialCoordinate(domain)) to represent them.
+        # Note: No longer supporting domain.coordinates(), always
+        # preserving SpatialCoordinate object.  However if Jacobians
+        # are not preserved, using
+        # ReferenceGrad(SpatialCoordinate(domain)) to represent them.
         x = self.spatial_coordinate(SpatialCoordinate(domain))
         return ReferenceGrad(x)
 
     @memoized_handler
     def _future_jacobian(self, o):
-        # If we're not using Coefficient to represent the spatial coordinate,
-        # we can just as well just return o here too unless we add representation
-        # of basis functions and dofs to the ufl layer (which is nice to avoid).
+        # If we're not using Coefficient to represent the spatial
+        # coordinate, we can just as well just return o here too
+        # unless we add representation of basis functions and dofs to
+        # the ufl layer (which is nice to avoid).
         return o
 
     @memoized_handler
@@ -90,7 +93,8 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
         J = self.jacobian(Jacobian(domain))
-        # TODO: This could in principle use preserve_types[JacobianDeterminant] with minor refactoring:
+        # TODO: This could in principle use
+        # preserve_types[JacobianDeterminant] with minor refactoring:
         K = inverse_expr(J)
         return K
 
@@ -103,8 +107,9 @@ class GeometryLoweringApplier(MultiFunction):
         J = self.jacobian(Jacobian(domain))
         detJ = determinant_expr(J)
 
-        # TODO: Is "signing" the determinant for manifolds the cleanest approach?
-        #       The alternative is to have a specific type for the unsigned pseudo-determinant.
+        # TODO: Is "signing" the determinant for manifolds the
+        #       cleanest approach?  The alternative is to have a
+        #       specific type for the unsigned pseudo-determinant.
         if domain.topological_dimension() < domain.geometric_dimension():
             co = CellOrientation(domain)
             detJ = co*detJ
@@ -141,11 +146,12 @@ class GeometryLoweringApplier(MultiFunction):
         FJ = self.facet_jacobian(FacetJacobian(domain))
         detFJ = determinant_expr(FJ)
 
-        # TODO: Should we "sign" the facet jacobian determinant for manifolds?
-        #       It's currently used unsigned in apply_integral_scaling.
-        #if domain.topological_dimension() < domain.geometric_dimension():
-        #    co = CellOrientation(domain)
-        #    detFJ = co*detFJ
+        # TODO: Should we "sign" the facet jacobian determinant for
+        #       manifolds?  It's currently used unsigned in
+        #       apply_integral_scaling.
+        # if domain.topological_dimension() < domain.geometric_dimension():
+        #     co = CellOrientation(domain)
+        #     detFJ = co*detFJ
 
         return detFJ
 
@@ -156,7 +162,8 @@ class GeometryLoweringApplier(MultiFunction):
             return o
         if o.ufl_domain().ufl_coordinate_element().mapping() != "identity":
             error("Piola mapped coordinates are not implemented.")
-        # No longer supporting domain.coordinates(), always preserving SpatialCoordinate object.
+        # No longer supporting domain.coordinates(), always preserving
+        # SpatialCoordinate object.
         return o
 
     @memoized_handler
@@ -188,7 +195,8 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to form compiler
+            # Don't lower for non-affine cells, instead leave it to
+            # form compiler
             warning("Only know how to compute the cell volume of an affine cell.")
             return o
 
@@ -203,7 +211,8 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to form compiler
+            # Don't lower for non-affine cells, instead leave it to
+            # form compiler
             warning("Only know how to compute the facet area of an affine cell.")
             return o
 
@@ -218,7 +227,8 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to form compiler
+            # Don't lower for non-affine cells, instead leave it to
+            # form compiler
             warning("Only know how to compute the circumradius of an affine cell.")
             return o
 
@@ -271,7 +281,8 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to form compiler
+            # Don't lower for non-affine cells, instead leave it to
+            # form compiler
             warning("Only know how to compute the min_cell_edge_length of an affine cell.")
             return o
 
@@ -300,7 +311,8 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to form compiler
+            # Don't lower for non-affine cells, instead leave it to
+            # form compiler
             warning("Only know how to compute the max_cell_edge_length of an affine cell.")
             return o
 
@@ -329,7 +341,8 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to form compiler
+            # Don't lower for non-affine cells, instead leave it to
+            # form compiler
             warning("Only know how to compute the min_facet_edge_length of an affine cell.")
             return o
 
@@ -355,7 +368,8 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to form compiler
+            # Don't lower for non-affine cells, instead leave it to
+            # form compiler
             warning("Only know how to compute the max_facet_edge_length of an affine cell.")
             return o
 
@@ -383,7 +397,7 @@ class GeometryLoweringApplier(MultiFunction):
         gdim = domain.geometric_dimension()
         tdim = domain.topological_dimension()
 
-        if tdim == gdim - 1: # n-manifold embedded in n-1 space
+        if tdim == gdim - 1:  # n-manifold embedded in n-1 space
             i = Index()
             J = self.jacobian(Jacobian(domain))
 
@@ -393,12 +407,14 @@ class GeometryLoweringApplier(MultiFunction):
                 t1 = as_vector(J[i, 1], i)
                 cell_normal = cross_expr(t0, t1)
             elif tdim == 1:
-                # Line in 2D (cell normal is 'up' for a line pointing to the 'right')
+                # Line in 2D (cell normal is 'up' for a line pointing
+                # to the 'right')
                 cell_normal = as_vector((-J[1, 0], J[0, 0]))
             else:
                 error("Cell normal not implemented for tdim %d, gdim %d" % (tdim, gdim))
 
-            # Return normalized vector, sign corrected by cell orientation
+            # Return normalized vector, sign corrected by cell
+            # orientation
             co = CellOrientation(domain)
             return co * cell_normal / sqrt(cell_normal[i]*cell_normal[i])
         else:
@@ -413,9 +429,9 @@ class GeometryLoweringApplier(MultiFunction):
         tdim = domain.topological_dimension()
 
         if tdim == 1:
-            # Special-case 1D (possibly immersed), for which we say that
-            # n is just in the direction of J.
-            J = self.jacobian(Jacobian(domain)) # dx/dX
+            # Special-case 1D (possibly immersed), for which we say
+            # that n is just in the direction of J.
+            J = self.jacobian(Jacobian(domain))  # dx/dX
             ndir = J[:, 0]
 
             gdim = domain.geometric_dimension()
@@ -429,9 +445,10 @@ class GeometryLoweringApplier(MultiFunction):
             n = rn[0] * ndir / nlen
             r = n
         else:
-            # Recall that the covariant Piola transform u -> J^(-T)*u preserves
-            # tangential components. The normal vector is characterised by
-            # having zero tangential component in reference and physical space.
+            # Recall that the covariant Piola transform u -> J^(-T)*u
+            # preserves tangential components. The normal vector is
+            # characterised by having zero tangential component in
+            # reference and physical space.
             Jinv = self.jacobian_inverse(JacobianInverse(domain))
             i, j = indices(2)
 
@@ -447,6 +464,7 @@ class GeometryLoweringApplier(MultiFunction):
         ufl_assert(r.ufl_shape == o.ufl_shape,
                    "Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))
         return r
+
 
 def apply_geometry_lowering(form, preserve_types=()):
     """Change GeometricQuantity objects in expression to the lowest level GeometricQuantity objects.
