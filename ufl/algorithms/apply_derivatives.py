@@ -516,14 +516,12 @@ class GradRuleset(GenericDerivativeRuleset):
         return Grad(o)
 
     def argument(self, o):
+        # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
+        #if is_cellwise_constant(o):
+        #    # Collapse gradient of cellwise constant function to zero
+        #    # TODO: Missing this type
+        #    return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))
         return Grad(o)
-
-    def _argument(self, o):  # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
-        if is_cellwise_constant(o):
-            # Collapse gradient of cellwise constant function to zero
-            return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))  # TODO: Missing this type
-        else:
-            return Grad(o)
 
     # --- Rules for values or derivatives in reference frame
 
@@ -609,22 +607,15 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
     # --- Specialized rules for form arguments
 
+    def reference_value(self, o):
+        ufl_assert(o.ufl_operands[0]._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
+        return ReferenceGrad(o)
+
     def coefficient(self, o):
         error("Coefficient should be wrapped in ReferenceValue by now")
 
     def argument(self, o):
         error("Argument should be wrapped in ReferenceValue by now")
-
-    def reference_value(self, o):
-        ufl_assert(o.ufl_operands[0]._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
-        return ReferenceGrad(o)
-
-    def _argument(self, o):  # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
-        if is_cellwise_constant(o):
-            # Collapse gradient of cellwise constant function to zero
-            return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))  # TODO: Missing this type
-        else:
-            return ReferenceGrad(o)
 
     # --- Nesting of gradients
 
@@ -686,8 +677,8 @@ class VariableRuleset(GenericDerivativeRuleset):
     # Explicitly defining da/dw == 0
     argument = GenericDerivativeRuleset.independent_terminal
 
-    def _argument(self, o):
-        return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))  # TODO: Missing this type
+    #def _argument(self, o):
+    #    return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))  # TODO: Missing this type
 
     def coefficient(self, o):
         """df/dv = Id if v is f else 0.

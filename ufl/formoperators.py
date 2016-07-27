@@ -44,15 +44,11 @@ from ufl.sorting import sorted_expr
 from ufl.functionspace import FunctionSpace
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import compute_form_adjoint, \
-                           compute_form_action, \
-                           compute_energy_norm, \
-                           compute_form_lhs, \
-                           compute_form_rhs, \
-                           compute_form_functional, \
-                           expand_derivatives, \
-                           extract_arguments, \
-                           FormSplitter
+from ufl.algorithms import compute_form_adjoint, compute_form_action
+from ufl.algorithms import compute_energy_norm
+from ufl.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
+from ufl.algorithms import expand_derivatives, extract_arguments
+from ufl.algorithms import FormSplitter
 
 # Part of the external interface
 from ufl.algorithms import replace
