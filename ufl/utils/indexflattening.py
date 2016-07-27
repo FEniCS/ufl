@@ -21,6 +21,7 @@
 from six.moves import zip
 from six.moves import xrange as range
 
+
 def shape_to_strides(sh):
     "Return a tuple of strides given a shape tuple."
     n = len(sh)
@@ -32,12 +33,14 @@ def shape_to_strides(sh):
         strides[i-1] = strides[i]*sh[i]
     return tuple(strides)
 
+
 def flatten_multiindex(ii, strides):
     "Return the flat index corresponding to the given multiindex."
     i = 0
     for c, s in zip(ii, strides):
         i += c * s
     return i
+
 
 def unflatten_index(i, strides):
     "Return the multiindex corresponding to the given flat index."

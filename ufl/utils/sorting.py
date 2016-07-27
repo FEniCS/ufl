@@ -21,6 +21,7 @@
 from ufl.log import warning
 from six import itervalues, iteritems
 
+
 def topological_sorting(nodes, edges):
     """
     Return a topologically sorted list of the nodes
@@ -69,7 +70,8 @@ def sorted_by_ufl_id(seq):
 
 def sorted_by_key(mapping):
     "Sort dict items by key, allowing different key types."
-    # Python3 doesn't allow comparing builtins of different type, therefore the typename trick here
+    # Python3 doesn't allow comparing builtins of different type,
+    # therefore the typename trick here
     def _key(x):
         return (type(x[0]).__name__, x[0])
     return sorted(iteritems(mapping), key=_key)
@@ -77,7 +79,8 @@ def sorted_by_key(mapping):
 
 def sorted_by_tuple_key(mapping):
     "Sort dict items by tuple valued keys, allowing different types as items of the key tuples."
-    # Python3 doesn't allow comparing builtins of different type, therefore the typename trick here
+    # Python3 doesn't allow comparing builtins of different type,
+    # therefore the typename trick here
     def _tuple_key(x):
         return tuple((type(k).__name__, k) for k in x[0])
     return sorted(iteritems(mapping), key=_tuple_key)

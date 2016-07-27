@@ -18,9 +18,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-# Taken from http://ivory.idyll.org/blog/mar-07/replacing-commands-with-subprocess
+# Taken from
+# http://ivory.idyll.org/blog/mar-07/replacing-commands-with-subprocess
 from subprocess import Popen, PIPE, STDOUT
-from functools import reduce
+
+
 def get_status_output(cmd, input=None, cwd=None, env=None):
     pipe = Popen(cmd, shell=True, cwd=cwd, env=env, stdout=PIPE, stderr=STDOUT)
 
@@ -31,11 +33,13 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
 
     return (status, output)
 
+
 def write_file(filename, text):
     with open(filename, "w") as f:
         f.write(text)
 
-def pdflatex(latexfilename, pdffilename, flags=""): # TODO: Options for this.
+
+def pdflatex(latexfilename, pdffilename, flags=""):  # TODO: Options for this.
     "Execute pdflatex to compile a latex file into pdf."
     flags += "-file-line-error-style -interaction=nonstopmode"
     latexcmd = "pdflatex"
@@ -43,9 +47,10 @@ def pdflatex(latexfilename, pdffilename, flags=""): # TODO: Options for this.
     s, o = get_status_output(cmd)
     return s, o
 
+
 def openpdf(pdffilename):
     "Open PDF file in external pdf viewer."
-    reader_cmd = "evince %s &" # TODO: Add option for which reader to use. Is there a portable way to do this? Like "get default pdf reader from os"?
+    reader_cmd = "evince %s &"  # TODO: Add option for which reader to use. Is there a portable way to do this? Like "get default pdf reader from os"?
     cmd = reader_cmd % pdffilename
     s, o = get_status_output(cmd)
     return s, o

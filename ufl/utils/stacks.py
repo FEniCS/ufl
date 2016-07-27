@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+
 class Stack(list):
     "A stack datastructure."
     def __init__(self, *args):
@@ -28,6 +29,7 @@ class Stack(list):
 
     def peek(self):
         return self[-1]
+
 
 class StackDict(dict):
     "A dict that can be changed incrementally with 'd.push(k,v)' and have changes rolled back with 'k,v = d.pop()'."
