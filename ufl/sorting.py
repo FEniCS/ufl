@@ -24,11 +24,9 @@ is more robust w.r.t. argument numbering than using repr."""
 
 from six.moves import zip
 
-from ufl.log import error
-from ufl.core.terminal import Terminal
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex
+from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.variable import Label
 
 
@@ -114,11 +112,12 @@ def _cmp_terminal(a, b):
 
 
 def _cmp_operator(a, b):
-    # If the hash is the same, assume equal for the purpose of sorting.
-    # This introduces a minor chance of nondeterministic behaviour, just as with MultiIndex.
-    # Although collected statistics for complicated forms suggest that the hash
-    # function is pretty good so there shouldn't be collisions.
-    if hash(a) == hash(b): # FIXME: Test this for performance improvement.
+    # If the hash is the same, assume equal for the purpose of
+    # sorting.  This introduces a minor chance of nondeterministic
+    # behaviour, just as with MultiIndex.  Although collected
+    # statistics for complicated forms suggest that the hash function
+    # is pretty good so there shouldn't be collisions.
+    if hash(a) == hash(b):  # FIXME: Test this for performance improvement.
         return 0
 
     aops = a.ufl_operands
@@ -127,15 +126,18 @@ def _cmp_operator(a, b):
     # Sort by children in natural order
     for (r, s) in zip(aops, bops):
         # Ouch! This becomes worst case O(n) then?
-        # FIXME: Perhaps replace with comparison of hash value? But that's not stable between python versions.
+        # FIXME: Perhaps replace with comparison of hash value? But
+        # that's not stable between python versions.
         c = cmp_expr(r, s)
         if c:
             return c
 
-    # All children compare as equal, a and b must be equal. Except for...
-    # A few type, notably ExprList and ExprMapping, can have a different number of operands.
-    # Sort by the length if it's different. Doing this after sorting by children because
-    # these types are rare so we try to avoid the cost of this check for most nodes.
+    # All children compare as equal, a and b must be equal. Except
+    # for...  A few type, notably ExprList and ExprMapping, can have a
+    # different number of operands.  Sort by the length if it's
+    # different. Doing this after sorting by children because these
+    # types are rare so we try to avoid the cost of this check for
+    # most nodes.
     return _cmp3(len(aops), len(bops))
 
 
@@ -147,14 +149,16 @@ def cmp_expr2(a, b):
     if c:
         return c
 
-    # Now we know that the type is the same, check further based on type specific properties.
+    # Now we know that the type is the same, check further based on
+    # type specific properties.
     if a._ufl_is_terminal_:
         return _cmp_terminal(a, b)
     else:
         return _cmp_operator(a, b)
 
 
-# FIXME: Test and benchmark this! Could be faster since it avoids the recursion.
+# FIXME: Test and benchmark this! Could be faster since it avoids the
+# recursion.
 def cmp_expr(a, b):
 
     # Modelled after pre_traversal to avoid recursion:
@@ -169,17 +173,20 @@ def cmp_expr(a, b):
         elif x > y:
             return +1
 
-        # Now we know that the type is the same, check further based on type specific properties.
+        # Now we know that the type is the same, check further based
+        # on type specific properties.
         if a._ufl_is_terminal_:
             c = _cmp_terminal(a, b)
             if c:
                 return c
         else:
-            # If the hash is the same, assume equal for the purpose of sorting.
-            # This introduces a minor chance of nondeterministic behaviour, just as with MultiIndex.
-            # Although collected statistics for complicated forms suggest that the hash
-            # function is pretty good so there shouldn't be collisions.
-            #if hash(a) == hash(b): # FIXME: Test this for performance improvement.
+            # If the hash is the same, assume equal for the purpose of
+            # sorting.  This introduces a minor chance of
+            # nondeterministic behaviour, just as with MultiIndex.
+            # Although collected statistics for complicated forms
+            # suggest that the hash function is pretty good so there
+            # shouldn't be collisions.
+            # if hash(a) == hash(b): # FIXME: Test this for performance improvement.
             #    return 0
 
             # Delve into subtrees
@@ -194,10 +201,12 @@ def cmp_expr(a, b):
                 # Append subtree for further inspection
                 left.append((r, s))
 
-            # All children compare as equal, a and b must be equal. Except for...
-            # A few type, notably ExprList and ExprMapping, can have a different number of operands.
-            # Sort by the length if it's different. Doing this after sorting by children because
-            # these types are rare so we try to avoid the cost of this check for most nodes.
+            # All children compare as equal, a and b must be
+            # equal. Except for...  A few type, notably ExprList and
+            # ExprMapping, can have a different number of operands.
+            # Sort by the length if it's different. Doing this after
+            # sorting by children because these types are rare so we
+            # try to avoid the cost of this check for most nodes.
             x, y = len(aops), len(bops)
             if x < y:
                 return -1
@@ -206,11 +215,6 @@ def cmp_expr(a, b):
 
     # Equal if we get out of the above loop!
     return 0
-
-
-
-# Not in python 2.6...
-#from functools import cmp_to_key
 
 
 class ExprKey(object):

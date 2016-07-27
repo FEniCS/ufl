@@ -27,7 +27,7 @@ from ufl.assertions import ufl_assert
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.finiteelement import MixedElement, TensorElement
-from ufl.tensors import as_vector, as_matrix, as_tensor
+from ufl.tensors import as_vector, as_matrix
 
 
 def split(v):
@@ -41,9 +41,10 @@ def split(v):
     if isinstance(element, TensorElement):
         s = element.symmetry()
         if s:
-            # FIXME: How should this be defined? Should we return one subfunction
-            # for each value component or only for those not mapped to another?
-            # I think split should ignore the symmetry.
+            # FIXME: How should this be defined? Should we return one
+            # subfunction for each value component or only for those
+            # not mapped to another?  I think split should ignore the
+            # symmetry.
             error("Split not implemented for symmetric tensor elements.")
 
     # Compute value size
@@ -58,7 +59,8 @@ def split(v):
         rank = len(shape)
 
         if rank == 0:
-            # This subelement is a scalar, always maps to a single value
+            # This subelement is a scalar, always maps to a single
+            # value
             subv = v[offset]
             offset += 1
 
@@ -70,20 +72,23 @@ def split(v):
             offset += sub_size
 
         elif rank == 2:
-            # This subelement is a tensor, possibly with symmetries, slightly more complicated...
+            # This subelement is a tensor, possibly with symmetries,
+            # slightly more complicated...
 
             # Size of this subvalue
             sub_size = product(shape)
 
-            # If this subelement is a symmetric element, subtract symmetric components
+            # If this subelement is a symmetric element, subtract
+            # symmetric components
             s = None
             if isinstance(e, TensorElement):
                 s = e.symmetry()
             s = s or EmptyDict
-            # If we do this, we must fix the size computation in MixedElement.__init__ as well
-            #actual_value_size -= len(s)
-            #sub_size -= len(s)
-            #print s
+            # If we do this, we must fix the size computation in
+            # MixedElement.__init__ as well
+            # actual_value_size -= len(s)
+            # sub_size -= len(s)
+            # print s
             # Build list of lists of value components
             components = []
             for ii in range(shape[0]):
@@ -98,11 +103,11 @@ def split(v):
                         # Mapping into a flattened vector
                         k = offset + i*shape[1] + j
                         component = v[k]
-                        #print "k, offset, i, j, shape, component", k, offset, i, j, shape, component
                     elif len(v.ufl_shape) == 2:
-                        # Mapping into a concatenated tensor (is this a figment of my imagination?)
+                        # Mapping into a concatenated tensor (is this
+                        # a figment of my imagination?)
                         error("Not implemented.")
-                        row_offset, col_offset = 0, 0 # TODO
+                        row_offset, col_offset = 0, 0  # TODO
                         k = (row_offset + i, col_offset + j)
                         component = v[k]
                     row.append(component)
@@ -115,12 +120,13 @@ def split(v):
         else:
             # TODO: Handle rank > 2? Or is there such a thing?
             error("Don't know how to split functions with sub functions of rank %d (yet)." % rank)
-            #for indices in compute_indices(shape):
-            #    #k = offset + sum(i*s for (i,s) in izip(indices, shape[1:] + (1,)))
-            #    vs.append(v[indices])
+            # for indices in compute_indices(shape):
+            #     #k = offset + sum(i*s for (i,s) in izip(indices, shape[1:] + (1,)))
+            #     vs.append(v[indices])
 
         sub_functions.append(subv)
 
-    ufl_assert(actual_value_size == offset, "Logic breach in function splitting.")
+    ufl_assert(actual_value_size == offset,
+               "Logic breach in function splitting.")
 
     return tuple(sub_functions)

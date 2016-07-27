@@ -24,6 +24,7 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Martin Alnaes 2014
 # Modified by Lizao Li 2015
 
+
 class SobolevSpace(object):
     """Symbolic representation of a Sobolev space. This implements a
     subset of the methods of a Python set so that finite elements and
@@ -71,8 +72,8 @@ class SobolevSpace(object):
             raise TypeError("Unable to test for inclusion of a " +
                             "SobolevSpace in another SobolevSpace. " +
                             "Did you mean to use <= instead?")
-        return (other.sobolev_space() == self
-                or self in other.sobolev_space().parents)
+        return (other.sobolev_space() == self or
+                self in other.sobolev_space().parents)
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper
