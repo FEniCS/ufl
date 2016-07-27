@@ -23,13 +23,12 @@ converting UFL expressions to other representations."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Kristian B. Oelgaard, 2011
 
-from itertools import chain
-
 import ufl
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.utils.system import write_file, pdflatex, openpdf
 from ufl.permutation import compute_indices
+from ufl.algorithms.traversal import iter_expressions
 
 # All classes:
 from ufl.variable import Variable
@@ -40,11 +39,10 @@ from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2, Erf, BesselJ, BesselY, BesselI, BesselK
-from ufl.restriction import PositiveRestricted, NegativeRestricted, CellAvg, FacetAvg
+from ufl.restriction import PositiveRestricted, NegativeRestricted, CellAvg
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
-from ufl.integral import Measure
 from ufl.classes import terminal_classes
 
 # Other algorithms:
@@ -58,8 +56,6 @@ from ufl.formatting.latextools import align, document, verbatim
 
 
 # TODO: Maybe this can be cleaner written using the graph utilities
-
-
 
 def _extract_variables(a):
     """Build a list of all Variable objects in a,
@@ -77,12 +73,11 @@ def _extract_variables(a):
     return variables
 
 
-
 # --- Tools for LaTeX rendering of UFL expressions ---
 
 # TODO: Finish precedence mapping
 def build_precedence_map():
-    precedence_list = [] # TODO: Review this list very carefully!
+    precedence_list = []  # TODO: Review this list very carefully!
 
     precedence_list.append((Sum,))
     precedence_list.append((IndexSum,))
@@ -94,11 +89,14 @@ def build_precedence_map():
     precedence_list.append((Conditional,))
     precedence_list.append((LE, GT, GE, NE, EQ, LT))
 
-    precedence_list.append((Div, Grad, NablaGrad, NablaDiv, Curl, VariableDerivative,
+    precedence_list.append((Div, Grad, NablaGrad, NablaDiv, Curl,
+                            VariableDerivative,
                             Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
-    precedence_list.append((Abs, Cos, Cosh, Exp, Ln, Sin, Sinh, Sqrt, Tan, Tanh, Acos, Asin, Atan, Atan2, Erf, BesselJ, BesselY, BesselI, BesselK))
+    precedence_list.append((Abs, Cos, Cosh, Exp, Ln, Sin, Sinh, Sqrt, Tan,
+                            Tanh, Acos, Asin, Atan, Atan2, Erf, BesselJ,
+                            BesselY, BesselI, BesselK))
     precedence_list.append((Variable,))
     precedence_list.append(terminal_classes)
 
@@ -110,11 +108,13 @@ def build_precedence_map():
         k += 1
     return precedence_map
 
+
 # Utility for parentesizing string
-def par(s, condition=True): # TODO: Finish precedence handling by adding condition argument to calls to this function!
+def par(s, condition=True):  # TODO: Finish precedence handling by adding condition argument to calls to this function!
     if condition:
         return r"\left(%s\right)" % s
     return str(s)
+
 
 def format_index(ii):
     if isinstance(ii, FixedIndex):
@@ -125,15 +125,19 @@ def format_index(ii):
         error("Invalid index type %s." % type(ii))
     return s
 
+
 def format_multi_index(ii, formatstring="%s"):
     return "".join(formatstring % format_index(i) for i in ii)
 
+
 def bfname(i, p):
-    s = "" if p is None else (",%d"%(p,))
+    s = "" if p is None else (",%d" % (p,))
     return "{v_h^{%d%s}}" % (i, s)
+
 
 def cfname(i):
     return "{w_h^%d}" % i
+
 
 # TODO: Handle line wrapping
 # TODO: Handle ListTensors of rank > 1 correctly
@@ -163,13 +167,15 @@ class Expression2LatexHandler(Transformer):
         return r"{\mathbf n}"
 
     def argument(self, o):
-        # Using ^ for argument numbering and _ for indexing since indexing is more common than exponentiation
+        # Using ^ for argument numbering and _ for indexing since
+        # indexing is more common than exponentiation
         if self.argument_names is None:
             return bfname(o.number(), o.part())
         return self.argument_names[(o.number(), o.part())]
 
     def coefficient(self, o):
-        # Using ^ for coefficient numbering and _ for indexing since indexing is more common than exponentiation
+        # Using ^ for coefficient numbering and _ for indexing since
+        # indexing is more common than exponentiation
         if self.coefficient_names is None:
             return cfname(o.count())
         return self.coefficient_names[o.count()]
@@ -207,14 +213,14 @@ class Expression2LatexHandler(Transformer):
         return "{%s}_{%s}" % (par(a), b)
 
     def variable_derivative(self, o, f, v):
-        nom   = r"\partial%s" % par(f)
+        nom = r"\partial%s" % par(f)
         denom = r"\partial%s" % par(v)
         return r"\frac{%s}{%s}" % (nom, denom)
 
     def coefficient_derivative(self, o, f, w, v):
-        nom   = r"\partial%s" % par(f)
+        nom = r"\partial%s" % par(f)
         denom = r"\partial%s" % par(w)
-        return r"\frac{%s}{%s}[%s]" % (nom, denom, v) # TODO: Fix this syntax...
+        return r"\frac{%s}{%s}[%s]" % (nom, denom, v)  # TODO: Fix this syntax...
 
     def grad(self, o, f):
         return r"\mathbf{grad}{%s}" % par(f)
@@ -301,25 +307,25 @@ class Expression2LatexHandler(Transformer):
         return r"{%s}\times{%s}" % (par(a), par(b))
 
     def trace(self, o, A):
-        return "tr{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
+        return "tr{%s}" % par(A)  # TODO: Get built-in function syntax like \sin for this
 
     def determinant(self, o, A):
-        return "det{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
+        return "det{%s}" % par(A)  # TODO: Get built-in function syntax like \sin for this
 
     def inverse(self, o, A):
         return "{%s}^{-1}" % par(A)
 
     def deviatoric(self, o, A):
-        return "dev{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
+        return "dev{%s}" % par(A)  # TODO: Get built-in function syntax like \sin for this
 
     def cofactor(self, o, A):
-        return "cofac{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
+        return "cofac{%s}" % par(A)  # TODO: Get built-in function syntax like \sin for this
 
     def skew(self, o, A):
-        return "skew{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
+        return "skew{%s}" % par(A)  # TODO: Get built-in function syntax like \sin for this
 
     def sym(self, o, A):
-        return "sym{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
+        return "sym{%s}" % par(A)  # TODO: Get built-in function syntax like \sin for this
 
     def list_tensor(self, o):
         shape = o.ufl_shape
@@ -330,7 +336,7 @@ class Expression2LatexHandler(Transformer):
             rows = []
             for row in o.ufl_operands:
                 cols = (self.visit(op) for op in row.ufl_operands)
-                rows.append( " & \n ".join(cols) )
+                rows.append(" & \n ".join(cols))
             l = " \\\\ \n ".join(rows)
         else:
             error("TODO: LaTeX handler for list tensor of rank 3 or higher not implemented!")
@@ -392,9 +398,11 @@ class Expression2LatexHandler(Transformer):
     def expr(self, o):
         error("Missing handler for type %s" % str(type(o)))
 
+
 def expression2latex(expression, argument_names=None, coefficient_names=None):
     visitor = Expression2LatexHandler(argument_names, coefficient_names)
     return visitor.visit(expression)
+
 
 def element2latex(element):
     e = str(element)
@@ -403,18 +411,19 @@ def element2latex(element):
     e = "fixme"
     return r"{\mbox{%s}}" % e
 
-domain_strings = { "cell": r"\Omega",
-                   "exterior_facet": r"\Gamma^{ext}",
-                   "exterior_facet_bottom": r"\Gamma_{bottom}^{ext}",
-                   "exterior_facet_top": r"\Gamma_{top}^{ext}",
-                   "exterior_facet_vert": r"\Gamma_{vert}^{ext}",
-                   "interior_facet": r"\Gamma^{int}",
-                   "interior_facet_horiz": r"\Gamma_{horiz}^{int}",
-                   "interior_facet_vert": r"\Gamma_{vert}^{int}",
-                   "vertex": r"\Gamma^{vertex}",
-                   "custom": r"\Gamma^{custom}",
-                 }
+
+domain_strings = {"cell": r"\Omega",
+                  "exterior_facet": r"\Gamma^{ext}",
+                  "exterior_facet_bottom": r"\Gamma_{bottom}^{ext}",
+                  "exterior_facet_top": r"\Gamma_{top}^{ext}",
+                  "exterior_facet_vert": r"\Gamma_{vert}^{ext}",
+                  "interior_facet": r"\Gamma^{int}",
+                  "interior_facet_horiz": r"\Gamma_{horiz}^{int}",
+                  "interior_facet_vert": r"\Gamma_{vert}^{int}",
+                  "vertex": r"\Gamma^{vertex}",
+                  "custom": r"\Gamma^{custom}", }
 default_domain_string = "d(?)"
+
 
 def form2latex(form, formdata):
 
@@ -448,13 +457,14 @@ def form2latex(form, formdata):
     for f in formdata.original_arguments:
         i = f.number()
         p = f.part()
-        lines.append("%s = %s \\in V_h^{%d} " % (argument_names[(i, p)], bfname(i, p), i)) # FIXME: Handle part in V_h
+        lines.append("%s = %s \\in V_h^{%d} " % (argument_names[(i, p)], bfname(i, p), i))  # FIXME: Handle part in V_h
     for i, f in enumerate(formdata.original_coefficients):
         lines.append("%s = %s \\in W_h^{%d} " % (coefficient_names[i], cfname(i), i))
     if lines:
         sections.append(("Form arguments", align(lines)))
 
-    # TODO: Wrap ListTensors, ComponentTensor and Conditionals in expression as variables before transformation
+    # TODO: Wrap ListTensors, ComponentTensor and Conditionals in
+    # expression as variables before transformation
 
     # Define variables
     handled_variables = set()
@@ -466,7 +476,9 @@ def form2latex(form, formdata):
             l = v._label
             if l not in handled_variables:
                 handled_variables.add(l)
-                exprlatex = expression2latex(v._expression, formdata.argument_names, formdata.coefficient_names)
+                exprlatex = expression2latex(v._expression,
+                                             formdata.argument_names,
+                                             formdata.coefficient_names)
                 lines.append(("s_{%d}" % l._count, "= %s" % exprlatex))
     if lines:
         sections.append(("Variables", align(lines)))
@@ -482,13 +494,16 @@ def form2latex(form, formdata):
     a = signature
     p = ""
     for itg in integrals:
-        # TODO: Get list of expression strings instead of single expression!
-        integrand_string = expression2latex(itg.integrand(), formdata.argument_names, formdata.coefficient_names)
+        # TODO: Get list of expression strings instead of single
+        # expression!
+        integrand_string = expression2latex(itg.integrand(),
+                                            formdata.argument_names,
+                                            formdata.coefficient_names)
 
         integral_type = itg.integral_type()
         dstr = domain_strings[integral_type]
 
-        domain = itg.ufl_domain()
+        # domain = itg.ufl_domain()
         # TODO: Render domain description
 
         subdomain_id = itg.subdomain_id()
@@ -512,6 +527,7 @@ def form2latex(form, formdata):
 
     return sections
 
+
 def ufl2latex(expression):
     "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
@@ -521,13 +537,14 @@ def ufl2latex(expression):
     else:
         return expression2latex(expression)
 
+
 # --- LaTeX rendering of composite UFL objects ---
 
 def deps2latex(deps):
     return "Dependencies: ${ %s }$." % ", ".join(sorted(deps))
 
+
 def dependency_sorting(deplist, rank):
-    #print "deplist = ", deplist
 
     def split(deps, state):
         left = []
@@ -544,7 +561,6 @@ def dependency_sorting(deplist, rank):
     left = deplist
 
     # --- Initialization time
-    #state.remove("x")
     precompute, left = split(left, state)
     deplistlist.append(precompute)
 
@@ -554,7 +570,7 @@ def dependency_sorting(deplist, rank):
 
     # Permutations of 0/1 dependence of arguments
     indices = compute_indices((2,)*rank)
-    for bfs in indices[1:]: # skip (0,...,0), already handled that
+    for bfs in indices[1:]:  # skip (0,...,0), already handled that
         for i, bf in reversed(enumerate(bfs)):
             n = "v%d" % i
             if bf:
@@ -578,7 +594,7 @@ def dependency_sorting(deplist, rank):
     deplistlist.append(runtime_quad)
 
     indices = compute_indices((2,)*rank)
-    for bfs in indices[1:]: # skip (0,...,0), already handled that
+    for bfs in indices[1:]:  # skip (0,...,0), already handled that
         for i, bf in reversed(enumerate(bfs)):
             n = "v%d" % i
             if bf:
@@ -591,25 +607,18 @@ def dependency_sorting(deplist, rank):
 
     ufl_assert(not left, "Shouldn't have anything left!")
 
-    #print
-    #print "Created deplistlist:"
-    #for deps in deplistlist:
-    #    print
-    #    print "--- New stage:"
-    #    print "\n".join(map(str, deps))
-    #print
-
     return deplistlist
+
 
 def code2latex(G, partitions, formdata):
     "TODO: Document me"
     bfn = formdata.argument_names
-    cfn = formdata.coefficient_names
 
     V, E = G
     Vout = extract_outgoing_vertex_connections(G)
 
-    # Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
+    # Sort dependency sets in a sensible way (preclude to a good
+    # quadrature code generator)
     deplistlist = dependency_sorting(list(partitions.keys()), len(bfn))
 
     def format_v(i):
@@ -617,7 +626,6 @@ def code2latex(G, partitions, formdata):
 
     pieces = []
     for deplist in deplistlist:
-        #pieces.append("\n\n(Debugging: getting next list of dependencies)")
         for dep in deplist:
             lines = []
             for iv in partitions[dep]:
@@ -627,7 +635,7 @@ def code2latex(G, partitions, formdata):
                 args = ", ".join(format_v(i) for i in vout)
                 if args:
                     el = r"{\mbox{%s}}(%s)" % (v._ufl_class_.__name__, args)
-                else: # terminal
+                else:  # terminal
                     el = r"{\mbox{%s}}" % (repr(v),)
                 lines.append((vl, "= " + el))
             pieces.extend(("\n", deps2latex(dep), align(lines)))
@@ -637,17 +645,21 @@ def code2latex(G, partitions, formdata):
     pieces.append("\n")
     pieces.append("Variable representing integrand: %s" % vl)
 
-    # Could also return list of (title, body) parts for subsections if wanted
+    # Could also return list of (title, body) parts for subsections if
+    # wanted
     body = "\n".join(pieces)
     return body
+
 
 def integrand2code(integrand, formdata):
     G = build_graph(integrand)
     partitions, keys = partition(G)
     return G, partitions
 
-def formdata2latex(formdata): # TODO: Format better
+
+def formdata2latex(formdata):  # TODO: Format better
     return verbatim(str(formdata))
+
 
 def form2code2latex(formdata):
     # Render introductory sections
@@ -657,7 +669,8 @@ def form2code2latex(formdata):
 
     # Render each integral as a separate section
     for itg in formdata.form.integrals():
-        title = "%s integral over domain %d" % (itg.integral_type(), itg.subdomain_id())
+        title = "%s integral over domain %d" % (itg.integral_type(),
+                                                itg.subdomain_id())
 
         G, partitions = integrand2code(itg.integrand(), formdata)
 
@@ -666,6 +679,7 @@ def form2code2latex(formdata):
         sections.append((title, body))
 
     return sections
+
 
 # --- Creating complete documents ---
 
@@ -695,6 +709,7 @@ def forms2latexdocument(forms, uflfilename, compile=False):
         title = "Forms " + suffix
     return document(title, sections)
 
+
 # --- File operations ---
 
 def ufl2tex(uflfilename, latexfilename, compile=False):
@@ -703,16 +718,17 @@ def ufl2tex(uflfilename, latexfilename, compile=False):
     latex = forms2latexdocument(forms, uflfilename, compile)
     write_file(latexfilename, latex)
 
+
 def tex2pdf(latexfilename, pdffilename):
     "Compile a .pdf file from a .tex file."
     pdflatex(latexfilename, pdffilename)
     openpdf(pdffilename)
 
+
 def ufl2pdf(uflfilename, latexfilename, pdffilename, compile=False):
     "Compile a .pdf file from a .ufl file."
     ufl2tex(uflfilename, latexfilename, compile)
     tex2pdf(latexfilename, pdffilename)
-
 
 
 """# Code from uflacs:

@@ -21,20 +21,18 @@ of UFL objects, mostly intended for debugging purposes."""
 #
 # Modified by Anders Logg 2009, 2014
 
-from itertools import chain
-
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
 from ufl.form import Form
-from ufl.integral import Integral, Measure
+from ufl.integral import Integral
 
-#--- Utilities for constructing informative strings from UFL objects ---
+
+# --- Utilities for constructing informative strings from UFL objects
 
 def integral_info(integral):
     ufl_assert(isinstance(integral, Integral), "Expecting an Integral.")
-    s  = "  Integral:\n"
+    s = "  Integral:\n"
     s += "    Type:\n"
     s += "      %s\n" % integral.integral_type()
     s += "    Domain:\n"
@@ -51,13 +49,14 @@ def integral_info(integral):
     s += "      %s" % integral.integrand()
     return s
 
+
 def form_info(form):
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
 
     bf = form.arguments()
     cf = form.coefficients()
 
-    s  = "Form info:\n"
+    s = "Form info:\n"
     s += "  rank:                          %d\n" % len(bf)
     s += "  num_coefficients:              %d\n" % len(cf)
     s += "\n"
@@ -83,8 +82,10 @@ def form_info(form):
 
     return s
 
+
 def _indent_string(n):
     return "    "*n
+
 
 def _tree_format_expression(expression, indentation, parentheses):
     ind = _indent_string(indentation)
@@ -99,6 +100,7 @@ def _tree_format_expression(expression, indentation, parentheses):
         if parentheses and len(sops) > 1:
             s += "\n" + ind + ")"
     return s
+
 
 def tree_format(expression, indentation=0, parentheses=True):
     s = ""

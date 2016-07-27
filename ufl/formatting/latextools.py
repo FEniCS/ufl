@@ -66,8 +66,10 @@ verbatimtemplate = """\
 \\end{verbatim}
 """
 
+
 def verbatim(string):
     return verbatimtemplate % string
+
 
 def align(lines):
     # Calculate column lengths
@@ -79,14 +81,17 @@ def align(lines):
         for l in lines:
             for i, s in enumerate(l):
                 collengths[i] = max(collengths[i], len(s))
+
         def coljoin(cols):
             return " & ".join(c.ljust(collengths[i]) for (i, c) in enumerate(cols))
         body = " \\\\\n".join(coljoin(l) for l in lines)
     return aligntemplate % body
 
+
 def itemize(items):
     body = "\n".join(items)
     return itemizetemplate % body
+
 
 def subsubsection(s):
     if isinstance(s, str):
@@ -97,6 +102,7 @@ def subsubsection(s):
             body = itemize(list(map(str, body)))
         return subsubsectiontemplate % (title, body)
 
+
 def subsection(s):
     if isinstance(s, str):
         return s
@@ -105,6 +111,7 @@ def subsection(s):
         if isinstance(body, list):
             body = "\n".join(subsubsection(ss) for ss in body)
         return subsectiontemplate % (title, body)
+
 
 def section(s):
     if isinstance(s, str):
@@ -115,9 +122,11 @@ def section(s):
             body = "\n".join(subsection(ss) for ss in body)
         return sectiontemplate % (title, body)
 
+
 def document(title, sections):
     body = "\n".join(section(s) for s in sections)
     return documenttemplate % (title, body)
+
 
 def testdocument():
     title = "Test title 1"
@@ -135,8 +144,7 @@ def testdocument():
     sections = [("sec1", section1), ("sec2", section2), ("sec3", section3)]
     print(document(title, sections))
 
-    matrix = [ ("a(...) ", "= \\int_\\Omega foo dx0"),
-               ("",        "+ \\int_\\Omega foo dx1"),
-               ("",        "+ \\int_\\Omega foo dx1"),
-            ]
+    matrix = [("a(...) ", "= \\int_\\Omega foo dx0"),
+              ("", "+ \\int_\\Omega foo dx1"),
+              ("", "+ \\int_\\Omega foo dx1"), ]
     print(align(matrix))
