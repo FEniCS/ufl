@@ -21,7 +21,6 @@
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
 
-import hashlib
 from itertools import chain
 from collections import defaultdict
 from ufl.log import error, deprecate
@@ -32,7 +31,6 @@ from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
 from ufl.core.expr import Expr
 from ufl.constantvalue import Zero
-from ufl.protocols import id_or_none
 from ufl.coefficient import Coefficient
 
 # Export list for ufl.classes
@@ -40,12 +38,14 @@ __all_classes__ = ["Form"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
+
 def _sorted_integrals(integrals):
     """Sort integrals by domain id, integral type, subdomain id
     for a more stable signature computation."""
 
-    # Group integrals in multilevel dict by keys [domain][integral_type][subdomain_id]
-    integrals_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(list)))
+    # Group integrals in multilevel dict by keys
+    # [domain][integral_type][subdomain_id]
+    integrals_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
     for integral in integrals:
         d = integral.ufl_domain()
         if d is None:
@@ -57,18 +57,23 @@ def _sorted_integrals(integrals):
     all_integrals = []
 
     # Order integrals canonically to increase signature stability
-    for d in sorted(integrals_dict): # Assuming Domain is sortable
-        for it in sorted(integrals_dict[d]): # str is sortable
-            for si in sorted(integrals_dict[d][it], key=lambda x: (type(x).__name__, x)): # int/str are sortable
+    for d in sorted(integrals_dict):  # Assuming Domain is sortable
+        for it in sorted(integrals_dict[d]):  # str is sortable
+            for si in sorted(integrals_dict[d][it],
+                             key=lambda x: (type(x).__name__, x)):  # int/str are sortable
                 unsorted_integrals = integrals_dict[d][it][si]
-                # TODO: At this point we could order integrals by metadata and integrand,
-                #       or even add the integrands with the same metadata. This is done
-                #       in accumulate_integrands_with_same_metadata in algorithms/domain_analysis.py
-                #       and would further increase the signature stability.
+                # TODO: At this point we could order integrals by
+                #       metadata and integrand, or even add the
+                #       integrands with the same metadata. This is
+                #       done in
+                #       accumulate_integrands_with_same_metadata in
+                #       algorithms/domain_analysis.py and would
+                #       further increase the signature stability.
                 all_integrals.extend(unsorted_integrals)
-                #integrals_dict[d][it][si] = unsorted_integrals
+                # integrals_dict[d][it][si] = unsorted_integrals
 
-    return tuple(all_integrals) #, integrals_dict
+    return tuple(all_integrals)  # integrals_dict
+
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
@@ -88,14 +93,16 @@ class Form(object):
         #     data in to be carried with the form
         #     Never use this internally in ufl!
         "_cache",
-        )
+    )
 
     def __init__(self, integrals):
-        # Basic input checking (further compatibilty analysis happens later)
+        # Basic input checking (further compatibilty analysis happens
+        # later)
         ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
                    "Expecting list of integrals.")
 
-        # Store integrals sorted canonically to increase signature stability
+        # Store integrals sorted canonically to increase signature
+        # stability
         self._integrals = _sorted_integrals(integrals)
 
         # Internal variables for caching domain data
@@ -110,7 +117,8 @@ class Form(object):
         self._coefficients = None
         self._coefficient_numbering = None
 
-        # Internal variables for caching of hash and signature after first request
+        # Internal variables for caching of hash and signature after
+        # first request
         self._hash = None
         self._signature = None
 
@@ -127,10 +135,6 @@ class Form(object):
         "Return a sequence of all integrals with a particular domain type."
         return tuple(integral for integral in self.integrals()
                      if integral.integral_type() == integral_type)
-
-    #def integrals_dict(self):
-    #    "Returns a mapping on the form { domain: { integral_type: { subdomain_id: integral_list } } }."
-    #    return self._integrals_dict
 
     def empty(self):
         "Returns whether the form has no integrals."
@@ -176,7 +180,8 @@ class Form(object):
         """
         # Collect all domains
         domains = self.ufl_domains()
-        # Check that all are equal TODO: don't return more than one if all are equal?
+        # Check that all are equal TODO: don't return more than one if
+        # all are equal?
         ufl_assert(all(domain == domains[0] for domain in domains),
                    "Calling Form.ufl_domain() is only valid if all integrals share domain.")
         # Return the one and only domain
@@ -186,7 +191,7 @@ class Form(object):
         "Return the geometric dimension shared by all domains and functions in this form."
         gdims = tuple(set(domain.geometric_dimension() for domain in self.ufl_domains()))
         ufl_assert(len(gdims) == 1,
-                  "Expecting all domains and functions in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
+                   "Expecting all domains and functions in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
         return gdims[0]
 
     def domain_numbering(self):
@@ -311,7 +316,7 @@ class Form(object):
 
     def __mul__(self, coefficient):
         "UFL form operator: Take the action of this form on the given coefficient."
-        if isinstance(coefficient, Expr): #Coefficient): # TODO: Check whatever makes sense
+        if isinstance(coefficient, Expr):  # Coefficient): # TODO: Check whatever makes sense
             from ufl.formoperators import action
             return action(self, coefficient)
         return NotImplemented
@@ -320,26 +325,27 @@ class Form(object):
 
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
-        # TODO: Add warning here to check if anyone actually calls it in libraries
+        # TODO: Add warning here to check if anyone actually calls it
+        # in libraries
         s = "\n  +  ".join(str(itg) for itg in self.integrals())
         return s or "<empty Form>"
 
     def __repr__(self):
         "Compute repr string of form. This can be huge for complicated forms."
-        # TODO: Add warning here to check if anyone actually calls it in libraries
-        # Not caching this because it can be huge
+        # TODO: Add warning here to check if anyone actually calls it
+        # in libraries Not caching this because it can be huge
         r = "Form([%s])" % ", ".join(repr(itg) for itg in self.integrals())
         return r
 
-    def x_repr_latex_(self): # TODO: This works, but enable when form latex rendering is fixed
+    def x_repr_latex_(self):  # TODO: This works, but enable when form latex rendering is fixed
         from ufl.algorithms import ufl2latex
         return "$$%s$$" % ufl2latex(self)
 
-    def x_repr_png_(self): # TODO: This works, but enable when form latex rendering is fixed
+    def x_repr_png_(self):  # TODO: This works, but enable when form latex rendering is fixed
         from IPython.lib.latextools import latex_to_png
         return latex_to_png(self._repr_latex_())
 
-    # --- Analysis functions, precomputation and caching of various quantities ---
+    # --- Analysis functions, precomputation and caching of various quantities
 
     def _analyze_domains(self):
         from ufl.domain import join_domains, sort_domains
@@ -350,7 +356,8 @@ class Form(object):
         # Make canonically ordered list of the domains
         self._integration_domains = sort_domains(integration_domains)
 
-        # TODO: Not including domains from coefficients and arguments here, may need that later
+        # TODO: Not including domains from coefficients and arguments
+        # here, may need that later
         self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
 
     def _analyze_subdomain_data(self):
@@ -373,7 +380,8 @@ class Form(object):
             if data is None:
                 subdomain_data[domain][it] = sd
             elif sd is not None:
-                ufl_assert(data.ufl_id() == sd.ufl_id(), "Integrals in form have different subdomain_data objects.")
+                ufl_assert(data.ufl_id() == sd.ufl_id(),
+                           "Integrals in form have different subdomain_data objects.")
         self._subdomain_data = subdomain_data
 
     def _analyze_form_arguments(self):
@@ -382,9 +390,12 @@ class Form(object):
         arguments, coefficients = extract_arguments_and_coefficients(self)
 
         # Define canonical numbering of arguments and coefficients
-        self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
-        self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
-        self._coefficient_numbering = dict((c, i) for i, c in enumerate(self._coefficients))
+        self._arguments = tuple(sorted(set(arguments),
+                                       key=lambda x: x.number()))
+        self._coefficients = tuple(sorted(set(coefficients),
+                                          key=lambda x: x.count()))
+        self._coefficient_numbering = dict((c, i) for i,
+                                           c in enumerate(self._coefficients))
 
     def _compute_renumbering(self):
         # Include integration domains and coefficients in renumbering
@@ -394,7 +405,8 @@ class Form(object):
         renumbering.update(dn)
         renumbering.update(cn)
 
-        # Add domains of coefficients, these may include domains not among integration domains
+        # Add domains of coefficients, these may include domains not
+        # among integration domains
         k = len(dn)
         for c in cn:
             d = c.ufl_domain()
@@ -406,7 +418,8 @@ class Form(object):
 
     def _compute_signature(self):
         from ufl.algorithms.signature import compute_form_signature
-        self._signature = compute_form_signature(self, self._compute_renumbering())
+        self._signature = compute_form_signature(self,
+                                                 self._compute_renumbering())
 
 
 def as_form(form):
@@ -416,7 +429,7 @@ def as_form(form):
     return form
 
 
-def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
+def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     """Given a form and a domain, assign a common integration domain to all integrals.
 
     Does not modify the input form (``Form`` should always be immutable).
@@ -429,8 +442,8 @@ def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
         tdim = common_domain.topological_dimension()
         ufl_assert(all((gdim == domain.geometric_dimension() and
                         tdim == domain.topological_dimension())
-                        for domain in domains),
-            "Common domain does not share dimensions with form domains.")
+                       for domain in domains),
+                   "Common domain does not share dimensions with form domains.")
 
     reconstruct = False
     integrals = []

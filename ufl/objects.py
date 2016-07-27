@@ -24,29 +24,26 @@
 from ufl.core.multiindex import indices
 from ufl.cell import Cell
 from ufl.measure import Measure
+from ufl.measure import integral_type_to_measure_name
 
 # Default indices
 i, j, k, l = indices(4)
 p, q, r, s = indices(4)
 
-# Default measures for integration
-from ufl.measure import integral_type_to_measure_name
 for integral_type, measure_name in integral_type_to_measure_name.items():
     globals()[measure_name] = Measure(integral_type)
-ds_tb = ds_b + ds_t # TODO: Firedrake hack, remove later
+ds_tb = ds_b + ds_t  # noqa # TODO: Firedrake hack, remove later
 
 # Default measure dX including both uncut and cut cells
-dX = dx + dC
+dX = dx + dC  # noqa
 
 # Create objects for builtin known cell types
-vertex        = Cell("vertex", 0)
-interval      = Cell("interval", 1)
-triangle      = Cell("triangle", 2)
-tetrahedron   = Cell("tetrahedron", 3)
+vertex = Cell("vertex", 0)
+interval = Cell("interval", 1)
+triangle = Cell("triangle", 2)
+tetrahedron = Cell("tetrahedron", 3)
 quadrilateral = Cell("quadrilateral", 2)
-hexahedron    = Cell("hexahedron", 3)
+hexahedron = Cell("hexahedron", 3)
 
 # Facet is just a dummy declaration for RestrictedElement
 facet = "facet"
-
-#__all__ = [] # FIXME:

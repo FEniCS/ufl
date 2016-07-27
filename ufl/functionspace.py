@@ -20,15 +20,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-#from ufl.core.terminal import Terminal
-#from ufl.corealg.traversal import traverse_unique_terminals
-#from ufl.utils.formatting import istr
-#from ufl.utils.dicts import EmptyDict
-#from ufl.log import warning, error, deprecate
-#from ufl.assertions import ufl_assert
-#from ufl.protocols import id_or_none
-#from ufl.cell import as_cell, AbstractCell, Cell, ProductCell
-
+from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
 from ufl.finiteelement import MixedElement
@@ -39,11 +31,13 @@ __all_classes__ = [
     "FunctionSpace",
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
-    ]
+]
+
 
 class AbstractFunctionSpace(object):
     def ufl_sub_spaces(self):
         raise NotImplementedError("Missing implementation of IFunctionSpace.ufl_sub_spaces in %s." % self.__class__.__name__)
+
 
 @attach_operators_from_hash_data
 class FunctionSpace(AbstractFunctionSpace):
@@ -82,6 +76,7 @@ class FunctionSpace(AbstractFunctionSpace):
 
     def __repr__(self):
         return "FunctionSpace(%r, %r)" % (self._ufl_domain, self._ufl_element)
+
 
 @attach_operators_from_hash_data
 class MixedFunctionSpace(AbstractFunctionSpace):
@@ -123,6 +118,7 @@ class MixedFunctionSpace(AbstractFunctionSpace):
 
     def __repr__(self):
         return "MixedFunctionSpace(*%r)" % (self._ufl_function_spaces,)
+
 
 @attach_operators_from_hash_data
 class TensorProductFunctionSpace(AbstractFunctionSpace):

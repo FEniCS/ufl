@@ -43,19 +43,17 @@ from ufl.tensors import as_tensor, ListTensor
 from ufl.sorting import sorted_expr
 from ufl.functionspace import FunctionSpace
 
-# An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import compute_form_adjoint, \
-                           compute_form_action, \
-                           compute_energy_norm, \
-                           compute_form_lhs, \
-                           compute_form_rhs, \
-                           compute_form_functional, \
-                           expand_derivatives, \
-                           extract_arguments, \
-                           FormSplitter
+# An exception to the rule that ufl.* does not depend on
+# ufl.algorithms.* ...
+from ufl.algorithms import (compute_form_adjoint, compute_form_action,
+                            compute_energy_norm, compute_form_lhs,
+                            compute_form_rhs, compute_form_functional,
+                            expand_derivatives, extract_arguments,
+                            FormSplitter)
 
 # Part of the external interface
-from ufl.algorithms import replace
+from ufl.algorithms import replace  # noqa
+
 
 def block_split(form, ix, iy=0):
     """UFL form operator:
@@ -69,6 +67,7 @@ def block_split(form, ix, iy=0):
     """
     fs = FormSplitter()
     return fs.split(form, ix, iy)
+
 
 def lhs(form):
     """UFL form operator:
@@ -84,6 +83,7 @@ def lhs(form):
     form = expand_derivatives(form)
     return compute_form_lhs(form)
 
+
 def rhs(form):
     """UFL form operator:
     Given a combined bilinear and linear form,
@@ -98,16 +98,19 @@ def rhs(form):
     form = expand_derivatives(form)
     return compute_form_rhs(form)
 
+
 def system(form):
     """UFL form operator: Split a form into the left hand side and right hand
     side, see ``lhs`` and ``rhs``."""
     return lhs(form), rhs(form)
 
-def functional(form): # TODO: Does this make sense for anything other than testing?
+
+def functional(form):  # TODO: Does this make sense for anything other than testing?
     "UFL form operator: Extract the functional part of form."
     form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_functional(form)
+
 
 def action(form, coefficient=None):
     """UFL form operator:
@@ -119,6 +122,7 @@ def action(form, coefficient=None):
     form = expand_derivatives(form)
     return compute_form_action(form, coefficient)
 
+
 def energy_norm(form, coefficient=None):
     """UFL form operator:
     Given a bilinear form *a* and a coefficient *f*,
@@ -126,6 +130,7 @@ def energy_norm(form, coefficient=None):
     form = as_form(form)
     form = expand_derivatives(form)
     return compute_energy_norm(form, coefficient)
+
 
 def adjoint(form, reordered_arguments=None):
     """UFL form operator:
@@ -141,12 +146,14 @@ def adjoint(form, reordered_arguments=None):
     form = expand_derivatives(form)
     return compute_form_adjoint(form, reordered_arguments)
 
+
 def zero_lists(shape):
     ufl_assert(len(shape) > 0, "Invalid shape.")
     if len(shape) == 1:
         return [0]*shape[0]
     else:
         return [zero_lists(shape[1:]) for i in range(shape[0])]
+
 
 def set_list_item(li, i, v):
     # Get to the innermost list
@@ -155,6 +162,7 @@ def set_list_item(li, i, v):
             li = li[j]
     # Set item in innermost list
     li[i[-1]] = v
+
 
 def _handle_derivative_arguments(form, coefficient, argument):
     # Wrap single coefficient in tuple for uniform treatment below
@@ -168,19 +176,23 @@ def _handle_derivative_arguments(form, coefficient, argument):
         if not all(isinstance(c, Coefficient) for c in coefficients):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
-        # Get existing arguments from form and position the new one with the next argument number
+        # Get existing arguments from form and position the new one
+        # with the next argument number
         if isinstance(form, Form):
             form_arguments = form.arguments()
         else:
-            # To handle derivative(expression), which is at least used in tests. Remove?
+            # To handle derivative(expression), which is at least used
+            # in tests. Remove?
             form_arguments = extract_arguments(form)
 
         numbers = sorted(set(arg.number() for arg in form_arguments))
         number = max(numbers + [-1]) + 1
 
-        # Don't know what to do with parts, let the user sort it out in that case
+        # Don't know what to do with parts, let the user sort it out
+        # in that case
         parts = set(arg.part() for arg in form_arguments)
-        ufl_assert(len(parts - {None}) == 0, "Not expecting parts here, provide your own arguments.")
+        ufl_assert(len(parts - {None}) == 0,
+                   "Not expecting parts here, provide your own arguments.")
         part = None
 
         # Create argument and split it if in a mixed space
@@ -212,13 +224,16 @@ def _handle_derivative_arguments(form, coefficient, argument):
     # Build mapping from coefficient to argument
     m = {}
     for (c, a) in zip(coefficients, arguments):
-        ufl_assert(c.ufl_shape == a.ufl_shape, "Coefficient and argument shapes do not match!")
+        ufl_assert(c.ufl_shape == a.ufl_shape,
+                   "Coefficient and argument shapes do not match!")
         if isinstance(c, Coefficient):
             m[c] = a
         else:
-            ufl_assert(isinstance(c, Indexed), "Invalid coefficient type for %s" % repr(c))
+            ufl_assert(isinstance(c, Indexed),
+                       "Invalid coefficient type for %s" % repr(c))
             f, i = c.ufl_operands
-            ufl_assert(isinstance(f, Coefficient), "Expecting an indexed coefficient, not %s" % repr(f))
+            ufl_assert(isinstance(f, Coefficient),
+                       "Expecting an indexed coefficient, not %s" % repr(f))
             ufl_assert(isinstance(i, MultiIndex) and all(isinstance(j, FixedIndex) for j in i),
                        "Expecting one or more fixed indices, not %s" % repr(i))
             i = tuple(int(j) for j in i)
@@ -239,6 +254,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     coefficients = ExprList(*[item[0] for item in items])
     arguments = ExprList(*[item[1] for item in items])
     return coefficients, arguments
+
 
 def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     """UFL form operator:
@@ -264,7 +280,8 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     ``Coefficient`` instances to their derivatives w.r.t. *coefficient*.
     """
 
-    coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
+    coefficients, arguments = _handle_derivative_arguments(form, coefficient,
+                                                           argument)
 
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
@@ -289,6 +306,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                                      coefficient_derivatives)
 
     error("Invalid argument type %s." % str(type(form)))
+
 
 def sensitivity_rhs(a, u, L, v):
     """UFL form operator:
