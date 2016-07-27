@@ -21,6 +21,7 @@
 # Export list for ufl.classes
 __all_classes__ = ["Equation"]
 
+
 class Equation(object):
     """This class is used to represent equations expressed by the "=="
     operator. Examples include a == L and F == 0 where a, L and F are
@@ -39,8 +40,9 @@ class Equation(object):
         """
         # NB!: pep8 will say you should use isinstance here, but we do
         #      actually want to compare the exact types in this case.
-        # Not equal if types are not identical (i.e. not accepting subclasses)
-        if type(self.lhs) != type(self.rhs):
+        # Not equal if types are not identical (i.e. not accepting
+        # subclasses)
+        if type(self.lhs) != type(self.rhs):  # noqa: E721
             return False
         # Try to delegate to equals function
         if hasattr(self.lhs, "equals"):

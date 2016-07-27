@@ -5,15 +5,13 @@ from six.moves import zip
 
 from ufl.core.expr import Expr
 from ufl.log import error
-from ufl.core.operator import Operator
-from ufl.core.terminal import Terminal
-from ufl.corealg.traversal import pre_traversal
-
 
 hash_total = defaultdict(int)
 hash_collisions = defaultdict(int)
 hash_equals = defaultdict(int)
 hash_notequals = defaultdict(int)
+
+
 def print_collisions():
 
     keys = sorted(hash_total.keys(), key=lambda x: (hash_collisions[x], x))
@@ -32,9 +30,9 @@ def print_collisions():
         if sn != on and ne == tot:
             continue
         print(fmt % (k, eq, int(100.0*eq/tot),
-                            ne, int(100.0*ne/tot),
-                            co, int(100.0*co/tot),
-                            tot))
+                     ne, int(100.0*ne/tot),
+                     co, int(100.0*co/tot),
+                     tot))
 
 
 def measure_collisions(equals_func):
@@ -51,7 +49,8 @@ def measure_collisions(equals_func):
         oh = hash(other)
         key = (sn, on)
 
-        # If hashes are the same but objects are not equal, we have a collision
+        # If hashes are the same but objects are not equal, we have a
+        # collision
         hash_total[key] += 1
         if sh == oh and not equal:
             hash_collisions[key] += 1
@@ -66,8 +65,8 @@ def measure_collisions(equals_func):
     return equals_func_with_collision_measuring
 
 
-#@measure_collisions
-def recursive_expr_equals(self, other): # Much faster than the more complex algorithms above!
+# @measure_collisions
+def recursive_expr_equals(self, other):  # Much faster than the more complex algorithms above!
     """Checks whether the two expressions are represented the
     exact same way. This does not check if the expressions are
     mathematically equal or equivalent! Used by sets and dicts."""
@@ -90,25 +89,29 @@ def recursive_expr_equals(self, other): # Much faster than the more complex algo
 
     # Terminals
     if self._ufl_is_terminal_:
-        # Compare terminals with custom == to capture subclass overloading of __eq__
+        # Compare terminals with custom == to capture subclass
+        # overloading of __eq__
         return self == other
 
-    # --- Operators, most likely equal, below here is the costly part if it recurses through a large tree! ---
+    # --- Operators, most likely equal, below here is the costly part
+    # --- if it recurses through a large tree! ---
 
-    # Recurse manually to call expr_equals directly without the class EQ overhead!
-    equal = all(recursive_expr_equals(a, b) for (a, b) in zip(self.ufl_operands, other.ufl_operands))
+    # Recurse manually to call expr_equals directly without the class
+    # EQ overhead!
+    equal = all(recursive_expr_equals(a, b) for (a, b) in zip(self.ufl_operands,
+                                                              other.ufl_operands))
 
     return equal
 
 
-#@measure_collisions
+# @measure_collisions
 def nonrecursive_expr_equals(self, other):
     """Checks whether the two expressions are represented the
     exact same way. This does not check if the expressions are
     mathematically equal or equivalent! Used by sets and dicts."""
 
-    # Fast cutoffs for common cases, type difference or
-    # hash difference will cutoff more or less all nonequal types
+    # Fast cutoffs for common cases, type difference or hash
+    # difference will cutoff more or less all nonequal types
     if type(self) != type(other) or hash(self) != hash(other):
         return False
 
@@ -145,5 +148,6 @@ def nonrecursive_expr_equals(self, other):
     # Equal if we get out of the above loop!
     return True
 
-#expr_equals = recursive_expr_equals
+
+# expr_equals = recursive_expr_equals
 expr_equals = nonrecursive_expr_equals
