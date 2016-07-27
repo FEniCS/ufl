@@ -60,10 +60,10 @@ class Transformer(object):
                 for c in classobject.mro():
                     # Register classobject with handler for the first
                     # encountered superclass
-                    name = c._ufl_handler_name_
-                    function = getattr(self, name, None)
+                    handler_name = c._ufl_handler_name_
+                    function = getattr(self, handler_name, None)
                     if function:
-                        cache_data[classobject._ufl_typecode_] = name, is_post_handler(function)
+                        cache_data[classobject._ufl_typecode_] = handler_name, is_post_handler(function)
                         break
             Transformer._handlers_cache[type(self)] = cache_data
 
