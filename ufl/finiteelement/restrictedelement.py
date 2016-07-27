@@ -20,6 +20,7 @@
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.assertions import ufl_assert
 from ufl.cell import Cell, as_cell
@@ -56,6 +57,7 @@ class RestrictedElement(FiniteElementBase):
         return self._element
 
     def element(self):
+        "Deprecated."
         deprecate("RestrictedElement.element() is deprecated, please use .sub_element() instead.")
         return self.sub_element()
 
@@ -75,17 +77,19 @@ class RestrictedElement(FiniteElementBase):
         return "<%s>|_{%s}" % (self._element.shortstr(), self._restriction_domain)
 
     def symmetry(self):
-        """Return the symmetry dict, which is a mapping c0 -> c1
-        meaning that component c0 is represented by component c1."""
+        """Return the symmetry dict, which is a mapping :math:`c_0 \\to c_1`
+        meaning that component :math:`c_0` is represented by component
+        :math:`c_1`.
+        A component is a tuple of one or more ints."""
         return self._element.symmetry()
 
     def num_sub_elements(self):
-        "Return number of sub elements"
+        "Return number of sub elements."
         return self._element.num_sub_elements()
         #return 1
 
     def sub_elements(self):
-        "Return list of sub elements"
+        "Return list of sub elements."
         return self._element.sub_elements()
         #return [self._element]
 

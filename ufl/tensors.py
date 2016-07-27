@@ -17,6 +17,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016.
 
 from six.moves import zip
 from six.moves import xrange as range
@@ -220,15 +222,15 @@ def as_tensor(expressions, indices=None):
 
     This works in two different ways, by using indices or lists.
 
-    1) Returns A such that A[indices] = expressions.
-    If indices are provided, expressions must be a scalar
+    1) Returns :math:`A` such that :math:`A` [*indices*] = *expressions*.
+    If *indices* are provided, *expressions* must be a scalar
     valued expression with all the provided indices among
     its free indices. This operator will then map each of these
     indices to a tensor axis, thereby making a tensor valued
     expression from a scalar valued expression with free indices.
 
-    2) Returns A such that A[k,...] = expressions[k].
-    If no indices are provided, expressions must be a list
+    2) Returns :math:`A` such that :math:`A[k,...]` = *expressions*[k].
+    If no indices are provided, *expressions* must be a list
     or tuple of expressions. The expressions can also consist
     of recursively nested lists to build higher rank tensors.
     """
@@ -270,7 +272,7 @@ def as_tensor(expressions, indices=None):
         return ComponentTensor(expressions, indices)
 
 def as_matrix(expressions, indices = None):
-    "UFL operator: As as_tensor(), but limited to rank 2 tensors."
+    "UFL operator: As *as_tensor()*, but limited to rank 2 tensors."
     if indices is None:
         # Allow as_matrix(as_matrix(A)) in user code
         if isinstance(expressions, Expr):
@@ -292,7 +294,7 @@ def as_matrix(expressions, indices = None):
     return as_tensor(expressions, indices)
 
 def as_vector(expressions, index = None):
-    "UFL operator: As as_tensor(), but limited to rank 1 tensors."
+    "UFL operator: As ``as_tensor()``, but limited to rank 1 tensors."
     if index is None:
         # Allow as_vector(as_vector(v)) in user code
         if isinstance(expressions, Expr):
@@ -337,7 +339,7 @@ def as_scalars(*expressions):
     return expressions, ii
 
 def relabel(A, indexmap):
-    "UFL operator: Relabel free indices of A with new indices, using the given mapping."
+    "UFL operator: Relabel free indices of :math:`A` with new indices, using the given mapping."
     ii = tuple(sorted(indexmap.keys()))
     jj = tuple(indexmap[i] for i in ii)
     ufl_assert(all(isinstance(i, Index) for i in ii), "Expecting Index objects.")
@@ -353,19 +355,21 @@ def unit_list2(i, j, n):
     return [[(1 if (i == i0 and j == j0) else 0) for j0 in range(n)] for i0 in range(n)]
 
 def unit_vector(i, d):
-    "UFL value: A constant unit vector in direction i with dimension d."
+    "UFL value: A constant unit vector in direction *i* with dimension *d*."
     return as_vector(unit_list(i, d))
 
 def unit_vectors(d):
-    "UFL value: A tuple of constant unit vectors in all directions with dimension d."
+    """UFL value: A tuple of constant unit vectors in all directions with
+    dimension *d*."""
     return tuple(unit_vector(i, d) for i in range(d))
 
 def unit_matrix(i, j, d):
-    "UFL value: A constant unit matrix in direction i,j with dimension d."
+    "UFL value: A constant unit matrix in direction *i*,*j* with dimension *d*."
     return as_matrix(unit_list2(i, j, d))
 
 def unit_matrices(d):
-    "UFL value: A tuple of constant unit matrices in all directions with dimension d."
+    """UFL value: A tuple of constant unit matrices in all directions with
+    dimension *d*."""
     return tuple(unit_matrix(i, j, d) for i in range(d) for j in range(d))
 
 def dyad(d, *iota):

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Non-recursive traversal based hash computation algorithm.
+"""Non-recursive traversal-based hash computation algorithm.
 
-Fast iteration over nodes in an Expr DAG to compute
-memoized hashes for all unique nodes.
+Fast iteration over nodes in an ``Expr`` DAG to compute
+memorized hashes for all unique nodes.
 """
 
 # Copyright (C) 2015 Martin Sandve Alnæs
@@ -21,6 +21,8 @@ memoized hashes for all unique nodes.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 
 # This limits the _depth_ of expression trees
@@ -28,7 +30,7 @@ _recursion_limit_ = 6400 # should be enough for everyone
 
 
 def compute_expr_hash(expr):
-    """Compute hashes of expr and all its nodes efficiently without using Python recursion."""
+    """Compute hashes of *expr* and all its nodes efficiently, without using Python recursion."""
     if expr._hash is not None:
         return expr._hash
 

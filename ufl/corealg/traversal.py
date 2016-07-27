@@ -2,7 +2,7 @@
 """Various expression traversal utilities.
 
 The algorithms here are non-recursive, which is faster than recursion
-by a factor 10 or so because of the function call overhead.
+by a factor of 10 or so because of the function call overhead.
 """
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -21,6 +21,8 @@ by a factor 10 or so because of the function call overhead.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 
 # This limits the _depth_ of expression trees
@@ -28,7 +30,7 @@ _recursion_limit_ = 6400 # should be enough for everyone
 
 
 def pre_traversal(expr):
-    """Yields o for each tree node o in expr, parent before child."""
+    """Yield ``o`` for each tree node ``o`` in *expr*, parent before child."""
     stack = [None]*_recursion_limit_
     stack[0] = expr
     stacksize = 1
@@ -42,7 +44,7 @@ def pre_traversal(expr):
 
 
 def post_traversal(expr):
-    """Yields o for each node o in expr, child before parent."""
+    """Yield ``o`` for each node ``o`` in *expr*, child before parent."""
     stack = [None]*_recursion_limit_
     stacksize = 0
 
@@ -64,7 +66,8 @@ def post_traversal(expr):
 
 
 def cutoff_post_traversal(expr, cutofftypes):
-    """Yields o for each node o in expr, child before parent, but skipping subtrees of the cutofftypes."""
+    """Yield ``o`` for each node ``o`` in *expr*, child before parent, but
+    skipping subtrees of the cutofftypes."""
     stack = [None]*_recursion_limit_
     stacksize = 0
 
@@ -90,9 +93,9 @@ def cutoff_post_traversal(expr, cutofftypes):
 
 
 def unique_pre_traversal(expr, visited=None):
-    """Yields o for each tree node o in expr, parent before child.
+    """Yield ``o`` for each tree node ``o`` in *expr*, parent before child.
 
-    This version only visits each node once!
+    This version only visits each node once.
     """
     stack = [None]*_recursion_limit_
     stack[0] = expr
@@ -111,9 +114,9 @@ def unique_pre_traversal(expr, visited=None):
 
 
 def unique_post_traversal(expr, visited=None):
-    """Yields o for each node o in expr, child before parent.
+    """Yield ``o`` for each node ``o`` in *expr*, child before parent.
 
-    Never visits a node twice."""
+    Never visit a node twice."""
     stack = [None]*_recursion_limit_
     stack[0] = (expr, list(expr.ufl_operands))
     stacksize = 1
@@ -134,9 +137,9 @@ def unique_post_traversal(expr, visited=None):
 
 
 def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
-    """Yields o for each node o in expr, child before parent.
+    """Yield ``o`` for each node ``o`` in *expr*, child before parent.
 
-    Never visits a node twice."""
+    Never visit a node twice."""
     stack = [None]*_recursion_limit_
     stack[0] = (expr, () if cutofftypes[expr._ufl_typecode_] else list(expr.ufl_operands))
     stacksize = 1
@@ -157,7 +160,7 @@ def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
 
 
 def traverse_terminals(expr):
-    "Iterate over all terminal objects in expression, including duplicates."
+    "Iterate over all terminal objects in *expr*, including duplicates."
     stack = [None]*_recursion_limit_
     stack[0] = expr
     stacksize = 1
@@ -173,7 +176,7 @@ def traverse_terminals(expr):
 
 
 def traverse_unique_terminals(expr, visited=None):
-    "Iterate over all terminal objects in expression, not including duplicates."
+    "Iterate over all terminal objects in *expr*, not including duplicates."
     stack = [None]*_recursion_limit_
     stack[0] = expr
     stacksize = 1

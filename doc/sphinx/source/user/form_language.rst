@@ -8,12 +8,13 @@ all these operators and atomic expressions in detail.
 
 UFL is built on top of the Python language, and any Python code is
 valid in the definition of a form.
-In particular, comments (lines starting with ``#`` and functions (keyword ``def``, see _user-defined
+In particular, comments (lines starting with ``#``) and functions
+(keyword ``def``, see user-defined_
 below) are useful in the definition of a form.  However, it is usually a
 good idea to avoid using advanced Python features in the form definition,
 to stay close to the mathematical notation.
 
-The entire form language can be imported in Python with the line:
+The entire form language can be imported in Python with the line
 
 .. code-block:: python
 
@@ -48,7 +49,7 @@ to define form arguments and integrand expressions is detailed in the
 rest of this chapter.
 
 Integrals are expressed through multiplication with a measure,
-representing an integral over either of:
+representing an integral over either
 
     * the interior of the domain :math:`\Omega` (``dx``, cell integral);
 
@@ -56,7 +57,7 @@ representing an integral over either of:
 
     * the set of interior facets :math:`\Gamma` (``dS``, interior facet integral).
 
-(Note that newer versions of UFL supports several other integral
+(Note that newer versions of UFL support several other integral
 types currently not documented here).
 As a basic example, assume ``v`` is a scalar-valued expression and
 consider the integral of ``v`` over the interior of :math:`\Omega`. This
@@ -66,10 +67,10 @@ may be expressed as::
 
 and the integral of ``v`` over :math:`\partial\Omega` is written as::
 
-  a = v*ds
+  a = v*ds.
 
 Alternatively, measures can be redefined to represent numbered subsets of
-a domain, such that a form can take on different expressions on different
+a domain, such that a form evaluates to different expressions on different
 parts of the domain.  If ``c``, ``e0`` and ``e1`` are scalar-valued
 expressions, then::
 
@@ -79,7 +80,7 @@ represents
 
 .. math::
 
-   a = \int_\Omega c\,dx + \int_{\partial\Omega_0} e_0 \, ds + \int_{\partial\Omega_1} e_1 \, ds.
+   a = \int_\Omega c\,dx + \int_{\partial\Omega_0} e_0 \, ds + \int_{\partial\Omega_1} e_1 \, ds,
 
 where
 
@@ -130,10 +131,10 @@ Objects for regular cells of all basic shapes are predefined::
   cell = hexahedron
 
 In the rest of this document, a variable name ``cell`` will be used where
-any cell is a valid argument, to make the examples dimension independent
+any cell is a valid argument, to make the examples dimension-independent
 wherever possible.  Using a variable ``cell`` to hold the cell type used
 in a form is highly recommended, since this makes most form definitions
-dimension independent.
+dimension-independent.
 
 
 Element families
@@ -141,7 +142,7 @@ Element families
 
 UFL predefines a set of names of known element families.  When defining
 a finite element below, the argument ``family`` is a string and its
-possible values include:
+possible values include
 
 * ``"Lagrange"`` or ``"CG"``, representing standard scalar
   Lagrange finite elements (continuous piecewise polynomial functions);
@@ -178,12 +179,15 @@ possible values include:
   representing vector-valued Nedelec H(curl) elements
   (of the second kind).
 
-* ``"Quadrature"`` or ``"Q"``, representing artificial ``finite elements``
-  with degrees of freedom being function evaluation at quadrature points;
+* ``"Bubble"``,
+  representing bubble elements, useful for example to build the mini elements.
+
+* ``"Quadrature"`` or ``"Q"``, representing artificial "finite elements"
+  with degrees of freedom being function evaluations at quadrature points;
 
 * ``"Boundary Quadrature"`` or ``"BQ"``, representing artificial
-  "finite elements" with degrees of freedom being function evaluation
-  at quadrature points on the boundary;
+  "finite elements" with degrees of freedom being function evaluations
+  at quadrature points on the boundary.
 
 Note that new versions of UFL also support notation from the Periodic Table
 of Finite Elements, currently not documented here.
@@ -193,9 +197,11 @@ Basic elements
 --------------
 
 A ``FiniteElement``, sometimes called a basic element, represents a
-finite element in some family on a given cell with a certain polynomial
+finite element from some family on a given cell with a certain polynomial
 degree. Valid families and cells are explained above.
-The notation is::
+The notation is
+
+::
 
   element = FiniteElement(family, cell, degree)
 
@@ -212,7 +218,9 @@ Vector elements
 A ``VectorElement`` represents a combination of basic elements such that
 each component of a vector is represented by the basic element. The size
 is usually omitted, the default size equals the geometry dimension.
-The notation is::
+The notation is
+
+::
 
   element = VectorElement(family, cell, degree[, size])
 
@@ -231,8 +239,10 @@ Tensor elements
 
 A ``TensorElement`` represents a combination of basic elements such that
 each component of a tensor is represented by the basic element. The
-shape is usually omitted, the default shape is (d, d) where d is the
-geometry dimension. The notation is::
+shape is usually omitted, the default shape is :math: `(d, d)` where :math: `d`
+is the geometric dimension. The notation is
+
+::
 
   element = TensorElement(family, cell, degree[, shape, symmetry])
 
@@ -276,7 +286,7 @@ Shorthand notation for two subelements::
     sub-elements ``(e1 * e2)`` and ``e3``.
 
 See `Form arguments`_ for details on how defining
-functions on mixed spaces can differ from functions on other
+functions on mixed spaces can differ from defining functions on other
 finite element spaces.
 
 Examples::
@@ -298,7 +308,9 @@ EnrichedElement
 The data type ``EnrichedElement`` represents the vector sum of two
 (or more) finite elements.
 
-Example: The Mini element can be constructed as::
+Example: The Mini element can be constructed as
+
+::
 
   P1 = VectorElement("Lagrange", "triangle", 1)
   B  = VectorElement("Bubble", "triangle", 3)
@@ -345,7 +357,7 @@ Taylor--Hood element::
   vq = Argument(TH)
   v, q = split(up)
 
-A shorthand for this is in place called ``Arguments``::
+This is equivalent to the previous use of ``Arguments``::
 
   v, q = Arguments(TH)
 
@@ -407,9 +419,10 @@ values on subspaces, as illustrated here for a mixed Taylor--Hood element::
   up = Coefficient(TH)
   u, p = split(up)
 
-A shorthand for this is in place called ``Coefficients``::
+There is a shorthand for this, whose use is similar to ``Arguments``, called
+``Coefficients``::
 
-  u, p = Coefficient(TH)
+  u, p = Coefficients(TH)
 
 Spatially constant (or discontinuous piecewise constant) functions can
 conveniently be represented by ``Constant``, ``VectorConstant``, and
@@ -482,7 +495,7 @@ UFL supports index notation, which is often a convenient way to
 express forms. The basic principle of index notation is that summation
 is implicit over indices repeated twice in each term of an expression.
 The following examples illustrate the index notation, assuming that
-each of the variables ``i`` and ``j`` have been declared as
+each of the variables ``i`` and ``j`` has been declared as
 a free ``Index``:
 
 * ``v[i]*w[i]``: :math:`\sum_{i=0}^{n-1} v_i w_i = \mathbf{v}\cdot\mathbf{w}`
@@ -502,7 +515,7 @@ Here we will try to very briefly summarize the basic concepts of tensor
 algebra and index notation, just enough to express the operators in UFL.
 
 Assuming an Euclidean space in :math:`d` dimensions with :math:`1 \le
-d 3`, and a set of orthonormal basis vectors :math:`\mathbf{i}_i` for :math:`i
+d \le 3`, and a set of orthonormal basis vectors :math:`\mathbf{i}_i` for :math:`i
 \in {0, \ldots, d-1 }`, we can define the dot product of any two basis
 functions as
 
@@ -558,7 +571,7 @@ and we can't always interpret such conventions unambiguously.  Therefore,
 UFL requires that an expression is explicitly mapped from its tensor
 representation (:math:`\mathbf{v}`, :math:`\mathbf{A}`) to its component
 representation (:math:`v_i`, :math:`A_{ij}`) and back.  This is done using
-``Index`` objects, the indexing operator (``v[i]``), and the function
+``Index`` objects, the indexing operator (``v[i]``) and the function
 ``as_tensor``.  More details on these follow.
 
 In the following descriptions of UFL operator syntax, i-l and p-s are
@@ -577,7 +590,7 @@ conserve space.
 
 The data type ``Index`` represents an index used for subscripting
 derivatives or taking components of non-scalar expressions.
-To create indices, you can either make a single using ``Index()``
+To create indices you can either make a single one using ``Index()``
 or make several at once conveniently using ``indices(n)``::
 
   i = Index()
@@ -648,7 +661,7 @@ More advanced indexing:
   the last axis fixed, e.g., A[...,0] == A[:,0]
 
 * ``C[j,...]``: subtensor access, representing the subtensor of A with
-  the last axis fixed, e.g., A[j,...] == A[j,:]
+  the first axis fixed, e.g., A[j,...] == A[j,:]
 
 
 Making tensors from components
@@ -660,7 +673,7 @@ single expression with free indices that should map to tensor axes,
 like mapping :math:`v_k` to :math:`\mathbf{v}` or :math:`A_{ij}` to
 :math:`\mathbf{A}`, the following examples show how this is done::
 
-  vk = Identity(cell.d)[0,k]
+  vk = Identity(cell.geometric_dimension())[0,k]
   v = as_tensor(vk, (k,))
 
   Aij = v[i]*u[j]
@@ -709,7 +722,7 @@ treated as a sum over that free index:
 The spatial derivative, in the direction of a free index, of an expression
 with the same free index, is treated as a sum over that free index:
 
-* ``v[i].dx(i)``: :math:`\sum_i v_i`
+* ``v[i].dx(i)``: :math:`\sum_i \frac{d(v_{i})}{dx_i}`
 * ``A[i,j].dx(i)``: :math:`\sum_i \frac{d(A_{ij})}{dx_i}`
 
 Note that these examples are some times written :math:`v_{i,i}` and
@@ -725,17 +738,17 @@ operands, summarized here:
 
 Addition or subtraction, ``a + b`` or ``a - b``:
 
-* The operands a and b must have the same shape.
-* The operands a and b must have the same set of free indices.
+* The operands ``a`` and ``b`` must have the same shape.
+* The operands ``a`` and ``b`` must have the same set of free indices.
 
 Division, ``a / b``:
 
-* The operand b must be a scalar expression.
+* The operand ``b`` must be a scalar expression.
 
-* The operand b must have no free indices.
+* The operand ``b`` must have no free indices.
 
-* The operand a can be non-scalar with free indices, in which division
-  represents scalar division of all components with the scalar b.
+* The operand ``a`` can be non-scalar with free indices, in which division
+  represents scalar division of all components with the scalar ``b``.
 
 Multiplication, ``a * b``:
 
@@ -894,7 +907,7 @@ An example with a vector and a tensor of rank two
 This is the same as a vector-matrix multiplication.
 
 This generalizes to tensors of arbitrary rank:
-The dot product applies to the last axis of a and the first axis of b.
+the dot product applies to the last axis of a and the first axis of b.
 The tensor rank of the product is rank(a)+rank(b)-2.
 
 ``inner``
@@ -954,10 +967,10 @@ Some examples with vectors and matrices are easier to understand:
 .. math::
 
    \mathbf{v} \otimes \mathbf{u} = v_i u_j \mathbf{i}_i \mathbf{i}_j, \\
-   \mathbf{v} \otimes \mathbf{v} = v_i B_{kl} \mathbf{i}_i \mathbf{i}_k \mathbf{i}_l, \\
+   \mathbf{v} \otimes \mathbf{B} = v_i B_{kl} \mathbf{i}_i \mathbf{i}_k \mathbf{i}_l, \\
    \mathbf{A} \otimes \mathbf{B} = A_{ij} B_{kl} \mathbf{i}_i \mathbf{i}_j \mathbf{i}_k \mathbf{i}_l .
 
-The outer product of vectors is often written simply as:
+The outer product of vectors is often written simply as
 
 .. math::
 
@@ -984,21 +997,35 @@ Note that this operator is only defined for vectors of length three.
 ``det``
 -------
 
-The determinant of a matrix A can be written::
+The determinant of a matrix A can be written as
+
+::
 
   d = det(A)
 
 ``dev``
 -------
 
-The deviatoric part of matrix A can be written::
+The deviatoric part of matrix A can be written as
+
+::
 
   B = dev(A)
+
+The definition is
+
+.. math::
+
+  {\rm dev} \mathbf{A} = \mathbf{A} - \frac{\mathbf{A}_{ii}}{d} \mathbf{I}
+
+where :math:`d` is the rank of matrix A and :math:`\mathbf{I}` is the identity matrix.
 
 ``sym``
 -------
 
-The symmetric part of A can be written::
+The symmetric part of A can be written as
+
+::
 
   B = sym(A)
 
@@ -1011,7 +1038,9 @@ The definition is
 ``skew``
 --------
 
-The skew symmetric part of A can be written::
+The skew symmetric part of A can be written as
+
+::
 
   B = skew(A)
 
@@ -1025,7 +1054,9 @@ The definition is
 ``cofac``
 ---------
 
-The cofactor of a matrix A can be written::
+The cofactor of a matrix A can be written as
+
+::
 
   B = cofac(A)
 
@@ -1042,7 +1073,9 @@ symbolic expression for the cofactor.  Therefore, this is limited to 1x1,
 ``inv``
 -------
 
-The inverse of matrix A can be written::
+The inverse of matrix A can be written as
+
+::
 
   Ainv = inv(A)
 
@@ -1073,7 +1106,7 @@ and there are several ways to express those. The basic way is::
   g = v.dx(i)
 
 If ``v`` is a scalar expression, ``f`` here is the scalar derivative of
-``v`` with respect to spatial direction z.  If ``v`` has no free indices, ``g``
+``v`` with respect to spatial direction :math:`z`.  If ``v`` has no free indices, ``g``
 is the scalar derivative in spatial direction :math:`x_i`, and ``g``
 has the free index ``i``.  This can be expressed compactly as :math:`v_{,i}`:
 
@@ -1133,7 +1166,7 @@ The gradient of a vector :math:`\mathbf{v}` is defined as
    \mathrm{grad}(\mathbf{v}) \equiv \nabla \mathbf{v}
    = \frac{\partial v_i}{\partial x_j} \mathbf{i}_i \mathbf{i}_j,
 
-which written componentwise is
+which, written componentwise, reads
 
 .. math::
 
@@ -1149,7 +1182,7 @@ In general for a tensor :math:`\mathbf{A}` of rank :math:`r` the definition is
    = \frac{\partial A_\iota}{\partial x_i} \mathbf{i}_{\iota_0}
    \otimes \cdots \otimes \mathbf{i}_{\iota_{r-1}} \otimes \mathbf{i}_i,
 
-where :math:`\iota` is a multiindex of length :math:`r`.
+where :math:`\iota` is a multi-index of length :math:`r`.
 
 In UFL, the following pairs of declarations are equivalent::
 
@@ -1193,7 +1226,7 @@ Curl and rot
 ------------
 
 The operator ``curl`` or ``rot`` accepts as argument a vector-valued expression
-and returns its curl:
+and returns its curl
 
 .. math::
 
@@ -1229,10 +1262,10 @@ The notation is illustrated here::
   w = variable(w)
 
   # This expression is a function of w
-  F = I + diff(u, x)
+  F = w**2
 
-  # The derivative of expression f w.r.t. the variable w
-  df = diff(f, w)
+  # The derivative of expression F w.r.t. the variable w
+  dF = diff(F, w)  # == 2*w
 
 Note that the variable ``w`` still represents the same expression.
 
@@ -1270,7 +1303,7 @@ Restriction: ``v('+')`` and ``v('-')``
 When integrating over interior facets (``*dS``), one may restrict
 expressions to the positive or negative side of the facet::
 
-  element = FiniteElement("Discontinuous Lagrange", "tetrahedron", 0)
+  element = FiniteElement("Discontinuous Lagrange", tetrahedron, 0)
 
   v = TestFunction(element)
   u = TrialFunction(element)
@@ -1363,7 +1396,7 @@ Conditions
 .. note::
 
   Because of details in the way Python behaves, we cannot overload
-  the == operator hence these named operators.
+  the == operator, hence these named operators.
 
 .. _user-defined:
 
@@ -1402,7 +1435,7 @@ Replacing arguments of a Form
 -----------------------------
 
 The function ``replace`` lets you replace terminal objects with
-other values, using a mapping defined by a Python dict. This can be
+other values, using a mapping defined by a Python dicaionaryt. This can be
 used for example to replace a ``Coefficient`` with a fixed value for
 optimized runtime evaluation.
 
@@ -1494,7 +1527,7 @@ functions in a ``Form``, and is used like this::
 Linear and bilinear parts of a form
 -----------------------------------
 
-Some times it is useful to write an equation on the format
+Sometimes it is useful to write an equation on the format
 
 .. math::
 
@@ -1502,7 +1535,7 @@ Some times it is useful to write an equation on the format
 
 Before assembly, we need to extract the forms corresponding to the left
 hand side and right hand side. This corresponds to extracting the bilinear and linear
-terms of the form respectively, or the terms that depend on both a test
+terms of the form respectively, or separating the terms that depend on both a test
 and a trial function on one side and the terms that depend on only a
 test function on the other.
 
@@ -1512,7 +1545,9 @@ This is easily done in UFL using ``lhs`` and ``rhs``::
   a, L = lhs(b), rhs(b)
 
 Note that ``rhs`` multiplies the extracted terms by -1,
-corresponding to moving them from left to right, so this is equivalent to::
+corresponding to moving them from left to right, so this is equivalent to
+
+::
 
   a = u*v*dx
   L = f*v*dx
@@ -1522,7 +1557,9 @@ As a slightly more complicated example, this formulation::
   F = v*(u - w)*dx + k*dot(grad(v), grad(0.5*(w + u)))*dx
   a, L = lhs(F), rhs(F)
 
-is equivalent to::
+is equivalent to
+
+::
 
   a = v*u*dx + k*dot(grad(v), 0.5*grad(u))*dx
   L = v*w*dx - k*dot(grad(v), 0.5*grad(w))*dx
@@ -1556,40 +1593,52 @@ corresponding to its Jacobi matrix.
    J(v, u; w) = \frac{d}{dw} F(v; w).
 
 The UFL code to express this is (for a simple functional
-:math:`f(w)=\int_\Omega \frac 1 2 w^2\,dx`)::
+:math:`f(w)=\int_\Omega \frac 1 2 w^2\,dx`)
+
+::
 
   f = (w**2)/2 * dx
   F = derivative(f, w, v)
   J = derivative(F, w, u)
 
-which is equivalent to::
+which is equivalent to
+
+::
 
   f = (w**2)/2 * dx
   F = w*v*dx
   J = u*v*dx
 
-Assume in the following examples that::
+Assume in the following examples that
+
+::
 
   v = TestFunction(element)
   u = TrialFunction(element)
   w = Coefficient(element)
 
 The stiffness matrix can be computed from the functional
-:math:`\int_\Omega \nabla w : \nabla w \, dx`, by::
+:math:`\int_\Omega \nabla w : \nabla w \, dx`, by
+                              
+::
 
   f = inner(grad(w), grad(w))/2 * dx
   F = derivative(f, w, v)
   J = derivative(F, w, u)
 
-which is equivalent to::
+which is equivalent to
+
+::
 
   f = inner(grad(w), grad(w))/2 * dx
   F = inner(grad(w), grad(v)) * dx
   J = inner(grad(u), grad(v)) * dx
 
 Note that here the basis functions are provided explicitly, which is
-some times necessary, e.g., if part of the form is linearlized manually
-as in::
+sometimes necessary, e.g., if part of the form is linearlized manually
+as in
+
+::
 
   g = Coefficient(element)
   f = inner(grad(w), grad(w))*dx
@@ -1614,7 +1663,9 @@ using automatic differentiation::
 Here ``L`` is defined as a functional with two coefficient functions
 ``x`` and ``y`` from separate finite element spaces.  However, ``F`` and
 ``J`` become linear and bilinear forms respectively with basis functions
-defined on the mixed finite element::
+defined on the mixed finite element
+
+::
 
   M = X + Y
 
@@ -1634,73 +1685,12 @@ The difference is that the forms here have *one* coefficient function
 ``u`` in the mixed space, and the forms above have *two* coefficient
 functions ``x`` and ``y``.
 
-TODO: Move this to implementation part?
-If you wonder how this is all done, a brief explanation follows.
-Recall that a ``Coefficient`` represents a
-sum of unknown coefficients multiplied with unknown
-basis functions in some finite element space.
-
-.. math::
-
-   w(x) = \sum_k w_k \phi_k(x)
-
-Also recall that a ``Argument`` represents any (unknown) basis
-function in some finite element space.
-
-.. math::
-
-   v(x) = \phi_k(x), \qquad \phi_k \in V_h .
-
-A form :math:`L(v; w)` implemented in UFL is intended for discretization
-like
-
-.. math::
-
-   b_i = L(\phi_i; \sum_k w_k \phi_k), \qquad \forall \phi_i \in V_h .
-
-The Jacobi matrix :math:`A_{ij}` of this vector can be obtained by
-differentiation of :math:`b_i` w.r.t. :math:`w_j`, which can be written
-
-.. math::
-
-   A_{ij} = \frac{d b_i}{d w_j} = a(\phi_i, \phi_j; \sum_k w_k \phi_k), \qquad \forall \phi_i \in V_h, \quad \forall \phi_j \in V_h ,
-
-for some form `a`. In UFL, the form `a` can be obtained by
-differentiating `L`.  To manage this, we note that as long as the domain
-:math:\Omega is independent of :math:`w_j`, :math:`\int_\Omega` commutes with :math:`\frac{d}{d
-w_j}`, and we can differentiate the integrand expression instead, e.g.,
-
-.. math::
-
-   L(v; w) = \int_\Omega I_c(v; w) \, dx + \int_{\partial\Omega} I_e(v; w) \, ds, \\
-      \frac{d}{d w_j} L(v; w) = \int_\Omega \frac{d I_c}{d w_j} \, dx + \int_{\partial\Omega} \frac{d I_e}{d w_j} \, ds.
-
-In addition, we need that
-
-.. math::
-
-   \frac{d w}{d w_j} = \phi_j, \qquad \forall \phi_j \in V_h ,
-
-which in UFL can be represented as
-
-.. math::
-
-   w &= \mathtt{Coefficient(element)}, \\
-   v &= \mathtt{Argument(element)}, \\
-   \frac{dw}{d w_j} &= v,
-
-since :math:`w` represents the sum and :math:`v` represents any and all
-basis functions in :math:`V_h`.
-
-Other operators have well defined derivatives, and by repeatedly applying
-the chain rule we can differentiate the integrand automatically.
-
 
 Combining form transformations
 ------------------------------
 
-Form transformations can be combined freely.  Note that to do this,
-derivatives are usually be evaluated before applying e.g. the action of
+Form transformations can be combined freely.  Note that, to do this,
+derivatives are usually evaluated before applying (e.g.) the action of
 a form, because ``derivative`` changes the arity of the form::
 
   element = FiniteElement("CG", cell, 1)
@@ -1729,7 +1719,9 @@ is exported by default, as are forms with the names ``M``, ``L``, and
 and bilinear form respectively.
 
 To export multiple forms and elements or use other names, an explicit
-list with the forms and elements to export can be defined. Simply write::
+list with the forms and elements to export can be defined. Simply write
+
+::
 
   elements = [V, P, TH]
   forms = [a, L, F, J, L2, H1]

@@ -19,6 +19,8 @@ Sum and its superclass Expr."""
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016.
 
 from itertools import chain
 
@@ -288,7 +290,7 @@ Expr.__call__ = _call
 #--- Extend Expr with the transpose operation A.T ---
 
 def _transpose(self):
-    """Transposed a rank two tensor expression. For more general transpose
+    """Transpose a rank-2 tensor expression. For more general transpose
     operations of higher order tensor expressions, use indexing and Tensor."""
     return Transposed(self)
 Expr.T = property(_transpose)
@@ -425,7 +427,7 @@ Expr.__getitem__ = _getitem
 #--- Extend Expr with spatial differentiation operator a.dx(i) ---
 
 def _dx(self, *ii):
-    "Return the partial derivative with respect to spatial variable number i."
+    "Return the partial derivative with respect to spatial variable number *ii*."
     d = self
     # Unwrap ii to allow .dx(i,j) and .dx((i,j))
     if len(ii) == 1 and isinstance(ii[0], tuple):

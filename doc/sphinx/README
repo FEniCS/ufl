@@ -3,7 +3,7 @@ Sphinx documentation
 ====================
 
 UFL is documented using Sphinx and reStructured text. The
-documnentation is hosted at http://fenics-ufl.readthedocs.org/. The
+documentation is hosted at http://fenics-ufl.readthedocs.org/. The
 online documentation is automatically updated upon pushes to the UFL
 master branch.
 
@@ -25,3 +25,8 @@ Building the documentation locally
 The HTML documentation can be built locally using::
 
     make html
+
+In order for changes in the docstring to be propagated to the html pages,
+ufl must be installed anew.
+In other words, sphinx reads the docstrings from the installed code,
+not the source code.

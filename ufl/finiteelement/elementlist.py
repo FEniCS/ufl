@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module provides an extensive list of predefined finite element
-families. Users or more likely, form compilers, may register new
+families. Users or, more likely, form compilers, may register new
 elements by calling the function register_element."""
 
 # Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
@@ -22,6 +22,7 @@ elements by calling the function register_element."""
 #
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
 # Modified by Lizao Li <lzlarryli@gmail.com>, 2015
+# Modified by Massimiliano Leoni, 2016
 
 from __future__ import print_function
 
@@ -39,13 +40,13 @@ aliases = {}
 
 # Function for registering new elements
 def register_element(family, short_name, value_rank, sobolev_space, mapping, degree_range, cellnames):
-    "Register new finite element family"
+    "Register new finite element family."
     ufl_assert(family not in ufl_elements, 'Finite element \"%s\" has already been registered.' % family)
     ufl_elements[family]     = (family, short_name, value_rank, sobolev_space, mapping, degree_range, cellnames)
     ufl_elements[short_name] = (family, short_name, value_rank, sobolev_space, mapping, degree_range, cellnames)
 
 def register_element2(family, value_rank, sobolev_space, mapping, degree_range, cellnames):
-    "Register new finite element family"
+    "Register new finite element family."
     ufl_assert(family not in ufl_elements, 'Finite element \"%s\" has already been registered.' % family)
     ufl_elements[family] = (family, family, value_rank, sobolev_space, mapping, degree_range, cellnames)
 
@@ -53,6 +54,7 @@ def register_alias(alias, to):
     aliases[alias] = to
 
 def show_elements():
+    "Shows all registered elements."
     print("Showing all registered elements:")
     print("================================")
     shown = set()
@@ -162,11 +164,11 @@ register_alias("BDMF", lambda family, dim, order, degree: ("Brezzi-Douglas-Marin
 register_alias("N2E",  lambda family, dim, order, degree: ("Nedelec 2nd kind H(curl)", order))
 register_alias("N2F",  lambda family, dim, order, degree: ("Brezzi-Douglas-Marini",    order))
 
-# Finite element exterior calculus notation
 def feec_element(family, n, r, k):
-    # n = topological dimension of domain
-    # r = polynomial order
-    # k = form_degree
+    """Finite element exterior calculus notation
+    n = topological dimension of domain
+    r = polynomial order
+    k = form_degree"""
 
     # Note: We always map to edge elements in 2D, don't know how to differentiate otherwise?
 
@@ -220,7 +222,8 @@ def canonical_element_description(family, cell, order, form_degree):
     """Given basic element information, return corresponding element information on canonical form.
 
     Input: family, cell, (polynomial) order, form_degree
-    Output: family (canonical), short_name (for printing), order, value shape, reference value shape, sobolev_space
+    Output: family (canonical), short_name (for printing), order, value shape,
+    reference value shape, sobolev_space.
 
     This is used by the FiniteElement constructor to ved input
     data against the element list and aliases defined in ufl.

@@ -15,12 +15,14 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class BrokenElement(FiniteElementBase):
-    """The discontinuous version of an existing Finite Element space"""
+    """The discontinuous version of an existing Finite Element space."""
     def __init__(self, element):
         self._element = element
         self._repr = "BrokenElement(%r)" % (element,)
@@ -41,6 +43,7 @@ class BrokenElement(FiniteElementBase):
         return "BrokenElement(%s)" % str(self._element)
 
     def shortstr(self):
+        "Format as string for pretty printing."
         return "BrokenElement(%s)" % str(self._element.shortstr())
 
     def __repr__(self):

@@ -22,6 +22,7 @@
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
 # Modified by Andrew T. T. McRae, 2014
+# Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -143,9 +144,11 @@ class Cell(AbstractCell):
         return Cell(self._cellname, geometric_dimension=geometric_dimension)
 
     def is_simplex(self):
+        "    Return True if this is a simplex cell."
         return self.num_vertices() == self.topological_dimension() + 1
 
     def has_simplex_facets(self):
+        "Return True if all the facets of this cell are simplex cells."
         return self.is_simplex() or self.cellname() == "quadrilateral"
 
     # --- Specific cell properties ---

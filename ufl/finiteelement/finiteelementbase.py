@@ -20,6 +20,7 @@
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
+# Modified by Massimiliano Leoni, 2016
 
 from six.moves import zip
 from ufl.assertions import ufl_assert
@@ -31,7 +32,7 @@ from ufl.log import info_blue, warning, warning_blue, error
 from ufl.cell import AbstractCell, as_cell
 
 class FiniteElementBase(object):
-    "Base class for all finite elements"
+    "Base class for all finite elements."
     __slots__ = ("_family",
                  "_cell",
                  "_degree",
@@ -43,7 +44,7 @@ class FiniteElementBase(object):
                  "__weakref__")
     # TODO: Not all these should be in the base class! In particular family, degree, and quad_scheme do not belong here.
     def __init__(self, family, cell, degree, quad_scheme, value_shape, reference_value_shape):
-        "Initialize basic finite element data"
+        "Initialize basic finite element data."
         ufl_assert(isinstance(family, str), "Invalid family type.")
         ufl_assert(isinstance(degree, (int, tuple)) or degree is None, "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
@@ -82,23 +83,24 @@ class FiniteElementBase(object):
 
 
     def family(self): # FIXME: Undefined for base?
-        "Return finite element family"
+        "Return finite element family."
         return self._family
 
     def degree(self, component=None):
-        "Return polynomial degree of finite element"
+        "Return polynomial degree of finite element."
         # FIXME: Consider embedded_degree concept for more accurate degree, see blueprint
         return self._degree
 
     def quadrature_scheme(self):
-        "Return quadrature scheme of finite element"
+        "Return quadrature scheme of finite element."
         return self._quad_scheme
 
     def mapping(self):
+        "Not implemented."
         error("Missing implementation of mapping().")
 
     def cell(self):
-        "Return cell of finite element"
+        "Return cell of finite element."
         return self._cell
 
     def is_cellwise_constant(self, component=None):
@@ -123,8 +125,10 @@ class FiniteElementBase(object):
         return product(self.reference_value_shape())
 
     def symmetry(self): # FIXME: different approach
-        """Return the symmetry dict, which is a mapping c0 -> c1
-        meaning that component c0 is represented by component c1."""
+        """Return the symmetry dict, which is a mapping :math:`c_0 \\to c_1`
+        meaning that component :math:`c_0` is represented by component
+        :math:`c_1`.
+        A component is a tuple of one or more ints."""
         return EmptyDict
 
     def _check_component(self, i):
@@ -137,7 +141,7 @@ class FiniteElementBase(object):
 
     def extract_subelement_component(self, i):
         """Extract direct subelement index and subelement relative
-        component index for a given component index"""
+        component index for a given component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
@@ -145,14 +149,14 @@ class FiniteElementBase(object):
 
     def extract_component(self, i):
         """Recursively extract component index relative to a (simple) element
-        and that element for given value component index"""
+        and that element for given value component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
         return (i, self)
 
     def _check_reference_component(self, i):
-        "Check that reference component index i is valid"
+        "Check that reference component index i is valid."
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
@@ -161,7 +165,7 @@ class FiniteElementBase(object):
 
     def extract_subelement_reference_component(self, i):
         """Extract direct subelement index and subelement relative
-        reference component index for a given reference component index"""
+        reference component index for a given reference component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_reference_component(i)
@@ -169,18 +173,18 @@ class FiniteElementBase(object):
 
     def extract_reference_component(self, i):
         """Recursively extract reference component index relative to a (simple) element
-        and that element for given reference value component index"""
+        and that element for given reference value component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_reference_component(i)
         return (i, self)
 
     def num_sub_elements(self):
-        "Return number of sub elements"
+        "Return number of sub-elements."
         return 0
 
     def sub_elements(self):
-        "Return list of sub elements"
+        "Return list of sub-elements."
         return []
 
     def __add__(self, other):

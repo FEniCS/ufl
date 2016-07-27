@@ -2,16 +2,19 @@
 Internal representation details
 *******************************
 
-FIXME: This chapter is very much outdated.
-Most of the concepts are still the same but
-a lot of the details are different.
+..
+    FIXME: This chapter is very much outdated.
+    Most of the concepts are still the same but
+    a lot of the details are different.
 
 
 This chapter explains how UFL forms and expressions are represented
 in detail. Most operations are mirrored by a representation class,
 e.g., ``Sum`` and ``Product``, which are subclasses
 of ``Expr``.  You can import all of them from the submodule
-``ufl.classes`` by::
+``ufl.classes`` by
+
+::
 
   from ufl.classes import *
 
@@ -140,8 +143,9 @@ Elements
 All finite element classes have a common base class
 ``FiniteElementBase``. The class hierarchy looks like this:
 
+..
 TODO: Class figure.
-
+..
 TODO: Describe all FiniteElementBase subclasses here.
 
 

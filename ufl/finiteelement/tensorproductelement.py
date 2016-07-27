@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Based on tensorproductelement.py
 # Modified by Andrew T. T. McRae 2014
 # Modified by Lawrence Mitchell 2014
+# Modified by Marie E. Rognes 2010, 2012
 
 from ufl.assertions import ufl_assert
 from ufl.cell import TensorProductCell, as_cell
@@ -33,7 +33,7 @@ class TensorProductElement(FiniteElementBase):
     .. math:: V = A \otimes B
 
     Given bases :math:`{\phi_A, \phi_B}` for :math:`A, B`,
-    :math:`{\phi_A * \phi_B}` forms a basis for :math:`V`.
+    :math:`{\phi_A \otimes \phi_B}` forms a basis for :math:`V`.
     """
     __slots__ = ("_A", "_B", "_mapping")
 

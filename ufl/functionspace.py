@@ -17,6 +17,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Massimiliano Leoni, 2016
 
 #from ufl.core.terminal import Terminal
 #from ufl.corealg.traversal import traverse_unique_terminals
@@ -51,15 +53,19 @@ class FunctionSpace(AbstractFunctionSpace):
         self._ufl_element = element
 
     def ufl_sub_spaces(self):
+        "Return ufl sub spaces."
         return ()
 
     def ufl_domain(self):
+        "Return ufl domain."
         return self._ufl_domain
 
     def ufl_element(self):
+        "Return ufl element."
         return self._ufl_element
 
     def ufl_domains(self):
+        "Return ufl domains."
         return (self.ufl_domain(),)
 
     def _ufl_hash_data_(self):
@@ -85,18 +91,22 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         self._ufl_element = MixedElement(*[fs.ufl_element() for fs in function_spaces])
 
     def ufl_sub_spaces(self):
+        "Return ufl sub spaces."
         return self._ufl_function_spaces
 
     def ufl_element(self):
+        "Return ufl element."
         return self._ufl_element
 
     def ufl_domains(self):
+        "Return ufl domains."
         domainlist = []
         for s in self._ufl_function_spaces:
             domainlist.extend(s.ufl_domains())
         return join_domains(domainlist)
 
     def ufl_domain(self):
+        "Return ufl domain."
         domains = self.ufl_domains()
         if len(domains) == 1:
             return domains[0]

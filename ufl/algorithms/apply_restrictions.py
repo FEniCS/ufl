@@ -89,7 +89,7 @@ class RestrictionPropagator(MultiFunction):
     cell_avg = _require_restriction
     facet_avg = _ignore_restriction
 
-    def variable(self, o, op):
+    def variable(self, o, op, label):
         "Strip variable."
         return op
 
