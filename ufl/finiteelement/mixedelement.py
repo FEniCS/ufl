@@ -23,8 +23,6 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-from itertools import chain
-
 from six import iteritems
 from six.moves import zip
 from six.moves import xrange as range
@@ -32,11 +30,9 @@ from six.moves import xrange as range
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.utils.sequences import product
-from ufl.utils.formatting import istr
 from ufl.utils.dicts import EmptyDict
 from ufl.utils.indexflattening import flatten_multiindex, unflatten_index, shape_to_strides
 from ufl.cell import as_cell
-from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.finiteelement.finiteelement import FiniteElement
@@ -72,32 +68,35 @@ class MixedElement(FiniteElementBase):
         else:
             cell = None
 
-        # Check that all elements use the same quadrature scheme
-        # TODO: We can allow the scheme not to be defined.
+        # Check that all elements use the same quadrature scheme TODO:
+        # We can allow the scheme not to be defined.
         quad_scheme = elements[0].quadrature_scheme()
         ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),
-            "Quadrature scheme mismatch for sub elements of mixed element.")
+                   "Quadrature scheme mismatch for sub elements of mixed element.")
 
         # Compute value sizes in global and reference configurations
         value_size_sum = sum(product(s.value_shape()) for s in self._sub_elements)
         reference_value_size_sum = sum(product(s.reference_value_shape()) for s in self._sub_elements)
 
-        # Default value shape: Treated simply as all subelement values unpacked in a vector.
+        # Default value shape: Treated simply as all subelement values
+        # unpacked in a vector.
         value_shape = kwargs.get('value_shape', (value_size_sum,))
 
-        # Default reference value shape: Treated simply as all subelement reference values unpacked in a vector.
+        # Default reference value shape: Treated simply as all
+        # subelement reference values unpacked in a vector.
         reference_value_shape = kwargs.get('reference_value_shape', (reference_value_size_sum,))
 
-        # Validate value_shape (deliberately not for subclasses VectorElement and TensorElement)
+        # Validate value_shape (deliberately not for subclasses
+        # VectorElement and TensorElement)
         if type(self) is MixedElement:
             # This is not valid for tensor elements with symmetries,
             # assume subclasses deal with their own validation
             ufl_assert(product(value_shape) == value_size_sum,
-                "Provided value_shape doesn't match the total "
-                "value size of all subelements.")
+                       "Provided value_shape doesn't match the total "
+                       "value size of all subelements.")
 
         # Initialize element data
-        degrees = { e.degree() for e in self._sub_elements } - { None }
+        degrees = {e.degree() for e in self._sub_elements} - {None}
         degree = max(degrees) if degrees else None
         FiniteElementBase.__init__(self, "Mixed", cell, degree, quad_scheme,
                                    value_shape, reference_value_shape)
@@ -112,7 +111,7 @@ class MixedElement(FiniteElementBase):
             return self
         ufl_assert(all(a.value_shape() == b.value_shape()
                        for (a, b) in zip(elements, self._sub_elements)),
-            "Expecting new elements to have same value shape as old ones.")
+                   "Expecting new elements to have same value shape as old ones.")
         return MixedElement(*elements)
 
     def symmetry(self):
@@ -127,7 +126,8 @@ class MixedElement(FiniteElementBase):
         for e in self._sub_elements:
             sh = e.value_shape()
             st = shape_to_strides(sh)
-            # Map symmetries of subelement into index space of this element
+            # Map symmetries of subelement into index space of this
+            # element
             for c0, c1 in iteritems(e.symmetry()):
                 j0 = flatten_multiindex(c0, st) + j
                 j1 = flatten_multiindex(c1, st) + j
@@ -161,7 +161,8 @@ class MixedElement(FiniteElementBase):
 
         # Select between indexing modes
         if len(self.value_shape()) == 1:
-            # Indexing into a long vector of flattened subelement shapes
+            # Indexing into a long vector of flattened subelement
+            # shapes
             j, = i
 
             # Find subelement for this index
@@ -177,8 +178,8 @@ class MixedElement(FiniteElementBase):
             st = shape_to_strides(sh)
             component = unflatten_index(j, st)
         else:
-            # Indexing into a multidimensional tensor
-            # where subelement index is first axis
+            # Indexing into a multidimensional tensor where subelement
+            # index is first axis
             sub_element_index = i[0]
             ufl_assert(sub_element_index < len(self._sub_elements),
                        "Illegal component index (dimension %d)." % sub_element_index)
@@ -235,7 +236,7 @@ class MixedElement(FiniteElementBase):
     def degree(self, component=None):
         "Return polynomial degree of finite element."
         if component is None:
-            return self._degree # from FiniteElementBase, computed as max of subelements in __init__
+            return self._degree  # from FiniteElementBase, computed as max of subelements in __init__
         else:
             i, e = self.extract_component(component)
             return e.degree()
@@ -300,12 +301,14 @@ class VectorElement(MixedElement):
         reference_value_shape = (dim,) + sub_element.reference_value_shape()
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape, reference_value_shape=reference_value_shape)
-        # FIXME: Storing this here is strange, isn't that handled by subclass?
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape,
+                              reference_value_shape=reference_value_shape)
+        # FIXME: Storing this here is strange, isn't that handled by
+        # subclass?
         self._family = sub_element.family()
         self._degree = sub_element.degree()
         self._sub_element = sub_element
-        self._form_degree = form_degree # Storing for signature_data, not sure if it's needed
+        self._form_degree = form_degree  # Storing for signature_data, not sure if it's needed
 
         # Cache repr string
         self._repr = "VectorElement(%r, dim=%d)" % (sub_element, len(self._sub_elements))
@@ -313,18 +316,20 @@ class VectorElement(MixedElement):
     def __str__(self):
         "Format as string for pretty printing."
         return ("<vector element with %d components of %s>" %
-               (len(self._sub_elements), self._sub_element))
+                (len(self._sub_elements), self._sub_element))
 
     def shortstr(self):
         "Format as string for pretty printing."
         return "Vector<%d x %s>" % (len(self._sub_elements),
                                     self._sub_element.shortstr())
 
+
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal."
     __slots__ = ("_sub_element", "_shape", "_symmetry",
                  "_sub_element_mapping", "_flattened_sub_element_mapping",
                  "_mapping")
+
     def __init__(self, family, cell=None, degree=None, shape=None,
                  symmetry=None, quad_scheme=None):
         """Create tensor element (repeated mixed element with optional symmetries).
@@ -363,10 +368,11 @@ class TensorElement(MixedElement):
             # Construct default symmetry dict for matrix elements
             ufl_assert(len(shape) == 2 and shape[0] == shape[1],
                        "Cannot set automatic symmetry for non-square tensor.")
-            symmetry = dict( ((i, j), (j, i)) for i in range(shape[0])
-                             for j in range(shape[1]) if i > j )
+            symmetry = dict(((i, j), (j, i)) for i in range(shape[0])
+                            for j in range(shape[1]) if i > j)
         else:
-            ufl_assert(isinstance(symmetry, dict), "Expecting symmetry to be None (unset), True, or dict.")
+            ufl_assert(isinstance(symmetry, dict),
+                       "Expecting symmetry to be None (unset), True, or dict.")
 
         # Validate indices in symmetry dict
         for i, j in iteritems(symmetry):
@@ -380,7 +386,8 @@ class TensorElement(MixedElement):
         # Compute all index combinations for given shape
         indices = compute_indices(shape)
 
-        # Compute mapping from indices to sub element number, accounting for symmetry
+        # Compute mapping from indices to sub element number,
+        # accounting for symmetry
         sub_elements = []
         sub_element_mapping = {}
         for index in indices:
@@ -393,7 +400,8 @@ class TensorElement(MixedElement):
         for index in indices:
             if index in symmetry:
                 sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
-        flattened_sub_element_mapping = [sub_element_mapping[index] for i, index in enumerate(indices)]
+        flattened_sub_element_mapping = [sub_element_mapping[index] for i,
+                                         index in enumerate(indices)]
 
         # Compute value shape
         value_shape = shape
@@ -409,7 +417,8 @@ class TensorElement(MixedElement):
             self._mapping = "identity"
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape, reference_value_shape=reference_value_shape)
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape,
+                              reference_value_shape=reference_value_shape)
         self._family = sub_element.family()
         self._degree = sub_element.degree()
         self._sub_element = sub_element

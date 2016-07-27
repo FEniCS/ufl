@@ -23,21 +23,20 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.assertions import ufl_assert
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
-from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.elementlist import canonical_element_description
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+
 
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements."
     # TODO: Move these to base?
     __slots__ = ("_short_name",
                  "_sobolev_space",
-                 "_mapping",
-                )
+                 "_mapping",)
+
     def __init__(self,
                  family,
                  cell=None,
@@ -59,26 +58,29 @@ class FiniteElement(FiniteElementBase):
             quad_scheme
                The quadrature scheme (optional)
         """
-        # Note: Unfortunately, dolfin sometimes passes None for cell. Until this is fixed, allow it:
+        # Note: Unfortunately, dolfin sometimes passes None for
+        # cell. Until this is fixed, allow it:
         if cell is not None:
             cell = as_cell(cell)
 
-        family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
-          canonical_element_description(family, cell, degree, form_degree)
+        family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = canonical_element_description(family, cell, degree, form_degree)
 
-        # TODO: Move these to base? Might be better to instead simplify base though.
+        # TODO: Move these to base? Might be better to instead
+        # simplify base though.
         self._sobolev_space = sobolev_space
         self._mapping = mapping
         self._short_name = short_name
 
         # Initialize element data
-        FiniteElementBase.__init__(self, family, cell, degree,
-                                   quad_scheme, value_shape, reference_value_shape)
+        FiniteElementBase.__init__(self, family, cell, degree, quad_scheme,
+                                   value_shape, reference_value_shape)
 
         # Cache repr string
         qs = self.quadrature_scheme()
         quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
-        self._repr = "FiniteElement(%r, %r, %r%s)" % (self.family(), self.cell(), self.degree(), quad_str)
+        self._repr = "FiniteElement(%r, %r, %r%s)" % (self.family(),
+                                                      self.cell(),
+                                                      self.degree(), quad_str)
         assert '"' not in self._repr
 
     def mapping(self):
@@ -93,7 +95,7 @@ class FiniteElement(FiniteElementBase):
         qs = self.quadrature_scheme()
         qs = "" if qs is None else "(%s)" % qs
         return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),
-                                           qs, self.cell())
+                                     qs, self.cell())
 
     def shortstr(self):
         "Format as string for pretty printing."

@@ -23,8 +23,8 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.assertions import ufl_assert
-from ufl.cell import as_cell, TensorProductCell
-from ufl.log import info_blue, warning, warning_blue, error
+from ufl.cell import TensorProductCell
+from ufl.log import warning
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
@@ -56,7 +56,7 @@ class TensorProductElement(FiniteElementBase):
         cell = TensorProductCell([e.cell() for e in self._sub_elements])
 
         # Define polynomial degree as the maximal of each subelement
-        degrees = { e.degree() for e in self._sub_elements } - { None }
+        degrees = {e.degree() for e in self._sub_elements} - {None}
         degree = max(degrees) if degrees else None
 
         # No quadrature scheme defined
@@ -64,7 +64,8 @@ class TensorProductElement(FiniteElementBase):
 
         # For now, check that all subelements have the same value
         # shape, and use this.
-        # TODO: Not sure if this makes sense, what kind of product is used to build the basis?
+        # TODO: Not sure if this makes sense, what kind of product is
+        # used to build the basis?
         value_shape = self._sub_elements[0].value_shape()
         reference_value_shape = self._sub_elements[0].reference_value_shape()
         ufl_assert(all(e.value_shape() == value_shape
@@ -72,7 +73,8 @@ class TensorProductElement(FiniteElementBase):
                    "All subelements in must have same value shape")
 
         FiniteElementBase.__init__(self, family, cell, degree,
-                                   quad_scheme, value_shape, reference_value_shape)
+                                   quad_scheme, value_shape,
+                                   reference_value_shape)
 
     def mapping(self):
         if all(e.mapping() == "identity" for e in self._sub_elements):

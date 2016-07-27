@@ -20,6 +20,7 @@
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
+
 class TraceElement(FiniteElementBase):
     """A finite element space: the trace of a given H-div element.
     This is effectively a scalar-valued restriction which is

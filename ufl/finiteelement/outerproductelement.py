@@ -25,7 +25,6 @@
 
 from ufl.assertions import ufl_assert
 from ufl.cell import OuterProductCell, as_cell
-from ufl.finiteelement.mixedelement import MixedElement
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 

@@ -24,9 +24,8 @@
 
 from six.moves import zip
 from ufl.assertions import ufl_assert
-from ufl.log import info_blue, warning, warning_blue, error
-
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+
 
 class EnrichedElement(FiniteElementBase):
     """The vector sum of two finite element spaces:
@@ -41,17 +40,18 @@ class EnrichedElement(FiniteElementBase):
                    "Cell mismatch for sub elements of enriched element.")
 
         if isinstance(elements[0].degree(), int):
-            degrees = { e.degree() for e in elements } - { None }
+            degrees = {e.degree() for e in elements} - {None}
             degree = max(degrees) if degrees else None
         else:
             degree = tuple(map(max, zip(*[e.degree() for e in elements])))
 
-        # We can allow the scheme not to be defined, but all defined should be equal
+        # We can allow the scheme not to be defined, but all defined
+        # should be equal
         quad_schemes = [e.quadrature_scheme() for e in elements]
         quad_schemes = [qs for qs in quad_schemes if qs is not None]
         quad_scheme = quad_schemes[0] if quad_schemes else None
         ufl_assert(all(qs == quad_scheme for qs in quad_schemes),
-            "Quadrature scheme mismatch.")
+                   "Quadrature scheme mismatch.")
 
         value_shape = elements[0].value_shape()
         ufl_assert(all(e.value_shape() == value_shape for e in elements),
@@ -61,13 +61,14 @@ class EnrichedElement(FiniteElementBase):
         ufl_assert(all(e.reference_value_shape() == reference_value_shape for e in elements),
                    "Element reference value shape mismatch.")
 
-        #mapping = elements[0].mapping() # FIXME: This fails for a mixed subelement here.
-        #ufl_assert(all(e.mapping() == mapping for e in elements),
+        # mapping = elements[0].mapping() # FIXME: This fails for a mixed subelement here.
+        # ufl_assert(all(e.mapping() == mapping for e in elements),
         #           "Element mapping mismatch.")
 
         # Initialize element data
         FiniteElementBase.__init__(self, "EnrichedElement", cell, degree,
-                                   quad_scheme, value_shape, reference_value_shape)
+                                   quad_scheme, value_shape,
+                                   reference_value_shape)
 
         # Cache repr string
         self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)

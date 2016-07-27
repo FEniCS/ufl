@@ -24,12 +24,11 @@
 
 from six.moves import zip
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
 from ufl.utils.sequences import product
-from ufl.utils.formatting import istr
 from ufl.utils.dicts import EmptyDict
-from ufl.log import info_blue, warning, warning_blue, error
+from ufl.log import warning_blue, error
 from ufl.cell import AbstractCell, as_cell
+
 
 class FiniteElementBase(object):
     "Base class for all finite elements."
@@ -42,13 +41,18 @@ class FiniteElementBase(object):
                  "_reference_value_shape",
                  "_repr",
                  "__weakref__")
-    # TODO: Not all these should be in the base class! In particular family, degree, and quad_scheme do not belong here.
-    def __init__(self, family, cell, degree, quad_scheme, value_shape, reference_value_shape):
+
+    # TODO: Not all these should be in the base class! In particular
+    # family, degree, and quad_scheme do not belong here.
+    def __init__(self, family, cell, degree, quad_scheme, value_shape,
+                 reference_value_shape):
         "Initialize basic finite element data."
         ufl_assert(isinstance(family, str), "Invalid family type.")
-        ufl_assert(isinstance(degree, (int, tuple)) or degree is None, "Invalid degree type.")
+        ufl_assert(isinstance(degree, (int, tuple)) or degree is None,
+                   "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
-        ufl_assert(isinstance(reference_value_shape, tuple), "Invalid reference_value_shape type.")
+        ufl_assert(isinstance(reference_value_shape, tuple),
+                   "Invalid reference_value_shape type.")
 
         if cell is not None:
             cell = as_cell(cell)
@@ -60,7 +64,6 @@ class FiniteElementBase(object):
         self._value_shape = value_shape
         self._reference_value_shape = reference_value_shape
         self._quad_scheme = quad_scheme
-
 
     def __repr__(self):
         "Format as string for evaluation as Python object."
@@ -81,14 +84,14 @@ class FiniteElementBase(object):
         "Compare elements by repr, to give a natural stable sorting."
         return repr(self) < repr(other)
 
-
-    def family(self): # FIXME: Undefined for base?
+    def family(self):  # FIXME: Undefined for base?
         "Return finite element family."
         return self._family
 
     def degree(self, component=None):
         "Return polynomial degree of finite element."
-        # FIXME: Consider embedded_degree concept for more accurate degree, see blueprint
+        # FIXME: Consider embedded_degree concept for more accurate
+        # degree, see blueprint
         return self._degree
 
     def quadrature_scheme(self):
@@ -124,7 +127,7 @@ class FiniteElementBase(object):
         "Return the integer product of the reference value shape."
         return product(self.reference_value_shape())
 
-    def symmetry(self): # FIXME: different approach
+    def symmetry(self):  # FIXME: different approach
         """Return the symmetry dict, which is a mapping :math:`c_0 \\to c_1`
         meaning that component :math:`c_0` is represented by component
         :math:`c_1`.
