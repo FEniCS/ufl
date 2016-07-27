@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+
 class UFLTypeDict(dict):
     def __init__(self):
         dict.__init__(self)
@@ -34,9 +35,11 @@ class UFLTypeDict(dict):
     def __contains__(self, key):
         return dict.__contains__(self, key._ufl_class_)
 
+
 class UFLTypeDefaultDict(dict):
     def __init__(self, default):
         dict.__init__(self)
+
         def make_default():
             return default
         self.setdefault(make_default)

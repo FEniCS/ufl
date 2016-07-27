@@ -19,8 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from six.moves import zip
-import operator
-import time
+
 
 def product(sequence):
     "Return the product of all elements in a sequence."
@@ -29,20 +28,25 @@ def product(sequence):
         p *= f
     return p
 
+
 def unzip(seq):
     "Inverse operation of zip: unzip(zip(a, b)) == (a, b)"
     return [s[0] for s in seq], [s[1] for s in seq]
 
+
 def xor(a, b):
     return bool(a) if b else not a
+
 
 def or_tuples(seqa, seqb):
     "Return 'or' of all pairs in two sequences of same length."
     return tuple(a or b for (a, b) in zip(seqa, seqb))
 
+
 def and_tuples(seqa, seqb):
     "Return 'and' of all pairs in two sequences of same length."
     return tuple(a and b for (a, b) in zip(seqa, seqb))
+
 
 def iter_tree(tree):
     """Iterate over all nodes in a tree represented
@@ -53,6 +57,7 @@ def iter_tree(tree):
                 yield i
     else:
         yield tree
+
 
 def recursive_chain(lists):
     for l in lists:
