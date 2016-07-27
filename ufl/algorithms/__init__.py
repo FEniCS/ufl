@@ -55,7 +55,6 @@ from ufl.algorithms.formdata import FormData
 from ufl.algorithms.compute_form_data import compute_form_data
 
 # Utilities for checking properties of forms
-from ufl.algorithms.predicates import is_multilinear
 from ufl.algorithms.signature import compute_form_signature
 
 # Utilities for error checking of forms
@@ -71,7 +70,6 @@ from ufl.algorithms.replace import Replacer, replace
 from ufl.algorithms.change_to_reference import change_to_reference_grad
 from ufl.algorithms.expand_compounds import expand_compounds
 from ufl.algorithms.estimate_degrees import SumDegreeEstimator, estimate_total_polynomial_degree
-from ufl.algorithms.argument_dependencies import ArgumentDependencyExtracter, extract_argument_dependencies, NotMultiLinearException
 from ufl.algorithms.expand_indices import expand_indices, purge_list_tensors
 
 # Utilities for transforming complete Forms into other Forms
