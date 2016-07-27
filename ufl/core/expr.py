@@ -32,9 +32,10 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 
 from six.moves import xrange as range
 
-from ufl.log import warning, error, deprecate
+from ufl.log import error, deprecate
 
-#--- The base object for all UFL expression tree nodes ---
+
+# --- The base object for all UFL expression tree nodes ---
 
 class Expr(object):
     """Base class for all UFL expression types.
@@ -93,13 +94,13 @@ class Expr(object):
         Giving a list of creation and deletion counts for each typecode.
     """
 
-    # --- Each Expr subclass must define __slots__ or _ufl_noslots_ at the top ---
-    # This is to freeze member variables for objects of this class and save memory
-    # by skipping the per-instance dict.
+    # --- Each Expr subclass must define __slots__ or _ufl_noslots_ at
+    # --- the top ---
+    # This is to freeze member variables for objects of this class and
+    # save memory by skipping the per-instance dict.
 
     __slots__ = ("_hash",)
-    #_ufl_noslots_ = True
-
+    # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
 
@@ -118,37 +119,41 @@ class Expr(object):
     def __del__(self):
         pass
 
-    # This shows the principal behaviour of the hash function attached in ufl_type:
-    #def __hash__(self):
-    #    if self._hash is None:
-    #        self._hash = self._ufl_compute_hash_()
-    #    return self._hash
+    # This shows the principal behaviour of the hash function attached
+    # in ufl_type:
+    # def __hash__(self):
+    #     if self._hash is None:
+    #         self._hash = self._ufl_compute_hash_()
+    #     return self._hash
 
-    # --- Type traits are added to subclasses by the ufl_type class decorator ---
+    # --- Type traits are added to subclasses by the ufl_type class
+    # --- decorator ---
 
     # Note: Some of these are modified after the Expr class definition
-    # because Expr is not defined yet at this point.
-    # Note: Boolean type traits that categorize types are mostly set to
-    # None for Expr but should be True or False for any non-abstract type.
+    # because Expr is not defined yet at this point.  Note: Boolean
+    # type traits that categorize types are mostly set to None for
+    # Expr but should be True or False for any non-abstract type.
 
-    # A reference to the UFL class itself.
-    # This makes it possible to do type(f)._ufl_class_ and be sure you get
-    # the actual UFL class instead of a subclass from another library.
+    # A reference to the UFL class itself.  This makes it possible to
+    # do type(f)._ufl_class_ and be sure you get the actual UFL class
+    # instead of a subclass from another library.
     _ufl_class_ = None
 
-    # The handler name.
-    # This is the name of the handler function you implement for this type in a multifunction.
+    # The handler name.  This is the name of the handler function you
+    # implement for this type in a multifunction.
     _ufl_handler_name_ = "expr"
 
-    # The integer typecode, a contiguous index different for each type.
-    # This is used for fast lookup into e.g. multifunction handler tables.
+    # The integer typecode, a contiguous index different for each
+    # type.  This is used for fast lookup into e.g. multifunction
+    # handler tables.
     _ufl_typecode_ = 0
 
-    # Number of operands, "varying" for some types, or None if not applicable for abstract types.
+    # Number of operands, "varying" for some types, or None if not
+    # applicable for abstract types.
     _ufl_num_ops_ = None
 
-    # Type trait: If the type is abstract.
-    # An abstract class cannot be instantiated and does not need all properties specified.
+    # Type trait: If the type is abstract.  An abstract class cannot
+    # be instantiated and does not need all properties specified.
     _ufl_is_abstract_ = True
 
     # Type trait: If the type is terminal.
@@ -157,12 +162,13 @@ class Expr(object):
     # Type trait: If the type is a literal.
     _ufl_is_literal_ = None
 
-    # Type trait: If the type is classified as a 'terminal modifier', for form compiler use.
+    # Type trait: If the type is classified as a 'terminal modifier',
+    # for form compiler use.
     _ufl_is_terminal_modifier_ = None
 
-    # Type trait: If the type is a shaping operator.
-    # Shaping operations include indexing, slicing, transposing,
-    # i.e. not introducing computation of a new value.
+    # Type trait: If the type is a shaping operator.  Shaping
+    # operations include indexing, slicing, transposing, i.e. not
+    # introducing computation of a new value.
     _ufl_is_shaping_ = False
 
     # Type trait: If the type is in reference frame.
@@ -177,16 +183,17 @@ class Expr(object):
     # Type trait: If the type is a differential operator.
     _ufl_is_differential_ = None
 
-    # Type trait: If the type is purely scalar, having no shape or indices.
+    # Type trait: If the type is purely scalar, having no shape or
+    # indices.
     _ufl_is_scalar_ = None
 
     # Type trait: If the type never has free indices.
     _ufl_is_index_free_ = False
 
-
     # --- All subclasses must define these object attributes ---
 
-    # Each subclass of Expr is checked to have these properties in ufl_type
+    # Each subclass of Expr is checked to have these properties in
+    # ufl_type
     _ufl_required_properties_ = (
         # A tuple of operands, all of them Expr instances.
         "ufl_operands",
@@ -199,36 +206,39 @@ class Expr(object):
 
         # A tuple providing the int dimension for each free index.
         "ufl_index_dimensions",
-        )
+    )
 
-    # Each subclass of Expr is checked to have these methods in ufl_type
+    # Each subclass of Expr is checked to have these methods in
+    # ufl_type
     # FIXME: Add more and enable all
     _ufl_required_methods_ = (
         # To compute the hash on demand, this method is called.
         "_ufl_compute_hash_",
 
-        # The data returned from this method is used to compute the signature of a form
+        # The data returned from this method is used to compute the
+        # signature of a form
         "_ufl_signature_data_",
 
-        # The == operator must be implemented to compare for identical representation,
-        # used by set() and dict(). The __hash__ operator is added by ufl_type.
+        # The == operator must be implemented to compare for identical
+        # representation, used by set() and dict(). The __hash__
+        # operator is added by ufl_type.
         "__eq__",
 
-        # To reconstruct an object of the same type with operands or properties changed.
-        "_ufl_expr_reconstruct_", # Implemented in Operator and Terminal so this should never fail
+        # To reconstruct an object of the same type with operands or
+        # properties changed.
+        "_ufl_expr_reconstruct_",  # Implemented in Operator and Terminal so this should never fail
 
         "ufl_domains",
-        #"ufl_cell",
-        #"ufl_domain",
+        # "ufl_cell",
+        # "ufl_domain",
 
-        #"__str__",
-        #"__repr__",
+        # "__str__",
+        # "__repr__",
 
         # TODO: Add checks for methods/properties of terminals only?
         # Required for terminals:
-        #"is_cellwise_constant", # TODO: Rename to ufl_is_cellwise_constant?
-        )
-
+        # "is_cellwise_constant", # TODO: Rename to ufl_is_cellwise_constant?
+    )
 
     # --- Global variables for collecting all types ---
 
@@ -241,19 +251,21 @@ class Expr(object):
     # A global array of all Expr subclasses, indexed by typecode
     _ufl_all_classes_ = []
 
-    # A global dict mapping language_operator_name to the type it produces
+    # A global dict mapping language_operator_name to the type it
+    # produces
     _ufl_language_operators_ = {}
 
     # List of all terminal modifier types
     _ufl_terminal_modifiers_ = []
 
-
     # --- Mechanism for profiling object creation and deletion ---
 
-    # A global array of the number of initialized objects for each typecode
+    # A global array of the number of initialized objects for each
+    # typecode
     _ufl_obj_init_counts_ = [0]
 
-    # A global array of the number of deleted objects for each typecode
+    # A global array of the number of deleted objects for each
+    # typecode
     _ufl_obj_del_counts_ = [0]
 
     # Backup of default init and del
@@ -286,45 +298,42 @@ class Expr(object):
         Expr.__del__ = Expr._ufl_regular__del__
         return (Expr._ufl_obj_init_counts_, Expr._ufl_obj_del_counts_)
 
+    # === Abstract functions that must be implemented by subclasses ===
 
-    #=== Abstract functions that must be implemented by subclasses ===
-
-    #--- Functions for reconstructing expression ---
+    # --- Functions for reconstructing expression ---
 
     def _ufl_expr_reconstruct_(self, *operands):
         "Return a new object of the same type with new operands."
         raise NotImplementedError(self.__class__._ufl_expr_reconstruct_)
 
-    #--- Functions for geometric properties of expression ---
+    # --- Functions for geometric properties of expression ---
 
-    def ufl_domains(self): # TODO: Deprecate this and use extract_domains(expr)
+    def ufl_domains(self):  # TODO: Deprecate this and use extract_domains(expr)
         "Return all domains this expression is defined on."
         from ufl.domain import extract_domains
         return extract_domains(self)
 
-    def ufl_domain(self): # TODO: Deprecate this and use extract_unique_domain(expr)
+    def ufl_domain(self):  # TODO: Deprecate this and use extract_unique_domain(expr)
         "Return the single unique domain this expression is defined on, or throw an error."
         from ufl.domain import extract_unique_domain
         return extract_unique_domain(self)
 
-    def is_cellwise_constant(self): # TODO: Deprecate this and use is_cellwise_constant(expr)
+    def is_cellwise_constant(self):  # TODO: Deprecate this and use is_cellwise_constant(expr)
         "Return whether this expression is spatially constant over each cell."
         from ufl.checks import is_cellwise_constant
         deprecate("Expr.is_cellwise_constant() is deprecated, please use is_cellwise_constant(expr) instead.")
         return is_cellwise_constant(self)
 
-    #--- Functions for float evaluation ---
+    # --- Functions for float evaluation ---
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        #from ufl.corealg.evaluate import evaluate_expr # TODO: Implement in corealg.eval module
-        #return evaluate_expr(self, ...) # ... then deprecate and remove expr.evaluate()
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
     def _ufl_evaluate_scalar_(self):
         if self.ufl_shape or self.ufl_free_indices:
             raise TypeError("Cannot evaluate a nonscalar expression to a scalar value.")
-        return self(()) # No known x
+        return self(())  # No known x
 
     def __float__(self):
         "Try to evaluate as scalar and cast to float."
@@ -354,12 +363,12 @@ class Expr(object):
         ufl_from_type = "_ufl_from_{0}_".format(value.__class__.__name__)
         return getattr(Expr, ufl_from_type)(value)
 
-        #if hasattr(Expr, ufl_from_type):
-        #    return getattr(Expr, ufl_from_type)(value)
-        ## Fail gracefully if no valid type conversion found
-        #raise TypeError("Cannot convert a {0.__class__.__name__} to UFL type.".format(value))
+        # if hasattr(Expr, ufl_from_type):
+        #     return getattr(Expr, ufl_from_type)(value)
+        # Fail gracefully if no valid type conversion found
+        # raise TypeError("Cannot convert a {0.__class__.__name__} to UFL type.".format(value))
 
-    #--- Special functions for string representations ---
+    # --- Special functions for string representations ---
 
     # All subclasses must implement _ufl_signature_data_
     def _ufl_signature_data_(self, renumbering):
@@ -384,7 +393,7 @@ class Expr(object):
         from IPython.lib.latextools import latex_to_png
         return latex_to_png(self._repr_latex_())
 
-    #--- Special functions used for processing expressions ---
+    # --- Special functions used for processing expressions ---
 
     def __eq__(self, other):
         """Checks whether the two expressions are represented the
@@ -416,8 +425,7 @@ class Expr(object):
         "Round to nearest integer or to nearest nth decimal."
         return round(float(self), n)
 
-
-    #--- Deprecated functions
+    # --- Deprecated functions
 
     def reconstruct(self, *operands):
         """Return a new object of the same type with new operands.
@@ -431,23 +439,23 @@ class Expr(object):
         return find_geometric_dimension(self)
 
     def domains(self):
-        "Deprecated, please use .ufl_domains() instead." 
+        "Deprecated, please use .ufl_domains() instead."
         deprecate("Expr.domains() is deprecated, please use .ufl_domains() instead.")
         return self.ufl_domains()
 
     def cell(self):
-        "Deprecated, please use .ufl_domain().ufl_cell() instead." 
+        "Deprecated, please use .ufl_domain().ufl_cell() instead."
         deprecate("Expr.cell() is deprecated, please use .ufl_domain() instead.")
         domain = self.ufl_domain()
         return domain.ufl_cell() if domain is not None else None
 
     def domain(self):
-        "Deprecated, please use .ufl_domain() instead." 
+        "Deprecated, please use .ufl_domain() instead."
         deprecate("Expr.domain() is deprecated, please use .ufl_domain() instead.")
         return self.ufl_domain()
 
     def operands(self):
-        "Deprecated, please use Expr.ufl_operands instead." 
+        "Deprecated, please use Expr.ufl_operands instead."
         deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
         return self.ufl_operands
 
@@ -465,23 +473,24 @@ class Expr(object):
         return len(self.ufl_shape)
 
     def free_indices(self):
-        "Deprecated, please use property Expr.ufl_free_indices instead." 
+        "Deprecated, please use property Expr.ufl_free_indices instead."
         from ufl.core.multiindex import Index
         deprecate("Expr.free_indices() is deprecated," +
                   " please use property Expr.ufl_free_indices instead.")
         return tuple(Index(count=i) for i in self.ufl_free_indices)
 
     def index_dimensions(self):
-        "Deprecated, please use property Expr.ufl_index_dimensions instead." 
+        "Deprecated, please use property Expr.ufl_index_dimensions instead."
         from ufl.core.multiindex import Index
         from ufl.utils.dicts import EmptyDict
         deprecate("Expr.index_dimensions() is deprecated," +
                   " please use property Expr.ufl_index_dimensions instead.")
-        idims = { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
+        idims = {Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions)}
         return idims or EmptyDict
 
 
-# Initializing traits here because Expr is not defined in the class declaration
+# Initializing traits here because Expr is not defined in the class
+# declaration
 Expr._ufl_class_ = Expr
 Expr._ufl_all_handler_names_.add(Expr)
 Expr._ufl_all_classes_.append(Expr)

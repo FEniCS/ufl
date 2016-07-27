@@ -23,11 +23,11 @@ for all types that are terminal nodes in an expression tree."""
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error, warning
-from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
-#--- Base class for terminal objects ---
+
+# --- Base class for terminal objects ---
 
 @ufl_type(is_abstract=True, is_terminal=True)
 class Terminal(Expr):
@@ -101,11 +101,12 @@ class Terminal(Expr):
         return repr(self) == repr(other)
 
 
-#--- Subgroups of terminals ---
+# --- Subgroups of terminals ---
 
 @ufl_type(is_abstract=True)
 class FormArgument(Terminal):
     "An abstract class for a form argument."
     __slots__ = ()
+
     def __init__(self):
         Terminal.__init__(self)

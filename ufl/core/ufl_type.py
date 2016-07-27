@@ -21,12 +21,11 @@
 
 from ufl.core.expr import Expr
 from ufl.core.compute_expr_hash import compute_expr_hash
-
 from ufl.utils.formatting import camel2underscore
-from ufl.utils.dicts import EmptyDict
+
 
 # Make UFL type coercion available under the as_ufl name
-#as_ufl = Expr._ufl_coerce_
+# as_ufl = Expr._ufl_coerce_
 
 def attach_operators_from_hash_data(cls):
     """Class decorator to attach ``__hash__``, ``__eq__`` and ``__ne__`` implementations.
@@ -53,6 +52,7 @@ def attach_operators_from_hash_data(cls):
 
     return cls
 
+
 def get_base_attr(cls, name):
     "Return first non-``None`` attribute of given name among base classes."
     for base in cls.mro():
@@ -61,6 +61,7 @@ def get_base_attr(cls, name):
             if attr is not None:
                 return attr
     return None
+
 
 def set_trait(cls, basename, value, inherit=False):
     """Assign a trait to class with namespacing ``_ufl_basename_`` applied.
@@ -72,11 +73,12 @@ def set_trait(cls, basename, value, inherit=False):
         value = get_base_attr(cls, name)
     setattr(cls, name, value)
 
+
 def determine_num_ops(cls, num_ops, unop, binop, rbinop):
     "Determine number of operands for this type."
-    # Try to determine num_ops from other traits or baseclass,
-    # or require num_ops to be set for non-abstract classes
-    # if it cannot be determined automatically
+    # Try to determine num_ops from other traits or baseclass, or
+    # require num_ops to be set for non-abstract classes if it cannot
+    # be determined automatically
     if num_ops is not None:
         return num_ops
     elif cls._ufl_is_terminal_:
@@ -89,18 +91,20 @@ def determine_num_ops(cls, num_ops, unop, binop, rbinop):
         # Determine from base class
         return get_base_attr(cls, "_ufl_num_ops_")
 
+
 def check_is_terminal_consistency(cls):
     "Check for consistency in ``is_terminal`` trait among superclasses."
     if cls._ufl_is_terminal_ is None:
-        msg = ("Class {0.__name__} has not specified the is_terminal trait."
-            + " Did you forget to inherit from Terminal or Operator?")
+        msg = ("Class {0.__name__} has not specified the is_terminal trait." +
+               " Did you forget to inherit from Terminal or Operator?")
         raise TypeError(msg.format(cls))
 
     base_is_terminal = get_base_attr(cls, "_ufl_is_terminal_")
     if base_is_terminal is not None and cls._ufl_is_terminal_ != base_is_terminal:
-        msg = ("Conflicting given and automatic 'is_terminal' trait for class {0.__name__}."
-            + " Check if you meant to inherit from Terminal or Operator.")
+        msg = ("Conflicting given and automatic 'is_terminal' trait for class {0.__name__}." +
+               " Check if you meant to inherit from Terminal or Operator.")
         raise TypeError(msg.format(cls))
+
 
 def check_abstract_trait_consistency(cls):
     "Check that the first base classes up to ``Expr`` are other UFL types."
@@ -111,6 +115,7 @@ def check_abstract_trait_consistency(cls):
             msg = ("Base class {0.__name__} of class {1.__name__} "
                    "is not an abstract subclass of {2.__name__}.")
             raise TypeError(msg.format(base, cls, Expr))
+
 
 def check_has_slots(cls):
     """Check if type has ``__slots__`` unless it is marked as exception with
@@ -129,6 +134,7 @@ def check_has_slots(cls):
             msg = ("Class {0.__name__} is has a base class "
                    "{1.__name__} with __slots__ missing.")
             raise TypeError(msg.format(cls, base))
+
 
 def check_type_traits_consistency(cls):
     "Execute a variety of consistency checks on the ufl type traits."
@@ -162,6 +168,7 @@ def check_type_traits_consistency(cls):
             msg = "Non-scalar class {0.__name__} is has a scalar base class."
             raise TypeError(msg.format(cls))
 
+
 def check_implements_required_methods(cls):
     """Check if type implements the required methods."""
     if not cls._ufl_is_abstract_:
@@ -172,6 +179,7 @@ def check_implements_required_methods(cls):
             elif not callable(getattr(cls, attr)):
                 msg = "Required method {1} of class {0.__name__} is not callable."
                 raise TypeError(msg.format(cls, attr))
+
 
 def check_implements_required_properties(cls):
     "Check if type implements the required properties."
@@ -184,10 +192,12 @@ def check_implements_required_properties(cls):
                 msg = "Required property {1} of class {0.__name__} is a callable method."
                 raise TypeError(msg.format(cls, attr))
 
-def attach_implementations_of_indexing_interface(cls, inherit_shape_from_operand,
+
+def attach_implementations_of_indexing_interface(cls,
+                                                 inherit_shape_from_operand,
                                                  inherit_indices_from_operand):
-    # Scalar or index-free? Then we can simplify the implementation of tensor
-    # properties by attaching them here.
+    # Scalar or index-free? Then we can simplify the implementation of
+    # tensor properties by attaching them here.
     if cls._ufl_is_scalar_:
         cls.ufl_shape = ()
 
@@ -195,8 +205,9 @@ def attach_implementations_of_indexing_interface(cls, inherit_shape_from_operand
         cls.ufl_free_indices = ()
         cls.ufl_index_dimensions = ()
 
-    # Automate direct inheriting of shape and indices from one of the operands.
-    # This simplifies refactoring because a lot of types do this.
+    # Automate direct inheriting of shape and indices from one of the
+    # operands.  This simplifies refactoring because a lot of types do
+    # this.
     if inherit_shape_from_operand is not None:
         def _inherited_ufl_shape(self):
             return self.ufl_operands[inherit_shape_from_operand].ufl_shape
@@ -205,10 +216,12 @@ def attach_implementations_of_indexing_interface(cls, inherit_shape_from_operand
     if inherit_indices_from_operand is not None:
         def _inherited_ufl_free_indices(self):
             return self.ufl_operands[inherit_indices_from_operand].ufl_free_indices
+
         def _inherited_ufl_index_dimensions(self):
             return self.ufl_operands[inherit_indices_from_operand].ufl_index_dimensions
         cls.ufl_free_indices = property(_inherited_ufl_free_indices)
         cls.ufl_index_dimensions = property(_inherited_ufl_index_dimensions)
+
 
 def update_global_expr_attributes(cls):
     "Update global ``Expr`` attributes, mainly by adding *cls* to global collections of ufl types."
@@ -218,16 +231,19 @@ def update_global_expr_attributes(cls):
     if cls._ufl_is_terminal_modifier_:
         Expr._ufl_terminal_modifiers_.append(cls)
 
-    # Add to collection of language operators.
-    # This collection is used later to populate the official language namespace.
-    # TODO: I don't think this functionality is fully completed, check it out later.
+    # Add to collection of language operators.  This collection is
+    # used later to populate the official language namespace.
+    # TODO: I don't think this functionality is fully completed, check
+    # it out later.
     if not cls._ufl_is_abstract_ and hasattr(cls, "_ufl_function_"):
         cls._ufl_function_.__func__.__doc__ = cls.__doc__
         Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
 
-    # Append space for counting object creation and destriction of this this type.
+    # Append space for counting object creation and destriction of
+    # this this type.
     Expr._ufl_obj_init_counts_.append(0)
     Expr._ufl_obj_del_counts_.append(0)
+
 
 def ufl_type(is_abstract=False,
              is_terminal=None,
@@ -247,8 +263,7 @@ def ufl_type(is_abstract=False,
              wraps_type=None,
              unop=None,
              binop=None,
-             rbinop=None
-             ):
+             rbinop=None):
     """This decorator is to be applied to every subclass in the UFL ``Expr`` hierarchy.
 
     This decorator contains a number of checks that are
@@ -281,9 +296,11 @@ def ufl_type(is_abstract=False,
 
         set_trait(cls, "is_terminal", is_terminal, inherit=True)
         set_trait(cls, "is_literal", is_literal, inherit=True)
-        set_trait(cls, "is_terminal_modifier", is_terminal_modifier, inherit=True)
+        set_trait(cls, "is_terminal_modifier", is_terminal_modifier,
+                  inherit=True)
         set_trait(cls, "is_shaping", is_shaping, inherit=True)
-        set_trait(cls, "is_in_reference_frame", is_in_reference_frame, inherit=True)
+        set_trait(cls, "is_in_reference_frame", is_in_reference_frame,
+                  inherit=True)
         set_trait(cls, "is_restriction", is_restriction, inherit=True)
         set_trait(cls, "is_evaluation", is_evaluation, inherit=True)
         set_trait(cls, "is_differential", is_differential, inherit=True)
@@ -334,17 +351,20 @@ def ufl_type(is_abstract=False,
             setattr(Expr, rbinop, _ufl_expr_rbinop_)
         """
 
-        # Make sure every non-abstract class has its own __hash__ and __eq__.
-        # Python 3 will set __hash__ to None if cls has __eq__, but we've
-        # implemented it in a separate function and want to inherit/use that
-        # for all types. Allow overriding by setting use_default_hash=False.
+        # Make sure every non-abstract class has its own __hash__ and
+        # __eq__.  Python 3 will set __hash__ to None if cls has
+        # __eq__, but we've implemented it in a separate function and
+        # want to inherit/use that for all types. Allow overriding by
+        # setting use_default_hash=False.
         if use_default_hash:
             cls.__hash__ = compute_expr_hash
 
-        # NB! This function conditionally adds some methods to the class!
-        # This approach significantly reduces the amount of small functions to
-        # implement across all the types but of course it's a bit more opaque.
-        attach_implementations_of_indexing_interface(cls, inherit_shape_from_operand,
+        # NB! This function conditionally adds some methods to the
+        # class!  This approach significantly reduces the amount of
+        # small functions to implement across all the types but of
+        # course it's a bit more opaque.
+        attach_implementations_of_indexing_interface(cls,
+                                                     inherit_shape_from_operand,
                                                      inherit_indices_from_operand)
 
         # Update Expr
