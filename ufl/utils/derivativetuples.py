@@ -20,6 +20,7 @@
 
 import itertools
 
+
 def derivative_counts_to_listing(derivative_counts):
     """Convert a derivative count tuple to a derivative listing tuple.
 
@@ -27,10 +28,11 @@ def derivative_counts_to_listing(derivative_counts):
     in counting form as (0, 2, 1) meaning (dx^0, dy^2, dz^1)
     and in listing form as (1, 1, 2) meaning (dy, dy, dz).
     """
-    derivatives = [] # = 1
+    derivatives = []  # = 1
     for i, d in enumerate(derivative_counts):
-        derivatives.extend((i,)*d) # *= d/dx_i^d
+        derivatives.extend((i,)*d)  # *= d/dx_i^d
     return tuple(derivatives)
+
 
 def derivative_listing_to_counts(derivatives, gdim):
     """Convert a derivative listing tuple to a derivative count tuple.
@@ -43,6 +45,7 @@ def derivative_listing_to_counts(derivatives, gdim):
     for d in derivatives:
         derivative_counts[d] += 1
     return tuple(derivative_counts)
+
 
 def compute_derivative_tuples(n, gdim):
     """Compute the list of all derivative tuples for derivatives of

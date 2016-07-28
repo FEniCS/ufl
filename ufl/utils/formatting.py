@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+
 def camel2underscore(name):
     "Convert a CamelCaps string to underscore_syntax."
     letters = []
@@ -33,6 +34,7 @@ def camel2underscore(name):
         letters.append(l)
     return "".join(letters)
 
+
 def lstr(l):
     "Pretty-print list or tuple, invoking str() on items instead of repr() like str() does."
     if isinstance(l, list):
@@ -41,10 +43,12 @@ def lstr(l):
         return "(" + ", ".join(lstr(item) for item in l) + ")"
     return str(l)
 
+
 def dstr(d, colsize=80):
     "Pretty-print dictionary of key-value pairs."
     sorted_keys = sorted(d.keys())
     return tstr([(key, d[key]) for key in sorted_keys], colsize)
+
 
 def tstr(t, colsize=80):
     "Pretty-print list of tuples of key-value pairs."
@@ -75,9 +79,11 @@ def tstr(t, colsize=80):
             space = " "*(keylen + 2)
     return s
 
+
 def sstr(s):
     "Pretty-print set."
     return ", ".join(str(x) for x in s)
+
 
 def istr(o):
     "Format object as string, inserting ? for None."
@@ -85,6 +91,7 @@ def istr(o):
         return "?"
     else:
         return str(o)
+
 
 def estr(elements):
     "Format list of elements for printing."

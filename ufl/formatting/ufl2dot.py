@@ -20,28 +20,26 @@ mostly intended for debugging purposers."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from itertools import chain
-
 from six import itervalues
 from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
 from ufl.form import Form
-from ufl.integral import Measure
 from ufl.variable import Variable
-from ufl.constantvalue import ScalarValue
-from ufl.classes import FormArgument, MultiIndex, NegativeRestricted, PositiveRestricted
 from ufl.algorithms.multifunction import MultiFunction
+
 
 class ReprLabeller(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
+
     def terminal(self, e):
         return repr(e)
+
     def operator(self, e):
         return e._ufl_class_.__name__.split(".")[-1]
+
 
 class CompactLabeller(ReprLabeller):
     def __init__(self, function_mapping=None):
@@ -51,10 +49,13 @@ class CompactLabeller(ReprLabeller):
     # Terminals:
     def scalar_value(self, e):
         return repr(e._value)
+
     def zero(self, e):
         return "0"
+
     def identity(self, e):
         return "Id"
+
     def multi_index(self, e):
         return str(e)
 
@@ -67,81 +68,107 @@ class CompactLabeller(ReprLabeller):
     # Operators:
     def sum(self, e):
         return "+"
+
     def product(self, e):
         return "*"
+
     def division(self, e):
         return "/"
+
     def power(self, e):
         return "**"
+
     def math_function(self, e):
         return e._name
+
     def index_sum(self, e):
         return "&sum;"
+
     def indexed(self, e):
         return "[]"
-    def component_tensor(self, e): # TODO: Understandable short notation for this?
+
+    def component_tensor(self, e):  # TODO: Understandable short notation for this?
         return "]["
+
     def negative_restricted(self, e):
         return "[-]"
+
     def positive_restricted(self, e):
         return "[+]"
-    def cell_avg(self, e): # TODO: Understandable short notation for this?
+
+    def cell_avg(self, e):  # TODO: Understandable short notation for this?
         return "_K_"
-    def facet_avg(self, e): # TODO: Understandable short notation for this?
+
+    def facet_avg(self, e):  # TODO: Understandable short notation for this?
         return "_F_"
 
     def inner(self, e):
         return "inner"
+
     def dot(self, e):
         return "dot"
+
     def outer(self, e):
         return "outer"
+
     def transposed(self, e):
         return "transp."
+
     def determinant(self, e):
         return "det"
+
     def trace(self, e):
         return "tr"
+
     def dev(self, e):
         return "dev"
+
     def skew(self, e):
         return "skew"
 
     def grad(self, e):
         return "grad"
+
     def div(self, e):
         return "div"
+
     def curl(self, e):
         return "curl"
+
     def nabla_grad(self, e):
         return "nabla_grad"
+
     def nabla_div(self, e):
         return "nabla_div"
 
     def diff(self, e):
         return "diff"
 
+
 # Make this class like the ones above to use fancy math symbol labels
-class2label = {
-    "IndexSum":  "&sum;",
-    "Sum":       "&sum;",
-    "Product":   "&prod;",
-    "Division":  "/",
-    "Inner":     ":",
-    "Dot":       "&sdot;",
-    "Outer":     "&otimes;",
-    "Grad":      "grad",
-    "Div":       "div",
-    "NablaGrad": "&nabla;&otimes;",
-    "NablaDiv":  "&nabla;&sdot;",
-    "Curl":      "&nabla;&times;",
-    }
+class2label = {"IndexSum": "&sum;",
+               "Sum": "&sum;",
+               "Product": "&prod;",
+               "Division": "/",
+               "Inner": ":",
+               "Dot": "&sdot;",
+               "Outer": "&otimes;",
+               "Grad": "grad",
+               "Div": "div",
+               "NablaGrad": "&nabla;&otimes;",
+               "NablaDiv": "&nabla;&sdot;",
+               "Curl": "&nabla;&times;", }
+
+
 class FancyLabeller(CompactLabeller):
     pass
 
+
 def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
-    # TODO: Maybe this can be cleaner written using the graph utilities.
-    # TODO: To collapse equal nodes with different objects, do not use id as key. Make this an option?
+    # TODO: Maybe this can be cleaner written using the graph
+    # utilities.
+    # TODO: To collapse equal nodes with different objects, do not use
+    # id as key. Make this an option?
 
     # Cutoff if we have handled e before
     if id(e) in nodes:
@@ -150,7 +177,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
         labeller = ReprLabeller()
 
     # Special-case Variable instances
-    if isinstance(e, Variable): # FIXME: Is this really necessary?
+    if isinstance(e, Variable):  # FIXME: Is this really necessary?
         ops = (e._expression,)
         label = "variable %d" % e._label._count
     else:
@@ -164,7 +191,6 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
     # Handle all children recursively
     n = len(ops)
     if n == 2:
-        #oplabels = ["left", "right"]
         oplabels = ["L", "R"]
     elif n > 2:
         oplabels = ["op%d" % i for i in range(n)]
@@ -177,6 +203,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
 
         # Add edge between e and child node o
         edges.append((id(e), id(o), oplabels[i]))
+
 
 def format_entities(nodes, edges):
     entities = []
@@ -193,6 +220,7 @@ def format_entities(nodes, edges):
         entities.append(edge)
     return "\n".join(entities)
 
+
 integralgraphformat = """  %(node)s [label="%(label)s"]
   form_%(formname)s -> %(node)s ;
   %(node)s -> %(root)s ;
@@ -203,7 +231,9 @@ exprgraphformat = """  digraph ufl_expression
   %s
   }"""
 
-def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeling="repr", object_names=None):
+
+def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True,
+            labeling="repr", object_names=None):
     if labeling == "repr":
         labeller = ReprLabeller()
     elif labeling == "compact":
@@ -229,7 +259,8 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeli
                 nodes = {}
                 edges = []
 
-                build_entities(integrand, nodes, edges, nodeoffset, prefix, labeller)
+                build_entities(integrand, nodes, edges, nodeoffset, prefix,
+                               labeller)
                 rootnode = nodes[id(integrand)][0]
                 entitylist = format_entities(nodes, edges)
                 integralnode = "%s_%s" % (formname, integralkey)
@@ -238,8 +269,7 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeli
                     'label': integrallabel,
                     'formname': formname,
                     'root': rootnode,
-                    'entities': entitylist,
-                    })
+                    'entities': entitylist, })
                 nodeoffset += len(nodes)
 
         s = ""

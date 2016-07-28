@@ -21,7 +21,6 @@
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
@@ -31,13 +30,9 @@ from ufl.classes import (ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          Index)
 
-from ufl.constantvalue import as_ufl, Identity
 from ufl.tensors import as_tensor, as_vector
-
-from ufl.finiteelement import (FiniteElement, EnrichedElement, VectorElement, MixedElement,
-                               TensorProductElement, TensorElement,
-                               FacetElement, InteriorElement, BrokenElement, TraceElement)
 from ufl.utils.sequences import product
+
 
 def sub_elements_with_mappings(element):
     "Return an ordered list of the largest subelements that have a defined mapping."
@@ -51,6 +46,7 @@ def sub_elements_with_mappings(element):
             elements.extend(sub_elements_with_mappings(subelm))
     return elements
 
+
 def create_nested_lists(shape):
     if len(shape) == 0:
         return [None]
@@ -58,6 +54,7 @@ def create_nested_lists(shape):
         return [None]*shape[0]
     else:
         return [create_nested_lists(shape[1:]) for i in range(shape[0])]
+
 
 def reshape_to_nested_list(components, shape):
     if len(shape) == 0:
@@ -70,6 +67,7 @@ def reshape_to_nested_list(components, shape):
         n = product(shape[1:])
         return [reshape_to_nested_list(components[n*i:n*(i+1)], shape[1:]) for i in range(shape[0])]
 
+
 def apply_single_function_pullbacks(g):
     element = g.ufl_element()
     mapping = element.mapping()
@@ -79,7 +77,9 @@ def apply_single_function_pullbacks(g):
     gsh = g.ufl_shape
     rsh = r.ufl_shape
 
-    # Shortcut the "identity" case which includes Expression and Constant from dolfin that may be ill-formed without a domain (until we get that fixed)
+    # Shortcut the "identity" case which includes Expression and
+    # Constant from dolfin that may be ill-formed without a domain
+    # (until we get that fixed)
     if mapping == "identity":
         assert rsh == gsh
         return r
@@ -93,16 +93,13 @@ def apply_single_function_pullbacks(g):
     detJ = JacobianDeterminant(domain)
     Jinv = JacobianInverse(domain)
 
-    tdim = domain.topological_dimension()
-    gdim = domain.geometric_dimension()
-
-    # Create contravariant transform for reuse
-    # (note that detJ is the _signed_ (pseudo-)determinant)
+    # Create contravariant transform for reuse (note that detJ is the
+    # _signed_ (pseudo-)determinant)
     transform_hdiv = (1.0/detJ) * J
 
     # Shortcut simple cases for a more efficient representation,
-    # including directly Piola-mapped elements and mixed elements
-    # of any combination of affinely mapped elements without symmetries
+    # including directly Piola-mapped elements and mixed elements of
+    # any combination of affinely mapped elements without symmetries
     if mapping == "symmetries":
         fcm = element.flattened_sub_element_mapping()
         assert gsize >= rsize
@@ -117,25 +114,27 @@ def apply_single_function_pullbacks(g):
         assert transform_hdiv.ufl_shape == (gsize, rsize)
         i, j = indices(2)
         f = as_vector(transform_hdiv[i, j]*r[j], i)
-        #f = as_tensor(transform_hdiv[i, j]*r[k,j], (k,i)) # FIXME: Handle Vector(Piola) here?
+        # f = as_tensor(transform_hdiv[i, j]*r[k,j], (k,i)) # FIXME: Handle Vector(Piola) here?
         assert f.ufl_shape == g.ufl_shape
         return f
     elif mapping == "covariant Piola":
         assert Jinv.ufl_shape == (rsize, gsize)
         i, j = indices(2)
         f = as_vector(Jinv[j, i]*r[j], i)
-        #f = as_tensor(Jinv[j, i]*r[k,j], (k,i)) # FIXME: Handle Vector(Piola) here?
+        # f = as_tensor(Jinv[j, i]*r[k,j], (k,i)) # FIXME: Handle Vector(Piola) here?
         assert f.ufl_shape == g.ufl_shape
         return f
 
-
-    # By placing components in a list and using as_vector at the end, we're
-    # assuming below that both global function g and its reference value r
-    # have vector shape, which is the case for most elements with the exceptions:
+    # By placing components in a list and using as_vector at the end,
+    # we're assuming below that both global function g and its
+    # reference value r have vector shape, which is the case for most
+    # elements with the exceptions:
     # - TensorElements
-    #   - All cases with scalar subelements and without symmetries are covered by the shortcut above
+    #   - All cases with scalar subelements and without symmetries
+    #     are covered by the shortcut above
     #     (ONLY IF REFERENCE VALUE SHAPE PRESERVES TENSOR RANK)
-    #   - All cases with scalar subelements and without symmetries are covered by the shortcut above
+    #   - All cases with scalar subelements and without symmetries are
+    #     covered by the shortcut above
     # - VectorElements of vector-valued basic elements (FIXME)
     # - TensorElements with symmetries (FIXME)
     # - Tensor-valued FiniteElements (the new Regge elements)
@@ -194,7 +193,8 @@ def apply_single_function_pullbacks(g):
         gpos += gm
         rpos += rm
 
-    # Wrap up components in a vector, must return same shape as input function g
+    # Wrap up components in a vector, must return same shape as input
+    # function g
     assert len(gsh) == 1
     f = as_vector(g_components)
     assert f.ufl_shape == g.ufl_shape
@@ -212,8 +212,10 @@ class FunctionPullbackApplier(MultiFunction):
 
     @memoized_handler
     def form_argument(self, o):
-        # Represent 0-derivatives of form arguments on reference element
+        # Represent 0-derivatives of form arguments on reference
+        # element
         return apply_single_function_pullbacks(o)
+
 
 def apply_function_pullbacks(expr):
     """Change representation of coefficients and arguments in expression

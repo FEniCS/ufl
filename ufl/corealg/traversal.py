@@ -24,9 +24,8 @@ by a factor of 10 or so because of the function call overhead.
 #
 # Modified by Massimiliano Leoni, 2016
 
-
 # This limits the _depth_ of expression trees
-_recursion_limit_ = 6400 # should be enough for everyone
+_recursion_limit_ = 6400  # should be enough for everyone
 
 
 def pre_traversal(expr):

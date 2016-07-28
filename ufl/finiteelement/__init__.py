@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 "This module defines the UFL finite element classes."
 
 # Copyright (C) 2008-2015 Martin Sandve Alnæs

@@ -24,9 +24,8 @@ memorized hashes for all unique nodes.
 #
 # Modified by Massimiliano Leoni, 2016
 
-
 # This limits the _depth_ of expression trees
-_recursion_limit_ = 6400 # should be enough for everyone
+_recursion_limit_ = 6400  # should be enough for everyone
 
 
 def compute_expr_hash(expr):

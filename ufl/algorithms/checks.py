@@ -21,38 +21,36 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Mehdi Nikbakht, 2010.
 
-from ufl.log import warning, error
+from ufl.log import error
 
 # UFL classes
 from ufl.form import Form
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import is_true_ufl_scalar
-from ufl.integral import Measure
 
 # UFL algorithms
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.check_restrictions import check_restrictions
-from ufl.measure import integral_type_to_measure_name
 
-def validate_form(form): # TODO: Can we make this return a list of errors instead of raising exception?
+
+def validate_form(form):  # TODO: Can we make this return a list of errors instead of raising exception?
     """Performs all implemented validations on a form. Raises exception if something fails."""
     errors = []
-    warnings = []
 
     if not isinstance(form, Form):
         msg = "Validation failed, not a Form:\n%s" % repr(form)
         error(msg)
-        #errors.append(msg)
-        #return errors
+        # errors.append(msg)
+        # return errors
 
     # FIXME: There's a bunch of other checks we should do here.
 
     # FIXME: Add back check for multilinearity
     # Check that form is multilinear
-    #if not is_multilinear(form):
-    #    errors.append("Form is not multilinear in arguments.")
+    # if not is_multilinear(form):
+    #     errors.append("Form is not multilinear in arguments.")
 
     # FIXME DOMAIN: Add check for consistency between domains somehow
     domains = set(t.ufl_domain()
@@ -68,8 +66,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     elif len(cells) > 1:
         errors.append("Multiple cell definitions in form: %s" % str(cells))
 
-    # Check that no Coefficient or Argument instance
-    # have the same count unless they are the same
+    # Check that no Coefficient or Argument instance have the same
+    # count unless they are the same
     coefficients = {}
     arguments = {}
     for e in iter_expressions(form):
@@ -80,7 +78,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                     g = coefficients[c]
                     if f is not g:
                         errors.append("Found different Coefficients with " +
-                                   "same count: %s and %s." % (repr(f), repr(g)))
+                                      "same count: %s and %s." % (repr(f),
+                                                                  repr(g)))
                 else:
                     coefficients[c] = f
 
@@ -105,18 +104,20 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     for expression in iter_expressions(form):
         if not is_true_ufl_scalar(expression):
             errors.append("Found non-scalar integrand expression:\n%s\n%s" %
-                              (str(expression), repr(expression)))
+                          (str(expression), repr(expression)))
 
     # Check that restrictions are permissible
     for integral in form.integrals():
-        # Only allow restrictions on interior facet integrals and surface measures
+        # Only allow restrictions on interior facet integrals and
+        # surface measures
         if integral.integral_type().startswith("interior_facet"):
             check_restrictions(integral.integrand(), True)
         else:
             check_restrictions(integral.integrand(), False)
 
     # Raise exception with all error messages
-    # TODO: Return errors list instead, need to collect messages from all validations above first.
+    # TODO: Return errors list instead, need to collect messages from
+    # all validations above first.
     if errors:
         final_msg = 'Found errors in validation of form:\n%s' % '\n\n'.join(errors)
         error(final_msg)

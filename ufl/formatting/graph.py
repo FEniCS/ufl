@@ -21,24 +21,27 @@
 from collections import defaultdict
 from six.moves import xrange as range
 from six.moves import map
-from heapq import heapify, heappop, heappush
+from heapq import heapify, heappop
 
 from ufl.corealg.traversal import unique_pre_traversal
 from ufl.corealg.multifunction import MultiFunction
 
 # O(n) = O(|V|) = O(|E|), since |E| < c|V| for a fairly small c.
 
-#--- Basic utility functions ---
+
+# --- Basic utility functions ---
 
 def lists(n):
     return [[] for i in range(n)]
 
+
 def len_items(sequence):
     return list(map(len, sequence))
 
-#--- Graph building functions ---
 
-def build_graph(expr): # O(n)
+# --- Graph building functions ---
+
+def build_graph(expr):  # O(n)
     """Build a linearized graph from an UFL Expr.
 
     Returns G = (V, E), with V being a list of
@@ -50,7 +53,6 @@ def build_graph(expr): # O(n)
     V = []
     E = []
     handled = {}
-    #for v in post_traversal(expr):
     for v in reversed(list(unique_pre_traversal(expr))):
         i = handled.get(v)
         if i is None:
@@ -64,7 +66,8 @@ def build_graph(expr): # O(n)
     G = V, E
     return G
 
-def extract_incoming_edges(G): # O(n)
+
+def extract_incoming_edges(G):  # O(n)
     "Build lists of incoming edges to each vertex in a linearized graph."
     V, E = G
     n = len(V)
@@ -73,7 +76,8 @@ def extract_incoming_edges(G): # O(n)
         Ein[e[1]].append(i)
     return Ein
 
-def extract_outgoing_edges(G): # O(n)
+
+def extract_outgoing_edges(G):  # O(n)
     "Build list of outgoing edges from each vertex in a linearized graph."
     V, E = G
     n = len(V)
@@ -82,19 +86,21 @@ def extract_outgoing_edges(G): # O(n)
         Eout[e[0]].append(i)
     return Eout
 
-def extract_incoming_vertex_connections(G): # O(n)
+
+def extract_incoming_vertex_connections(G):  # O(n)
     """Build lists of vertices in incoming and outgoing
     edges to and from each vertex in a linearized graph.
 
     Returns lists Vin and Vout."""
     V, E = G
     n = len(V)
-    Vin  = lists(n)
+    Vin = lists(n)
     for a, b in E:
         Vin[b].append(a)
     return Vin
 
-def extract_outgoing_vertex_connections(G): # O(n)
+
+def extract_outgoing_vertex_connections(G):  # O(n)
     """Build lists of vertices in incoming and outgoing
     edges to and from each vertex in a linearized graph.
 
@@ -107,7 +113,7 @@ def extract_outgoing_vertex_connections(G): # O(n)
     return Vout
 
 
-#--- Graph class ---
+# --- Graph class ---
 
 class Graph:
     "Graph class which computes connectivity on demand."
@@ -147,7 +153,8 @@ class Graph:
     def __iter__(self):
         return iter((self._V, self._E))
 
-#--- Scheduling algorithms ---
+
+# --- Scheduling algorithms ---
 
 class HeapItem(object):
     def __init__(self, incoming, outgoing, i):
@@ -190,13 +197,16 @@ def depth_first_ordering(G):
         ordering.append(iv)
         for i in Vin[iv]:
             Eout_count[i] -= 1
-        # Resort heap, worst case linear time, makes this algorithm O(n^2)... TODO: Not good!
+        # Resort heap, worst case linear time, makes this algorithm
+        # O(n^2)... TODO: Not good!
         heapify(q)
 
-    # TODO: Can later accumulate dependencies as well during dft-like algorithm.
+    # TODO: Can later accumulate dependencies as well during dft-like
+    # algorithm.
     return ordering
 
-#--- Graph partitoning ---
+
+# --- Graph partitoning ---
 
 class StringDependencyDefiner(MultiFunction):
     """Given an expr, returns a frozenset of its dependencies.
@@ -206,7 +216,7 @@ class StringDependencyDefiner(MultiFunction):
         "x"       - depends on local coordinates
         "v%d" % i - depends on argument i, for i in [0,rank)
     """
-    def __init__(self, argument_deps = None, coefficient_deps = None):
+    def __init__(self, argument_deps=None, coefficient_deps=None):
         MultiFunction.__init__(self)
         if argument_deps is None:
             argument_deps = {}
@@ -219,7 +229,7 @@ class StringDependencyDefiner(MultiFunction):
         return frozenset()
 
     def argument(self, x):
-        default = frozenset(("v%d" % x.number(), "x")) # TODO: This is missing the part, but this code is ready for deletion anyway?
+        default = frozenset(("v%d" % x.number(), "x"))  # TODO: This is missing the part, but this code is ready for deletion anyway?
         return self.argument_deps.get(x, default)
 
     def coefficient(self, x):
@@ -234,18 +244,21 @@ class StringDependencyDefiner(MultiFunction):
         deps = frozenset(("c",))
         # Enabling coordinate dependency for higher order geometries
         # (not handled anywhere else though, so consider this experimental)
-        #if o.has_higher_degree_cell_geometry():
-        #    deps = deps | frozenset(("x",))
+        # if o.has_higher_degree_cell_geometry():
+        #     deps = deps | frozenset(("x",))
         return deps
 
-    def spatial_derivative(self, o): # TODO: What about (basis) functions of which derivatives are constant? Should special-case spatial_derivative in partition().
+    def spatial_derivative(self, o):  # TODO: What about (basis) functions of which derivatives are constant? Should special-case spatial_derivative in partition().
         deps = frozenset(("c",))
-        # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
-        #if o.has_higher_degree_cell_geometry():
-        #    deps = deps | frozenset(("x",))
+        # Enabling coordinate dependency for higher order geometries
+        # (not handled anywhere else though).
+        # if o.has_higher_degree_cell_geometry():
+        #     deps = deps | frozenset(("x",))
         return deps
+
 
 dd = StringDependencyDefiner()
+
 
 def string_set_criteria(v, keys):
     # Using sets of ufl objects
@@ -253,6 +266,7 @@ def string_set_criteria(v, keys):
     for k in keys:
         key |= k
     return frozenset(key)
+
 
 def partition(G, criteria=string_set_criteria):
     V, E = G

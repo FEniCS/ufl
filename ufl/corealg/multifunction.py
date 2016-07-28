@@ -25,10 +25,12 @@ from inspect import getargspec
 from ufl.log import error
 from ufl.core.expr import Expr
 
+
 def get_num_args(function):
     "Return the number of arguments accepted by *function*."
     insp = getargspec(function)
     return len(insp[0]) + int(insp[1] is not None)
+
 
 def memoized_handler(handler):
     "Function decorator to memoize ``MultiFunction`` handlers."
@@ -40,6 +42,7 @@ def memoized_handler(handler):
             c[o] = r
         return r
     return _memoized_handler
+
 
 class MultiFunction(object):
     """Base class for collections of non-recursive expression node handlers.
@@ -65,21 +68,22 @@ class MultiFunction(object):
         if not cache_data:
             cache_data = [None]*len(Expr._ufl_all_classes_)
 
-            # Iterate over the inheritance chain for each Expr subclass
-            # (NB! This assumes that all UFL classes inherits from
-            # a single Expr subclass and that the first superclass
-            # is always from the UFL Expr hierarchy!)
+            # Iterate over the inheritance chain for each Expr
+            # subclass (NB! This assumes that all UFL classes inherits
+            # from a single Expr subclass and that the first
+            # superclass is always from the UFL Expr hierarchy!)
             for classobject in Expr._ufl_all_classes_:
                 for c in classobject.mro():
-                    # Register classobject with handler for the first encountered superclass
+                    # Register classobject with handler for the first
+                    # encountered superclass
                     name = c._ufl_handler_name_
                     if hasattr(self, name):
                         cache_data[classobject._ufl_typecode_] = name
                         break
             MultiFunction._handlers_cache[algorithm_class] = cache_data
 
-        # Build handler list for this particular class
-        # (get functions bound to self, these cannot be cached)
+        # Build handler list for this particular class (get functions
+        # bound to self, these cannot be cached)
         self._handlers = [getattr(self, name) for name in cache_data]
         self._is_cutoff_type = [get_num_args(h) == 2 for h in self._handlers]
 

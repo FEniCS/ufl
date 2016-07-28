@@ -20,6 +20,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+
 def attach_ufl_id(cls):
     """Equip class with ``.ufl_id()`` and handle bookkeeping.
 
@@ -29,7 +30,7 @@ def attach_ufl_id(cls):
 
             @attach_ufl_id
             class MyClass(object):
-            
+
         2. If ``__slots__`` is defined, include ``_ufl_id`` attribute::
 
             __slots__ = ("_ufl_id",)
@@ -37,7 +38,7 @@ def attach_ufl_id(cls):
         3. Add keyword argument to constructor::
 
             def __init__(self, *args, ufl_id=None):
-        
+
         4. Call ``self._init_ufl_id`` with ``ufl_id`` and assign to ``._ufl_id``
            attribute::
 

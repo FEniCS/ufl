@@ -20,12 +20,10 @@
 
 from collections import defaultdict
 from six.moves import zip
-from six import iteritems
 
 import ufl
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.measure import Measure
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
@@ -39,9 +37,11 @@ class IntegralData(object):
     where metadata is an empty dictionary that may be used for
     associating metadata with each object.
     """
-    __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals', 'metadata',
-                 'integral_coefficients', 'enabled_coefficients')
-    def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
+    __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals',
+                 'metadata', 'integral_coefficients', 'enabled_coefficients')
+
+    def __init__(self, domain, integral_type, subdomain_id, integrals,
+                 metadata):
         ufl_assert(len(set(itg.ufl_domain() for itg in integrals)) == 1,
                    "Multiple domains mismatch in integral data.")
         ufl_assert(all(integral_type == itg.integral_type() for itg in integrals),
@@ -55,17 +55,21 @@ class IntegralData(object):
 
         self.integrals = integrals
 
-        # This is populated in preprocess using data not available at this stage:
+        # This is populated in preprocess using data not available at
+        # this stage:
         self.integral_coefficients = None
         self.enabled_coefficients = None
 
-        # TODO: I think we can get rid of this with some refactoring in ffc:
+        # TODO: I think we can get rid of this with some refactoring
+        # in ffc:
         self.metadata = metadata
 
     def __lt__(self, other):
         # To preserve behaviour of extract_integral_data:
-        return ((self.integral_type, self.subdomain_id, self.integrals, self.metadata)
-                < (other.integral_type, other.subdomain_id, other.integrals, other.metadata))
+        return ((self.integral_type, self.subdomain_id,
+                 self.integrals, self.metadata) <
+                (other.integral_type, other.subdomain_id, other.integrals,
+                 other.metadata))
 
     def __eq__(self, other):
         # Currently only used for tests:
@@ -79,6 +83,7 @@ class IntegralData(object):
             self.integral_type, self.subdomain_id,
             '\n\n'.join(map(str, self.integrals)), self.metadata)
 
+
 def dicts_lt(a, b):
     na = 0 if a is None else len(a)
     nb = 0 if b is None else len(b)
@@ -87,16 +92,19 @@ def dicts_lt(a, b):
     for ia, ib in zip(sorted_by_key(a), sorted_by_key(b)):
         # Assuming keys are sortable (usually str)
         if ia[0] != ib[0]:
-            return (ia[0].__class__.__name__, ia[0]) < (ib[0].__class__.__name__, ib[0]) # Hack to preserve type sorting in py3
+            return (ia[0].__class__.__name__, ia[0]) < (ib[0].__class__.__name__, ib[0])  # Hack to preserve type sorting in py3
         # Assuming values are sortable
         if ia[1] != ib[1]:
-            return (ia[1].__class__.__name__, ia[1]) < (ib[1].__class__.__name__, ib[1]) # Hack to preserve type sorting in py3
+            return (ia[1].__class__.__name__, ia[1]) < (ib[1].__class__.__name__, ib[1])  # Hack to preserve type sorting in py3
+
 
 # Tuple comparison helper
 class ExprTupleKey(object):
     __slots__ = ('x',)
+
     def __init__(self, x):
         self.x = x
+
     def __lt__(self, other):
         # Comparing expression first
         c = cmp_expr(self.x[0], other.x[0])
@@ -110,6 +118,7 @@ class ExprTupleKey(object):
             mdo = canonicalize_metadata(other.x[1])
             return mds < mdo
 
+
 def group_integrals_by_domain_and_type(integrals, domains):
     """
     Input:
@@ -119,16 +128,17 @@ def group_integrals_by_domain_and_type(integrals, domains):
     Output:
         integrals_by_domain_and_type: dict: (domain, integral_type) -> list(Integral)
     """
-    integral_data = []
     integrals_by_domain_and_type = defaultdict(list)
     for itg in integrals:
-        ufl_assert(itg.ufl_domain() is not None, "Integrals without a domain is now illegal.")
+        ufl_assert(itg.ufl_domain() is not None,
+                   "Integrals without a domain is now illegal.")
         key = (itg.ufl_domain(), itg.integral_type())
 
         # Append integral to list of integrals with shared key
         integrals_by_domain_and_type[key].append(itg)
 
     return integrals_by_domain_and_type
+
 
 def integral_subdomain_ids(integral):
     "Get a tuple of integer subdomains or a valid string subdomain from integral."
@@ -144,6 +154,7 @@ def integral_subdomain_ids(integral):
         return did
     else:
         error("Invalid domain id %s." % did)
+
 
 def rearrange_integrals_by_single_subdomains(integrals):
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
@@ -167,7 +178,8 @@ def rearrange_integrals_by_single_subdomains(integrals):
             subdomain_integrals.append((dids, itg))
 
     # Fill single_subdomain_integrals with lists of integrals from
-    # subdomain_integrals, but split and restricted to single subdomain ids
+    # subdomain_integrals, but split and restricted to single
+    # subdomain ids
     single_subdomain_integrals = defaultdict(list)
     for dids, itg in subdomain_integrals:
         # Region or single subdomain id
@@ -175,7 +187,8 @@ def rearrange_integrals_by_single_subdomains(integrals):
             # Restrict integral to this subdomain!
             single_subdomain_integrals[did].append(itg.reconstruct(subdomain_id=did))
 
-    # Add everywhere integrals to each single subdomain id integral list
+    # Add everywhere integrals to each single subdomain id integral
+    # list
     otherwise_integrals = []
     for ev_itg in everywhere_integrals:
         # Restrict everywhere integral to 'otherwise'
@@ -214,7 +227,8 @@ def accumulate_integrands_with_same_metadata(integrals):
             by_cdid[cdid] = ([], cd)
         by_cdid[cdid][0].append(itg)
 
-    # Accumulate integrands separately for each compiler data object id
+    # Accumulate integrands separately for each compiler data object
+    # id
     for cdid in by_cdid:
         integrals, cd = by_cdid[cdid]
         # Ensure canonical sorting of more than two integrands
@@ -222,7 +236,8 @@ def accumulate_integrands_with_same_metadata(integrals):
         integrands_sum = sum(integrands[1:], integrands[0])
         by_cdid[cdid] = (integrands_sum, cd)
 
-    # Sort integrands canonically by integrand first then compiler data
+    # Sort integrands canonically by integrand first then compiler
+    # data
     return sorted(by_cdid.values(), key=ExprTupleKey)
 
 
@@ -284,7 +299,8 @@ def group_form_integrals(form, domains):
                 rearrange_integrals_by_single_subdomains(ddt_integrals)
 
             for subdomain_id, ss_integrals in sorted_by_key(single_subdomain_integrals):
-                # Accumulate integrands of integrals that share the same compiler data
+                # Accumulate integrands of integrals that share the
+                # same compiler data
                 integrands_and_cds = \
                     accumulate_integrands_with_same_metadata(ss_integrals)
 
@@ -292,6 +308,7 @@ def group_form_integrals(form, domains):
                     integrals.append(Integral(integrand, integral_type, domain,
                                               subdomain_id, metadata, None))
     return Form(integrals)
+
 
 def reconstruct_form_from_integral_data(integral_data):
     integrals = []

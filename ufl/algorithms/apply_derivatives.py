@@ -20,10 +20,10 @@
 
 
 from ufl.assertions import ufl_assert
-from ufl.log import error
+from ufl.log import error, warning
 
 from ufl.core.terminal import Terminal
-from ufl.core.multiindex import MultiIndex, Index, FixedIndex, indices
+from ufl.core.multiindex import MultiIndex, FixedIndex, indices
 
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
 
@@ -33,14 +33,14 @@ from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
-from ufl.classes import Jacobian, JacobianInverse
+from ufl.classes import JacobianInverse
 from ufl.classes import SpatialCoordinate
 
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
-from ufl.operators import (dot, inner, outer, lt, eq, conditional, sign,
-    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2,
-    erf, bessel_J, bessel_Y, bessel_I, bessel_K,
-    cell_avg, facet_avg)
+from ufl.operators import (conditional, sign,
+                           sqrt, exp, ln, cos, sin, cosh, sinh,
+                           bessel_J, bessel_Y, bessel_I, bessel_K,
+                           cell_avg, facet_avg)
 
 from math import pi
 
@@ -68,7 +68,6 @@ class GenericDerivativeRuleset(MultiFunction):
         MultiFunction.__init__(self)
         self._var_shape = var_shape
 
-
     # --- Error checking for missing handlers and unexpected types
 
     def expr(self, o):
@@ -86,8 +85,8 @@ class GenericDerivativeRuleset(MultiFunction):
     def fixme(self, o):
         error("FIXME: Unimplemented differentiation handler for type {0}.".format(o._ufl_class_.__name__))
 
-
-    # --- Some types just don't have any derivative, this is just to make algorithm structure generic
+    # --- Some types just don't have any derivative, this is just to
+    # --- make algorithm structure generic
 
     def non_differentiable_terminal(self, o):
         "Labels and indices are not differentiable. It's convenient to return the non-differentiated object."
@@ -124,49 +123,49 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # These types are currently assumed independent, but for non-affine domains
     # this no longer holds and we want to implement rules for them.
-    #facet_normal = independent_terminal
-    #spatial_coordinate = independent_terminal
-    #cell_coordinate = independent_terminal
+    # facet_normal = independent_terminal
+    # spatial_coordinate = independent_terminal
+    # cell_coordinate = independent_terminal
 
     # Measures of cell entities, assuming independent although
     # this will not be true for all of these for non-affine domains
-    #cell_volume = independent_terminal
-    #circumradius = independent_terminal
-    #facet_area = independent_terminal
-    #cell_surface_area = independent_terminal
-    #min_cell_edge_length = independent_terminal
-    #max_cell_edge_length = independent_terminal
-    #min_facet_edge_length = independent_terminal
-    #max_facet_edge_length = independent_terminal
+    # cell_volume = independent_terminal
+    # circumradius = independent_terminal
+    # facet_area = independent_terminal
+    # cell_surface_area = independent_terminal
+    # min_cell_edge_length = independent_terminal
+    # max_cell_edge_length = independent_terminal
+    # min_facet_edge_length = independent_terminal
+    # max_facet_edge_length = independent_terminal
 
     # Other stuff
-    #cell_orientation = independent_terminal
-    #quadrature_weigth = independent_terminal
+    # cell_orientation = independent_terminal
+    # quadrature_weigth = independent_terminal
 
     # These types are currently not expected to show up in AD pass.
-    # To make some of these available to the end-user, they need to be implemented here.
-    #facet_coordinate = unexpected
-    #cell_origin = unexpected
-    #facet_origin = unexpected
-    #cell_facet_origin = unexpected
-    #jacobian = unexpected
-    #jacobian_determinant = unexpected
-    #jacobian_inverse = unexpected
-    #facet_jacobian = unexpected
-    #facet_jacobian_determinant = unexpected
-    #facet_jacobian_inverse = unexpected
-    #cell_facet_jacobian = unexpected
-    #cell_facet_jacobian_determinant = unexpected
-    #cell_facet_jacobian_inverse = unexpected
-    #cell_edge_vectors = unexpected
-    #facet_edge_vectors = unexpected
-    #cell_normal = unexpected # TODO: Expecting rename
-    #cell_normals = unexpected
-    #facet_tangents = unexpected
-    #cell_tangents = unexpected
-    #cell_midpoint = unexpected
-    #facet_midpoint = unexpected
-
+    # To make some of these available to the end-user, they need to be
+    # implemented here.
+    # facet_coordinate = unexpected
+    # cell_origin = unexpected
+    # facet_origin = unexpected
+    # cell_facet_origin = unexpected
+    # jacobian = unexpected
+    # jacobian_determinant = unexpected
+    # jacobian_inverse = unexpected
+    # facet_jacobian = unexpected
+    # facet_jacobian_determinant = unexpected
+    # facet_jacobian_inverse = unexpected
+    # cell_facet_jacobian = unexpected
+    # cell_facet_jacobian_determinant = unexpected
+    # cell_facet_jacobian_inverse = unexpected
+    # cell_edge_vectors = unexpected
+    # facet_edge_vectors = unexpected
+    # cell_normal = unexpected # TODO: Expecting rename
+    # cell_normals = unexpected
+    # facet_tangents = unexpected
+    # cell_tangents = unexpected
+    # cell_midpoint = unexpected
+    # facet_midpoint = unexpected
 
     # --- Default rules for operators
 
@@ -175,12 +174,13 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # --- Indexing and component handling
 
-    def indexed(self, o, Ap, ii): # TODO: (Partially) duplicated in nesting rules
+    def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in nesting rules
         # Propagate zeros
         if isinstance(Ap, Zero):
             return self.independent_operator(o)
 
-        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify resulting expression
+        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify
+        # resulting expression
         if isinstance(Ap, ComponentTensor):
             B, jj = Ap.ufl_operands
             if isinstance(B, Indexed):
@@ -222,7 +222,8 @@ class GenericDerivativeRuleset(MultiFunction):
         return da + db
 
     def product(self, o, da, db):
-        # Even though arguments to o are scalar, da and db may be tensor valued
+        # Even though arguments to o are scalar, da and db may be
+        # tensor valued
         a, b = o.ufl_operands
         (da, db), ii = as_scalars(da, db)
         pa = Product(da, b)
@@ -238,12 +239,13 @@ class GenericDerivativeRuleset(MultiFunction):
         ufl_assert(is_ufl_scalar(f), "Not expecting nonscalar nominator")
         ufl_assert(is_true_ufl_scalar(g), "Not expecting nonscalar denominator")
 
-        #do_df = 1/g
-        #do_dg = -h/g
-        #op = do_df*fp + do_df*gp
-        #op = (fp - o*gp) / g
+        # do_df = 1/g
+        # do_dg = -h/g
+        # op = do_df*fp + do_df*gp
+        # op = (fp - o*gp) / g
 
-        # Get o and gp as scalars, multiply, then wrap as a tensor again
+        # Get o and gp as scalars, multiply, then wrap as a tensor
+        # again
         so, oi = as_scalar(o)
         sgp, gi = as_scalar(gp)
         o_gp = so * sgp
@@ -256,43 +258,47 @@ class GenericDerivativeRuleset(MultiFunction):
     def power(self, o, fp, gp):
         f, g = o.ufl_operands
 
-        ufl_assert(is_true_ufl_scalar(f), "Expecting scalar expression f in f**g.")
-        ufl_assert(is_true_ufl_scalar(g), "Expecting scalar expression g in f**g.")
+        ufl_assert(is_true_ufl_scalar(f),
+                   "Expecting scalar expression f in f**g.")
+        ufl_assert(is_true_ufl_scalar(g),
+                   "Expecting scalar expression g in f**g.")
 
         # Derivation of the general case: o = f(x)**g(x)
-        #do/df  = g * f**(g-1) = g / f * o
-        #do/dg  = ln(f) * f**g = ln(f) * o
-        #do/df * df + do/dg * dg = o * (g / f * df + ln(f) * dg)
+        # do/df  = g * f**(g-1) = g / f * o
+        # do/dg  = ln(f) * f**g = ln(f) * o
+        # do/df * df + do/dg * dg = o * (g / f * df + ln(f) * dg)
 
         if isinstance(gp, Zero):
-            # This probably produces better results for the common case of f**constant
+            # This probably produces better results for the common
+            # case of f**constant
             op = fp * g * f**(g-1)
         else:
             # Note: This produces expressions like (1/w)*w**5 instead of w**4
-            #op = o * (fp * g / f + gp * ln(f)) # This reuses o
-            op = f**(g-1) * (g*fp + f*ln(f)*gp) # This gives better accuracy in dolfin integration test
+            # op = o * (fp * g / f + gp * ln(f)) # This reuses o
+            op = f**(g-1) * (g*fp + f*ln(f)*gp)  # This gives better accuracy in dolfin integration test
 
         # Example: d/dx[x**(x**3)]:
-        #f = x
-        #g = x**3
-        #df = 1
-        #dg = 3*x**2
-        #op1 = o * (fp * g / f + gp * ln(f))
-        #    = x**(x**3)   * (x**3/x + 3*x**2*ln(x))
-        #op2 = f**(g-1) * (g*fp + f*ln(f)*gp)
-        #    = x**(x**3-1) * (x**3 + x*3*x**2*ln(x))
+        # f = x
+        # g = x**3
+        # df = 1
+        # dg = 3*x**2
+        # op1 = o * (fp * g / f + gp * ln(f))
+        #     = x**(x**3)   * (x**3/x + 3*x**2*ln(x))
+        # op2 = f**(g-1) * (g*fp + f*ln(f)*gp)
+        #     = x**(x**3-1) * (x**3 + x*3*x**2*ln(x))
 
         return op
 
     def abs(self, o, df):
         f, = o.ufl_operands
-        #return conditional(eq(f, 0), 0, Product(sign(f), df))
+        # return conditional(eq(f, 0), 0, Product(sign(f), df))
         return sign(f) * df
 
     # --- Mathfunctions
 
     def math_function(self, o, df):
-        # FIXME: Introduce a UserOperator type instead of this hack and define user derivative() function properly
+        # FIXME: Introduce a UserOperator type instead of this hack
+        # and define user derivative() function properly
         if hasattr(o, 'derivative'):
             f, = o.ufl_operands
             return df * o.derivative()
@@ -331,6 +337,7 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def tanh(self, o, fp):
         f, = o.ufl_operands
+
         def sech(y):
             return (2.0*cosh(y)) / (cosh(2.0*y) + 1.0)
         return fp * sech(f)**2
@@ -406,9 +413,9 @@ class GenericDerivativeRuleset(MultiFunction):
     def restricted(self, o, fp):
         # Restriction and differentiation commutes
         if isinstance(fp, ConstantValue):
-            return fp # TODO: Add simplification to Restricted instead?
+            return fp  # TODO: Add simplification to Restricted instead?
         else:
-            return fp(o._side) # (f+-)' == (f')+-
+            return fp(o._side)  # (f+-)' == (f')+-
 
     # --- Conditionals
 
@@ -423,34 +430,39 @@ class GenericDerivativeRuleset(MultiFunction):
     def conditional(self, o, unused_dc, dt, df):
         global CONDITIONAL_WORKAROUND
         if isinstance(dt, Zero) and isinstance(df, Zero):
-            # Assuming dt and df have the same indices here, which should be the case
+            # Assuming dt and df have the same indices here, which
+            # should be the case
             return dt
         elif CONDITIONAL_WORKAROUND:
-            # Placing t[1],f[1] outside here to avoid getting arguments inside conditionals.
-            # This will fail when dt or df become NaN or Inf in floating point computations!
+            # Placing t[1],f[1] outside here to avoid getting
+            # arguments inside conditionals.  This will fail when dt
+            # or df become NaN or Inf in floating point computations!
             c = o.ufl_operands[0]
             dc = conditional(c, 1, 0)
             return dc*dt + (1.0 - dc)*df
         else:
-            # Not placing t[1],f[1] outside, allowing arguments inside conditionals.
-            # This will make legacy ffc fail, but should work with uflacs.
+            # Not placing t[1],f[1] outside, allowing arguments inside
+            # conditionals.  This will make legacy ffc fail, but
+            # should work with uflacs.
             c = o.ufl_operands[0]
             return conditional(c, dt, df)
 
     def max_value(self, o, df, dg):
-        #d/dx max(f, g) =
+        # d/dx max(f, g) =
         # f > g: df/dx
         # f < g: dg/dx
-        # Placing df,dg outside here to avoid getting arguments inside conditionals
+        # Placing df,dg outside here to avoid getting arguments inside
+        # conditionals
         f, g = o.ufl_operands
         dc = conditional(f > g, 1, 0)
         return dc*df + (1.0 - dc)*dg
 
     def min_value(self, o, df, dg):
-        #d/dx min(f, g) =
-        # f < g: df/dx
-        # else: dg/dx
-        # Placing df,dg outside here to avoid getting arguments inside conditionals
+        # d/dx min(f, g) =
+        #  f < g: df/dx
+        #  else: dg/dx
+        #  Placing df,dg outside here to avoid getting arguments
+        #  inside conditionals
         f, g = o.ufl_operands
         dc = conditional(f < g, 1, 0)
         return dc*df + (1.0 - dc)*dg
@@ -469,20 +481,23 @@ class GradRuleset(GenericDerivativeRuleset):
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
         else:
-            # TODO: Which types does this involve? I don't think the form compilers will handle this.
+            # TODO: Which types does this involve? I don't think the
+            # form compilers will handle this.
             return Grad(o)
 
     def jacobian_inverse(self, o):
         # grad(K) == K_ji rgrad(K)_rj
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
-        ufl_assert(o._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
+        ufl_assert(o._ufl_is_terminal_,
+                   "ReferenceValue can only wrap a terminal")
         r = indices(len(o.ufl_shape))
         i, j = indices(2)
-        Do = as_tensor(o[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = as_tensor(o[j, i]*ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
 
-    # TODO: Add more explicit geometry type handlers here, with non-affine domains several should be non-zero.
+    # TODO: Add more explicit geometry type handlers here, with
+    # non-affine domains several should be non-zero.
 
     def spatial_coordinate(self, o):
         "dx/dx = I"
@@ -501,38 +516,38 @@ class GradRuleset(GenericDerivativeRuleset):
         return Grad(o)
 
     def argument(self, o):
+        # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
+        #if is_cellwise_constant(o):
+        #    # Collapse gradient of cellwise constant function to zero
+        #    # TODO: Missing this type
+        #    return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))
         return Grad(o)
-
-    def _argument(self, o): # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
-        if is_cellwise_constant(o):
-            # Collapse gradient of cellwise constant function to zero
-            return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,)) # TODO: Missing this type
-        else:
-            return Grad(o)
 
     # --- Rules for values or derivatives in reference frame
 
     def reference_value(self, o):
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
-        ufl_assert(f._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
+        ufl_assert(f._ufl_is_terminal_,
+                   "ReferenceValue can only wrap a terminal")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
         r = indices(len(o.ufl_shape))
         i, j = indices(2)
-        Do = as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = as_tensor(K[j, i]*ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
 
     def reference_grad(self, o):
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(f, (JacobianInverse, SpatialCoordinate))
-        ufl_assert(valid_operand, "ReferenceGrad can only wrap a reference frame type!")
+        ufl_assert(valid_operand,
+                   "ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
         r = indices(len(o.ufl_shape))
         i, j = indices(2)
-        Do = as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = as_tensor(K[j, i]*ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
 
     # --- Nesting of gradients
@@ -550,8 +565,8 @@ class GradRuleset(GenericDerivativeRuleset):
         pass
         # TODO: Not sure how to detect that gradient of f is cellwise constant.
         #       Can we trust element degrees?
-        #if is_cellwise_constant(o):
-        #    return self.terminal(o)
+        # if is_cellwise_constant(o):
+        #     return self.terminal(o)
         # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
         #       if we should make a zero here?
         # 1) n = count number of Grads, get f
@@ -563,7 +578,8 @@ class GradRuleset(GenericDerivativeRuleset):
 
 class ReferenceGradRuleset(GenericDerivativeRuleset):
     def __init__(self, topological_dimension):
-        GenericDerivativeRuleset.__init__(self, var_shape=(topological_dimension,))
+        GenericDerivativeRuleset.__init__(self,
+                                          var_shape=(topological_dimension,))
         self._Id = Identity(topological_dimension)
 
     # --- Specialized rules for geometric quantities
@@ -573,7 +589,8 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
         else:
-            # TODO: Which types does this involve? I don't think the form compilers will handle this.
+            # TODO: Which types does this involve? I don't think the
+            # form compilers will handle this.
             return ReferenceGrad(o)
 
     def spatial_coordinate(self, o):
@@ -585,26 +602,20 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         "dX/dX = I"
         return self._Id
 
-    # TODO: Add more geometry types here, with non-affine domains several should be non-zero.
+    # TODO: Add more geometry types here, with non-affine domains
+    # several should be non-zero.
 
     # --- Specialized rules for form arguments
+
+    def reference_value(self, o):
+        ufl_assert(o.ufl_operands[0]._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
+        return ReferenceGrad(o)
 
     def coefficient(self, o):
         error("Coefficient should be wrapped in ReferenceValue by now")
 
     def argument(self, o):
         error("Argument should be wrapped in ReferenceValue by now")
-
-    def reference_value(self, o):
-        ufl_assert(o.ufl_operands[0]._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
-        return ReferenceGrad(o)
-
-    def _argument(self, o): # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
-        if is_cellwise_constant(o):
-            # Collapse gradient of cellwise constant function to zero
-            return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,)) # TODO: Missing this type
-        else:
-            return ReferenceGrad(o)
 
     # --- Nesting of gradients
 
@@ -615,7 +626,8 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         "Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f))."
 
         # Check that o is a "differential terminal"
-        ufl_assert(isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue, Terminal)),
+        ufl_assert(isinstance(o.ufl_operands[0],
+                              (ReferenceGrad, ReferenceValue, Terminal)),
                    "Expecting only grads applied to a terminal.")
 
         return ReferenceGrad(o)
@@ -627,7 +639,8 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 class VariableRuleset(GenericDerivativeRuleset):
     def __init__(self, var):
         GenericDerivativeRuleset.__init__(self, var_shape=var.ufl_shape)
-        ufl_assert(not var.ufl_free_indices, "Differentiation variable cannot have free indices.")
+        ufl_assert(not var.ufl_free_indices,
+                   "Differentiation variable cannot have free indices.")
         self._variable = var
         self._Id = self._make_identity(self._var_shape)
 
@@ -663,8 +676,9 @@ class VariableRuleset(GenericDerivativeRuleset):
 
     # Explicitly defining da/dw == 0
     argument = GenericDerivativeRuleset.independent_terminal
-    def _argument(self, o):
-        return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,)) # TODO: Missing this type
+
+    #def _argument(self, o):
+    #    return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))  # TODO: Missing this type
 
     def coefficient(self, o):
         """df/dv = Id if v is f else 0.
@@ -717,12 +731,14 @@ class VariableRuleset(GenericDerivativeRuleset):
 
     def reference_grad(self, o):
         "Variable derivative of a gradient of a terminal must be 0."
-        ufl_assert(isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue)),
+        ufl_assert(isinstance(o.ufl_operands[0],
+                              (ReferenceGrad, ReferenceValue)),
                    "Unexpected argument to reference_grad.")
         return self.independent_terminal(o)
 
     cell_avg = GenericDerivativeRuleset.independent_operator
     facet_avg = GenericDerivativeRuleset.independent_operator
+
 
 class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to expression.
@@ -736,16 +752,21 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         GenericDerivativeRuleset.__init__(self, var_shape=())
 
         # Type checking
-        ufl_assert(isinstance(coefficients, ExprList), "Expecting a ExprList of coefficients.")
-        ufl_assert(isinstance(arguments, ExprList), "Expecting a ExprList of arguments.")
-        ufl_assert(isinstance(coefficient_derivatives, ExprMapping), "Expecting a coefficient-coefficient ExprMapping.")
+        ufl_assert(isinstance(coefficients, ExprList),
+                   "Expecting a ExprList of coefficients.")
+        ufl_assert(isinstance(arguments, ExprList),
+                   "Expecting a ExprList of arguments.")
+        ufl_assert(isinstance(coefficient_derivatives, ExprMapping),
+                   "Expecting a coefficient-coefficient ExprMapping.")
 
-        # The coefficient(s) to differentiate w.r.t. and the argument(s) s.t. D_w[v](e) = d/dtau e(w+tau v)|tau=0
+        # The coefficient(s) to differentiate w.r.t. and the
+        # argument(s) s.t. D_w[v](e) = d/dtau e(w+tau v)|tau=0
         self._w = coefficients.ufl_operands
         self._v = arguments.ufl_operands
         self._w2v = {w: v for w, v in zip(self._w, self._v)}
 
-        # Build more convenient dict {f: df/dw} for each coefficient f where df/dw is nonzero
+        # Build more convenient dict {f: df/dw} for each coefficient f
+        # where df/dw is nonzero
         cd = coefficient_derivatives.ufl_operands
         self._cd = {cd[2*i]: cd[2*i+1] for i in range(len(cd)//2)}
 
@@ -753,11 +774,13 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     geometric_quantity = GenericDerivativeRuleset.independent_terminal
 
     def cell_avg(self, o, fp):
-        # Cell average of a single function and differentiation commutes, D_f[v](cell_avg(f)) = cell_avg(v)
+        # Cell average of a single function and differentiation
+        # commutes, D_f[v](cell_avg(f)) = cell_avg(v)
         return cell_avg(fp)
 
     def facet_avg(self, o, fp):
-        # Facet average of a single function and differentiation commutes, D_f[v](facet_avg(f)) = facet_avg(v)
+        # Facet average of a single function and differentiation
+        # commutes, D_f[v](facet_avg(f)) = facet_avg(v)
         return facet_avg(fp)
 
     # Explicitly defining da/dw == 0
@@ -774,7 +797,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Look for o among coefficient derivatives
         dos = self._cd.get(o)
         if dos is None:
-            # If o is not among coefficient derivatives, return do/dw=0
+            # If o is not among coefficient derivatives, return
+            # do/dw=0
             do = Zero(o.ufl_shape)
             return do
         else:
@@ -808,27 +832,32 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     def reference_value(self, o):
         error("Currently no support for ReferenceValue in CoefficientDerivative.")
-        # TODO: This is implementable for regular derivative(M(f),f,v) but too messy
-        #       if customized coefficient derivative relations are given by the user.
-        #       We would only need this to allow the user to write derivative(...ReferenceValue...,...).
-        #f, = o.ufl_operands
-        #ufl_assert(f._ufl_is_terminal_, "ReferenceValue can only wrap terminals directly.")
-        #if f is w: # FIXME: check all cases like in coefficient
-        #    return ReferenceValue(v) # FIXME: requires that v is an Argument with the same element mapping!
-        #else:
-        #    return self.independent_terminal(o)
+        # TODO: This is implementable for regular derivative(M(f),f,v)
+        #       but too messy if customized coefficient derivative
+        #       relations are given by the user.  We would only need
+        #       this to allow the user to write
+        #       derivative(...ReferenceValue...,...).  f, =
+        #       o.ufl_operands ufl_assert(f._ufl_is_terminal_,
+        #       "ReferenceValue can only wrap terminals directly.")
+        #       if f is w: # FIXME: check all cases like in
+        #       coefficient return ReferenceValue(v) # FIXME: requires
+        #       that v is an Argument with the same element mapping!
+        #       else: return self.independent_terminal(o)
 
     def reference_grad(self, o):
         error("Currently no support for ReferenceGrad in CoefficientDerivative.")
-        # TODO: This is implementable for regular derivative(M(f),f,v) but too messy
-        #       if customized coefficient derivative relations are given by the user.
-        #       We would only need this to allow the user to write derivative(...ReferenceValue...,...).
+        # TODO: This is implementable for regular derivative(M(f),f,v)
+        #       but too messy if customized coefficient derivative
+        #       relations are given by the user.  We would only need
+        #       this to allow the user to write
+        #       derivative(...ReferenceValue...,...).
 
     def grad(self, g):
-        # If we hit this type, it has already been propagated
-        # to a coefficient (or grad of a coefficient), # FIXME: Assert this!
-        # so we need to take the gradient of the variation or return zero.
-        # Complications occur when dealing with derivatives w.r.t. single components...
+        # If we hit this type, it has already been propagated to a
+        # coefficient (or grad of a coefficient), # FIXME: Assert
+        # this!  so we need to take the gradient of the variation or
+        # return zero.  Complications occur when dealing with
+        # derivatives w.r.t. single components...
 
         # Figure out how many gradients are around the inner terminal
         ngrads = 0
@@ -844,7 +873,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                 f = Grad(f)
             return f
 
-        # Find o among all w without any indexing, which makes this easy
+        # Find o among all w without any indexing, which makes this
+        # easy
         for (w, v) in zip(self._w, self._v):
             if o == w and isinstance(v, FormArgument):
                 # Case: d/dt [w + t v]
@@ -870,11 +900,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             return vval, vcomp
 
         def compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp):
-            # Apply gradients directly to argument vval,
-            # and get the right indexed scalar component(s)
+            # Apply gradients directly to argument vval, and get the
+            # right indexed scalar component(s)
             kk = indices(ngrads)
             Dvkk = apply_grads(vval)[vcomp+kk]
-            # Place scalar component(s) Dvkk into the right tensor positions
+            # Place scalar component(s) Dvkk into the right tensor
+            # positions
             if wshape:
                 Ejj, jj = unit_indexed_tensor(wshape, wcomp)
             else:
@@ -882,7 +913,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             gprimeterm = as_tensor(Ejj*Dvkk, jj+kk)
             return gprimeterm
 
-        # Accumulate contributions from variations in different components
+        # Accumulate contributions from variations in different
+        # components
         for (w, v) in zip(self._w, self._v):
 
             # Analyse differentiation variable coefficient
@@ -903,14 +935,17 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                             gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
 
                 else:
-                    ufl_assert(wshape == (), "Expecting scalar coefficient in this branch.")
+                    ufl_assert(wshape == (),
+                               "Expecting scalar coefficient in this branch.")
                     # Case: d/dt [w + t v[...]]
                     wval, wcomp = w, ()
 
                     vval, vcomp = analyse_variation_argument(v)
-                    gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
+                    gprimesum = gprimesum + compute_gprimeterm(ngrads, vval,
+                                                               vcomp, wshape,
+                                                               wcomp)
 
-            elif isinstance(w, Indexed): # This path is tested in unit tests, but not actually used?
+            elif isinstance(w, Indexed):  # This path is tested in unit tests, but not actually used?
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
                 wval, wcomp = w.ufl_operands
@@ -927,26 +962,30 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             else:
                 error("Expecting coefficient or component of coefficient.")
 
-        # FIXME: Handle other coefficient derivatives: oprimes = self._cd.get(o)
+        # FIXME: Handle other coefficient derivatives: oprimes =
+        # self._cd.get(o)
 
         if 0:
             oprimes = self._cd.get(o)
             if oprimes is None:
                 if self._cd:
-                    # TODO: Make it possible to silence this message in particular?
-                    #       It may be good to have for debugging...
+                    # TODO: Make it possible to silence this message
+                    #       in particular?  It may be good to have for
+                    #       debugging...
                     warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
             else:
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):
                     oprimes = (oprimes,)
-                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
-                                   "expecting a matching tuple of coefficient derivatives.")
+                    ufl_assert(len(oprimes) == len(self._v),
+                               "Got a tuple of arguments, " +
+                               "expecting a matching tuple of coefficient derivatives.")
 
                 # Compute dg/dw_j = dg/dw_h : v.
-                # Since we may actually have a tuple of oprimes and vs in a
-                # 'mixed' space, sum over them all to get the complete inner
-                # product. Using indices to define a non-compound inner product.
+                # Since we may actually have a tuple of oprimes and vs
+                # in a 'mixed' space, sum over them all to get the
+                # complete inner product. Using indices to define a
+                # non-compound inner product.
                 for (oprime, v) in zip(oprimes, self._v):
                     error("FIXME: Figure out how to do this with ngrads")
                     so, oi = as_scalar(oprime)
@@ -979,7 +1018,7 @@ class DerivativeRuleDispatcher(MultiFunction):
         return map_expr_dag(rules, f)
 
     def reference_grad(self, o, f):
-        rules = ReferenceGradRuleset(o.ufl_shape[-1]) # FIXME: Look over this and test better.
+        rules = ReferenceGradRuleset(o.ufl_shape[-1])  # FIXME: Look over this and test better.
         return map_expr_dag(rules, f)
 
     def variable_derivative(self, o, f, dummy_v):
@@ -991,12 +1030,13 @@ class DerivativeRuleDispatcher(MultiFunction):
         rules = GateauxDerivativeRuleset(w, v, cd)
         return map_expr_dag(rules, f)
 
-    def indexed(self, o, Ap, ii): # TODO: (Partially) duplicated in generic rules
+    def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
         # Reuse if untouched
         if Ap is o.ufl_operands[0]:
             return o
 
-        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify resulting expression
+        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify
+        # resulting expression
         if isinstance(Ap, ComponentTensor):
             B, jj = Ap.ufl_operands
             if isinstance(B, Indexed):

@@ -28,7 +28,6 @@ from ufl.utils.counted import counted_init
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 
-
 # Export list for ufl.classes
 __all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
@@ -36,6 +35,7 @@ __all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 class IndexBase(object):
     """Base class for all indices."""
     __slots__ = ()
+
     def __init__(self):
         pass
 

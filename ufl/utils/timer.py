@@ -21,6 +21,7 @@
 from six.moves import xrange as range
 import time
 
+
 class Timer(object):
     def __init__(self, name):
         self.name = name

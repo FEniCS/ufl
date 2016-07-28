@@ -20,36 +20,28 @@
 
 from six.moves import xrange as range
 
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.assertions import ufl_assert
 
-from ufl.core.multiindex import Index, indices
-from ufl.corealg.multifunction import MultiFunction, memoized_handler
+from ufl.core.multiindex import indices
+from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 
-from ufl.classes import (Expr, FormArgument, GeometricQuantity,
+from ufl.classes import (FormArgument, GeometricQuantity,
                          Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
-                         FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
-                         CellFacetJacobian,
-                         CellEdgeVectors, FacetEdgeVectors,
-                         FacetNormal, CellNormal, ReferenceNormal,
-                         CellVolume, FacetArea,
-                         CellOrientation, FacetOrientation, QuadratureWeight,
-                         SpatialCoordinate, Indexed, MultiIndex, FixedIndex)
+                         Indexed, MultiIndex, FixedIndex)
 
-from ufl.constantvalue import as_ufl, Identity
-from ufl.tensoralgebra import Transposed
-from ufl.tensors import as_tensor, as_vector, as_scalar, ComponentTensor
-from ufl.operators import sqrt, max_value, min_value, sign
+from ufl.constantvalue import as_ufl
+from ufl.tensors import as_tensor
 from ufl.permutation import compute_indices
 
-from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
-from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, TensorProductElement, TensorElement, FacetElement, InteriorElement, BrokenElement, TraceElement
+from ufl.finiteelement import MixedElement
 
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.checks import is_cellwise_constant
+
 
 """
 # Some notes:
@@ -207,7 +199,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
         ngrads = self._ngrads
         restricted = self._restricted
         avg = self._avg
-        ufl_assert(avg == "", "Averaging not implemented.") # FIXME
+        ufl_assert(avg == "", "Averaging not implemented.")  # FIXME
 
         # These are the global (g) and reference (r) values
         if isinstance(t, FormArgument):
@@ -236,9 +228,9 @@ class NEWChangeToReferenceGrad(MultiFunction):
 
         # Get component indices of global and reference terminal objects
         gtsh = g.ufl_shape
-        rtsh = r.ufl_shape
+        # rtsh = r.ufl_shape
         gtcomponents = compute_indices(gtsh)
-        rtcomponents = compute_indices(rtsh)
+        # rtcomponents = compute_indices(rtsh)
 
         # Create core modified terminal, with eventual
         # layers of grad applied directly to the terminal,
@@ -250,17 +242,19 @@ class NEWChangeToReferenceGrad(MultiFunction):
             g = g(restricted)
             r = r(restricted)
 
-        # Get component indices of global and reference objects with grads applied
+        # Get component indices of global and reference objects with
+        # grads applied
         gsh = g.ufl_shape
-        rsh = r.ufl_shape
-        gcomponents = compute_indices(gsh)
-        rcomponents = compute_indices(rsh)
+        # rsh = r.ufl_shape
+        # gcomponents = compute_indices(gsh)
+        # rcomponents = compute_indices(rsh)
 
         # Get derivative component indices
         dsh = gsh[len(gtsh):]
         dcomponents = compute_indices(dsh)
 
-        # Create nested array to hold expressions for global components mapped from reference values
+        # Create nested array to hold expressions for global
+        # components mapped from reference values
         def ndarray(shape):
             if len(shape) == 0:
                 return [None]
@@ -276,24 +270,26 @@ class NEWChangeToReferenceGrad(MultiFunction):
             if isinstance(t, FormArgument):
 
                 # Find basic subelement and element-local component
-                #ec, element, eoffset = t.ufl_element().extract_component2(gtc) # FIXME: Translate this correctly
+                # ec, element, eoffset = t.ufl_element().extract_component2(gtc) # FIXME: Translate this correctly
                 eoffset = 0
                 ec, element = t.ufl_element().extract_reference_component(gtc)
 
-                # Select mapping M from element, pick row emapping = M[ec,:], or emapping = [] if no mapping
+                # Select mapping M from element, pick row emapping =
+                # M[ec,:], or emapping = [] if no mapping
                 ufl_assert(not isinstance(element, MixedElement),
                            "Expecting a basic element here.")
                 mapping = element.mapping()
-                if mapping == "contravariant Piola": #S == HDiv:
-                    # Handle HDiv elements with contravariant piola mapping
-                    # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
+                if mapping == "contravariant Piola":  # S == HDiv:
+                    # Handle HDiv elements with contravariant piola
+                    # mapping contravariant_hdiv_mapping = (1/det J) *
+                    # J * PullbackOf(o)
                     ec, = ec
-                    emapping = Mdiv[ec,:]
-                elif mapping == "covariant Piola": #S == HCurl:
+                    emapping = Mdiv[ec, :]
+                elif mapping == "covariant Piola":  # S == HCurl:
                     # Handle HCurl elements with covariant piola mapping
                     # covariant_hcurl_mapping = JinvT * PullbackOf(o)
                     ec, = ec
-                    emapping = K[:,ec] # Column of K is row of K.T
+                    emapping = K[:, ec]  # Column of K is row of K.T
                 elif mapping == "identity":
                     emapping = None
                 else:
@@ -307,44 +303,48 @@ class NEWChangeToReferenceGrad(MultiFunction):
                 error("Unexpected type {0}.".format(type(t).__name__))
 
             # Create indices
-            #if rtsh:
-            #    i = Index()
-            ufl_assert(len(dsh) == ngrads, "Mismatch between derivative shape and ngrads.")
+            # if rtsh:
+            #     i = Index()
+            ufl_assert(len(dsh) == ngrads,
+                       "Mismatch between derivative shape and ngrads.")
             if ngrads:
                 ii = indices(ngrads)
             else:
                 ii = ()
 
             # Apply mapping row to reference object
-            if emapping: # Mapped, always nonscalar terminal
-                # Not using IndexSum for the mapping row dot product to keep it simple,
-                # because we don't have a slice type
+            if emapping:  # Mapped, always nonscalar terminal Not
+                # using IndexSum for the mapping row dot product to
+                # keep it simple, because we don't have a slice type
                 emapped_ops = [emapping[s] * Indexed(r, MultiIndex((FixedIndex(eoffset + s),) + ii))
                                for s in range(len(emapping))]
                 emapped = sum(emapped_ops[1:], emapped_ops[0])
-            elif gtc: # Nonscalar terminal, unmapped
+            elif gtc:  # Nonscalar terminal, unmapped
                 emapped = Indexed(r, MultiIndex((FixedIndex(eoffset),) + ii))
-            elif ngrads: # Scalar terminal, unmapped, with derivatives
+            elif ngrads:  # Scalar terminal, unmapped, with derivatives
                 emapped = Indexed(r, MultiIndex(ii))
-            else: # Scalar terminal, unmapped, no derivatives
+            else:  # Scalar terminal, unmapped, no derivatives
                 emapped = r
 
             for di in dcomponents:
-                # Multiply derivative mapping rows, parameterized by free column indices
+                # Multiply derivative mapping rows, parameterized by
+                # free column indices
                 dmapping = as_ufl(1)
                 for j in range(ngrads):
-                    dmapping *= K[ii[j], di[j]] # Row of K is column of JinvT
+                    dmapping *= K[ii[j], di[j]]  # Row of K is column of JinvT
 
-                # Compute mapping from reference values for this particular global component
+                # Compute mapping from reference values for this
+                # particular global component
                 global_value = dmapping * emapped
 
                 # Apply index sums
-                #if rtsh:
-                #    global_value = IndexSum(global_value, MultiIndex((i,)))
-                #for j in range(ngrads): # Applied implicitly in the dmapping * emapped above
-                #    global_value = IndexSum(global_value, MultiIndex((ii[j],)))
+                # if rtsh:
+                #     global_value = IndexSum(global_value, MultiIndex((i,)))
+                # for j in range(ngrads): # Applied implicitly in the dmapping * emapped above
+                #     global_value = IndexSum(global_value, MultiIndex((ii[j],)))
 
-                # This is the component index into the full object with grads applied
+                # This is the component index into the full object
+                # with grads applied
                 gc = gtc + di
 
                 # Insert in nested list
@@ -353,7 +353,8 @@ class NEWChangeToReferenceGrad(MultiFunction):
                     comp = comp[i]
                 comp[0 if gc == () else gc[-1]] = global_value
 
-        # Wrap nested list in as_tensor unless we have a scalar expression
+        # Wrap nested list in as_tensor unless we have a scalar
+        # expression
         if gsh:
             tensor = as_tensor(global_components)
         else:
@@ -371,7 +372,8 @@ class OLDChangeToReferenceGrad(MultiFunction):
         return o
 
     def grad(self, o):
-        # Peel off the Grads and count them, and get restriction if it's between the grad and the terminal
+        # Peel off the Grads and count them, and get restriction if
+        # it's between the grad and the terminal
         ngrads = 0
         restricted = ''
         rv = False
@@ -396,13 +398,14 @@ class OLDChangeToReferenceGrad(MultiFunction):
         Jinv = JacobianInverse(domain)
 
         if is_cellwise_constant(Jinv):
-            # Optimise slightly by turning Grad(Grad(...)) into J^(-T)J^(-T)RefGrad(RefGrad(...))
+            # Optimise slightly by turning Grad(Grad(...)) into
+            # J^(-T)J^(-T)RefGrad(RefGrad(...))
             # rather than J^(-T)RefGrad(J^(-T)RefGrad(...))
 
             # Create some new indices
-            ii = indices(len(f.ufl_shape)) # Indices to get to the scalar component of f
-            jj = indices(ngrads)   # Indices to sum over the local gradient axes with the inverse Jacobian
-            kk = indices(ngrads)   # Indices for the leftover inverse Jacobian axes
+            ii = indices(len(f.ufl_shape))  # Indices to get to the scalar component of f
+            jj = indices(ngrads)  # Indices to sum over the local gradient axes with the inverse Jacobian
+            kk = indices(ngrads)  # Indices for the leftover inverse Jacobian axes
 
             # Preserve restricted property
             if restricted:
@@ -414,7 +417,8 @@ class OLDChangeToReferenceGrad(MultiFunction):
             for i in range(ngrads):
                 lgrad = ReferenceGrad(lgrad)
 
-            # Apply mappings with scalar indexing operations (assumes ReferenceGrad(Jinv) is zero)
+            # Apply mappings with scalar indexing operations (assumes
+            # ReferenceGrad(Jinv) is zero)
             jinv_lgrad_f = lgrad[ii+jj]
             for j, k in zip(jj, kk):
                 jinv_lgrad_f = Jinv[j, k]*jinv_lgrad_f
@@ -432,7 +436,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
 
             jinv_lgrad_f = f
             for foo in range(ngrads):
-                ii = indices(len(jinv_lgrad_f.ufl_shape)) # Indices to get to the scalar component of f
+                ii = indices(len(jinv_lgrad_f.ufl_shape))  # Indices to get to the scalar component of f
                 j, k = indices(2)
 
                 lgrad = ReferenceGrad(jinv_lgrad_f)
@@ -450,7 +454,6 @@ class OLDChangeToReferenceGrad(MultiFunction):
         error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
 
-
 def change_to_reference_grad(e):
     """Change Grad objects in expression to products of JacobianInverse and ReferenceGrad.
 
@@ -460,10 +463,9 @@ def change_to_reference_grad(e):
         An Expr or Form.
     """
     mf = OLDChangeToReferenceGrad()
-    #mf = NEWChangeToReferenceGrad()
+    # mf = NEWChangeToReferenceGrad()
     return map_expr_dag(mf, e)
 
-from ufl.algorithms.apply_integral_scaling import compute_integrand_scaling_factor
 
 def change_integrand_geometry_representation(integrand, scale, integral_type):
     """Change integrand geometry to the right representations."""

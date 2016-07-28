@@ -26,7 +26,6 @@ complete Forms into new related Forms."""
 from six import iteritems
 from six.moves import xrange as range
 
-from ufl.utils.sequences import product
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 
@@ -34,7 +33,6 @@ from ufl.assertions import ufl_assert
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
-from ufl.algebra import Sum
 
 # Other algorithms:
 from ufl.algorithms.map_integrands import map_integrands
@@ -165,7 +163,7 @@ class PartExtracter(Transformer):
 
         # 3. Return the terms that provide the biggest set
         most_provided = frozenset()
-        for (provideds, parts) in iteritems(parts_that_provide): # TODO: Just sort instead?
+        for (provideds, parts) in iteritems(parts_that_provide):  # TODO: Just sort instead?
 
             # Throw error if size of sets are equal (and not zero)
             if len(provideds) == len(most_provided) and len(most_provided):
@@ -312,6 +310,7 @@ class PartExtracter(Transformer):
 
         return (x, most_provides)
 
+
 def compute_form_with_arity(form, arity, arguments=None):
     """Compute parts of form of given arity."""
 
@@ -333,6 +332,7 @@ def compute_form_with_arity(form, arity, arguments=None):
     # any sense anyway.
     sub_arguments = set(arguments[:arity])
     pe = PartExtracter(sub_arguments)
+
     def _transform(e):
         e, provides = pe.visit(e)
         if provides == sub_arguments:
@@ -340,9 +340,9 @@ def compute_form_with_arity(form, arity, arguments=None):
         return Zero()
     return map_integrands(_transform, form)
 
+
 def compute_form_arities(form):
     """Return set of arities of terms present in form."""
-    #ufl_assert(form.is_preprocessed(), "Assuming a preprocessed form.")
 
     # Extract all arguments present in form
     arguments = form.arguments()
@@ -363,6 +363,7 @@ def compute_form_arities(form):
 
     return arities
 
+
 def compute_form_lhs(form):
     """Compute the left hand side of a form.
 
@@ -372,6 +373,7 @@ def compute_form_lhs(form):
         a = lhs(a) -> u*v*dx
     """
     return compute_form_with_arity(form, 2)
+
 
 def compute_form_rhs(form):
     """Compute the right hand side of a form.
@@ -383,12 +385,14 @@ def compute_form_rhs(form):
     """
     return -compute_form_with_arity(form, 1)
 
+
 def compute_form_functional(form):
     """Compute the functional part of a form, that
     is the terms independent of Arguments.
 
     (Used for testing, not sure if it's useful for anything?)"""
     return compute_form_with_arity(form, 0)
+
 
 def compute_form_action(form, coefficient):
     """Compute the action of a form on a Coefficient.
@@ -416,7 +420,8 @@ def compute_form_action(form, coefficient):
         coefficient = Coefficient(fs)
     elif coefficient.ufl_function_space() != fs:
         debug("Computing action of form on a coefficient in a different function space.")
-    return replace(form, { u: coefficient })
+    return replace(form, {u: coefficient})
+
 
 def compute_energy_norm(form, coefficient):
     """Compute the a-norm of a Coefficient given a form a.
@@ -442,9 +447,10 @@ def compute_energy_norm(form, coefficient):
         coefficient = Coefficient(e)
     else:
         ufl_assert(coefficient.ufl_function_space() == e,
-            "Trying to compute action of form on a "
-            "coefficient in an incompatible element space.")
-    return replace(form, { u: coefficient, v: coefficient })
+                   "Trying to compute action of form on a "
+                   "coefficient in an incompatible element space.")
+    return replace(form, {u: coefficient, v: coefficient})
+
 
 def compute_form_adjoint(form, reordered_arguments=None):
     """Compute the adjoint of a bilinear form.
@@ -464,8 +470,10 @@ def compute_form_adjoint(form, reordered_arguments=None):
     ufl_assert(v.number() < u.number(), "Mistaken assumption in code!")
 
     if reordered_arguments is None:
-        reordered_u = Argument(u.ufl_function_space(), number=v.number(), part=v.part())
-        reordered_v = Argument(v.ufl_function_space(), number=u.number(), part=u.part())
+        reordered_u = Argument(u.ufl_function_space(), number=v.number(),
+                               part=v.part())
+        reordered_v = Argument(v.ufl_function_space(), number=u.number(),
+                               part=u.part())
     else:
         reordered_u, reordered_v = reordered_arguments
 

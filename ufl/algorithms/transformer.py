@@ -24,14 +24,9 @@ algorithms."""
 # Modified by Anders Logg, 2009-2010
 
 from inspect import getargspec
-from ufl.log import error, debug
-from ufl.assertions import ufl_assert
-
-from ufl.classes import Expr, Terminal, Variable, Zero, all_ufl_classes
+from ufl.log import error
+from ufl.classes import Variable, all_ufl_classes
 from ufl.algorithms.map_integrands import map_integrands
-
-from ufl.integral import Integral
-from ufl.form import Form
 
 
 def is_post_handler(function):
@@ -41,10 +36,12 @@ def is_post_handler(function):
     visit_children_first = num_args > 2
     return visit_children_first
 
+
 class Transformer(object):
     """Base class for a visitor-like algorithm design pattern used to
     transform expression trees from one representation to another."""
     _handlers_cache = {}
+
     def __init__(self, variable_cache=None):
         if variable_cache is None:
             variable_cache = {}
@@ -61,23 +58,26 @@ class Transformer(object):
                 # (NB! This assumes that all UFL classes inherits a single
                 # Expr subclass and that this is the first superclass!)
                 for c in classobject.mro():
-                    # Register classobject with handler for the first encountered superclass
-                    name = c._ufl_handler_name_
-                    function = getattr(self, name, None)
+                    # Register classobject with handler for the first
+                    # encountered superclass
+                    handler_name = c._ufl_handler_name_
+                    function = getattr(self, handler_name, None)
                     if function:
-                        cache_data[classobject._ufl_typecode_] = name, is_post_handler(function)
+                        cache_data[classobject._ufl_typecode_] = handler_name, is_post_handler(function)
                         break
             Transformer._handlers_cache[type(self)] = cache_data
 
-        # Build handler list for this particular class (get functions bound to self)
+        # Build handler list for this particular class (get functions
+        # bound to self)
         self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
-
-        # Keep a stack of objects visit is called on, to ease backtracking
+        # Keep a stack of objects visit is called on, to ease
+        # backtracking
         self._visit_stack = []
 
     def print_visit_stack(self):
         print("/"*80)
         print("Visit stack in Transformer:")
+
         def sstr(s):
             ss = str(type(s)) + " ; "
             n = 160 - len(ss)
@@ -86,18 +86,19 @@ class Transformer(object):
         print("\\"*80)
 
     def visit(self, o):
-        #debug("Visiting object of type %s." % type(o).__name__)
         # Update stack
         self._visit_stack.append(o)
 
-        # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
+        # Get handler for the UFL class of o (type(o) may be an
+        # external subclass of the actual UFL class)
         h, visit_children_first = self._handlers[o._ufl_typecode_]
 
-        #if not h:
+        # if not h:
         #    # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
         #    error("Can't handle objects of type %s" % str(type(o)))
 
-        # Is this a handler that expects transformed children as input?
+        # Is this a handler that expects transformed children as
+        # input?
         if visit_children_first:
             # Yes, visit all children first and then call h.
             r = h(o, *[self.visit(op) for op in o.ufl_operands])
@@ -146,7 +147,8 @@ class Transformer(object):
     terminal = reuse
 
     def reuse_variable(self, o):
-        # Check variable cache to reuse previously transformed variable if possible
+        # Check variable cache to reuse previously transformed
+        # variable if possible
         e, l = o.ufl_operands
         v = self._variable_cache.get(l)
         if v is not None:
@@ -167,7 +169,8 @@ class Transformer(object):
         return v
 
     def reconstruct_variable(self, o):
-        # Check variable cache to reuse previously transformed variable if possible
+        # Check variable cache to reuse previously transformed
+        # variable if possible
         e, l = o.ufl_operands
         v = self._variable_cache.get(l)
         if v is not None:
@@ -223,10 +226,12 @@ def apply_transformer(e, transformer, integral_type=None):
     expression in form, or to form if it is an Expr."""
     return map_integrands(lambda expr: transformer.visit(expr), e, integral_type)
 
+
 def ufl2ufl(e):
     """Convert an UFL expression to a new UFL expression, with no changes.
     This is used for testing that objects in the expression behave as expected."""
     return apply_transformer(e, ReuseTransformer())
+
 
 def ufl2uflcopy(e):
     """Convert an UFL expression to a new UFL expression.
@@ -234,6 +239,7 @@ def ufl2uflcopy(e):
     copies, while terminal objects are kept. This is used for
     testing that objects in the expression behave as expected."""
     return apply_transformer(e, CopyTransformer())
+
 
 def strip_variables(e):
     "Replace all Variable instances with the expression they represent."

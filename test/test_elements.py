@@ -21,8 +21,9 @@ def test_scalar_galerkin():
                 assert element == eval(repr(element))
     for p in range(1, 10):
         for family in ("TDG", "Discontinuous Taylor"):
-            element = FiniteElement(family, interval, p)        
+            element = FiniteElement(family, interval, p)
             assert element.value_shape() == ()
+
 
 def test_vector_galerkin():
     for cell in all_cells:

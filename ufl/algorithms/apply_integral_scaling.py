@@ -18,11 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import xrange as range
-
-from ufl.log import error, warning
-from ufl.assertions import ufl_assert
-
+from ufl.log import error
 from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
 
 
@@ -31,17 +27,18 @@ def compute_integrand_scaling_factor(integral):
 
     domain = integral.ufl_domain()
     integral_type = integral.integral_type()
-    #co = CellOrientation(domain)
+    # co = CellOrientation(domain)
     weight = QuadratureWeight(domain)
     tdim = domain.topological_dimension()
-    #gdim = domain.geometric_dimension()
+    # gdim = domain.geometric_dimension()
 
     if integral_type == "cell":
         scale = abs(JacobianDeterminant(domain)) * weight
 
     elif integral_type.startswith("exterior_facet"):
         if tdim > 1:
-            # Scaling integral by facet jacobian determinant and quadrature weight
+            # Scaling integral by facet jacobian determinant and
+            # quadrature weight
             scale = FacetJacobianDeterminant(domain) * weight
         else:
             # No need to scale 'integral' over a vertex
@@ -49,14 +46,16 @@ def compute_integrand_scaling_factor(integral):
 
     elif integral_type.startswith("interior_facet"):
         if tdim > 1:
-            # Scaling integral by facet jacobian determinant from one side and quadrature weight
+            # Scaling integral by facet jacobian determinant from one
+            # side and quadrature weight
             scale = FacetJacobianDeterminant(domain)('+') * weight
         else:
             # No need to scale 'integral' over a vertex
             scale = 1
 
     elif integral_type in ("custom", "interface", "overlap", "cutcell"):
-        # Scaling with custom weight, which includes eventual volume scaling
+        # Scaling with custom weight, which includes eventual volume
+        # scaling
         scale = weight
 
     elif integral_type in ("vertex", "point"):

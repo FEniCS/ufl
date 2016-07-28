@@ -70,10 +70,11 @@ class HCurlElement(TensorProductElement):
         quad_scheme = element.quadrature_scheme()
         cell = element.cell()
         value_shape = (cell.geometric_dimension(),)
-        reference_value_shape = (cell.topological_dimension(),) # TODO: Is this right?
-        # Skipping TensorProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
-        FiniteElementBase.__init__(self, family, cell, degree,
-                                    quad_scheme, value_shape, reference_value_shape)
+        reference_value_shape = (cell.topological_dimension(),)  # TODO: Is this right?
+        # Skipping TensorProductElement constructor! Bad code smell,
+        # refactor to avoid this non-inheritance somehow.
+        FiniteElementBase.__init__(self, family, cell, degree, quad_scheme,
+                                   value_shape, reference_value_shape)
 
     def __str__(self):
         return "HCurlElement(%s)" % str(self._element)

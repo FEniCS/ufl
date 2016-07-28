@@ -20,14 +20,11 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from six import iteritems
-
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
 
-#--- Base class for operator objects ---
+# --- Base class for operator objects ---
 
 @ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
@@ -37,9 +34,10 @@ class Operator(Expr):
     def __init__(self, operands=None):
         Expr.__init__(self)
 
-        # If operands is None, the type sets this itself. This is to get around
-        # some tricky too-fancy __new__/__init__ design in algebra.py, for now.
-        # It would be nicer to make the classes in algebra.py pass operands here.
+        # If operands is None, the type sets this itself. This is to
+        # get around some tricky too-fancy __new__/__init__ design in
+        # algebra.py, for now.  It would be nicer to make the classes
+        # in algebra.py pass operands here.
         if operands is not None:
             self.ufl_operands = operands
 
