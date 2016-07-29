@@ -23,7 +23,7 @@ from six.moves import xrange as range
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
-from ufl.core.multiindex import Index, MultiIndex, as_multi_index
+from ufl.core.multiindex import MultiIndex
 from ufl.precedence import parstr
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import Zero

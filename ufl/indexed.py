@@ -22,7 +22,7 @@ from six.moves import zip
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex, as_multi_index
+from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
 from ufl.precedence import parstr
 from ufl.core.ufl_type import ufl_type

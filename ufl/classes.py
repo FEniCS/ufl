@@ -43,7 +43,6 @@ import ufl.constantvalue
 import ufl.argument
 import ufl.coefficient
 import ufl.geometry
-import ufl.indexing
 
 # Operator types
 import ufl.indexed
