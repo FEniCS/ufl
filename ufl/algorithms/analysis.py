@@ -24,7 +24,6 @@
 from itertools import chain
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.terminal import Terminal, FormArgument
