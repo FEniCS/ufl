@@ -25,13 +25,12 @@ from itertools import chain
 from collections import defaultdict
 from ufl.log import error, deprecate
 from ufl.assertions import ufl_assert
-import ufl.measure
-from ufl.integral import Integral, Measure
+from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
 from ufl.core.expr import Expr
 from ufl.constantvalue import Zero
-from ufl.coefficient import Coefficient
+
 
 # Export list for ufl.classes
 __all_classes__ = ["Form"]

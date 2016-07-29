@@ -156,9 +156,11 @@ class MeshView(AbstractDomain):
         # Store mesh
         self._ufl_mesh = mesh
 
+        # FIXME: coordinate_element doesn't exist. Remove '# noqa'
+        #        when fixed
         # Derive dimensions from element
-        gdim, = coordinate_element.value_shape()
-        tdim = coordinate_element.cell().topological_dimension()
+        gdim, = coordinate_element.value_shape()  # noqa
+        tdim = coordinate_element.cell().topological_dimension()  # noqa
         AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_mesh(self):

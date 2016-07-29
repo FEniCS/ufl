@@ -25,7 +25,7 @@ output messages. These may be redirected by the user of UFL."""
 import sys
 import types
 import logging
-from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
+from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL  # noqa: F401
 
 log_functions = ["log", "debug", "info", "deprecate", "warning", "error",
                  "begin", "end",
