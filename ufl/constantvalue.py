@@ -25,7 +25,7 @@ from six.moves import xrange as range
 from six import iteritems
 
 from ufl.log import error
-from ufl.assertions import ufl_assert, expecting_python_scalar
+from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import Index, FixedIndex

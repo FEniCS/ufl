@@ -24,7 +24,7 @@ of related classes, including Constant."""
 
 from ufl.log import error, deprecate
 from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal, FormArgument
+from ufl.core.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.domain import as_domain, default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
