@@ -25,10 +25,10 @@ from ufl.core.operator import Operator
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
 from ufl.precedence import parstr
-from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
-#--- Indexed expression ---
+
+# --- Indexed expression ---
 
 @ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
@@ -37,7 +37,6 @@ class Indexed(Operator):
     def __init__(self, expression, multiindex):
         # Store operands
         Operator.__init__(self, (expression, multiindex))
-
 
         # Error checking
         if not isinstance(expression, Expr):
@@ -50,8 +49,8 @@ class Indexed(Operator):
         # Error checking
         if len(shape) != len(multiindex):
             error("Invalid number of indices (%d) for tensor "
-                "expression of rank %d:\n\t%r\n"
-                % (len(multiindex), len(expression.ufl_shape), expression))
+                  "expression of rank %d:\n\t%r\n"
+                  % (len(multiindex), len(expression.ufl_shape), expression))
         if any(int(di) >= int(si) for si, di in zip(shape, multiindex) if isinstance(di, FixedIndex)):
             error("Fixed index out of range!")
 
@@ -70,10 +69,13 @@ class Indexed(Operator):
                 fi, fid = (), ()
 
         else:
-            mfiid = [(ind.count(), shape[pos]) for pos, ind in enumerate(multiindex._indices) if isinstance(ind, Index)]
+            mfiid = [(ind.count(), shape[pos]) for pos,
+                     ind in enumerate(multiindex._indices) if isinstance(ind,
+                                                                         Index)]
             mfi, mfid = zip(*mfiid) if mfiid else ((), ())
-            fi, fid = merge_unique_indices(expression.ufl_free_indices, expression.ufl_index_dimensions, mfi, mfid)
-
+            fi, fid = merge_unique_indices(expression.ufl_free_indices,
+                                           expression.ufl_index_dimensions,
+                                           mfi, mfid)
 
         # Cache free index and dimensions
         self.ufl_free_indices = fi
@@ -90,7 +92,8 @@ class Indexed(Operator):
             return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
-        return "%s[%s]" % (parstr(self.ufl_operands[0], self), self.ufl_operands[1])
+        return "%s[%s]" % (parstr(self.ufl_operands[0], self),
+                           self.ufl_operands[1])
 
     def __repr__(self):
         return "Indexed(%r, %r)" % self.ufl_operands

@@ -21,16 +21,15 @@
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.multiindex import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr
-from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import Zero
 
-#--- Sum over an index ---
+
+# --- Sum over an index ---
 
 @ufl_type(num_ops=2)
 class IndexSum(Operator):
@@ -83,12 +82,14 @@ class IndexSum(Operator):
         tmp = 0
         for k in range(self._dimension):
             index_values.push(i, k)
-            tmp += self.ufl_operands[0].evaluate(x, mapping, component, index_values)
+            tmp += self.ufl_operands[0].evaluate(x, mapping, component,
+                                                 index_values)
             index_values.pop()
         return tmp
 
     def __str__(self):
-        return "sum_{%s} %s " % (str(self.ufl_operands[1]), parstr(self.ufl_operands[0], self))
+        return "sum_{%s} %s " % (str(self.ufl_operands[1]),
+                                 parstr(self.ufl_operands[0], self))
 
     def __repr__(self):
         return "IndexSum(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])

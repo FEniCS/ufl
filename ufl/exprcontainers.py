@@ -18,14 +18,13 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error, warning
-from ufl.assertions import ufl_assert
-from ufl.utils.dicts import EmptyDict
+from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 
-#--- Non-tensor types ---
+
+# --- Non-tensor types ---
 
 @ufl_type(num_ops="varying")
 class ExprList(Operator):
@@ -82,20 +81,21 @@ class ExprMapping(Operator):
             error("Expecting Expr in ExprMapping.")
 
     def ufl_domains(self):
-        # Because this type can act like a terminal if it has no operands, we need to override some recursive operations
+        # Because this type can act like a terminal if it has no
+        # operands, we need to override some recursive operations
         if self.ufl_operands:
             return Operator.ufl_domains()
         else:
             return []
 
-    #def __getitem__(self, key):
-    #    return self.ufl_operands[key]
+    # def __getitem__(self, key):
+    #     return self.ufl_operands[key]
 
-    #def __len__(self):
-    #    return len(self.ufl_operands) // 2
+    # def __len__(self):
+    #     return len(self.ufl_operands) // 2
 
-    #def __iter__(self):
-    #    return iter(self.ufl_operands[::2])
+    # def __iter__(self):
+    #     return iter(self.ufl_operands[::2])
 
     def __str__(self):
         return "ExprMapping(*%r)" % (self.ufl_operands,)

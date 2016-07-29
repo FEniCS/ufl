@@ -26,8 +26,8 @@ from ufl.log import error
 from ufl.core.multiindex import FixedIndex, Index, indices
 
 
-# FIXME: Some of these might be merged into one function, some might be optimized
-
+# FIXME: Some of these might be merged into one function, some might
+# be optimized
 
 def unique_sorted_indices(indices):
     """Given a list of (id, dim) tuples already sorted by id,
@@ -41,7 +41,8 @@ def unique_sorted_indices(indices):
             newindices.append(i)
             prev = i
         else:
-            ufl_assert(i[1] == prev[1], "Nonmatching dimensions for free indices with same id!")
+            ufl_assert(i[1] == prev[1],
+                       "Nonmatching dimensions for free indices with same id!")
     return tuple(newindices)
 
 
@@ -102,7 +103,7 @@ def remove_indices(fi, fid, rfi):
     if not rfi:
         return fi, fid
 
-    rfip = sorted((r,p) for p, r in enumerate(rfi))
+    rfip = sorted((r, p) for p, r in enumerate(rfi))
 
     nrfi = len(rfi)
     nfi = len(fi)
@@ -204,7 +205,8 @@ def merge_nonoverlapping_indices(a, b):
     if s:
         free_indices, index_dimensions = zip(*s)
         # Consistency checks
-        ufl_assert(len(set(free_indices)) == len(free_indices), "Not expecting repeated indices.")
+        ufl_assert(len(set(free_indices)) == len(free_indices),
+                   "Not expecting repeated indices.")
     else:
         free_indices, index_dimensions = (), ()
     return free_indices, index_dimensions
@@ -244,7 +246,9 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
             index_dimensions.append(d)
 
     # Consistency checks
-    ufl_assert(len(set(free_indices)) == len(free_indices), "Not expecting repeated indices left.")
-    ufl_assert(len(free_indices) + 2*len(repeated_indices) == an + bn, "Expecting only twice repeated indices.")
+    ufl_assert(len(set(free_indices)) == len(free_indices),
+               "Not expecting repeated indices left.")
+    ufl_assert(len(free_indices) + 2*len(repeated_indices) == an + bn,
+               "Expecting only twice repeated indices.")
 
     return tuple(free_indices), tuple(index_dimensions), tuple(repeated_indices), tuple(repeated_index_dimensions)

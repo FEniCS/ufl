@@ -26,7 +26,6 @@ from itertools import chain
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.utils.dicts import mergedicts, subdict
 from ufl.utils.stacks import StackDict
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
@@ -41,44 +40,52 @@ from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Grad
 from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
 
+from ufl.exprequals import expr_equals
 
-#--- Boolean operators ---
+# --- Boolean operators ---
 
 from ufl.conditional import EQ, NE, LE, GE, LT, GT
+
 
 def _le(left, right):
     "UFL operator: A boolean expresion (left <= right) for use with conditional."
     return LE(left, right)
 
+
 def _ge(left, right):
     "UFL operator: A boolean expresion (left >= right) for use with conditional."
     return GE(left, right)
 
+
 def _lt(left, right):
     "UFL operator: A boolean expresion (left < right) for use with conditional."
     return LT(left, right)
+
 
 def _gt(left, right):
     "UFL operator: A boolean expresion (left > right) for use with conditional."
     return GT(left, right)
 
 
-# '==' needs to implement comparison of expression representations for use in
-# hashmaps (dict and set), but the others can be overloaded in the language.
-# It is possible that we can overload eq as well, but we'll need to fix some
-# issues first and also check for a possible significant performance hit with
-# compilation of complex forms. Replacing a==b with equiv(a,b) all over the
-# code could be one way to reduce such a performance hit, but we cannot do
-# anything about dict and set calling __eq__...
-from ufl.exprequals import expr_equals
+# '==' needs to implement comparison of expression representations for
+# use in hashmaps (dict and set), but the others can be overloaded in
+# the language.  It is possible that we can overload eq as well, but
+# we'll need to fix some issues first and also check for a possible
+# significant performance hit with compilation of complex
+# forms. Replacing a==b with equiv(a,b) all over the code could be one
+# way to reduce such a performance hit, but we cannot do anything
+# about dict and set calling __eq__...
 Expr.__eq__ = expr_equals
 
-# != is used at least by tests, possibly in code as well, and must mean
-# the opposite of ==, i.e. when evaluated as bool it must mean 'not equal representation'.
+
+# != is used at least by tests, possibly in code as well, and must
+# mean the opposite of ==, i.e. when evaluated as bool it must mean
+# 'not equal representation'.
 def _ne(self, other):
     return not self.__eq__(other)
-Expr.__ne__ = _ne
 
+
+Expr.__ne__ = _ne
 Expr.__lt__ = _lt
 Expr.__gt__ = _gt
 Expr.__le__ = _le
@@ -86,8 +93,9 @@ Expr.__ge__ = _ge
 
 # Python operators 'and'/'or' cannot be overloaded, and bitwise
 # operators &/| don't have the right precedence levels
-#Expr.__and__ = _and
-#Expr.__or__ = _or
+# Expr.__and__ = _and
+# Expr.__or__ = _or
+
 
 def _as_tensor(self, indices):
     "UFL operator: A^indices := as_tensor(A, indices)."
@@ -99,7 +107,7 @@ def _as_tensor(self, indices):
 Expr.__xor__ = _as_tensor
 
 
-#--- Helper functions for product handling ---
+# --- Helper functions for product handling ---
 
 def _mult(a, b):
     # Discover repeated indices, which results in index sums
@@ -131,14 +139,15 @@ def _mult(a, b):
             return Zero(shape, fi, fid)
 
         # Repeated indices are allowed, like in:
-        #v[i]*M[i,:]
+        # v[i]*M[i,:]
 
         # Apply product to scalar components
         ti = indices(len(b.ufl_shape))
         p = Product(a, b[ti])
 
-    elif r1 == 2 and r2 in (1, 2): # Matrix-matrix or matrix-vector
-        ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
+    elif r1 == 2 and r2 in (1, 2):  # Matrix-matrix or matrix-vector
+        ufl_assert(not ri,
+                   "Not expecting repeated indices in non-scalar product.")
 
         # Check for zero, simplifying early if possible
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -156,21 +165,24 @@ def _mult(a, b):
     else:
         error("Invalid ranks {0} and {1} in product.".format(r1, r2))
 
-    # TODO: I think applying as_tensor after index sums results in cleaner expression graphs.
+    # TODO: I think applying as_tensor after index sums results in
+    # cleaner expression graphs.
     # Wrap as tensor again
     if ti:
         p = as_tensor(p, ti)
 
-    # If any repeated indices were found, apply implicit summation over those
+    # If any repeated indices were found, apply implicit summation
+    # over those
     for i in ri:
         mi = MultiIndex((Index(count=i),))
         p = IndexSum(p, mi)
 
     return p
 
-#--- Extend Expr with algebraic operators ---
+# --- Extend Expr with algebraic operators ---
 
 _valid_types = (Expr,) + (int, float)
+
 
 def _mul(self, o):
     if not isinstance(o, _valid_types):
@@ -179,6 +191,7 @@ def _mul(self, o):
     return _mult(self, o)
 Expr.__mul__ = _mul
 
+
 def _rmul(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
@@ -186,20 +199,24 @@ def _rmul(self, o):
     return _mult(o, self)
 Expr.__rmul__ = _rmul
 
+
 def _add(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Sum(self, o)
 Expr.__add__ = _add
 
+
 def _radd(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     if isinstance(o, int) and o == 0:
-        # Allow adding scalar int 0 as a no-op, even for shaped self, needed for sum([a,b])
+        # Allow adding scalar int 0 as a no-op, even for shaped self,
+        # needed for sum([a,b])
         return self
     return Sum(o, self)
 Expr.__radd__ = _radd
+
 
 def _sub(self, o):
     if not isinstance(o, _valid_types):
@@ -207,11 +224,13 @@ def _sub(self, o):
     return Sum(self, -o)
 Expr.__sub__ = _sub
 
+
 def _rsub(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Sum(o, -self)
 Expr.__rsub__ = _rsub
+
 
 def _div(self, o):
     if not isinstance(o, _valid_types):
@@ -225,12 +244,14 @@ def _div(self, o):
 Expr.__div__ = _div
 Expr.__truediv__ = _div
 
+
 def _rdiv(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Division(o, self)
 Expr.__rdiv__ = _rdiv
 Expr.__rtruediv__ = _rdiv
+
 
 def _pow(self, o):
     if not isinstance(o, _valid_types):
@@ -240,22 +261,26 @@ def _pow(self, o):
     return Power(self, o)
 Expr.__pow__ = _pow
 
+
 def _rpow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Power(o, self)
 Expr.__rpow__ = _rpow
 
+
 # TODO: Add Negated class for this? Might simplify reductions in Add.
 def _neg(self):
     return -1*self
 Expr.__neg__ = _neg
 
+
 def _abs(self):
     return Abs(self)
 Expr.__abs__ = _abs
 
-#--- Extend Expr with restiction operators a("+"), a("-") ---
+
+# --- Extend Expr with restiction operators a("+"), a("-") ---
 
 def _restrict(self, side):
     if side == "+":
@@ -264,9 +289,10 @@ def _restrict(self, side):
         return NegativeRestricted(self)
     error("Invalid side %r in restriction operator." % side)
 
+
 def _eval(self, coord, mapping=None, component=()):
-    # Evaluate expression at this particular coordinate,
-    # with provided values for other terminals in mapping
+    # Evaluate expression at this particular coordinate, with provided
+    # values for other terminals in mapping
 
     # Evaluate derivatives first
     from ufl.algorithms import expand_derivatives
@@ -278,16 +304,19 @@ def _eval(self, coord, mapping=None, component=()):
     index_values = StackDict()
     return f.evaluate(coord, mapping, component, index_values)
 
+
 def _call(self, arg, mapping=None, component=()):
     # Taking the restriction or evaluating depending on argument
     if arg in ("+", "-"):
-        ufl_assert(mapping is None, "Not expecting a mapping when taking restriction.")
+        ufl_assert(mapping is None,
+                   "Not expecting a mapping when taking restriction.")
         return _restrict(self, arg)
     else:
         return _eval(self, arg, mapping, component)
 Expr.__call__ = _call
 
-#--- Extend Expr with the transpose operation A.T ---
+
+# --- Extend Expr with the transpose operation A.T ---
 
 def _transpose(self):
     """Transpose a rank-2 tensor expression. For more general transpose
@@ -295,7 +324,8 @@ def _transpose(self):
     return Transposed(self)
 Expr.T = property(_transpose)
 
-#--- Extend Expr with indexing operator a[i] ---
+
+# --- Extend Expr with indexing operator a[i] ---
 
 def analyse_key(ii, rank):
     """Takes something the user might input as an index tuple
@@ -320,7 +350,8 @@ def analyse_key(ii, rank):
     if not isinstance(ii, (tuple, MultiIndex)):
         ii = (ii,)
     else:
-        # Flatten nested tuples, happens with f[...,ii] where ii is a tuple of indices
+        # Flatten nested tuples, happens with f[...,ii] where ii is a
+        # tuple of indices
         jj = []
         for j in ii:
             if isinstance(j, (tuple, MultiIndex)):
@@ -329,15 +360,16 @@ def analyse_key(ii, rank):
                 jj.append(j)
         ii = tuple(jj)
 
-    # Convert all indices to Index or FixedIndex objects.
-    # If there is an ellipsis, split the indices into before and after.
+    # Convert all indices to Index or FixedIndex objects.  If there is
+    # an ellipsis, split the indices into before and after.
     axis_indices = set()
-    pre  = []
+    pre = []
     post = []
     indexlist = pre
     for i in ii:
         if i == Ellipsis:
-            # Switch from pre to post list when an ellipsis is encountered
+            # Switch from pre to post list when an ellipsis is
+            # encountered
             ufl_assert(indexlist is pre, "Found duplicate ellipsis.")
             indexlist = post
         else:
@@ -359,8 +391,8 @@ def analyse_key(ii, rank):
             # Store index in pre or post list
             indexlist.append(idx)
 
-    # Handle ellipsis as a number of complete slices,
-    # that is create a number of new axis indices
+    # Handle ellipsis as a number of complete slices, that is create a
+    # number of new axis indices
     num_axis = rank - len(pre) - len(post)
     if indexlist is post:
         ellipsis_indices = indices(num_axis)
@@ -373,6 +405,7 @@ def analyse_key(ii, rank):
     axis_indices = tuple(i for i in all_indices if i in axis_indices)
     return all_indices, axis_indices
 
+
 def _getitem(self, component):
 
     # Treat component consistently as tuple below
@@ -384,11 +417,13 @@ def _getitem(self, component):
     # Analyse slices (:) and Ellipsis (...)
     all_indices, slice_indices, repeated_indices = create_slice_indices(component, shape, self.ufl_free_indices)
 
-    # Check that we have the right number of indices for a tensor with this shape
+    # Check that we have the right number of indices for a tensor with
+    # this shape
     if len(shape) != len(all_indices):
         error("Invalid number of indices {0} for expression of rank {1}.".format(len(all_indices), len(shape)))
 
-    # Special case for simplifying foo[...] => foo, foo[:] => foo or similar
+    # Special case for simplifying foo[...] => foo, foo[:] => foo or
+    # similar
     if len(slice_indices) == len(all_indices):
         return self
 
@@ -397,23 +432,27 @@ def _getitem(self, component):
         if all_indices == self.indices().indices():
             return self.ufl_operands[0]
 
-    # Apply all indices to index self, yielding a scalar valued expression
+    # Apply all indices to index self, yielding a scalar valued
+    # expression
     mi = MultiIndex(all_indices)
     a = Indexed(self, mi)
 
-    # TODO: I think applying as_tensor after index sums results in cleaner expression graphs.
+    # TODO: I think applying as_tensor after index sums results in
+    # cleaner expression graphs.
 
-    # If the Ellipsis or any slices were found, wrap as tensor
-    # valued with the slice indices created at the top here
+    # If the Ellipsis or any slices were found, wrap as tensor valued
+    # with the slice indices created at the top here
     if slice_indices:
         a = as_tensor(a, slice_indices)
 
-    # If any repeated indices were found, apply implicit summation over those
+    # If any repeated indices were found, apply implicit summation
+    # over those
     for i in repeated_indices:
         mi = MultiIndex((i,))
         a = IndexSum(a, mi)
 
-    # Check for zero (last so we can get indices etc from a, could possibly be done faster by checking early instead)
+    # Check for zero (last so we can get indices etc from a, could
+    # possibly be done faster by checking early instead)
     if isinstance(self, Zero):
         shape = a.ufl_shape
         fi = a.ufl_free_indices
@@ -424,7 +463,8 @@ def _getitem(self, component):
 
 Expr.__getitem__ = _getitem
 
-#--- Extend Expr with spatial differentiation operator a.dx(i) ---
+
+# --- Extend Expr with spatial differentiation operator a.dx(i) ---
 
 def _dx(self, *ii):
     "Return the partial derivative with respect to spatial variable number *ii*."
@@ -435,6 +475,7 @@ def _dx(self, *ii):
     # Apply all derivatives
     for i in ii:
         d = Grad(d)
+
     # Take all components, applying repeated index sums in the [] operation
     return d.__getitem__((Ellipsis,) + ii)
 

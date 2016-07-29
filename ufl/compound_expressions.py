@@ -20,7 +20,7 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.multiindex import indices, Index
 from ufl.tensors import as_tensor, as_matrix, as_vector
@@ -31,17 +31,20 @@ from ufl.operators import sqrt
 # deviatoric parts below were created with the script
 # tensoralgebrastrings.py under sandbox/scripts/
 
-
 # Note: Avoiding or delaying application of these horrible expressions
 # would be a major improvement to UFL and the form compiler toolchain.
-# It could easily be a moderate to major undertaking to get rid of though.
+# It could easily be a moderate to major undertaking to get rid of
+# though.
+
 
 def cross_expr(a, b):
     assert len(a) == 3
     assert len(b) == 3
+
     def c(i, j):
         return a[i]*b[j] - a[j]*b[i]
     return as_vector((c(1, 2), c(2, 0), c(0, 1)))
+
 
 def generic_pseudo_determinant_expr(A):
     """Compute the pseudo-determinant of A: sqrt(det(A.T*A))."""
@@ -49,21 +52,23 @@ def generic_pseudo_determinant_expr(A):
     ATA = as_tensor(A[k, i]*A[k, j], (i, j))
     return sqrt(determinant_expr(ATA))
 
+
 def pseudo_determinant_expr(A):
     """Compute the pseudo-determinant of A."""
     m, n = A.ufl_shape
     if n == 1:
         # Special case 1xm for simpler expression
         i = Index()
-        return sqrt(A[i,0]*A[i,0])
+        return sqrt(A[i, 0]*A[i, 0])
     elif n == 2 and m == 3:
         # Special case 2x3 for simpler expression
-        c = cross_expr(A[:,0], A[:,1])
+        c = cross_expr(A[:, 0], A[:, 1])
         i = Index()
         return sqrt(c[i]*c[i])
     else:
         # Generic formulation based on A.T*A
         return generic_pseudo_determinant_expr(A)
+
 
 def generic_pseudo_inverse_expr(A):
     """Compute the Penrose-Moore pseudo-inverse of A: (A.T*A)^-1 * A.T."""
@@ -73,13 +78,14 @@ def generic_pseudo_inverse_expr(A):
     q, r, s = indices(3)
     return as_tensor(ATAinv[r, q] * A[s, q], (r, s))
 
+
 def pseudo_inverse_expr(A):
     """Compute the Penrose-Moore pseudo-inverse of A: (A.T*A)^-1 * A.T."""
     m, n = A.ufl_shape
     if n == 1:
         # Simpler special case for 1d
         i, j, k = indices(3)
-        return as_tensor(A[i,j], (j,i)) / (A[k,0]*A[k,0])
+        return as_tensor(A[i, j], (j, i)) / (A[k, 0]*A[k, 0])
     else:
         # Generic formulation
         return generic_pseudo_inverse_expr(A)
@@ -103,19 +109,24 @@ def determinant_expr(A):
     # TODO: Implement generally for all dimensions?
     error("determinant_expr not implemented for shape %s." % (sh,))
 
+
 def _det_2x2(B, i, j, k, l):
     return B[i, k]*B[j, l] - B[i, l]*B[j, k]
 
+
 def determinant_expr_2x2(B):
     return _det_2x2(B, 0, 1, 0, 1)
+
 
 def old_determinant_expr_3x3(A):
     return (A[0, 0]*_det_2x2(A, 1, 2, 1, 2) +
             A[0, 1]*_det_2x2(A, 1, 2, 2, 0) +
             A[0, 2]*_det_2x2(A, 1, 2, 0, 1))
 
+
 def determinant_expr_3x3(A):
-    return codeterminant_expr_nxn(A, [0,1,2], [0,1,2])
+    return codeterminant_expr_nxn(A, [0, 1, 2], [0, 1, 2])
+
 
 def codeterminant_expr_nxn(A, rows, cols):
     if len(rows) == 2:
@@ -127,6 +138,7 @@ def codeterminant_expr_nxn(A, rows, cols):
         subcols = cols[i+1:] + cols[:i]
         codet += A[r, c] * codeterminant_expr_nxn(A, subrows, subcols)
     return codet
+
 
 def inverse_expr(A):
     "Compute the inverse of A."
@@ -141,6 +153,7 @@ def inverse_expr(A):
     else:
         return pseudo_inverse_expr(A)
 
+
 def adj_expr(A):
     sh = A.ufl_shape
     ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
@@ -154,36 +167,39 @@ def adj_expr(A):
 
     error("adj_expr not implemented for dimension %s." % sh[0])
 
+
 def adj_expr_2x2(A):
     return as_matrix([[A[1, 1], -A[0, 1]],
                       [-A[1, 0], A[0, 0]]])
 
+
 def adj_expr_3x3(A):
     return as_matrix([
-        [ A[2, 2]*A[1, 1] - A[1, 2]*A[2, 1],   -A[0, 1]*A[2, 2] + A[0, 2]*A[2, 1],   A[0, 1]*A[1, 2] - A[0, 2]*A[1, 1]],
-        [-A[2, 2]*A[1, 0] + A[1, 2]*A[2, 0],   -A[0, 2]*A[2, 0] + A[2, 2]*A[0, 0],   A[0, 2]*A[1, 0] - A[1, 2]*A[0, 0]],
-        [ A[1, 0]*A[2, 1] - A[2, 0]*A[1, 1],    A[0, 1]*A[2, 0] - A[0, 0]*A[2, 1],   A[0, 0]*A[1, 1] - A[0, 1]*A[1, 0]],
-        ])
+        [A[2, 2]*A[1, 1] - A[1, 2]*A[2, 1], -A[0, 1]*A[2, 2] + A[0, 2]*A[2, 1], A[0, 1]*A[1, 2] - A[0, 2]*A[1, 1]],
+        [-A[2, 2]*A[1, 0] + A[1, 2]*A[2, 0], -A[0, 2]*A[2, 0] + A[2, 2]*A[0, 0], A[0, 2]*A[1, 0] - A[1, 2]*A[0, 0]],
+        [A[1, 0]*A[2, 1] - A[2, 0]*A[1, 1], A[0, 1]*A[2, 0] - A[0, 0]*A[2, 1], A[0, 0]*A[1, 1] - A[0, 1]*A[1, 0]],
+    ])
+
 
 def adj_expr_4x4(A):
     return as_matrix([
         [-A[3, 3]*A[2, 1]*A[1, 2] + A[1, 2]*A[3, 1]*A[2, 3] + A[1, 1]*A[3, 3]*A[2, 2] - A[3, 1]*A[2, 2]*A[1, 3] + A[2, 1]*A[1, 3]*A[3, 2] - A[1, 1]*A[3, 2]*A[2, 3],
          -A[3, 1]*A[0, 2]*A[2, 3] + A[0, 1]*A[3, 2]*A[2, 3] - A[0, 3]*A[2, 1]*A[3, 2] + A[3, 3]*A[2, 1]*A[0, 2] - A[3, 3]*A[0, 1]*A[2, 2] + A[0, 3]*A[3, 1]*A[2, 2],
-          A[3, 1]*A[1, 3]*A[0, 2] + A[1, 1]*A[0, 3]*A[3, 2] - A[0, 3]*A[1, 2]*A[3, 1] - A[0, 1]*A[1, 3]*A[3, 2] + A[3, 3]*A[1, 2]*A[0, 1] - A[1, 1]*A[3, 3]*A[0, 2],
-          A[1, 1]*A[0, 2]*A[2, 3] - A[2, 1]*A[1, 3]*A[0, 2] + A[0, 3]*A[2, 1]*A[1, 2] - A[1, 2]*A[0, 1]*A[2, 3] - A[1, 1]*A[0, 3]*A[2, 2] + A[0, 1]*A[2, 2]*A[1, 3]],
-        [ A[3, 3]*A[1, 2]*A[2, 0] - A[3, 0]*A[1, 2]*A[2, 3] + A[1, 0]*A[3, 2]*A[2, 3] - A[3, 3]*A[1, 0]*A[2, 2] - A[1, 3]*A[3, 2]*A[2, 0] + A[3, 0]*A[2, 2]*A[1, 3],
-          A[0, 3]*A[3, 2]*A[2, 0] - A[0, 3]*A[3, 0]*A[2, 2] + A[3, 3]*A[0, 0]*A[2, 2] + A[3, 0]*A[0, 2]*A[2, 3] - A[0, 0]*A[3, 2]*A[2, 3] - A[3, 3]*A[0, 2]*A[2, 0],
+         A[3, 1]*A[1, 3]*A[0, 2] + A[1, 1]*A[0, 3]*A[3, 2] - A[0, 3]*A[1, 2]*A[3, 1] - A[0, 1]*A[1, 3]*A[3, 2] + A[3, 3]*A[1, 2]*A[0, 1] - A[1, 1]*A[3, 3]*A[0, 2],
+         A[1, 1]*A[0, 2]*A[2, 3] - A[2, 1]*A[1, 3]*A[0, 2] + A[0, 3]*A[2, 1]*A[1, 2] - A[1, 2]*A[0, 1]*A[2, 3] - A[1, 1]*A[0, 3]*A[2, 2] + A[0, 1]*A[2, 2]*A[1, 3]],
+        [A[3, 3]*A[1, 2]*A[2, 0] - A[3, 0]*A[1, 2]*A[2, 3] + A[1, 0]*A[3, 2]*A[2, 3] - A[3, 3]*A[1, 0]*A[2, 2] - A[1, 3]*A[3, 2]*A[2, 0] + A[3, 0]*A[2, 2]*A[1, 3],
+         A[0, 3]*A[3, 2]*A[2, 0] - A[0, 3]*A[3, 0]*A[2, 2] + A[3, 3]*A[0, 0]*A[2, 2] + A[3, 0]*A[0, 2]*A[2, 3] - A[0, 0]*A[3, 2]*A[2, 3] - A[3, 3]*A[0, 2]*A[2, 0],
          -A[3, 3]*A[0, 0]*A[1, 2] + A[0, 0]*A[1, 3]*A[3, 2] - A[3, 0]*A[1, 3]*A[0, 2] + A[3, 3]*A[1, 0]*A[0, 2] + A[0, 3]*A[3, 0]*A[1, 2] - A[0, 3]*A[1, 0]*A[3, 2],
-          A[0, 3]*A[1, 0]*A[2, 2] + A[1, 3]*A[0, 2]*A[2, 0] - A[0, 0]*A[2, 2]*A[1, 3] - A[0, 3]*A[1, 2]*A[2, 0] + A[0, 0]*A[1, 2]*A[2, 3] - A[1, 0]*A[0, 2]*A[2, 3]],
-        [ A[3, 1]*A[1, 3]*A[2, 0] + A[3, 3]*A[2, 1]*A[1, 0] + A[1, 1]*A[3, 0]*A[2, 3] - A[1, 0]*A[3, 1]*A[2, 3] - A[3, 0]*A[2, 1]*A[1, 3] - A[1, 1]*A[3, 3]*A[2, 0],
-          A[3, 3]*A[0, 1]*A[2, 0] - A[3, 3]*A[0, 0]*A[2, 1] - A[0, 3]*A[3, 1]*A[2, 0] - A[3, 0]*A[0, 1]*A[2, 3] + A[0, 0]*A[3, 1]*A[2, 3] + A[0, 3]*A[3, 0]*A[2, 1],
+         A[0, 3]*A[1, 0]*A[2, 2] + A[1, 3]*A[0, 2]*A[2, 0] - A[0, 0]*A[2, 2]*A[1, 3] - A[0, 3]*A[1, 2]*A[2, 0] + A[0, 0]*A[1, 2]*A[2, 3] - A[1, 0]*A[0, 2]*A[2, 3]],
+        [A[3, 1]*A[1, 3]*A[2, 0] + A[3, 3]*A[2, 1]*A[1, 0] + A[1, 1]*A[3, 0]*A[2, 3] - A[1, 0]*A[3, 1]*A[2, 3] - A[3, 0]*A[2, 1]*A[1, 3] - A[1, 1]*A[3, 3]*A[2, 0],
+         A[3, 3]*A[0, 1]*A[2, 0] - A[3, 3]*A[0, 0]*A[2, 1] - A[0, 3]*A[3, 1]*A[2, 0] - A[3, 0]*A[0, 1]*A[2, 3] + A[0, 0]*A[3, 1]*A[2, 3] + A[0, 3]*A[3, 0]*A[2, 1],
          -A[0, 0]*A[3, 1]*A[1, 3] + A[0, 3]*A[1, 0]*A[3, 1] - A[3, 3]*A[1, 0]*A[0, 1] + A[1, 1]*A[3, 3]*A[0, 0] - A[1, 1]*A[0, 3]*A[3, 0] + A[3, 0]*A[0, 1]*A[1, 3],
-          A[0, 0]*A[2, 1]*A[1, 3] + A[1, 0]*A[0, 1]*A[2, 3] - A[0, 3]*A[2, 1]*A[1, 0] + A[1, 1]*A[0, 3]*A[2, 0] - A[1, 1]*A[0, 0]*A[2, 3] - A[0, 1]*A[1, 3]*A[2, 0]],
+         A[0, 0]*A[2, 1]*A[1, 3] + A[1, 0]*A[0, 1]*A[2, 3] - A[0, 3]*A[2, 1]*A[1, 0] + A[1, 1]*A[0, 3]*A[2, 0] - A[1, 1]*A[0, 0]*A[2, 3] - A[0, 1]*A[1, 3]*A[2, 0]],
         [-A[1, 2]*A[3, 1]*A[2, 0] - A[2, 1]*A[1, 0]*A[3, 2] + A[3, 0]*A[2, 1]*A[1, 2] - A[1, 1]*A[3, 0]*A[2, 2] + A[1, 0]*A[3, 1]*A[2, 2] + A[1, 1]*A[3, 2]*A[2, 0],
          -A[3, 0]*A[2, 1]*A[0, 2] - A[0, 1]*A[3, 2]*A[2, 0] + A[3, 1]*A[0, 2]*A[2, 0] - A[0, 0]*A[3, 1]*A[2, 2] + A[3, 0]*A[0, 1]*A[2, 2] + A[0, 0]*A[2, 1]*A[3, 2],
-          A[0, 0]*A[1, 2]*A[3, 1] - A[1, 0]*A[3, 1]*A[0, 2] + A[1, 1]*A[3, 0]*A[0, 2] + A[1, 0]*A[0, 1]*A[3, 2] - A[3, 0]*A[1, 2]*A[0, 1] - A[1, 1]*A[0, 0]*A[3, 2],
+         A[0, 0]*A[1, 2]*A[3, 1] - A[1, 0]*A[3, 1]*A[0, 2] + A[1, 1]*A[3, 0]*A[0, 2] + A[1, 0]*A[0, 1]*A[3, 2] - A[3, 0]*A[1, 2]*A[0, 1] - A[1, 1]*A[0, 0]*A[3, 2],
          -A[1, 1]*A[0, 2]*A[2, 0] + A[2, 1]*A[1, 0]*A[0, 2] + A[1, 2]*A[0, 1]*A[2, 0] + A[1, 1]*A[0, 0]*A[2, 2] - A[1, 0]*A[0, 1]*A[2, 2] - A[0, 0]*A[2, 1]*A[1, 2]],
-        ])
+    ])
 
 
 def cofactor_expr(A):
@@ -199,36 +215,39 @@ def cofactor_expr(A):
 
     error("cofactor_expr not implemented for dimension %s." % sh[0])
 
+
 def cofactor_expr_2x2(A):
     return as_matrix([[A[1, 1], -A[1, 0]],
                       [-A[0, 1], A[0, 0]]])
+
 
 def cofactor_expr_3x3(A):
     return as_matrix([
         [A[1, 1]*A[2, 2] - A[2, 1]*A[1, 2], A[2, 0]*A[1, 2] - A[1, 0]*A[2, 2], - A[2, 0]*A[1, 1] + A[1, 0]*A[2, 1]],
         [A[2, 1]*A[0, 2] - A[0, 1]*A[2, 2], A[0, 0]*A[2, 2] - A[2, 0]*A[0, 2], - A[0, 0]*A[2, 1] + A[2, 0]*A[0, 1]],
         [A[0, 1]*A[1, 2] - A[1, 1]*A[0, 2], A[1, 0]*A[0, 2] - A[0, 0]*A[1, 2], - A[1, 0]*A[0, 1] + A[0, 0]*A[1, 1]],
-        ])
+    ])
+
 
 def cofactor_expr_4x4(A):
     return as_matrix([
         [-A[3, 1]*A[2, 2]*A[1, 3] - A[3, 2]*A[2, 3]*A[1, 1] + A[1, 3]*A[3, 2]*A[2, 1] + A[3, 1]*A[2, 3]*A[1, 2] + A[2, 2]*A[1, 1]*A[3, 3] - A[3, 3]*A[2, 1]*A[1, 2],
          -A[1, 0]*A[2, 2]*A[3, 3] + A[2, 0]*A[3, 3]*A[1, 2] + A[2, 2]*A[1, 3]*A[3, 0] - A[2, 3]*A[3, 0]*A[1, 2] + A[1, 0]*A[3, 2]*A[2, 3] - A[1, 3]*A[3, 2]*A[2, 0],
-          A[1, 0]*A[3, 3]*A[2, 1] + A[2, 3]*A[1, 1]*A[3, 0] - A[2, 0]*A[1, 1]*A[3, 3] - A[1, 3]*A[3, 0]*A[2, 1] - A[1, 0]*A[3, 1]*A[2, 3] + A[3, 1]*A[1, 3]*A[2, 0],
-          A[3, 0]*A[2, 1]*A[1, 2] + A[1, 0]*A[3, 1]*A[2, 2] + A[3, 2]*A[2, 0]*A[1, 1] - A[2, 2]*A[1, 1]*A[3, 0] - A[3, 1]*A[2, 0]*A[1, 2] - A[1, 0]*A[3, 2]*A[2, 1]],
-        [ A[3, 1]*A[2, 2]*A[0, 3] + A[0, 2]*A[3, 3]*A[2, 1] + A[0, 1]*A[3, 2]*A[2, 3] - A[3, 1]*A[0, 2]*A[2, 3] - A[0, 1]*A[2, 2]*A[3, 3] - A[3, 2]*A[0, 3]*A[2, 1],
+         A[1, 0]*A[3, 3]*A[2, 1] + A[2, 3]*A[1, 1]*A[3, 0] - A[2, 0]*A[1, 1]*A[3, 3] - A[1, 3]*A[3, 0]*A[2, 1] - A[1, 0]*A[3, 1]*A[2, 3] + A[3, 1]*A[1, 3]*A[2, 0],
+         A[3, 0]*A[2, 1]*A[1, 2] + A[1, 0]*A[3, 1]*A[2, 2] + A[3, 2]*A[2, 0]*A[1, 1] - A[2, 2]*A[1, 1]*A[3, 0] - A[3, 1]*A[2, 0]*A[1, 2] - A[1, 0]*A[3, 2]*A[2, 1]],
+        [A[3, 1]*A[2, 2]*A[0, 3] + A[0, 2]*A[3, 3]*A[2, 1] + A[0, 1]*A[3, 2]*A[2, 3] - A[3, 1]*A[0, 2]*A[2, 3] - A[0, 1]*A[2, 2]*A[3, 3] - A[3, 2]*A[0, 3]*A[2, 1],
          -A[2, 2]*A[0, 3]*A[3, 0] - A[0, 2]*A[2, 0]*A[3, 3] - A[3, 2]*A[2, 3]*A[0, 0] + A[2, 2]*A[3, 3]*A[0, 0] + A[0, 2]*A[2, 3]*A[3, 0] + A[3, 2]*A[2, 0]*A[0, 3],
-          A[3, 1]*A[2, 3]*A[0, 0] - A[0, 1]*A[2, 3]*A[3, 0] - A[3, 1]*A[2, 0]*A[0, 3] - A[3, 3]*A[0, 0]*A[2, 1] + A[0, 3]*A[3, 0]*A[2, 1] + A[0, 1]*A[2, 0]*A[3, 3],
-          A[3, 2]*A[0, 0]*A[2, 1] - A[0, 2]*A[3, 0]*A[2, 1] + A[0, 1]*A[2, 2]*A[3, 0] + A[3, 1]*A[0, 2]*A[2, 0] - A[0, 1]*A[3, 2]*A[2, 0] - A[3, 1]*A[2, 2]*A[0, 0]],
-        [ A[3, 1]*A[1, 3]*A[0, 2] - A[0, 2]*A[1, 1]*A[3, 3] - A[3, 1]*A[0, 3]*A[1, 2] + A[3, 2]*A[1, 1]*A[0, 3] + A[0, 1]*A[3, 3]*A[1, 2] - A[0, 1]*A[1, 3]*A[3, 2],
-          A[1, 3]*A[3, 2]*A[0, 0] - A[1, 0]*A[3, 2]*A[0, 3] - A[1, 3]*A[0, 2]*A[3, 0] + A[0, 3]*A[3, 0]*A[1, 2] + A[1, 0]*A[0, 2]*A[3, 3] - A[3, 3]*A[0, 0]*A[1, 2],
+         A[3, 1]*A[2, 3]*A[0, 0] - A[0, 1]*A[2, 3]*A[3, 0] - A[3, 1]*A[2, 0]*A[0, 3] - A[3, 3]*A[0, 0]*A[2, 1] + A[0, 3]*A[3, 0]*A[2, 1] + A[0, 1]*A[2, 0]*A[3, 3],
+         A[3, 2]*A[0, 0]*A[2, 1] - A[0, 2]*A[3, 0]*A[2, 1] + A[0, 1]*A[2, 2]*A[3, 0] + A[3, 1]*A[0, 2]*A[2, 0] - A[0, 1]*A[3, 2]*A[2, 0] - A[3, 1]*A[2, 2]*A[0, 0]],
+        [A[3, 1]*A[1, 3]*A[0, 2] - A[0, 2]*A[1, 1]*A[3, 3] - A[3, 1]*A[0, 3]*A[1, 2] + A[3, 2]*A[1, 1]*A[0, 3] + A[0, 1]*A[3, 3]*A[1, 2] - A[0, 1]*A[1, 3]*A[3, 2],
+         A[1, 3]*A[3, 2]*A[0, 0] - A[1, 0]*A[3, 2]*A[0, 3] - A[1, 3]*A[0, 2]*A[3, 0] + A[0, 3]*A[3, 0]*A[1, 2] + A[1, 0]*A[0, 2]*A[3, 3] - A[3, 3]*A[0, 0]*A[1, 2],
          -A[1, 0]*A[0, 1]*A[3, 3] + A[0, 1]*A[1, 3]*A[3, 0] - A[3, 1]*A[1, 3]*A[0, 0] - A[1, 1]*A[0, 3]*A[3, 0] + A[1, 0]*A[3, 1]*A[0, 3] + A[1, 1]*A[3, 3]*A[0, 0],
-          A[0, 2]*A[1, 1]*A[3, 0] - A[3, 2]*A[1, 1]*A[0, 0] - A[0, 1]*A[3, 0]*A[1, 2] - A[1, 0]*A[3, 1]*A[0, 2] + A[3, 1]*A[0, 0]*A[1, 2] + A[1, 0]*A[0, 1]*A[3, 2]],
-        [ A[0, 3]*A[2, 1]*A[1, 2] + A[0, 2]*A[2, 3]*A[1, 1] + A[0, 1]*A[2, 2]*A[1, 3] - A[2, 2]*A[1, 1]*A[0, 3] - A[1, 3]*A[0, 2]*A[2, 1] - A[0, 1]*A[2, 3]*A[1, 2],
-          A[1, 0]*A[2, 2]*A[0, 3] + A[1, 3]*A[0, 2]*A[2, 0] - A[1, 0]*A[0, 2]*A[2, 3] - A[2, 0]*A[0, 3]*A[1, 2] - A[2, 2]*A[1, 3]*A[0, 0] + A[2, 3]*A[0, 0]*A[1, 2],
+         A[0, 2]*A[1, 1]*A[3, 0] - A[3, 2]*A[1, 1]*A[0, 0] - A[0, 1]*A[3, 0]*A[1, 2] - A[1, 0]*A[3, 1]*A[0, 2] + A[3, 1]*A[0, 0]*A[1, 2] + A[1, 0]*A[0, 1]*A[3, 2]],
+        [A[0, 3]*A[2, 1]*A[1, 2] + A[0, 2]*A[2, 3]*A[1, 1] + A[0, 1]*A[2, 2]*A[1, 3] - A[2, 2]*A[1, 1]*A[0, 3] - A[1, 3]*A[0, 2]*A[2, 1] - A[0, 1]*A[2, 3]*A[1, 2],
+         A[1, 0]*A[2, 2]*A[0, 3] + A[1, 3]*A[0, 2]*A[2, 0] - A[1, 0]*A[0, 2]*A[2, 3] - A[2, 0]*A[0, 3]*A[1, 2] - A[2, 2]*A[1, 3]*A[0, 0] + A[2, 3]*A[0, 0]*A[1, 2],
          -A[0, 1]*A[1, 3]*A[2, 0] + A[2, 0]*A[1, 1]*A[0, 3] + A[1, 3]*A[0, 0]*A[2, 1] - A[1, 0]*A[0, 3]*A[2, 1] + A[1, 0]*A[0, 1]*A[2, 3] - A[2, 3]*A[1, 1]*A[0, 0],
-          A[1, 0]*A[0, 2]*A[2, 1] - A[0, 2]*A[2, 0]*A[1, 1] + A[0, 1]*A[2, 0]*A[1, 2] + A[2, 2]*A[1, 1]*A[0, 0] - A[1, 0]*A[0, 1]*A[2, 2] - A[0, 0]*A[2, 1]*A[1, 2]]
-        ])
+         A[1, 0]*A[0, 2]*A[2, 1] - A[0, 2]*A[2, 0]*A[1, 1] + A[0, 1]*A[2, 0]*A[1, 2] + A[2, 2]*A[1, 1]*A[0, 0] - A[1, 0]*A[0, 1]*A[2, 2] - A[0, 0]*A[2, 1]*A[1, 2]]
+    ])
 
 
 def deviatoric_expr(A):
@@ -242,11 +261,13 @@ def deviatoric_expr(A):
 
     error("deviatoric_expr not implemented for dimension %s." % sh[0])
 
+
 def deviatoric_expr_2x2(A):
-    return as_matrix([[-1./2*A[1, 1]+1./2*A[0, 0],  A[0, 1]],
-                      [A[1, 0],                    1./2*A[1, 1]-1./2*A[0, 0]]])
+    return as_matrix([[-1./2*A[1, 1]+1./2*A[0, 0], A[0, 1]],
+                      [A[1, 0], 1./2*A[1, 1]-1./2*A[0, 0]]])
+
 
 def deviatoric_expr_3x3(A):
-    return as_matrix([[-1./3*A[1, 1]-1./3*A[2, 2]+2./3*A[0, 0],   A[0, 1],   A[0, 2]],
-                      [A[1, 0],  2./3*A[1, 1]-1./3*A[2, 2]-1./3*A[0, 0],   A[1, 2]],
-                      [A[2, 0],  A[2, 1],   -1./3*A[1, 1]+2./3*A[2, 2]-1./3*A[0, 0]]])
+    return as_matrix([[-1./3*A[1, 1]-1./3*A[2, 2]+2./3*A[0, 0], A[0, 1], A[0, 2]],
+                      [A[1, 0], 2./3*A[1, 1]-1./3*A[2, 2]-1./3*A[0, 0], A[1, 2]],
+                      [A[2, 0], A[2, 1], -1./3*A[1, 1]+2./3*A[2, 2]-1./3*A[0, 0]]])

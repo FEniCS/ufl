@@ -23,8 +23,7 @@
 from six.moves import zip
 from six.moves import xrange as range
 
-from ufl.log import warning, error
-from ufl.utils.dicts import subdict, EmptyDict
+from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr
@@ -34,6 +33,7 @@ from ufl.core.multiindex import Index, FixedIndex, MultiIndex, indices
 from ufl.indexed import Indexed
 from ufl.index_combination_utils import remove_indices
 
+
 # --- Classes representing tensors of UFL expressions ---
 
 @ufl_type(is_shaping=True, num_ops="varying", inherit_indices_from_operand=0)
@@ -42,15 +42,16 @@ class ListTensor(Operator):
     __slots__ = ()
 
     def __new__(cls, *expressions):
-        # All lists and tuples should already be unwrapped in as_tensor
+        # All lists and tuples should already be unwrapped in
+        # as_tensor
         if any(not isinstance(e, Expr) for e in expressions):
             error("Expecting only UFL expressions in ListTensor constructor.")
 
         # Get properties of the first expression
         e0 = expressions[0]
-        sh    = e0.ufl_shape
-        fi    = e0.ufl_free_indices
-        fid   = e0.ufl_index_dimensions
+        sh = e0.ufl_shape
+        fi = e0.ufl_free_indices
+        fid = e0.ufl_index_dimensions
 
         # Obviously, each subexpression must have the same shape
         if any(sh != e.ufl_shape for e in expressions[1:]):
@@ -73,7 +74,7 @@ class ListTensor(Operator):
         # Checks
         indexset = set(self.ufl_operands[0].ufl_free_indices)
         ufl_assert(all(not (indexset ^ set(e.ufl_free_indices)) for e in self.ufl_operands),
-            "Can't combine subtensor expressions with different sets of free indices.")
+                   "Can't combine subtensor expressions with different sets of free indices.")
 
     @property
     def ufl_shape(self):
@@ -124,6 +125,7 @@ class ListTensor(Operator):
     def __repr__(self):
         return "ListTensor(%s)" % ", ".join(repr(e) for e in self.ufl_operands)
 
+
 @ufl_type(is_shaping=True, num_ops="varying")
 class ComponentTensor(Operator):
     """UFL operator type: Maps the free indices of a scalar valued expression to tensor axes."""
@@ -143,16 +145,17 @@ class ComponentTensor(Operator):
 
     def __init__(self, expression, indices):
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
-        ufl_assert(expression.ufl_shape == (), "Expecting scalar valued expression.")
+        ufl_assert(expression.ufl_shape == (),
+                   "Expecting scalar valued expression.")
         ufl_assert(isinstance(indices, MultiIndex), "Expecting a MultiIndex.")
         ufl_assert(all(isinstance(i, Index) for i in indices),
-           "Expecting sequence of Index objects, not %s." % repr(indices))
+                   "Expecting sequence of Index objects, not %s." % repr(indices))
 
         Operator.__init__(self, (expression, indices))
 
         fi, fid, sh = remove_indices(expression.ufl_free_indices,
-                                 expression.ufl_index_dimensions,
-                                 [ind.count() for ind in indices])
+                                     expression.ufl_index_dimensions,
+                                     [ind.count() for ind in indices])
         self.ufl_free_indices = fi
         self.ufl_index_dimensions = fid
         self.ufl_shape = sh
@@ -162,7 +165,6 @@ class ComponentTensor(Operator):
         if isinstance(expressions, Indexed):
             A, ii = expressions.ufl_operands
             if indices == ii:
-                #print "RETURNING", A, "FROM", expressions, indices, "SELF IS", self
                 return A
         return Operator._ufl_expr_reconstruct_(self, expressions, indices)
 
@@ -193,6 +195,7 @@ class ComponentTensor(Operator):
     def __repr__(self):
         return "ComponentTensor(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
+
 # --- User-level functions to wrap expressions in the correct way ---
 
 def numpy2nestedlists(arr):
@@ -201,12 +204,14 @@ def numpy2nestedlists(arr):
         return arr
     return [numpy2nestedlists(arr[k]) for k in range(arr.shape[0])]
 
+
 def _as_list_tensor(expressions):
     if isinstance(expressions, (list, tuple)):
         expressions = [_as_list_tensor(e) for e in expressions]
         return ListTensor(*expressions)
     else:
         return as_ufl(expressions)
+
 
 def from_numpy_to_lists(expressions):
     try:
@@ -216,6 +221,7 @@ def from_numpy_to_lists(expressions):
     except:
         pass
     return expressions
+
 
 def as_tensor(expressions, indices=None):
     """UFL operator: Make a tensor valued expression.
@@ -247,7 +253,8 @@ def as_tensor(expressions, indices=None):
         if not isinstance(expressions, (list, tuple)):
             error("Expecting nested list or tuple.")
 
-        # Recursive conversion from nested lists to nested ListTensor objects
+        # Recursive conversion from nested lists to nested ListTensor
+        # objects
         return _as_list_tensor(expressions)
     else:
         # Make sure we have a tuple of indices
@@ -271,12 +278,14 @@ def as_tensor(expressions, indices=None):
         # Make a tensor from given scalar expression with free indices
         return ComponentTensor(expressions, indices)
 
-def as_matrix(expressions, indices = None):
+
+def as_matrix(expressions, indices=None):
     "UFL operator: As *as_tensor()*, but limited to rank 2 tensors."
     if indices is None:
         # Allow as_matrix(as_matrix(A)) in user code
         if isinstance(expressions, Expr):
-            ufl_assert(len(expressions.ufl_shape) == 2, "Expecting rank 2 tensor.")
+            ufl_assert(len(expressions.ufl_shape) == 2,
+                       "Expecting rank 2 tensor.")
             return expressions
 
         # To avoid importing numpy unneeded, it's quite slow...
@@ -285,20 +294,22 @@ def as_matrix(expressions, indices = None):
 
         # Check for expected list structure
         ufl_assert(isinstance(expressions, (list, tuple)),
-            "Expecting nested list or tuple of Exprs.")
+                   "Expecting nested list or tuple of Exprs.")
         ufl_assert(isinstance(expressions[0], (list, tuple)),
-            "Expecting nested list or tuple of Exprs.")
+                   "Expecting nested list or tuple of Exprs.")
     else:
         ufl_assert(len(indices) == 2, "Expecting exactly two indices.")
 
     return as_tensor(expressions, indices)
 
-def as_vector(expressions, index = None):
+
+def as_vector(expressions, index=None):
     "UFL operator: As ``as_tensor()``, but limited to rank 1 tensors."
     if index is None:
         # Allow as_vector(as_vector(v)) in user code
         if isinstance(expressions, Expr):
-            ufl_assert(len(expressions.ufl_shape) == 1, "Expecting rank 1 tensor.")
+            ufl_assert(len(expressions.ufl_shape) == 1,
+                       "Expecting rank 1 tensor.")
             return expressions
 
         # To avoid importing numpy unneeded, it's quite slow...
@@ -307,12 +318,13 @@ def as_vector(expressions, index = None):
 
         # Check for expected list structure
         ufl_assert(isinstance(expressions, (list, tuple)),
-            "Expecting nested list or tuple of Exprs.")
+                   "Expecting nested list or tuple of Exprs.")
     else:
         ufl_assert(isinstance(index, Index), "Expecting a single Index object.")
         index = (index,)
 
     return as_tensor(expressions, index)
+
 
 def as_scalar(expression):
     """Given a scalar or tensor valued expression A, returns either of the tuples::
@@ -326,6 +338,7 @@ def as_scalar(expression):
         expression = expression[ii]
     return expression, ii
 
+
 def as_scalars(*expressions):
     """Given multiple scalar or tensor valued expressions A, returns either of the tuples::
 
@@ -338,54 +351,65 @@ def as_scalars(*expressions):
         expressions = [expression[ii] for expression in expressions]
     return expressions, ii
 
+
 def relabel(A, indexmap):
     "UFL operator: Relabel free indices of :math:`A` with new indices, using the given mapping."
     ii = tuple(sorted(indexmap.keys()))
     jj = tuple(indexmap[i] for i in ii)
-    ufl_assert(all(isinstance(i, Index) for i in ii), "Expecting Index objects.")
-    ufl_assert(all(isinstance(j, Index) for j in jj), "Expecting Index objects.")
+    ufl_assert(all(isinstance(i, Index) for i in ii),
+               "Expecting Index objects.")
+    ufl_assert(all(isinstance(j, Index) for j in jj),
+               "Expecting Index objects.")
     return as_tensor(A, ii)[jj]
+
 
 # --- Experimental support for dyadic notation:
 
 def unit_list(i, n):
     return [(1 if i == j else 0) for j in range(n)]
 
+
 def unit_list2(i, j, n):
     return [[(1 if (i == i0 and j == j0) else 0) for j0 in range(n)] for i0 in range(n)]
+
 
 def unit_vector(i, d):
     "UFL value: A constant unit vector in direction *i* with dimension *d*."
     return as_vector(unit_list(i, d))
+
 
 def unit_vectors(d):
     """UFL value: A tuple of constant unit vectors in all directions with
     dimension *d*."""
     return tuple(unit_vector(i, d) for i in range(d))
 
+
 def unit_matrix(i, j, d):
     "UFL value: A constant unit matrix in direction *i*,*j* with dimension *d*."
     return as_matrix(unit_list2(i, j, d))
+
 
 def unit_matrices(d):
     """UFL value: A tuple of constant unit matrices in all directions with
     dimension *d*."""
     return tuple(unit_matrix(i, j, d) for i in range(d) for j in range(d))
 
+
 def dyad(d, *iota):
     "TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose."
     from ufl.constantvalue import Identity
-    from ufl.operators import outer # a bit of circular dependency issue here
+    from ufl.operators import outer  # a bit of circular dependency issue here
     I = Identity(d)
     i = iota[0]
-    e = as_vector(I[i,:], i)
+    e = as_vector(I[i, :], i)
     for i in iota[1:]:
-        e = outer(e, as_vector(I[i,:], i))
+        e = outer(e, as_vector(I[i, :], i))
     return e
+
 
 def unit_indexed_tensor(shape, component):
     from ufl.constantvalue import Identity
-    from ufl.operators import outer # a bit of circular dependency issue here
+    from ufl.operators import outer  # a bit of circular dependency issue here
     r = len(shape)
     if r == 0:
         return 0, ()
@@ -401,6 +425,7 @@ def unit_indexed_tensor(shape, component):
     for e in es[1:]:
         E = outer(E, e)
     return E, jj
+
 
 def unwrap_list_tensor(lt):
     components = []

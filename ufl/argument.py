@@ -22,10 +22,10 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
 
-from ufl.log import deprecate
+from ufl.log import deprecate, error
 from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal, FormArgument
+from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
@@ -78,12 +78,14 @@ class Argument(FormArgument):
 
     def ufl_domain(self):
         "Deprecated, please use .ufl_function_space().ufl_domain() instead."
-        #TODO: deprecate("Argument.ufl_domain() is deprecated, please use .ufl_function_space().ufl_domain() instead.")
+        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
+        # use .ufl_function_space().ufl_domain() instead.")
         return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
         "Deprecated, please use .ufl_function_space().ufl_element() instead."
-        #TODO: deprecate("Argument.ufl_domain() is deprecated, please use .ufl_function_space().ufl_element() instead.")
+        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
+        # use .ufl_function_space().ufl_element() instead.")
         return self._ufl_function_space.ufl_element()
 
     def element(self):
@@ -108,7 +110,8 @@ class Argument(FormArgument):
 
     def ufl_domains(self):
         "Deprecated, please use .ufl_function_space().ufl_domains() instead."
-        #TODO: deprecate("Argument.ufl_domains() is deprecated, please use .ufl_function_space().ufl_domains() instead.")
+        # TODO: deprecate("Argument.ufl_domains() is deprecated,
+        # please use .ufl_function_space().ufl_domains() instead.")
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
@@ -150,15 +153,18 @@ class Argument(FormArgument):
                 self._part == other._part and
                 self._ufl_function_space == other._ufl_function_space)
 
+
 # --- Helper functions for pretty syntax ---
 
 def TestFunction(function_space, part=None):
     """UFL value: Create a test function argument to a form."""
     return Argument(function_space, 0, part)
 
+
 def TrialFunction(function_space, part=None):
     """UFL value: Create a trial function argument to a form."""
     return Argument(function_space, 1, part)
+
 
 # --- Helper functions for creating subfunctions on mixed elements ---
 
@@ -167,10 +173,12 @@ def Arguments(function_space, number):
     tuple with the function components corresponding to the subelements."""
     return split(Argument(function_space, number))
 
+
 def TestFunctions(function_space):
     """UFL value: Create a TestFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     return Arguments(function_space, 0)
+
 
 def TrialFunctions(function_space):
     """UFL value: Create a TrialFunction in a mixed space, and return a
