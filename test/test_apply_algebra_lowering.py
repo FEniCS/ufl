@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import pytest
 from ufl import *
 from ufl.compound_expressions import *
 from ufl.algorithms.renumbering import renumber_indices
