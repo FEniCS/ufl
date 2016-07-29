@@ -28,7 +28,6 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.utils.stacks import StackDict
 from ufl.core.expr import Expr
-from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, as_ufl
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Inner
@@ -44,7 +43,7 @@ from ufl.exprequals import expr_equals
 
 # --- Boolean operators ---
 
-from ufl.conditional import EQ, NE, LE, GE, LT, GT
+from ufl.conditional import LE, GE, LT, GT
 
 
 def _le(left, right):

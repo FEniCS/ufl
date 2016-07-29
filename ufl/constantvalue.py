@@ -32,7 +32,7 @@ from ufl.core.multiindex import Index, FixedIndex
 from ufl.core.ufl_type import ufl_type
 
 # --- Helper functions imported here for compatibility---
-from ufl.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar
+from ufl.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar  # noqa: F401
 
 
 # Precision for float formatting
