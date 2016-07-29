@@ -71,7 +71,7 @@ class Sum(Operator):
         elif sa:
             # Place scalar first
             # operands = (a, b)
-            pass # a, b = a, b
+            pass  # a, b = a, b
         elif sb:
             # Place scalar first
             # operands = (b, a)

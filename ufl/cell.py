@@ -27,6 +27,7 @@
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.utils.sequences import product
 
 
 # Export list for ufl.classes
