@@ -20,24 +20,30 @@
 
 from ufl.log import error
 
-#--- Standardized error messages ---
+
+# --- Standardized error messages ---
 
 def expecting_instance(v, c):
     error("Expecting %s instance, not %s." % (c.__name__, repr(v)))
 
+
 def expecting_python_scalar(v):
     error("Expecting Python scalar, not %s." % repr(v))
+
 
 def expecting_expr(v):
     error("Expecting Expr instance, not %s." % repr(v))
 
+
 def expecting_terminal(v):
     error("Expecting Terminal instance, not %s." % repr(v))
+
 
 def expecting_true_ufl_scalar(v):
     error("Expecting UFL scalar expression with no free indices, not %s." % repr(v))
 
-#--- Standardized assertions ---
+
+# --- Standardized assertions ---
 
 def ufl_assert(condition, *message):
     "Assert that condition is true and otherwise issue an error with given message."

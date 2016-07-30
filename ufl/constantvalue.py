@@ -21,23 +21,24 @@
 # Modified by Anders Logg, 2011.
 # Modified by Massimiliano Leoni, 2016.
 
-from six.moves import zip
 from six.moves import xrange as range
 from six import iteritems
 
-from ufl.log import warning, error
-from ufl.assertions import ufl_assert, expecting_python_scalar
+from ufl.log import error
+from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import Index, FixedIndex
-from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
-#--- Helper functions imported here for compatibility---
-from ufl.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar
+# --- Helper functions imported here for compatibility---
+from ufl.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar  # noqa: F401
+
 
 # Precision for float formatting
 precision = None
+
+
 def format_float(x):
     "Format float value based on global UFL precision."
     if precision is None:
@@ -46,11 +47,12 @@ def format_float(x):
         return ("%%.%dg" % precision) % x
 
 
-#--- Base classes for constant types ---
+# --- Base classes for constant types ---
 
 @ufl_type(is_abstract=True)
 class ConstantValue(Terminal):
     __slots__ = ()
+
     def __init__(self):
         Terminal.__init__(self)
 
@@ -63,29 +65,30 @@ class ConstantValue(Terminal):
         return ()
 
 
-#--- Class for representing abstract constant symbol only for use internally in form compilers
-#@ufl_type()
-#class AbstractSymbol(ConstantValue):
-#    "UFL literal type: Representation of a constant valued symbol with unknown properties."
-#    __slots__ = ("_name", "ufl_shape")
-#    def __init__(self, name, shape):
-#        ConstantValue.__init__(self)
-#        self._name = name
-#        self.ufl_shape = shape
+# --- Class for representing abstract constant symbol only for use internally in form compilers
+# @ufl_type()
+# class AbstractSymbol(ConstantValue):
+#     "UFL literal type: Representation of a constant valued symbol with unknown properties."
+#     __slots__ = ("_name", "ufl_shape")
+#     def __init__(self, name, shape):
+#         ConstantValue.__init__(self)
+#         self._name = name
+#         self.ufl_shape = shape
 #
-#    def __str__(self):
+#     def __str__(self):
 #        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self.ufl_shape)
 #
-#    def __repr__(self):
-#        return "AbstractSymbol(%r, %r)" % (self._name, self.ufl_shape)
+#     def __repr__(self):
+#         return "AbstractSymbol(%r, %r)" % (self._name, self.ufl_shape)
 #
-#    def __eq__(self, other):
-#        return isinstance(other, AbstractSymbol) and self._name == other._name and self.ufl_shape == other.ufl_shape
+#     def __eq__(self, other):
+#         return isinstance(other, AbstractSymbol) and self._name == other._name and self.ufl_shape == other.ufl_shape
 
 
-#--- Class for representing zero tensors of different shapes ---
+# --- Class for representing zero tensors of different shapes ---
 
-# TODO: Add geometric dimension/domain and Argument dependencies to Zero?
+# TODO: Add geometric dimension/domain and Argument dependencies to
+# Zero?
 @ufl_type(is_literal=True)
 class Zero(ConstantValue):
     "UFL literal type: Representation of a zero valued expression."
@@ -123,17 +126,17 @@ class Zero(ConstantValue):
         if not free_indices:
             self.ufl_free_indices = ()
             self.ufl_index_dimensions = ()
-        elif all(isinstance(i, Index) for i in free_indices): # Handle old input format
-            if not (isinstance(index_dimensions, dict)
-                    and all(isinstance(i, Index) for i in index_dimensions.keys())):
+        elif all(isinstance(i, Index) for i in free_indices):  # Handle old input format
+            if not (isinstance(index_dimensions, dict) and
+                    all(isinstance(i, Index) for i in index_dimensions.keys())):
                 error("Expecting tuple of index dimensions, not %s" % str(index_dimensions))
             self.ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
             self.ufl_index_dimensions = tuple(d for i, d in sorted(iteritems(index_dimensions), key=lambda x: x[0].count()))
-        else: # Handle new input format
+        else:  # Handle new input format
             if not all(isinstance(i, int) for i in free_indices):
                 error("Expecting tuple of integer free index ids, not %s" % str(free_indices))
-            if not (isinstance(index_dimensions, tuple)
-                    and all(isinstance(i, int) for i in index_dimensions)):
+            if not (isinstance(index_dimensions, tuple) and
+                    all(isinstance(i, int) for i in index_dimensions)):
                 error("Expecting tuple of integer index dimensions, not %s" % str(index_dimensions))
             # TODO: Assume sorted and avoid this cost.
             ufl_assert(sorted(free_indices) == list(free_indices),
@@ -151,7 +154,8 @@ class Zero(ConstantValue):
 
     def __repr__(self):
         return "Zero(%r, %r, %r)" % (self.ufl_shape,
-                self.ufl_free_indices, self.ufl_index_dimensions)
+                                     self.ufl_free_indices,
+                                     self.ufl_index_dimensions)
 
     def __eq__(self, other):
         if isinstance(other, Zero):
@@ -181,6 +185,7 @@ class Zero(ConstantValue):
     def __int__(self):
         return 0
 
+
 def zero(*shape):
     "UFL literal constant: Return a zero tensor with the given shape."
     if len(shape) == 1 and isinstance(shape[0], tuple):
@@ -189,7 +194,7 @@ def zero(*shape):
         return Zero(shape)
 
 
-#--- Scalar value types ---
+# --- Scalar value types ---
 
 @ufl_type(is_abstract=True, is_scalar=True)
 class ScalarValue(ConstantValue):
@@ -219,7 +224,8 @@ class ScalarValue(ConstantValue):
         if isinstance(other, self._ufl_class_):
             return self._value == other._value
         elif isinstance(other, (int, float)):
-            # FIXME: Disallow this, require explicit 'expr == IntValue(3)' instead to avoid ambiguities!
+            # FIXME: Disallow this, require explicit 'expr ==
+            # IntValue(3)' instead to avoid ambiguities!
             return other == self._value
         else:
             return False
@@ -276,7 +282,8 @@ class IntValue(ScalarValue):
             # Always represent zero with Zero
             return Zero()
         elif abs(value) < 100:
-            # Small numbers are cached to reduce memory usage (fly-weight pattern)
+            # Small numbers are cached to reduce memory usage
+            # (fly-weight pattern)
             self = IntValue._cache.get(value)
             if self is not None:
                 return self
@@ -297,7 +304,7 @@ class IntValue(ScalarValue):
         return "%s(%s)" % (type(self).__name__, repr(self._value))
 
 
-#--- Identity matrix ---
+# --- Identity matrix ---
 
 @ufl_type()
 class Identity(ConstantValue):
@@ -329,7 +336,8 @@ class Identity(ConstantValue):
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim
 
-#--- Permutation symbol ---
+
+# --- Permutation symbol ---
 
 @ufl_type()
 class PermutationSymbol(ConstantValue):
@@ -349,7 +357,8 @@ class PermutationSymbol(ConstantValue):
         return self.__eps(component)
 
     def __getitem__(self, key):
-        ufl_assert(len(key) == self._dim, "Size mismatch for PermutationSymbol.")
+        ufl_assert(len(key) == self._dim,
+                   "Size mismatch for PermutationSymbol.")
         if all(isinstance(k, (int, FixedIndex)) for k in key):
             return self.__eps(key)
         return Expr.__getitem__(self, key)
@@ -365,7 +374,9 @@ class PermutationSymbol(ConstantValue):
 
     def __eps(self, x):
         """This function body is taken from
-        http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita"""
+        http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita
+
+        """
         result = IntValue(1)
         for i, x1 in enumerate(x):
             for j in range(i + 1, len(x)):
@@ -376,6 +387,7 @@ class PermutationSymbol(ConstantValue):
                     return Zero()
         return result
 
+
 def as_ufl(expression):
     "Converts expression to an Expr if possible."
     if isinstance(expression, Expr):
@@ -384,5 +396,5 @@ def as_ufl(expression):
         return FloatValue(expression)
     if isinstance(expression, int):
         return IntValue(expression)
-    error(("Invalid type conversion: %s can not be converted to any UFL type.\n"+
+    error(("Invalid type conversion: %s can not be converted to any UFL type.\n" +
            "The representation of the object is:\n%r") % (type(expression), expression))

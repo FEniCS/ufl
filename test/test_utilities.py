@@ -5,17 +5,19 @@
 Test internal utility functions.
 """
 
-import pytest
 from six.moves import xrange as range
 
-from ufl.utils.indexflattening import shape_to_strides, flatten_multiindex, unflatten_index
+from ufl.utils.indexflattening import (shape_to_strides, flatten_multiindex,
+                                       unflatten_index)
+
 
 def test_shape_to_strides():
-    assert ()         == shape_to_strides(())
-    assert (1,)       == shape_to_strides((3,))
-    assert (2, 1)     == shape_to_strides((3, 2))
-    assert (4, 1)     == shape_to_strides((3, 4))
+    assert () == shape_to_strides(())
+    assert (1,) == shape_to_strides((3,))
+    assert (2, 1) == shape_to_strides((3, 2))
+    assert (4, 1) == shape_to_strides((3, 4))
     assert (12, 4, 1) == shape_to_strides((6, 3, 4))
+
 
 def test_flatten_multiindex_to_multiindex():
     sh = (2, 3, 5)
@@ -28,8 +30,9 @@ def test_flatten_multiindex_to_multiindex():
                 index2 = unflatten_index(c, strides)
                 assert index == index2
 
+
 def test_indexing_to_component():
-    assert 0 == flatten_multiindex(  (), shape_to_strides(()))
+    assert 0 == flatten_multiindex((), shape_to_strides(()))
     assert 0 == flatten_multiindex((0,), shape_to_strides((2,)))
     assert 1 == flatten_multiindex((1,), shape_to_strides((2,)))
     assert 3 == flatten_multiindex((1, 1), shape_to_strides((2, 2)))
@@ -56,7 +59,9 @@ def test_component_numbering():
 
 
 def test_index_flattening():
-    from ufl.utils.indexflattening import shape_to_strides, flatten_multiindex, unflatten_index
+    from ufl.utils.indexflattening import (shape_to_strides,
+                                           flatten_multiindex,
+                                           unflatten_index)
     # Scalar shape
     s = ()
     st = shape_to_strides(s)
@@ -126,7 +131,7 @@ def test_index_flattening():
     mixed_shape = (6,)
     ts = (2, 2)
     vs = (2,)
-    offset = 4 # product(ts)
+    offset = 4  # product(ts)
 
     # vector element y-component is index offset+1:
     c = (offset + 1,)
@@ -147,7 +152,7 @@ def test_index_flattening():
         i -= 0
         # map back to tensor component:
         c2 = unflatten_index(i, shape_to_strides(ts))
-        assert (k//2, k%2) == c2
+        assert (k//2, k % 2) == c2
 
 
 def test_stackdict():

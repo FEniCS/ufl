@@ -25,37 +25,42 @@ output messages. These may be redirected by the user of UFL."""
 import sys
 import types
 import logging
+from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL  # noqa: F401
 
-log_functions = ["log", "debug", "info", "deprecate", "warning", "error", "begin", "end",
-                 "set_level", "push_level", "pop_level", "set_indent", "add_indent",
-                 "set_handler", "get_handler", "get_logger", "add_logfile", "set_prefix",
+log_functions = ["log", "debug", "info", "deprecate", "warning", "error",
+                 "begin", "end",
+                 "set_level", "push_level", "pop_level", "set_indent",
+                 "add_indent",
+                 "set_handler", "get_handler", "get_logger", "add_logfile",
+                 "set_prefix",
                  "info_red", "info_green", "info_blue",
                  "warning_red", "warning_green", "warning_blue"]
 
 __all__ = log_functions + ["DEBUG", "INFO", "DEPRECATE", "WARNING", "ERROR",
                            "CRITICAL", "Logger", "log_functions"]
 
-# Import default log levels
-from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
 DEPRECATE = (INFO + WARNING) // 2
 
-# This is used to override emit() in StreamHandler for printing without newline
+
+# This is used to override emit() in StreamHandler for printing
+# without newline
 def emit(self, record):
     message = self.format(record)
     format_string = "%s" if getattr(record, "continued", False) else "%s\n"
     self.stream.write(format_string % message)
     self.flush()
 
-# Colors if the terminal supports it (disabled e.g. when piped to file)
-import sys
+# Colors if the terminal supports it (disabled e.g. when piped to
+# file)
 if sys.stdout.isatty() and sys.stderr.isatty():
-    RED   = "\033[1;37;31m%s\033[0m"
-    BLUE  = "\033[1;37;34m%s\033[0m"
+    RED = "\033[1;37;31m%s\033[0m"
+    BLUE = "\033[1;37;34m%s\033[0m"
     GREEN = "\033[1;37;32m%s\033[0m"
 else:
-    RED   = "%s"
-    BLUE  = "%s"
+    RED = "%s"
+    BLUE = "%s"
     GREEN = "%s"
+
 
 # Logger class
 class Logger:
@@ -111,7 +116,8 @@ class Logger:
         "Write a log message on given log level."
         text = self._format_raw(*message)
         if len(text) >= 3 and text[-3:] == "...":
-            self._log.log(level, self._format(*message), extra={"continued": True})
+            self._log.log(level, self._format(*message),
+                          extra={"continued": True})
         else:
             self._log.log(level, self._format(*message))
 
@@ -185,7 +191,6 @@ class Logger:
     def set_level(self, level):
         "Set log level."
         self._level_stack[-1] = level
-        #self._log.setLevel(level)
         self._handler.setLevel(level)
 
     def set_indent(self, level):
@@ -209,7 +214,8 @@ class Logger:
         self._log.removeHandler(self._handler)
         self._log.addHandler(handler)
         self._handler = handler
-        handler.emit = types.MethodType(emit, self._handler, self._handler.__class__)
+        handler.emit = types.MethodType(emit, self._handler,
+                                        self._handler.__class__)
 
     def get_logger(self):
         "Return message logger."
@@ -228,16 +234,18 @@ class Logger:
         "Format message without indentation."
         return message[0] % message[1:]
 
-#--- Set up global log functions ---
+
+# --- Set up global log functions ---
 
 # Base class for UFL exceptions
 class UFLException(Exception):
     "Base class for UFL exceptions."
     pass
 
+
 ufl_logger = Logger("UFL", UFLException)
 
 for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))
 
-set_level(DEPRECATE)
+set_level(DEPRECATE)  # noqa

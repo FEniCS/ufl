@@ -21,38 +21,41 @@
 from ufl.log import warning
 from six import iteritems
 
+
 # FIXME: This code is crap...
 
 def parstr(child, parent, pre="(", post=")", format=str):
-    # Execute when needed instead of on import,
-    # which leads to all kinds of circular trouble.
-    # Fixing this could be an optimization of str(expr) though.
+    # Execute when needed instead of on import, which leads to all
+    # kinds of circular trouble.  Fixing this could be an optimization
+    # of str(expr) though.
     if not hasattr(parent, '_precedence'):
         assign_precedences(build_precedence_list())
 
-    # We want child to be evaluated fully first,
-    # and if the parent has higher precedence
-    # we later wrap in ().
+    # We want child to be evaluated fully first, and if the parent has
+    # higher precedence we later wrap in ().
     s = format(child)
 
-    # Operators where operands are always parenthesized because precedence is not defined below
+    # Operators where operands are always parenthesized because
+    # precedence is not defined below
     if parent._precedence == 0:
         return pre + s + post
 
-    # If parent operator binds stronger than child, must parenthesize child
+    # If parent operator binds stronger than child, must parenthesize
+    # child
     # FIXME: Is this correct for all possible positions of () in a + b + c?
     # FIXME: Left-right rule
-    if parent._precedence > child._precedence: # parent = indexed, child = terminal
+    if parent._precedence > child._precedence:  # parent = indexed, child = terminal
         return pre + s + post
 
     # Nothing needed
     return s
 
+
 def build_precedence_list():
     from ufl.classes import Operator, Terminal, Sum, IndexSum, Product, Division, Power, MathFunction, BesselFunction, Abs, Indexed
 
     # TODO: Fill in other types...
-    #Power <= Transposed
+    # Power <= Transposed
 
     precedence_list = []
     # Default operator behaviour: should always add parentheses
@@ -60,7 +63,8 @@ def build_precedence_list():
 
     precedence_list.append((Sum,))
 
-    # sum_i a + b = (sum_i a) + b != sum_i (a + b), sum_i binds stronger than +, but weaker than product
+    # sum_i a + b = (sum_i a) + b != sum_i (a + b), sum_i binds
+    # stronger than +, but weaker than product
     precedence_list.append((IndexSum,))
 
     precedence_list.append((Product, Division,))
@@ -73,6 +77,7 @@ def build_precedence_list():
     # Default terminal behaviour: should never add parentheses
     precedence_list.append((Terminal,))
     return precedence_list
+
 
 def build_precedence_mapping(precedence_list):
     """Given a precedence list, build a dict with class->int mappings.
@@ -99,6 +104,7 @@ def build_precedence_mapping(precedence_list):
             if c not in pm:
                 missing.add(c)
     return pm, missing
+
 
 def assign_precedences(precedence_list):
     "Given a precedence list, assign ints to class._precedence."

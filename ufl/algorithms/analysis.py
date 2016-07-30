@@ -24,7 +24,6 @@
 from itertools import chain
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.terminal import Terminal, FormArgument
@@ -164,22 +163,6 @@ def extract_sub_elements(elements):
     if not sub_elements:
         return tuple(elements)
     return tuple(elements) + extract_sub_elements(sub_elements)
-
-
-def __unused__extract_unique_sub_elements(elements):
-    "Build sorted tuple of all unique sub elements (including parent element)."
-    return unique_tuple(extract_sub_elements(elements))
-
-
-def __unused__extract_element_map(elements):
-    "Build map from elements to element index in ordered tuple."
-    element_map = {}
-    unique_elements = unique_tuple(elements)
-    for element in elements:
-        indices = [i for (i, e) in enumerate(unique_elements) if e == element]
-        ufl_assert(len(indices) == 1, "Unable to find unique index for element.")
-        element_map[element] = i
-    return element_map
 
 
 def sort_elements(elements):

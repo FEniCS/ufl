@@ -1,4 +1,3 @@
-#!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
 __authors__ = "Martin Sandve Alnæs"

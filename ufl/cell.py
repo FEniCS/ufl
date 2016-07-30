@@ -38,12 +38,9 @@ __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 class AbstractCell(object):
     "Representation of an abstract finite element cell with only the dimensions known."
-    __slots__ = ("_topological_dimension", "_geometric_dimension", "_cellname")
+    __slots__ = ("_topological_dimension", "_geometric_dimension")
 
-    def __init__(self, cellname, topological_dimension, geometric_dimension):
-
-        self._cellname = cellname
-
+    def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         ufl_assert(isinstance(geometric_dimension, int),
                    "Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
@@ -55,10 +52,6 @@ class AbstractCell(object):
         # Store validated dimensions
         self._topological_dimension = topological_dimension
         self._geometric_dimension = geometric_dimension
-
-    def cellname(self):
-        "Return the cellname of the cell."
-        return self._cellname
 
     def topological_dimension(self):
         "Return the dimension of the topology of this cell."
@@ -80,7 +73,8 @@ class AbstractCell(object):
         "Define an arbitrarily chosen but fixed sort order for all cells."
         if not isinstance(other, AbstractCell):
             return NotImplemented
-        # Sort by gdim first, tdim next, then whatever's left depending on the subclass
+        # Sort by gdim first, tdim next, then whatever's left
+        # depending on the subclass
         s = (self.geometric_dimension(), self.topological_dimension())
         o = (other.geometric_dimension(), other.topological_dimension())
         if s != o:
@@ -90,28 +84,26 @@ class AbstractCell(object):
 
 # --- Basic topological properties of known basic cells
 
-# Mapping from cell name to number of cell entities of each topological dimension
-num_cell_entities = {
-    "vertex":        (1,),
-    "interval":      (2,  1),
-    "triangle":      (3,  3, 1),
-    "quadrilateral": (4,  4, 1),
-    "tetrahedron":   (4,  6, 4, 1),
-    "hexahedron":    (8, 12, 6, 1),
-    }
+# Mapping from cell name to number of cell entities of each
+# topological dimension
+num_cell_entities = {"vertex": (1,),
+                     "interval": (2, 1),
+                     "triangle": (3, 3, 1),
+                     "quadrilateral": (4, 4, 1),
+                     "tetrahedron": (4, 6, 4, 1),
+                     "hexahedron": (8, 12, 6, 1)}
 
 # Mapping from cell name to topological dimension
-cellname2dim = dict((k, len(v)-1) for k,v in num_cell_entities.items())
+cellname2dim = dict((k, len(v)-1) for k, v in num_cell_entities.items())
 
 # Mapping from cell name to facet name
-# Note: This is not generalizable to product elements but it's still in use a couple of places.
-cellname2facetname = {
-    "interval":      "vertex",
-    "triangle":      "interval",
-    "quadrilateral": "interval",
-    "tetrahedron":   "triangle",
-    "hexahedron":    "quadrilateral",
-    }
+# Note: This is not generalizable to product elements but it's still
+# in use a couple of places.
+cellname2facetname = {"interval": "vertex",
+                      "triangle": "interval",
+                      "quadrilateral": "interval",
+                      "tetrahedron": "triangle",
+                      "hexahedron": "quadrilateral"}
 
 
 # --- Basic cell representation classes
@@ -119,13 +111,17 @@ cellname2facetname = {
 @attach_operators_from_hash_data
 class Cell(AbstractCell):
     "Representation of a named finite element cell with known structure."
+    __slots__ = ("_cellname",)
+
     def __init__(self, cellname, geometric_dimension=None):
         "Initialize basic cell description."
 
-        # The topological dimension is defined by the cell type,
-        # so the cellname must be among the known ones,
-        # so we can find the known dimension, unless we have
-        # a product cell, in which the given dimension is used
+        self._cellname = cellname
+
+        # The topological dimension is defined by the cell type, so
+        # the cellname must be among the known ones, so we can find
+        # the known dimension, unless we have a product cell, in which
+        # the given dimension is used
         topological_dimension = len(num_cell_entities[cellname]) - 1
 
         # The geometric dimension defaults to equal the topological
@@ -134,7 +130,7 @@ class Cell(AbstractCell):
             geometric_dimension = topological_dimension
 
         # Initialize and validate dimensions
-        AbstractCell.__init__(self, cellname, topological_dimension, geometric_dimension)
+        AbstractCell.__init__(self, topological_dimension, geometric_dimension)
 
     # --- Overrides of AbstractCell methods ---
 
@@ -152,6 +148,10 @@ class Cell(AbstractCell):
         return self.is_simplex() or self.cellname() == "quadrilateral"
 
     # --- Specific cell properties ---
+
+    def cellname(self):
+        "Return the cellname of the cell."
+        return self._cellname
 
     def num_vertices(self):
         "The number of cell vertices."
@@ -185,8 +185,9 @@ class Cell(AbstractCell):
         return s
 
     def __repr__(self):
-        # For standard cells, return name of builtin cell object if possible.
-        # This reduces the size of the repr strings for domains, elements, etc. as well
+        # For standard cells, return name of builtin cell object if
+        # possible.  This reduces the size of the repr strings for
+        # domains, elements, etc. as well
         gdim = self.geometric_dimension()
         tdim = self.topological_dimension()
         name = self.cellname()
@@ -196,7 +197,8 @@ class Cell(AbstractCell):
             return "Cell(%r, %r)" % (name, gdim)
 
     def _ufl_hash_data_(self):
-        return (self._geometric_dimension, self._topological_dimension, self._cellname)
+        return (self._geometric_dimension, self._topological_dimension,
+                self._cellname)
 
 
 @attach_operators_from_hash_data
@@ -212,15 +214,16 @@ class TensorProductCell(AbstractCell):
         self._cells = tuple(as_cell(cell) for cell in cells)
 
         tdim = sum([cell.topological_dimension() for cell in self._cells])
-
         if kwargs:
             gdim = kwargs["geometric_dimension"]
         else:
             gdim = sum([cell.geometric_dimension() for cell in self._cells])
 
-        cellname = " * ".join([cell._cellname for cell in self._cells])
+        AbstractCell.__init__(self, tdim, gdim)
 
-        AbstractCell.__init__(self, cellname, tdim, gdim)
+    def cellname(self):
+        "Return the cellname of the cell."
+        return " * ".join([cell._cellname for cell in self._cells])
 
     def reconstruct(self, geometric_dimension=None):
         if geometric_dimension is None:
@@ -259,7 +262,6 @@ class TensorProductCell(AbstractCell):
         return repr(self)
 
     def __repr__(self):
-
         if self.geometric_dimension() == self.topological_dimension():
             return "TensorProductCell(%s)" % ", ".join(map(repr, self._cells))
         else:
@@ -272,29 +274,32 @@ class TensorProductCell(AbstractCell):
 
 # --- Utility conversion functions
 
-# Mapping from topological dimension to reference cell name for simplices
-_simplex_dim2cellname = {
-    0: "vertex",
-    1: "interval",
-    2: "triangle",
-    3: "tetrahedron",
-    }
+# Mapping from topological dimension to reference cell name for
+# simplices
+_simplex_dim2cellname = {0: "vertex",
+                         1: "interval",
+                         2: "triangle",
+                         3: "tetrahedron"}
 
-# Mapping from topological dimension to reference cell name for hypercubes
-_hypercube_dim2cellname = {
-    0: "vertex",
-    1: "interval",
-    2: "quadrilateral",
-    3: "hexahedron",
-    }
+# Mapping from topological dimension to reference cell name for
+# hypercubes
+_hypercube_dim2cellname = {0: "vertex",
+                           1: "interval",
+                           2: "quadrilateral",
+                           3: "hexahedron"}
+
 
 def simplex(topological_dimension, geometric_dimension=None):
     "Return a simplex cell of given dimension."
-    return Cell(_simplex_dim2cellname[topological_dimension], geometric_dimension)
+    return Cell(_simplex_dim2cellname[topological_dimension],
+                geometric_dimension)
+
 
 def hypercube(topological_dimension, geometric_dimension=None):
     "Return a hypercube cell of given dimension."
-    return Cell(_hypercube_dim2cellname[topological_dimension], geometric_dimension)
+    return Cell(_hypercube_dim2cellname[topological_dimension],
+                geometric_dimension)
+
 
 def as_cell(cell):
     """Convert any valid object to a Cell or return cell if it is already a Cell.

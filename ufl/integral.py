@@ -22,16 +22,16 @@
 # Modified by Massimiliano Leoni, 2016.
 
 import ufl
-from ufl.log import error, warning, deprecate
+from ufl.log import deprecate
 from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
-from ufl.checks import (is_true_ufl_scalar, is_python_scalar, is_globally_constant,
-                        is_scalar_constant_expression)
-from ufl.measure import Measure
+from ufl.checks import is_python_scalar, is_scalar_constant_expression
+from ufl.measure import Measure  # noqa
 from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
 __all_classes__ = ["Integral"]
+
 
 class Integral(object):
     "An integral over a single domain."
@@ -42,7 +42,9 @@ class Integral(object):
                  "_metadata",
                  "_subdomain_data",
                  )
-    def __init__(self, integrand, integral_type, domain, subdomain_id, metadata, subdomain_data):
+
+    def __init__(self, integrand, integral_type, domain, subdomain_id,
+                 metadata, subdomain_data):
         ufl_assert(isinstance(integrand, Expr),
                    "Expecting integrand to be an Expr instance.")
         self._integrand = integrand
@@ -130,13 +132,13 @@ class Integral(object):
             self._integrand, self._integral_type, self._ufl_domain, self._subdomain_id, self._metadata, self._subdomain_data)
 
     def __eq__(self, other):
-        return (isinstance(other, Integral)
-            and self._integral_type == other._integral_type
-            and self._ufl_domain == other._ufl_domain
-            and self._subdomain_id == other._subdomain_id
-            and self._integrand == other._integrand
-            and self._metadata == other._metadata
-            and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data))
+        return (isinstance(other, Integral) and
+                self._integral_type == other._integral_type and
+                self._ufl_domain == other._ufl_domain and
+                self._subdomain_id == other._subdomain_id and
+                self._integrand == other._integrand and
+                self._metadata == other._metadata and
+                id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data))
 
     def __hash__(self):
         # Assuming few collisions by ignoring hash(self._metadata)

@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+
 def id_or_none(obj):
     """Returns None if the object is None, obj.ufl_id() if available, or id(obj) if not.
 
@@ -28,12 +29,13 @@ def id_or_none(obj):
     elif hasattr(obj, 'ufl_id'):
         return obj.ufl_id()
     else:
-        #warning("Expecting an object implementing the ufl_id function.") # TODO: Can we enable this? Not sure about meshfunctions etc in dolfin.
         return id(obj)
+
 
 def metadata_equal(a, b):
     return (sorted((k, id(v)) for k, v in list(a.items())) ==
             sorted((k, id(v)) for k, v in list(b.items())))
+
 
 def metadata_hashdata(md):
     return tuple(sorted((k, id(v)) for k, v in list(md.items())))

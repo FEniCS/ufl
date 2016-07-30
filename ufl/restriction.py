@@ -18,12 +18,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error
 from ufl.core.operator import Operator
 from ufl.precedence import parstr
 from ufl.core.ufl_type import ufl_type
 
-#--- Restriction operators ---
+
+# --- Restriction operators ---
 
 @ufl_type(is_abstract=True,
           num_ops=1,
@@ -42,7 +42,8 @@ class Restricted(Operator):
         return self._side
 
     def evaluate(self, x, mapping, component, index_values):
-        return self.ufl_operands[0].evaluate(x, mapping, component, index_values)
+        return self.ufl_operands[0].evaluate(x, mapping, component,
+                                             index_values)
 
     def __str__(self):
         return "%s('%s')" % (parstr(self.ufl_operands[0], self), self._side)
@@ -50,10 +51,12 @@ class Restricted(Operator):
     def __repr__(self):
         return "%s(%r)" % (self._ufl_class_.__name__, self.ufl_operands[0])
 
+
 @ufl_type(is_terminal_modifier=True)
 class PositiveRestricted(Restricted):
     __slots__ = ()
     _side = "+"
+
 
 @ufl_type(is_terminal_modifier=True)
 class NegativeRestricted(Restricted):
@@ -80,7 +83,8 @@ class CellAvg(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         "Performs an approximate symbolic evaluation, since we dont have a cell."
-        return self.ufl_operands[0].evaluate(x, mapping, component, index_values)
+        return self.ufl_operands[0].evaluate(x, mapping, component,
+                                             index_values)
 
     def __str__(self):
         return "cell_avg(%s)" % (self.ufl_operands[0],)

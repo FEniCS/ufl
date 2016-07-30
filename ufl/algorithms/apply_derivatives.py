@@ -516,11 +516,12 @@ class GradRuleset(GenericDerivativeRuleset):
         return Grad(o)
 
     def argument(self, o):
-        # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
-        #if is_cellwise_constant(o):
-        #    # Collapse gradient of cellwise constant function to zero
-        #    # TODO: Missing this type
-        #    return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))
+        # TODO: Enable this after fixing issue#13, unless we move
+        # simplificat ion to a separate stage?
+        # if is_cellwise_constant(o):
+        #     # Collapse gradient of cellwise constant function to zero
+        #     # TODO: Missing this type
+        #     return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))
         return Grad(o)
 
     # --- Rules for values or derivatives in reference frame
@@ -677,7 +678,7 @@ class VariableRuleset(GenericDerivativeRuleset):
     # Explicitly defining da/dw == 0
     argument = GenericDerivativeRuleset.independent_terminal
 
-    #def _argument(self, o):
+    # def _argument(self, o):
     #    return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))  # TODO: Missing this type
 
     def coefficient(self, o):

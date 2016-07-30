@@ -22,7 +22,7 @@
 # Modified by Massimiliano Leoni, 2016.
 
 from ufl.assertions import ufl_assert
-from ufl.log import error, warning, deprecate
+from ufl.log import error, deprecate
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
@@ -42,68 +42,75 @@ __all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
 _integral_types = [
     # === Integration over full topological dimension:
     ("cell", "dx"),                     # Over cells of a mesh
-    #("macro_cell", "dE"),              # Over a group of adjacent cells (TODO: Arbitrary cell group? Not currently used.)
+    # ("macro_cell", "dE"),              # Over a group of adjacent cells (TODO: Arbitrary cell group? Not currently used.)
 
     # === Integration over topological dimension - 1:
     ("exterior_facet", "ds"),           # Over one-sided exterior facets of a mesh
     ("interior_facet", "dS"),           # Over two-sided facets between pairs of adjacent cells of a mesh
 
     # === Integration over topological dimension 0
-    ("vertex", "dP"),                   # Over vertices of a mesh
-    #("vertex", "dV"),                  # TODO: Use this over vertices?
-    #("point", "dP"),                   # TODO: Use this over arbitrary points inside cells?
+    ("vertex", "dP"),                    # Over vertices of a mesh
+    # ("vertex", "dV"),                  # TODO: Use this over vertices?
+    # ("point", "dP"),                   # TODO: Use this over arbitrary points inside cells?
 
     # === Integration over custom domains
-    ("custom",    "dc"),                # Over custom user-defined domains (run-time quadrature points)
-    ("cutcell",   "dC"),                # Over a cell with some part cut away (run-time quadrature points)
-    ("interface", "dI"),                # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
-    ("overlap",   "dO"),                # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
+    ("custom", "dc"),                 # Over custom user-defined domains (run-time quadrature points)
+    ("cutcell", "dC"),                # Over a cell with some part cut away (run-time quadrature points)
+    ("interface", "dI"),              # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
+    ("overlap", "dO"),                # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
 
     # === Firedrake specific hacks on the way out:
     # TODO: Remove these, firedrake can use metadata instead and create the measure objects in firedrake:
     ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
-    ("exterior_facet_top",    "ds_t"),  # Over top facets on extruded mesh
-    ("exterior_facet_vert",   "ds_v"),  # Over side facets of an extruded mesh
-    ("interior_facet_horiz",  "dS_h"),  # Over horizontal facets of an extruded mesh
-    ("interior_facet_vert",   "dS_v"),  # Over vertical facets of an extruded mesh
-    ]
+    ("exterior_facet_top", "ds_t"),     # Over top facets on extruded mesh
+    ("exterior_facet_vert", "ds_v"),    # Over side facets of an extruded mesh
+    ("interior_facet_horiz", "dS_h"),   # Over horizontal facets of an extruded mesh
+    ("interior_facet_vert", "dS_v"),  # Over vertical facets of an extruded mesh
+]
+
 integral_type_to_measure_name = dict((l, s) for l, s in _integral_types)
 measure_name_to_integral_type = dict((s, l) for l, s in _integral_types)
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
 
+
 def register_integral_type(integral_type, measure_name):
     global integral_type_to_measure_name, measure_name_to_integral_type
-    ufl_assert(measure_name == integral_type_to_measure_name.get(integral_type, measure_name),
+    ufl_assert(measure_name == integral_type_to_measure_name.get(integral_type,
+                                                                 measure_name),
                "Integral type already added with different measure name!")
-    ufl_assert(integral_type == measure_name_to_integral_type.get(measure_name, integral_type),
+    ufl_assert(integral_type == measure_name_to_integral_type.get(measure_name,
+                                                                  integral_type),
                "Measure name already used for another domain type!")
     integral_type_to_measure_name[integral_type] = measure_name
     measure_name_to_integral_type[measure_name] = integral_type
 
+
 def as_integral_type(integral_type):
     "Map short name to long name and require a valid one."
     integral_type = integral_type.replace(" ", "_")
-    integral_type = measure_name_to_integral_type.get(integral_type, integral_type)
+    integral_type = measure_name_to_integral_type.get(integral_type,
+                                                      integral_type)
     ufl_assert(integral_type in integral_type_to_measure_name,
                "Invalid integral_type.")
     return integral_type
+
 
 def integral_types():
     "Return a tuple of all domain type strings."
     return tuple(sorted(integral_type_to_measure_name.keys()))
 
+
 def measure_names():
     "Return a tuple of all measure name strings."
     return tuple(sorted(measure_name_to_integral_type.keys()))
 
+
 class Measure(object):
-    __slots__ = (
-        "_integral_type",
-        "_domain",
-        "_subdomain_id",
-        "_metadata",
-        "_subdomain_data",
-        )
+    __slots__ = ("_integral_type",
+                 "_domain",
+                 "_subdomain_id",
+                 "_metadata",
+                 "_subdomain_data", )
     """Representation of an integration measure.
 
     The Measure object holds information about integration properties to be
@@ -111,12 +118,11 @@ class Measure(object):
     """
 
     def __init__(self,
-                 integral_type, # "dx" etc
+                 integral_type,  # "dx" etc
                  domain=None,
                  subdomain_id="everywhere",
                  metadata=None,
-                 subdomain_data=None
-                 ):
+                 subdomain_data=None):
         """
         integral_type:
             str, one of "cell", etc.,
@@ -143,19 +149,23 @@ class Measure(object):
 
         # Check that we either have a proper AbstractDomain or none
         self._domain = None if domain is None else as_domain(domain)
-        ufl_assert(self._domain is None or isinstance(self._domain, AbstractDomain), "Invalid domain.")
+        ufl_assert(self._domain is None or isinstance(self._domain,
+                                                      AbstractDomain),
+                   "Invalid domain.")
 
         # Store subdomain data
         self._subdomain_data = subdomain_data
-        # FIXME: Cannot require this (yet) because we currently have no way to implement ufl_id for dolfin SubDomain
-        #ufl_assert(self._subdomain_data is None or hasattr(self._subdomain_data, "ufl_id"),
-        #           "Invalid domain data, missing ufl_id() implementation.")
+        # FIXME: Cannot require this (yet) because we currently have
+        # no way to implement ufl_id for dolfin SubDomain
+        # ufl_assert(self._subdomain_data is None or hasattr(self._subdomain_data, "ufl_id"),
+        #            "Invalid domain data, missing ufl_id() implementation.")
 
-        # Accept "everywhere", single subdomain, or multiple subdomains
-        ufl_assert(subdomain_id in ("everywhere",)
-                   or isinstance(subdomain_id, int)
-                   or (isinstance(subdomain_id, tuple)
-                       and all(isinstance(did, int) for did in subdomain_id)),
+        # Accept "everywhere", single subdomain, or multiple
+        # subdomains
+        ufl_assert(subdomain_id in ("everywhere",) or
+                   isinstance(subdomain_id, int) or
+                   (isinstance(subdomain_id, tuple) and
+                    all(isinstance(did, int) for did in subdomain_id)),
                    "Invalid subdomain_id.")
         self._subdomain_id = subdomain_id
 
@@ -223,28 +233,39 @@ class Measure(object):
                        metadata=metadata, subdomain_data=subdomain_data)
 
     def subdomain_data(self):
-        """Return the integral subdomain_data. This data is not interpreted by UFL.
-        Its intension is to give a context in which the domain id is interpreted."""
+        """Return the integral subdomain_data. This data is not interpreted by
+        UFL.  Its intension is to give a context in which the domain
+        id is interpreted.
+
+        """
         return self._subdomain_data
 
-    # Note: Must keep the order of the first two arguments here (subdomain_id, metadata) for
-    # backwards compatibility, because some tutorials write e.g. dx(0, {...}) to set metadata.
-    def __call__(self, subdomain_id=None, metadata=None, domain=None, subdomain_data=None, degree=None, rule=None):
+    # Note: Must keep the order of the first two arguments here
+    # (subdomain_id, metadata) for backwards compatibility, because
+    # some tutorials write e.g. dx(0, {...}) to set metadata.
+    def __call__(self, subdomain_id=None, metadata=None, domain=None,
+                 subdomain_data=None, degree=None, rule=None):
         """Reconfigure measure with new domain specification or metadata."""
 
         # Let syntax dx() mean integral over everywhere
-        all_args = (subdomain_id, metadata, domain, subdomain_data, degree, rule)
+        all_args = (subdomain_id, metadata, domain, subdomain_data, degree,
+                    rule)
         if all(arg is None for arg in all_args):
             return self.reconstruct(subdomain_id="everywhere")
 
-        # Let syntax dx(domain) or dx(domain, metadata) mean integral over entire domain.
-        # To do this we need to hijack the first argument:
-        if subdomain_id is not None and (isinstance(subdomain_id, AbstractDomain) or hasattr(subdomain_id, 'ufl_domain')):
-            ufl_assert(domain is None, "Ambiguous: setting domain both as keyword argument and first argument.")
+        # Let syntax dx(domain) or dx(domain, metadata) mean integral
+        # over entire domain.  To do this we need to hijack the first
+        # argument:
+        if subdomain_id is not None and (isinstance(subdomain_id,
+                                                    AbstractDomain) or
+                                         hasattr(subdomain_id, 'ufl_domain')):
+            ufl_assert(domain is None,
+                       "Ambiguous: setting domain both as keyword argument and first argument.")
             subdomain_id, domain = "everywhere", as_domain(subdomain_id)
 
-        # If degree or rule is set, inject into metadata. This is a quick fix to enable
-        # the dx(..., degree=3) notation. TODO: Make degree and rule properties of integrals.
+        # If degree or rule is set, inject into metadata. This is a
+        # quick fix to enable the dx(..., degree=3) notation. TODO:
+        # Make degree and rule properties of integrals.
         if (degree, rule) != (None, None):
             metadata = {} if metadata is None else metadata.copy()
             if degree is not None:
@@ -253,9 +274,11 @@ class Measure(object):
                 metadata["quadrature_rule"] = rule
 
         # If we get any keywords, use them to reconstruct Measure.
-        # Note that if only one argument is given, it is the subdomain_id,
-        # e.g. dx(3) == dx(subdomain_id=3)
-        return self.reconstruct(subdomain_id=subdomain_id, domain=domain, metadata=metadata, subdomain_data=subdomain_data)
+        # Note that if only one argument is given, it is the
+        # subdomain_id, e.g. dx(3) == dx(subdomain_id=3)
+        return self.reconstruct(subdomain_id=subdomain_id, domain=domain,
+                                metadata=metadata,
+                                subdomain_data=subdomain_data)
 
     def __getitem__(self, data):
         """This operator supports legacy syntax in python dolfin programs.
@@ -278,7 +301,7 @@ class Measure(object):
             args.append("subdomain_id=%s" % (self._subdomain_id,))
         if self._domain is not None:
             args.append("domain=%s" % (self._domain,))
-        if self._metadata: # Stored as EmptyDict if None
+        if self._metadata:  # Stored as EmptyDict if None
             args.append("metadata=%s" % (self._metadata,))
         if self._subdomain_data is not None:
             args.append("subdomain_data=%s" % (self._subdomain_data,))
@@ -288,7 +311,6 @@ class Measure(object):
     def __repr__(self):
         "Return a repr string for this Measure."
         global integral_type_to_measure_name
-        d = integral_type_to_measure_name[self._integral_type]
 
         args = []
         args.append(repr(self._integral_type))
@@ -297,7 +319,7 @@ class Measure(object):
             args.append("subdomain_id=%r" % (self._subdomain_id,))
         if self._domain is not None:
             args.append("domain=%r" % (self._domain,))
-        if self._metadata: # Stored as EmptyDict if None
+        if self._metadata:  # Stored as EmptyDict if None
             args.append("metadata=%r" % (self._metadata,))
         if self._subdomain_data is not None:
             args.append("subdomain_data=%r" % (self._subdomain_data,))
@@ -315,12 +337,12 @@ class Measure(object):
 
     def __eq__(self, other):
         "Checks if two Measures are equal."
-        return (isinstance(other, Measure)
-                and self._integral_type == other._integral_type
-                and self._subdomain_id == other._subdomain_id
-                and self._domain == other._domain
-                and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
-                and metadata_equal(self._metadata, other._metadata))
+        return (isinstance(other, Measure) and
+                self._integral_type == other._integral_type and
+                self._subdomain_id == other._subdomain_id and
+                self._domain == other._domain and
+                id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data) and
+                metadata_equal(self._metadata, other._metadata))
 
     def __add__(self, other):
         """Add two measures (self+other).
@@ -353,13 +375,15 @@ class Measure(object):
             return NotImplemented
 
     def __rmul__(self, integrand):
-        """Multiply a scalar expression with measure to construct a form with a single integral.
+        """Multiply a scalar expression with measure to construct a form with
+a single integral.
 
         This is to implement the notation
 
             form = integrand * self
 
         Integration properties are taken from this Measure object.
+
         """
         # Avoid circular imports
         from ufl.integral import Integral
@@ -369,8 +393,8 @@ class Measure(object):
         if isinstance(integrand, (int, float)):
             integrand = as_ufl(integrand)
 
-        # Let other types implement multiplication with Measure
-        # if they want to (to support the dolfin-adjoint TimeMeasure)
+        # Let other types implement multiplication with Measure if
+        # they want to (to support the dolfin-adjoint TimeMeasure)
         if not isinstance(integrand, Expr):
             return NotImplemented
 
@@ -380,7 +404,8 @@ class Measure(object):
                    "tensor expression with value rank %d and free indices %r.")
             error(msg % (len(integrand.ufl_shape), integrand.ufl_free_indices))
 
-        # If we have a tuple of domain ids, delegate composition to Integral.__add__:
+        # If we have a tuple of domain ids, delegate composition to
+        # Integral.__add__:
         subdomain_id = self.subdomain_id()
         if isinstance(subdomain_id, tuple):
             return sum(integrand*self.reconstruct(subdomain_id=d) for d in subdomain_id)
@@ -390,7 +415,8 @@ class Measure(object):
         ufl_assert(isinstance(subdomain_id, (int, str)),
                    "Expecting integer or string domain id.")
 
-        # If we don't have an integration domain, try to find one in integrand
+        # If we don't have an integration domain, try to find one in
+        # integrand
         domain = self.ufl_domain()
         if domain is None:
             domains = extract_domains(integrand)
@@ -410,6 +436,7 @@ class Measure(object):
                             subdomain_data=self.subdomain_data())
         return Form([integral])
 
+
 class MeasureSum(object):
     """Represents a sum of measures.
 
@@ -422,6 +449,7 @@ class MeasureSum(object):
         f*ds(1) + f*ds(3)
     """
     __slots__ = ("_measures",)
+
     def __init__(self, *measures):
         self._measures = measures
 
@@ -439,6 +467,7 @@ class MeasureSum(object):
     def __str__(self):
         return "{\n    " + "\n  + ".join(map(str, self._measures)) + "\n}"
 
+
 class MeasureProduct(object):
     """Represents a product of measures.
 
@@ -450,6 +479,7 @@ class MeasureProduct(object):
     in other parts of ufl and the rest of the code generation chain.
     """
     __slots__ = ("_measures",)
+
     def __init__(self, *measures):
         "Create MeasureProduct from given list of measures."
         self._measures = measures

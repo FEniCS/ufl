@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 """The Unified Form Language is an embedded domain specific language
 for definition of variational forms intended for finite element
 discretization. More precisely, it defines a fixed interface for choosing
