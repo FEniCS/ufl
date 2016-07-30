@@ -7,10 +7,12 @@ python:
   - "3.4"
 
 before_install:
+  - pip install flake8
   - pip install pytest
 
 install:
   - pip install .
 
 script:
+  - flake8 ufl/
   - py.test test/
