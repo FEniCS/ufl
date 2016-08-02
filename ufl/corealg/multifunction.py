@@ -76,9 +76,9 @@ class MultiFunction(object):
                 for c in classobject.mro():
                     # Register classobject with handler for the first
                     # encountered superclass
-                    name = c._ufl_handler_name_
-                    if hasattr(self, name):
-                        cache_data[classobject._ufl_typecode_] = name
+                    handler_name = c._ufl_handler_name_
+                    if hasattr(self, handler_name):
+                        cache_data[classobject._ufl_typecode_] = handler_name
                         break
             MultiFunction._handlers_cache[algorithm_class] = cache_data
 
