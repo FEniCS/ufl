@@ -31,16 +31,13 @@ Installation
 Debian/Ubuntu packages
 ----------------------
 
-Debian/Ubuntu
-^^^^^^^^^^^^^
-
 A Debian/Ubuntu package ``python-ufl`` is available for UFL:
 
     sudo apt-get install python-ufl
 
 
 Ubuntu PPA
-^^^^^^^^^^
+----------
 
 UFL is available in the FEniCS Project PPA. The version of UFL
 available in the PPA will generally more recent than the Debian/Ubuntu
@@ -57,9 +54,16 @@ From source
 Dependencies
 ^^^^^^^^^^^^
 
-UFL depends on the Python packages ``numpy`` and ``six``, and
-``setuptools`` is recommended. If ``setuptools`` is available, the UFL
-installer will install missing dependencies automatically.
+UFL depends on Python 2.7 or 3.x.
+
+UFL depends on the Python packages::
+
+  * ``setuptools``
+  * ``six``
+  * ``numpy``
+  * ``pytest``
+
+Running pip will install missing dependencies automatically.
 
 
 Installation
@@ -77,22 +81,55 @@ To install into a specified directory, use the ``--prefix`` option.
 Help and support
 ================
 
-Send help requests and questions to fenics-support@googlegroups.com.
+For support, questions, and feature requests, see
 
-Send feature requests and questions to fenics-dev@googlegroups.com
+  https://fenicsproject.org/support
 
 
 Development and reporting bugs
 ------------------------------
 
-The git source repository for UFL is located at
-https://bitbucket.org/fenics-project/ufl. For general UFL development
-questions and to make feature requests, use
-fenics-dev@googlegroups.com.
+The Git source repository for UFL is located at
 
-Bugs can be registered at
-https://bitbucket.org/fenics-project/ufl/issues.
+  https://bitbucket.org/fenics-project/ufl
 
+and bugs can be registered at
+
+  https://bitbucket.org/fenics-project/ufl/issues
+
+
+About the Python modules
+========================
+
+TODO: Moved this from the readme, place somewhere better.
+
+The global namespace of the module ufl contains the entire UFL
+language::
+
+  from ufl import *
+
+Form compilers may want to import additional implementation details
+like::
+
+  from ufl.classes import *
+
+and::
+
+  from ufl.algorithms import *
+
+Importing a .ufl file can be done easily from Python::
+
+  from ufl.algorithms import load_ufl_file
+  filedata = load_ufl_file("filename.ufl")
+  forms = filedata.forms
+  elements = filedata.elements
+
+to get lists of forms and elements from the .ufl file, or::
+
+  from ufl.algorithms import load_forms
+  forms = load_forms("filename.ufl")
+
+to get a list of forms in the .ufl file.
 
 
 Manual and API reference
