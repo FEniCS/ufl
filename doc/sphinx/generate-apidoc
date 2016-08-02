@@ -17,13 +17,15 @@
 
 # This script calls sphinx-apidoc to generate files ready for autodoc
 
-echo ""
-echo "--- Generating UFL autodoc RST files"
-echo ""
+echo "--- This script is no longer necessary"
+
+#echo ""
+#echo "--- Generating UFL autodoc RST files"
+#echo ""
 
 # Get location of Sphinx files
-SPHINX_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SPHINX_SOURCE_DIR=$SPHINX_DIR/source
+#SPHINX_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#SPHINX_SOURCE_DIR=$SPHINX_DIR/source
 
 # Generate .rst files ready for autodoc
-sphinx-apidoc -f -d 1 -o $SPHINX_SOURCE_DIR/api-doc $SPHINX_DIR/../../ufl
+#sphinx-apidoc -f -d 1 -o $SPHINX_SOURCE_DIR/api-doc $SPHINX_DIR/../../ufl
