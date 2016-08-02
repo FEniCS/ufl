@@ -124,7 +124,7 @@ for arg in args:
             end = (i == len(forms) - 1)
             dot, nodeoffset = ufl2dot(f, name, nodeoffset, begin, end,
                                       options.labeling, ufl_data.object_names)
-            tmp = "/* Form %s: */\n%s\n" % (fd.name, dot)
+            tmp = "/* Form %s: */\n%s\n" % (name, dot)
             data.append(tmp)
         rendered = "\n\n".join(data)
     else:

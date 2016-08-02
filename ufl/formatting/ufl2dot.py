@@ -245,32 +245,30 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True,
 
         subgraphs = []
         k = 0
-        for itgs in form.integrals():
-            for itg in itgs:
-                prefix = "itg%d_" % k
-                integralkey = "%s%s" % (itg.integral_type(), itg.subdomain_id())
+        for itg in form.integrals():
+            prefix = "itg%d_" % k
+            integralkey = "%s%s" % (itg.integral_type(), itg.subdomain_id())
 
-                integrallabel = "%s %s" % (itg.integral_type().capitalize().replace("_", " "), "integral")
-                if len(itgs) > 1:
-                    integrallabel += " %s" % (itg.subdomain_id(),)
+            integrallabel = "%s %s" % (itg.integral_type().capitalize().replace("_", " "), "integral")
+            integrallabel += " %s" % (itg.subdomain_id(),)
 
-                integrand = itg.integrand()
+            integrand = itg.integrand()
 
-                nodes = {}
-                edges = []
+            nodes = {}
+            edges = []
 
-                build_entities(integrand, nodes, edges, nodeoffset, prefix,
-                               labeller)
-                rootnode = nodes[id(integrand)][0]
-                entitylist = format_entities(nodes, edges)
-                integralnode = "%s_%s" % (formname, integralkey)
-                subgraphs.append(integralgraphformat % {
-                    'node': integralnode,
-                    'label': integrallabel,
-                    'formname': formname,
-                    'root': rootnode,
-                    'entities': entitylist, })
-                nodeoffset += len(nodes)
+            build_entities(integrand, nodes, edges, nodeoffset, prefix,
+                           labeller)
+            rootnode = nodes[id(integrand)][0]
+            entitylist = format_entities(nodes, edges)
+            integralnode = "%s_%s" % (formname, integralkey)
+            subgraphs.append(integralgraphformat % {
+                'node': integralnode,
+                'label': integrallabel,
+                'formname': formname,
+                'root': rootnode,
+                'entities': entitylist, })
+            nodeoffset += len(nodes)
 
         s = ""
         if begin:
