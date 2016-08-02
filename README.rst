@@ -21,7 +21,7 @@ Transactions on Mathematical Software* 40(2), Article 9, 37 pages.
 Documentation
 =============
 
-The UFL documentation can be views at
+The UFL documentation can be viewed at
 http://fenics-ufl.readthedocs.org/.
 
 .. image:: https://readthedocs.org/projects/fenics-ufl/badge/?version=latest
@@ -53,9 +53,11 @@ Contributors:
 Installation
 ============
 
-Linux::
+We recommend using pip to install from source::
 
-  sudo python setup.py install
+  sudo pip install .
+
+See the pip manual for more install options.
 
 
 Directories
