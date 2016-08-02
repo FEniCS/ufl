@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Unified Form Language (UFL)'
-copyright = u'2015, FEniCS Project'
+copyright = u'2016, FEniCS Project'
 author = u'FEniCS Project'
 
 # The version info for the project you're documenting, acts as replacement for
