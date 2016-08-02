@@ -65,32 +65,39 @@ Directories
 
 - ufl/
 
-  All source code for the UFL implementation.
+  Source code for the UFL module.
 
 - scripts/
 
-  Commandline utilities like "ufl-analyse", "ufl-convert" and "form2ufl".
+  Source code for the command-line utilities.
 
 - demo/
 
-  Several ufl form files which demonstrates the use of the form
-  language.
+  Example ufl form files.
 
 - doc/
 
-  The UFL documentation resides here. See doc/sphinx/README for how to
-  generate the documentation.
+  The UFL documentation.  See doc/sphinx/README for how to generate
+  the documentation.
 
 - test/
 
-  Unit tests for the UFL implementation. Run all tests by typing
-  "python test.py" inside the test/ directory.
+  Unit tests for the UFL implementation. 
+
+  
+Unit tests
+==========
+
+Run all tests by typing
+
+  cd test/
+  py.test
 
 
 Utilities
 =========
 
-For more information about the commandline utilities, type::
+For more information about the command-line utilities, type::
 
   ufl-analyse -h
   ufl-convert -h
