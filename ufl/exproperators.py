@@ -27,6 +27,10 @@ from itertools import chain
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.utils.stacks import StackDict
+from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
+from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.exprequals import expr_equals
+
 from ufl.core.expr import Expr
 from ufl.constantvalue import Zero, as_ufl
 from ufl.algebra import Sum, Product, Division, Power, Abs
@@ -37,12 +41,6 @@ from ufl.indexsum import IndexSum
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Grad
-from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
-
-from ufl.exprequals import expr_equals
-
-# --- Boolean operators ---
-
 from ufl.conditional import LE, GE, LT, GT
 
 
@@ -297,6 +295,7 @@ def _eval(self, coord, mapping=None, component=()):
     from ufl.algorithms import expand_derivatives
     f = expand_derivatives(self)
 
+    # TODO: Better to implement a multifunction for this
     # Evaluate recursively
     if mapping is None:
         mapping = {}
@@ -403,6 +402,16 @@ def analyse_key(ii, rank):
     all_indices = tuple(chain(pre, ellipsis_indices, post))
     axis_indices = tuple(i for i in all_indices if i in axis_indices)
     return all_indices, axis_indices
+
+
+def _contains(self, f):
+    "Return True if terminal f is a dependency of this expression."
+    for t in traverse_unique_terminals(self):
+        if t == f:
+            return True
+    return False
+
+Expr.__contains__ = _contains
 
 
 def _getitem(self, component):
