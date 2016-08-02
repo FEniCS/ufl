@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Unified Form Language (UFL)'
-copyright = u'2015, FEniCS Project'
+copyright = u'2016, FEniCS Project'
 author = u'FEniCS Project'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -290,3 +290,22 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+
+def run_apidoc(_):
+    modules = ['ufl']
+
+    # Get location of Sphinx files
+    sphinx_source_dir = os.path.abspath(os.path.dirname(__file__))
+    repo_dir = os.path.abspath(os.path.join(sphinx_source_dir, os.path.pardir,
+                                            os.path.pardir, os.path.pardir))
+    apidoc_dir = os.path.join(sphinx_source_dir, "api-doc")
+
+    from sphinx.apidoc import main
+    for module in modules:
+        # Generate .rst files ready for autodoc
+        module_dir = os.path.join(repo_dir, module)
+        main(["-f", "-d", "1", "-o", apidoc_dir, module_dir])
+
+def setup(app):
+    app.connect('builder-inited', run_apidoc)

@@ -21,7 +21,7 @@ Transactions on Mathematical Software* 40(2), Article 9, 37 pages.
 Documentation
 =============
 
-The UFL documentation can be views at
+The UFL documentation can be viewed at
 http://fenics-ufl.readthedocs.org/.
 
 .. image:: https://readthedocs.org/projects/fenics-ufl/badge/?version=latest
@@ -49,13 +49,15 @@ Contributors:
   | Johannes Ring         <johannr@simula.no>
 
 
-
 Installation
 ============
 
-Linux::
+If you have already downloaded the source code, use pip to install::
 
-  sudo python setup.py install
+  sudo pip install .
+
+See the pip manual for more install options, or more about other
+install options at http://fenics-ufl.readthedocs.org/.
 
 
 Directories
@@ -63,77 +65,53 @@ Directories
 
 - ufl/
 
-  All source code for the UFL implementation.
+  Source code for the UFL module.
 
 - scripts/
 
-  Commandline utilities like "ufl-analyse", "ufl-convert" and "form2ufl".
+  Source code for the command-line utilities.
 
 - demo/
 
-  Several ufl form files which demonstrates the use of the form language.
+  Example ufl form files.
 
 - doc/
 
-  The UFL documentation resides here. See doc/sphinx/README for how to
-  generate the documentation.
+  The UFL documentation.  See doc/sphinx/README for how to generate
+  the documentation.
 
 - test/
 
-  Unit tests for the UFL implementation. Run all tests by typing
-  "python test.py" inside the test/ directory.
+  Unit tests for the UFL implementation. 
+
+  
+Unit tests
+==========
+
+Run all tests by typing
+
+  cd test/
+  py.test
 
 
 Utilities
 =========
 
-For more information about the utilities, type::
+For more information about the command-line utilities, type::
 
   ufl-analyse -h
   ufl-convert -h
-  form2ufl -h
+  ufl2py -h
 
 after installation.
-
-
-About the Python modules
-========================
-
-The global namespace of the module ufl contains the entire UFL
-language::
-
-  from ufl import *
-
-Form compilers may want to import additional implementation details
-like::
-
-  from ufl.classes import *
-
-and::
-
-  from ufl.algorithms import *
-
-Importing a .ufl file can be done easily from Python::
-
-  from ufl.algorithms import load_ufl_file
-  filedata = load_ufl_file("filename.ufl")
-  forms = filedata.forms
-  elements = filedata.elements
-
-to get lists of forms and elements from the .ufl file, or::
-
-  from ufl.algorithms import load_forms
-  forms = load_forms("filename.ufl")
-
-to get a list of forms in the .ufl file.
 
 
 Contact
 =======
 
-Send feature requests and questions to
+For support, questions, and feature requests, see
 
-  fenics-dev@googlegroups.com
+  https://fenicsproject.org/support
 
 The Git source repository for UFL is located at
 
