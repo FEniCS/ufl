@@ -127,9 +127,9 @@ from ufl.algorithms.formsplitter import FormSplitter
 from ufl.algorithms.ad import expand_derivatives
 
 # Utilities for form file handling
-#from ufl.algorithms.formfiles import read_ufl_file
+from ufl.algorithms.formfiles import read_ufl_file
 from ufl.algorithms.formfiles import load_ufl_file
-#from ufl.algorithms.formfiles import load_forms
+from ufl.algorithms.formfiles import load_forms
 
 # Utilities for UFL object printing
 #from ufl.formatting.printing import integral_info, form_info
