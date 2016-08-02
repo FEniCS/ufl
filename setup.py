@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
+from setuptools import setup
 from os.path import join as pjoin, split as psplit
 import re
 import sys
@@ -16,10 +12,20 @@ if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")
     sys.exit(1)
 
-scripts = [pjoin("scripts", "ufl-analyse"),
-           pjoin("scripts", "ufl-convert"),
-           pjoin("scripts", "ufl-version"),
-           pjoin("scripts", "ufl2py")]
+# __init__.py has UTF-8 characters. Works in Python 2 and 3.
+version = re.findall('__version__ = "(.*)"',
+                     codecs.open('ufl/__init__.py', 'r',
+                                 encoding='utf-8').read())[0]
+
+url = "https://bitbucket.org/fenics-project/ufl/"
+tarball = None
+if 'dev' not in version:
+    tarball = url + "downloads/ufl-%s.tar.gz" % version
+
+script_names = ("ufl-analyse", "ufl-convert", "ufl-version", "ufl2py")
+scripts = [pjoin("scripts", script) for script in script_names]
+man_files = [pjoin("doc", "man", "man1", "%s.1.gz" % (script,)) for script in script_names]
+data_files = [(pjoin("share", "man", "man1"), man_files)]
 
 if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
     # In the Windows command prompt we can't execute Python scripts
@@ -28,29 +34,18 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
     batch_files = []
     for script in scripts:
         batch_file = script + ".bat"
-        f = open(batch_file, "w")
-        f.write(sys.executable + ' "%%~dp0\%s" %%*' % psplit(script)[1])
-        f.close()
+        with open(batch_file, "w") as f:
+            f.write(sys.executable + ' "%%~dp0\%s" %%*' % psplit(script)[1])
         batch_files.append(batch_file)
     scripts.extend(batch_files)
 
-# __init__.py has UTF-8 characters. Works in Python 2 and 3.
-version = re.findall('__version__ = "(.*)"',
-                     codecs.open('ufl/__init__.py', 'r',
-                                 encoding='utf-8').read())[0]
-
-url = "https://bitbucket.org/fenics-project/ufl/"
-tarball = None
-if not 'dev' in version:
-    tarball = url + "downloads/ufl-%s.tar.gz" % version
-
 setup(name="UFL",
-      version = version,
-      description = "Unified Form Language",
-      author = "Martin Sandve Alnæs, Anders Logg",
-      author_email = "fenics-dev@googlegroups.com",
-      url = url,
-      download_url = tarball,
+      version=version,
+      description="Unified Form Language",
+      author="Martin Sandve Alnæs, Anders Logg",
+      author_email="fenics-dev@googlegroups.com",
+      url=url,
+      download_url=tarball,
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
@@ -60,9 +55,9 @@ setup(name="UFL",
           'Topic :: Scientific/Engineering :: Mathematics',
           'Topic :: Software Development :: Compilers',
           'Topic :: Software Development :: Libraries :: Python Modules',
-          ],
-      scripts = scripts,
-      packages = [
+      ],
+      scripts=scripts,
+      packages=[
           "ufl",
           "ufl.utils",
           "ufl.finiteelement",
@@ -70,12 +65,8 @@ setup(name="UFL",
           "ufl.corealg",
           "ufl.algorithms",
           "ufl.formatting",
-          ],
-      package_dir = {"ufl": "ufl"},
-      install_requires = ["numpy", "six"],
-      data_files = [(pjoin("share", "man", "man1"),
-                     [pjoin("doc", "man", "man1", "ufl-analyse.1.gz"),
-                      pjoin("doc", "man", "man1", "ufl-convert.1.gz"),
-                      pjoin("doc", "man", "man1", "ufl-version.1.gz"),
-                      pjoin("doc", "man", "man1", "ufl2py.1.gz"),
-                     ])])
+      ],
+      package_dir={"ufl": "ufl"},
+      install_requires=["numpy", "six"],
+      data_files=data_files
+      )
