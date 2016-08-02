@@ -69,7 +69,7 @@ The source for UFL releases can be downloaded from
 http://fenicsproject.org/pub/software/ufl/. To install UFL
 system-wide, from the source directory use:
 
-    python setup.py install
+    pip install .
 
 To install into a specified directory, use the ``--prefix`` option.
 
