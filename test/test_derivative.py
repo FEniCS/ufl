@@ -23,6 +23,7 @@ def assertEqualBySampling(actual, expected):
            == [bd.function_replace_map[bc] for bc in bd.reduced_coefficients])
 
     n = ad.num_coefficients
+
     def make_value(c):
         if isinstance(c, Coefficient):
             z = 0.3
@@ -77,7 +78,7 @@ def _test(self, f, df):
     wv = 11.0
 
     x = xv
-    mapping = { v: vv, u: uv, w: wv }
+    mapping = {v: vv, u: uv, w: wv}
 
     dfv1 = derivative(f(w), w, v)
     dfv2 = df(w, v)
@@ -93,37 +94,49 @@ def _test(self, f, df):
 
 # --- Literals
 
+
 def testScalarLiteral(self):
     def f(w):     return as_ufl(1)
+
     def df(w, v): return zero()
     _test(self, f, df)
 
+
 def testIdentityLiteral(self):
     def f(w):     return Identity(2)[i, i]
+
     def df(w, v): return zero()
     _test(self, f, df)
 
 # --- Form arguments
 
+
 def testCoefficient(self):
     def f(w):     return w
+
     def df(w, v): return v
     _test(self, f, df)
 
+
 def testArgument(self):
     def f(w):     return TestFunction(FiniteElement("CG", triangle, 1))
+
     def df(w, v): return zero()
     _test(self, f, df)
 
 # --- Geometry
 
+
 def testSpatialCoordinate(self):
     def f(w):     return SpatialCoordinate(triangle)[0]
+
     def df(w, v): return zero()
     _test(self, f, df)
 
+
 def testFacetNormal(self):
     def f(w):     return FacetNormal(triangle)[0]
+
     def df(w, v): return zero()
     _test(self, f, df)
 
@@ -132,85 +145,117 @@ def testFacetNormal(self):
 #    def df(w, v): return zero()
 #    _test(self, f, df)
 
+
 def testFacetArea(self):
     def f(w):     return FacetArea(triangle)
+
     def df(w, v): return zero()
     _test(self, f, df)
+
 
 def testCircumradius(self):
     def f(w):     return Circumradius(triangle)
+
     def df(w, v): return zero()
     _test(self, f, df)
 
+
 def testCellVolume(self):
     def f(w):     return CellVolume(triangle)
+
     def df(w, v): return zero()
     _test(self, f, df)
 
 # --- Basic operators
 
+
 def testSum(self):
     def f(w):     return w + 1
+
     def df(w, v): return v
     _test(self, f, df)
 
+
 def testProduct(self):
     def f(w):     return 3*w
+
     def df(w, v): return 3*v
     _test(self, f, df)
 
+
 def testPower(self):
     def f(w):     return w**3
+
     def df(w, v): return 3*w**2*v
     _test(self, f, df)
 
+
 def testDivision(self):
     def f(w):     return w / 3.0
+
     def df(w, v): return v / 3.0
     _test(self, f, df)
 
+
 def testDivision2(self):
     def f(w):     return 3.0 / w
+
     def df(w, v): return -3.0 * v / w**2
     _test(self, f, df)
 
+
 def testExp(self):
     def f(w):     return exp(w)
+
     def df(w, v): return v*exp(w)
     _test(self, f, df)
 
+
 def testLn(self):
     def f(w):     return ln(w)
+
     def df(w, v): return v / w
     _test(self, f, df)
 
+
 def testCos(self):
     def f(w):     return cos(w)
+
     def df(w, v): return -v*sin(w)
     _test(self, f, df)
 
+
 def testSin(self):
     def f(w):     return sin(w)
+
     def df(w, v): return v*cos(w)
     _test(self, f, df)
 
+
 def testTan(self):
     def f(w):     return tan(w)
+
     def df(w, v): return v*2.0/(cos(2.0*w) + 1.0)
     _test(self, f, df)
 
+
 def testAcos(self):
     def f(w):     return acos(w/1000)
+
     def df(w, v): return -(v/1000)/sqrt(1.0 - (w/1000)**2)
     _test(self, f, df)
 
+
 def testAsin(self):
     def f(w):     return asin(w/1000)
+
     def df(w, v): return (v/1000)/sqrt(1.0 - (w/1000)**2)
     _test(self, f, df)
 
+
 def testAtan(self):
     def f(w):     return atan(w)
+
     def df(w, v): return v/(1.0 + w**2)
     _test(self, f, df)
 
@@ -218,30 +263,41 @@ def testAtan(self):
 
 # --- Abs and conditionals
 
+
 def testAbs(self):
     def f(w):     return abs(w)
+
     def df(w, v): return sign(w)*v
     _test(self, f, df)
 
+
 def testConditional(self):
     def cond(w): return lt(1.0, 2.0)
+
     def f(w):     return conditional(cond(w), 2*w, 3*w)
+
     def df(w, v): return 2*v
     _test(self, f, df)
 
     def cond(w): return lt(2.0, 1.0)
+
     def f(w):     return conditional(cond(w), 2*w, 3*w)
+
     def df(w, v): return 3*v
     _test(self, f, df)
 
+
 def testConditional(self): # This will fail without bugfix in derivative
     def cond(w): return lt(w, 1.0)
+
     def f(w):     return conditional(cond(w), 2*w, 3*w)
+
     def df(w, v): return (conditional(cond(w), 1, 0) * 2*v +
                           conditional(cond(w), 0, 1) * 3*v)
     _test(self, f, df)
 
 # --- Tensor algebra basics
+
 
 def testIndexSum(self):
     def f(w):
@@ -250,22 +306,24 @@ def testIndexSum(self):
         b = as_vector((3, 4, 5))
         i, = indices(1)
         return a[i]*b[i]
+
     def df(w, v): return 3*v + 4*2*w*v + 5*3*w**2*v
     _test(self, f, df)
+
 
 def testListTensor(self):
     v = variable(as_ufl(42))
     f = as_tensor((
-            ( (0,      0), (0,   0) ),
-            ( (v,    2*v), (0,   0) ),
-            ( (v**2,   1), (2, v/2) ),
-            ))
+            ((0,      0), (0,   0)),
+            ((v,    2*v), (0,   0)),
+            ((v**2,   1), (2, v/2)),
+    ))
     assert f.ufl_shape == (3, 2, 2)
     g = as_tensor((
-            ( (0, 0), (0, 0) ),
-            ( (1, 2), (0, 0) ),
-            ( (84, 0), (0, 0.5) ),
-            ))
+            ((0, 0), (0, 0)),
+            ((1, 2), (0, 0)),
+            ((84, 0), (0, 0.5)),
+    ))
     assert g.ufl_shape == (3, 2, 2)
     dfv = diff(f, v)
     x = None
@@ -276,6 +334,7 @@ def testListTensor(self):
 
 # --- Coefficient and argument input configurations
 
+
 def test_single_scalar_coefficient_derivative(self):
     cell = triangle
     V = FiniteElement("CG", cell, 1)
@@ -284,6 +343,7 @@ def test_single_scalar_coefficient_derivative(self):
     a = 3*u**2
     b = derivative(a, u, v)
     self.assertEqualAfterPreprocessing(b, 3*(u*(2*v)))
+
 
 def test_single_vector_coefficient_derivative(self):
     cell = triangle
@@ -294,6 +354,7 @@ def test_single_vector_coefficient_derivative(self):
     actual = derivative(a, u, v)
     expected = 3*(2*(u[i]*v[i]))
     assertEqualBySampling(actual, expected)
+
 
 def test_multiple_coefficient_derivative(self):
     cell = triangle
@@ -315,6 +376,7 @@ def test_multiple_coefficient_derivative(self):
     expected = cos(uv)*vv * (uw[i]*uw[i]) + (uw[j]*vw[j])*2 * sin(uv)
     assertEqualBySampling(actual, expected)
 
+
 def test_indexed_coefficient_derivative(self):
     cell = triangle
     I = Identity(cell.geometric_dimension())
@@ -334,6 +396,7 @@ def test_indexed_coefficient_derivative(self):
 
     assertEqualBySampling(actual, expected)
 
+
 def test_multiple_indexed_coefficient_derivative(self):
     cell = tetrahedron
     I = Identity(cell.geometric_dimension())
@@ -349,6 +412,7 @@ def test_multiple_indexed_coefficient_derivative(self):
     expected = -sin(u[i]*w[i])*(vu*w[2] + u[1]*vw)
 
     assertEqualBySampling(actual, expected)
+
 
 def test_segregated_derivative_of_convection(self):
     cell = tetrahedron
@@ -386,6 +450,7 @@ def test_segregated_derivative_of_convection(self):
 
 # --- User provided derivatives of coefficients
 
+
 def test_coefficient_derivatives(self):
     V = FiniteElement("Lagrange", triangle, 1)
 
@@ -396,7 +461,7 @@ def test_coefficient_derivatives(self):
     df = Coefficient(V, count=2)
     dg = Coefficient(V, count=3)
     u = Coefficient(V, count=4)
-    cd = { f: df, g: dg }
+    cd = {f: df, g: dg}
 
     integrand = inner(f, g)
     expected = (df*dv)*g + f*(dg*dv)
@@ -408,6 +473,7 @@ def test_coefficient_derivatives(self):
     assert (actual*dx).signature() == (expected*dx).signature()
     self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
+
 def test_vector_coefficient_derivatives(self):
     V = VectorElement("Lagrange", triangle, 1)
     VV = TensorElement("Lagrange", triangle, 1)
@@ -418,7 +484,7 @@ def test_vector_coefficient_derivatives(self):
     g = Coefficient(V, count=1)
     f = Coefficient(V, count=2)
     u = Coefficient(V, count=3)
-    cd = { f: df }
+    cd = {f: df}
 
     integrand = inner(f, g)
 
@@ -432,6 +498,7 @@ def test_vector_coefficient_derivatives(self):
     assert (actual*dx).signature() == (expected*dx).signature()
     #self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
+
 def test_vector_coefficient_derivatives_of_product(self):
     V = VectorElement("Lagrange", triangle, 1)
     VV = TensorElement("Lagrange", triangle, 1)
@@ -443,7 +510,7 @@ def test_vector_coefficient_derivatives_of_product(self):
     dg = Coefficient(VV, count=2)
     f = Coefficient(V, count=3)
     u = Coefficient(V, count=4)
-    cd = { f: df, g: dg }
+    cd = {f: df, g: dg}
 
     integrand = f[i]*g[i]
 
@@ -482,6 +549,7 @@ def test_vector_coefficient_derivatives_of_product(self):
     # TODO: Add tests covering more cases, in particular mixed stuff
 
 # --- Some actual forms
+
 
 def testHyperElasticity(self):
     cell = interval
@@ -545,21 +613,22 @@ def testHyperElasticity(self):
         return dw
 
     w, b, K = form_data_f.original_form.coefficients()
-    mapping = { K: Kv, b: bv, w: Nw }
+    mapping = {K: Kv, b: bv, w: Nw}
     fv2 = f_expression((0,), mapping)
     self.assertAlmostEqual(fv, fv2)
 
     w, b, K = form_data_F.original_form.coefficients()
     v, = form_data_F.original_form.arguments()
-    mapping = { K: Kv, b: bv, v: Nv, w: Nw }
+    mapping = {K: Kv, b: bv, v: Nv, w: Nw}
     Fv2 = F_expression((0,), mapping)
     self.assertAlmostEqual(Fv, Fv2)
 
     w, b, K = form_data_J.original_form.coefficients()
     v, u = form_data_J.original_form.arguments()
-    mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
+    mapping = {K: Kv, b: bv, v: Nv, u: Nu, w: Nw}
     Jv2 = J_expression((0,), mapping)
     self.assertAlmostEqual(Jv, Jv2)
+
 
 def test_mass_derived_from_functional(self):
     cell = triangle
@@ -579,6 +648,7 @@ def test_mass_derived_from_functional(self):
 
 # --- Interaction with replace
 
+
 def test_derivative_replace_works_together(self):
     cell = triangle
     V = FiniteElement("CG", cell, 1)
@@ -591,7 +661,7 @@ def test_derivative_replace_works_together(self):
     M = cos(f)*sin(g)
     F = derivative(M, f, v)
     J = derivative(F, f, u)
-    JR = replace(J, { f: g })
+    JR = replace(J, {f: g})
 
     F2 = -sin(f)*v*sin(g)
     J2 = -cos(f)*u*v*sin(g)
@@ -603,6 +673,7 @@ def test_derivative_replace_works_together(self):
 
 # --- Scratch space
 
+
 def test_foobar(self):
     element = VectorElement("Lagrange", triangle, 1)
     v = TestFunction(element)
@@ -613,7 +684,7 @@ def test_foobar(self):
 
     def planarGrad(u):
         return as_matrix([[u[0].dx(0), 0, u[0].dx(1)],
-                          [ 0, 0, 0 ],
+                          [0, 0, 0],
                           [u[1].dx(0), 0, u[1].dx(1)]])
 
     def epsilon(u):

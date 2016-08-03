@@ -19,11 +19,15 @@ from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 # TODO: Import only what you need from classes and algorithms:
 from ufl.classes import Grad, FormArgument, Zero, Indexed, FixedIndex, ListTensor
 
+
 class MockForwardAD:
+
     def __init__(self):
         self._w = ()
         self._v = ()
+
         class Obj:
+
             def __init__(self):
                 self._data = {}
         self._cd = Obj()
@@ -98,7 +102,8 @@ class MockForwardAD:
 
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
-                if not w == o: continue
+                if not w == o:
+                    continue
                 wshape = w.ufl_shape
 
                 if isinstance(v, FormArgument):
@@ -124,7 +129,8 @@ class MockForwardAD:
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
                 wval, wcomp = w.ufl_operands
-                if not wval == o: continue
+                if not wval == o:
+                    continue
                 assert isinstance(wval, FormArgument)
                 ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
                            "Expecting only fixed indices in differentiation variable.")
@@ -149,7 +155,7 @@ class MockForwardAD:
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):
                     oprimes = (oprimes,)
-                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
+                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
                                    "expecting a matching tuple of coefficient derivatives.")
 
                 # Compute dg/dw_j = dg/dw_h : v.
@@ -176,6 +182,7 @@ def test_unit_tensor(self):
     E3_1, ii = unit_indexed_tensor((3,), (1,))
     E22_10, ii = unit_indexed_tensor((2, 2), (1, 0))
     # TODO: Evaluate and assert values
+
 
 def test_unwrap_list_tensor(self):
     lt = as_tensor((1, 2))
@@ -205,6 +212,7 @@ def test_unwrap_list_tensor(self):
     comp = unwrap_list_tensor(lt)
     assert comp == expected
 
+
 def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
     U = FiniteElement("CG", triangle, 1)
     u = Coefficient(U)
@@ -228,6 +236,7 @@ def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
     assert g == f
     assert dg == df
 
+
 def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
     V = VectorElement("CG", triangle, 1)
     v = Coefficient(V)
@@ -250,6 +259,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
     g, dg = mad.grad(f)
     assert g == f
     assert dg == df
+
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation(self):
     V = VectorElement("CG", triangle, 1)
@@ -304,6 +314,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
     #assert dg == df # Expected to fail because of different index numbering
+
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation_in_list(self):
     V = VectorElement("CG", triangle, 1)
@@ -382,6 +393,7 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
     g, dg = mad.grad(f)
     assert g == f
     assert dg == df
+
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_variation(self):
     W = TensorElement("CG", triangle, 1)

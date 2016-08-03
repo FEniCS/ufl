@@ -10,6 +10,7 @@ import pytest
 
 from ufl import *
 
+
 def test_split(self):
     cell = triangle
     d = cell.geometric_dimension()

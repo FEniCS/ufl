@@ -15,13 +15,16 @@ from ufl.algorithms import compute_form_data
 
 
 def xtest_grad_div_curl_properties_in_1D(self):
-   _test_grad_div_curl_properties(self, interval)
+    _test_grad_div_curl_properties(self, interval)
+
 
 def xtest_grad_div_curl_properties_in_2D(self):
-   _test_grad_div_curl_properties(self, triangle)
+    _test_grad_div_curl_properties(self, triangle)
+
 
 def xtest_grad_div_curl_properties_in_3D(self):
-   _test_grad_div_curl_properties(self, tetrahedron)
+    _test_grad_div_curl_properties(self, tetrahedron)
+
 
 def _test_grad_div_curl_properties(self, cell):
     d = cell.geometric_dimension()
@@ -40,14 +43,16 @@ def _test_grad_div_curl_properties(self, cell):
 
     def eval_s(x, derivatives=()):
         return sum(derivatives)
+
     def eval_v(x, derivatives=()):
         return tuple(float(k)+sum(derivatives) for k in range(d))
+
     def eval_t(x, derivatives=()):
         return tuple(tuple(float(i*j)+sum(derivatives)
                            for i in range(d))
                            for j in range(d))
 
-    mapping = { cs: eval_s, s: eval_s,
+    mapping = {cs: eval_s, s: eval_s,
                 cv: eval_v, v: eval_v,
                 ct: eval_t, t: eval_t, }
     x = tuple(1.0+float(k) for k in range(d))

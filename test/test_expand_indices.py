@@ -19,7 +19,9 @@ from ufl.classes import Sum, Product
 # TODO: Test expand_indices2 throuroughly for correctness, then efficiency:
 #expand_indices, expand_indices2 = expand_indices2, expand_indices
 
+
 class Fixture:
+
     def __init__(self):
         cell = triangle
         element = FiniteElement("Lagrange", cell, 1)
@@ -102,30 +104,36 @@ class Fixture:
             return ((11, 13), (17, 19))
 
         self.x = (1.23, 3.14)
-        self.mapping = { self.sf: SF, self.sf2: SF2, self.vf: VF, self.tf: TF }
+        self.mapping = {self.sf: SF, self.sf2: SF2, self.vf: VF, self.tf: TF}
 
     def compare(self, f, value):
         debug = 0
-        if debug: print(('f', f))
+        if debug:
+            print(('f', f))
         g = expand_derivatives(f)
-        if debug: print(('g', g))
+        if debug:
+            print(('g', g))
         gv = g(self.x, self.mapping)
         assert abs(gv - value) < 1e-7
 
         g = expand_indices(g)
-        if debug: print(('g', g))
+        if debug:
+            print(('g', g))
         gv = g(self.x, self.mapping)
         assert abs(gv - value) < 1e-7
 
         g = renumber_indices(g)
-        if debug: print(('g', g))
+        if debug:
+            print(('g', g))
         gv = g(self.x, self.mapping)
         assert abs(gv - value) < 1e-7
+
 
 @pytest.fixture(scope="module")
 def fixt():
     # Workaround for quick pytest transition
     return Fixture()
+
 
 def test_basic_expand_indices(self, fixt):
     sf = fixt.sf
@@ -181,6 +189,7 @@ def test_basic_expand_indices(self, fixt):
     compare(exp(tf[1, 1]), math.exp(19))
     compare(ln(tf[1, 1]), math.log(19))
 
+
 def test_expand_indices_index_sum(self, fixt):
     sf = fixt.sf
     vf = fixt.vf
@@ -193,7 +202,8 @@ def test_expand_indices_index_sum(self, fixt):
     compare(vf[j]*tf.T[j, i]*vf[i], 5*5*11 + 5*7*13 + 5*7*17 + 7*7*19)
     compare(tf[i, i], 11 + 19)
     compare(tf[i, j]*(tf[j, i]+outer(vf, vf)[i, j]), (5*5+11)*11 + (7*5+17)*13 + (7*5+13)*17 + (7*7+19)*19)
-    compare( as_tensor( as_tensor(tf[i, j], (i, j))[k, l], (l, k) )[i, i], 11 + 19 )
+    compare(as_tensor(as_tensor(tf[i, j], (i, j))[k, l], (l, k))[i, i], 11 + 19)
+
 
 def test_expand_indices_derivatives(self, fixt):
     sf = fixt.sf
@@ -206,6 +216,7 @@ def test_expand_indices_derivatives(self, fixt):
     compare(sf.dx(1), 0.31)
     compare(sf.dx(i)*vf[i], 0.30*5 + 0.31*7)
     compare(vf[j].dx(i)*vf[i].dx(j), 0.50*0.50 + 0.51*0.70 + 0.70*0.51 + 0.71*0.71)
+
 
 def test_expand_indices_hyperelasticity(self, fixt):
     sf = fixt.sf
@@ -245,8 +256,8 @@ def test_expand_indices_hyperelasticity(self, fixt):
 
     E = (C-I)/2
     E00 = (C00-1)/2
-    E01 = (C01  )/2
-    E10 = (C10  )/2
+    E01 = (C01)/2
+    E10 = (C10)/2
     E11 = (C11-1)/2
     compare(E[0, 0], E00)
     compare(E[0, 1], E01)
@@ -261,6 +272,7 @@ def test_expand_indices_hyperelasticity(self, fixt):
     K = 0.5
     psi = (K/2)*exp(Q)
     compare(psi, 0.25*math.exp(Qvalue))
+
 
 def test_expand_indices_div_grad(self, fixt):
     sf = fixt.sf
@@ -292,6 +304,7 @@ def test_expand_indices_div_grad(self, fixt):
     a = div(grad(tf))
     compare(inner(a, a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
 
+
 def test_expand_indices_nabla_div_grad(self, fixt):
     sf = fixt.sf
     sf2 = fixt.sf2
@@ -310,6 +323,7 @@ def test_expand_indices_nabla_div_grad(self, fixt):
 
     a = nabla_div(nabla_grad(tf))
     compare(inner(a, a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
+
 
 def xtest_expand_indices_list_tensor_problem(self, fixt):
     print()

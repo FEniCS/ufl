@@ -176,6 +176,7 @@ def test_change_hcurl_form_arguments_to_reference_frame():
     m = e | indexed(e)                   # scalar component of
     '''
 
+
 def new_analyse_modified_terminal(expr):
     assert expr._ufl_is_terminal_ or expr._ufl_is_terminal_modifier_type_
     m = expr
@@ -266,7 +267,7 @@ def new_analyse_modified_terminal(expr):
         derivatives,
         restriction,
         terminal
-        )
+    )
     return mt
 
 

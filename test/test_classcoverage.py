@@ -16,6 +16,8 @@ from ufl.algorithms import *
 
 has_repr = set()
 has_dict = set()
+
+
 def _test_object(a, shape, free_indices):
     # Check if instances of this type has certain memory consuming members
     if hasattr(a, '_repr'):
@@ -50,6 +52,7 @@ def _test_object(a, shape, free_indices):
             print(("shape:", shape))
         assert sh == shape
 
+
 def _test_object2(a):
     # Check if instances of this type has certain memory consuming members
     if hasattr(a, '_repr'):
@@ -64,6 +67,7 @@ def _test_object2(a):
 
     # Can't really test str more than that it exists
     s = str(a)
+
 
 def _test_form(a):
     # Test reproduction via repr string
@@ -89,6 +93,7 @@ def testExports(self):
         print("The following subclasses of Expr were not exported from ufl.classes:")
         print(("\n".join(sorted(missing_classes))))
     assert missing_classes == set()
+
 
 def testAll(self):
 
@@ -291,10 +296,10 @@ def testAll(self):
     a = as_matrix([[1.0, 2.0*f0, f0**2],
                 [1.0, 2.0*f0, f0**2]])
     _test_object(a, (2, 3), ())
-    a = as_tensor([ [[0.00, 0.01, 0.02],
-                     [0.10, 0.11, 0.12] ],
-                  [ [1.00, 1.01, 1.02],
-                    [1.10, 1.11, 1.12]] ])
+    a = as_tensor([[[0.00, 0.01, 0.02],
+                     [0.10, 0.11, 0.12]],
+                  [[1.00, 1.01, 1.02],
+                    [1.10, 1.11, 1.12]]])
     _test_object(a, (2, 2, 3), ())
 
     #a = ComponentTensor()

@@ -9,6 +9,7 @@ from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks, ap
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianInverse, JacobianDeterminant, ReferenceValue, CellOrientation
 
+
 def check_single_function_pullback(g, mappings):
     expected = mappings[g]
     actual = apply_single_function_pullbacks(g)
@@ -28,6 +29,7 @@ def check_single_function_pullback(g, mappings):
         print((actual**2*dx).signature())
         print()
     assert ract == rexp
+
 
 def test_apply_single_function_pullbacks_triangle3d():
     triangle3d = Cell("triangle", geometric_dimension=3)
@@ -129,7 +131,7 @@ def test_apply_single_function_pullbacks_triangle3d():
             M_hdiv[0,j]*as_vector([rvdm[3], rvdm[4]])[j],
             M_hdiv[1,j]*as_vector([rvdm[3], rvdm[4]])[j],
             M_hdiv[2,j]*as_vector([rvdm[3], rvdm[4]])[j],
-            ]),
+    ]),
         vcm: as_vector([
             # Vd
             M_hdiv[0,j]*as_vector([rvcm[0], rvcm[1]])[j],
@@ -139,7 +141,7 @@ def test_apply_single_function_pullbacks_triangle3d():
             Jinv[i,0]*as_vector([rvcm[2], rvcm[3]])[i],
             Jinv[i,1]*as_vector([rvcm[2], rvcm[3]])[i],
             Jinv[i,2]*as_vector([rvcm[2], rvcm[3]])[i],
-            ]),
+    ]),
         tm: as_vector([
             # Vc
             Jinv[i,0]*as_vector([rtm[0], rtm[1]])[i],
@@ -149,24 +151,24 @@ def test_apply_single_function_pullbacks_triangle3d():
             rtm[2], rtm[3], rtm[4],
             rtm[5], rtm[6], rtm[7],
             rtm[8], rtm[9], rtm[10],
-            ]),
+    ]),
         sm: as_vector([
             # T
             rsm[0], rsm[1], rsm[2],
             rsm[3], rsm[4], rsm[5],
             rsm[6], rsm[7], rsm[8],
             # S
-            rsm[ 9], rsm[10], rsm[11],
+            rsm[9], rsm[10], rsm[11],
             rsm[10], rsm[12], rsm[13],
             rsm[11], rsm[13], rsm[14],
-            ]),
+    ]),
         # Case from failing ffc demo:
         vd0m: as_vector([
             M_hdiv[0,j]*as_vector([rvd0m[0],rvd0m[1]])[j],
             M_hdiv[1,j]*as_vector([rvd0m[0],rvd0m[1]])[j],
             M_hdiv[2,j]*as_vector([rvd0m[0],rvd0m[1]])[j],
             rvd0m[2]
-            ]),
+    ]),
         # This combines it all:
         w: as_vector([
             # S
@@ -191,8 +193,8 @@ def test_apply_single_function_pullbacks_triangle3d():
             rw[21],
             # U
             rw[22],
-            ]),
-        }
+    ]),
+    }
 
     # Check functions of various elements outside a mixed context
     check_single_function_pullback(u, mappings)
@@ -299,7 +301,7 @@ def test_apply_single_function_pullbacks_triangle():
             # Vd
             M_hdiv[0,j]*as_vector([rvdm[2], rvdm[3]])[j],
             M_hdiv[1,j]*as_vector([rvdm[2], rvdm[3]])[j],
-            ]),
+    ]),
         vcm: as_vector([
             # Vd
             M_hdiv[0,j]*as_vector([rvcm[0], rvcm[1]])[j],
@@ -307,7 +309,7 @@ def test_apply_single_function_pullbacks_triangle():
             # Vc
             Jinv[i,0]*as_vector([rvcm[2], rvcm[3]])[i],
             Jinv[i,1]*as_vector([rvcm[2], rvcm[3]])[i],
-            ]),
+    ]),
         tm: as_vector([
             # Vc
             Jinv[i,0]*as_vector([rtm[0], rtm[1]])[i],
@@ -315,7 +317,7 @@ def test_apply_single_function_pullbacks_triangle():
             # T
             rtm[2], rtm[3],
             rtm[4], rtm[5],
-            ]),
+    ]),
         sm: as_vector([
             # T
             rsm[0], rsm[1],
@@ -323,7 +325,7 @@ def test_apply_single_function_pullbacks_triangle():
             # S
             rsm[4], rsm[5],
             rsm[5], rsm[6],
-            ]),
+    ]),
         # This combines it all:
         w: as_vector([
             # S
@@ -343,8 +345,8 @@ def test_apply_single_function_pullbacks_triangle():
             rw[12],
             # U
             rw[13],
-            ]),
-        }
+    ]),
+    }
 
     # Check functions of various elements outside a mixed context
     check_single_function_pullback(u, mappings)

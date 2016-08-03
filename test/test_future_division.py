@@ -10,10 +10,12 @@ import pytest
 from ufl import *
 from ufl.classes import Division, FloatValue, IntValue
 
+
 def test_future_true_float_division(self):
     d = as_ufl(20.0) / 10.0
     self.assertIsInstance(d, FloatValue)
     assert float(d) == 2
+
 
 def test_future_true_int_division(self):
     # UFL treats all divisions as true division
@@ -21,6 +23,7 @@ def test_future_true_int_division(self):
     self.assertIsInstance(d, FloatValue)
     assert float(d) == 40.0 / 7.0
     #self.assertAlmostEqual(float(d), 40 / 7.0, 15)
+
 
 def test_future_floor_division_fails(self):
     f = as_ufl(2.0)

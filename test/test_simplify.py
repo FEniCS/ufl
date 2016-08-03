@@ -6,6 +6,7 @@ from ufl.classes import Sum, Product
 import math
 from ufl import *
 
+
 def xtest_zero_times_argument(self):
     # FIXME: Allow zero forms
     element = FiniteElement("CG", triangle, 1)
@@ -17,6 +18,7 @@ def xtest_zero_times_argument(self):
     assert len(compute_form_data(L).arguments) == 1
     assert len(compute_form_data(a).arguments) == 2
     assert len(compute_form_data(b).arguments) == 2
+
 
 def test_divisions(self):
     element = FiniteElement("CG", triangle, 1)
@@ -43,6 +45,7 @@ def test_divisions(self):
     #b = 1
     #assert a == b
 
+
 def test_products(self):
     element = FiniteElement("CG", triangle, 1)
     f = Coefficient(element)
@@ -61,6 +64,7 @@ def test_products(self):
 
     # Test simplification of self-multiplication (this simplification has been disabled)
     #assert f*f == f**2
+
 
 def test_sums(self):
     element = FiniteElement("CG", triangle, 1)
@@ -91,6 +95,7 @@ def test_sums(self):
     b = g + (f + f) # collapsed
     assert a == b
 
+
 def test_mathfunctions(self):
     for i in (0.1, 0.3, 0.9):
         assert math.sin(i) == sin(i)
@@ -108,6 +113,7 @@ def test_mathfunctions(self):
         assert i == float(Max(i, i-1))
         # TODO: Implement automatic simplification of conditionals?
         assert i == float(Min(i, i+1))
+
 
 def test_indexing(self):
     u = VectorConstant(triangle)

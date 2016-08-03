@@ -6,6 +6,7 @@ from ufl import *
 from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
 
+
 def test_apply_restrictions():
     cell = triangle
     V0 = FiniteElement("DG", cell, 0)
