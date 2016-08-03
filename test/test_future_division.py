@@ -22,7 +22,7 @@ def test_future_true_int_division(self):
     d = as_ufl(40) / 7
     self.assertIsInstance(d, FloatValue)
     assert float(d) == 40.0 / 7.0
-    #self.assertAlmostEqual(float(d), 40 / 7.0, 15)
+    # self.assertAlmostEqual(float(d), 40 / 7.0, 15)
 
 
 def test_future_floor_division_fails(self):

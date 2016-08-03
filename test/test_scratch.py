@@ -125,7 +125,7 @@ class MockForwardAD:
                     vval, vcomp = analyse_variation_argument(v)
                     gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
 
-            elif isinstance(w, Indexed): # This path is tested in unit tests, but not actually used?
+            elif isinstance(w, Indexed):  # This path is tested in unit tests, but not actually used?
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
                 wval, wcomp = w.ufl_operands
@@ -155,8 +155,8 @@ class MockForwardAD:
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):
                     oprimes = (oprimes,)
-                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
-                                   "expecting a matching tuple of coefficient derivatives.")
+                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, " +
+                               "expecting a matching tuple of coefficient derivatives.")
 
                 # Compute dg/dw_j = dg/dw_h : v.
                 # Since we may actually have a tuple of oprimes and vs in a
@@ -187,7 +187,7 @@ def test_unit_tensor(self):
 def test_unwrap_list_tensor(self):
     lt = as_tensor((1, 2))
     expected = [((0,), 1),
-                ((1,), 2),]
+                ((1,), 2), ]
     comp = unwrap_list_tensor(lt)
     assert comp == expected
 
@@ -195,7 +195,7 @@ def test_unwrap_list_tensor(self):
     expected = [((0, 0), 1),
                 ((0, 1), 2),
                 ((1, 0), 3),
-                ((1, 1), 4),]
+                ((1, 1), 4), ]
     comp = unwrap_list_tensor(lt)
     assert comp == expected
 
@@ -208,7 +208,7 @@ def test_unwrap_list_tensor(self):
                 ((1, 0, 0), 11),
                 ((1, 0, 1), 12),
                 ((1, 1, 0), 13),
-                ((1, 1, 1), 14),]
+                ((1, 1, 1), 14), ]
     comp = unwrap_list_tensor(lt)
     assert comp == expected
 
@@ -273,9 +273,9 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     mad._w = (v[0],)
     mad._v = (dv[1],)
     f = grad(v)
-    df = grad(as_vector((dv[1], 0))) # Mathematically this would be the natural result
+    df = grad(as_vector((dv[1], 0)))  # Mathematically this would be the natural result
     j, k = indices(2)
-    df = as_tensor(Identity(2)[0, j]*grad(dv)[1, k], (j, k)) # Actual representation should have grad right next to dv
+    df = as_tensor(Identity(2)[0, j]*grad(dv)[1, k], (j, k))  # Actual representation should have grad right next to dv
     g, dg = mad.grad(f)
     if 0:
         print(('\nf    ', f))
@@ -288,7 +288,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #assert dg == df # Expected to fail because of different index numbering
+    # assert dg == df # Expected to fail because of different index numbering
 
     # Multiple components of variation:
     # grad(grad(c))[0,1,:,:] -> grad(grad(dc))[1,0,:,:]
@@ -299,9 +299,9 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     df = grad(as_vector((dv[1], dv[0])))
     # Actual representation should have grad right next to dv:
     j0, k0 = indices(2)
-    j1, k1 = indices(2) # Using j0,k0 for both terms gives different signature
+    j1, k1 = indices(2)  # Using j0,k0 for both terms gives different signature
     df = (as_tensor(Identity(2)[0, j0]*grad(dv)[1, k0], (j0, k0))
-        + as_tensor(Identity(2)[1, j1]*grad(dv)[0, k1], (j1, k1)))
+          + as_tensor(Identity(2)[1, j1]*grad(dv)[0, k1], (j1, k1)))
     g, dg = mad.grad(f)
     print(('\nf    ', f))
     print(('df   ', df))
@@ -313,7 +313,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #assert dg == df # Expected to fail because of different index numbering
+    # assert dg == df # Expected to fail because of different index numbering
 
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation_in_list(self):
@@ -328,9 +328,9 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     mad._w = (v,)
     mad._v = (as_vector((dv[1], 0)),)
     f = grad(v)
-    df = grad(as_vector((dv[1], 0))) # Mathematically this would be the natural result
+    df = grad(as_vector((dv[1], 0)))  # Mathematically this would be the natural result
     j, k = indices(2)
-    df = as_tensor(Identity(2)[0, j]*grad(dv)[1, k], (j, k)) # Actual representation should have grad right next to dv
+    df = as_tensor(Identity(2)[0, j]*grad(dv)[1, k], (j, k))  # Actual representation should have grad right next to dv
     g, dg = mad.grad(f)
     if 0:
         print(('\nf    ', f))
@@ -343,7 +343,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #assert dg == df # Expected to fail because of different index numbering
+    # assert dg == df # Expected to fail because of different index numbering
 
     # Multiple components of variation:
     # grad(grad(c))[0,1,:,:] -> grad(grad(dc))[1,0,:,:]
@@ -354,9 +354,9 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     df = grad(as_vector((dv[1], dv[0])))
     # Actual representation should have grad right next to dv:
     j0, k0 = indices(2)
-    j1, k1 = indices(2) # Using j0,k0 for both terms gives different signature
+    j1, k1 = indices(2)  # Using j0,k0 for both terms gives different signature
     df = (as_tensor(Identity(2)[0, j0]*grad(dv)[1, k0], (j0, k0))
-        + as_tensor(Identity(2)[1, j1]*grad(dv)[0, k1], (j1, k1)))
+          + as_tensor(Identity(2)[1, j1]*grad(dv)[0, k1], (j1, k1)))
     g, dg = mad.grad(f)
     print(('\nf    ', f))
     print(('df   ', df))
@@ -368,7 +368,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #assert dg == df # Expected to fail because of different index numbering
+    # assert dg == df # Expected to fail because of different index numbering
 
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
@@ -409,11 +409,11 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_var
     mad._w = (w[wc],)
     mad._v = (dw[dwc],)
     f = grad(w)
-    df = grad(as_matrix(((0, 0), (dw[dwc], 0)))) # Mathematically this is it.
+    df = grad(as_matrix(((0, 0), (dw[dwc], 0))))  # Mathematically this is it.
     i, j, k = indices(3)
     E = outer(Identity(2)[wc[0], i], Identity(2)[wc[1], j])
     Ddw = grad(dw)[dwc + (k,)]
-    df = as_tensor(E*Ddw, (i, j, k)) # Actual representation should have grad next to dv
+    df = as_tensor(E*Ddw, (i, j, k))  # Actual representation should have grad next to dv
     g, dg = mad.grad(f)
     if 0:
         print(('\nf    ', f))
@@ -426,4 +426,4 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_var
     assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #assert dg == df # Expected to fail because of different index numbering
+    # assert dg == df # Expected to fail because of different index numbering

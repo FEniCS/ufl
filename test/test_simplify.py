@@ -41,9 +41,9 @@ def test_divisions(self):
     assert a == b
 
     # Test simplification of division by self (this simplification has been disabled)
-    #a = f/f
-    #b = 1
-    #assert a == b
+    # a = f/f
+    # b = 1
+    # assert a == b
 
 
 def test_products(self):
@@ -63,7 +63,7 @@ def test_products(self):
     assert f*g == g*f
 
     # Test simplification of self-multiplication (this simplification has been disabled)
-    #assert f*f == f**2
+    # assert f*f == f**2
 
 
 def test_sums(self):
@@ -79,20 +79,20 @@ def test_sums(self):
     assert 0 + f == f
 
     # Test collapsing of basic sum (this simplification has been disabled)
-    #assert f + f == 2 * f
+    # assert f + f == 2 * f
 
     # Test reordering of operands and collapsing sum
-    a = f + g + f # not collapsed, but ordered
-    b = g + f + f # not collapsed, but ordered
-    c = (g + f) + f # not collapsed, but ordered
-    d = f + (f + g) # not collapsed, but ordered
+    a = f + g + f  # not collapsed, but ordered
+    b = g + f + f  # not collapsed, but ordered
+    c = (g + f) + f  # not collapsed, but ordered
+    d = f + (f + g)  # not collapsed, but ordered
     assert a == b
     assert a == c
     assert a == d
 
     # Test reordering of operands and collapsing sum
-    a = f + f + g # collapsed
-    b = g + (f + f) # collapsed
+    a = f + f + g  # collapsed
+    b = g + (f + f)  # collapsed
     assert a == b
 
 

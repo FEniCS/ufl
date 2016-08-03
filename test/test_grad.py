@@ -10,7 +10,7 @@ import pytest
 # This imports everything external code will see from ufl
 from ufl import *
 
-#from ufl.classes import ...
+# from ufl.classes import ...
 from ufl.algorithms import compute_form_data
 
 
@@ -50,11 +50,11 @@ def _test_grad_div_curl_properties(self, cell):
     def eval_t(x, derivatives=()):
         return tuple(tuple(float(i*j)+sum(derivatives)
                            for i in range(d))
-                           for j in range(d))
+                     for j in range(d))
 
     mapping = {cs: eval_s, s: eval_s,
-                cv: eval_v, v: eval_v,
-                ct: eval_t, t: eval_t, }
+               cv: eval_v, v: eval_v,
+               ct: eval_t, t: eval_t, }
     x = tuple(1.0+float(k) for k in range(d))
 
     assert s.ufl_shape == ()
@@ -138,4 +138,4 @@ def _test_grad_div_curl_properties(self, cell):
     fd8 = compute_form_data(a8)
     fd9 = compute_form_data(a9)
 
-    #self.assertTrue(False) # Just to show it runs
+    # self.assertTrue(False) # Just to show it runs

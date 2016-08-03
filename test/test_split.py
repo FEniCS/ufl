@@ -29,7 +29,7 @@ def test_split(self):
     self.assertEqual((d, d), Coefficient(t).ufl_shape)
     self.assertEqual((d, d), Coefficient(s).ufl_shape)
     self.assertEqual((d, d), Coefficient(r).ufl_shape)
-    self.assertEqual((3*d*d + 2*d + 2,), Coefficient(m).ufl_shape) # sum of value sizes, not accounting for symmetries
+    self.assertEqual((3*d*d + 2*d + 2,), Coefficient(m).ufl_shape)  # sum of value sizes, not accounting for symmetries
 
     # Shapes of subelements are reproduced:
     g = Coefficient(m)
@@ -41,7 +41,7 @@ def test_split(self):
     # TODO: Should functions on mixed elements (vector+vector) be able to have tensor shape instead of vector shape? Think Marie wants this for BDM+BDM?
     v2 = MixedElement(v, v)
     m2 = MixedElement(t, t)
-    #assert d == 2
-    #self.assertEqual((2,2), Coefficient(v2).ufl_shape)
+    # assert d == 2
+    # self.assertEqual((2,2), Coefficient(v2).ufl_shape)
     self.assertEqual((d+d,), Coefficient(v2).ufl_shape)
     self.assertEqual((2*d*d,), Coefficient(m2).ufl_shape)

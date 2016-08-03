@@ -9,7 +9,7 @@ from ufl.classes import Grad
 from ufl.algorithms import tree_format
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.apply_derivatives import apply_derivatives, GenericDerivativeRuleset, \
-     GradRuleset, VariableRuleset, GateauxDerivativeRuleset
+    GradRuleset, VariableRuleset, GateauxDerivativeRuleset
 
 
 # Note: the old tests in test_automatic_differentiation.py are a bit messy
@@ -75,7 +75,7 @@ def test_literal_derivatives_are_zero():
 
     # Generic ruleset handles literals directly:
     for l in literals:
-        for sh in [(), (d,), (d,d+1)]:
+        for sh in [(), (d,), (d, d+1)]:
             assert GenericDerivativeRuleset(sh)(l) == zero(l.ufl_shape + sh)
 
     # Variables
@@ -163,7 +163,7 @@ def test_grad_ruleset():
     # Literals
     assert rules(one) == zero((d,))
     assert rules(two) == zero((d,))
-    assert rules(I) == zero((d,d,d))
+    assert rules(I) == zero((d, d, d))
 
     # Assumed piecewise constant geometry
     for g in [n, volume]:
@@ -178,29 +178,29 @@ def test_grad_ruleset():
 
     # Piecewise constant coefficients (Constant)
     assert rules(r) == zero((d,))
-    assert rules(vr) == zero((d,d))
-    assert rules(grad(r)) == zero((d,d))
-    assert rules(grad(vr)) == zero((d,d,d))
+    assert rules(vr) == zero((d, d))
+    assert rules(grad(r)) == zero((d, d))
+    assert rules(grad(vr)) == zero((d, d, d))
 
     # Piecewise constant coefficients (DG0)
     assert rules(f0) == zero((d,))
-    assert rules(vf0) == zero((d,d))
-    assert rules(grad(f0)) == zero((d,d))
-    assert rules(grad(vf0)) == zero((d,d,d))
+    assert rules(vf0) == zero((d, d))
+    assert rules(grad(f0)) == zero((d, d))
+    assert rules(grad(vf0)) == zero((d, d, d))
 
     # Piecewise linear coefficients
     assert rules(f1) == grad(f1)
     assert rules(vf1) == grad(vf1)
-    #assert rules(grad(f1)) == zero((d,d)) # TODO: Use degree to make this work
-    #assert rules(grad(vf1)) == zero((d,d,d))
+    # assert rules(grad(f1)) == zero((d,d)) # TODO: Use degree to make this work
+    # assert rules(grad(vf1)) == zero((d,d,d))
 
     # Piecewise quadratic coefficients
     assert rules(grad(f2)) == grad(grad(f2))
     assert rules(grad(vf2)) == grad(grad(vf2))
 
     # Indexed coefficients
-    assert renumber_indices(apply_derivatives(grad(vf2[0]))) == renumber_indices(grad(vf2)[0,:])
-    assert renumber_indices(apply_derivatives(grad(vf2[1])[0])) == renumber_indices(grad(vf2)[1,0])
+    assert renumber_indices(apply_derivatives(grad(vf2[0]))) == renumber_indices(grad(vf2)[0, :])
+    assert renumber_indices(apply_derivatives(grad(vf2[1])[0])) == renumber_indices(grad(vf2)[1, 0])
 
     # Grad of gradually more complex expressions
     assert apply_derivatives(grad(2*f0)) == zero((d,))

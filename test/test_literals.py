@@ -19,11 +19,11 @@ def test_zero(self):
     z5 = FloatValue(0)
     z6 = FloatValue(0.0)
 
-    #self.assertTrue(z1 is z2)
-    #self.assertTrue(z1 is z3)
-    #self.assertTrue(z1 is z4)
-    #self.assertTrue(z1 is z5)
-    #self.assertTrue(z1 is z6)
+    # self.assertTrue(z1 is z2)
+    # self.assertTrue(z1 is z3)
+    # self.assertTrue(z1 is z4)
+    # self.assertTrue(z1 is z5)
+    # self.assertTrue(z1 is z6)
     assert z1 == z1
     assert int(z1) == 0
     assert float(z1) == 0.0
@@ -44,7 +44,7 @@ def test_float(self):
     f6 = 3 * FloatValue(2) / 6
 
     assert f1 == f1
-    self.assertNotEqual(f1, f2) # IntValue vs FloatValue, == compares representations!
+    self.assertNotEqual(f1, f2)  # IntValue vs FloatValue, == compares representations!
     assert f2 == f3
     assert f2 == f4
     assert f2 == f5
@@ -60,11 +60,11 @@ def test_int(self):
     f6 = 3 * IntValue(2) / 6
 
     assert f1 == f1
-    self.assertNotEqual(f1, f2) # IntValue vs FloatValue, == compares representations!
+    self.assertNotEqual(f1, f2)  # IntValue vs FloatValue, == compares representations!
     assert f1 == f3
     assert f1 == f4
     assert f1 == f5
-    assert f2 == f6 # Division produces a FloatValue
+    assert f2 == f6  # Division produces a FloatValue
 
 
 def test_scalar_sums(self):
@@ -99,7 +99,7 @@ def test_scalar_sums(self):
 
 
 def test_identity(self):
-    pass # FIXME
+    pass  # FIXME
 
 
 def test_permutation_symbol_3(self):
@@ -118,7 +118,7 @@ def test_permutation_symbol_3(self):
 
 
 def test_permutation_symbol_n(self):
-    for n in range(2, 5): # tested with upper limit 7, but evaluation is a bit slow then
+    for n in range(2, 5):  # tested with upper limit 7, but evaluation is a bit slow then
         e = PermutationSymbol(n)
         assert e.ufl_shape == (n,)*n
         assert eval(repr(e)) == e

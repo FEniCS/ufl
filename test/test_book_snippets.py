@@ -161,7 +161,7 @@ def test_uflcode_684(self):
     # ...
     th = pi/2
     A = as_matrix([[cos(th), -sin(th)],
-                   [sin(th),  cos(th)]])
+                   [sin(th), cos(th)]])
     u = A*v
 
 
@@ -176,23 +176,23 @@ def test_uflcode_824(self):
 def test_uflcode_886(self):
     cell = triangle
     # ...
-    x = SpatialCoordinate(cell) # Original: x = cell.x
+    x = SpatialCoordinate(cell)  # Original: x = cell.x
     g = sin(x[0])
     v = variable(g)
     f = exp(v**2)
     h = diff(f, v)
     # ...
-    #print v
-    #print h
+    # print v
+    # print h
 
 
 def test_python_894(self):
     # We don't have to keep the string output compatible, so no test here.
     pass
     #>>> print v
-    #var0(sin((x)[0]))
+    # var0(sin((x)[0]))
     #>>> print h
-    #d/d[var0(sin((x)[0]))] (exp((var0(sin((x)[0]))) ** 2))
+    # d/d[var0(sin((x)[0]))] (exp((var0(sin((x)[0]))) ** 2))
 
 
 def test_uflcode_930(self):
@@ -305,9 +305,9 @@ def test_uflcode_1365(self):
 def test_python_1426(self):
     # Covered by the below test
     pass
-    #from ufl.algorithms import Graph
-    #G = Graph(expression)
-    #V, E = G
+    # from ufl.algorithms import Graph
+    # G = Graph(expression)
+    # V, E = G
 
 
 def test_python_1446(self):
@@ -320,13 +320,13 @@ def test_python_1446(self):
     e = c*f**2*u*v
 
     # The linearized Graph functionality has been removed from UFL:
-    #from ufl.algorithms import Graph, partition
-    #G = Graph(e)
-    #V, E, = G
+    # from ufl.algorithms import Graph, partition
+    # G = Graph(e)
+    # V, E, = G
 
-    #print(("str(e) = %s\n" % str(e)))
-    #print(("\n".join("V[%d] = %s" % (i, v) for (i, v) in enumerate(V)), "\n"))
-    #print(("\n".join("E[%d] = %s" % (i, e) for (i, e) in enumerate(E)), "\n"))
+    # print(("str(e) = %s\n" % str(e)))
+    # print(("\n".join("V[%d] = %s" % (i, v) for (i, v) in enumerate(V)), "\n"))
+    # print(("\n".join("E[%d] = %s" % (i, e) for (i, e) in enumerate(E)), "\n"))
 
 
 def test_python_1512(self):
@@ -339,12 +339,12 @@ def test_python_1512(self):
     e = c*f**2*u*v
 
     # The linearized Graph functionality has been removed from UFL:
-    #from ufl.algorithms import Graph, partition
-    #G = Graph(e)
-    #V, E, = G
+    # from ufl.algorithms import Graph, partition
+    # G = Graph(e)
+    # V, E, = G
     # ...
-    #Vin = G.Vin()
-    #Vout = G.Vout()
+    # Vin = G.Vin()
+    # Vout = G.Vout()
 
 
 def test_python_1557(self):
@@ -357,17 +357,17 @@ def test_python_1557(self):
     e = c*f**2*u*v
 
     # The linearized Graph functionality has been removed from UFL:
-    #from ufl.algorithms import Graph, partition
-    #G = Graph(e)
-    #V, E, = G
+    # from ufl.algorithms import Graph, partition
+    # G = Graph(e)
+    # V, E, = G
     # ...
-    #partitions, keys = partition(G)
-    #for deps in sorted(partitions.keys()):
+    # partitions, keys = partition(G)
+    # for deps in sorted(partitions.keys()):
     #    P = partitions[deps]
-    #    #print "The following depends on", tuple(deps)
+    # print "The following depends on", tuple(deps)
     #    for i in sorted(P):
-    #        #print "V[%d] = %s" % (i, V[i])
-    #        # ...
+    # print "V[%d] = %s" % (i, V[i])
+    # ...
     #        v = V[i]
 
 
@@ -407,7 +407,7 @@ def test_python_1955(self):
 
 def test_python_1963(self):
     def post_action(e):
-        #print str(e)
+        # print str(e)
         pass
     cell = triangle
     V = FiniteElement("Lagrange", cell, 1)
@@ -459,7 +459,7 @@ def test_python_2024(self):
 
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
-    x = SpatialCoordinate(cell) # Original: x = cell.x
+    x = SpatialCoordinate(cell)  # Original: x = cell.x
     if 0:
         print((m(Argument(element, 2))))
         print((m(x)))
@@ -510,7 +510,7 @@ def test_python_2189(self):
     aif = tree_format(ai)
 
     if 0:
-        print(("\na: ", str(a),  "\n", tree_format(a)))
+        print(("\na: ", str(a), "\n", tree_format(a)))
         print(("\nac:", str(ac), "\n", tree_format(ac)))
         print(("\nad:", str(ad), "\n", tree_format(ad)))
         print(("\nai:", str(ai), "\n", tree_format(ai)))
@@ -518,20 +518,20 @@ def test_python_2189(self):
 
 def test_python_2328(self):
     cell = triangle
-    x = SpatialCoordinate(cell) # Original: x = cell.x
+    x = SpatialCoordinate(cell)  # Original: x = cell.x
     e = x[0] + x[1]
-    #print e((0.5, 0.7)) # prints 1.2
+    # print e((0.5, 0.7)) # prints 1.2
     # ...
     self.assertEqual(e((0.5, 0.7)), 1.2)
 
 
 def test_python_2338(self):
     cell = triangle
-    x = SpatialCoordinate(cell) # Original: x = cell.x
+    x = SpatialCoordinate(cell)  # Original: x = cell.x
     # ...
     c = Constant(cell)
     e = c*(x[0] + x[1])
-    #print e((0.5, 0.7), { c: 10 }) # prints 12.0
+    # print e((0.5, 0.7), { c: 10 }) # prints 12.0
     # ...
     self.assertEqual(e((0.5, 0.7), {c: 10}), 12.0)
 
@@ -544,7 +544,7 @@ def test_python_2349(self):
 
     def fh(x):
         return (x[0], x[1])
-    #print e((0.5, 0.7), { c: 10, f: fh }) # prints 12.0
+    # print e((0.5, 0.7), { c: 10, f: fh }) # prints 12.0
     # ...
     self.assertEqual(e((0.5, 0.7), {c: 10, f: fh}), 12.0)
 
@@ -561,7 +561,7 @@ def test_python_2364(self):
             return x[1]
         if der == (1,):
             return x[0]
-    #print e((2, 3), { g: gh }) # prints 49
+    # print e((2, 3), { g: gh }) # prints 49
     # ...
     self.assertEqual(e((2, 3), {g: gh}), 49)
 
@@ -579,6 +579,6 @@ def test_python_2462(self):
     u = Coefficient(element)
     myform = a
     # ...
-    #print repr(preprocess(myform).preprocessed_form)
+    # print repr(preprocess(myform).preprocessed_form)
     # ...
     r = repr(compute_form_data(myform).preprocessed_form)

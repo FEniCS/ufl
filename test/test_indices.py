@@ -4,7 +4,7 @@
 import pytest
 
 from ufl import *
-#from ufl.indexutils import *
+# from ufl.indexutils import *
 from ufl.algorithms import *
 from ufl.classes import IndexSum
 
@@ -252,7 +252,7 @@ def test_spatial_derivative(self):
     assert a.ufl_shape == ()
 
     a = v.dx(i, j)
-    #self.assertSameIndices(a, (i,j))
+    # self.assertSameIndices(a, (i,j))
     assert set(a.ufl_free_indices) == {j.count(), i.count()}
     self.assertNotIsInstance(a, IndexSum)
     assert a.ufl_shape == (d,)

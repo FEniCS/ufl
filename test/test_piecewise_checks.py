@@ -13,7 +13,7 @@ from ufl.checks import is_cellwise_constant
 
 def get_domains():
     all_cells = [
-        #vertex,
+        # vertex,
         interval,
         triangle,
         quadrilateral,

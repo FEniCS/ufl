@@ -34,7 +34,7 @@ class ExpressionCollection(object):
         c = CellVolume(cell)
         h = Circumradius(cell)
         f = FacetArea(cell)
-        #s = CellSurfaceArea(cell)
+        # s = CellSurfaceArea(cell)
         # FIXME: Add all new geometry types here!
 
         I = Identity(d)
@@ -188,7 +188,7 @@ class ExpressionCollection(object):
         self.all_expressions += self.compounds
 
 
-@pytest.fixture(params=(1,2,3))
+@pytest.fixture(params=(1, 2, 3))
 def d_expr(request):
     d = request.param
     cell = {1: interval, 2: triangle, 3: tetrahedron}[d]
@@ -197,9 +197,9 @@ def d_expr(request):
 
 
 def ad_algorithm(expr):
-    #alt = 1
-    #alt = 4
-    #alt = 6
+    # alt = 1
+    # alt = 4
+    # alt = 6
     alt = 0
     if alt == 0:
         return expand_derivatives(expr)
@@ -234,7 +234,7 @@ def _test_no_derivatives_no_change(self, collection):
     for expr in collection:
         before = expr
         after = ad_algorithm(before)
-        #print '\n', str(before), '\n', str(after), '\n'
+        # print '\n', str(before), '\n', str(after), '\n'
         self.assertEqualTotalShape(before, after)
         assert before == after
 
@@ -244,9 +244,9 @@ def _test_no_derivatives_but_still_changed(self, collection):
     for expr in collection:
         before = expr
         after = ad_algorithm(before)
-        #print '\n', str(before), '\n', str(after), '\n'
+        # print '\n', str(before), '\n', str(after), '\n'
         self.assertEqualTotalShape(before, after)
-        #assert before == after # Without expand_compounds
+        # assert before == after # Without expand_compounds
         self.assertNotEqual(before, after) # With expand_compounds
 
 
@@ -282,13 +282,13 @@ def _test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(self,
             before = derivative(t, var) # This will often get preliminary simplified to zero
             after = ad_algorithm(before)
             expected = 0*t
-            #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
             before = derivative(c*t, var) # This will usually not get simplified to zero
             after = ad_algorithm(before)
             expected = 0*t
-            #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
 
@@ -312,13 +312,13 @@ def _test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, colle
             before = diff(t, var) # This will often get preliminary simplified to zero
             after = ad_algorithm(before)
             expected = 0*outer(t, var)
-            #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
             before = diff(c*t, var) # This will usually not get simplified to zero
             after = ad_algorithm(before)
             expected = 0*outer(t, var)
-            #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
 
@@ -334,8 +334,8 @@ def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(se
     v = Coefficient(collection.shared_objects.V)
     w = Coefficient(collection.shared_objects.W)
 
-    #for t in chain(collection.noncompounds, collection.compounds):
-    #debug = True
+    # for t in chain(collection.noncompounds, collection.compounds):
+    # debug = True
     for t in collection.noncompounds:
         for var in (u, v, w):
             if debug:
@@ -374,7 +374,7 @@ def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, co
     vv = variable(v)
     vw = variable(w)
 
-    #for t in chain(collection.noncompounds, collection.compounds):
+    # for t in chain(collection.noncompounds, collection.compounds):
     for t in collection.noncompounds:
         for var in (vu, vv, vw):
             before = diff(t, var)
@@ -386,7 +386,7 @@ def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, co
             expected = 0*outer(t, var)
             if debug:
                 print('\n', 'expected: ', str(expected), '\n')
-            #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
 
@@ -402,7 +402,7 @@ def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes
     v = collection.shared_objects.v
     w = collection.shared_objects.w
 
-    #for t in chain(collection.noncompounds, collection.compounds):
+    # for t in chain(collection.noncompounds, collection.compounds):
     for t in collection.noncompounds:
         for var in (u, v, w):
             # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
@@ -422,7 +422,7 @@ def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes
             expected_shape = 0*t
             if debug:
                 print(('\n', 'expected_shape: ', str(expected_shape), '\n'))
-            #print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
+            # print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
             if var in unique_post_traversal(t):
                 self.assertEqualTotalShape(after, expected_shape)
@@ -446,7 +446,7 @@ def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self,
     vv = variable(v)
     vw = variable(w)
 
-    #for t in chain(collection.noncompounds, collection.compounds):
+    # for t in chain(collection.noncompounds, collection.compounds):
     for t in collection.noncompounds:
         t = replace(t, {u:vu, v:vv, w:vw})
         for var in (vu, vv, vw):
@@ -465,7 +465,7 @@ def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self,
             expected_shape = 0*outer(t, var) # expected shape, not necessarily value
             if debug:
                 print(('\n', 'expected_shape: ', str(expected_shape), '\n'))
-            #print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
+            # print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
             if var in unique_post_traversal(t):
                 self.assertEqualTotalShape(after, expected_shape)
@@ -495,12 +495,12 @@ def test_grad_coeff(self, d_expr):
         before = grad(grad(f))
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #assert before == after # Differing by being wrapped in indexing types
+        # assert before == after # Differing by being wrapped in indexing types
 
         before = grad(grad(grad(f)))
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #assert before == after # Differing by being wrapped in indexing types
+        # assert before == after # Differing by being wrapped in indexing types
 
 
 def test_derivative_grad_coeff(self, d_expr):
@@ -513,17 +513,17 @@ def test_derivative_grad_coeff(self, d_expr):
         before = derivative(grad(f), f)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #assert after == expected
+        # assert after == expected
 
         before = derivative(grad(grad(f)), f)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #assert after == expected
+        # assert after == expected
 
         before = derivative(grad(grad(grad(f))), f)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #assert after == expected
+        # assert after == expected
         if 0:
             print()
             print(('B', f, "::", before))
@@ -546,17 +546,17 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
         before = derivative(grad(g), f, df)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #assert after == expected
+        # assert after == expected
 
         before = derivative(grad(grad(g)), f, df)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #assert after == expected
+        # assert after == expected
 
         before = derivative(grad(grad(grad(g))), f, df)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #assert after == expected
+        # assert after == expected
         if 0:
             print()
             print(('B', f, "::", before))

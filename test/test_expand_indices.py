@@ -17,7 +17,7 @@ from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Sum, Product
 
 # TODO: Test expand_indices2 throuroughly for correctness, then efficiency:
-#expand_indices, expand_indices2 = expand_indices2, expand_indices
+# expand_indices, expand_indices2 = expand_indices2, expand_indices
 
 
 class Fixture:
@@ -329,7 +329,7 @@ def xtest_expand_indices_list_tensor_problem(self, fixt):
     print()
     print(('='*40))
     # TODO: This is the case marked in the expand_indices2 implementation
-    #as not working. Fix and then try expand_indices2 on other tests!
+    # as not working. Fix and then try expand_indices2 on other tests!
     V = VectorElement("CG", triangle, 1)
     w = Coefficient(V)
     v = as_vector([w[0], 0])

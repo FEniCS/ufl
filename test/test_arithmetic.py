@@ -17,12 +17,12 @@ def test_scalar_casting(self):
 
 
 def test_ufl_float_division(self):
-    d = SpatialCoordinate(triangle)[0] / 10.0 # TODO: Use mock instead of x
+    d = SpatialCoordinate(triangle)[0] / 10.0  # TODO: Use mock instead of x
     self.assertIsInstance(d, Division)
 
 
 def test_float_ufl_division(self):
-    d = 3.14 / SpatialCoordinate(triangle)[0] # TODO: Use mock instead of x
+    d = 3.14 / SpatialCoordinate(triangle)[0]  # TODO: Use mock instead of x
     self.assertIsInstance(d, Division)
 
 
@@ -37,7 +37,7 @@ def test_int_division(self):
     d = as_ufl(40) / 7
     self.assertIsInstance(d, FloatValue)
     assert float(d) == 40.0 / 7.0
-    #self.assertAlmostEqual(float(d), 40 / 7.0, 15)
+    # self.assertAlmostEqual(float(d), 40 / 7.0, 15)
 
 
 def test_float_int_division(self):

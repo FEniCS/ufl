@@ -7,7 +7,7 @@ from ufl import *
 
 
 def test_reference_shapes():
-    #show_elements()
+    # show_elements()
 
     cell = Cell("triangle", 3)
 
@@ -29,7 +29,7 @@ def test_reference_shapes():
 
     T = TensorElement("CG", cell, 1)
     assert T.value_shape() == (3, 3)
-    assert T.reference_value_shape() == (3,3)
+    assert T.reference_value_shape() == (3, 3)
 
     S = TensorElement("CG", cell, 1, symmetry=True)
     assert S.value_shape() == (3, 3)

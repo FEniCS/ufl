@@ -68,8 +68,8 @@ def test_mock_expr():
     assert not a.matches(b)
 
     i, j = indices(2)
-    c = MockExpr(shape=(1, 2), free_indices=(i, j), index_dimensions={i:2, j:3}, cell=triangle)
-    d = MockExpr(shape=(1, 2), free_indices=(i, j), index_dimensions={i:2, j:3}, cell=triangle)
+    c = MockExpr(shape=(1, 2), free_indices=(i, j), index_dimensions={i: 2, j: 3}, cell=triangle)
+    d = MockExpr(shape=(1, 2), free_indices=(i, j), index_dimensions={i: 2, j: 3}, cell=triangle)
     assert c.matches(d)
 
     e = FiniteElement("CG", triangle, 1)

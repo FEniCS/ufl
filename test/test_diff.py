@@ -174,7 +174,7 @@ def testIndexSum(v):
 
 def testCoefficient():
     v = Constant(triangle)
-    assert round(expand_derivatives(diff(v,v))-1.0, 7) == 0
+    assert round(expand_derivatives(diff(v, v))-1.0, 7) == 0
 
 
 def testDiffX():
