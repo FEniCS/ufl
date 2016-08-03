@@ -2,11 +2,13 @@
 from __future__ import print_function
 
 from setuptools import setup
-from os.path import join as pjoin, split as psplit
+from os.path import join, split
 import re
 import sys
 import platform
 import codecs
+
+module_name = "ufl"
 
 if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")
@@ -14,18 +16,19 @@ if sys.version_info < (2, 7):
 
 # __init__.py has UTF-8 characters. Works in Python 2 and 3.
 version = re.findall('__version__ = "(.*)"',
-                     codecs.open('ufl/__init__.py', 'r',
+                     codecs.open(join(module_name, '__init__.py'), 'r',
                                  encoding='utf-8').read())[0]
 
-url = "https://bitbucket.org/fenics-project/ufl/"
+url = "https://bitbucket.org/fenics-project/%s/" % module_name
 tarball = None
 if 'dev' not in version:
-    tarball = url + "downloads/ufl-%s.tar.gz" % version
+    tarball = url + "downloads/%s-%s.tar.gz" % (module_name, version)
 
 script_names = ("ufl-analyse", "ufl-convert", "ufl-version", "ufl2py")
-scripts = [pjoin("scripts", script) for script in script_names]
-man_files = [pjoin("doc", "man", "man1", "%s.1.gz" % (script,)) for script in script_names]
-data_files = [(pjoin("share", "man", "man1"), man_files)]
+
+scripts = [join("scripts", script) for script in script_names]
+man_files = [join("doc", "man", "man1", "%s.1.gz" % (script,)) for script in script_names]
+data_files = [(join("share", "man", "man1"), man_files)]
 
 if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
     # In the Windows command prompt we can't execute Python scripts
@@ -35,7 +38,7 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
     for script in scripts:
         batch_file = script + ".bat"
         with open(batch_file, "w") as f:
-            f.write(sys.executable + ' "%%~dp0\%s" %%*' % psplit(script)[1])
+            f.write(sys.executable + ' "%%~dp0\%s" %%*' % split(script)[1])
         batch_files.append(batch_file)
     scripts.extend(batch_files)
 

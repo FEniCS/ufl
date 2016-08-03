@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-
-# Copyright (C) 2011 Anders Logg.
+# -*- coding: utf-8 -*-
+# Copyright (C) 2011-2016 Anders Logg.
 #
 # This file is part of UFL.
 #
@@ -16,11 +16,9 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2011-06-14
-# Last changed: 2011-06-14
 
-# This is a simple script that just prints the UFL version number.
+"""This is a simple script that just prints the UFL version number."""
 
+from __future__ import print_function
 from ufl import __version__
 print(__version__)
