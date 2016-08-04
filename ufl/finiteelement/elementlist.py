@@ -151,8 +151,8 @@ register_element("Lobatto", "Lob", 0, L2, "identity", (1, None), ("interval",))
 register_element("Radau", "Rad", 0, L2, "identity", (0, None), ("interval",))
 register_element("Discontinuous Lagrange Trace", "DGT", 0, L2, "identity",
                  (0, None), any_cell)
-register_element("Regge", "Regge", 2, HEin, "pullback as metric", (0, None),
-                 simplices[1:])
+register_element("Regge", "Regge", 2, HEin, "pullback as covariant 2-tensor",
+                 (0, None), simplices[1:])
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
