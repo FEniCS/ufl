@@ -2,6 +2,17 @@
 Commandline utilities
 *********************
 
+See installed version: ``ufl-analyse``
+======================================
+
+Run
+
+::
+
+   # ufl-version
+
+to see the currently installed version of UFL printed to the terminal.
+
 
 Validation and debugging: ``ufl-analyse``
 =========================================
@@ -19,6 +30,10 @@ For more information, type
 ::
 
   # ufl-analyse --help
+
+Note: This script is not well maintained, you will likely get more
+useful information from your form compiler.
+
 
 Formatting and visualization: ``ufl-convert``
 =============================================

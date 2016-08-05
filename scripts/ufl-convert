@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import sys
 import os
 import optparse
 from pprint import pprint
 
-from ufl.algorithms import tree_format
+from ufl.algorithms import tree_format, compute_form_data
 from ufl.formatting.ufl2dot import ufl2dot
 from ufl.formatting.ufl2latex import forms2latexdocument
 from ufl.algorithms.formfiles import load_ufl_file
@@ -29,9 +31,8 @@ def runcmd(cmd):
 
 def write_file(filename, text):
     "Write text to a file and close it."
-    f = open(filename, "w")
-    f.write(text)
-    f.close()
+    with open(filename, "w") as f:
+        f.write(text)
     print("Wrote file %s" % filename)
 
 # --- Option parsing
@@ -50,13 +51,11 @@ option_list = [ \
     opt("outputdir", "o", "str", "", "Output directory."),
     opt("inputdir",  "i", "str", "", "Input directory."),
     # Expression transformations:
-    opt("compile",   "c", "int", 0, "'Compile' forms: apply expression transformations like in a quadrature based form compilation."),
     opt("labeling",  "l", "str", "repr", "Set to 'repr' or 'compact' for different naming of graph nodes."),
+    opt("compile",   "c", "int", 0, "'Compile' forms: apply expression transformations like in a quadrature based form compilation. Only used for latex formatting."),
     # Output formats:
     opt("format",    "f", "str", "", "Rendering format (str, repr, tree, dot, latex)."),
     opt("filetype",  "t", "str", "", "Output file type (txt, py, dot, tex, ps, pdf, png)."),
-    # Additional actions:
-    opt("show",      "s", "int", 0, "Open in an external viewer."),
     ]
 
 parser = optparse.OptionParser(usage=usage, option_list=option_list)
@@ -81,28 +80,14 @@ for arg in args:
     if ext != ".ufl":
         print("Expecting a .ufl file, not ", uflfilename)
         sys.exit(-1)
-    #print "uflfilename =", uflfilename
-    #print "path =", path
-    #print "name =", name
-    #print "basename =", basename
-    #print "ext =", ext
 
     # 1) Load forms
-    #forms = load_forms(uflfilename)
-    #formdatas = [f.compute_form_data() for f in forms]
     ufl_data = load_ufl_file(uflfilename)
     forms = ufl_data.forms
     #expressions = ufl_data.expressions # TODO: Allow rendering expressions without form stuff!
 
     # Preprocess forms
-    for f in forms:
-        f.compute_form_data(object_names=ufl_data.object_names)
-
-    # 2) Transform forms
-    compiled_forms = []
-    if options.compile:
-        pass # TODO
-        #compiled_forms = [compile_form(form) for form in forms]
+    form_datas = [compute_form_data(f) for f in forms]
 
     # 3) Render result
     format = options.format
@@ -110,34 +95,38 @@ for arg in args:
     # Make format string conform
     if format == "latex":
         format = "tex"
-    if format == "str":
-        if options.compile:
-            print("Warning: compile option not used.")
-        rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, str(f)) for f in forms)
-        #rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, str(f.form_data())) for f in forms)
-    elif format == "repr":
-        if options.compile:
-            print("Warning: compile option not used.")
-        rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, repr(f)) for f in forms)
-    elif format == "tree":
-        if options.compile:
-            print("Warning: compile option not used.")
-        rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, tree_format(f)) for f in forms)
-    elif format == "dot":
-        if options.compile:
-            print("Warning: compile option not used.")
+    if format == "tex":
+        rendered = forms2latexdocument(forms, uflfilename, compile=options.compile)
+    elif format in ("str", "repr", "tree"):
         data = []
-        nodeoffset = 0
-        for i, f in enumerate(forms):
-            begin = (i == 0)
-            end = (i == len(forms) - 1)
-            dot, nodeoffset = ufl2dot(f, f.form_data().name, nodeoffset, begin, end,
-                                      options.labeling, ufl_data.object_names)
-            tmp = "/* Form %s: */\n%s\n" % (f.form_data().name, dot)
+        for i, fd in enumerate(form_datas):
+            f = fd.original_form
+            name = ufl_data.object_names.get(f, "form")
+
+            if format == "str":
+                s = str(f)
+            elif format == "repr":
+                s = repr(f)
+            elif format == "tree":
+                s = tree_format(f)
+            tmp = "Form %s:\n%s\n" % (name, s)
+
             data.append(tmp)
         rendered = "\n\n".join(data)
-    elif format == "tex":
-        rendered = forms2latexdocument(forms, uflfilename, compile=options.compile)
+    elif format == "dot":
+        data = []
+        nodeoffset = 0
+        for i, fd in enumerate(form_datas):
+            f = fd.original_form
+            name = ufl_data.object_names.get(f, "form")
+
+            begin = (i == 0)
+            end = (i == len(forms) - 1)
+            dot, nodeoffset = ufl2dot(f, name, nodeoffset, begin, end,
+                                      options.labeling, ufl_data.object_names)
+            tmp = "/* Form %s: */\n%s\n" % (name, dot)
+            data.append(tmp)
+        rendered = "\n\n".join(data)
     else:
         print("Unknown rendering format ", format)
         sys.exit(-1)
@@ -176,9 +165,6 @@ for arg in args:
             flags = "-file-line-error-style -interaction=nonstopmode"
             cmd = "pdflatex %s '%s'" % (flags, texfile)
             runcmd(cmd)
-            if options.show:
-                print(outputfilename)
-                runcmd("evince '%s' &" % outputfilename)
         else:
             print("Unknown format and filetype combination:", format, filetype)
             sys.exit(-1)
@@ -189,16 +175,11 @@ for arg in args:
         write_file(tempfile, rendered)
         if filetype in ("png", "ps", "svg", "gif", "dia", "imap", "cmapx"): # taken from "man dot"
             runcmd("dot -T%s -o'%s' '%s'" % (filetype, outputfilename, tempfile))
-            if options.show:
-                runcmd("evince '%s' &" % outputfilename)
         elif filetype == "pdf":
             psfilename = os.path.join(options.outputdir, basename + ".ps")
             pdffilename = os.path.join(options.outputdir, basename + ".pdf")
             runcmd("dot -T%s -o'%s' '%s'" % (filetype, psfilename, tempfile))
             runcmd("ps2pdf '%s' '%s'" % (psfilename, pdffilename))
-            if options.show:
-                print(pdffilename)
-                runcmd("evince '%s' &" % pdffilename)
         else:
             print("Unknown format and filetype combination:", format, filetype)
             sys.exit(-1)
