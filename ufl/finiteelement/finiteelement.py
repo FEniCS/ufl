@@ -45,24 +45,25 @@ class FiniteElement(FiniteElementBase):
                 degree=None,
                 form_degree=None,
                 quad_scheme=None):
-        """Intercepts construction to expand CG, DG, RTCE and RTCF spaces
-        on TensorProductCells.
-        """
+        """Intercepts construction to expand CG, DG, RTCE and RTCF
+        spaces on TensorProductCells."""
         if cell is not None:
             cell = as_cell(cell)
 
-        family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
-            canonical_element_description(family, cell, degree, form_degree)
-
         if isinstance(cell, TensorProductCell):
+            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
+                canonical_element_description(family, cell, degree, form_degree)
+
             # Delay import to avoid circular dependency at module load time
             from ufl.finiteelement.tensorproductelement import TensorProductElement
             from ufl.finiteelement.enrichedelement import EnrichedElement
             from ufl.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
 
             if family in ["RTCF", "RTCE"]:
-                ufl_assert(cell._cells[0].cellname() == "interval", "%s is available on TensorProductCell(interval, interval) only." % family)
-                ufl_assert(cell._cells[1].cellname() == "interval", "%s is available on TensorProductCell(interval, interval) only." % family)
+                ufl_assert(cell._cells[0].cellname() == "interval",
+                           "%s is available on TensorProductCell(interval, interval) only." % family)
+                ufl_assert(cell._cells[1].cellname() == "interval",
+                           "%s is available on TensorProductCell(interval, interval) only." % family)
 
                 C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
                 D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
@@ -76,8 +77,10 @@ class FiniteElement(FiniteElementBase):
                     return EnrichedElement(HCurl(CxD_elt), HCurl(DxC_elt))
 
             elif family == "NCF":
-                ufl_assert(cell._cells[0].cellname() == "quadrilateral", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
-                ufl_assert(cell._cells[1].cellname() == "interval", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._cells[0].cellname() == "quadrilateral",
+                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._cells[1].cellname() == "interval",
+                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
                 Qc_elt = FiniteElement("RTCF", "quadrilateral", degree, 1, quad_scheme)
                 Qd_elt = FiniteElement("DQ", "quadrilateral", degree - 1, 2, quad_scheme)
@@ -89,8 +92,10 @@ class FiniteElement(FiniteElementBase):
                                        HDiv(TensorProductElement(Qd_elt, Ic_elt, cell)))
 
             elif family == "NCE":
-                ufl_assert(cell._cells[0].cellname() == "quadrilateral", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
-                ufl_assert(cell._cells[1].cellname() == "interval", "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._cells[0].cellname() == "quadrilateral",
+                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._cells[1].cellname() == "interval",
+                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
                 Qc_elt = FiniteElement("Q", "quadrilateral", degree, 0, quad_scheme)
                 Qd_elt = FiniteElement("RTCE", "quadrilateral", degree, 1, quad_scheme)
@@ -109,9 +114,11 @@ class FiniteElement(FiniteElementBase):
             elif family == "DQ":
                 family_A = "DG" if cell._cells[0].cellname() in simplices else "DQ"
                 family_B = "DG" if cell._cells[1].cellname() in simplices else "DQ"
-                return TensorProductElement(FiniteElement(family_A, cell._cells[0], degree, cell._cells[0].topological_dimension(), quad_scheme),
-                                            FiniteElement(family_B, cell._cells[1], degree, cell._cells[1].topological_dimension(), quad_scheme),
-                                            cell)
+                elem_A = FiniteElement(family_A, cell._cells[0], degree,
+                                       cell._cells[0].topological_dimension(), quad_scheme)
+                elem_B = FiniteElement(family_B, cell._cells[1], degree,
+                                       cell._cells[1].topological_dimension(), quad_scheme)
+                return TensorProductElement(elem_A, elem_B, cell)
 
         return super(FiniteElement, cls).__new__(cls)
 
@@ -188,10 +195,8 @@ class FiniteElement(FiniteElementBase):
 
     def __getnewargs__(self):
         """Return the arguments which pickle needs to recreate the object."""
-        return (
-            self.family(),
-            self.cell(),
-            self.degree(),
-            None,
-            self.quadrature_scheme()
-        )
+        return (self.family(),
+                self.cell(),
+                self.degree(),
+                None,
+                self.quadrature_scheme())
