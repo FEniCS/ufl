@@ -206,10 +206,11 @@ class TensorProductCell(AbstractCell):
     __slots__ = ("_cells",)
 
     def __init__(self, *cells, **kwargs):
-        if kwargs and kwargs.keys() != ["geometric_dimension"]:
-            raise TypeError(
+        keywords = list(kwargs.keys())
+        if keywords and keywords != ["geometric_dimension"]:
+            raise ValueError(
                 "TensorProductCell got an unexpected keyword argument '%s'" %
-                kwargs.keys()[0])
+                keywords[0])
 
         self._cells = tuple(as_cell(cell) for cell in cells)
 
