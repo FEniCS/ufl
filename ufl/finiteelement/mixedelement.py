@@ -354,9 +354,9 @@ class TensorElement(MixedElement):
 
         # Set default shape if not specified
         if shape is None:
-            ufl_assert(sub_element.cell() is not None,
+            ufl_assert(cell is not None,
                        "Cannot infer tensor shape without a cell.")
-            dim = sub_element.cell().geometric_dimension()
+            dim = cell.geometric_dimension()
             shape = (dim, dim)
 
         if symmetry is None:
@@ -400,18 +400,21 @@ class TensorElement(MixedElement):
         flattened_sub_element_mapping = [sub_element_mapping[index] for i,
                                          index in enumerate(indices)]
 
+        # Compute value shape
+        value_shape = shape
+
         # Compute reference value shape based on symmetries
         if symmetry:
             # Flatten and subtract symmetries
             reference_value_shape = (product(shape)-len(symmetry),)
-            mapping = "symmetries"
+            self._mapping = "symmetries"
         else:
             # Do not flatten if there are no symmetries
             reference_value_shape = shape
-            mapping = "identity"
+            self._mapping = "identity"
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=shape,
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape,
                               reference_value_shape=reference_value_shape)
         self._family = sub_element.family()
         self._degree = sub_element.degree()
@@ -420,7 +423,6 @@ class TensorElement(MixedElement):
         self._symmetry = symmetry
         self._sub_element_mapping = sub_element_mapping
         self._flattened_sub_element_mapping = flattened_sub_element_mapping
-        self._mapping = mapping
 
         # Cache repr string
         self._repr = "TensorElement(%r, shape=%r, symmetry=%r)" % (sub_element, self._shape, self._symmetry)
