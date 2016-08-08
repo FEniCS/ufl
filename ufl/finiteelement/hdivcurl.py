@@ -18,11 +18,10 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.finiteelement.tensorproductelement import TensorProductElement
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
-class HDivElement(TensorProductElement):
+class HDivElement(FiniteElementBase):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
     __slots__ = ("_element")
@@ -30,7 +29,6 @@ class HDivElement(TensorProductElement):
     def __init__(self, element):
         self._element = element
         self._repr = "HDivElement(%r)" % (element,)
-        self._mapping = "contravariant Piola"
 
         family = "TensorProductElement"
         cell = element.cell()
@@ -43,6 +41,9 @@ class HDivElement(TensorProductElement):
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
+    def mapping(self):
+        return "contravariant Piola"
+
     def __str__(self):
         return "HDivElement(%s)" % str(self._element)
 
@@ -50,11 +51,8 @@ class HDivElement(TensorProductElement):
         "Format as string for pretty printing."
         return "HDivElement(%s)" % str(self._element.shortstr())
 
-    def __repr__(self):
-        return self._repr
 
-
-class HCurlElement(TensorProductElement):
+class HCurlElement(FiniteElementBase):
     """A curl-conforming version of an outer product element, assuming
     this makes mathematical sense."""
     __slots__ = ("_element")
@@ -62,7 +60,6 @@ class HCurlElement(TensorProductElement):
     def __init__(self, element):
         self._element = element
         self._repr = "HCurlElement(%r)" % (element,)
-        self._mapping = "covariant Piola"
 
         family = "TensorProductElement"
         cell = element.cell()
@@ -76,12 +73,12 @@ class HCurlElement(TensorProductElement):
         FiniteElementBase.__init__(self, family, cell, degree, quad_scheme,
                                    value_shape, reference_value_shape)
 
+    def mapping(self):
+        return "covariant Piola"
+
     def __str__(self):
         return "HCurlElement(%s)" % str(self._element)
 
     def shortstr(self):
         "Format as string for pretty printing."
         return "HCurlElement(%s)" % str(self._element.shortstr())
-
-    def __repr__(self):
-        return self._repr

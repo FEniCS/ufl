@@ -68,8 +68,8 @@ class FiniteElement(FiniteElementBase):
                 C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
                 D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
 
-                CxD_elt = TensorProductElement(C_elt, D_elt, cell)
-                DxC_elt = TensorProductElement(D_elt, C_elt, cell)
+                CxD_elt = TensorProductElement(C_elt, D_elt, cell=cell)
+                DxC_elt = TensorProductElement(D_elt, C_elt, cell=cell)
 
                 if family == "RTCF":
                     return EnrichedElement(HDiv(CxD_elt), HDiv(DxC_elt))
@@ -88,8 +88,8 @@ class FiniteElement(FiniteElementBase):
                 Id_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
                 Ic_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
 
-                return EnrichedElement(HDiv(TensorProductElement(Qc_elt, Id_elt, cell)),
-                                       HDiv(TensorProductElement(Qd_elt, Ic_elt, cell)))
+                return EnrichedElement(HDiv(TensorProductElement(Qc_elt, Id_elt, cell=cell)),
+                                       HDiv(TensorProductElement(Qd_elt, Ic_elt, cell=cell)))
 
             elif family == "NCE":
                 ufl_assert(cell._cells[0].cellname() == "quadrilateral",
@@ -103,13 +103,13 @@ class FiniteElement(FiniteElementBase):
                 Id_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
                 Ic_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
 
-                return EnrichedElement(HCurl(TensorProductElement(Qc_elt, Id_elt, cell)),
-                                       HCurl(TensorProductElement(Qd_elt, Ic_elt, cell)))
+                return EnrichedElement(HCurl(TensorProductElement(Qc_elt, Id_elt, cell=cell)),
+                                       HCurl(TensorProductElement(Qd_elt, Ic_elt, cell=cell)))
 
             elif family == "Q":
                 return TensorProductElement(FiniteElement("CG", cell._cells[0], degree, 0, quad_scheme),
                                             FiniteElement("CG", cell._cells[1], degree, 0, quad_scheme),
-                                            cell)
+                                            cell=cell)
 
             elif family == "DQ":
                 family_A = "DG" if cell._cells[0].cellname() in simplices else "DQ"
@@ -118,7 +118,7 @@ class FiniteElement(FiniteElementBase):
                                        cell._cells[0].topological_dimension(), quad_scheme)
                 elem_B = FiniteElement(family_B, cell._cells[1], degree,
                                        cell._cells[1].topological_dimension(), quad_scheme)
-                return TensorProductElement(elem_A, elem_B, cell)
+                return TensorProductElement(elem_A, elem_B, cell=cell)
 
         return super(FiniteElement, cls).__new__(cls)
 
