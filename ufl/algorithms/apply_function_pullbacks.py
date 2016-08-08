@@ -124,6 +124,11 @@ def apply_single_function_pullbacks(g):
         # f = as_tensor(Jinv[j, i]*r[k,j], (k,i)) # FIXME: Handle Vector(Piola) here?
         assert f.ufl_shape == g.ufl_shape
         return f
+    elif mapping == "pullback as covariant 2-tensor":
+        i, j, k, l = indices(4)
+        f = as_tensor(Jinv[k, i]*r[k, l]*Jinv[l, j], (i, j))
+        assert f.ufl_shape == g.ufl_shape
+        return f
 
     # By placing components in a list and using as_vector at the end,
     # we're assuming below that both global function g and its
