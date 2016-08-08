@@ -6,8 +6,11 @@ import pytest
 from ufl import *
 from ufl.core.expr import Expr
 
+
 class MockExpr(Expr):
+
     "A mock type for unit testing."
+
     def __init__(self, shape=None, free_indices=None, index_dimensions=None, cell=None):
         Expr.__init__(self)
         self.fields = []
@@ -58,14 +61,15 @@ class MockExpr(Expr):
     def __iter__(self):
         raise NotImplementedError
 
+
 def test_mock_expr():
     a = MockExpr(shape=(1,))
     b = MockExpr(shape=(2,))
     assert not a.matches(b)
 
     i, j = indices(2)
-    c = MockExpr(shape=(1, 2), free_indices=(i, j), index_dimensions={i:2, j:3}, cell=triangle)
-    d = MockExpr(shape=(1, 2), free_indices=(i, j), index_dimensions={i:2, j:3}, cell=triangle)
+    c = MockExpr(shape=(1, 2), free_indices=(i, j), index_dimensions={i: 2, j: 3}, cell=triangle)
+    d = MockExpr(shape=(1, 2), free_indices=(i, j), index_dimensions={i: 2, j: 3}, cell=triangle)
     assert c.matches(d)
 
     e = FiniteElement("CG", triangle, 1)

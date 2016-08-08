@@ -10,6 +10,7 @@ from ufl import *
 from ufl.classes import Indexed
 from ufl.constantvalue import Zero, FloatValue, IntValue, as_ufl
 
+
 def test_zero(self):
     z1 = Zero(())
     z2 = Zero(())
@@ -18,11 +19,11 @@ def test_zero(self):
     z5 = FloatValue(0)
     z6 = FloatValue(0.0)
 
-    #self.assertTrue(z1 is z2)
-    #self.assertTrue(z1 is z3)
-    #self.assertTrue(z1 is z4)
-    #self.assertTrue(z1 is z5)
-    #self.assertTrue(z1 is z6)
+    # self.assertTrue(z1 is z2)
+    # self.assertTrue(z1 is z3)
+    # self.assertTrue(z1 is z4)
+    # self.assertTrue(z1 is z5)
+    # self.assertTrue(z1 is z6)
     assert z1 == z1
     assert int(z1) == 0
     assert float(z1) == 0.0
@@ -33,6 +34,7 @@ def test_zero(self):
     self.assertNotEqual(hash(z1), hash(0.0))
     self.assertNotEqual(hash(z1), hash(0))
 
+
 def test_float(self):
     f1 = as_ufl(1)
     f2 = as_ufl(1.0)
@@ -42,11 +44,12 @@ def test_float(self):
     f6 = 3 * FloatValue(2) / 6
 
     assert f1 == f1
-    self.assertNotEqual(f1, f2) # IntValue vs FloatValue, == compares representations!
+    self.assertNotEqual(f1, f2)  # IntValue vs FloatValue, == compares representations!
     assert f2 == f3
     assert f2 == f4
     assert f2 == f5
     assert f2 == f6
+
 
 def test_int(self):
     f1 = as_ufl(1)
@@ -57,11 +60,12 @@ def test_int(self):
     f6 = 3 * IntValue(2) / 6
 
     assert f1 == f1
-    self.assertNotEqual(f1, f2) # IntValue vs FloatValue, == compares representations!
+    self.assertNotEqual(f1, f2)  # IntValue vs FloatValue, == compares representations!
     assert f1 == f3
     assert f1 == f4
     assert f1 == f5
-    assert f2 == f6 # Division produces a FloatValue
+    assert f2 == f6  # Division produces a FloatValue
+
 
 def test_scalar_sums(self):
     n = 10
@@ -93,8 +97,10 @@ def test_scalar_sums(self):
     assert 2*s[5] == 10
     assert s[6]/3 == 2
 
+
 def test_identity(self):
-    pass # FIXME
+    pass  # FIXME
+
 
 def test_permutation_symbol_3(self):
     e = PermutationSymbol(3)
@@ -110,8 +116,9 @@ def test_permutation_symbol_3(self):
     x = (0, 0, 0)
     self.assertEqual((e[i, j, k] * e[i, j, k])(x), 6)
 
+
 def test_permutation_symbol_n(self):
-    for n in range(2, 5): # tested with upper limit 7, but evaluation is a bit slow then
+    for n in range(2, 5):  # tested with upper limit 7, but evaluation is a bit slow then
         e = PermutationSymbol(n)
         assert e.ufl_shape == (n,)*n
         assert eval(repr(e)) == e
@@ -120,6 +127,7 @@ def test_permutation_symbol_n(self):
         x = (0,)*n
         nfac = product(m for m in range(1, n+1))
         assert (e[ii] * e[ii])(x) == nfac
+
 
 def test_unit_dyads(self):
     from ufl.tensors import unit_vectors, unit_matrices

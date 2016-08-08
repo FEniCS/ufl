@@ -6,6 +6,7 @@ import ufl
 from ufl import as_ufl, inner, dx
 from ufl.algorithms import compute_form_data
 
+
 class Tester:
 
     def assertTrue(self, a):
@@ -50,11 +51,14 @@ class Tester:
         self.assertEqual(A.ufl_shape, B.ufl_shape)
         self.assertEqual(inner(A-B, A-B)(None), 0)
 
+
 @pytest.fixture(scope="session")
 def self():
     return Tester()
 
 _all_cells = [ufl.interval, ufl.triangle, ufl.tetrahedron]
+
+
 @pytest.fixture(params=_all_cells)
 def cell(request):
     return request.param

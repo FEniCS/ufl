@@ -149,6 +149,7 @@ def testTan(v):
 #    def df(v): return -1/sqrt(1.0 - v**2)
 #    _test(f, df)
 
+
 def testAtan(v):
     def f(v):
         return atan(v)
@@ -173,7 +174,8 @@ def testIndexSum(v):
 
 def testCoefficient():
     v = Constant(triangle)
-    assert round(expand_derivatives(diff(v,v))-1.0, 7) == 0
+    assert round(expand_derivatives(diff(v, v))-1.0, 7) == 0
+
 
 def testDiffX():
     cell = triangle

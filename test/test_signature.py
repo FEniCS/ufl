@@ -23,12 +23,14 @@ from itertools import chain
 # TODO: Test that we do not get collisions for some large sets of generated forms
 # TODO: How do we know that we have tested the signature reliably enough?
 
+
 def domain_numbering(*cells):
     renumbering = {}
     for i, cell in enumerate(cells):
         domain = as_domain(cell)
         renumbering[domain] = i
     return renumbering
+
 
 def test_domain_signatures_of_cell2domains(self):
     all_cells = (interval, quadrilateral, hexahedron, triangle, tetrahedron)
@@ -40,8 +42,9 @@ def test_domain_signatures_of_cell2domains(self):
         # Signature data holds when constructing two domains from a cell:
         D1 = as_domain(cell)
         D2 = as_domain(cell)
-        self.assertEqual(D1._ufl_signature_data_({D1:0}),
-                         D2._ufl_signature_data_({D2:0}))
+        self.assertEqual(D1._ufl_signature_data_({D1: 0}),
+                         D2._ufl_signature_data_({D2: 0}))
+
 
 def compute_unique_terminal_hashdatas(hashdatas):
     count = 0
@@ -57,24 +60,26 @@ def compute_unique_terminal_hashdatas(hashdatas):
         assert isinstance(d, dict)
         # Sorting values by hash should be stable at least in a single test run:
         t = tuple(sorted(list(d.values()), key=lambda x: hash(x)))
-        #print t
+        # print t
 
         # Add the hashdata values tuple to sets based on itself, its hash,
         # and its repr (not sure why I included repr anymore?)
-        hashes.add(hash(t)) # This will fail if t is not hashable, which it should be!
+        hashes.add(hash(t))  # This will fail if t is not hashable, which it should be!
         data.add(t)
         reprs.add(repr(t))
         count += 1
 
     return count, len(data), len(reprs), len(hashes)
 
+
 def test_terminal_hashdata_depends_on_literals(self):
     reprs = set()
     hashes = set()
+
     def forms():
         i, j = indices(2)
         for d in (2, 3):
-            domain = as_domain({2:triangle,3:tetrahedron}[d])
+            domain = as_domain({2: triangle, 3: tetrahedron}[d])
             x = SpatialCoordinate(domain)
             I = Identity(d)
             for fv in (1.1, 2.2):
@@ -93,9 +98,11 @@ def test_terminal_hashdata_depends_on_literals(self):
     assert len(reprs) == c
     assert len(hashes) == c
 
+
 def test_terminal_hashdata_depends_on_geometry(self):
     reprs = set()
     hashes = set()
+
     def forms():
         i, j = indices(2)
         cells = (triangle, tetrahedron)
@@ -106,12 +113,12 @@ def test_terminal_hashdata_depends_on_geometry(self):
             n = FacetNormal(cell)
             r = Circumradius(cell)
             a = FacetArea(cell)
-            #s = CellSurfaceArea(cell)
+            # s = CellSurfaceArea(cell)
             v = CellVolume(cell)
             I = Identity(d)
 
             ws = (x, n)
-            qs = (r, a, v) #, s)
+            qs = (r, a, v)  # , s)
             for w in ws:
                 for q in qs:
                     expr = (I[0, j]*(q*w[j]))
@@ -121,12 +128,13 @@ def test_terminal_hashdata_depends_on_geometry(self):
                     yield compute_terminal_hashdata(expr, domain_numbering(*cells))
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    assert c == 2*3*2 # len(ws)*len(qs)*len(cells)
+    assert c == 2*3*2  # len(ws)*len(qs)*len(cells)
     assert d == c
     assert r == c
     assert h == c
     assert len(reprs) == c
     assert len(hashes) == c
+
 
 def test_terminal_hashdata_depends_on_form_argument_properties(self):
     reprs = set()
@@ -150,7 +158,7 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
                         W2 = VectorElement(family, cell, degree, dim=d+1)
                         T = TensorElement(family, cell, degree)
                         S = TensorElement(family, cell, degree, symmetry=True)
-                        S2 = TensorElement(family, cell, degree, shape=(d, d), symmetry={(0, 0):(1, 1)})
+                        S2 = TensorElement(family, cell, degree, shape=(d, d), symmetry={(0, 0): (1, 1)})
                         elements = [V, W, W2, T, S, S2]
                         assert len(elements) == nelm
 
@@ -168,16 +176,17 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
                                 yield compute_terminal_hashdata(expr, renumbering)
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    c1 = nreps * len(cells) * len(degrees) * len(families) * nelm * 2 # Number of cases with repetitions
+    c1 = nreps * len(cells) * len(degrees) * len(families) * nelm * 2  # Number of cases with repetitions
     assert c == c1
 
-    c0 = len(cells) * len(degrees) * (len(families)-1) * nelm * 2 # Number of unique cases, "CG" == "Lagrange"
-    #c0 = len(cells) * len(degrees) * (len(families)) * nelm * 2 # Number of unique cases, "CG" != "Lagrange"
+    c0 = len(cells) * len(degrees) * (len(families)-1) * nelm * 2  # Number of unique cases, "CG" == "Lagrange"
+    # c0 = len(cells) * len(degrees) * (len(families)) * nelm * 2 # Number of unique cases, "CG" != "Lagrange"
     assert d == c0
     assert r == c0
     assert h == c0
     assert len(reprs) == c0
     assert len(hashes) == c0
+
 
 def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_ordering(self):
     reprs = set()
@@ -186,6 +195,7 @@ def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_orde
     cells = (interval, triangle, hexahedron)
     assert len(counts) == 7
     nreps = 1
+
     def forms():
         for rep in range(nreps):
             for cell in cells:
@@ -204,14 +214,15 @@ def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_orde
                     yield compute_terminal_hashdata(expr, renumbering)
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    c0 = len(cells) # Number of actually unique cases from a code generation perspective
-    c1 = len(counts) * c0 # Number of unique cases from a symbolic representation perspective
+    c0 = len(cells)  # Number of actually unique cases from a code generation perspective
+    c1 = len(counts) * c0  # Number of unique cases from a symbolic representation perspective
     assert len(reprs) == c1
     assert len(hashes) == c1
-    assert c == nreps * c1 # number of inner loop executions in forms() above
+    assert c == nreps * c1  # number of inner loop executions in forms() above
     assert d == c0
     assert r == c0
     assert h == c0
+
 
 def test_terminal_hashdata_does_depend_on_argument_number_values(self):
     # TODO: Include part numbers as well
@@ -220,6 +231,7 @@ def test_terminal_hashdata_does_depend_on_argument_number_values(self):
     counts = list(range(4))
     cells = (interval, triangle, hexahedron)
     nreps = 2
+
     def forms():
         for rep in range(nreps):
             for cell in cells:
@@ -234,14 +246,15 @@ def test_terminal_hashdata_does_depend_on_argument_number_values(self):
                     yield compute_terminal_hashdata(expr, domain_numbering(*cells))
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    c0 = len(cells) * len(counts) # Number of actually unique cases from a code generation perspective
-    c1 = 1 * c0 # Number of unique cases from a symbolic representation perspective
+    c0 = len(cells) * len(counts)  # Number of actually unique cases from a code generation perspective
+    c1 = 1 * c0  # Number of unique cases from a symbolic representation perspective
     assert len(reprs) == c1
     assert len(hashes) == c1
-    self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
+    self.assertEqual(c, nreps * c1)  # number of inner loop executions in forms() above
     assert d == c0
     assert r == c0
     assert h == c0
+
 
 def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
     cells = [triangle, tetrahedron, hexahedron]
@@ -252,9 +265,9 @@ def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
         d0 = Mesh(cell)
         d1 = Mesh(cell, ufl_id=1)
         d2 = Mesh(cell, ufl_id=2)
-        s0 = d0._ufl_signature_data_({ d0: 0 })
-        s1 = d1._ufl_signature_data_({ d1: 0 })
-        s2 = d2._ufl_signature_data_({ d2: 0 })
+        s0 = d0._ufl_signature_data_({d0: 0})
+        s1 = d1._ufl_signature_data_({d1: 0})
+        s2 = d2._ufl_signature_data_({d2: 0})
         assert s0 == s1
         assert s0 == s2
         s0s.add(s0)
@@ -264,6 +277,7 @@ def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
     assert len(s1s) == len(cells)
     assert len(s2s) == len(cells)
 
+
 def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     reprs = set()
     hashes = set()
@@ -272,6 +286,7 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     domains = [Mesh(cell, ufl_id=ufl_id) for cell in cells for ufl_id in ufl_ids]
     nreps = 2
     num_exprs = 2
+
     def forms():
         for rep in range(nreps):
             for domain in domains:
@@ -281,10 +296,10 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
                 x = SpatialCoordinate(domain)
                 n = FacetNormal(domain)
                 exprs = [inner(x, n), inner(f, v)]
-                assert num_exprs == len(exprs) # Assumed in checks below
+                assert num_exprs == len(exprs)  # Assumed in checks below
 
                 # This numbering needs to be recreated to count 'domain' and 'f' as 0 each time:
-                renumbering = { f: 0, domain: 0 }
+                renumbering = {f: 0, domain: 0}
 
                 for expr in exprs:
                     reprs.add(repr(expr))
@@ -292,14 +307,15 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
                     yield compute_terminal_hashdata(expr, renumbering)
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    c0 = num_exprs * len(cells) # Number of actually unique cases from a code generation perspective
-    c1 = num_exprs * len(domains) # Number of unique cases from a symbolic representation perspective
+    c0 = num_exprs * len(cells)  # Number of actually unique cases from a code generation perspective
+    c1 = num_exprs * len(domains)  # Number of unique cases from a symbolic representation perspective
     assert len(reprs) == c1
     assert len(hashes) == c1
-    self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
+    self.assertEqual(c, nreps * c1)  # number of inner loop executions in forms() above
     assert d == c0
     assert r == c0
     assert h == c0
+
 
 def compute_unique_multiindex_hashdatas(hashdatas):
     count = 0
@@ -313,9 +329,11 @@ def compute_unique_multiindex_hashdatas(hashdatas):
         count += 1
     return count, len(data), len(reprs), len(hashes)
 
+
 def test_multiindex_hashdata_depends_on_fixed_index_values(self):
     reprs = set()
     hashes = set()
+
     def hashdatas():
         for i in range(3):
             for ii in ((i,), (i, 0), (1, i)):
@@ -327,13 +345,15 @@ def test_multiindex_hashdata_depends_on_fixed_index_values(self):
 
     c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
     assert c == 9
-    assert d == 9-1 # (1,0 is repeated, therefore -1)
+    assert d == 9-1  # (1,0 is repeated, therefore -1)
     assert len(reprs) == 9-1
     assert len(hashes) == 9-1
+
 
 def test_multiindex_hashdata_does_not_depend_on_counts(self):
     reprs = set()
     hashes = set()
+
     def hashdatas():
         ijs = []
         iind = indices(3)
@@ -354,10 +374,12 @@ def test_multiindex_hashdata_does_not_depend_on_counts(self):
     assert len(reprs) == 3+9+9
     assert len(hashes) == 3+9+9
 
+
 def test_multiindex_hashdata_depends_on_the_order_indices_are_observed(self):
     reprs = set()
     hashes = set()
     nrep = 3
+
     def hashdatas():
         for rep in range(nrep):
             # Resetting index_numbering for each repetition,
@@ -367,13 +389,13 @@ def test_multiindex_hashdata_depends_on_the_order_indices_are_observed(self):
             index_numbering = {}
             i, j, k, l = indices(4)
             for expr in (MultiIndex((i,)),
-                         MultiIndex((i,)), # r
+                         MultiIndex((i,)),  # r
                          MultiIndex((i, j)),
                          MultiIndex((j, i)),
-                         MultiIndex((i, j)), # r
+                         MultiIndex((i, j)),  # r
                          MultiIndex((i, j, k)),
                          MultiIndex((k, j, i)),
-                         MultiIndex((j, i))): # r
+                         MultiIndex((j, i))):  # r
                 reprs.add(repr(expr))
                 hashes.add(hash(expr))
                 yield compute_multiindex_hashdata(expr, index_numbering)
@@ -404,6 +426,7 @@ def check_unique_signatures(forms):
     assert len(reprs) == count
     assert len(hashes) == count
 
+
 def test_signature_is_affected_by_element_properties(self):
     def forms():
         for family in ("CG", "DG"):
@@ -419,6 +442,7 @@ def test_signature_is_affected_by_element_properties(self):
                     yield a
     check_unique_signatures(forms())
 
+
 def test_signature_is_affected_by_domains(self):
     def forms():
         for cell in (triangle, tetrahedron):
@@ -430,6 +454,7 @@ def test_signature_is_affected_by_domains(self):
                         a = u*dx(di) + 2*u*dx(dj) + 3*u*ds(dk)
                         yield a
     check_unique_signatures(forms())
+
 
 def test_signature_of_forms_with_diff(self):
     def forms():
@@ -448,6 +473,7 @@ def test_signature_of_forms_with_diff(self):
                 yield a
     check_unique_signatures(forms())
 
+
 def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self):
     cell = triangle
     V = FiniteElement("CG", cell, 1)
@@ -460,6 +486,7 @@ def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self
     self.assertTrue(M1.signature() != M3.signature())
     self.assertTrue(M2.signature() != M3.signature())
 
+
 def test_signature_of_forms_change_with_operators(self):
     def forms():
         for cell in (triangle, tetrahedron):
@@ -470,8 +497,8 @@ def test_signature_of_forms_change_with_operators(self):
                   (u+v)+(u/v),
                   (u+v)*(u/v),
                   (u*v)*(u*v),
-                  (u+v)*(u*v), # (!) same
-                  #(u*v)*(u+v), # (!) same
+                  (u+v)*(u*v),  # (!) same
+                  # (u*v)*(u+v), # (!) same
                   (u*v)+(u+v),
                   ]
             for f in fs:

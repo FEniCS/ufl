@@ -60,9 +60,9 @@ def test_domains_sort_by_name():
     domains2 = [Mesh(cell, ufl_id=hash(cell.cellname()))
                 for cell in sorted(all_cells)]
     sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
-                                          D.topological_dimension(),
-                                          D.ufl_cell(),
-                                          D.ufl_id()))
+                                               D.topological_dimension(),
+                                               D.ufl_cell(),
+                                               D.ufl_id()))
     assert sdomains != domains1
     assert sdomains == domains2
 
@@ -100,7 +100,7 @@ def test_simple_domain_case():
     assert M.ufl_domains() == (D, )
 
 
-def test_creating_domains_with_coordinate_fields(): # FIXME: Rewrite for new approach
+def test_creating_domains_with_coordinate_fields():  # FIXME: Rewrite for new approach
     # Definition of higher order domain, element, coefficient, form
 
     # Mesh with P2 representation of coordinates

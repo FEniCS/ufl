@@ -4,11 +4,12 @@
 import pytest
 
 from ufl import *
-#from ufl.indexutils import *
+# from ufl.indexutils import *
 from ufl.algorithms import *
 from ufl.classes import IndexSum
 
 # TODO: add more expressions to test as many possible combinations of index notation as feasible...
+
 
 def xtest_index_utils(self):
     ii = indices(3)
@@ -26,12 +27,14 @@ def xtest_index_utils(self):
     assert ii == single_indices(ii)
     assert () == single_indices(ii+ii)
 
+
 def test_vector_indices(self):
     element = VectorElement("CG", "triangle", 1)
     u = Argument(element, 2)
     f = Coefficient(element)
     a = u[i]*f[i]*dx
     b = u[j]*f[j]*dx
+
 
 def test_tensor_indices(self):
     element = TensorElement("CG", "triangle", 1)
@@ -43,6 +46,7 @@ def test_tensor_indices(self):
     with pytest.raises(UFLException):
         d = (u[i, i]+f[j, i])*dx
 
+
 def test_indexed_sum1(self):
     element = VectorElement("CG", "triangle", 1)
     u = Argument(element, 2)
@@ -50,6 +54,7 @@ def test_indexed_sum1(self):
     a = u[i]+f[i]
     with pytest.raises(UFLException):
         a*dx
+
 
 def test_indexed_sum2(self):
     element = VectorElement("CG", "triangle", 1)
@@ -60,12 +65,14 @@ def test_indexed_sum2(self):
     with pytest.raises(UFLException):
         a*dx
 
+
 def test_indexed_sum3(self):
     element = VectorElement("CG", "triangle", 1)
     u = Argument(element, 2)
     f = Coefficient(element)
     with pytest.raises(UFLException):
         a = u[i]+f[j]
+
 
 def test_indexed_function1(self):
     element = VectorElement("CG", "triangle", 1)
@@ -74,6 +81,7 @@ def test_indexed_function1(self):
     f = Coefficient(element)
     aarg = (u[i]+f[i])*v[i]
     a = exp(aarg)*dx
+
 
 def test_indexed_function2(self):
     element = VectorElement("CG", "triangle", 1)
@@ -89,6 +97,7 @@ def test_indexed_function2(self):
     assert right.ufl_free_indices[0] == i.count()
     b = left * right * dx
 
+
 def test_indexed_function3(self):
     element = VectorElement("CG", "triangle", 1)
     v = Argument(element, 2)
@@ -96,6 +105,7 @@ def test_indexed_function3(self):
     f = Coefficient(element)
     with pytest.raises(UFLException):
         c = sin(u[i] + f[i])*dx
+
 
 def test_vector_from_indices(self):
     element = VectorElement("CG", "triangle", 1)
@@ -112,6 +122,7 @@ def test_vector_from_indices(self):
     assert len(w.ufl_shape) == 1
     assert len(ww.ufl_shape) == 1
 
+
 def test_matrix_from_indices(self):
     element = VectorElement("CG", "triangle", 1)
     v  = TestFunction(element)
@@ -127,6 +138,7 @@ def test_matrix_from_indices(self):
     assert len(C.ufl_shape) == 2
     assert len(D.ufl_shape) == 2
 
+
 def test_vector_from_list(self):
     element = VectorElement("CG", "triangle", 1)
     v  = TestFunction(element)
@@ -138,15 +150,16 @@ def test_vector_from_list(self):
     assert len(vv.ufl_shape) == 1
     assert len(ww.ufl_shape) == 1
 
+
 def test_matrix_from_list(self):
     element = VectorElement("CG", "triangle", 1)
     v  = TestFunction(element)
     u  = TrialFunction(element)
 
     # create matrix from list
-    A  = as_matrix( [ [u[0], u[1]], [v[0], v[1]] ] )
+    A  = as_matrix([[u[0], u[1]], [v[0], v[1]]])
     # create matrix from indices
-    B  = as_matrix( (v[k]*v[k]) * u[i]*v[j], (j, i) )
+    B  = as_matrix((v[k]*v[k]) * u[i]*v[j], (j, i))
     # Test addition
     C  = A + A
     C  = B + B
@@ -155,6 +168,7 @@ def test_matrix_from_list(self):
     assert len(B.ufl_shape) == 2
     assert len(C.ufl_shape) == 2
     assert len(D.ufl_shape) == 2
+
 
 def test_tensor(self):
     element = VectorElement("CG", "triangle", 1)
@@ -191,9 +205,10 @@ def test_tensor(self):
 
     # illegal
     with pytest.raises(UFLException):
-        A = as_matrix( [ [u[0], u[1]], [v[0],] ] )
+        A = as_matrix([[u[0], u[1]], [v[0],]])
 
     # ...
+
 
 def test_indexed(self):
     element = VectorElement("CG", "triangle", 1)
@@ -211,6 +226,7 @@ def test_indexed(self):
     a = outer(v, u)[i, i]
     self.assertSameIndices(a, ())
     self.assertIsInstance(a, IndexSum)
+
 
 def test_spatial_derivative(self):
     cell = triangle
@@ -236,7 +252,7 @@ def test_spatial_derivative(self):
     assert a.ufl_shape == ()
 
     a = v.dx(i, j)
-    #self.assertSameIndices(a, (i,j))
+    # self.assertSameIndices(a, (i,j))
     assert set(a.ufl_free_indices) == {j.count(), i.count()}
     self.assertNotIsInstance(a, IndexSum)
     assert a.ufl_shape == (d,)
@@ -255,6 +271,7 @@ def test_spatial_derivative(self):
     self.assertSameIndices(a, ())
     self.assertIsInstance(a, IndexSum)
     assert a.ufl_shape == ()
+
 
 def test_renumbering(self):
     pass

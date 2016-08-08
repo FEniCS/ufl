@@ -16,6 +16,8 @@ from ufl.algorithms import *
 
 has_repr = set()
 has_dict = set()
+
+
 def _test_object(a, shape, free_indices):
     # Check if instances of this type has certain memory consuming members
     if hasattr(a, '_repr'):
@@ -50,6 +52,7 @@ def _test_object(a, shape, free_indices):
             print(("shape:", shape))
         assert sh == shape
 
+
 def _test_object2(a):
     # Check if instances of this type has certain memory consuming members
     if hasattr(a, '_repr'):
@@ -64,6 +67,7 @@ def _test_object2(a):
 
     # Can't really test str more than that it exists
     s = str(a)
+
 
 def _test_form(a):
     # Test reproduction via repr string
@@ -89,6 +93,7 @@ def testExports(self):
         print("The following subclasses of Expr were not exported from ufl.classes:")
         print(("\n".join(sorted(missing_classes))))
     assert missing_classes == set()
+
 
 def testAll(self):
 
@@ -162,9 +167,9 @@ def testAll(self):
     xi = CellCoordinate(cell)
     _test_object(xi, (dim,), ())
 
-    #g = CellBarycenter(cell)
+    # g = CellBarycenter(cell)
     #_test_object(g, (dim,), ())
-    #g = FacetBarycenter(cell)
+    # g = FacetBarycenter(cell)
     #_test_object(g, (dim,), ())
 
     g = Jacobian(cell)
@@ -183,14 +188,14 @@ def testAll(self):
 
     g = FacetNormal(cell)
     _test_object(g, (dim,), ())
-    #g = CellNormal(cell)
+    # g = CellNormal(cell)
     #_test_object(g, (dim,), ())
 
     g = CellVolume(cell)
     _test_object(g, (), ())
     g = Circumradius(cell)
     _test_object(g, (), ())
-    #g = CellSurfaceArea(cell)
+    # g = CellSurfaceArea(cell)
     #_test_object(g, (), ())
 
     g = FacetArea(cell)
@@ -199,7 +204,7 @@ def testAll(self):
     _test_object(g, (), ())
     g = MaxFacetEdgeLength(cell)
     _test_object(g, (), ())
-    #g = FacetDiameter(cell)
+    # g = FacetDiameter(cell)
     #_test_object(g, (), ())
 
     a = variable(v0)
@@ -219,11 +224,11 @@ def testAll(self):
     a = variable(f3)
     _test_object(a, (dim*dim+dim+1,), ())
 
-    #a = MultiIndex()
+    # a = MultiIndex()
 
     # --- Non-terminals:
 
-    #a = Indexed()
+    # a = Indexed()
     a = v2[i, j]
     _test_object(a, (), (i, j))
     a = v2[0, k]
@@ -262,42 +267,42 @@ def testAll(self):
     a = cross(v13D, f13D)
     _test_object(a, (3,), ())
 
-    #a = Sum()
+    # a = Sum()
     a = v0 + f0 + v0
     _test_object(a, (), ())
     a = v1 + f1 + v1
     _test_object(a, (dim,), ())
     a = v2 + f2 + v2
     _test_object(a, (dim, dim), ())
-    #a = Product()
+    # a = Product()
     a = 3*v0*(2.0*v0)*f0*(v0*3.0)
     _test_object(a, (), ())
-    #a = Division()
+    # a = Division()
     a = v0 / 2.0
     _test_object(a, (), ())
     a = v0 / f0
     _test_object(a, (), ())
     a = v0 / (f0 + 7)
     _test_object(a, (), ())
-    #a = Power()
+    # a = Power()
     a = f0**3
     _test_object(a, (), ())
     a = (f0*2)**1.23
     _test_object(a, (), ())
 
-    #a = ListTensor()
+    # a = ListTensor()
     a = as_vector([1.0, 2.0*f0, f0**2])
     _test_object(a, (3,), ())
     a = as_matrix([[1.0, 2.0*f0, f0**2],
-                [1.0, 2.0*f0, f0**2]])
+                   [1.0, 2.0*f0, f0**2]])
     _test_object(a, (2, 3), ())
-    a = as_tensor([ [[0.00, 0.01, 0.02],
-                     [0.10, 0.11, 0.12] ],
-                  [ [1.00, 1.01, 1.02],
-                    [1.10, 1.11, 1.12]] ])
+    a = as_tensor([[[0.00, 0.01, 0.02],
+                    [0.10, 0.11, 0.12]],
+                   [[1.00, 1.01, 1.02],
+                    [1.10, 1.11, 1.12]]])
     _test_object(a, (2, 2, 3), ())
 
-    #a = ComponentTensor()
+    # a = ComponentTensor()
     a = as_vector(v1[i]*f1[j], i)
     _test_object(a, (dim,), (j,))
     a = as_matrix(v1[i]*f1[j], (j, i))
@@ -437,7 +442,7 @@ def testAll(self):
 
     # TODO:
 
-    #a = SpatialDerivative()
+    # a = SpatialDerivative()
     a = f0.dx(0)
     _test_object(a, (), ())
     a = f0.dx(i)
@@ -518,14 +523,14 @@ def testAll(self):
     a = rot(f1)
     _test_object(a, (), ())
 
-    #a = PositiveRestricted(v0)
+    # a = PositiveRestricted(v0)
     #_test_object(a, (), ())
     a = v0('+')
     _test_object(a, (), ())
     a = v0('+')*f0
     _test_object(a, (), ())
 
-    #a = NegativeRestricted(v0)
+    # a = NegativeRestricted(v0)
     #_test_object(a, (), ())
     a = v0('-')
     _test_object(a, (), ())
@@ -588,11 +593,11 @@ def testAll(self):
     # --- Form transformations:
 
     a = f0*v0*dx + f0*v0*dot(f1, v1)*dx
-    #b = lhs(a) # TODO
-    #c = rhs(a) # TODO
+    # b = lhs(a) # TODO
+    # c = rhs(a) # TODO
     d = derivative(a, f1, v1)
     f = action(d)
-    #e = action(b)
+    # e = action(b)
 
     # --- Check which classes have been created
     ic, dc = Expr.ufl_disable_profiling()

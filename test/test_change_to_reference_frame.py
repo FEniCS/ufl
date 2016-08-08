@@ -45,7 +45,7 @@ from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, Mix
 
 
 def change_integral_to_reference_frame(form, context):
-    if False: # TODO: integral.is_in_reference_frame():
+    if False:  # TODO: integral.is_in_reference_frame():
         # TODO: Assume reference frame integral is written purely in
         #       reference frame or tramsform integrand here as well?
         return integrand
@@ -57,7 +57,7 @@ def change_integral_to_reference_frame(form, context):
         scale = compute_integrand_scaling_factor(integral.ufl_domain(),
                                                  integral.integral_type())
 
-        return integral.reconstruct(integrand * scale) # TODO: , reference=True)
+        return integral.reconstruct(integrand * scale)  # TODO: , reference=True)
 
 
 def change_expr_to_reference_frame(expr):
@@ -176,6 +176,7 @@ def test_change_hcurl_form_arguments_to_reference_frame():
     m = e | indexed(e)                   # scalar component of
     '''
 
+
 def new_analyse_modified_terminal(expr):
     assert expr._ufl_is_terminal_ or expr._ufl_is_terminal_modifier_type_
     m = expr
@@ -190,7 +191,7 @@ def new_analyse_modified_terminal(expr):
 
     # The evaluation mode is one of current point,
     # a cell entity midpoint, or averaging over a cell entity
-    if unindexed._ufl_is_evaluation_type_: # averages and point evaluations
+    if unindexed._ufl_is_evaluation_type_:  # averages and point evaluations
         v, = v.ufl_operand
         evaluation = unindexed.ufl_handler_name
     else:
@@ -247,13 +248,13 @@ def new_analyse_modified_terminal(expr):
     # Apply paranoid dimension checking
     assert len(indices) == len(unindexed_shape)
     assert all(0 <= i for i in indices)
-    assert all(i < j for i,j in zip(indices, unindexed_shape))
+    assert all(i < j for i, j in zip(indices, unindexed_shape))
     assert len(core_indices) == len(core_shape)
     assert all(0 <= i for i in core_indices)
-    assert all(i < j for i,j in zip(core_indices, core_shape))
-    assert len(derivative_indices) == len(derivatives_shape) # This will fail for e.g. div(grad(f))
+    assert all(i < j for i, j in zip(core_indices, core_shape))
+    assert len(derivative_indices) == len(derivatives_shape)  # This will fail for e.g. div(grad(f))
     assert all(0 <= i for i in derivative_indices)
-    assert all(i < j for i,j in zip(derivative_indices, derivatives_shape))
+    assert all(i < j for i, j in zip(derivative_indices, derivatives_shape))
 
     # Return values:
     mt = ModifiedTerminal(
@@ -266,7 +267,7 @@ def new_analyse_modified_terminal(expr):
         derivatives,
         restriction,
         terminal
-        )
+    )
     return mt
 
 

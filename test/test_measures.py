@@ -20,18 +20,18 @@ from mockobjects import MockMesh, MockMeshFunction
 def test_construct_forms_from_default_measures():
     # Create defaults:
     dx = Measure("dx")
-    #dE = Measure("dE")
+    # dE = Measure("dE")
 
     ds = Measure("ds")
     dS = Measure("dS")
 
     dP = Measure("dP")
-    #dV = Measure("dV")
+    # dV = Measure("dV")
 
     dc = Measure("dc")
-    #dC = Measure("dC")
-    #dO = Measure("dO")
-    #dI = Measure("dI")
+    # dC = Measure("dC")
+    # dO = Measure("dO")
+    # dI = Measure("dI")
 
     ds_b = Measure("ds_b")
     ds_t = Measure("ds_t")
@@ -41,15 +41,15 @@ def test_construct_forms_from_default_measures():
 
     # Check that names are mapped properly
     assert dx.integral_type() == "cell"
-    #assert dE.integral_type() == "macro_cell"
+    # assert dE.integral_type() == "macro_cell"
 
     assert ds.integral_type() == "exterior_facet"
     assert dS.integral_type() == "interior_facet"
 
     assert dP.integral_type() == "vertex"
     # TODO: Change dP to dV:
-    #assert dP.integral_type() == "point"
-    #assert dV.integral_type() == "vertex"
+    # assert dP.integral_type() == "point"
+    # assert dV.integral_type() == "vertex"
 
     assert dc.integral_type() == "custom"
     assert dC.integral_type() == "cutcell"

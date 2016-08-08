@@ -1,0 +1,27 @@
+===========================
+Changes in version 2016.1.0
+===========================
+
+UFL 2016.1.0 was released on 2016-06-23.
+
+- Add operator A^(i,j) := as_tensor(A, (i,j))
+- Updates to old manual for publishing on fenics-ufl.readthedocs.org
+- Bugfix for ufl files with utf-8 encoding
+- Bugfix in conditional derivatives to avoid inf/nan values in generated
+   code. This bugfix may break ffc if uflacs is not used, to get around
+   that the old workaround in ufl can be enabled by setting
+   ufl.algorithms.apply_derivatives.CONDITIONAL_WORKAROUND = True
+   at the top of your program.
+- Allow sum([expressions]) where expressions are nonscalar by defining
+  expr+0==expr
+- Allow form=0; form -= other;
+- Deprecate .cell(), .domain(), .element() in favour of .ufl_cell(),
+  .ufl_domain(), .ufl_element(), in multiple classes, to allow
+  closer integration with dolfin.
+- Remove deprecated properties cell.{d,x,n,volume,circumradius,facet_area}.
+- Remove ancient form2ufl script
+- Add new class Mesh to replace Domain
+- Add new class FunctionSpace(mesh, element)
+- Make FiniteElement classes take Cell, not Domain.
+- Large reworking of symbolic geometry pipeline
+- Implement symbolic Piola mappings

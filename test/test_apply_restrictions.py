@@ -6,6 +6,7 @@ from ufl import *
 from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
 
+
 def test_apply_restrictions():
     cell = triangle
     V0 = FiniteElement("DG", cell, 0)
@@ -42,4 +43,4 @@ def test_apply_restrictions():
     assert apply_restrictions(n('+')) == n('+')
     assert renumber_indices(apply_restrictions(n('-'))) == renumber_indices(as_tensor(-1*n('+')[i], i))
     # This would be nicer, but -f is translated to -1*f which is translated to as_tensor(-1*f[i], i).
-    #assert apply_restrictions(n('-')) == -n('+')
+    # assert apply_restrictions(n('-')) == -n('+')
