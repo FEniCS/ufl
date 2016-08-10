@@ -30,7 +30,7 @@ from ufl.log import warning as ufl_warning
 from ufl.assertions import ufl_assert
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin
 from ufl.utils.formatting import istr
-from ufl.cell import Cell
+from ufl.cell import Cell, TensorProductCell
 from ufl.log import error
 
 # List of valid elements
@@ -106,8 +106,6 @@ any_cell = (None,
             "vertex", "interval",
             "triangle", "tetrahedron",
             "quadrilateral", "hexahedron")
-# FIXME: None covers DOLFIN Expressions with no cell; assuming None is simplex
-dolfin_simplices = simplices + (None,)
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around
@@ -321,13 +319,13 @@ def canonical_element_description(family, cell, order, form_degree):
     (family, short_name, value_rank, sobolev_space, mapping, krange, cellnames) = ufl_elements[family]
 
     # Accept CG/DG on all kind of cells, but use Q/DQ on "product" cells
-    # FIXME: None covers DOLFIN Expressions with no cell; assuming None is simplex
-    if family == "Lagrange" and cellname not in dolfin_simplices:
-        family = "Q"
-    elif family == "Discontinuous Lagrange" and cellname not in dolfin_simplices:
-        if order >= 1:
-            ufl_warning("Discontinuous Lagrange element requested on %s, creating DQ element." % cellname)
-        family = "DQ"
+    if cellname in set(cubes) - set(simplices) or isinstance(cell, TensorProductCell):
+        if family == "Lagrange":
+            family = "Q"
+        elif family == "Discontinuous Lagrange":
+            if order >= 1:
+                ufl_warning("Discontinuous Lagrange element requested on %s, creating DQ element." % cell.cellname())
+            family = "DQ"
 
     # Validate cellname if a valid cell is specified
     ufl_assert(cellname is None or cellname in cellnames,
