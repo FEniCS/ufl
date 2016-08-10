@@ -106,6 +106,8 @@ any_cell = (None,
             "vertex", "interval",
             "triangle", "tetrahedron",
             "quadrilateral", "hexahedron")
+# FIXME: None covers DOLFIN Expressions with no cell; assuming None is simplex
+dolfin_simplices = simplices + (None,)
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around
@@ -319,9 +321,10 @@ def canonical_element_description(family, cell, order, form_degree):
     (family, short_name, value_rank, sobolev_space, mapping, krange, cellnames) = ufl_elements[family]
 
     # Accept CG/DG on all kind of cells, but use Q/DQ on "product" cells
-    if family == "Lagrange" and cellname not in simplices:
+    # FIXME: None covers DOLFIN Expressions with no cell; assuming None is simplex
+    if family == "Lagrange" and cellname not in dolfin_simplices:
         family = "Q"
-    elif family == "Discontinuous Lagrange" and cellname not in simplices:
+    elif family == "Discontinuous Lagrange" and cellname not in dolfin_simplices:
         if order >= 1:
             ufl_warning("Discontinuous Lagrange element requested on %s, creating DQ element." % cellname)
         family = "DQ"
