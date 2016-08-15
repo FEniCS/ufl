@@ -19,6 +19,13 @@ Summary of changes
 - Remove ancient ``form2ufl`` script
 - Large reworking of symbolic geometry pipeline
 - Implement symbolic Piola mappings
+- ``OuterProductCell`` and ``OuterProductElement`` are merged into
+  ``TensorProductCell`` and ``TensorProductElement`` respectively.
+- Better degree estimation for quadrilaterals.
+- Expansion rules for Q, DQ, RTCE, RTCF, NCE and NCF on tensor product
+  cells.
+- Add discontinuous Taylor elements.
+
 
 Detailed changes
 ================
