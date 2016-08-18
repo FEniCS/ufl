@@ -128,8 +128,8 @@ def apply_single_function_pullbacks(g):
         assert f.ufl_shape == g.ufl_shape
         return f
     elif mapping == "double covariant Piola":
-        i, j, k, l = indices(4)
-        f = as_tensor(Jinv[k, i]*r[k, l]*Jinv[l, j], (i, j))
+        i, j, m, n = indices(4)
+        f = as_tensor(Jinv[m, i]*r[m, n]*Jinv[n, j], (i, j))
         assert f.ufl_shape == g.ufl_shape
         return f
 
