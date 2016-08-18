@@ -13,18 +13,19 @@ Summary of changes
 
 - Deprecate ``.cell()``, ``.domain()``, ``.element()`` in favour of
   ``.ufl_cell()``, ``.ufl_domain()``, ``.ufl_element()``, in multiple
-  classes, to allow closer integration with DOLFIN.
+  classes, to allow closer integration with DOLFIN
 - Remove deprecated properties
-  ``cell.{d,x,n,volume,circumradius,facet_area}``.
+  ``cell.{d,x,n,volume,circumradius,facet_area}``
 - Remove ancient ``form2ufl`` script
 - Large reworking of symbolic geometry pipeline
 - Implement symbolic Piola mappings
 - ``OuterProductCell`` and ``OuterProductElement`` are merged into
-  ``TensorProductCell`` and ``TensorProductElement`` respectively.
-- Better degree estimation for quadrilaterals.
+  ``TensorProductCell`` and ``TensorProductElement`` respectively
+- Better degree estimation for quadrilaterals
 - Expansion rules for Q, DQ, RTCE, RTCF, NCE and NCF on tensor product
-  cells.
-- Add discontinuous Taylor elements.
+  cells
+- Add discontinuous Taylor elements
+- Add support for the mapping ``double covariant Piola`` in ``uflacs``
 
 
 Detailed changes
