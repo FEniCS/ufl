@@ -17,6 +17,9 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Lizao Li <lzlarryli@gmail.com>, 2016
+
 
 from six.moves import xrange as range
 

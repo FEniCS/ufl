@@ -21,7 +21,7 @@ elements by calling the function register_element."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
-# Modified by Lizao Li <lzlarryli@gmail.com>, 2015
+# Modified by Lizao Li <lzlarryli@gmail.com>, 2015, 2016
 # Modified by Massimiliano Leoni, 2016
 
 from __future__ import print_function
