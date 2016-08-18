@@ -27,12 +27,11 @@
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import attach_operators_from_hash_data
-from ufl.utils.sequences import product
+from six.moves import reduce
 
 
 # Export list for ufl.classes
-__all_classes__ = ["AbstractCell", "Cell", "TensorProductCell",
-                   "OuterProductCell"]
+__all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 
 # --- The most abstract cell class, base class for other cell types
@@ -135,6 +134,11 @@ class Cell(AbstractCell):
 
     # --- Overrides of AbstractCell methods ---
 
+    def reconstruct(self, geometric_dimension=None):
+        if geometric_dimension is None:
+            geometric_dimension = self._geometric_dimension
+        return Cell(self._cellname, geometric_dimension=geometric_dimension)
+
     def is_simplex(self):
         "    Return True if this is a simplex cell."
         return self.num_vertices() == self.topological_dimension() + 1
@@ -201,15 +205,31 @@ class Cell(AbstractCell):
 class TensorProductCell(AbstractCell):
     __slots__ = ("_cells",)
 
-    def __init__(self, cells):
+    def __init__(self, *cells, **kwargs):
+        keywords = list(kwargs.keys())
+        if keywords and keywords != ["geometric_dimension"]:
+            raise ValueError(
+                "TensorProductCell got an unexpected keyword argument '%s'" %
+                keywords[0])
+
         self._cells = tuple(as_cell(cell) for cell in cells)
 
-        gdims = [cell.geometric_dimension() for cell in self._cells]
-        tdims = [cell.topological_dimension() for cell in self._cells]
-        gdim = sum(gdims)
-        tdim = sum(tdims)
+        tdim = sum([cell.topological_dimension() for cell in self._cells])
+        if kwargs:
+            gdim = kwargs["geometric_dimension"]
+        else:
+            gdim = sum([cell.geometric_dimension() for cell in self._cells])
 
         AbstractCell.__init__(self, tdim, gdim)
+
+    def cellname(self):
+        "Return the cellname of the cell."
+        return " * ".join([cell._cellname for cell in self._cells])
+
+    def reconstruct(self, geometric_dimension=None):
+        if geometric_dimension is None:
+            geometric_dimension = self._geometric_dimension
+        return TensorProductCell(*(self._cells), geometric_dimension=geometric_dimension)
 
     def is_simplex(self):
         "Return True if this is a simplex cell."
@@ -225,7 +245,7 @@ class TensorProductCell(AbstractCell):
 
     def num_vertices(self):
         "The number of cell vertices."
-        return product(c.num_vertices() for c in self._cells)
+        return reduce(lambda x, y: x * y, [c.num_vertices() for c in self._cells])
 
     def num_edges(self):
         "The number of cell edges."
@@ -243,79 +263,14 @@ class TensorProductCell(AbstractCell):
         return repr(self)
 
     def __repr__(self):
-        return "TensorProductCell(%s)" % ", ".join(repr(c) for c in self._cells)
-
-    def _ufl_hash_data_(self):
-        return tuple(c._ufl_hash_data_() for c in self._cells)
-
-
-@attach_operators_from_hash_data
-class OuterProductCell(AbstractCell):  # TODO: Remove this and use TensorProductCell instead
-    """Representation of a cell formed as the Cartesian product of
-    two existing cells"""
-    __slots__ = ("_A", "_B", "facet_horiz", "facet_vert")
-
-    def __init__(self, A, B, gdim=None):
-        self._A = A
-        self._B = B
-
-        tdim = A.topological_dimension() + B.topological_dimension()
-        # default gdim -- "only as big as it needs to be, but not
-        # smaller than A or B"
-        gdim_temp = max(A.geometric_dimension(),
-                        B.geometric_dimension(),
-                        A.topological_dimension() + B.topological_dimension())
-        if gdim is None:
-            # default gdim
-            gdim = gdim_temp
+        if self.geometric_dimension() == self.topological_dimension():
+            return "TensorProductCell(%s)" % ", ".join(map(repr, self._cells))
         else:
-            # otherwise, validate custom gdim
-            if not isinstance(gdim, int):
-                raise TypeError("gdim must be an integer")
-            if gdim < gdim_temp:
-                raise ValueError("gdim must be at least %d" % gdim_temp)
-
-        AbstractCell.__init__(self, tdim, gdim)
-
-        # facets for extruded cells
-        if B.cellname() == "interval":
-            self.facet_horiz = A
-            if A.topological_dimension() == 2:
-                self.facet_vert = OuterProductCell(Cell("interval"),
-                                                   Cell("interval"))
-            elif A.topological_dimension() == 1:
-                # Terminate this recursion somewhere!
-                self.facet_vert = Cell("interval")
-            else:
-                # Don't know how to extrude this
-                self.facet_vert = None
-
-    def is_simplex(self):
-        "Return True if this is a simplex cell."
-        return False
-
-    def has_simplex_facets(self):
-        "Return True if all the facets of this cell are simplex cells."
-        # Actually sometimes true
-        return False
-
-    def num_vertices(self):
-        "The number of cell vertices."
-        return self._A.num_vertices() * self._B.num_vertices()
-
-    def num_edges(self):
-        "The number of cell edges."
-        error("Not defined for OuterProductCell.")
-
-    def num_facets(self):
-        "The number of cell facets."
-        return self._A.num_facets() + self._B.num_facets()
-
-    def __repr__(self):
-        return "OuterProductCell(*%r)" % list([self._A, self._B])
+            return "TensorProductCell(%s, geometric_dimension=%d)" % \
+                (", ".join(map(repr, self._cells)), self._geometric_dimension)
 
     def _ufl_hash_data_(self):
-        return tuple(c._ufl_hash_data_() for c in (self._A, self._B))
+        return tuple(c._ufl_hash_data_() for c in self._cells) + (self._geometric_dimension,)
 
 
 # --- Utility conversion functions

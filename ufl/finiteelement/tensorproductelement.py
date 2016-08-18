@@ -22,9 +22,10 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
+from itertools import chain
+
 from ufl.assertions import ufl_assert
-from ufl.cell import TensorProductCell
-from ufl.log import warning
+from ufl.cell import TensorProductCell, as_cell
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
@@ -38,43 +39,44 @@ class TensorProductElement(FiniteElementBase):
     :math:`\{ \phi_{j_1} \otimes \phi_{j_2} \otimes \cdots \otimes \phi_{j_d}
     \}` forms a basis for :math:`V`.
     """
-    __slots__ = ("_sub_elements",)
+    __slots__ = ("_sub_elements", "_cell")
 
-    def __init__(self, elements):
+    def __init__(self, *elements, **kwargs):
         "Create TensorProductElement from a given list of elements."
-
-        warning("The TensorProductElement is work in progress and the design may change at any moment without notice.")
-
-        self._sub_elements = elements
-        ufl_assert(len(self._sub_elements) > 0,
+        ufl_assert(len(elements) > 0,
                    "Cannot create TensorProductElement from empty list.")
-        self._repr = "TensorProductElement(%s)" % ", ".join(repr(e) for e in self._sub_elements)
+
+        keywords = list(kwargs.keys())
+        if keywords and keywords != ["cell"]:
+            raise ValueError("TensorProductElement got an unexpected keyword argument '%s'" % keywords[0])
+        cell = kwargs.get("cell")
 
         family = "TensorProductElement"
 
-        # Define cell as the product of each elements cell
-        cell = TensorProductCell([e.cell() for e in self._sub_elements])
+        if cell is None:
+            # Define cell as the product of each elements cell
+            cell = TensorProductCell(*[e.cell() for e in elements])
+        else:
+            cell = as_cell(cell)
 
-        # Define polynomial degree as the maximal of each subelement
-        degrees = {e.degree() for e in self._sub_elements} - {None}
-        degree = max(degrees) if degrees else None
+        # Define polynomial degree as a tuple of sub-degrees
+        degree = tuple(e.degree() for e in elements)
 
         # No quadrature scheme defined
         quad_scheme = None
 
-        # For now, check that all subelements have the same value
-        # shape, and use this.
-        # TODO: Not sure if this makes sense, what kind of product is
-        # used to build the basis?
-        value_shape = self._sub_elements[0].value_shape()
-        reference_value_shape = self._sub_elements[0].reference_value_shape()
-        ufl_assert(all(e.value_shape() == value_shape
-                       for e in self._sub_elements),
-                   "All subelements in must have same value shape")
+        # match FIAT implementation
+        value_shape = tuple(chain(*[e.value_shape() for e in elements]))
+        reference_value_shape = tuple(chain(*[e.reference_value_shape() for e in elements]))
+        ufl_assert(len(value_shape) <= 1, "Product of vector-valued elements not supported")
+        ufl_assert(len(reference_value_shape) <= 1, "Product of vector-valued elements not supported")
 
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape,
                                    reference_value_shape)
+        self._sub_elements = elements
+        self._cell = cell
+        self._repr = "TensorProductElement(%s, cell=%s)" % (", ".join(repr(e) for e in elements), repr(cell))
 
     def mapping(self):
         if all(e.mapping() == "identity" for e in self._sub_elements):
@@ -92,10 +94,10 @@ class TensorProductElement(FiniteElementBase):
 
     def __str__(self):
         "Pretty-print."
-        return "TensorProductElement(%s)" \
-            % str([str(e) for e in self.sub_elements()])
+        return "TensorProductElement(%s, cell=%s)" \
+            % (', '.join([str(e) for e in self._sub_elements]), str(self._cell))
 
     def shortstr(self):
         "Short pretty-print."
-        return "TensorProductElement(%s)" \
-            % str([e.shortstr() for e in self.sub_elements()])
+        return "TensorProductElement(%s, cell=%s)" \
+            % (', '.join([e.shortstr() for e in self._sub_elements]), str(self._cell))

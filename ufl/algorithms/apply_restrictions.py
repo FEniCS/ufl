@@ -179,6 +179,8 @@ class RestrictionPropagator(MultiFunction):
     cell_facet_jacobian_inverse = _require_restriction      # ...
     cell_edge_vectors = _require_restriction                # ...
 
+    reference_cell_volume = _ignore_restriction  # FIXME: needs changing for mixed cell meshes
+
     cell_normal = _require_restriction  # Property of cell
 
     # facet_tangents = _default_restricted # Independent of cell

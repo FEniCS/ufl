@@ -21,15 +21,16 @@ elements by calling the function register_element."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
-# Modified by Lizao Li <lzlarryli@gmail.com>, 2015
+# Modified by Lizao Li <lzlarryli@gmail.com>, 2015, 2016
 # Modified by Massimiliano Leoni, 2016
 
 from __future__ import print_function
 
+from ufl.log import warning as ufl_warning
 from ufl.assertions import ufl_assert
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin
 from ufl.utils.formatting import istr
-from ufl.cell import Cell
+from ufl.cell import Cell, TensorProductCell
 from ufl.log import error
 
 # List of valid elements
@@ -114,6 +115,7 @@ register_element("Brezzi-Douglas-Marini", "BDM", 1, HDiv,
                  "contravariant Piola", (1, None), simplices[1:])  # "BDMF" (2d), "N2F" (3d)
 register_element("Discontinuous Lagrange", "DG", 0, L2, "identity", (0, None),
                  any_cell)  # "DP"
+register_element("Discontinuous Taylor", "TDG", 0, L2, "identity", (0, None), simplices)
 register_element("Nedelec 1st kind H(curl)", "N1curl", 1, HCurl,
                  "covariant Piola", (1, None), simplices[1:])  # "RTE"  (2d), "N1E" (3d)
 register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, HCurl,
@@ -143,14 +145,14 @@ register_element("Bubble", "B", 0, H1, "identity", (2, None), simplices)
 register_element("Quadrature", "Quadrature", 0, L2, "identity", (0, None),
                  any_cell)
 register_element("Real", "R", 0, L2, "identity", (0, 0),
-                 any_cell + ("OuterProductCell",))
+                 any_cell + ("TensorProductCell",))
 register_element("Undefined", "U", 0, L2, "identity", (0, None), any_cell)
 register_element("Lobatto", "Lob", 0, L2, "identity", (1, None), ("interval",))
 register_element("Radau", "Rad", 0, L2, "identity", (0, None), ("interval",))
 register_element("Discontinuous Lagrange Trace", "DGT", 0, L2, "identity",
                  (0, None), any_cell)
-register_element("Regge", "Regge", 2, HEin, "pullback as metric", (0, None),
-                 simplices[1:])
+register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
+                 (0, None), simplices[1:])
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
@@ -315,6 +317,15 @@ def canonical_element_description(family, cell, order, form_degree):
     # Check that element data is valid (and also get common family
     # name)
     (family, short_name, value_rank, sobolev_space, mapping, krange, cellnames) = ufl_elements[family]
+
+    # Accept CG/DG on all kind of cells, but use Q/DQ on "product" cells
+    if cellname in set(cubes) - set(simplices) or isinstance(cell, TensorProductCell):
+        if family == "Lagrange":
+            family = "Q"
+        elif family == "Discontinuous Lagrange":
+            if order >= 1:
+                ufl_warning("Discontinuous Lagrange element requested on %s, creating DQ element." % cell.cellname())
+            family = "DQ"
 
     # Validate cellname if a valid cell is specified
     ufl_assert(cellname is None or cellname in cellnames,

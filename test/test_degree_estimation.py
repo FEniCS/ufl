@@ -16,8 +16,8 @@ def test_total_degree_estimation():
     V2 = FiniteElement("CG", triangle, 2)
     VV = VectorElement("CG", triangle, 3)
     VM = V1 * V2
-    O1 = OuterProductElement(V1, V1)
-    O2 = OuterProductElement(V2, V1)
+    O1 = TensorProductElement(V1, V1)
+    O2 = TensorProductElement(V2, V1)
     v1 = Argument(V1, 2)
     v2 = Argument(V2, 3)
     f1, f2 = Coefficients(VM)

@@ -17,6 +17,9 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Lizao Li <lzlarryli@gmail.com>, 2016
+
 
 from six.moves import xrange as range
 
@@ -122,6 +125,11 @@ def apply_single_function_pullbacks(g):
         i, j = indices(2)
         f = as_vector(Jinv[j, i]*r[j], i)
         # f = as_tensor(Jinv[j, i]*r[k,j], (k,i)) # FIXME: Handle Vector(Piola) here?
+        assert f.ufl_shape == g.ufl_shape
+        return f
+    elif mapping == "double covariant Piola":
+        i, j, m, n = indices(4)
+        f = as_tensor(Jinv[m, i]*r[m, n]*Jinv[n, j], (i, j))
         assert f.ufl_shape == g.ufl_shape
         return f
 
