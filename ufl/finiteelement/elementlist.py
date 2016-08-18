@@ -28,7 +28,7 @@ from __future__ import print_function
 
 from ufl.log import warning as ufl_warning
 from ufl.assertions import ufl_assert
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv
 from ufl.utils.formatting import istr
 from ufl.cell import Cell, TensorProductCell
 from ufl.log import error
@@ -153,6 +153,8 @@ register_element("Discontinuous Lagrange Trace", "DGT", 0, L2, "identity",
                  (0, None), any_cell)
 register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
                  (0, None), simplices[1:])
+register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
+                 "double contravariant Piola", (0, None), ("triangle",))
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
