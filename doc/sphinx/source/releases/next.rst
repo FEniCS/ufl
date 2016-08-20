@@ -26,7 +26,8 @@ Summary of changes
   cells
 - Add discontinuous Taylor elements
 - Add support for the mapping ``double covariant Piola`` in ``uflacs``
-
+- Add support for the mapping ``double contravariant Piola`` in ``uflacs``
+- Support for tensor-valued subelements in ``uflacs`` fixed
 
 Detailed changes
 ================
