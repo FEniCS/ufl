@@ -150,7 +150,6 @@ def apply_single_function_pullbacks(g):
     #     covered by the shortcut above
     # - VectorElements of vector-valued basic elements (FIXME)
     # - TensorElements with symmetries (FIXME)
-    # - Tensor-valued FiniteElements (the new Regge elements)
     assert len(gsh) == 1
     assert len(rsh) == 1
 
@@ -199,6 +198,32 @@ def apply_single_function_pullbacks(g):
             j = Index()
             for i in range(gm):
                 g_components[gpos + i] = Jinv[j, i]*rv[j]
+
+        elif mp == "double covariant Piola":
+            # components are flatten, map accordingly
+            rv = as_vector([r[rpos+k] for k in range(rm)])
+            dim = subelm.value_shape()[0]
+            for i in range(dim):
+                for j in range(dim):
+                    gv = 0
+                    # int times Index is not allowed. so sum by hand
+                    for m in range(dim):
+                        for n in range(dim):
+                            gv += Jinv[m, i]*rv[m*dim+n]*Jinv[n, j]
+                    g_components[gpos + i * dim + j] = gv
+
+        elif mp == "double contravariant Piola":
+            # components are flatten, map accordingly
+            rv = as_vector([r[rpos+k] for k in range(rm)])
+            dim = subelm.value_shape()[0]
+            for i in range(dim):
+                for j in range(dim):
+                    gv = 0
+                    # int times Index is not allowed. so sum by hand
+                    for m in range(dim):
+                        for n in range(dim):
+                            gv += (1.0/detJ)*(1.0/detJ)*J[i, m]*rv[m*dim+n]*J[j, n]
+                    g_components[gpos + i * dim + j] = gv
 
         else:
             error("Unknown subelement mapping type %s for element %s." % (mp, str(subelm)))
