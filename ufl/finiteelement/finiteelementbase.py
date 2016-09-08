@@ -194,8 +194,6 @@ class FiniteElementBase(object):
         "Add two elements, creating an enriched element"
         ufl_assert(isinstance(other, FiniteElementBase),
                    "Can't add element and %s." % other.__class__)
-        warning_blue("WARNING: Creating an EnrichedElement,\n         " +
-                     "if you intended to create a MixedElement use '*' instead of '+'.")
         from ufl.finiteelement import EnrichedElement
         return EnrichedElement(self, other)
 
