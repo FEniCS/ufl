@@ -20,12 +20,14 @@
 
 from ufl.core.expr import Expr
 from ufl.assertions import ufl_assert
-from ufl.algorithms.transformer import Transformer
+
+from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.map_dag import map_expr_dag
 
 
-class RestrictionChecker(Transformer):
+class RestrictionChecker(MultiFunction):
     def __init__(self, require_restriction):
-        Transformer.__init__(self)
+        MultiFunction.__init__(self)
         self.current_restriction = None
         self.require_restriction = require_restriction
 
@@ -58,5 +60,6 @@ class RestrictionChecker(Transformer):
 
 
 def check_restrictions(expression, require_restriction):
-    ufl_assert(isinstance(expression, Expr), "Expecting Expr instance.")
-    return RestrictionChecker(require_restriction).visit(expression)
+    "Check that types that must be restricted are restricted in expression."
+    rules = RestrictionChecker(require_restriction)
+    return map_expr_dag(rules, expression)
