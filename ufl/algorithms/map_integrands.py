@@ -34,24 +34,21 @@ def map_integrands(function, form, only_integral_type=None):
     """Apply transform(expression) to each integrand
     expression in form, or to form if it is an Expr.
     """
-
     if isinstance(form, Form):
-        mapped_integrals = [map_integrands(function, itg, only_integral_type) for itg in form.integrals()]
-        nonzero_integrals = [itg for itg in mapped_integrals if not isinstance(itg.integrand(), Zero)]
+        mapped_integrals = [map_integrands(function, itg, only_integral_type)
+                            for itg in form.integrals()]
+        nonzero_integrals = [itg for itg in mapped_integrals
+                             if not isinstance(itg.integrand(), Zero)]
         return Form(nonzero_integrals)
-
     elif isinstance(form, Integral):
         itg = form
         if (only_integral_type is None) or (itg.integral_type() in only_integral_type):
             return itg.reconstruct(function(itg.integrand()))
         else:
             return itg
-
     elif isinstance(form, Expr):
-        # ufl_assert(only_integral_type is None, "Restricting integral type is only valid with Form and Integral.")
         integrand = form
         return function(integrand)
-
     else:
         error("Expecting Form, Integral or Expr.")
 

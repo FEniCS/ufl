@@ -48,7 +48,9 @@ from ufl.classes import terminal_classes
 # Other algorithms:
 from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.algorithms.formfiles import load_forms
-from ufl.algorithms.transformer import Transformer
+
+from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.traversal import unique_post_traversal
 
 from ufl.formatting.graph import build_graph, partition, extract_outgoing_vertex_connections
@@ -141,9 +143,9 @@ def cfname(i):
 
 # TODO: Handle line wrapping
 # TODO: Handle ListTensors of rank > 1 correctly
-class Expression2LatexHandler(Transformer):
+class Expression2LatexHandler(MultiFunction):
     def __init__(self, argument_names=None, coefficient_names=None):
-        Transformer.__init__(self)
+        MultiFunction.__init__(self)
         self.argument_names = argument_names
         self.coefficient_names = coefficient_names
 
@@ -400,8 +402,8 @@ class Expression2LatexHandler(Transformer):
 
 
 def expression2latex(expression, argument_names=None, coefficient_names=None):
-    visitor = Expression2LatexHandler(argument_names, coefficient_names)
-    return visitor.visit(expression)
+    rules = Expression2LatexHandler(argument_names, coefficient_names)
+    return map_expr_dag(rules, expression)
 
 
 def element2latex(element):
