@@ -26,7 +26,7 @@ from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
-from ufl.log import warning_blue, error
+from ufl.log import error
 from ufl.cell import AbstractCell, as_cell
 
 
