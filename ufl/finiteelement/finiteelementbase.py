@@ -80,6 +80,10 @@ class FiniteElementBase(object):
         "Compute element equality for insertion in hashmaps."
         return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
 
+    def __ne__(self, other):
+        "Compute element inequality for insertion in hashmaps."
+        return not self.__eq__(other)
+
     def __lt__(self, other):
         "Compare elements by repr, to give a natural stable sorting."
         return repr(self) < repr(other)
