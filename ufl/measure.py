@@ -29,6 +29,7 @@ from ufl.constantvalue import as_ufl
 from ufl.utils.dicts import EmptyDict
 from ufl.domain import as_domain, AbstractDomain, extract_domains
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
+import numpy as np
 
 
 # Export list for ufl.classes
@@ -163,9 +164,9 @@ class Measure(object):
         # Accept "everywhere", single subdomain, or multiple
         # subdomains
         ufl_assert(subdomain_id in ("everywhere",) or
-                   isinstance(subdomain_id, int) or
+                   isinstance(subdomain_id, (int, np.integer)) or
                    (isinstance(subdomain_id, tuple) and
-                    all(isinstance(did, int) for did in subdomain_id)),
+                    all(isinstance(did, (int, np.integer)) for did in subdomain_id)),
                    "Invalid subdomain_id.")
         self._subdomain_id = subdomain_id
 
@@ -412,7 +413,7 @@ a single integral.
 
         # Check that we have an integer subdomain or a string
         # ("everywhere" or "otherwise", any more?)
-        ufl_assert(isinstance(subdomain_id, (int, str)),
+        ufl_assert(isinstance(subdomain_id, (int, str, np.integer)),
                    "Expecting integer or string domain id.")
 
         # If we don't have an integration domain, try to find one in
