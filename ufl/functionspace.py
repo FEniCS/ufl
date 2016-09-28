@@ -60,7 +60,11 @@ class FunctionSpace(AbstractFunctionSpace):
 
     def ufl_domains(self):
         "Return ufl domains."
-        return (self.ufl_domain(),)
+        domain = self.ufl_domain()
+        if domain is None:
+            return ()
+        else:
+            return (domain,)
 
     def _ufl_hash_data_(self):
         edata = repr(self.ufl_element())
