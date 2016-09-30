@@ -28,7 +28,7 @@ from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key, sorted_by_tuple_key
-import numpy as np
+import numbers
 
 
 class IntegralData(object):
@@ -144,10 +144,10 @@ def group_integrals_by_domain_and_type(integrals, domains):
 def integral_subdomain_ids(integral):
     "Get a tuple of integer subdomains or a valid string subdomain from integral."
     did = integral.subdomain_id()
-    if isinstance(did, (int, np.integer)):
+    if isinstance(did, numbers.Integral):
         return (did,)
     elif isinstance(did, tuple):
-        ufl_assert(all(isinstance(d, (int, np.integer)) for d in did),
+        ufl_assert(all(isinstance(d, numbers.Integral) for d in did),
                    "Expecting only integer subdomains in tuple.")
         return did
     elif did in ("everywhere", "otherwise"):
