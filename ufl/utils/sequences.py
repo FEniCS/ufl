@@ -19,6 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from six.moves import zip
+from six import string_types
 
 
 def product(sequence):
@@ -61,7 +62,7 @@ def iter_tree(tree):
 
 def recursive_chain(lists):
     for l in lists:
-        if isinstance(l, str):
+        if isinstance(l, string_types):
             yield l
         else:
             for s in recursive_chain(l):

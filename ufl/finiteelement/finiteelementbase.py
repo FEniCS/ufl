@@ -23,6 +23,8 @@
 # Modified by Massimiliano Leoni, 2016
 
 from six.moves import zip
+from six import string_types
+
 from ufl.assertions import ufl_assert
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
@@ -47,7 +49,7 @@ class FiniteElementBase(object):
     def __init__(self, family, cell, degree, quad_scheme, value_shape,
                  reference_value_shape):
         "Initialize basic finite element data."
-        ufl_assert(isinstance(family, str), "Invalid family type.")
+        ufl_assert(isinstance(family, string_types), "Invalid family type.")
         ufl_assert(isinstance(degree, (int, tuple)) or degree is None,
                    "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")

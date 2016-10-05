@@ -20,6 +20,7 @@
 
 from ufl.log import warning
 from six import itervalues, iteritems
+from six import string_types
 
 
 def topological_sorting(nodes, edges):
@@ -100,7 +101,7 @@ def canonicalize_metadata(metadata):
 
     if isinstance(metadata, dict):
         keys = sorted(metadata.keys())
-        assert all(isinstance(key, str) for key in keys)
+        assert all(isinstance(key, string_types) for key in keys)
         values = [metadata[key] for key in keys]
     elif isinstance(metadata, (tuple, list)):
         values = metadata
@@ -109,7 +110,7 @@ def canonicalize_metadata(metadata):
     for value in values:
         if isinstance(value, (dict, list, tuple)):
             value = canonicalize_metadata(value)
-        elif isinstance(value, (int, float, str)):
+        elif isinstance(value, (int, float, string_types)):
             value = str(value)
         else:
             warning("Applying str() to a metadata value of type {0}, don't know if this is safe.".format(type(value).__name__))

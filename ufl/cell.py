@@ -28,6 +28,7 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from six.moves import reduce
+from six import string_types
 
 
 # Export list for ufl.classes
@@ -309,7 +310,7 @@ def as_cell(cell):
     """
     if isinstance(cell, AbstractCell):
         return cell
-    elif isinstance(cell, str):
+    elif isinstance(cell, string_types):
         return Cell(cell)
     elif isinstance(cell, tuple):
         return TensorProductCell(cell)

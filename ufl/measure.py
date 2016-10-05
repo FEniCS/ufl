@@ -21,6 +21,8 @@
 # Modified by Anders Logg 2008-2015
 # Modified by Massimiliano Leoni, 2016.
 
+from six import string_types
+
 from ufl.assertions import ufl_assert
 from ufl.log import error, deprecate
 from ufl.core.expr import Expr
@@ -412,7 +414,7 @@ a single integral.
 
         # Check that we have an integer subdomain or a string
         # ("everywhere" or "otherwise", any more?)
-        ufl_assert(isinstance(subdomain_id, (int, str)),
+        ufl_assert(isinstance(subdomain_id, (int, string_types)),
                    "Expecting integer or string domain id.")
 
         # If we don't have an integration domain, try to find one in

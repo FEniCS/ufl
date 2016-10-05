@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from six import string_types
+
 # --- Basic LaTeX tools ---
 
 documenttemplate = """\
@@ -73,7 +75,7 @@ def verbatim(string):
 
 def align(lines):
     # Calculate column lengths
-    if isinstance(lines[0], str):
+    if isinstance(lines[0], string_types):
         body = " \\\\\n".join(l for l in lines)
     else:
         n = len(lines[0])
@@ -94,7 +96,7 @@ def itemize(items):
 
 
 def subsubsection(s):
-    if isinstance(s, str):
+    if isinstance(s, string_types):
         return s
     if isinstance(s, tuple):
         title, body = s
@@ -104,7 +106,7 @@ def subsubsection(s):
 
 
 def subsection(s):
-    if isinstance(s, str):
+    if isinstance(s, string_types):
         return s
     if isinstance(s, tuple):
         title, body = s
@@ -114,7 +116,7 @@ def subsection(s):
 
 
 def section(s):
-    if isinstance(s, str):
+    if isinstance(s, string_types):
         return s
     if isinstance(s, tuple):
         title, body = s
