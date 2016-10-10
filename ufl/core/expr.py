@@ -385,6 +385,14 @@ class Expr(object):
         "Return pretty print string representation of this object."
         raise NotImplementedError(self.__class__.__str__)
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
+    def __bytes__(self):
+        # Only in python 3
+        return str(self).encode("utf-8")
+
     def _repr_latex_(self):
         from ufl.algorithms import ufl2latex
         return "$%s$" % ufl2latex(self)
