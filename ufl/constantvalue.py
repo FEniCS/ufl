@@ -42,7 +42,7 @@ precision = None
 def format_float(x):
     "Format float value based on global UFL precision."
     if precision is None:
-        return repr(x)
+        return "%s" % repr(x)
     else:
         return ("%%.%dg" % precision) % x
 

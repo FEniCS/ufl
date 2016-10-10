@@ -23,7 +23,7 @@
 
 from itertools import chain
 from collections import defaultdict
-from ufl.log import error, deprecate
+from ufl.log import error, warning, deprecate
 from ufl.assertions import ufl_assert
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
@@ -332,16 +332,17 @@ class Form(object):
 
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
-        # TODO: Add warning here to check if anyone actually calls it
-        # in libraries
+        warning("Calling str on form is potentially expensive and should be avoided except during debugging.")
+        # Not caching this because it can be huge
         s = "\n  +  ".join(str(itg) for itg in self.integrals())
         return s or "<empty Form>"
 
     def __repr__(self):
         "Compute repr string of form. This can be huge for complicated forms."
-        # TODO: Add warning here to check if anyone actually calls it
-        # in libraries Not caching this because it can be huge
-        r = "Form([%s])" % ", ".join(repr(itg) for itg in self.integrals())
+        warning("Calling repr on form is potentially expensive and should be avoided except during debugging.")
+        # Not caching this because it can be huge
+        itgs = ", ".join(repr(itg) for itg in self.integrals())
+        r = "Form([" + itgs + "])"
         return r
 
     def x_repr_latex_(self):  # TODO: This works, but enable when form latex rendering is fixed

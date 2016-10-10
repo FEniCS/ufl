@@ -76,7 +76,8 @@ class TensorProductElement(FiniteElementBase):
                                    reference_value_shape)
         self._sub_elements = elements
         self._cell = cell
-        self._repr = "TensorProductElement(%s, cell=%s)" % (", ".join(repr(e) for e in elements), repr(cell))
+        self._repr = "TensorProductElement(%s, cell=%s)" % (
+            ", ".join(repr(e) for e in elements), repr(cell))
 
     def mapping(self):
         if all(e.mapping() == "identity" for e in self._sub_elements):

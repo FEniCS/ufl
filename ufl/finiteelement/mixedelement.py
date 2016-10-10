@@ -103,7 +103,8 @@ class MixedElement(FiniteElementBase):
 
         # Cache repr string
         if type(self) is MixedElement:
-            self._repr = "MixedElement(%s)" % ", ".join(repr(e) for e in self._sub_elements)
+            self._repr = "MixedElement(%s)" % (
+                ", ".join(repr(e) for e in self._sub_elements),)
 
     def reconstruct_from_elements(self, *elements):
         "Reconstruct a mixed element from new subelements."
