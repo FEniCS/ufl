@@ -26,12 +26,23 @@ from ufl.log import error
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.finiteelement import MixedElement, TensorElement
-from ufl.tensors import as_vector, as_matrix
+from ufl.tensors import as_vector, as_matrix, ListTensor
+from ufl.indexed import Indexed
 
 
 def split(v):
     """UFL operator: If v is a Coefficient or Argument in a mixed space, returns
     a tuple with the function components corresponding to the subelements."""
+
+    # Special case: split previous output of split again
+    if isinstance(v, ListTensor):
+        components = v.ufl_operands
+        if all(isinstance(comp, Indexed) for comp in components):
+            args = [comp.ufl_operands[0] for comp in components]
+            if all(args[0] == args[i] for i in range(1, len(args))):
+                return components
+        error("Failed to split %s." % (v,))
+
     # Special case: simple element, just return function in a tuple
     element = v.ufl_element()
     if not isinstance(element, MixedElement):
@@ -103,8 +114,7 @@ def split(v):
                         k = offset + i*shape[1] + j
                         component = v[k]
                     elif len(v.ufl_shape) == 2:
-                        # Mapping into a concatenated tensor (is this
-                        # a figment of my imagination?)
+                        # Mapping into a concatenated tensor
                         error("Not implemented.")
                         row_offset, col_offset = 0, 0  # TODO
                         k = (row_offset + i, col_offset + j)
