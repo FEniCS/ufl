@@ -47,8 +47,10 @@ class Equation(object):
         # Try to delegate to equals function
         if hasattr(self.lhs, "equals"):
             return self.lhs.equals(self.rhs)
-        # Fall back to repr
-        return repr(self.lhs) == repr(self.rhs)
+        elif hasattr(self.rhs, "equals"):
+            return self.rhs.equals(self.lhs)
+        else:
+            error("Either lhs or rhs of Equation must implement self.equals(other).")
     __nonzero__ = __bool__
 
     def __eq__(self, other):
