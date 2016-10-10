@@ -22,6 +22,9 @@
 __all_classes__ = ["Equation"]
 
 
+from ufl.log import error
+
+
 class Equation(object):
     """This class is used to represent equations expressed by the "=="
     operator. Examples include a == L and F == 0 where a, L and F are
