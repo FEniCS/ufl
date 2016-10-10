@@ -47,6 +47,3 @@ class ReferenceValue(Operator):
 
     def __str__(self):
         return "reference_value(%s)" % self.ufl_operands[0]
-
-    def __repr__(self):
-        return "ReferenceValue(%r)" % self.ufl_operands[0]

@@ -75,9 +75,6 @@ class MathFunction(Operator):
     def __str__(self):
         return "%s(%s)" % (self._name, self.ufl_operands[0])
 
-    def __repr__(self):
-        return "%s(%r)" % (self._name, self.ufl_operands[0])
-
 
 @ufl_type()
 class Sqrt(MathFunction):
@@ -266,9 +263,6 @@ class Atan2(Operator):
     def __str__(self):
         return "atan_2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
 
-    def __repr__(self):
-        return "atan_2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
-
 
 def _find_erf():
     import math
@@ -344,10 +338,6 @@ class BesselFunction(Operator):
 
     def __str__(self):
         return "%s(%s, %s)" % (self._name, self.ufl_operands[0],
-                               self.ufl_operands[1])
-
-    def __repr__(self):
-        return "%s(%r, %r)" % (self._classname, self.ufl_operands[0],
                                self.ufl_operands[1])
 
 

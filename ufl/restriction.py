@@ -48,9 +48,6 @@ class Restricted(Operator):
     def __str__(self):
         return "%s('%s')" % (parstr(self.ufl_operands[0], self), self._side)
 
-    def __repr__(self):
-        return "%s(%r)" % (self._ufl_class_.__name__, self.ufl_operands[0])
-
 
 @ufl_type(is_terminal_modifier=True)
 class PositiveRestricted(Restricted):
@@ -89,9 +86,6 @@ class CellAvg(Operator):
     def __str__(self):
         return "cell_avg(%s)" % (self.ufl_operands[0],)
 
-    def __repr__(self):
-        return "CellAvg(%r)" % self.ufl_operands[0]
-
 
 # TODO: Place in a better file?
 @ufl_type(is_index_free=True,
@@ -116,6 +110,3 @@ class FacetAvg(Operator):
 
     def __str__(self):
         return "facet_avg(%s)" % (self.ufl_operands[0],)
-
-    def __repr__(self):
-        return "FacetAvg(%r)" % self.ufl_operands[0]

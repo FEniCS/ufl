@@ -122,10 +122,6 @@ class ListTensor(Operator):
                 return "%s[%s]" % (ind, s)
         return substring(self.ufl_operands, 0)
 
-    def __repr__(self):
-        return "ListTensor(%s)" % ", ".join(
-            repr(e) for e in self.ufl_operands)
-
 
 @ufl_type(is_shaping=True, num_ops="varying")
 class ComponentTensor(Operator):
@@ -194,9 +190,6 @@ class ComponentTensor(Operator):
 
     def __str__(self):
         return "{ A | A_{%s} = %s }" % (self.ufl_operands[1], self.ufl_operands[0])
-
-    def __repr__(self):
-        return "ComponentTensor(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
 
 # --- User-level functions to wrap expressions in the correct way ---

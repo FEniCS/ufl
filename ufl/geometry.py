@@ -122,7 +122,7 @@ class GeometricQuantity(Terminal):
         return self._ufl_class_.name
 
     def __repr__(self):
-        return "%s(%r)" % (self._ufl_class_.__name__, self._domain)
+        return "%s(%s)" % (self._ufl_class_.__name__, repr(self._domain))
 
     def _ufl_compute_hash_(self):
         return hash((type(self).__name__,) + self._domain._ufl_hash_data_())

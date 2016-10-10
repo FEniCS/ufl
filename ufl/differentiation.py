@@ -78,11 +78,6 @@ class CoefficientDerivative(Derivative):
             % (self.ufl_operands[0], self.ufl_operands[1],
                self.ufl_operands[2], self.ufl_operands[3])
 
-    def __repr__(self):
-        return "CoefficientDerivative(%r, %r, %r, %r)"\
-            % (self.ufl_operands[0], self.ufl_operands[1],
-               self.ufl_operands[2], self.ufl_operands[3])
-
 
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
@@ -117,10 +112,6 @@ class VariableDerivative(Derivative):
             return "d%s/d[%s]" % (self.ufl_operands[0], self.ufl_operands[1])
         return "d/d[%s] %s" % (self.ufl_operands[1],
                                parstr(self.ufl_operands[0], self))
-
-    def __repr__(self):
-        return "VariableDerivative(%r, %r)" % (self.ufl_operands[0],
-                                               self.ufl_operands[1])
 
 
 # --- Compound differentiation objects ---
@@ -177,9 +168,6 @@ class Grad(CompoundDerivative):
     def __str__(self):
         return "grad(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "Grad(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True,
           is_in_reference_frame=True)
@@ -225,9 +213,6 @@ class ReferenceGrad(CompoundDerivative):
     def __str__(self):
         return "reference_grad(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "ReferenceGrad(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Div(CompoundDerivative):
@@ -252,9 +237,6 @@ class Div(CompoundDerivative):
 
     def __str__(self):
         return "div(%s)" % self.ufl_operands[0]
-
-    def __repr__(self):
-        return "Div(%r)" % self.ufl_operands[0]
 
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True,
@@ -281,9 +263,6 @@ class ReferenceDiv(CompoundDerivative):
 
     def __str__(self):
         return "reference_div(%s)" % self.ufl_operands[0]
-
-    def __repr__(self):
-        return "ReferenceDiv(%r)" % self.ufl_operands[0]
 
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
@@ -320,9 +299,6 @@ class NablaGrad(CompoundDerivative):
     def __str__(self):
         return "nabla_grad(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "NablaGrad(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class NablaDiv(CompoundDerivative):
@@ -347,9 +323,6 @@ class NablaDiv(CompoundDerivative):
 
     def __str__(self):
         return "nabla_div(%s)" % self.ufl_operands[0]
-
-    def __repr__(self):
-        return "NablaDiv(%r)" % self.ufl_operands[0]
 
 
 _curl_shapes = {(): (2,), (2,): (), (3,): (3,)}
@@ -381,9 +354,6 @@ class Curl(CompoundDerivative):
     def __str__(self):
         return "curl(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "Curl(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0,
           is_terminal_modifier=True, is_in_reference_frame=True)
@@ -411,6 +381,3 @@ class ReferenceCurl(CompoundDerivative):
 
     def __str__(self):
         return "reference_curl(%s)" % self.ufl_operands[0]
-
-    def __repr__(self):
-        return "ReferenceCurl(%r)" % self.ufl_operands[0]

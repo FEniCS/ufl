@@ -66,4 +66,4 @@ class Equation(object):
         return hash((hash(self.lhs), hash(self.rhs)))
 
     def __repr__(self):
-        return "Equation(%r, %r)" % (self.lhs, self.rhs)
+        return "Equation(%s, %s)" % (repr(self.lhs), repr(self.rhs))

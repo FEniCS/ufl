@@ -117,6 +117,3 @@ class Variable(Operator):
     def __str__(self):
         return "var%d(%s)" % (self.ufl_operands[1].count(),
                               self.ufl_operands[0])
-
-    def __repr__(self):
-        return "Variable(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])

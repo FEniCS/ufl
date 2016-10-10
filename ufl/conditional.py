@@ -84,10 +84,6 @@ class BinaryCondition(Condition):
         return "%s %s %s" % (parstr(self.ufl_operands[0], self),
                              self._name, parstr(self.ufl_operands[1], self))
 
-    def __repr__(self):
-        return "%s(%r, %r)" % (type(self).__name__, self.ufl_operands[0],
-                               self.ufl_operands[1])
-
 
 # Not associating with __eq__, the concept of equality with == is
 # reserved for object equivalence for use in set and dict.
@@ -220,9 +216,6 @@ class NotCondition(Condition):
     def __str__(self):
         return "!(%s)" % (str(self.ufl_operands[0]),)
 
-    def __repr__(self):
-        return "NotCondition(%r)" % (self.ufl_operands[0],)
-
 
 # --- Conditional expression (condition ? true_value : false_value) ---
 
@@ -263,9 +256,6 @@ class Conditional(Operator):
     def __str__(self):
         return "%s ? %s : %s" % tuple(parstr(o, self) for o in self.ufl_operands)
 
-    def __repr__(self):
-        return "Conditional(%r, %r, %r)" % self.ufl_operands
-
 
 # --- Specific functions higher level than a conditional ---
 
@@ -293,9 +283,6 @@ class MinValue(Operator):
     def __str__(self):
         return "min_value(%s, %s)" % self.ufl_operands
 
-    def __repr__(self):
-        return "MinValue(%r, %r)" % self.ufl_operands
-
 
 @ufl_type(is_scalar=True, num_ops=1)
 class MaxValue(Operator):
@@ -320,6 +307,3 @@ class MaxValue(Operator):
 
     def __str__(self):
         return "max_value(%s, %s)" % self.ufl_operands
-
-    def __repr__(self):
-        return "MaxValue(%r, %r)" % self.ufl_operands

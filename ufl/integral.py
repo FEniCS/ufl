@@ -137,7 +137,8 @@ class Integral(object):
 
     def __repr__(self):
         return "Integral(%r, %r, %r, %r, %r, %r)" % (
-            self._integrand, self._integral_type, self._ufl_domain, self._subdomain_id, self._metadata, self._subdomain_data)
+            self._integrand, self._integral_type, self._ufl_domain,
+            self._subdomain_id, self._metadata, self._subdomain_data)
 
     def __eq__(self, other):
         return (isinstance(other, Integral) and
