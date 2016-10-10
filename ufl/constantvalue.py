@@ -25,8 +25,7 @@ from six.moves import xrange as range
 from six import iteritems
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
-from ufl.core.expr import Expr
+from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import Index, FixedIndex
 from ufl.core.ufl_type import ufl_type
@@ -138,9 +137,11 @@ class Zero(ConstantValue):
             if not (isinstance(index_dimensions, tuple) and
                     all(isinstance(i, int) for i in index_dimensions)):
                 error("Expecting tuple of integer index dimensions, not %s" % str(index_dimensions))
-            # TODO: Assume sorted and avoid this cost.
-            ufl_assert(sorted(free_indices) == list(free_indices),
-                       "Expecting sorted input. Remove this check later for efficiency.")
+
+            # Assuming sorted now to avoid this cost, enable for debuggin:
+            #if sorted(free_indices) != list(free_indices):
+            #    error("Expecting sorted input. Remove this check later for efficiency.")
+
             self.ufl_free_indices = free_indices
             self.ufl_index_dimensions = index_dimensions
 
@@ -322,7 +323,8 @@ class Identity(ConstantValue):
         return 1 if a == b else 0
 
     def __getitem__(self, key):
-        ufl_assert(len(key) == 2, "Size mismatch for Identity.")
+        if len(key) != 2:
+            error("Size mismatch for Identity.")
         if all(isinstance(k, (int, FixedIndex)) for k in key):
             return IntValue(1) if (int(key[0]) == int(key[1])) else Zero()
         return Expr.__getitem__(self, key)
@@ -357,8 +359,8 @@ class PermutationSymbol(ConstantValue):
         return self.__eps(component)
 
     def __getitem__(self, key):
-        ufl_assert(len(key) == self._dim,
-                   "Size mismatch for PermutationSymbol.")
+        if len(key) != self._dim:
+            error("Size mismatch for PermutationSymbol.")
         if all(isinstance(k, (int, FixedIndex)) for k in key):
             return self.__eps(key)
         return Expr.__getitem__(self, key)
@@ -396,5 +398,5 @@ def as_ufl(expression):
         return FloatValue(expression)
     if isinstance(expression, int):
         return IntValue(expression)
-    error(("Invalid type conversion: %s can not be converted to any UFL type.\n" +
-           "The representation of the object is:\n%r") % (type(expression), expression))
+    error("Invalid type conversion: %s can not be converted"
+          " to any UFL type." % ufl_err_str(expression))

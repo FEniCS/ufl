@@ -51,3 +51,9 @@ class Operator(Expr):
     def _ufl_compute_hash_(self):
         "Compute a hash code for this expression. Used by sets and dicts."
         return hash((self._ufl_typecode_,) + tuple(hash(o) for o in self.ufl_operands))
+
+    def __repr__(self):
+        "Default repr string construction for operators."
+        # This should work for most cases
+        return "%s(%s)" % (self._ufl_class_.__name__,
+            ", ".join(repr(op) for op in self.ufl_operands))

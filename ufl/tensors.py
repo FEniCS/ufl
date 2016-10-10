@@ -123,7 +123,8 @@ class ListTensor(Operator):
         return substring(self.ufl_operands, 0)
 
     def __repr__(self):
-        return "ListTensor(%s)" % ", ".join(repr(e) for e in self.ufl_operands)
+        return "ListTensor(%s)" % ", ".join(
+            repr(e) for e in self.ufl_operands)
 
 
 @ufl_type(is_shaping=True, num_ops="varying")
@@ -144,12 +145,14 @@ class ComponentTensor(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, expression, indices):
-        ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
-        ufl_assert(expression.ufl_shape == (),
-                   "Expecting scalar valued expression.")
-        ufl_assert(isinstance(indices, MultiIndex), "Expecting a MultiIndex.")
-        ufl_assert(all(isinstance(i, Index) for i in indices),
-                   "Expecting sequence of Index objects, not %s." % repr(indices))
+        if not isinstance(expression, Expr):
+            error("Expecting ufl expression.")
+        if expression.ufl_shape != ():
+            error("Expecting scalar valued expression.")
+        if not isinstance(indices, MultiIndex):
+            error("Expecting a MultiIndex.")
+        if not all(isinstance(i, Index) for i in indices):
+            error("Expecting sequence of Index objects, not %s." % indices._ufl_err_str_())
 
         Operator.__init__(self, (expression, indices))
 

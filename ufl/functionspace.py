@@ -67,19 +67,33 @@ class FunctionSpace(AbstractFunctionSpace):
             return (domain,)
 
     def _ufl_hash_data_(self):
-        edata = repr(self.ufl_element())
         domain = self.ufl_domain()
-        ddata = None if domain is None else domain._ufl_hash_data_()
+        element = self.ufl_element()
+        if domain is None:
+            ddata = None
+        else:
+            ddata = domain._ufl_hash_data_()
+        if element is None:
+            edata = None
+        else:
+            edata = element._ufl_hash_data_()
         return ("FunctionSpace", ddata, edata)
 
     def _ufl_signature_data_(self, renumbering):
-        edata = repr(self.ufl_element())
         domain = self.ufl_domain()
-        ddata = None if domain is None else domain._ufl_signature_data_(renumbering)
+        element = self.ufl_element()
+        if domain is None:
+            ddata = None
+        else:
+            ddata = domain._ufl_signature_data_(renumbering)
+        if element is None:
+            edata = None
+        else:
+            edata = element._ufl_signature_data_()
         return ("FunctionSpace", ddata, edata)
 
     def __repr__(self):
-        return "FunctionSpace(%r, %r)" % (self._ufl_domain, self._ufl_element)
+        return "FunctionSpace(%s, %s)" % (repr(self._ufl_domain), repr(self._ufl_element))
 
 
 @attach_operators_from_hash_data

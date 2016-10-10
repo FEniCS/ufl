@@ -21,12 +21,12 @@
 from six.moves import zip
 from ufl.constantvalue import Zero
 from ufl.log import error
-from ufl.core.expr import Expr
+from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
 from ufl.precedence import parstr
-from ufl.core.ufl_type import ufl_type
 
 
 # --- Indexed expression ---
@@ -60,9 +60,9 @@ class Indexed(Operator):
 
         # Error checking
         if not isinstance(expression, Expr):
-            error("Expecting Expr instance, not %s." % repr(expression))
+            error("Expecting Expr instance, not %s." % ufl_err_str(expression))
         if not isinstance(multiindex, MultiIndex):
-            error("Expecting MultiIndex instance, not %s." % repr(multiindex))
+            error("Expecting MultiIndex instance, not %s." % ufl_err_str(multiindex))
 
         shape = expression.ufl_shape
 
@@ -71,7 +71,9 @@ class Indexed(Operator):
             error("Invalid number of indices (%d) for tensor "
                   "expression of rank %d:\n\t%r\n"
                   % (len(multiindex), len(expression.ufl_shape), expression))
-        if any(int(di) >= int(si) for si, di in zip(shape, multiindex) if isinstance(di, FixedIndex)):
+        if any(int(di) >= int(si)
+                   for si, di in zip(shape, multiindex)
+                   if isinstance(di, FixedIndex)):
             error("Fixed index out of range!")
 
         # Build tuples of free index ids and dimensions
@@ -89,9 +91,9 @@ class Indexed(Operator):
                 fi, fid = (), ()
 
         else:
-            mfiid = [(ind.count(), shape[pos]) for pos,
-                     ind in enumerate(multiindex._indices) if isinstance(ind,
-                                                                         Index)]
+            mfiid = [(ind.count(), shape[pos])
+                     for pos, ind in enumerate(multiindex._indices)
+                     if isinstance(ind, Index)]
             mfi, mfid = zip(*mfiid) if mfiid else ((), ())
             fi, fid = merge_unique_indices(expression.ufl_free_indices,
                                            expression.ufl_index_dimensions,
@@ -114,9 +116,6 @@ class Indexed(Operator):
     def __str__(self):
         return "%s[%s]" % (parstr(self.ufl_operands[0], self),
                            self.ufl_operands[1])
-
-    def __repr__(self):
-        return "Indexed(%r, %r)" % self.ufl_operands
 
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))

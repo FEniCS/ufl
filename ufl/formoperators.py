@@ -26,9 +26,8 @@ from six.moves import zip
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.form import Form, as_form
-from ufl.core.expr import Expr
+from ufl.core.expr import Expr, ufl_err_str
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
@@ -147,8 +146,9 @@ def adjoint(form, reordered_arguments=None):
 
 
 def zero_lists(shape):
-    ufl_assert(len(shape) > 0, "Invalid shape.")
-    if len(shape) == 1:
+    if len(shape) == 0:
+        error("Invalid shape.")
+    elif len(shape) == 1:
         return [0]*shape[0]
     else:
         return [zero_lists(shape[1:]) for i in range(shape[0])]
@@ -190,8 +190,8 @@ def _handle_derivative_arguments(form, coefficient, argument):
         # Don't know what to do with parts, let the user sort it out
         # in that case
         parts = set(arg.part() for arg in form_arguments)
-        ufl_assert(len(parts - {None}) == 0,
-                   "Not expecting parts here, provide your own arguments.")
+        if len(parts - {None}) != 0:
+            error("Not expecting parts here, provide your own arguments.")
         part = None
 
         # Create argument and split it if in a mixed space
@@ -223,18 +223,18 @@ def _handle_derivative_arguments(form, coefficient, argument):
     # Build mapping from coefficient to argument
     m = {}
     for (c, a) in zip(coefficients, arguments):
-        ufl_assert(c.ufl_shape == a.ufl_shape,
-                   "Coefficient and argument shapes do not match!")
+        if c.ufl_shape != a.ufl_shape:
+            error("Coefficient and argument shapes do not match!")
         if isinstance(c, Coefficient):
             m[c] = a
         else:
-            ufl_assert(isinstance(c, Indexed),
-                       "Invalid coefficient type for %s" % repr(c))
+            if not isinstance(c, Indexed):
+                error("Invalid coefficient type for %s" % ufl_err_str(c))
             f, i = c.ufl_operands
-            ufl_assert(isinstance(f, Coefficient),
-                       "Expecting an indexed coefficient, not %s" % repr(f))
-            ufl_assert(isinstance(i, MultiIndex) and all(isinstance(j, FixedIndex) for j in i),
-                       "Expecting one or more fixed indices, not %s" % repr(i))
+            if not isinstance(f, Coefficient):
+                error("Expecting an indexed coefficient, not %s" % ufl_err_str(f))
+            if not (isinstance(i, MultiIndex) and all(isinstance(j, FixedIndex) for j in i)):
+                error("Expecting one or more fixed indices, not %s" % ufl_err_str(i))
             i = tuple(int(j) for j in i)
             if f not in m:
                 m[f] = {}
@@ -363,11 +363,12 @@ def sensitivity_rhs(a, u, L, v):
 
         dL = sensitivity_rhs(a, u, L, v)
     """
-    msg = "Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable)."
-    ufl_assert(isinstance(a, Form), msg)
-    ufl_assert(isinstance(u, Coefficient), msg)
-    ufl_assert(isinstance(L, Form), msg)
-    ufl_assert(isinstance(v, Variable), msg)
-    ufl_assert(is_true_ufl_scalar(v), "Expecting scalar variable.")
+    if not (isinstance(a, Form)
+            and isinstance(u, Coefficient)
+            and isinstance(L, Form)
+            and isinstance(v, Variable)):
+        error("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
+    if not is_true_ufl_scalar(v):
+        error("Expecting scalar variable.")
     from ufl.operators import diff
     return diff(L, v) - action(diff(a, v), u)

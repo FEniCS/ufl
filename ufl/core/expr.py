@@ -393,6 +393,10 @@ class Expr(object):
         # Only in python 3
         return str(self).encode("utf-8")
 
+    def _ufl_err_str_(self):
+        "Return a short string to represent this Expr in an error message."
+        return "<%s id=%d>" % (self._ufl_class_.__name__, id(self))
+
     def _repr_latex_(self):
         from ufl.algorithms import ufl2latex
         return "$%s$" % ufl2latex(self)
@@ -502,3 +506,10 @@ class Expr(object):
 Expr._ufl_class_ = Expr
 Expr._ufl_all_handler_names_.add(Expr)
 Expr._ufl_all_classes_.append(Expr)
+
+
+def ufl_err_str(expr):
+    if hasattr(expr, "_ufl_err_str_"):
+        return expr._ufl_err_str_()
+    else:
+        return repr(expr)

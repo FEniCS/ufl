@@ -25,10 +25,10 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from six.moves import reduce
 from six import string_types
+import numbers
 
 
 # Export list for ufl.classes
@@ -43,12 +43,12 @@ class AbstractCell(object):
 
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
-        ufl_assert(isinstance(geometric_dimension, int),
-                   "Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
-        ufl_assert(isinstance(topological_dimension, int),
-                   "Expecting integer topological dimension, not '%r'" % (topological_dimension,))
-        ufl_assert(topological_dimension <= geometric_dimension,
-                   "Topological dimension cannot be larger than geometric dimension.")
+        if not isinstance(geometric_dimension, numbers.Integral):
+            error("Expecting integer geometric_dimension.")
+        if not isinstance(topological_dimension, numbers.Integral):
+            error("Expecting integer topological_dimension.")
+        if topological_dimension > geometric_dimension:
+            error("Topological dimension cannot be larger than geometric dimension.")
 
         # Store validated dimensions
         self._topological_dimension = topological_dimension
@@ -272,11 +272,14 @@ class TensorProductCell(AbstractCell):
         return repr(self)
 
     def __repr__(self):
-        if self.geometric_dimension() == self.topological_dimension():
-            return "TensorProductCell(%s)" % ", ".join(map(repr, self._cells))
+        gdim = self.geometric_dimension()
+        tdim = self.topological_dimension()
+        reprs = ", ".join(repr(c) for c in self._cells)
+        if gdim == tdim:
+            gdimstr = ""
         else:
-            return "TensorProductCell(%s, geometric_dimension=%d)" % \
-                (", ".join(map(repr, self._cells)), self._geometric_dimension)
+            gdimstr = ", geometric_dimension=%d" % gdim
+        return "TensorProductCell(%s%s)" % (reprs, gdimstr)
 
     def _ufl_hash_data_(self):
         return tuple(c._ufl_hash_data_() for c in self._cells) + (self._geometric_dimension,)

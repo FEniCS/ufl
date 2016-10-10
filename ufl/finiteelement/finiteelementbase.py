@@ -82,6 +82,9 @@ class FiniteElementBase(object):
     def _ufl_hash_data_(self):
         return repr(self)
 
+    def _ufl_signature_data_(self):
+        return repr(self)
+
     def __hash__(self):
         "Compute hash code for insertion in hashmaps."
         return hash(self._ufl_hash_data_())
