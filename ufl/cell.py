@@ -82,6 +82,14 @@ class AbstractCell(object):
             return s < o
         return self._ufl_hash_data_() < other._ufl_hash_data_()
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
+    def __bytes__(self):
+        # Only in python 3
+        return str(self).encode("utf-8")
+
 
 # --- Basic topological properties of known basic cells
 

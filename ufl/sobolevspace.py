@@ -43,6 +43,14 @@ class SobolevSpace(object):
         # Ensure that the inclusion operations are transitive.
         self.parents = p.union(*[p_.parents for p_ in p])
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
+    def __bytes__(self):
+        # Only in python 3
+        return str(self).encode("utf-8")
+
     def __str__(self):
         return self.name
 

@@ -322,6 +322,14 @@ class Form(object):
 
     # --- String conversion functions, for UI purposes only ---
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
+    def __bytes__(self):
+        # Only in python 3
+        return str(self).encode("utf-8")
+
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
         # TODO: Add warning here to check if anyone actually calls it

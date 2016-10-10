@@ -58,6 +58,14 @@ class AbstractDomain(object):
         "Return the dimension of the topology of this domain."
         return self._topological_dimension
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
+    def __bytes__(self):
+        # Only in python 3
+        return str(self).encode("utf-8")
+
 
 # TODO: Would it be useful to have a domain representing R^d? E.g. for
 # Expression.
@@ -112,10 +120,12 @@ class Mesh(AbstractDomain):
         return (self._ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
 
     def __repr__(self):
-        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+        return "Mesh(%r, %r)" % (
+            self._ufl_coordinate_element, self._ufl_id)
 
     def __str__(self):
-        return "<Mesh #%s with coordinates parameterized by %s>" % (self._ufl_id, self._ufl_coordinate_element)
+        return "<Mesh #%s with coordinates parameterized by %s>" % (
+            self._ufl_id, self._ufl_coordinate_element)
 
     def _ufl_hash_data_(self):
         return (self._ufl_id, self._ufl_coordinate_element)
@@ -172,14 +182,12 @@ class MeshView(AbstractDomain):
         return self._ufl_mesh.is_piecewise_linear_simplex_domain()
 
     def __repr__(self):
-        return "MeshView(%r, %r, %r)" % (self._ufl_mesh,
-                                         self.topological_dimension(),
-                                         self._ufl_id)
+        return "MeshView(%r, %r, %r)" % (
+            self._ufl_mesh, self.topological_dimension(), self._ufl_id)
 
     def __str__(self):
-        return "<MeshView #%s of dimension %d over mesh %s>" % (self._ufl_id,
-                                                                self.topological_dimension(),
-                                                                self._ufl_mesh)
+        return "<MeshView #%s of dimension %d over mesh %s>" % (
+            self._ufl_id, self.topological_dimension(), self._ufl_mesh)
 
     def _ufl_hash_data_(self):
         return (self._ufl_id,) + self._ufl_mesh._ufl_hash_data_()
@@ -230,11 +238,12 @@ class TensorProductMesh(AbstractDomain):
         return False  # TODO: Any cases this is True
 
     def __repr__(self):
-        return "TensorProductMesh(%r, %r)" % (self._ufl_meshes, self._ufl_id)
+        return "TensorProductMesh(%r, %r)" % (
+            self._ufl_meshes, self._ufl_id)
 
     def __str__(self):
-        return "<TensorProductMesh #%s with meshes %s>" % (self._ufl_id,
-                                                           self._ufl_meshes)
+        return "<TensorProductMesh #%s with meshes %s>" % (
+            self._ufl_id, self._ufl_meshes)
 
     def _ufl_hash_data_(self):
         return (self._ufl_id,) + tuple(mesh._ufl_hash_data_() for mesh in self._ufl_meshes)

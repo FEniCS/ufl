@@ -295,6 +295,14 @@ class Measure(object):
         deprecate("Notation dx[meshfunction] is deprecated. Please use dx(subdomain_data=meshfunction) instead.")
         return self(subdomain_data=data)
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
+    def __bytes__(self):
+        # Only in python 3
+        return str(self).encode("utf-8")
+
     def __str__(self):
         global integral_type_to_measure_name
         name = integral_type_to_measure_name[self._integral_type]
@@ -466,6 +474,14 @@ class MeasureSum(object):
         elif isinstance(other, MeasureSum):
             return MeasureSum(*(self._measures + other._measures))
         return NotImplemented
+
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
+    def __bytes__(self):
+        # Only in python 3
+        return str(self).encode("utf-8")
 
     def __str__(self):
         return "{\n    " + "\n  + ".join(map(str, self._measures)) + "\n}"

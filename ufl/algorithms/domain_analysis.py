@@ -79,10 +79,19 @@ class IntegralData(object):
                 self.integrals == other.integrals and
                 self.metadata == other.metadata)
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
+    def __bytes__(self):
+        # Only in python 3
+        return str(self).encode("utf-8")
+
     def __str__(self):
-        return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
+        s = "IntegralData over domain(%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
             self.integral_type, self.subdomain_id,
             '\n\n'.join(map(str, self.integrals)), self.metadata)
+        return s
 
 
 def dicts_lt(a, b):
