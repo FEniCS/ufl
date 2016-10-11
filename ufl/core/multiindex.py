@@ -26,13 +26,12 @@ from six.moves import xrange as range
 from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.utils.counted import counted_init
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 
 # Export list for ufl.classes
-__all_classes__ = ["IndexBase", "FixedIndex", "Index"]
+__all_classes__ = as_native_strings(["IndexBase", "FixedIndex", "Index"])
 
 
 class IndexBase(object):
@@ -136,7 +135,8 @@ class MultiIndex(Terminal):
         return (self._indices,)
 
     def __new__(cls, indices):
-        ufl_assert(isinstance(indices, tuple), "Expecting a tuple of indices.")
+        if not isinstance(indices, tuple):
+            error("Expecting a tuple of indices.")
 
         if all(isinstance(ind, FixedIndex) for ind in indices):
             # Cache multiindices consisting of purely fixed indices (aka flyweight pattern)
@@ -148,7 +148,8 @@ class MultiIndex(Terminal):
             MultiIndex._cache[key] = self
         else:
             # Create a new object if we have any free indices (too many combinations to cache)
-            ufl_assert(all(isinstance(ind, IndexBase) for ind in indices), "Expecting only Index and FixedIndex objects.")
+            if not all(isinstance(ind, IndexBase) for ind in indices):
+                error("Expecting only Index and FixedIndex objects.")
             self = Terminal.__new__(cls)
 
         # Initialize here instead of in __init__ to avoid overwriting self._indices from cached objects

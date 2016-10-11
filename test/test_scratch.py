@@ -13,7 +13,6 @@ from six.moves import zip
 # This imports everything external code will see from ufl
 from ufl import *
 from ufl.log import error, warning
-from ufl.assertions import ufl_assert
 from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 
 # TODO: Import only what you need from classes and algorithms:
@@ -80,8 +79,8 @@ class MockForwardAD:
                 vcomp = tuple(vcomp)
             else:
                 error("Expecting argument or component of argument.")
-            ufl_assert(all(isinstance(k, FixedIndex) for k in vcomp),
-                       "Expecting only fixed indices in variation.")
+            if not all(isinstance(k, FixedIndex) for k in vcomp):
+                error("Expecting only fixed indices in variation.")
             return vval, vcomp
 
         def compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp):
@@ -118,7 +117,8 @@ class MockForwardAD:
                             gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
 
                 else:
-                    ufl_assert(wshape == (), "Expecting scalar coefficient in this branch.")
+                    if wshape != ():
+                        error("Expecting scalar coefficient in this branch.")
                     # Case: d/dt [w + t v[...]]
                     wval, wcomp = w, ()
 
@@ -132,8 +132,8 @@ class MockForwardAD:
                 if not wval == o:
                     continue
                 assert isinstance(wval, FormArgument)
-                ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
-                           "Expecting only fixed indices in differentiation variable.")
+                if not all(isinstance(k, FixedIndex) for k in wcomp):
+                    error("Expecting only fixed indices in differentiation variable.")
                 wshape = wval.ufl_shape
 
                 vval, vcomp = analyse_variation_argument(v)
@@ -155,8 +155,9 @@ class MockForwardAD:
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):
                     oprimes = (oprimes,)
-                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, " +
-                               "expecting a matching tuple of coefficient derivatives.")
+                    if len(oprimes) != len(self._v):
+                        error("Got a tuple of arguments, "
+                              "expecting a matching tuple of coefficient derivatives.")
 
                 # Compute dg/dw_j = dg/dw_h : v.
                 # Since we may actually have a tuple of oprimes and vs in a

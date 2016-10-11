@@ -22,7 +22,6 @@ of UFL objects, mostly intended for debugging purposes."""
 # Modified by Anders Logg 2009, 2014
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.form import Form
 from ufl.integral import Integral
@@ -31,7 +30,8 @@ from ufl.integral import Integral
 # --- Utilities for constructing informative strings from UFL objects
 
 def integral_info(integral):
-    ufl_assert(isinstance(integral, Integral), "Expecting an Integral.")
+    if not isinstance(integral, Integral):
+        error("Expecting an Integral.")
     s = "  Integral:\n"
     s += "    Type:\n"
     s += "      %s\n" % integral.integral_type()
@@ -51,7 +51,8 @@ def integral_info(integral):
 
 
 def form_info(form):
-    ufl_assert(isinstance(form, Form), "Expecting a Form.")
+    if not isinstance(form, Form):
+        error("Expecting a Form.")
 
     bf = form.arguments()
     cf = form.coefficients()

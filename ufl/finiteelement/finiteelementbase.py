@@ -27,7 +27,6 @@ from six import string_types
 
 from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
-from ufl.assertions import ufl_assert
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.log import error
@@ -53,16 +52,19 @@ class FiniteElementBase(object):
     def __init__(self, family, cell, degree, quad_scheme, value_shape,
                  reference_value_shape):
         "Initialize basic finite element data."
-        ufl_assert(isinstance(family, string_types), "Invalid family type.")
-        ufl_assert(isinstance(degree, (int, tuple)) or degree is None,
-                   "Invalid degree type.")
-        ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
-        ufl_assert(isinstance(reference_value_shape, tuple),
-                   "Invalid reference_value_shape type.")
+        if not isinstance(family, string_types):
+            error("Invalid family type.")
+        if not (degree is None or isinstance(degree, (int, tuple))):
+            error("Invalid degree type.")
+        if not isinstance(value_shape, tuple):
+            error("Invalid value_shape type.")
+        if not isinstance(reference_value_shape, tuple):
+            error("Invalid reference_value_shape type.")
 
         if cell is not None:
             cell = as_cell(cell)
-            ufl_assert(isinstance(cell, AbstractCell), "Invalid cell type.")
+            if not isinstance(cell, AbstractCell):
+                error("Invalid cell type.")
 
         self._family = family
         self._cell = cell
@@ -209,15 +211,15 @@ class FiniteElementBase(object):
 
     def __add__(self, other):
         "Add two elements, creating an enriched element"
-        ufl_assert(isinstance(other, FiniteElementBase),
-                   "Can't add element and %s." % other.__class__)
+        if not isinstance(other, FiniteElementBase):
+            error("Can't add element and %s." % other.__class__)
         from ufl.finiteelement import EnrichedElement
         return EnrichedElement(self, other)
 
     def __mul__(self, other):
         "Multiply two elements, creating a mixed element"
-        ufl_assert(isinstance(other, FiniteElementBase),
-                   "Can't multiply element and %s." % other.__class__)
+        if not isinstance(other, FiniteElementBase):
+            error("Can't multiply element and %s." % other.__class__)
         from ufl.finiteelement import MixedElement
         return MixedElement(self, other)
 

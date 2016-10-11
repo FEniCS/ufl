@@ -25,7 +25,6 @@ converting UFL expressions to other representations."""
 
 import ufl
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.utils.system import write_file, pdflatex, openpdf
 from ufl.permutation import compute_indices
 from ufl.algorithms.traversal import iter_expressions
@@ -607,7 +606,8 @@ def dependency_sorting(deplist, rank):
         next, left = split(left, state)
         deplistlist.append(next)
 
-    ufl_assert(not left, "Shouldn't have anything left!")
+    if left:
+        error("Shouldn't have anything left!")
 
     return deplistlist
 

@@ -23,9 +23,8 @@
 # Modified by Massimiliano Leoni, 2016
 
 import six
-from ufl.assertions import ufl_assert
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.log import deprecate
+from ufl.log import deprecate, error
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 
@@ -34,10 +33,10 @@ valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 class RestrictedElement(FiniteElementBase):
     "Represents the restriction of a finite element to a type of cell entity."
     def __init__(self, element, restriction_domain):
-        ufl_assert(isinstance(element, FiniteElementBase),
-                   "Expecting a finite element instance.")
-        ufl_assert(restriction_domain in valid_restriction_domains,
-                   "Expecting one of the strings %r." % (valid_restriction_domains,))
+        if not isinstance(element, FiniteElementBase):
+            error("Expecting a finite element instance.")
+        if restriction_domain not in valid_restriction_domains:
+            error("Expecting one of the strings %r." % (valid_restriction_domains,))
 
         FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
                                    element.degree(),

@@ -24,7 +24,7 @@
 
 import six
 from six.moves import zip
-from ufl.assertions import ufl_assert
+from ufl.log import error
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
@@ -38,8 +38,8 @@ class EnrichedElement(FiniteElementBase):
         self._elements = elements
 
         cell = elements[0].cell()
-        ufl_assert(all(e.cell() == cell for e in elements),
-                   "Cell mismatch for sub elements of enriched element.")
+        if not all(e.cell() == cell for e in elements[1:]):
+            error("Cell mismatch for sub elements of enriched element.")
 
         if isinstance(elements[0].degree(), int):
             degrees = {e.degree() for e in elements} - {None}
@@ -52,20 +52,20 @@ class EnrichedElement(FiniteElementBase):
         quad_schemes = [e.quadrature_scheme() for e in elements]
         quad_schemes = [qs for qs in quad_schemes if qs is not None]
         quad_scheme = quad_schemes[0] if quad_schemes else None
-        ufl_assert(all(qs == quad_scheme for qs in quad_schemes),
-                   "Quadrature scheme mismatch.")
+        if not all(qs == quad_scheme for qs in quad_schemes):
+            error("Quadrature scheme mismatch.")
 
         value_shape = elements[0].value_shape()
-        ufl_assert(all(e.value_shape() == value_shape for e in elements),
-                   "Element value shape mismatch.")
+        if not all(e.value_shape() == value_shape for e in elements[1:]):
+            error("Element value shape mismatch.")
 
         reference_value_shape = elements[0].reference_value_shape()
-        ufl_assert(all(e.reference_value_shape() == reference_value_shape for e in elements),
-                   "Element reference value shape mismatch.")
+        if not all(e.reference_value_shape() == reference_value_shape for e in elements[1:]):
+            error("Element reference value shape mismatch.")
 
         # mapping = elements[0].mapping() # FIXME: This fails for a mixed subelement here.
-        # ufl_assert(all(e.mapping() == mapping for e in elements),
-        #           "Element mapping mismatch.")
+        # if not all(e.mapping() == mapping for e in elements[1:]):
+        #    error("Element mapping mismatch.")
 
         # Initialize element data
         FiniteElementBase.__init__(self, "EnrichedElement", cell, degree,

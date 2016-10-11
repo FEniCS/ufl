@@ -24,7 +24,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 import six
-from ufl.assertions import ufl_assert
+from ufl.log import error
 from ufl.utils.py23 import as_native_strings
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
@@ -65,10 +65,10 @@ class FiniteElement(FiniteElementBase):
             from ufl.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
 
             if family in ["RTCF", "RTCE"]:
-                ufl_assert(cell._cells[0].cellname() == "interval",
-                           "%s is available on TensorProductCell(interval, interval) only." % family)
-                ufl_assert(cell._cells[1].cellname() == "interval",
-                           "%s is available on TensorProductCell(interval, interval) only." % family)
+                if cell._cells[0].cellname() != "interval":
+                    error("%s is available on TensorProductCell(interval, interval) only." % family)
+                if cell._cells[1].cellname() != "interval":
+                    error("%s is available on TensorProductCell(interval, interval) only." % family)
 
                 C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
                 D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
@@ -82,10 +82,10 @@ class FiniteElement(FiniteElementBase):
                     return EnrichedElement(HCurl(CxD_elt), HCurl(DxC_elt))
 
             elif family == "NCF":
-                ufl_assert(cell._cells[0].cellname() == "quadrilateral",
-                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
-                ufl_assert(cell._cells[1].cellname() == "interval",
-                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                if cell._cells[0].cellname() != "quadrilateral":
+                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                if cell._cells[1].cellname() != "interval":
+                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
                 Qc_elt = FiniteElement("RTCF", "quadrilateral", degree, 1, quad_scheme)
                 Qd_elt = FiniteElement("DQ", "quadrilateral", degree - 1, 2, quad_scheme)
@@ -97,10 +97,10 @@ class FiniteElement(FiniteElementBase):
                                        HDiv(TensorProductElement(Qd_elt, Ic_elt, cell=cell)))
 
             elif family == "NCE":
-                ufl_assert(cell._cells[0].cellname() == "quadrilateral",
-                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
-                ufl_assert(cell._cells[1].cellname() == "interval",
-                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                if cell._cells[0].cellname() != "quadrilateral":
+                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                if cell._cells[1].cellname() != "interval":
+                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
                 Qc_elt = FiniteElement("Q", "quadrilateral", degree, 0, quad_scheme)
                 Qd_elt = FiniteElement("RTCE", "quadrilateral", degree, 1, quad_scheme)
