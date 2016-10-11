@@ -24,6 +24,7 @@
 import io
 import os
 import re
+import ufl
 from ufl.log import error, warning
 from ufl.utils.sorting import sorted_by_key
 from ufl.form import Form
@@ -85,40 +86,27 @@ def read_ufl_file(filename):
     return code
 
 
-infostring = """An exception occured during evaluation of form file.
-To help you find the location of the error, a temporary script
-'%s'
-has been created and will now be executed with debug output enabled:"""
+infostring = """\
+An exception occured during evaluation of .ufl file.
+If you need to debug it as a python script, rename it to .py
+and add the lines
 
-_ufl_header = """\
-# -*- coding: utf-8 -*-
-from ufl import *
-"""
+    from ufl import *
+    set_level(DEBUG)
 
-_ufl_debug_header = """\
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from ufl import *
-set_level(DEBUG)
+at the top then run with python.
 """
 
 
 def execute_ufl_code(uflcode, filename):
     # Execute code
     namespace = {}
+    namespace.update(vars(ufl))
     try:
-        pycode = _ufl_header + uflcode
-        exec(pycode, namespace)
-    except:
-        # Dump python code for debugging if this fails
-        basename = os.path.splitext(os.path.basename(filename))[0]
-        basename = "%s_debug" % basename
-        pyname = "%s.py" % basename
-        pycode = _ufl_debug_header + uflcode
-        with io.open(pyname, "w", encoding="utf-8") as f:
-            f.write(pycode)
-        warning(infostring % pyname)
-        error("An error occured, aborting load_forms.")
+        exec(uflcode, namespace)
+    except Exception as e:
+        warning(infostring)
+        raise e
     return namespace
 
 
