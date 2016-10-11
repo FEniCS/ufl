@@ -21,6 +21,7 @@
 # Modified by Anders Logg, 2008-2009
 # Modified by Massimiliano Leoni, 2016.
 
+import six
 import ufl
 from ufl.log import deprecate
 from ufl.core.expr import Expr
@@ -33,6 +34,7 @@ from ufl.utils.py23 import as_native_str
 __all_classes__ = ["Integral"]
 
 
+# @six.python_2_unicode_compatible
 class Integral(object):
     "An integral over a single domain."
     __slots__ = ("_integrand",

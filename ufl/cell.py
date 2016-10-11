@@ -119,6 +119,7 @@ cellname2facetname = {"interval": "vertex",
 
 # --- Basic cell representation classes
 
+# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 class Cell(AbstractCell):
     "Representation of a named finite element cell with known structure."
@@ -213,6 +214,7 @@ class Cell(AbstractCell):
                 self._cellname)
 
 
+# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 class TensorProductCell(AbstractCell):
     __slots__ = ("_cells",)
@@ -272,9 +274,6 @@ class TensorProductCell(AbstractCell):
         return self._cells
 
     def __str__(self):
-        return repr(self)
-
-    def __repr__(self):
         gdim = self.geometric_dimension()
         tdim = self.topological_dimension()
         reprs = ", ".join(repr(c) for c in self._cells)
@@ -283,7 +282,10 @@ class TensorProductCell(AbstractCell):
         else:
             gdimstr = ", geometric_dimension=%d" % gdim
         r = "TensorProductCell(%s%s)" % (reprs, gdimstr)
-        return as_native_str(r)
+        return r
+
+    def __repr__(self):
+        return str(self)
 
     def _ufl_hash_data_(self):
         return tuple(c._ufl_hash_data_() for c in self._cells) + (self._geometric_dimension,)

@@ -22,6 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
+import six
 from itertools import chain
 
 from ufl.assertions import ufl_assert
@@ -30,6 +31,7 @@ from ufl.cell import TensorProductCell, as_cell
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class TensorProductElement(FiniteElementBase):
     r"""The tensor product of :math:`d` element spaces:
 

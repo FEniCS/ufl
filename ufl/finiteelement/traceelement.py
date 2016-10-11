@@ -18,10 +18,12 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+import six
 from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class TraceElement(FiniteElementBase):
     """A finite element space: the trace of a given H-div element.
     This is effectively a scalar-valued restriction which is

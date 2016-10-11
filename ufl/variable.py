@@ -21,6 +21,7 @@ expressions as variables for differentiation."""
 
 from ufl.utils.counted import counted_init
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
@@ -31,7 +32,7 @@ from ufl.constantvalue import as_ufl
 
 @ufl_type()
 class Label(Terminal):
-    __slots__ = ("_count",)
+    __slots__ = as_native_strings(("_count",))
 
     _globalcount = 0
 

@@ -22,11 +22,13 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
+import six
 from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class EnrichedElement(FiniteElementBase):
     """The vector sum of two finite element spaces:
 

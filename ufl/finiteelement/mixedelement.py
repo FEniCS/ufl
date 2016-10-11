@@ -23,6 +23,7 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
+import six
 from six import iteritems
 from six.moves import zip
 from six.moves import xrange as range
@@ -38,6 +39,7 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.finiteelement.finiteelement import FiniteElement
 
 
+# @six.python_2_unicode_compatible
 class MixedElement(FiniteElementBase):
     """A finite element composed of a nested hierarchy of mixed or simple
     elements."""
@@ -250,6 +252,7 @@ class MixedElement(FiniteElementBase):
         return "Mixed<" + tmp + ">"
 
 
+# @six.python_2_unicode_compatible
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal."
 
@@ -322,6 +325,7 @@ class VectorElement(MixedElement):
                                     self._sub_element.shortstr())
 
 
+# @six.python_2_unicode_compatible
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal."
     __slots__ = ("_sub_element", "_shape", "_symmetry",

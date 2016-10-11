@@ -20,9 +20,11 @@
 #
 # Modified by Anders Logg, 2008.
 
+import six
 from ufl.utils.formatting import lstr, tstr, estr
 
 
+# @six.python_2_unicode_compatible
 class FormData(object):
     """
     Class collecting various information extracted from a Form by
@@ -62,6 +64,7 @@ class FormData(object):
         return tstr(geometry + subdomains + functions)
 
 
+# @six.python_2_unicode_compatible
 class ExprData(object):
     """
     Class collecting various information extracted from a Expr by

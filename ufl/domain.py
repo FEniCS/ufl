@@ -22,7 +22,9 @@
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
 
+import six
 import numbers
+
 from ufl.utils.py23 import as_native_str
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
@@ -75,6 +77,7 @@ class AbstractDomain(object):
 #         AbstractDomain.__init__(self, geometric_dimension, geometric_dimension)
 
 
+# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 @attach_ufl_id
 class Mesh(AbstractDomain):
@@ -157,6 +160,7 @@ class Mesh(AbstractDomain):
               "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
 
 
+# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 @attach_ufl_id
 class MeshView(AbstractDomain):
@@ -206,6 +210,7 @@ class MeshView(AbstractDomain):
                 "MeshView", typespecific)
 
 
+# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 @attach_ufl_id
 class TensorProductMesh(AbstractDomain):

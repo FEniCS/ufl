@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+import six
 from collections import defaultdict
 from six.moves import zip
 
@@ -30,6 +31,7 @@ from ufl.utils.sorting import canonicalize_metadata, sorted_by_key, sorted_by_tu
 import numbers
 
 
+# @six.python_2_unicode_compatible
 class IntegralData(object):
     """Utility class with the members
         (domain, integral_type, subdomain_id, integrals, metadata)

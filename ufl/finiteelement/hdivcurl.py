@@ -18,9 +18,11 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+import six
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class HDivElement(FiniteElementBase):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
@@ -52,6 +54,7 @@ class HDivElement(FiniteElementBase):
         return "HDivElement(%s)" % str(self._element.shortstr())
 
 
+# @six.python_2_unicode_compatible
 class HCurlElement(FiniteElementBase):
     """A curl-conforming version of an outer product element, assuming
     this makes mathematical sense."""

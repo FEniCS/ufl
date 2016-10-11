@@ -22,6 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
+import six
 from ufl.assertions import ufl_assert
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.log import deprecate
@@ -29,6 +30,7 @@ from ufl.log import deprecate
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 
 
+# @six.python_2_unicode_compatible
 class RestrictedElement(FiniteElementBase):
     "Represents the restriction of a finite element to a type of cell entity."
     def __init__(self, element, restriction_domain):

@@ -24,8 +24,10 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Martin Alnaes 2014
 # Modified by Lizao Li 2015
 
+import six
 from ufl.utils.py23 import as_native_str
 
+# @six.python_2_unicode_compatible
 class SobolevSpace(object):
     """Symbolic representation of a Sobolev space. This implements a
     subset of the methods of a Python set so that finite elements and

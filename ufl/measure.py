@@ -21,6 +21,7 @@
 # Modified by Anders Logg 2008-2015
 # Modified by Massimiliano Leoni, 2016.
 
+import six
 from six import string_types
 import numbers
 
@@ -106,6 +107,7 @@ def measure_names():
     return tuple(sorted(measure_name_to_integral_type.keys()))
 
 
+# @six.python_2_unicode_compatible
 class Measure(object):
     __slots__ = ("_integral_type",
                  "_domain",
@@ -450,6 +452,7 @@ a single integral.
         return Form([integral])
 
 
+# @six.python_2_unicode_compatible
 class MeasureSum(object):
     """Represents a sum of measures.
 

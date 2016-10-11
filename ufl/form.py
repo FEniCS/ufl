@@ -21,8 +21,10 @@
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
 
+import six
 from itertools import chain
 from collections import defaultdict
+
 from ufl.log import error, warning, deprecate
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
@@ -73,6 +75,7 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
+# @six.python_2_unicode_compatible
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = (

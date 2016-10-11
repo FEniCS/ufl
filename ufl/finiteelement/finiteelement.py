@@ -23,6 +23,7 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
+import six
 from ufl.assertions import ufl_assert
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
@@ -32,6 +33,7 @@ from ufl.finiteelement.elementlist import canonical_element_description, simplic
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements."
     # TODO: Move these to base?

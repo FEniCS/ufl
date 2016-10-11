@@ -18,10 +18,12 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+import six
 from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class FacetElement(FiniteElementBase):
     """A version of an existing Finite Element space in which all dofs
     associated with the interior have been discarded."""

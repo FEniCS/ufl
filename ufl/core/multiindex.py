@@ -20,6 +20,7 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
+import six
 from six.moves import xrange as range
 
 from ufl.utils.py23 import as_native_str
@@ -49,6 +50,7 @@ class IndexBase(object):
         return str(self).encode("utf-8")
 
 
+# @six.python_2_unicode_compatible
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
     __slots__ = ("_value", "_hash")
@@ -93,6 +95,7 @@ class FixedIndex(IndexBase):
         return as_native_str(r)
 
 
+# @six.python_2_unicode_compatible
 class Index(IndexBase):
     """UFL value: An index with no value assigned.
 
