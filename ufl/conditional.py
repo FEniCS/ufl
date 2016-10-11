@@ -20,6 +20,7 @@
 
 from ufl.log import warning, error
 from ufl.utils.py23 import as_native_strings
+from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl
@@ -237,10 +238,10 @@ class Conditional(Operator):
         if tfi != ffi:
             error("Free index mismatch between conditional branches.")
         if isinstance(condition, (EQ, NE)):
-            if not (condition.ufl_operands[0].ufl_shape == ()
-                    and condition.ufl_operands[0].ufl_free_indices == ()
-                    and condition.ufl_operands[1].ufl_shape == ()
-                    and condition.ufl_operands[1].ufl_free_indices == ()):
+            if not all((condition.ufl_operands[0].ufl_shape == (),
+                        condition.ufl_operands[0].ufl_free_indices == (),
+                        condition.ufl_operands[1].ufl_shape == (),
+                        condition.ufl_operands[1].ufl_free_indices == ())):
                 error("Non-scalar == or != is not allowed.")
 
         Operator.__init__(self, (condition, true_value, false_value))

@@ -22,10 +22,10 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-import six
+# import six
 from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.log import deprecate, error
+from ufl.log import error
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 

@@ -346,7 +346,6 @@ def canonical_element_description(family, cell, order, form_degree):
             error('Order "%s" invalid for "%s" finite element.' %
                   (istr(order), family))
 
-
     # Override sobolev_space for piecewise constants (TODO: necessary?)
     if order == 0:
         sobolev_space = L2

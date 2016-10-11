@@ -21,9 +21,9 @@
 # Modified by Anders Logg, 2008-2009
 # Modified by Massimiliano Leoni, 2016.
 
-import six
+# import six
 import ufl
-from ufl.log import deprecate
+from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.measure import Measure  # noqa
@@ -45,7 +45,7 @@ class Integral(object):
         "_subdomain_id",
         "_metadata",
         "_subdomain_data",
-        ))
+    ))
 
     def __init__(self, integrand, integral_type, domain, subdomain_id,
                  metadata, subdomain_data):

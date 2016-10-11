@@ -6,6 +6,7 @@ __date__ = "2008-05-09"
 # Modified by Anders Logg, 2009.
 # Last changed: 2015-01-05
 
+import io
 import sys, optparse
 from ufl.log import warning
 from ufl.algorithms import load_ufl_file, validate_form, ufl2latex, tree_format
@@ -53,7 +54,9 @@ for filename in filenames:
     # checks while the form is being built
     print("Loading form file '%s'" % filename)
     try:
-        # TODO: Forms that fail will usually fail inside this, which doesn't produce any log... Perhaps we should pass a log file to load_forms?
+        # TODO: Forms that fail will usually fail inside this,
+        # which doesn't produce any log...
+        # Perhaps we should pass a log file to load_forms?
         data = load_ufl_file(filename)
         forms = data.forms
     except:
@@ -62,7 +65,7 @@ for filename in filenames:
 
     outputfilename = filename + ".log"
     if write_file:
-        outputfile = open(outputfilename, "w")
+        outputfile = io.open(outputfilename, "w", encoding="utf-8")
 
     def write(*items):
         text = " ".join(str(s) for s in items)

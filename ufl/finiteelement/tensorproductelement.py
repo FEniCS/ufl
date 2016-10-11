@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-import six
+# import six
 from itertools import chain
 
 from ufl.log import error

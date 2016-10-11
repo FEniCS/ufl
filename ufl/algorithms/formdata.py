@@ -20,7 +20,7 @@
 #
 # Modified by Anders Logg, 2008.
 
-import six
+#import six
 from ufl.utils.formatting import lstr, tstr, estr
 
 

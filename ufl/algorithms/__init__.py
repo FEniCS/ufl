@@ -137,5 +137,3 @@ from ufl.algorithms.formfiles import load_forms
 #from ufl.formatting.printing import integral_info, form_info
 from ufl.formatting.printing import tree_format
 from ufl.formatting.ufl2latex import ufl2latex
-#from ufl.formatting.ufl2latex import ufl2tex, ufl2pdf, forms2latexdocument
-#from ufl.formatting.ufl2dot import ufl2dot

@@ -363,10 +363,10 @@ def sensitivity_rhs(a, u, L, v):
 
         dL = sensitivity_rhs(a, u, L, v)
     """
-    if not (isinstance(a, Form)
-            and isinstance(u, Coefficient)
-            and isinstance(L, Form)
-            and isinstance(v, Variable)):
+    if not (isinstance(a, Form) and
+            isinstance(u, Coefficient) and
+            isinstance(L, Form) and
+            isinstance(v, Variable)):
         error("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
     if not is_true_ufl_scalar(v):
         error("Expecting scalar variable.")

@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-import six
+# import six
 from six.moves import zip
 from ufl.log import error
 from ufl.finiteelement.finiteelementbase import FiniteElementBase

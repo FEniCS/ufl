@@ -38,7 +38,7 @@ class IndexSum(Operator):
         "_dimension",
         "ufl_free_indices",
         "ufl_index_dimensions",
-        ))
+    ))
 
     def __new__(cls, summand, index):
         # Error checks

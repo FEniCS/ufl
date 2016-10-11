@@ -33,7 +33,7 @@ __all_classes__ = as_native_strings([
     "FunctionSpace",
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
-    ])
+])
 
 
 class AbstractFunctionSpace(object):

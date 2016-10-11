@@ -22,7 +22,7 @@
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
 
-import six
+# import six
 import numbers
 
 from ufl.utils.py23 import as_native_str
@@ -30,7 +30,7 @@ from ufl.utils.py23 import as_native_strings
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.log import error, deprecate
+from ufl.log import error
 from ufl.cell import as_cell, AbstractCell, TensorProductCell
 from ufl.finiteelement.tensorproductelement import TensorProductElement
 

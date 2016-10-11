@@ -24,8 +24,9 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Martin Alnaes 2014
 # Modified by Lizao Li 2015
 
-import six
+#import six
 from ufl.utils.py23 import as_native_str
+
 
 # @six.python_2_unicode_compatible
 class SobolevSpace(object):
@@ -112,6 +113,7 @@ class SobolevSpace(object):
             from ufl.finiteelement import HCurlElement
             return HCurlElement(element)
         raise NotImplementedError("SobolevSpace has no call operator (only the specific HDiv and HCurl instances).")
+
 
 L2 = SobolevSpace("L2")
 HDiv = SobolevSpace("HDiv", [L2])

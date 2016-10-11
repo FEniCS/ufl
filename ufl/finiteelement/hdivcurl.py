@@ -18,7 +18,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-import six
+# import six
 from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
 from ufl.finiteelement.finiteelementbase import FiniteElementBase

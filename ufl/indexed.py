@@ -37,7 +37,7 @@ class Indexed(Operator):
     __slots__ = as_native_strings((
         "ufl_free_indices",
         "ufl_index_dimensions",
-        ))
+    ))
 
     def __new__(cls, expression, multiindex):
         if isinstance(expression, Zero):
@@ -76,8 +76,8 @@ class Indexed(Operator):
                   "expression of rank %d:\n\t%s\n"
                   % (len(multiindex), len(expression.ufl_shape), repr(expression)))
         if any(int(di) >= int(si)
-                   for si, di in zip(shape, multiindex)
-                   if isinstance(di, FixedIndex)):
+               for si, di in zip(shape, multiindex)
+               if isinstance(di, FixedIndex)):
             error("Fixed index out of range!")
 
         # Build tuples of free index ids and dimensions

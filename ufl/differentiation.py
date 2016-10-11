@@ -86,7 +86,7 @@ class VariableDerivative(Derivative):
         "ufl_shape",
         "ufl_free_indices",
         "ufl_index_dimensions",
-        ))
+    ))
 
     def __new__(cls, f, v):
         # Checks

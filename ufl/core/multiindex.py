@@ -20,7 +20,7 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-import six
+#import six
 from six.moves import xrange as range
 
 from ufl.utils.py23 import as_native_str

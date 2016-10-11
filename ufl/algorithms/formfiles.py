@@ -21,6 +21,7 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Marie E. Rognes, 2011.
 
+import io
 import os
 import re
 from ufl.log import error, warning
@@ -30,6 +31,12 @@ from ufl.finiteelement import FiniteElementBase
 from ufl.core.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
+
+
+def read_textfile(fn):
+    with io.open(fn, encoding="utf-8") as f:
+        content = f.read()
+    return content
 
 
 class FileData(object):
@@ -48,12 +55,6 @@ class FileData(object):
     __nonzero__ = __bool__
 
 
-infostring = """An exception occured during evaluation of form file.
-To help you find the location of the error, a temporary script
-'%s'
-has been created and will now be executed with debug output enabled:"""
-
-
 def replace_include_statements(code):
     "Replace '#include foo.ufl' statements with contents of foo.ufl."
     if "#include" in code:
@@ -65,7 +66,7 @@ def replace_include_statements(code):
             if m:
                 fn = m.groups()[0]
                 newlines.append("# --- begin %s" % fn)
-                newlines.extend(open(fn).readlines())
+                newlines.extend(read_textfile(fn).splitlines())
                 newlines.append("# --- end %s" % fn)
             else:
                 newlines.append(l)
@@ -79,24 +80,42 @@ def read_ufl_file(filename):
         filename = filename + ".ufl"
     if not os.path.exists(filename):
         error("File '%s' doesn't exist." % filename)
-    with open(filename) as f:
-        code = replace_include_statements(f.read())
+    code = read_textfile(filename)
+    code = replace_include_statements(code)
     return code
+
+
+infostring = """An exception occured during evaluation of form file.
+To help you find the location of the error, a temporary script
+'%s'
+has been created and will now be executed with debug output enabled:"""
+
+_ufl_header = """\
+# -*- coding: utf-8 -*-
+from ufl import *
+"""
+
+_ufl_debug_header = """\
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from ufl import *
+set_level(DEBUG)
+"""
 
 
 def execute_ufl_code(uflcode, filename):
     # Execute code
     namespace = {}
     try:
-        pycode = "# -*- coding: utf-8 -*-\nfrom ufl import *\n" + uflcode
+        pycode = _ufl_header + uflcode
         exec(pycode, namespace)
     except:
         # Dump python code for debugging if this fails
         basename = os.path.splitext(os.path.basename(filename))[0]
         basename = "%s_debug" % basename
         pyname = "%s.py" % basename
-        pycode = "#!/usr/bin/env python\n# -*- coding: utf-8 -*-\nfrom ufl import *\nset_level(DEBUG)\n" + uflcode
-        with open(pyname, "w") as f:
+        pycode = _ufl_debug_header + uflcode
+        with io.open(pyname, "w", encoding="utf-8") as f:
             f.write(pycode)
         warning(infostring % pyname)
         error("An error occured, aborting load_forms.")

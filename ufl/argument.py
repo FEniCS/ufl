@@ -25,7 +25,7 @@ classes (functions), including TestFunction and TrialFunction."""
 import numbers
 from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
-from ufl.log import deprecate, error
+from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
@@ -48,7 +48,7 @@ class Argument(FormArgument):
         "_number",
         "_part",
         "_repr",
-        ))
+    ))
 
     def __init__(self, function_space, number, part=None):
         FormArgument.__init__(self)
@@ -96,7 +96,7 @@ class Argument(FormArgument):
         # use .ufl_function_space().ufl_element() instead.")
         return self._ufl_function_space.ufl_element()
 
-    #def element(self):
+    # def element(self):
     #    "Deprecated, please use .ufl_function_space().ufl_element() instead."
     #    deprecate("Argument.element() is deprecated, please use Argument.ufl_element() instead.")
     #    return self.ufl_element()

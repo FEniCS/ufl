@@ -23,7 +23,7 @@ of related classes, including Constant."""
 # Modified by Massimiliano Leoni, 2016.
 
 from ufl.utils.py23 import as_native_str
-from ufl.log import error, deprecate
+from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
@@ -84,7 +84,7 @@ class Coefficient(FormArgument):
         "Shortcut to get the finite element of the function space of this coefficient."
         return self._ufl_function_space.ufl_element()
 
-    #def element(self):
+    # def element(self):
     #    "Deprecated, please use Coefficient.ufl_element() instead."
     #    deprecate("Coefficient.element() is deprecated, please use Coefficient.ufl_element() instead.")
     #    return self.ufl_element()

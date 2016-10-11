@@ -33,7 +33,7 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 from six.moves import xrange as range
 
 from ufl.utils.py23 import as_native_strings
-from ufl.log import error, deprecate
+from ufl.log import error
 
 
 # --- The base object for all UFL expression tree nodes ---

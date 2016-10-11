@@ -23,7 +23,7 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-import six
+# import six
 from six import iteritems
 from six.moves import zip
 from six.moves import xrange as range

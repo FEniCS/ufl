@@ -21,7 +21,7 @@
 # Modified by Anders Logg 2008-2015
 # Modified by Massimiliano Leoni, 2016.
 
-import six
+#import six
 from six import string_types
 import numbers
 

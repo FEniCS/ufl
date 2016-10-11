@@ -129,7 +129,7 @@ class Product(Operator):
     __slots__ = as_native_strings((
         "ufl_free_indices",
         "ufl_index_dimensions",
-        ))
+    ))
 
     def __new__(cls, a, b):
         # Conversion
