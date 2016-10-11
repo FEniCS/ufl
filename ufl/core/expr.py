@@ -390,10 +390,6 @@ class Expr(object):
         # Only in python 2
         return str(self).decode("utf-8")
 
-    def __bytes__(self):
-        # Only in python 3
-        return str(self).encode("utf-8")
-
     def _ufl_err_str_(self):
         "Return a short string to represent this Expr in an error message."
         return "<%s id=%d>" % (self._ufl_class_.__name__, id(self))

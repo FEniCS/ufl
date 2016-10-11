@@ -38,10 +38,6 @@ class FormData(object):
         # Only in python 2
         return str(self).decode("utf-8")
 
-    def __bytes__(self):
-        # Only in python 3
-        return str(self).encode("utf-8")
-
     def __str__(self):
         "Return formatted summary of form data"
         types = sorted(self.max_subdomain_ids.keys())
@@ -77,10 +73,6 @@ class ExprData(object):
     def __unicode__(self):
         # Only in python 2
         return str(self).decode("utf-8")
-
-    def __bytes__(self):
-        # Only in python 3
-        return str(self).encode("utf-8")
 
     def __str__(self):
         "Return formatted summary of expr data"

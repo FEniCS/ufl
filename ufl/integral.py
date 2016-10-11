@@ -129,10 +129,6 @@ class Integral(object):
         # Only in python 2
         return str(self).decode("utf-8")
 
-    def __bytes__(self):
-        # Only in python 3
-        return str(self).encode("utf-8")
-
     def __str__(self):
         fmt = "{ %s } * %s(%s[%s], %s)"
         mname = ufl.measure.integral_type_to_measure_name[self._integral_type]

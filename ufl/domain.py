@@ -66,10 +66,6 @@ class AbstractDomain(object):
         # Only in python 2
         return str(self).decode("utf-8")
 
-    def __bytes__(self):
-        # Only in python 3
-        return str(self).encode("utf-8")
-
 
 # TODO: Would it be useful to have a domain representing R^d? E.g. for
 # Expression.

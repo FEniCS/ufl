@@ -79,10 +79,6 @@ class FiniteElementBase(object):
         # Only in python 2
         return str(self).decode("utf-8")
 
-    def __bytes__(self):
-        # Only in python 3
-        return str(self).encode("utf-8")
-
     def _ufl_hash_data_(self):
         return repr(self)
 

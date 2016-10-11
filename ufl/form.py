@@ -330,10 +330,6 @@ class Form(object):
         # Only in python 2
         return str(self).decode("utf-8")
 
-    def __bytes__(self):
-        # Only in python 3
-        return str(self).encode("utf-8")
-
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
         warning("Calling str on form is potentially expensive and should be avoided except during debugging.")
