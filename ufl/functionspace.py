@@ -20,6 +20,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.utils.py23 import as_native_str
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
@@ -93,7 +94,8 @@ class FunctionSpace(AbstractFunctionSpace):
         return ("FunctionSpace", ddata, edata)
 
     def __repr__(self):
-        return "FunctionSpace(%s, %s)" % (repr(self._ufl_domain), repr(self._ufl_element))
+        r = "FunctionSpace(%s, %s)" % (repr(self._ufl_domain), repr(self._ufl_element))
+        return as_native_str(r)
 
 
 @attach_operators_from_hash_data
@@ -135,7 +137,8 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         return ("MixedFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
 
     def __repr__(self):
-        return "MixedFunctionSpace(*%r)" % (self._ufl_function_spaces,)
+        r = "MixedFunctionSpace(*%r)" % (self._ufl_function_spaces,)
+        return as_native_str(r)
 
 
 @attach_operators_from_hash_data
@@ -154,4 +157,5 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
         return ("TensorProductFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
 
     def __repr__(self):
-        return "TensorProductFunctionSpace(*%r)" % (self._ufl_function_spaces,)
+        r = "TensorProductFunctionSpace(*%r)" % (self._ufl_function_spaces,)
+        return as_native_str(r)

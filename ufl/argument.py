@@ -23,6 +23,7 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Massimiliano Leoni, 2016.
 
 import numbers
+from ufl.utils.py23 import as_native_str
 from ufl.log import deprecate, error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
@@ -64,7 +65,8 @@ class Argument(FormArgument):
         self._number = number
         self._part = part
 
-        self._repr = "Argument(%r, %r, %r)" % (self._ufl_function_space, self._number, self._part)
+        self._repr = as_native_str("Argument(%r, %r, %r)" % (
+            self._ufl_function_space, self._number, self._part))
 
     @property
     def ufl_shape(self):

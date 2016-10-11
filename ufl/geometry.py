@@ -23,6 +23,7 @@
 # Modified by Marie E. Rognes 2012
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.utils.py23 import as_native_str
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
@@ -122,7 +123,8 @@ class GeometricQuantity(Terminal):
         return self._ufl_class_.name
 
     def __repr__(self):
-        return "%s(%s)" % (self._ufl_class_.__name__, repr(self._domain))
+        r = "%s(%s)" % (self._ufl_class_.__name__, repr(self._domain))
+        return as_native_str(r)
 
     def _ufl_compute_hash_(self):
         return hash((type(self).__name__,) + self._domain._ufl_hash_data_())

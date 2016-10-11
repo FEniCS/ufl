@@ -25,6 +25,7 @@
 from six.moves import zip
 from six import string_types
 
+from ufl.utils.py23 import as_native_str
 from ufl.assertions import ufl_assert
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict

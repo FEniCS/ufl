@@ -22,6 +22,7 @@
 
 from six.moves import xrange as range
 
+from ufl.utils.py23 import as_native_str
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.utils.counted import counted_init
@@ -88,7 +89,8 @@ class FixedIndex(IndexBase):
         return "%d" % self._value
 
     def __repr__(self):
-        return "FixedIndex(%d)" % self._value
+        r = "FixedIndex(%d)" % self._value
+        return as_native_str(r)
 
 
 class Index(IndexBase):
@@ -119,7 +121,8 @@ class Index(IndexBase):
         return "i_%s" % c
 
     def __repr__(self):
-        return "Index(%d)" % self._count
+        r = "Index(%d)" % self._count
+        return as_native_str(r)
 
 
 @ufl_type()
@@ -226,7 +229,8 @@ class MultiIndex(Terminal):
         return ", ".join(str(i) for i in self._indices)
 
     def __repr__(self):
-        return "MultiIndex(%r)" % (self._indices,)
+        r = "MultiIndex(%r)" % (self._indices,)
+        return as_native_str(r)
 
     # --- Iteration protocol ---
 

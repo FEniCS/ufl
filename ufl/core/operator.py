@@ -20,6 +20,7 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.utils.py23 import as_native_str
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -55,5 +56,6 @@ class Operator(Expr):
     def __repr__(self):
         "Default repr string construction for operators."
         # This should work for most cases
-        return "%s(%s)" % (self._ufl_class_.__name__,
+        r = "%s(%s)" % (self._ufl_class_.__name__,
             ", ".join(repr(op) for op in self.ufl_operands))
+        return as_native_str(r)

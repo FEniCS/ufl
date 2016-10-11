@@ -24,11 +24,13 @@
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
-from ufl.core.ufl_type import attach_operators_from_hash_data
 from six.moves import reduce
 from six import string_types
 import numbers
+
+from ufl.utils.py23 import as_native_str
+from ufl.log import error
+from ufl.core.ufl_type import attach_operators_from_hash_data
 
 
 # Export list for ufl.classes
@@ -201,9 +203,10 @@ class Cell(AbstractCell):
         tdim = self.topological_dimension()
         name = self.cellname()
         if gdim == tdim and name in cellname2dim:
-            return name
+            r = name
         else:
-            return "Cell(%r, %r)" % (name, gdim)
+            r = "Cell(%r, %r)" % (name, gdim)
+        return as_native_str(r)
 
     def _ufl_hash_data_(self):
         return (self._geometric_dimension, self._topological_dimension,
@@ -279,7 +282,8 @@ class TensorProductCell(AbstractCell):
             gdimstr = ""
         else:
             gdimstr = ", geometric_dimension=%d" % gdim
-        return "TensorProductCell(%s%s)" % (reprs, gdimstr)
+        r = "TensorProductCell(%s%s)" % (reprs, gdimstr)
+        return as_native_str(r)
 
     def _ufl_hash_data_(self):
         return tuple(c._ufl_hash_data_() for c in self._cells) + (self._geometric_dimension,)

@@ -20,6 +20,7 @@ expressions as variables for differentiation."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.utils.counted import counted_init
+from ufl.utils.py23 import as_native_str
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
@@ -45,7 +46,8 @@ class Label(Terminal):
         return "Label(%d)" % self._count
 
     def __repr__(self):
-        return "Label(%d)" % self._count
+        r = "Label(%d)" % self._count
+        return as_native_str(r)
 
     @property
     def ufl_shape(self):

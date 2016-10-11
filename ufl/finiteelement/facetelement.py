@@ -18,6 +18,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
@@ -26,7 +27,7 @@ class FacetElement(FiniteElementBase):
     associated with the interior have been discarded."""
     def __init__(self, element):
         self._element = element
-        self._repr = "FacetElement(%r)" % (element,)
+        self._repr = as_native_str("FacetElement(%r)" % (element,))
 
         family = "FacetElement"
         cell = element.cell()

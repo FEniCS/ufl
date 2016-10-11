@@ -23,6 +23,7 @@
 # Modified by Marie E. Rognes 2012
 
 import numbers
+from ufl.utils.py23 import as_native_str
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -120,8 +121,8 @@ class Mesh(AbstractDomain):
         return (self._ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
 
     def __repr__(self):
-        return "Mesh(%r, %r)" % (
-            self._ufl_coordinate_element, self._ufl_id)
+        r = "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+        return as_native_str(r)
 
     def __str__(self):
         return "<Mesh #%s with coordinates parameterized by %s>" % (
@@ -182,8 +183,9 @@ class MeshView(AbstractDomain):
         return self._ufl_mesh.is_piecewise_linear_simplex_domain()
 
     def __repr__(self):
-        return "MeshView(%r, %r, %r)" % (
-            self._ufl_mesh, self.topological_dimension(), self._ufl_id)
+        tdim = self.topological_dimension()
+        r = "MeshView(%r, %r, %r)" % (self._ufl_mesh, tdim, self._ufl_id)
+        return as_native_str(r)
 
     def __str__(self):
         return "<MeshView #%s of dimension %d over mesh %s>" % (
@@ -238,8 +240,8 @@ class TensorProductMesh(AbstractDomain):
         return False  # TODO: Any cases this is True
 
     def __repr__(self):
-        return "TensorProductMesh(%r, %r)" % (
-            self._ufl_meshes, self._ufl_id)
+        r = "TensorProductMesh(%r, %r)" % (self._ufl_meshes, self._ufl_id)
+        return as_native_str(r)
 
     def __str__(self):
         return "<TensorProductMesh #%s with meshes %s>" % (

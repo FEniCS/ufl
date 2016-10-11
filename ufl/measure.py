@@ -24,6 +24,7 @@
 from six import string_types
 import numbers
 
+from ufl.utils.py23 import as_native_str
 from ufl.log import error, deprecate
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
@@ -335,7 +336,8 @@ class Measure(object):
         if self._subdomain_data is not None:
             args.append("subdomain_data=%r" % (self._subdomain_data,))
 
-        return "%s(%s)" % (type(self).__name__, ', '.join(args))
+        r = "%s(%s)" % (type(self).__name__, ', '.join(args))
+        return as_native_str(r)
 
     def __hash__(self):
         "Return a hash value for this Measure."

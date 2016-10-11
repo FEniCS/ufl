@@ -24,6 +24,7 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Martin Alnaes 2014
 # Modified by Lizao Li 2015
 
+from ufl.utils.py23 import as_native_str
 
 class SobolevSpace(object):
     """Symbolic representation of a Sobolev space. This implements a
@@ -55,7 +56,8 @@ class SobolevSpace(object):
         return self.name
 
     def __repr__(self):
-        return "SobolevSpace(%r, %r)" % (self.name, list(self.parents))
+        r = "SobolevSpace(%r, %r)" % (self.name, list(self.parents))
+        return as_native_str(r)
 
     def _repr_latex_(self):
         if len(self.name) == 2:

@@ -18,6 +18,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
@@ -28,7 +29,7 @@ class TraceElement(FiniteElementBase):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "TraceElement(%s)" % repr(element)
+        self._repr = as_native_str("TraceElement(%s)" % repr(element))
 
         family = "TraceElement"
         cell = element.cell()

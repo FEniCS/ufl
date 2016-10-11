@@ -27,6 +27,7 @@ from ufl.core.expr import Expr
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.measure import Measure  # noqa
 from ufl.protocols import id_or_none
+from ufl.utils.py23 import as_native_str
 
 # Export list for ufl.classes
 __all_classes__ = ["Integral"]
@@ -135,9 +136,10 @@ class Integral(object):
         return s
 
     def __repr__(self):
-        return "Integral(%r, %r, %r, %r, %r, %r)" % (
+        r = "Integral(%r, %r, %r, %r, %r, %r)" % (
             self._integrand, self._integral_type, self._ufl_domain,
             self._subdomain_id, self._metadata, self._subdomain_data)
+        return as_native_str(r)
 
     def __eq__(self, other):
         return (isinstance(other, Integral) and

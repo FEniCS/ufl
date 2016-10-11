@@ -23,6 +23,7 @@ __all_classes__ = ["Equation"]
 
 
 from ufl.log import error
+from ufl.utils.py23 import as_native_str
 
 
 class Equation(object):
@@ -66,4 +67,5 @@ class Equation(object):
         return hash((hash(self.lhs), hash(self.rhs)))
 
     def __repr__(self):
-        return "Equation(%s, %s)" % (repr(self.lhs), repr(self.rhs))
+        r = "Equation(%s, %s)" % (repr(self.lhs), repr(self.rhs))
+        return as_native_str(r)

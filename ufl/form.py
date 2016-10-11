@@ -29,10 +29,10 @@ from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
 from ufl.core.expr import Expr
 from ufl.constantvalue import Zero
-
+from ufl.utils.py23 import as_native_strings, as_native_str
 
 # Export list for ufl.classes
-__all_classes__ = ["Form"]
+__all_classes__ = as_native_strings(["Form"])
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -344,7 +344,7 @@ class Form(object):
         # Not caching this because it can be huge
         itgs = ", ".join(repr(itg) for itg in self.integrals())
         r = "Form([" + itgs + "])"
-        return r
+        return as_native_str(r)
 
     def x_repr_latex_(self):  # TODO: This works, but enable when form latex rendering is fixed
         from ufl.algorithms import ufl2latex

@@ -22,6 +22,7 @@ of related classes, including Constant."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
 
+from ufl.utils.py23 import as_native_str
 from ufl.log import error, deprecate
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
@@ -60,8 +61,8 @@ class Coefficient(FormArgument):
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
-        self._repr = "Coefficient(%r, %r)" % (self._ufl_function_space,
-                                              self._count)
+        self._repr = as_native_str("Coefficient(%r, %r)" % (
+            self._ufl_function_space, self._count))
 
     def count(self):
         return self._count

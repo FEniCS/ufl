@@ -24,6 +24,7 @@
 from six.moves import xrange as range
 from six import iteritems
 
+from ufl.utils.py23 import as_native_str
 from ufl.log import error
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.terminal import Terminal
@@ -78,7 +79,8 @@ class ConstantValue(Terminal):
 #        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self.ufl_shape)
 #
 #     def __repr__(self):
-#         return "AbstractSymbol(%r, %r)" % (self._name, self.ufl_shape)
+#         r = "AbstractSymbol(%r, %r)" % (self._name, self.ufl_shape)
+#         return as_native_str(r)
 #
 #     def __eq__(self, other):
 #         return isinstance(other, AbstractSymbol) and self._name == other._name and self.ufl_shape == other.ufl_shape
@@ -154,9 +156,10 @@ class Zero(ConstantValue):
         return "(0<%r, %r>)" % (self.ufl_shape, self.ufl_free_indices)
 
     def __repr__(self):
-        return "Zero(%r, %r, %r)" % (self.ufl_shape,
-                                     self.ufl_free_indices,
-                                     self.ufl_index_dimensions)
+        r = "Zero(%r, %r, %r)" % (self.ufl_shape,
+                                  self.ufl_free_indices,
+                                  self.ufl_index_dimensions)
+        return as_native_str(r)
 
     def __eq__(self, other):
         if isinstance(other, Zero):
@@ -265,7 +268,8 @@ class FloatValue(ScalarValue):
         ScalarValue.__init__(self, float(value))
 
     def __repr__(self):
-        return "%s(%s)" % (type(self).__name__, format_float(self._value))
+        r = "%s(%s)" % (type(self).__name__, format_float(self._value))
+        return as_native_str(r)
 
 
 @ufl_type(wraps_type=int, is_literal=True)
@@ -302,7 +306,8 @@ class IntValue(ScalarValue):
         pass
 
     def __repr__(self):
-        return "%s(%s)" % (type(self).__name__, repr(self._value))
+        r = "%s(%s)" % (type(self).__name__, repr(self._value))
+        return as_native_str(r)
 
 
 # --- Identity matrix ---
@@ -333,7 +338,8 @@ class Identity(ConstantValue):
         return "I"
 
     def __repr__(self):
-        return "Identity(%d)" % self._dim
+        r = "Identity(%d)" % self._dim
+        return as_native_str(r)
 
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim
@@ -369,7 +375,8 @@ class PermutationSymbol(ConstantValue):
         return "eps"
 
     def __repr__(self):
-        return "PermutationSymbol(%d)" % self._dim
+        r = "PermutationSymbol(%d)" % self._dim
+        return as_native_str(r)
 
     def __eq__(self, other):
         return isinstance(other, PermutationSymbol) and self._dim == other._dim

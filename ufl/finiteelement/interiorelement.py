@@ -18,6 +18,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
@@ -26,7 +27,7 @@ class InteriorElement(FiniteElementBase):
     associated with the interior have been kept."""
     def __init__(self, element):
         self._element = element
-        self._repr = "InteriorElement(%r)" % (element,)
+        self._repr = as_native_str("InteriorElement(%r)" % (element,))
 
         family = "InteriorElement"
         cell = element.cell()
