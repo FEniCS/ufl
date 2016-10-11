@@ -24,7 +24,6 @@
 from itertools import chain
 from collections import defaultdict
 from ufl.log import error, warning, deprecate
-from ufl.assertions import ufl_assert
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
@@ -97,8 +96,8 @@ class Form(object):
     def __init__(self, integrals):
         # Basic input checking (further compatibilty analysis happens
         # later)
-        ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
-                   "Expecting list of integrals.")
+        if not all(isinstance(itg, Integral) for itg in integrals):
+            error("Expecting list of integrals.")
 
         # Store integrals sorted canonically to increase signature
         # stability
@@ -181,16 +180,18 @@ class Form(object):
         domains = self.ufl_domains()
         # Check that all are equal TODO: don't return more than one if
         # all are equal?
-        ufl_assert(all(domain == domains[0] for domain in domains),
-                   "Calling Form.ufl_domain() is only valid if all integrals share domain.")
+        if not all(domain == domains[0] for domain in domains):
+            error("Calling Form.ufl_domain() is only valid if all integrals share domain.")
         # Return the one and only domain
         return domains[0]
 
     def geometric_dimension(self):
         "Return the geometric dimension shared by all domains and functions in this form."
-        gdims = tuple(set(domain.geometric_dimension() for domain in self.ufl_domains()))
-        ufl_assert(len(gdims) == 1,
-                   "Expecting all domains and functions in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
+        gdims = tuple(set(domain.geometric_dimension()
+                          for domain in self.ufl_domains()))
+        if len(gdims) != 1:
+            error("Expecting all domains and functions in a form "
+                  "to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
         return gdims[0]
 
     def domain_numbering(self):
@@ -388,8 +389,8 @@ class Form(object):
             if data is None:
                 subdomain_data[domain][it] = sd
             elif sd is not None:
-                ufl_assert(data.ufl_id() == sd.ufl_id(),
-                           "Integrals in form have different subdomain_data objects.")
+                if data.ufl_id() != sd.ufl_id():
+                    error("Integrals in form have different subdomain_data objects.")
         self._subdomain_data = subdomain_data
 
     def _analyze_form_arguments(self):
@@ -448,10 +449,10 @@ def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     if common_domain is not None:
         gdim = common_domain.geometric_dimension()
         tdim = common_domain.topological_dimension()
-        ufl_assert(all((gdim == domain.geometric_dimension() and
-                        tdim == domain.topological_dimension())
-                       for domain in domains),
-                   "Common domain does not share dimensions with form domains.")
+        if not all((gdim == domain.geometric_dimension() 
+                    and tdim == domain.topological_dimension())
+                    for domain in domains):
+            error("Common domain does not share dimensions with form domains.")
 
     reconstruct = False
     integrals = []

@@ -25,7 +25,6 @@ import os
 import re
 from ufl.log import error, warning
 from ufl.utils.sorting import sorted_by_key
-from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
 from ufl.core.expr import Expr
@@ -150,10 +149,10 @@ def interpret_ufl_namespace(namespace):
     ufd.forms = forms
 
     # Validate types
-    ufl_assert(isinstance(ufd.forms, (list, tuple)),
-               "Expecting 'forms' to be a list or tuple, not '%s'." % type(ufd.forms))
-    ufl_assert(all(isinstance(a, Form) for a in ufd.forms),
-               "Expecting 'forms' to be a list of Form instances.")
+    if not isinstance(ufd.forms, (list, tuple)):
+        error("Expecting 'forms' to be a list or tuple, not '%s'." % type(ufd.forms))
+    if not all(isinstance(a, Form) for a in ufd.forms):
+        error("Expecting 'forms' to be a list of Form instances.")
 
     # Get list of exported elements
     elements = namespace.get("elements")
@@ -163,10 +162,10 @@ def interpret_ufl_namespace(namespace):
     ufd.elements = elements
 
     # Validate types
-    ufl_assert(isinstance(ufd.elements, (list, tuple)),
-               "Expecting 'elements' to be a list or tuple, not '%s'." % type(ufd.elements))
-    ufl_assert(all(isinstance(e, FiniteElementBase) for e in ufd.elements),
-               "Expecting 'elements' to be a list of FiniteElementBase instances.")
+    if not isinstance(ufd.elements, (list, tuple)):
+        error("Expecting 'elements' to be a list or tuple, not '%s'." % type(ufd.elements))
+    if not all(isinstance(e, FiniteElementBase) for e in ufd.elements):
+        error("Expecting 'elements' to be a list of FiniteElementBase instances.")
 
     # Get list of exported coefficients
     # TODO: Temporarily letting 'coefficients' override 'functions',
@@ -177,19 +176,19 @@ def interpret_ufl_namespace(namespace):
     ufd.coefficients = namespace.get("coefficients", functions)
 
     # Validate types
-    ufl_assert(isinstance(ufd.coefficients, (list, tuple)),
-               "Expecting 'coefficients' to be a list or tuple, not '%s'." % type(ufd.coefficients))
-    ufl_assert(all(isinstance(e, Coefficient) for e in ufd.coefficients),
-               "Expecting 'coefficients' to be a list of Coefficient instances.")
+    if not isinstance(ufd.coefficients, (list, tuple)):
+        error("Expecting 'coefficients' to be a list or tuple, not '%s'." % type(ufd.coefficients))
+    if not all(isinstance(e, Coefficient) for e in ufd.coefficients):
+        error("Expecting 'coefficients' to be a list of Coefficient instances.")
 
     # Get list of exported expressions
     ufd.expressions = namespace.get("expressions", [])
 
     # Validate types
-    ufl_assert(isinstance(ufd.expressions, (list, tuple)),
-               "Expecting 'expressions' to be a list or tuple, not '%s'." % type(ufd.expressions))
-    ufl_assert(all(isinstance(e, Expr) for e in ufd.expressions),
-               "Expecting 'expressions' to be a list of Expr instances.")
+    if not isinstance(ufd.expressions, (list, tuple)):
+        error("Expecting 'expressions' to be a list or tuple, not '%s'." % type(ufd.expressions))
+    if not all(isinstance(e, Expr) for e in ufd.expressions):
+        error("Expecting 'expressions' to be a list of Expr instances.")
 
     # Return file data
     return ufd

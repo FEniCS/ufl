@@ -22,15 +22,14 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
 
+import numbers
 from ufl.log import deprecate, error
-from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
-
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
@@ -58,10 +57,10 @@ class Argument(FormArgument):
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
-        ufl_assert(isinstance(number, int),
-                   "Expecting an int for number, not %s" % (number,))
-        ufl_assert(part is None or isinstance(part, int),
-                   "Expecting None or an int for part, not %s" % (part,))
+        if not isinstance(number, numbers.Integral):
+            error("Expecting an int for number, not %s" % (number,))
+        if part is not None and not isinstance(part, numbers.Integral):
+            error("Expecting None or an int for part, not %s" % (part,))
         self._number = number
         self._part = part
 

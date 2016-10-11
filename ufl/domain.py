@@ -22,11 +22,11 @@
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
 
+import numbers
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.log import error, deprecate
-from ufl.assertions import ufl_assert
 from ufl.cell import as_cell, AbstractCell, TensorProductCell
 from ufl.finiteelement.tensorproductelement import TensorProductElement
 
@@ -39,12 +39,12 @@ class AbstractDomain(object):
     """Symbolic representation of a geometric domain with only a geometric and topological dimension."""
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
-        ufl_assert(isinstance(geometric_dimension, int),
-                   "Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
-        ufl_assert(isinstance(topological_dimension, int),
-                   "Expecting integer topological dimension, not '%r'" % (topological_dimension,))
-        ufl_assert(topological_dimension <= geometric_dimension,
-                   "Topological dimension cannot be larger than geometric dimension.")
+        if not isinstance(geometric_dimension, numbers.Integral):
+            error("Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
+        if not isinstance(topological_dimension, numbers.Integral):
+            error("Expecting integer topological dimension, not '%r'" % (topological_dimension,))
+        if topological_dimension > geometric_dimension:
+            error("Topological dimension cannot be larger than geometric dimension.")
 
         # Store validated dimensions
         self._topological_dimension = topological_dimension

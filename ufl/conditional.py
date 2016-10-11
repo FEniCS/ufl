@@ -19,7 +19,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.log import warning, error
-from ufl.assertions import ufl_assert
 from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl
 from ufl.precedence import parstr
@@ -67,18 +66,16 @@ class BinaryCondition(Condition):
         elif name in ('&&', '||'):
             # Binary operators acting on boolean expressions allow
             # only conditions
-            ufl_assert(isinstance(left, Condition),
-                       "Expecting a Condition, not a %s." % left._ufl_class_)
-            ufl_assert(isinstance(right, Condition),
-                       "Expecting a Condition, not a %s." % right._ufl_class_)
+            for arg in (left, right):
+                if not isinstance(arg, Condition):
+                    error("Expecting a Condition, not %s." % ufl_err_str(arg))
         else:
             # Binary operators acting on non-boolean expressions allow
             # only scalars
-            ufl_assert(left.ufl_shape == () and right.ufl_shape == (),
-                       "Expecting scalar arguments.")
-            ufl_assert(left.ufl_free_indices == () and
-                       right.ufl_free_indices == (),
-                       "Expecting scalar arguments.")
+            if left.ufl_shape != () or right.ufl_shape != ():
+                error("Expecting scalar arguments.")
+            if left.ufl_free_indices != () or right.ufl_free_indices != ():
+                error("Expecting scalar arguments.")
 
     def __str__(self):
         return "%s %s %s" % (parstr(self.ufl_operands[0], self),
@@ -207,7 +204,8 @@ class NotCondition(Condition):
 
     def __init__(self, condition):
         Condition.__init__(self, (condition,))
-        ufl_assert(isinstance(condition, Condition), "Expecting a condition.")
+        if not isinstance(condition, Condition):
+            error("Expecting a condition.")
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -225,23 +223,24 @@ class Conditional(Operator):
     __slots__ = ()
 
     def __init__(self, condition, true_value, false_value):
-        ufl_assert(isinstance(condition, Condition),
-                   "Expectiong condition as first argument.")
+        if not isinstance(condition, Condition):
+            error("Expectiong condition as first argument.")
         true_value = as_ufl(true_value)
         false_value = as_ufl(false_value)
         tsh = true_value.ufl_shape
         fsh = false_value.ufl_shape
-        ufl_assert(tsh == fsh, "Shape mismatch between conditional branches.")
+        if tsh != fsh:
+            error("Shape mismatch between conditional branches.")
         tfi = true_value.ufl_free_indices
         ffi = false_value.ufl_free_indices
-        ufl_assert(tfi == ffi,
-                   "Free index mismatch between conditional branches.")
+        if tfi != ffi:
+            error("Free index mismatch between conditional branches.")
         if isinstance(condition, (EQ, NE)):
-            ufl_assert(condition.ufl_operands[0].ufl_shape == () and
-                       condition.ufl_operands[0].ufl_free_indices == () and
-                       condition.ufl_operands[1].ufl_shape == () and
-                       condition.ufl_operands[1].ufl_free_indices == (),
-                       "Non-scalar == or != is not allowed.")
+            if not (condition.ufl_operands[0].ufl_shape == ()
+                    and condition.ufl_operands[0].ufl_free_indices == ()
+                    and condition.ufl_operands[1].ufl_shape == ()
+                    and condition.ufl_operands[1].ufl_free_indices == ()):
+                error("Non-scalar == or != is not allowed.")
 
         Operator.__init__(self, (condition, true_value, false_value))
 
@@ -266,8 +265,8 @@ class MinValue(Operator):
 
     def __init__(self, left, right):
         Operator.__init__(self, (left, right))
-        ufl_assert(is_true_ufl_scalar(left) and is_true_ufl_scalar(right),
-                   "Expecting scalar arguments.")
+        if not (is_true_ufl_scalar(left) and is_true_ufl_scalar(right)):
+            error("Expecting scalar arguments.")
 
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands
@@ -291,8 +290,8 @@ class MaxValue(Operator):
 
     def __init__(self, left, right):
         Operator.__init__(self, (left, right))
-        ufl_assert(is_true_ufl_scalar(left) and is_true_ufl_scalar(right),
-                   "Expecting scalar arguments.")
+        if not (is_true_ufl_scalar(left) and is_true_ufl_scalar(right)):
+            error("Expecting scalar arguments.")
 
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands

@@ -23,7 +23,6 @@ raw input form given by a user."""
 from itertools import chain
 
 from ufl.log import error, info
-from ufl.assertions import ufl_assert
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -88,9 +87,9 @@ def _compute_element_mapping(form):
         cell = element.cell()
         if cell is None:
             domains = form.ufl_domains()
-            ufl_assert(all(domains[0].ufl_cell() == d.ufl_cell()
-                           for d in domains),
-                       "Cannot replace unknown element cell without unique common cell in form.")
+            if not all(domains[0].ufl_cell() == d.ufl_cell()
+                       for d in domains):
+                error("Cannot replace unknown element cell without unique common cell in form.")
             cell = domains[0].ufl_cell()
             info("Adjusting missing element cell to %s." % (cell,))
             reconstruct = True
@@ -151,10 +150,10 @@ def _compute_form_data_elements(self, arguments, coefficients, domains):
 def _check_elements(form_data):
     for element in chain(form_data.unique_elements,
                          form_data.unique_sub_elements):
-        ufl_assert(element.family() is not None,
-                   "Found element with undefined familty: %s" % repr(element))
-        ufl_assert(element.cell() is not None,
-                   "Found element with undefined cell: %s" % repr(element))
+        if element.family() is None:
+            error("Found element with undefined familty: %s" % repr(element))
+        if element.cell() is None:
+            error("Found element with undefined cell: %s" % repr(element))
 
 
 def _check_facet_geometry(integral_data):
@@ -177,8 +176,8 @@ def _check_form_arity(preprocessed_form):
     # anything like that
     # FIXME: This is slooow and should be moved to form compiler
     # and/or replaced with something faster
-    ufl_assert(len(compute_form_arities(preprocessed_form)) == 1,
-               "All terms in form must have same rank.")
+    if 1 != len(compute_form_arities(preprocessed_form)):
+        error("All terms in form must have same rank.")
 
 
 def _build_coefficient_replace_map(coefficients, element_mapping=None):

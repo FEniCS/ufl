@@ -21,7 +21,6 @@
 # Modified by Anders Logg, 2009-2010
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.core.multiindex import indices, Index
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.operators import sqrt
@@ -156,7 +155,8 @@ def inverse_expr(A):
 
 def adj_expr(A):
     sh = A.ufl_shape
-    ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
+    if sh[0] != sh[1]:
+        error("Expecting square matrix.")
 
     if sh[0] == 2:
         return adj_expr_2x2(A)
@@ -204,7 +204,8 @@ def adj_expr_4x4(A):
 
 def cofactor_expr(A):
     sh = A.ufl_shape
-    ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
+    if sh[0] != sh[1]:
+        error("Expecting square matrix.")
 
     if sh[0] == 2:
         return cofactor_expr_2x2(A)
@@ -252,7 +253,8 @@ def cofactor_expr_4x4(A):
 
 def deviatoric_expr(A):
     sh = A.ufl_shape
-    ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
+    if sh[0] != sh[1]:
+        error("Expecting square matrix.")
 
     if sh[0] == 2:
         return deviatoric_expr_2x2(A)

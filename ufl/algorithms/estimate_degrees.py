@@ -21,7 +21,6 @@
 # Modified by Anders Logg, 2009-2010
 # Modified by Jan Blechta, 2012
 
-from ufl.assertions import ufl_assert
 from ufl.log import warning, error
 from ufl.form import Form
 from ufl.integral import Integral
@@ -313,7 +312,8 @@ def estimate_total_polynomial_degree(e, default_degree=1,
     """
     de = SumDegreeEstimator(default_degree, element_replace_map)
     if isinstance(e, Form):
-        ufl_assert(e.integrals(), "Got form with no integrals!")
+        if not e.integrals():
+            error("Got form with no integrals!")
         degrees = map_expr_dags(de, [it.integrand() for it in e.integrals()])
     elif isinstance(e, Integral):
         degrees = map_expr_dags(de, [e.integrand()])

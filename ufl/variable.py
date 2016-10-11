@@ -21,7 +21,6 @@ expressions as variables for differentiation."""
 
 from ufl.utils.counted import counted_init
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
@@ -90,9 +89,12 @@ class Variable(Operator):
             label = Label()
 
         # Checks
-        ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
-        ufl_assert(isinstance(label, Label), "Expecting a Label.")
-        ufl_assert(not expression.ufl_free_indices, "Variable cannot wrap an expression with free indices.")
+        if not isinstance(expression, Expr):
+            error("Expecting Expr.")
+        if not isinstance(label, Label):
+            error("Expecting a Label.")
+        if expression.ufl_free_indices:
+            error("Variable cannot wrap an expression with free indices.")
 
         Operator.__init__(self, (expression, label))
 

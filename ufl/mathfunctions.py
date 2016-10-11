@@ -23,7 +23,6 @@
 
 import math
 from ufl.log import warning, error
-from ufl.assertions import ufl_assert
 from ufl.core.operator import Operator
 from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
 from ufl.core.ufl_type import ufl_type
@@ -60,7 +59,8 @@ class MathFunction(Operator):
 
     def __init__(self, name, argument):
         Operator.__init__(self, (argument,))
-        ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
+        if not is_true_ufl_scalar(argument):
+            error("Expecting scalar argument.")
         self._name = name
 
     def evaluate(self, x, mapping, component, index_values):
@@ -247,8 +247,10 @@ class Atan2(Operator):
 
     def __init__(self, arg1, arg2):
         Operator.__init__(self, (arg1, arg2))
-        ufl_assert(is_true_ufl_scalar(arg1), "Expecting scalar argument 1.")
-        ufl_assert(is_true_ufl_scalar(arg2), "Expecting scalar argument 2.")
+        if not is_true_ufl_scalar(arg1):
+            error("Expecting scalar argument 1.")
+        if not is_true_ufl_scalar(arg2):
+            error("Expecting scalar argument 2.")
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -303,8 +305,10 @@ class BesselFunction(Operator):
     __slots__ = ("_name", "_classname")
 
     def __init__(self, name, classname, nu, argument):
-        ufl_assert(is_true_ufl_scalar(nu), "Expecting scalar nu.")
-        ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
+        if not is_true_ufl_scalar(nu):
+            error("Expecting scalar nu.")
+        if not is_true_ufl_scalar(argument):
+            error("Expecting scalar argument.")
 
         # Use integer representation if suitable
         fnu = float(nu)
