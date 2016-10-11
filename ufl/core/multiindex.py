@@ -230,7 +230,7 @@ class MultiIndex(Terminal):
         return ", ".join(str(i) for i in self._indices)
 
     def __repr__(self):
-        r = "MultiIndex(%r)" % (self._indices,)
+        r = "MultiIndex(%s)" % repr(self._indices)
         return as_native_str(r)
 
     # --- Iteration protocol ---

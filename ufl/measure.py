@@ -329,13 +329,13 @@ class Measure(object):
         args.append(repr(self._integral_type))
 
         if self._subdomain_id is not None:
-            args.append("subdomain_id=%r" % (self._subdomain_id,))
+            args.append("subdomain_id=%s" % repr(self._subdomain_id))
         if self._domain is not None:
-            args.append("domain=%r" % (self._domain,))
+            args.append("domain=%s" % repr(self._domain))
         if self._metadata:  # Stored as EmptyDict if None
-            args.append("metadata=%r" % (self._metadata,))
+            args.append("metadata=%s" % repr(self._metadata))
         if self._subdomain_data is not None:
-            args.append("subdomain_data=%r" % (self._subdomain_data,))
+            args.append("subdomain_data=%s" % repr(self._subdomain_data))
 
         r = "%s(%s)" % (type(self).__name__, ', '.join(args))
         return as_native_str(r)
@@ -414,9 +414,9 @@ a single integral.
 
         # Allow only scalar integrands
         if not is_true_ufl_scalar(integrand):
-            msg = ("Can only integrate scalar expressions. The integrand is a " +
-                   "tensor expression with value rank %d and free indices %r.")
-            error(msg % (len(integrand.ufl_shape), integrand.ufl_free_indices))
+            error("Can only integrate scalar expressions. The integrand is a "
+                  "tensor expression with value rank %d and free indices %s." %
+                    (len(integrand.ufl_shape), repr(integrand.ufl_free_indices)))
 
         # If we have a tuple of domain ids, delegate composition to
         # Integral.__add__:

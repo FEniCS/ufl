@@ -316,7 +316,7 @@ class VectorElement(MixedElement):
         self._form_degree = form_degree  # Storing for signature_data, not sure if it's needed
 
         # Cache repr string
-        self._repr = "VectorElement(%r, dim=%d)" % (sub_element, len(self._sub_elements))
+        self._repr = "VectorElement(%s, dim=%d)" % (repr(sub_element), len(self._sub_elements))
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -434,7 +434,8 @@ class TensorElement(MixedElement):
         self._flattened_sub_element_mapping = flattened_sub_element_mapping
 
         # Cache repr string
-        self._repr = "TensorElement(%r, shape=%r, symmetry=%r)" % (sub_element, self._shape, self._symmetry)
+        self._repr = "TensorElement(%s, shape=%s, symmetry=%s)" % (
+            repr(sub_element), repr(self._shape), repr(self._symmetry))
 
     def mapping(self):
         if self._symmetry:

@@ -19,6 +19,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 import six
+from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
@@ -31,7 +32,7 @@ class HDivElement(FiniteElementBase):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HDivElement(%r)" % (element,)
+        self._repr = as_native_str("HDivElement(%s)" % repr(element))
 
         family = "TensorProductElement"
         cell = element.cell()
@@ -63,7 +64,7 @@ class HCurlElement(FiniteElementBase):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HCurlElement(%r)" % (element,)
+        self._repr = as_native_str("HCurlElement(%s)" % repr(element))
 
         family = "TensorProductElement"
         cell = element.cell()

@@ -36,15 +36,15 @@ def integral_info(integral):
     s += "    Type:\n"
     s += "      %s\n" % integral.integral_type()
     s += "    Domain:\n"
-    s += "      %r\n" % integral.ufl_domain()
+    s += "      %s\n" % repr(integral.ufl_domain())
     s += "    Domain id:\n"
-    s += "      %r\n" % integral.subdomain_id()
+    s += "      %s\n" % repr(integral.subdomain_id())
     s += "    Domain data:\n"
     s += "      %s\n" % integral.subdomain_data()
     s += "    Compiler metadata:\n"
     s += "      %s\n" % integral.metadata()
     s += "    Integrand expression representation:\n"
-    s += "      %r\n" % integral.integrand()
+    s += "      %s\n" % repr(integral.integrand())
     s += "    Integrand expression short form:\n"
     s += "      %s" % integral.integrand()
     return s

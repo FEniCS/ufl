@@ -44,9 +44,9 @@ class AbstractDomain(object):
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
-            error("Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
+            error("Expecting integer geometric dimension, not '%s'" % repr(geometric_dimension))
         if not isinstance(topological_dimension, numbers.Integral):
-            error("Expecting integer topological dimension, not '%r'" % (topological_dimension,))
+            error("Expecting integer topological dimension, not '%s'" % repr(topological_dimension))
         if topological_dimension > geometric_dimension:
             error("Topological dimension cannot be larger than geometric dimension.")
 
@@ -121,7 +121,7 @@ class Mesh(AbstractDomain):
         return (self._ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
 
     def __repr__(self):
-        r = "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+        r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_element), repr(self._ufl_id))
         return as_native_str(r)
 
     def __str__(self):
@@ -185,7 +185,7 @@ class MeshView(AbstractDomain):
 
     def __repr__(self):
         tdim = self.topological_dimension()
-        r = "MeshView(%r, %r, %r)" % (self._ufl_mesh, tdim, self._ufl_id)
+        r = "MeshView(%s, %s, %s)" % (repr(self._ufl_mesh), repr(tdim), repr(self._ufl_id))
         return as_native_str(r)
 
     def __str__(self):
@@ -242,7 +242,7 @@ class TensorProductMesh(AbstractDomain):
         return False  # TODO: Any cases this is True
 
     def __repr__(self):
-        r = "TensorProductMesh(%r, %r)" % (self._ufl_meshes, self._ufl_id)
+        r = "TensorProductMesh(%s, %s)" % (repr(self._ufl_meshes), repr(self._ufl_id))
         return as_native_str(r)
 
     def __str__(self):

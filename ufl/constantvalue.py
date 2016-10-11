@@ -80,7 +80,7 @@ class ConstantValue(Terminal):
 #        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self.ufl_shape)
 #
 #     def __repr__(self):
-#         r = "AbstractSymbol(%r, %r)" % (self._name, self.ufl_shape)
+#         r = "AbstractSymbol(%s, %s)" % (repr(self._name), repr(self.ufl_shape))
 #         return as_native_str(r)
 #
 #     def __eq__(self, other):
@@ -154,12 +154,14 @@ class Zero(ConstantValue):
     def __str__(self):
         if self.ufl_shape == () and self.ufl_free_indices == ():
             return "0"
-        return "(0<%r, %r>)" % (self.ufl_shape, self.ufl_free_indices)
+        return "(0<%s, %s>)" % (repr(self.ufl_shape), repr(self.ufl_free_indices))
 
     def __repr__(self):
-        r = "Zero(%r, %r, %r)" % (self.ufl_shape,
-                                  self.ufl_free_indices,
-                                  self.ufl_index_dimensions)
+        r = "Zero(%s, %s, %s)" % (
+            repr(self.ufl_shape),
+            repr(self.ufl_free_indices),
+            repr(self.ufl_index_dimensions),
+            )
         return as_native_str(r)
 
     def __eq__(self, other):

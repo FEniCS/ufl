@@ -25,6 +25,7 @@
 
 import six
 from ufl.log import error
+from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
@@ -173,10 +174,12 @@ class FiniteElement(FiniteElementBase):
 
         # Cache repr string
         qs = self.quadrature_scheme()
-        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
-        self._repr = "FiniteElement(%r, %r, %r%s)" % (self.family(),
-                                                      self.cell(),
-                                                      self.degree(), quad_str)
+        if qs is None:
+            quad_str = ""
+        else:
+            quad_str = ", quad_scheme=%s" % repr(qs)
+        self._repr = as_native_str("FiniteElement(%s, %s, %s%s)" % (
+            repr(self.family()), repr(self.cell()), repr(self.degree()), quad_str))
         assert '"' not in self._repr
 
     def mapping(self):

@@ -54,7 +54,8 @@ def reconstruct_element(element, family, cell, degree):
     elif isinstance(element, TensorElement):
         return TensorElement(family, cell, degree, shape=element.value_shape())
     else:
-        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+        error("Element reconstruction is only done to stay compatible"
+              " with hacks in DOLFIN. Not expecting a %s" % repr(element))
 
 
 def _increase_degree(element, degree_rise):
@@ -68,7 +69,8 @@ def _increase_degree(element, degree_rise):
         return EnrichedElement([_increase_degree(e, degree_rise)
                                 for e in element.sub_elements()])
     else:
-        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+        error("Element reconstruction is only done to stay compatible"
+              " with hacks in DOLFIN. Not expecting a %s" % repr(element))
 
 
 def _change_family(element, family):
@@ -81,4 +83,5 @@ def _change_family(element, family):
         return EnrichedElement([_change_family(e, family)
                                 for e in element.sub_elements()])
     else:
-        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+        error("Element reconstruction is only done to stay compatible"
+              " with hacks in DOLFIN. Not expecting a %s" % repr(element))

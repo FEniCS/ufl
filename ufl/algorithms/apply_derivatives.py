@@ -871,7 +871,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             o, = o.ufl_operands
             ngrads += 1
         if not isinstance(o, FormArgument):
-            error("Expecting gradient of a FormArgument, not %r" % (o,))
+            error("Expecting gradient of a FormArgument, not %s" % repr(o))
 
         def apply_grads(f):
             for i in range(ngrads):

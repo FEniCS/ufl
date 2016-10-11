@@ -54,7 +54,7 @@ class SobolevSpace(object):
         return self.name
 
     def __repr__(self):
-        r = "SobolevSpace(%r, %r)" % (self.name, list(self.parents))
+        r = "SobolevSpace(%s, %s)" % (repr(self.name), repr(list(self.parents)))
         return as_native_str(r)
 
     def _repr_latex_(self):

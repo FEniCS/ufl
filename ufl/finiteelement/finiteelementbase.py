@@ -158,8 +158,8 @@ class FiniteElementBase(object):
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%r' (value rank %d)" +
-                   "for element (value rank %d).") % (i, len(i), r))
+            error(("Illegal component index '%s' (value rank %d)" +
+                   "for element (value rank %d).") % (repr(i), len(i), r))
 
     def extract_subelement_component(self, i):
         """Extract direct subelement index and subelement relative
@@ -182,8 +182,8 @@ class FiniteElementBase(object):
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%r' (value rank %d)" +
-                   "for element (value rank %d).") % (i, len(i), r))
+            error(("Illegal component index '%s' (value rank %d)" +
+                   "for element (value rank %d).") % (repr(i), len(i), r))
 
     def extract_subelement_reference_component(self, i):
         """Extract direct subelement index and subelement relative

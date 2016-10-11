@@ -23,6 +23,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 import six
+from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.log import deprecate, error
 
@@ -36,7 +37,7 @@ class RestrictedElement(FiniteElementBase):
         if not isinstance(element, FiniteElementBase):
             error("Expecting a finite element instance.")
         if restriction_domain not in valid_restriction_domains:
-            error("Expecting one of the strings %r." % (valid_restriction_domains,))
+            error("Expecting one of the strings %s." % repr(valid_restriction_domains))
 
         FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
                                    element.degree(),
@@ -48,8 +49,8 @@ class RestrictedElement(FiniteElementBase):
 
         self._restriction_domain = restriction_domain
 
-        self._repr = "RestrictedElement(%r, %r)" % (self._element,
-                                                    self._restriction_domain)
+        self._repr = as_native_str("RestrictedElement(%s, %s)" % (
+            repr(self._element), repr(self._restriction_domain)))
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this

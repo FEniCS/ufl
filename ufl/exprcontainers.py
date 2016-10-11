@@ -50,7 +50,7 @@ class ExprList(Operator):
         return "ExprList(*(%s,))" % ", ".join(str(i) for i in self.ufl_operands)
 
     def __repr__(self):
-        r = "ExprList(*%r)" % (self.ufl_operands,)
+        r = "ExprList(*%s)" % repr(self.ufl_operands)
         return as_native_str(r)
 
     @property
@@ -100,10 +100,10 @@ class ExprMapping(Operator):
     #     return iter(self.ufl_operands[::2])
 
     def __str__(self):
-        return "ExprMapping(*%r)" % (self.ufl_operands,)
+        return "ExprMapping(*%s)" % repr(self.ufl_operands)
 
     def __repr__(self):
-        r = "ExprMapping(*%r)" % (self.ufl_operands,)
+        r = "ExprMapping(*%s)" % repr(self.ufl_operands)
         return as_native_str(r)
 
     @property

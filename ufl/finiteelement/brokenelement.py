@@ -28,7 +28,7 @@ class BrokenElement(FiniteElementBase):
     """The discontinuous version of an existing Finite Element space."""
     def __init__(self, element):
         self._element = element
-        self._repr = as_native_str("BrokenElement(%r)" % (element,))
+        self._repr = as_native_str("BrokenElement(%s)" % repr(element))
 
         family = "BrokenElement"
         cell = element.cell()

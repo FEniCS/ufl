@@ -138,7 +138,7 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         return ("MixedFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
 
     def __repr__(self):
-        r = "MixedFunctionSpace(*%r)" % (self._ufl_function_spaces,)
+        r = "MixedFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
         return as_native_str(r)
 
 
@@ -158,5 +158,5 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
         return ("TensorProductFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
 
     def __repr__(self):
-        r = "TensorProductFunctionSpace(*%r)" % (self._ufl_function_spaces,)
+        r = "TensorProductFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
         return as_native_str(r)

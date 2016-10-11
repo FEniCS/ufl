@@ -206,7 +206,7 @@ class Cell(AbstractCell):
         if gdim == tdim and name in cellname2dim:
             r = name
         else:
-            r = "Cell(%r, %r)" % (name, gdim)
+            r = "Cell(%s, %s)" % (repr(name), repr(gdim))
         return as_native_str(r)
 
     def _ufl_hash_data_(self):

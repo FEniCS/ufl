@@ -72,8 +72,8 @@ class Argument(FormArgument):
         self._number = number
         self._part = part
 
-        self._repr = as_native_str("Argument(%r, %r, %r)" % (
-            self._ufl_function_space, self._number, self._part))
+        self._repr = as_native_str("Argument(%s, %s, %s)" % (
+            repr(self._ufl_function_space), repr(self._number), repr(self._part)))
 
     @property
     def ufl_shape(self):

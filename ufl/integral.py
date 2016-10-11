@@ -136,9 +136,14 @@ class Integral(object):
         return s
 
     def __repr__(self):
-        r = "Integral(%r, %r, %r, %r, %r, %r)" % (
-            self._integrand, self._integral_type, self._ufl_domain,
-            self._subdomain_id, self._metadata, self._subdomain_data)
+        r = "Integral(%s, %s, %s, %s, %s, %s)" % (
+            repr(self._integrand),
+            repr(self._integral_type),
+            repr(self._ufl_domain),
+            repr(self._subdomain_id),
+            repr(self._metadata),
+            repr(self._subdomain_data),
+            )
         return as_native_str(r)
 
     def __eq__(self, other):
