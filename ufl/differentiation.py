@@ -21,6 +21,7 @@
 # Modified by Anders Logg, 2009.
 
 from ufl.log import error
+from ufl.utils.py23 import as_native_strings
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.operator import Operator
@@ -81,7 +82,11 @@ class CoefficientDerivative(Derivative):
 
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
-    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions",)
+    __slots__ = as_native_strings((
+        "ufl_shape",
+        "ufl_free_indices",
+        "ufl_index_dimensions",
+        ))
 
     def __new__(cls, f, v):
         # Checks
@@ -127,7 +132,7 @@ class CompoundDerivative(Derivative):
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Grad(CompoundDerivative):
-    __slots__ = ("_dim",)
+    __slots__ = as_native_strings(("_dim",))
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -172,7 +177,7 @@ class Grad(CompoundDerivative):
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True,
           is_in_reference_frame=True)
 class ReferenceGrad(CompoundDerivative):
-    __slots__ = ("_dim",)
+    __slots__ = as_native_strings(("_dim",))
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -267,7 +272,7 @@ class ReferenceDiv(CompoundDerivative):
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class NablaGrad(CompoundDerivative):
-    __slots__ = ("_dim",)
+    __slots__ = as_native_strings(("_dim",))
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -330,7 +335,7 @@ _curl_shapes = {(): (2,), (2,): (), (3,): (3,)}
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Curl(CompoundDerivative):
-    __slots__ = ("ufl_shape",)
+    __slots__ = as_native_strings(("ufl_shape",))
 
     def __new__(cls, f):
         # Validate input
@@ -358,7 +363,7 @@ class Curl(CompoundDerivative):
 @ufl_type(num_ops=1, inherit_indices_from_operand=0,
           is_terminal_modifier=True, is_in_reference_frame=True)
 class ReferenceCurl(CompoundDerivative):
-    __slots__ = ("ufl_shape",)
+    __slots__ = as_native_strings(("ufl_shape",))
 
     def __new__(cls, f):
         # Validate input

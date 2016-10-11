@@ -66,7 +66,7 @@ def attach_ufl_id(cls):
 
     # Modify class:
     if hasattr(cls, "__slots__"):
-        assert "_ufl_id" in cls.__slots__
+        assert as_native_str("_ufl_id") in cls.__slots__
     cls._ufl_global_id = 0
     cls.ufl_id = _get_ufl_id
     cls._init_ufl_id = _init_ufl_id(cls)

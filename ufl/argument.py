@@ -24,6 +24,7 @@ classes (functions), including TestFunction and TrialFunction."""
 
 import numbers
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.log import deprecate, error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
@@ -33,7 +34,7 @@ from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
-__all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
+__all_classes__ = as_native_strings(["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"])
 
 
 # --- Class representing an argument (basis function) in a form ---
@@ -41,7 +42,13 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 @ufl_type()
 class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
-    __slots__ = ("_ufl_function_space", "_ufl_shape", "_number", "_part", "_repr")
+    __slots__ = as_native_strings((
+        "_ufl_function_space",
+        "_ufl_shape",
+        "_number",
+        "_part",
+        "_repr",
+        ))
 
     def __init__(self, function_space, number, part=None):
         FormArgument.__init__(self)

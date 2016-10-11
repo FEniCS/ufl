@@ -22,10 +22,11 @@
 # Modified by Kristian B. Oelgaard, 2011
 
 import math
+from ufl.utils.py23 import as_native_strings
 from ufl.log import warning, error
 from ufl.core.operator import Operator
-from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
 from ufl.core.ufl_type import ufl_type
+from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -55,7 +56,7 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 class MathFunction(Operator):
     "Base class for all unary scalar math functions."
     # Freeze member variables for objects in this class
-    __slots__ = ("_name",)
+    __slots__ = as_native_strings(("_name",))
 
     def __init__(self, name, argument):
         Operator.__init__(self, (argument,))
@@ -301,8 +302,7 @@ class Erf(MathFunction):
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
 class BesselFunction(Operator):
     "Base class for all bessel functions"
-    # Freeze member variables for objects in this class
-    __slots__ = ("_name", "_classname")
+    __slots__ = as_native_strings(("_name", "_classname"))
 
     def __init__(self, name, classname, nu, argument):
         if not is_true_ufl_scalar(nu):

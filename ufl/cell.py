@@ -29,19 +29,23 @@ from six import string_types
 import numbers
 
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
 
 # Export list for ufl.classes
-__all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
+__all_classes__ = as_native_strings(["AbstractCell", "Cell", "TensorProductCell"])
 
 
 # --- The most abstract cell class, base class for other cell types
 
 class AbstractCell(object):
     "Representation of an abstract finite element cell with only the dimensions known."
-    __slots__ = ("_topological_dimension", "_geometric_dimension")
+    __slots__ = as_native_strings((
+        "_topological_dimension",
+        "_geometric_dimension",
+        ))
 
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
@@ -123,7 +127,7 @@ cellname2facetname = {"interval": "vertex",
 @attach_operators_from_hash_data
 class Cell(AbstractCell):
     "Representation of a named finite element cell with known structure."
-    __slots__ = ("_cellname",)
+    __slots__ = as_native_strings(("_cellname",))
 
     def __init__(self, cellname, geometric_dimension=None):
         "Initialize basic cell description."
@@ -217,7 +221,7 @@ class Cell(AbstractCell):
 # @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 class TensorProductCell(AbstractCell):
-    __slots__ = ("_cells",)
+    __slots__ = as_native_strings(("_cells",))
 
     def __init__(self, *cells, **kwargs):
         keywords = list(kwargs.keys())

@@ -25,6 +25,7 @@
 
 import six
 from ufl.assertions import ufl_assert
+from ufl.utils.py23 import as_native_strings
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
 
@@ -37,9 +38,11 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements."
     # TODO: Move these to base?
-    __slots__ = ("_short_name",
-                 "_sobolev_space",
-                 "_mapping",)
+    __slots__ = as_native_strings((
+        "_short_name",
+        "_sobolev_space",
+        "_mapping",
+        ))
 
     def __new__(cls,
                 family,

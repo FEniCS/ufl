@@ -26,6 +26,7 @@ from six.moves import zip
 from six import string_types
 
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.assertions import ufl_assert
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
@@ -35,15 +36,17 @@ from ufl.cell import AbstractCell, as_cell
 
 class FiniteElementBase(object):
     "Base class for all finite elements."
-    __slots__ = ("_family",
-                 "_cell",
-                 "_degree",
-                 "_form_degree",
-                 "_quad_scheme",
-                 "_value_shape",
-                 "_reference_value_shape",
-                 "_repr",
-                 "__weakref__")
+    __slots__ = as_native_strings((
+        "_family",
+        "_cell",
+        "_degree",
+        "_form_degree",
+        "_quad_scheme",
+        "_value_shape",
+        "_reference_value_shape",
+        "_repr",
+        "__weakref__",
+        ))
 
     # TODO: Not all these should be in the base class! In particular
     # family, degree, and quad_scheme do not belong here.

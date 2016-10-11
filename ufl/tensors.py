@@ -23,6 +23,7 @@
 from six.moves import zip
 from six.moves import xrange as range
 
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr
@@ -125,7 +126,7 @@ class ListTensor(Operator):
 @ufl_type(is_shaping=True, num_ops="varying")
 class ComponentTensor(Operator):
     """UFL operator type: Maps the free indices of a scalar valued expression to tensor axes."""
-    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = as_native_strings(("ufl_shape", "ufl_free_indices", "ufl_index_dimensions"))
 
     def __new__(cls, expression, indices):
 

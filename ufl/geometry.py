@@ -24,6 +24,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
@@ -96,7 +97,7 @@ Xf = CFK * (X - X0f)
 
 @ufl_type(is_abstract=True)
 class GeometricQuantity(Terminal):
-    __slots__ = ("_domain",)
+    __slots__ = as_native_strings(("_domain",))
 
     def __init__(self, domain):
         Terminal.__init__(self)
@@ -135,12 +136,12 @@ class GeometricQuantity(Terminal):
 
 @ufl_type(is_abstract=True)
 class GeometricCellQuantity(GeometricQuantity):
-    __slots__ = []
+    __slots__ = ()
 
 
 @ufl_type(is_abstract=True)
 class GeometricFacetQuantity(GeometricQuantity):
-    __slots__ = []
+    __slots__ = ()
 
 
 # --- Coordinate represented in different coordinate systems

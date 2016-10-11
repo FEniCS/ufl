@@ -19,6 +19,9 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 
+from ufl.utils.py23 import as_native_strings
+
+
 def counted_init(self, count=None, countedclass=None):
     "Initialize a counted object, see ExampleCounted below for how to use."
 
@@ -40,7 +43,7 @@ class ExampleCounted(object):
     Mimic this class to create globally counted objects within a single type.
     """
     # Store the count for each object
-    __slots__ = ("_count",)
+    __slots__ = as_native_strings(("_count",))
 
     # Store a global counter with the class
     _globalcount = 0

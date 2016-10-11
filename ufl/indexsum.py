@@ -21,11 +21,12 @@
 from six.moves import xrange as range
 
 from ufl.log import error
+from ufl.utils.py23 import as_native_strings
+from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.multiindex import MultiIndex
 from ufl.precedence import parstr
-from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import Zero
 
 
@@ -33,7 +34,11 @@ from ufl.constantvalue import Zero
 
 @ufl_type(num_ops=2)
 class IndexSum(Operator):
-    __slots__ = ("_dimension", "ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = as_native_strings((
+        "_dimension",
+        "ufl_free_indices",
+        "ufl_index_dimensions",
+        ))
 
     def __new__(cls, summand, index):
         # Error checks

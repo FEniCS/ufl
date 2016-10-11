@@ -19,6 +19,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 import six
+from ufl.utils.py23 import as_native_strings
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
@@ -26,7 +27,7 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 class HDivElement(FiniteElementBase):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = ("_element")
+    __slots__ = as_native_strings(("_element"))
 
     def __init__(self, element):
         self._element = element
@@ -58,7 +59,7 @@ class HDivElement(FiniteElementBase):
 class HCurlElement(FiniteElementBase):
     """A curl-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = ("_element")
+    __slots__ = as_native_strings(("_element"))
 
     def __init__(self, element):
         self._element = element

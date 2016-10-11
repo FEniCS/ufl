@@ -19,12 +19,13 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.log import warning, error
+from ufl.utils.py23 import as_native_strings
+from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl
 from ufl.precedence import parstr
 from ufl.exprequals import expr_equals
 from ufl.checks import is_true_ufl_scalar
-from ufl.core.ufl_type import ufl_type
 
 # --- Condition classes ---
 
@@ -47,7 +48,7 @@ class Condition(Operator):
 
 @ufl_type(is_abstract=True, num_ops=2)
 class BinaryCondition(Condition):
-    __slots__ = ('_name',)
+    __slots__ = as_native_strings(('_name',))
 
     def __init__(self, name, left, right):
         left = as_ufl(left)

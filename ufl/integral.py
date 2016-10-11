@@ -29,21 +29,23 @@ from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.measure import Measure  # noqa
 from ufl.protocols import id_or_none
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 
 # Export list for ufl.classes
-__all_classes__ = ["Integral"]
+__all_classes__ = as_native_strings(["Integral"])
 
 
 # @six.python_2_unicode_compatible
 class Integral(object):
     "An integral over a single domain."
-    __slots__ = ("_integrand",
-                 "_integral_type",
-                 "_ufl_domain",
-                 "_subdomain_id",
-                 "_metadata",
-                 "_subdomain_data",
-                 )
+    __slots__ = as_native_strings((
+        "_integrand",
+        "_integral_type",
+        "_ufl_domain",
+        "_subdomain_id",
+        "_metadata",
+        "_subdomain_data",
+        ))
 
     def __init__(self, integrand, integral_type, domain, subdomain_id,
                  metadata, subdomain_data):

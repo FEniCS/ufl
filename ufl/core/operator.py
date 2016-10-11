@@ -21,6 +21,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -30,7 +31,7 @@ from ufl.core.ufl_type import ufl_type
 @ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
     "Base class for all operators, i.e. non-terminal expression types."
-    __slots__ = ("ufl_operands",)
+    __slots__ = as_native_strings(("ufl_operands",))
 
     def __init__(self, operands=None):
         Expr.__init__(self)

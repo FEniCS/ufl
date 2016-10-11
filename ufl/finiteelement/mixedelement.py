@@ -28,6 +28,7 @@ from six import iteritems
 from six.moves import zip
 from six.moves import xrange as range
 
+from ufl.utils.py23 import as_native_strings
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.utils.sequences import product
@@ -43,7 +44,7 @@ from ufl.finiteelement.finiteelement import FiniteElement
 class MixedElement(FiniteElementBase):
     """A finite element composed of a nested hierarchy of mixed or simple
     elements."""
-    __slots__ = ("_sub_elements", "_cells")
+    __slots__ = as_native_strings(("_sub_elements", "_cells"))
 
     def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
@@ -328,9 +329,9 @@ class VectorElement(MixedElement):
 # @six.python_2_unicode_compatible
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal."
-    __slots__ = ("_sub_element", "_shape", "_symmetry",
+    __slots__ = as_native_strings(("_sub_element", "_shape", "_symmetry",
                  "_sub_element_mapping", "_flattened_sub_element_mapping",
-                 "_mapping")
+                 "_mapping"))
 
     def __init__(self, family, cell=None, degree=None, shape=None,
                  symmetry=None, quad_scheme=None):

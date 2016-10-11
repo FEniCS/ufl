@@ -21,6 +21,8 @@
 # Modified by Anders Logg, 2008
 
 from ufl.log import error
+from ufl.utils.py23 import as_native_strings
+from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
@@ -28,7 +30,6 @@ from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.index_combination_utils import merge_unique_indices
 from ufl.sorting import sorted_expr
 from ufl.precedence import parstr
-from ufl.core.ufl_type import ufl_type
 
 # --- Algebraic operators ---
 
@@ -125,7 +126,10 @@ class Sum(Operator):
           binop="__mul__", rbinop="__rmul__")
 class Product(Operator):
     """The product of two or more UFL objects."""
-    __slots__ = ("ufl_free_indices", "ufl_index_dimensions",)
+    __slots__ = as_native_strings((
+        "ufl_free_indices",
+        "ufl_index_dimensions",
+        ))
 
     def __new__(cls, a, b):
         # Conversion

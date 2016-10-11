@@ -26,6 +26,7 @@ import six
 import numbers
 
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -35,7 +36,7 @@ from ufl.finiteelement.tensorproductelement import TensorProductElement
 
 
 # Export list for ufl.classes
-__all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
+__all_classes__ = as_native_strings(["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"])
 
 
 class AbstractDomain(object):

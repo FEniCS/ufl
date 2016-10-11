@@ -25,6 +25,7 @@ from six.moves import xrange as range
 from six import iteritems
 
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.terminal import Terminal
@@ -69,7 +70,7 @@ class ConstantValue(Terminal):
 # @ufl_type()
 # class AbstractSymbol(ConstantValue):
 #     "UFL literal type: Representation of a constant valued symbol with unknown properties."
-#     __slots__ = ("_name", "ufl_shape")
+#     __slots__ = as_native_strings(("_name", "ufl_shape"))
 #     def __init__(self, name, shape):
 #         ConstantValue.__init__(self)
 #         self._name = name
@@ -93,7 +94,7 @@ class ConstantValue(Terminal):
 @ufl_type(is_literal=True)
 class Zero(ConstantValue):
     "UFL literal type: Representation of a zero valued expression."
-    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = as_native_strings(("ufl_shape", "ufl_free_indices", "ufl_index_dimensions"))
 
     _cache = {}
 
@@ -203,7 +204,7 @@ def zero(*shape):
 @ufl_type(is_abstract=True, is_scalar=True)
 class ScalarValue(ConstantValue):
     "A constant scalar value."
-    __slots__ = ("_value",)
+    __slots__ = as_native_strings(("_value",))
 
     def __init__(self, value):
         ConstantValue.__init__(self)
@@ -315,7 +316,7 @@ class IntValue(ScalarValue):
 @ufl_type()
 class Identity(ConstantValue):
     "UFL literal type: Representation of an identity matrix."
-    __slots__ = ("_dim", "ufl_shape")
+    __slots__ = as_native_strings(("_dim", "ufl_shape"))
 
     def __init__(self, dim):
         ConstantValue.__init__(self)
@@ -353,7 +354,7 @@ class PermutationSymbol(ConstantValue):
 
     This is also known as the Levi-Civita symbol, antisymmetric symbol,
     or alternating symbol."""
-    __slots__ = ("ufl_shape", "_dim")
+    __slots__ = as_native_strings(("ufl_shape", "_dim"))
 
     def __init__(self, dim):
         ConstantValue.__init__(self)

@@ -32,6 +32,7 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 
 from six.moves import xrange as range
 
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error, deprecate
 
 
@@ -99,7 +100,7 @@ class Expr(object):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = ("_hash",)
+    __slots__ = as_native_strings(("_hash",))
     # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---

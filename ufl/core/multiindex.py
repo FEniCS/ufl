@@ -24,6 +24,7 @@ import six
 from six.moves import xrange as range
 
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.utils.counted import counted_init
@@ -53,7 +54,7 @@ class IndexBase(object):
 # @six.python_2_unicode_compatible
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
-    __slots__ = ("_value", "_hash")
+    __slots__ = as_native_strings(("_value", "_hash"))
 
     _cache = {}
 
@@ -100,7 +101,7 @@ class Index(IndexBase):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
-    __slots__ = ("_count",)
+    __slots__ = as_native_strings(("_count",))
 
     _globalcount = 0
 
@@ -131,7 +132,7 @@ class Index(IndexBase):
 @ufl_type()
 class MultiIndex(Terminal):
     "Represents a sequence of indices, either fixed or free."
-    __slots__ = ("_indices",)
+    __slots__ = as_native_strings(("_indices",))
 
     _cache = {}
 

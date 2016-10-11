@@ -18,12 +18,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-# Export list for ufl.classes
-__all_classes__ = ["Equation"]
-
-
 from ufl.log import error
 from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
+
+# Export list for ufl.classes
+__all_classes__ = as_native_strings(["Equation"])
 
 
 class Equation(object):
