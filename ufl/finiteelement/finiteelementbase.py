@@ -74,7 +74,10 @@ class FiniteElementBase(object):
         self._quad_scheme = quad_scheme
 
     def __repr__(self):
-        "Format as string for evaluation as Python object."
+        """Format as string for evaluation as Python object.
+
+        NB! Assumes subclass has assigned its repr string to self._repr.
+        """
         return self._repr
 
     def __unicode__(self):

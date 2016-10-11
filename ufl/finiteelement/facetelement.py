@@ -49,6 +49,3 @@ class FacetElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "FacetElement(%s)" % str(self._element.shortstr())
-
-    def __repr__(self):
-        return self._repr

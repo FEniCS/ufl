@@ -48,6 +48,3 @@ class BrokenElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "BrokenElement(%s)" % str(self._element.shortstr())
-
-    def __repr__(self):
-        return self._repr
