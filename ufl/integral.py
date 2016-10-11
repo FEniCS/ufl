@@ -90,10 +90,10 @@ class Integral(object):
         "Return the domain type of this integral."
         return self._integral_type
 
-    def domain(self):
-        "Deprecated, please use .ufl_domain() instead."
-        deprecate("Integral.domain() is deprecated, please use .ufl_domain() instead.")
-        return self.ufl_domain()
+    #def domain(self):
+    #    "Deprecated, please use .ufl_domain() instead."
+    #    deprecate("Integral.domain() is deprecated, please use .ufl_domain() instead.")
+    #    return self.ufl_domain()
 
     def ufl_domain(self):
         "Return the integration domain of this integral."

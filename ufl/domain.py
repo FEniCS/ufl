@@ -142,19 +142,19 @@ class Mesh(AbstractDomain):
                 "Mesh", typespecific)
 
     # Deprecations inherited from Domain
-    def cell(self):
-        deprecate("Mesh.cell() is deprecated, please use .ufl_cell() instead.")
-        return self.ufl_cell()
+    #def cell(self):
+    #    deprecate("Mesh.cell() is deprecated, please use .ufl_cell() instead.")
+    #    return self.ufl_cell()
 
-    def coordinates(self):
-        error("Coordinate function support has been removed!\n"
-              "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
-              "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
+    #def coordinates(self):
+    #    error("Coordinate function support has been removed!\n"
+    #          "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
+    #          "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
 
-    def ufl_coordinates(self):
-        error("Coordinate function support has been removed!\n"
-              "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
-              "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
+    #def ufl_coordinates(self):
+    #    error("Coordinate function support has been removed!\n"
+    #          "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
+    #          "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
 
 
 # @six.python_2_unicode_compatible

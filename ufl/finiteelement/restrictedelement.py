@@ -61,10 +61,10 @@ class RestrictedElement(FiniteElementBase):
         "Return the element which is restricted."
         return self._element
 
-    def element(self):
-        "Deprecated."
-        deprecate("RestrictedElement.element() is deprecated, please use .sub_element() instead.")
-        return self.sub_element()
+    #def element(self):
+    #    "Deprecated."
+    #    deprecate("RestrictedElement.element() is deprecated, please use .sub_element() instead.")
+    #    return self.sub_element()
 
     def mapping(self):
         return self._element.mapping()

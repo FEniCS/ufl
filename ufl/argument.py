@@ -96,10 +96,10 @@ class Argument(FormArgument):
         # use .ufl_function_space().ufl_element() instead.")
         return self._ufl_function_space.ufl_element()
 
-    def element(self):
-        "Deprecated, please use .ufl_function_space().ufl_element() instead."
-        deprecate("Argument.element() is deprecated, please use Argument.ufl_element() instead.")
-        return self.ufl_element()
+    #def element(self):
+    #    "Deprecated, please use .ufl_function_space().ufl_element() instead."
+    #    deprecate("Argument.element() is deprecated, please use Argument.ufl_element() instead.")
+    #    return self.ufl_element()
 
     def number(self):
         "Return the Argument number."

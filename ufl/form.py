@@ -141,10 +141,10 @@ class Form(object):
         "Returns whether the form has no integrals."
         return self.integrals() == ()
 
-    def domains(self):
-        "Deprecated, please use .ufl_domains() instead."
-        deprecate("Form.domains() is deprecated, please use .ufl_domains() instead.")
-        return self.ufl_domains()
+    #def domains(self):
+    #    "Deprecated, please use .ufl_domains() instead."
+    #    deprecate("Form.domains() is deprecated, please use .ufl_domains() instead.")
+    #    return self.ufl_domains()
 
     def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
@@ -157,15 +157,15 @@ class Form(object):
             self._analyze_domains()
         return self._integration_domains
 
-    def cell(self):
-        "Deprecated, please use .ufl_cell() instead."
-        deprecate("Form.cell() is deprecated, please use .ufl_cell() instead.")
-        return self.ufl_cell()
+    #def cell(self):
+    #    "Deprecated, please use .ufl_cell() instead."
+    #    deprecate("Form.cell() is deprecated, please use .ufl_cell() instead.")
+    #    return self.ufl_cell()
 
-    def domain(self):
-        "Deprecated, please use .ufl_domain() instead."
-        deprecate("Form.domain() is deprecated, please use .ufl_domain() instead.")
-        return self.ufl_domain()
+    #def domain(self):
+    #    "Deprecated, please use .ufl_domain() instead."
+    #    deprecate("Form.domain() is deprecated, please use .ufl_domain() instead.")
+    #    return self.ufl_domain()
 
     def ufl_cell(self):
         "Return the single cell this form is defined on, fails if multiple cells are found."

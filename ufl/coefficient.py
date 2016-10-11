@@ -84,10 +84,10 @@ class Coefficient(FormArgument):
         "Shortcut to get the finite element of the function space of this coefficient."
         return self._ufl_function_space.ufl_element()
 
-    def element(self):
-        "Deprecated, please use Coefficient.ufl_element() instead."
-        deprecate("Coefficient.element() is deprecated, please use Coefficient.ufl_element() instead.")
-        return self.ufl_element()
+    #def element(self):
+    #    "Deprecated, please use Coefficient.ufl_element() instead."
+    #    deprecate("Coefficient.element() is deprecated, please use Coefficient.ufl_element() instead.")
+    #    return self.ufl_element()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."

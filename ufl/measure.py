@@ -190,10 +190,10 @@ class Measure(object):
         """
         return self._integral_type
 
-    def domain(self):
-        "Deprecated, please use .ufl_domain() instead."
-        deprecate("Measure.domain() is deprecated, please use .ufl_domain() instead.")
-        return self.ufl_domain()
+    #def domain(self):
+    #    "Deprecated, please use .ufl_domain() instead."
+    #    deprecate("Measure.domain() is deprecated, please use .ufl_domain() instead.")
+    #    return self.ufl_domain()
 
     def ufl_domain(self):
         """Return the domain associated with this measure.
