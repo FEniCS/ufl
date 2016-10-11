@@ -360,7 +360,10 @@ from ufl.objects import (
 # Useful constants
 from math import e, pi
 
-__all__ = [
+
+# Define ufl.* namespace
+from ufl.utils.py23 import as_native_strings
+__all__ = as_native_strings([
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
@@ -414,4 +417,4 @@ __all__ = [
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
-    ]
+    ])

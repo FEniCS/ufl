@@ -27,7 +27,9 @@
 #        recommended to use. The __all__ list below is a start based
 #        on grepping of other FEniCS code for ufl.algorithm imports.
 
-__all__ = [
+from ufl.utils.py23 import as_native_strings
+
+__all__ = as_native_strings([
     "estimate_total_polynomial_degree",
     "sort_elements",
     "compute_form_data",
@@ -62,7 +64,7 @@ __all__ = [
     "compute_form_functional",
     "compute_form_signature",
     "tree_format",
-    ]
+    ])
 
 # Utilities for traversing over expression trees in different ways
 #from ufl.algorithms.traversal import iter_expressions

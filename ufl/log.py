@@ -26,6 +26,7 @@ import sys
 import types
 import logging
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL  # noqa: F401
+from ufl.utils.py23 import as_native_strings
 
 log_functions = ["log", "debug", "info", "deprecate", "warning", "error",
                  "begin", "end",
@@ -36,8 +37,8 @@ log_functions = ["log", "debug", "info", "deprecate", "warning", "error",
                  "info_red", "info_green", "info_blue",
                  "warning_red", "warning_green", "warning_blue"]
 
-__all__ = log_functions + ["DEBUG", "INFO", "DEPRECATE", "WARNING", "ERROR",
-                           "CRITICAL", "Logger", "log_functions"]
+__all__ = as_native_strings(log_functions + ["Logger", "log_functions"]
+        + ["DEBUG", "INFO", "DEPRECATE", "WARNING", "ERROR", "CRITICAL"])
 
 DEPRECATE = (INFO + WARNING) // 2
 
