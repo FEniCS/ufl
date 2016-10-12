@@ -2,6 +2,8 @@
 from __future__ import print_function
 
 import sys
+import subprocess
+import io
 import os
 import optparse
 from pprint import pprint
@@ -13,14 +15,20 @@ from ufl.algorithms.formfiles import load_ufl_file
 
 # --- Utilities
 
-# Taken from http://ivory.idyll.org/blog/mar-07/replacing-commands-with-subprocess
-from subprocess import Popen, PIPE, STDOUT
+
 def get_status_output(cmd, input=None, cwd=None, env=None):
-    pipe = Popen(cmd, shell=True, cwd=cwd, env=env, stdout=PIPE, stderr=STDOUT)
+    """Replacement for commands.getstatusoutput which does not work on Windows (or Python 3)."""
+    if isinstance(cmd, string_types):
+        cmd = cmd.strip().split()
+    pipe = subprocess.Popen(cmd, shell=False, cwd=cwd, env=env,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     (output, errout) = pipe.communicate(input=input)
     assert not errout
     status = pipe.returncode
+    if isinstance(output, bytes):
+        output = output.decode('utf-8')
     return (status, output)
+
 
 def runcmd(cmd):
     status, output = get_status_output(cmd)
@@ -31,7 +39,7 @@ def runcmd(cmd):
 
 def write_file(filename, text):
     "Write text to a file and close it."
-    with open(filename, "w") as f:
+    with io.open(filename, "w", encoding="utf-8") as f:
         f.write(text)
     print("Wrote file %s" % filename)
 

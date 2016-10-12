@@ -20,6 +20,8 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -29,7 +31,7 @@ from ufl.core.ufl_type import ufl_type
 @ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
     "Base class for all operators, i.e. non-terminal expression types."
-    __slots__ = ("ufl_operands",)
+    __slots__ = as_native_strings(("ufl_operands",))
 
     def __init__(self, operands=None):
         Expr.__init__(self)
@@ -51,3 +53,10 @@ class Operator(Expr):
     def _ufl_compute_hash_(self):
         "Compute a hash code for this expression. Used by sets and dicts."
         return hash((self._ufl_typecode_,) + tuple(hash(o) for o in self.ufl_operands))
+
+    def __repr__(self):
+        "Default repr string construction for operators."
+        # This should work for most cases
+        r = "%s(%s)" % (self._ufl_class_.__name__,
+            ", ".join(repr(op) for op in self.ufl_operands))
+        return as_native_str(r)

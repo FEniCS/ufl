@@ -22,8 +22,10 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
 
-from ufl.log import deprecate, error
-from ufl.assertions import ufl_assert
+import numbers
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
+from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
@@ -31,9 +33,8 @@ from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 
-
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
-__all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
+__all_classes__ = as_native_strings(["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"])
 
 
 # --- Class representing an argument (basis function) in a form ---
@@ -41,7 +42,13 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 @ufl_type()
 class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
-    __slots__ = ("_ufl_function_space", "_ufl_shape", "_number", "_part", "_repr")
+    __slots__ = as_native_strings((
+        "_ufl_function_space",
+        "_ufl_shape",
+        "_number",
+        "_part",
+        "_repr",
+    ))
 
     def __init__(self, function_space, number, part=None):
         FormArgument.__init__(self)
@@ -58,14 +65,15 @@ class Argument(FormArgument):
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
-        ufl_assert(isinstance(number, int),
-                   "Expecting an int for number, not %s" % (number,))
-        ufl_assert(part is None or isinstance(part, int),
-                   "Expecting None or an int for part, not %s" % (part,))
+        if not isinstance(number, numbers.Integral):
+            error("Expecting an int for number, not %s" % (number,))
+        if part is not None and not isinstance(part, numbers.Integral):
+            error("Expecting None or an int for part, not %s" % (part,))
         self._number = number
         self._part = part
 
-        self._repr = "Argument(%r, %r, %r)" % (self._ufl_function_space, self._number, self._part)
+        self._repr = as_native_str("Argument(%s, %s, %s)" % (
+            repr(self._ufl_function_space), repr(self._number), repr(self._part)))
 
     @property
     def ufl_shape(self):
@@ -88,10 +96,10 @@ class Argument(FormArgument):
         # use .ufl_function_space().ufl_element() instead.")
         return self._ufl_function_space.ufl_element()
 
-    def element(self):
-        "Deprecated, please use .ufl_function_space().ufl_element() instead."
-        deprecate("Argument.element() is deprecated, please use Argument.ufl_element() instead.")
-        return self.ufl_element()
+    # def element(self):
+    #    "Deprecated, please use .ufl_function_space().ufl_element() instead."
+    #    deprecate("Argument.element() is deprecated, please use Argument.ufl_element() instead.")
+    #    return self.ufl_element()
 
     def number(self):
         "Return the Argument number."

@@ -22,14 +22,17 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
+# import six
 from itertools import chain
 
-from ufl.assertions import ufl_assert
+from ufl.log import error
+from ufl.utils.py23 import as_native_strings
 from ufl.cell import TensorProductCell, as_cell
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class TensorProductElement(FiniteElementBase):
     r"""The tensor product of :math:`d` element spaces:
 
@@ -39,12 +42,12 @@ class TensorProductElement(FiniteElementBase):
     :math:`\{ \phi_{j_1} \otimes \phi_{j_2} \otimes \cdots \otimes \phi_{j_d}
     \}` forms a basis for :math:`V`.
     """
-    __slots__ = ("_sub_elements", "_cell")
+    __slots__ = as_native_strings(("_sub_elements", "_cell"))
 
     def __init__(self, *elements, **kwargs):
         "Create TensorProductElement from a given list of elements."
-        ufl_assert(len(elements) > 0,
-                   "Cannot create TensorProductElement from empty list.")
+        if not elements:
+            error("Cannot create TensorProductElement from empty list.")
 
         keywords = list(kwargs.keys())
         if keywords and keywords != ["cell"]:
@@ -68,15 +71,18 @@ class TensorProductElement(FiniteElementBase):
         # match FIAT implementation
         value_shape = tuple(chain(*[e.value_shape() for e in elements]))
         reference_value_shape = tuple(chain(*[e.reference_value_shape() for e in elements]))
-        ufl_assert(len(value_shape) <= 1, "Product of vector-valued elements not supported")
-        ufl_assert(len(reference_value_shape) <= 1, "Product of vector-valued elements not supported")
+        if len(value_shape) > 1:
+            error("Product of vector-valued elements not supported")
+        if len(reference_value_shape) > 1:
+            error("Product of vector-valued elements not supported")
 
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape,
                                    reference_value_shape)
         self._sub_elements = elements
         self._cell = cell
-        self._repr = "TensorProductElement(%s, cell=%s)" % (", ".join(repr(e) for e in elements), repr(cell))
+        self._repr = "TensorProductElement(%s, cell=%s)" % (
+            ", ".join(repr(e) for e in elements), repr(cell))
 
     def mapping(self):
         if all(e.mapping() == "identity" for e in self._sub_elements):

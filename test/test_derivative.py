@@ -1,6 +1,8 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2009-02-17"
 
@@ -522,22 +524,6 @@ def test_vector_coefficient_derivatives_of_product(self):
     J = derivative(F, u, dv, cd)
     fd = compute_form_data(J)
     actual = fd.preprocessed_form.integrals()[0].integrand()
-
-    # Keeping this snippet here for a while for debugging purposes
-    if 0:
-        print(('\n', 'str:'))
-        print((str(actual)))
-        print((str(expected)))
-        print(('\n', 'repr:'))
-        print((repr(actual)))
-        print((repr(expected)))
-        from ufl.algorithms import tree_format
-        open('actual.txt', 'w').write(tree_format(actual))
-        open('expected.txt', 'w').write(tree_format(expected))
-        print(('\n', 'equal:'))
-        print((str(actual) == str(expected)))
-        print((repr(actual) == repr(expected)))
-        print((actual == expected))
 
     # Tricky case! These are equal in representation except
     # that the outermost sum/indexsum are swapped.

@@ -21,32 +21,36 @@
 # Modified by Anders Logg, 2008-2009
 # Modified by Massimiliano Leoni, 2016.
 
+# import six
 import ufl
-from ufl.log import deprecate
-from ufl.assertions import ufl_assert
+from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.measure import Measure  # noqa
 from ufl.protocols import id_or_none
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 
 # Export list for ufl.classes
-__all_classes__ = ["Integral"]
+__all_classes__ = as_native_strings(["Integral"])
 
 
+# @six.python_2_unicode_compatible
 class Integral(object):
     "An integral over a single domain."
-    __slots__ = ("_integrand",
-                 "_integral_type",
-                 "_ufl_domain",
-                 "_subdomain_id",
-                 "_metadata",
-                 "_subdomain_data",
-                 )
+    __slots__ = as_native_strings((
+        "_integrand",
+        "_integral_type",
+        "_ufl_domain",
+        "_subdomain_id",
+        "_metadata",
+        "_subdomain_data",
+    ))
 
     def __init__(self, integrand, integral_type, domain, subdomain_id,
                  metadata, subdomain_data):
-        ufl_assert(isinstance(integrand, Expr),
-                   "Expecting integrand to be an Expr instance.")
+        if not isinstance(integrand, Expr):
+            error("Expecting integrand to be an Expr instance.")
         self._integrand = integrand
         self._integral_type = integral_type
         self._ufl_domain = domain
@@ -86,10 +90,10 @@ class Integral(object):
         "Return the domain type of this integral."
         return self._integral_type
 
-    def domain(self):
-        "Deprecated, please use .ufl_domain() instead."
-        deprecate("Integral.domain() is deprecated, please use .ufl_domain() instead.")
-        return self.ufl_domain()
+    #def domain(self):
+    #    "Deprecated, please use .ufl_domain() instead."
+    #    deprecate("Integral.domain() is deprecated, please use .ufl_domain() instead.")
+    #    return self.ufl_domain()
 
     def ufl_domain(self):
         "Return the integration domain of this integral."
@@ -111,15 +115,19 @@ class Integral(object):
         return self.reconstruct(-self._integrand)
 
     def __mul__(self, scalar):
-        ufl_assert(is_python_scalar(scalar),
-                   "Cannot multiply an integral with non-constant values.")
+        if not is_python_scalar(scalar):
+            error("Cannot multiply an integral with non-constant values.")
         return self.reconstruct(scalar*self._integrand)
 
     def __rmul__(self, scalar):
-        ufl_assert(is_scalar_constant_expression(scalar),
-                   "An integral can only be multiplied by a "
-                   "globally constant scalar expression.")
+        if not is_scalar_constant_expression(scalar):
+            error("An integral can only be multiplied by a "
+                  "globally constant scalar expression.")
         return self.reconstruct(scalar*self._integrand)
+
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
 
     def __str__(self):
         fmt = "{ %s } * %s(%s[%s], %s)"
@@ -128,8 +136,15 @@ class Integral(object):
         return s
 
     def __repr__(self):
-        return "Integral(%r, %r, %r, %r, %r, %r)" % (
-            self._integrand, self._integral_type, self._ufl_domain, self._subdomain_id, self._metadata, self._subdomain_data)
+        r = "Integral(%s, %s, %s, %s, %s, %s)" % (
+            repr(self._integrand),
+            repr(self._integral_type),
+            repr(self._ufl_domain),
+            repr(self._subdomain_id),
+            repr(self._metadata),
+            repr(self._subdomain_data),
+            )
+        return as_native_str(r)
 
     def __eq__(self, other):
         return (isinstance(other, Integral) and

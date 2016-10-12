@@ -18,8 +18,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from ufl.log import error
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
+
 # Export list for ufl.classes
-__all_classes__ = ["Equation"]
+__all_classes__ = as_native_strings(["Equation"])
 
 
 class Equation(object):
@@ -47,8 +51,10 @@ class Equation(object):
         # Try to delegate to equals function
         if hasattr(self.lhs, "equals"):
             return self.lhs.equals(self.rhs)
-        # Fall back to repr
-        return repr(self.lhs) == repr(self.rhs)
+        elif hasattr(self.rhs, "equals"):
+            return self.rhs.equals(self.lhs)
+        else:
+            error("Either lhs or rhs of Equation must implement self.equals(other).")
     __nonzero__ = __bool__
 
     def __eq__(self, other):
@@ -61,4 +67,5 @@ class Equation(object):
         return hash((hash(self.lhs), hash(self.rhs)))
 
     def __repr__(self):
-        return "Equation(%r, %r)" % (self.lhs, self.rhs)
+        r = "Equation(%s, %s)" % (repr(self.lhs), repr(self.rhs))
+        return as_native_str(r)

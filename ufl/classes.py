@@ -30,6 +30,8 @@ of classes, and for mapping types to different handler functions."""
 # This will be populated part by part below
 __all__ = []
 
+from ufl.utils.py23 import as_native_strings
+
 # Import all submodules, triggering execution of the ufl_type class
 # decorator for each Expr class.
 
@@ -133,3 +135,6 @@ __all__ += populate_namespace_with_module_classes(ufl.form, locals())
 
 import ufl.equation  # noqa E401
 __all__ += populate_namespace_with_module_classes(ufl.equation, locals())
+
+
+__all__ = as_native_strings(__all__)

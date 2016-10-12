@@ -21,11 +21,13 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Marie E. Rognes, 2011.
 
+import six
+import io
 import os
 import re
+import ufl
 from ufl.log import error, warning
 from ufl.utils.sorting import sorted_by_key
-from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
 from ufl.core.expr import Expr
@@ -49,29 +51,51 @@ class FileData(object):
     __nonzero__ = __bool__
 
 
-infostring = """An exception occured during evaluation of form file.
-To help you find the location of the error, a temporary script
-'%s'
-has been created and will now be executed with debug output enabled:"""
+def read_lines_decoded(fn):
+    r = re.compile(b".*coding: *([^ ]+)")
+    if six.PY3:
+        def match(line):
+            return r.match(line, re.ASCII)
+    else:
+        def match(line):
+            return r.match(line)
+
+    # First read lines as bytes
+    with io.open(fn, "rb") as f:
+        lines = f.readlines()
+
+    # Check for coding: in the first two lines
+    for i in range(min(2, len(lines))):
+        m = match(lines[i])
+        if m:
+            encoding, = m.groups()
+            # Drop encoding line
+            lines = lines[:i] + lines[i+1:]
+            break
+    else:
+        # Default to utf-8 (works for ascii files
+        # as well, default for python files in py3)
+        encoding = "utf-8"
+
+    # Decode all lines
+    lines = [line.decode(encoding=encoding) for line in lines]
+    return lines
 
 
-def replace_include_statements(code):
+def replace_include_statements(lines):
     "Replace '#include foo.ufl' statements with contents of foo.ufl."
-    if "#include" in code:
-        lines = code.split("\n")
-        newlines = []
-        regexp = re.compile(r"^#include (.*)$")
-        for l in lines:
-            m = regexp.search(l)
-            if m:
-                fn = m.groups()[0]
-                newlines.append("# --- begin %s" % fn)
-                newlines.extend(open(fn).readlines())
-                newlines.append("# --- end %s" % fn)
-            else:
-                newlines.append(l)
-        return "\n".join(l.rstrip() for l in newlines)
-    return code
+    r = re.compile(r"^#include (.*)$")
+    newlines = []
+    for l in lines:
+        m = r.search(l)
+        if m:
+            fn = m.groups()[0]
+            newlines.append("# --- begin %s\n" % fn)
+            newlines.extend(read_lines_decoded(fn))
+            newlines.append("# --- end %s\n" % fn)
+        else:
+            newlines.append(l)
+    return newlines
 
 
 def read_ufl_file(filename):
@@ -80,27 +104,33 @@ def read_ufl_file(filename):
         filename = filename + ".ufl"
     if not os.path.exists(filename):
         error("File '%s' doesn't exist." % filename)
-    with open(filename) as f:
-        code = replace_include_statements(f.read())
+    lines = read_lines_decoded(filename)
+    lines = replace_include_statements(lines)
+    code = "".join(lines)
     return code
+
+
+infostring = """\
+An exception occured during evaluation of .ufl file.
+If you need to debug it as a python script, rename it to .py
+and add the lines
+
+    from ufl import *
+    set_level(DEBUG)
+
+at the top then run with python.
+"""
 
 
 def execute_ufl_code(uflcode, filename):
     # Execute code
     namespace = {}
+    namespace.update(vars(ufl))
     try:
-        pycode = "# -*- coding: utf-8 -*-\nfrom ufl import *\n" + uflcode
-        exec(pycode, namespace)
-    except:
-        # Dump python code for debugging if this fails
-        basename = os.path.splitext(os.path.basename(filename))[0]
-        basename = "%s_debug" % basename
-        pyname = "%s.py" % basename
-        pycode = "#!/usr/bin/env python\n# -*- coding: utf-8 -*-\nfrom ufl import *\nset_level(DEBUG)\n" + uflcode
-        with open(pyname, "w") as f:
-            f.write(pycode)
-        warning(infostring % pyname)
-        error("An error occured, aborting load_forms.")
+        exec(uflcode, namespace)
+    except Exception as e:
+        warning(infostring)
+        raise e
     return namespace
 
 
@@ -150,10 +180,10 @@ def interpret_ufl_namespace(namespace):
     ufd.forms = forms
 
     # Validate types
-    ufl_assert(isinstance(ufd.forms, (list, tuple)),
-               "Expecting 'forms' to be a list or tuple, not '%s'." % type(ufd.forms))
-    ufl_assert(all(isinstance(a, Form) for a in ufd.forms),
-               "Expecting 'forms' to be a list of Form instances.")
+    if not isinstance(ufd.forms, (list, tuple)):
+        error("Expecting 'forms' to be a list or tuple, not '%s'." % type(ufd.forms))
+    if not all(isinstance(a, Form) for a in ufd.forms):
+        error("Expecting 'forms' to be a list of Form instances.")
 
     # Get list of exported elements
     elements = namespace.get("elements")
@@ -163,10 +193,10 @@ def interpret_ufl_namespace(namespace):
     ufd.elements = elements
 
     # Validate types
-    ufl_assert(isinstance(ufd.elements, (list, tuple)),
-               "Expecting 'elements' to be a list or tuple, not '%s'." % type(ufd.elements))
-    ufl_assert(all(isinstance(e, FiniteElementBase) for e in ufd.elements),
-               "Expecting 'elements' to be a list of FiniteElementBase instances.")
+    if not isinstance(ufd.elements, (list, tuple)):
+        error("Expecting 'elements' to be a list or tuple, not '%s'." % type(ufd.elements))
+    if not all(isinstance(e, FiniteElementBase) for e in ufd.elements):
+        error("Expecting 'elements' to be a list of FiniteElementBase instances.")
 
     # Get list of exported coefficients
     # TODO: Temporarily letting 'coefficients' override 'functions',
@@ -177,19 +207,19 @@ def interpret_ufl_namespace(namespace):
     ufd.coefficients = namespace.get("coefficients", functions)
 
     # Validate types
-    ufl_assert(isinstance(ufd.coefficients, (list, tuple)),
-               "Expecting 'coefficients' to be a list or tuple, not '%s'." % type(ufd.coefficients))
-    ufl_assert(all(isinstance(e, Coefficient) for e in ufd.coefficients),
-               "Expecting 'coefficients' to be a list of Coefficient instances.")
+    if not isinstance(ufd.coefficients, (list, tuple)):
+        error("Expecting 'coefficients' to be a list or tuple, not '%s'." % type(ufd.coefficients))
+    if not all(isinstance(e, Coefficient) for e in ufd.coefficients):
+        error("Expecting 'coefficients' to be a list of Coefficient instances.")
 
     # Get list of exported expressions
     ufd.expressions = namespace.get("expressions", [])
 
     # Validate types
-    ufl_assert(isinstance(ufd.expressions, (list, tuple)),
-               "Expecting 'expressions' to be a list or tuple, not '%s'." % type(ufd.expressions))
-    ufl_assert(all(isinstance(e, Expr) for e in ufd.expressions),
-               "Expecting 'expressions' to be a list of Expr instances.")
+    if not isinstance(ufd.expressions, (list, tuple)):
+        error("Expecting 'expressions' to be a list or tuple, not '%s'." % type(ufd.expressions))
+    if not all(isinstance(e, Expr) for e in ufd.expressions):
+        error("Expecting 'expressions' to be a list of Expr instances.")
 
     # Return file data
     return ufd

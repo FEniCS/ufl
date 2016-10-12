@@ -15,8 +15,8 @@ def test_str_float_value(self):
 def test_str_zero(self):
     x = SpatialCoordinate(triangle)
     assert str(as_ufl(0)) == "0"
-    assert str(0*x) == "(0<(2,), ()>)"  # TODO: Not very nice...
-    assert str(0*x*x[Index(42)]) == "(0<(2,), (42,)>)"  # TODO: Not very nice...
+    assert str(0*x) == "0 (shape (2,))"
+    assert str(0*x*x[Index(42)]) == "0 (shape (2,), index labels (42,))"
 
 
 def test_str_index(self):

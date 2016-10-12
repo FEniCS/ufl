@@ -18,9 +18,12 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+# import six
+from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class TraceElement(FiniteElementBase):
     """A finite element space: the trace of a given H-div element.
     This is effectively a scalar-valued restriction which is
@@ -28,7 +31,7 @@ class TraceElement(FiniteElementBase):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "TraceElement(%s)" % repr(element)
+        self._repr = as_native_str("TraceElement(%s)" % repr(element))
 
         family = "TraceElement"
         cell = element.cell()
@@ -48,6 +51,3 @@ class TraceElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "TraceElement(%s)" % str(self._element.shortstr())
-
-    def __repr__(self):
-        return self._repr

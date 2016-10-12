@@ -22,20 +22,22 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.assertions import ufl_assert
+# import six
+from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.log import deprecate
+from ufl.log import error
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 
 
+# @six.python_2_unicode_compatible
 class RestrictedElement(FiniteElementBase):
     "Represents the restriction of a finite element to a type of cell entity."
     def __init__(self, element, restriction_domain):
-        ufl_assert(isinstance(element, FiniteElementBase),
-                   "Expecting a finite element instance.")
-        ufl_assert(restriction_domain in valid_restriction_domains,
-                   "Expecting one of the strings %r." % (valid_restriction_domains,))
+        if not isinstance(element, FiniteElementBase):
+            error("Expecting a finite element instance.")
+        if restriction_domain not in valid_restriction_domains:
+            error("Expecting one of the strings %s." % (valid_restriction_domains,))
 
         FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
                                    element.degree(),
@@ -47,8 +49,8 @@ class RestrictedElement(FiniteElementBase):
 
         self._restriction_domain = restriction_domain
 
-        self._repr = "RestrictedElement(%r, %r)" % (self._element,
-                                                    self._restriction_domain)
+        self._repr = as_native_str("RestrictedElement(%s, %s)" % (
+            repr(self._element), repr(self._restriction_domain)))
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this
@@ -59,10 +61,10 @@ class RestrictedElement(FiniteElementBase):
         "Return the element which is restricted."
         return self._element
 
-    def element(self):
-        "Deprecated."
-        deprecate("RestrictedElement.element() is deprecated, please use .sub_element() instead.")
-        return self.sub_element()
+    #def element(self):
+    #    "Deprecated."
+    #    deprecate("RestrictedElement.element() is deprecated, please use .sub_element() instead.")
+    #    return self.sub_element()
 
     def mapping(self):
         return self._element.mapping()

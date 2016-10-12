@@ -27,7 +27,6 @@ from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.utils.stacks import Stack, StackDict
-from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, ListTensor
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
@@ -52,7 +51,8 @@ class IndexExpander(ReuseTransformer):
     def terminal(self, x):
         if x.ufl_shape:
             c = self.component()
-            ufl_assert(len(x.ufl_shape) == len(c), "Component size mismatch.")
+            if len(x.ufl_shape) != len(c):
+                error("Component size mismatch.")
             return x[c]
         return x
 
@@ -66,17 +66,20 @@ class IndexExpander(ReuseTransformer):
 
             # Get component
             c = self.component()
-            ufl_assert(r == len(c), "Component size mismatch.")
+            if r != len(c):
+                error("Component size mismatch.")
 
             # Map it through an eventual symmetry mapping
             s = e.symmetry()
             c = s.get(c, c)
-            ufl_assert(r == len(c), "Component size mismatch after symmetry mapping.")
+            if r != len(c):
+                error("Component size mismatch after symmetry mapping.")
 
             return x[c]
 
     def zero(self, x):
-        ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
+        if len(x.ufl_shape) != len(self.component()):
+            error("Component size mismatch.")
 
         s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
         if s:
@@ -88,7 +91,8 @@ class IndexExpander(ReuseTransformer):
     def scalar_value(self, x):
         if len(x.ufl_shape) != len(self.component()):
             self.print_visit_stack()
-        ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
+        if len(x.ufl_shape) != len(self.component()):
+            error("Component size mismatch.")
 
         s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
         if s:
@@ -100,7 +104,8 @@ class IndexExpander(ReuseTransformer):
         c, t, f = x.ufl_operands
 
         # Not accepting nonscalars in condition
-        ufl_assert(c.ufl_shape == (), "Not expecting tensor in condition.")
+        if c.ufl_shape != ():
+            error("Not expecting tensor in condition.")
 
         # Conditional may be indexed, push empty component
         self._components.push(())
@@ -117,11 +122,13 @@ class IndexExpander(ReuseTransformer):
         a, b = x.ufl_operands
 
         # Not accepting nonscalars in division anymore
-        ufl_assert(a.ufl_shape == (), "Not expecting tensor in division.")
-        ufl_assert(self.component() == (),
-                   "Not expecting component in division.")
+        if a.ufl_shape != ():
+            error("Not expecting tensor in division.")
+        if self.component() != ():
+            error("Not expecting component in division.")
 
-        ufl_assert(b.ufl_shape == (), "Not expecting division by tensor.")
+        if b.ufl_shape != ():
+            error("Not expecting division by tensor.")
         a = self.visit(a)
 
         # self._components.push(())
@@ -184,11 +191,13 @@ class IndexExpander(ReuseTransformer):
         # This function evaluates the tensor expression
         # with indices equal to the current component tuple
         expression, indices = x.ufl_operands
-        ufl_assert(expression.ufl_shape == (), "Expecting scalar base expression.")
+        if expression.ufl_shape != ():
+            error("Expecting scalar base expression.")
 
         # Update index map with component tuple values
         comp = self.component()
-        ufl_assert(len(indices) == len(comp), "Index/component mismatch.")
+        if len(indices) != len(comp):
+            error("Index/component mismatch.")
         for i, v in zip(indices.indices(), comp):
             self._index2value.push(i, v)
         self._components.push(())
@@ -215,8 +224,8 @@ class IndexExpander(ReuseTransformer):
 
     def grad(self, x):
         f, = x.ufl_operands
-        ufl_assert(isinstance(f, (Terminal, Grad)),
-                   "Expecting expand_derivatives to have been applied.")
+        if not isinstance(f, (Terminal, Grad)):
+            error("Expecting expand_derivatives to have been applied.")
         # No need to visit child as long as it is on the form [Grad]([Grad](terminal))
         return x[self.component()]
 

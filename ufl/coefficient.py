@@ -22,7 +22,8 @@ of related classes, including Constant."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
 
-from ufl.log import error, deprecate
+from ufl.utils.py23 import as_native_str
+from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
@@ -60,8 +61,8 @@ class Coefficient(FormArgument):
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
-        self._repr = "Coefficient(%r, %r)" % (self._ufl_function_space,
-                                              self._count)
+        self._repr = as_native_str("Coefficient(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count)))
 
     def count(self):
         return self._count
@@ -83,10 +84,10 @@ class Coefficient(FormArgument):
         "Shortcut to get the finite element of the function space of this coefficient."
         return self._ufl_function_space.ufl_element()
 
-    def element(self):
-        "Deprecated, please use Coefficient.ufl_element() instead."
-        deprecate("Coefficient.element() is deprecated, please use Coefficient.ufl_element() instead.")
-        return self.ufl_element()
+    # def element(self):
+    #    "Deprecated, please use Coefficient.ufl_element() instead."
+    #    deprecate("Coefficient.element() is deprecated, please use Coefficient.ufl_element() instead.")
+    #    return self.ufl_element()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."

@@ -21,15 +21,15 @@
 # Modified by Anders Logg, 2008
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
-from ufl.core.expr import Expr
+from ufl.utils.py23 import as_native_strings
+from ufl.core.ufl_type import ufl_type
+from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
 from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.index_combination_utils import merge_unique_indices
 from ufl.sorting import sorted_expr
 from ufl.precedence import parstr
-from ufl.core.ufl_type import ufl_type
 
 # --- Algebraic operators ---
 
@@ -121,15 +121,15 @@ class Sum(Operator):
         # Implementation with no line splitting:
         return "%s" % " + ".join(ops)
 
-    def __repr__(self):
-        return "Sum(%s)" % ", ".join(repr(o) for o in self.ufl_operands)
-
 
 @ufl_type(num_ops=2,
           binop="__mul__", rbinop="__rmul__")
 class Product(Operator):
     """The product of two or more UFL objects."""
-    __slots__ = ("ufl_free_indices", "ufl_index_dimensions",)
+    __slots__ = as_native_strings((
+        "ufl_free_indices",
+        "ufl_index_dimensions",
+    ))
 
     def __new__(cls, a, b):
         # Conversion
@@ -139,7 +139,8 @@ class Product(Operator):
         # Type checking
         # Make sure everything is scalar
         if a.ufl_shape or b.ufl_shape:
-            error("Product can only represent products of scalars.")
+            error("Product can only represent products of scalars, "
+                  "got\n\t%s\nand\n\t%s" % (ufl_err_str(a), ufl_err_str(b)))
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -197,8 +198,8 @@ class Product(Operator):
         ops = self.ufl_operands
         sh = self.ufl_shape
         if sh:
-            ufl_assert(sh == ops[-1].ufl_shape,
-                       "Expecting nonscalar product operand to be the last by convention.")
+            if sh != ops[-1].ufl_shape:
+                error("Expecting nonscalar product operand to be the last by convention.")
             tmp = ops[-1].evaluate(x, mapping, component, index_values)
             ops = ops[:-1]
         else:
@@ -210,9 +211,6 @@ class Product(Operator):
     def __str__(self):
         a, b = self.ufl_operands
         return " * ".join((parstr(a, self), parstr(b, self)))
-
-    def __repr__(self):
-        return "Product(%r, %r)" % self.ufl_operands
 
 
 @ufl_type(num_ops=2,
@@ -273,9 +271,6 @@ class Division(Operator):
         return "%s / %s" % (parstr(self.ufl_operands[0], self),
                             parstr(self.ufl_operands[1], self))
 
-    def __repr__(self):
-        return "Division(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
-
 
 @ufl_type(num_ops=2,
           inherit_indices_from_operand=0,
@@ -290,9 +285,9 @@ class Power(Operator):
 
         # Type checking
         if not is_true_ufl_scalar(a):
-            error("Cannot take the power of a non-scalar expression.")
+            error("Cannot take the power of a non-scalar expression %s." % ufl_err_str(a))
         if not is_true_ufl_scalar(b):
-            error("Cannot raise an expression to a non-scalar power.")
+            error("Cannot raise an expression to a non-scalar power %s." % ufl_err_str(b))
 
         # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
@@ -331,9 +326,6 @@ class Power(Operator):
         a, b = self.ufl_operands
         return "%s ** %s" % (parstr(a, self), parstr(b, self))
 
-    def __repr__(self):
-        return "Power(%r, %r)" % self.ufl_operands
-
 
 @ufl_type(num_ops=1,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0,
@@ -343,9 +335,8 @@ class Abs(Operator):
 
     def __init__(self, a):
         Operator.__init__(self, (a,))
-        ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
         if not isinstance(a, Expr):
-            error("Expecting Expr instances.")
+            error("Expecting Expr instance, not %s." % ufl_err_str(a))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -354,6 +345,3 @@ class Abs(Operator):
     def __str__(self):
         a, = self.ufl_operands
         return "|%s|" % (parstr(a, self),)
-
-    def __repr__(self):
-        return "Abs(%r)" % self.ufl_operands

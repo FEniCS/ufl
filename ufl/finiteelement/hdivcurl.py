@@ -18,17 +18,21 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+# import six
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class HDivElement(FiniteElementBase):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = ("_element")
+    __slots__ = as_native_strings(("_element"))
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HDivElement(%r)" % (element,)
+        self._repr = as_native_str("HDivElement(%s)" % repr(element))
 
         family = "TensorProductElement"
         cell = element.cell()
@@ -52,14 +56,15 @@ class HDivElement(FiniteElementBase):
         return "HDivElement(%s)" % str(self._element.shortstr())
 
 
+# @six.python_2_unicode_compatible
 class HCurlElement(FiniteElementBase):
     """A curl-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = ("_element")
+    __slots__ = as_native_strings(("_element"))
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HCurlElement(%r)" % (element,)
+        self._repr = as_native_str("HCurlElement(%s)" % repr(element))
 
         family = "TensorProductElement"
         cell = element.cell()

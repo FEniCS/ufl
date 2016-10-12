@@ -20,16 +20,18 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
+#import six
 from six.moves import xrange as range
 
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.utils.counted import counted_init
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 
 # Export list for ufl.classes
-__all_classes__ = ["IndexBase", "FixedIndex", "Index"]
+__all_classes__ = as_native_strings(["IndexBase", "FixedIndex", "Index"])
 
 
 class IndexBase(object):
@@ -39,10 +41,15 @@ class IndexBase(object):
     def __init__(self):
         pass
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
 
+
+# @six.python_2_unicode_compatible
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
-    __slots__ = ("_value", "_hash")
+    __slots__ = as_native_strings(("_value", "_hash"))
 
     _cache = {}
 
@@ -80,14 +87,16 @@ class FixedIndex(IndexBase):
         return "%d" % self._value
 
     def __repr__(self):
-        return "FixedIndex(%d)" % self._value
+        r = "FixedIndex(%d)" % self._value
+        return as_native_str(r)
 
 
+# @six.python_2_unicode_compatible
 class Index(IndexBase):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
-    __slots__ = ("_count",)
+    __slots__ = as_native_strings(("_count",))
 
     _globalcount = 0
 
@@ -111,13 +120,14 @@ class Index(IndexBase):
         return "i_%s" % c
 
     def __repr__(self):
-        return "Index(%d)" % self._count
+        r = "Index(%d)" % self._count
+        return as_native_str(r)
 
 
 @ufl_type()
 class MultiIndex(Terminal):
     "Represents a sequence of indices, either fixed or free."
-    __slots__ = ("_indices",)
+    __slots__ = as_native_strings(("_indices",))
 
     _cache = {}
 
@@ -125,7 +135,8 @@ class MultiIndex(Terminal):
         return (self._indices,)
 
     def __new__(cls, indices):
-        ufl_assert(isinstance(indices, tuple), "Expecting a tuple of indices.")
+        if not isinstance(indices, tuple):
+            error("Expecting a tuple of indices.")
 
         if all(isinstance(ind, FixedIndex) for ind in indices):
             # Cache multiindices consisting of purely fixed indices (aka flyweight pattern)
@@ -137,7 +148,8 @@ class MultiIndex(Terminal):
             MultiIndex._cache[key] = self
         else:
             # Create a new object if we have any free indices (too many combinations to cache)
-            ufl_assert(all(isinstance(ind, IndexBase) for ind in indices), "Expecting only Index and FixedIndex objects.")
+            if not all(isinstance(ind, IndexBase) for ind in indices):
+                error("Expecting only Index and FixedIndex objects.")
             self = Terminal.__new__(cls)
 
         # Initialize here instead of in __init__ to avoid overwriting self._indices from cached objects
@@ -218,7 +230,8 @@ class MultiIndex(Terminal):
         return ", ".join(str(i) for i in self._indices)
 
     def __repr__(self):
-        return "MultiIndex(%r)" % (self._indices,)
+        r = "MultiIndex(%s)" % repr(self._indices)
+        return as_native_str(r)
 
     # --- Iteration protocol ---
 

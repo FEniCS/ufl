@@ -21,30 +21,36 @@
 from ufl.log import error
 
 
+# TODO: Move to this file and make other files import from here
+from ufl.core.expr import ufl_err_str
+
+
+# TODO: Use these and add more
 # --- Standardized error messages ---
 
 def expecting_instance(v, c):
-    error("Expecting %s instance, not %s." % (c.__name__, repr(v)))
+    error("Expecting %s instance, not %s." % (c.__name__, ufl_err_str(v)))
 
 
 def expecting_python_scalar(v):
-    error("Expecting Python scalar, not %s." % repr(v))
+    error("Expecting Python scalar, not %s." % ufl_err_str(v))
 
 
 def expecting_expr(v):
-    error("Expecting Expr instance, not %s." % repr(v))
+    error("Expecting Expr instance, not %s." % ufl_err_str(v))
 
 
 def expecting_terminal(v):
-    error("Expecting Terminal instance, not %s." % repr(v))
+    error("Expecting Terminal instance, not %s." % ufl_err_str(v))
 
 
 def expecting_true_ufl_scalar(v):
-    error("Expecting UFL scalar expression with no free indices, not %s." % repr(v))
+    error("Expecting UFL scalar expression with no free indices, not %s." % ufl_err_str(v))
 
 
 # --- Standardized assertions ---
 
+# TODO: Stop using this
 def ufl_assert(condition, *message):
     "Assert that condition is true and otherwise issue an error with given message."
     if not condition:

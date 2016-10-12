@@ -22,11 +22,11 @@
 # Modified by Kristian B. Oelgaard, 2011
 
 import math
+from ufl.utils.py23 import as_native_strings
 from ufl.log import warning, error
-from ufl.assertions import ufl_assert
 from ufl.core.operator import Operator
-from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
 from ufl.core.ufl_type import ufl_type
+from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -56,11 +56,12 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 class MathFunction(Operator):
     "Base class for all unary scalar math functions."
     # Freeze member variables for objects in this class
-    __slots__ = ("_name",)
+    __slots__ = as_native_strings(("_name",))
 
     def __init__(self, name, argument):
         Operator.__init__(self, (argument,))
-        ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
+        if not is_true_ufl_scalar(argument):
+            error("Expecting scalar argument.")
         self._name = name
 
     def evaluate(self, x, mapping, component, index_values):
@@ -74,9 +75,6 @@ class MathFunction(Operator):
 
     def __str__(self):
         return "%s(%s)" % (self._name, self.ufl_operands[0])
-
-    def __repr__(self):
-        return "%s(%r)" % (self._name, self.ufl_operands[0])
 
 
 @ufl_type()
@@ -250,8 +248,10 @@ class Atan2(Operator):
 
     def __init__(self, arg1, arg2):
         Operator.__init__(self, (arg1, arg2))
-        ufl_assert(is_true_ufl_scalar(arg1), "Expecting scalar argument 1.")
-        ufl_assert(is_true_ufl_scalar(arg2), "Expecting scalar argument 2.")
+        if not is_true_ufl_scalar(arg1):
+            error("Expecting scalar argument 1.")
+        if not is_true_ufl_scalar(arg2):
+            error("Expecting scalar argument 2.")
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -264,9 +264,6 @@ class Atan2(Operator):
         return res
 
     def __str__(self):
-        return "atan_2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
-
-    def __repr__(self):
         return "atan_2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
 
 
@@ -305,12 +302,13 @@ class Erf(MathFunction):
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
 class BesselFunction(Operator):
     "Base class for all bessel functions"
-    # Freeze member variables for objects in this class
-    __slots__ = ("_name", "_classname")
+    __slots__ = as_native_strings(("_name", "_classname"))
 
     def __init__(self, name, classname, nu, argument):
-        ufl_assert(is_true_ufl_scalar(nu), "Expecting scalar nu.")
-        ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
+        if not is_true_ufl_scalar(nu):
+            error("Expecting scalar nu.")
+        if not is_true_ufl_scalar(argument):
+            error("Expecting scalar argument.")
 
         # Use integer representation if suitable
         fnu = float(nu)
@@ -344,10 +342,6 @@ class BesselFunction(Operator):
 
     def __str__(self):
         return "%s(%s, %s)" % (self._name, self.ufl_operands[0],
-                               self.ufl_operands[1])
-
-    def __repr__(self):
-        return "%s(%r, %r)" % (self._classname, self.ufl_operands[0],
                                self.ufl_operands[1])
 
 

@@ -18,14 +18,17 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+# import six
+from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class BrokenElement(FiniteElementBase):
     """The discontinuous version of an existing Finite Element space."""
     def __init__(self, element):
         self._element = element
-        self._repr = "BrokenElement(%r)" % (element,)
+        self._repr = as_native_str("BrokenElement(%s)" % repr(element))
 
         family = "BrokenElement"
         cell = element.cell()
@@ -45,6 +48,3 @@ class BrokenElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "BrokenElement(%s)" % str(self._element.shortstr())
-
-    def __repr__(self):
-        return self._repr

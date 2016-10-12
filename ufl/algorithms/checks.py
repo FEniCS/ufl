@@ -24,6 +24,7 @@
 from ufl.log import error
 
 # UFL classes
+from ufl.core.expr import ufl_err_str
 from ufl.form import Form
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
@@ -40,7 +41,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     errors = []
 
     if not isinstance(form, Form):
-        msg = "Validation failed, not a Form:\n%s" % repr(form)
+        msg = "Validation failed, not a Form:\n%s" % ufl_err_str(form)
         error(msg)
         # errors.append(msg)
         # return errors
@@ -103,8 +104,8 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     # Check that all integrands are scalar
     for expression in iter_expressions(form):
         if not is_true_ufl_scalar(expression):
-            errors.append("Found non-scalar integrand expression:\n%s\n%s" %
-                          (str(expression), repr(expression)))
+            errors.append("Found non-scalar integrand expression: %s\n" %
+                          ufl_err_str(expression))
 
     # Check that restrictions are permissible
     for integral in form.integrals():

@@ -22,7 +22,6 @@ equivalent representations using basic operators."""
 # Modified by Anders Logg, 2009-2010
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 
 from ufl.classes import Product, Grad
 from ufl.core.multiindex import indices, Index, FixedIndex
@@ -54,8 +53,10 @@ class LowerCompoundAlgebra(MultiFunction):
 
     def _square_matrix_shape(self, A):
         sh = A.ufl_shape
-        ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
-        ufl_assert(sh[0] is not None, "Unknown dimension.")
+        if sh[0] != sh[1]:
+            error("Expecting square matrix.")
+        if sh[0] is None:
+            error("Unknown dimension.")
         return sh
 
     def deviatoric(self, o, A):
@@ -100,7 +101,8 @@ class LowerCompoundAlgebra(MultiFunction):
     def alternative_inner(self, o, a, b):  # TODO: Test this
         ash = a.ufl_shape
         bsh = b.ufl_shape
-        ufl_assert(ash == bsh)
+        if ash != bsh:
+            error("Nonmatching shapes.")
         # Simplification for tensors with one or more dimensions of
         # length 1
         ii = []
@@ -117,8 +119,11 @@ class LowerCompoundAlgebra(MultiFunction):
         return s
 
     def inner(self, o, a, b):
-        ufl_assert(a.ufl_shape == b.ufl_shape)
-        ii = indices(len(a.ufl_shape))
+        ash = a.ufl_shape
+        bsh = b.ufl_shape
+        if ash != bsh:
+            error("Nonmatching shapes.")
+        ii = indices(len(ash))
         # Creates multiple IndexSums over a Product
         s = a[ii]*b[ii]
         return s

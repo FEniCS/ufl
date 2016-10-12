@@ -23,7 +23,10 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.assertions import ufl_assert
+# import six
+from ufl.log import error
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
 
@@ -32,12 +35,15 @@ from ufl.finiteelement.elementlist import canonical_element_description, simplic
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements."
     # TODO: Move these to base?
-    __slots__ = ("_short_name",
-                 "_sobolev_space",
-                 "_mapping",)
+    __slots__ = as_native_strings((
+        "_short_name",
+        "_sobolev_space",
+        "_mapping",
+        ))
 
     def __new__(cls,
                 family,
@@ -60,10 +66,10 @@ class FiniteElement(FiniteElementBase):
             from ufl.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
 
             if family in ["RTCF", "RTCE"]:
-                ufl_assert(cell._cells[0].cellname() == "interval",
-                           "%s is available on TensorProductCell(interval, interval) only." % family)
-                ufl_assert(cell._cells[1].cellname() == "interval",
-                           "%s is available on TensorProductCell(interval, interval) only." % family)
+                if cell._cells[0].cellname() != "interval":
+                    error("%s is available on TensorProductCell(interval, interval) only." % family)
+                if cell._cells[1].cellname() != "interval":
+                    error("%s is available on TensorProductCell(interval, interval) only." % family)
 
                 C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
                 D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
@@ -77,10 +83,10 @@ class FiniteElement(FiniteElementBase):
                     return EnrichedElement(HCurl(CxD_elt), HCurl(DxC_elt))
 
             elif family == "NCF":
-                ufl_assert(cell._cells[0].cellname() == "quadrilateral",
-                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
-                ufl_assert(cell._cells[1].cellname() == "interval",
-                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                if cell._cells[0].cellname() != "quadrilateral":
+                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                if cell._cells[1].cellname() != "interval":
+                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
                 Qc_elt = FiniteElement("RTCF", "quadrilateral", degree, 1, quad_scheme)
                 Qd_elt = FiniteElement("DQ", "quadrilateral", degree - 1, 2, quad_scheme)
@@ -92,10 +98,10 @@ class FiniteElement(FiniteElementBase):
                                        HDiv(TensorProductElement(Qd_elt, Ic_elt, cell=cell)))
 
             elif family == "NCE":
-                ufl_assert(cell._cells[0].cellname() == "quadrilateral",
-                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
-                ufl_assert(cell._cells[1].cellname() == "interval",
-                           "%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                if cell._cells[0].cellname() != "quadrilateral":
+                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                if cell._cells[1].cellname() != "interval":
+                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
                 Qc_elt = FiniteElement("Q", "quadrilateral", degree, 0, quad_scheme)
                 Qd_elt = FiniteElement("RTCE", "quadrilateral", degree, 1, quad_scheme)
@@ -168,10 +174,12 @@ class FiniteElement(FiniteElementBase):
 
         # Cache repr string
         qs = self.quadrature_scheme()
-        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
-        self._repr = "FiniteElement(%r, %r, %r%s)" % (self.family(),
-                                                      self.cell(),
-                                                      self.degree(), quad_str)
+        if qs is None:
+            quad_str = ""
+        else:
+            quad_str = ", quad_scheme=%s" % repr(qs)
+        self._repr = as_native_str("FiniteElement(%s, %s, %s%s)" % (
+            repr(self.family()), repr(self.cell()), repr(self.degree()), quad_str))
         assert '"' not in self._repr
 
     def mapping(self):

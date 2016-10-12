@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from ufl.utils.py23 import as_native_str
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
@@ -49,7 +50,8 @@ class ExprList(Operator):
         return "ExprList(*(%s,))" % ", ".join(str(i) for i in self.ufl_operands)
 
     def __repr__(self):
-        return "ExprList(*%r)" % (self.ufl_operands,)
+        r = "ExprList(*%s)" % repr(self.ufl_operands)
+        return as_native_str(r)
 
     @property
     def ufl_shape(self):
@@ -98,10 +100,11 @@ class ExprMapping(Operator):
     #     return iter(self.ufl_operands[::2])
 
     def __str__(self):
-        return "ExprMapping(*%r)" % (self.ufl_operands,)
+        return "ExprMapping(*%s)" % repr(self.ufl_operands)
 
     def __repr__(self):
-        return "ExprMapping(*%r)" % (self.ufl_operands,)
+        r = "ExprMapping(*%s)" % repr(self.ufl_operands)
+        return as_native_str(r)
 
     @property
     def ufl_shape(self):

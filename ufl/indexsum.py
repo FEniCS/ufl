@@ -21,11 +21,12 @@
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.core.expr import Expr
+from ufl.utils.py23 import as_native_strings
+from ufl.core.ufl_type import ufl_type
+from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.multiindex import MultiIndex
 from ufl.precedence import parstr
-from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import Zero
 
 
@@ -33,16 +34,20 @@ from ufl.constantvalue import Zero
 
 @ufl_type(num_ops=2)
 class IndexSum(Operator):
-    __slots__ = ("_dimension", "ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = as_native_strings((
+        "_dimension",
+        "ufl_free_indices",
+        "ufl_index_dimensions",
+    ))
 
     def __new__(cls, summand, index):
         # Error checks
         if not isinstance(summand, Expr):
-            error("Expecting Expr instance, not %s." % repr(summand))
+            error("Expecting Expr instance, got %s" % ufl_err_str(summand))
         if not isinstance(index, MultiIndex):
-            error("Expecting MultiIndex instance, not %s." % repr(index))
+            error("Expecting MultiIndex instance, got %s" % ufl_err_str(index))
         if len(index) != 1:
-            error("Expecting a single Index only.")
+            error("Expecting a single Index onlym got %d." % len(index))
 
         # Simplification to zero
         if isinstance(summand, Zero):
@@ -90,6 +95,3 @@ class IndexSum(Operator):
     def __str__(self):
         return "sum_{%s} %s " % (str(self.ufl_operands[1]),
                                  parstr(self.ufl_operands[0], self))
-
-    def __repr__(self):
-        return "IndexSum(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])

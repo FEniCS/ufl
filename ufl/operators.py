@@ -25,11 +25,9 @@ objects."""
 # Modified by Massimiliano Leoni, 2016.
 
 import operator
-from six.moves import map
 from six.moves import xrange as range
 
 from ufl.log import error, warning
-from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
@@ -83,16 +81,16 @@ def elem_op_items(op_ind, indices, *args):
 
 def elem_op(op, *args):
     "UFL operator: Take the elementwise application of operator *op* on scalar values from one or more tensor arguments."
-    args = list(map(as_ufl, args))
+    args = [as_ufl(arg) for arg in args]
     sh = args[0].ufl_shape
-    ufl_assert(all(sh == x.ufl_shape for x in args),
-               "Cannot take elementwise operation with different shapes.")
+    if not all(sh == x.ufl_shape for x in args):
+        error("Cannot take elementwise operation with different shapes.")
+
     if sh == ():
         return op(*args)
 
     def op_ind(ind, *args):
         return op(*[x[ind] for x in args])
-
     return as_tensor(elem_op_items(op_ind, (), *args))
 
 
@@ -168,7 +166,8 @@ def dot(a, b):
 def contraction(a, a_axes, b, b_axes):
     "UFL operator: Take the contraction of a and b over given axes."
     ai, bi = a_axes, b_axes
-    ufl_assert(len(ai) == len(bi), "Contraction must be over the same number of axes.")
+    if len(ai) != len(bi):
+        error("Contraction must be over the same number of axes.")
     ash = a.ufl_shape
     bsh = b.ufl_shape
     aii = indices(len(a.ufl_shape))
@@ -180,7 +179,8 @@ def contraction(a, a_axes, b, b_axes):
         shape[i] = ash[j]
     for i, j in enumerate(bi):
         bii[j] = cii[i]
-        ufl_assert(shape[i] == bsh[j], "Shape mismatch in contraction.")
+        if shape[i] != bsh[j]:
+            error("Shape mismatch in contraction.")
     s = a[aii]*b[bii]
     cii = set(cii)
     ii = tuple(i for i in (aii + bii) if i not in cii)
@@ -190,7 +190,8 @@ def contraction(a, a_axes, b, b_axes):
 def perp(v):
     "UFL operator: Take the perp of *v*, i.e. :math:`(-v_1, +v_0)`."
     v = as_ufl(v)
-    ufl_assert(v.ufl_shape == (2,), "Expecting a 2D vector expression.")
+    if v.ufl_shape != (2,):
+        error("Expecting a 2D vector expression.")
     return as_vector((-v[1], v[0]))
 
 
@@ -243,7 +244,8 @@ def diag(A):
         n, = A.ufl_shape
     elif r == 2:
         m, n = A.ufl_shape
-        ufl_assert(m == n, "Can only take diagonal of square tensors.")
+        if m != n:
+            error("Can only take diagonal of square tensors.")
     else:
         error("Expecting rank 1 or 2 tensor.")
 
@@ -264,9 +266,11 @@ def diag_vector(A):
     # TODO: Make a compound type for this operator
 
     # Get and check dimensions
-    ufl_assert(len(A.ufl_shape) == 2, "Expecting rank 2 tensor.")
+    if len(A.ufl_shape) != 2:
+        error("Expecting rank 2 tensor.")
     m, n = A.ufl_shape
-    ufl_assert(m == n, "Can only take diagonal of square tensors.")
+    if m != n:
+        error("Can only take diagonal of square tensors.")
 
     # Return diagonal vector
     return as_vector([A[i, i] for i in range(n)])

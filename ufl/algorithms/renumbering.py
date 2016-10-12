@@ -19,11 +19,11 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from six.moves import zip
+from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.variable import Label, Variable
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.assertions import ufl_assert
 from ufl.classes import Zero
 
 
@@ -80,6 +80,6 @@ def renumber_indices(expr):
     result = apply_transformer(expr, IndexRenumberingTransformer())
 
     if isinstance(expr, Expr):
-        ufl_assert(num_free_indices == len(result.ufl_free_indices),
-                   "The number of free indices left in expression should be invariant w.r.t. renumbering.")
+        if num_free_indices != len(result.ufl_free_indices):
+            error("The number of free indices left in expression should be invariant w.r.t. renumbering.")
     return result

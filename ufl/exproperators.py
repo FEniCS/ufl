@@ -25,7 +25,6 @@ Sum and its superclass Expr."""
 from itertools import chain
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.utils.stacks import StackDict
 from ufl.core.expr import Expr
 from ufl.constantvalue import Zero, as_ufl
@@ -145,8 +144,8 @@ def _mult(a, b):
         p = Product(a, b[ti])
 
     elif r1 == 2 and r2 in (1, 2):  # Matrix-matrix or matrix-vector
-        ufl_assert(not ri,
-                   "Not expecting repeated indices in non-scalar product.")
+        if ri:
+            error("Not expecting repeated indices in non-scalar product.")
 
         # Check for zero, simplifying early if possible
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -286,7 +285,7 @@ def _restrict(self, side):
         return PositiveRestricted(self)
     if side == "-":
         return NegativeRestricted(self)
-    error("Invalid side %r in restriction operator." % side)
+    error("Invalid side '%s' in restriction operator." % (side,))
 
 
 def _eval(self, coord, mapping=None, component=()):
@@ -307,8 +306,8 @@ def _eval(self, coord, mapping=None, component=()):
 def _call(self, arg, mapping=None, component=()):
     # Taking the restriction or evaluating depending on argument
     if arg in ("+", "-"):
-        ufl_assert(mapping is None,
-                   "Not expecting a mapping when taking restriction.")
+        if mapping is not None:
+            error("Not expecting a mapping when taking restriction.")
         return _restrict(self, arg)
     else:
         return _eval(self, arg, mapping, component)
@@ -369,7 +368,8 @@ def analyse_key(ii, rank):
         if i == Ellipsis:
             # Switch from pre to post list when an ellipsis is
             # encountered
-            ufl_assert(indexlist is pre, "Found duplicate ellipsis.")
+            if indexlist is not pre:
+                error("Found duplicate ellipsis.")
             indexlist = post
         else:
             # Convert index to a proper type
@@ -385,7 +385,7 @@ def analyse_key(ii, rank):
                     # TODO: Use ListTensor to support partial slices?
                     error("Partial slices not implemented, only complete slices like [:]")
             else:
-                error("Can't convert this object to index: %r" % i)
+                error("Can't convert this object to index: %s" % (i,))
 
             # Store index in pre or post list
             indexlist.append(idx)

@@ -25,8 +25,6 @@ converting UFL expressions to other representations."""
 
 import ufl
 from ufl.log import error
-from ufl.assertions import ufl_assert
-from ufl.utils.system import write_file, pdflatex, openpdf
 from ufl.permutation import compute_indices
 from ufl.algorithms.traversal import iter_expressions
 
@@ -47,7 +45,6 @@ from ufl.classes import terminal_classes
 
 # Other algorithms:
 from ufl.algorithms.compute_form_data import compute_form_data
-from ufl.algorithms.formfiles import load_forms
 
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
@@ -607,7 +604,8 @@ def dependency_sorting(deplist, rank):
         next, left = split(left, state)
         deplistlist.append(next)
 
-    ufl_assert(not left, "Shouldn't have anything left!")
+    if left:
+        error("Shouldn't have anything left!")
 
     return deplistlist
 
@@ -710,27 +708,6 @@ def forms2latexdocument(forms, uflfilename, compile=False):
     else:
         title = "Forms " + suffix
     return document(title, sections)
-
-
-# --- File operations ---
-
-def ufl2tex(uflfilename, latexfilename, compile=False):
-    "Compile a .tex file from a .ufl file."
-    forms = load_forms(uflfilename)
-    latex = forms2latexdocument(forms, uflfilename, compile)
-    write_file(latexfilename, latex)
-
-
-def tex2pdf(latexfilename, pdffilename):
-    "Compile a .pdf file from a .tex file."
-    pdflatex(latexfilename, pdffilename)
-    openpdf(pdffilename)
-
-
-def ufl2pdf(uflfilename, latexfilename, pdffilename, compile=False):
-    "Compile a .pdf file from a .ufl file."
-    ufl2tex(uflfilename, latexfilename, compile)
-    tex2pdf(latexfilename, pdffilename)
 
 
 """# Code from uflacs:

@@ -23,7 +23,6 @@
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.finiteelement import MixedElement, TensorElement
@@ -126,7 +125,7 @@ def split(v):
 
         sub_functions.append(subv)
 
-    ufl_assert(actual_value_size == offset,
-               "Logic breach in function splitting.")
+    if actual_value_size != offset:
+        error("Logic breach in function splitting.")
 
     return tuple(sub_functions)

@@ -21,7 +21,6 @@
 from six.moves import zip
 from six.moves import xrange as range
 
-from ufl.assertions import ufl_assert
 from ufl.log import error
 from ufl.core.multiindex import FixedIndex, Index, indices
 
@@ -41,8 +40,8 @@ def unique_sorted_indices(indices):
             newindices.append(i)
             prev = i
         else:
-            ufl_assert(i[1] == prev[1],
-                       "Nonmatching dimensions for free indices with same id!")
+            if i[1] != prev[1]:
+                error("Nonmatching dimensions for free indices with same id!")
     return tuple(newindices)
 
 
@@ -159,15 +158,16 @@ def create_slice_indices(component, shape, fi):
                 repeated_indices.append(ind)
             free_indices.append(ind)
         elif isinstance(ind, FixedIndex):
-            ufl_assert(int(ind) < shape[len(all_indices)],
-                       "Index out of bounds.")
+            if int(ind) >= shape[len(all_indices)]:
+                error("Index out of bounds.")
             all_indices.append(ind)
         elif isinstance(ind, int):
-            ufl_assert(int(ind) < shape[len(all_indices)],
-                       "Index out of bounds.")
+            if int(ind) >= shape[len(all_indices)]:
+                error("Index out of bounds.")
             all_indices.append(FixedIndex(ind))
         elif isinstance(ind, slice):
-            ufl_assert(ind == slice(None), "Only full slices (:) allowed.")
+            if ind != slice(None):
+                error("Only full slices (:) allowed.")
             i = Index()
             slice_indices.append(i)
             all_indices.append(i)
@@ -179,8 +179,8 @@ def create_slice_indices(component, shape, fi):
         else:
             error("Not expecting {0}.".format(ind))
 
-    ufl_assert(len(all_indices) == len(shape),
-               "Component and shape length don't match.")
+    if len(all_indices) != len(shape):
+        error("Component and shape length don't match.")
 
     return tuple(all_indices), tuple(slice_indices), tuple(repeated_indices)
 
@@ -205,8 +205,8 @@ def merge_nonoverlapping_indices(a, b):
     if s:
         free_indices, index_dimensions = zip(*s)
         # Consistency checks
-        ufl_assert(len(set(free_indices)) == len(free_indices),
-                   "Not expecting repeated indices.")
+        if len(set(free_indices)) != len(free_indices):
+            error("Not expecting repeated indices.")
     else:
         free_indices, index_dimensions = (), ()
     return free_indices, index_dimensions
@@ -246,9 +246,9 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
             index_dimensions.append(d)
 
     # Consistency checks
-    ufl_assert(len(set(free_indices)) == len(free_indices),
-               "Not expecting repeated indices left.")
-    ufl_assert(len(free_indices) + 2*len(repeated_indices) == an + bn,
-               "Expecting only twice repeated indices.")
+    if len(set(free_indices)) != len(free_indices):
+        error("Not expecting repeated indices left.")
+    if len(free_indices) + 2*len(repeated_indices) != an + bn:
+        error("Expecting only twice repeated indices.")
 
     return tuple(free_indices), tuple(index_dimensions), tuple(repeated_indices), tuple(repeated_index_dimensions)

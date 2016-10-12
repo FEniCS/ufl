@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.assertions import ufl_assert
+from ufl.log import error
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 
@@ -33,8 +33,8 @@ class RestrictionChecker(MultiFunction):
         pass
 
     def restricted(self, o):
-        ufl_assert(self.current_restriction is None,
-                   "Not expecting twice restricted expression.")
+        if self.current_restriction is not None:
+            error("Not expecting twice restricted expression.")
         self.current_restriction = o._side
         e, = o.ufl_operands
         self.visit(e)
@@ -42,19 +42,19 @@ class RestrictionChecker(MultiFunction):
 
     def facet_normal(self, o):
         if self.require_restriction:
-            ufl_assert(self.current_restriction is not None,
-                       "Facet normal must be restricted in interior facet integrals.")
+            if self.current_restriction is None:
+                error("Facet normal must be restricted in interior facet integrals.")
         else:
-            ufl_assert(self.current_restriction is None,
-                       "Restrictions are only allowed for interior facet integrals.")
+            if self.current_restriction is not None:
+                error("Restrictions are only allowed for interior facet integrals.")
 
     def form_argument(self, o):
         if self.require_restriction:
-            ufl_assert(self.current_restriction is not None,
-                       "Form argument must be restricted in interior facet integrals.")
+            if self.current_restriction is None:
+                error("Form argument must be restricted in interior facet integrals.")
         else:
-            ufl_assert(self.current_restriction is None,
-                       "Restrictions are only allowed for interior facet integrals.")
+            if self.current_restriction is not None:
+                error("Restrictions are only allowed for interior facet integrals.")
 
 
 def check_restrictions(expression, require_restriction):

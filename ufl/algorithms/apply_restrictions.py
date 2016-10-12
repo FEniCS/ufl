@@ -19,9 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 
-from ufl.assertions import ufl_assert
 from ufl.log import error
-
 from ufl.classes import Restricted
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
@@ -42,8 +40,8 @@ class RestrictionPropagator(MultiFunction):
         "When hitting a restricted quantity, visit child with a separate restriction algorithm."
         # Assure that we have only two levels here, inside or outside
         # the Restricted node
-        ufl_assert(self.current_restriction is None,
-                   "Cannot restrict an expression twice.")
+        if self.current_restriction is not None:
+            error("Cannot restrict an expression twice.")
         # Configure a propagator for this side and apply to subtree
         return map_expr_dag(self._rp[o.side()], o.ufl_operands[0])  # FIXME: Reuse cache between these calls!
 
@@ -55,8 +53,8 @@ class RestrictionPropagator(MultiFunction):
 
     def _require_restriction(self, o):
         "Restrict a discontinuous quantity to current side, require a side to be set."
-        ufl_assert(self.current_restriction is not None,
-                   "Discontinuous type %s must be restricted." % o._ufl_class_.__name__)
+        if self.current_restriction is None:
+            error("Discontinuous type %s must be restricted." % o._ufl_class_.__name__)
         return o(self.current_restriction)
 
     def _default_restricted(self, o):

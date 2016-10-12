@@ -25,7 +25,6 @@ of mostly the Jacobian and reference cell data.
 from six.moves import xrange as range
 
 from ufl.log import error, warning
-from ufl.assertions import ufl_assert
 
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
@@ -461,8 +460,8 @@ class GeometryLoweringApplier(MultiFunction):
             n = ndir / sqrt(ndir[i]*ndir[i])
             r = n
 
-        ufl_assert(r.ufl_shape == o.ufl_shape,
-                   "Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))
+        if r.ufl_shape != o.ufl_shape:
+            error("Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))
         return r
 
 

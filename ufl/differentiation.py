@@ -20,7 +20,8 @@
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.assertions import ufl_assert
+from ufl.log import error
+from ufl.utils.py23 import as_native_strings
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.operator import Operator
@@ -56,12 +57,12 @@ class CoefficientDerivative(Derivative):
 
     def __new__(cls, integrand, coefficients, arguments,
                 coefficient_derivatives):
-        ufl_assert(isinstance(coefficients, ExprList),
-                   "Expecting ExprList instance with Coefficients.")
-        ufl_assert(isinstance(arguments, ExprList),
-                   "Expecting ExprList instance with Arguments.")
-        ufl_assert(isinstance(coefficient_derivatives, ExprMapping),
-                   "Expecting ExprMapping for coefficient derivatives.")
+        if not isinstance(coefficients, ExprList):
+            error("Expecting ExprList instance with Coefficients.")
+        if not isinstance(arguments, ExprList):
+            error("Expecting ExprList instance with Arguments.")
+        if not isinstance(coefficient_derivatives, ExprMapping):
+            error("Expecting ExprMapping for coefficient derivatives.")
         if isinstance(integrand, Zero):
             return integrand
         return Derivative.__new__(cls)
@@ -78,24 +79,23 @@ class CoefficientDerivative(Derivative):
             % (self.ufl_operands[0], self.ufl_operands[1],
                self.ufl_operands[2], self.ufl_operands[3])
 
-    def __repr__(self):
-        return "CoefficientDerivative(%r, %r, %r, %r)"\
-            % (self.ufl_operands[0], self.ufl_operands[1],
-               self.ufl_operands[2], self.ufl_operands[3])
-
 
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
-    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions",)
+    __slots__ = as_native_strings((
+        "ufl_shape",
+        "ufl_free_indices",
+        "ufl_index_dimensions",
+    ))
 
     def __new__(cls, f, v):
         # Checks
-        ufl_assert(isinstance(f, Expr),
-                   "Expecting an Expr in VariableDerivative.")
-        ufl_assert(isinstance(v, (Variable, Coefficient)),
-                   "Expecting a Variable in VariableDerivative.")
-        ufl_assert(not v.ufl_free_indices,
-                   "Differentiation variable cannot have free indices.")
+        if not isinstance(f, Expr):
+            error("Expecting an Expr in VariableDerivative.")
+        if not isinstance(v, (Variable, Coefficient)):
+            error("Expecting a Variable in VariableDerivative.")
+        if v.ufl_free_indices:
+            error("Differentiation variable cannot have free indices.")
 
         # Simplification
         # Return zero if expression is trivially independent of variable
@@ -118,10 +118,6 @@ class VariableDerivative(Derivative):
         return "d/d[%s] %s" % (self.ufl_operands[1],
                                parstr(self.ufl_operands[0], self))
 
-    def __repr__(self):
-        return "VariableDerivative(%r, %r)" % (self.ufl_operands[0],
-                                               self.ufl_operands[1])
-
 
 # --- Compound differentiation objects ---
 
@@ -136,7 +132,7 @@ class CompoundDerivative(Derivative):
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Grad(CompoundDerivative):
-    __slots__ = ("_dim",)
+    __slots__ = as_native_strings(("_dim",))
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -153,10 +149,10 @@ class Grad(CompoundDerivative):
     def _ufl_expr_reconstruct_(self, op):
         "Return a new object of the same type with new operands."
         if is_cellwise_constant(op):
-            ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
-                       "Operand shape mismatch in Grad reconstruct.")
-            ufl_assert(self.ufl_operands[0].ufl_free_indices == op.ufl_free_indices,
-                       "Free index mismatch in Grad reconstruct.")
+            if op.ufl_shape != self.ufl_operands[0].ufl_shape:
+                error("Operand shape mismatch in Grad reconstruct.")
+            if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
+                error("Free index mismatch in Grad reconstruct.")
             return Zero(self.ufl_shape, self.ufl_free_indices,
                         self.ufl_index_dimensions)
         return self._ufl_class_(op)
@@ -177,14 +173,11 @@ class Grad(CompoundDerivative):
     def __str__(self):
         return "grad(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "Grad(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True,
           is_in_reference_frame=True)
 class ReferenceGrad(CompoundDerivative):
-    __slots__ = ("_dim",)
+    __slots__ = as_native_strings(("_dim",))
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -201,10 +194,10 @@ class ReferenceGrad(CompoundDerivative):
     def _ufl_expr_reconstruct_(self, op):
         "Return a new object of the same type with new operands."
         if is_cellwise_constant(op):
-            ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
-                       "Operand shape mismatch in ReferenceGrad reconstruct.")
-            ufl_assert(self.ufl_operands[0].ufl_free_indices == op.ufl_free_indices,
-                       "Free index mismatch in ReferenceGrad reconstruct.")
+            if op.ufl_shape != self.ufl_operands[0].ufl_shape:
+                error("Operand shape mismatch in ReferenceGrad reconstruct.")
+            if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
+                error("Free index mismatch in ReferenceGrad reconstruct.")
             return Zero(self.ufl_shape, self.ufl_free_indices,
                         self.ufl_index_dimensions)
         return self._ufl_class_(op)
@@ -225,17 +218,14 @@ class ReferenceGrad(CompoundDerivative):
     def __str__(self):
         return "reference_grad(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "ReferenceGrad(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Div(CompoundDerivative):
     __slots__ = ()
 
     def __new__(cls, f):
-        ufl_assert(not f.ufl_free_indices,
-                   "Free indices in the divergence argument is not allowed.")
+        if f.ufl_free_indices:
+            error("Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
@@ -253,9 +243,6 @@ class Div(CompoundDerivative):
     def __str__(self):
         return "div(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "Div(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True,
           is_in_reference_frame=True)
@@ -263,8 +250,8 @@ class ReferenceDiv(CompoundDerivative):
     __slots__ = ()
 
     def __new__(cls, f):
-        ufl_assert(not f.ufl_free_indices,
-                   "Free indices in the divergence argument is not allowed.")
+        if f.ufl_free_indices:
+            error("Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
@@ -282,13 +269,10 @@ class ReferenceDiv(CompoundDerivative):
     def __str__(self):
         return "reference_div(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "ReferenceDiv(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class NablaGrad(CompoundDerivative):
-    __slots__ = ("_dim",)
+    __slots__ = as_native_strings(("_dim",))
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -305,10 +289,10 @@ class NablaGrad(CompoundDerivative):
     def _ufl_expr_reconstruct_(self, op):
         "Return a new object of the same type with new operands."
         if is_cellwise_constant(op):
-            ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
-                       "Operand shape mismatch in NablaGrad reconstruct.")
-            ufl_assert(self.ufl_operands[0].ufl_free_indices == op.ufl_free_indices,
-                       "Free index mismatch in NablaGrad reconstruct.")
+            if op.ufl_shape != self.ufl_operands[0].ufl_shape:
+                error("Operand shape mismatch in NablaGrad reconstruct.")
+            if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
+                error("Free index mismatch in NablaGrad reconstruct.")
             return Zero(self.ufl_shape, self.ufl_free_indices,
                         self.ufl_index_dimensions)
         return self._ufl_class_(op)
@@ -320,17 +304,14 @@ class NablaGrad(CompoundDerivative):
     def __str__(self):
         return "nabla_grad(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "NablaGrad(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class NablaDiv(CompoundDerivative):
     __slots__ = ()
 
     def __new__(cls, f):
-        ufl_assert(not f.ufl_free_indices,
-                   "Free indices in the divergence argument is not allowed.")
+        if f.ufl_free_indices:
+            error("Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
@@ -348,24 +329,21 @@ class NablaDiv(CompoundDerivative):
     def __str__(self):
         return "nabla_div(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "NablaDiv(%r)" % self.ufl_operands[0]
-
 
 _curl_shapes = {(): (2,), (2,): (), (3,): (3,)}
 
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Curl(CompoundDerivative):
-    __slots__ = ("ufl_shape",)
+    __slots__ = as_native_strings(("ufl_shape",))
 
     def __new__(cls, f):
         # Validate input
         sh = f.ufl_shape
-        ufl_assert(f.ufl_shape in ((), (2,), (3,)),
-                   "Expecting a scalar, 2D vector or 3D vector.")
-        ufl_assert(not f.ufl_free_indices,
-                   "Free indices in the curl argument is not allowed.")
+        if f.ufl_shape not in ((), (2,), (3,)):
+            error("Expecting a scalar, 2D vector or 3D vector.")
+        if f.ufl_free_indices:
+            error("Free indices in the curl argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
@@ -381,22 +359,19 @@ class Curl(CompoundDerivative):
     def __str__(self):
         return "curl(%s)" % self.ufl_operands[0]
 
-    def __repr__(self):
-        return "Curl(%r)" % self.ufl_operands[0]
-
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0,
           is_terminal_modifier=True, is_in_reference_frame=True)
 class ReferenceCurl(CompoundDerivative):
-    __slots__ = ("ufl_shape",)
+    __slots__ = as_native_strings(("ufl_shape",))
 
     def __new__(cls, f):
         # Validate input
         sh = f.ufl_shape
-        ufl_assert(f.ufl_shape in ((), (2,), (3,)),
-                   "Expecting a scalar, 2D vector or 3D vector.")
-        ufl_assert(not f.ufl_free_indices,
-                   "Free indices in the curl argument is not allowed.")
+        if f.ufl_shape not in ((), (2,), (3,)):
+            error("Expecting a scalar, 2D vector or 3D vector.")
+        if f.ufl_free_indices:
+            error("Free indices in the curl argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
@@ -411,6 +386,3 @@ class ReferenceCurl(CompoundDerivative):
 
     def __str__(self):
         return "reference_curl(%s)" % self.ufl_operands[0]
-
-    def __repr__(self):
-        return "ReferenceCurl(%r)" % self.ufl_operands[0]

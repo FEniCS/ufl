@@ -27,9 +27,9 @@ from six import iteritems
 from six.moves import xrange as range
 
 from ufl.log import error, warning, debug
-from ufl.assertions import ufl_assert
 
 # All classes:
+from ufl.core.expr import ufl_err_str
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
@@ -71,7 +71,7 @@ class PartExtracter(Transformer):
         """The default is a nonlinear operator not accepting any
         Arguments among its children."""
         if _expr_has_terminal_types(x, Argument):
-            error("Found Argument in %s, this is an invalid expression." % repr(x))
+            error("Found Argument in %s, this is an invalid expression." % ufl_err_str(x))
         return (x, set())
 
     # Terminals that are not Variables or Arguments behave as default
@@ -219,7 +219,7 @@ class PartExtracter(Transformer):
 
         # Check for Arguments in the denominator
         if _expr_has_terminal_types(denominator, Argument):
-            error("Found Argument in denominator of %s , this is an invalid expression." % repr(x))
+            error("Found Argument in denominator of %s , this is an invalid expression." % ufl_err_str(x))
 
         # Visit numerator
         numerator_parts, provides = self.visit(numerator)
@@ -438,17 +438,19 @@ def compute_energy_norm(form, coefficient):
     if set(parts) - {None}:
         error("compute_energy_norm cannot handle parts.")
 
-    ufl_assert(len(arguments) == 2, "Expecting bilinear form.")
+    if len(arguments) != 2:
+        error("Expecting bilinear form.")
     v, u = arguments
-    e = u.ufl_function_space()
-    e2 = v.ufl_function_space()
-    ufl_assert(e == e2, "Expecting equal finite elements for test and trial functions, got '%s' and '%s'." % (str(e), str(e2)))
+    U = u.ufl_function_space()
+    V = v.ufl_function_space()
+    if U != V:
+        error("Expecting equal finite elements for test and trial functions, got '%s' and '%s'." % (U, V))
     if coefficient is None:
-        coefficient = Coefficient(e)
+        coefficient = Coefficient(V)
     else:
-        ufl_assert(coefficient.ufl_function_space() == e,
-                   "Trying to compute action of form on a "
-                   "coefficient in an incompatible element space.")
+        if coefficient.ufl_function_space() != U:
+            error("Trying to compute action of form on a "
+                  "coefficient in an incompatible element space.")
     return replace(form, {u: coefficient, v: coefficient})
 
 
@@ -464,10 +466,12 @@ def compute_form_adjoint(form, reordered_arguments=None):
     if set(parts) - {None}:
         error("compute_form_adjoint cannot handle parts.")
 
-    ufl_assert(len(arguments) == 2, "Expecting bilinear form.")
+    if len(arguments) != 2:
+        error("Expecting bilinear form.")
 
     v, u = arguments
-    ufl_assert(v.number() < u.number(), "Mistaken assumption in code!")
+    if v.number() >= u.number():
+        error("Mistaken assumption in code!")
 
     if reordered_arguments is None:
         reordered_u = Argument(u.ufl_function_space(), number=v.number(),
@@ -477,17 +481,17 @@ def compute_form_adjoint(form, reordered_arguments=None):
     else:
         reordered_u, reordered_v = reordered_arguments
 
-    ufl_assert(reordered_u.number() < reordered_v.number(),
-               "Ordering of new arguments is the same as the old arguments!")
+    if reordered_u.number() >= reordered_v.number():
+        error("Ordering of new arguments is the same as the old arguments!")
 
-    ufl_assert(reordered_u.part() == v.part(),
-               "Ordering of new arguments is the same as the old arguments!")
-    ufl_assert(reordered_v.part() == u.part(),
-               "Ordering of new arguments is the same as the old arguments!")
+    if reordered_u.part() != v.part():
+        error("Ordering of new arguments is the same as the old arguments!")
+    if reordered_v.part() != u.part():
+        error("Ordering of new arguments is the same as the old arguments!")
 
-    ufl_assert(reordered_u.ufl_function_space() == u.ufl_function_space(),
-               "Element mismatch between new and old arguments (trial functions).")
-    ufl_assert(reordered_v.ufl_function_space() == v.ufl_function_space(),
-               "Element mismatch between new and old arguments (test functions).")
+    if reordered_u.ufl_function_space() != u.ufl_function_space():
+        error("Element mismatch between new and old arguments (trial functions).")
+    if reordered_v.ufl_function_space() != v.ufl_function_space():
+        error("Element mismatch between new and old arguments (test functions).")
 
     return replace(form, {v: reordered_v, u: reordered_u})

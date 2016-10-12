@@ -25,7 +25,7 @@
 from six.moves import zip
 from six import string_types
 
-from ufl.assertions import ufl_assert
+from ufl.utils.py23 import as_native_strings
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.log import error
@@ -34,31 +34,36 @@ from ufl.cell import AbstractCell, as_cell
 
 class FiniteElementBase(object):
     "Base class for all finite elements."
-    __slots__ = ("_family",
-                 "_cell",
-                 "_degree",
-                 "_form_degree",
-                 "_quad_scheme",
-                 "_value_shape",
-                 "_reference_value_shape",
-                 "_repr",
-                 "__weakref__")
+    __slots__ = as_native_strings((
+        "_family",
+        "_cell",
+        "_degree",
+        "_form_degree",
+        "_quad_scheme",
+        "_value_shape",
+        "_reference_value_shape",
+        "_repr",
+        "__weakref__",
+        ))
 
     # TODO: Not all these should be in the base class! In particular
     # family, degree, and quad_scheme do not belong here.
     def __init__(self, family, cell, degree, quad_scheme, value_shape,
                  reference_value_shape):
         "Initialize basic finite element data."
-        ufl_assert(isinstance(family, string_types), "Invalid family type.")
-        ufl_assert(isinstance(degree, (int, tuple)) or degree is None,
-                   "Invalid degree type.")
-        ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
-        ufl_assert(isinstance(reference_value_shape, tuple),
-                   "Invalid reference_value_shape type.")
+        if not isinstance(family, string_types):
+            error("Invalid family type.")
+        if not (degree is None or isinstance(degree, (int, tuple))):
+            error("Invalid degree type.")
+        if not isinstance(value_shape, tuple):
+            error("Invalid value_shape type.")
+        if not isinstance(reference_value_shape, tuple):
+            error("Invalid reference_value_shape type.")
 
         if cell is not None:
             cell = as_cell(cell)
-            ufl_assert(isinstance(cell, AbstractCell), "Invalid cell type.")
+            if not isinstance(cell, AbstractCell):
+                error("Invalid cell type.")
 
         self._family = family
         self._cell = cell
@@ -68,10 +73,20 @@ class FiniteElementBase(object):
         self._quad_scheme = quad_scheme
 
     def __repr__(self):
-        "Format as string for evaluation as Python object."
+        """Format as string for evaluation as Python object.
+
+        NB! Assumes subclass has assigned its repr string to self._repr.
+        """
         return self._repr
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
     def _ufl_hash_data_(self):
+        return repr(self)
+
+    def _ufl_signature_data_(self):
         return repr(self)
 
     def __hash__(self):
@@ -145,7 +160,7 @@ class FiniteElementBase(object):
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%r' (value rank %d)" +
+            error(("Illegal component index '%s' (value rank %d)" +
                    "for element (value rank %d).") % (i, len(i), r))
 
     def extract_subelement_component(self, i):
@@ -169,7 +184,7 @@ class FiniteElementBase(object):
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%r' (value rank %d)" +
+            error(("Illegal component index '%s' (value rank %d)" +
                    "for element (value rank %d).") % (i, len(i), r))
 
     def extract_subelement_reference_component(self, i):
@@ -198,15 +213,15 @@ class FiniteElementBase(object):
 
     def __add__(self, other):
         "Add two elements, creating an enriched element"
-        ufl_assert(isinstance(other, FiniteElementBase),
-                   "Can't add element and %s." % other.__class__)
+        if not isinstance(other, FiniteElementBase):
+            error("Can't add element and %s." % other.__class__)
         from ufl.finiteelement import EnrichedElement
         return EnrichedElement(self, other)
 
     def __mul__(self, other):
         "Multiply two elements, creating a mixed element"
-        ufl_assert(isinstance(other, FiniteElementBase),
-                   "Can't multiply element and %s." % other.__class__)
+        if not isinstance(other, FiniteElementBase):
+            error("Can't multiply element and %s." % other.__class__)
         from ufl.finiteelement import MixedElement
         return MixedElement(self, other)
 

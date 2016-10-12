@@ -20,11 +20,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
 from ufl.finiteelement import FiniteElement, VectorElement, TensorElement, \
     MixedElement, EnrichedElement
 
-__all__ = ['increase_order', 'tear']
+__all__ = as_native_strings(['increase_order', 'tear'])
 
 
 def increase_order(element):
@@ -53,7 +54,8 @@ def reconstruct_element(element, family, cell, degree):
     elif isinstance(element, TensorElement):
         return TensorElement(family, cell, degree, shape=element.value_shape())
     else:
-        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+        error("Element reconstruction is only done to stay compatible"
+              " with hacks in DOLFIN. Not expecting a %s" % repr(element))
 
 
 def _increase_degree(element, degree_rise):
@@ -67,7 +69,8 @@ def _increase_degree(element, degree_rise):
         return EnrichedElement([_increase_degree(e, degree_rise)
                                 for e in element.sub_elements()])
     else:
-        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+        error("Element reconstruction is only done to stay compatible"
+              " with hacks in DOLFIN. Not expecting a %s" % repr(element))
 
 
 def _change_family(element, family):
@@ -80,4 +83,5 @@ def _change_family(element, family):
         return EnrichedElement([_change_family(e, family)
                                 for e in element.sub_elements()])
     else:
-        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+        error("Element reconstruction is only done to stay compatible"
+              " with hacks in DOLFIN. Not expecting a %s" % repr(element))

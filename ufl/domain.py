@@ -22,29 +22,33 @@
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
 
+# import six
+import numbers
+
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.log import error, deprecate
-from ufl.assertions import ufl_assert
+from ufl.log import error
 from ufl.cell import as_cell, AbstractCell, TensorProductCell
 from ufl.finiteelement.tensorproductelement import TensorProductElement
 
 
 # Export list for ufl.classes
-__all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
+__all_classes__ = as_native_strings(["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"])
 
 
 class AbstractDomain(object):
     """Symbolic representation of a geometric domain with only a geometric and topological dimension."""
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
-        ufl_assert(isinstance(geometric_dimension, int),
-                   "Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
-        ufl_assert(isinstance(topological_dimension, int),
-                   "Expecting integer topological dimension, not '%r'" % (topological_dimension,))
-        ufl_assert(topological_dimension <= geometric_dimension,
-                   "Topological dimension cannot be larger than geometric dimension.")
+        if not isinstance(geometric_dimension, numbers.Integral):
+            error("Expecting integer geometric dimension, not %s" % (geometric_dimension.__class__,))
+        if not isinstance(topological_dimension, numbers.Integral):
+            error("Expecting integer topological dimension, not %s" % (topological_dimension.__class__,))
+        if topological_dimension > geometric_dimension:
+            error("Topological dimension cannot be larger than geometric dimension.")
 
         # Store validated dimensions
         self._topological_dimension = topological_dimension
@@ -58,6 +62,10 @@ class AbstractDomain(object):
         "Return the dimension of the topology of this domain."
         return self._topological_dimension
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
 
 # TODO: Would it be useful to have a domain representing R^d? E.g. for
 # Expression.
@@ -66,6 +74,7 @@ class AbstractDomain(object):
 #         AbstractDomain.__init__(self, geometric_dimension, geometric_dimension)
 
 
+# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 @attach_ufl_id
 class Mesh(AbstractDomain):
@@ -112,10 +121,12 @@ class Mesh(AbstractDomain):
         return (self._ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
 
     def __repr__(self):
-        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+        r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_element), repr(self._ufl_id))
+        return as_native_str(r)
 
     def __str__(self):
-        return "<Mesh #%s with coordinates parameterized by %s>" % (self._ufl_id, self._ufl_coordinate_element)
+        return "<Mesh #%s with coordinates parameterized by %s>" % (
+            self._ufl_id, self._ufl_coordinate_element)
 
     def _ufl_hash_data_(self):
         return (self._ufl_id, self._ufl_coordinate_element)
@@ -131,21 +142,22 @@ class Mesh(AbstractDomain):
                 "Mesh", typespecific)
 
     # Deprecations inherited from Domain
-    def cell(self):
-        deprecate("Mesh.cell() is deprecated, please use .ufl_cell() instead.")
-        return self.ufl_cell()
+    #def cell(self):
+    #    deprecate("Mesh.cell() is deprecated, please use .ufl_cell() instead.")
+    #    return self.ufl_cell()
 
-    def coordinates(self):
-        error("Coordinate function support has been removed!\n"
-              "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
-              "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
+    #def coordinates(self):
+    #    error("Coordinate function support has been removed!\n"
+    #          "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
+    #          "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
 
-    def ufl_coordinates(self):
-        error("Coordinate function support has been removed!\n"
-              "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
-              "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
+    #def ufl_coordinates(self):
+    #    error("Coordinate function support has been removed!\n"
+    #          "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
+    #          "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
 
 
+# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 @attach_ufl_id
 class MeshView(AbstractDomain):
@@ -172,14 +184,13 @@ class MeshView(AbstractDomain):
         return self._ufl_mesh.is_piecewise_linear_simplex_domain()
 
     def __repr__(self):
-        return "MeshView(%r, %r, %r)" % (self._ufl_mesh,
-                                         self.topological_dimension(),
-                                         self._ufl_id)
+        tdim = self.topological_dimension()
+        r = "MeshView(%s, %s, %s)" % (repr(self._ufl_mesh), repr(tdim), repr(self._ufl_id))
+        return as_native_str(r)
 
     def __str__(self):
-        return "<MeshView #%s of dimension %d over mesh %s>" % (self._ufl_id,
-                                                                self.topological_dimension(),
-                                                                self._ufl_mesh)
+        return "<MeshView #%s of dimension %d over mesh %s>" % (
+            self._ufl_id, self.topological_dimension(), self._ufl_mesh)
 
     def _ufl_hash_data_(self):
         return (self._ufl_id,) + self._ufl_mesh._ufl_hash_data_()
@@ -196,6 +207,7 @@ class MeshView(AbstractDomain):
                 "MeshView", typespecific)
 
 
+# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 @attach_ufl_id
 class TensorProductMesh(AbstractDomain):
@@ -230,11 +242,12 @@ class TensorProductMesh(AbstractDomain):
         return False  # TODO: Any cases this is True
 
     def __repr__(self):
-        return "TensorProductMesh(%r, %r)" % (self._ufl_meshes, self._ufl_id)
+        r = "TensorProductMesh(%s, %s)" % (repr(self._ufl_meshes), repr(self._ufl_id))
+        return as_native_str(r)
 
     def __str__(self):
-        return "<TensorProductMesh #%s with meshes %s>" % (self._ufl_id,
-                                                           self._ufl_meshes)
+        return "<TensorProductMesh #%s with meshes %s>" % (
+            self._ufl_id, self._ufl_meshes)
 
     def _ufl_hash_data_(self):
         return (self._ufl_id,) + tuple(mesh._ufl_hash_data_() for mesh in self._ufl_meshes)

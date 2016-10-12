@@ -24,7 +24,11 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Martin Alnaes 2014
 # Modified by Lizao Li 2015
 
+#import six
+from ufl.utils.py23 import as_native_str
 
+
+# @six.python_2_unicode_compatible
 class SobolevSpace(object):
     """Symbolic representation of a Sobolev space. This implements a
     subset of the methods of a Python set so that finite elements and
@@ -43,11 +47,16 @@ class SobolevSpace(object):
         # Ensure that the inclusion operations are transitive.
         self.parents = p.union(*[p_.parents for p_ in p])
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return "SobolevSpace(%r, %r)" % (self.name, list(self.parents))
+        r = "SobolevSpace(%s, %s)" % (repr(self.name), repr(list(self.parents)))
+        return as_native_str(r)
 
     def _repr_latex_(self):
         if len(self.name) == 2:
@@ -104,6 +113,7 @@ class SobolevSpace(object):
             from ufl.finiteelement import HCurlElement
             return HCurlElement(element)
         raise NotImplementedError("SobolevSpace has no call operator (only the specific HDiv and HCurl instances).")
+
 
 L2 = SobolevSpace("L2")
 HDiv = SobolevSpace("HDiv", [L2])

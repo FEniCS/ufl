@@ -21,19 +21,21 @@
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
 
+# import six
 from itertools import chain
 from collections import defaultdict
-from ufl.log import error, deprecate
-from ufl.assertions import ufl_assert
+
+from ufl.log import error, warning
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
 from ufl.core.expr import Expr
+from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
-
+from ufl.utils.py23 import as_native_strings, as_native_str
 
 # Export list for ufl.classes
-__all_classes__ = ["Form"]
+__all_classes__ = as_native_strings(["Form"])
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -74,6 +76,7 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
+# @six.python_2_unicode_compatible
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = (
@@ -97,8 +100,8 @@ class Form(object):
     def __init__(self, integrals):
         # Basic input checking (further compatibilty analysis happens
         # later)
-        ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
-                   "Expecting list of integrals.")
+        if not all(isinstance(itg, Integral) for itg in integrals):
+            error("Expecting list of integrals.")
 
         # Store integrals sorted canonically to increase signature
         # stability
@@ -139,10 +142,10 @@ class Form(object):
         "Returns whether the form has no integrals."
         return self.integrals() == ()
 
-    def domains(self):
-        "Deprecated, please use .ufl_domains() instead."
-        deprecate("Form.domains() is deprecated, please use .ufl_domains() instead.")
-        return self.ufl_domains()
+    #def domains(self):
+    #    "Deprecated, please use .ufl_domains() instead."
+    #    deprecate("Form.domains() is deprecated, please use .ufl_domains() instead.")
+    #    return self.ufl_domains()
 
     def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
@@ -155,15 +158,15 @@ class Form(object):
             self._analyze_domains()
         return self._integration_domains
 
-    def cell(self):
-        "Deprecated, please use .ufl_cell() instead."
-        deprecate("Form.cell() is deprecated, please use .ufl_cell() instead.")
-        return self.ufl_cell()
+    #def cell(self):
+    #    "Deprecated, please use .ufl_cell() instead."
+    #    deprecate("Form.cell() is deprecated, please use .ufl_cell() instead.")
+    #    return self.ufl_cell()
 
-    def domain(self):
-        "Deprecated, please use .ufl_domain() instead."
-        deprecate("Form.domain() is deprecated, please use .ufl_domain() instead.")
-        return self.ufl_domain()
+    #def domain(self):
+    #    "Deprecated, please use .ufl_domain() instead."
+    #    deprecate("Form.domain() is deprecated, please use .ufl_domain() instead.")
+    #    return self.ufl_domain()
 
     def ufl_cell(self):
         "Return the single cell this form is defined on, fails if multiple cells are found."
@@ -181,16 +184,18 @@ class Form(object):
         domains = self.ufl_domains()
         # Check that all are equal TODO: don't return more than one if
         # all are equal?
-        ufl_assert(all(domain == domains[0] for domain in domains),
-                   "Calling Form.ufl_domain() is only valid if all integrals share domain.")
+        if not all(domain == domains[0] for domain in domains):
+            error("Calling Form.ufl_domain() is only valid if all integrals share domain.")
         # Return the one and only domain
         return domains[0]
 
     def geometric_dimension(self):
         "Return the geometric dimension shared by all domains and functions in this form."
-        gdims = tuple(set(domain.geometric_dimension() for domain in self.ufl_domains()))
-        ufl_assert(len(gdims) == 1,
-                   "Expecting all domains and functions in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
+        gdims = tuple(set(domain.geometric_dimension()
+                          for domain in self.ufl_domains()))
+        if len(gdims) != 1:
+            error("Expecting all domains and functions in a form "
+                  "to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
         return gdims[0]
 
     def domain_numbering(self):
@@ -322,19 +327,24 @@ class Form(object):
 
     # --- String conversion functions, for UI purposes only ---
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
-        # TODO: Add warning here to check if anyone actually calls it
-        # in libraries
+        warning("Calling str on form is potentially expensive and should be avoided except during debugging.")
+        # Not caching this because it can be huge
         s = "\n  +  ".join(str(itg) for itg in self.integrals())
         return s or "<empty Form>"
 
     def __repr__(self):
         "Compute repr string of form. This can be huge for complicated forms."
-        # TODO: Add warning here to check if anyone actually calls it
-        # in libraries Not caching this because it can be huge
-        r = "Form([%s])" % ", ".join(repr(itg) for itg in self.integrals())
-        return r
+        warning("Calling repr on form is potentially expensive and should be avoided except during debugging.")
+        # Not caching this because it can be huge
+        itgs = ", ".join(repr(itg) for itg in self.integrals())
+        r = "Form([" + itgs + "])"
+        return as_native_str(r)
 
     def x_repr_latex_(self):  # TODO: This works, but enable when form latex rendering is fixed
         from ufl.algorithms import ufl2latex
@@ -379,8 +389,8 @@ class Form(object):
             if data is None:
                 subdomain_data[domain][it] = sd
             elif sd is not None:
-                ufl_assert(data.ufl_id() == sd.ufl_id(),
-                           "Integrals in form have different subdomain_data objects.")
+                if data.ufl_id() != sd.ufl_id():
+                    error("Integrals in form have different subdomain_data objects.")
         self._subdomain_data = subdomain_data
 
     def _analyze_form_arguments(self):
@@ -424,7 +434,7 @@ class Form(object):
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
     if not isinstance(form, Form):
-        error("Unable to convert object to a UFL form: %s" % repr(form))
+        error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
     return form
 
 
@@ -439,10 +449,10 @@ def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     if common_domain is not None:
         gdim = common_domain.geometric_dimension()
         tdim = common_domain.topological_dimension()
-        ufl_assert(all((gdim == domain.geometric_dimension() and
-                        tdim == domain.topological_dimension())
-                       for domain in domains),
-                   "Common domain does not share dimensions with form domains.")
+        if not all((gdim == domain.geometric_dimension() and
+                    tdim == domain.topological_dimension())
+                   for domain in domains):
+            error("Common domain does not share dimensions with form domains.")
 
     reconstruct = False
     integrals = []

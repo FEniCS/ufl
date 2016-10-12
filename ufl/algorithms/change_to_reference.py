@@ -21,7 +21,6 @@
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction
@@ -151,7 +150,8 @@ class NEWChangeToReferenceGrad(MultiFunction):
 
     def restricted(self, o, *dummy_ops):
         "Store modifier state."
-        ufl_assert(self._restricted == '', "Not expecting nested restrictions.")
+        if self._restricted != '':
+            error("Not expecting nested restrictions.")
         self._restricted = o.side()
         f, = o.ufl_operands
         r = self(f)
@@ -167,7 +167,8 @@ class NEWChangeToReferenceGrad(MultiFunction):
         return r
 
     def facet_avg(self, o, *dummy_ops):
-        ufl_assert(self._avg == '', "Not expecting nested averages.")
+        if self._avg != '':
+            error("Not expecting nested averages.")
         self._avg = "facet"
         f, = o.ufl_operands
         r = self(f)
@@ -175,7 +176,8 @@ class NEWChangeToReferenceGrad(MultiFunction):
         return r
 
     def cell_avg(self, o, *dummy_ops):
-        ufl_assert(self._avg == '', "Not expecting nested averages.")
+        if self._avg != '':
+            error("Not expecting nested averages.")
         self._avg = "cell"
         f, = o.ufl_operands
         r = self(f)
@@ -193,13 +195,15 @@ class NEWChangeToReferenceGrad(MultiFunction):
 
     def _mapped(self, t):
         # Check that we have a valid input object
-        ufl_assert(isinstance(t, Terminal), "Expecting a Terminal.")
+        if not isinstance(t, Terminal):
+            error("Expecting a Terminal.")
 
         # Get modifiers accumulated by previous handler calls
         ngrads = self._ngrads
         restricted = self._restricted
         avg = self._avg
-        ufl_assert(avg == "", "Averaging not implemented.")  # FIXME
+        if avg != "":
+            error("Averaging not implemented.")  # FIXME
 
         # These are the global (g) and reference (r) values
         if isinstance(t, FormArgument):
@@ -276,8 +280,8 @@ class NEWChangeToReferenceGrad(MultiFunction):
 
                 # Select mapping M from element, pick row emapping =
                 # M[ec,:], or emapping = [] if no mapping
-                ufl_assert(not isinstance(element, MixedElement),
-                           "Expecting a basic element here.")
+                if isinstance(element, MixedElement):
+                    error("Expecting a basic element here.")
                 mapping = element.mapping()
                 if mapping == "contravariant Piola":  # S == HDiv:
                     # Handle HDiv elements with contravariant piola
@@ -305,8 +309,8 @@ class NEWChangeToReferenceGrad(MultiFunction):
             # Create indices
             # if rtsh:
             #     i = Index()
-            ufl_assert(len(dsh) == ngrads,
-                       "Mismatch between derivative shape and ngrads.")
+            if len(dsh) != ngrads:
+                error("Mismatch between derivative shape and ngrads.")
             if ngrads:
                 ii = indices(ngrads)
             else:

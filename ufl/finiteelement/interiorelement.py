@@ -18,15 +18,18 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+# import six
+from ufl.utils.py23 import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
+# @six.python_2_unicode_compatible
 class InteriorElement(FiniteElementBase):
     """A version of an existing Finite Element space in which only the dofs
     associated with the interior have been kept."""
     def __init__(self, element):
         self._element = element
-        self._repr = "InteriorElement(%r)" % (element,)
+        self._repr = as_native_str("InteriorElement(%s)" % repr(element))
 
         family = "InteriorElement"
         cell = element.cell()
@@ -46,6 +49,3 @@ class InteriorElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "InteriorElement(%s)" % str(self._element.shortstr())
-
-    def __repr__(self):
-        return self._repr

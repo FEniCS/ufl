@@ -66,7 +66,7 @@ class MultiFunction(object):
         algorithm_class = type(self)
         cache_data = MultiFunction._handlers_cache.get(algorithm_class)
         if not cache_data:
-            cache_data = [None]*len(Expr._ufl_all_classes_)
+            handler_names = [None]*len(Expr._ufl_all_classes_)
 
             # Iterate over the inheritance chain for each Expr
             # subclass (NB! This assumes that all UFL classes inherits
@@ -78,14 +78,18 @@ class MultiFunction(object):
                     # encountered superclass
                     handler_name = c._ufl_handler_name_
                     if hasattr(self, handler_name):
-                        cache_data[classobject._ufl_typecode_] = handler_name
+                        handler_names[classobject._ufl_typecode_] = handler_name
                         break
+            is_cutoff_type = [get_num_args(getattr(self, name)) == 2
+                              for name in handler_names]
+            cache_data = (handler_names, is_cutoff_type)
             MultiFunction._handlers_cache[algorithm_class] = cache_data
 
         # Build handler list for this particular class (get functions
         # bound to self, these cannot be cached)
-        self._handlers = [getattr(self, name) for name in cache_data]
-        self._is_cutoff_type = [get_num_args(h) == 2 for h in self._handlers]
+        handler_names, is_cutoff_type = cache_data
+        self._handlers = [getattr(self, name) for name in handler_names]
+        self._is_cutoff_type = is_cutoff_type
 
         # Create cache for memoized_handler
         self._memoized_handler_cache = {}

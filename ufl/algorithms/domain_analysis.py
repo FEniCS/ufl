@@ -18,12 +18,13 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+# import six
 from collections import defaultdict
 from six.moves import zip
 
 import ufl
 from ufl.log import error
-from ufl.assertions import ufl_assert
+from ufl.utils.py23 import as_native_strings
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
@@ -31,6 +32,7 @@ from ufl.utils.sorting import canonicalize_metadata, sorted_by_key, sorted_by_tu
 import numbers
 
 
+# @six.python_2_unicode_compatible
 class IntegralData(object):
     """Utility class with the members
         (domain, integral_type, subdomain_id, integrals, metadata)
@@ -38,17 +40,17 @@ class IntegralData(object):
     where metadata is an empty dictionary that may be used for
     associating metadata with each object.
     """
-    __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals',
-                 'metadata', 'integral_coefficients', 'enabled_coefficients')
+    __slots__ = as_native_strings(('domain', 'integral_type', 'subdomain_id', 'integrals',
+                 'metadata', 'integral_coefficients', 'enabled_coefficients'))
 
     def __init__(self, domain, integral_type, subdomain_id, integrals,
                  metadata):
-        ufl_assert(len(set(itg.ufl_domain() for itg in integrals)) == 1,
-                   "Multiple domains mismatch in integral data.")
-        ufl_assert(all(integral_type == itg.integral_type() for itg in integrals),
-                   "Integral type mismatch in integral data.")
-        ufl_assert(all(subdomain_id == itg.subdomain_id() for itg in integrals),
-                   "Subdomain id mismatch in integral data.")
+        if 1 != len(set(itg.ufl_domain() for itg in integrals)):
+            error("Multiple domains mismatch in integral data.")
+        if not all(integral_type == itg.integral_type() for itg in integrals):
+            error("Integral type mismatch in integral data.")
+        if not all(subdomain_id == itg.subdomain_id() for itg in integrals):
+            error("Subdomain id mismatch in integral data.")
 
         self.domain = domain
         self.integral_type = integral_type
@@ -79,10 +81,15 @@ class IntegralData(object):
                 self.integrals == other.integrals and
                 self.metadata == other.metadata)
 
+    def __unicode__(self):
+        # Only in python 2
+        return str(self).decode("utf-8")
+
     def __str__(self):
-        return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
+        s = "IntegralData over domain(%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
             self.integral_type, self.subdomain_id,
             '\n\n'.join(map(str, self.integrals)), self.metadata)
+        return s
 
 
 def dicts_lt(a, b):
@@ -101,7 +108,7 @@ def dicts_lt(a, b):
 
 # Tuple comparison helper
 class ExprTupleKey(object):
-    __slots__ = ('x',)
+    __slots__ = as_native_strings(('x',))
 
     def __init__(self, x):
         self.x = x
@@ -131,8 +138,8 @@ def group_integrals_by_domain_and_type(integrals, domains):
     """
     integrals_by_domain_and_type = defaultdict(list)
     for itg in integrals:
-        ufl_assert(itg.ufl_domain() is not None,
-                   "Integrals without a domain is now illegal.")
+        if itg.ufl_domain() is None:
+            error("Integral has no domain.")
         key = (itg.ufl_domain(), itg.integral_type())
 
         # Append integral to list of integrals with shared key
@@ -147,8 +154,8 @@ def integral_subdomain_ids(integral):
     if isinstance(did, numbers.Integral):
         return (did,)
     elif isinstance(did, tuple):
-        ufl_assert(all(isinstance(d, numbers.Integral) for d in did),
-                   "Expecting only integer subdomains in tuple.")
+        if not all(isinstance(d, numbers.Integral) for d in did):
+            error("Expecting only integer subdomains in tuple.")
         return did
     elif did in ("everywhere", "otherwise"):
         # TODO: Define list of valid strings somewhere more central

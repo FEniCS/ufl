@@ -22,7 +22,6 @@ of UFL objects, mostly intended for debugging purposes."""
 # Modified by Anders Logg 2009, 2014
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.form import Form
 from ufl.integral import Integral
@@ -31,27 +30,25 @@ from ufl.integral import Integral
 # --- Utilities for constructing informative strings from UFL objects
 
 def integral_info(integral):
-    ufl_assert(isinstance(integral, Integral), "Expecting an Integral.")
+    if not isinstance(integral, Integral):
+        error("Expecting an Integral.")
     s = "  Integral:\n"
     s += "    Type:\n"
     s += "      %s\n" % integral.integral_type()
     s += "    Domain:\n"
-    s += "      %r\n" % integral.ufl_domain()
+    s += "      %s\n" % integral.ufl_domain()
     s += "    Domain id:\n"
-    s += "      %r\n" % integral.subdomain_id()
+    s += "      %s\n" % integral.subdomain_id()
     s += "    Domain data:\n"
     s += "      %s\n" % integral.subdomain_data()
     s += "    Compiler metadata:\n"
     s += "      %s\n" % integral.metadata()
-    s += "    Integrand expression representation:\n"
-    s += "      %r\n" % integral.integrand()
-    s += "    Integrand expression short form:\n"
-    s += "      %s" % integral.integrand()
     return s
 
 
 def form_info(form):
-    ufl_assert(isinstance(form, Form), "Expecting a Form.")
+    if not isinstance(form, Form):
+        error("Expecting a Form.")
 
     bf = form.arguments()
     cf = form.coefficients()
@@ -90,15 +87,15 @@ def _indent_string(n):
 def _tree_format_expression(expression, indentation, parentheses):
     ind = _indent_string(indentation)
     if expression._ufl_is_terminal_:
-        s = ind + "%s" % repr(expression)
+        s = "%s%s" % (ind, repr(expression))
     else:
         sops = [_tree_format_expression(o, indentation+1, parentheses) for o in expression.ufl_operands]
-        s = ind + "%s\n" % expression._ufl_class_.__name__
+        s = "%s%s\n" % (ind, expression._ufl_class_.__name__)
         if parentheses and len(sops) > 1:
-            s += ind + "(\n"
+            s += "%s(\n" % (ind,)
         s += "\n".join(sops)
         if parentheses and len(sops) > 1:
-            s += "\n" + ind + ")"
+            s += "\n%s)" % (ind,)
     return s
 
 

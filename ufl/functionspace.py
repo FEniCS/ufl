@@ -20,18 +20,20 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
 from ufl.finiteelement import MixedElement
 
 # Export list for ufl.classes
-__all_classes__ = [
+__all_classes__ = as_native_strings([
     "AbstractFunctionSpace",
     "FunctionSpace",
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
-]
+])
 
 
 class AbstractFunctionSpace(object):
@@ -67,19 +69,34 @@ class FunctionSpace(AbstractFunctionSpace):
             return (domain,)
 
     def _ufl_hash_data_(self):
-        edata = repr(self.ufl_element())
         domain = self.ufl_domain()
-        ddata = None if domain is None else domain._ufl_hash_data_()
+        element = self.ufl_element()
+        if domain is None:
+            ddata = None
+        else:
+            ddata = domain._ufl_hash_data_()
+        if element is None:
+            edata = None
+        else:
+            edata = element._ufl_hash_data_()
         return ("FunctionSpace", ddata, edata)
 
     def _ufl_signature_data_(self, renumbering):
-        edata = repr(self.ufl_element())
         domain = self.ufl_domain()
-        ddata = None if domain is None else domain._ufl_signature_data_(renumbering)
+        element = self.ufl_element()
+        if domain is None:
+            ddata = None
+        else:
+            ddata = domain._ufl_signature_data_(renumbering)
+        if element is None:
+            edata = None
+        else:
+            edata = element._ufl_signature_data_()
         return ("FunctionSpace", ddata, edata)
 
     def __repr__(self):
-        return "FunctionSpace(%r, %r)" % (self._ufl_domain, self._ufl_element)
+        r = "FunctionSpace(%s, %s)" % (repr(self._ufl_domain), repr(self._ufl_element))
+        return as_native_str(r)
 
 
 @attach_operators_from_hash_data
@@ -121,7 +138,8 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         return ("MixedFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
 
     def __repr__(self):
-        return "MixedFunctionSpace(*%r)" % (self._ufl_function_spaces,)
+        r = "MixedFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
+        return as_native_str(r)
 
 
 @attach_operators_from_hash_data
@@ -140,4 +158,5 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
         return ("TensorProductFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
 
     def __repr__(self):
-        return "TensorProductFunctionSpace(*%r)" % (self._ufl_function_spaces,)
+        r = "TensorProductFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
+        return as_native_str(r)

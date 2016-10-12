@@ -23,7 +23,6 @@
 from six import iteritems, iterkeys
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.classes import CoefficientDerivative
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
@@ -35,10 +34,10 @@ class Replacer(MultiFunction):
     def __init__(self, mapping):
         MultiFunction.__init__(self)
         self._mapping = mapping
-        ufl_assert(all(k._ufl_is_terminal_ for k in iterkeys(mapping)),
-                   "This implementation can only replace Terminal objects.")
-        ufl_assert(all(k.ufl_shape == v.ufl_shape for k, v in iteritems(mapping)),
-                   "Replacement expressions must have the same shape as what they replace.")
+        if not all(k._ufl_is_terminal_ for k in iterkeys(mapping)):
+            error("This implementation can only replace Terminal objects.")
+        if not all(k.ufl_shape == v.ufl_shape for k, v in iteritems(mapping)):
+            error("Replacement expressions must have the same shape as what they replace.")
 
     expr = MultiFunction.reuse_if_untouched
 

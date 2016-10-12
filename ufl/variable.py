@@ -20,8 +20,9 @@ expressions as variables for differentiation."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.utils.counted import counted_init
+from ufl.utils.py23 import as_native_str
+from ufl.utils.py23 import as_native_strings
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
@@ -31,7 +32,7 @@ from ufl.constantvalue import as_ufl
 
 @ufl_type()
 class Label(Terminal):
-    __slots__ = ("_count",)
+    __slots__ = as_native_strings(("_count",))
 
     _globalcount = 0
 
@@ -46,7 +47,8 @@ class Label(Terminal):
         return "Label(%d)" % self._count
 
     def __repr__(self):
-        return "Label(%d)" % self._count
+        r = "Label(%d)" % self._count
+        return as_native_str(r)
 
     @property
     def ufl_shape(self):
@@ -90,9 +92,12 @@ class Variable(Operator):
             label = Label()
 
         # Checks
-        ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
-        ufl_assert(isinstance(label, Label), "Expecting a Label.")
-        ufl_assert(not expression.ufl_free_indices, "Variable cannot wrap an expression with free indices.")
+        if not isinstance(expression, Expr):
+            error("Expecting Expr.")
+        if not isinstance(label, Label):
+            error("Expecting a Label.")
+        if expression.ufl_free_indices:
+            error("Variable cannot wrap an expression with free indices.")
 
         Operator.__init__(self, (expression, label))
 
@@ -117,6 +122,3 @@ class Variable(Operator):
     def __str__(self):
         return "var%d(%s)" % (self.ufl_operands[1].count(),
                               self.ufl_operands[0])
-
-    def __repr__(self):
-        return "Variable(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
