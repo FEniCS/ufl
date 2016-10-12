@@ -34,12 +34,6 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 
 
-def read_textfile(fn):
-    with io.open(fn, encoding="utf-8") as f:
-        content = f.read()
-    return content
-
-
 class FileData(object):
     def __init__(self):
         self.elements = []
@@ -56,23 +50,45 @@ class FileData(object):
     __nonzero__ = __bool__
 
 
-def replace_include_statements(code):
+def read_lines_decoded(fn):
+    r = re.compile(r".*coding: *([^ ]+)")
+
+    # First read lines as bytes
+    with io.open(fn, "rb") as f:
+        lines = f.readlines()
+
+    # Check for coding: in the first two lines
+    for i in (0, 1):
+        m = r.match(lines[i])
+        if m:
+            encoding, = m.groups()
+            # Drop encoding line
+            lines = lines[:i] + lines[i+1:]
+            break
+    else:
+        # Default to utf-8 (works for ascii files
+        # as well, default for python files in py3)
+        encoding = "utf-8"
+
+    # Decode all lines
+    lines = [line.decode(encoding=encoding) for line in lines]
+    return lines
+
+
+def replace_include_statements(lines):
     "Replace '#include foo.ufl' statements with contents of foo.ufl."
-    if "#include" in code:
-        lines = code.split("\n")
-        newlines = []
-        regexp = re.compile(r"^#include (.*)$")
-        for l in lines:
-            m = regexp.search(l)
-            if m:
-                fn = m.groups()[0]
-                newlines.append("# --- begin %s" % fn)
-                newlines.extend(read_textfile(fn).splitlines())
-                newlines.append("# --- end %s" % fn)
-            else:
-                newlines.append(l)
-        return "\n".join(l.rstrip() for l in newlines)
-    return code
+    r = re.compile(r"^#include (.*)$")
+    newlines = []
+    for l in lines:
+        m = r.search(l)
+        if m:
+            fn = m.groups()[0]
+            newlines.append("# --- begin %s\n" % fn)
+            newlines.extend(read_lines_decoded(fn))
+            newlines.append("# --- end %s\n" % fn)
+        else:
+            newlines.append(l)
+    return newlines
 
 
 def read_ufl_file(filename):
@@ -81,8 +97,9 @@ def read_ufl_file(filename):
         filename = filename + ".ufl"
     if not os.path.exists(filename):
         error("File '%s' doesn't exist." % filename)
-    code = read_textfile(filename)
-    code = replace_include_statements(code)
+    lines = read_lines_decoded(filename)
+    lines = replace_include_statements(lines)
+    code = "".join(lines)
     return code
 
 
