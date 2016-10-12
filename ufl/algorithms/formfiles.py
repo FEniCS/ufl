@@ -58,7 +58,7 @@ def read_lines_decoded(fn):
         lines = f.readlines()
 
     # Check for coding: in the first two lines
-    for i in (0, 1):
+    for i in range(min(2, len(lines))):
         m = r.match(lines[i])
         if m:
             encoding, = m.groups()
