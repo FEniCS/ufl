@@ -24,19 +24,18 @@ from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.utils.sequences import product
-from ufl.utils.dicts import EmptyDict
 from ufl.finiteelement import MixedElement, TensorElement
 from ufl.tensors import as_vector, as_matrix, ListTensor
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
-from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
+from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides
+
 
 def split(v):
     """UFL operator: If v is a Coefficient or Argument in a mixed space, returns
     a tuple with the function components corresponding to the subelements."""
 
     # Default range is all of v
-    orig_v = v
     begin = 0
     end = None
 
