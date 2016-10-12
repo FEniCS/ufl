@@ -52,6 +52,15 @@ def test_split(self):
     t = TestFunction(f*v)
     assert split(t) == (t[0], as_vector((t[1], t[2])))
     assert split(split(t)[1]) == (t[1], t[2])
-    tt = TestFunction(f*(f*v))
-    assert split(tt) == (tt[0], as_vector((tt[1], tt[2], tt[3])))
-    assert split(split(tt)[1]) == (tt[1], tt[2], tt[3])  # Not quite what we want
+    t = TestFunction(f*(f*v))
+    assert split(t) == (t[0], as_vector((t[1], t[2], t[3])))
+    assert split(split(t)[1]) == (t[1], as_vector((t[2], t[3])))
+    t = TestFunction((v*f)*(f*v))
+    assert split(t) == (as_vector((t[0], t[1], t[2])),
+                        as_vector((t[3], t[4], t[5])))
+    assert split(split(t)[0]) == (as_vector((t[0], t[1])), t[2])
+    assert split(split(t)[1]) == (t[3], as_vector((t[4], t[5])))
+    assert split(split(split(t)[0])[0]) == (t[0], t[1])
+    assert split(split(split(t)[0])[1]) == (t[2],)
+    assert split(split(split(t)[1])[0]) == (t[3],)
+    assert split(split(split(t)[1])[1]) == (t[4], t[5])
