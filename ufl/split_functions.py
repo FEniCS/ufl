@@ -76,9 +76,6 @@ def split(v):
     if len(v.ufl_shape) != 1:
         error("Don't know how to split tensor valued mixed functions without flattened index space.")
 
-    print("begin =", begin)
-    print("end =", end)
-
     # Compute value size and set default range end
     value_size = product(element.value_shape())
     if end is None:
