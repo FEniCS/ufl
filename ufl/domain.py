@@ -44,9 +44,9 @@ class AbstractDomain(object):
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
-            error("Expecting integer geometric dimension, not '%s'" % repr(geometric_dimension))
+            error("Expecting integer geometric dimension, not %s" % (geometric_dimension.__class__,))
         if not isinstance(topological_dimension, numbers.Integral):
-            error("Expecting integer topological dimension, not '%s'" % repr(topological_dimension))
+            error("Expecting integer topological dimension, not %s" % (topological_dimension.__class__,))
         if topological_dimension > geometric_dimension:
             error("Topological dimension cannot be larger than geometric dimension.")
 

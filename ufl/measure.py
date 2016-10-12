@@ -415,8 +415,8 @@ a single integral.
         # Allow only scalar integrands
         if not is_true_ufl_scalar(integrand):
             error("Can only integrate scalar expressions. The integrand is a "
-                  "tensor expression with value rank %d and free indices %s." %
-                    (len(integrand.ufl_shape), repr(integrand.ufl_free_indices)))
+                  "tensor expression with value shape %s and free indices with labels %s." %
+                    (integrand.ufl_shape, integrand.ufl_free_indices))
 
         # If we have a tuple of domain ids, delegate composition to
         # Integral.__add__:

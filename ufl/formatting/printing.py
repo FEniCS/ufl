@@ -36,17 +36,13 @@ def integral_info(integral):
     s += "    Type:\n"
     s += "      %s\n" % integral.integral_type()
     s += "    Domain:\n"
-    s += "      %s\n" % repr(integral.ufl_domain())
+    s += "      %s\n" % integral.ufl_domain()
     s += "    Domain id:\n"
-    s += "      %s\n" % repr(integral.subdomain_id())
+    s += "      %s\n" % integral.subdomain_id()
     s += "    Domain data:\n"
     s += "      %s\n" % integral.subdomain_data()
     s += "    Compiler metadata:\n"
     s += "      %s\n" % integral.metadata()
-    s += "    Integrand expression representation:\n"
-    s += "      %s\n" % repr(integral.integrand())
-    s += "    Integrand expression short form:\n"
-    s += "      %s" % integral.integrand()
     return s
 
 
@@ -91,15 +87,15 @@ def _indent_string(n):
 def _tree_format_expression(expression, indentation, parentheses):
     ind = _indent_string(indentation)
     if expression._ufl_is_terminal_:
-        s = ind + "%s" % repr(expression)
+        s = "%s%s" % (ind, repr(expression))
     else:
         sops = [_tree_format_expression(o, indentation+1, parentheses) for o in expression.ufl_operands]
-        s = ind + "%s\n" % expression._ufl_class_.__name__
+        s = "%s%s\n" % (ind, expression._ufl_class_.__name__)
         if parentheses and len(sops) > 1:
-            s += ind + "(\n"
+            s += "%s(\n" % (ind,)
         s += "\n".join(sops)
         if parentheses and len(sops) > 1:
-            s += "\n" + ind + ")"
+            s += "\n%s)" % (ind,)
     return s
 
 

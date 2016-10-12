@@ -23,6 +23,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 # import six
+from ufl.utils.py23 import as_native_str
 from six.moves import zip
 from ufl.log import error
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -73,7 +74,8 @@ class EnrichedElement(FiniteElementBase):
                                    reference_value_shape)
 
         # Cache repr string
-        self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
+        self._repr = as_native_str("EnrichedElement(%s)" %
+            ", ".join(repr(e) for e in self._elements))
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this

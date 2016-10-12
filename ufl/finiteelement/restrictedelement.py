@@ -37,7 +37,7 @@ class RestrictedElement(FiniteElementBase):
         if not isinstance(element, FiniteElementBase):
             error("Expecting a finite element instance.")
         if restriction_domain not in valid_restriction_domains:
-            error("Expecting one of the strings %s." % repr(valid_restriction_domains))
+            error("Expecting one of the strings %s." % (valid_restriction_domains,))
 
         FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
                                    element.degree(),

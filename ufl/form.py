@@ -30,6 +30,7 @@ from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
 from ufl.core.expr import Expr
+from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
 from ufl.utils.py23 import as_native_strings, as_native_str
 
@@ -433,7 +434,7 @@ class Form(object):
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
     if not isinstance(form, Form):
-        error("Unable to convert object to a UFL form: %s" % repr(form))
+        error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
     return form
 
 

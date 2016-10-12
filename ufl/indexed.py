@@ -74,7 +74,7 @@ class Indexed(Operator):
         if len(shape) != len(multiindex):
             error("Invalid number of indices (%d) for tensor "
                   "expression of rank %d:\n\t%s\n"
-                  % (len(multiindex), len(expression.ufl_shape), repr(expression)))
+                  % (len(multiindex), len(expression.ufl_shape), ufl_err_str(expression)))
         if any(int(di) >= int(si)
                for si, di in zip(shape, multiindex)
                if isinstance(di, FixedIndex)):
@@ -122,4 +122,4 @@ class Indexed(Operator):
                            self.ufl_operands[1])
 
     def __getitem__(self, key):
-        error("Attempting to index with %s, but object is already indexed: %s" % (repr(key), repr(self)))
+        error("Attempting to index with %s, but object is already indexed: %s" % (ufl_err_str(key), ufl_err_str(self)))

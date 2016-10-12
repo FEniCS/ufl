@@ -316,7 +316,8 @@ class VectorElement(MixedElement):
         self._form_degree = form_degree  # Storing for signature_data, not sure if it's needed
 
         # Cache repr string
-        self._repr = "VectorElement(%s, dim=%d)" % (repr(sub_element), len(self._sub_elements))
+        self._repr = "VectorElement(%s, dim=%d)" % (
+            repr(sub_element), len(self._sub_elements))
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -458,7 +459,7 @@ class TensorElement(MixedElement):
         ii = i[:l]
         jj = i[l:]
         if ii not in self._sub_element_mapping:
-            error("Illegal component index %s." % repr(i))
+            error("Illegal component index %s." % (i,))
         k = self._sub_element_mapping[ii]
         return (k, jj)
 

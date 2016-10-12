@@ -285,7 +285,7 @@ def _restrict(self, side):
         return PositiveRestricted(self)
     if side == "-":
         return NegativeRestricted(self)
-    error("Invalid side %s in restriction operator." % repr(side))
+    error("Invalid side '%s' in restriction operator." % (side,))
 
 
 def _eval(self, coord, mapping=None, component=()):
@@ -385,7 +385,7 @@ def analyse_key(ii, rank):
                     # TODO: Use ListTensor to support partial slices?
                     error("Partial slices not implemented, only complete slices like [:]")
             else:
-                error("Can't convert this object to index: %s" % repr(i))
+                error("Can't convert this object to index: %s" % (i,))
 
             # Store index in pre or post list
             indexlist.append(idx)

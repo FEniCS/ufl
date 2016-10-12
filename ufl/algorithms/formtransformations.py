@@ -29,6 +29,7 @@ from six.moves import xrange as range
 from ufl.log import error, warning, debug
 
 # All classes:
+from ufl.core.expr import ufl_err_str
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
@@ -70,7 +71,7 @@ class PartExtracter(Transformer):
         """The default is a nonlinear operator not accepting any
         Arguments among its children."""
         if _expr_has_terminal_types(x, Argument):
-            error("Found Argument in %s, this is an invalid expression." % repr(x))
+            error("Found Argument in %s, this is an invalid expression." % ufl_err_str(x))
         return (x, set())
 
     # Terminals that are not Variables or Arguments behave as default
@@ -218,7 +219,7 @@ class PartExtracter(Transformer):
 
         # Check for Arguments in the denominator
         if _expr_has_terminal_types(denominator, Argument):
-            error("Found Argument in denominator of %s , this is an invalid expression." % repr(x))
+            error("Found Argument in denominator of %s , this is an invalid expression." % ufl_err_str(x))
 
         # Visit numerator
         numerator_parts, provides = self.visit(numerator)

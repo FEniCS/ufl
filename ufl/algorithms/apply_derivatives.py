@@ -21,6 +21,7 @@
 
 from ufl.log import error, warning
 
+from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import MultiIndex, FixedIndex, indices
 
@@ -871,7 +872,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             o, = o.ufl_operands
             ngrads += 1
         if not isinstance(o, FormArgument):
-            error("Expecting gradient of a FormArgument, not %s" % repr(o))
+            error("Expecting gradient of a FormArgument, not %s" % ufl_err_str(o))
 
         def apply_grads(f):
             for i in range(ngrads):

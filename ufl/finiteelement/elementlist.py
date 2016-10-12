@@ -75,7 +75,7 @@ def show_elements():
             continue
         shown.add(data)
         (family, short_name, value_rank, sobolev_space, mapping, degree_range, cellnames) = data
-        print("Finite element family: %s, %s" % (repr(family), repr(short_name)))
+        print("Finite element family: '%s', '%s'" % (family, short_name))
         print("Sobolev space: %s" % (sobolev_space,))
         print("Mapping: %s" % (mapping,))
         print("Degree range: %s" % (degree_range,))

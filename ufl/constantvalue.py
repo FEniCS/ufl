@@ -154,7 +154,11 @@ class Zero(ConstantValue):
     def __str__(self):
         if self.ufl_shape == () and self.ufl_free_indices == ():
             return "0"
-        return "(0<%s, %s>)" % (repr(self.ufl_shape), repr(self.ufl_free_indices))
+        if self.ufl_free_indices == ():
+            return "0 (shape %s)" % (self.ufl_shape,)
+        if self.ufl_shape == ():
+            return "0 (index labels %s)" % (self.ufl_free_indices,)
+        return "0 (shape %s, index labels %s)" % (self.ufl_shape, self.ufl_free_indices)
 
     def __repr__(self):
         r = "Zero(%s, %s, %s)" % (
