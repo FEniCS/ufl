@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2004-2008 Anders Logg
 #
 # This file is part of UFL.
@@ -15,7 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Martin Sandve Alnes, 2009
+# Modified by Martin Sandve Alnæs, 2009
 #
 # Last changed: 2009-03-02
 #
