@@ -21,6 +21,7 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Marie E. Rognes, 2011.
 
+import six
 import io
 import os
 import re
@@ -51,7 +52,13 @@ class FileData(object):
 
 
 def read_lines_decoded(fn):
-    r = re.compile(r".*coding: *([^ ]+)")
+    r = re.compile(b".*coding: *([^ ]+)")
+    if six.PY3:
+        def match(line):
+            return r.match(line, re.ASCII)
+    else:
+        def match(line):
+            return r.match(line)
 
     # First read lines as bytes
     with io.open(fn, "rb") as f:
@@ -59,7 +66,7 @@ def read_lines_decoded(fn):
 
     # Check for coding: in the first two lines
     for i in range(min(2, len(lines))):
-        m = r.match(lines[i])
+        m = match(lines[i])
         if m:
             encoding, = m.groups()
             # Drop encoding line
