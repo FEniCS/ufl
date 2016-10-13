@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """This module contains the apply_restrictions algorithm which propagates restrictions in a form towards the terminals."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs
+# Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

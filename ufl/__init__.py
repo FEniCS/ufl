@@ -218,7 +218,7 @@ A very brief overview of the language contents follows:
     - derivative
 """
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
+# Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

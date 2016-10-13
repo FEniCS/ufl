@@ -4,7 +4,7 @@ basic specializations to further base other algorithms upon,
 as well as some utilities for easier application of such
 algorithms."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
+# Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

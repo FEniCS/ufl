@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Algorithm for replacing terminals in an expression."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
+# Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

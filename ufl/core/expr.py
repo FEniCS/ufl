@@ -10,7 +10,7 @@ More operators (special functions) on ``Expr`` instances are defined in
 This is to avoid circular dependencies between ``Expr`` and its subclasses.
 """
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs
+# Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 "The Form class."
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs
+# Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

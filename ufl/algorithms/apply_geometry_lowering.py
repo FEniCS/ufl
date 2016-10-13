@@ -5,7 +5,7 @@ This means replacing high-level types with expressions
 of mostly the Jacobian and reference cell data.
 """
 
-# Copyright (C) 2013-2015 Martin Sandve Alnæs
+# Copyright (C) 2013-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

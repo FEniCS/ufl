@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Algorithms for working with linearized computational graphs."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs
+# Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

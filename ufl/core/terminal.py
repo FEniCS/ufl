@@ -2,7 +2,7 @@
 """This module defines the ``Terminal`` class, the superclass
 for all types that are terminal nodes in an expression tree."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs
+# Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 "The Equation class, used to express equations like a == L."
 
-# Copyright (C) 2012-2015 Anders Logg and Martin Sandve Alnæs
+# Copyright (C) 2012-2016 Anders Logg and Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

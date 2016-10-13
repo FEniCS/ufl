@@ -2,7 +2,7 @@
 """A collection of utility algorithms for printing
 of UFL objects, mostly intended for debugging purposes."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs
+# Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

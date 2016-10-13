@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Signature computation for forms."""
 
-# Copyright (C) 2012-2015 Martin Sandve Alnæs
+# Copyright (C) 2012-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
