@@ -253,12 +253,18 @@ class Measure(object):
     # (subdomain_id, metadata) for backwards compatibility, because
     # some tutorials write e.g. dx(0, {...}) to set metadata.
     def __call__(self, subdomain_id=None, metadata=None, domain=None,
-                 subdomain_data=None, degree=None, rule=None):
+                 subdomain_data=None, degree=None, scheme=None, rule=None):
         """Reconfigure measure with new domain specification or metadata."""
 
+        # Deprecation of 'rule' in favour of 'scheme'
+        if rule is not None:
+            deprecate("Measure argument 'rule' has been renamed to 'scheme'.")
+            assert scheme is None or scheme == rule
+            scheme = rule
+
         # Let syntax dx() mean integral over everywhere
-        all_args = (subdomain_id, metadata, domain, subdomain_data, degree,
-                    rule)
+        all_args = (subdomain_id, metadata, domain, subdomain_data,
+                    degree, scheme)
         if all(arg is None for arg in all_args):
             return self.reconstruct(subdomain_id="everywhere")
 
@@ -272,15 +278,15 @@ class Measure(object):
                 error("Ambiguous: setting domain both as keyword argument and first argument.")
             subdomain_id, domain = "everywhere", as_domain(subdomain_id)
 
-        # If degree or rule is set, inject into metadata. This is a
-        # quick fix to enable the dx(..., degree=3) notation. TODO:
-        # Make degree and rule properties of integrals.
-        if (degree, rule) != (None, None):
+        # If degree or scheme is set, inject into metadata. This is a
+        # quick fix to enable the dx(..., degree=3) notation.
+        # TODO: Make degree and scheme properties of integrals instead of adding to metadata.
+        if (degree, scheme) != (None, None):
             metadata = {} if metadata is None else metadata.copy()
             if degree is not None:
                 metadata["quadrature_degree"] = degree
-            if rule is not None:
-                metadata["quadrature_rule"] = rule
+            if scheme is not None:
+                metadata["quadrature_rule"] = scheme
 
         # If we get any keywords, use them to reconstruct Measure.
         # Note that if only one argument is given, it is the
