@@ -28,7 +28,7 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 class HDivElement(FiniteElementBase):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = as_native_strings(("_element"))
+    __slots__ = as_native_strings(("_element",))
 
     def __init__(self, element):
         self._element = element
@@ -60,7 +60,7 @@ class HDivElement(FiniteElementBase):
 class HCurlElement(FiniteElementBase):
     """A curl-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = as_native_strings(("_element"))
+    __slots__ = as_native_strings(("_element",))
 
     def __init__(self, element):
         self._element = element
