@@ -375,7 +375,6 @@ class Form(object):
     # "a @ f" notation in python 3.5
     __matmul__ = __mul__
 
-
     # --- String conversion functions, for UI purposes only ---
 
     def __unicode__(self):
