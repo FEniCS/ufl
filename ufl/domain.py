@@ -125,8 +125,7 @@ class Mesh(AbstractDomain):
         return as_native_str(r)
 
     def __str__(self):
-        return "<Mesh #%s with coordinates parameterized by %s>" % (
-            self._ufl_id, self._ufl_coordinate_element)
+        return "<Mesh #%s>" % (self._ufl_id,)
 
     def _ufl_hash_data_(self):
         return (self._ufl_id, self._ufl_coordinate_element)
