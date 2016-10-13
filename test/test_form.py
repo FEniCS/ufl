@@ -108,7 +108,7 @@ def test_form_empty(mass):
     assert Form([]).empty()
 
 
-def form_integrals(mass, boundary_load):
+def test_form_integrals(mass, boundary_load):
     assert isinstance(mass.integrals(), tuple)
     assert len(mass.integrals()) == 1
     assert mass.integrals()[0].integral_type() == "cell"
@@ -117,3 +117,20 @@ def form_integrals(mass, boundary_load):
     assert isinstance(boundary_load.integrals_by_type("cell"), tuple)
     assert len(boundary_load.integrals_by_type("cell")) == 0
     assert len(boundary_load.integrals_by_type("exterior_facet")) == 1
+
+
+def test_form_call():
+    V = FiniteElement("CG", triangle, 1)
+    v = TestFunction(V)
+    u = TrialFunction(V)
+    f = Coefficient(V)
+    g = Coefficient(V)
+    a = g*inner(grad(u), grad(v))*dx
+    M = a(f, f, coefficients={ g: 1 })
+    assert M == grad(f)**2*dx
+
+    import sys
+    if sys.version_info.major >= 3 and sys.version_info.minor >= 5:
+        a = u*v*dx
+        M = eval("(a @ f) @ g")
+        assert M == g*f*dx

@@ -320,10 +320,61 @@ class Form(object):
 
     def __mul__(self, coefficient):
         "UFL form operator: Take the action of this form on the given coefficient."
-        if isinstance(coefficient, Expr):  # Coefficient): # TODO: Check whatever makes sense
+        if isinstance(coefficient, Expr):
             from ufl.formoperators import action
             return action(self, coefficient)
         return NotImplemented
+
+    def __call__(self, *args, **kwargs):
+        """UFL form operator: Evaluate form by replacing arguments and coefficients.
+
+        Replaces form.arguments() with given positional arguments
+        in same number and ordering. Number of positional arguments
+        must be 0 or equal to the number of Arguments in the form.
+
+        The optional keyword argument coefficients can be set to a dict
+        to replace Coefficients with expressions of matching shapes.
+
+        Example:
+
+          V = FiniteElement("CG", triangle, 1)
+          v = TestFunction(V)
+          u = TrialFunction(V)
+          f = Coefficient(V)
+          g = Coefficient(V)
+          a = g*inner(grad(u), grad(v))*dx
+          M = a(f, f, coefficients={ g: 1 })
+
+        Is equivalent to M == grad(f)**2*dx.
+        """
+        repdict = {}
+
+        if args:
+            arguments = self.arguments()
+            if len(arguments) != len(args):
+                error("Need %d arguments to form(), got %d." % (len(arguments), len(args)))
+            repdict.update(zip(arguments, args))
+
+        coefficients = kwargs.pop("coefficients")
+        if kwargs:
+            error("Unknown kwargs %s." % str(list(kwargs)))
+
+        if coefficients is not None:
+            coeffs = self.coefficients()
+            for f in coefficients:
+                if f in coeffs:
+                    repdict[f] = coefficients[f]
+                else:
+                    warning("Coefficient %s is not in form." % ufl_err_str(f))
+        if repdict:
+            from ufl.formoperators import replace
+            return replace(self, repdict)
+        else:
+            return self
+
+    # "a @ f" notation in python 3.5
+    __matmul__ = __mul__
+
 
     # --- String conversion functions, for UI purposes only ---
 
@@ -333,14 +384,16 @@ class Form(object):
 
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
-        warning("Calling str on form is potentially expensive and should be avoided except during debugging.")
+        # Warning used for making sure we don't use this in the general pipeline:
+        #warning("Calling str on form is potentially expensive and should be avoided except during debugging.")
         # Not caching this because it can be huge
         s = "\n  +  ".join(str(itg) for itg in self.integrals())
         return s or "<empty Form>"
 
     def __repr__(self):
         "Compute repr string of form. This can be huge for complicated forms."
-        warning("Calling repr on form is potentially expensive and should be avoided except during debugging.")
+        # Warning used for making sure we don't use this in the general pipeline:
+        #warning("Calling repr on form is potentially expensive and should be avoided except during debugging.")
         # Not caching this because it can be huge
         itgs = ", ".join(repr(itg) for itg in self.integrals())
         r = "Form([" + itgs + "])"
