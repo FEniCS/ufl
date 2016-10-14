@@ -23,6 +23,7 @@ Sum and its superclass Expr."""
 # Modified by Massimiliano Leoni, 2016.
 
 from itertools import chain
+import numbers
 
 from ufl.log import error
 from ufl.utils.stacks import StackDict
@@ -179,7 +180,7 @@ def _mult(a, b):
 
 # --- Extend Expr with algebraic operators ---
 
-_valid_types = (Expr,) + (int, float)
+_valid_types = (Expr, numbers.Real, numbers.Integral)
 
 
 def _mul(self, o):
@@ -208,7 +209,7 @@ Expr.__add__ = _add
 def _radd(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
-    if isinstance(o, int) and o == 0:
+    if isinstance(o, numbers.Number) and o == 0:
         # Allow adding scalar int 0 as a no-op, even for shaped self,
         # needed for sum([a,b])
         return self
@@ -373,7 +374,7 @@ def analyse_key(ii, rank):
             indexlist = post
         else:
             # Convert index to a proper type
-            if isinstance(i, int):
+            if isinstance(i, numbers.Integral):
                 idx = FixedIndex(i)
             elif isinstance(i, IndexBase):
                 idx = i
