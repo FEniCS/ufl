@@ -26,8 +26,8 @@ from six import iteritems
 
 from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
-from ufl.log import error
-from ufl.core.expr import Expr, ufl_err_str
+from ufl.log import error, UFLValueError
+from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import Index, FixedIndex
 from ufl.core.ufl_type import ufl_type
@@ -408,9 +408,10 @@ def as_ufl(expression):
     "Converts expression to an Expr if possible."
     if isinstance(expression, Expr):
         return expression
-    if isinstance(expression, float):
+    elif isinstance(expression, float):
         return FloatValue(expression)
-    if isinstance(expression, int):
+    elif isinstance(expression, int):
         return IntValue(expression)
-    error("Invalid type conversion: %s can not be converted"
-          " to any UFL type." % ufl_err_str(expression))
+    else:
+        raise UFLValueError("Invalid type conversion: %s can not be converted"
+                            " to any UFL type." % str(expression))

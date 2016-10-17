@@ -241,9 +241,13 @@ class Logger:
 
 # --- Set up global log functions ---
 
-# Base class for UFL exceptions
 class UFLException(Exception):
     "Base class for UFL exceptions."
+    pass
+
+
+class UFLValueError(UFLException):
+    "Value type error."
     pass
 
 
