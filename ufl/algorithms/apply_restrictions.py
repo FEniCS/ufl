@@ -149,7 +149,7 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
     # Although the physical normal can be flipped when moving from +
-    # to - in some circumstances, the reference normal cannot.
+    # to -, the reference normal cannot
     reference_normal = _require_restriction
 
     # Defaults for geometric quantities
@@ -178,6 +178,7 @@ class RestrictionPropagator(MultiFunction):
     cell_edge_vectors = _require_restriction                # ...
 
     reference_cell_volume = _ignore_restriction  # FIXME: needs changing for mixed cell meshes
+    reference_facet_volume = _ignore_restriction # FIXME: needs changing for mixed cell meshes
 
     cell_normal = _require_restriction  # Property of cell
 
