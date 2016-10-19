@@ -177,8 +177,8 @@ class RestrictionPropagator(MultiFunction):
     cell_facet_jacobian_inverse = _require_restriction      # ...
     cell_edge_vectors = _require_restriction                # ...
 
-    reference_cell_volume = _ignore_restriction  # FIXME: needs changing for mixed cell meshes
-    reference_facet_volume = _ignore_restriction # FIXME: needs changing for mixed cell meshes
+    reference_cell_volume = _ignore_restriction   # FIXME: needs changing for mixed cell meshes
+    reference_facet_volume = _ignore_restriction  # FIXME: needs changing for mixed cell meshes
 
     cell_normal = _require_restriction  # Property of cell
 
@@ -187,9 +187,9 @@ class RestrictionPropagator(MultiFunction):
     # cell_midpoint = _require_restriction # Depends on cell
     # facet_midpoint = _default_restricted # Depends on cell only to get to the facet
 
-    cell_volume = _require_restriction        # Property of cell
-    circumradius = _require_restriction       # Property of cell
-    # cell_surface_area = _require_restriction # Property of cell
+    cell_volume = _require_restriction         # Property of cell
+    circumradius = _require_restriction        # Property of cell
+    # cell_surface_area = _require_restriction  # Property of cell
 
     facet_area = _default_restricted             # Depends on cell only to get to the facet
     # facet_diameter = _default_restricted       # Depends on cell only to get to the facet
