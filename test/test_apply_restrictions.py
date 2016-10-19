@@ -3,7 +3,7 @@
 
 from pytest import raises
 from ufl import *
-from ufl.algorithms.apply_restrictions import apply_restrictions
+from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
 from ufl.algorithms.renumbering import renumber_indices
 
 
@@ -37,7 +37,7 @@ def test_apply_restrictions():
     assert apply_restrictions((grad(f) + grad(g))('-')) == (grad(f)('-') + grad(g)('-'))
 
     # x is the same from both sides but computed from one of them
-    assert apply_restrictions(x) == x('+')
+    assert apply_default_restrictions(x) == x('+')
 
     # n on a linear mesh is opposite pointing from the other side
     assert apply_restrictions(n('+')) == n('+')

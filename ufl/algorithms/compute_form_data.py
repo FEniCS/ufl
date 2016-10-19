@@ -38,7 +38,7 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
-from ufl.algorithms.apply_restrictions import apply_restrictions
+from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 
 # See TODOs at the call sites of these below:
@@ -223,6 +223,7 @@ def compute_form_data(form,
                       do_apply_integral_scaling=False,
                       do_apply_geometry_lowering=False,
                       preserve_geometry_types=(),
+                      do_apply_default_restrictions=True,
                       do_apply_restrictions=True,
                       do_estimate_degrees=True,
                       ):
@@ -278,6 +279,10 @@ def compute_form_data(form,
     # Scale integrals to reference cell frames
     if do_apply_integral_scaling:
         form = apply_integral_scaling(form)
+
+    # Apply default restriction to fully continuous terminals
+    if do_apply_default_restrictions:
+        form = apply_default_restrictions(form)
 
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller
