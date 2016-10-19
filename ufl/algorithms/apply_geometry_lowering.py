@@ -40,7 +40,8 @@ from ufl.classes import (Expr, Form, Integral,
                          ReferenceNormal,
                          ReferenceCellVolume, ReferenceFacetVolume,
                          CellVolume, FacetArea,
-                         SpatialCoordinate)
+                         SpatialCoordinate,
+                         FloatValue)
 # FacetJacobianInverse,
 # FacetOrientation, QuadratureWeight,
 
@@ -142,6 +143,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.ufl_domain()
+        #tdim = domain.topological_dimension()
         FJ = self.facet_jacobian(FacetJacobian(domain))
         detFJ = determinant_expr(FJ)
 
@@ -209,11 +211,16 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.ufl_domain()
+        tdim = domain.topological_dimension()
         if not domain.is_piecewise_linear_simplex_domain():
             # Don't lower for non-affine cells, instead leave it to
             # form compiler
             warning("Only know how to compute the facet area of an affine cell.")
             return o
+
+        # Area of "facet" of interval (i.e. "area" of a vertex) is defined as 1.0
+        if tdim == 1:
+            return FloatValue(1.0)
 
         r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
         r0 = ReferenceFacetVolume(domain)
