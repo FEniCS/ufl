@@ -29,6 +29,7 @@ from ufl.log import error, warning
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.corealg.map_dag import map_expr_dag
+from ufl.measure import custom_integral_types, point_integral_types
 
 from ufl.classes import (Expr, Form, Integral,
                          ReferenceGrad,
@@ -487,7 +488,7 @@ def apply_geometry_lowering(form, preserve_types=()):
 
     elif isinstance(form, Integral):
         integral = form
-        if integral.integral_type() in ("custom", "vertex"):
+        if integral.integral_type() in (custom_integral_types + point_integral_types):
             automatic_preserve_types = [SpatialCoordinate, Jacobian]
         else:
             automatic_preserve_types = [CellCoordinate]

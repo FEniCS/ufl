@@ -65,7 +65,8 @@ _integral_types = [
     ("overlap", "dO"),                # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
 
     # === Firedrake specific hacks on the way out:
-    # TODO: Remove these, firedrake can use metadata instead and create the measure objects in firedrake:
+    # TODO: Remove these, firedrake can use metadata instead
+    # and create the measure objects in firedrake:
     ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
     ("exterior_facet_top", "ds_t"),     # Over top facets on extruded mesh
     ("exterior_facet_vert", "ds_v"),    # Over side facets of an extruded mesh
@@ -75,7 +76,10 @@ _integral_types = [
 
 integral_type_to_measure_name = dict((l, s) for l, s in _integral_types)
 measure_name_to_integral_type = dict((s, l) for l, s in _integral_types)
+
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
+point_integral_types = ("vertex",) # "point")
+facet_integral_types = ("exterior_facet", "interior_facet")
 
 
 def register_integral_type(integral_type, measure_name):

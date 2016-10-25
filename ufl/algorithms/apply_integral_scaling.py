@@ -20,6 +20,7 @@
 
 from ufl.log import error
 from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
+from ufl.measure import custom_integral_types, point_integral_types
 
 
 def compute_integrand_scaling_factor(integral):
@@ -53,12 +54,12 @@ def compute_integrand_scaling_factor(integral):
             # No need to scale 'integral' over a vertex
             scale = 1
 
-    elif integral_type in ("custom", "interface", "overlap", "cutcell"):
+    elif integral_type in custom_integral_types:
         # Scaling with custom weight, which includes eventual volume
         # scaling
         scale = weight
 
-    elif integral_type in ("vertex", "point"):
+    elif integral_type in point_integral_types:
         # No need to scale 'integral' over a point
         scale = 1
 
