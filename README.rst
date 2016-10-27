@@ -24,7 +24,7 @@ Documentation can be viewed at http://fenics-ufl.readthedocs.org/.
 
 
 Automated Testing
------------------
+=================
 
 We use Bitbucket Pipelines and Atlassian Bamboo to perform automated
 testing.
@@ -39,7 +39,7 @@ testing.
 
 
 Code Coverage
--------------
+=============
 
 Code coverage reports can be viewed at
 https://coveralls.io/repos/bitbucket/fenics-project/ufl.
