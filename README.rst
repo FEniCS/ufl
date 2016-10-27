@@ -16,13 +16,37 @@ For more information, visit http://www.fenicsproject.org
 Documentation
 =============
 
-The UFL documentation can be viewed at Read the Docs:
+Documentation can be viewed at http://fenics-ufl.readthedocs.org/.
 
-+--------+-------------------------------------------------------------------------------------+
-|UFL     |  .. image:: https://readthedocs.org/projects/fenics-ufl/badge/?version=latest       |
-|        |     :target: http://fenics.readthedocs.io/projects/ufl/en/latest/?badge=latest     |
-|        |     :alt: Documentation Status                                                      |
-+--------+-------------------------------------------------------------------------------------+
+.. image:: https://readthedocs.org/projects/fenics-ufl/badge/?version=latest
+   :target: http://fenics.readthedocs.io/projects/ufl/en/latest/?badge=latest
+   :alt: Documentation Status
+
+
+Automated Testing
+-----------------
+
+We use Bitbucket Pipelines and Atlassian Bamboo to perform automated
+testing.
+
+.. image:: https://bitbucket-badges.useast.atlassian.io/badge/fenics-project/ufl.svg
+   :target: https://bitbucket.org/fenics-project/ufl/addon/pipelines/home
+   :alt: Pipelines Build Status
+
+.. image:: http://fenics-bamboo.simula.no:8085/plugins/servlet/wittified/build-status/UFL-UD
+   :target: http://fenics-bamboo.simula.no:8085/browse/UFL-UD/latest
+   :alt: Bamboo Build Status
+
+
+Code Coverage
+-------------
+
+Code coverage reports can be viewed at
+https://coveralls.io/repos/bitbucket/fenics-project/ufl.
+
+.. image:: https://coveralls.io/repos/bitbucket/fenics-project/ufl/badge.svg?branch=master
+   :target: https://coveralls.io/bitbucket/fenics-project/ufl?branch=master
+   :alt: Coverage Status
 
 
 License
