@@ -22,11 +22,9 @@
 import six
 
 
-if six.PY3:
+if not six.PY2:
     unicode = str
 
-
-if six.PY3:
     def as_native_str(s):
         "Return s as unicode string, decoded using utf-8 if necessary."
         if isinstance(s, bytes):
