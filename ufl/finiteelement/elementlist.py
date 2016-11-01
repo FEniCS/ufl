@@ -155,6 +155,12 @@ register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
                  (0, None), simplices[1:])
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
+# Spectral elements. Check possible overlap with Lobatto above.
+register_element("Gauss-Lobatto-Legendre", "GLL", 0, H1, "identity", (0, None),
+                 ("interval",))
+register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
+                 ("interval",))
+
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
