@@ -147,7 +147,6 @@ register_element("Quadrature", "Quadrature", 0, L2, "identity", (0, None),
 register_element("Real", "R", 0, L2, "identity", (0, 0),
                  any_cell + ("TensorProductCell",))
 register_element("Undefined", "U", 0, L2, "identity", (0, None), any_cell)
-register_element("Lobatto", "Lob", 0, L2, "identity", (1, None), ("interval",))
 register_element("Radau", "Rad", 0, L2, "identity", (0, None), ("interval",))
 register_element("Discontinuous Lagrange Trace", "DGT", 0, L2, "identity",
                  (0, None), any_cell)
@@ -155,11 +154,13 @@ register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
                  (0, None), simplices[1:])
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
-# Spectral elements. Check possible overlap with Lobatto above.
-register_element("Gauss-Lobatto-Legendre", "GLL", 0, H1, "identity", (0, None),
-                 ("interval",))
+# Spectral elements.
 register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
                  ("interval",))
+register_element("Gauss-Lobatto-Legendre", "GLL", 0, H1, "identity", (0, None),
+                 ("interval",))
+register_element("Lobatto",
+                 lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
 
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
