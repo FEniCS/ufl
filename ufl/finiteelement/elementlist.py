@@ -159,8 +159,10 @@ register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
                  ("interval",))
 register_element("Gauss-Lobatto-Legendre", "GLL", 0, H1, "identity", (0, None),
                  ("interval",))
-register_element("Lobatto",
-                 lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
+register_alias("Lobatto",
+               lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
+register_alias("Lob",
+               lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
 
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
