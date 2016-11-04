@@ -108,7 +108,7 @@ def form2unicode(form, formdata):
             istr += ",".join([subscript_number(i) for i in subdomain_id])
 
         dxstr = ufl.measure.integral_type_to_measure_name[integral_type]
-        line = "%s (%s)  , %s" % (istr, integrand_string, dxstr)
+        line = "%s %s  %s" % (istr, integrand_string, dxstr)
         lines.append(line)
 
     return '\n'.join(lines)
