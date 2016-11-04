@@ -157,7 +157,7 @@ register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
 # Spectral elements.
 register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
                  ("interval",))
-register_element("Gauss-Lobatto-Legendre", "GLL", 0, H1, "identity", (0, None),
+register_element("Gauss-Lobatto-Legendre", "GLL", 0, H1, "identity", (1, None),
                  ("interval",))
 register_alias("Lobatto",
                lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
