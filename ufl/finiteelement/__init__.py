@@ -34,7 +34,6 @@ from ufl.finiteelement.restrictedelement import RestrictedElement
 from ufl.finiteelement.tensorproductelement import TensorProductElement
 from ufl.finiteelement.hdivcurl import HDivElement, HCurlElement
 from ufl.finiteelement.brokenelement import BrokenElement
-from ufl.finiteelement.traceelement import TraceElement
 from ufl.finiteelement.facetelement import FacetElement
 from ufl.finiteelement.interiorelement import InteriorElement
 
@@ -51,7 +50,6 @@ __all_classes__ = [
     "HDivElement",
     "HCurlElement",
     "BrokenElement",
-    "TraceElement",
     "FacetElement",
     "InteriorElement",
     ]

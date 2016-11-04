@@ -82,7 +82,6 @@ A very brief overview of the language contents follows:
     - HDivElement
     - HCurlElement
     - BrokenElement
-    - TraceElement
     - FacetElement
     - InteriorElement
 
@@ -278,7 +277,7 @@ from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     RestrictedElement, TensorProductElement, \
-    HDivElement, HCurlElement, BrokenElement, TraceElement, \
+    HDivElement, HCurlElement, BrokenElement, \
     FacetElement, InteriorElement
 
 # Hook to extend predefined element families
@@ -379,7 +378,7 @@ __all__ = as_native_strings([
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',
     'HDivElement', 'HCurlElement',
-    'BrokenElement', 'TraceElement', 'FacetElement', 'InteriorElement',
+    'BrokenElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
     'FunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',

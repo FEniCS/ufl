@@ -149,10 +149,9 @@ register_element("Real", "R", 0, L2, "identity", (0, 0),
 register_element("Undefined", "U", 0, L2, "identity", (0, None), any_cell)
 register_element("Lobatto", "Lob", 0, L2, "identity", (1, None), ("interval",))
 register_element("Radau", "Rad", 0, L2, "identity", (0, None), ("interval",))
-register_element("Discontinuous Lagrange Trace", "DGT", 0, L2, "identity",
-                 (0, None), any_cell)
 register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
                  (0, None), simplices[1:])
+register_element("HDiv Trace", "HDivT", 0, L2, "identity", (0, None), any_cell)
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
 
@@ -168,6 +167,12 @@ register_alias("Nedelec 2nd kind H(div)",
 register_alias("N2div",
                lambda family, dim, order, degree: ("Brezzi-Douglas-Marini",
                                                    order))
+
+# Let Discontinuous Lagrange Trace element be alias to HDiv Trace
+register_alias("Discontinuous Lagrange Trace",
+               lambda family, dim, order, degree: ("HDiv Trace", order))
+register_alias("DGT",
+               lambda family, dim, order, degree: ("HDiv Trace", order))
 
 # New elements introduced for the periodic table 2014
 register_element2("Q", 0, H1, "identity", (1, None), cubes)

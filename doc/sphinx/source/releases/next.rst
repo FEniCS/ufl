@@ -28,6 +28,8 @@ Summary of changes
 - Add support for the mapping ``double covariant Piola`` in ``uflacs``
 - Add support for the mapping ``double contravariant Piola`` in ``uflacs``
 - Support for tensor-valued subelements in ``uflacs`` fixed
+- Replacing ``Discontinuous Lagrange Trace`` with ``HDiv Trace`` and removing ``TraceElement``
+- Assigning ``Discontinuous Lagrange Trace`` and ``DGT`` as aliases for ``HDiv Trace``
 
 Detailed changes
 ================
