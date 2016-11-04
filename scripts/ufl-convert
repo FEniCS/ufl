@@ -11,6 +11,7 @@ from pprint import pprint
 from ufl.algorithms import tree_format, compute_form_data
 from ufl.formatting.ufl2dot import ufl2dot
 from ufl.formatting.ufl2latex import forms2latexdocument
+from ufl.formatting.ufl2unicode import form2unicode
 from ufl.algorithms.formfiles import load_ufl_file
 
 # --- Utilities
@@ -62,7 +63,7 @@ option_list = [ \
     opt("labeling",  "l", "str", "repr", "Set to 'repr' or 'compact' for different naming of graph nodes."),
     opt("compile",   "c", "int", 0, "'Compile' forms: apply expression transformations like in a quadrature based form compilation. Only used for latex formatting."),
     # Output formats:
-    opt("format",    "f", "str", "", "Rendering format (str, repr, tree, dot, latex)."),
+    opt("format",    "f", "str", "", "Rendering format (str, repr, tree, dot, latex, unicode)."),
     opt("filetype",  "t", "str", "", "Output file type (txt, py, dot, tex, ps, pdf, png)."),
     ]
 
@@ -105,6 +106,12 @@ for arg in args:
         format = "tex"
     if format == "tex":
         rendered = forms2latexdocument(forms, uflfilename, compile=options.compile)
+    elif format == "unicode":
+        data = []
+        for form, form_data in zip(forms, form_datas):
+            tmp = form2unicode(form, form_data)
+            data.append(tmp)
+        rendered = "\n\n".join(data)
     elif format in ("str", "repr", "tree"):
         data = []
         for i, fd in enumerate(form_datas):
@@ -154,6 +161,8 @@ for arg in args:
             filetype = "dot"
         elif format == "tex":
             filetype = "tex"
+        elif format == "unicode":
+            filetype = "txt"
 
     # Guess that the filetype is the ext, usually the case
     ext = filetype

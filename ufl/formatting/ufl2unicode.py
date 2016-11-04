@@ -3,12 +3,26 @@
 from __future__ import unicode_literals
 
 
+import ufl
+from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.map_dag import map_expr_dag
+
+
+from ufl.core.multiindex import Index, FixedIndex
+
 
 integral = '\u222B'
+integral_double = '\u222B'
+integral_triple = '\u222B'
+integral_contour = '\u222B'
+integral_surface = '\u222B'
+integral_volume = '\u222B'
 sum = '\u2211'
 division_slash = '\u2215'
 partial = '\u2202'
 epsilon = '\u03F5'
+Omega = '\u03A9'
+Gamma = '\u0393'
 nabla = '\u2207'
 for_all = '\u2200'
 
@@ -28,7 +42,7 @@ combining_right_arrow_above = '\u20D7'
 combining_overline = '\u0305'
 
 digit_superscript = ['\u2070', '\u00B9', '\u00B2', '\u00B3', '\u2074', '\u2075', '\u2076', '\u2077', '\u2078', '\u2079']
-digit_subscript = ['\u2080', '\2081', '\u2082', '\u2083', '\u2084', '\u2085', '\u2086', '\u2087', '\u2088', '\u2089']
+digit_subscript = ['\u2080', '\u2081', '\u2082', '\u2083', '\u2084', '\u2085', '\u2086', '\u2087', '\u2088', '\u2089']
 
 postive_superscript = '\u207A'
 negative_superscript = '\u207B'
@@ -43,6 +57,74 @@ try:
     has_colorama = True
 except ImportError:
     has_colorama = False
+
+
+
+def ufl2unicode(expression):
+    "Generate Unicode string for a UFL expression or form."
+    if isinstance(expression, Form):
+        form_data = compute_form_data(expression)
+        preprocessed_form = form_data.preprocessed_form
+        return form2unicode(preprocessed_form, form_data)
+    else:
+        return expression2unicode(expression)
+
+
+def expression2unicode(expression, argument_names=None, coefficient_names=None):
+    rules = Expression2UnicodeHandler(argument_names, coefficient_names)
+    return map_expr_dag(rules, expression)
+
+
+def form2unicode(form, formdata):
+    #formname = formdata.name
+    argument_names = None
+    coefficient_names = None
+
+    # Define form as sum of integrals
+    lines = []
+    integrals = form.integrals()
+    for itg in integrals:
+        # TODO: Get list of expression strings instead of single
+        # expression!
+        integrand_string = expression2unicode(
+            itg.integrand(),
+            argument_names,
+            coefficient_names)
+
+        integral_type = itg.integral_type()
+        istr = integral_symbols[integral_type]
+
+        # domain = itg.ufl_domain()
+        # TODO: Render domain description
+
+        subdomain_id = itg.subdomain_id()
+        if isinstance(subdomain_id, int):
+            istr += subscript_number(subdomain_id)
+        elif subdomain_id == "everywhere":
+            pass
+        elif subdomain_id == "otherwise":
+            istr += "[oth]"
+        elif isinstance(subdomain_id, tuple):
+            istr += ",".join([subscript_number(i) for i in subdomain_id])
+
+        dxstr = ufl.measure.integral_type_to_measure_name[integral_type]
+        line = "%s (%s)  , %s" % (istr, integrand_string, dxstr)
+        lines.append(line)
+
+    return '\n'.join(lines)
+
+integral_symbols = {
+    "cell": integral_volume,
+    "exterior_facet": "%s[ext]" % integral_surface,
+    "exterior_facet_bottom": "%s[ext, bottom]" % integral_surface,
+    "exterior_facet_top": "%s[ext, top]" % integral_surface,
+    "exterior_facet_vert": "%s[ext, vert]" % integral_surface,
+    "interior_facet": "%s[int]" % integral_surface,
+    "interior_facet_horiz": "%s[int, horiz]" % integral_surface,
+    "interior_facet_vert": "%s[int, vert]" % integral_surface,
+    "vertex": r"%s[vertex]" % integral,
+    "custom": r"%s[custom]" % integral,
+}
 
 
 class Expression2UnicodeHandler(MultiFunction):
@@ -98,7 +180,7 @@ class Expression2UnicodeHandler(MultiFunction):
         # Using ^ for coefficient numbering and _ for indexing since
         # indexing is more common than exponentiation
         if self.coefficient_names is None:
-            return cfname(o)
+            return cfname(o, self.colorama_bold)
         return self.coefficient_names[o.count()]
     constant = coefficient
 
@@ -228,7 +310,7 @@ class Expression2UnicodeHandler(MultiFunction):
         return r"%s%s%s" % (par(a), circled_times, par(b))
 
     def inner(self, o, a, b):
-        return "%s%s|%s%s" % (left_angled_bracketm a, b, right_angled_bracket)
+        return "%s%s|%s%s" % (left_angled_bracket, a, b, right_angled_bracket)
 
     def dot(self, o, a, b):
         return r"%s%s%s" % (par(a), dot, par(b))
@@ -243,7 +325,7 @@ class Expression2UnicodeHandler(MultiFunction):
         return "|%s|" % A
 
     def inverse(self, o, A):
-        return "%s%s" % (par(A), superscript_number(-1)])
+        return "%s%s" % (par(A), superscript_number(-1))
 
     def deviatoric(self, o, A):
         return "dev%s" % par(A)
@@ -269,7 +351,7 @@ class Expression2UnicodeHandler(MultiFunction):
                 rows.append(",  ".join(cols))
             l = "\n  ".join(rows)
         else:
-            error("TODO: LaTeX handler for list tensor of rank 3 or higher not implemented!")
+            error("TODO: Unicode handler for list tensor of rank 3 or higher not implemented!")
         return "%s%s" % (l, transpose)
 
     def component_tensor(self, o, *ops):
@@ -344,17 +426,17 @@ def digits_back_to_front(number):
 
 def subscript_number(number):
     prefix = negative_subscript if number < 0 else ''
-    return prefix + [
+    return prefix + ''.join([
         digit_subscript[digit]
         for digit in reversed(list(digits_back_to_front(number)))
-    ].join('')
+    ])
 
 def superscript_number(number):
     prefix = negative_superscript if number < 0 else ''
-    return prefix + [
+    return prefix + ''.join([
         digit_superscript[digit]
         for digit in reversed(list(digits_back_to_front(number)))
-    ].join('')
+    ])
 
 def par(s, condition=True):  # TODO: Finish precedence handling by adding condition argument to calls to this function!
     if condition:
@@ -373,7 +455,7 @@ def format_index(ii):
     if isinstance(ii, FixedIndex):
         s = "%d" % ii._value
     elif isinstance(ii, Index):
-        s = "i%s" % subscript_number(ii)
+        s = "i%s" % subscript_number(ii._count)
     else:
         error("Invalid index type %s." % type(ii))
     return s
@@ -383,18 +465,16 @@ def format_multi_index(ii, formatstring="%s"):
     return ",".join(formatstring % format_index(i) for i in ii)
 
 
-def bfname(i, p):
-    if p is not None:
-        error("Expected part to be None")
+def bfname(o):
+    i = o.number()
     return "v" if i == 0 else "u"
 
 
 def cfname(o, colorama_bold):
-    i = o.number()
+    i = o.count()
     var = "w"
     if len(o.ufl_shape) == 1:
         var += combining_right_arrow_above
     elif len(o.ufl_shape) > 1 and colorama_bold:
         var = "%s%s%s" % (colorama.Style.BRIGHT, var, colorama.Style.RESET_ALL)
     return "%s%s" % (var, superscript_number(i))
-
