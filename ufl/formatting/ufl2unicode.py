@@ -303,7 +303,7 @@ class Expression2UnicodeHandler(MultiFunction):
 
     def power(self, o, a, b):
         if is_int(b):
-            return "%s%s" % (par(a), superscript_number(b))
+            return "%s%s" % (par(a), superscript_number(int(b)))
         return "%s^%s" % (par(a), par(b))
 
     def outer(self, o, a, b):
@@ -412,10 +412,12 @@ class Expression2UnicodeHandler(MultiFunction):
         return "max(%s, %s)" % (a, b)
 
     def expr(self, o):
-        error("Missing handler for type %s" % str(type(o)))
+        raise ValueError("Missing handler for type %s" % str(type(o)))
 
 
 def digits_back_to_front(number):
+    if number < 0:
+        number = -number
     while number:
         digit = number % 10
 
