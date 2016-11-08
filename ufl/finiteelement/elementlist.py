@@ -147,13 +147,22 @@ register_element("Quadrature", "Quadrature", 0, L2, "identity", (0, None),
 register_element("Real", "R", 0, L2, "identity", (0, 0),
                  any_cell + ("TensorProductCell",))
 register_element("Undefined", "U", 0, L2, "identity", (0, None), any_cell)
-register_element("Lobatto", "Lob", 0, L2, "identity", (1, None), ("interval",))
 register_element("Radau", "Rad", 0, L2, "identity", (0, None), ("interval",))
 register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
                  (0, None), simplices[1:])
 register_element("HDiv Trace", "HDivT", 0, L2, "identity", (0, None), any_cell)
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
+# Spectral elements.
+register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
+                 ("interval",))
+register_element("Gauss-Lobatto-Legendre", "GLL", 0, H1, "identity", (1, None),
+                 ("interval",))
+register_alias("Lobatto",
+               lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
+register_alias("Lob",
+               lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
+
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
