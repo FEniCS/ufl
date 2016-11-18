@@ -40,6 +40,11 @@ class PrecedenceRules(MultiFunction):
     def mathop(self, o):
         return 15
     derivative = mathop
+    trace = mathop
+    deviatoric = mathop
+    cofactor = mathop
+    skew = mathop
+    sym = mathop
 
     def not_condition(self, o):
         return 20
@@ -583,11 +588,6 @@ class Expression2UnicodeHandler(MultiFunction):
     def cross(self, o, a, b):
         return binop(o, a, b, UC.cross_product)
 
-    def trace(self, o, A):
-        op = opfont("tr")
-        A = par(A)
-        return "%s%s" % (op, A)
-
     def determinant(self, o, A):
         return "|%s|" % (A,)
 
@@ -595,25 +595,20 @@ class Expression2UnicodeHandler(MultiFunction):
         A = par(A)
         return "%s%s" % (A, superscript_number(-1))
 
+    def trace(self, o, A):
+        return mathop(o, A, "tr")
+
     def deviatoric(self, o, A):
-        op = opfont("dev")
-        A = par(A)
-        return "%s%s" % (op, A)
+        return mathop(o, A, "dev")
 
     def cofactor(self, o, A):
-        op = opfont("cofac")
-        A = par(A)
-        return "%s%s" % (op, A)
+        return mathop(o, A, "cofac")
 
     def skew(self, o, A):
-        op = opfont("skew")
-        A = par(A)
-        return "%s%s" % (op, A)
+        return mathop(o, A, "skew")
 
     def sym(self, o, A):
-        op = opfont("sym")
-        A = par(A)
-        return "%s%s" % (op, A)
+        return mathop(o, A, "sym")
 
     def list_tensor(self, o, *ops):
         l = ", ".join(ops)
