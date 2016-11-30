@@ -1,4 +1,4 @@
-2016.2.0 [2016-??-??]
+2016.2.0 [2016-11-30]
   - Add call operator syntax to Form to replace arguments and
     coefficients. This makes it easier to e.g. express the norm
     defined by a bilinear form as a functional. Example usage:
