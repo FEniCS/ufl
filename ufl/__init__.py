@@ -241,7 +241,7 @@ A very brief overview of the language contents follows:
 # Modified by Lawrence Mitchell, 2014
 # Modified by Massimiliano Leoni, 2016
 
-__version__ = "2016.2.0"
+__version__ = "2017.1.0.dev0"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
