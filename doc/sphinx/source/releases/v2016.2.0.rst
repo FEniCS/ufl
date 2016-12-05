@@ -1,5 +1,5 @@
 ===========================
-Changes in the next release
+Changes in version 2016.2.0
 ===========================
 
 
