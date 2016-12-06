@@ -2,6 +2,8 @@
 Changes in version 2016.2.0
 ===========================
 
+UFL 2016.2.0 was released on 2016-11-30.
+
 
 Summary of changes
 ==================
