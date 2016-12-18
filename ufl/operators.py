@@ -417,6 +417,8 @@ def curl(f):
     "UFL operator: Take the curl of *f*."
     f = as_ufl(f)
     return Curl(f)
+
+
 rot = curl
 
 

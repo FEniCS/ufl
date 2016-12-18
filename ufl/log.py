@@ -54,6 +54,7 @@ def emit(self, record):
     self.stream.write(format_string % message)
     self.flush()
 
+
 # Colors if the terminal supports it (disabled e.g. when piped to
 # file)
 if sys.stdout.isatty() and sys.stderr.isatty():

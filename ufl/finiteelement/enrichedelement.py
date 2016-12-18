@@ -27,7 +27,6 @@ from ufl.utils.py23 import as_native_str
 from six.moves import zip
 from ufl.log import error
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.finiteelement.finiteelement import FiniteElement
 
 
 # @six.python_2_unicode_compatible
