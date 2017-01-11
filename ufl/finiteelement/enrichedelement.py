@@ -101,13 +101,11 @@ class EnrichedElement(EnrichedElementBase):
 
     def __str__(self):
         "Format as string for pretty printing."
-        return as_native_str(
-            "<%s>" % " + ".join(str(e) for e in self._elements))
+        return "<%s>" % " + ".join(str(e) for e in self._elements)
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return as_native_str(
-            "<%s>" % " + ".join(e.shortstr() for e in self._elements))
+        return "<%s>" % " + ".join(e.shortstr() for e in self._elements)
 
 
 class NodalEnrichedElement(EnrichedElementBase):
@@ -126,10 +124,8 @@ class NodalEnrichedElement(EnrichedElementBase):
 
     def __str__(self):
         "Format as string for pretty printing."
-        return as_native_str(
-            "<%s>" % u" \u2295 ".join(str(e) for e in self._elements))
+        return "<Nodal enriched element(%s)>" % ", ".join(str(e) for e in self._elements)
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return as_native_str(
-            "<%s>" % u" \u2295 ".join(e.shortstr() for e in self._elements))
+        return "NodalEnriched(%s)" % ", ".join(e.shortstr() for e in self._elements)
