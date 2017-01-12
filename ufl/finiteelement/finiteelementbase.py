@@ -38,7 +38,6 @@ class FiniteElementBase(object):
         "_family",
         "_cell",
         "_degree",
-        "_form_degree",
         "_quad_scheme",
         "_value_shape",
         "_reference_value_shape",

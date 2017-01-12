@@ -313,7 +313,6 @@ class VectorElement(MixedElement):
         self._family = sub_element.family()
         self._degree = sub_element.degree()
         self._sub_element = sub_element
-        self._form_degree = form_degree  # Storing for signature_data, not sure if it's needed
 
         # Cache repr string
         self._repr = "VectorElement(%s, dim=%d)" % (
