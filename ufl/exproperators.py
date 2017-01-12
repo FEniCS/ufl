@@ -103,6 +103,8 @@ def _as_tensor(self, indices):
     if not all(isinstance(i, Index) for i in indices):
         error("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
     return as_tensor(self, indices)
+
+
 Expr.__xor__ = _as_tensor
 
 
@@ -178,6 +180,7 @@ def _mult(a, b):
 
     return p
 
+
 # --- Extend Expr with algebraic operators ---
 
 _valid_types = (Expr, numbers.Real, numbers.Integral)
@@ -188,6 +191,8 @@ def _mul(self, o):
         return NotImplemented
     o = as_ufl(o)
     return _mult(self, o)
+
+
 Expr.__mul__ = _mul
 
 
@@ -196,6 +201,8 @@ def _rmul(self, o):
         return NotImplemented
     o = as_ufl(o)
     return _mult(o, self)
+
+
 Expr.__rmul__ = _rmul
 
 
@@ -203,6 +210,8 @@ def _add(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Sum(self, o)
+
+
 Expr.__add__ = _add
 
 
@@ -214,6 +223,8 @@ def _radd(self, o):
         # needed for sum([a,b])
         return self
     return Sum(o, self)
+
+
 Expr.__radd__ = _radd
 
 
@@ -221,6 +232,8 @@ def _sub(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Sum(self, -o)
+
+
 Expr.__sub__ = _sub
 
 
@@ -228,6 +241,8 @@ def _rsub(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Sum(o, -self)
+
+
 Expr.__rsub__ = _rsub
 
 
@@ -240,6 +255,8 @@ def _div(self, o):
         d = Division(self[ii], o)
         return as_tensor(d, ii)
     return Division(self, o)
+
+
 Expr.__div__ = _div
 Expr.__truediv__ = _div
 
@@ -248,6 +265,8 @@ def _rdiv(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Division(o, self)
+
+
 Expr.__rdiv__ = _rdiv
 Expr.__rtruediv__ = _rdiv
 
@@ -258,6 +277,8 @@ def _pow(self, o):
     if o == 2 and self.ufl_shape:
         return Inner(self, self)
     return Power(self, o)
+
+
 Expr.__pow__ = _pow
 
 
@@ -265,17 +286,23 @@ def _rpow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Power(o, self)
+
+
 Expr.__rpow__ = _rpow
 
 
 # TODO: Add Negated class for this? Might simplify reductions in Add.
 def _neg(self):
     return -1*self
+
+
 Expr.__neg__ = _neg
 
 
 def _abs(self):
     return Abs(self)
+
+
 Expr.__abs__ = _abs
 
 
@@ -312,6 +339,8 @@ def _call(self, arg, mapping=None, component=()):
         return _restrict(self, arg)
     else:
         return _eval(self, arg, mapping, component)
+
+
 Expr.__call__ = _call
 
 
@@ -321,6 +350,8 @@ def _transpose(self):
     """Transpose a rank-2 tensor expression. For more general transpose
     operations of higher order tensor expressions, use indexing and Tensor."""
     return Transposed(self)
+
+
 Expr.T = property(_transpose)
 
 
@@ -461,6 +492,7 @@ def _getitem(self, component):
 
     return a
 
+
 Expr.__getitem__ = _getitem
 
 
@@ -478,5 +510,6 @@ def _dx(self, *ii):
 
     # Take all components, applying repeated index sums in the [] operation
     return d.__getitem__((Ellipsis,) + ii)
+
 
 Expr.dx = _dx

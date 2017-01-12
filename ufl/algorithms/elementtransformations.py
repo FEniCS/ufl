@@ -23,7 +23,7 @@
 from ufl.utils.py23 import as_native_strings
 from ufl.log import error
 from ufl.finiteelement import FiniteElement, VectorElement, TensorElement, \
-    MixedElement, EnrichedElement
+    MixedElement, EnrichedElement, NodalEnrichedElement
 
 __all__ = as_native_strings(['increase_order', 'tear'])
 
@@ -68,6 +68,9 @@ def _increase_degree(element, degree_rise):
     elif isinstance(element, EnrichedElement):
         return EnrichedElement([_increase_degree(e, degree_rise)
                                 for e in element.sub_elements()])
+    elif isinstance(element, NodalEnrichedElement):
+        return NodalEnrichedElement([_increase_degree(e, degree_rise)
+                                     for e in element.sub_elements()])
     else:
         error("Element reconstruction is only done to stay compatible"
               " with hacks in DOLFIN. Not expecting a %s" % repr(element))
@@ -82,6 +85,9 @@ def _change_family(element, family):
     elif isinstance(element, EnrichedElement):
         return EnrichedElement([_change_family(e, family)
                                 for e in element.sub_elements()])
+    elif isinstance(element, NodalEnrichedElement):
+        return NodalEnrichedElement([_change_family(e, family)
+                                     for e in element.sub_elements()])
     else:
         error("Element reconstruction is only done to stay compatible"
               " with hacks in DOLFIN. Not expecting a %s" % repr(element))

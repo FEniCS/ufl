@@ -30,6 +30,7 @@ from ufl.finiteelement.mixedelement import MixedElement
 from ufl.finiteelement.mixedelement import VectorElement
 from ufl.finiteelement.mixedelement import TensorElement
 from ufl.finiteelement.enrichedelement import EnrichedElement
+from ufl.finiteelement.enrichedelement import NodalEnrichedElement
 from ufl.finiteelement.restrictedelement import RestrictedElement
 from ufl.finiteelement.tensorproductelement import TensorProductElement
 from ufl.finiteelement.hdivcurl import HDivElement, HCurlElement
@@ -45,6 +46,7 @@ __all_classes__ = [
     "VectorElement",
     "TensorElement",
     "EnrichedElement",
+    "NodalEnrichedElement",
     "RestrictedElement",
     "TensorProductElement",
     "HDivElement",

@@ -77,6 +77,7 @@ A very brief overview of the language contents follows:
     - VectorElement
     - TensorElement
     - EnrichedElement
+    - NodalEnrichedElement
     - RestrictedElement
     - TensorProductElement
     - HDivElement
@@ -276,7 +277,7 @@ from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
-    RestrictedElement, TensorProductElement, \
+    NodalEnrichedElement, RestrictedElement, TensorProductElement, \
     HDivElement, HCurlElement, BrokenElement, \
     FacetElement, InteriorElement
 
@@ -376,7 +377,7 @@ __all__ = as_native_strings([
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
-    'RestrictedElement', 'TensorProductElement',
+    'NodalEnrichedElement', 'RestrictedElement', 'TensorProductElement',
     'HDivElement', 'HCurlElement',
     'BrokenElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
