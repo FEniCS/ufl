@@ -43,6 +43,9 @@ class InteriorElement(FiniteElementBase):
     def mapping(self):
         return self._element.mapping()
 
+    def reconstruct(self, **kwargs):
+        return InteriorElement(self._element.reconstruct(**kwargs))
+
     def __str__(self):
         return "InteriorElement(%s)" % str(self._element)
 

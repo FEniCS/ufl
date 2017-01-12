@@ -99,6 +99,9 @@ class EnrichedElement(EnrichedElementBase):
         element is spatially constant over each cell."""
         return all(e.is_cellwise_constant() for e in self._elements)
 
+    def reconstruct(self, **kwargs):
+        return EnrichedElement(*[e.reconstruct(**kwargs) for e in self._elements])
+
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(str(e) for e in self._elements)
@@ -121,6 +124,9 @@ class NodalEnrichedElement(EnrichedElementBase):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
         return False
+
+    def reconstruct(self, **kwargs):
+        return NodalEnrichedElement(*[e.reconstruct(**kwargs) for e in self._elements])
 
     def __str__(self):
         "Format as string for pretty printing."

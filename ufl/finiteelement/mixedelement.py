@@ -245,6 +245,9 @@ class MixedElement(FiniteElementBase):
             i, e = self.extract_component(component)
             return e.degree()
 
+    def reconstruct(self, **kwargs):
+        return MixedElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()])
+
     def __str__(self):
         "Format as string for pretty printing."
         tmp = ", ".join(str(element) for element in self._sub_elements)
@@ -317,6 +320,10 @@ class VectorElement(MixedElement):
         # Cache repr string
         self._repr = "VectorElement(%s, dim=%d)" % (
             repr(sub_element), len(self._sub_elements))
+
+    def reconstruct(self, **kwargs):
+        sub_element = self._sub_element.reconstruct(**kwargs)
+        return VectorElement(sub_element, dim=len(self.sub_elements()))
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -468,6 +475,10 @@ class TensorElement(MixedElement):
         :math:`c_1`.
         A component is a tuple of one or more ints."""
         return self._symmetry
+
+    def reconstruct(self, **kwargs):
+        sub_element = self._sub_element.reconstruct(**kwargs)
+        return TensorElement(sub_element, shape=self._shape, symmetry=self._symmetry)
 
     def __str__(self):
         "Format as string for pretty printing."

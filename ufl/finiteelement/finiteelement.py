@@ -187,6 +187,15 @@ class FiniteElement(FiniteElementBase):
         "Return the underlying Sobolev space."
         return self._sobolev_space
 
+    def reconstruct(self, family=None, cell=None, degree=None):
+        if family is None:
+            family = self.family()
+        if cell is None:
+            cell = self.cell()
+        if degree is None:
+            degree = self.degree()
+        return FiniteElement(family, cell, degree, quad_scheme=self.quadrature_scheme())
+
     def __str__(self):
         "Format as string for pretty printing."
         qs = self.quadrature_scheme()

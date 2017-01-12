@@ -33,35 +33,14 @@ def increase_order(element):
     return _increase_degree(element, +1)
 
 
-def change_regularity(element, family):
-    """
-    For a given finite element, return the corresponding space
-    specified by 'family'.
-    """
-    return _change_family(element, family)
-
-
 def tear(element):
     "For a finite element, return the corresponding discontinuous element."
-    return change_regularity(element, "DG")
-
-
-def reconstruct_element(element, family, cell, degree):
-    if isinstance(element, FiniteElement):
-        return FiniteElement(family, cell, degree)
-    elif isinstance(element, VectorElement):
-        return VectorElement(family, cell, degree, dim=element.value_shape()[0])
-    elif isinstance(element, TensorElement):
-        return TensorElement(family, cell, degree, shape=element.value_shape())
-    else:
-        error("Element reconstruction is only done to stay compatible"
-              " with hacks in DOLFIN. Not expecting a %s" % repr(element))
+    return element.reconstruct(family="DG")
 
 
 def _increase_degree(element, degree_rise):
     if isinstance(element, (FiniteElement, VectorElement, TensorElement)):
-        return reconstruct_element(element, element.family(), element.cell(),
-                                   element.degree() + degree_rise)
+        return element.reconstruct(degree=(element.degree() + degree_rise))
     elif isinstance(element, MixedElement):
         return MixedElement([_increase_degree(e, degree_rise)
                              for e in element.sub_elements()])
@@ -70,23 +49,6 @@ def _increase_degree(element, degree_rise):
                                 for e in element.sub_elements()])
     elif isinstance(element, NodalEnrichedElement):
         return NodalEnrichedElement([_increase_degree(e, degree_rise)
-                                     for e in element.sub_elements()])
-    else:
-        error("Element reconstruction is only done to stay compatible"
-              " with hacks in DOLFIN. Not expecting a %s" % repr(element))
-
-
-def _change_family(element, family):
-    if isinstance(element, (FiniteElement, VectorElement, TensorElement)):
-        return reconstruct_element(element, family, element.cell(), element.degree())
-    elif isinstance(element, MixedElement):
-        return MixedElement([_change_family(e, family)
-                             for e in element.sub_elements()])
-    elif isinstance(element, EnrichedElement):
-        return EnrichedElement([_change_family(e, family)
-                                for e in element.sub_elements()])
-    elif isinstance(element, NodalEnrichedElement):
-        return NodalEnrichedElement([_change_family(e, family)
                                      for e in element.sub_elements()])
     else:
         error("Element reconstruction is only done to stay compatible"

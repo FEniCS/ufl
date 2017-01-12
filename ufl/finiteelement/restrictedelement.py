@@ -73,6 +73,10 @@ class RestrictedElement(FiniteElementBase):
         "Return the domain onto which the element is restricted."
         return self._restriction_domain
 
+    def reconstruct(self, **kwargs):
+        element = self._element.reconstruct(**kwargs)
+        return RestrictedElement(element, self._restriction_domain)
+
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>|_{%s}" % (self._element, self._restriction_domain)

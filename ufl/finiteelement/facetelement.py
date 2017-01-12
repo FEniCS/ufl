@@ -40,6 +40,9 @@ class FacetElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
+    def reconstruct(self, **kwargs):
+        return FacetElement(self._element.reconstruct(**kwargs))
+
     def mapping(self):
         return self._element.mapping()
 

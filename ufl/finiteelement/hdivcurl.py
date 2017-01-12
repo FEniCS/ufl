@@ -48,6 +48,9 @@ class HDivElement(FiniteElementBase):
     def mapping(self):
         return "contravariant Piola"
 
+    def reconstruct(self, **kwargs):
+        return HDivElement(self._element.reconstruct(**kwargs))
+
     def __str__(self):
         return "HDivElement(%s)" % str(self._element)
 
@@ -80,6 +83,9 @@ class HCurlElement(FiniteElementBase):
 
     def mapping(self):
         return "covariant Piola"
+
+    def reconstruct(self, **kwargs):
+        return HCurlElement(self._element.reconstruct(**kwargs))
 
     def __str__(self):
         return "HCurlElement(%s)" % str(self._element)
