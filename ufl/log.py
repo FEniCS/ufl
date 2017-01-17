@@ -219,8 +219,7 @@ class Logger:
         self._log.removeHandler(self._handler)
         self._log.addHandler(handler)
         self._handler = handler
-        handler.emit = types.MethodType(emit, self._handler,
-                                        self._handler.__class__)
+        handler.emit = types.MethodType(emit, self._handler)
 
     def get_logger(self):
         "Return message logger."
