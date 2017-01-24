@@ -83,6 +83,9 @@ class EnrichedElementBase(FiniteElementBase):
     def mapping(self):
         return self._elements[0].mapping()
 
+    def reconstruct(self, **kwargs):
+        return type(self)(*[e.reconstruct(**kwargs) for e in self._elements])
+
 
 class EnrichedElement(EnrichedElementBase):
     """The vector sum of several finite element spaces:
@@ -98,9 +101,6 @@ class EnrichedElement(EnrichedElementBase):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
         return all(e.is_cellwise_constant() for e in self._elements)
-
-    def reconstruct(self, **kwargs):
-        return EnrichedElement(*[e.reconstruct(**kwargs) for e in self._elements])
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -124,9 +124,6 @@ class NodalEnrichedElement(EnrichedElementBase):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
         return False
-
-    def reconstruct(self, **kwargs):
-        return NodalEnrichedElement(*[e.reconstruct(**kwargs) for e in self._elements])
 
     def __str__(self):
         "Format as string for pretty printing."

@@ -33,9 +33,17 @@ def increase_order(element):
     return _increase_degree(element, +1)
 
 
+def change_regularity(element, family):
+    """
+    For a given finite element, return the corresponding space
+    specified by 'family'.
+    """
+    return element.reconstruct(family=family)
+
+
 def tear(element):
     "For a finite element, return the corresponding discontinuous element."
-    return element.reconstruct(family="DG")
+    return change_regularity(element, "DG")
 
 
 def _increase_degree(element, degree_rise):
