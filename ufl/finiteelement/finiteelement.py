@@ -67,14 +67,6 @@ class FiniteElement(FiniteElementBase):
             family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
                 canonical_element_description(family, cell, degree, form_degree)
 
-            if variant is None or isinstance(variant, str):
-                # Broadcasting
-                variant = (variant,) * len(cell.sub_cells())
-            elif isinstance(variant, tuple):
-                # Non-matching length
-                if len(variant) != len(cell.sub_cells()):
-                    raise ValueError("Invalid variant argument")
-
             if family in ["RTCF", "RTCE"]:
                 cell_h, cell_v = cell.sub_cells()
                 if cell_h.cellname() != "interval":
@@ -82,18 +74,16 @@ class FiniteElement(FiniteElementBase):
                 if cell_v.cellname() != "interval":
                     error("%s is available on TensorProductCell(interval, interval) only." % family)
 
-                hc_elt = FiniteElement("CG", "interval", degree, variant=variant[0])
-                hd_elt = FiniteElement("DG", "interval", degree - 1, variant=variant[0])
+                C_elt = FiniteElement("CG", "interval", degree, variant=variant)
+                D_elt = FiniteElement("DG", "interval", degree - 1, variant=variant)
 
-                vd_elt = FiniteElement("DG", "interval", degree - 1, variant=variant[1])
-                vc_elt = FiniteElement("CG", "interval", degree, variant=variant[1])
+                CxD_elt = TensorProductElement(C_elt, D_elt, cell=cell)
+                DxC_elt = TensorProductElement(D_elt, C_elt, cell=cell)
 
                 if family == "RTCF":
-                    return EnrichedElement(HDiv(TensorProductElement(hc_elt, vd_elt, cell=cell)),
-                                           HDiv(TensorProductElement(hd_elt, vc_elt, cell=cell)))
+                    return EnrichedElement(HDiv(CxD_elt), HDiv(DxC_elt))
                 if family == "RTCE":
-                    return EnrichedElement(HCurl(TensorProductElement(hc_elt, vd_elt, cell=cell)),
-                                           HCurl(TensorProductElement(hd_elt, vc_elt, cell=cell)))
+                    return EnrichedElement(HCurl(CxD_elt), HCurl(DxC_elt))
 
             elif family == "NCF":
                 cell_h, cell_v = cell.sub_cells()
@@ -102,11 +92,11 @@ class FiniteElement(FiniteElementBase):
                 if cell_v.cellname() != "interval":
                     error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
-                Qc_elt = FiniteElement("RTCF", "quadrilateral", degree, variant=variant[0])
-                Qd_elt = FiniteElement("DQ", "quadrilateral", degree - 1, variant=variant[0])
+                Qc_elt = FiniteElement("RTCF", "quadrilateral", degree, variant=variant)
+                Qd_elt = FiniteElement("DQ", "quadrilateral", degree - 1, variant=variant)
 
-                Id_elt = FiniteElement("DG", "interval", degree - 1, variant=variant[1])
-                Ic_elt = FiniteElement("CG", "interval", degree, variant=variant[1])
+                Id_elt = FiniteElement("DG", "interval", degree - 1, variant=variant)
+                Ic_elt = FiniteElement("CG", "interval", degree, variant=variant)
 
                 return EnrichedElement(HDiv(TensorProductElement(Qc_elt, Id_elt, cell=cell)),
                                        HDiv(TensorProductElement(Qd_elt, Ic_elt, cell=cell)))
@@ -118,25 +108,25 @@ class FiniteElement(FiniteElementBase):
                 if cell_v.cellname() != "interval":
                     error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
 
-                Qc_elt = FiniteElement("Q", "quadrilateral", degree, variant=variant[0])
-                Qd_elt = FiniteElement("RTCE", "quadrilateral", degree, variant=variant[0])
+                Qc_elt = FiniteElement("Q", "quadrilateral", degree, variant=variant)
+                Qd_elt = FiniteElement("RTCE", "quadrilateral", degree, variant=variant)
 
-                Id_elt = FiniteElement("DG", "interval", degree - 1, variant=variant[1])
-                Ic_elt = FiniteElement("CG", "interval", degree, variant=variant[1])
+                Id_elt = FiniteElement("DG", "interval", degree - 1, variant=variant)
+                Ic_elt = FiniteElement("CG", "interval", degree, variant=variant)
 
                 return EnrichedElement(HCurl(TensorProductElement(Qc_elt, Id_elt, cell=cell)),
                                        HCurl(TensorProductElement(Qd_elt, Ic_elt, cell=cell)))
 
             elif family == "Q":
-                return TensorProductElement(*[FiniteElement("CG", c, degree, variant=v)
-                                              for c, v in zip(cell.sub_cells(), variant)],
+                return TensorProductElement(*[FiniteElement("CG", c, degree, variant=variant)
+                                              for c in cell.sub_cells()],
                                             cell=cell)
 
             elif family == "DQ":
                 def dq_family(cell):
                     return "DG" if cell.cellname() in simplices else "DQ"
-                return TensorProductElement(*[FiniteElement(dq_family(c), c, degree, variant=v)
-                                              for c, v in zip(cell.sub_cells(), variant)],
+                return TensorProductElement(*[FiniteElement(dq_family(c), c, degree, variant=variant)
+                                              for c in cell.sub_cells()],
                                             cell=cell)
 
         return super(FiniteElement, cls).__new__(cls)
