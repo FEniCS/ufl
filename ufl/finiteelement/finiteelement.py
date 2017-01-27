@@ -209,6 +209,8 @@ class FiniteElement(FiniteElementBase):
         return self._variant
 
     def reconstruct(self, family=None, cell=None, degree=None):
+        """Construct a new FiniteElement object with some properties
+        replaced with new values."""
         if family is None:
             family = self.family()
         if cell is None:
