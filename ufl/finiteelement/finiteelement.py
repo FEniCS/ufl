@@ -225,8 +225,8 @@ class FiniteElement(FiniteElementBase):
         qs = "" if qs is None else "(%s)" % qs
         v = self.variant()
         v = "" if v is None else "(%s)" % v
-        return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),
-                                     qs, v, self.cell())
+        return "<%s%s%s%s on a %s>" % (self._short_name, istr(self.degree()),
+                                       qs, v, self.cell())
 
     def shortstr(self):
         "Format as string for pretty printing."
