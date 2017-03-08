@@ -42,7 +42,7 @@ Code Coverage
 =============
 
 Code coverage reports can be viewed at
-https://coveralls.io/repos/bitbucket/fenics-project/ufl.
+https://coveralls.io/bitbucket/fenics-project/ufl.
 
 .. image:: https://coveralls.io/repos/bitbucket/fenics-project/ufl/badge.svg?branch=master
    :target: https://coveralls.io/bitbucket/fenics-project/ufl?branch=master
