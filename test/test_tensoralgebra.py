@@ -157,9 +157,9 @@ def test_tr(self, A):
     self.assertEqualValues(C, D)
 
 
-def xtest_det(self, A):
+def test_det(self, A):
     C = det(A)
-    D = zero()  # FIXME: Add expected value here
+    D = 2*5 - 3*4 
     self.assertEqualValues(C, D)
 
 
