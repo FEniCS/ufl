@@ -158,8 +158,9 @@ def test_tr(self, A):
 
 
 def test_det(self, A):
+    dims = (0, 1)
     C = det(A)
-    D = 2*5 - 3*4 
+    D = sum((-A[i, 0]*A[0, i] if i !=0 else A[i-1, -1]*A[i, 0]) for i in dims)
     self.assertEqualValues(C, D)
 
 
