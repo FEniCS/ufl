@@ -164,9 +164,9 @@ def test_det(self, A):
     self.assertEqualValues(C, D)
 
 
-def xtest_cofac(self, A):
+def test_cofac(self, A):
     C = cofac(A)
-    D = 0*C  # FIXME: Add expected value here
+    D = as_matrix([[(-A[i,j] if i != j else A[i,j]) for j in (-1,0)] for i in (-1,0)])
     self.assertEqualValues(C, D)
 
 
