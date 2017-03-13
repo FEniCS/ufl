@@ -22,6 +22,7 @@
 from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.sobolevspace import HDiv, HCurl
 
 
 # @six.python_2_unicode_compatible
@@ -47,6 +48,10 @@ class HDivElement(FiniteElementBase):
 
     def mapping(self):
         return "contravariant Piola"
+
+    def sobolev_space(self):
+        "Return the underlying Sobolev space."
+        return HDiv
 
     def reconstruct(self, **kwargs):
         return HDivElement(self._element.reconstruct(**kwargs))
@@ -83,6 +88,10 @@ class HCurlElement(FiniteElementBase):
 
     def mapping(self):
         return "covariant Piola"
+
+    def sobolev_space(self):
+        "Return the underlying Sobolev space."
+        return HCurl
 
     def reconstruct(self, **kwargs):
         return HCurlElement(self._element.reconstruct(**kwargs))
