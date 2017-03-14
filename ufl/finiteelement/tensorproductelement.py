@@ -30,7 +30,6 @@ from ufl.utils.py23 import as_native_strings
 from ufl.cell import TensorProductCell, as_cell
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.sobolevspace import L2
 
 
 # @six.python_2_unicode_compatible
@@ -94,13 +93,21 @@ class TensorProductElement(FiniteElementBase):
     def sobolev_space(self):
         "Return the underlying Sobolev space of the TensorProductElement."
         elements = self._sub_elements
-        sobolev_space = elements[0].sobolev_space()
-        if all(e.sobolev_space() == sobolev_space for e in elements):
-            return sobolev_space
+        if all(e.sobolev_space() == elements[0].sobolev_space()
+               for e in elements):
+            return elements[0].sobolev_space()
         else:
-            # If the spaces differ, we return the largest
-            # possible Sobolev space
-            return L2
+            # Find smallest shared Sobolev space over all sub elements
+            spaces = [e.sobolev_space() for e in elements]
+            superspaces = [{s} | set(s.parents) for s in spaces]
+            intersect = set.intersection(*superspaces)
+            for s in intersect.copy():
+                for parent in s.parents:
+                    if parent in intersect:
+                        intersect.remove(parent)
+
+            sobolev_space, = intersect
+            return sobolev_space
 
     def num_sub_elements(self):
         "Return number of subelements."
