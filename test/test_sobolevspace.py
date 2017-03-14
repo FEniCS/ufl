@@ -5,7 +5,9 @@ __authors__ = "David Ham"
 __date__ = "2014-03-04"
 
 import pytest
-from ufl import FiniteElement, triangle
+from ufl import (EnrichedElement, TensorProductElement,
+                 FiniteElement, triangle, interval,
+                 quadrilateral, HDiv, HCurl)
 from ufl.sobolevspace import SobolevSpace
 from ufl import H2, H1, HDiv, HCurl, L2
 
@@ -34,6 +36,21 @@ def test_contains_l2():
         FiniteElement("DG", triangle, 1),
         FiniteElement("DG", triangle, 2),
         FiniteElement("CR", triangle, 1),
+        # Tensor product elements:
+        TensorProductElement(FiniteElement("DG", interval, 1),
+                             FiniteElement("DG", interval, 1)),
+        TensorProductElement(FiniteElement("DG", interval, 1),
+                             FiniteElement("CG", interval, 2)),
+        TensorProductElement(FiniteElement("DG", triangle, 1),
+                             FiniteElement("CG", interval, 2)),
+        TensorProductElement(
+            TensorProductElement(FiniteElement("CG", interval, 1),
+                                 FiniteElement("DG", interval, 1)),
+            FiniteElement("CG", interval, 1)
+        ),
+        # Enriched element:
+        EnrichedElement(FiniteElement("DG", triangle, 1),
+                        FiniteElement("B", triangle, 3))
     ]
     for l2_element in l2_elements:
         assert l2_element in L2
@@ -52,6 +69,14 @@ def test_contains_h1():
         FiniteElement("AW", triangle),
         FiniteElement("HER", triangle),
         FiniteElement("MTW", triangle),
+        # Tensor product elements:
+        TensorProductElement(FiniteElement("CG", interval, 1),
+                             FiniteElement("CG", interval, 1)),
+        TensorProductElement(FiniteElement("CG", interval, 2),
+                             FiniteElement("CG", interval, 2)),
+        # Enriched elements:
+        EnrichedElement(FiniteElement("CG", triangle, 2),
+                        FiniteElement("B", triangle, 3))
     ]
     for h1_element in h1_elements:
         assert h1_element in H1
@@ -79,6 +104,13 @@ def test_contains_hdiv():
         FiniteElement("RT", triangle, 1),
         FiniteElement("BDM", triangle, 1),
         FiniteElement("BDFM", triangle, 2),
+        # HDiv elements:
+        HDiv(TensorProductElement(FiniteElement("DG", triangle, 1),
+                                  FiniteElement("CG", interval, 2))),
+        HDiv(TensorProductElement(FiniteElement("RT", triangle, 1),
+                                  FiniteElement("DG", interval, 1))),
+        HDiv(TensorProductElement(FiniteElement("N1curl", triangle, 1),
+                                  FiniteElement("DG", interval, 1)))
     ]
     for hdiv_element in hdiv_elements:
         assert hdiv_element in HDiv
@@ -92,6 +124,55 @@ def test_contains_hcurl():
     hcurl_elements = [
         FiniteElement("N1curl", triangle, 1),
         FiniteElement("N2curl", triangle, 1),
+        # HCurl elements:
+        HCurl(TensorProductElement(FiniteElement("CG", triangle, 1),
+                                   FiniteElement("DG", interval, 1))),
+        HCurl(TensorProductElement(FiniteElement("N1curl", triangle, 1),
+                                   FiniteElement("CG", interval, 1))),
+        HCurl(TensorProductElement(FiniteElement("RT", triangle, 1),
+                                   FiniteElement("CG", interval, 1)))
+    ]
+    for hcurl_element in hcurl_elements:
+        assert hcurl_element in HCurl
+        assert hcurl_element in L2
+        assert hcurl_element not in H1
+        assert hcurl_element not in HDiv
+        assert hcurl_element not in H2
+
+
+def test_enriched_elements_hdiv():
+    A = FiniteElement("CG", interval, 1)
+    B = FiniteElement("DG", interval, 0)
+    AxB = TensorProductElement(A, B)
+    BxA = TensorProductElement(B, A)
+    C = FiniteElement("RTCF", quadrilateral, 1)
+    D = FiniteElement("DQ", quadrilateral, 0)
+    Q1 = TensorProductElement(C, B)
+    Q2 = TensorProductElement(D, A)
+    hdiv_elements = [
+        EnrichedElement(HDiv(AxB), HDiv(BxA)),
+        EnrichedElement(HDiv(Q1), HDiv(Q2))
+    ]
+    for hdiv_element in hdiv_elements:
+        assert hdiv_element in HDiv
+        assert hdiv_element in L2
+        assert hdiv_element not in H1
+        assert hdiv_element not in HCurl
+        assert hdiv_element not in H2
+
+
+def test_enriched_elements_hcurl():
+    A = FiniteElement("CG", interval, 1)
+    B = FiniteElement("DG", interval, 0)
+    AxB = TensorProductElement(A, B)
+    BxA = TensorProductElement(B, A)
+    C = FiniteElement("RTCE", quadrilateral, 1)
+    D = FiniteElement("DQ", quadrilateral, 0)
+    Q1 = TensorProductElement(C, B)
+    Q2 = TensorProductElement(D, A)
+    hcurl_elements = [
+        EnrichedElement(HCurl(AxB), HCurl(BxA)),
+        EnrichedElement(HCurl(Q1), HCurl(Q2))
     ]
     for hcurl_element in hcurl_elements:
         assert hcurl_element in HCurl
