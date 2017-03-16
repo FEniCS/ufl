@@ -23,6 +23,7 @@ symbolic reasoning about the spaces in which finite elements lie."""
 #
 # Modified by Martin Alnaes 2014
 # Modified by Lizao Li 2015
+# Modified by Thomas Gibson 2017
 
 #import six
 from ufl.utils.py23 import as_native_str
@@ -46,6 +47,14 @@ class SobolevSpace(object):
         p = frozenset(parents or [])
         # Ensure that the inclusion operations are transitive.
         self.parents = p.union(*[p_.parents for p_ in p])
+        self._order = {"L2": 0,
+                       "H1": 1,
+                       "H2": 2,
+                       "HDiv": 0,
+                       "HCurl": 0,
+                       "HEin": 0,
+                       "HDivDiv": 0,
+                       "DirectionalH": 0}[self.name]
 
     def __unicode__(self):
         # Only in python 2
@@ -113,6 +122,51 @@ class SobolevSpace(object):
             from ufl.finiteelement import HCurlElement
             return HCurlElement(element)
         raise NotImplementedError("SobolevSpace has no call operator (only the specific HDiv and HCurl instances).")
+
+
+class DirectionalSobolevSpace(SobolevSpace):
+    """Symbolic representation of a Sobolev space with varying smoothness
+    in differerent spatial directions. This class inherits all comparison
+    operators that SobolevSpace possesses.
+    """
+
+    def __init__(self, orders):
+        """Instantiate a DirectionalSobolevSpace object.
+
+        :arg orders: an iterable of orders of weak derivatives, where
+                     the position denotes in what spatial variable the
+                     smoothness requirement is enforced.
+        """
+        assert all(isinstance(x, int) for x in orders), (
+            "Order must be an integer."
+        )
+        assert all(x < 3 for x in orders), (
+            "Not implemented for orders greater than 2"
+        )
+        name = "DirectionalH"
+        parents = [L2]
+        super(DirectionalSobolevSpace, self).__init__(name, parents)
+        self._orders = orders
+
+    def __getitem__(self, spatial_index):
+        """Returns the Sobolev space associated with a particular
+        spatial coordinate.
+        """
+        if spatial_index not in range(len(self._orders)):
+            raise ValueError("Spatial index out of range.")
+        spaces = {0: L2,
+                  1: H1,
+                  2: H2}
+        return spaces[self._orders[spatial_index]]
+
+    def __iter__(self):
+        return (self[i] for i in range(len(self._orders)))
+
+    def __str__(self):
+        return self.name + "(%s)" % ", ".join(map(str, self._orders))
+
+    def _repr_latex_(self):
+        return "H(%s)" % ", ".join(map(str, self._orders))
 
 
 L2 = SobolevSpace("L2")
