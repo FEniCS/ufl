@@ -50,6 +50,8 @@ class SobolevSpace(object):
         self._order = {"L2": 0,
                        "H1": 1,
                        "H2": 2,
+                       # Order for the elements below is taken from
+                       # its parent Sobolev space
                        "HDiv": 0,
                        "HCurl": 0,
                        "HEin": 0,
@@ -81,6 +83,12 @@ class SobolevSpace(object):
 
     def __hash__(self):
         return hash(("SobolevSpace", self.name))
+
+    def __getitem__(self, spatial_index):
+        """Returns the Sobolev space associated with a particular
+        spatial coordinate.
+        """
+        return self
 
     def __contains__(self, other):
         """Implement `fe in s` where `fe` is a
@@ -126,8 +134,7 @@ class SobolevSpace(object):
 
 class DirectionalSobolevSpace(SobolevSpace):
     """Symbolic representation of a Sobolev space with varying smoothness
-    in differerent spatial directions. This class inherits all comparison
-    operators that SobolevSpace possesses.
+    in differerent spatial directions.
     """
 
     def __init__(self, orders):
@@ -146,21 +153,88 @@ class DirectionalSobolevSpace(SobolevSpace):
         name = "DirectionalH"
         parents = [L2]
         super(DirectionalSobolevSpace, self).__init__(name, parents)
-        self._orders = orders
+        self._orders = tuple(orders)
+        self._spatial_indices = range(len(self._orders))
 
     def __getitem__(self, spatial_index):
         """Returns the Sobolev space associated with a particular
         spatial coordinate.
         """
         if spatial_index not in range(len(self._orders)):
-            raise ValueError("Spatial index out of range.")
+            raise IndexError("Spatial index out of range.")
         spaces = {0: L2,
                   1: H1,
                   2: H2}
         return spaces[self._orders[spatial_index]]
 
-    def __iter__(self):
-        return (self[i] for i in range(len(self._orders)))
+    def __contains__(self, other):
+        """Implement `fe in s` where `fe` is a
+        :class:`~finiteelement.FiniteElement` and `s` is a
+        :class:`DirectionalSobolevSpace`"""
+        if isinstance(other, SobolevSpace):
+            raise TypeError("Unable to test for inclusion of a " +
+                            "SobolevSpace in another SobolevSpace. " +
+                            "Did you mean to use <= instead?")
+        return (other.sobolev_space() == self or
+                all(self[i] in other.sobolev_space().parents
+                    for i in self._spatial_indices))
+
+    def __eq__(self, other):
+        if isinstance(other, DirectionalSobolevSpace):
+            return self._orders == other._orders
+        return all(self[i] == other for i in self._spatial_indices)
+
+    def __lt__(self, other):
+        """In common with intrinsic Python sets, < indicates "is a proper
+        subset of."""
+        if isinstance(other, DirectionalSobolevSpace):
+            if self._spatial_indices != other._spatial_indices:
+                return False
+            return any(self._orders[i] > other._orders[i]
+                       for i in self._spatial_indices)
+
+        if other in [HDiv, HCurl]:
+            return all(self._orders[i] >= 1 for i in self._spatial_indices)
+        elif other.name in ["HDivDiv", "HEin"]:
+            # Don't know how these spaces compare
+            return False
+        else:
+            return any(self._orders[i] > other._order
+                       for i in self._spatial_indices)
+
+    def __le__(self, other):
+        """In common with intrinsic Python sets, <= indicates "is a subset
+        of." """
+        if isinstance(other, DirectionalSobolevSpace):
+            return (self == other) or (other > self)
+        return (self == other) or all(other > self[i]
+                                      for i in self._spatial_indices)
+
+    def __gt__(self, other):
+        """In common with intrinsic Python sets, > indicates "is a proper
+        superset of."""
+        if isinstance(other, DirectionalSobolevSpace):
+            if self._spatial_indices != other._spatial_indices:
+                return False
+            return any(self._orders[i] < other._orders[i]
+                       for i in self._spatial_indices)
+
+        if other.name in ["HDiv", "HCurl"]:
+            return all(self._orders[i] == 0 for i in self._spatial_indices)
+        elif other.name in ["HDivDiv", "HEin"]:
+            # Don't know how these spaces compare
+            return False
+        else:
+            return any(self._orders[i] < other._order
+                       for i in self._spatial_indices)
+
+    def __ge__(self, other):
+        """In common with intrinsic Python sets, >= indicates "is a superset
+        of." """
+        if isinstance(other, DirectionalSobolevSpace):
+            return (self == other) or (other < self)
+        return (self == other) or all(other < self[i]
+                                      for i in self._spatial_indices)
 
     def __str__(self):
         return self.name + "(%s)" % ", ".join(map(str, self._orders))
