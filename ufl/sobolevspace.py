@@ -27,9 +27,11 @@ symbolic reasoning about the spaces in which finite elements lie."""
 
 #import six
 from ufl.utils.py23 import as_native_str
+from functools import total_ordering
 
 
 # @six.python_2_unicode_compatible
+@total_ordering
 class SobolevSpace(object):
     """Symbolic representation of a Sobolev space. This implements a
     subset of the methods of a Python set so that finite elements and
@@ -106,21 +108,6 @@ class SobolevSpace(object):
         subset of."""
         return other in self.parents
 
-    def __le__(self, other):
-        """In common with intrinsic Python sets, <= indicates "is a subset
-        of." """
-        return (self == other) or (other in self.parents)
-
-    def __gt__(self, other):
-        """In common with intrinsic Python sets, > indicates "is a proper
-        superset of."""
-        return self in other.parents
-
-    def __ge__(self, other):
-        """In common with intrinsic Python sets, >= indicates "is a superset
-        of." """
-        return (self == other) or (self in other.parents)
-
     def __call__(self, element):
         """Syntax shortcut to create a HDivElement or HCurlElement."""
         if self.name == "HDiv":
@@ -132,6 +119,7 @@ class SobolevSpace(object):
         raise NotImplementedError("SobolevSpace has no call operator (only the specific HDiv and HCurl instances).")
 
 
+@total_ordering
 class DirectionalSobolevSpace(SobolevSpace):
     """Symbolic representation of a Sobolev space with varying smoothness
     in differerent spatial directions.
@@ -197,44 +185,12 @@ class DirectionalSobolevSpace(SobolevSpace):
             return all(self._orders[i] >= 1 for i in self._spatial_indices)
         elif other.name in ["HDivDiv", "HEin"]:
             # Don't know how these spaces compare
-            return False
+            return NotImplementedError(
+                "Don't know how to compare with %s" % other.name
+            )
         else:
             return any(self._orders[i] > other._order
                        for i in self._spatial_indices)
-
-    def __le__(self, other):
-        """In common with intrinsic Python sets, <= indicates "is a subset
-        of." """
-        if isinstance(other, DirectionalSobolevSpace):
-            return (self == other) or (other > self)
-        return (self == other) or all(other > self[i]
-                                      for i in self._spatial_indices)
-
-    def __gt__(self, other):
-        """In common with intrinsic Python sets, > indicates "is a proper
-        superset of."""
-        if isinstance(other, DirectionalSobolevSpace):
-            if self._spatial_indices != other._spatial_indices:
-                return False
-            return any(self._orders[i] < other._orders[i]
-                       for i in self._spatial_indices)
-
-        if other.name in ["HDiv", "HCurl"]:
-            return all(self._orders[i] == 0 for i in self._spatial_indices)
-        elif other.name in ["HDivDiv", "HEin"]:
-            # Don't know how these spaces compare
-            return False
-        else:
-            return any(self._orders[i] < other._order
-                       for i in self._spatial_indices)
-
-    def __ge__(self, other):
-        """In common with intrinsic Python sets, >= indicates "is a superset
-        of." """
-        if isinstance(other, DirectionalSobolevSpace):
-            return (self == other) or (other < self)
-        return (self == other) or all(other < self[i]
-                                      for i in self._spatial_indices)
 
     def __str__(self):
         return self.name + "(%s)" % ", ".join(map(str, self._orders))

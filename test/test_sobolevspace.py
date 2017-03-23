@@ -32,6 +32,8 @@ def test_inclusion():
     assert not H2 > H1   # Not included
     assert HDiv <= HDiv  # Reflexivity
     assert H2 < L2       # Transitivity
+    assert H1 > H2
+    assert L2 > H1
 
 
 def test_directional_space_relations():
