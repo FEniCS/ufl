@@ -96,8 +96,7 @@ class EnrichedElementBase(FiniteElementBase):
             intersect = set.intersection(*superspaces)
             for s in intersect.copy():
                 for parent in s.parents:
-                    if parent in intersect:
-                        intersect.remove(parent)
+                    intersect.discard(parent)
 
             sobolev_space, = intersect
             return sobolev_space
