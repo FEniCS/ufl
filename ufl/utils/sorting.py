@@ -110,7 +110,7 @@ def canonicalize_metadata(metadata):
     for value in values:
         if isinstance(value, (dict, list, tuple)):
             value = canonicalize_metadata(value)
-        elif isinstance(value, (int, float, string_types)):
+        elif isinstance(value, (int, float, string_types)) or value is None:
             value = str(value)
         else:
             warning("Applying str() to a metadata value of type {0}, don't know if this is safe.".format(type(value).__name__))
