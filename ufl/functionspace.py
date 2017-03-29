@@ -44,13 +44,18 @@ class AbstractFunctionSpace(object):
 @attach_operators_from_hash_data
 class FunctionSpace(AbstractFunctionSpace):
     def __init__(self, domain, element):
-        try:
-            domain_cell = domain.ufl_cell()
-        except AttributeError:
-            error("Expected non-abstract domain for initalization of function space.")
+        if domain is None:
+            # DOLFIN hack
+            # TODO: Is anything expected from element.cell() in this case?
+            pass
         else:
-            if element.cell() != domain_cell:
-                error("Non-matching cell of finite element and domain.")
+            try:
+                domain_cell = domain.ufl_cell()
+            except AttributeError:
+                error("Expected non-abstract domain for initalization of function space.")
+            else:
+                if element.cell() != domain_cell:
+                    error("Non-matching cell of finite element and domain.")
 
         AbstractFunctionSpace.__init__(self)
         self._ufl_domain = domain
