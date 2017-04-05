@@ -84,7 +84,7 @@ class EnrichedElementBase(FiniteElementBase):
         return self._elements[0].mapping()
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space of the EnrichedElement"
+        "Return the underlying Sobolev space."
         elements = [e for e in self._elements]
         if all(e.sobolev_space() == elements[0].sobolev_space()
                for e in elements):

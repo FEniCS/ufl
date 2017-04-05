@@ -105,7 +105,7 @@ class SobolevSpace(object):
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper
-        subset of."""
+        subset of"."""
         return other in self.parents
 
     def __call__(self, element):
