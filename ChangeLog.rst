@@ -19,7 +19,7 @@ Changelog
     c = a(coefficients={f:1})
 - Add call operator syntax to ``Form`` to replace arguments and
   coefficients::
-    
+
     a(f, g) == replace(a, {u: f, v: g})
     a(coefficients={f:1}) == replace(a, {f:1})
 - Add ``@`` operator to ``Form``: ``form @ f == action(form, f)``
@@ -28,7 +28,7 @@ Changelog
   readable
 - Fix repeated ``split(function)`` for arbitrary nested elements
 - EnrichedElement: Remove ``+/*`` warning
-  
+
   In the distant past, ``A + B => MixedElement([A, B])``.  The change
   that ``A + B => EnrichedElement([A, B])`` was made in ``d622c74`` (22
   March 2010).  A warning was introduced in ``fcbc5ff`` (26 March 2010)
