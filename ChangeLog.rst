@@ -1,17 +1,19 @@
 Changelog
 =========
 
-2017.1.0 (unreleased)
+2017.1.0 (2017-05-09)
 ---------------------
 
 - Add the ``DirectionalSobolevSpace`` subclass of ``SobolevSpace``. This
-  allows one to use spaces where elements have varying continuity in different
-  spatial directions.
-- Add ``sobolev_space`` methods for ``HDiv`` and ``HCurl`` finite elements.
-- Add ``sobolev_space`` methods for ``TensorProductElement`` and ``EnrichedElement``.
-  The smallest shared Sobolev space will be returned for enriched elements. For the
-  tensor product elements, a ``DirectionalSobolevSpace`` is returned depending on the
-  order of the spaces associated with the component elements.
+  allows one to use spaces where elements have varying continuity in
+  different spatial directions.
+- Add ``sobolev_space`` methods for ``HDiv`` and ``HCurl`` finite
+  elements.
+- Add ``sobolev_space`` methods for ``TensorProductElement`` and
+  ``EnrichedElement``.  The smallest shared Sobolev space will be
+  returned for enriched elements. For the tensor product elements, a
+  ``DirectionalSobolevSpace`` is returned depending on the order of the
+  spaces associated with the component elements.
 
 2016.2.0 (2016-11-30)
 ---------------------
