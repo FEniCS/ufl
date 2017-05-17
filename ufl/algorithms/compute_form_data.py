@@ -279,7 +279,21 @@ def compute_form_data(form,
 
     # Apply default restriction to fully continuous terminals
     if do_apply_default_restrictions:
-        form = apply_default_restrictions(form)
+        integrals_1c = []
+        integrals_2c = []
+        for integral in form.integrals():
+            if integral.integral_type().startswith("interior_facet"):
+                integrals_2c.append(integral)
+            elif integral.integral_type() == "custom":
+                if do_apply_function_pullbacks:
+                    {1: integrals_1c,
+                     2: integrals_2c}[integral.metadata()["num_cells"]].append(integral)
+                else:
+                    integrals_1c.append(integral)
+            else:
+                integrals_1c.append(integral)
+        form_2c = apply_default_restrictions(Form(integrals_2c))
+        form = Form(integrals_1c + list(form_2c.integrals()))
 
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller
@@ -303,7 +317,21 @@ def compute_form_data(form,
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
-        form = apply_restrictions(form)
+        integrals_1c = []
+        integrals_2c = []
+        for integral in form.integrals():
+            if integral.integral_type().startswith("interior_facet"):
+                integrals_2c.append(integral)
+            elif integral.integral_type() == "custom":
+                if do_apply_function_pullbacks:
+                    {1: integrals_1c,
+                     2: integrals_2c}[integral.metadata()["num_cells"]].append(integral)
+                else:
+                    integrals_1c.append(integral)
+            else:
+                integrals_1c.append(integral)
+        form_2c = apply_restrictions(Form(integrals_2c))
+        form = Form(integrals_1c + list(form_2c.integrals()))
 
     # --- Group integrals into IntegralData objects
     # Most of the heavy lifting is done above in group_form_integrals.

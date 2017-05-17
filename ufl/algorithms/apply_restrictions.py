@@ -24,7 +24,6 @@ from ufl.classes import Restricted
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.measure import integral_type_to_measure_name
 
 
 class RestrictionPropagator(MultiFunction):
@@ -172,11 +171,8 @@ class RestrictionPropagator(MultiFunction):
 
 def apply_restrictions(expression):
     "Propagate restriction nodes to wrap differential terminals directly."
-    integral_types = [k for k in integral_type_to_measure_name.keys()
-                      if k.startswith("interior_facet")]
     rules = RestrictionPropagator()
-    return map_integrand_dags(rules, expression,
-                              only_integral_type=integral_types)
+    return map_integrand_dags(rules, expression)
 
 
 class DefaultRestrictionApplier(MultiFunction):
@@ -232,8 +228,5 @@ def apply_default_restrictions(expression):
     """Some terminals can be restricted from either side.
 
     This applies a default restriction to such terminals if unrestricted."""
-    integral_types = [k for k in integral_type_to_measure_name.keys()
-                      if k.startswith("interior_facet")]
     rules = DefaultRestrictionApplier()
-    return map_integrand_dags(rules, expression,
-                              only_integral_type=integral_types)
+    return map_integrand_dags(rules, expression)
