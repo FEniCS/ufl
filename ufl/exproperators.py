@@ -305,11 +305,6 @@ def _abs(self):
 
 Expr.__abs__ = _abs
 
-def _conj(self):
-    return Conj(self)
-
-Expr.conj = _conj
-
 
 # --- Extend Expr with restiction operators a("+"), a("-") ---
 
