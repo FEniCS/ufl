@@ -38,6 +38,7 @@ from ufl.variable import Variable
 from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.conditional import EQ, NE, \
     AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue
+from ufl.algebra import Conj
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
     BesselJ, BesselY, BesselI, BesselK
@@ -61,6 +62,11 @@ def shape(f):
     "UFL operator: The shape of *f*."
     f = as_ufl(f)
     return f.ufl_shape
+
+def conj(f):
+    "UFL operator: The complex conjugate of *f*"
+    f = as_ufl(f)
+    return Conj(f)
 
 
 # --- Elementwise tensor operators ---
