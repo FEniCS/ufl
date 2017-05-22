@@ -206,7 +206,7 @@ class Expression2LatexHandler(MultiFunction):
         return r"\|%s\|" % a
 
     def conj(self, o, a):
-        return r"\bar{%s}" % a
+        return r"\overline{%s}" % a
 
     def transposed(self, o, a):
         return "{%s}^T" % par(a)
