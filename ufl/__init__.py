@@ -176,7 +176,7 @@ A very brief overview of the language contents follows:
 * Nonlinear functions::
 
     - max_value, min_value
-    - abs, sign
+    - abs, sign, conj
     - sqrt
     - exp, ln, erf
     - cos, sin, tan
@@ -314,7 +314,7 @@ from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
 from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
-from ufl.operators import rank, shape, \
+from ufl.operators import rank, shape, conj, \
                        outer, inner, dot, cross, perp, \
                        det, inv, cofac, \
                        transpose, tr, diag, diag_vector, \
@@ -392,7 +392,7 @@ __all__ = as_native_strings([
     'Index', 'indices',
     'as_tensor', 'as_vector', 'as_matrix', 'relabel',
     'unit_vector', 'unit_vectors', 'unit_matrix', 'unit_matrices',
-    'rank', 'shape',
+    'rank', 'shape', 'conj', 
     'outer', 'inner', 'dot', 'cross', 'perp',
     'det', 'inv', 'cofac',
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',
