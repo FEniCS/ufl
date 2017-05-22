@@ -21,6 +21,8 @@
 # Modified by Anders Logg, 2011.
 # Modified by Massimiliano Leoni, 2016.
 
+from math import sqrt, atan
+
 from six.moves import xrange as range
 from six import iteritems
 
@@ -195,6 +197,9 @@ class Zero(ConstantValue):
     def __int__(self):
         return 0
 
+    def __complex__(self):
+        return 0 + 0j
+
 
 def zero(*shape):
     "UFL literal constant: Return a zero tensor with the given shape."
@@ -249,11 +254,48 @@ class ScalarValue(ConstantValue):
     def __int__(self):
         return int(self._value)
 
+    def __complex__(self):
+        return complex(self._value)
+
     def __neg__(self):
         return type(self)(-self._value)
 
     def __abs__(self):
         return type(self)(abs(self._value))
+
+@ufl_type(wraps_type=complex, is_literal=True)
+class ComplexValue(ScalarValue):
+    "UFL literal type: Representation of a constant, complex scalar"
+    __slots__= ()
+
+    def __getnewargs__(self):
+        return (self._value,)
+
+    def __new__(cls, value):
+        if value.complex is 0.0:
+            if value.real is 0.0:
+                return Zero()
+            else: # need to make a decision whether to return a FloatValue or not
+                return FloatValue.__new__(cls,value) # or maybe (cls, value.real)? 
+        else:
+            return ConstantValue.__new__(cls,value)
+
+    def __init__(self,value):
+        self._real = value.real
+        self._complex = value.complex
+        self.modulus = sqrt(value.real**2 + value.imag**2)
+        self.argument = atan(value.imag/value.real)
+        ScalarValue.__init__(self,complex(value))
+
+    def __repr__(self):
+        r = "%s(%s)" % (type(self).__name__, repr(self._value)) # is this okay?
+        return as_native_str(r)
+
+    def __float__(self):
+        raise TypeError("ComplexValues cannot be cast to float")
+
+    def __int__(self):
+        raise TypeError("ComplexValues cannot be cast to int")
 
 
 @ufl_type(wraps_type=float, is_literal=True)
@@ -407,6 +449,8 @@ def as_ufl(expression):
     "Converts expression to an Expr if possible."
     if isinstance(expression, Expr):
         return expression
+    elif isinstance(expression, complex):
+        return ComplexValue(expression)
     elif isinstance(expression, float):
         return FloatValue(expression)
     elif isinstance(expression, int):
