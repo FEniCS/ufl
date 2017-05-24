@@ -89,6 +89,9 @@ class ArityChecker(MultiFunction):
     reference_grad = linear_operator
     reference_value = linear_operator
 
+    # Conj is a linear operator
+    conj = linear_operator
+
     # Does it make sense to have a Variable(Argument)? I see no
     # problem.
     def variable(self, o, f, l):
