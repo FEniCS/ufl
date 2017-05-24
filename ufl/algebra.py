@@ -362,4 +362,4 @@ class Conj(Operator):
 
     def __str__(self):
         a, = self.ufl_operands
-        return "%s^*" % (parstr(a, self),)
+        return "conj(%s)" % (parstr(a, self),)
