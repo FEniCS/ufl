@@ -272,7 +272,7 @@ class ComplexValue(ScalarValue):
         return (self._value,)
 
     def __new__(cls, value):
-        if value.complex is 0.0:
+        if value.imag is 0.0:
             if value.real is 0.0:
                 return Zero()
             else: # need to make a decision whether to return a FloatValue or not
@@ -282,7 +282,7 @@ class ComplexValue(ScalarValue):
 
     def __init__(self,value):
         self._real = value.real
-        self._complex = value.complex
+        self._complex = value.imag
         self.modulus = sqrt(value.real**2 + value.imag**2)
         self.argument = atan(value.imag/value.real)
         ScalarValue.__init__(self,complex(value))
