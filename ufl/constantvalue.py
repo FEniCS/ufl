@@ -21,7 +21,7 @@
 # Modified by Anders Logg, 2011.
 # Modified by Massimiliano Leoni, 2016.
 
-from math import sqrt, atan
+from math import sqrt, atan, pi
 
 from six.moves import xrange as range
 from six import iteritems
@@ -276,20 +276,34 @@ class ComplexValue(ScalarValue):
         if value.imag is 0.0:
             if value.real is 0.0:
                 return Zero()
-            else: # need to make a decision whether to return a FloatValue or not
-                return FloatValue.__new__(cls,value) # or maybe (cls, value.real)? 
+            else:
+                return FloatValue.__new__(cls,value.real)
         else:
             return ConstantValue.__new__(cls,value)
 
     def __init__(self,value):
-        self._real = value.real
-        self._complex = value.imag
-        self.modulus = sqrt(value.real**2 + value.imag**2)
-        self.argument = atan(value.imag/value.real)
         ScalarValue.__init__(self,complex(value))
 
+    def real(self):
+        return self.value().real
+
+    def imag(self):
+        return self.value().imag
+
+    def modulus(self):
+        return sqrt(self.value().real**2 + self.value().imag**2)
+
+    def argument(self):
+        if self.value().real == 0:
+            if self.value().imag > 0:
+                return pi/2
+            else:
+                return -pi/2
+        else:
+            return atan(self.value().imag/self.value().real)
+
     def __repr__(self):
-        r = "%s(%s)" % (type(self).__name__, repr(self._value)) # is this okay?
+        r = "%s(%s)" % (type(self).__name__, repr(self._value))
         return as_native_str(r)
 
     def __float__(self):
