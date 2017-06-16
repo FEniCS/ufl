@@ -224,6 +224,7 @@ def compute_form_data(form,
                       do_apply_default_restrictions=True,
                       do_apply_restrictions=True,
                       do_estimate_degrees=True,
+                      complex_mode=False
                       ):
 
     # TODO: Move this to the constructor instead
