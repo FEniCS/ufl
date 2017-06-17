@@ -5,6 +5,7 @@ python:
 
 build:
   ci:
+    - pip install flake8 pytest
     - pip install .
     - python -m flake8 ufl/
     - python -m pytest -v test/
