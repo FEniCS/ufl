@@ -8,6 +8,8 @@ import os
 import optparse
 from pprint import pprint
 
+from six import string_types
+
 from ufl.algorithms import tree_format, compute_form_data
 from ufl.formatting.ufl2dot import ufl2dot
 from ufl.formatting.ufl2latex import forms2latexdocument
@@ -40,7 +42,7 @@ def runcmd(cmd):
 def write_file(filename, text):
     "Write text to a file and close it."
     with io.open(filename, "w", encoding="utf-8") as f:
-        f.write(text.decode('utf-8'))
+        f.write(text.decode('utf-8')) # Python 2
     print("Wrote file %s" % filename)
 
 # --- Option parsing
