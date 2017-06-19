@@ -67,6 +67,7 @@ option_list = [ \
     # Output formats:
     opt("format",    "f", "str", "", "Rendering format (str, repr, tree, dot, latex, unicode)."),
     opt("filetype",  "t", "str", "", "Output file type (txt, py, dot, tex, ps, pdf, png)."),
+    opt("processing", "p", "str", "original", "Set to 'preprocessed' to return the preprocessed form. Only used for dot formatting.")
     ]
 
 parser = optparse.OptionParser(usage=usage, option_list=option_list)
@@ -98,10 +99,11 @@ for arg in args:
     #expressions = ufl_data.expressions # TODO: Allow rendering expressions without form stuff!
 
     # Preprocess forms
-    form_datas = [compute_form_data(f) for f in forms]
+    form_datas = [compute_form_data(f, do_apply_geometry_lowering=True) for f in forms]
 
     # 3) Render result
     format = options.format
+    preproccess = options.processing
 
     # Make format string conform
     if format == "latex":
@@ -134,7 +136,10 @@ for arg in args:
         data = []
         nodeoffset = 0
         for i, fd in enumerate(form_datas):
-            f = fd.original_form
+            if preproccess == "preprocessed":
+                f = fd.preprocessed_form
+            else:
+                f = fd.original_form
             name = ufl_data.object_names.get(f, "form")
 
             begin = (i == 0)
