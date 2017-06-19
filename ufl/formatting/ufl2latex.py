@@ -429,7 +429,8 @@ default_domain_string = "d(?)"
 
 def form2latex(form, formdata):
 
-    formname = formdata.name
+    #formname = formdata.name
+    formname = "form"
     argument_names = formdata.argument_names
     coefficient_names = formdata.coefficient_names
 
@@ -697,7 +698,8 @@ def forms2latexdocument(forms, uflfilename, compile=False):
         form_data = compute_form_data(form)
 
         # Generate LaTex code
-        title = "Form %s" % form_data.name
+        # title = "Form %s" % form_data.name
+        title = "Form"
         if compile:
             body = form2code2latex(form, form_data)
         else:
