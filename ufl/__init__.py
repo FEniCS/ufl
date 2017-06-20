@@ -177,13 +177,17 @@ A very brief overview of the language contents follows:
 * Nonlinear functions::
 
     - max_value, min_value
-    - abs, sign, conj
+    - abs, sign
     - sqrt
     - exp, ln, erf
     - cos, sin, tan
     - acos, asin, atan, atan_2
     - cosh, sinh, tanh
     - bessel_J, bessel_Y, bessel_I, bessel_K
+
+* Complex operations::
+
+    - conj, real, imag
 
 * Discontinuous Galerkin operators::
 
@@ -315,7 +319,8 @@ from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
 from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
-from ufl.operators import rank, shape, conj, \
+from ufl.operators import rank, shape, \
+                       conj, real, imag, \
                        outer, inner, dot, cross, perp, \
                        det, inv, cofac, \
                        transpose, tr, diag, diag_vector, \
@@ -393,7 +398,7 @@ __all__ = as_native_strings([
     'Index', 'indices',
     'as_tensor', 'as_vector', 'as_matrix', 'relabel',
     'unit_vector', 'unit_vectors', 'unit_matrix', 'unit_matrices',
-    'rank', 'shape', 'conj', 
+    'rank', 'shape', 'conj', 'real', 'imag', 
     'outer', 'inner', 'dot', 'cross', 'perp',
     'det', 'inv', 'cofac',
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',

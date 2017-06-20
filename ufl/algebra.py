@@ -363,3 +363,39 @@ class Conj(Operator):
     def __str__(self):
         a, = self.ufl_operands
         return "conj(%s)" % (parstr(a, self),)
+
+@ufl_type(num_ops=1,
+          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+class Real(Operator):
+    __slots__ = ()
+
+    def __init__(self, a):
+        Operator.__init__(self, (a,))
+        if not isinstance(a, Expr):
+            error("Expecting Expr instance, not %s." % ufl_err_str(a))
+
+    def evaluate(self, x, mapping, component, index_values):
+        a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
+        return a.real
+
+    def __str__(self):
+        a, = self.ufl_operands
+        return "Re[%s]" % (parstr(a, self),)
+
+@ufl_type(num_ops=1,
+          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+class Imag(Operator):
+    __slots__ = ()
+
+    def __init__(self, a):
+        Operator.__init__(self, (a,))
+        if not isinstance(a, Expr):
+            error("Expecting Expr instance, not %s." % ufl_err_str(a))
+
+    def evaluate(self, x, mapping, component, index_values):
+        a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
+        return a.imag
+
+    def __str__(self):
+        a, = self.ufl_operands
+        return "Im[%s]" % (parstr(a, self),)

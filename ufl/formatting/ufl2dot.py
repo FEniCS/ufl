@@ -105,6 +105,12 @@ class CompactLabeller(ReprLabeller):
     def conj(self, e):
         return "conj"
 
+    def real(self, e):
+        return "real"
+
+    def imag(self, e):
+        return "imag"
+
     def inner(self, e):
         return "inner"
 
