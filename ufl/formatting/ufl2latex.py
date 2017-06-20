@@ -208,6 +208,12 @@ class Expression2LatexHandler(MultiFunction):
     def conj(self, o, a):
         return r"\overline{%s}" % a
 
+    def real(self, o, a):
+        return r"Re[%s]" % a
+
+    def imag(self, o, a):
+        return r"Im[%s]" % a
+
     def transposed(self, o, a):
         return "{%s}^T" % par(a)
 

@@ -165,6 +165,12 @@ class SumDegreeEstimator(MultiFunction):
     def conj(self, v, a):
         return a
 
+    def real(self, v, a):
+        return a
+
+    def imag(self, v, a):
+        return a
+
     # A sum takes the max degree of its operands:
     sum = _max_degrees
 

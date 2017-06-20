@@ -29,7 +29,7 @@ from ufl.log import error
 from ufl.utils.stacks import StackDict
 from ufl.core.expr import Expr
 from ufl.constantvalue import Zero, as_ufl
-from ufl.algebra import Sum, Product, Division, Power, Abs, Conj
+from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Inner
 from ufl.core.multiindex import MultiIndex, Index, FixedIndex, IndexBase, indices
 from ufl.indexed import Indexed
