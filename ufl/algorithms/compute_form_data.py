@@ -40,6 +40,7 @@ from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
+from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 
 # See TODOs at the call sites of these below:
 from ufl.algorithms.domain_analysis import build_integral_data
@@ -388,21 +389,10 @@ def compute_form_data(form,
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
     check_form_arity(preprocessed_form, self.original_form.arguments())  # Currently testing how fast this is
 
-    # TODO: Implement this - replace conj nodes with their children
-    # maybe instead of traversing graph this way, we write a multifunction that, when applied using map_integrand_dags,
-    # replaces things similarly to apply_algebra_lowering
-
+    # Removes nodes related to complex operations (Conj, Real, Imag) if the user is not
+    # working in complex_mode. This allows for purely real forms to be written.
     if not complex_mode:
-        for i in preprocessed_form._integrals:
-            integrand = preprocessed_form._integrals[i]
-            for o in pre_traversal(integrand):
-                # identify Conj
-                # multifunction that removes Conj, Real, Imag nodes
-                pass
-        # traverse the dag
-        # find Conj nodes
-        # replace parent link to Conj with link to Conj's child
-        pass
+        preprocessed_form = remove_complex_nodes(preprocessed_form)
 
     # TODO: This member is used by unit tests, change the tests to
     # remove this!
