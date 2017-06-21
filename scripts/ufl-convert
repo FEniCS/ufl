@@ -100,7 +100,7 @@ for arg in args:
     #expressions = ufl_data.expressions # TODO: Allow rendering expressions without form stuff!
 
     # Preprocess forms
-    form_datas = [compute_form_data(f, do_apply_geometry_lowering=True, complex_mode=bool(options.complex)) for f in forms]
+    form_datas = [compute_form_data(f, do_apply_geometry_lowering=True, complex_mode=options.complex) for f in forms]
 
     # 3) Render result
     format = options.format
