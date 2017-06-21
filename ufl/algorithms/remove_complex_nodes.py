@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Algorithm for removing conj, real, and imag nodes
-from a form when the user is in 'real mode'"""
+from a form for when the user is in 'real mode'"""
 
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
