@@ -225,7 +225,7 @@ class SumDegreeEstimator(MultiFunction):
         """If b is a positive integer:
         degree(a**b) == degree(a)*b
         otherwise use the heuristic
-        degree(a**b) == degree(a)*2"""
+        degree(a**b) == degree(a) + 2"""
         f, g = v.ufl_operands
 
         if isinstance(g, IntValue):
@@ -238,10 +238,7 @@ class SumDegreeEstimator(MultiFunction):
 
         # Something to a non-(positive integer) power, e.g. float,
         # negative integer, Coefficient, etc.
-        if isinstance(a, int):
-            return a*2
-        else:
-            return tuple(foo*2 for foo in a)
+        return self._add_degrees(v, a, 2)
 
     def atan_2(self, v, a, b):
         """Using the heuristic
