@@ -20,7 +20,6 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-#import six
 from six.moves import xrange as range
 
 from ufl.utils.py23 import as_native_str
@@ -46,7 +45,6 @@ class IndexBase(object):
         return str(self).decode("utf-8")
 
 
-# @six.python_2_unicode_compatible
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
     __slots__ = as_native_strings(("_value", "_hash"))
@@ -91,7 +89,6 @@ class FixedIndex(IndexBase):
         return as_native_str(r)
 
 
-# @six.python_2_unicode_compatible
 class Index(IndexBase):
     """UFL value: An index with no value assigned.
 
@@ -139,7 +136,8 @@ class MultiIndex(Terminal):
             error("Expecting a tuple of indices.")
 
         if all(isinstance(ind, FixedIndex) for ind in indices):
-            # Cache multiindices consisting of purely fixed indices (aka flyweight pattern)
+            # Cache multiindices consisting of purely fixed indices
+            # (aka flyweight pattern)
             key = tuple(ind._value for ind in indices)
             self = MultiIndex._cache.get(key)
             if self is not None:
@@ -147,12 +145,14 @@ class MultiIndex(Terminal):
             self = Terminal.__new__(cls)
             MultiIndex._cache[key] = self
         else:
-            # Create a new object if we have any free indices (too many combinations to cache)
+            # Create a new object if we have any free indices (too
+            # many combinations to cache)
             if not all(isinstance(ind, IndexBase) for ind in indices):
                 error("Expecting only Index and FixedIndex objects.")
             self = Terminal.__new__(cls)
 
-        # Initialize here instead of in __init__ to avoid overwriting self._indices from cached objects
+        # Initialize here instead of in __init__ to avoid overwriting
+        # self._indices from cached objects
         self._init(indices)
         return self
 

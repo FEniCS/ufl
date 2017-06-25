@@ -141,8 +141,8 @@ class Zero(ConstantValue):
                     all(isinstance(i, int) for i in index_dimensions)):
                 error("Expecting tuple of integer index dimensions, not %s" % str(index_dimensions))
 
-            # Assuming sorted now to avoid this cost, enable for debuggin:
-            #if sorted(free_indices) != list(free_indices):
+            # Assuming sorted now to avoid this cost, enable for debugging:
+            # if sorted(free_indices) != list(free_indices):
             #    error("Expecting sorted input. Remove this check later for efficiency.")
 
             self.ufl_free_indices = free_indices
@@ -164,8 +164,7 @@ class Zero(ConstantValue):
         r = "Zero(%s, %s, %s)" % (
             repr(self.ufl_shape),
             repr(self.ufl_free_indices),
-            repr(self.ufl_index_dimensions),
-            )
+            repr(self.ufl_index_dimensions))
         return as_native_str(r)
 
     def __eq__(self, other):

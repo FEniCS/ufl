@@ -319,12 +319,6 @@ class Expr(object):
         from ufl.domain import extract_unique_domain
         return extract_unique_domain(self)
 
-    #def is_cellwise_constant(self):  # TODO: Deprecate this and use is_cellwise_constant(expr)
-    #    "Return whether this expression is spatially constant over each cell."
-    #    from ufl.checks import is_cellwise_constant
-    #    deprecate("Expr.is_cellwise_constant() is deprecated, please use is_cellwise_constant(expr) instead.")
-    #    return is_cellwise_constant(self)
-
     # --- Functions for float evaluation ---
 
     def evaluate(self, x, mapping, component, index_values):
@@ -436,66 +430,10 @@ class Expr(object):
 
     # --- Deprecated functions
 
-    #def reconstruct(self, *operands):
-    #    """Return a new object of the same type with new operands.
-    #    Deprecated, please use Expr._ufl_expr_reconstruct_() instead."""
-    #    deprecate("Expr.reconstruct() is deprecated, please use Expr._ufl_expr_reconstruct_() instead.")
-    #    return self._ufl_expr_reconstruct_(*operands)
-
     def geometric_dimension(self):
         "Return the geometric dimension this expression lives in."
         from ufl.domain import find_geometric_dimension
         return find_geometric_dimension(self)
-
-    #def domains(self):
-    #    "Deprecated, please use .ufl_domains() instead."
-    #    deprecate("Expr.domains() is deprecated, please use .ufl_domains() instead.")
-    #    return self.ufl_domains()
-
-    #def cell(self):
-    #    "Deprecated, please use .ufl_domain().ufl_cell() instead."
-    #    deprecate("Expr.cell() is deprecated, please use .ufl_domain() instead.")
-    #    domain = self.ufl_domain()
-    #    return domain.ufl_cell() if domain is not None else None
-
-    #def domain(self):
-    #    "Deprecated, please use .ufl_domain() instead."
-    #    deprecate("Expr.domain() is deprecated, please use .ufl_domain() instead.")
-    #    return self.ufl_domain()
-
-    #def operands(self):
-    #    "Deprecated, please use Expr.ufl_operands instead."
-    #    deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
-    #    return self.ufl_operands
-
-    #def shape(self):
-    #    """Return the tensor shape of the expression.
-    #    Deprecated, please use Expr.ufl_shape instead."""
-    #    deprecate("Expr.shape() is deprecated, please use Expr.ufl_shape instead.")
-    #    return self.ufl_shape
-
-    #def rank(self):
-    #    """Return the tensor rank of the expression.
-    #    Deprecated, please use len(expr.ufl_shape) instead."""
-    #    deprecate("Expr.rank() is deprecated," +
-    #              " please use len(expr.ufl_shape) instead.")
-    #    return len(self.ufl_shape)
-
-    #def free_indices(self):
-    #    "Deprecated, please use property Expr.ufl_free_indices instead."
-    #    from ufl.core.multiindex import Index
-    #    deprecate("Expr.free_indices() is deprecated," +
-    #              " please use property Expr.ufl_free_indices instead.")
-    #    return tuple(Index(count=i) for i in self.ufl_free_indices)
-
-    #def index_dimensions(self):
-    #    "Deprecated, please use property Expr.ufl_index_dimensions instead."
-    #    from ufl.core.multiindex import Index
-    #    from ufl.utils.dicts import EmptyDict
-    #    deprecate("Expr.index_dimensions() is deprecated," +
-    #              " please use property Expr.ufl_index_dimensions instead.")
-    #    idims = {Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions)}
-    #    return idims or EmptyDict
 
 
 # Initializing traits here because Expr is not defined in the class

@@ -135,7 +135,8 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
         FJ = self.facet_jacobian(FacetJacobian(domain))
-        # This could in principle use preserve_types[JacobianDeterminant] with minor refactoring:
+        # This could in principle use
+        # preserve_types[JacobianDeterminant] with minor refactoring:
         return inverse_expr(FJ)
 
     @memoized_handler
@@ -144,7 +145,6 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.ufl_domain()
-        #tdim = domain.topological_dimension()
         FJ = self.facet_jacobian(FacetJacobian(domain))
         detFJ = determinant_expr(FJ)
 

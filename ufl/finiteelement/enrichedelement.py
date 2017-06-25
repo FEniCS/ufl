@@ -78,7 +78,7 @@ class EnrichedElementBase(FiniteElementBase):
 
         # Cache repr string
         self._repr = as_native_str("%s(%s)" %
-            (class_name, ", ".join(repr(e) for e in self._elements)))
+                                   (class_name, ", ".join(repr(e) for e in self._elements)))
 
     def mapping(self):
         return self._elements[0].mapping()

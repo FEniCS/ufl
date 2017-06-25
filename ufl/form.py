@@ -21,7 +21,6 @@
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
 
-# import six
 from itertools import chain
 from collections import defaultdict
 
@@ -76,7 +75,6 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
-# @six.python_2_unicode_compatible
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = (
@@ -142,11 +140,6 @@ class Form(object):
         "Returns whether the form has no integrals."
         return self.integrals() == ()
 
-    #def domains(self):
-    #    "Deprecated, please use .ufl_domains() instead."
-    #    deprecate("Form.domains() is deprecated, please use .ufl_domains() instead.")
-    #    return self.ufl_domains()
-
     def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
 
@@ -158,27 +151,23 @@ class Form(object):
             self._analyze_domains()
         return self._integration_domains
 
-    #def cell(self):
-    #    "Deprecated, please use .ufl_cell() instead."
-    #    deprecate("Form.cell() is deprecated, please use .ufl_cell() instead.")
-    #    return self.ufl_cell()
-
-    #def domain(self):
-    #    "Deprecated, please use .ufl_domain() instead."
-    #    deprecate("Form.domain() is deprecated, please use .ufl_domain() instead.")
-    #    return self.ufl_domain()
-
     def ufl_cell(self):
-        "Return the single cell this form is defined on, fails if multiple cells are found."
+        """Return the single cell this form is defined on, fails if multiple
+        cells are found.
+
+        """
         return self.ufl_domain().ufl_cell()
 
     def ufl_domain(self):
-        """Return the single geometric integration domain occuring in the form.
+        """Return the single geometric integration domain occuring in the
+        form.
 
         Fails if multiple domains are found.
 
-        NB! This does not include domains of coefficients defined on other
-        meshes, look at form data for that additional information.
+        NB! This does not include domains of coefficients defined on
+        other meshes, look at form data for that additional
+        information.
+
         """
         # Collect all domains
         domains = self.ufl_domains()
@@ -326,11 +315,12 @@ class Form(object):
         return NotImplemented
 
     def __call__(self, *args, **kwargs):
-        """UFL form operator: Evaluate form by replacing arguments and coefficients.
+        """UFL form operator: Evaluate form by replacing arguments and
+        coefficients.
 
-        Replaces form.arguments() with given positional arguments
-        in same number and ordering. Number of positional arguments
-        must be 0 or equal to the number of Arguments in the form.
+        Replaces form.arguments() with given positional arguments in
+        same number and ordering. Number of positional arguments must
+        be 0 or equal to the number of Arguments in the form.
 
         The optional keyword argument coefficients can be set to a dict
         to replace Coefficients with expressions of matching shapes.
@@ -346,6 +336,7 @@ class Form(object):
           M = a(f, f, coefficients={ g: 1 })
 
         Is equivalent to M == grad(f)**2*dx.
+
         """
         repdict = {}
 
@@ -384,7 +375,7 @@ class Form(object):
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
         # Warning used for making sure we don't use this in the general pipeline:
-        #warning("Calling str on form is potentially expensive and should be avoided except during debugging.")
+        # warning("Calling str on form is potentially expensive and should be avoided except during debugging.")
         # Not caching this because it can be huge
         s = "\n  +  ".join(str(itg) for itg in self.integrals())
         return s or "<empty Form>"
@@ -392,7 +383,7 @@ class Form(object):
     def __repr__(self):
         "Compute repr string of form. This can be huge for complicated forms."
         # Warning used for making sure we don't use this in the general pipeline:
-        #warning("Calling repr on form is potentially expensive and should be avoided except during debugging.")
+        # warning("Calling repr on form is potentially expensive and should be avoided except during debugging.")
         # Not caching this because it can be huge
         itgs = ", ".join(repr(itg) for itg in self.integrals())
         r = "Form([" + itgs + "])"
@@ -491,11 +482,14 @@ def as_form(form):
 
 
 def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
-    """Given a form and a domain, assign a common integration domain to all integrals.
+    """Given a form and a domain, assign a common integration domain to
+    all integrals.
 
-    Does not modify the input form (``Form`` should always be immutable).
-    This is to support ill formed forms with no domain specified,
-    sometimes occurring in pydolfin, e.g. assemble(1*dx, mesh=mesh).
+    Does not modify the input form (``Form`` should always be
+    immutable).  This is to support ill formed forms with no domain
+    specified, sometimes occurring in pydolfin, e.g. assemble(1*dx,
+    mesh=mesh).
+
     """
     domains = form.ufl_domains()
     if common_domain is not None:

@@ -22,7 +22,6 @@
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
 
-# import six
 import numbers
 
 from ufl.utils.py23 import as_native_str
@@ -40,7 +39,10 @@ __all_classes__ = as_native_strings(["AbstractDomain", "Mesh", "MeshView", "Tens
 
 
 class AbstractDomain(object):
-    """Symbolic representation of a geometric domain with only a geometric and topological dimension."""
+    """Symbolic representation of a geometric domain with only a geometric
+    and topological dimension.
+
+    """
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
@@ -74,7 +76,6 @@ class AbstractDomain(object):
 #         AbstractDomain.__init__(self, geometric_dimension, geometric_dimension)
 
 
-# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 @attach_ufl_id
 class Mesh(AbstractDomain):
@@ -140,23 +141,7 @@ class Mesh(AbstractDomain):
         return (self.geometric_dimension(), self.topological_dimension(),
                 "Mesh", typespecific)
 
-    # Deprecations inherited from Domain
-    #def cell(self):
-    #    deprecate("Mesh.cell() is deprecated, please use .ufl_cell() instead.")
-    #    return self.ufl_cell()
 
-    #def coordinates(self):
-    #    error("Coordinate function support has been removed!\n"
-    #          "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
-    #          "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
-
-    #def ufl_coordinates(self):
-    #    error("Coordinate function support has been removed!\n"
-    #          "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
-    #          "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
-
-
-# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 @attach_ufl_id
 class MeshView(AbstractDomain):
@@ -206,7 +191,6 @@ class MeshView(AbstractDomain):
                 "MeshView", typespecific)
 
 
-# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 @attach_ufl_id
 class TensorProductMesh(AbstractDomain):
@@ -278,7 +262,10 @@ _default_domains = {}
 
 
 def default_domain(cell):
-    "Create a singular default Mesh from a cell, always returning the same Mesh object for the same cell."
+    """Create a singular default Mesh from a cell, always returning the
+    same Mesh object for the same cell.
+
+    """
     global _default_domains
     assert isinstance(cell, AbstractCell)
     domain = _default_domains.get(cell)
@@ -316,9 +303,11 @@ def sort_domains(domains):
 
 
 def join_domains(domains):
-    """Take a list of domains and return a tuple with only unique domain objects.
+    """Take a list of domains and return a tuple with only unique domain
+    objects.
 
     Checks that domains with the same id are compatible.
+
     """
     # Use hashing to join domains, ignore None
     domains = set(domains) - set((None,))
