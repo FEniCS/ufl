@@ -12,7 +12,7 @@ jobs:
           command: sudo pip install flake8 numpy pytest six --upgrade
       - run:
           name: Install UFL
-          command: pip install .
+          command: pip install --user .
       - run:
           name: Run flake8 tests
           command: python -m pytest test/
