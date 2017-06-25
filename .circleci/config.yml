@@ -2,20 +2,20 @@ version: 2
 jobs:
   build:
     docker:
-      - image:  circleci/python:2.7
-      - image:  circleci/python:3.6
+      - image: circleci/python:2.7
+      - image: circleci/python:3.6
     working_directory: ~/ufl-test
     steps:
       - checkout
       - run:
+          name: Install dependencies  # Install with sudo as tests not run as superuser in circleci/python
+          command: sudo pip install flake8 numpy pytest six --upgrade
+      - run:
           name: Install UFL
           command: pip install .
       - run:
-          name: Install pytest and flake8
-          command: pip install pytest flake8 --upgrade
-      - run:
           name: Run flake8 tests
-          command: python3 -m pytest test/
+          command: python -m pytest test/
       - run:
           name: Run unit tests
-          command: python3 -m pytest -v test/
+          command: python -m pytest -v test/
