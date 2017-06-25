@@ -41,11 +41,12 @@ __all_classes__ = as_native_strings(["AbstractCell", "Cell", "TensorProductCell"
 # --- The most abstract cell class, base class for other cell types
 
 class AbstractCell(object):
-    "Representation of an abstract finite element cell with only the dimensions known."
-    __slots__ = as_native_strings((
-        "_topological_dimension",
-        "_geometric_dimension",
-        ))
+    """Representation of an abstract finite element cell with only the
+    dimensions known.
+
+    """
+    __slots__ = as_native_strings(("_topological_dimension",
+                                   "_geometric_dimension"))
 
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions

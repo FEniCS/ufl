@@ -21,7 +21,6 @@
 # Modified by Anders Logg, 2008-2009
 # Modified by Massimiliano Leoni, 2016.
 
-# import six
 import ufl
 from ufl.log import error
 from ufl.core.expr import Expr
@@ -35,7 +34,6 @@ from ufl.utils.py23 import as_native_strings
 __all_classes__ = as_native_strings(["Integral"])
 
 
-# @six.python_2_unicode_compatible
 class Integral(object):
     "An integral over a single domain."
     __slots__ = as_native_strings((
@@ -61,12 +59,14 @@ class Integral(object):
     def reconstruct(self, integrand=None,
                     integral_type=None, domain=None, subdomain_id=None,
                     metadata=None, subdomain_data=None):
-        """Construct a new Integral object with some properties replaced with new values.
+        """Construct a new Integral object with some properties replaced with
+        new values.
 
         Example:
             <a = Integral instance>
             b = a.reconstruct(expand_compounds(a.integrand()))
             c = a.reconstruct(metadata={'quadrature_degree':2})
+
         """
         if integrand is None:
             integrand = self.integrand()
@@ -89,11 +89,6 @@ class Integral(object):
     def integral_type(self):
         "Return the domain type of this integral."
         return self._integral_type
-
-    #def domain(self):
-    #    "Deprecated, please use .ufl_domain() instead."
-    #    deprecate("Integral.domain() is deprecated, please use .ufl_domain() instead.")
-    #    return self.ufl_domain()
 
     def ufl_domain(self):
         "Return the integration domain of this integral."
@@ -136,14 +131,12 @@ class Integral(object):
         return s
 
     def __repr__(self):
-        r = "Integral(%s, %s, %s, %s, %s, %s)" % (
-            repr(self._integrand),
-            repr(self._integral_type),
-            repr(self._ufl_domain),
-            repr(self._subdomain_id),
-            repr(self._metadata),
-            repr(self._subdomain_data),
-            )
+        r = "Integral(%s, %s, %s, %s, %s, %s)" % (repr(self._integrand),
+                                                  repr(self._integral_type),
+                                                  repr(self._ufl_domain),
+                                                  repr(self._subdomain_id),
+                                                  repr(self._metadata),
+                                                  repr(self._subdomain_data))
         return as_native_str(r)
 
     def __eq__(self, other):
@@ -156,8 +149,9 @@ class Integral(object):
                 id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data))
 
     def __hash__(self):
-        # Assuming few collisions by ignoring hash(self._metadata)
-        # (a dict is not hashable but we assume it is immutable in practice)
+        # Assuming few collisions by ignoring hash(self._metadata) (a
+        # dict is not hashable but we assume it is immutable in
+        # practice)
         hashdata = (hash(self._integrand),
                     self._integral_type,
                     hash(self._ufl_domain),

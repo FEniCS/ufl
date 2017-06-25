@@ -25,12 +25,10 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Lizao Li 2015
 # Modified by Thomas Gibson 2017
 
-#import six
 from ufl.utils.py23 import as_native_str
 from functools import total_ordering
 
 
-# @six.python_2_unicode_compatible
 @total_ordering
 class SobolevSpace(object):
     """Symbolic representation of a Sobolev space. This implements a
@@ -123,6 +121,7 @@ class SobolevSpace(object):
 class DirectionalSobolevSpace(SobolevSpace):
     """Symbolic representation of a Sobolev space with varying smoothness
     in differerent spatial directions.
+
     """
 
     def __init__(self, orders):

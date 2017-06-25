@@ -9,11 +9,14 @@ __date__ = "2008-03-12 -- 2009-01-28"
 import pytest
 from pprint import *
 
-from ufl import *
-from ufl.algorithms import *
-from ufl.classes import Sum, Product
-
-from ufl.corealg.traversal import *
+from ufl import (FiniteElement, TestFunction, TrialFunction, triangle,
+                 div, grad, Argument, dx, adjoint, Coefficient,
+                 FacetNormal, inner, dot, ds)
+from ufl.algorithms import (extract_arguments, expand_derivatives,
+                            expand_indices, extract_elements,
+                            extract_unique_elements, extract_coefficients)
+from ufl.corealg.traversal import (pre_traversal, post_traversal,
+                                   unique_pre_traversal, unique_post_traversal)
 
 # TODO: add more tests, covering all utility algorithms
 
@@ -84,7 +87,8 @@ def test_pre_and_post_traversal():
     s = p1 + p2
 
     # NB! These traversal algorithms are intended to guarantee only
-    # parent before child and vice versa, not this particular ordering:
+    # parent before child and vice versa, not this particular
+    # ordering:
     assert list(pre_traversal(s)) == [s, p2, g, v, p1, f, v]
     assert list(post_traversal(s)) == [g, v, p2, f, v, p1, s]
     assert list(unique_pre_traversal(s)) == [s, p2, g, v, p1, f]

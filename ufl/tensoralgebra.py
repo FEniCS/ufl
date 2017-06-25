@@ -122,10 +122,8 @@ class Transposed(CompoundTensorOperator):
 
 @ufl_type(num_ops=2)
 class Outer(CompoundTensorOperator):
-    __slots__ = as_native_strings((
-        "ufl_free_indices",
-        "ufl_index_dimensions",
-        ))
+    __slots__ = as_native_strings(("ufl_free_indices",
+                                   "ufl_index_dimensions"))
 
     def __new__(cls, a, b):
         ash, bsh = a.ufl_shape, b.ufl_shape
@@ -153,10 +151,8 @@ class Outer(CompoundTensorOperator):
 
 @ufl_type(num_ops=2)
 class Inner(CompoundTensorOperator):
-    __slots__ = as_native_strings((
-        "ufl_free_indices",
-        "ufl_index_dimensions",
-        ))
+    __slots__ = as_native_strings(("ufl_free_indices",
+                                   "ufl_index_dimensions"))
 
     def __new__(cls, a, b):
         # Checks
@@ -174,9 +170,8 @@ class Inner(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
-        # sort operands for unique representation,
-        # must be independent of various counts etc.
-        # as explained in cmp_expr
+        # sort operands for unique representation, must be independent
+        # of various counts etc.  as explained in cmp_expr
         a, b = sorted_expr((a, b))
 
         CompoundTensorOperator.__init__(self, (a, b))
@@ -194,10 +189,8 @@ class Inner(CompoundTensorOperator):
 
 @ufl_type(num_ops=2)
 class Dot(CompoundTensorOperator):
-    __slots__ = as_native_strings((
-        "ufl_free_indices",
-        "ufl_index_dimensions",
-        ))
+    __slots__ = as_native_strings(("ufl_free_indices",
+                                   "ufl_index_dimensions"))
 
     def __new__(cls, a, b):
         ash = a.ufl_shape
@@ -239,10 +232,8 @@ class Dot(CompoundTensorOperator):
 
 @ufl_type(num_ops=2)
 class Cross(CompoundTensorOperator):
-    __slots__ = as_native_strings((
-        "ufl_free_indices",
-        "ufl_index_dimensions",
-        ))
+    __slots__ = as_native_strings(("ufl_free_indices",
+                                   "ufl_index_dimensions"))
 
     def __new__(cls, a, b):
         ash = a.ufl_shape

@@ -64,17 +64,17 @@ __all__ = as_native_strings([
     "compute_form_functional",
     "compute_form_signature",
     "tree_format",
-    ])
+])
 
 # Utilities for traversing over expression trees in different ways
-#from ufl.algorithms.traversal import iter_expressions
+# from ufl.algorithms.traversal import iter_expressions
 
 # Keeping these imports here for backwards compatibility, doesn't cost
 # anything.  Prefer importing from ufl.corealg.traversal in future
 # code.
-#from ufl.corealg.traversal import pre_traversal
+# from ufl.corealg.traversal import pre_traversal
 from ufl.corealg.traversal import post_traversal
-#from ufl.corealg.traversal import traverse_terminals, traverse_unique_terminals
+# from ufl.corealg.traversal import traverse_terminals, traverse_unique_terminals
 
 
 # Utilities for extracting information from forms and expressions
@@ -87,11 +87,11 @@ from ufl.algorithms.analysis import (
     extract_unique_elements,
     extract_sub_elements,
     sort_elements,
-    )
+)
 
 
 # Preprocessing a form to extract various meta data
-#from ufl.algorithms.formdata import FormData
+# from ufl.algorithms.formdata import FormData
 from ufl.algorithms.compute_form_data import compute_form_data
 
 # Utilities for checking properties of forms
@@ -103,14 +103,14 @@ from ufl.algorithms.checks import validate_form
 # Utilites for modifying expressions and forms
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.transformer import Transformer, ReuseTransformer
-#from ufl.algorithms.transformer import is_post_handler
+# from ufl.algorithms.transformer import is_post_handler
 from ufl.algorithms.transformer import apply_transformer
 from ufl.algorithms.transformer import strip_variables
-#from ufl.algorithms.replace import Replacer
+# from ufl.algorithms.replace import Replacer
 from ufl.algorithms.replace import replace
 from ufl.algorithms.change_to_reference import change_to_reference_grad
 from ufl.algorithms.expand_compounds import expand_compounds
-#from ufl.algorithms.estimate_degrees import SumDegreeEstimator
+# from ufl.algorithms.estimate_degrees import SumDegreeEstimator
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.algorithms.expand_indices import expand_indices, purge_list_tensors
 
@@ -134,6 +134,6 @@ from ufl.algorithms.formfiles import load_ufl_file
 from ufl.algorithms.formfiles import load_forms
 
 # Utilities for UFL object printing
-#from ufl.formatting.printing import integral_info, form_info
+# from ufl.formatting.printing import integral_info, form_info
 from ufl.formatting.printing import tree_format
 from ufl.formatting.ufl2latex import ufl2latex

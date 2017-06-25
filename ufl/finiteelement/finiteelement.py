@@ -23,7 +23,6 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-# import six
 from ufl.log import error
 from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
@@ -35,16 +34,13 @@ from ufl.finiteelement.elementlist import canonical_element_description, simplic
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
-# @six.python_2_unicode_compatible
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements."
     # TODO: Move these to base?
-    __slots__ = as_native_strings((
-        "_short_name",
-        "_sobolev_space",
-        "_mapping",
-        "_variant",
-        ))
+    __slots__ = as_native_strings(("_short_name",
+                                   "_sobolev_space",
+                                   "_mapping",
+                                   "_variant"))
 
     def __new__(cls,
                 family,

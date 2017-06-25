@@ -9,7 +9,7 @@ notation close to the mathematical one.
 This Python module contains the language as well as algorithms to work
 with it.
 
-* To import the language, type
+* To import the language, typeE722 do not use bare except
 ::
 
     from ufl import *
@@ -419,4 +419,4 @@ __all__ = as_native_strings([
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
-    ])
+])

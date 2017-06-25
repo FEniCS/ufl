@@ -21,7 +21,6 @@
 # Modified by Anders Logg 2008-2016
 # Modified by Massimiliano Leoni, 2016.
 
-#import six
 from six import string_types
 import numbers
 
@@ -112,19 +111,18 @@ def measure_names():
     return tuple(sorted(measure_name_to_integral_type.keys()))
 
 
-# @six.python_2_unicode_compatible
 class Measure(object):
-    __slots__ = as_native_strings((
-        "_integral_type",
-        "_domain",
-        "_subdomain_id",
-        "_metadata",
-        "_subdomain_data",
-        ))
+    __slots__ = as_native_strings(("_integral_type",
+                                   "_domain",
+                                   "_subdomain_id",
+                                   "_metadata",
+                                   "_subdomain_data"))
     """Representation of an integration measure.
 
-    The Measure object holds information about integration properties to be
-    transferred to a Form on multiplication with a scalar expression.
+    The Measure object holds information about integration properties
+    to be transferred to a Form on multiplication with a scalar
+    expression.
+
     """
 
     def __init__(self,
@@ -159,8 +157,7 @@ class Measure(object):
 
         # Check that we either have a proper AbstractDomain or none
         self._domain = None if domain is None else as_domain(domain)
-        if not (self._domain is None
-                or isinstance(self._domain, AbstractDomain)):
+        if not (self._domain is None or isinstance(self._domain, AbstractDomain)):
             error("Invalid domain.")
 
         # Store subdomain data
@@ -177,8 +174,7 @@ class Measure(object):
                 if not isinstance(did, numbers.Integral):
                     error("Invalid subdomain_id %s." % (did,))
         else:
-            if not (subdomain_id in ("everywhere",)
-                    or isinstance(subdomain_id, numbers.Integral)):
+            if not (subdomain_id in ("everywhere",) or isinstance(subdomain_id, numbers.Integral)):
                 error("Invalid subdomain_id %s." % (subdomain_id,))
         self._subdomain_id = subdomain_id
 
@@ -194,11 +190,6 @@ class Measure(object):
         """
         return self._integral_type
 
-    #def domain(self):
-    #    "Deprecated, please use .ufl_domain() instead."
-    #    deprecate("Measure.domain() is deprecated, please use .ufl_domain() instead.")
-    #    return self.ufl_domain()
-
     def ufl_domain(self):
         """Return the domain associated with this measure.
 
@@ -212,8 +203,10 @@ class Measure(object):
 
     def metadata(self):
         """Return the integral metadata. This data is not interpreted by UFL.
-        It is passed to the form compiler which can ignore it or use it to
-        compile each integral of a form in a different way."""
+        It is passed to the form compiler which can ignore it or use
+        it to compile each integral of a form in a different way.
+
+        """
         return self._metadata
 
     def reconstruct(self,
@@ -222,7 +215,8 @@ class Measure(object):
                     domain=None,
                     metadata=None,
                     subdomain_data=None):
-        """Construct a new Measure object with some properties replaced with new values.
+        """Construct a new Measure object with some properties replaced with
+        new values.
 
         Example:
             <dm = Measure instance>
@@ -232,6 +226,7 @@ class Measure(object):
         Used by the call operator, so this is equivalent:
             b = dm(2)
             c = dm(0, { "quadrature_degree": 3 })
+
         """
         if subdomain_id is None:
             subdomain_id = self.subdomain_id()
@@ -302,11 +297,12 @@ class Measure(object):
     def __getitem__(self, data):
         """This operator supports legacy syntax in python dolfin programs.
 
-        The old documentation reads:
-        Return a new Measure for same integration type with an attached
-        context for interpreting domain ids. By default this new Measure
-        integrates over everywhere, but it can be restricted with a domain id
-        as usual. Example: dx = dx[boundaries]; L = f*v*dx + g*v+dx(1).
+        The old documentation reads: Return a new Measure for same
+        integration type with an attached context for interpreting
+        domain ids. By default this new Measure integrates over
+        everywhere, but it can be restricted with a domain id as
+        usual. Example: dx = dx[boundaries]; L = f*v*dx + g*v+dx(1).
+
         """
         deprecate("Notation dx[meshfunction] is deprecated. Please use dx(subdomain_data=meshfunction) instead.")
         return self(subdomain_data=data)
@@ -400,7 +396,7 @@ class Measure(object):
 
     def __rmul__(self, integrand):
         """Multiply a scalar expression with measure to construct a form with
-a single integral.
+        a single integral.
 
         This is to implement the notation
 
@@ -426,7 +422,7 @@ a single integral.
         if not is_true_ufl_scalar(integrand):
             error("Can only integrate scalar expressions. The integrand is a "
                   "tensor expression with value shape %s and free indices with labels %s." %
-                    (integrand.ufl_shape, integrand.ufl_free_indices))
+                  (integrand.ufl_shape, integrand.ufl_free_indices))
 
         # If we have a tuple of domain ids, delegate composition to
         # Integral.__add__:
@@ -461,7 +457,6 @@ a single integral.
         return Form([integral])
 
 
-# @six.python_2_unicode_compatible
 class MeasureSum(object):
     """Represents a sum of measures.
 
@@ -506,6 +501,7 @@ class MeasureProduct(object):
 
     This is work in progress and not functional. It needs support
     in other parts of ufl and the rest of the code generation chain.
+
     """
     __slots__ = as_native_strings(("_measures",))
 
@@ -518,8 +514,9 @@ class MeasureProduct(object):
     def __mul__(self, other):
         """Flatten multiplication of product measures.
 
-        This is to ensure that (dm1*dm2)*dm3 is stored as a
-        simple list (dm1,dm2,dm3) in a single MeasureProduct.
+        This is to ensure that (dm1*dm2)*dm3 is stored as a simple
+        list (dm1,dm2,dm3) in a single MeasureProduct.
+
         """
         if isinstance(other, Measure):
             measures = self.sub_measures() + [other]

@@ -58,5 +58,5 @@ class Operator(Expr):
         "Default repr string construction for operators."
         # This should work for most cases
         r = "%s(%s)" % (self._ufl_class_.__name__,
-            ", ".join(repr(op) for op in self.ufl_operands))
+                        ", ".join(repr(op) for op in self.ufl_operands))
         return as_native_str(r)

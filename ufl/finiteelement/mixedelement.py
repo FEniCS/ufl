@@ -338,10 +338,14 @@ class VectorElement(MixedElement):
 
 # @six.python_2_unicode_compatible
 class TensorElement(MixedElement):
-    "A special case of a mixed finite element where all elements are equal."
+    """A special case of a mixed finite element where all elements are
+    equal.
+
+    """
     __slots__ = as_native_strings(("_sub_element", "_shape", "_symmetry",
-                 "_sub_element_mapping", "_flattened_sub_element_mapping",
-                 "_mapping"))
+                                   "_sub_element_mapping",
+                                   "_flattened_sub_element_mapping",
+                                   "_mapping"))
 
     def __init__(self, family, cell=None, degree=None, shape=None,
                  symmetry=None, quad_scheme=None):
@@ -392,8 +396,7 @@ class TensorElement(MixedElement):
             if len(i) != len(j):
                 error("Non-matching length of symmetry index tuples.")
             for k in range(len(i)):
-                if not (i[k] >= 0 and j[k] >= 0
-                        and i[k] < shape[k] and j[k] < shape[k]):
+                if not (i[k] >= 0 and j[k] >= 0 and i[k] < shape[k] and j[k] < shape[k]):
                     error("Symmetry dimensions out of bounds.")
 
         # Compute all index combinations for given shape
