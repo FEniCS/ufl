@@ -15,7 +15,9 @@ jobs:
           command: pip install --user .
       - run:
           name: Run flake8 tests
-          command: python -m pytest test/
+          command: python -m flake8 .
       - run:
           name: Run unit tests
-          command: python -m pytest -v test/
+          command: python -m pytest --junitxml=test-output test/
+      - store_test_results:
+          path: test-output/
