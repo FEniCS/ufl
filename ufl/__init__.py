@@ -9,8 +9,7 @@ notation close to the mathematical one.
 This Python module contains the language as well as algorithms to work
 with it.
 
-* To import the language, typeE722 do not use bare except
-::
+* To import the language, type::
 
     from ufl import *
 
