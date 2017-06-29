@@ -1,0 +1,2 @@
+Form form:
+Form([Integral(Product(Argument(FunctionSpace(Mesh(VectorElement(FiniteElement('Lagrange', triangle, 1), dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 0, None), Conj(Argument(FunctionSpace(Mesh(VectorElement(FiniteElement('Lagrange', triangle, 1), dim=2), -1), FiniteElement('Lagrange', triangle, 1)), 1, None))), 'cell', Mesh(VectorElement(FiniteElement('Lagrange', triangle, 1), dim=2), -1), 'everywhere', {}, None)])
