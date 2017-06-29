@@ -5,6 +5,7 @@ from a form for when the user is in 'real mode'"""
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
 
+
 class ComplexNodeRemoval(MultiFunction):
     """Replaces complex operator nodes with their children"""
     def __init__(self):
