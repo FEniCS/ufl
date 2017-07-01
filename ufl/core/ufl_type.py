@@ -131,7 +131,7 @@ def check_has_slots(cls):
 
     # Check base classes for __slots__ as well, skipping object which is the last one
     for base in cls.mro()[1:-1]:
-        if "__slots__" not in base.__dict__:
+        if "__slots__" not in base.__dict__ and "_ufl_noslots_" not in base.__dict__:
             msg = ("Class {0.__name__} is has a base class "
                    "{1.__name__} with __slots__ missing.")
             raise TypeError(msg.format(cls, base))

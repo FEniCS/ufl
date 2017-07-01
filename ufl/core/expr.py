@@ -100,8 +100,8 @@ class Expr(object):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = as_native_strings(("_hash",))
-    # _ufl_noslots_ = True
+    #__slots__ = as_native_strings(("_hash",))
+    _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
 

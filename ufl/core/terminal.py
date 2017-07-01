@@ -32,7 +32,8 @@ from ufl.core.ufl_type import ufl_type
 @ufl_type(is_abstract=True, is_terminal=True)
 class Terminal(Expr):
     "A terminal node in the UFL expression tree."
-    __slots__ = ()
+    # __slots__ = ()
+    _ufl_noslots_ = True
 
     def __init__(self):
         Expr.__init__(self)
@@ -106,7 +107,8 @@ class Terminal(Expr):
 @ufl_type(is_abstract=True)
 class FormArgument(Terminal):
     "An abstract class for a form argument."
-    __slots__ = ()
+    #__slots__ = ()
+    _ufl_noslots_ = True
 
     def __init__(self):
         Terminal.__init__(self)
