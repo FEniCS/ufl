@@ -346,6 +346,7 @@ class Abs(Operator):
         a, = self.ufl_operands
         return "|%s|" % (parstr(a, self),)
 
+
 @ufl_type(num_ops=1,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Conj(Operator):
@@ -364,6 +365,7 @@ class Conj(Operator):
         a, = self.ufl_operands
         return "conj(%s)" % (parstr(a, self),)
 
+
 @ufl_type(num_ops=1,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Real(Operator):
@@ -381,6 +383,7 @@ class Real(Operator):
     def __str__(self):
         a, = self.ufl_operands
         return "Re[%s]" % (parstr(a, self),)
+
 
 @ufl_type(num_ops=1,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0)
