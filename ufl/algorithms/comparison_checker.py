@@ -21,7 +21,7 @@ class CheckComparisons(MultiFunction):
     expr = MultiFunction.reuse_and_check_type
 
     def gt(self, o, *ops):
-        ops, types = zip(*ops)
+        unzippedops, types = zip(*ops)
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with gt.")
@@ -29,7 +29,7 @@ class CheckComparisons(MultiFunction):
             return o._ufl_expr_reconstruct_(*map(Real, *ops))
 
     def lt(self, o, *ops):
-        ops, types = zip(*ops)
+        unzippedops, types = zip(*ops)
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with lt.")
@@ -37,7 +37,7 @@ class CheckComparisons(MultiFunction):
             return o._ufl_expr_reconstruct_(*map(Real, *ops))
 
     def ge(self, o, *ops):
-        ops, types = zip(*ops)
+        unzippedops, types = zip(*ops)
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with ge.")
@@ -45,7 +45,7 @@ class CheckComparisons(MultiFunction):
             return o._ufl_expr_reconstruct_(*map(Real, *ops))
 
     def le(self, o, *ops):
-        ops, types = zip(*ops)
+        unzippedops, types = zip(*ops)
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with le.")
@@ -53,7 +53,7 @@ class CheckComparisons(MultiFunction):
             return o._ufl_expr_reconstruct_(*map(Real, *ops))
 
     def max(self, o, *ops):
-        ops, types = zip(*ops)
+        unzippedops, types = zip(*ops)
 
         if "complex" in types:
             raise ComplexComparisonError("You can't order complex numbers with max.")
@@ -61,7 +61,7 @@ class CheckComparisons(MultiFunction):
             return o._ufl_expr_reconstruct_(*map(Real, *ops))
 
     def min(self, o, *ops):
-        ops, types = zip(*ops)
+        unzippedops, types = zip(*ops)
 
         if "complex" in types:
             raise ComplexComparisonError("You can't order complex numbers with min.")
@@ -69,7 +69,8 @@ class CheckComparisons(MultiFunction):
             return o._ufl_expr_reconstruct_(*map(Real, *ops))
 
     def conj(self, o, *ops):
-        ops, types = zip(*ops)
+    	print(type(o))
+    	unzippedops, types = zip(*ops)
 
         if "complex" in types:
             print('found a complex')
@@ -91,12 +92,11 @@ class CheckComparisons(MultiFunction):
     # def terminal(self, o, *ops):
     #     # IntValue FloatValue Abs --> real
     #     # Sqrt, Pow --> imag (because we dont know the value of what's inside)
-    #     # something for max and min also??
 
 
 def do_comparison_check(expr):
     """Raises an error if comparison nodes exist"""
-    return map_integrand_dags(CheckComparisons, expr)
+    return map_integrand_dags(CheckComparisons(), expr)
 
 class ComplexComparisonError(Exception):
     pass
