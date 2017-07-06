@@ -128,7 +128,7 @@ class MultiFunction(object):
 
         as a default rule.
         """
-        ops, types = zip(*ops)
+        unzippedops, types = zip(*ops)
 
         if types:
             t = "complex" if "complex" in types else "real"
