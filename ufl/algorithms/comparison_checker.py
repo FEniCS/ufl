@@ -73,10 +73,8 @@ class CheckComparisons(MultiFunction):
     	unzippedops, types = zip(*ops)
 
         if "complex" in types:
-            print('found a complex')
             return o
         else:
-            print('found a real')
             return o._ufl_expr_reconstruct_(*map(Real, *ops))
 
     # def real(self, o, *ops):
