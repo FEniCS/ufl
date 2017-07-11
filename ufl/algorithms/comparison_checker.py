@@ -131,7 +131,7 @@ class CheckComparisons(MultiFunction):
 
     def terminal(self, t, *ops):
     	# default terminals to complex, except the ones we *know* are real
-    	if type(t) in set([IntValue, FloatValue]):
+    	if type(t) in {IntValue, FloatValue}:
     		self.nodetype[t] = 'real'
     		return t
         else:
