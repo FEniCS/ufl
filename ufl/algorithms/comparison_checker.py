@@ -5,96 +5,144 @@ in a form when the user is in 'complex mode'"""
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algebra import Real
+from ufl.constantvalue import IntValue, FloatValue
 
 class CheckComparisons(MultiFunction):
     """Raises an error if comparisons are done with complex quantities.
 
-    If quantities are real, adds the Real operator to the compared quantities.
+    If quantities are real, adds the Real operator to the compared quantities. 
 
-    Also removes unnecessary Conj of real quantities. 
-
-    Quantities that are real are Abs, Real, Imag.
-    Terminals default to complex, and Sqrt, Pow (defensively) imply complex"""
+	Terminals that are real are IntValue, FloatValue.
+    Operations that produce reals are Abs, Real, Imag.
+    Terminals default to complex, and Sqrt, Pow (defensively) imply complex.
+	Otherwise, operators preserve the type of their operands.
+    """
     def __init__(self):
         MultiFunction.__init__(self)
+        self.nodetype = {}
 
-    expr = MultiFunction.reuse_and_check_type
+    def expr(self, o, *ops):
+        """Defaults expressions to complex unless they only
+        act on real quantities. Overridden for specific operators.
+
+        Rebuilds objects if necessary.
+        """
+
+        types = [self.nodetype[op] for op in ops]
+
+        if types:
+            t = "complex" if "complex" in types else "real"
+        else:
+            t = t or "complex"
+
+        o = self.reuse_if_untouched(o, *ops)
+        self.nodetype[o] = t
+        return o
 
     def gt(self, o, *ops):
-        unzippedops, types = zip(*ops)
+        types = [self.nodetype[op] for op in ops]
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with gt.")
         else:
-            return o._ufl_expr_reconstruct_(*map(Real, *ops))
+        	o = o._ufl_expr_reconstruct_(*map(Real, ops))
+        	self.nodetype[o] = "bool"
+        	return o
 
     def lt(self, o, *ops):
-        unzippedops, types = zip(*ops)
+        types = [self.nodetype[op] for op in ops]
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with lt.")
         else:
-            return o._ufl_expr_reconstruct_(*map(Real, *ops))
+        	o = o._ufl_expr_reconstruct_(*map(Real, ops))
+        	self.nodetype[o] = "bool"
+        	return o
 
     def ge(self, o, *ops):
-        unzippedops, types = zip(*ops)
+        types = [self.nodetype[op] for op in ops]
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with ge.")
         else:
-            return o._ufl_expr_reconstruct_(*map(Real, *ops))
+        	o = o._ufl_expr_reconstruct_(*map(Real, ops))
+        	self.nodetype[o] = "bool"
+        	return o
 
     def le(self, o, *ops):
-        unzippedops, types = zip(*ops)
+        types = [self.nodetype[op] for op in ops]
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with le.")
         else:
-            return o._ufl_expr_reconstruct_(*map(Real, *ops))
+        	o = o._ufl_expr_reconstruct_(*map(Real, ops))
+        	self.nodetype[o] = "bool"
+        	return o
 
     def max(self, o, *ops):
-        unzippedops, types = zip(*ops)
+        types = [self.nodetype[op] for op in ops]
 
         if "complex" in types:
-            raise ComplexComparisonError("You can't order complex numbers with max.")
+            raise ComplexComparisonError("You can't compare complex numbers with max.")
         else:
-            return o._ufl_expr_reconstruct_(*map(Real, *ops))
+        	o = o._ufl_expr_reconstruct_(*map(Real, ops))
+        	self.nodetype[o] = "bool"
+        	return o
 
     def min(self, o, *ops):
-        unzippedops, types = zip(*ops)
+        types = [self.nodetype[op] for op in ops]
 
         if "complex" in types:
-            raise ComplexComparisonError("You can't order complex numbers with min.")
+            raise ComplexComparisonError("You can't compare complex numbers with min.")
         else:
-            return o._ufl_expr_reconstruct_(*map(Real, *ops))
+        	o = o._ufl_expr_reconstruct_(*map(Real, ops))
+        	self.nodetype[o] = "bool"
+        	return o
 
     def conj(self, o, *ops):
-    	print(type(o))
-    	unzippedops, types = zip(*ops)
+    	o = self.reuse_if_untouched(o, *ops)
+    	self.nodetype[o] = 'real'
+    	return o
 
-        if "complex" in types:
-            return o
+    def real(self, o, *ops):
+    	o = self.reuse_if_untouched(o, *ops)
+    	self.nodetype[o] = 'real'
+    	return o
+
+    def imag(self, o, *ops):
+    	o = self.reuse_if_untouched(o, *ops)
+    	self.nodetype[o] = 'real'	    	
+    	return o
+
+    def sqrt(self, o, *ops):
+    	o = self.reuse_if_untouched(o, *ops)
+    	self.nodetype[o] = 'complex'
+    	return o
+
+    def power(self, o, *ops):
+    	o = self.reuse_if_untouched(o, *ops)
+    	self.nodetype[o] = 'complex'
+    	return o
+
+    def abs(self, o, *ops):
+    	o = self.reuse_if_untouched(o, *ops)
+    	self.nodetype[o] = 'real'
+    	return o
+
+    def terminal(self, t, *ops):
+    	# default terminals to complex, except the ones we *know* are real
+    	if type(t) in set([IntValue, FloatValue]):
+    		self.nodetype[t] = 'real'
+    		return t
         else:
-            return o._ufl_expr_reconstruct_(*map(Real, *ops))
-
-    # def real(self, o, *ops):
-
-    # def imag(self, o, *ops):
-
-    # def sqrt(self, o, *ops):
-
-    # def pow(self, o, *ops):
-
-    # def abs(self, o, *ops):
-
-    # def terminal(self, o, *ops):
-    #     # IntValue FloatValue Abs --> real
-    #     # Sqrt, Pow --> imag (because we dont know the value of what's inside)
+        	self.nodetype[t] = 'complex'
+        	return t
 
 
 def do_comparison_check(expr):
     """Raises an error if comparison nodes exist"""
     return map_integrand_dags(CheckComparisons(), expr)
+
 
 class ComplexComparisonError(Exception):
     pass
