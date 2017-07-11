@@ -245,9 +245,11 @@ def compute_form_data(form,
     # Note: Default behaviour here will process form the way that is
     # currently expected by vanilla FFC
 
-    # raises an error if the user is in complex_mode and has le, gt etc
+    # Check that the form does not try to compare complex quantities:
+    # if the quantites being compared are 'provably' real, wrap them
+    # with Real, otherwise throw an error. 
     if complex_mode:
-        do_comparison_check(form)
+        form = do_comparison_check(form)
 
     # Lower abstractions for tensor-algebra types into index notation,
     # reducing the number of operators later algorithms and form

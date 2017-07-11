@@ -117,29 +117,5 @@ class MultiFunction(object):
         else:
             return o._ufl_expr_reconstruct_(*ops)
 
-    def reuse_and_check_type(self, o, *ops):
-        """Reuse object if operands are the same objects, and
-        check the type of the operands.
-
-        Use in your own subclass by setting e.g.
-        ::
-
-            expr = reuse_and_check_type
-
-        as a default rule.
-        """
-        unzippedops, types = zip(*ops)
-
-        if types:
-            t = "complex" if "complex" in types else "real"
-        else:
-            # Default terminals to Complex
-            t = t or "complex"
-
-        if all(a is b for a, b in zip(o.ufl_operands, ops)):
-            return (o, t)
-        else:
-            return (o._ufl_expr_reconstruct_(*ops), t)
-
     # Set default behaviour for any Expr as undefined
     expr = undefined
