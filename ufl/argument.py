@@ -31,7 +31,7 @@ from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, FunctionSpaceProduct
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = as_native_strings(["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"])
@@ -161,12 +161,18 @@ class Argument(FormArgument):
 
 def TestFunction(function_space, part=None):
     """UFL value: Create a test function argument to a form."""
-    return Argument(function_space, 0, part)
+    if isinstance(function_space, FunctionSpaceProduct):
+        return ArgumentProduct(function_space, 0)
+    else:
+        return Argument(function_space, 0, part)
 
 
 def TrialFunction(function_space, part=None):
     """UFL value: Create a trial function argument to a form."""
-    return Argument(function_space, 1, part)
+    if isinstance(function_space, FunctionSpaceProduct):
+        return ArgumentProduct(function_space, 1)
+    else:
+        return Argument(function_space, 1, part)
 
 
 # --- Helper functions for creating subfunctions on mixed elements ---
@@ -187,3 +193,17 @@ def TrialFunctions(function_space):
     """UFL value: Create a TrialFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     return Arguments(function_space, 1)
+
+def ArgumentProduct(function_space, number):
+    if not isinstance(function_space, FunctionSpaceProduct):
+        error("ArgumentProduct should be used with FunctionSpaceProduct")
+
+    subspaces = function_space.sub_spaces()
+    arguments = list()
+    i=0
+    # Build list of Argument objects with _part=<subspace index>
+    for s in subspaces:
+        arguments.append(Argument(s, number, i))
+        i = i+1
+    return tuple(arguments)
+

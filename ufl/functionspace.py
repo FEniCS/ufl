@@ -26,6 +26,7 @@ from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
 from ufl.finiteelement import MixedElement
+from ufl.finiteelement import FiniteElement
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings([
@@ -33,6 +34,7 @@ __all_classes__ = as_native_strings([
     "FunctionSpace",
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
+    "FunctionSpaceProduct",
 ])
 
 
@@ -60,6 +62,7 @@ class FunctionSpace(AbstractFunctionSpace):
         AbstractFunctionSpace.__init__(self)
         self._ufl_domain = domain
         self._ufl_element = element
+        ##print("FunctionSpace(%s, %s)" % (repr(self._ufl_domain), repr(self._ufl_element)) )
 
     def ufl_sub_spaces(self):
         "Return ufl sub spaces."
@@ -172,4 +175,32 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
 
     def __repr__(self):
         r = "TensorProductFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
+        return as_native_str(r)
+
+@attach_operators_from_hash_data
+class FunctionSpaceProduct(AbstractFunctionSpace):
+    def __init__(self, *args): ## No need of **kwargs for now
+        AbstractFunctionSpace.__init__(self)
+        self._ufl_function_spaces = list(); # Initialization of FunctionSpace list
+
+        for f in args:
+            if isinstance(f, (FunctionSpace, FiniteElement) ):
+                self._ufl_function_spaces.append(f)
+            else:
+                print("Expecting FunctionSpace or FiniteElement objects")
+
+    def sub_spaces(self):
+        return self._ufl_function_spaces
+
+    def sub_space(self,i):
+        return self._ufl_function_spaces[i]
+
+    def _ufl_hash_data_(self):
+        return ("FunctionSpaceProduct",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
+
+    def _ufl_signature_data_(self, renumbering):
+        return ("FunctionSpaceProduct",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
+
+    def __repr__(self):
+        r = "FunctionSpaceProduct(*%s)" % repr(self._ufl_function_spaces)
         return as_native_str(r)

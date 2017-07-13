@@ -88,6 +88,7 @@ A very brief overview of the language contents follows:
 * Function spaces::
 
     - FunctionSpace
+    - FunctionSpaceProduct
 
 * Arguments::
 
@@ -287,14 +288,14 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, \
 from ufl.finiteelement.elementlist import register_element, show_elements #, ufl_elements
 
 # Function spaces
-from ufl.functionspace import FunctionSpace, MixedFunctionSpace
+from ufl.functionspace import FunctionSpace, MixedFunctionSpace, FunctionSpaceProduct
 
 # Arguments
 from ufl.argument import Argument, TestFunction, TrialFunction, \
                          Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
-from ufl.coefficient import Coefficient, Coefficients, \
+from ufl.coefficient import Coefficient, Coefficients, CoefficientProduct, \
                             Constant, VectorConstant, TensorConstant
 
 # Split function
@@ -347,7 +348,7 @@ import ufl.measureoperators as __measureoperators
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
-    system, functional, adjoint, sensitivity_rhs, block_split #, dirichlet_functional
+    system, functional, adjoint, sensitivity_rhs, block_split, extract_blocks #, dirichlet_functional
 
 # Predefined convenience objects
 from ufl.objects import (
@@ -384,7 +385,7 @@ __all__ = as_native_strings([
     'HDivElement', 'HCurlElement',
     'BrokenElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
-    'FunctionSpace',
+    'FunctionSpace','FunctionSpaceProduct',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Coefficients',

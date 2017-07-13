@@ -55,6 +55,7 @@ __all__ = as_native_strings([
     "validate_form",
     "ufl2latex",
     "FormSplitter",
+    "FormSplitterProduct",
     "extract_arguments",
     "compute_form_adjoint",
     "compute_form_action",
@@ -124,6 +125,7 @@ from ufl.algorithms.formtransformations import compute_form_functional
 from ufl.algorithms.formtransformations import compute_form_arities
 
 from ufl.algorithms.formsplitter import FormSplitter
+from ufl.algorithms.formsplitter import FormSplitterProduct
 
 # Utilities for Automatic Functional Differentiation
 from ufl.algorithms.ad import expand_derivatives

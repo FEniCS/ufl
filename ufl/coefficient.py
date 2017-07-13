@@ -28,7 +28,7 @@ from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.domain import as_domain, default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, FunctionSpaceProduct
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
 
@@ -151,3 +151,15 @@ def Coefficients(function_space):
     """UFL value: Create a Coefficient in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     return split(Coefficient(function_space))
+
+def CoefficientProduct(function_space):
+    if not isinstance(function_space, FunctionSpaceProduct):
+        error("CoefficientProduct should be used with FunctionSpaceProduct")
+
+    subspaces = function_space.sub_spaces()
+    coeffs = list()
+    i=0
+    for s in subspaces:
+        coeffs.append(Coefficient(s))
+        i = i+1
+    return tuple(coeffs)
