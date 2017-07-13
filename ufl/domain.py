@@ -137,6 +137,10 @@ class Mesh(AbstractDomain):
         return (self.geometric_dimension(), self.topological_dimension(),
                 "Mesh", typespecific)
 
+    # TEMPORARY : Need to sort the domains in case with have forms
+    # defined as a sum of integrals based on different domains
+    def __lt__(self, other):
+        return self._ufl_hash_data_() < other._ufl_hash_data_()
 
 @attach_operators_from_hash_data
 @attach_ufl_id

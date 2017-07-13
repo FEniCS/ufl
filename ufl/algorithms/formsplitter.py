@@ -23,7 +23,7 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.constantvalue import Zero
 from ufl.tensors import as_vector
 from ufl.argument import Argument
-from ufl.functionspace import FunctionSpace
+from ufl.functionspace import FunctionSpace, FunctionSpaceProduct
 
 
 class FormSplitter(MultiFunction):
@@ -64,7 +64,27 @@ class FormSplitter(MultiFunction):
 
     expr = MultiFunction.reuse_if_untouched
 
-
 def block_split(form, ix, iy=0):
     fs = FormSplitter()
     return fs.split(form, ix, iy)
+
+class FormSplitterProduct(MultiFunction):
+
+    def split(self, form, i, j=0):
+        self.idx = [i,j]
+        return map_integrand_dags(self, form)
+
+    def argument(self, obj):
+        # obj.part correspond to the subdomain index here
+        if (obj.part() == self.idx[obj.number()]):
+            if len(obj.ufl_shape) == 0:
+                return obj
+            else:
+                error("TMP: ufl_shape should be zero")
+        else:
+            return Zero()
+
+    def multi_index(self, obj):
+        return obj
+
+    expr = MultiFunction.reuse_if_untouched
