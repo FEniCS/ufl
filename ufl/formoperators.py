@@ -76,10 +76,16 @@ def extract_blocks(form, i=None, j=None):
         if bilinear:
             for pj in parts:
                 f = fs.split(form, pi, pj)
-                forms.append(f)
+                if(f.empty()):
+                    forms.append(None)
+                else:
+                    forms.append(f)
         elif linear:
             f = fs.split(form, pi)
-            forms.append(f)
+            if(f.empty()):
+                forms.append(None)
+            else:
+                forms.append(f)
 
     try:
         forms_tuple = tuple(forms)

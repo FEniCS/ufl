@@ -158,8 +158,7 @@ def CoefficientProduct(function_space):
 
     subspaces = function_space.sub_spaces()
     coeffs = list()
-    i=0
     for s in subspaces:
         coeffs.append(Coefficient(s))
-        i = i+1
+
     return tuple(coeffs)
