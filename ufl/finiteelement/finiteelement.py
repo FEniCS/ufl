@@ -167,7 +167,7 @@ class FiniteElement(FiniteElementBase):
 
         # Finite elements on quadrilaterals have an IrreducibleInt as degree
         if cell is not None:
-            if cell.cellname() == "quadrilateral":
+            if cell.cellname() in ["quadrilateral", "hexahedron"]:
                 from ufl.algorithms.estimate_degrees import IrreducibleInt
                 degree = IrreducibleInt(degree)
 
