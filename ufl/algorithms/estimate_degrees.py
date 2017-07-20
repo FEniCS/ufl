@@ -27,6 +27,7 @@ from ufl.integral import Integral
 from ufl.algorithms.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dags
 from ufl.checks import is_cellwise_constant
+from ufl.constantvalue import IntValue
 
 
 class IrreducibleInt(int):
@@ -221,25 +222,23 @@ class SumDegreeEstimator(MultiFunction):
         return self._add_degrees(v, *ops)
 
     def power(self, v, a, b):
-        """If b is an integer:
+        """If b is a positive integer:
         degree(a**b) == degree(a)*b
         otherwise use the heuristic
-        degree(a**b) == degree(a)*2"""
+        degree(a**b) == degree(a) + 2"""
         f, g = v.ufl_operands
-        try:
-            gi = abs(int(g))
-            if isinstance(a, int):
-                return a*gi
-            else:
-                return tuple(foo*gi for foo in a)
-        except:
-            pass
-        # Something to a non-integer power, this is just a heuristic
-        # with no background
-        if isinstance(a, int):
-            return a*2
-        else:
-            return tuple(foo*2 for foo in a)
+
+        if isinstance(g, IntValue):
+            gi = g.value()
+            if gi >= 0:
+                if isinstance(a, int):
+                    return a*gi
+                else:
+                    return tuple(foo*gi for foo in a)
+
+        # Something to a non-(positive integer) power, e.g. float,
+        # negative integer, Coefficient, etc.
+        return self._add_degrees(v, a, 2)
 
     def atan_2(self, v, a, b):
         """Using the heuristic
