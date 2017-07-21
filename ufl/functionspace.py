@@ -192,6 +192,9 @@ class FunctionSpaceProduct(AbstractFunctionSpace):
     def sub_spaces(self):
         return self._ufl_function_spaces
 
+    def num_sub_spaces(self):
+        return len(self._ufl_function_spaces)
+
     def sub_space(self,i):
         return self._ufl_function_spaces[i]
 
