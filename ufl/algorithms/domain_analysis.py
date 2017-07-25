@@ -19,6 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
+from six import iteritems
 from six.moves import zip
 
 import ufl
@@ -27,7 +28,7 @@ from ufl.utils.py23 import as_native_strings
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
-from ufl.utils.sorting import canonicalize_metadata, sorted_by_key, sorted_by_tuple_key
+from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
 import numbers
 
 
@@ -275,8 +276,12 @@ def build_integral_data(integrals):
 
     # Build list with canonical ordering, iteration over dicts
     # is not deterministic across python versions
+    def keyfunc(item):
+        (d, itype, sid), integrals = item
+        return (d._ufl_sort_key_(), itype, (type(sid).__name__, sid))
+
     integral_datas = []
-    for (d, itype, sid), integrals in sorted_by_tuple_key(itgs):
+    for (d, itype, sid), integrals in sorted(iteritems(itgs), key=keyfunc):
         integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
     return integral_datas
 

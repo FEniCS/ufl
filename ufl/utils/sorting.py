@@ -78,15 +78,6 @@ def sorted_by_key(mapping):
     return sorted(iteritems(mapping), key=_key)
 
 
-def sorted_by_tuple_key(mapping):
-    "Sort dict items by tuple valued keys, allowing different types as items of the key tuples."
-    # Python3 doesn't allow comparing builtins of different type,
-    # therefore the typename trick here
-    def _tuple_key(x):
-        return tuple((type(k).__name__, k) for k in x[0])
-    return sorted(iteritems(mapping), key=_tuple_key)
-
-
 def canonicalize_metadata(metadata):
     """Assuming metadata to be a dict with string keys and builtin python types as values.
 
