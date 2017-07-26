@@ -18,8 +18,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import zip
+from functools import reduce
+
+from six.moves import map, zip
 from six import string_types
+
+import numpy
 
 
 def product(sequence):
@@ -67,3 +71,15 @@ def recursive_chain(lists):
         else:
             for s in recursive_chain(l):
                 yield s
+
+
+def max_degree(degrees):
+    """Maximum degree for mixture of scalar and tuple degrees."""
+    # numpy.maximum broadcasts scalar degrees to tuple degrees if
+    # necessary.  reduce applies numpy.maximum pairwise.
+    degree = reduce(numpy.maximum, map(numpy.asarray, degrees))
+    if degree.ndim:
+        degree = tuple(map(int, degree))  # tuple degree
+    else:
+        degree = int(degree)              # scalar degree
+    return degree

@@ -25,6 +25,7 @@ from itertools import chain
 from collections import defaultdict
 
 from ufl.log import error, warning
+from ufl.domain import sort_domains
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
@@ -57,7 +58,7 @@ def _sorted_integrals(integrals):
     all_integrals = []
 
     # Order integrals canonically to increase signature stability
-    for d in sorted(integrals_dict):  # Assuming Domain is sortable
+    for d in sort_domains(integrals_dict):
         for it in sorted(integrals_dict[d]):  # str is sortable
             for si in sorted(integrals_dict[d][it],
                              key=lambda x: (type(x).__name__, x)):  # int/str are sortable

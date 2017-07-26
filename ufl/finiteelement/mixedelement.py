@@ -31,7 +31,7 @@ from six.moves import xrange as range
 from ufl.log import error
 from ufl.utils.py23 import as_native_strings
 from ufl.permutation import compute_indices
-from ufl.utils.sequences import product
+from ufl.utils.sequences import product, max_degree
 from ufl.utils.dicts import EmptyDict
 from ufl.utils.indexflattening import flatten_multiindex, unflatten_index, shape_to_strides
 from ufl.cell import as_cell
@@ -101,7 +101,7 @@ class MixedElement(FiniteElementBase):
 
         # Initialize element data
         degrees = {e.degree() for e in self._sub_elements} - {None}
-        degree = max(degrees) if degrees else None
+        degree = max_degree(degrees) if degrees else None
         FiniteElementBase.__init__(self, "Mixed", cell, degree, quad_scheme,
                                    value_shape, reference_value_shape)
 

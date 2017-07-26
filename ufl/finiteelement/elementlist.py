@@ -26,6 +26,8 @@ elements by calling the function register_element."""
 
 from __future__ import print_function
 
+from numpy import asarray
+
 from ufl.log import warning, error
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv
 from ufl.utils.formatting import istr
@@ -354,10 +356,10 @@ def canonical_element_description(family, cell, order, form_degree):
             error('Order "%s" invalid for "%s" finite element, '
                   'should be None.' % (order, family))
         kmin, kmax = krange
-        if not (kmin is None or order >= kmin):
+        if not (kmin is None or (asarray(order) >= kmin).all()):
             error('Order "%s" invalid for "%s" finite element.' %
                   (order, family))
-        if not (kmax is None or order <= kmax):
+        if not (kmax is None or (asarray(order) <= kmax).all()):
             error('Order "%s" invalid for "%s" finite element.' %
                   (istr(order), family))
 

@@ -23,6 +23,7 @@ raw input form given by a user."""
 from itertools import chain
 
 from ufl.log import error, info
+from ufl.utils.sequences import max_degree
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -55,7 +56,7 @@ def _auto_select_degree(elements):
     """
     # Use max degree of all elements, at least 1 (to work with
     # Lagrange elements)
-    return max({e.degree() for e in elements} - {None} | {1})
+    return max_degree({e.degree() for e in elements} - {None} | {1})
 
 
 def _compute_element_mapping(form):
