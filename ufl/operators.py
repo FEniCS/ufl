@@ -29,7 +29,7 @@ from six.moves import xrange as range
 
 from ufl.log import error, warning
 from ufl.form import Form
-from ufl.constantvalue import Zero, ScalarValue, as_ufl
+from ufl.constantvalue import Zero, IntValue, FloatValue, ComplexValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
     Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
@@ -590,8 +590,10 @@ def Min(x, y):  # TODO: Deprecate this notation?
 def _mathfunction(f, cls):
     f = as_ufl(f)
     r = cls(f)
-    if isinstance(r, (ScalarValue, Zero, int, float)):
+    if isinstance(r, (IntValue, FloatValue, Zero, int, float)):
         return float(r)
+    if isinstance(r, (ComplexValue, complex)):
+        return complex(r)
     return r
 
 
@@ -660,8 +662,10 @@ def atan_2(f1, f2):
     f1 = as_ufl(f1)
     f2 = as_ufl(f2)
     r = Atan2(f1, f2)
-    if isinstance(r, (ScalarValue, Zero, int, float)):
+    if isinstance(r, (IntValue, FloatValue, Zero, int, float)):
         return float(r)
+    if isinstance(r, (ComplexValue, complex)):
+        return complex(r)
     return r
 
 
