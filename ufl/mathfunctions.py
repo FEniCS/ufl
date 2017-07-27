@@ -22,11 +22,12 @@
 # Modified by Kristian B. Oelgaard, 2011
 
 import math
+import cmath
 from ufl.utils.py23 import as_native_strings
 from ufl.log import warning, error
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
+from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, ComplexValue, as_ufl
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -82,8 +83,13 @@ class Sqrt(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
-            return FloatValue(math.sqrt(float(argument)))
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
+            if float(argument) < 0:
+                return ComplexValue(cmath.sqrt(complex(argument)))
+            else:
+                return FloatValue(math.sqrt(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.sqrt(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
