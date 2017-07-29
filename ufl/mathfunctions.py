@@ -278,13 +278,13 @@ class Atan2(Operator):
         if isinstance(arg1, (IntValue, FloatValue, Zero)) and isinstance(arg2, (IntValue, FloatValue, Zero)):
             return FloatValue(math.atan2(float(arg1), float(arg2)))
         if isinstance(arg1, (ComplexValue)) or isinstance(arg2, (ComplexValue)):
-            raise TypeError("Cannot use complex numbers with Atan2.")
+            raise TypeError("Complex numbers with Atan2 not yet supported.")
         return Operator.__new__(cls)
 
     def __init__(self, arg1, arg2):
         Operator.__init__(self, (arg1, arg2))
         if isinstance(arg1, (ComplexValue, complex)) or isinstance(arg2, (ComplexValue, complex)):
-            raise TypeError("Cannot use complex numbers with Atan2.")
+            raise TypeError("Complex numbers with Atan2 not yet supported.")
         if not is_true_ufl_scalar(arg1):
             error("Expecting scalar argument 1.")
         if not is_true_ufl_scalar(arg2):
@@ -296,7 +296,7 @@ class Atan2(Operator):
         try:
             res = math.atan2(a, b)
         except TypeError:
-            error('Cannot use complex numbers with Atan2')
+            error('Complex numbers with Atan2 not yet supported.')
         except ValueError:
             warning('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
             raise
