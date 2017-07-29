@@ -69,6 +69,8 @@ class MathFunction(Operator):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         try:
             res = getattr(math, self._name)(a)
+        except TypeError:
+            res = getattr(cmath, self._name)(a)
         except ValueError:
             warning('Value error in evaluation of function %s with argument %s.' % (self._name, a))
             raise
@@ -101,8 +103,10 @@ class Exp(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.exp(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.exp(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -114,8 +118,10 @@ class Ln(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.log(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.log(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -123,7 +129,10 @@ class Ln(MathFunction):
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
-        return math.log(a)
+        try:
+            return math.log(a)
+        except TypeError:
+            return cmath.log(a)
 
 
 @ufl_type()
@@ -131,8 +140,10 @@ class Cos(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.cos(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.cos(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -144,8 +155,10 @@ class Sin(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.sin(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.sin(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -157,8 +170,10 @@ class Tan(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.tan(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.tan(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -170,8 +185,10 @@ class Cosh(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.cosh(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.cosh(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -183,8 +200,10 @@ class Sinh(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.sinh(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.sinh(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -196,8 +215,10 @@ class Tanh(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.tanh(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.tanh(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -209,8 +230,10 @@ class Acos(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.acos(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.acos(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -222,8 +245,10 @@ class Asin(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.asin(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.asin(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -235,8 +260,10 @@ class Atan(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             return FloatValue(math.atan(float(argument)))
+        if isinstance(argument, (ComplexValue)):
+            return ComplexValue(cmath.atan(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -248,12 +275,16 @@ class Atan2(Operator):
     __slots__ = ()
 
     def __new__(cls, arg1, arg2):
-        if isinstance(arg1, (ScalarValue, Zero)) and isinstance(arg2, (ScalarValue, Zero)):
+        if isinstance(arg1, (IntValue, FloatValue, Zero)) and isinstance(arg2, (IntValue, FloatValue, Zero)):
             return FloatValue(math.atan2(float(arg1), float(arg2)))
+        if isinstance(arg1, (ComplexValue)) or isinstance(arg2, (ComplexValue)):
+            raise TypeError("Cannot use complex numbers with Atan2.")
         return Operator.__new__(cls)
 
     def __init__(self, arg1, arg2):
         Operator.__init__(self, (arg1, arg2))
+        if isinstance(arg1, (ComplexValue, complex)) or isinstance(arg2, (ComplexValue, complex)):
+            raise TypeError("Cannot use complex numbers with Atan2.")
         if not is_true_ufl_scalar(arg1):
             error("Expecting scalar argument 1.")
         if not is_true_ufl_scalar(arg2):
@@ -264,6 +295,8 @@ class Atan2(Operator):
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         try:
             res = math.atan2(a, b)
+        except TypeError:
+            error('Cannot use complex numbers with Atan2')
         except ValueError:
             warning('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
             raise
@@ -288,10 +321,14 @@ class Erf(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero)):
             erf = _find_erf()
             if erf is not None:
                 return FloatValue(erf(float(argument)))
+        if isinstance(argument, (ConstantValue)):
+            erf = _find_erf()
+            if erf is scipy.special.erf:
+                return ComplexValue(erf(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -302,7 +339,13 @@ class Erf(MathFunction):
         erf = _find_erf()
         if erf is None:
             error("No python implementation of erf available on this system, cannot evaluate. Upgrade python or install scipy.")
-        return erf(a)
+        try:
+            return erf(a)
+        except TypeError:
+            if erf is scipy.special.erf:
+                return erf(a)
+            else:
+                error("No complex-compatible python implementation of erf available on this system, cannot evaluate. Install scipy.")
 
 
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
