@@ -273,8 +273,8 @@ class ComplexValue(ScalarValue):
         return (self._value,)
 
     def __new__(cls, value):
-        if value.imag is 0.0:
-            if value.real is 0.0:
+        if value.imag == 0:
+            if value.real == 0:
                 return Zero()
             else:
                 return FloatValue.__new__(cls,value.real)
