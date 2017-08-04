@@ -25,7 +25,7 @@ from ufl.utils.py23 import as_native_strings
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator
-from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
+from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, FloatValue, ComplexValue, as_ufl
 from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.index_combination_utils import merge_unique_indices
 from ufl.sorting import sorted_expr
@@ -241,8 +241,10 @@ class Division(Operator):
             return a
         # Simplification "literal a / literal b" -> "literal value of
         # a/b". Avoiding integer division by casting to float
-        if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
+        if isinstance(a, (FloatValue, IntValue)) and isinstance(b, (IntValue, FloatValue)):
             return as_ufl(float(a._value) / float(b._value))
+        elif isinstance(a, ComplexValue) and isinstance(b, ComplexValue):
+            return as_ufl(complex(a._value) / complex(b._value))
         # Simplification "a / a" -> "1"
         # if not a.ufl_free_indices and not a.ufl_shape and a == b:
         #    return as_ufl(1)
@@ -265,7 +267,11 @@ class Division(Operator):
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
         # Avoiding integer division by casting to float
-        return float(a) / float(b)
+        try:
+            e = float(a) / float(b)
+        except TypeError:
+            e = complex(a) / complex(b)
+        return e
 
     def __str__(self):
         return "%s / %s" % (parstr(self.ufl_operands[0], self),
@@ -292,7 +298,7 @@ class Power(Operator):
         # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)
-        if isinstance(a, Zero) and isinstance(b, ScalarValue):
+        if isinstance(a, Zero) and isinstance(b, (IntValue, FloatValue)):
             bf = float(b)
             if bf < 0:
                 error("Division by zero, cannot raise 0 to a negative power.")
