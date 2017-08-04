@@ -99,11 +99,6 @@ class CheckComparisons(MultiFunction):
         	self.nodetype[o] = "bool"
         	return o
 
-    def conj(self, o, *ops):
-    	o = self.reuse_if_untouched(o, *ops)
-    	self.nodetype[o] = 'real'
-    	return o
-
     def real(self, o, *ops):
     	o = self.reuse_if_untouched(o, *ops)
     	self.nodetype[o] = 'real'
@@ -133,10 +128,9 @@ class CheckComparisons(MultiFunction):
     	# default terminals to complex, except the ones we *know* are real
     	if type(t) in {IntValue, FloatValue}:
     		self.nodetype[t] = 'real'
-    		return t
         else:
         	self.nodetype[t] = 'complex'
-        	return t
+        return t
 
 
 def do_comparison_check(expr):

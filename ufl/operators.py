@@ -153,7 +153,7 @@ def outer(*operands):
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
-        return a*b
+        return Conj(a)*b
     return Outer(a, b)
 
 
@@ -162,7 +162,7 @@ def inner(a, b):
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
-        return a*b
+        return a*Conj(b)
     return Inner(a, b)
 
 
@@ -180,7 +180,7 @@ def dot(a, b):
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
-        return a*b
+        return a*Conj(b)
     return Dot(a, b)
 
 
