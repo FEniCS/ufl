@@ -189,7 +189,7 @@ class FiniteElement(FiniteElementBase):
         if v is None:
             var_str = ""
         else:
-            var_str = ", variant=%s" % repr(qs)
+            var_str = ", variant=%s" % repr(v)
         self._repr = as_native_str("FiniteElement(%s, %s, %s%s%s)" % (
             repr(self.family()), repr(self.cell()), repr(self.degree()), quad_str, var_str))
         assert '"' not in self._repr
