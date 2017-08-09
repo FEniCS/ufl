@@ -23,7 +23,7 @@ from ufl.utils.py23 import as_native_strings
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import Zero
-from ufl.algebra import Operator
+from ufl.algebra import Operator, Conj
 from ufl.precedence import parstr
 from ufl.sorting import sorted_expr
 from ufl.index_combination_utils import merge_nonoverlapping_indices
@@ -133,7 +133,7 @@ class Outer(CompoundTensorOperator):
             fi, fid = merge_nonoverlapping_indices(a, b)
             return Zero(ash + bsh, fi, fid)
         if ash == () or bsh == ():
-            return a * b
+            return Conj(a) * b
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
@@ -169,7 +169,7 @@ class Inner(CompoundTensorOperator):
             fi, fid = merge_nonoverlapping_indices(a, b)
             return Zero((), fi, fid)
         elif ash == ():
-            return a*b
+            return a*Conj(b)
 
         return CompoundTensorOperator.__new__(cls)
 
@@ -218,7 +218,7 @@ class Dot(CompoundTensorOperator):
             fi, fid = merge_nonoverlapping_indices(a, b)
             return Zero(shape, fi, fid)
         elif scalar:  # TODO: Move this to def dot()?
-            return a * b
+            return a * Conj(b)
 
         return CompoundTensorOperator.__new__(cls)
 
