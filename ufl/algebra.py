@@ -297,7 +297,10 @@ class Power(Operator):
 
         # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
-            return as_ufl(a._value ** b._value)
+            if isinstance(a, (IntValue, FloatValue)) and a._value < 0:
+                return as_ufl(0 + (abs(a._value)**b._value)*1j)
+            else:
+                return as_ufl(a._value ** b._value)
         if isinstance(a, Zero) and isinstance(b, (IntValue, FloatValue)):
             bf = float(b)
             if bf < 0:
@@ -339,10 +342,22 @@ class Power(Operator):
 class Abs(Operator):
     __slots__ = ()
 
+    def __new__(cls, a):
+        a = as_ufl(a)
+
+        # Simplification
+        if isinstance(a, ScalarValue):
+            return as_ufl(abs(a._value))
+
+        self = Operator.__new__(cls)
+        self._init(a)
+        return self
+
+    def _init(self, a):
+        self.ufl_operands = (a,)
+
     def __init__(self, a):
         Operator.__init__(self, (a,))
-        if not isinstance(a, Expr):
-            error("Expecting Expr instance, not %s." % ufl_err_str(a))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -358,10 +373,22 @@ class Abs(Operator):
 class Conj(Operator):
     __slots__ = ()
 
+    def __new__(cls, a):
+        a = as_ufl(a)
+
+        # Simplification
+        if isinstance(a, ScalarValue):
+            return as_ufl(a._value.conjugate())
+
+        self = Operator.__new__(cls)
+        self._init(a)
+        return self
+
+    def _init(self, a):
+        self.ufl_operands = (a,)
+
     def __init__(self, a):
         Operator.__init__(self, (a,))
-        if not isinstance(a, Expr):
-            error("Expecting Expr instance, not %s." % ufl_err_str(a))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -377,10 +404,22 @@ class Conj(Operator):
 class Real(Operator):
     __slots__ = ()
 
+    def __new__(cls, a):
+        a = as_ufl(a)
+
+        # Simplification
+        if isinstance(a, ScalarValue):
+            return as_ufl(a.real())
+
+        self = Operator.__new__(cls)
+        self._init(a)
+        return self
+
+    def _init(self, a):
+        self.ufl_operands = (a,)
+
     def __init__(self, a):
         Operator.__init__(self, (a,))
-        if not isinstance(a, Expr):
-            error("Expecting Expr instance, not %s." % ufl_err_str(a))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -396,10 +435,22 @@ class Real(Operator):
 class Imag(Operator):
     __slots__ = ()
 
+    def __new__(cls, a):
+        a = as_ufl(a)
+
+        # Simplification
+        if isinstance(a, ScalarValue):
+            return as_ufl(a.imag())
+
+        self = Operator.__new__(cls)
+        self._init(a)
+        return self
+
+    def _init(self, a):
+        self.ufl_operands = (a,)
+
     def __init__(self, a):
         Operator.__init__(self, (a,))
-        if not isinstance(a, Expr):
-            error("Expecting Expr instance, not %s." % ufl_err_str(a))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)

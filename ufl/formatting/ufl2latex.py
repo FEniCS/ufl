@@ -33,7 +33,7 @@ from ufl.variable import Variable
 from ufl.core.multiindex import Index, FixedIndex
 from ufl.indexed import Indexed
 from ufl.tensors import ListTensor, ComponentTensor
-from ufl.algebra import Sum, Product, Division, Power, Abs, Conj
+from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2, Erf, BesselJ, BesselY, BesselI, BesselK

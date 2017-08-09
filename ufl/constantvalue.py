@@ -264,6 +264,12 @@ class ScalarValue(ConstantValue):
     def __abs__(self):
         return type(self)(abs(self._value))
 
+    def real(self):
+        return self._value.real
+
+    def imag(self):
+        return self._value.imag
+
 @ufl_type(wraps_type=complex, is_literal=True)
 class ComplexValue(ScalarValue):
     "UFL literal type: Representation of a constant, complex scalar"
@@ -283,12 +289,6 @@ class ComplexValue(ScalarValue):
 
     def __init__(self,value):
         ScalarValue.__init__(self,complex(value))
-
-    def real(self):
-        return self.value().real
-
-    def imag(self):
-        return self.value().imag
 
     def modulus(self):
         return sqrt(self.value().real**2 + self.value().imag**2)
