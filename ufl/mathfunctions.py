@@ -27,7 +27,7 @@ from ufl.utils.py23 import as_native_strings
 from ufl.log import warning, error
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, ComplexValue, as_ufl
+from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):

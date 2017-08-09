@@ -26,7 +26,7 @@ from ufl.corealg.traversal import traverse_unique_terminals
 
 def is_python_scalar(expression):
     "Return True iff expression is of a Python scalar type."
-    return isinstance(expression, (int, float))
+    return isinstance(expression, (int, float, complex))
 
 
 def is_ufl_scalar(expression):
