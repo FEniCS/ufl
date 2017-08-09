@@ -33,6 +33,7 @@ from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
+from ufl.classes import Conj, Real, Imag
 from ufl.classes import JacobianInverse
 from ufl.classes import SpatialCoordinate
 
@@ -47,6 +48,7 @@ from math import pi
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 
 from ufl.checks import is_cellwise_constant
 
@@ -295,6 +297,17 @@ class GenericDerivativeRuleset(MultiFunction):
         f, = o.ufl_operands
         # return conditional(eq(f, 0), 0, Product(sign(f), df))
         return sign(f) * df
+
+    # --- Complex algebra
+
+    def conj(self, o, df):
+        return Conj(df)
+
+    def real(self, o, df):
+        return Real(df)
+
+    def imag(self, o, df):
+        return Imag(df)
 
     # --- Mathfunctions
 
