@@ -30,10 +30,11 @@ class CheckComparisons(MultiFunction):
 
         types = [self.nodetype[op] for op in ops]
 
+
         if types:
             t = "complex" if "complex" in types else "real"
         else:
-            t = t or "complex"
+            t = "complex"
 
         o = self.reuse_if_untouched(o, *ops)
         self.nodetype[o] = t
@@ -124,13 +125,13 @@ class CheckComparisons(MultiFunction):
     	self.nodetype[o] = 'real'
     	return o
 
-    def terminal(self, t, *ops):
+    def terminal(self, term, *ops):
     	# default terminals to complex, except the ones we *know* are real
-    	if type(t) in {IntValue, FloatValue}:
-    		self.nodetype[t] = 'real'
+    	if type(term) in {IntValue, FloatValue}:
+    		self.nodetype[term] = 'real'
         else:
-        	self.nodetype[t] = 'complex'
-        return t
+        	self.nodetype[term] = 'complex'
+        return term
 
 
 def do_comparison_check(expr):

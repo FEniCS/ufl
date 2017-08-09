@@ -3,6 +3,8 @@
 from a form for when the user is in 'real mode'"""
 
 from ufl.corealg.multifunction import MultiFunction
+from ufl.constantvalue import ComplexValue, FloatValue
+from ufl.log import warning
 from ufl.algorithms.map_integrands import map_integrand_dags
 
 

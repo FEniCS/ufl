@@ -255,6 +255,12 @@ def compute_form_data(form,
     # compilers need to handle
     form = apply_algebra_lowering(form)
 
+    # After lowering to index notation, remove any complex nodes that
+    # have been introduced but are not wanted when working in real mode,
+    # allowing for purely real forms to be written
+    if not complex_mode:
+        form = remove_complex_nodes(form)
+
     # Apply differentiation before function pullbacks, because for
     # example coefficient derivatives are more complicated to derive
     # after coefficients are rewritten, and in particular for

@@ -264,6 +264,11 @@ class PartExtracter(Transformer):
     # Grad is a linear operator
     grad = linear_operator
 
+    # Conj, Real, Imag are linear operators
+    conj = linear_operator
+    real = linear_operator
+    imag = linear_operator
+
     def linear_indexed_type(self, x):
         """Return parts of expression belonging to this indexed
         expression."""
