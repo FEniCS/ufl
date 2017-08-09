@@ -5,6 +5,7 @@ Test tensor algebra operators.
 
 import pytest
 from ufl import *
+from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 
 
 @pytest.fixture(scope="module")
@@ -65,13 +66,13 @@ def test_inner(self, A, B, u, v):
 def test_pow2_inner(self, A, u):
     f = FacetNormal(triangle)[0]
     f2 = f*f
-    assert f2 == inner(f, f)
+    assert f2 == remove_complex_nodes(inner(f, f))
 
     u2 = u**2
-    assert u2 == inner(u, u)
+    assert u2 == remove_complex_nodes(inner(u, u))
 
     A2 = A**2
-    assert A2 == inner(A, A)
+    assert A2 == remove_complex_nodes(inner(A, A))
 
     # Only tensor**2 notation is supported:
     self.assertRaises(UFLException, lambda: A**3)

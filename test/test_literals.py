@@ -8,7 +8,7 @@ import pytest
 
 from ufl import *
 from ufl.classes import Indexed
-from ufl.constantvalue import Zero, FloatValue, IntValue, as_ufl
+from ufl.constantvalue import Zero, FloatValue, IntValue, ComplexValue, as_ufl
 
 
 def test_zero(self):
@@ -27,6 +27,7 @@ def test_zero(self):
     assert z1 == z1
     assert int(z1) == 0
     assert float(z1) == 0.0
+    assert complex(z1) == 0.0 + 0.0j
     self.assertNotEqual(z1, 1.0)
     self.assertFalse(z1)
 
@@ -65,6 +66,25 @@ def test_int(self):
     assert f1 == f4
     assert f1 == f5
     assert f2 == f6  # Division produces a FloatValue
+
+
+def test_complex(self):
+    f1 = as_ufl(1 + 1j)
+    f2 = as_ufl(1)
+    f3 = as_ufl(1j)
+    f4 = ComplexValue(1 + 1j)
+    f5 = ComplexValue(1.0 + 1.0j)
+    f6 = as_ufl(1.0)
+    f7 = as_ufl(1.0j)
+
+    assert f1 == f1
+    assert f1 == f4 
+    assert f1 == f5 # ComplexValue uses floats
+    assert f1 == f2 + f3 # Type promotion of IntValue to ComplexValue with arithmetic
+    assert f4 == f2 + f3
+    assert f5 == f2 + f3
+    assert f4 == f5
+    assert f6 + f7 == f2 + f3
 
 
 def test_scalar_sums(self):
