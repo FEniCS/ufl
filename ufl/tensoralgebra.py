@@ -177,7 +177,9 @@ class Inner(CompoundTensorOperator):
         # sort operands for unique representation,
         # must be independent of various counts etc.
         # as explained in cmp_expr
-        a, b = sorted_expr((a, b))
+
+        # commented out because we want to make sure the Conj goes on the second operator for sure!
+        # a, b = sorted_expr((a, b))
 
         CompoundTensorOperator.__init__(self, (a, b))
 
