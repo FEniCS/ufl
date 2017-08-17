@@ -344,6 +344,14 @@ class Expr(object):
             v = NotImplemented
         return v
 
+    def __complex__(self):
+        "Try to evaluate as scalar and cast to complex."
+        try:
+            v = complex(self._ufl_evaluate_scalar_())
+        except:
+            v = NotImplemented
+        return v
+
     def __bool__(self):
         "By default, all Expr are nonzero/False."
         return True
