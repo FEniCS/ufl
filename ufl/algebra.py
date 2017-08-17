@@ -346,6 +346,8 @@ class Abs(Operator):
         a = as_ufl(a)
 
         # Simplification
+        if isinstance(a, Zero):
+            return a
         if isinstance(a, ScalarValue):
             return as_ufl(abs(a._value))
 
@@ -377,6 +379,8 @@ class Conj(Operator):
         a = as_ufl(a)
 
         # Simplification
+        if isinstance(a, Zero):
+            return a
         if isinstance(a, ScalarValue):
             return as_ufl(a._value.conjugate())
 
@@ -408,6 +412,8 @@ class Real(Operator):
         a = as_ufl(a)
 
         # Simplification
+        if isinstance(a, Zero):
+            return a
         if isinstance(a, ScalarValue):
             return as_ufl(a.real())
 
@@ -439,6 +445,8 @@ class Imag(Operator):
         a = as_ufl(a)
 
         # Simplification
+        if isinstance(a, Zero):
+            return a
         if isinstance(a, ScalarValue):
             return as_ufl(a.imag())
 
