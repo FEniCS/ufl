@@ -49,7 +49,6 @@ from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.checks import is_cellwise_constant
 from ufl.domain import extract_domains
 
-
 # --- Basic operators ---
 
 def rank(f):
