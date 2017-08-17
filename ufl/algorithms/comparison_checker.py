@@ -5,7 +5,7 @@ in a form when the user is in 'complex mode'"""
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algebra import Real
-from ufl.constantvalue import IntValue, FloatValue
+from ufl.constantvalue import IntValue, FloatValue, Zero
 
 class CheckComparisons(MultiFunction):
     """Raises an error if comparisons are done with complex quantities.
@@ -127,7 +127,7 @@ class CheckComparisons(MultiFunction):
 
     def terminal(self, term, *ops):
     	# default terminals to complex, except the ones we *know* are real
-    	if type(term) in {IntValue, FloatValue}:
+    	if type(term) in {IntValue, FloatValue, Zero}:
     		self.nodetype[term] = 'real'
         else:
         	self.nodetype[term] = 'complex'
@@ -135,7 +135,7 @@ class CheckComparisons(MultiFunction):
 
 
 def do_comparison_check(expr):
-    """Raises an error if comparison nodes exist"""
+    """Raises an error if invalid comparison nodes exist"""
     return map_integrand_dags(CheckComparisons(), expr)
 
 
