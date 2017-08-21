@@ -25,7 +25,6 @@ from ufl.tensors import as_vector
 from ufl.argument import Argument
 from ufl.functionspace import FunctionSpace, FunctionSpaceProduct
 
-
 class FormSplitter(MultiFunction):
 
     def split(self, form, ix, iy=0):
@@ -88,3 +87,43 @@ class FormSplitterProduct(MultiFunction):
         return obj
 
     expr = MultiFunction.reuse_if_untouched
+
+
+def extract_blocks(form, i=None, j=None):
+    fs = FormSplitterProduct()
+    arguments = form.arguments()
+    forms = []
+
+    numbers = tuple(sorted(set(a.number() for a in arguments)))
+    parts = tuple(sorted(set(a.part() for a in arguments)))
+    linear = (len(numbers) == 1)
+    bilinear = (len(numbers) == 2)
+
+    for pi in parts:
+        if bilinear:
+            for pj in parts:
+                f = fs.split(form, pi, pj)
+                if(f.empty()):
+                    forms.append(None)
+                else:
+                    forms.append(f)
+        elif linear:
+            f = fs.split(form, pi)
+            if(f.empty()):
+                forms.append(None)
+            else:
+                forms.append(f)
+
+    try:
+        forms_tuple = tuple(forms)
+    except TypeError:
+        # Only one form returned
+        forms_tuple = (forms, )
+
+    if i is not None:
+        if bilinear and j is not None:
+            return forms_tuple[i*len(parts) + j]
+        else:
+            return forms_tuple[i]
+    else:
+        return forms_tuple
