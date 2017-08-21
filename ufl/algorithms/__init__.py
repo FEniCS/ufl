@@ -43,6 +43,7 @@ __all__ = as_native_strings([
     "extract_type",
     "extract_elements",
     "extract_sub_elements",
+    "extract_blocks",
     "preprocess_expression",
     "expand_indices",
     "replace",
