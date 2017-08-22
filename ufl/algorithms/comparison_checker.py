@@ -28,7 +28,7 @@ class CheckComparisons(MultiFunction):
         Rebuilds objects if necessary.
         """
 
-        types = [self.nodetype[op] for op in ops]
+        types = {self.nodetype[op] for op in ops}
 
 
         if types:
@@ -41,7 +41,7 @@ class CheckComparisons(MultiFunction):
         return o
 
     def gt(self, o, *ops):
-        types = [self.nodetype[op] for op in ops]
+        types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with gt.")
@@ -51,7 +51,7 @@ class CheckComparisons(MultiFunction):
         	return o
 
     def lt(self, o, *ops):
-        types = [self.nodetype[op] for op in ops]
+        types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with lt.")
@@ -61,7 +61,7 @@ class CheckComparisons(MultiFunction):
         	return o
 
     def ge(self, o, *ops):
-        types = [self.nodetype[op] for op in ops]
+        types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with ge.")
@@ -71,7 +71,7 @@ class CheckComparisons(MultiFunction):
         	return o
 
     def le(self, o, *ops):
-        types = [self.nodetype[op] for op in ops]
+        types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with le.")
@@ -80,8 +80,8 @@ class CheckComparisons(MultiFunction):
         	self.nodetype[o] = "bool"
         	return o
 
-    def max(self, o, *ops):
-        types = [self.nodetype[op] for op in ops]
+    def max_value(self, o, *ops):
+        types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with max.")
@@ -90,8 +90,8 @@ class CheckComparisons(MultiFunction):
         	self.nodetype[o] = "bool"
         	return o
 
-    def min(self, o, *ops):
-        types = [self.nodetype[op] for op in ops]
+    def min_value(self, o, *ops):
+        types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
             raise ComplexComparisonError("You can't compare complex numbers with min.")
