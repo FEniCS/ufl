@@ -1,6 +1,8 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 import pytest
+import cmath
+import ufl
 from ufl import *
 from ufl.constantvalue import Zero, ComplexValue, FloatValue
 from ufl.algebra import Conj, Real, Imag
@@ -9,6 +11,7 @@ from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.optimise_complex_nodes import optimise_complex_nodes
 from ufl.algorithms import estimate_total_polynomial_degree
 from ufl.algorithms.comparison_checker import do_comparison_check, ComplexComparisonError
+from ufl.algorithms.formtransformations import compute_form_adjoint
 
 
 def test_conj(self):
@@ -39,6 +42,31 @@ def test_imag(self):
 	assert Imag(z2) == z1
 	assert Imag(z3) == z1
 	assert Imag(z1) == z0
+
+
+def test_compute_form_adjoint(self):
+	cell = triangle
+	element = FiniteElement('Lagrange', cell, 1)
+
+	u = TrialFunction(element)
+	v = TestFunction(element)
+
+	a = inner(grad(u), grad(v))*dx
+
+	assert compute_form_adjoint(a) == conj(inner(grad(v), grad(u)))*dx
+
+
+def test_complex_algebra(self):
+	z1 = ComplexValue(1j)
+	z2 = ComplexValue(1+1j)
+
+	# Remember that ufl.algebra functions return ComplexValues, but ufl.mathfunctions return complex Python scalar
+	assert z1*z2 == ComplexValue(-1+1j)
+	assert z2/z1 == ComplexValue(1-1j)
+	assert pow(z2, z1) == ComplexValue((1+1j)**1j)
+	assert sqrt(z2)*as_ufl(1) == ComplexValue(cmath.sqrt(1+1j))
+	assert ((sin(z2) + cosh(z2) - atan(z2))*z1) == ComplexValue((cmath.sin(1+1j) + cmath.cosh(1+1j) - cmath.atan(1+1j))*1j)
+	assert (abs(z2) - ln(z2))/exp(z1) == ComplexValue((abs(1+1j) - cmath.log(1+1j))/cmath.exp(1j))
 
 
 def test_automatic_simplification(self):
