@@ -6,8 +6,9 @@ from ufl.constantvalue import Zero, ComplexValue, FloatValue
 from ufl.algebra import Conj, Real, Imag
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.algorithms.optimise_complex_nodes import optimise_complex_nodes
 from ufl.algorithms import estimate_total_polynomial_degree
-# from ufl.algorithms.comparison_checker import do_comparison_check
+from ufl.algorithms.comparison_checker import do_comparison_check, ComplexComparisonError
 
 
 def test_conj(self):
@@ -40,6 +41,18 @@ def test_imag(self):
 	assert Imag(z1) == z0
 
 
+def test_automatic_simplification(self):
+	cell = triangle
+	element = FiniteElement("Lagrange", cell, 1)
+
+	v = TestFunction(element)
+	u = TrialFunction(element)
+
+	assert inner(u, v) == u*conj(v)
+	assert dot(u, v) == u*conj(v)
+	assert outer(u, v) == conj(u)*v
+
+
 def test_apply_algebra_lowering_complex(self):
 	cell = triangle
 	element = FiniteElement("Lagrange", cell, 1)
@@ -47,13 +60,27 @@ def test_apply_algebra_lowering_complex(self):
 	v = TestFunction(element)
 	u = TrialFunction(element)
 
-	a = dot(u, v)
-	b = inner(u, v)
-	c = outer(u, v)
+	gv = grad(v)
+	gu = grad(u)
+	gush = gu.ufl_shape
+	gvsh = gv.ufl_shape
+	guinds = indices(len(gush))
+	gvinds = indices(len(gvsh))
 
-	assert apply_algebra_lowering(a) == u*conj(v)
-	assert apply_algebra_lowering(b) == u*conj(v)
-	assert apply_algebra_lowering(c) == v*conj(u)
+	a = dot(gu, gv)
+	b = inner(gu, gv)
+	c = outer(gu, gv)
+
+	lowered_a = apply_algebra_lowering(a)
+	lowered_b = apply_algebra_lowering(b)
+	lowered_c = apply_algebra_lowering(c)
+	lowered_a_index = lowered_a.index()
+	lowered_b_index = lowered_b.index()
+	lowered_c_indices = lowered_c.indices()
+
+	assert lowered_a == gu[lowered_a_index]*conj(gv[lowered_a_index])
+	assert lowered_b == gu[lowered_b_index]*conj(gv[lowered_b_index])
+	assert lowered_c == as_tensor(conj(gu[lowered_c_indices[0]])*gv[lowered_c_indices[1]], (lowered_c_indices[0],)+(lowered_c_indices[1],))
 
 
 def test_remove_complex_nodes(self):
@@ -75,18 +102,70 @@ def test_remove_complex_nodes(self):
 	assert remove_complex_nodes(d) == u*v
 
 
-# def test_comparison_checker(self):
-# 	cell = triangle
-# 	element = FiniteElement("Lagrange", cell, 1)
+def test_optimise_complex_nodes(self):
+	cell = triangle
+	element = FiniteElement("Lagrange", cell, 1)
 
-# 	u = TrialFunction(element)
-# 	v = TestFunction(element)
+	u = TrialFunction(element)
 
-# 	a = conditional(ge(cc,cc),cc*dot(grad(v),grad(u)),dot(grad(v),grad(u)))
+	a = conj(conj(u))
+	b = conj(as_ufl(0))
+	c = abs(conj(u))
+	d = abs(as_ufl(0))
+	e = conj(abs(u))
+	f = conj(real(u))
+	g = conj(imag(u))
+	h = abs(abs(u))
+	i = real(real(u))
+	j = real(conj(u))
+	k = imag(imag(u))
+	l = imag(real(u))
+	m = imag(abs(u))
+	n = imag(as_ufl(0))
+	o = real(as_ufl(0))
 
-# 	assert do_comparison_check(a)
-	
-# def test_complex_arities(self):
+	assert optimise_complex_nodes(a) == u
+	assert optimise_complex_nodes(b) == 0
+	assert optimise_complex_nodes(c) == abs(u)
+	assert optimise_complex_nodes(d) == 0
+	assert optimise_complex_nodes(e) == abs(u)
+	assert optimise_complex_nodes(f) == real(u)
+	assert optimise_complex_nodes(g) == imag(u)
+	assert optimise_complex_nodes(h) == abs(u)
+	assert optimise_complex_nodes(i) == real(u)
+	assert optimise_complex_nodes(j) == real(u)
+	assert optimise_complex_nodes(k) == 0
+	assert optimise_complex_nodes(l) == 0
+	assert optimise_complex_nodes(m) == 0
+	assert optimise_complex_nodes(n) == 0
+	assert optimise_complex_nodes(o) == 0
+
+
+def test_comparison_checker(self):
+	cell = triangle
+	element = FiniteElement("Lagrange", cell, 1)
+
+	u = TrialFunction(element)
+	v = TestFunction(element)
+
+	a = conditional(ge(abs(u), imag(v)), u, v)
+	b = conditional(le(sqrt(abs(u)), imag(v)), as_ufl(1), as_ufl(1j))
+	c = conditional(gt(abs(u), pow(imag(v), 2)), sin(u), cos(v))
+	d = conditional(lt(as_ufl(-1), as_ufl(1)), u, v)
+	e = max_value(as_ufl(0), real(u))
+	f = min_value(sin(u), cos(v))
+	g = min_value(sin(imag(u)), cos(abs(v)))
+
+	assert do_comparison_check(a) == conditional(ge(real(abs(u)), real(imag(v))), u, v)
+	with pytest.raises(ComplexComparisonError):
+		b = do_comparison_check(b)
+	with pytest.raises(ComplexComparisonError):
+		c = do_comparison_check(c)
+	assert do_comparison_check(d) == conditional(lt(real(as_ufl(-1)), real(as_ufl(1))), u, v)
+	assert do_comparison_check(e) == max_value(real(as_ufl(0)), real(real(u)))
+	with pytest.raises(ComplexComparisonError):
+		f = do_comparison_check(f)
+	assert do_comparison_check(g) == min_value(real(sin(imag(u))), real(cos(abs(v))))
 
 
 def test_complex_degree_handling(self):
@@ -99,12 +178,6 @@ def test_complex_degree_handling(self):
 	b = imag(v)
 	c = real(v)
 
-	# complex operators don't change the degree of a polynomial
 	assert estimate_total_polynomial_degree(a) == 3
 	assert estimate_total_polynomial_degree(b) == 3
 	assert estimate_total_polynomial_degree(c) == 3
-
-
-# def test_complex_differentiation_rules(self):
-
-
