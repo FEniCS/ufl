@@ -85,12 +85,12 @@ class Sqrt(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (IntValue, FloatValue, Zero, int, float)):
             if float(argument) < 0:
                 return ComplexValue(cmath.sqrt(complex(argument)))
             else:
                 return FloatValue(math.sqrt(float(argument)))
-        if isinstance(argument, (ComplexValue)):
+        if isinstance(argument, (ComplexValue, complex)):
             return ComplexValue(cmath.sqrt(complex(argument)))
         return MathFunction.__new__(cls)
 
@@ -278,13 +278,13 @@ class Atan2(Operator):
         if isinstance(arg1, (IntValue, FloatValue, Zero)) and isinstance(arg2, (IntValue, FloatValue, Zero)):
             return FloatValue(math.atan2(float(arg1), float(arg2)))
         if isinstance(arg1, (ComplexValue)) or isinstance(arg2, (ComplexValue)):
-            raise TypeError("Complex numbers with Atan2 not supported.")
+            raise TypeError("Atan2 does not support complex numbers.")
         return Operator.__new__(cls)
 
     def __init__(self, arg1, arg2):
         Operator.__init__(self, (arg1, arg2))
         if isinstance(arg1, (ComplexValue, complex)) or isinstance(arg2, (ComplexValue, complex)):
-            raise TypeError("Complex numbers with Atan2 not supported.")
+            raise TypeError("Atan2 does not support complex numbers.")
         if not is_true_ufl_scalar(arg1):
             error("Expecting scalar argument 1.")
         if not is_true_ufl_scalar(arg2):
@@ -296,7 +296,7 @@ class Atan2(Operator):
         try:
             res = math.atan2(a, b)
         except TypeError:
-            error('Complex numbers with Atan2 not supported.')
+            error('Atan2 does not support complex numbers.')
         except ValueError:
             warning('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
             raise
