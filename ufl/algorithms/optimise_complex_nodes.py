@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Algorithm for removing unnecessary complex node combinations."""
+"""Algorithm for removing superfluous complex node combinations."""
 
 from ufl.corealg.multifunction import MultiFunction
 from ufl.constantvalue import Zero
@@ -8,7 +8,7 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 
 
 class ComplexNodeOptimisation(MultiFunction):
-    """Removes unecessary complex node combinations."""
+    """Removes superfluous complex node combinations."""
     def __init__(self):
         MultiFunction.__init__(self)
 
@@ -47,5 +47,5 @@ class ComplexNodeOptimisation(MultiFunction):
 
 
 def optimise_complex_nodes(expr):
-    """Removes unnecessary complex node combinations."""
+    """Removes superfluous complex node combinations."""
     return map_integrand_dags(ComplexNodeOptimisation(), expr)
