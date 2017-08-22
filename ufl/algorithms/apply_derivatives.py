@@ -48,7 +48,6 @@ from math import pi
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 
 from ufl.checks import is_cellwise_constant
 
