@@ -44,7 +44,7 @@ from ufl.algorithms import compute_form_adjoint, compute_form_action
 from ufl.algorithms import compute_energy_norm
 from ufl.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
 from ufl.algorithms import expand_derivatives, extract_arguments
-from ufl.algorithms import FormSplitter, FormSplitterProduct
+from ufl.algorithms.formsplitter import fs_block_split, fs_extract_blocks
 
 # Part of the external interface
 from ufl.algorithms import replace  # noqa
@@ -60,8 +60,15 @@ def block_split(form, ix, iy=0):
        a = inner(grad(u), grad(v))*dx + div(u)*q*dx + div(v)*p*dx
        a = block_split(a, 0, 0) -> inner(grad(u), grad(v))*dx
     """
-    fs = FormSplitter()
-    return fs.split(form, ix, iy)
+    return fs_block_split(form, ix, iy)
+
+def extract_blocks(form, i=None, j=None):
+    """UFL form operator:
+    Given a linear or bilinear form on a product
+    of function spaces, extract block(i,j)
+    """
+    return fs_extract_blocks(form, i, j)
+
 
 def lhs(form):
     """UFL form operator:
