@@ -403,15 +403,13 @@ def compute_form_data(form,
     # faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
     check_form_arity(preprocessed_form, self.original_form.arguments())  # Currently testing how fast this is
-
-    # Removes nodes related to complex operations (Conj, Real, Imag) if the user is not
-    # working in complex_mode. This allows for purely real forms to be written.
-    if not complex_mode:
-        preprocessed_form = remove_complex_nodes(preprocessed_form)
     
-    # Optimises complex nodes by removing e.g. Conj(Conj(...))
+    # Optimises complex nodes by removing e.g. Conj(Conj(...)) if in complex mode
+    # Otherwise removes complex nodes entirely.
     if complex_mode:
         preprocessed_form = optimise_complex_nodes(preprocessed_form)
+    else:
+        preprocessed_form = remove_complex_nodes(preprocessed_form)
 
     # TODO: This member is used by unit tests, change the tests to
     # remove this!
