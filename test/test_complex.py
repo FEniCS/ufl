@@ -61,6 +61,7 @@ def test_complex_algebra(self):
 	z2 = ComplexValue(1+1j)
 
 	# Remember that ufl.algebra functions return ComplexValues, but ufl.mathfunctions return complex Python scalar
+	# Any operations with a ComplexValue and a complex Python scalar promote to ComplexValue
 	assert z1*z2 == ComplexValue(-1+1j)
 	assert z2/z1 == ComplexValue(1-1j)
 	assert pow(z2, z1) == ComplexValue((1+1j)**1j)
@@ -178,11 +179,11 @@ def test_comparison_checker(self):
 
 	a = conditional(ge(abs(u), imag(v)), u, v)
 	b = conditional(le(sqrt(abs(u)), imag(v)), as_ufl(1), as_ufl(1j))
-	c = conditional(gt(abs(u), pow(imag(v), 2)), sin(u), cos(v))
+	c = conditional(gt(abs(u), pow(imag(v), 0.5)), sin(u), cos(v))
 	d = conditional(lt(as_ufl(-1), as_ufl(1)), u, v)
 	e = max_value(as_ufl(0), real(u))
 	f = min_value(sin(u), cos(v))
-	g = min_value(sin(imag(u)), cos(abs(v)))
+	g = min_value(sin(pow(u, 3)), cos(abs(v)))
 
 	assert do_comparison_check(a) == conditional(ge(real(abs(u)), real(imag(v))), u, v)
 	with pytest.raises(ComplexComparisonError):
@@ -191,9 +192,8 @@ def test_comparison_checker(self):
 		c = do_comparison_check(c)
 	assert do_comparison_check(d) == conditional(lt(real(as_ufl(-1)), real(as_ufl(1))), u, v)
 	assert do_comparison_check(e) == max_value(real(as_ufl(0)), real(real(u)))
-	with pytest.raises(ComplexComparisonError):
-		f = do_comparison_check(f)
-	assert do_comparison_check(g) == min_value(real(sin(imag(u))), real(cos(abs(v))))
+	assert do_comparison_check(f) == min_value(real(sin(u)), real(cos(v)))
+	assert do_comparison_check(g) == min_value(real(sin(pow(u, 3))), real(cos(abs(v))))
 
 
 def test_complex_degree_handling(self):
