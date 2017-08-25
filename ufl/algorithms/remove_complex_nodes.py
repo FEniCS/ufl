@@ -5,6 +5,7 @@ from a form for when the user is in 'real mode'"""
 from ufl.corealg.multifunction import MultiFunction
 from ufl.constantvalue import ComplexValue, FloatValue
 from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.log import error
 
 
 class ComplexNodeRemoval(MultiFunction):
@@ -22,6 +23,12 @@ class ComplexNodeRemoval(MultiFunction):
 
     def imag(self, o, a):
         return a
+
+    def terminal(self, t, *ops):
+        if isinstance(t, ComplexValue):
+            error('Cannot cast ComplexValues to FloatValues!')
+        else:
+            return t
 
 
 def remove_complex_nodes(expr):
