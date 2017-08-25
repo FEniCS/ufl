@@ -288,7 +288,7 @@ class ComplexValue(ScalarValue):
             return ConstantValue.__new__(cls,value)
 
     def __init__(self,value):
-        ScalarValue.__init__(self,complex(value))
+        ScalarValue.__init__(self, complex(value))
 
     def modulus(self):
         return sqrt(self.value().real**2 + self.value().imag**2)
