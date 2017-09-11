@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
+from six import unichr
 
 import numbers
 
@@ -179,9 +180,9 @@ class UC:
 
 def bolden_letter(c):
     if ord("A") <= ord(c) <= ord("Z"):
-        c = chr(ord(c) - ord(u"A") + ord(UC.bold_math_A))
+        c = unichr(ord(c) - ord(u"A") + ord(UC.bold_math_A))
     elif ord("a") <= ord(c) <= ord("z"):
-        c = chr(ord(c) - ord(u"a") + ord(UC.bold_math_a))
+        c = unichr(ord(c) - ord(u"a") + ord(UC.bold_math_a))
     return c
 
 
