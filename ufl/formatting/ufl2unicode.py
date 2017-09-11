@@ -5,9 +5,12 @@ from __future__ import unicode_literals
 import numbers
 
 import ufl
+from ufl.log import error
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.core.multiindex import Index, FixedIndex
+from ufl.form import Form
+from ufl.algorithms import compute_form_data
 
 
 class PrecedenceRules(MultiFunction):
@@ -52,7 +55,7 @@ class PrecedenceRules(MultiFunction):
     def product(self, o):
         return 30
     division = product
-    #mod = product
+    # mod = product
     dot = product
     inner = product
     outer = product
@@ -60,7 +63,7 @@ class PrecedenceRules(MultiFunction):
 
     def add(self, o):
         return 40
-    #sub = add
+    # sub = add
     index_sum = add
 
     def lt(self, o):
@@ -75,8 +78,10 @@ class PrecedenceRules(MultiFunction):
 
     def and_condition(self, o):
         return 70
+
     def or_condition(self, o):
         return 71
+
     def conditional(self, o):
         return 72
 
@@ -86,6 +91,8 @@ class PrecedenceRules(MultiFunction):
 
 
 _precrules = PrecedenceRules()
+
+
 def precedence(expr):
     return _precrules(expr)
 
@@ -111,14 +118,14 @@ class UC:
     superscript_equals = u'⁼'
     superscript_left_paren = u'⁽'
     superscript_right_paren = u'⁾'
-    superscript_digits = ["⁰","¹","²","³","⁴","⁵","⁶","⁷","⁸","⁹"]
+    superscript_digits = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]
 
     subscript_plus = u'₊'
     subscript_minus = u'₋'
     subscript_equals = u'₌'
     subscript_left_paren = u'₍'
     subscript_right_paren = u'₎'
-    subscript_digits = ["₀","₁","₂","₃","₄","₅","₆","₇","₈","₉"]
+    subscript_digits = ["₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉"]
 
     sqrt = u'√'
     transpose = u'ᵀ'
@@ -181,6 +188,7 @@ def bolden_letter(c):
 def superscript_digit(digit):
     return UC.superscript_digits[ord(digit) - ord("0")]
 
+
 def subscript_digit(digit):
     return UC.subscript_digits[ord(digit) - ord("0")]
 
@@ -219,43 +227,43 @@ integral_by_dim = {
     3: UC.integral_triple,
     2: UC.integral_double,
     1: UC.integral,
-    }
+}
 
 integral_type_to_codim = {
     "cell": 0,
     "exterior_facet": 1,
     "interior_facet": 1,
-    "vertex":    "tdim",
-    "point":     "tdim",
-    "custom":    0,
-    "overlap":   0,
+    "vertex": "tdim",
+    "point": "tdim",
+    "custom": 0,
+    "overlap": 0,
     "interface": 1,
-    "cutcell":   0,
-    }
+    "cutcell": 0,
+}
 
 integral_symbols = {
     "cell": UC.integral_volume,
     "exterior_facet": UC.integral_surface,
     "interior_facet": UC.integral_surface,
-    "vertex":    UC.integral,
-    "point":     UC.integral,
-    "custom":    UC.integral,
-    "overlap":   UC.integral,
+    "vertex": UC.integral,
+    "point": UC.integral,
+    "custom": UC.integral,
+    "overlap": UC.integral,
     "interface": UC.integral,
-    "cutcell":   UC.integral,
-    }
+    "cutcell": UC.integral,
+}
 
 integral_postfixes = {
     "cell": "",
     "exterior_facet": "ext",
     "interior_facet": "int",
-    "vertex":    "vertex",
-    "point":     "point",
-    "custom":    "custom",
-    "overlap":   "overlap",
+    "vertex": "vertex",
+    "point": "point",
+    "custom": "custom",
+    "overlap": "overlap",
     "interface": "interface",
-    "cutcell":   "cutcell",
-    }
+    "cutcell": "cutcell",
+}
 
 
 def get_integral_symbol(integral_type, domain, subdomain_id):
@@ -263,7 +271,7 @@ def get_integral_symbol(integral_type, domain, subdomain_id):
     codim = integral_type_to_codim[integral_type]
     itgdim = tdim - codim
 
-    ipost = integral_postfixes[integral_type]
+    # ipost = integral_postfixes[integral_type]
     istr = integral_by_dim[itgdim]
 
     # TODO: Render domain description
@@ -286,9 +294,10 @@ def get_integral_symbol(integral_type, domain, subdomain_id):
 def par(s):
     return "(%s)" % s
 
+
 def prec(expr):
     return 0  # FIXME
-    #return precedence[expr._ufl_class_]
+    # return precedence[expr._ufl_class_]
 
 
 def is_int(s):
@@ -325,7 +334,7 @@ def expression2unicode(expression, argument_names=None, coefficient_names=None):
 
 
 def form2unicode(form, formdata):
-    #formname = formdata.name
+    # formname = formdata.name
     argument_names = None
     coefficient_names = None
 
@@ -392,12 +401,12 @@ class Expression2UnicodeHandler(MultiFunction):
 
     def identity(self, o):
         if self.colorama_bold:
-            return "%sI%s"  % (colorama.Style.BRIGHT, colorama.Style.RESET_ALL)
+            return "%sI%s" % (colorama.Style.BRIGHT, colorama.Style.RESET_ALL)
         return "I"
 
     def permutation_symbol(self, o):
         if self.colorama_bold:
-             return "%s%s%s" % (colorama.Style.BRIGHT, UC.epsilon, colorama.Style.RESET_ALL)
+            return "%s%s%s" % (colorama.Style.BRIGHT, UC.epsilon, colorama.Style.RESET_ALL)
         return UC.epsilon
 
     def facet_normal(self, o):
