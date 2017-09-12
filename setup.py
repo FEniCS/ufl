@@ -57,7 +57,7 @@ Topic :: Scientific/Engineering :: Mathematics
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-setup(name="UFL",
+setup(name="FEniCS-UFL",
       version=version,
       description="Unified Form Language",
       author="Martin Sandve Alnæs, Anders Logg",
