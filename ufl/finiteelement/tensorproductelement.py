@@ -28,6 +28,7 @@ from itertools import chain
 from ufl.log import error
 from ufl.utils.py23 import as_native_strings
 from ufl.cell import TensorProductCell, as_cell
+from ufl.sobolevspace import DirectionalSobolevSpace
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
@@ -90,6 +91,22 @@ class TensorProductElement(FiniteElementBase):
         else:
             return "undefined"
 
+    def sobolev_space(self):
+        "Return the underlying Sobolev space of the TensorProductElement."
+        elements = self._sub_elements
+        if all(e.sobolev_space() == elements[0].sobolev_space()
+               for e in elements):
+            return elements[0].sobolev_space()
+        else:
+            # Generate a DirectionalSobolevSpace which contains
+            # continuity information parametrized by spatial index
+            orders = []
+            for e in elements:
+                e_dim = e.cell().geometric_dimension()
+                e_order = (e.sobolev_space()._order,) * e_dim
+                orders.extend(e_order)
+            return DirectionalSobolevSpace(orders)
+
     def num_sub_elements(self):
         "Return number of subelements."
         return len(self._sub_elements)
@@ -97,6 +114,9 @@ class TensorProductElement(FiniteElementBase):
     def sub_elements(self):
         "Return subelements (factors)."
         return self._sub_elements
+
+    def reconstruct(self, cell=None):
+        return TensorProductElement(*self.sub_elements(), cell=cell)
 
     def __str__(self):
         "Pretty-print."

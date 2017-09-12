@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014 Andrew T. T. McRae
+# Copyright (C) 2017 Miklós Homolya
 #
 # This file is part of UFL.
 #
@@ -15,37 +15,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# Modified by Massimiliano Leoni, 2016
 
-# import six
-from ufl.utils.py23 import as_native_str
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.finiteelement.restrictedelement import RestrictedElement
+from ufl.log import deprecate
 
 
-# @six.python_2_unicode_compatible
-class InteriorElement(FiniteElementBase):
-    """A version of an existing Finite Element space in which only the dofs
-    associated with the interior have been kept."""
-    def __init__(self, element):
-        self._element = element
-        self._repr = as_native_str("InteriorElement(%s)" % repr(element))
-
-        family = "InteriorElement"
-        cell = element.cell()
-        degree = element.degree()
-        quad_scheme = element.quadrature_scheme()
-        value_shape = element.value_shape()
-        reference_value_shape = element.reference_value_shape()
-        FiniteElementBase.__init__(self, family, cell, degree,
-                                   quad_scheme, value_shape, reference_value_shape)
-
-    def mapping(self):
-        return self._element.mapping()
-
-    def __str__(self):
-        return "InteriorElement(%s)" % str(self._element)
-
-    def shortstr(self):
-        "Format as string for pretty printing."
-        return "InteriorElement(%s)" % str(self._element.shortstr())
+def InteriorElement(element):
+    """Constructs the restriction of a finite element to the interior of
+    the cell."""
+    deprecate('InteriorElement(element) is deprecated, please use element["interior"] instead.')
+    return RestrictedElement(element, restriction_domain="interior")

@@ -42,6 +42,9 @@ class BrokenElement(FiniteElementBase):
     def mapping(self):
         return self._element.mapping()
 
+    def reconstruct(self, **kwargs):
+        return BrokenElement(self._element.reconstruct(**kwargs))
+
     def __str__(self):
         return "BrokenElement(%s)" % str(self._element)
 

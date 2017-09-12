@@ -83,6 +83,7 @@ def show_elements():
         print("Defined on cellnames: %s" % (cellnames,))
         print()
 
+
 # FIXME: Consider cleanup of element names. Use notation from periodic
 # table as the main, keep old names as compatibility aliases.
 

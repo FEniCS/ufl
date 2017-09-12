@@ -3,10 +3,8 @@ from __future__ import print_function
 
 from setuptools import setup
 from os.path import join, split
-import re
 import sys
 import platform
-import codecs
 
 module_name = "ufl"
 
@@ -14,10 +12,7 @@ if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")
     sys.exit(1)
 
-# __init__.py has UTF-8 characters. Works in Python 2 and 3.
-version = re.findall('__version__ = "(.*)"',
-                     codecs.open(join(module_name, '__init__.py'), 'r',
-                                 encoding='utf-8').read())[0]
+version = "2017.1.0"
 
 url = "https://bitbucket.org/fenics-project/%s/" % module_name
 tarball = None

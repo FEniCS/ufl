@@ -30,8 +30,8 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 # @six.python_2_unicode_compatible
-class EnrichedElement(FiniteElementBase):
-    """The vector sum of two finite element spaces:
+class EnrichedElementBase(FiniteElementBase):
+    """The vector sum of several finite element spaces:
 
         .. math:: \\textrm{EnrichedElement}(V, Q) = \\{v + q | v \\in V, q \\in Q\\}.
     """
@@ -68,22 +68,57 @@ class EnrichedElement(FiniteElementBase):
         # if not all(e.mapping() == mapping for e in elements[1:]):
         #    error("Element mapping mismatch.")
 
+        # Get name of subclass: EnrichedElement or NodalEnrichedElement
+        class_name = as_native_str(self.__class__.__name__)
+
         # Initialize element data
-        FiniteElementBase.__init__(self, "EnrichedElement", cell, degree,
+        FiniteElementBase.__init__(self, class_name, cell, degree,
                                    quad_scheme, value_shape,
                                    reference_value_shape)
 
         # Cache repr string
-        self._repr = as_native_str("EnrichedElement(%s)" %
-            ", ".join(repr(e) for e in self._elements))
+        self._repr = as_native_str("%s(%s)" %
+            (class_name, ", ".join(repr(e) for e in self._elements)))
 
+    def mapping(self):
+        return self._elements[0].mapping()
+
+    def sobolev_space(self):
+        "Return the underlying Sobolev space."
+        elements = [e for e in self._elements]
+        if all(e.sobolev_space() == elements[0].sobolev_space()
+               for e in elements):
+            return elements[0].sobolev_space()
+        else:
+            # Find smallest shared Sobolev space over all sub elements
+            spaces = [e.sobolev_space() for e in elements]
+            superspaces = [{s} | set(s.parents) for s in spaces]
+            intersect = set.intersection(*superspaces)
+            for s in intersect.copy():
+                for parent in s.parents:
+                    intersect.discard(parent)
+
+            sobolev_space, = intersect
+            return sobolev_space
+
+    def reconstruct(self, **kwargs):
+        return type(self)(*[e.reconstruct(**kwargs) for e in self._elements])
+
+
+class EnrichedElement(EnrichedElementBase):
+    """The vector sum of several finite element spaces:
+
+        .. math:: \\textrm{EnrichedElement}(V, Q) = \\{v + q | v \\in V, q \\in Q\\}.
+
+        Dual basis is a concatenation of subelements dual bases;
+        primal basis is a concatenation of subelements primal bases;
+        resulting element is not nodal even when subelements are.
+        Structured basis may be exploited in form compilers.
+    """
     def is_cellwise_constant(self):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
         return all(e.is_cellwise_constant() for e in self._elements)
-
-    def mapping(self):
-        return self._elements[0].mapping()
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -92,3 +127,26 @@ class EnrichedElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(e.shortstr() for e in self._elements)
+
+
+class NodalEnrichedElement(EnrichedElementBase):
+    """The vector sum of several finite element spaces:
+
+        .. math:: \\textrm{EnrichedElement}(V, Q) = \\{v + q | v \\in V, q \\in Q\\}.
+
+        Primal basis is reorthogonalized to dual basis which is
+        a concatenation of subelements dual bases; resulting
+        element is nodal.
+    """
+    def is_cellwise_constant(self):
+        """Return whether the basis functions of this
+        element is spatially constant over each cell."""
+        return False
+
+    def __str__(self):
+        "Format as string for pretty printing."
+        return "<Nodal enriched element(%s)>" % ", ".join(str(e) for e in self._elements)
+
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "NodalEnriched(%s)" % ", ".join(e.shortstr() for e in self._elements)

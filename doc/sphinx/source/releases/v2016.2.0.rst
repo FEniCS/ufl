@@ -1,0 +1,67 @@
+===========================
+Changes in version 2016.2.0
+===========================
+
+UFL 2016.2.0 was released on 2016-11-30.
+
+
+Summary of changes
+==================
+
+- Deprecate ``.cell()``, ``.domain()``, ``.element()`` in favour of
+  ``.ufl_cell()``, ``.ufl_domain()``, ``.ufl_element()``, in multiple
+  classes, to allow closer integration with DOLFIN
+- Remove deprecated properties
+  ``cell.{d,x,n,volume,circumradius,facet_area}``
+- Remove ancient ``form2ufl`` script
+- Large reworking of symbolic geometry pipeline
+- Implement symbolic Piola mappings
+- ``OuterProductCell`` and ``OuterProductElement`` are merged into
+  ``TensorProductCell`` and ``TensorProductElement`` respectively
+- Better degree estimation for quadrilaterals
+- Expansion rules for Q, DQ, RTCE, RTCF, NCE and NCF on tensor product
+  cells
+- Add discontinuous Taylor elements
+- Add support for the mapping ``double covariant Piola`` in ``uflacs``
+- Add support for the mapping ``double contravariant Piola`` in ``uflacs``
+- Support for tensor-valued subelements in ``uflacs`` fixed
+- Replacing ``Discontinuous Lagrange Trace`` with ``HDiv Trace`` and removing ``TraceElement``
+- Assigning ``Discontinuous Lagrange Trace`` and ``DGT`` as aliases for ``HDiv Trace``
+
+Detailed changes
+================
+
+- Add call operator syntax to Form to replace arguments and
+  coefficients. This makes it easier to e.g. express the norm
+  defined by a bilinear form as a functional. Example usage::
+     # Equivalent to replace(a, {u: f, v: f})
+     M = a(f, f)
+     # Equivalent to replace(a, {f:1})
+     c = a(coefficients={f:1})
+- Add call operator syntax to Form to replace arguments and coefficients::
+    a(f, g) == replace(a, {u: f, v: g})
+    a(coefficients={f:1}) == replace(a, {f:1})
+- Add @ operator to Form: form @ f == action(form, f) (python 3.5+ only)
+- Reduce noise in Mesh str such that print(form) gets more short and readable
+- Fix repeated split(function) for arbitrary nested elements
+- EnrichedElement: Remove +/* warning
+   In the distant past, A + B => MixedElement([A, B]).  The change that
+   A + B => EnrichedElement([A, B]) was made in d622c74 (22 March 2010).
+   A warning was introduced in fcbc5ff (26 March 2010) that the meaning of
+   "+" had changed, and that users wanting a MixedElement should use "*"
+   instead.  People have, presumably, been seeing this warning for 6 1/2
+   years by now, so it's probably safe to remove.
+- Rework TensorProductElement implementation, replaces OuterProductElement
+- Rework TensorProductCell implementation, replaces OuterProductCell
+- Remove OuterProductVectorElement and OuterProductTensorElement
+- Add FacetElement and InteriorElement
+- Add Hellan-Herrmann-Johnson element
+- Add support for double covariant and contravariant mappings in mixed elements
+- Support discontinuous Taylor elements on all simplices
+- Some more performance improvements
+- Minor bugfixes
+- Improve Python 3 support
+- More permissive in integer types accepted some places
+- Make ufl pass almost all flake8 tests
+- Add bitbucket pipelines testing
+- Improve documentation

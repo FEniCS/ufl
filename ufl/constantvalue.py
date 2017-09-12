@@ -42,10 +42,10 @@ precision = None
 
 def format_float(x):
     "Format float value based on global UFL precision."
-    if precision is None:
-        return "%s" % repr(x)
+    if precision:
+        return "{:.{prec}}".format(float(x), prec=precision)
     else:
-        return ("%%.%dg" % precision) % x
+        return "{}".format(float(x))
 
 
 # --- Base classes for constant types ---

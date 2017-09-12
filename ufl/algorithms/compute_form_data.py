@@ -30,7 +30,6 @@ from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, 
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
-from ufl.algorithms.elementtransformations import reconstruct_element
 
 # These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
@@ -103,9 +102,7 @@ def _compute_element_mapping(form):
 
         # Reconstruct element and add to map
         if reconstruct:
-            element_mapping[element] = reconstruct_element(element,
-                                                           element.family(),
-                                                           cell, degree)
+            element_mapping[element] = element.reconstruct(cell=cell, degree=degree)
         else:
             element_mapping[element] = element
 

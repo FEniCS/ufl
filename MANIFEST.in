@@ -1,0 +1,8 @@
+include AUTHORS
+include COPYING
+include COPYING.LESSER
+include ChangeLog
+recursive-include demo *
+recursive-include doc *
+recursive-include test *
+global-exclude __pycache__ *.pyc
