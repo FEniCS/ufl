@@ -28,5 +28,5 @@ u = TrialFunction(element)
 v = TestFunction(element)
 f = Coefficient(element)
 
-a = dot(grad(v), grad(u))*dx(degree=1)
+a = inner(grad(v), grad(u))*dx(degree=1)
 L = v*f*dx(degree=2)
