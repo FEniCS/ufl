@@ -12,7 +12,7 @@ if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")
     sys.exit(1)
 
-version = "2017.2.0.dev0"
+version = "2017.2.0"
 
 url = "https://bitbucket.org/fenics-project/%s/" % module_name
 tarball = None

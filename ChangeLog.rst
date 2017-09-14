@@ -1,10 +1,10 @@
 Changelog
 =========
 
-2017.2.0 (unreleased)
+2017.2.0 (2017-09-15)
 ---------------------
 
-- Nothing changed yet
+- Testing release method
 
 2017.1.0 (2017-05-09)
 ---------------------
