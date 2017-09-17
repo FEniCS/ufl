@@ -38,6 +38,10 @@ def test_str_circumradius(self):
     assert str(Circumradius(triangle)) == "circumradius"
 
 
+def test_str_diameter(self):
+    assert str(CellDiameter(triangle)) == "diameter"
+
+
 # def test_str_cellsurfacearea(self):
 #     assert str(CellSurfaceArea(triangle)) == "surfacearea"
 

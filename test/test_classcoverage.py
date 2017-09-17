@@ -193,6 +193,8 @@ def testAll(self):
 
     g = CellVolume(cell)
     _test_object(g, (), ())
+    g = CellDiameter(cell)
+    _test_object(g, (), ())
     g = Circumradius(cell)
     _test_object(g, (), ())
     # g = CellSurfaceArea(cell)
