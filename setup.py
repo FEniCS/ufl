@@ -17,7 +17,7 @@ version = "2017.2.0.dev0"
 url = "https://bitbucket.org/fenics-project/%s/" % module_name
 tarball = None
 if 'dev' not in version:
-    tarball = url + "downloads/%s-%s.tar.gz" % (module_name, version)
+    tarball = url + "downloads/fenics-%s-%s.tar.gz" % (module_name, version)
 
 script_names = ("ufl-analyse", "ufl-convert", "ufl-version", "ufl2py")
 
