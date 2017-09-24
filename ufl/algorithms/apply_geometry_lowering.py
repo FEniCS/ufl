@@ -299,34 +299,16 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.ufl_domain()
-        cellname = domain.ufl_cell().cellname()
-
-        if domain.is_piecewise_linear_simplex_domain():
-            # Affine-transformed cells: P1
-            J = self.jacobian(Jacobian(domain))
-            trev = CellEdgeVectors(domain)
-            num_edges = trev.ufl_shape[0]
-            i, j, k = indices(3)
-            elen2 = [(J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])
-                     for edge in range(num_edges)]
-            return sqrt(reduce(reduction_op, elen2))
-
-        elif domain.ufl_coordinate_element().degree() == 1:
-            # Q1 cells
-            if cellname in ("quadrilateral", "hexahedron"):
-                # FIXME: Use this codepath also for simplices?
-                edges = PhysicalCellEdgeVectors(domain)
-                num_edges = edges.ufl_shape[0]
-                j = Index()
-                elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
-                return sqrt(reduce(reduction_op, elen2))
-            else:
-                error("Unhandled cell type %s." % cellname)
-
-        else:
-            # Don't lower other cells, instead leave it to form compiler
-            warning("Only know how to compute the max_cell_edge_length of a P1 or Q1 cell.")
+        if not domain.ufl_coordinate_element().degree() == 1:
+            # Don't lower bendy cells, instead leave it to form compiler
+            warning("Only know how to compute the min/max_cell_edge_length of a P1 or Q1 cell.")
             return o
+
+        edges = PhysicalCellEdgeVectors(domain)
+        num_edges = edges.ufl_shape[0]
+        j = Index()
+        elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
+        return sqrt(reduce(reduction_op, elen2))
 
     @memoized_handler
     def cell_diameter(self, o):
@@ -337,6 +319,7 @@ class GeometryLoweringApplier(MultiFunction):
         cellname = domain.ufl_cell().cellname()
 
         if cellname == "interval":
+            # Interval optimization, square root not needed
             return self.cell_volume(CellVolume(domain))
 
         elif domain.is_piecewise_linear_simplex_domain():
@@ -345,7 +328,6 @@ class GeometryLoweringApplier(MultiFunction):
 
         elif domain.ufl_coordinate_element().degree() == 1:
             # Q1 cells
-            # FIXME: Use this codepath also for simplices?
             verts = PhysicalCellVertices(domain)
             verts = [verts[v, ...] for v in range(verts.ufl_shape[0])]
             j = Index()
@@ -372,36 +354,20 @@ class GeometryLoweringApplier(MultiFunction):
         domain = o.ufl_domain()
         cellname = domain.ufl_cell().cellname()
 
-        if domain.is_piecewise_linear_simplex_domain():
-            # Affine-transformed cells: P1
-            if cellname == "triangle":
-                return self.facet_area(FacetArea(domain))
-            elif cellname == "tetrahedron":
-                J = self.jacobian(Jacobian(domain))
-                trev = FacetEdgeVectors(domain)
-                num_edges = 3
-                i, j, k = indices(3)
-                elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
-                        for edge in range(num_edges)]
-                return reduction_op(elen[0], reduction_op(elen[1], elen[2]))
-            else:
-                error("Unhandled cell type %s." % cellname)
+        if cellname == "triangle":
+            # Interval optimization, square root not needed
+            return self.facet_area(FacetArea(domain))
 
         elif domain.ufl_coordinate_element().degree() == 1:
-            # Q1 cells
-            if cellname in ("quadrilateral", "hexahedron"):
-                # FIXME: Use this codepath also for simplices?
-                edges = PhysicalFacetEdgeVectors(domain)
-                num_edges = edges.ufl_shape[0]
-                j = Index()
-                elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
-                return sqrt(reduce(reduction_op, elen2))
-            else:
-                error("Unhandled cell type %s." % cellname)
+            edges = PhysicalFacetEdgeVectors(domain)
+            num_edges = edges.ufl_shape[0]
+            j = Index()
+            elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
+            return sqrt(reduce(reduction_op, elen2))
 
         else:
             # Don't lower other cells, instead leave it to form compiler
-            warning("Only know how to compute the max_facet_edge_length of a P1 or Q1 cell.")
+            warning("Only know how to compute the min/max_facet_edge_length of a P1 or Q1 cell.")
             return o
 
     @memoized_handler
