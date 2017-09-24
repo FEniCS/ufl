@@ -11,6 +11,11 @@ Summary of changes
           be published (and renamed) to list the most important
           changes in the new release.
 
+- Add ``CellDiameter`` expression giving diameter of a cell, i.e.,
+  maximal distance between any two points of the cell. Implemented
+  for all simplices and quads/hexes.
+- Make ``(Min|Max)(Cell|Facet)EdgeLength`` working for quads/hexes
+
 Detailed changes
 ================
 

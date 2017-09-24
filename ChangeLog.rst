@@ -4,7 +4,12 @@ Changelog
 2017.2.0 (unreleased)
 ---------------------
 
-- Nothing changed yet
+- Add geometric nodes ``CellDiameter`` (public API) and
+  ``PhysicalCellVertices``, ``PhysicalCellEdgeVectors``,
+  ``PhysicalFacetEdgeVectors`` (internal; will be useful
+  for further work on geometry lowering on quads/hexes)
+- Implement geometry lowering of ``CellDiameter``,
+  ``(Min|Max)(Cell|Facet)EdgeLength`` for quads and hexes
 
 2017.1.0 (2017-05-09)
 ---------------------
