@@ -248,7 +248,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         if cellname == "interval":
             # Optimization for square interval; no square root needed
-            return  0.5 * cellvolume
+            return 0.5 * cellvolume
 
         # Compute lengths of cell edges
         edges = CellEdgeVectors(domain)
