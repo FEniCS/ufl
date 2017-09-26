@@ -40,9 +40,9 @@ from ufl.classes import (Expr, Form, Integral,
                          CellOrientation, CellOrigin, CellCoordinate,
                          FacetJacobian, FacetJacobianDeterminant,
                          CellFacetJacobian,
-                         CellEdgeVectors,
-                         MaxCellEdgeLength, PhysicalCellEdgeVectors, PhysicalFacetEdgeVectors,
-                         PhysicalCellVertices,
+                         ReferenceCellEdgeVectors,
+                         MaxCellEdgeLength, CellEdgeVectors, FacetEdgeVectors,
+                         CellVertices,
                          ReferenceNormal,
                          ReferenceCellVolume, ReferenceFacetVolume,
                          CellVolume, FacetArea,
@@ -252,7 +252,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         elif cellname == "triangle":
             J = self.jacobian(Jacobian(domain))
-            trev = CellEdgeVectors(domain)
+            trev = ReferenceCellEdgeVectors(domain)
             num_edges = 3
             i, j, k = indices(3)
             elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
@@ -262,7 +262,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         elif cellname == "tetrahedron":
             J = self.jacobian(Jacobian(domain))
-            trev = CellEdgeVectors(domain)
+            trev = ReferenceCellEdgeVectors(domain)
             num_edges = 6
             i, j, k = indices(3)
             elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
@@ -304,7 +304,7 @@ class GeometryLoweringApplier(MultiFunction):
             warning("Only know how to compute the min/max_cell_edge_length of a P1 or Q1 cell.")
             return o
 
-        edges = PhysicalCellEdgeVectors(domain)
+        edges = CellEdgeVectors(domain)
         num_edges = edges.ufl_shape[0]
         j = Index()
         elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
@@ -328,7 +328,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         elif domain.ufl_coordinate_element().degree() == 1:
             # Q1 cells
-            verts = PhysicalCellVertices(domain)
+            verts = CellVertices(domain)
             verts = [verts[v, ...] for v in range(verts.ufl_shape[0])]
             j = Index()
             elen2 = ((v0-v1)[j]*(v0-v1)[j] for v0, v1 in combinations(verts, 2))
@@ -359,7 +359,7 @@ class GeometryLoweringApplier(MultiFunction):
             return self.facet_area(FacetArea(domain))
 
         elif domain.ufl_coordinate_element().degree() == 1:
-            edges = PhysicalFacetEdgeVectors(domain)
+            edges = FacetEdgeVectors(domain)
             num_edges = edges.ufl_shape[0]
             j = Index()
             elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]

@@ -367,10 +367,10 @@ class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
 
 
 @ufl_type()
-class CellEdgeVectors(GeometricCellQuantity):
+class ReferenceCellEdgeVectors(GeometricCellQuantity):
     """UFL geometry representation: The vectors between reference cell vertices for each edge in cell."""
     __slots__ = ()
-    name = "CEV"
+    name = "RCEV"
 
     def __init__(self, domain):
         GeometricCellQuantity.__init__(self, domain)
@@ -392,10 +392,10 @@ class CellEdgeVectors(GeometricCellQuantity):
 
 
 @ufl_type()
-class FacetEdgeVectors(GeometricFacetQuantity):
+class ReferenceFacetEdgeVectors(GeometricFacetQuantity):
     """UFL geometry representation: The vectors between reference cell vertices for each edge in current facet."""
     __slots__ = ()
-    name = "FEV"
+    name = "RFEV"
 
     def __init__(self, domain):
         GeometricFacetQuantity.__init__(self, domain)
@@ -417,10 +417,10 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
 
 @ufl_type()
-class PhysicalCellVertices(GeometricCellQuantity):
+class CellVertices(GeometricCellQuantity):
     """UFL geometry representation: Physical cell vertices."""
     __slots__ = ()
-    name = "PCV"
+    name = "CV"
 
     def __init__(self, domain):
         GeometricCellQuantity.__init__(self, domain)
@@ -439,10 +439,10 @@ class PhysicalCellVertices(GeometricCellQuantity):
 
 
 @ufl_type()
-class PhysicalCellEdgeVectors(GeometricCellQuantity):
+class CellEdgeVectors(GeometricCellQuantity):
     """UFL geometry representation: The vectors between physical cell vertices for each edge in cell."""
     __slots__ = ()
-    name = "PCEV"
+    name = "CEV"
 
     def __init__(self, domain):
         GeometricCellQuantity.__init__(self, domain)
@@ -464,10 +464,10 @@ class PhysicalCellEdgeVectors(GeometricCellQuantity):
 
 
 @ufl_type()
-class PhysicalFacetEdgeVectors(GeometricFacetQuantity):
+class FacetEdgeVectors(GeometricFacetQuantity):
     """UFL geometry representation: The vectors between physical cell vertices for each edge in current facet."""
     __slots__ = ()
-    name = "PFEV"
+    name = "FEV"
 
     def __init__(self, domain):
         GeometricFacetQuantity.__init__(self, domain)
