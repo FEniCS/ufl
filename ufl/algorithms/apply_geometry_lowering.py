@@ -40,7 +40,6 @@ from ufl.classes import (Expr, Form, Integral,
                          CellOrientation, CellOrigin, CellCoordinate,
                          FacetJacobian, FacetJacobianDeterminant,
                          CellFacetJacobian,
-                         ReferenceCellEdgeVectors,
                          MaxCellEdgeLength, CellEdgeVectors, FacetEdgeVectors,
                          CellVertices,
                          ReferenceNormal,
@@ -248,28 +247,21 @@ class GeometryLoweringApplier(MultiFunction):
         cellvolume = self.cell_volume(CellVolume(domain))
 
         if cellname == "interval":
-            r = 0.5 * cellvolume
+            # Optimization for square interval; no square root needed
+            return  0.5 * cellvolume
 
-        elif cellname == "triangle":
-            J = self.jacobian(Jacobian(domain))
-            trev = ReferenceCellEdgeVectors(domain)
-            num_edges = 3
-            i, j, k = indices(3)
-            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
-                    for edge in range(num_edges)]
+        # Compute lengths of cell edges
+        edges = CellEdgeVectors(domain)
+        num_edges = edges.ufl_shape[0]
+        j = Index()
+        elen = [sqrt(edges[e, j]*edges[e, j]) for e in range(num_edges)]
 
-            r = (elen[0] * elen[1] * elen[2]) / (4.0 * cellvolume)
+        if cellname == "triangle":
+            return (elen[0] * elen[1] * elen[2]) / (4.0 * cellvolume)
 
         elif cellname == "tetrahedron":
-            J = self.jacobian(Jacobian(domain))
-            trev = ReferenceCellEdgeVectors(domain)
-            num_edges = 6
-            i, j, k = indices(3)
-            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
-                    for edge in range(num_edges)]
-
-            # elen[3] = length of edge 3
             # la, lb, lc = lengths of the sides of an intermediate triangle
+            # NOTE: Is here some hidden numbering assumption?
             la = elen[3] * elen[2]
             lb = elen[4] * elen[1]
             lc = elen[5] * elen[0]
@@ -279,12 +271,10 @@ class GeometryLoweringApplier(MultiFunction):
             s = p / 2
             # area of intermediate triangle with Herons formula
             triangle_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
-            r = triangle_area / (6.0 * cellvolume)
+            return triangle_area / (6.0 * cellvolume)
 
         else:
             error("Unhandled cell type %s." % cellname)
-
-        return r
 
     @memoized_handler
     def max_cell_edge_length(self, o):
