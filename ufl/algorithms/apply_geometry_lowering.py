@@ -237,11 +237,9 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.ufl_domain()
+
         if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to
-            # form compiler
-            warning("Only know how to compute the circumradius of an affine cell.")
-            return o
+            error("Circumradius only makes sense for affine simplex cells")
 
         cellname = domain.ufl_cell().cellname()
         cellvolume = self.cell_volume(CellVolume(domain))
@@ -273,9 +271,6 @@ class GeometryLoweringApplier(MultiFunction):
             triangle_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
             return triangle_area / (6.0 * cellvolume)
 
-        else:
-            error("Unhandled cell type %s." % cellname)
-
     @memoized_handler
     def max_cell_edge_length(self, o):
         return self._reduce_cell_edge_length(o, max_value)
@@ -289,16 +284,23 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.ufl_domain()
+
         if not domain.ufl_coordinate_element().degree() == 1:
             # Don't lower bendy cells, instead leave it to form compiler
-            warning("Only know how to compute the min/max_cell_edge_length of a P1 or Q1 cell.")
+            warning("Only know how to compute cell edge lengths of P1 or Q1 cell.")
             return o
 
-        edges = CellEdgeVectors(domain)
-        num_edges = edges.ufl_shape[0]
-        j = Index()
-        elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
-        return sqrt(reduce(reduction_op, elen2))
+        elif domain.ufl_cell().cellname() == "interval":
+            # Interval optimization, square root not needed
+            return self.cell_volume(CellVolume(domain))
+
+        else:
+            # Other P1 or Q1 cells
+            edges = CellEdgeVectors(domain)
+            num_edges = edges.ufl_shape[0]
+            j = Index()
+            elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
+            return sqrt(reduce(reduction_op, elen2))
 
     @memoized_handler
     def cell_diameter(self, o):
@@ -306,28 +308,23 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.ufl_domain()
-        cellname = domain.ufl_cell().cellname()
 
-        if cellname == "interval":
-            # Interval optimization, square root not needed
-            return self.cell_volume(CellVolume(domain))
+        if not domain.ufl_coordinate_element().degree() == 1:
+            # Don't lower bendy cells, instead leave it to form compiler
+            warning("Only know how to compute cell diameter of P1 or Q1 cell.")
+            return o
 
         elif domain.is_piecewise_linear_simplex_domain():
-            # Other simplices
+            # Simplices
             return self.max_cell_edge_length(MaxCellEdgeLength(domain))
 
-        elif domain.ufl_coordinate_element().degree() == 1:
-            # Q1 cells
+        else:
+            # Q1 cells, maximal distance between any two vertices
             verts = CellVertices(domain)
             verts = [verts[v, ...] for v in range(verts.ufl_shape[0])]
             j = Index()
             elen2 = ((v0-v1)[j]*(v0-v1)[j] for v0, v1 in combinations(verts, 2))
             return sqrt(reduce(max_value, elen2))
-
-        else:
-            # Don't lower other cells, instead leave it to form compiler
-            warning("Only know how to compute the cell_diameter of a P1 or Q1 cell.")
-            return o
 
     @memoized_handler
     def max_facet_edge_length(self, o):
@@ -342,23 +339,22 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.ufl_domain()
-        cellname = domain.ufl_cell().cellname()
 
-        if cellname == "triangle":
-            # Interval optimization, square root not needed
-            return self.facet_area(FacetArea(domain))
+        if domain.ufl_cell().topological_dimension() < 3:
+            error("Facet edge lengths only make sense for topological dimension >= 3.")
 
-        elif domain.ufl_coordinate_element().degree() == 1:
+        elif not domain.ufl_coordinate_element().degree() == 1:
+            # Don't lower bendy cells, instead leave it to form compiler
+            warning("Only know how to compute facet edge lengths of P1 or Q1 cell.")
+            return o
+
+        else:
+            # P1 tetrahedron or Q1 hexahedron
             edges = FacetEdgeVectors(domain)
             num_edges = edges.ufl_shape[0]
             j = Index()
             elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
             return sqrt(reduce(reduction_op, elen2))
-
-        else:
-            # Don't lower other cells, instead leave it to form compiler
-            warning("Only know how to compute the min/max_facet_edge_length of a P1 or Q1 cell.")
-            return o
 
     @memoized_handler
     def cell_normal(self, o):
