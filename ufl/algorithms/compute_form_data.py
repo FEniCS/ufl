@@ -38,6 +38,7 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
+from ufl.algorithms.apply_jacobian_rewriting import apply_jacobian_rewriting
 from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 
@@ -220,6 +221,7 @@ def compute_form_data(form,
                       do_apply_function_pullbacks=False,
                       do_apply_integral_scaling=False,
                       do_apply_geometry_lowering=False,
+                      do_apply_jacobian_rewriting=False,
                       preserve_geometry_types=(),
                       do_apply_default_restrictions=True,
                       do_apply_restrictions=True,
@@ -301,6 +303,10 @@ def compute_form_data(form,
             form = apply_geometry_lowering(form, preserve_geometry_types)
             # Lower derivatives that may have appeared
             form = apply_derivatives(form)
+
+    # TODO : do_apply_jacobian_rewriting=true only if we have mixed domains (FFC)
+    if do_apply_jacobian_rewriting:
+        form = apply_jacobian_rewriting(form, preserve_geometry_types)
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
