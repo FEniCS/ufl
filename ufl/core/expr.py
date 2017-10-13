@@ -338,6 +338,14 @@ class Expr(object):
             v = NotImplemented
         return v
 
+    def __complex__(self):
+        "Try to evaluate as scalar and cast to complex."
+        try:
+            v = complex(self._ufl_evaluate_scalar_())
+        except:
+            v = NotImplemented
+        return v
+
     def __bool__(self):
         "By default, all Expr are nonzero/False."
         return True
@@ -426,7 +434,15 @@ class Expr(object):
 
     def __round__(self, n=None):
         "Round to nearest integer or to nearest nth decimal."
-        return round(float(self), n)
+        try:
+            val = float(self._ufl_evaluate_scalar_())
+            val = round(val, n)
+        except TypeError:
+            val = complex(self._ufl_evaluate_scalar_())
+            val = round(val.real, n) + round(val.imag, n)*1j
+        except:
+            val = NotImplemented
+        return val
 
     # --- Deprecated functions
 

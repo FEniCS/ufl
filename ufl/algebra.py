@@ -25,7 +25,7 @@ from ufl.utils.py23 import as_native_strings
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator
-from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
+from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, FloatValue, ComplexValue, as_ufl
 from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.index_combination_utils import merge_unique_indices
 from ufl.sorting import sorted_expr
@@ -241,8 +241,10 @@ class Division(Operator):
             return a
         # Simplification "literal a / literal b" -> "literal value of
         # a/b". Avoiding integer division by casting to float
-        if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
+        if isinstance(a, (FloatValue, IntValue)) and isinstance(b, (IntValue, FloatValue)):
             return as_ufl(float(a._value) / float(b._value))
+        elif isinstance(a, ComplexValue) and isinstance(b, ComplexValue):
+            return as_ufl(complex(a._value) / complex(b._value))
         # Simplification "a / a" -> "1"
         # if not a.ufl_free_indices and not a.ufl_shape and a == b:
         #    return as_ufl(1)
@@ -265,7 +267,11 @@ class Division(Operator):
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
         # Avoiding integer division by casting to float
-        return float(a) / float(b)
+        try:
+            e = float(a) / float(b)
+        except TypeError:
+            e = complex(a) / complex(b)
+        return e
 
     def __str__(self):
         return "%s / %s" % (parstr(self.ufl_operands[0], self),
@@ -291,8 +297,11 @@ class Power(Operator):
 
         # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
-            return as_ufl(a._value ** b._value)
-        if isinstance(a, Zero) and isinstance(b, ScalarValue):
+            if isinstance(a, (IntValue, FloatValue)) and a._value < 0:
+                return as_ufl(0 + (abs(a._value)**b._value)*1j)
+            else:
+                return as_ufl(a._value ** b._value)
+        if isinstance(a, Zero) and isinstance(b, (IntValue, FloatValue)):
             bf = float(b)
             if bf < 0:
                 error("Division by zero, cannot raise 0 to a negative power.")
@@ -333,10 +342,24 @@ class Power(Operator):
 class Abs(Operator):
     __slots__ = ()
 
+    def __new__(cls, a):
+        a = as_ufl(a)
+
+        # Simplification
+        if isinstance(a, Zero):
+            return a
+        if isinstance(a, ScalarValue):
+            return as_ufl(abs(a._value))
+
+        self = Operator.__new__(cls)
+        self._init(a)
+        return self
+
+    def _init(self, a):
+        self.ufl_operands = (a,)
+
     def __init__(self, a):
         Operator.__init__(self, (a,))
-        if not isinstance(a, Expr):
-            error("Expecting Expr instance, not %s." % ufl_err_str(a))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -345,3 +368,102 @@ class Abs(Operator):
     def __str__(self):
         a, = self.ufl_operands
         return "|%s|" % (parstr(a, self),)
+
+
+@ufl_type(num_ops=1,
+          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+class Conj(Operator):
+    __slots__ = ()
+
+    def __new__(cls, a):
+        a = as_ufl(a)
+
+        # Simplification
+        if isinstance(a, Zero):
+            return a
+        if isinstance(a, ScalarValue):
+            return as_ufl(a._value.conjugate())
+
+        self = Operator.__new__(cls)
+        self._init(a)
+        return self
+
+    def _init(self, a):
+        self.ufl_operands = (a,)
+
+    def __init__(self, a):
+        Operator.__init__(self, (a,))
+
+    def evaluate(self, x, mapping, component, index_values):
+        a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
+        return a.conjugate()
+
+    def __str__(self):
+        a, = self.ufl_operands
+        return "conj(%s)" % (parstr(a, self),)
+
+
+@ufl_type(num_ops=1,
+          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+class Real(Operator):
+    __slots__ = ()
+
+    def __new__(cls, a):
+        a = as_ufl(a)
+
+        # Simplification
+        if isinstance(a, Zero):
+            return a
+        if isinstance(a, ScalarValue):
+            return as_ufl(a.real())
+
+        self = Operator.__new__(cls)
+        self._init(a)
+        return self
+
+    def _init(self, a):
+        self.ufl_operands = (a,)
+
+    def __init__(self, a):
+        Operator.__init__(self, (a,))
+
+    def evaluate(self, x, mapping, component, index_values):
+        a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
+        return a.real
+
+    def __str__(self):
+        a, = self.ufl_operands
+        return "Re[%s]" % (parstr(a, self),)
+
+
+@ufl_type(num_ops=1,
+          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+class Imag(Operator):
+    __slots__ = ()
+
+    def __new__(cls, a):
+        a = as_ufl(a)
+
+        # Simplification
+        if isinstance(a, Zero):
+            return a
+        if isinstance(a, ScalarValue):
+            return as_ufl(a.imag())
+
+        self = Operator.__new__(cls)
+        self._init(a)
+        return self
+
+    def _init(self, a):
+        self.ufl_operands = (a,)
+
+    def __init__(self, a):
+        Operator.__init__(self, (a,))
+
+    def evaluate(self, x, mapping, component, index_values):
+        a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
+        return a.imag
+
+    def __str__(self):
+        a, = self.ufl_operands
+        return "Im[%s]" % (parstr(a, self),)

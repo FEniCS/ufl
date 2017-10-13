@@ -205,6 +205,15 @@ class Expression2LatexHandler(MultiFunction):
     def abs(self, o, a):
         return r"\|%s\|" % a
 
+    def conj(self, o, a):
+        return r"\overline{%s}" % a
+
+    def real(self, o, a):
+        return r"\Re[%s]" % a
+
+    def imag(self, o, a):
+        return r"\Im[%s]" % a
+
     def transposed(self, o, a):
         return "{%s}^T" % par(a)
 
@@ -426,7 +435,8 @@ default_domain_string = "d(?)"
 
 def form2latex(form, formdata):
 
-    formname = formdata.name
+    #formname = formdata.name
+    formname = "form"
     argument_names = formdata.argument_names
     coefficient_names = formdata.coefficient_names
 
@@ -694,7 +704,8 @@ def forms2latexdocument(forms, uflfilename, compile=False):
         form_data = compute_form_data(form)
 
         # Generate LaTex code
-        title = "Form %s" % form_data.name
+        # title = "Form %s" % form_data.name
+        title = "Form"
         if compile:
             body = form2code2latex(form, form_data)
         else:

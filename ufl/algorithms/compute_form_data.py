@@ -40,6 +40,9 @@ from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
+from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.algorithms.optimise_complex_nodes import optimise_complex_nodes
+from ufl.algorithms.comparison_checker import do_comparison_check
 
 # See TODOs at the call sites of these below:
 from ufl.algorithms.domain_analysis import build_integral_data
@@ -224,6 +227,7 @@ def compute_form_data(form,
                       do_apply_default_restrictions=True,
                       do_apply_restrictions=True,
                       do_estimate_degrees=True,
+                      complex_mode=False
                       ):
 
     # TODO: Move this to the constructor instead
@@ -242,10 +246,24 @@ def compute_form_data(form,
     # Note: Default behaviour here will process form the way that is
     # currently expected by vanilla FFC
 
+    # Check that the form does not try to compare complex quantities:
+    # if the quantites being compared are 'provably' real, wrap them
+    # with Real, otherwise throw an error. 
+    # Optimises complex nodes by removing e.g. Conj(Conj(...))
+    if complex_mode:
+        form = do_comparison_check(form)
+        form = optimise_complex_nodes(form)
+
     # Lower abstractions for tensor-algebra types into index notation,
     # reducing the number of operators later algorithms and form
     # compilers need to handle
     form = apply_algebra_lowering(form)
+
+    # After lowering to index notation, remove any complex nodes that
+    # have been introduced but are not wanted when working in real mode,
+    # allowing for purely real forms to be written
+    if not complex_mode:
+        form = remove_complex_nodes(form)
 
     # Apply differentiation before function pullbacks, because for
     # example coefficient derivatives are more complicated to derive
@@ -386,6 +404,13 @@ def compute_form_data(form,
     # faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
     check_form_arity(preprocessed_form, self.original_form.arguments())  # Currently testing how fast this is
+    
+    # Optimises complex nodes by removing e.g. Conj(Conj(...)) if in complex mode
+    # Otherwise removes complex nodes entirely.
+    if complex_mode:
+        preprocessed_form = optimise_complex_nodes(preprocessed_form)
+    else:
+        preprocessed_form = remove_complex_nodes(preprocessed_form)
 
     # TODO: This member is used by unit tests, change the tests to
     # remove this!

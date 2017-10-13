@@ -33,6 +33,7 @@ from ufl.core.expr import ufl_err_str
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
+from ufl.algebra import Conj
 
 # Other algorithms:
 from ufl.algorithms.map_integrands import map_integrands
@@ -262,6 +263,11 @@ class PartExtracter(Transformer):
 
     # Grad is a linear operator
     grad = linear_operator
+
+    # Conj, Real, Imag are linear operators
+    conj = linear_operator
+    real = linear_operator
+    imag = linear_operator
 
     def linear_indexed_type(self, x):
         """Return parts of expression belonging to this indexed
@@ -494,4 +500,4 @@ def compute_form_adjoint(form, reordered_arguments=None):
     if reordered_v.ufl_function_space() != v.ufl_function_space():
         error("Element mismatch between new and old arguments (test functions).")
 
-    return replace(form, {v: reordered_v, u: reordered_u})
+    return map_integrands(Conj,replace(form, {v: reordered_v, u: reordered_u}))
