@@ -351,15 +351,10 @@ class Abs(Operator):
         if isinstance(a, ScalarValue):
             return as_ufl(abs(a._value))
 
-        self = Operator.__new__(cls)
-        self._init(a)
-        return self
-
-    def _init(self, a):
-        self.ufl_operands = (a,)
+        return Operator.__new__(cls)
 
     def __init__(self, a):
-        Operator.__init__(self, (a,))
+        super(Conj, self).__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -384,15 +379,10 @@ class Conj(Operator):
         if isinstance(a, ScalarValue):
             return as_ufl(a._value.conjugate())
 
-        self = Operator.__new__(cls)
-        self._init(a)
-        return self
-
-    def _init(self, a):
-        self.ufl_operands = (a,)
+        return Operator.__new__(cls)
 
     def __init__(self, a):
-        Operator.__init__(self, (a,))
+        super(Conj, self).__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -417,15 +407,10 @@ class Real(Operator):
         if isinstance(a, ScalarValue):
             return as_ufl(a.real())
 
-        self = Operator.__new__(cls)
-        self._init(a)
-        return self
-
-    def _init(self, a):
-        self.ufl_operands = (a,)
+        return Operator.__new__(cls)
 
     def __init__(self, a):
-        Operator.__init__(self, (a,))
+        super(Conj, self).__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -450,15 +435,10 @@ class Imag(Operator):
         if isinstance(a, ScalarValue):
             return as_ufl(a.imag())
 
-        self = Operator.__new__(cls)
-        self._init(a)
-        return self
-
-    def _init(self, a):
-        self.ufl_operands = (a,)
+        return Operator.__new__(cls)
 
     def __init__(self, a):
-        Operator.__init__(self, (a,))
+        super(Conj, self).__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
