@@ -6,7 +6,6 @@ import subprocess
 import io
 import os
 import optparse
-from pprint import pprint
 
 from six import string_types
 
@@ -40,13 +39,15 @@ def runcmd(cmd):
         print(output)
         sys.exit(-1)
 
+
 def write_file(filename, text):
     "Write text to a file and close it."
     with io.open(filename, "w", encoding="utf-8") as f:
-        f.write(text.decode('utf-8')) # Python 2
+        f.write(text.decode('utf-8'))  # Python 2
     print("Wrote file %s" % filename)
 
 # --- Option parsing
+
 
 usage = """Convert a .ufl file to some other format.
 
@@ -54,8 +55,10 @@ Examples:
 
   ufl-convert -omydir -iyourdir -c -f -tpdf -s mass.ufl"""
 
+
 def opt(long, short, t, default, help):
     return optparse.make_option("--%s" % long, "-%s" % short, action="store", type=t, dest=long, default=default, help=help)
+
 
 option_list = [ \
     # Directories:
@@ -97,7 +100,7 @@ for arg in args:
     # 1) Load forms
     ufl_data = load_ufl_file(uflfilename)
     forms = ufl_data.forms
-    #expressions = ufl_data.expressions # TODO: Allow rendering expressions without form stuff!
+    # expressions = ufl_data.expressions # TODO: Allow rendering expressions without form stuff!
 
     # Preprocess forms
     form_datas = [compute_form_data(f, do_apply_geometry_lowering=True, complex_mode=options.complex) for f in forms]
@@ -183,7 +186,7 @@ for arg in args:
 
     # Conversions from tex:
     elif format == "tex":
-        texfile = os.path.join(options.outputdir, basename + ".tex") # TODO: Use a proper temp file?
+        texfile = os.path.join(options.outputdir, basename + ".tex")  # TODO: Use a proper temp file?
         write_file(texfile, rendered)
         if filetype == "pdf":
             flags = "-file-line-error-style -interaction=nonstopmode"
@@ -210,7 +213,7 @@ for arg in args:
 
     # That's all we know!
     else:
-        print("*** Error: Sorry, don't know how to render format '%s' for file type '%s'." \
-            % (format, filetype))
+        print("*** Error: Sorry, don't know how to render format '%s' for file type '%s'."
+              % (format, filetype))
         print("Please try another combination, perhaps -fdot -tpdf?")
         sys.exit(-1)
