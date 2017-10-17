@@ -241,10 +241,11 @@ class Division(Operator):
             return a
         # Simplification "literal a / literal b" -> "literal value of
         # a/b". Avoiding integer division by casting to float
-        if isinstance(a, (FloatValue, IntValue)) and isinstance(b, (IntValue, FloatValue)):
-            return as_ufl(float(a._value) / float(b._value))
-        elif isinstance(a, ComplexValue) and isinstance(b, ComplexValue):
-            return as_ufl(complex(a._value) / complex(b._value))
+        if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
+            try:
+                return as_ufl(float(a._value) / float(b._value))
+            except TypeError:
+                return as_ufl(complex(a._value) / complex(b._value))
         # Simplification "a / a" -> "1"
         # if not a.ufl_free_indices and not a.ufl_shape and a == b:
         #    return as_ufl(1)
@@ -297,11 +298,12 @@ class Power(Operator):
 
         # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
-            if isinstance(a, (IntValue, FloatValue)) and a._value < 0:
-                return as_ufl(0 + (abs(a._value)**b._value)*1j)
-            else:
-                return as_ufl(a._value ** b._value)
-        if isinstance(a, Zero) and isinstance(b, (IntValue, FloatValue)):
+            return as_ufl(a._value ** b._value)
+        if isinstance(b, Zero):
+            return IntValue(1)
+        if isinstance(a, Zero) and isinstance(b, ScalarValue):
+            if isinstance(b, ComplexValue):
+                error("Cannot raise zero to a complex power.")
             bf = float(b)
             if bf < 0:
                 error("Division by zero, cannot raise 0 to a negative power.")
@@ -309,8 +311,6 @@ class Power(Operator):
                 return zero()
         if isinstance(b, ScalarValue) and b._value == 1:
             return a
-        if isinstance(b, Zero):
-            return IntValue(1)
 
         # Construction
         self = Operator.__new__(cls)
