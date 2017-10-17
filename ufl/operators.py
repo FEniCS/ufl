@@ -51,6 +51,7 @@ from ufl.domain import extract_domains
 
 # --- Basic operators ---
 
+
 def rank(f):
     "UFL operator: The rank of *f*."
     f = as_ufl(f)

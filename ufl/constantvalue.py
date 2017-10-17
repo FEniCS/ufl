@@ -269,10 +269,11 @@ class ScalarValue(ConstantValue):
     def imag(self):
         return self._value.imag
 
+
 @ufl_type(wraps_type=complex, is_literal=True)
 class ComplexValue(ScalarValue):
     "UFL literal type: Representation of a constant, complex scalar"
-    __slots__= ()
+    __slots__ = ()
 
     def __getnewargs__(self):
         return (self._value,)
@@ -282,11 +283,11 @@ class ComplexValue(ScalarValue):
             if value.real == 0:
                 return Zero()
             else:
-                return FloatValue.__new__(cls,value.real)
+                return FloatValue.__new__(cls, value.real)
         else:
-            return ConstantValue.__new__(cls,value)
+            return ConstantValue.__new__(cls, value)
 
-    def __init__(self,value):
+    def __init__(self, value):
         ScalarValue.__init__(self, complex(value))
 
     def modulus(self):

@@ -248,7 +248,7 @@ def compute_form_data(form,
 
     # Check that the form does not try to compare complex quantities:
     # if the quantites being compared are 'provably' real, wrap them
-    # with Real, otherwise throw an error. 
+    # with Real, otherwise throw an error.
     # Optimises complex nodes by removing e.g. Conj(Conj(...))
     if complex_mode:
         form = do_comparison_check(form)
@@ -404,7 +404,7 @@ def compute_form_data(form,
     # faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
     check_form_arity(preprocessed_form, self.original_form.arguments())  # Currently testing how fast this is
-    
+
     # Optimises complex nodes by removing e.g. Conj(Conj(...)) if in complex mode
     # Otherwise removes complex nodes entirely.
     if complex_mode:

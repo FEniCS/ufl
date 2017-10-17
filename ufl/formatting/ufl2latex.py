@@ -435,8 +435,7 @@ default_domain_string = "d(?)"
 
 def form2latex(form, formdata):
 
-    #formname = formdata.name
-    formname = "form"
+    formname = formdata.name
     argument_names = formdata.argument_names
     coefficient_names = formdata.coefficient_names
 

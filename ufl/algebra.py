@@ -23,7 +23,7 @@
 from ufl.log import error
 from ufl.utils.py23 import as_native_strings
 from ufl.core.ufl_type import ufl_type
-from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, FloatValue, ComplexValue, as_ufl
 from ufl.checks import is_ufl_scalar, is_true_ufl_scalar

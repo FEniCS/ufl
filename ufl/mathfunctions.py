@@ -327,7 +327,7 @@ class Erf(MathFunction):
                 return FloatValue(erf(float(argument)))
         if isinstance(argument, (ConstantValue)):
             erf = _find_erf()
-            if erf is scipy.special.erf:
+            if erf is not None:
                 return ComplexValue(erf(complex(argument)))
         return MathFunction.__new__(cls)
 
@@ -339,13 +339,7 @@ class Erf(MathFunction):
         erf = _find_erf()
         if erf is None:
             error("No python implementation of erf available on this system, cannot evaluate. Upgrade python or install scipy.")
-        try:
-            return erf(a)
-        except TypeError:
-            if erf is scipy.special.erf:
-                return erf(a)
-            else:
-                error("No complex-compatible python implementation of erf available on this system, cannot evaluate. Install scipy.")
+        return erf(a)
 
 
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
