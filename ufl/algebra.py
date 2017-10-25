@@ -354,7 +354,7 @@ class Abs(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, a):
-        super(Conj, self).__init__(self, (a,))
+        Operator.__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -382,7 +382,7 @@ class Conj(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, a):
-        super(Conj, self).__init__(self, (a,))
+        Operator.__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -410,7 +410,7 @@ class Real(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, a):
-        super(Conj, self).__init__(self, (a,))
+        Operator.__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -438,7 +438,7 @@ class Imag(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, a):
-        super(Conj, self).__init__(self, (a,))
+        Operator.__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
