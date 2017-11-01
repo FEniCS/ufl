@@ -2,7 +2,12 @@
 Changes in version 2017.2.0
 ===========================
 
-UFL 2017.2.0 was released on 2017-09-15.
+UFL 2017.2.0 was released on 2017-11-30.
 
 Summary of changes
 ==================
+
+- Add ``CellDiameter`` expression giving diameter of a cell, i.e.,
+  maximal distance between any two points of the cell. Implemented
+  for all simplices and quads/hexes.
+- Make ``(Min|Max)(Cell|Facet)EdgeLength`` working for quads/hexes
