@@ -139,6 +139,8 @@ def test_always_cellwise_constant_geometric_quantities(domains):
     "Test geometric quantities that are always constant over a cell."
     e = CellVolume(domains)
     assert is_cellwise_constant(e)
+    e = CellDiameter(domains)
+    assert is_cellwise_constant(e)
     e = Circumradius(domains)
     assert is_cellwise_constant(e)
     e = FacetArea(domains)

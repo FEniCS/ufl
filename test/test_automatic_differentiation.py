@@ -32,9 +32,17 @@ class ExpressionCollection(object):
         x = SpatialCoordinate(cell)
         n = FacetNormal(cell)
         c = CellVolume(cell)
-        h = Circumradius(cell)
+        R = Circumradius(cell)
+        h = CellDiameter(cell)
         f = FacetArea(cell)
         # s = CellSurfaceArea(cell)
+        mince = MinCellEdgeLength(cell)
+        maxce = MaxCellEdgeLength(cell)
+        minfe = MinFacetEdgeLength(cell)
+        maxfe = MaxFacetEdgeLength(cell)
+        J = Jacobian(cell)
+        detJ = JacobianDeterminant(cell)
+        invJ = JacobianInverse(cell)
         # FIXME: Add all new geometry types here!
 
         I = Identity(d)
@@ -58,7 +66,7 @@ class ExpressionCollection(object):
             setattr(self.shared_objects, key, value)
 
         self.literals = list(map(as_ufl, [0, 1, 3.14, I, eps]))
-        self.geometry = [x, n, c, h, f]
+        self.geometry = [x, n, c, R, h, f, mince, maxce, minfe, maxfe, J, detJ, invJ]
         self.functions = [u, du, v, dv, w, dw]
 
         self.terminals = []

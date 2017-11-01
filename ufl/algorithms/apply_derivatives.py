@@ -158,8 +158,11 @@ class GenericDerivativeRuleset(MultiFunction):
     # cell_facet_jacobian = unexpected
     # cell_facet_jacobian_determinant = unexpected
     # cell_facet_jacobian_inverse = unexpected
+    # cell_vertices = unexpected
     # cell_edge_vectors = unexpected
     # facet_edge_vectors = unexpected
+    # reference_cell_edge_vectors = unexpected
+    # reference_facet_edge_vectors = unexpected
     # cell_normal = unexpected # TODO: Expecting rename
     # cell_normals = unexpected
     # facet_tangents = unexpected

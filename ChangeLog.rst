@@ -1,10 +1,20 @@
 Changelog
 =========
 
-2017.2.0 (2017-10-15)
+2017.2.0 (2017-11-30)
 ---------------------
 
-- Minor changes
+- Add geometric quantity ``CellDiameter`` defined as a set diameter
+  of the cell, i.e., maximal distance between any two points of the
+  cell; implemented on simplices and quads/hexes
+- Rename internally used reference quantities
+  ``(Cell|Facet)EdgeVectors`` to ``Reference(Cell|Facet)EdgeVectors``
+- Add internally used quantites ``CellVertices``,
+  ``(Cell|Facet)EdgeVectors`` which are physical-coordinates-valued;
+  will be useful for further geometry lowering implementations
+  for quads/hexes
+- Implement geometry lowering of ``(Min|Max)(Cell|Facet)EdgeLength``
+  for quads and hexes
 
 2017.1.0.post1 (2017-09-12)
 ---------------------------
