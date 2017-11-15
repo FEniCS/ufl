@@ -367,7 +367,7 @@ class TensorElement(MixedElement):
             if cell is not None:
                 cell = as_cell(cell)
             # Create scalar sub element
-            sub_element = FiniteElement(family, cell, degree, quad_scheme)
+            sub_element = FiniteElement(family, cell, degree, quad_scheme=quad_scheme)
 
         if sub_element.value_shape() != ():
             error("Expecting only scalar valued subelement for TensorElement.")
