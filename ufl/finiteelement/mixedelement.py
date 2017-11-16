@@ -464,7 +464,7 @@ class TensorElement(MixedElement):
         self._check_component(i)
 
         i = self.symmetry().get(i, i)
-        l = len(self._shape)
+        l = len(self._shape)  # noqa: E741
         ii = i[:l]
         jj = i[l:]
         if ii not in self._sub_element_mapping:

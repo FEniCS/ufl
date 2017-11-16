@@ -214,7 +214,7 @@ def from_numpy_to_lists(expressions):
         import numpy
         if isinstance(expressions, numpy.ndarray):
             expressions = numpy2nestedlists(expressions)
-    except:
+    except Exception:
         pass
     return expressions
 
@@ -397,11 +397,11 @@ def dyad(d, *iota):
     "TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose."
     from ufl.constantvalue import Identity
     from ufl.operators import outer  # a bit of circular dependency issue here
-    I = Identity(d)
+    Id = Identity(d)
     i = iota[0]
-    e = as_vector(I[i, :], i)
+    e = as_vector(Id[i, :], i)
     for i in iota[1:]:
-        e = outer(e, as_vector(I[i, :], i))
+        e = outer(e, as_vector(Id[i, :], i))
     return e
 
 

@@ -61,7 +61,7 @@ class Terminal(Expr):
                 if derivatives:
                     f = 0.0
                 return f
-            except:
+            except Exception:
                 pass
             # If it has an ufl_evaluate function, call it
             if hasattr(self, 'ufl_evaluate'):
