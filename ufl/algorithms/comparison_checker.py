@@ -141,9 +141,9 @@ class CheckComparisons(MultiFunction):
         return term
 
 
-def do_comparison_check(expr):
+def do_comparison_check(form):
     """Raises an error if invalid comparison nodes exist"""
-    return map_integrand_dags(CheckComparisons(), expr)
+    return map_integrand_dags(CheckComparisons(), form)
 
 
 class ComplexComparisonError(Exception):
