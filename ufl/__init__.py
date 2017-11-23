@@ -187,6 +187,7 @@ A very brief overview of the language contents follows:
 * Complex operations::
 
     - conj, real, imag
+    conjugate is an alias for conj
 
 * Discontinuous Galerkin operators::
 

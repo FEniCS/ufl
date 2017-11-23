@@ -5,7 +5,7 @@ in a form when the user is in 'complex mode'"""
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algebra import Real
-from ufl.constantvalue import IntValue, FloatValue, Zero
+from ufl.constantvalue import RealValue, Zero
 from ufl.argument import Argument
 
 
@@ -14,7 +14,7 @@ class CheckComparisons(MultiFunction):
 
     If quantities are real, adds the Real operator to the compared quantities.
 
-    Terminals that are real are IntValue, FloatValue, Zero, and Argument
+    Terminals that are real are RealValue, Zero, and Argument
     (even in complex FEM, the basis functions are real)
     Operations that produce reals are Abs, Real, Imag.
     Terminals default to complex, and Sqrt, Pow (defensively) imply complex.
@@ -134,7 +134,7 @@ class CheckComparisons(MultiFunction):
 
     def terminal(self, term, *ops):
         # default terminals to complex, except the ones we *know* are real
-        if type(term) in {IntValue, FloatValue, Zero, Argument}:
+        if isinstance(term, (RealValue, Zero, Argument)):
             self.nodetype[term] = 'real'
         else:
             self.nodetype[term] = 'complex'
