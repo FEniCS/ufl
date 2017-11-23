@@ -21,7 +21,7 @@
 # Modified by Anders Logg, 2011.
 # Modified by Massimiliano Leoni, 2016.
 
-from math import sqrt, atan, pi
+from math import sqrt, atan2, pi
 
 from six.moves import xrange as range
 from six import iteritems
@@ -300,7 +300,7 @@ class ComplexValue(ScalarValue):
             else:
                 return -pi/2
         else:
-            return atan(self.value().imag/self.value().real)
+            return atan2(self.value().imag, self.value().real)
 
     def __repr__(self):
         r = "%s(%s)" % (type(self).__name__, repr(self._value))
