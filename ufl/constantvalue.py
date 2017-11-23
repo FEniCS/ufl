@@ -313,8 +313,14 @@ class ComplexValue(ScalarValue):
         raise TypeError("ComplexValues cannot be cast to int")
 
 
+@ufl_type(is_abstract=True, is_scalar=True)
+class RealValue(ScalarValue):
+    "Abstract class used to differentiate real values from complex ones"
+    pass
+
+
 @ufl_type(wraps_type=float, is_literal=True)
-class FloatValue(ScalarValue):
+class FloatValue(RealValue):
     "UFL literal type: Representation of a constant scalar floating point value."
     __slots__ = ()
 
@@ -328,7 +334,7 @@ class FloatValue(ScalarValue):
         return ConstantValue.__new__(cls)
 
     def __init__(self, value):
-        ScalarValue.__init__(self, float(value))
+        super(FloatValue, self).__init__(float(value))
 
     def __repr__(self):
         r = "%s(%s)" % (type(self).__name__, format_float(self._value))
@@ -336,7 +342,7 @@ class FloatValue(ScalarValue):
 
 
 @ufl_type(wraps_type=int, is_literal=True)
-class IntValue(ScalarValue):
+class IntValue(RealValue):
     "UFL literal type: Representation of a constant scalar integer value."
     __slots__ = ()
 
@@ -355,15 +361,15 @@ class IntValue(ScalarValue):
             self = IntValue._cache.get(value)
             if self is not None:
                 return self
-            self = ScalarValue.__new__(cls)
+            self = RealValue.__new__(cls)
             IntValue._cache[value] = self
         else:
-            self = ScalarValue.__new__(cls)
+            self = RealValue.__new__(cls)
         self._init(value)
         return self
 
     def _init(self, value):
-        ScalarValue.__init__(self, int(value))
+        super(IntValue, self).__init__(int(value))
 
     def __init__(self, value):
         pass

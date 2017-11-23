@@ -72,6 +72,10 @@ def conj(f):
     return Conj(f)
 
 
+# Alias because both conj and conjugate are in numpy and we wish to be consistent.
+conjugate = conj
+
+
 def real(f):
     "UFL operator: The real part of *f*"
     f = as_ufl(f)

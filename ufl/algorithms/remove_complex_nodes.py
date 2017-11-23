@@ -10,9 +10,6 @@ from ufl.log import error
 
 class ComplexNodeRemoval(MultiFunction):
     """Replaces complex operator nodes with their children"""
-    def __init__(self):
-        MultiFunction.__init__(self)
-
     expr = MultiFunction.reuse_if_untouched
 
     def conj(self, o, a):
@@ -22,7 +19,7 @@ class ComplexNodeRemoval(MultiFunction):
         return a
 
     def imag(self, o, a):
-        return a
+        error("Unexpected imag in real expression")
 
     def terminal(self, t, *ops):
         if isinstance(t, ComplexValue):

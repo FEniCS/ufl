@@ -9,15 +9,12 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 
 class ComplexNodeOptimisation(MultiFunction):
     """Removes superfluous complex node combinations."""
-    def __init__(self):
-        MultiFunction.__init__(self)
-
     expr = MultiFunction.reuse_if_untouched
 
     def conj(self, o, a):
         if isinstance(a, (Abs, Real, Imag, Zero)):
             return a
-        elif isinstance(a, (Conj)):
+        elif isinstance(a, Conj):
             return a.ufl_operands[0]
         else:
             return o
@@ -25,7 +22,7 @@ class ComplexNodeOptimisation(MultiFunction):
     def abs(self, o, a):
         if isinstance(a, (Abs, Zero)):
             return a
-        elif isinstance(a, (Conj)):
+        elif isinstance(a, Conj):
             return Abs(a.ufl_operands[0])
         else:
             return o
@@ -34,7 +31,7 @@ class ComplexNodeOptimisation(MultiFunction):
         # Can't mess with Real too much due to its role in allowing valid comparisons
         if isinstance(a, (Real)):
             return a
-        elif isinstance(a, (Conj)):
+        elif isinstance(a, Conj):
             return Real(a.ufl_operands[0])
         else:
             return o

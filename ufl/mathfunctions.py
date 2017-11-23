@@ -23,11 +23,12 @@
 
 import math
 import cmath
+import numbers
 from ufl.utils.py23 import as_native_strings
 from ufl.log import warning, error
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
+from ufl.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -68,9 +69,10 @@ class MathFunction(Operator):
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         try:
-            res = getattr(math, self._name)(a)
-        except TypeError:
-            res = getattr(cmath, self._name)(a)
+            if isinstance(a, numbers.Real):
+                res = getattr(math, self._name)(a)
+            else:
+                res = getattr(cmath, self._name)(a)
         except ValueError:
             warning('Value error in evaluation of function %s with argument %s.' % (self._name, a))
             raise
@@ -85,7 +87,7 @@ class Sqrt(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero, int, float)):
+        if isinstance(argument, (RealValue, Zero, numbers.Real)):
             if float(argument) < 0:
                 return ComplexValue(cmath.sqrt(complex(argument)))
             else:
@@ -103,7 +105,7 @@ class Exp(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.exp(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.exp(complex(argument)))
@@ -118,7 +120,7 @@ class Ln(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.log(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.log(complex(argument)))
@@ -140,7 +142,7 @@ class Cos(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.cos(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.cos(complex(argument)))
@@ -155,7 +157,7 @@ class Sin(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.sin(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.sin(complex(argument)))
@@ -170,7 +172,7 @@ class Tan(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.tan(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.tan(complex(argument)))
@@ -185,7 +187,7 @@ class Cosh(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.cosh(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.cosh(complex(argument)))
@@ -200,7 +202,7 @@ class Sinh(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.sinh(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.sinh(complex(argument)))
@@ -215,7 +217,7 @@ class Tanh(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.tanh(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.tanh(complex(argument)))
@@ -230,7 +232,7 @@ class Acos(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.acos(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.acos(complex(argument)))
@@ -245,7 +247,7 @@ class Asin(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.asin(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.asin(complex(argument)))
@@ -260,7 +262,7 @@ class Atan(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.atan(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.atan(complex(argument)))
@@ -275,7 +277,7 @@ class Atan2(Operator):
     __slots__ = ()
 
     def __new__(cls, arg1, arg2):
-        if isinstance(arg1, (IntValue, FloatValue, Zero)) and isinstance(arg2, (IntValue, FloatValue, Zero)):
+        if isinstance(arg1, (RealValue, Zero)) and isinstance(arg2, (RealValue, Zero)):
             return FloatValue(math.atan2(float(arg1), float(arg2)))
         if isinstance(arg1, (ComplexValue)) or isinstance(arg2, (ComplexValue)):
             raise TypeError("Atan2 does not support complex numbers.")
@@ -321,7 +323,7 @@ class Erf(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
-        if isinstance(argument, (IntValue, FloatValue, Zero)):
+        if isinstance(argument, (RealValue, Zero)):
             erf = _find_erf()
             if erf is not None:
                 return FloatValue(erf(float(argument)))
