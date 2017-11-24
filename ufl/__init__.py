@@ -120,6 +120,7 @@ A very brief overview of the language contents follows:
     - FacetNormal
     - CellNormal
     - CellVolume
+    - CellDiameter
     - Circumradius
     - MinCellEdgeLength
     - MaxCellEdgeLength
@@ -272,7 +273,7 @@ from ufl.domain import as_domain, AbstractDomain, Mesh, MeshView, TensorProductM
 from ufl.geometry import (
     SpatialCoordinate,
     FacetNormal, CellNormal,
-    CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
+    CellVolume, CellDiameter, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     Jacobian, JacobianDeterminant, JacobianInverse
     )
@@ -378,7 +379,8 @@ __all__ = as_native_strings([
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv',
     'SpatialCoordinate',
-    'CellVolume', 'Circumradius', 'MinCellEdgeLength', 'MaxCellEdgeLength',
+    'CellVolume', 'CellDiameter', 'Circumradius',
+    'MinCellEdgeLength', 'MaxCellEdgeLength',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'FacetNormal', 'CellNormal',
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',

@@ -24,6 +24,9 @@ of mostly the Jacobian and reference cell data.
 
 from six.moves import xrange as range
 
+from functools import reduce
+from itertools import combinations
+
 from ufl.log import error, warning
 
 from ufl.core.multiindex import Index, indices
@@ -37,10 +40,10 @@ from ufl.classes import (Expr, Form, Integral,
                          CellOrientation, CellOrigin, CellCoordinate,
                          FacetJacobian, FacetJacobianDeterminant,
                          CellFacetJacobian,
-                         CellEdgeVectors, FacetEdgeVectors,
+                         MaxCellEdgeLength,
+                         CellEdgeVectors, FacetEdgeVectors, CellVertices,
                          ReferenceNormal,
-                         ReferenceCellVolume, ReferenceFacetVolume,
-                         CellVolume, FacetArea,
+                         ReferenceCellVolume, ReferenceFacetVolume, CellVolume,
                          SpatialCoordinate,
                          FloatValue)
 # FacetJacobianInverse,
@@ -233,38 +236,29 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.ufl_domain()
+
         if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to
-            # form compiler
-            warning("Only know how to compute the circumradius of an affine cell.")
-            return o
+            error("Circumradius only makes sense for affine simplex cells")
 
         cellname = domain.ufl_cell().cellname()
         cellvolume = self.cell_volume(CellVolume(domain))
 
         if cellname == "interval":
-            r = 0.5 * cellvolume
+            # Optimization for square interval; no square root needed
+            return 0.5 * cellvolume
 
-        elif cellname == "triangle":
-            J = self.jacobian(Jacobian(domain))
-            trev = CellEdgeVectors(domain)
-            num_edges = 3
-            i, j, k = indices(3)
-            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
-                    for edge in range(num_edges)]
+        # Compute lengths of cell edges
+        edges = CellEdgeVectors(domain)
+        num_edges = edges.ufl_shape[0]
+        j = Index()
+        elen = [sqrt(edges[e, j]*edges[e, j]) for e in range(num_edges)]
 
-            r = (elen[0] * elen[1] * elen[2]) / (4.0 * cellvolume)
+        if cellname == "triangle":
+            return (elen[0] * elen[1] * elen[2]) / (4.0 * cellvolume)
 
         elif cellname == "tetrahedron":
-            J = self.jacobian(Jacobian(domain))
-            trev = CellEdgeVectors(domain)
-            num_edges = 6
-            i, j, k = indices(3)
-            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
-                    for edge in range(num_edges)]
-
-            # elen[3] = length of edge 3
             # la, lb, lc = lengths of the sides of an intermediate triangle
+            # NOTE: Is here some hidden numbering assumption?
             la = elen[3] * elen[2]
             lb = elen[4] * elen[1]
             lc = elen[5] * elen[0]
@@ -274,126 +268,92 @@ class GeometryLoweringApplier(MultiFunction):
             s = p / 2
             # area of intermediate triangle with Herons formula
             triangle_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
-            r = triangle_area / (6.0 * cellvolume)
-
-        else:
-            error("Unhandled cell type %s." % cellname)
-
-        return r
-
-    @memoized_handler
-    def min_cell_edge_length(self, o):
-        if self._preserve_types[o._ufl_typecode_]:
-            return o
-
-        domain = o.ufl_domain()
-        if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to
-            # form compiler
-            warning("Only know how to compute the min_cell_edge_length of an affine cell.")
-            return o
-
-        cellname = domain.ufl_cell().cellname()
-
-        J = self.jacobian(Jacobian(domain))
-        trev = CellEdgeVectors(domain)
-        num_edges = trev.ufl_shape[0]
-        i, j, k = indices(3)
-        elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
-                for edge in range(num_edges)]
-
-        if cellname == "triangle":
-            return min_value(elen[0], min_value(elen[1], elen[2]))
-        elif cellname == "tetrahedron":
-            min1 = min_value(elen[0], min_value(elen[1], elen[2]))
-            min2 = min_value(elen[3], min_value(elen[4], elen[5]))
-            return min_value(min1, min2)
-        else:
-            error("Unhandled cell type %s." % cellname)
+            return triangle_area / (6.0 * cellvolume)
 
     @memoized_handler
     def max_cell_edge_length(self, o):
-        if self._preserve_types[o._ufl_typecode_]:
-            return o
-
-        domain = o.ufl_domain()
-        if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to
-            # form compiler
-            warning("Only know how to compute the max_cell_edge_length of an affine cell.")
-            return o
-
-        cellname = domain.ufl_cell().cellname()
-
-        J = self.jacobian(Jacobian(domain))
-        trev = CellEdgeVectors(domain)
-        num_edges = trev.ufl_shape[0]
-        i, j, k = indices(3)
-        elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
-                for edge in range(num_edges)]
-
-        if cellname == "triangle":
-            return max_value(elen[0], max_value(elen[1], elen[2]))
-        elif cellname == "tetrahedron":
-            max1 = max_value(elen[0], max_value(elen[1], elen[2]))
-            max2 = max_value(elen[3], max_value(elen[4], elen[5]))
-            return max_value(max1, max2)
-        else:
-            error("Unhandled cell type %s." % cellname)
+        return self._reduce_cell_edge_length(o, max_value)
 
     @memoized_handler
-    def min_facet_edge_length(self, o):
+    def min_cell_edge_length(self, o):
+        return self._reduce_cell_edge_length(o, min_value)
+
+    def _reduce_cell_edge_length(self, o, reduction_op):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = o.ufl_domain()
-        if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to
-            # form compiler
-            warning("Only know how to compute the min_facet_edge_length of an affine cell.")
+
+        if not domain.ufl_coordinate_element().degree() == 1:
+            # Don't lower bendy cells, instead leave it to form compiler
+            warning("Only know how to compute cell edge lengths of P1 or Q1 cell.")
             return o
 
-        cellname = domain.ufl_cell().cellname()
+        elif domain.ufl_cell().cellname() == "interval":
+            # Interval optimization, square root not needed
+            return self.cell_volume(CellVolume(domain))
 
-        if cellname == "triangle":
-            return self.facet_area(FacetArea(domain))
-        elif cellname == "tetrahedron":
-            J = self.jacobian(Jacobian(domain))
-            trev = FacetEdgeVectors(domain)
-            num_edges = 3
-            i, j, k = indices(3)
-            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
-                    for edge in range(num_edges)]
-            return min_value(elen[0], min_value(elen[1], elen[2]))
         else:
-            error("Unhandled cell type %s." % cellname)
+            # Other P1 or Q1 cells
+            edges = CellEdgeVectors(domain)
+            num_edges = edges.ufl_shape[0]
+            j = Index()
+            elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
+            return sqrt(reduce(reduction_op, elen2))
+
+    @memoized_handler
+    def cell_diameter(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
+        domain = o.ufl_domain()
+
+        if not domain.ufl_coordinate_element().degree() == 1:
+            # Don't lower bendy cells, instead leave it to form compiler
+            warning("Only know how to compute cell diameter of P1 or Q1 cell.")
+            return o
+
+        elif domain.is_piecewise_linear_simplex_domain():
+            # Simplices
+            return self.max_cell_edge_length(MaxCellEdgeLength(domain))
+
+        else:
+            # Q1 cells, maximal distance between any two vertices
+            verts = CellVertices(domain)
+            verts = [verts[v, ...] for v in range(verts.ufl_shape[0])]
+            j = Index()
+            elen2 = ((v0-v1)[j]*(v0-v1)[j] for v0, v1 in combinations(verts, 2))
+            return sqrt(reduce(max_value, elen2))
 
     @memoized_handler
     def max_facet_edge_length(self, o):
+        return self._reduce_facet_edge_length(o, max_value)
+
+    @memoized_handler
+    def min_facet_edge_length(self, o):
+        return self._reduce_facet_edge_length(o, min_value)
+
+    def _reduce_facet_edge_length(self, o, reduction_op):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = o.ufl_domain()
-        if not domain.is_piecewise_linear_simplex_domain():
-            # Don't lower for non-affine cells, instead leave it to
-            # form compiler
-            warning("Only know how to compute the max_facet_edge_length of an affine cell.")
+
+        if domain.ufl_cell().topological_dimension() < 3:
+            error("Facet edge lengths only make sense for topological dimension >= 3.")
+
+        elif not domain.ufl_coordinate_element().degree() == 1:
+            # Don't lower bendy cells, instead leave it to form compiler
+            warning("Only know how to compute facet edge lengths of P1 or Q1 cell.")
             return o
 
-        cellname = domain.ufl_cell().cellname()
-
-        if cellname == "triangle":
-            return self.facet_area(FacetArea(domain))
-        elif cellname == "tetrahedron":
-            J = self.jacobian(Jacobian(domain))
-            trev = FacetEdgeVectors(domain)
-            num_edges = 3
-            i, j, k = indices(3)
-            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k]))
-                    for edge in range(num_edges)]
-            return max_value(elen[0], max_value(elen[1], elen[2]))
         else:
-            error("Unhandled cell type %s." % cellname)
+            # P1 tetrahedron or Q1 hexahedron
+            edges = FacetEdgeVectors(domain)
+            num_edges = edges.ufl_shape[0]
+            j = Index()
+            elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
+            return sqrt(reduce(reduction_op, elen2))
 
     @memoized_handler
     def cell_normal(self, o):

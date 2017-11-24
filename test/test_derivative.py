@@ -155,6 +155,13 @@ def testFacetArea(self):
     _test(self, f, df)
 
 
+def testCellDiameter(self):
+    def f(w): return CellDiameter(triangle)
+
+    def df(w, v): return zero()
+    _test(self, f, df)
+
+
 def testCircumradius(self):
     def f(w): return Circumradius(triangle)
 

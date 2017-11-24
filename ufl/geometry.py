@@ -367,10 +367,10 @@ class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
 
 
 @ufl_type()
-class CellEdgeVectors(GeometricCellQuantity):
+class ReferenceCellEdgeVectors(GeometricCellQuantity):
     """UFL geometry representation: The vectors between reference cell vertices for each edge in cell."""
     __slots__ = ()
-    name = "CEV"
+    name = "RCEV"
 
     def __init__(self, domain):
         GeometricCellQuantity.__init__(self, domain)
@@ -392,10 +392,10 @@ class CellEdgeVectors(GeometricCellQuantity):
 
 
 @ufl_type()
-class FacetEdgeVectors(GeometricFacetQuantity):
+class ReferenceFacetEdgeVectors(GeometricFacetQuantity):
     """UFL geometry representation: The vectors between reference cell vertices for each edge in current facet."""
     __slots__ = ()
-    name = "FEV"
+    name = "RFEV"
 
     def __init__(self, domain):
         GeometricFacetQuantity.__init__(self, domain)
@@ -409,6 +409,78 @@ class FacetEdgeVectors(GeometricFacetQuantity):
         nfe = cell.num_facet_edges()
         t = cell.topological_dimension()
         return (nfe, t)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always constant for a given cell type
+        return True
+
+
+@ufl_type()
+class CellVertices(GeometricCellQuantity):
+    """UFL geometry representation: Physical cell vertices."""
+    __slots__ = ()
+    name = "CV"
+
+    def __init__(self, domain):
+        GeometricCellQuantity.__init__(self, domain)
+
+    @property
+    def ufl_shape(self):
+        cell = self.ufl_domain().ufl_cell()
+        nv = cell.num_vertices()
+        g = cell.geometric_dimension()
+        return (nv, g)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always constant for a given cell type
+        return True
+
+
+@ufl_type()
+class CellEdgeVectors(GeometricCellQuantity):
+    """UFL geometry representation: The vectors between physical cell vertices for each edge in cell."""
+    __slots__ = ()
+    name = "CEV"
+
+    def __init__(self, domain):
+        GeometricCellQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 2:
+            error("CellEdgeVectors is only defined for topological dimensions >= 2.")
+
+    @property
+    def ufl_shape(self):
+        cell = self.ufl_domain().ufl_cell()
+        ne = cell.num_edges()
+        g = cell.geometric_dimension()
+        return (ne, g)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always constant for a given cell type
+        return True
+
+
+@ufl_type()
+class FacetEdgeVectors(GeometricFacetQuantity):
+    """UFL geometry representation: The vectors between physical cell vertices for each edge in current facet."""
+    __slots__ = ()
+    name = "FEV"
+
+    def __init__(self, domain):
+        GeometricFacetQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 3:
+            error("FacetEdgeVectors is only defined for topological dimensions >= 3.")
+
+    @property
+    def ufl_shape(self):
+        cell = self.ufl_domain().ufl_cell()
+        nfe = cell.num_facet_edges()
+        g = cell.geometric_dimension()
+        return (nfe, g)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -683,6 +755,15 @@ class Circumradius(GeometricCellQuantity):
     """UFL geometry representation: The circumradius of the cell."""
     __slots__ = ()
     name = "circumradius"
+
+
+@ufl_type()
+class CellDiameter(GeometricCellQuantity):
+    """UFL geometry representation: The diameter of the cell, i.e.,
+    maximal distance of two points in the cell."""
+    __slots__ = ()
+    name = "diameter"
+
 
 # @ufl_type()
 # class CellSurfaceArea(GeometricCellQuantity):

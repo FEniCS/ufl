@@ -111,6 +111,7 @@ def test_terminal_hashdata_depends_on_geometry(self):
             d = cell.geometric_dimension()
             x = SpatialCoordinate(cell)
             n = FacetNormal(cell)
+            h = CellDiameter(cell)
             r = Circumradius(cell)
             a = FacetArea(cell)
             # s = CellSurfaceArea(cell)
@@ -118,7 +119,7 @@ def test_terminal_hashdata_depends_on_geometry(self):
             I = Identity(d)
 
             ws = (x, n)
-            qs = (r, a, v)  # , s)
+            qs = (h, r, a, v)  # , s)
             for w in ws:
                 for q in qs:
                     expr = (I[0, j]*(q*w[j]))
@@ -128,7 +129,7 @@ def test_terminal_hashdata_depends_on_geometry(self):
                     yield compute_terminal_hashdata(expr, domain_numbering(*cells))
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    assert c == 2*3*2  # len(ws)*len(qs)*len(cells)
+    assert c == 2*4*2  # len(ws)*len(qs)*len(cells)
     assert d == c
     assert r == c
     assert h == c
