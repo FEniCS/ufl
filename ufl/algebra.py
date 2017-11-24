@@ -407,12 +407,14 @@ class Real(Operator):
 
         # Simplification
         if isinstance(a, Conj):
-            a = as_ufl(a.ufl_operands[0])
-        if isinstance(a, (Real, Zero)):
+            a = a.ufl_operands[0]
+        if isinstance(a, Zero):
             return a
         if isinstance(a, ScalarValue):
             return as_ufl(a.real())
-
+        if isinstance(a, Real):
+            a = a.ufl_operands[0]
+            
         return Operator.__new__(cls)
 
     def __init__(self, a):
