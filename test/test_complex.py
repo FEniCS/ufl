@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 import cmath
+import ufl
 from ufl.constantvalue import Zero, ComplexValue
 from ufl.algebra import Conj, Real, Imag
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
@@ -123,8 +124,10 @@ def test_remove_complex_nodes(self):
 
     assert remove_complex_nodes(a) == v
     assert remove_complex_nodes(b) == u
-    assert remove_complex_nodes(c) == f
-    assert remove_complex_nodes(d) == u*v
+    with pytest.raises(ufl.log.UFLException):
+        remove_complex_nodes(c)
+    with pytest.raises(ufl.log.UFLException):
+        remove_complex_nodes(d)
 
 
 def test_comparison_checker(self):

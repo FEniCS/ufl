@@ -283,9 +283,9 @@ class ComplexValue(ScalarValue):
             if value.real == 0:
                 return Zero()
             else:
-                return FloatValue.__new__(cls, value.real)
+                return FloatValue(value.real)
         else:
-            return ConstantValue.__new__(cls, value)
+            return ConstantValue.__new__(cls)
 
     def __init__(self, value):
         ScalarValue.__init__(self, complex(value))
@@ -316,7 +316,7 @@ class ComplexValue(ScalarValue):
 @ufl_type(is_abstract=True, is_scalar=True)
 class RealValue(ScalarValue):
     "Abstract class used to differentiate real values from complex ones"
-    pass
+    __slots__ = ()
 
 
 @ufl_type(wraps_type=float, is_literal=True)
