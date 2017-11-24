@@ -78,9 +78,9 @@ def test_complex(self):
     f7 = as_ufl(1.0j)
 
     assert f1 == f1
-    assert f1 == f4 
-    assert f1 == f5 # ComplexValue uses floats
-    assert f1 == f2 + f3 # Type promotion of IntValue to ComplexValue with arithmetic
+    assert f1 == f4
+    assert f1 == f5  # ComplexValue uses floats
+    assert f1 == f2 + f3  # Type promotion of IntValue to ComplexValue with arithmetic
     assert f4 == f2 + f3
     assert f5 == f2 + f3
     assert f4 == f5

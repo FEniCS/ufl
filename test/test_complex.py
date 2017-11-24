@@ -6,7 +6,6 @@ from ufl.constantvalue import Zero, ComplexValue
 from ufl.algebra import Conj, Real, Imag
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
-from ufl.algorithms.optimise_complex_nodes import optimise_complex_nodes
 from ufl.algorithms import estimate_total_polynomial_degree
 from ufl.algorithms.comparison_checker import do_comparison_check, ComplexComparisonError
 from ufl.algorithms.formtransformations import compute_form_adjoint
@@ -126,45 +125,6 @@ def test_remove_complex_nodes(self):
     assert remove_complex_nodes(b) == u
     assert remove_complex_nodes(c) == f
     assert remove_complex_nodes(d) == u*v
-
-
-def test_optimise_complex_nodes(self):
-    cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
-
-    u = TrialFunction(element)
-
-    a = conj(conj(u))
-    b = conj(as_ufl(0))
-    c = abs(conj(u))
-    d = abs(as_ufl(0))
-    e = conj(abs(u))
-    f = conj(real(u))
-    g = conj(imag(u))
-    h = abs(abs(u))
-    i = real(real(u))
-    j = real(conj(u))
-    k = imag(imag(u))
-    l = imag(real(u))
-    m = imag(abs(u))
-    n = imag(as_ufl(0))
-    o = real(as_ufl(0))
-
-    assert optimise_complex_nodes(a) == u
-    assert optimise_complex_nodes(b) == 0
-    assert optimise_complex_nodes(c) == abs(u)
-    assert optimise_complex_nodes(d) == 0
-    assert optimise_complex_nodes(e) == abs(u)
-    assert optimise_complex_nodes(f) == real(u)
-    assert optimise_complex_nodes(g) == imag(u)
-    assert optimise_complex_nodes(h) == abs(u)
-    assert optimise_complex_nodes(i) == real(u)
-    assert optimise_complex_nodes(j) == real(u)
-    assert optimise_complex_nodes(k) == 0
-    assert optimise_complex_nodes(l) == 0
-    assert optimise_complex_nodes(m) == 0
-    assert optimise_complex_nodes(n) == 0
-    assert optimise_complex_nodes(o) == 0
 
 
 def test_comparison_checker(self):

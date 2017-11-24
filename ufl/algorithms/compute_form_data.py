@@ -41,7 +41,6 @@ from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
-from ufl.algorithms.optimise_complex_nodes import optimise_complex_nodes
 from ufl.algorithms.comparison_checker import do_comparison_check
 
 # See TODOs at the call sites of these below:
@@ -249,10 +248,8 @@ def compute_form_data(form,
     # Check that the form does not try to compare complex quantities:
     # if the quantites being compared are 'provably' real, wrap them
     # with Real, otherwise throw an error.
-    # Optimises complex nodes by removing e.g. Conj(Conj(...))
     if complex_mode:
         form = do_comparison_check(form)
-        form = optimise_complex_nodes(form)
 
     # Lower abstractions for tensor-algebra types into index notation,
     # reducing the number of operators later algorithms and form
@@ -405,11 +402,8 @@ def compute_form_data(form,
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
     check_form_arity(preprocessed_form, self.original_form.arguments())  # Currently testing how fast this is
 
-    # Optimises complex nodes by removing e.g. Conj(Conj(...)) if in complex mode
-    # Otherwise removes complex nodes entirely.
-    if complex_mode:
-        preprocessed_form = optimise_complex_nodes(preprocessed_form)
-    else:
+    # If in real mode, remove complex nodes entirely.
+    if not complex_mode:
         preprocessed_form = remove_complex_nodes(preprocessed_form)
 
     # TODO: This member is used by unit tests, change the tests to
