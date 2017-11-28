@@ -25,7 +25,7 @@ from ufl.utils.py23 import as_native_strings
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
-from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, FloatValue, ComplexValue, as_ufl
+from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, ComplexValue, as_ufl
 from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.index_combination_utils import merge_unique_indices
 from ufl.sorting import sorted_expr
@@ -414,7 +414,7 @@ class Real(Operator):
             return as_ufl(a.real())
         if isinstance(a, Real):
             a = a.ufl_operands[0]
-            
+
         return Operator.__new__(cls)
 
     def __init__(self, a):
