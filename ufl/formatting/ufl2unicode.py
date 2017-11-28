@@ -620,6 +620,15 @@ class Expression2UnicodeHandler(MultiFunction):
     def sym(self, o, A):
         return mathop(o, A, "sym")
 
+    def conj(self, o, a):
+        return mathop(o, a, "conj")
+
+    def real(self, o, a):
+        return mathop(o, a, "Re")
+
+    def imag(self, o, a):
+        return mathop(o, a, "Im")
+
     def list_tensor(self, o, *ops):
         l = ", ".join(ops)
         return "%s%s%s" % ("[", l, "]")
