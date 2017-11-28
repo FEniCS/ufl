@@ -342,7 +342,7 @@ class Expr(object):
         "Try to evaluate as scalar and cast to complex."
         try:
             v = complex(self._ufl_evaluate_scalar_())
-        except:
+        except TypeError:
             v = NotImplemented
         return v
 
@@ -440,7 +440,7 @@ class Expr(object):
         except TypeError:
             val = complex(self._ufl_evaluate_scalar_())
             val = round(val.real, n) + round(val.imag, n)*1j
-        except:
+        except TypeError:
             val = NotImplemented
         return val
 
