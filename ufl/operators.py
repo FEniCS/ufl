@@ -739,7 +739,7 @@ def exterior_derivative(f):
     else:
         try:
             element = f.ufl_element()
-        except:
+        except Exception:
             error("Unable to determine element from %s" % f)
 
     # Extract the family and the geometric dimension

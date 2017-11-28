@@ -33,7 +33,7 @@ class VariableRenumberingTransformer(ReuseTransformer):
         self.variable_map = {}
 
     def variable(self, o):
-        e, l = o.ufl_operands
+        e, l = o.ufl_operands  # noqa: E741
         v = self.variable_map.get(l)
         if v is None:
             e = self.visit(e)

@@ -185,7 +185,7 @@ class Expression2LatexHandler(MultiFunction):
 
     def variable(self, o):
         # TODO: Ensure variable has been handled
-        e, l = o.ufl_operands
+        e, l = o.ufl_operands  # noqa: E741
         return "s_{%d}" % l._count
 
     # --- Non-terminal objects ---
@@ -339,13 +339,13 @@ class Expression2LatexHandler(MultiFunction):
         shape = o.ufl_shape
         if len(shape) == 1:
             ops = [self.visit(op) for op in o.ufl_operands]
-            l = " \\\\ \n ".join(ops)
+            l = " \\\\ \n ".join(ops)  # noqa: E741
         elif len(shape) == 2:
             rows = []
             for row in o.ufl_operands:
                 cols = (self.visit(op) for op in row.ufl_operands)
                 rows.append(" & \n ".join(cols))
-            l = " \\\\ \n ".join(rows)
+            l = " \\\\ \n ".join(rows)  # noqa: E741
         else:
             error("TODO: LaTeX handler for list tensor of rank 3 or higher not implemented!")
         return "\\left[\\begin{matrix}{%s}\\end{matrix}\\right]^T" % l
@@ -391,10 +391,10 @@ class Expression2LatexHandler(MultiFunction):
         return "!(%s)" % (a,)
 
     def conditional(self, o, c, t, f):
-        l = "\\begin{cases}\n"
-        l += "%s, &\text{if }\quad %s, \\\\\n" % (t, c)
-        l += "%s, &\text{otherwise.}\n" % f
-        l += "\\end{cases}"
+        l = "\\begin{cases}\n"  # noqa: E741
+        l += "%s, &\text{if }\quad %s, \\\\\n" % (t, c)  # noqa: E741
+        l += "%s, &\text{otherwise.}\n" % f  # noqa: E741
+        l += "\\end{cases}"  # noqa: E741
         return l
 
     def min_value(self, o, a, b):
@@ -481,7 +481,7 @@ def form2latex(form, formdata):
     for itg in integrals:
         variables = _extract_variables(itg.integrand())
         for v in variables:
-            l = v._label
+            l = v._label  # noqa: E741
             if l not in handled_variables:
                 handled_variables.add(l)
                 exprlatex = expression2latex(v._expression,

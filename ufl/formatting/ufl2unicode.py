@@ -630,7 +630,7 @@ class Expression2UnicodeHandler(MultiFunction):
         return mathop(o, a, "Im")
 
     def list_tensor(self, o, *ops):
-        l = ", ".join(ops)
+        l = ", ".join(ops)  # noqa: E741
         return "%s%s%s" % ("[", l, "]")
 
     def component_tensor(self, o, A, ii):
@@ -686,7 +686,7 @@ class Expression2UnicodeHandler(MultiFunction):
         f = par(t)
         If = opfont("if")
         Else = opfont("else")
-        l = " ".join((t, If, c, Else, f))
+        l = " ".join((t, If, c, Else, f))  # noqa: E741
         return l
 
     def min_value(self, o, a, b):

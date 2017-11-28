@@ -27,7 +27,7 @@ from ufl.measure import Measure
 from ufl.measure import integral_type_to_measure_name
 
 # Default indices
-i, j, k, l = indices(4)
+i, j, k, l = indices(4)  # noqa: E741
 p, q, r, s = indices(4)
 
 for integral_type, measure_name in integral_type_to_measure_name.items():

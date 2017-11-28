@@ -149,7 +149,7 @@ class Transformer(object):
     def reuse_variable(self, o):
         # Check variable cache to reuse previously transformed
         # variable if possible
-        e, l = o.ufl_operands
+        e, l = o.ufl_operands  # noqa: E741
         v = self._variable_cache.get(l)
         if v is not None:
             return v
@@ -171,7 +171,7 @@ class Transformer(object):
     def reconstruct_variable(self, o):
         # Check variable cache to reuse previously transformed
         # variable if possible
-        e, l = o.ufl_operands
+        e, l = o.ufl_operands  # noqa: E741
         v = self._variable_cache.get(l)
         if v is not None:
             return v

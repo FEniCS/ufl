@@ -31,7 +31,7 @@ def camel2underscore(name):
             # Don't insert _ between multiple upper case letters
             if lastlower:
                 letters.append("_")
-            l = l.lower()
+            l = l.lower()  # noqa: E741
         lastlower = thislower
         letters.append(l)
     return "".join(letters)
