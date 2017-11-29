@@ -703,8 +703,7 @@ def forms2latexdocument(forms, uflfilename, compile=False):
         form_data = compute_form_data(form)
 
         # Generate LaTex code
-        # title = "Form %s" % form_data.name
-        title = "Form"
+        title = "Form %s" % form_data.name
         if compile:
             body = form2code2latex(form, form_data)
         else:
