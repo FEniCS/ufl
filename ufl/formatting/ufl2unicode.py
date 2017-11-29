@@ -621,6 +621,7 @@ class Expression2UnicodeHandler(MultiFunction):
         return mathop(o, A, "sym")
 
     def conj(self, o, a):
+        # Overbar is already taken for average, and there is no superscript asterix in unicode.
         return mathop(o, a, "conj")
 
     def real(self, o, a):
