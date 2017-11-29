@@ -145,7 +145,7 @@ def transpose(A):
 
 
 def outer(*operands):
-    "UFL operator: Take the outer product of two or more operands."
+    "UFL operator: Take the outer product of two or more operands. The complex conjugate of the first argument is taken."
     n = len(operands)
     if n == 1:
         return operands[0]
@@ -162,7 +162,7 @@ def outer(*operands):
 
 
 def inner(a, b):
-    "UFL operator: Take the inner product of *a* and *b*."
+    "UFL operator: Take the inner product of *a* and *b*. The complex conjugate of the second argument is taken."
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
@@ -180,7 +180,7 @@ def _partial_inner(a, b):
 
 
 def dot(a, b):
-    "UFL operator: Take the dot product of *a* and *b*."
+    "UFL operator: Take the dot product of *a* and *b*. The complex conjugate of the second argument is taken."
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
