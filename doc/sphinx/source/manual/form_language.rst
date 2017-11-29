@@ -871,26 +871,29 @@ orthonormal basis for a Euclidean space):
 
   \mathbf{i}_i \cdot \mathbf{i}_j = \delta_{ij}
 
-where :math:`\delta_{ij}` is the Kronecker delta function.
-The dot product of higher order tensors follow from this, as illustrated
-with the following examples.
+where :math:`\delta_{ij}` is the Kronecker delta function.  The dot
+product of higher order tensors follow from this, as illustrated with
+the following examples. To support the complex-valued case, UFL
+defines the dot product to take the complex conjugate of its second
+operand. Where all values are real, this has no effect on the
+computation.
 
 An example with two vectors
 
 .. math::
 
-   \mathbf{v} \cdot \mathbf{u} = (v_i \mathbf{i}_i) \cdot (u_j \mathbf{i}_j)
-        = v_i u_j (\mathbf{i}_i \cdot \mathbf{i}_j) = v_i u_j \delta_{ij} = v_i u_i
+   \mathbf{v} \cdot \mathbf{u} = (v_i \mathbf{i}_i) \cdot (u^*_j \mathbf{i}_j)
+        = v_i u^*_j (\mathbf{i}_i \cdot \mathbf{i}_j) = v_i u^*_j \delta_{ij} = v_i u^*_i
 
 An example with a tensor of rank two
 
 .. math::
 
   \mathbf{A} \cdot \mathbf{B}
-  &= (A_{ij} \mathbf{i}_i \mathbf{i}_j) \cdot (B_{kl} \mathbf{i}_k \mathbf{i}_l) \\
-  &= (A_{ij}B_{kl}) \mathbf{i}_i(\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
-  &= (A_{ij}B_{kl}\delta_{jk}) \mathbf{i}_i \mathbf{i}_l \\
-  &= A_{ik}B_{kl} \mathbf{i}_i \mathbf{i}_l.
+  &= (A_{ij} \mathbf{i}_i \mathbf{i}_j) \cdot (B^*_{kl} \mathbf{i}_k \mathbf{i}_l) \\
+  &= (A_{ij}B^*_{kl}) \mathbf{i}_i(\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
+  &= (A_{ij}B^*_{kl}\delta_{jk}) \mathbf{i}_i \mathbf{i}_l \\
+  &= A_{ik}B^*_{kl} \mathbf{i}_i \mathbf{i}_l.
 
 This is the same as a matrix-matrix multiplication.
 
@@ -899,10 +902,10 @@ An example with a vector and a tensor of rank two
 .. math::
 
    \mathbf{v} \cdot \mathbf{A}
-   &= (v_j \mathbf{i}_j) \cdot (A_{kl} \mathbf{i}_k \mathbf{i}_l) \\
-   &= (v_j A_{kl}) (\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
-   &= (v_j A_{kl}\delta_{jk}) \mathbf{i}_l \\
-   &= v_k A_{kl} \mathbf{i}_l
+   &= (v_j \mathbf{i}_j) \cdot (A^*_{kl} \mathbf{i}_k \mathbf{i}_l) \\
+   &= (v_j A^*_{kl}) (\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
+   &= (v_j A^*_{kl}\delta_{jk}) \mathbf{i}_l \\
+   &= v_k A^*_{kl} \mathbf{i}_l
 
 This is the same as a vector-matrix multiplication.
 
@@ -910,23 +913,27 @@ This generalizes to tensors of arbitrary rank:
 the dot product applies to the last axis of a and the first axis of b.
 The tensor rank of the product is rank(a)+rank(b)-2.
 
+
 ``inner``
 ---------
 
 The inner product is a contraction over all axes of a and b, that is
-the sum of all component-wise products.  The operands must have exactly the
-same dimensions.  For two vectors it is equivalent to the dot product.
+the sum of all component-wise products.  The operands must have
+exactly the same dimensions.  For two vectors it is equivalent to the
+dot product. As with the dot product, complex values are supported by
+UFL taking the complex conjugate of the second operand. This has no
+impact if the values are real.
 
 If :math:`\mathbf{A}` and :math:`\mathbf{B}` are rank two tensors and
 :math:`\mathcal{C}` and :math:`\mathcal{D}` are rank 3 tensors
 their inner products are
 
 .. math::
-   \mathbf{A} : \mathbf{B}   &= A_{ij} B_{ij}
+   \mathbf{A} : \mathbf{B}   &= A_{ij} B^*_{ij}
    \\
-   \mathcal{C} : \mathcal{D} &= C_{ijk} D_{ijk}
+   \mathcal{C} : \mathcal{D} &= C_{ijk} D^*_{ijk}
 
-Using UFL notation, the following sets of declarations are equivalent::
+Using UFL notation, for real values, the following sets of declarations are equivalent::
 
   # Vectors
   f = dot(a, b)
@@ -957,18 +964,20 @@ The general definition of the outer product of two tensors
 
    \mathcal{C} \otimes \mathcal{D}
     =
-    C_{\iota^a_0 \ldots \iota^a_{r-1}} D_{\iota^b_0 \ldots\iota^b_{s-1}}
+    C^*_{\iota^a_0 \ldots \iota^a_{r-1}} D_{\iota^b_0 \ldots\iota^b_{s-1}}
     \mathbf{i}_{\iota^a_0}\otimes\cdots\otimes\mathbf{i}_{\iota^a_{r-2}}
     \otimes
     \mathbf{i}_{\iota^b_1} \otimes \cdots \otimes \mathbf{i}_{\iota^b_{s-1}}
 
+For consistency with the inner product, the complex conjugate is taken of the first operand. 
+    
 Some examples with vectors and matrices are easier to understand:
 
 .. math::
 
-   \mathbf{v} \otimes \mathbf{u} = v_i u_j \mathbf{i}_i \mathbf{i}_j, \\
-   \mathbf{v} \otimes \mathbf{B} = v_i B_{kl} \mathbf{i}_i \mathbf{i}_k \mathbf{i}_l, \\
-   \mathbf{A} \otimes \mathbf{B} = A_{ij} B_{kl} \mathbf{i}_i \mathbf{i}_j \mathbf{i}_k \mathbf{i}_l .
+   \mathbf{v} \otimes \mathbf{u} = v^*_i u_j \mathbf{i}_i \mathbf{i}_j, \\
+   \mathbf{v} \otimes \mathbf{B} = v^*_i B_{kl} \mathbf{i}_i \mathbf{i}_k \mathbf{i}_l, \\
+   \mathbf{A} \otimes \mathbf{B} = A^*_{ij} B_{kl} \mathbf{i}_i \mathbf{i}_j \mathbf{i}_k \mathbf{i}_l .
 
 The outer product of vectors is often written simply as
 
@@ -1421,6 +1430,56 @@ Alternatively, using the shorthand ``lambda`` notation, the
 strain operator may be defined as follows::
 
   epsilon = lambda v: 0.5*(grad(v) + grad(v).T)
+
+
+Complex values
+==============
+
+UFL supports the definition of forms over either the real or the
+complex field.  Indeed, UFL does not explicitly define whether
+``Coefficient`` or ``Constant`` are real or complex. This is instead a
+matter for the form compiler to define. The complex-valued finite
+element spaces supported by UFL always have a real basis but complex
+coefficients. This means that ``Constant`` are ``Coefficient`` are
+complex-valued, but ``Argument`` is real-valued.
+
+Complex operators
+-----------------
+
+* ``conj(f)`` :: complex conjugate of ``f``.
+* ``imag(f)`` :: imaginary part of ``f``.
+* ``real(f)`` :: real part of ``f``.
+
+Sesquilinearity
+---------------
+
+``inner``, ``outer``, and ``dot`` are sesquilinear rather than linear
+when applied to complex values. Consequently, forms with two arguments
+are also sesquilinear in this case. UFL adopts the convention that
+inner products take the complex conjugate of the second operand. This
+is the usual convention in complex analysis but the reverse of the
+usual convention in physics.
+
+Complex values and conditionals
+-------------------------------
+
+Since the field of complex numbers does not admit a well order,
+complex expressions are not permissable as operands to ``lt``, ``gt``,
+``le``, or ``ge``. When compiling complex forms, the preprocessing
+stage of a compiler will attempt to prove that the relevant operands
+are real and will raise an exception if it is unable to do so. The
+user may always explicitly use ``real`` (or ``imag``) in order to
+ensure that the operand is real.
+
+
+Compiling real forms
+--------------------
+
+When the compiler treats a form as real, the preprocessing stage will
+discard all instances of ``conj`` and ``real`` in the form. Any
+instances of ``imag`` or complex literal constants will cause an
+exception.
+
 
 
 Form Transformations
