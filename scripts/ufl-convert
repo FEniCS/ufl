@@ -68,7 +68,7 @@ option_list = [ \
     opt("labeling",  "l", "str", "repr", "Set to 'repr' or 'compact' for different naming of graph nodes."),
     opt("compile",   "c", "int", 0, "'Compile' forms: apply expression transformations like in a quadrature based form compilation. Only used for latex formatting."),
     opt("preprocess", "p", "int", 0, "Set to 1 to return the preprocessed form. Only used for dot formatting."),
-    opt("complex", "z", "int", 0, "Set to 1 to return complex-mode. Otherwise produces real-mode. Only used for dot formatting."),
+    opt("complex", "z", "int", 0, "Set to 1 to for output containing complex nodes. Otherwise all nodes are assumed real. Only used for dot formatting."),
     # Output formats:
     opt("format",    "f", "str", "", "Rendering format (str, repr, tree, dot, latex, unicode)."),
     opt("filetype",  "t", "str", "", "Output file type (txt, py, dot, tex, ps, pdf, png)."),
