@@ -94,7 +94,7 @@ def test_apply_algebra_lowering_complex(self):
     gu = grad(u)
 
     a = dot(gu, gv)
-    b = inner(gu, gv)
+    b = inner(gv, gu)
     c = outer(gu, gv)
 
     lowered_a = apply_algebra_lowering(a)
@@ -105,7 +105,7 @@ def test_apply_algebra_lowering_complex(self):
     lowered_c_indices = lowered_c.indices()
 
     assert lowered_a == gu[lowered_a_index] * conj(gv[lowered_a_index])
-    assert lowered_b == gu[lowered_b_index] * conj(gv[lowered_b_index])
+    assert lowered_b == gv[lowered_b_index] * conj(gu[lowered_b_index])
     assert lowered_c == as_tensor(conj(gu[lowered_c_indices[0]]) * gv[lowered_c_indices[1]], (lowered_c_indices[0],) + (lowered_c_indices[1],))
 
 

@@ -169,7 +169,7 @@ class Inner(CompoundTensorOperator):
         # sort operands for unique representation,
         # must be independent of various counts etc.
         # as explained in cmp_expr
-        if (a, b) != sorted_expr((a, b)):
+        if (a, b) != tuple(sorted_expr((a, b))):
             return Conj(Inner(b, a))
 
         return CompoundTensorOperator.__new__(cls)
