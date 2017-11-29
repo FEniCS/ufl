@@ -42,45 +42,20 @@ class CheckComparisons(MultiFunction):
         self.nodetype[o] = t
         return o
 
-    def gt(self, o, *ops):
+    def compare(self, o, *ops):
         types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
-            raise ComplexComparisonError("You can't compare complex numbers with gt.")
+            raise ComplexComparisonError("Ordering undefined for complex values.")
         else:
             o = o._ufl_expr_reconstruct_(*map(Real, ops))
             self.nodetype[o] = "bool"
             return o
 
-    def lt(self, o, *ops):
-        types = {self.nodetype[op] for op in ops}
-
-        if "complex" in types:
-            raise ComplexComparisonError("You can't compare complex numbers with lt.")
-        else:
-            o = o._ufl_expr_reconstruct_(*map(Real, ops))
-            self.nodetype[o] = "bool"
-            return o
-
-    def ge(self, o, *ops):
-        types = {self.nodetype[op] for op in ops}
-
-        if "complex" in types:
-            raise ComplexComparisonError("You can't compare complex numbers with ge.")
-        else:
-            o = o._ufl_expr_reconstruct_(*map(Real, ops))
-            self.nodetype[o] = "bool"
-            return o
-
-    def le(self, o, *ops):
-        types = {self.nodetype[op] for op in ops}
-
-        if "complex" in types:
-            raise ComplexComparisonError("You can't compare complex numbers with le.")
-        else:
-            o = o._ufl_expr_reconstruct_(*map(Real, ops))
-            self.nodetype[o] = "bool"
-            return o
+    gt = compare
+    lt = compare
+    ge = compare
+    le = compare
 
     def max_value(self, o, *ops):
         types = {self.nodetype[op] for op in ops}
