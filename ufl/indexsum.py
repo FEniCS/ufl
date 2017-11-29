@@ -47,7 +47,7 @@ class IndexSum(Operator):
         if not isinstance(index, MultiIndex):
             error("Expecting MultiIndex instance, got %s" % ufl_err_str(index))
         if len(index) != 1:
-            error("Expecting a single Index, only got %d." % len(index))
+            error("Expecting a single Index but got %d." % len(index))
 
         # Simplification to zero
         if isinstance(summand, Zero):

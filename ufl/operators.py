@@ -29,7 +29,7 @@ from six.moves import xrange as range
 
 from ufl.log import error, warning
 from ufl.form import Form
-from ufl.constantvalue import Zero, IntValue, FloatValue, ComplexValue, as_ufl
+from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
     Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
@@ -594,7 +594,7 @@ def Min(x, y):  # TODO: Deprecate this notation?
 def _mathfunction(f, cls):
     f = as_ufl(f)
     r = cls(f)
-    if isinstance(r, (IntValue, FloatValue, Zero, int, float)):
+    if isinstance(r, (RealValue, Zero, int, float)):
         return float(r)
     if isinstance(r, (ComplexValue, complex)):
         return complex(r)
@@ -668,7 +668,7 @@ def atan_2(f1, f2):
     if isinstance(f1, (ComplexValue, complex)) or isinstance(f2, (ComplexValue, complex)):
         raise TypeError('atan_2 is incompatible with complex numbers.')
     r = Atan2(f1, f2)
-    if isinstance(r, (IntValue, FloatValue, Zero, int, float)):
+    if isinstance(r, (RealValue, Zero, int, float)):
         return float(r)
     if isinstance(r, (ComplexValue, complex)):
         return complex(r)
