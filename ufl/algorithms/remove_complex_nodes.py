@@ -29,5 +29,9 @@ class ComplexNodeRemoval(MultiFunction):
 
 
 def remove_complex_nodes(expr):
-    """Replaces complex operator nodes with their children"""
+    """Replaces complex operator nodes with their children. This is called
+    during compute_form_data if the compiler wishes to compile
+    real-valued forms. In essence this strips all trace of complex
+    support from the preprocessed form.
+    """
     return map_integrand_dags(ComplexNodeRemoval(), expr)
