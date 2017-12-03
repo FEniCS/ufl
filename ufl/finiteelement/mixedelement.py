@@ -367,7 +367,7 @@ class TensorElement(MixedElement):
             if cell is not None:
                 cell = as_cell(cell)
             # Create scalar sub element
-            sub_element = FiniteElement(family, cell, degree, quad_scheme)
+            sub_element = FiniteElement(family, cell, degree, quad_scheme=quad_scheme)
 
         if sub_element.value_shape() != ():
             error("Expecting only scalar valued subelement for TensorElement.")
@@ -464,7 +464,7 @@ class TensorElement(MixedElement):
         self._check_component(i)
 
         i = self.symmetry().get(i, i)
-        l = len(self._shape)
+        l = len(self._shape)  # noqa: E741
         ii = i[:l]
         jj = i[l:]
         if ii not in self._sub_element_mapping:

@@ -334,7 +334,7 @@ class Expr(object):
         "Try to evaluate as scalar and cast to float."
         try:
             v = float(self._ufl_evaluate_scalar_())
-        except:
+        except Exception:
             v = NotImplemented
         return v
 
