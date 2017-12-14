@@ -32,10 +32,6 @@ class FormData(object):
     def __init__(self):
         "Create empty form data for given form."
 
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
-
     def __str__(self):
         "Return formatted summary of form data"
         types = sorted(self.max_subdomain_ids.keys())
@@ -66,10 +62,6 @@ class ExprData(object):
 
     def __init__(self):
         "Create empty expr data for given expr."
-
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
 
     def __str__(self):
         "Return formatted summary of expr data"

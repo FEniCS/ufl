@@ -359,9 +359,6 @@ def ufl_type(is_abstract=False,
         if use_default_hash:
             cls.__hash__ = compute_expr_hash
 
-        # FIXME: Apply this if everything beomes unicode
-        #            cls = six.python_2_unicode_compatible(cls)
-
         # NB! This function conditionally adds some methods to the
         # class!  This approach significantly reduces the amount of
         # small functions to implement across all the types but of

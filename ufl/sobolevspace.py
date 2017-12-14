@@ -58,10 +58,6 @@ class SobolevSpace(object):
                        "HDivDiv": 0,
                        "DirectionalH": 0}[self.name]
 
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
-
     def __str__(self):
         return self.name
 

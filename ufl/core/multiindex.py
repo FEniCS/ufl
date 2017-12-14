@@ -39,10 +39,6 @@ class IndexBase(object):
     def __init__(self):
         pass
 
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
-
 
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""

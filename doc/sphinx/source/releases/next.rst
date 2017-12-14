@@ -6,6 +6,8 @@ Changes in the next release
 Summary of changes
 ==================
 
+- Remove Python 2 support. Now requires Python 3.5 or above.
+
 .. note:: Developers should use this page to track and list changes
           during development. At the time of release, this page should
           be published (and renamed) to list the most important

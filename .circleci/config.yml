@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies  # Install with sudo as tests not run as superuser in circleci/python
-          command: sudo pip install flake8 numpy pytest six --upgrade
+          command: sudo pip install flake8 numpy pytest --upgrade
       - run:
           name: Install UFL
           command: pip install --user .

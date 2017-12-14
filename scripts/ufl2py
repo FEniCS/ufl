@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import with_statement
-
 import os, sys, optparse
 from ufl.algorithms import validate_form, ufl2latex, tree_format
 from ufl.algorithms.formfiles import read_ufl_file

@@ -81,10 +81,6 @@ class IntegralData(object):
                 self.integrals == other.integrals and
                 self.metadata == other.metadata)
 
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
-
     def __str__(self):
         s = "IntegralData over domain(%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
             self.integral_type, self.subdomain_id,

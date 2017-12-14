@@ -120,10 +120,6 @@ class Integral(object):
                   "globally constant scalar expression.")
         return self.reconstruct(scalar*self._integrand)
 
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
-
     def __str__(self):
         fmt = "{ %s } * %s(%s[%s], %s)"
         mname = ufl.measure.integral_type_to_measure_name[self._integral_type]

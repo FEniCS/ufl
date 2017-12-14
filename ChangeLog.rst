@@ -4,7 +4,7 @@ Changelog
 2018.1.0.dev0
 -------------
 
-- Remove Python2 support. Now requires Python 3.5 or above.
+- No changes.
 
 2017.2.0 (2017-12-05)
 ---------------------

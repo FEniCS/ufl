@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
 
 from setuptools import setup
 from os.path import join, split

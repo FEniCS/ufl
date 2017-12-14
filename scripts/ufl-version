@@ -19,6 +19,5 @@
 
 """This is a simple script that just prints the UFL version number."""
 
-from __future__ import print_function
 from ufl import __version__
 print(__version__)

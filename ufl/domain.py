@@ -64,10 +64,6 @@ class AbstractDomain(object):
         "Return the dimension of the topology of this domain."
         return self._topological_dimension
 
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
-
 
 # TODO: Would it be useful to have a domain representing R^d? E.g. for
 # Expression.

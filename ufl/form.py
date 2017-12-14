@@ -369,10 +369,6 @@ class Form(object):
 
     # --- String conversion functions, for UI purposes only ---
 
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
-
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
         # Warning used for making sure we don't use this in the general pipeline:

@@ -24,8 +24,6 @@ elements by calling the function register_element."""
 # Modified by Lizao Li <lzlarryli@gmail.com>, 2015, 2016
 # Modified by Massimiliano Leoni, 2016
 
-from __future__ import print_function
-
 from numpy import asarray
 
 from ufl.log import warning, error

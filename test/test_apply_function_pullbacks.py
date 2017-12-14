@@ -1,8 +1,6 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
 from pytest import raises
 from ufl import *
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks, apply_single_function_pullbacks
