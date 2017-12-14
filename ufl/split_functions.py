@@ -20,8 +20,6 @@
 #
 # Modified by Anders Logg, 2008
 
-from six.moves import xrange as range
-
 from ufl.log import error
 from ufl.utils.sequences import product
 from ufl.finiteelement import MixedElement, TensorElement

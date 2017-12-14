@@ -19,8 +19,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
-from six.moves import xrange as range
-from six.moves import map
 from heapq import heapify, heappop
 
 from ufl.corealg.traversal import unique_pre_traversal

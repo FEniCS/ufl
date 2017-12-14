@@ -22,9 +22,6 @@ indices only."""
 #
 # Modified by Anders Logg, 2009.
 
-from six.moves import zip
-from six.moves import xrange as range
-
 from ufl.log import error
 from ufl.utils.stacks import Stack, StackDict
 from ufl.classes import Terminal, ListTensor

@@ -21,7 +21,6 @@
 # Modified by Anders Logg 2008-2016
 # Modified by Massimiliano Leoni, 2016.
 
-from six import string_types
 import numbers
 
 from ufl.utils.py23 import as_native_strings
@@ -432,7 +431,7 @@ class Measure(object):
 
         # Check that we have an integer subdomain or a string
         # ("everywhere" or "otherwise", any more?)
-        if not isinstance(subdomain_id, string_types + (numbers.Integral,)):
+        if not isinstance(subdomain_id, (str, numbers.Integral,)):
             error("Expecting integer or string domain id.")
 
         # If we don't have an integration domain, try to find one in

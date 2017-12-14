@@ -18,8 +18,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import zip
-from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.core.multiindex import FixedIndex, Index, indices

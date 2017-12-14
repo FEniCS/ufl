@@ -22,7 +22,6 @@ is more robust w.r.t. argument numbering than using repr."""
 # Modified by Anders Logg, 2009-2010.
 # Modified by Johan Hake, 2010.
 
-from six.moves import zip
 
 from functools import cmp_to_key
 

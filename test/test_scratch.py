@@ -8,7 +8,6 @@ Next look at the TODO markers below for places to edit.
 """
 
 import pytest
-from six.moves import zip
 
 # This imports everything external code will see from ufl
 from ufl import *

@@ -24,8 +24,6 @@
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Massimiliano Leoni, 2016
 
-from six.moves import reduce
-from six import string_types
 import numbers
 
 from ufl.utils.py23 import as_native_str
@@ -120,7 +118,6 @@ cellname2facetname = {"interval": "vertex",
 
 # --- Basic cell representation classes
 
-# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 class Cell(AbstractCell):
     "Representation of a named finite element cell with known structure."
@@ -215,7 +212,6 @@ class Cell(AbstractCell):
                 self._cellname)
 
 
-# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 class TensorProductCell(AbstractCell):
     __slots__ = as_native_strings(("_cells",))
@@ -328,7 +324,7 @@ def as_cell(cell):
     """
     if isinstance(cell, AbstractCell):
         return cell
-    elif isinstance(cell, string_types):
+    elif isinstance(cell, str):
         return Cell(cell)
     elif isinstance(cell, tuple):
         return TensorProductCell(cell)

@@ -21,8 +21,6 @@
 # Modified by Lizao Li <lzlarryli@gmail.com>, 2016
 
 
-from six.moves import xrange as range
-
 from ufl.log import error
 
 from ufl.core.multiindex import indices

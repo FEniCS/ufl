@@ -19,8 +19,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
-from six import iteritems
-from six.moves import zip
 
 import ufl
 from ufl.log import error
@@ -281,7 +279,7 @@ def build_integral_data(integrals):
         return (d._ufl_sort_key_(), itype, (type(sid).__name__, sid))
 
     integral_datas = []
-    for (d, itype, sid), integrals in sorted(iteritems(itgs), key=keyfunc):
+    for (d, itype, sid), integrals in sorted(itgs.items(), key=keyfunc):
         integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
     return integral_datas
 

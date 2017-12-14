@@ -19,9 +19,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.log import warning
-from six import itervalues, iteritems
-from six import string_types
-
 
 def topological_sorting(nodes, edges):
     """
@@ -37,7 +34,7 @@ def topological_sorting(nodes, edges):
     L = []
     S = nodes[:]
     for node in nodes:
-        for es in itervalues(edges):
+        for es in edges.values():
             if node in es and node in S:
                 S.remove(node)
                 continue
@@ -49,7 +46,7 @@ def topological_sorting(nodes, edges):
         while node_edges:
             m = node_edges.pop(0)
             found = False
-            for es in itervalues(edges):
+            for es in edges.values():
                 found = m in es
                 if found:
                     break
@@ -75,7 +72,7 @@ def sorted_by_key(mapping):
     # therefore the typename trick here
     def _key(x):
         return (type(x[0]).__name__, x[0])
-    return sorted(iteritems(mapping), key=_key)
+    return sorted(mapping.items(), key=_key)
 
 
 def canonicalize_metadata(metadata):
@@ -92,7 +89,7 @@ def canonicalize_metadata(metadata):
 
     if isinstance(metadata, dict):
         keys = sorted(metadata.keys())
-        assert all(isinstance(key, string_types) for key in keys)
+        assert all(isinstance(key, str) for key in keys)
         values = [metadata[key] for key in keys]
     elif isinstance(metadata, (tuple, list)):
         values = metadata
@@ -101,7 +98,7 @@ def canonicalize_metadata(metadata):
     for value in values:
         if isinstance(value, (dict, list, tuple)):
             value = canonicalize_metadata(value)
-        elif isinstance(value, (int, float, string_types)) or value is None:
+        elif isinstance(value, (int, float, str)) or value is None:
             value = str(value)
         else:
             warning("Applying str() to a metadata value of type {0}, don't know if this is safe.".format(type(value).__name__))

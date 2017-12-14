@@ -21,8 +21,6 @@ and generating index lists."""
 #
 # Modified by Martin Alnæs 2009-2016
 
-from six.moves import xrange as range
-
 
 def compute_indices(shape):
     "Compute all index combinations for given shape"

@@ -8,8 +8,8 @@ import platform
 
 module_name = "ufl"
 
-if sys.version_info < (2, 7):
-    print("Python 2.7 or higher required, please upgrade.")
+if sys.version_info < (3, 5):
+    print("Python 3.5 or higher required, please upgrade.")
     sys.exit(1)
 
 version = "2017.2.0"
@@ -47,10 +47,7 @@ Operating System :: POSIX :: Linux
 Operating System :: MacOS :: MacOS X
 Operating System :: Microsoft :: Windows
 Programming Language :: Python
-Programming Language :: Python :: 2
-Programming Language :: Python :: 2.7
 Programming Language :: Python :: 3
-Programming Language :: Python :: 3.4
 Programming Language :: Python :: 3.5
 Programming Language :: Python :: 3.6
 Topic :: Scientific/Engineering :: Mathematics
@@ -76,6 +73,6 @@ setup(name="fenics-ufl",
           "ufl.formatting",
       ],
       package_dir={"ufl": "ufl"},
-      install_requires=["numpy", "six"],
+      install_requires=["numpy"],
       data_files=data_files
       )

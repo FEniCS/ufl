@@ -23,11 +23,6 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-# import six
-from six import iteritems
-from six.moves import zip
-from six.moves import xrange as range
-
 from ufl.log import error
 from ufl.utils.py23 import as_native_strings
 from ufl.permutation import compute_indices
@@ -40,7 +35,6 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.finiteelement.finiteelement import FiniteElement
 
 
-# @six.python_2_unicode_compatible
 class MixedElement(FiniteElementBase):
     """A finite element composed of a nested hierarchy of mixed or simple
     elements."""
@@ -130,7 +124,7 @@ class MixedElement(FiniteElementBase):
             st = shape_to_strides(sh)
             # Map symmetries of subelement into index space of this
             # element
-            for c0, c1 in iteritems(e.symmetry()):
+            for c0, c1 in e.symmetry().items():
                 j0 = flatten_multiindex(c0, st) + j
                 j1 = flatten_multiindex(c1, st) + j
                 sm[(j0,)] = (j1,)
@@ -259,7 +253,6 @@ class MixedElement(FiniteElementBase):
         return "Mixed<" + tmp + ">"
 
 
-# @six.python_2_unicode_compatible
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal."
 
@@ -336,7 +329,6 @@ class VectorElement(MixedElement):
                                     self._sub_element.shortstr())
 
 
-# @six.python_2_unicode_compatible
 class TensorElement(MixedElement):
     """A special case of a mixed finite element where all elements are
     equal.
@@ -392,7 +384,7 @@ class TensorElement(MixedElement):
                 error("Expecting symmetry to be None (unset), True, or dict.")
 
         # Validate indices in symmetry dict
-        for i, j in iteritems(symmetry):
+        for i, j in symmetry.items():
             if len(i) != len(j):
                 error("Non-matching length of symmetry index tuples.")
             for k in range(len(i)):
@@ -486,7 +478,7 @@ class TensorElement(MixedElement):
     def __str__(self):
         "Format as string for pretty printing."
         if self._symmetry:
-            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in iteritems(self._symmetry))
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in self._symmetry.items())
             sym = " with symmetries (%s)" % tmp
         else:
             sym = ""
@@ -496,7 +488,7 @@ class TensorElement(MixedElement):
     def shortstr(self):
         "Format as string for pretty printing."
         if self._symmetry:
-            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in iteritems(self._symmetry))
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in self._symmetry.items())
             sym = " with symmetries (%s)" % tmp
         else:
             sym = ""
