@@ -25,6 +25,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 import numbers
+import functools
 
 from ufl.utils.py23 import as_native_str
 from ufl.utils.py23 import as_native_strings
@@ -256,7 +257,7 @@ class TensorProductCell(AbstractCell):
 
     def num_vertices(self):
         "The number of cell vertices."
-        return reduce(lambda x, y: x * y, [c.num_vertices() for c in self._cells])
+        return functools.reduce(lambda x, y: x * y, [c.num_vertices() for c in self._cells])
 
     def num_edges(self):
         "The number of cell edges."

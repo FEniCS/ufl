@@ -20,6 +20,7 @@
 
 from ufl.log import warning
 
+
 def topological_sorting(nodes, edges):
     """
     Return a topologically sorted list of the nodes

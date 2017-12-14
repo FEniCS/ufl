@@ -360,8 +360,7 @@ def ufl_type(is_abstract=False,
             cls.__hash__ = compute_expr_hash
 
         # FIXME: Apply this if everything beomes unicode
-        if 0:
-            cls = six.python_2_unicode_compatible(cls)
+        #            cls = six.python_2_unicode_compatible(cls)
 
         # NB! This function conditionally adds some methods to the
         # class!  This approach significantly reduces the amount of
