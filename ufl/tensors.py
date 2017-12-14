@@ -20,7 +20,7 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr

@@ -19,7 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.log import warning, error
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator

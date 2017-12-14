@@ -25,7 +25,6 @@ from ufl.classes import (Label,
                          GeometricQuantity, ConstantValue,
                          ExprList, ExprMapping)
 from ufl.log import error
-from ufl.utils.py23 import as_bytes
 from ufl.corealg.traversal import traverse_unique_terminals, pre_traversal
 from ufl.algorithms.domain_analysis import canonicalize_metadata
 
@@ -130,7 +129,7 @@ def compute_expression_signature(expr, renumbering):  # FIXME: Fix callers
 
     # Pass it through a seriously overkill hashing algorithm
     # (should we use sha1 instead?)
-    data = as_bytes(str(expression_hashdata))
+    data = str(expression_hashdata).encode("utf-8")
     return hashlib.sha512(data).hexdigest()
 
 
@@ -169,5 +168,5 @@ def compute_form_signature(form, renumbering):  # FIXME: Fix callers
 
     # Pass it through a seriously overkill hashing algorithm
     # (should we use sha1 instead?)
-    data = as_bytes(str(hashdata))
+    data = str(hashdata).encode("utf-8")
     return hashlib.sha512(data).hexdigest()

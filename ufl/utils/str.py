@@ -17,10 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-"""Python 2/3 compatibility utilities."""
-
-
-unicode = str
+"""String manipulation utilities."""
 
 
 def as_native_str(s):
@@ -33,19 +30,3 @@ def as_native_str(s):
 
 def as_native_strings(stringlist):
     return [as_native_str(s) for s in stringlist]
-
-
-def as_bytes(s):
-    "Return s if bytes, or encode unicode string to bytes using utf-8."
-    if isinstance(s, unicode):
-        return s.encode("utf-8")
-    else:
-        return s
-
-
-def as_unicode(s):
-    "Return s if unicode string, or decode bytes to unicode string using utf-8."
-    if isinstance(s, bytes):
-        return s.decode("utf-8")
-    else:
-        return s

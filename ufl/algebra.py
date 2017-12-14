@@ -21,7 +21,7 @@
 # Modified by Anders Logg, 2008
 
 from ufl.log import error
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator

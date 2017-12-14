@@ -22,7 +22,7 @@ from collections import defaultdict
 
 import ufl
 from ufl.log import error
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr

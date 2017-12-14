@@ -19,7 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 
 
 def counted_init(self, count=None, countedclass=None):

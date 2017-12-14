@@ -23,8 +23,8 @@
 
 import numbers
 
-from ufl.utils.py23 import as_native_strings
-from ufl.utils.py23 import as_native_str
+from ufl.utils.str import as_native_strings
+from ufl.utils.str import as_native_str
 from ufl.log import error, deprecate
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar

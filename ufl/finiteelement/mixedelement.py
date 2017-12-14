@@ -24,7 +24,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.permutation import compute_indices
 from ufl.utils.sequences import product, max_degree
 from ufl.utils.dicts import EmptyDict

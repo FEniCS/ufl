@@ -24,8 +24,8 @@
 
 import numbers
 
-from ufl.utils.py23 import as_native_str
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_str
+from ufl.utils.str import as_native_strings
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals

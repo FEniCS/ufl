@@ -27,8 +27,8 @@ from ufl.core.expr import Expr
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.measure import Measure  # noqa
 from ufl.protocols import id_or_none
-from ufl.utils.py23 import as_native_str
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_str
+from ufl.utils.str import as_native_strings
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings(["Integral"])

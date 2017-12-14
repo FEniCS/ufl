@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.py23 import as_native_str
+from ufl.utils.str import as_native_str
 from ufl.log import error
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 

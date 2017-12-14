@@ -32,7 +32,7 @@ from ufl.equation import Equation
 from ufl.core.expr import Expr
 from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
-from ufl.utils.py23 import as_native_strings, as_native_str
+from ufl.utils.str import as_native_strings, as_native_str
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings(["Form"])

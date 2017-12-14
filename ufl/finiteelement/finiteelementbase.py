@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.log import error

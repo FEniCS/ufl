@@ -22,7 +22,7 @@
 # Modified by Kristian B. Oelgaard, 2011
 
 import math
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.log import warning, error
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type

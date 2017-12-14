@@ -20,8 +20,8 @@ expressions as variables for differentiation."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.utils.counted import counted_init
-from ufl.utils.py23 import as_native_str
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_str
+from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type

@@ -26,7 +26,7 @@ import sys
 import types
 import logging
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL  # noqa: F401
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 
 log_functions = ["log", "debug", "info", "deprecate", "warning", "error",
                  "begin", "end",
