@@ -75,13 +75,19 @@ class FormSplitterProduct(MultiFunction):
 
     def argument(self, obj):
         # obj.part correspond to the subdomain index here
-        if (obj.part() == self.idx[obj.number()]):
-            if len(obj.ufl_shape) == 0:
+        if len(obj.ufl_shape) == 0:
+            if (obj.part() == self.idx[obj.number()]):
                 return obj
             else:
-                error("TMP: ufl_shape should be zero")
+                return Zero()
         else:
-            return Zero()
+            indices = [()]
+            for m in obj.ufl_shape:
+                indices = [(k + (j,)) for k in indices for j in range(m)]
+            if (obj.part() == self.idx[obj.number()]):
+                return as_vector([obj[j] for j in indices])
+            else:
+                return as_vector([Zero() for j in indices])
 
     def multi_index(self, obj):
         return obj
