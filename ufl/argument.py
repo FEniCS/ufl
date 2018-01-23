@@ -34,7 +34,7 @@ from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, FunctionSpaceProduct
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
-__all_classes__ = as_native_strings(["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"])
+__all_classes__ = as_native_strings(["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions", "View"])
 
 
 # --- Class representing an argument (basis function) in a form ---
@@ -48,6 +48,7 @@ class Argument(FormArgument):
         "_number",
         "_part",
         "_repr",
+        "_initial_function_space",
     ))
 
     def __init__(self, function_space, number, part=None):
@@ -63,6 +64,7 @@ class Argument(FormArgument):
             error("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
+        self._initial_function_space = None
         self._ufl_shape = function_space.ufl_element().value_shape()
 
         if not isinstance(number, numbers.Integral):
@@ -82,7 +84,10 @@ class Argument(FormArgument):
 
     def ufl_function_space(self):
         "Get the function space of this Argument."
-        return self._ufl_function_space
+        if self.is_a_view():
+            return self._initial_function_space
+        else:
+            return self._ufl_function_space
 
     def ufl_domain(self):
         "Deprecated, please use .ufl_function_space().ufl_domain() instead."
@@ -110,6 +115,12 @@ class Argument(FormArgument):
         # we want to keep, or? See issue#13.
         # When we can annotate zero with arguments, we can change this.
         return False
+
+    def is_a_view(self):
+        return bool(self._initial_function_space != None)
+
+    def set_view(self, function_space):
+        self._initial_function_space = function_space
 
     def ufl_domains(self):
         "Deprecated, please use .ufl_function_space().ufl_domains() instead."
@@ -155,7 +166,6 @@ class Argument(FormArgument):
                 self._number == other._number and
                 self._part == other._part and
                 self._ufl_function_space == other._ufl_function_space)
-
 
 # --- Helper functions for pretty syntax ---
 
@@ -206,4 +216,12 @@ def ArgumentProduct(function_space, number):
         arguments.append(Argument(s, number, i))
         i = i+1
     return tuple(arguments)
+
+## New function to define the view of an argument
+def View(argument, function_space):
+    assert isinstance(function_space, FunctionSpace)
+    assert isinstance(argument, Argument)
+    argument_view = Argument(function_space, argument.number(), argument.part())
+    argument_view.set_view(argument.function_space())
+    return argument_view;
 

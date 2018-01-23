@@ -123,11 +123,12 @@ def extract_arguments_and_coefficients(a):
     coefficients = [f for f in terminals if isinstance(f, Coefficient)]
 
     # Build number,part: instance mappings, should be one to one
-    bfnp = dict((f, (f.number(), f.part())) for f in arguments)
+    # bfnp = dict((f, (f.number(), f.part())) for f in arguments)
+    bfnp = dict((f, (f.number(), f.part())) for f in arguments if not f.is_a_view())
     if len(bfnp) != len(set(bfnp.values())):
         msg = """\
 Found different Arguments with same number and part.
-Did you combine test or trial functions from different spaces?
+Did you combine test or trial functions from different spaces? (Consider the View(...) function)
 The Arguments found are:\n%s""" % "\n".join("  %s" % f for f in arguments)
         error(msg)
 
