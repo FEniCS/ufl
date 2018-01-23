@@ -137,6 +137,11 @@ class Form(object):
         return tuple(integral for integral in self.integrals()
                      if integral.integral_type() == integral_type)
 
+    def integrals_by_domain(self, domain):
+        "Return a sequence of all integrals with a particular integration domain."
+        return tuple(integral for integral in self.integrals()
+                     if integral.ufl_domain() == domain)
+
     def empty(self):
         "Returns whether the form has no integrals."
         return self.integrals() == ()
@@ -175,7 +180,8 @@ class Form(object):
         # Check that all are equal TODO: don't return more than one if
         # all are equal?
         if not all(domain == domains[0] for domain in domains):
-            error("Calling Form.ufl_domain() is only valid if all integrals share domain.")
+            ## error("Calling Form.ufl_domain() is only valid if all integrals share domain.")
+            print("Integrals in this form are defined from various domains. Form.ufl_domain() will return the first one. Consider call Form.ufl_domains() instead.")
         # Return the one and only domain
         return domains[0]
 
@@ -460,6 +466,16 @@ class Form(object):
         for c in cn:
             d = c.ufl_domain()
             if d is not None and d not in renumbering:
+                #print("up renumbering [coeff]!")
+                renumbering[d] = k
+                k += 1
+
+        # Add domains of arguments, these may include domains not
+        # among integration domains
+        for a in self._arguments:
+            d = a.ufl_function_space().ufl_domain()
+            if d is not None and d not in renumbering:
+                #print("up renumbering [arg]!")
                 renumbering[d] = k
                 k += 1
 
@@ -469,7 +485,6 @@ class Form(object):
         from ufl.algorithms.signature import compute_form_signature
         self._signature = compute_form_signature(self,
                                                  self._compute_renumbering())
-
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
