@@ -486,12 +486,17 @@ class Form(object):
         self._signature = compute_form_signature(self,
                                                  self._compute_renumbering())
 
+def sub_forms_by_domain(form):
+    "Return a list of forms each with an integration domain"
+    if not isinstance(form, Form):
+        error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
+    return [Form(form.integrals_by_domain(domain)) for domain in form.ufl_domains()]
+
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
     if not isinstance(form, Form):
         error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
     return form
-
 
 def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     """Given a form and a domain, assign a common integration domain to
