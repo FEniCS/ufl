@@ -86,13 +86,12 @@ def _compute_element_mapping(original_form, form):
         common_quadrature_degree, = set(itg.metadata().get('estimated_polynomial_degree')
                                         for itg in form.integrals())
     except ValueError:  # too many values to unpack (expected 1)
-        common_quadrature_degree  = None
+        common_quadrature_degree = None
     try:
         common_quadrature_scheme, = set(itg.metadata().get('quadrature_rule')
                                         for itg in form.integrals())
     except ValueError:  # too many values to unpack (expected 1)
-        common_quadrature_scheme  = None
-
+        common_quadrature_scheme = None
 
     # Compute element map
     element_mapping = {}
