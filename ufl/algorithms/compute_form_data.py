@@ -59,7 +59,7 @@ def _auto_select_degree(elements):
     return max_degree({e.degree() for e in elements} - {None} | {1})
 
 
-def _compute_element_mapping(form):
+def _compute_element_mapping(original_form, form):
     "Compute element mapping for element replacement"
     # The element mapping is a slightly messy concept with two use
     # cases:
@@ -74,7 +74,25 @@ def _compute_element_mapping(form):
     elements = extract_sub_elements(elements)
 
     # Try to find a common degree for elements
+    # FIXME: Shouldn't this be removed? Degree is now obligatory in DOLFIN.
     common_degree = _auto_select_degree(elements)
+
+    # Try to find a common quadrature degree and scheme for integrals
+    # FIXME: This should not fail here
+    # FIXME: This will not work for integtrals with different degrees/schemes;
+    #        perhaps we should do this per integral
+    # FIXME: This is probably incorrect; estimated degree might be overloaded by parameter
+    try:
+        common_quadrature_degree, = set(itg.metadata().get('estimated_polynomial_degree')
+                                        for itg in form.integrals())
+    except ValueError:  # too many values to unpack (expected 1)
+        common_quadrature_degree  = None
+    try:
+        common_quadrature_scheme, = set(itg.metadata().get('quadrature_rule')
+                                        for itg in form.integrals())
+    except ValueError:  # too many values to unpack (expected 1)
+        common_quadrature_scheme  = None
+
 
     # Compute element map
     element_mapping = {}
@@ -97,13 +115,28 @@ def _compute_element_mapping(form):
         # Set degree
         degree = element.degree()
         if degree is None:
-            info("Adjusting missing element degree to %d" % (common_degree,))
-            degree = common_degree
+            if element.family() == 'Quadrature':
+                if common_quadrature_degree is None:
+                    error("Cannot replace unknown quadrature element degree without unique quadrature degree in form.")
+                info("Adjusting missing quadrature element degree to %d" % (common_quadrature_degree,))
+                degree = common_quadrature_degree
+
+            else:
+                info("Adjusting missing element degree to %d" % (common_degree,))
+                degree = common_degree
             reconstruct = True
+
+        # Set quadrature scheme
+        scheme = element.quadrature_scheme()
+        if element.family() == 'Quadrature' and scheme is None:
+            if common_quadrature_scheme is None:
+                error("Cannot replace unknown quadrature element scheme without unique quadrature scheme in form.")
+            info("Adjusting missing quadrature element scheme to '%s'" % (common_quadrature_scheme,))
+            scheme = common_quadrature_scheme
 
         # Reconstruct element and add to map
         if reconstruct:
-            element_mapping[element] = element.reconstruct(cell=cell, degree=degree)
+            element_mapping[element] = element.reconstruct(cell=cell, degree=degree, quad_scheme=scheme)
         else:
             element_mapping[element] = element
 
@@ -358,7 +391,7 @@ def compute_form_data(form,
     # of this mapping with the introduction of UFL types for
     # Expression-like functions that can be evaluated in quadrature
     # points.
-    self.element_replace_map = _compute_element_mapping(self.original_form)
+    self.element_replace_map = _compute_element_mapping(self.original_form, form)
 
     # Mappings from elements and coefficients that reside in form to
     # objects with canonical numbering as well as completed cells and

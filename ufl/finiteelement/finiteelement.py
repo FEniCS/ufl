@@ -204,7 +204,7 @@ class FiniteElement(FiniteElementBase):
     def variant(self):
         return self._variant
 
-    def reconstruct(self, family=None, cell=None, degree=None):
+    def reconstruct(self, family=None, cell=None, degree=None, quad_scheme=None):
         """Construct a new FiniteElement object with some properties
         replaced with new values."""
         if family is None:
@@ -213,7 +213,9 @@ class FiniteElement(FiniteElementBase):
             cell = self.cell()
         if degree is None:
             degree = self.degree()
-        return FiniteElement(family, cell, degree, quad_scheme=self.quadrature_scheme(), variant=self.variant())
+        if quad_scheme is None:
+            quad_scheme = self.quadrature_scheme()
+        return FiniteElement(family, cell, degree, quad_scheme=quad_scheme, variant=self.variant())
 
     def __str__(self):
         "Format as string for pretty printing."
