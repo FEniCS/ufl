@@ -330,7 +330,8 @@ from ufl.operators import rank, shape, \
                        variable, diff, \
                        Dx,  grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
                        jump, avg, cell_avg, facet_avg, \
-                       elem_mult, elem_div, elem_pow, elem_op
+                       elem_mult, elem_div, elem_pow, elem_op, \
+                       force_degree
 
 # Measure classes
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
@@ -420,4 +421,5 @@ __all__ = as_native_strings([
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
+    'force_degree',
 ])

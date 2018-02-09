@@ -39,7 +39,7 @@ from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
-from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
+from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree, remove_force_degree_nodes
 
 # See TODOs at the call sites of these below:
 from ufl.algorithms.domain_analysis import build_integral_data
@@ -264,6 +264,8 @@ def compute_form_data(form,
     # blow up horrifically.
     if do_estimate_degrees:
         form = attach_estimated_degrees(form)
+
+    form = remove_force_degree_nodes(form)
 
     if do_apply_function_pullbacks:
         # Rewrite coefficients and arguments in terms of their

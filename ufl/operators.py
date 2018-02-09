@@ -39,7 +39,7 @@ from ufl.conditional import EQ, NE, \
     AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
-    BesselJ, BesselY, BesselI, BesselK
+    BesselJ, BesselY, BesselI, BesselK, ForceDegree
 from ufl.restriction import CellAvg, FacetAvg
 from ufl.core.multiindex import indices
 from ufl.indexed import Indexed
@@ -674,6 +674,13 @@ def bessel_K(nu, f):
     nu = as_ufl(nu)
     f = as_ufl(f)
     return BesselK(nu, f)
+
+
+def force_degree(expression, degree):
+    """Force the degree of an expression.
+
+    Useful for restricting the estimated degree of non-polynomial expressions."""
+    return ForceDegree(expression, degree)
 
 
 # --- Special function for exterior_derivative

@@ -50,6 +50,21 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 """
 
 
+@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+class ForceDegree(Operator):
+    __slots__ = as_native_strings(("degree", ))
+
+    def __init__(self, expr, degree):
+        super(ForceDegree, self).__init__((expr, ))
+        self.degree = degree
+
+    def __repr__(self):
+        return "ForceDegree(%r, %r)" % (self.ufl_operands[0], self.degree)
+
+    def __str__(self):
+        return "ForceDegree(%s, %s)" % (self.ufl_operands[0], self.degree)
+
+
 # --- Function representations ---
 
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=1)

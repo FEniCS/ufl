@@ -24,6 +24,7 @@
 from ufl.log import warning, error
 from ufl.form import Form
 from ufl.integral import Integral
+from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dags
 from ufl.checks import is_cellwise_constant
@@ -36,6 +37,21 @@ class IrreducibleInt(int):
     Unlike int, values of this type are not decremeneted by _reduce_degree.
     """
     pass
+
+
+class ForceDegreeRemover(MultiFunction):
+
+    def force_degree(self, o, op):
+        return op
+
+    expr = MultiFunction.reuse_if_untouched
+
+    def multi_index(self, o):
+        return o
+
+
+def remove_force_degree_nodes(form):
+    return map_integrand_dags(ForceDegreeRemover(), form)
 
 
 class SumDegreeEstimator(MultiFunction):
@@ -209,6 +225,10 @@ class SumDegreeEstimator(MultiFunction):
     deviatoric = _not_handled
     skew = _not_handled
     sym = _not_handled
+
+    # User-specified degree
+    def force_degree(self, o):
+        return o.degree
 
     def abs(self, v, a):
         "This is a heuristic, correct if there is no "
