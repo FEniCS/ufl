@@ -47,6 +47,7 @@ import ufl.coefficient
 import ufl.geometry
 
 # Operator types
+import ufl.averaging
 import ufl.indexed
 import ufl.indexsum
 import ufl.variable
