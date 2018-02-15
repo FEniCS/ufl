@@ -200,8 +200,8 @@ def apply_single_function_pullbacks(g):
         elif mp == "double covariant Piola":
             # components are flatten, map accordingly
             rv = as_vector([r[rpos+k] for k in range(rm)])
-            gdim = subelm.value_shape()[0]
-            rdim = subelm.reference_value_shape()[0]
+            (gdim, _) = subelm.value_shape()
+            (rdim, _) = subelm.reference_value_shape()
             for i in range(gdim):
                 for j in range(gdim):
                     gv = 0
@@ -214,8 +214,8 @@ def apply_single_function_pullbacks(g):
         elif mp == "double contravariant Piola":
             # components are flatten, map accordingly
             rv = as_vector([r[rpos+k] for k in range(rm)])
-            gdim = subelm.value_shape()[0]
-            rdim = subelm.reference_value_shape()[0]
+            (gdim, _) = subelm.value_shape()
+            (rdim, _) = subelm.reference_value_shape()
             for i in range(gdim):
                 for j in range(gdim):
                     gv = 0
