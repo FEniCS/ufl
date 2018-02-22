@@ -22,18 +22,16 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-# import six
 from itertools import chain
 
 from ufl.log import error
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.cell import TensorProductCell, as_cell
 from ufl.sobolevspace import DirectionalSobolevSpace
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
-# @six.python_2_unicode_compatible
 class TensorProductElement(FiniteElementBase):
     r"""The tensor product of :math:`d` element spaces:
 

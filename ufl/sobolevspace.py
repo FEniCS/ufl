@@ -25,7 +25,7 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Lizao Li 2015
 # Modified by Thomas Gibson 2017
 
-from ufl.utils.py23 import as_native_str
+from ufl.utils.str import as_native_str
 from functools import total_ordering
 
 
@@ -57,10 +57,6 @@ class SobolevSpace(object):
                        "HEin": 0,
                        "HDivDiv": 0,
                        "DirectionalH": 0}[self.name]
-
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
 
     def __str__(self):
         return self.name

@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.utils.py23 import as_native_str
+from ufl.utils.str import as_native_str
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator

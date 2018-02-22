@@ -27,7 +27,7 @@
 #        recommended to use. The __all__ list below is a start based
 #        on grepping of other FEniCS code for ufl.algorithm imports.
 
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 
 __all__ = as_native_strings([
     "estimate_total_polynomial_degree",

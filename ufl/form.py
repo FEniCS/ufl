@@ -32,7 +32,7 @@ from ufl.equation import Equation
 from ufl.core.expr import Expr
 from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
-from ufl.utils.py23 import as_native_strings, as_native_str
+from ufl.utils.str import as_native_strings, as_native_str
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings(["Form"])
@@ -368,10 +368,6 @@ class Form(object):
     __matmul__ = __mul__
 
     # --- String conversion functions, for UI purposes only ---
-
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
 
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."

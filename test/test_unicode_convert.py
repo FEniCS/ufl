@@ -1,6 +1,4 @@
 
-from six import text_type
-
 from ufl.algorithms import compute_form_data
 from ufl.formatting.ufl2unicode import form2unicode
 
@@ -21,7 +19,7 @@ def valid_forms(forms_list):
 
 
 def test_convert_examples(example_files):
-    # Get example forms that can be analysed 
+    # Get example forms that can be analysed
     forms, form_datas = valid_forms(example_files.forms)
     if not forms:
         return
@@ -32,5 +30,5 @@ def test_convert_examples(example_files):
         tmp = form2unicode(form, form_data)
         data.append(tmp)
     rendered = u"\n\n".join(data)
-    assert isinstance(rendered, text_type)
+    assert isinstance(rendered, str)
     assert len(rendered)

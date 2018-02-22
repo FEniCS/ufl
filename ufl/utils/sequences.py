@@ -19,10 +19,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from functools import reduce
-
-from six.moves import map, zip
-from six import string_types
-
 import numpy
 
 
@@ -66,7 +62,7 @@ def iter_tree(tree):
 
 def recursive_chain(lists):
     for l in lists:
-        if isinstance(l, string_types):
+        if isinstance(l, str):
             yield l
         else:
             for s in recursive_chain(l):

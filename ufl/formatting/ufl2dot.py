@@ -20,9 +20,6 @@ mostly intended for debugging purposers."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six import itervalues
-from six.moves import xrange as range
-
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.form import Form
@@ -216,7 +213,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
 
 def format_entities(nodes, edges):
     entities = []
-    for (nodename, label) in itervalues(nodes):
+    for (nodename, label) in nodes.values():
         node = '  %s [label="%s"];' % (nodename, label)
         entities.append(node)
     for (aid, bid, label) in edges:

@@ -24,8 +24,8 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
-from ufl.utils.py23 import as_native_str
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_str
+from ufl.utils.str import as_native_strings
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
 

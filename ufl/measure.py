@@ -21,11 +21,10 @@
 # Modified by Anders Logg 2008-2016
 # Modified by Massimiliano Leoni, 2016.
 
-from six import string_types
 import numbers
 
-from ufl.utils.py23 import as_native_strings
-from ufl.utils.py23 import as_native_str
+from ufl.utils.str import as_native_strings
+from ufl.utils.str import as_native_str
 from ufl.log import error, deprecate
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
@@ -307,10 +306,6 @@ class Measure(object):
         deprecate("Notation dx[meshfunction] is deprecated. Please use dx(subdomain_data=meshfunction) instead.")
         return self(subdomain_data=data)
 
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
-
     def __str__(self):
         global integral_type_to_measure_name
         name = integral_type_to_measure_name[self._integral_type]
@@ -432,7 +427,7 @@ class Measure(object):
 
         # Check that we have an integer subdomain or a string
         # ("everywhere" or "otherwise", any more?)
-        if not isinstance(subdomain_id, string_types + (numbers.Integral,)):
+        if not isinstance(subdomain_id, (str, numbers.Integral,)):
             error("Expecting integer or string domain id.")
 
         # If we don't have an integration domain, try to find one in
@@ -483,10 +478,6 @@ class MeasureSum(object):
         elif isinstance(other, MeasureSum):
             return MeasureSum(*(self._measures + other._measures))
         return NotImplemented
-
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
 
     def __str__(self):
         return "{\n    " + "\n  + ".join(map(str, self._measures)) + "\n}"

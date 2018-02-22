@@ -9,6 +9,7 @@ Release notes
    :maxdepth: 2
 
    releases/next
+   releases/v2017.2.0
    releases/v2017.1.0.post1
    releases/v2017.1.0
    releases/v2016.2.0

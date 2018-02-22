@@ -24,8 +24,8 @@
 
 import numbers
 
-from ufl.utils.py23 import as_native_str
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_str
+from ufl.utils.str import as_native_strings
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -63,10 +63,6 @@ class AbstractDomain(object):
     def topological_dimension(self):
         "Return the dimension of the topology of this domain."
         return self._topological_dimension
-
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
 
 
 # TODO: Would it be useful to have a domain representing R^d? E.g. for

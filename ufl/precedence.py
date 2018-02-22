@@ -19,7 +19,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.log import warning
-from six import iteritems
 
 
 # FIXME: This code is crap...
@@ -109,7 +108,7 @@ def build_precedence_mapping(precedence_list):
 def assign_precedences(precedence_list):
     "Given a precedence list, assign ints to class._precedence."
     pm, missing = build_precedence_mapping(precedence_list)
-    for c, p in sorted(iteritems(pm), key=lambda x: x[0].__name__):
+    for c, p in sorted(pm.items(), key=lambda x: x[0].__name__):
         c._precedence = p
     if missing:
         msg = "Missing precedence levels for classes:\n" +\

@@ -19,7 +19,6 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-import six
 from ufl.core.expr import Expr
 from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.utils.formatting import camel2underscore
@@ -359,10 +358,6 @@ def ufl_type(is_abstract=False,
         # setting use_default_hash=False.
         if use_default_hash:
             cls.__hash__ = compute_expr_hash
-
-        # FIXME: Apply this if everything beomes unicode
-        if 0:
-            cls = six.python_2_unicode_compatible(cls)
 
         # NB! This function conditionally adds some methods to the
         # class!  This approach significantly reduces the amount of

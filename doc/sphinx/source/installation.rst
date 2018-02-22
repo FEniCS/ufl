@@ -18,11 +18,10 @@ and installation instructions.
 Requirements and dependencies
 =============================
 
-UFL requires Python version 2.7 or later and depends on the
+UFL requires Python version 3.5 or later and depends on the
 following Python packages:
 
 * NumPy
-* six
 
 These packages will be automatically installed as part of the
 installation of UFL, if not already present on your system.

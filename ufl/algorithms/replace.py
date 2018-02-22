@@ -20,8 +20,6 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from six import iteritems, iterkeys
-
 from ufl.log import error
 from ufl.classes import CoefficientDerivative
 from ufl.constantvalue import as_ufl
@@ -34,9 +32,9 @@ class Replacer(MultiFunction):
     def __init__(self, mapping):
         MultiFunction.__init__(self)
         self._mapping = mapping
-        if not all(k._ufl_is_terminal_ for k in iterkeys(mapping)):
+        if not all(k._ufl_is_terminal_ for k in mapping.keys()):
             error("This implementation can only replace Terminal objects.")
-        if not all(k.ufl_shape == v.ufl_shape for k, v in iteritems(mapping)):
+        if not all(k.ufl_shape == v.ufl_shape for k, v in mapping.items()):
             error("Replacement expressions must have the same shape as what they replace.")
 
     expr = MultiFunction.reuse_if_untouched
@@ -60,7 +58,7 @@ def replace(e, mapping):
     @param mapping:
         A dict with from:to replacements to perform.
     """
-    mapping2 = dict((k, as_ufl(v)) for (k, v) in iteritems(mapping))
+    mapping2 = dict((k, as_ufl(v)) for (k, v) in mapping.items())
 
     # Workaround for problem with delayed derivative evaluation
     if has_exact_type(e, CoefficientDerivative):

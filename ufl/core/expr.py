@@ -30,9 +30,7 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from six.moves import xrange as range
-
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.log import error
 
 
@@ -387,10 +385,6 @@ class Expr(object):
     def __str__(self):
         "Return pretty print string representation of this object."
         raise NotImplementedError(self.__class__.__str__)
-
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
 
     def _ufl_err_str_(self):
         "Return a short string to represent this Expr in an error message."

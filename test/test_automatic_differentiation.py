@@ -7,8 +7,6 @@ algorithm at a technical level, and are thus implementation specific.
 Other tests check for mathematical correctness of diff and derivative.
 """
 
-from __future__ import division, absolute_import, print_function, unicode_literals
-
 import pytest
 from itertools import chain
 

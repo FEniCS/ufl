@@ -18,15 +18,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six import iterkeys, iteritems
-from six import advance_iterator as next
-
 
 def split_dict(d, criteria):
     "Split a dict d into two dicts based on a criteria on the keys."
     a = {}
     b = {}
-    for (k, v) in iteritems(d):
+    for (k, v) in d.items():
         if criteria(k):
             a[k] = v
         else:
@@ -40,7 +37,7 @@ def slice_dict(dictionary, keys, default=None):
 
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."
-    return next(iterkeys(a_dict))
+    return next(a_dict.keys())
 
 
 def mergedicts(dicts):

@@ -22,10 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from six.moves import zip
-from six import string_types
-
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.log import error
@@ -48,7 +45,7 @@ class FiniteElementBase(object):
     def __init__(self, family, cell, degree, quad_scheme, value_shape,
                  reference_value_shape):
         "Initialize basic finite element data."
-        if not isinstance(family, string_types):
+        if not isinstance(family, str):
             error("Invalid family type.")
         if not (degree is None or isinstance(degree, (int, tuple))):
             error("Invalid degree type.")
@@ -75,10 +72,6 @@ class FiniteElementBase(object):
         NB! Assumes subclass has assigned its repr string to self._repr.
         """
         return self._repr
-
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
 
     def _ufl_hash_data_(self):
         return repr(self)

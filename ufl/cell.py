@@ -24,12 +24,11 @@
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Massimiliano Leoni, 2016
 
-from six.moves import reduce
-from six import string_types
 import numbers
+import functools
 
-from ufl.utils.py23 import as_native_str
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_str
+from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
@@ -89,10 +88,6 @@ class AbstractCell(object):
             return s < o
         return self._ufl_hash_data_() < other._ufl_hash_data_()
 
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
-
 
 # --- Basic topological properties of known basic cells
 
@@ -120,7 +115,6 @@ cellname2facetname = {"interval": "vertex",
 
 # --- Basic cell representation classes
 
-# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 class Cell(AbstractCell):
     "Representation of a named finite element cell with known structure."
@@ -215,7 +209,6 @@ class Cell(AbstractCell):
                 self._cellname)
 
 
-# @six.python_2_unicode_compatible
 @attach_operators_from_hash_data
 class TensorProductCell(AbstractCell):
     __slots__ = as_native_strings(("_cells",))
@@ -260,7 +253,7 @@ class TensorProductCell(AbstractCell):
 
     def num_vertices(self):
         "The number of cell vertices."
-        return reduce(lambda x, y: x * y, [c.num_vertices() for c in self._cells])
+        return functools.reduce(lambda x, y: x * y, [c.num_vertices() for c in self._cells])
 
     def num_edges(self):
         "The number of cell edges."
@@ -328,7 +321,7 @@ def as_cell(cell):
     """
     if isinstance(cell, AbstractCell):
         return cell
-    elif isinstance(cell, string_types):
+    elif isinstance(cell, str):
         return Cell(cell)
     elif isinstance(cell, tuple):
         return TensorProductCell(cell)

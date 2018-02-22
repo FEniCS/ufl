@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011-2016 Anders Logg.
+
+# Copyright (C) 2016-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -17,7 +17,16 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-"""This is a simple script that just prints the UFL version number."""
+"""String manipulation utilities."""
 
-from ufl import __version__
-print(__version__)
+
+def as_native_str(s):
+    "Return s as unicode string, decoded using utf-8 if necessary."
+    if isinstance(s, bytes):
+        return s.decode("utf-8")
+    else:
+        return s
+
+
+def as_native_strings(stringlist):
+    return [as_native_str(s) for s in stringlist]

@@ -5,8 +5,6 @@
 Test internal utility functions.
 """
 
-from six.moves import xrange as range
-
 from ufl.utils.indexflattening import (shape_to_strides, flatten_multiindex,
                                        unflatten_index)
 

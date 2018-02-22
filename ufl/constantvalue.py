@@ -23,11 +23,8 @@
 
 from math import sqrt, atan2, pi
 
-from six.moves import xrange as range
-from six import iteritems
-
-from ufl.utils.py23 import as_native_str
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_str
+from ufl.utils.str import as_native_strings
 from ufl.log import error, UFLValueError
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
@@ -135,7 +132,7 @@ class Zero(ConstantValue):
                     all(isinstance(i, Index) for i in index_dimensions.keys())):
                 error("Expecting tuple of index dimensions, not %s" % str(index_dimensions))
             self.ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
-            self.ufl_index_dimensions = tuple(d for i, d in sorted(iteritems(index_dimensions), key=lambda x: x[0].count()))
+            self.ufl_index_dimensions = tuple(d for i, d in sorted(index_dimensions.items(), key=lambda x: x[0].count()))
         else:  # Handle new input format
             if not all(isinstance(i, int) for i in free_indices):
                 error("Expecting tuple of integer free index ids, not %s" % str(free_indices))

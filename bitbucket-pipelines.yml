@@ -4,9 +4,6 @@ pipelines:
   default:
     - step:
         script:
-          - pip2 install .
           - pip3 install .
-          - python2 -m flake8 ufl/
           - python3 -m flake8 ufl/
-          - python2 -m pytest -v test/
           - python3 -m pytest -v test/

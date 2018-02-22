@@ -19,12 +19,10 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
-from six import iteritems
-from six.moves import zip
 
 import ufl
 from ufl.log import error
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
@@ -82,10 +80,6 @@ class IntegralData(object):
                 self.subdomain_id == other.subdomain_id and
                 self.integrals == other.integrals and
                 self.metadata == other.metadata)
-
-    def __unicode__(self):
-        # Only in python 2
-        return str(self).decode("utf-8")
 
     def __str__(self):
         s = "IntegralData over domain(%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
@@ -281,7 +275,7 @@ def build_integral_data(integrals):
         return (d._ufl_sort_key_(), itype, (type(sid).__name__, sid))
 
     integral_datas = []
-    for (d, itype, sid), integrals in sorted(iteritems(itgs), key=keyfunc):
+    for (d, itype, sid), integrals in sorted(itgs.items(), key=keyfunc):
         integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
     return integral_datas
 

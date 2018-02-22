@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
-from six.moves import zip
 
 from ufl.core.expr import Expr
 from ufl.log import error

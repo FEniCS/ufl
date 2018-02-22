@@ -30,7 +30,7 @@ of classes, and for mapping types to different handler functions."""
 # This will be populated part by part below
 __all__ = []
 
-from ufl.utils.py23 import as_native_strings
+from ufl.utils.str import as_native_strings
 
 # Import all submodules, triggering execution of the ufl_type class
 # decorator for each Expr class.

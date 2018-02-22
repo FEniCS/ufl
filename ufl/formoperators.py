@@ -21,10 +21,6 @@
 # Modified by Anders Logg, 2009
 # Modified by Massimiliano Leoni, 2016
 
-from six import iteritems
-from six.moves import zip
-from six.moves import xrange as range
-
 from ufl.log import error
 from ufl.form import Form, as_form
 from ufl.core.expr import Expr, ufl_err_str
@@ -242,10 +238,10 @@ def _handle_derivative_arguments(form, coefficient, argument):
             m[f][i] = a
 
     # Merge coefficient derivatives (arguments) based on indices
-    for c, p in iteritems(m):
+    for c, p in m.items():
         if isinstance(p, dict):
             a = zero_lists(c.ufl_shape)
-            for i, g in iteritems(p):
+            for i, g in p.items():
                 set_list_item(a, i, g)
             m[c] = as_tensor(a)
 

@@ -1,0 +1,28 @@
+===========================
+Changes in version 2017.2.0
+===========================
+
+UFL 2017.2.0 was released on 2017-12-05.
+
+Summary of changes
+==================
+
+- Add ``CellDiameter`` expression giving diameter of a cell, i.e.,
+  maximal distance between any two points of the cell. Implemented
+  for all simplices and quads/hexes.
+- Make ``(Min|Max)(Cell|Facet)EdgeLength`` working for quads/hexes
+
+Detailed changes
+================
+
+- Add geometric quantity ``CellDiameter`` defined as a set diameter
+  of the cell, i.e., maximal distance between any two points of the
+  cell; implemented on simplices and quads/hexes
+- Rename internally used reference quantities
+  ``(Cell|Facet)EdgeVectors`` to ``Reference(Cell|Facet)EdgeVectors``
+- Add internally used quantites ``CellVertices``,
+  ``(Cell|Facet)EdgeVectors`` which are physical-coordinates-valued;
+  will be useful for further geometry lowering implementations
+  for quads/hexes
+- Implement geometry lowering of ``(Min|Max)(Cell|Facet)EdgeLength``
+  for quads and hexes

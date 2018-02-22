@@ -3,8 +3,8 @@ notifications:
     secure: r9t4/J1Y85Tv/D/bJBVPGaW153mSU+I5r+EZrq7E6HnYqFRQ0X0AJw0pUX1ap/MXGtSrHFmQRYmIN1TTUMLPAHlzF4YA4rFA1LxJxxlPQ1TuhmkLbu5DEf5qkSsVeOjIe8+ptx8E8rSUSVfzv1g/RpdgO6mOD6qge94gQhQ4XekrWkZE1OudkqPvHfznCvxtFs3T5dxZWX3suQsGA+l1Gn3gp2YFITTGEfCXFek+rRWL3aqn6Oq+nvI6jfrooei7NSmNQOpGawAW868uvOlWQ2NiH1nsUkOH9U9c4YpTPD7RLLc2r3pAisSzdhZ5LsT+9o+lycqJleGizcVqtF7BP0tBzc1G4uJQwOCCcypLG62VwuwF6HD3zx4bDXD2MTqEneUaLVNlT2JiAsXmg2RKn/z8+5OKrPNe23pDvD3h+NdtHzJxPSnSRynpKD1FBXh1tfiGSVvgY+Mm7Bdu1unuK2tbpb6OLhcq50kYzqW1sbH8GEceb2v10YWV1tWDQ/JORFUtSuM3DFLlTO5XFjTCHqcGMkPQnpmXo+KF4D4uMHmkqVQu1aHdWn99uxoJzyoQrYwa7+94Z/UJuhwSCc+HOr28vXfd5O9ouo3E4FlEMMaAeRiCIGh88Ota6x+7BHmihijroKb9NdB2J2E0HpbLtEQha1yWIsuF0UbWywCojo4=
 language: python
 python:
-  - "2.7"
-  - "3.4"
+  - "3.5"
+  - "3.6"
 
 before_install:
   - pip install flake8

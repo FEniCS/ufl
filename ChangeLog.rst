@@ -1,7 +1,12 @@
 Changelog
 =========
 
-2017.2.0 (unreleased)
+2018.1.0.dev0
+-------------
+
+- No changes.
+
+2017.2.0 (2017-12-05)
 ---------------------
 
 - Add geometric quantity ``CellDiameter`` defined as a set diameter

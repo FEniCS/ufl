@@ -25,7 +25,6 @@ objects."""
 # Modified by Massimiliano Leoni, 2016.
 
 import operator
-from six.moves import xrange as range
 
 from ufl.log import error, warning
 from ufl.form import Form
