@@ -53,7 +53,7 @@ from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.algorithms.apply_geometry_lowering import GeometryLoweringApplier
 
 class JacobianRewritingApplier(MultiFunction):
-    def __init__(self, int_domain, preserve_types=()):
+    def __init__(self, preserve_types=()):
         MultiFunction.__init__(self)
         # Store preserve_types as boolean lookup table
         self._preserve_types = [False]*Expr._ufl_num_typecodes_
@@ -61,8 +61,6 @@ class JacobianRewritingApplier(MultiFunction):
             self._preserve_types[cls._ufl_typecode_] = True
 
         self._geometry_lowering_applier = GeometryLoweringApplier(preserve_types)
-        # Store integration domain
-        self._int_domain = int_domain
 
     expr = MultiFunction.reuse_if_untouched
 
@@ -72,26 +70,17 @@ class JacobianRewritingApplier(MultiFunction):
     @memoized_handler
     def jacobian(self, o):
         domain = o.ufl_domain()
-        # Integration domain - geo/topo dimension
-        tdim_int = self._int_domain.topological_dimension()
-        gdim_int = self._int_domain.geometric_dimension()
         # Argument domain - geo/topo dimension
-        tdim_arg = domain.topological_dimension()
-        gdim_arg = domain.geometric_dimension()
-
-        assert gdim_arg == gdim_int
-        assert tdim_arg - tdim_int <= 2
+        tdim= domain.topological_dimension()
+        gdim= domain.geometric_dimension()
 
         ## Compare the topo dim
-        if tdim_arg == tdim_int:
+        if tdim == gdim:
             # Reuse the Jacobian of the integration domain
-            # return Jacobian(self._int_domain)
-            return self._geometry_lowering_applier.jacobian(Jacobian(self._int_domain))
-        elif tdim_arg == tdim_int + 1: ## 2D-1D or 3D-2D
-            # Return FacetJacobian = Jacobian(ref cell to real cell) * CellFacetJacobian(ref facet to ref cell)
-            # return FacetJacobian(domain)
-            return self._geometry_lowering_applier.facet_jacobian(FacetJacobian(domain))
-        elif tdim_arg == tdim_int + 2: ## 3D-1D (not yet implemented)
+            return self._geometry_lowering_applier.jacobian(o)
+        elif tdim == gdim - 1 : ## 2D-1D or 3D-2D
+            return self._geometry_lowering_applier.facet_jacobian(o)
+        elif tdim == gdim - 2: ## 3D-1D (not yet implemented)
             print("3D-1D case - not yet implemented")
             # TODO? : EdgeJacobian = Jacobian(ref cell to real cell) * CellFacetJacobian(ref facet to ref cell) * CellEdgeJacobian(ref interval to ref facet)
             # with CellEdgeJacobian(domain) = CellFacetJacobian(any 2D domain)
@@ -129,10 +118,7 @@ def apply_jacobian_rewriting(form, preserve_types=()):
             automatic_preserve_types = [CellCoordinate]
         preserve_types = set(preserve_types) | set(automatic_preserve_types)
 
-        # Integration domain
-        int_domain = integral._ufl_domain
-        
-        mf = JacobianRewritingApplier(int_domain, preserve_types)
+        mf = JacobianRewritingApplier(preserve_types)
         newintegrand = map_expr_dag(mf, integral.integrand())
         return integral.reconstruct(integrand=newintegrand)
 
