@@ -400,11 +400,12 @@ def compute_form_data(form,
     # TODO: This is a very expensive check... Replace with something
     # faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
-    check_form_arity(preprocessed_form, self.original_form.arguments())  # Currently testing how fast this is
 
     # If in real mode, remove complex nodes entirely.
     if not complex_mode:
         preprocessed_form = remove_complex_nodes(preprocessed_form)
+
+    check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)  # Currently testing how fast this is
 
     # TODO: This member is used by unit tests, change the tests to
     # remove this!

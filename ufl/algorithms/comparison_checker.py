@@ -7,6 +7,7 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algebra import Real
 from ufl.constantvalue import RealValue, Zero
 from ufl.argument import Argument
+from ufl.geometry import GeometricQuantity
 
 
 class CheckComparisons(MultiFunction):
@@ -56,6 +57,7 @@ class CheckComparisons(MultiFunction):
     lt = compare
     ge = compare
     le = compare
+    sign = compare
 
     def max_value(self, o, *ops):
         types = {self.nodetype[op] for op in ops}
@@ -94,12 +96,16 @@ class CheckComparisons(MultiFunction):
 
     def power(self, o, *ops):
         o = self.reuse_if_untouched(o, *ops)
-        if float(ops[1]) < 1.0 and float(ops[1]) > 0.0:
-            self.nodetype[o] = 'complex'
-        elif self.nodetype[ops[0]] == 'complex':
-            self.nodetype[o] = 'complex'
-        else:
-            self.nodetype[o] = 'real'
+        try:
+            # Attempt to diagnose circumstances in which the result must be real.
+            exponent = float(ops[1])
+            if self.nodetype[ops[0]] == 'real' and int(exponent) == exponent:
+                self.nodetype[o] = 'real'
+                return o
+        except TypeError:
+            pass
+
+        self.nodetype[o] = 'complex'
         return o
 
     def abs(self, o, *ops):
@@ -109,7 +115,7 @@ class CheckComparisons(MultiFunction):
 
     def terminal(self, term, *ops):
         # default terminals to complex, except the ones we *know* are real
-        if isinstance(term, (RealValue, Zero, Argument)):
+        if isinstance(term, (RealValue, Zero, Argument, GeometricQuantity)):
             self.nodetype[term] = 'real'
         else:
             self.nodetype[term] = 'complex'

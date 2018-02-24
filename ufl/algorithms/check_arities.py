@@ -13,6 +13,10 @@ from ufl.classes import Argument, Zero
 class ArityMismatch(UFLException):
     pass
 
+# String representation of an arity tuple:
+def _afmt(atuple):
+    return tuple("conj({0})".format(arg[0]) if conj[0] else str(arg[0])
+                 for arg, conj in atuple)
 
 class ArityChecker(MultiFunction):
     def __init__(self, arguments):
@@ -24,7 +28,7 @@ class ArityChecker(MultiFunction):
         return self._et
 
     def argument(self, o):
-        return (o,)
+        return ((o, False),)
 
     def nonlinear_operator(self, o):
         # Cutoff traversal by not having *ops in argument list of this
@@ -39,7 +43,7 @@ class ArityChecker(MultiFunction):
 
     def sum(self, o, a, b):
         if a != b:
-            raise ArityMismatch("Adding expressions with non-matching form arguments {0} vs {1}.".format(a, b))
+            raise ArityMismatch("Adding expressions with non-matching form arguments {0} vs {1}.".format(_afmt(a), _afmt(b)))
         return a
 
     def division(self, o, a, b):
@@ -51,16 +55,16 @@ class ArityChecker(MultiFunction):
         if a and b:
             # Check that we don't have test*test, trial*trial, even
             # for different parts in a block system
-            anumbers = set(x.number() for x in a)
+            anumbers = set(x[0].number() for x in a)
             for x in b:
-                if x.number() in anumbers:
-                    raise ArityMismatch("Multiplying expressions with overlapping form argument number {0}, argument is {1}.".format(x.number(), x))
+                if x[0].number() in anumbers:
+                    raise ArityMismatch("Multiplying expressions with overlapping form argument number {0}, argument is {1}.".format(x[0].number(), _afmt(x)))
             # Combine argument lists
-            c = tuple(sorted(set(a + b), key=lambda x: (x.number(), x.part())))
+            c = tuple(sorted(set(a + b), key=lambda x: (x[0].number(), x[0].part())))
             # Check that we don't have any arguments shared between a
             # and b
-            if len(c) != len(a) + len(b):
-                raise ArityMismatch("Multiplying expressions with overlapping form arguments {0} vs {1}.".format(a, b))
+            if len(c) != len(a) + len(b) or len(c) != len({x[0] for x in c}):
+                raise ArityMismatch("Multiplying expressions with overlapping form arguments {0} vs {1}.".format(_afmt(a), _afmt(b)))
             # It's fine for argument parts to overlap
             return c
         elif a:
@@ -68,10 +72,14 @@ class ArityChecker(MultiFunction):
         else:
             return b
 
-    # inner, outer and dot all behave as product
-    inner = product
-    outer = product
-    dot = product
+    # inner, outer and dot all behave as product but for conjugates
+    def inner(self, o, a, b):
+        return self.product(o, a, self.conj(None, b))
+
+    dot = inner
+
+    def outer(self, o, a, b):
+        return self.product(o, self.conj(None, a), b)
 
     def linear_operator(self, o, a):
         return a
@@ -89,10 +97,9 @@ class ArityChecker(MultiFunction):
     reference_grad = linear_operator
     reference_value = linear_operator
 
-    # Conj, Real, Imag behave as linear operators
-    conj = linear_operator
-    real = linear_operator
-    imag = linear_operator
+    # Conj, is a sesquilinear operator
+    def conj(self, o, a):
+        return tuple((a_[0], not a_[1]) for a_ in a)
 
     # Does it make sense to have a Variable(Argument)? I see no
     # problem.
@@ -102,7 +109,7 @@ class ArityChecker(MultiFunction):
     # Conditional is linear on each side of the condition
     def conditional(self, o, c, a, b):
         if c:
-            raise ArityMismatch("Condition cannot depend on form arguments ({0}).".format(a))
+            raise ArityMismatch("Condition cannot depend on form arguments ({0}).".format(_afmt(a)))
         if a and isinstance(o.ufl_operands[2], Zero):
             # Allow conditional(c, arg, 0)
             return a
@@ -115,7 +122,7 @@ class ArityChecker(MultiFunction):
         else:
             # Do not allow e.g. conditional(c, test, trial),
             # conditional(c, test, nonzeroconstant)
-            raise ArityMismatch("Conditional subexpressions with non-matching form arguments {0} vs {1}.".format(a, b))
+            raise ArityMismatch("Conditional subexpressions with non-matching form arguments {0} vs {1}.".format(_afmt(a), _afmt(b)))
 
     def linear_indexed_type(self, o, a, i):
         return a
@@ -130,28 +137,39 @@ class ArityChecker(MultiFunction):
         if args:
             # Check that each list tensor component has the same
             # argument numbers (ignoring parts)
-            numbers = set(tuple(sorted(set(arg.number() for arg in op))) for op in ops)
+            numbers = set(tuple(sorted(set(arg[0].number() for arg in op))) for op in ops)
             if () in numbers:  # Allow e.g. <v[0], 0, v[1]> but not <v[0], u[0]>
                 numbers.remove(())
             if len(numbers) > 1:
                 raise ArityMismatch("Listtensor components must depend on the same argument numbers, found {0}.".format(numbers))
 
             # Allow different parts with the same number
-            return tuple(sorted(args, key=lambda x: (x.number(), x.part())))
+            return tuple(sorted(args, key=lambda x: (x[0].number(), x[0].part())))
         else:
             # No argument dependencies
             return self._et
 
 
-def check_integrand_arity(expr, arguments):
+def check_integrand_arity(expr, arguments, complex_mode=False):
     arguments = tuple(sorted(set(arguments),
                              key=lambda x: (x.number(), x.part())))
     rules = ArityChecker(arguments)
-    args = map_expr_dag(rules, expr, compress=False)
+    arg_tuples = map_expr_dag(rules, expr, compress=False)
+    args = tuple(a[0] for a in arg_tuples)
     if args != arguments:
         raise ArityMismatch("Integrand arguments {0} differ from form arguments {1}.".format(args, arguments))
+    if complex_mode:
+        # Check that the test function is conjugated and that any
+        # trial function is not conjugated. Further arguments are
+        # treated as trial funtions (i.e. no conjugation) but this
+        # might not be correct.
+        for arg, conj in arg_tuples:
+            if arg.number() == 0 and not conj:
+                raise ArityMismatch("Failure to conjugate test function in complex Form")
+            elif arg.number() > 0 and conj:
+                raise ArityMismatch("Argument {0} is spuriously conjugated in complex Form".format(arg))
 
 
-def check_form_arity(form, arguments):
+def check_form_arity(form, arguments, complex_mode=False):
     for itg in form.integrals():
-        check_integrand_arity(itg.integrand(), arguments)
+        check_integrand_arity(itg.integrand(), arguments, complex_mode)
