@@ -72,10 +72,14 @@ class ArityChecker(MultiFunction):
         else:
             return b
 
-    # inner, outer and dot all behave as product
-    inner = product
-    outer = product
-    dot = product
+    # inner, outer and dot all behave as product but for conjugates
+    def inner(self, o, a, b):
+        return self.product(o, a, self.conj(None, b))
+
+    dot = inner
+
+    def outer(self, o, a, b):
+        return self.product(o, self.conj(None, a), b)
 
     def linear_operator(self, o, a):
         return a
@@ -95,7 +99,7 @@ class ArityChecker(MultiFunction):
 
     # Conj, is a sesquilinear operator
     def conj(self, o, a):
-        return tuple((x[0], not x[1]) for x in a)
+        return tuple((a_[0], not a_[1]) for a_ in a)
 
     # Does it make sense to have a Variable(Argument)? I see no
     # problem.
@@ -146,15 +150,26 @@ class ArityChecker(MultiFunction):
             return self._et
 
 
-def check_integrand_arity(expr, arguments):
+def check_integrand_arity(expr, arguments, complex_mode=False):
     arguments = tuple(sorted(set(arguments),
                              key=lambda x: (x.number(), x.part())))
     rules = ArityChecker(arguments)
-    args = map_expr_dag(rules, expr, compress=False)
+    arg_tuples = map_expr_dag(rules, expr, compress=False)
+    args = tuple(a[0] for a in arg_tuples)
     if args != arguments:
         raise ArityMismatch("Integrand arguments {0} differ from form arguments {1}.".format(args, arguments))
+    if complex_mode:
+        # Check that the test function is conjugated and that any
+        # trial function is not conjugated. Further arguments are
+        # treated as trial funtions (i.e. no conjugation) but this
+        # might not be correct.
+        for arg, conj in arg_tuples:
+            if arg.number() == 0 and not conj:
+                raise ArityMismatch("Failure to conjugate test function in complex Form")
+            elif arg.number() > 0 and conj:
+                raise ArityMismatch("Argument {0} is spuriously conjugated in complex Form".format(arg))
 
 
-def check_form_arity(form, arguments):
+def check_form_arity(form, arguments, complex_mode=False):
     for itg in form.integrals():
-        check_integrand_arity(itg.integrand(), arguments)
+        check_integrand_arity(itg.integrand(), arguments, complex_mode)
