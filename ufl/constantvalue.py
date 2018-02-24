@@ -288,16 +288,10 @@ class ComplexValue(ScalarValue):
         ScalarValue.__init__(self, complex(value))
 
     def modulus(self):
-        return sqrt(self.value().real**2 + self.value().imag**2)
+        return abs(self.value())
 
     def argument(self):
-        if self.value().real == 0:
-            if self.value().imag > 0:
-                return pi/2
-            else:
-                return -pi/2
-        else:
-            return atan2(self.value().imag, self.value().real)
+        return atan2(self.value().imag, self.value().real)
 
     def __repr__(self):
         r = "%s(%s)" % (type(self).__name__, repr(self._value))
