@@ -13,10 +13,12 @@ from ufl.classes import Argument, Zero
 class ArityMismatch(UFLException):
     pass
 
+
 # String representation of an arity tuple:
 def _afmt(atuple):
-    return tuple("conj({0})".format(arg[0]) if conj[0] else str(arg[0])
+    return tuple("conj({0})".format(arg) if conj else str(arg)
                  for arg, conj in atuple)
+
 
 class ArityChecker(MultiFunction):
     def __init__(self, arguments):
