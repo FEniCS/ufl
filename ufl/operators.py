@@ -40,7 +40,7 @@ from ufl.conditional import EQ, NE, \
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
     BesselJ, BesselY, BesselI, BesselK
-from ufl.restriction import CellAvg, FacetAvg
+from ufl.averaging import CellAvg, FacetAvg
 from ufl.core.multiindex import indices
 from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate, FacetNormal

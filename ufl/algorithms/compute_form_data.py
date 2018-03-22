@@ -25,7 +25,7 @@ from itertools import chain
 from ufl.log import error, info
 from ufl.utils.sequences import max_degree
 
-from ufl.classes import GeometricFacetQuantity, Coefficient, Form
+from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData
@@ -190,6 +190,12 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
     for i, f in enumerate(coefficients):
         old_e = f.ufl_element()
         new_e = element_mapping.get(old_e, old_e)
+        # XXX: This is a hack to ensure that if the original
+        # coefficient had a domain, the new one does too.
+        # This should be overhauled with requirement that Expressions
+        # always have a domain.
+        if f.ufl_domain() is not None:
+            new_e = FunctionSpace(f.ufl_domain(), new_e)
         new_f = Coefficient(new_e, count=i)
         new_coefficients.append(new_f)
         replace_map[f] = new_f
