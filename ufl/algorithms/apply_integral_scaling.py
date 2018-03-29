@@ -21,6 +21,7 @@
 from ufl.log import error
 from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
 from ufl.measure import custom_integral_types, point_integral_types
+from ufl.differentiation import CoordinateDerivative
 
 
 def compute_integrand_scaling_factor(integral):
@@ -82,7 +83,13 @@ def apply_integral_scaling(form):
         integral = form
         # Compute and apply integration scaling factor
         scale = compute_integrand_scaling_factor(integral)
-        newintegrand = integral.integrand() * scale
+        integrand = integral.integrand()
+        o = integrand.ufl_operands
+        if isinstance(integrand, CoordinateDerivative):
+            integrand.ufl_operands = (o[0] * scale, o[1], o[2], o[3])
+            newintegrand = integrand
+        else:
+            newintegrand = integrand * scale
         return integral.reconstruct(integrand=newintegrand)
 
     else:

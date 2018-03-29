@@ -80,6 +80,38 @@ class CoefficientDerivative(Derivative):
                self.ufl_operands[2], self.ufl_operands[3])
 
 
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class CoordinateDerivative(Derivative):
+    """Derivative of the integrand of a form w.r.t. the
+    degrees of freedom in a discrete Coefficient."""
+    __slots__ = ()
+
+    def __new__(cls, integrand, coefficients, arguments,
+                coordinate_derivatives):
+        if not isinstance(coefficients, ExprList):
+            error("Expecting ExprList instance with Coefficients.")
+        if not isinstance(arguments, ExprList):
+            error("Expecting ExprList instance with Arguments.")
+        if not isinstance(coordinate_derivatives, ExprMapping):
+            error("Expecting ExprMapping for coordinate derivatives.")
+        if isinstance(integrand, Zero):
+            return integrand
+        return Derivative.__new__(cls)
+
+    def __init__(self, integrand, coefficients, arguments,
+                 coordinate_derivatives):
+        if not isinstance(coordinate_derivatives, ExprMapping):
+            coordinate_derivatives = ExprMapping(coordinate_derivatives)
+        Derivative.__init__(self, (integrand, coefficients, arguments,
+                                   coordinate_derivatives))
+
+    def __str__(self):
+        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s"\
+            % (self.ufl_operands[0], self.ufl_operands[1],
+               self.ufl_operands[2], self.ufl_operands[3])
+
+
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
     __slots__ = as_native_strings((

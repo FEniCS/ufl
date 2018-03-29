@@ -182,6 +182,10 @@ class SpatialCoordinate(GeometricCellQuantity):
         else:
             return float(x[component[0]])
 
+    def count(self):
+        #FIXME: dirty hack
+        return -1
+
 
 @ufl_type()
 class CellCoordinate(GeometricCellQuantity):

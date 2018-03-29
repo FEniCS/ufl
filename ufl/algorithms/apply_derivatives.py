@@ -49,7 +49,7 @@ from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
 
 from ufl.checks import is_cellwise_constant
-
+from ufl.differentiation import CoordinateDerivative
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset
@@ -1039,6 +1039,10 @@ class DerivativeRuleDispatcher(MultiFunction):
         rules = GateauxDerivativeRuleset(w, v, cd)
         return map_expr_dag(rules, f)
 
+    def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
+        o_ = o.ufl_operands
+        return CoordinateDerivative(map_expr_dag(self, o_[0]) , o_[1], o_[2], o_[3])
+
     def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
         # Reuse if untouched
         if Ap is o.ufl_operands[0]:
@@ -1071,4 +1075,106 @@ class DerivativeRuleDispatcher(MultiFunction):
 
 def apply_derivatives(expression):
     rules = DerivativeRuleDispatcher()
+    return map_integrand_dags(rules, expression)
+
+
+class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
+    """Apply AFD (Automatic Functional Differentiation) to expression.
+
+    Implements rules for the Gateaux derivative D_w[v](...) defined as
+
+        D_w[v](e) = d/dtau e(w+tau v)|tau=0
+
+    """
+    def __init__(self, coefficients, arguments, coefficient_derivatives):
+        GenericDerivativeRuleset.__init__(self, var_shape=())
+
+        # Type checking
+        if not isinstance(coefficients, ExprList):
+            error("Expecting a ExprList of coefficients.")
+        if not isinstance(arguments, ExprList):
+            error("Expecting a ExprList of arguments.")
+        if not isinstance(coefficient_derivatives, ExprMapping):
+            error("Expecting a coefficient-coefficient ExprMapping.")
+
+        # The coefficient(s) to differentiate w.r.t. and the
+        # argument(s) s.t. D_w[v](e) = d/dtau e(w+tau v)|tau=0
+        self._w = coefficients.ufl_operands
+        self._v = arguments.ufl_operands
+        self._w2v = {w: v for w, v in zip(self._w, self._v)}
+
+        # Build more convenient dict {f: df/dw} for each coefficient f
+        # where df/dw is nonzero
+        cd = coefficient_derivatives.ufl_operands
+        self._cd = {cd[2*i]: cd[2*i+1] for i in range(len(cd)//2)}
+
+    # Explicitly defining dg/dw == 0
+    geometric_quantity = GenericDerivativeRuleset.independent_terminal
+
+    # Explicitly defining da/dw == 0
+    argument = GenericDerivativeRuleset.independent_terminal
+
+    def spatial_coordinate(self, o):
+        do = self._w2v.get(o)
+        if do is not None:
+            return do
+        else:
+            do = Zero(o.ufl_shape)
+        error("didn't expect to get here")
+
+    def reference_value(self, o):
+        return self.independent_terminal(o)
+
+    def reference_grad(self, g):
+        o = g
+        ngrads = 0
+        while isinstance(o, ReferenceGrad):
+            o, = o.ufl_operands
+            ngrads += 1
+        if not (isinstance(o, SpatialCoordinate) or isinstance(o.ufl_operands[0], FormArgument)):
+            error("Expecting gradient of a FormArgument, not %s" % ufl_err_str(o))
+
+        def apply_grads(f):
+            for i in range(ngrads):
+                f = ReferenceGrad(f)
+            return f
+
+        # Find o among all w without any indexing, which makes this
+        # easy
+        for (w, v) in zip(self._w, self._v):
+            if o == w and isinstance(v, ReferenceValue) and isinstance(v.ufl_operands[0], FormArgument):
+                # Case: d/dt [w + t v]
+                return apply_grads(v)
+        return self.independent_terminal(o)
+
+
+class CoordinateDerivativeRuleDispatcher(MultiFunction):
+    def __init__(self):
+        MultiFunction.__init__(self)
+
+    def terminal(self, o):
+        return o
+
+    def derivative(self, o):
+        error("Missing derivative handler for {0}.".format(type(o).__name__))
+
+    expr = MultiFunction.reuse_if_untouched
+
+    def grad(self, o, f):
+        return o
+
+    def reference_grad(self, o, f):
+        return o
+
+    def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
+        return o
+
+    def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd): 
+        dummy, w, v, cd = o.ufl_operands
+        rules = CoordinateDerivativeRuleset(w, v, cd)
+        return map_expr_dag(rules, f)
+
+
+def apply_coordinate_derivatives(expression):
+    rules = CoordinateDerivativeRuleDispatcher()
     return map_integrand_dags(rules, expression)

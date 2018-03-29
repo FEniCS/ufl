@@ -22,7 +22,7 @@ raw input form given by a user."""
 
 from itertools import chain
 
-from ufl.log import error, info
+from ufl.log import error, info, UFLException
 from ufl.utils.sequences import max_degree
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
@@ -35,7 +35,7 @@ from ufl.algorithms.check_arities import check_form_arity
 # These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
-from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.apply_derivatives import apply_derivatives, apply_coordinate_derivatives
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
@@ -269,7 +269,12 @@ def compute_form_data(form,
     # any pullbacks and geometric lowering.  Otherwise quad degrees
     # blow up horrifically.
     if do_estimate_degrees:
-        form = attach_estimated_degrees(form)
+        try:
+            form = attach_estimated_degrees(form)
+            degreesEstimated = True
+        except UFLException:
+            degreesEstimated = False
+
 
     if do_apply_function_pullbacks:
         # Rewrite coefficients and arguments in terms of their
@@ -307,6 +312,10 @@ def compute_form_data(form,
             form = apply_geometry_lowering(form, preserve_geometry_types)
             # Lower derivatives that may have appeared
             form = apply_derivatives(form)
+
+    form = apply_coordinate_derivatives(form)
+    if do_estimate_degrees and not degreesEstimated:
+        form = attach_estimated_degrees(form)
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
