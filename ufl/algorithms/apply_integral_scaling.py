@@ -82,14 +82,17 @@ def apply_integral_scaling(form):
     elif isinstance(form, Integral):
         integral = form
         # Compute and apply integration scaling factor
+        # since we want to compute coordinate derivatives at the end, the scaling factor
+        # has to be moved inside those
         scale = compute_integrand_scaling_factor(integral)
         integrand = integral.integrand()
-        o = integrand.ufl_operands
-        if isinstance(integrand, CoordinateDerivative):
-            integrand.ufl_operands = (o[0] * scale, o[1], o[2], o[3])
-            newintegrand = integrand
-        else:
-            newintegrand = integrand * scale
+        def scale_coordinate_derivative(o, scale):
+            o_ = o.ufl_operands
+            if isinstance(o, CoordinateDerivative):
+                return CoordinateDerivative(scale_coordinate_derivative(o_[0], scale), o_[1], o_[2], o_[3])
+            else:
+                return scale * o
+        newintegrand = scale_coordinate_derivative(integrand, scale)
         return integral.reconstruct(integrand=newintegrand)
 
     else:
