@@ -1009,6 +1009,11 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
         return gprimesum
 
+    def coordinate_derivative(self, o):
+        o = o.ufl_operands
+        return CoordinateDerivative(map_expr_dag(self, o[0]), o[1], o[2], o[3])
+
+
 
 class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
