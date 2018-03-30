@@ -222,9 +222,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             error("Coefficient and argument shapes do not match!")
-        if isinstance(c, Coefficient):
-            m[c] = a
-        elif isinstance(c, SpatialCoordinate):
+        if isinstance(c, Coefficient) or isinstance(c, SpatialCoordinate):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
@@ -293,23 +291,23 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     if isinstance(form, Form):
         integrals = []
         for itg in form.integrals():
-            if isinstance(coefficient, SpatialCoordinate):
-                fd = CoordinateDerivative(itg.integrand(), coefficients,
-                                          arguments, coefficient_derivatives)
-            else:
+            if not isinstance(coefficient, SpatialCoordinate):
                 fd = CoefficientDerivative(itg.integrand(), coefficients,
                                            arguments, coefficient_derivatives)
+            else:
+                fd = CoordinateDerivative(itg.integrand(), coefficients,
+                                          arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
-        if isinstance(coefficient, SpatialCoordinate):
-            return CoordinateDerivative(form, coefficients,
-                                        arguments, coefficient_derivatives)
-        else:
+        if not isinstance(coefficient, SpatialCoordinate):
             return CoefficientDerivative(form, coefficients,
                                          arguments, coefficient_derivatives)
+        else:
+            return CoordinateDerivative(form, coefficients,
+                                        arguments, coefficient_derivatives)
 
     error("Invalid argument type %s." % str(type(form)))
 

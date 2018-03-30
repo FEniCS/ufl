@@ -1090,6 +1090,8 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
 
         D_w[v](e) = d/dtau e(w+tau v)|tau=0
 
+    where 'e' is a ufl form after pullback and w is a SpatialCoordinate.
+
     """
     def __init__(self, coefficients, arguments, coefficient_derivatives):
         GenericDerivativeRuleset.__init__(self, var_shape=())

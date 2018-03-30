@@ -268,6 +268,8 @@ def compute_form_data(form,
     # Estimate polynomial degree of integrands now, before applying
     # any pullbacks and geometric lowering.  Otherwise quad degrees
     # blow up horrifically.
+    # This fails if there is still a CoordinateDerivative left to be computed.
+    # In that case, we have to estimate again on the reference domain
     if do_estimate_degrees:
         try:
             form = attach_estimated_degrees(form)
@@ -314,6 +316,9 @@ def compute_form_data(form,
             form = apply_derivatives(form)
 
     form = apply_coordinate_derivatives(form)
+    # In there was a coordinate derivative, then the degree estimation
+    # above will have failed. In that case, estimate again down here.
+    # XXX: Do we have to worry about degree blowup?
     if do_estimate_degrees and not degreesEstimated:
         form = attach_estimated_degrees(form)
 
