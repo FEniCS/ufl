@@ -1154,6 +1154,12 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
                 return apply_grads(v)
         return self.independent_terminal(o)
 
+    def jacobian(self, o):
+        for (w, v) in zip(self._w, self._v):
+            if o.ufl_domain() == w.ufl_domain() and isinstance(v.ufl_operands[0], FormArgument):
+                return ReferenceGrad(v)
+        return self.independent_terminal(o)
+
 
 class CoordinateDerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
