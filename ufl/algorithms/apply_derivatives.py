@@ -1181,17 +1181,18 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
 
     expr = MultiFunction.reuse_if_untouched
 
-    def grad(self, o, f):
+    def grad(self, o):
         return o
 
-    def reference_grad(self, o, f):
+    def reference_grad(self, o):
         return o
 
-    def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
+    def coefficient_derivative(self, o):
         return o
 
-    def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd): 
-        dummy, w, v, cd = o.ufl_operands
+    def coordinate_derivative(self, o): 
+        f, w, v, cd = o.ufl_operands
+        f = self(f) # transform f
         rules = CoordinateDerivativeRuleset(w, v, cd)
         return map_expr_dag(rules, f)
 
