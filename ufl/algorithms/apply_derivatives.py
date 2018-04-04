@@ -1121,6 +1121,12 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     # Explicitly defining da/dw == 0
     argument = GenericDerivativeRuleset.independent_terminal
 
+    def coefficient(self, o):
+        error("CoordinateDerivative of coefficient in physical space is not implemented.")
+
+    def grad(self, o):
+        error("CoordinateDerivative grad in physical space is not implemented.")
+
     def spatial_coordinate(self, o):
         do = self._w2v.get(o)
         # d x /d x => Argument(x.function_space())
