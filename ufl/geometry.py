@@ -183,7 +183,8 @@ class SpatialCoordinate(GeometricCellQuantity):
             return float(x[component[0]])
 
     def count(self):
-        #FIXME: dirty hack
+        # FIXME: Hack to make SpatialCoordinate behave like a coefficient.
+        # When calling `derivative`, the count is used to sort over.
         return -1
 
 
