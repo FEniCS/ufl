@@ -273,9 +273,9 @@ def compute_form_data(form,
     if do_estimate_degrees:
         try:
             form = attach_estimated_degrees(form)
-            degreesEstimated = True
+            degrees_estimated = True
         except UFLException:
-            degreesEstimated = False
+            degrees_estimated = False
 
 
     if do_apply_function_pullbacks:
@@ -319,7 +319,7 @@ def compute_form_data(form,
     # In there was a coordinate derivative, then the degree estimation
     # above will have failed. In that case, estimate again down here.
     # XXX: Do we have to worry about degree blowup?
-    if do_estimate_degrees and not degreesEstimated:
+    if do_estimate_degrees and not degrees_estimated:
         form = attach_estimated_degrees(form)
 
     # Propagate restrictions to terminals
