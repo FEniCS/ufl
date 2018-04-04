@@ -1123,16 +1123,17 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
 
     def spatial_coordinate(self, o):
         do = self._w2v.get(o)
+        # d x /d x => Argument(x.function_space())
         if do is not None:
             return do
         else:
-            do = Zero(o.ufl_shape)
-        error("didn't expect to get here")
+            error("Not implemented: CoordinateDerivative found a SpatialCoordinate that is different from the one being differentiated.")
 
     def reference_value(self, o):
         return self.independent_terminal(o)
 
     def reference_grad(self, g):
+        # d (grad_X(...(x)) / dx => grad_X(...(Argument(x.function_space()))
         o = g
         ngrads = 0
         while isinstance(o, ReferenceGrad):
@@ -1155,6 +1156,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         return self.independent_terminal(o)
 
     def jacobian(self, o):
+        # d (grad_X(x))/d x => grad_X(Argument(x.function_space())
         for (w, v) in zip(self._w, self._v):
             if o.ufl_domain() == w.ufl_domain() and isinstance(v.ufl_operands[0], FormArgument):
                 return ReferenceGrad(v)
