@@ -82,28 +82,9 @@ class CoefficientDerivative(Derivative):
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0,
           inherit_indices_from_operand=0)
-class CoordinateDerivative(Derivative):
+class CoordinateDerivative(CoefficientDerivative):
     """Derivative of the integrand of a form w.r.t. the SpatialCoordinates."""
     __slots__ = ()
-
-    def __new__(cls, integrand, coefficients, arguments,
-                coordinate_derivatives):
-        if not isinstance(coefficients, ExprList):
-            error("Expecting ExprList instance with SpatialCoordinate.")
-        if not isinstance(arguments, ExprList):
-            error("Expecting ExprList instance with Argument.")
-        if not isinstance(coordinate_derivatives, ExprMapping):
-            error("Expecting ExprMapping for coordinate derivatives.")
-        if isinstance(integrand, Zero):
-            return integrand
-        return Derivative.__new__(cls)
-
-    def __init__(self, integrand, coefficients, arguments,
-                 coordinate_derivatives):
-        if not isinstance(coordinate_derivatives, ExprMapping):
-            coordinate_derivatives = ExprMapping(coordinate_derivatives)
-        Derivative.__init__(self, (integrand, coefficients, arguments,
-                                   coordinate_derivatives))
 
     def __str__(self):
         return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s"\
