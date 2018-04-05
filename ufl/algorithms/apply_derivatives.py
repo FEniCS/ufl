@@ -1136,7 +1136,11 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
             error("Not implemented: CoordinateDerivative found a SpatialCoordinate that is different from the one being differentiated.")
 
     def reference_value(self, o):
-        return self.independent_terminal(o)
+        do = self._cd.get(o)
+        if do is not None:
+            return do
+        else:
+            return self.independent_terminal(o)
 
     def reference_grad(self, g):
         # d (grad_X(...(x)) / dx => grad_X(...(Argument(x.function_space()))
