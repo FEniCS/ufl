@@ -4,6 +4,7 @@ build/
 doc/sphinx/source/api-doc
 test/*_debug.py
 test/UFL.log
+test/.pytest_cache
 *.egg-info
 dist/
 release/
