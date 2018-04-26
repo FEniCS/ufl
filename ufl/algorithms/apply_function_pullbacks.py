@@ -222,8 +222,8 @@ def apply_single_function_pullbacks(g):
                     # int times Index is not allowed. so sum by hand
                     for m in range(rdim):
                         for n in range(rdim):
-                            gv += ((1.0 / detJ) * (1.0 / detJ)
-                                   * J[i, m] * rv[m * rdim + n] * J[j, n])
+                            gv += ((1.0 / detJ) * (1.0 / detJ) *
+                                   J[i, m] * rv[m * rdim + n] * J[j, n])
                     g_components[gpos + i * gdim + j] = gv
 
         else:
