@@ -4,8 +4,9 @@ Changelog
 2018.1.0.dev0
 -------------
 
-- Add support for ``FacetBubble``, bubble functions on the facets of the
-  cell. These have short family name ``FB''.
+- Remove Python 2 support. Now requires Python 3.5 or above.
+- Add support for ``FacetBubble`` element, bubble functions
+  on the facets of the cell, with short family name ``FB``
 
 2017.2.0 (2017-12-05)
 ---------------------
