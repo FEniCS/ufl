@@ -114,6 +114,7 @@ def apply_integral_scaling(form):
         # coordinate derivatives at the end, the scaling factor has to be moved
         # inside those
         scale = compute_integrand_scaling_factor(integral)
+
         def scale_coordinate_derivative(o, scale):
             o_ = o.ufl_operands
             if isinstance(o, CoordinateDerivative):

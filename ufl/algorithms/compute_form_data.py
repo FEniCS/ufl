@@ -22,7 +22,7 @@ raw input form given by a user."""
 
 from itertools import chain
 
-from ufl.log import error, info, UFLException
+from ufl.log import error, info
 from ufl.utils.sequences import max_degree
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
@@ -270,7 +270,6 @@ def compute_form_data(form,
     # blow up horrifically.
     if do_estimate_degrees:
         form = attach_estimated_degrees(form)
-
 
     if do_apply_function_pullbacks:
         # Rewrite coefficients and arguments in terms of their

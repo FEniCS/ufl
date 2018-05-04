@@ -1014,7 +1014,6 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return CoordinateDerivative(map_expr_dag(self, o[0]), o[1], o[2], o[3])
 
 
-
 class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
@@ -1046,7 +1045,7 @@ class DerivativeRuleDispatcher(MultiFunction):
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         o_ = o.ufl_operands
-        return CoordinateDerivative(map_expr_dag(self, o_[0]) , o_[1], o_[2], o_[3])
+        return CoordinateDerivative(map_expr_dag(self, o_[0]), o_[1], o_[2], o_[3])
 
     def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
         # Reuse if untouched
@@ -1194,9 +1193,9 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
     def coefficient_derivative(self, o):
         return o
 
-    def coordinate_derivative(self, o): 
+    def coordinate_derivative(self, o):
         f, w, v, cd = o.ufl_operands
-        f = self(f) # transform f
+        f = self(f)  # transform f
         rules = CoordinateDerivativeRuleset(w, v, cd)
         return map_expr_dag(rules, f)
 
