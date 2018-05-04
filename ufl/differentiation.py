@@ -80,6 +80,18 @@ class CoefficientDerivative(Derivative):
                self.ufl_operands[2], self.ufl_operands[3])
 
 
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class CoordinateDerivative(CoefficientDerivative):
+    """Derivative of the integrand of a form w.r.t. the SpatialCoordinates."""
+    __slots__ = ()
+
+    def __str__(self):
+        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s"\
+            % (self.ufl_operands[0], self.ufl_operands[1],
+               self.ufl_operands[2], self.ufl_operands[3])
+
+
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
     __slots__ = as_native_strings((

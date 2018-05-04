@@ -30,13 +30,14 @@ from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.differentiation import CoefficientDerivative
+from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.tensors import as_tensor, ListTensor
 from ufl.sorting import sorted_expr
 from ufl.functionspace import FunctionSpace
+from ufl.geometry import SpatialCoordinate
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
 from ufl.algorithms import compute_form_adjoint, compute_form_action
@@ -221,7 +222,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             error("Coefficient and argument shapes do not match!")
-        if isinstance(c, Coefficient):
+        if isinstance(c, Coefficient) or isinstance(c, SpatialCoordinate):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
@@ -290,15 +291,23 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     if isinstance(form, Form):
         integrals = []
         for itg in form.integrals():
-            fd = CoefficientDerivative(itg.integrand(), coefficients,
-                                       arguments, coefficient_derivatives)
+            if not isinstance(coefficient, SpatialCoordinate):
+                fd = CoefficientDerivative(itg.integrand(), coefficients,
+                                           arguments, coefficient_derivatives)
+            else:
+                fd = CoordinateDerivative(itg.integrand(), coefficients,
+                                          arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
-        return CoefficientDerivative(form, coefficients, arguments,
-                                     coefficient_derivatives)
+        if not isinstance(coefficient, SpatialCoordinate):
+            return CoefficientDerivative(form, coefficients,
+                                         arguments, coefficient_derivatives)
+        else:
+            return CoordinateDerivative(form, coefficients,
+                                        arguments, coefficient_derivatives)
 
     error("Invalid argument type %s." % str(type(form)))
 
