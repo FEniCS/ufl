@@ -21,7 +21,7 @@
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.constantvalue import Zero
-from ufl.tensors import as_vector
+from ufl.tensors import as_vector, as_matrix
 from ufl.argument import Argument
 from ufl.functionspace import FunctionSpace, FunctionSpaceProduct
 
@@ -36,7 +36,6 @@ class FormSplitter(MultiFunction):
         Q = obj.ufl_function_space()
         dom = Q.ufl_domain()
         sub_elements = obj.ufl_element().sub_elements()
-
         # If not a mixed element, do nothing
         if (len(sub_elements) == 0):
             return obj
@@ -55,8 +54,13 @@ class FormSplitter(MultiFunction):
                 args += [a[j] for j in indices]
             else:
                 args += [Zero() for j in indices]
-
-        return as_vector(args)
+        if len(obj.ufl_shape)==1:
+            return as_vector(args)
+        elif len(obj.ufl_shape)==2:
+            return as_matrix([args[i*obj.ufl_shape[1]: (i+1)*obj.ufl_shape[1]]
+                for i in range(obj.ufl_shape[0])])
+        else:
+            raise NotImplementedError()
 
     def multi_index(self, obj):
         return obj
@@ -74,7 +78,6 @@ class FormSplitterProduct(MultiFunction):
         return map_integrand_dags(self, form)
 
     def argument(self, obj):
-        # obj.part correspond to the subdomain index here
         if len(obj.ufl_shape) == 0:
             if (obj.part() == self.idx[obj.number()]):
                 return obj
@@ -84,12 +87,24 @@ class FormSplitterProduct(MultiFunction):
             indices = [()]
             for m in obj.ufl_shape:
                 indices = [(k + (j,)) for k in indices for j in range(m)]
+
+            args = []
             if (obj.part() == self.idx[obj.number()]):
-                return as_vector([obj[j] for j in indices])
+                args =    [obj[j] for j in indices]
             else:
-                return as_vector([Zero() for j in indices])
+                args =    [Zero() for j in indices]
+
+            if len(obj.ufl_shape)==1:
+                return as_vector(args)
+
+            elif len(obj.ufl_shape)==2:
+                return as_matrix([args[i*obj.ufl_shape[1]: (i+1)*obj.ufl_shape[1]]
+                    for i in range(obj.ufl_shape[0])])
+            else:
+                raise NotImplementedError()
 
     def multi_index(self, obj):
+        print(type(obj))
         return obj
 
     expr = MultiFunction.reuse_if_untouched
