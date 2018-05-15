@@ -21,6 +21,9 @@
 from ufl.log import error
 from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
 from ufl.measure import custom_integral_types, point_integral_types
+from ufl.differentiation import CoordinateDerivative
+from ufl.algorithms.multifunction import MultiFunction
+from ufl.corealg.map_dag import map_expr_dags
 
 
 def compute_integrand_scaling_factor(integral):
@@ -69,6 +72,30 @@ def compute_integrand_scaling_factor(integral):
     return scale
 
 
+class CoordinateDerivativeIsOutermostChecker(MultiFunction):
+
+    """ Traverses the tree to make sure that CoordinateDerivatives are only on
+    the outside. The visitor returns False as long as no CoordinateDerivative
+    has been seen. """
+
+    def multi_index(self, o):
+        return False
+
+    def terminal(self, o):
+        return False
+
+    def expr(self, o, *operands):
+        """ If we have already seen a CoordinateDerivative, then no other
+        expressions apart from more CoordinateDerivatives are allowed to wrap
+        around it. """
+        if any(operands):
+            raise ValueError("CoordinateDerivative(s) must be outermost")
+        return False
+
+    def coordinate_derivative(self, o, expr, *_):
+        return True
+
+
 def apply_integral_scaling(form):
     "Multiply integrands by a factor to scale the integral to reference frame."
     # TODO: Consider adding an in_reference_frame property to Integral
@@ -80,9 +107,21 @@ def apply_integral_scaling(form):
 
     elif isinstance(form, Integral):
         integral = form
-        # Compute and apply integration scaling factor
+        integrand = integral.integrand()
+        checker = CoordinateDerivativeIsOutermostChecker()
+        map_expr_dags(checker, [integrand])
+        # Compute and apply integration scaling factor since we want to compute
+        # coordinate derivatives at the end, the scaling factor has to be moved
+        # inside those
         scale = compute_integrand_scaling_factor(integral)
-        newintegrand = integral.integrand() * scale
+
+        def scale_coordinate_derivative(o, scale):
+            o_ = o.ufl_operands
+            if isinstance(o, CoordinateDerivative):
+                return CoordinateDerivative(scale_coordinate_derivative(o_[0], scale), o_[1], o_[2], o_[3])
+            else:
+                return scale * o
+        newintegrand = scale_coordinate_derivative(integrand, scale)
         return integral.reconstruct(integrand=newintegrand)
 
     else:
