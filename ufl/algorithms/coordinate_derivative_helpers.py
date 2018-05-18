@@ -43,7 +43,7 @@ class CoordinateDerivativeIsOutermostChecker(MultiFunction):
         expressions apart from more CoordinateDerivatives are allowed to wrap
         around it. """
         if any(operands):
-            raise ValueError("CoordinateDerivative(s) must be outermost")
+            error("CoordinateDerivative(s) must be outermost")
         return False
 
     def coordinate_derivative(self, o, expr, *_):
@@ -51,9 +51,14 @@ class CoordinateDerivativeIsOutermostChecker(MultiFunction):
 
 
 def assert_that_coordinate_derivatives_are_the_same(cds):
-    # TODO: make sure that the coordinate derivatives that were stripped
-    # are all the same
-    pass
+    # make sure that the coordinate derivatives that were stripped are all the
+    # same
+    hashes_per_integral = []
+    for cd in cds:
+        hsh = sum(sum(tuple_elem._ufl_compute_hash_() for tuple_elem in tuple_) for tuple_ in cd)
+        hashes_per_integral.append(hsh)
+    if not all(hsh == hashes_per_integral[0] for hsh in hashes_per_integral):
+        error("Did not apply the same CoordinateDerivative to all integrals.")
 
 
 def strip_coordinate_derivatives(form):
