@@ -64,6 +64,8 @@ def assert_that_coordinate_derivatives_are_the_same(cds):
 def strip_coordinate_derivatives(form):
 
     if isinstance(form, Form):
+        if len(form.integrals()) == 0:
+            return form, None
         stripped_integrals = []
         coordinate_derivatives = []
         for integral in form.integrals():
@@ -71,7 +73,9 @@ def strip_coordinate_derivatives(form):
             stripped_integrals.append(si)
             coordinate_derivatives.append(cd)
         assert_that_coordinate_derivatives_are_the_same(coordinate_derivatives)
-        return (Form(stripped_integrals), coordinate_derivatives)
+        # now that we have checked that the coordinate derivative that we apply is
+        # the same for all integrals, we only have to return them for the first integral
+        return (Form(stripped_integrals), coordinate_derivatives[0])
 
     elif isinstance(form, Integral):
         integral = form
@@ -98,11 +102,14 @@ def strip_coordinate_derivatives(form):
 
 
 def attach_coordinate_derivatives(form, coordinate_derivatives):
+    if coordinate_derivatives is None:
+        return form
 
     if isinstance(form, Form):
-        new_integrals = [attach_coordinate_derivatives(integ, cd) for (integ, cd)
-                         in zip(form.integrals(), coordinate_derivatives)]
+        cds = coordinate_derivatives
+        new_integrals = [attach_coordinate_derivatives(integ, cds) for integ in form.integrals()]
         return Form(new_integrals)
+
     elif isinstance(form, Integral):
         integral = form
         integrand = integral.integrand()
