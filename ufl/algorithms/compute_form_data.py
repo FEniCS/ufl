@@ -40,6 +40,7 @@ from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
+from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
 
 # See TODOs at the call sites of these below:
 from ufl.algorithms.domain_analysis import build_integral_data
@@ -259,11 +260,18 @@ def compute_form_data(form,
     # user-defined coefficient relations it just gets too messy
     form = apply_derivatives(form)
 
+    # strip the coordinate derivatives away from the integral as they
+    # interfere with the integral grouping
+    (form, coordinate_derivatives) = strip_coordinate_derivatives(form)
+
     # --- Group form integrals
     # TODO: Refactor this, it's rather opaque what this does
     # TODO: Is self.original_form.ufl_domains() right here?
     #       It will matter when we start including 'num_domains' in ufc form.
     form = group_form_integrals(form, self.original_form.ufl_domains())
+
+    # attach coordinate derivatives again
+    form = attach_coordinate_derivatives(form, coordinate_derivatives)
 
     # Estimate polynomial degree of integrands now, before applying
     # any pullbacks and geometric lowering.  Otherwise quad degrees
