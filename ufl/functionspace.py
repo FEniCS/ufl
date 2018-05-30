@@ -62,7 +62,6 @@ class FunctionSpace(AbstractFunctionSpace):
         AbstractFunctionSpace.__init__(self)
         self._ufl_domain = domain
         self._ufl_element = element
-        ##print("FunctionSpace(%s, %s)" % (repr(self._ufl_domain), repr(self._ufl_element)) )
 
     def ufl_sub_spaces(self):
         "Return ufl sub spaces."
@@ -177,14 +176,15 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
         r = "TensorProductFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
         return as_native_str(r)
 
+
 @attach_operators_from_hash_data
 class FunctionSpaceProduct(AbstractFunctionSpace):
-    def __init__(self, *args): ## No need of **kwargs for now
+    def __init__(self, *args):
         AbstractFunctionSpace.__init__(self)
-        self._ufl_function_spaces = list(); # Initialization of FunctionSpace list
+        self._ufl_function_spaces = list()
 
         for f in args:
-            if isinstance(f, (FunctionSpace, FiniteElement) ):
+            if isinstance(f, (FunctionSpace, FiniteElement)):
                 self._ufl_function_spaces.append(f)
             else:
                 print("Expecting FunctionSpace or FiniteElement objects")
@@ -195,7 +195,7 @@ class FunctionSpaceProduct(AbstractFunctionSpace):
     def num_sub_spaces(self):
         return len(self._ufl_function_spaces)
 
-    def sub_space(self,i):
+    def sub_space(self, i):
         return self._ufl_function_spaces[i]
 
     def _ufl_hash_data_(self):

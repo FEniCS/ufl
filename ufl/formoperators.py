@@ -62,6 +62,7 @@ def block_split(form, ix, iy=0):
     """
     return fs_block_split(form, ix, iy)
 
+
 def extract_blocks(form, i=None, j=None):
     """UFL form operator:
     Given a linear or bilinear form on a product

@@ -23,7 +23,8 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.constantvalue import Zero
 from ufl.tensors import as_vector
 from ufl.argument import Argument
-from ufl.functionspace import FunctionSpace, FunctionSpaceProduct
+from ufl.functionspace import FunctionSpace
+
 
 class FormSplitter(MultiFunction):
 
@@ -63,14 +64,16 @@ class FormSplitter(MultiFunction):
 
     expr = MultiFunction.reuse_if_untouched
 
+
 def fs_block_split(form, ix, iy=0):
     fs = FormSplitter()
     return fs.split(form, ix, iy)
 
+
 class FormSplitterProduct(MultiFunction):
 
     def split(self, form, i, j=0):
-        self.idx = [i,j]
+        self.idx = [i, j]
         return map_integrand_dags(self, form)
 
     def argument(self, obj):
@@ -93,6 +96,7 @@ class FormSplitterProduct(MultiFunction):
         return obj
 
     expr = MultiFunction.reuse_if_untouched
+
 
 def fs_extract_blocks(form, i=None, j=None):
     fs = FormSplitterProduct()

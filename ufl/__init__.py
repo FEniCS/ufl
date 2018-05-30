@@ -292,7 +292,7 @@ from ufl.functionspace import FunctionSpace, MixedFunctionSpace, FunctionSpacePr
 
 # Arguments
 from ufl.argument import Argument, TestFunction, TrialFunction, \
-                         Arguments, TestFunctions, TrialFunctions, View
+                         Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
 from ufl.coefficient import Coefficient, Coefficients, CoefficientProduct, \
@@ -386,7 +386,7 @@ __all__ = as_native_strings([
     'BrokenElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
     'FunctionSpace','FunctionSpaceProduct',
-    'Argument', 'TestFunction', 'TrialFunction', 'View',
+    'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Coefficients',
     'Constant', 'VectorConstant', 'TensorConstant',

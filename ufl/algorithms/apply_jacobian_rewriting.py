@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Algorithm for Jacobian rewriting.
-
-Needed in case of several meshes 
-(could meshes with different dimension)
-"""
+"""Algorithm for Jacobian rewriting."""
 
 # Copyright (C) 2013-2016 Martin Sandve Alnæs
 #
@@ -22,35 +18,16 @@ Needed in case of several meshes
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import xrange as range
-
-from ufl.log import error, warning
-
-from ufl.core.multiindex import Index, indices
+from ufl.log import error
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.measure import custom_integral_types, point_integral_types
-
-from ufl.classes import (Expr, Form, Integral,
-                         ReferenceGrad,
-                         Jacobian, JacobianInverse, JacobianDeterminant,
-                         CellOrientation, CellOrigin, CellCoordinate,
-                         FacetJacobian, FacetJacobianDeterminant,
-                         CellFacetJacobian,
-                         CellEdgeVectors, FacetEdgeVectors,
-                         ReferenceNormal,
-                         ReferenceCellVolume, ReferenceFacetVolume,
-                         CellVolume, FacetArea,
-                         SpatialCoordinate,
-                         FloatValue)
-# FacetJacobianInverse,
-# FacetOrientation, QuadratureWeight,
-
-from ufl.tensors import as_tensor, as_vector
-from ufl.operators import sqrt, max_value, min_value
-
-from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
+from ufl.classes import (Expr, Form, Integral, Jacobian,
+                         CellOrientation, CellCoordinate,
+                         SpatialCoordinate)
+from ufl.compound_expressions import determinant_expr
 from ufl.algorithms.apply_geometry_lowering import GeometryLoweringApplier
+
 
 class JacobianRewritingApplier(MultiFunction):
     def __init__(self, preserve_types=()):
@@ -66,21 +43,24 @@ class JacobianRewritingApplier(MultiFunction):
 
     def terminal(self, t):
         return t
-    
+
     @memoized_handler
     def jacobian(self, o):
         domain = o.ufl_domain()
         # Argument domain - geo/topo dimension
-        tdim= domain.topological_dimension()
-        gdim= domain.geometric_dimension()
+        tdim = domain.topological_dimension()
+        gdim = domain.geometric_dimension()
 
-        ## Compare the topo dim
+        # Compare the topological dimension
+        # Homogeneous dimension
         if tdim == gdim:
             # Reuse the Jacobian of the integration domain
             return self._geometry_lowering_applier.jacobian(o)
-        elif tdim == gdim - 1 : ## 2D-1D or 3D-2D
+        # 2D-1D or 3D-2D
+        elif tdim == gdim - 1:
             return self._geometry_lowering_applier.facet_jacobian(o)
-        elif tdim == gdim - 2: ## 3D-1D (not yet implemented)
+        # 3D-1D (not yet implemented)
+        elif tdim == gdim - 2:
             print("3D-1D case - not yet implemented")
             # TODO? : EdgeJacobian = Jacobian(ref cell to real cell) * CellFacetJacobian(ref facet to ref cell) * CellEdgeJacobian(ref interval to ref facet)
             # with CellEdgeJacobian(domain) = CellFacetJacobian(any 2D domain)
@@ -89,7 +69,7 @@ class JacobianRewritingApplier(MultiFunction):
     @memoized_handler
     def jacobian_determinant(self, o):
         domain = o.ufl_domain()
-        
+
         J = self.jacobian(Jacobian(domain))
         detJ = determinant_expr(J)
 
@@ -98,7 +78,8 @@ class JacobianRewritingApplier(MultiFunction):
             detJ = co*detJ
 
         return detJ
-    
+
+
 def apply_jacobian_rewriting(form, preserve_types=()):
     """Rewrites the Jacobian introduced through GeometryLoweringApplier.
 

@@ -152,6 +152,7 @@ def Coefficients(function_space):
     tuple with the function components corresponding to the subelements."""
     return split(Coefficient(function_space))
 
+
 def CoefficientProduct(function_space):
     if not isinstance(function_space, FunctionSpaceProduct):
         error("CoefficientProduct should be used with FunctionSpaceProduct")
