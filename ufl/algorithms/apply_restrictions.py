@@ -88,10 +88,6 @@ class RestrictionPropagator(MultiFunction):
     # want something else for facet functions in future.
     grad = _require_restriction
 
-    # Assuming averages are also applied directly to the terminal or grad nodes
-    cell_avg = _require_restriction
-    facet_avg = _ignore_restriction
-
     def variable(self, o, op, label):
         "Strip variable."
         return op

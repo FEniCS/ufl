@@ -200,28 +200,31 @@ def apply_single_function_pullbacks(g):
         elif mp == "double covariant Piola":
             # components are flatten, map accordingly
             rv = as_vector([r[rpos+k] for k in range(rm)])
-            dim = subelm.value_shape()[0]
-            for i in range(dim):
-                for j in range(dim):
+            (gdim, _) = subelm.value_shape()
+            (rdim, _) = subelm.reference_value_shape()
+            for i in range(gdim):
+                for j in range(gdim):
                     gv = 0
                     # int times Index is not allowed. so sum by hand
-                    for m in range(dim):
-                        for n in range(dim):
-                            gv += Jinv[m, i]*rv[m*dim+n]*Jinv[n, j]
-                    g_components[gpos + i * dim + j] = gv
+                    for m in range(rdim):
+                        for n in range(rdim):
+                            gv += Jinv[m, i] * rv[m * rdim + n] * Jinv[n, j]
+                    g_components[gpos + i * gdim + j] = gv
 
         elif mp == "double contravariant Piola":
             # components are flatten, map accordingly
             rv = as_vector([r[rpos+k] for k in range(rm)])
-            dim = subelm.value_shape()[0]
-            for i in range(dim):
-                for j in range(dim):
+            (gdim, _) = subelm.value_shape()
+            (rdim, _) = subelm.reference_value_shape()
+            for i in range(gdim):
+                for j in range(gdim):
                     gv = 0
                     # int times Index is not allowed. so sum by hand
-                    for m in range(dim):
-                        for n in range(dim):
-                            gv += (1.0/detJ)*(1.0/detJ)*J[i, m]*rv[m*dim+n]*J[j, n]
-                    g_components[gpos + i * dim + j] = gv
+                    for m in range(rdim):
+                        for n in range(rdim):
+                            gv += ((1.0 / detJ) * (1.0 / detJ) *
+                                   J[i, m] * rv[m * rdim + n] * J[j, n])
+                    g_components[gpos + i * gdim + j] = gv
 
         else:
             error("Unknown subelement mapping type %s for element %s." % (mp, str(subelm)))
