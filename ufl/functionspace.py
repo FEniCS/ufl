@@ -185,7 +185,7 @@ class FunctionSpaceProduct(AbstractFunctionSpace):
 
         for f in args:
             if isinstance(f, (FunctionSpace, FiniteElement) ):
-                self._ufl_function_spaces.append(f)
+               self._ufl_function_spaces.append(f)
             else:
                 print("Expecting FunctionSpace or FiniteElement objects")
 
@@ -195,8 +195,8 @@ class FunctionSpaceProduct(AbstractFunctionSpace):
     def num_sub_spaces(self):
         return len(self._ufl_function_spaces)
 
-    def sub_space(self,i):
-        return self._ufl_function_spaces[i]
+    def sub_space(self, i):
+       return self._ufl_function_spaces[i]
 
     def _ufl_hash_data_(self):
         return ("FunctionSpaceProduct",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())

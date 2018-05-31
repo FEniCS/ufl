@@ -117,8 +117,8 @@ class Argument(FormArgument):
         return False
 
     def is_a_view(self):
-        return bool(self._initial_function_space != None)
-
+       return bool(self._initial_function_space is not None)
+    
     def set_view(self, function_space):
         self._initial_function_space = function_space
 
@@ -169,6 +169,7 @@ class Argument(FormArgument):
 
 # --- Helper functions for pretty syntax ---
 
+
 def TestFunction(function_space, part=None):
     """UFL value: Create a test function argument to a form."""
     if isinstance(function_space, FunctionSpaceProduct):
@@ -204,18 +205,27 @@ def TrialFunctions(function_space):
     tuple with the function components corresponding to the subelements."""
     return Arguments(function_space, 1)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> originC/cecile/mixed-dimensional
 def ArgumentProduct(function_space, number):
     if not isinstance(function_space, FunctionSpaceProduct):
         error("ArgumentProduct should be used with FunctionSpaceProduct")
 
     subspaces = function_space.sub_spaces()
     arguments = list()
+<<<<<<< HEAD
     i=0
+=======
+    i = 0
+>>>>>>> originC/cecile/mixed-dimensional
     # Build list of Argument objects with _part=<subspace index>
     for s in subspaces:
         arguments.append(Argument(s, number, i))
         i = i+1
     return tuple(arguments)
+<<<<<<< HEAD
 
 ## New function to define the view of an argument
 def View(argument, function_space):
@@ -225,3 +235,5 @@ def View(argument, function_space):
     argument_view.set_view(argument.function_space())
     return argument_view;
 
+=======
+>>>>>>> originC/cecile/mixed-dimensional

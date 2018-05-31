@@ -74,10 +74,11 @@ def fs_block_split(form, ix, iy=0):
 class FormSplitterProduct(MultiFunction):
 
     def split(self, form, i, j=0):
-        self.idx = [i,j]
+        self.idx = [i, j]
         return map_integrand_dags(self, form)
 
     def argument(self, obj):
+        # obj.part correspond to the subdomain index here
         if len(obj.ufl_shape) == 0:
             if (obj.part() == self.idx[obj.number()]):
                 return obj
@@ -87,7 +88,6 @@ class FormSplitterProduct(MultiFunction):
             indices = [()]
             for m in obj.ufl_shape:
                 indices = [(k + (j,)) for k in indices for j in range(m)]
-
             args = []
             if (obj.part() == self.idx[obj.number()]):
                 args =    [obj[j] for j in indices]
@@ -104,8 +104,7 @@ class FormSplitterProduct(MultiFunction):
                 raise NotImplementedError()
 
     def multi_index(self, obj):
-        print(type(obj))
-        return obj
+       return obj
 
     expr = MultiFunction.reuse_if_untouched
 

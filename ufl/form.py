@@ -180,8 +180,8 @@ class Form(object):
         # Check that all are equal TODO: don't return more than one if
         # all are equal?
         if not all(domain == domains[0] for domain in domains):
-            ## error("Calling Form.ufl_domain() is only valid if all integrals share domain.")
-            print("Integrals in this form are defined from various domains. Form.ufl_domain() will return the first one. Consider call Form.ufl_domains() instead.")
+           # error("Calling Form.ufl_domain() is only valid if all integrals share domain.")
+           print("Integrals in this form are defined from various domains. Form.ufl_domain() will return the first one. Consider call Form.ufl_domains() instead.")
         # Return the one and only domain
         return domains[0]
 
@@ -479,6 +479,14 @@ class Form(object):
                 renumbering[d] = k
                 k += 1
 
+        # Add domains of arguments, these may include domains not
+        # among integration domains
+        for a in self._arguments:
+            d = a.ufl_function_space().ufl_domain()
+            if d is not None and d not in renumbering:
+                renumbering[d] = k
+                k += 1
+
         return renumbering
 
     def _compute_signature(self):
@@ -491,6 +499,13 @@ def sub_forms_by_domain(form):
     if not isinstance(form, Form):
         error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
     return [Form(form.integrals_by_domain(domain)) for domain in form.ufl_domains()]
+
+def sub_forms_by_domain(form):
+    "Return a list of forms each with an integration domain"
+    if not isinstance(form, Form):
+        error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
+    return [Form(form.integrals_by_domain(domain)) for domain in form.ufl_domains()]
+
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."

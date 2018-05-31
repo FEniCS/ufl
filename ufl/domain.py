@@ -141,7 +141,6 @@ class Mesh(AbstractDomain):
     # defined as a sum of integrals based on different domains
     def __lt__(self, other):
         return self._ufl_hash_data_() < other._ufl_hash_data_()
-
 @attach_operators_from_hash_data
 @attach_ufl_id
 class MeshView(AbstractDomain):
