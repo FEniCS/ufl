@@ -33,6 +33,7 @@ from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
 
 # These are the main symbolic processing steps:
+from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
