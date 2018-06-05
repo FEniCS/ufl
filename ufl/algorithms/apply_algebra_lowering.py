@@ -87,7 +87,7 @@ class LowerCompoundAlgebra(MultiFunction):
         else:
             k = (Index(),)
         # Potentially creates a single IndexSum over a Product
-        s = a[ai+k]*Conj(b[k+bi])
+        s = a[ai+k]*b[k+bi]
         return as_tensor(s, ai+bi)
 
     def dot(self, o, a, b):
@@ -95,7 +95,7 @@ class LowerCompoundAlgebra(MultiFunction):
         bi = indices(len(b.ufl_shape)-1)
         k = (Index(),)
         # Creates a single IndexSum over a Product
-        s = a[ai+k]*Conj(b[k+bi])
+        s = a[ai+k]*b[k+bi]
         return as_tensor(s, ai+bi)
 
     def alternative_inner(self, o, a, b):  # TODO: Test this

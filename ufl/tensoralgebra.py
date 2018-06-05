@@ -213,7 +213,7 @@ class Dot(CompoundTensorOperator):
             fi, fid = merge_nonoverlapping_indices(a, b)
             return Zero(shape, fi, fid)
         elif scalar:  # TODO: Move this to def dot()?
-            return a * Conj(b)
+            return a * b
 
         return CompoundTensorOperator.__new__(cls)
 
