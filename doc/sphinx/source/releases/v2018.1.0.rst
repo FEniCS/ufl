@@ -1,0 +1,10 @@
+===========================
+Changes in version 2018.1.0
+===========================
+
+UFL 2018.1.0 was released on 2018-06-14.
+
+Summary of changes
+==================
+
+- Remove python2 support.

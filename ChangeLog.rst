@@ -1,15 +1,10 @@
 Changelog
 =========
 
-2018.1.0.dev0
+2018.1.0 (2018-06-14)
 -------------
 
-- Remove Python 2 support. Now requires Python 3.5 or above.
-- Add support for ``FacetBubble`` element, bubble functions
-  on the facets of the cell, with short family name ``FB``
-- Add support for computing functional derivatives with respect
-  to the SpatialCoordinate of a domain.  These are applied after
-  pullback on the reference element.
+- Remove python2 support. 
 
 2017.2.0 (2017-12-05)
 ---------------------
