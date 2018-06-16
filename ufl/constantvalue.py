@@ -21,7 +21,7 @@
 # Modified by Anders Logg, 2011.
 # Modified by Massimiliano Leoni, 2016.
 
-from math import sqrt, atan2, pi
+from math import atan2
 
 from ufl.utils.str import as_native_str
 from ufl.utils.str import as_native_strings
