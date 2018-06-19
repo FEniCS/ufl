@@ -79,7 +79,7 @@ def test_automatic_simplification(self):
     u = TrialFunction(element)
 
     assert inner(u, v) == u * conj(v)
-    assert dot(u, v) == u * conj(v)
+    assert dot(u, v) == u * v
     assert outer(u, v) == conj(u) * v
 
 
@@ -104,7 +104,7 @@ def test_apply_algebra_lowering_complex(self):
     lowered_b_index = lowered_b.index()
     lowered_c_indices = lowered_c.indices()
 
-    assert lowered_a == gu[lowered_a_index] * conj(gv[lowered_a_index])
+    assert lowered_a == gu[lowered_a_index] * gv[lowered_a_index]
     assert lowered_b == gv[lowered_b_index] * conj(gu[lowered_b_index])
     assert lowered_c == as_tensor(conj(gu[lowered_c_indices[0]]) * gv[lowered_c_indices[1]], (lowered_c_indices[0],) + (lowered_c_indices[1],))
 
