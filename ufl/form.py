@@ -180,8 +180,7 @@ class Form(object):
         # Check that all are equal TODO: don't return more than one if
         # all are equal?
         if not all(domain == domains[0] for domain in domains):
-            # error("Calling Form.ufl_domain() is only valid if all integrals share domain.")
-            print("Integrals in this form are defined from various domains. Form.ufl_domain() will return the first one. Consider call Form.ufl_domains() instead.")
+            error("Integrals in this form are defined from various domains. Form.ufl_domain() will return the first one. Consider call Form.ufl_domains() instead.")
         # Return the one and only domain
         return domains[0]
 

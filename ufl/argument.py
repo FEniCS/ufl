@@ -48,7 +48,6 @@ class Argument(FormArgument):
         "_number",
         "_part",
         "_repr",
-        "_initial_function_space",
     ))
 
     def __init__(self, function_space, number, part=None):
@@ -64,7 +63,6 @@ class Argument(FormArgument):
             error("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
-        self._initial_function_space = None
         self._ufl_shape = function_space.ufl_element().value_shape()
 
         if not isinstance(number, numbers.Integral):
@@ -84,10 +82,7 @@ class Argument(FormArgument):
 
     def ufl_function_space(self):
         "Get the function space of this Argument."
-        if self.is_a_view():
-            return self._initial_function_space
-        else:
-            return self._ufl_function_space
+        return self._ufl_function_space
 
     def ufl_domain(self):
         "Deprecated, please use .ufl_function_space().ufl_domain() instead."
@@ -115,12 +110,6 @@ class Argument(FormArgument):
         # we want to keep, or? See issue#13.
         # When we can annotate zero with arguments, we can change this.
         return False
-
-    def is_a_view(self):
-        return bool(self._initial_function_space is not None)
-
-    def set_view(self, function_space):
-        self._initial_function_space = function_space
 
     def ufl_domains(self):
         "Deprecated, please use .ufl_function_space().ufl_domains() instead."
