@@ -57,7 +57,10 @@ class Terminal(Expr):
         # No mapping, trying to evaluate self as a constant
         if f is None:
             try:
-                f = complex(self)
+                try:
+                    f = float(self)
+                except TypeError:
+                    f = complex(self)
                 if derivatives:
                     f = 0.0
                 return f
