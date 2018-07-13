@@ -873,27 +873,25 @@ orthonormal basis for a Euclidean space):
 
 where :math:`\delta_{ij}` is the Kronecker delta function.  The dot
 product of higher order tensors follow from this, as illustrated with
-the following examples. To support the complex-valued case, UFL
-defines the dot product to take the complex conjugate of its second
-operand. Where all values are real, this has no effect on the
-computation.
+the following examples.
 
 An example with two vectors
 
 .. math::
 
-   \mathbf{v} \cdot \mathbf{u} = (v_i \mathbf{i}_i) \cdot (u^*_j \mathbf{i}_j)
-        = v_i u^*_j (\mathbf{i}_i \cdot \mathbf{i}_j) = v_i u^*_j \delta_{ij} = v_i u^*_i
+  \mathbf{v} \cdot \mathbf{u} = (v_i \mathbf{i}_i) \cdot (u_j \mathbf{i}_j)
+       = v_i u_j (\mathbf{i}_i \cdot \mathbf{i}_j) = v_i u_j \delta_{ij} = v_i u_i
+
 
 An example with a tensor of rank two
 
 .. math::
 
   \mathbf{A} \cdot \mathbf{B}
-  &= (A_{ij} \mathbf{i}_i \mathbf{i}_j) \cdot (B^*_{kl} \mathbf{i}_k \mathbf{i}_l) \\
-  &= (A_{ij}B^*_{kl}) \mathbf{i}_i(\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
-  &= (A_{ij}B^*_{kl}\delta_{jk}) \mathbf{i}_i \mathbf{i}_l \\
-  &= A_{ik}B^*_{kl} \mathbf{i}_i \mathbf{i}_l.
+  &= (A_{ij} \mathbf{i}_i \mathbf{i}_j) \cdot (B_{kl} \mathbf{i}_k \mathbf{i}_l) \\
+  &= (A_{ij}B_{kl}) \mathbf{i}_i(\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
+  &= (A_{ij}B_{kl}\delta_{jk}) \mathbf{i}_i \mathbf{i}_l \\
+  &= A_{ik}B_{kl} \mathbf{i}_i \mathbf{i}_l.
 
 This is the same as a matrix-matrix multiplication.
 
@@ -901,11 +899,11 @@ An example with a vector and a tensor of rank two
 
 .. math::
 
-   \mathbf{v} \cdot \mathbf{A}
-   &= (v_j \mathbf{i}_j) \cdot (A^*_{kl} \mathbf{i}_k \mathbf{i}_l) \\
-   &= (v_j A^*_{kl}) (\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
-   &= (v_j A^*_{kl}\delta_{jk}) \mathbf{i}_l \\
-   &= v_k A^*_{kl} \mathbf{i}_l
+  \mathbf{v} \cdot \mathbf{A}
+  &= (v_j \mathbf{i}_j) \cdot (A_{kl} \mathbf{i}_k \mathbf{i}_l) \\
+  &= (v_j A_{kl}) (\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
+  &= (v_j A_{kl}\delta_{jk}) \mathbf{i}_l \\
+  &= v_k A_{kl} \mathbf{i}_l
 
 This is the same as a vector-matrix multiplication.
 
@@ -920,9 +918,8 @@ The tensor rank of the product is rank(a)+rank(b)-2.
 The inner product is a contraction over all axes of a and b, that is
 the sum of all component-wise products.  The operands must have
 exactly the same dimensions.  For two vectors it is equivalent to the
-dot product. As with the dot product, complex values are supported by
-UFL taking the complex conjugate of the second operand. This has no
-impact if the values are real.
+dot product. Complex values are supported by UFL taking the complex conjugate
+of the second operand. This has no impact if the values are real.
 
 If :math:`\mathbf{A}` and :math:`\mathbf{B}` are rank two tensors and
 :math:`\mathcal{C}` and :math:`\mathcal{D}` are rank 3 tensors
@@ -948,6 +945,8 @@ Using UFL notation, for real values, the following sets of declarations are equi
   f = inner(C, D)
   f = C[i,j,k]*D[i,j,k]
 
+Note that, in the UFL notation, `dot` and `inner` products are not equivalent
+for complex values.
 
 ``outer``
 ---------
@@ -969,8 +968,8 @@ The general definition of the outer product of two tensors
     \otimes
     \mathbf{i}_{\iota^b_1} \otimes \cdots \otimes \mathbf{i}_{\iota^b_{s-1}}
 
-For consistency with the inner product, the complex conjugate is taken of the first operand. 
-    
+For consistency with the inner product, the complex conjugate is taken of the first operand.
+
 Some examples with vectors and matrices are easier to understand:
 
 .. math::
@@ -1453,7 +1452,7 @@ Complex operators
 Sesquilinearity
 ---------------
 
-``inner``, ``outer``, and ``dot`` are sesquilinear rather than linear
+``inner`` and ``outer`` are sesquilinear rather than linear
 when applied to complex values. Consequently, forms with two arguments
 are also sesquilinear in this case. UFL adopts the convention that
 inner products take the complex conjugate of the second operand. This
@@ -1494,9 +1493,9 @@ Replacing arguments of a Form
 -----------------------------
 
 The function ``replace`` lets you replace terminal objects with
-other values, using a mapping defined by a Python dicaionaryt. This can be
+other values, using a mapping defined by a Python dictionary. This can be
 used for example to replace a ``Coefficient`` with a fixed value for
-optimized runtime evaluation.
+optimized run-time evaluation.
 
 Example::
 
@@ -1678,7 +1677,7 @@ Assume in the following examples that
 
 The stiffness matrix can be computed from the functional
 :math:`\int_\Omega \nabla w : \nabla w \, dx`, by
-                              
+
 ::
 
   f = inner(grad(w), grad(w))/2 * dx
