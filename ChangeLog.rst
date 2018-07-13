@@ -1,9 +1,11 @@
 Changelog
 =========
+-------------
+2018.2.0
+- Extend UFL to support complex values.
 
 2018.1.0 (2018-06-14)
 -------------
-
 - Remove python2 support. 
 
 2017.2.0 (2017-12-05)
@@ -20,7 +22,6 @@ Changelog
   for quads/hexes
 - Implement geometry lowering of ``(Min|Max)(Cell|Facet)EdgeLength``
   for quads and hexes
-- Extend UFL to support complex values.
 
 2017.1.0.post1 (2017-09-12)
 ---------------------------
