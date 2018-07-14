@@ -879,8 +879,8 @@ An example with two vectors
 
 .. math::
 
-  \mathbf{v} \cdot \mathbf{u} = (v_i \mathbf{i}_i) \cdot (u_j \mathbf{i}_j)
-       = v_i u_j (\mathbf{i}_i \cdot \mathbf{i}_j) = v_i u_j \delta_{ij} = v_i u_i
+   \mathbf{v} \cdot \mathbf{u} = (v_i \mathbf{i}_i) \cdot (u_j \mathbf{i}_j)
+        = v_i u_j (\mathbf{i}_i \cdot \mathbf{i}_j) = v_i u_j \delta_{ij} = v_i u_i
 
 
 An example with a tensor of rank two
@@ -899,11 +899,11 @@ An example with a vector and a tensor of rank two
 
 .. math::
 
-  \mathbf{v} \cdot \mathbf{A}
-  &= (v_j \mathbf{i}_j) \cdot (A_{kl} \mathbf{i}_k \mathbf{i}_l) \\
-  &= (v_j A_{kl}) (\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
-  &= (v_j A_{kl}\delta_{jk}) \mathbf{i}_l \\
-  &= v_k A_{kl} \mathbf{i}_l
+   \mathbf{v} \cdot \mathbf{A}
+   &= (v_j \mathbf{i}_j) \cdot (A_{kl} \mathbf{i}_k \mathbf{i}_l) \\
+   &= (v_j A_{kl}) (\mathbf{i}_j \cdot \mathbf{i}_k) \mathbf{i}_l \\
+   &= (v_j A_{kl}\delta_{jk}) \mathbf{i}_l \\
+   &= v_k A_{kl} \mathbf{i}_l
 
 This is the same as a vector-matrix multiplication.
 
@@ -911,15 +911,14 @@ This generalizes to tensors of arbitrary rank:
 the dot product applies to the last axis of a and the first axis of b.
 The tensor rank of the product is rank(a)+rank(b)-2.
 
-
 ``inner``
 ---------
 
-The inner product is a contraction over all axes of a and b, that is
-the sum of all component-wise products.  The operands must have
-exactly the same dimensions.  For two vectors it is equivalent to the
-dot product. Complex values are supported by UFL taking the complex conjugate
-of the second operand. This has no impact if the values are real.
+The inner product is a contraction over all axes of a and b, that is the
+sum of all component-wise products.  The operands must have exactly the
+same dimensions.  For two vectors it is equivalent to the dot product.
+Complex values are supported by UFL taking the complex conjugate of the
+second operand.  This has no impact if the values are real.
 
 If :math:`\mathbf{A}` and :math:`\mathbf{B}` are rank two tensors and
 :math:`\mathcal{C}` and :math:`\mathcal{D}` are rank 3 tensors
@@ -930,7 +929,8 @@ their inner products are
    \\
    \mathcal{C} : \mathcal{D} &= C_{ijk} D^*_{ijk}
 
-Using UFL notation, for real values, the following sets of declarations are equivalent::
+Using UFL notation, for real values, the following sets of declarations are
+equivalent::
 
   # Vectors
   f = dot(a, b)
