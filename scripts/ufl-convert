@@ -42,7 +42,7 @@ def runcmd(cmd):
 def write_file(filename, text):
     "Write text to a file and close it."
     with io.open(filename, "w", encoding="utf-8") as f:
-        f.write(text.decode('utf-8'))  # Python 2
+        f.write(text)
     print("Wrote file %s" % filename)
 
 # --- Option parsing
