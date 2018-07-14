@@ -94,12 +94,12 @@ class CheckComparisons(MultiFunction):
         self.nodetype[o] = 'complex'
         return o
 
-    def power(self, o, *ops):
-        o = self.reuse_if_untouched(o, *ops)
+    def power(self, o, base, exponent):
+        o = self.reuse_if_untouched(o, base, exponent)
         try:
             # Attempt to diagnose circumstances in which the result must be real.
-            exponent = float(ops[1])
-            if self.nodetype[ops[0]] == 'real' and int(exponent) == exponent:
+            exponent = float(exponent)
+            if self.nodetype[base] == 'real' and int(exponent) == exponent:
                 self.nodetype[o] = 'real'
                 return o
         except TypeError:
