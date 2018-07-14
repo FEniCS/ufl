@@ -1,12 +1,14 @@
 Changelog
 =========
--------------
+
 2018.2.0
+--------
 - Extend UFL to support complex values.
 
 2018.1.0 (2018-06-14)
--------------
-- Remove python2 support. 
+---------------------
+
+- Remove python2 support.
 
 2017.2.0 (2017-12-05)
 ---------------------
