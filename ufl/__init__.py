@@ -185,6 +185,11 @@ A very brief overview of the language contents follows:
     - cosh, sinh, tanh
     - bessel_J, bessel_Y, bessel_I, bessel_K
 
+* Complex operations::
+
+    - conj, real, imag
+    conjugate is an alias for conj
+
 * Discontinuous Galerkin operators::
 
     - v('+'), v('-')
@@ -316,6 +321,7 @@ from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
 from ufl.operators import rank, shape, \
+                       conj, real, imag, \
                        outer, inner, dot, cross, perp, \
                        det, inv, cofac, \
                        transpose, tr, diag, diag_vector, \
@@ -394,7 +400,7 @@ __all__ = as_native_strings([
     'Index', 'indices',
     'as_tensor', 'as_vector', 'as_matrix', 'relabel',
     'unit_vector', 'unit_vectors', 'unit_matrix', 'unit_matrices',
-    'rank', 'shape',
+    'rank', 'shape', 'conj', 'real', 'imag', 
     'outer', 'inner', 'dot', 'cross', 'perp',
     'det', 'inv', 'cofac',
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',

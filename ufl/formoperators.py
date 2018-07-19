@@ -130,7 +130,8 @@ def energy_norm(form, coefficient=None):
 def adjoint(form, reordered_arguments=None):
     """UFL form operator:
     Given a combined bilinear form, compute the adjoint form by
-    changing the ordering (count) of the test and trial functions.
+    changing the ordering (count) of the test and trial functions, and
+    taking the complex conjugate of the result.
 
     By default, new ``Argument`` objects will be created with
     opposite ordering. However, if the adjoint form is to

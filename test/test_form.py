@@ -125,7 +125,7 @@ def test_form_call():
     u = TrialFunction(V)
     f = Coefficient(V)
     g = Coefficient(V)
-    a = g*inner(grad(u), grad(v))*dx
+    a = g*inner(grad(v), grad(u))*dx
     M = a(f, f, coefficients={ g: 1 })
     assert M == grad(f)**2*dx
 
