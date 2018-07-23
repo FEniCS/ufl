@@ -4,16 +4,19 @@
 import pytest
 
 from ufl import *
-from ufl.classes import Division, FloatValue, IntValue
+from ufl.classes import Division, FloatValue, IntValue, ComplexValue
 
 
 def test_scalar_casting(self):
     f = as_ufl(2.0)
     r = as_ufl(4)
+    c = as_ufl(1 + 2j)
     self.assertIsInstance(f, FloatValue)
     self.assertIsInstance(r, IntValue)
+    self.assertIsInstance(c, ComplexValue)
     assert float(f) == 2.0
     assert int(r) == 4
+    assert complex(c) == 1.0 + 2.0j
 
 
 def test_ufl_float_division(self):

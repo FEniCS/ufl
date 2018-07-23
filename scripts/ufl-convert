@@ -5,7 +5,8 @@ import subprocess
 import io
 import os
 import optparse
-from pprint import pprint
+
+from six import string_types
 
 from ufl.algorithms import tree_format, compute_form_data
 from ufl.formatting.ufl2dot import ufl2dot
@@ -37,6 +38,7 @@ def runcmd(cmd):
         print(output)
         sys.exit(-1)
 
+
 def write_file(filename, text):
     "Write text to a file and close it."
     with io.open(filename, "w", encoding="utf-8") as f:
@@ -45,14 +47,17 @@ def write_file(filename, text):
 
 # --- Option parsing
 
+
 usage = """Convert a .ufl file to some other format.
 
 Examples:
 
   ufl-convert -omydir -iyourdir -c -f -tpdf -s mass.ufl"""
 
+
 def opt(long, short, t, default, help):
     return optparse.make_option("--%s" % long, "-%s" % short, action="store", type=t, dest=long, default=default, help=help)
+
 
 option_list = [ \
     # Directories:
@@ -61,6 +66,8 @@ option_list = [ \
     # Expression transformations:
     opt("labeling",  "l", "str", "repr", "Set to 'repr' or 'compact' for different naming of graph nodes."),
     opt("compile",   "c", "int", 0, "'Compile' forms: apply expression transformations like in a quadrature based form compilation. Only used for latex formatting."),
+    opt("preprocess", "p", "int", 0, "Set to 1 to return the preprocessed form. Only used for dot formatting."),
+    opt("complex", "z", "int", 0, "Set to 1 to for output containing complex nodes. Otherwise all nodes are assumed real. Only used for dot formatting."),
     # Output formats:
     opt("format",    "f", "str", "", "Rendering format (str, repr, tree, dot, latex, unicode)."),
     opt("filetype",  "t", "str", "", "Output file type (txt, py, dot, tex, ps, pdf, png)."),
@@ -92,10 +99,10 @@ for arg in args:
     # 1) Load forms
     ufl_data = load_ufl_file(uflfilename)
     forms = ufl_data.forms
-    #expressions = ufl_data.expressions # TODO: Allow rendering expressions without form stuff!
+    # expressions = ufl_data.expressions # TODO: Allow rendering expressions without form stuff!
 
     # Preprocess forms
-    form_datas = [compute_form_data(f) for f in forms]
+    form_datas = [compute_form_data(f, do_apply_geometry_lowering=True, complex_mode=options.complex) for f in forms]
 
     # 3) Render result
     format = options.format
@@ -131,7 +138,10 @@ for arg in args:
         data = []
         nodeoffset = 0
         for i, fd in enumerate(form_datas):
-            f = fd.original_form
+            if options.preprocess:
+                f = fd.preprocessed_form
+            else:
+                f = fd.original_form
             name = ufl_data.object_names.get(f, "form")
 
             begin = (i == 0)
@@ -175,7 +185,7 @@ for arg in args:
 
     # Conversions from tex:
     elif format == "tex":
-        texfile = os.path.join(options.outputdir, basename + ".tex") # TODO: Use a proper temp file?
+        texfile = os.path.join(options.outputdir, basename + ".tex")  # TODO: Use a proper temp file?
         write_file(texfile, rendered)
         if filetype == "pdf":
             flags = "-file-line-error-style -interaction=nonstopmode"
@@ -202,7 +212,7 @@ for arg in args:
 
     # That's all we know!
     else:
-        print("*** Error: Sorry, don't know how to render format '%s' for file type '%s'." \
-            % (format, filetype))
+        print("*** Error: Sorry, don't know how to render format '%s' for file type '%s'."
+              % (format, filetype))
         print("Please try another combination, perhaps -fdot -tpdf?")
         sys.exit(-1)
