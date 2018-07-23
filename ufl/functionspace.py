@@ -25,7 +25,7 @@ from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
-from ufl.finiteelement import MixedElement
+from ufl.finiteelement import MixedElement, FiniteElement
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings([
@@ -178,14 +178,17 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class FunctionSpaceProduct(AbstractFunctionSpace):
-    def __init__(self, *function_spaces):
+    def __init__(self, *args):
         AbstractFunctionSpace.__init__(self)
-        for f in function_spaces:
-            if not isinstance(f, FunctionSpace):
-                error("Expecting FunctionSpace objects")
-
-        self._ufl_function_spaces = function_spaces
-        self._ufl_elements = [fs.ufl_element() for fs in function_spaces]
+        self._ufl_function_spaces = args
+        self._ufl_elements = list()
+        for fs in args:
+            if isinstance(fs, FunctionSpace):
+                self._ufl_elements.append(fs.ufl_element())
+            elif isinstance(fs, FiniteElement):
+                self._ufl_elements.append(fs)
+            else:
+                error("Expecting FunctionSpace or FiniteElement objects")
 
     def ufl_sub_spaces(self):
         "Return ufl sub spaces."

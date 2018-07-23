@@ -199,7 +199,7 @@ def ArgumentProduct(function_space, number):
     if not isinstance(function_space, FunctionSpaceProduct):
         error("ArgumentProduct should be used with FunctionSpaceProduct")
 
-    subspaces = function_space.sub_spaces()
+    subspaces = function_space.ufl_sub_spaces()
     arguments = list()
     i = 0
     # Build list of Argument objects with _part=<subspace index>

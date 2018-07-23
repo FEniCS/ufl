@@ -157,7 +157,7 @@ def CoefficientProduct(function_space):
     if not isinstance(function_space, FunctionSpaceProduct):
         error("CoefficientProduct should be used with FunctionSpaceProduct")
 
-    subspaces = function_space.sub_spaces()
+    subspaces = function_space.ufl_sub_spaces()
     coeffs = list()
     for s in subspaces:
         coeffs.append(Coefficient(s))
