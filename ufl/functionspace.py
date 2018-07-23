@@ -26,7 +26,6 @@ from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
 from ufl.finiteelement import MixedElement
-from ufl.finiteelement import FiniteElement
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings([
@@ -179,24 +178,55 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class FunctionSpaceProduct(AbstractFunctionSpace):
-    def __init__(self, *args):
+    def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
-        self._ufl_function_spaces = list()
+        for f in function_spaces:
+            if not isinstance(f, FunctionSpace):
+                error("Expecting FunctionSpace objects")
 
-        for f in args:
-            if isinstance(f, (FunctionSpace, FiniteElement)):
-                self._ufl_function_spaces.append(f)
-            else:
-                print("Expecting FunctionSpace or FiniteElement objects")
+        self._ufl_function_spaces = function_spaces
+        self._ufl_elements = [fs.ufl_element() for fs in function_spaces]
 
-    def sub_spaces(self):
+    def ufl_sub_spaces(self):
+        "Return ufl sub spaces."
         return self._ufl_function_spaces
+
+    def ufl_sub_space(self, i):
+        "Return i-th ufl sub space."
+        return self._ufl_function_spaces[i]
+
+    def ufl_elements(self):
+        "Return ufl elements."
+        return self._ufl_elements
+
+    def ufl_element(self):
+        "Return ufl element."
+        cells = tuple(sorted(set(element.cell() for element in self._ufl_elements) - set([None])))
+        if all(c == cells[0] for c in cells[1:]):
+            self._ufl_element = MixedElement(*self._ufl_elements)
+            return self._ufl_element
+        else:
+            error("Found sub elements living on multiple cells, cannot create MixedElement.")
+
+    def ufl_domains(self):
+        "Return ufl domains."
+        domainlist = []
+        for s in self._ufl_function_spaces:
+            domainlist.extend(s.ufl_domains())
+        return join_domains(domainlist)
+
+    def ufl_domain(self):
+        "Return ufl domain."
+        domains = self.ufl_domains()
+        if len(domains) == 1:
+            return domains[0]
+        elif domains:
+            error("Found multiple domains, cannot return just one.")
+        else:
+            return None
 
     def num_sub_spaces(self):
         return len(self._ufl_function_spaces)
-
-    def sub_space(self, i):
-        return self._ufl_function_spaces[i]
 
     def _ufl_hash_data_(self):
         return ("FunctionSpaceProduct",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
