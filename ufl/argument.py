@@ -162,7 +162,8 @@ class Argument(FormArgument):
 def TestFunction(function_space, part=None):
     """UFL value: Create a test function argument to a form."""
     if isinstance(function_space, FunctionSpaceProduct):
-        return ArgumentProduct(function_space, 0)
+        return [Argument(function_space.ufl_sub_space(i), 0, i)
+                for i in range(function_space.num_sub_spaces())]
     else:
         return Argument(function_space, 0, part)
 
@@ -170,7 +171,8 @@ def TestFunction(function_space, part=None):
 def TrialFunction(function_space, part=None):
     """UFL value: Create a trial function argument to a form."""
     if isinstance(function_space, FunctionSpaceProduct):
-        return ArgumentProduct(function_space, 1)
+        return [Argument(function_space.ufl_sub_space(i), 1, i)
+                for i in range(function_space.num_sub_spaces())]
     else:
         return Argument(function_space, 1, part)
 
@@ -193,17 +195,3 @@ def TrialFunctions(function_space):
     """UFL value: Create a TrialFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     return Arguments(function_space, 1)
-
-
-def ArgumentProduct(function_space, number):
-    if not isinstance(function_space, FunctionSpaceProduct):
-        error("ArgumentProduct should be used with FunctionSpaceProduct")
-
-    subspaces = function_space.ufl_sub_spaces()
-    arguments = list()
-    i = 0
-    # Build list of Argument objects with _part=<subspace index>
-    for s in subspaces:
-        arguments.append(Argument(s, number, i))
-        i = i+1
-    return tuple(arguments)

@@ -150,16 +150,8 @@ def TensorConstant(domain, shape=None, symmetry=None, count=None):
 def Coefficients(function_space):
     """UFL value: Create a Coefficient in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(Coefficient(function_space))
-
-
-def CoefficientProduct(function_space):
-    if not isinstance(function_space, FunctionSpaceProduct):
-        error("CoefficientProduct should be used with FunctionSpaceProduct")
-
-    subspaces = function_space.ufl_sub_spaces()
-    coeffs = list()
-    for s in subspaces:
-        coeffs.append(Coefficient(s))
-
-    return tuple(coeffs)
+    if isinstance(function_space, FunctionSpaceProduct):
+        return [Coefficient(function_space.ufl_sub_space(i))
+                for i in range(function_space.num_sub_spaces())]
+    else:
+        return split(Coefficient(function_space))

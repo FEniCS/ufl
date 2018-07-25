@@ -295,7 +295,7 @@ from ufl.argument import Argument, TestFunction, TrialFunction, \
                          Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
-from ufl.coefficient import Coefficient, Coefficients, CoefficientProduct, \
+from ufl.coefficient import Coefficient, Coefficients, \
                             Constant, VectorConstant, TensorConstant
 
 # Split function
