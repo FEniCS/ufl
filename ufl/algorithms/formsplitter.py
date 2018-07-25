@@ -34,30 +34,46 @@ class FormSplitter(MultiFunction):
         return map_integrand_dags(self, form)
 
     def argument(self, obj):
-        Q = obj.ufl_function_space()
-        dom = Q.ufl_domain()
-        sub_elements = obj.ufl_element().sub_elements()
 
-        # If not a mixed element, do nothing
-        if (len(sub_elements) == 0):
-            return obj
-
-        # Split into sub-elements, creating appropriate space for each
-        args = []
-        for i, sub_elem in enumerate(sub_elements):
-            Q_i = FunctionSpace(dom, sub_elem)
-            a = Argument(Q_i, obj.number(), part=obj.part())
-
-            indices = [()]
-            for m in a.ufl_shape:
-                indices = [(k + (j,)) for k in indices for j in range(m)]
-
-            if (i == self.idx[obj.number()]):
-                args += [a[j] for j in indices]
+        if isinstance(obj, Argument):
+            if len(obj.ufl_shape) == 0:
+                if (obj.part() == self.idx[obj.number()]):
+                    return obj
+                else:
+                    return Zero()
             else:
-                args += [Zero() for j in indices]
+                indices = [()]
+                for m in obj.ufl_shape:
+                    indices = [(k + (j,)) for k in indices for j in range(m)]
+                if (obj.part() == self.idx[obj.number()]):
+                    return as_vector([obj[j] for j in indices])
+                else:
+                    return as_vector([Zero() for j in indices])
+        else:
+            Q = obj.ufl_function_space()
+            dom = Q.ufl_domain()
+            sub_elements = obj.ufl_element().sub_elements()
 
-        return as_vector(args)
+            # If not a mixed element, do nothing
+            if (len(sub_elements) == 0):
+                return obj
+
+            # Split into sub-elements, creating appropriate space for each
+            args = []
+            for i, sub_elem in enumerate(sub_elements):
+                Q_i = FunctionSpace(dom, sub_elem)
+                a = Argument(Q_i, obj.number(), part=obj.part())
+
+                indices = [()]
+                for m in a.ufl_shape:
+                    indices = [(k + (j,)) for k in indices for j in range(m)]
+
+                if (i == self.idx[obj.number()]):
+                    args += [a[j] for j in indices]
+                else:
+                    args += [Zero() for j in indices]
+
+            return as_vector(args)
 
     def multi_index(self, obj):
         return obj
@@ -70,36 +86,8 @@ def fs_block_split(form, ix, iy=0):
     return fs.split(form, ix, iy)
 
 
-class FormSplitterProduct(MultiFunction):
-
-    def split(self, form, i, j=0):
-        self.idx = [i, j]
-        return map_integrand_dags(self, form)
-
-    def argument(self, obj):
-        # obj.part correspond to the subdomain index here
-        if len(obj.ufl_shape) == 0:
-            if (obj.part() == self.idx[obj.number()]):
-                return obj
-            else:
-                return Zero()
-        else:
-            indices = [()]
-            for m in obj.ufl_shape:
-                indices = [(k + (j,)) for k in indices for j in range(m)]
-            if (obj.part() == self.idx[obj.number()]):
-                return as_vector([obj[j] for j in indices])
-            else:
-                return as_vector([Zero() for j in indices])
-
-    def multi_index(self, obj):
-        return obj
-
-    expr = MultiFunction.reuse_if_untouched
-
-
 def fs_extract_blocks(form, i=None, j=None):
-    fs = FormSplitterProduct()
+    fs = FormSplitter()
     arguments = form.arguments()
     forms = []
 
