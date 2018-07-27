@@ -185,10 +185,8 @@ class FunctionSpaceProduct(AbstractFunctionSpace):
         for fs in args:
             if isinstance(fs, FunctionSpace):
                 self._ufl_elements.append(fs.ufl_element())
-            elif isinstance(fs, FiniteElement):
-                self._ufl_elements.append(fs)
             else:
-                error("Expecting FunctionSpace or FiniteElement objects")
+                error("Expecting FunctionSpace objects")
 
     def ufl_sub_spaces(self):
         "Return ufl sub spaces."
@@ -203,13 +201,12 @@ class FunctionSpaceProduct(AbstractFunctionSpace):
         return self._ufl_elements
 
     def ufl_element(self):
-        "Return ufl element."
-        cells = tuple(sorted(set(element.cell() for element in self._ufl_elements) - set([None])))
-        if all(c == cells[0] for c in cells[1:]):
-            self._ufl_element = MixedElement(*self._ufl_elements)
-            return self._ufl_element
+        if len(self._ufl_elements) == 1:
+            return self._ufl_elements[0]
         else:
-            error("Found sub elements living on multiple cells, cannot create MixedElement.")
+            error("""Found multiple elements. Cannot return only one.
+            Consider building a FunctionSpace from a MixedElement
+            in case of homogeneous dimension.""")
 
     def ufl_domains(self):
         "Return ufl domains."
