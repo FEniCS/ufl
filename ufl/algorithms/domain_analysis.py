@@ -27,6 +27,7 @@ from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
+from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
 import numbers
 
 
@@ -307,14 +308,40 @@ def group_form_integrals(form, domains):
                 rearrange_integrals_by_single_subdomains(ddt_integrals)
 
             for subdomain_id, ss_integrals in sorted_by_key(single_subdomain_integrals):
-                # Accumulate integrands of integrals that share the
-                # same compiler data
-                integrands_and_cds = \
-                    accumulate_integrands_with_same_metadata(ss_integrals)
 
-                for integrand, metadata in integrands_and_cds:
-                    integrals.append(Integral(integrand, integral_type, domain,
-                                              subdomain_id, metadata, None))
+                # strip the coordinate derivatives from all integrals
+                # this yields a list of the form [(coordinate derivative, integral), ...]
+                stripped_integrals_and_coordderivs = strip_coordinate_derivatives(ss_integrals)
+
+                # now group the integrals by the coordinate derivative
+                def calc_hash(cd):
+                    return sum(sum(tuple_elem._ufl_compute_hash_()
+                                   for tuple_elem in tuple_) for tuple_ in cd)
+                coordderiv_integrals_dict = {}
+                for integral, coordderiv in stripped_integrals_and_coordderivs:
+                    coordderivhash = calc_hash(coordderiv)
+                    if coordderivhash in coordderiv_integrals_dict:
+                        coordderiv_integrals_dict[coordderivhash][1].append(integral)
+                    else:
+                        coordderiv_integrals_dict[coordderivhash] = (coordderiv, [integral])
+
+                # cd_integrals_dict is now a dict of the form
+                # { hash: (CoordinateDerivative, [integral, integral, ...]), ... }
+                # we can now put the integrals back together and then afterwards
+                # apply the CoordinateDerivative again
+
+                for cdhash, samecd_integrals in sorted_by_key(coordderiv_integrals_dict):
+
+                    # Accumulate integrands of integrals that share the
+                    # same compiler data
+                    integrands_and_cds = \
+                        accumulate_integrands_with_same_metadata(samecd_integrals[1])
+
+                    for integrand, metadata in integrands_and_cds:
+                        integral = Integral(integrand, integral_type, domain,
+                                            subdomain_id, metadata, None)
+                        integral = attach_coordinate_derivatives(integral, samecd_integrals[0])
+                        integrals.append(integral)
     return Form(integrals)
 
 
