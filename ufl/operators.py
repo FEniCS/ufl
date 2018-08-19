@@ -28,7 +28,7 @@ import operator
 
 from ufl.log import error, warning
 from ufl.form import Form
-from ufl.constantvalue import Zero, ScalarValue, as_ufl
+from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
     Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
@@ -37,6 +37,7 @@ from ufl.variable import Variable
 from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.conditional import EQ, NE, \
     AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue
+from ufl.algebra import Conj, Real, Imag
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
     BesselJ, BesselY, BesselI, BesselK
@@ -47,8 +48,8 @@ from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.checks import is_cellwise_constant
 from ufl.domain import extract_domains
 
-
 # --- Basic operators ---
+
 
 def rank(f):
     "UFL operator: The rank of *f*."
@@ -60,6 +61,30 @@ def shape(f):
     "UFL operator: The shape of *f*."
     f = as_ufl(f)
     return f.ufl_shape
+
+
+# --- Complex operators ---
+
+def conj(f):
+    "UFL operator: The complex conjugate of *f*"
+    f = as_ufl(f)
+    return Conj(f)
+
+
+# Alias because both conj and conjugate are in numpy and we wish to be consistent.
+conjugate = conj
+
+
+def real(f):
+    "UFL operator: The real part of *f*"
+    f = as_ufl(f)
+    return Real(f)
+
+
+def imag(f):
+    "UFL operator: The imaginary part of *f*"
+    f = as_ufl(f)
+    return Imag(f)
 
 
 # --- Elementwise tensor operators ---
@@ -119,7 +144,7 @@ def transpose(A):
 
 
 def outer(*operands):
-    "UFL operator: Take the outer product of two or more operands."
+    "UFL operator: Take the outer product of two or more operands. The complex conjugate of the first argument is taken."
     n = len(operands)
     if n == 1:
         return operands[0]
@@ -131,16 +156,16 @@ def outer(*operands):
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
-        return a*b
+        return Conj(a)*b
     return Outer(a, b)
 
 
 def inner(a, b):
-    "UFL operator: Take the inner product of *a* and *b*."
+    "UFL operator: Take the inner product of *a* and *b*. The complex conjugate of the second argument is taken."
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
-        return a*b
+        return a*Conj(b)
     return Inner(a, b)
 
 
@@ -154,11 +179,11 @@ def _partial_inner(a, b):
 
 
 def dot(a, b):
-    "UFL operator: Take the dot product of *a* and *b*."
+    "UFL operator: Take the dot product of *a* and *b*. The complex conjugate of the second argument is taken."
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
-        return a*b
+        return a * b
     return Dot(a, b)
 
 
@@ -568,8 +593,10 @@ def Min(x, y):  # TODO: Deprecate this notation?
 def _mathfunction(f, cls):
     f = as_ufl(f)
     r = cls(f)
-    if isinstance(r, (ScalarValue, Zero, int, float)):
+    if isinstance(r, (RealValue, Zero, int, float)):
         return float(r)
+    if isinstance(r, (ComplexValue, complex)):
+        return complex(r)
     return r
 
 
@@ -637,9 +664,13 @@ def atan_2(f1, f2):
     "UFL operator: Take the inverse tangent with two the arguments *f1* and *f2*."
     f1 = as_ufl(f1)
     f2 = as_ufl(f2)
+    if isinstance(f1, (ComplexValue, complex)) or isinstance(f2, (ComplexValue, complex)):
+        raise TypeError('atan_2 is incompatible with complex numbers.')
     r = Atan2(f1, f2)
-    if isinstance(r, (ScalarValue, Zero, int, float)):
+    if isinstance(r, (RealValue, Zero, int, float)):
         return float(r)
+    if isinstance(r, (ComplexValue, complex)):
+        return complex(r)
     return r
 
 

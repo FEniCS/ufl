@@ -99,6 +99,15 @@ class CompactLabeller(ReprLabeller):
     def facet_avg(self, e):  # TODO: Understandable short notation for this?
         return "_F_"
 
+    def conj(self, e):
+        return "conj"
+
+    def real(self, e):
+        return "real"
+
+    def imag(self, e):
+        return "imag"
+
     def inner(self, e):
         return "inner"
 
