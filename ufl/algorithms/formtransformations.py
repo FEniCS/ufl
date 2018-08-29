@@ -406,6 +406,9 @@ def compute_form_action(form, coefficient):
     The form returned will thus have one Argument less
     and one additional Coefficient at the end if no
     Coefficient has been provided.
+
+    If form has no Arguments, then form is returned 
+    unmodified.
     """
     # TODO: Check whatever makes sense for coefficient
 
@@ -416,16 +419,18 @@ def compute_form_action(form, coefficient):
     if set(parts) - {None}:
         error("compute_form_action cannot handle parts.")
 
-    # Pick last argument (will be replaced)
-    u = arguments[-1]
+    try:
+        # Pick last argument (will be replaced)
+        u = arguments[-1]
 
-    fs = u.ufl_function_space()
-    if coefficient is None:
-        coefficient = Coefficient(fs)
-    elif coefficient.ufl_function_space() != fs:
-        debug("Computing action of form on a coefficient in a different function space.")
-    return replace(form, {u: coefficient})
-
+        fs = u.ufl_function_space()
+        if coefficient is None:
+            coefficient = Coefficient(fs)
+        elif coefficient.ufl_function_space() != fs:
+            debug("Computing action of form on a coefficient in a different function space.")
+        return replace(form, {u: coefficient})
+    except IndexError:
+        return form
 
 def compute_energy_norm(form, coefficient):
     """Compute the a-norm of a Coefficient given a form a.
