@@ -407,7 +407,7 @@ def compute_form_action(form, coefficient):
     and one additional Coefficient at the end if no
     Coefficient has been provided.
 
-    If form has no Arguments, then form is returned 
+    If form has no Arguments, then form is returned
     unmodified.
     """
     # TODO: Check whatever makes sense for coefficient
@@ -431,6 +431,7 @@ def compute_form_action(form, coefficient):
         return replace(form, {u: coefficient})
     except IndexError:
         return form
+
 
 def compute_energy_norm(form, coefficient):
     """Compute the a-norm of a Coefficient given a form a.
