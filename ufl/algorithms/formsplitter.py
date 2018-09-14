@@ -81,11 +81,6 @@ class FormSplitter(MultiFunction):
     expr = MultiFunction.reuse_if_untouched
 
 
-def fs_block_split(form, ix, iy=0):
-    fs = FormSplitter()
-    return fs.split(form, ix, iy)
-
-
 def fs_extract_blocks(form, i=None, j=None):
     fs = FormSplitter()
     arguments = form.arguments()
