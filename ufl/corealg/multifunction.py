@@ -20,7 +20,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from inspect import getargspec
+import inspect
 
 from ufl.log import error
 from ufl.core.expr import Expr
@@ -28,8 +28,8 @@ from ufl.core.expr import Expr
 
 def get_num_args(function):
     "Return the number of arguments accepted by *function*."
-    insp = getargspec(function)
-    return len(insp[0]) + int(insp[1] is not None)
+    sig = inspect.signature(function)
+    return len(sig.parameters) + 1
 
 
 def memoized_handler(handler):
