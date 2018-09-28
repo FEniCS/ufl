@@ -24,9 +24,10 @@ algorithms."""
 # Modified by Anders Logg, 2009-2010
 
 import inspect
-from ufl.log import error
-from ufl.classes import Variable, all_ufl_classes
+
 from ufl.algorithms.map_integrands import map_integrands
+from ufl.classes import Variable, all_ufl_classes
+from ufl.log import error
 
 
 def is_post_handler(function):
@@ -51,7 +52,7 @@ class Transformer(object):
         # first time this is run for a particular class
         cache_data = Transformer._handlers_cache.get(type(self))
         if not cache_data:
-            cache_data = [None]*len(all_ufl_classes)
+            cache_data = [None] * len(all_ufl_classes)
             # For all UFL classes
             for classobject in all_ufl_classes:
                 # Iterate over the inheritance chain
@@ -63,27 +64,32 @@ class Transformer(object):
                     handler_name = c._ufl_handler_name_
                     function = getattr(self, handler_name, None)
                     if function:
-                        cache_data[classobject._ufl_typecode_] = handler_name, is_post_handler(function)
+                        cache_data[
+                            classobject.
+                            _ufl_typecode_] = handler_name, is_post_handler(
+                                function)
                         break
             Transformer._handlers_cache[type(self)] = cache_data
 
         # Build handler list for this particular class (get functions
         # bound to self)
-        self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
+        self._handlers = [(getattr(self, name), post)
+                          for (name, post) in cache_data]
         # Keep a stack of objects visit is called on, to ease
         # backtracking
         self._visit_stack = []
 
     def print_visit_stack(self):
-        print("/"*80)
+        print("/" * 80)
         print("Visit stack in Transformer:")
 
         def sstr(s):
             ss = str(type(s)) + " ; "
             n = 160 - len(ss)
             return ss + str(s)[:n]
+
         print("\n".join(sstr(s) for s in self._visit_stack))
-        print("\\"*80)
+        print("\\" * 80)
 
     def visit(self, o):
         # Update stack
@@ -224,7 +230,8 @@ class VariableStripper(ReuseTransformer):
 def apply_transformer(e, transformer, integral_type=None):
     """Apply transformer.visit(expression) to each integrand
     expression in form, or to form if it is an Expr."""
-    return map_integrands(lambda expr: transformer.visit(expr), e, integral_type)
+    return map_integrands(lambda expr: transformer.visit(expr), e,
+                          integral_type)
 
 
 def ufl2ufl(e):
