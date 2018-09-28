@@ -23,7 +23,7 @@ algorithms."""
 #
 # Modified by Anders Logg, 2009-2010
 
-from inspect import getargspec
+import inspect
 from ufl.log import error
 from ufl.classes import Variable, all_ufl_classes
 from ufl.algorithms.map_integrands import map_integrands
@@ -31,7 +31,7 @@ from ufl.algorithms.map_integrands import map_integrands
 
 def is_post_handler(function):
     "Is this a handler that expects transformed children as input?"
-    insp = getargspec(function)
+    insp = inspect.getfullargspec(function)
     num_args = len(insp[0]) + int(insp[1] is not None)
     visit_children_first = num_args > 2
     return visit_children_first
