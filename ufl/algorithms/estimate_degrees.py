@@ -86,7 +86,7 @@ class SumDegreeEstimator(MultiFunction):
         are taken. Does not reduce the degree when TensorProduct elements
         or quadrilateral elements are involved."""
         if isinstance(f, int) and not isinstance(f, IrreducibleInt):
-            return max(f-1, 0)
+            return max(f - 1, 0)
         else:
             # if tuple, do not reduce
             return f
@@ -241,9 +241,9 @@ class SumDegreeEstimator(MultiFunction):
             gi = g.value()
             if gi >= 0:
                 if isinstance(a, int):
-                    return a*gi
+                    return a * gi
                 else:
-                    return tuple(foo*gi for foo in a)
+                    return tuple(foo * gi for foo in a)
 
         # Something to a non-(positive integer) power, e.g. float,
         # negative integer, Coefficient, etc.

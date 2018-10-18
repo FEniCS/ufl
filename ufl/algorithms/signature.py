@@ -36,7 +36,7 @@ def compute_multiindex_hashdata(expr, index_numbering):
             j = index_numbering.get(i)
             if j is None:
                 # Use negative ints for Index
-                j = -(len(index_numbering)+1)
+                j = -(len(index_numbering) + 1)
                 index_numbering[i] = j
             data.append(j)
         else:

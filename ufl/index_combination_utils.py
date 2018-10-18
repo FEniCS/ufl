@@ -104,7 +104,7 @@ def remove_indices(fi, fid, rfi):
 
     nrfi = len(rfi)
     nfi = len(fi)
-    shape = [None]*nrfi
+    shape = [None] * nrfi
     k = 0
     pos = 0
     newfiid = []
@@ -246,7 +246,7 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
     # Consistency checks
     if len(set(free_indices)) != len(free_indices):
         error("Not expecting repeated indices left.")
-    if len(free_indices) + 2*len(repeated_indices) != an + bn:
+    if len(free_indices) + 2 * len(repeated_indices) != an + bn:
         error("Expecting only twice repeated indices.")
 
     return tuple(free_indices), tuple(index_dimensions), tuple(repeated_indices), tuple(repeated_index_dimensions)

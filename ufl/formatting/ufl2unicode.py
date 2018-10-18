@@ -13,6 +13,7 @@ from ufl.algorithms import compute_form_data
 
 class PrecedenceRules(MultiFunction):
     "An enum-like class for C operator precedence levels."
+
     def __init__(self):
         MultiFunction.__init__(self)
 

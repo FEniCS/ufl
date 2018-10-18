@@ -34,6 +34,7 @@ from ufl.corealg.traversal import unique_pre_traversal
 
 class IndexExpander(ReuseTransformer):
     """..."""
+
     def __init__(self):
         ReuseTransformer.__init__(self)
         self._components = Stack()

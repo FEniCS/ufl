@@ -418,7 +418,7 @@ class PermutationSymbol(ConstantValue):
     def __init__(self, dim):
         ConstantValue.__init__(self)
         self._dim = dim
-        self.ufl_shape = (dim,)*dim
+        self.ufl_shape = (dim,) * dim
 
     def evaluate(self, x, mapping, component, index_values):
         "Evaluates the permutation symbol."
