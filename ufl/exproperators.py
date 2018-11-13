@@ -183,7 +183,7 @@ def _mult(a, b):
 
 # --- Extend Expr with algebraic operators ---
 
-_valid_types = (Expr, numbers.Real, numbers.Integral)
+_valid_types = (Expr, numbers.Real, numbers.Integral, numbers.Complex)
 
 
 def _mul(self, o):

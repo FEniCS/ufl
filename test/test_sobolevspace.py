@@ -119,8 +119,8 @@ def test_contains_h1():
 
 def test_contains_h2():
     h2_elements = [
-        FiniteElement("ARG", triangle, 1),
-        FiniteElement("MOR", triangle),
+        FiniteElement("ARG", triangle, 5),
+        FiniteElement("MOR", triangle, 2),
     ]
     for h2_element in h2_elements:
         assert h2_element in H2
@@ -235,7 +235,7 @@ def test_varying_continuity_elements():
     P2 = FiniteElement("CG", interval, 2)
     P3 = FiniteElement("CG", interval, 3)
     RT1 = FiniteElement("RT", triangle, 1)
-    ARG = FiniteElement("ARG", triangle, 1)
+    ARG = FiniteElement("ARG", triangle, 5)
 
     # Tensor product elements
     P1DGP2 = TensorProductElement(P1DG_t, P2)
