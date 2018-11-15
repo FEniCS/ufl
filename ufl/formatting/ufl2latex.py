@@ -393,8 +393,8 @@ class Expression2LatexHandler(MultiFunction):
 
     def conditional(self, o, c, t, f):
         l = "\\begin{cases}\n"  # noqa: E741
-        l += "%s, &\text{if }\quad %s, \\\\\n" % (t, c)  # noqa: E741
-        l += "%s, &\text{otherwise.}\n" % f  # noqa: E741
+        l += "%s, &\\text{if }\\quad %s, \\\\\n" % (t, c)  # noqa: E741
+        l += "%s, &\\text{otherwise.}\n" % f  # noqa: E741
         l += "\\end{cases}"  # noqa: E741
         return l
 
@@ -720,7 +720,7 @@ def forms2latexdocument(forms, uflfilename, compile=False):
     return document(title, sections)
 
 
-"""# Code from uflacs:
+r"""# Code from uflacs:
 
 from ffc.log import error
 from ffc.log import ffc_assert
