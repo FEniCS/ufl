@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"This module contains a collection of utilities for mapping between multiindices and a flattened index space."
+"""This module contains a collection of utilities for mapping between multiindices and a flattened index space."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -20,7 +20,7 @@
 
 
 def shape_to_strides(sh):
-    "Return a tuple of strides given a shape tuple."
+    """Return a tuple of strides given a shape tuple."""
     n = len(sh)
     if not n:
         return ()
@@ -32,7 +32,7 @@ def shape_to_strides(sh):
 
 
 def flatten_multiindex(ii, strides):
-    "Return the flat index corresponding to the given multiindex."
+    """Return the flat index corresponding to the given multiindex."""
     i = 0
     for c, s in zip(ii, strides):
         i += c * s
@@ -40,7 +40,7 @@ def flatten_multiindex(ii, strides):
 
 
 def unflatten_index(i, strides):
-    "Return the multiindex corresponding to the given flat index."
+    """Return the multiindex corresponding to the given flat index."""
     ii = []
     for s in strides:
         ii.append(i // s)

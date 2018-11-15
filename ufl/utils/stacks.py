@@ -20,7 +20,7 @@
 
 
 class Stack(list):
-    "A stack datastructure."
+    """A stack datastructure."""
 
     def __init__(self, *args):
         list.__init__(self, *args)
@@ -33,14 +33,14 @@ class Stack(list):
 
 
 class StackDict(dict):
-    "A dict that can be changed incrementally with 'd.push(k,v)' and have changes rolled back with 'k,v = d.pop()'."
+    """A dict that can be changed incrementally with 'd.push(k,v)' and have changes rolled back with 'k,v = d.pop()'."""
 
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         self._l = []
 
     def push(self, k, v):
-        # Store previous state for this key
+        """Store previous state for this key."""
         self._l.append((k, self.get(k, None)))
         if v is None:
             if k in self:
@@ -49,7 +49,7 @@ class StackDict(dict):
             self[k] = v
 
     def pop(self):
-        # Restore previous state for this key
+        """Restore previous state for this key."""
         k, v = self._l.pop()
         if v is None:
             if k in self:
