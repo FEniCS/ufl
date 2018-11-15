@@ -30,7 +30,7 @@ def derivative_counts_to_listing(derivative_counts):
     """
     derivatives = []  # = 1
     for i, d in enumerate(derivative_counts):
-        derivatives.extend((i,)*d)  # *= d/dx_i^d
+        derivatives.extend((i,) * d)  # *= d/dx_i^d
     return tuple(derivatives)
 
 
@@ -41,7 +41,7 @@ def derivative_listing_to_counts(derivatives, gdim):
     in counting form as (0, 2, 1) meaning (dx^0, dy^2, dz^1)
     and in listing form as (1, 1, 2) meaning (dy, dy, dz).
     """
-    derivative_counts = [0]*gdim
+    derivative_counts = [0] * gdim
     for d in derivatives:
         derivative_counts[d] += 1
     return tuple(derivative_counts)
@@ -71,7 +71,7 @@ def compute_derivative_tuples(n, gdim):
     """
 
     # Create list of derivatives (note that we have d^n derivatives)
-    deriv_tuples = [d for d in itertools.product(*(n*[range(0, gdim)]))]
+    deriv_tuples = [d for d in itertools.product(*(n * [range(0, gdim)]))]
 
     # Translate from list of derivative tuples to list of tuples
     # expressing the number of derivatives in each dimension...

@@ -30,7 +30,7 @@ _recursion_limit_ = 6400  # should be enough for everyone
 
 def pre_traversal(expr):
     """Yield ``o`` for each tree node ``o`` in *expr*, parent before child."""
-    stack = [None]*_recursion_limit_
+    stack = [None] * _recursion_limit_
     stack[0] = expr
     stacksize = 1
     while stacksize > 0:
@@ -44,7 +44,7 @@ def pre_traversal(expr):
 
 def post_traversal(expr):
     """Yield ``o`` for each node ``o`` in *expr*, child before parent."""
-    stack = [None]*_recursion_limit_
+    stack = [None] * _recursion_limit_
     stacksize = 0
 
     ops = expr.ufl_operands
@@ -67,7 +67,7 @@ def post_traversal(expr):
 def cutoff_post_traversal(expr, cutofftypes):
     """Yield ``o`` for each node ``o`` in *expr*, child before parent, but
     skipping subtrees of the cutofftypes."""
-    stack = [None]*_recursion_limit_
+    stack = [None] * _recursion_limit_
     stacksize = 0
 
     ops = expr.ufl_operands
@@ -96,7 +96,7 @@ def unique_pre_traversal(expr, visited=None):
 
     This version only visits each node once.
     """
-    stack = [None]*_recursion_limit_
+    stack = [None] * _recursion_limit_
     stack[0] = expr
     stacksize = 1
     if visited is None:
@@ -116,7 +116,7 @@ def unique_post_traversal(expr, visited=None):
     """Yield ``o`` for each node ``o`` in *expr*, child before parent.
 
     Never visit a node twice."""
-    stack = [None]*_recursion_limit_
+    stack = [None] * _recursion_limit_
     stack[0] = (expr, list(expr.ufl_operands))
     stacksize = 1
     if visited is None:
@@ -139,7 +139,7 @@ def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
     """Yield ``o`` for each node ``o`` in *expr*, child before parent.
 
     Never visit a node twice."""
-    stack = [None]*_recursion_limit_
+    stack = [None] * _recursion_limit_
     stack[0] = (expr, () if cutofftypes[expr._ufl_typecode_] else list(expr.ufl_operands))
     stacksize = 1
     if visited is None:
@@ -160,7 +160,7 @@ def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
 
 def traverse_terminals(expr):
     "Iterate over all terminal objects in *expr*, including duplicates."
-    stack = [None]*_recursion_limit_
+    stack = [None] * _recursion_limit_
     stack[0] = expr
     stacksize = 1
     while stacksize > 0:
@@ -176,7 +176,7 @@ def traverse_terminals(expr):
 
 def traverse_unique_terminals(expr, visited=None):
     "Iterate over all terminal objects in *expr*, not including duplicates."
-    stack = [None]*_recursion_limit_
+    stack = [None] * _recursion_limit_
     stack[0] = expr
     stacksize = 1
     if visited is None:

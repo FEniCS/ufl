@@ -433,7 +433,7 @@ class Expr(object):
             val = round(val, n)
         except TypeError:
             val = complex(self._ufl_evaluate_scalar_())
-            val = round(val.real, n) + round(val.imag, n)*1j
+            val = round(val.real, n) + round(val.imag, n) * 1j
         except TypeError:
             val = NotImplemented
         return val

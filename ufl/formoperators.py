@@ -147,7 +147,7 @@ def zero_lists(shape):
     if len(shape) == 0:
         error("Invalid shape.")
     elif len(shape) == 1:
-        return [0]*shape[0]
+        return [0] * shape[0]
     else:
         return [zero_lists(shape[1:]) for i in range(shape[0])]
 

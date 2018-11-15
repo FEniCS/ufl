@@ -305,7 +305,7 @@ class Form(object):
         "Multiply all integrals in form with constant scalar value."
         # This enables the handy "0*form" or "dt*form" syntax
         if is_scalar_constant_expression(scalar):
-            return Form([scalar*itg for itg in self.integrals()])
+            return Form([scalar * itg for itg in self.integrals()])
         return NotImplemented
 
     def __mul__(self, coefficient):

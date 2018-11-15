@@ -78,7 +78,7 @@ def align(lines):
         body = " \\\\\n".join(l for l in lines)
     else:
         n = len(lines[0])
-        collengths = [0]*n
+        collengths = [0] * n
         for l in lines:
             for i, s in enumerate(l):
                 collengths[i] = max(collengths[i], len(s))

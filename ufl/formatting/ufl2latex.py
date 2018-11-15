@@ -393,8 +393,8 @@ class Expression2LatexHandler(MultiFunction):
 
     def conditional(self, o, c, t, f):
         l = "\\begin{cases}\n"  # noqa: E741
-        l += "%s, &\text{if }\quad %s, \\\\\n" % (t, c)  # noqa: E741
-        l += "%s, &\text{otherwise.}\n" % f  # noqa: E741
+        l += "%s, &\\text{if }\\quad %s, \\\\\n" % (t, c)  # noqa: E741
+        l += "%s, &\\text{otherwise.}\n" % f  # noqa: E741
         l += "\\end{cases}"  # noqa: E741
         return l
 
@@ -578,7 +578,7 @@ def dependency_sorting(deplist, rank):
     deplistlist.append(precompute_quad)
 
     # Permutations of 0/1 dependence of arguments
-    indices = compute_indices((2,)*rank)
+    indices = compute_indices((2,) * rank)
     for bfs in indices[1:]:  # skip (0,...,0), already handled that
         for i, bf in reversed(enumerate(bfs)):
             n = "v%d" % i
@@ -602,7 +602,7 @@ def dependency_sorting(deplist, rank):
     runtime_quad, left = split(left, state)
     deplistlist.append(runtime_quad)
 
-    indices = compute_indices((2,)*rank)
+    indices = compute_indices((2,) * rank)
     for bfs in indices[1:]:  # skip (0,...,0), already handled that
         for i, bf in reversed(enumerate(bfs)):
             n = "v%d" % i
@@ -651,7 +651,7 @@ def code2latex(G, partitions, formdata):
             pieces.extend(("\n", deps2latex(dep), align(lines)))
 
     # Add final variable representing integrand
-    vl = format_v(len(V)-1)
+    vl = format_v(len(V) - 1)
     pieces.append("\n")
     pieces.append("Variable representing integrand: %s" % vl)
 
@@ -720,7 +720,7 @@ def forms2latexdocument(forms, uflfilename, compile=False):
     return document(title, sections)
 
 
-"""# Code from uflacs:
+r"""# Code from uflacs:
 
 from ffc.log import error
 from ffc.log import ffc_assert

@@ -97,7 +97,7 @@ def elem_op_items(op_ind, indices, *args):
     def extind(ii):
         return indices + (ii,)
 
-    if len(sh) == len(indices)+1:
+    if len(sh) == len(indices) + 1:
         return [op_ind(extind(i), *args) for i in range(n)]
     else:
         return [elem_op_items(op_ind, extind(i), *args) for i in range(n)]
@@ -156,7 +156,7 @@ def outer(*operands):
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
-        return Conj(a)*b
+        return Conj(a) * b
     return Outer(a, b)
 
 
@@ -165,7 +165,7 @@ def inner(a, b):
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
-        return a*Conj(b)
+        return a * Conj(b)
     return Inner(a, b)
 
 
@@ -175,7 +175,7 @@ def _partial_inner(a, b):
     "UFL operator: Take the partial inner product of a and b."
     ar, br = len(a.ufl_shape), len(b.ufl_shape)
     n = min(ar, br)
-    return contraction(a, list(range(n-ar, n-ar+n)), b, list(range(n)))
+    return contraction(a, list(range(n - ar, n - ar + n)), b, list(range(n)))
 
 
 def dot(a, b):
@@ -197,7 +197,7 @@ def contraction(a, a_axes, b, b_axes):
     aii = indices(len(a.ufl_shape))
     bii = indices(len(b.ufl_shape))
     cii = indices(len(ai))
-    shape = [None]*len(ai)
+    shape = [None] * len(ai)
     for i, j in enumerate(ai):
         aii[j] = cii[i]
         shape[i] = ash[j]
@@ -205,7 +205,7 @@ def contraction(a, a_axes, b, b_axes):
         bii[j] = cii[i]
         if shape[i] != bsh[j]:
             error("Shape mismatch in contraction.")
-    s = a[aii]*b[bii]
+    s = a[aii] * b[bii]
     cii = set(cii)
     ii = tuple(i for i in (aii + bii) if i not in cii)
     return as_tensor(s, ii)
@@ -276,7 +276,7 @@ def diag(A):
     # Build matrix row by row
     rows = []
     for i in range(n):
-        row = [0]*n
+        row = [0] * n
         row[i] = A[i] if r == 1 else A[i, i]
         rows.append(row)
     return as_matrix(rows)
@@ -457,7 +457,7 @@ def jump(v, n=None):
             return v('+') - v('-')
         r = len(v.ufl_shape)
         if r == 0:
-            return v('+')*n('+') + v('-')*n('-')
+            return v('+') * n('+') + v('-') * n('-')
         else:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
@@ -474,7 +474,7 @@ def jump(v, n=None):
 def avg(v):
     "UFL operator: Take the average of *v* across a facet."
     v = as_ufl(v)
-    return 0.5*(v('+') + v('-'))
+    return 0.5 * (v('+') + v('-'))
 
 
 def cell_avg(f):

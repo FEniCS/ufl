@@ -104,12 +104,12 @@ class ListTensor(Operator):
 
     def __str__(self):
         def substring(expressions, indent):
-            ind = " "*indent
+            ind = " " * indent
             if any(isinstance(e, ListTensor) for e in expressions):
                 substrings = []
                 for e in expressions:
                     if isinstance(e, ListTensor):
-                        substrings.append(substring(e.ufl_operands, indent+2))
+                        substrings.append(substring(e.ufl_operands, indent + 2))
                     else:
                         substrings.append(str(e))
                 s = (",\n" + ind).join(substrings)
@@ -432,5 +432,5 @@ def unwrap_list_tensor(lt):
     else:
         for s, sub in enumerate(subs):
             for c, v in unwrap_list_tensor(sub):
-                components.append(((s,)+c, v))
+                components.append(((s,) + c, v))
     return components

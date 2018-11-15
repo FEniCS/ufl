@@ -112,13 +112,13 @@ class Integral(object):
     def __mul__(self, scalar):
         if not is_python_scalar(scalar):
             error("Cannot multiply an integral with non-constant values.")
-        return self.reconstruct(scalar*self._integrand)
+        return self.reconstruct(scalar * self._integrand)
 
     def __rmul__(self, scalar):
         if not is_scalar_constant_expression(scalar):
             error("An integral can only be multiplied by a "
                   "globally constant scalar expression.")
-        return self.reconstruct(scalar*self._integrand)
+        return self.reconstruct(scalar * self._integrand)
 
     def __str__(self):
         fmt = "{ %s } * %s(%s[%s], %s)"
