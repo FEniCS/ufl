@@ -32,7 +32,7 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
     for script in scripts:
         batch_file = script + ".bat"
         with open(batch_file, "w") as f:
-            f.write(sys.executable + ' "%%~dp0\%s" %%*' % split(script)[1])
+            f.write(sys.executable + ' "%%~dp0\%s" %%*' % split(script)[1]) # noqa
         batch_files.append(batch_file)
     scripts.extend(batch_files)
 
