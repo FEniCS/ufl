@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
-from os.path import join, split
 import sys
-import platform
 
 module_name = "ufl"
 
@@ -13,10 +11,10 @@ if sys.version_info < (3, 5):
 
 version = "2018.2.0.dev0"
 
-url = "https://bitbucket.org/fenics-project/%s/" % module_name
+url = "https://bitbucket.org/fenics-project/{}/".format(module_name)
 tarball = None
 if 'dev' not in version:
-    tarball = url + "downloads/fenics-%s-%s.tar.gz" % (module_name, version)
+    tarball = url + "downloads/fenics-{}-{}.tar.gz".format(module_name, version)
 
 CLASSIFIERS = """\
 Development Status :: 5 - Production/Stable
