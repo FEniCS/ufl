@@ -25,8 +25,9 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Lizao Li 2015
 # Modified by Thomas Gibson 2017
 
-from ufl.utils.str import as_native_str
 from functools import total_ordering
+
+from ufl.utils.str import as_native_str
 
 
 @total_ordering
@@ -47,29 +48,26 @@ class SobolevSpace(object):
         p = frozenset(parents or [])
         # Ensure that the inclusion operations are transitive.
         self.parents = p.union(*[p_.parents for p_ in p])
-        self._order = {"L2": 0,
-                       "H1": 1,
-                       "H2": 2,
-                       # Order for the elements below is taken from
-                       # its parent Sobolev space
-                       "HDiv": 0,
-                       "HCurl": 0,
-                       "HEin": 0,
-                       "HDivDiv": 0,
-                       "DirectionalH": 0}[self.name]
+        self._order = {
+            "L2": 0,
+            "H1": 1,
+            "H2": 2,
+            # Order for the elements below is taken from
+            # its parent Sobolev space
+            "HDiv": 0,
+            "HCurl": 0,
+            "HEin": 0,
+            "HDivDiv": 0,
+            "DirectionalH": 0
+        }[self.name]
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        r = "SobolevSpace(%s, %s)" % (repr(self.name), repr(list(self.parents)))
+        r = "SobolevSpace(%s, %s)" % (repr(self.name), repr(
+            list(self.parents)))
         return as_native_str(r)
-
-    def _repr_latex_(self):
-        if len(self.name) == 2:
-            return "$%s^%s$" % tuple(self.name)
-        else:
-            return "$%s(%s)$" % (self.name[0], self.name[1:].lower())
 
     def __eq__(self, other):
         return isinstance(other, SobolevSpace) and self.name == other.name
@@ -94,8 +92,8 @@ class SobolevSpace(object):
             raise TypeError("Unable to test for inclusion of a " +
                             "SobolevSpace in another SobolevSpace. " +
                             "Did you mean to use <= instead?")
-        return (other.sobolev_space() == self or
-                self in other.sobolev_space().parents)
+        return (other.sobolev_space() == self
+                or self in other.sobolev_space().parents)
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper
@@ -110,7 +108,9 @@ class SobolevSpace(object):
         elif self.name == "HCurl":
             from ufl.finiteelement import HCurlElement
             return HCurlElement(element)
-        raise NotImplementedError("SobolevSpace has no call operator (only the specific HDiv and HCurl instances).")
+        raise NotImplementedError(
+            "SobolevSpace has no call operator (only the specific HDiv and HCurl instances)."
+        )
 
 
 @total_ordering
@@ -127,12 +127,11 @@ class DirectionalSobolevSpace(SobolevSpace):
                      the position denotes in what spatial variable the
                      smoothness requirement is enforced.
         """
-        assert all(isinstance(x, int) for x in orders), (
-            "Order must be an integer."
-        )
-        assert all(x < 3 for x in orders), (
-            "Not implemented for orders greater than 2"
-        )
+        assert all(
+            isinstance(x, int) for x in orders), ("Order must be an integer.")
+        assert all(
+            x < 3
+            for x in orders), ("Not implemented for orders greater than 2")
         name = "DirectionalH"
         parents = [L2]
         super(DirectionalSobolevSpace, self).__init__(name, parents)
@@ -145,9 +144,7 @@ class DirectionalSobolevSpace(SobolevSpace):
         """
         if spatial_index not in range(len(self._orders)):
             raise IndexError("Spatial index out of range.")
-        spaces = {0: L2,
-                  1: H1,
-                  2: H2}
+        spaces = {0: L2, 1: H1, 2: H2}
         return spaces[self._orders[spatial_index]]
 
     def __contains__(self, other):
@@ -158,9 +155,9 @@ class DirectionalSobolevSpace(SobolevSpace):
             raise TypeError("Unable to test for inclusion of a " +
                             "SobolevSpace in another SobolevSpace. " +
                             "Did you mean to use <= instead?")
-        return (other.sobolev_space() == self or
-                all(self[i] in other.sobolev_space().parents
-                    for i in self._spatial_indices))
+        return (other.sobolev_space() == self
+                or all(self[i] in other.sobolev_space().parents
+                       for i in self._spatial_indices))
 
     def __eq__(self, other):
         if isinstance(other, DirectionalSobolevSpace):
@@ -181,17 +178,13 @@ class DirectionalSobolevSpace(SobolevSpace):
         elif other.name in ["HDivDiv", "HEin"]:
             # Don't know how these spaces compare
             return NotImplementedError(
-                "Don't know how to compare with %s" % other.name
-            )
+                "Don't know how to compare with %s" % other.name)
         else:
-            return any(self._orders[i] > other._order
-                       for i in self._spatial_indices)
+            return any(
+                self._orders[i] > other._order for i in self._spatial_indices)
 
     def __str__(self):
         return self.name + "(%s)" % ", ".join(map(str, self._orders))
-
-    def _repr_latex_(self):
-        return "H(%s)" % ", ".join(map(str, self._orders))
 
 
 L2 = SobolevSpace("L2")
