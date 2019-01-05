@@ -92,8 +92,8 @@ class SobolevSpace(object):
             raise TypeError("Unable to test for inclusion of a " +
                             "SobolevSpace in another SobolevSpace. " +
                             "Did you mean to use <= instead?")
-        return (other.sobolev_space() == self
-                or self in other.sobolev_space().parents)
+        return (other.sobolev_space() == self or
+                self in other.sobolev_space().parents)
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper
@@ -155,9 +155,9 @@ class DirectionalSobolevSpace(SobolevSpace):
             raise TypeError("Unable to test for inclusion of a " +
                             "SobolevSpace in another SobolevSpace. " +
                             "Did you mean to use <= instead?")
-        return (other.sobolev_space() == self
-                or all(self[i] in other.sobolev_space().parents
-                       for i in self._spatial_indices))
+        return (other.sobolev_space() == self or
+                all(self[i] in other.sobolev_space().parents
+                    for i in self._spatial_indices))
 
     def __eq__(self, other):
         if isinstance(other, DirectionalSobolevSpace):
