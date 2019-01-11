@@ -423,7 +423,7 @@ class Measure(object):
         # Integral.__add__:
         subdomain_id = self.subdomain_id()
         if isinstance(subdomain_id, tuple):
-            return sum(integrand*self.reconstruct(subdomain_id=d) for d in subdomain_id)
+            return sum(integrand * self.reconstruct(subdomain_id=d) for d in subdomain_id)
 
         # Check that we have an integer subdomain or a string
         # ("everywhere" or "otherwise", any more?)
@@ -469,7 +469,7 @@ class MeasureSum(object):
         self._measures = measures
 
     def __rmul__(self, other):
-        integrals = [other*m for m in self._measures]
+        integrals = [other * m for m in self._measures]
         return sum(integrals)
 
     def __add__(self, other):

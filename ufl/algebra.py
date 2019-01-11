@@ -110,7 +110,7 @@ class Sum(Operator):
             n = len(s)
             for o in ops[1:]:
                 m = len(o)
-                if n+m > limit:
+                if n + m > limit:
                     s += delimop
                     n = m
                 else:

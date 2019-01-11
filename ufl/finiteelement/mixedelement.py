@@ -295,7 +295,7 @@ class VectorElement(MixedElement):
             dim = cell.geometric_dimension()
 
         # Create list of sub elements for mixed element constructor
-        sub_elements = [sub_element]*dim
+        sub_elements = [sub_element] * dim
 
         # Compute value shapes
         value_shape = (dim,) + sub_element.value_shape()
@@ -417,7 +417,7 @@ class TensorElement(MixedElement):
         # Compute reference value shape based on symmetries
         if symmetry:
             # Flatten and subtract symmetries
-            reference_value_shape = (product(shape)-len(symmetry),)
+            reference_value_shape = (product(shape) - len(symmetry),)
             self._mapping = "symmetries"
         else:
             # Do not flatten if there are no symmetries

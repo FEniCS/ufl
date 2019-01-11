@@ -52,7 +52,7 @@ def create_nested_lists(shape):
     if len(shape) == 0:
         return [None]
     elif len(shape) == 1:
-        return [None]*shape[0]
+        return [None] * shape[0]
     else:
         return [create_nested_lists(shape[1:]) for i in range(shape[0])]
 
@@ -66,7 +66,7 @@ def reshape_to_nested_list(components, shape):
         return components
     else:
         n = product(shape[1:])
-        return [reshape_to_nested_list(components[n*i:n*(i+1)], shape[1:]) for i in range(shape[0])]
+        return [reshape_to_nested_list(components[n * i:n * (i + 1)], shape[1:]) for i in range(shape[0])]
 
 
 def apply_single_function_pullbacks(g):
@@ -96,7 +96,7 @@ def apply_single_function_pullbacks(g):
 
     # Create contravariant transform for reuse (note that detJ is the
     # _signed_ (pseudo-)determinant)
-    transform_hdiv = (1.0/detJ) * J
+    transform_hdiv = (1.0 / detJ) * J
 
     # Shortcut simple cases for a more efficient representation,
     # including directly Piola-mapped elements and mixed elements of
@@ -114,25 +114,25 @@ def apply_single_function_pullbacks(g):
     elif mapping == "contravariant Piola":
         assert transform_hdiv.ufl_shape == (gsize, rsize)
         i, j = indices(2)
-        f = as_vector(transform_hdiv[i, j]*r[j], i)
+        f = as_vector(transform_hdiv[i, j] * r[j], i)
         # f = as_tensor(transform_hdiv[i, j]*r[k,j], (k,i)) # FIXME: Handle Vector(Piola) here?
         assert f.ufl_shape == g.ufl_shape
         return f
     elif mapping == "covariant Piola":
         assert Jinv.ufl_shape == (rsize, gsize)
         i, j = indices(2)
-        f = as_vector(Jinv[j, i]*r[j], i)
+        f = as_vector(Jinv[j, i] * r[j], i)
         # f = as_tensor(Jinv[j, i]*r[k,j], (k,i)) # FIXME: Handle Vector(Piola) here?
         assert f.ufl_shape == g.ufl_shape
         return f
     elif mapping == "double covariant Piola":
         i, j, m, n = indices(4)
-        f = as_tensor(Jinv[m, i]*r[m, n]*Jinv[n, j], (i, j))
+        f = as_tensor(Jinv[m, i] * r[m, n] * Jinv[n, j], (i, j))
         assert f.ufl_shape == g.ufl_shape
         return f
     elif mapping == "double contravariant Piola":
         i, j, m, n = indices(4)
-        f = as_tensor((1.0/detJ)*(1.0/detJ)*J[i, m]*r[m, n]*J[j, n], (i, j))
+        f = as_tensor((1.0 / detJ) * (1.0 / detJ) * J[i, m] * r[m, n] * J[j, n], (i, j))
         assert f.ufl_shape == g.ufl_shape
         return f
 
@@ -151,7 +151,7 @@ def apply_single_function_pullbacks(g):
     assert len(gsh) == 1
     assert len(rsh) == 1
 
-    g_components = [None]*gsize
+    g_components = [None] * gsize
     gpos = 0
     rpos = 0
     for subelm in sub_elements_with_mappings(element):
@@ -182,24 +182,24 @@ def apply_single_function_pullbacks(g):
         elif mp == "contravariant Piola":
             assert transform_hdiv.ufl_shape == (gm, rm)
             # Get reference value vector corresponding to this subelement:
-            rv = as_vector([r[rpos+k] for k in range(rm)])
+            rv = as_vector([r[rpos + k] for k in range(rm)])
             # Apply transform with IndexSum over j for each row
             j = Index()
             for i in range(gm):
-                g_components[gpos + i] = transform_hdiv[i, j]*rv[j]
+                g_components[gpos + i] = transform_hdiv[i, j] * rv[j]
 
         elif mp == "covariant Piola":
             assert Jinv.ufl_shape == (rm, gm)
             # Get reference value vector corresponding to this subelement:
-            rv = as_vector([r[rpos+k] for k in range(rm)])
+            rv = as_vector([r[rpos + k] for k in range(rm)])
             # Apply transform with IndexSum over j for each row
             j = Index()
             for i in range(gm):
-                g_components[gpos + i] = Jinv[j, i]*rv[j]
+                g_components[gpos + i] = Jinv[j, i] * rv[j]
 
         elif mp == "double covariant Piola":
             # components are flatten, map accordingly
-            rv = as_vector([r[rpos+k] for k in range(rm)])
+            rv = as_vector([r[rpos + k] for k in range(rm)])
             (gdim, _) = subelm.value_shape()
             (rdim, _) = subelm.reference_value_shape()
             for i in range(gdim):
@@ -213,7 +213,7 @@ def apply_single_function_pullbacks(g):
 
         elif mp == "double contravariant Piola":
             # components are flatten, map accordingly
-            rv = as_vector([r[rpos+k] for k in range(rm)])
+            rv = as_vector([r[rpos + k] for k in range(rm)])
             (gdim, _) = subelm.value_shape()
             (rdim, _) = subelm.reference_value_shape()
             for i in range(gdim):

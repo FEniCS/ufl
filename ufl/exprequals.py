@@ -28,9 +28,9 @@ def print_collisions():
         # Skip those that are all not equal
         if sn != on and ne == tot:
             continue
-        print(fmt % (k, eq, int(100.0*eq/tot),
-                     ne, int(100.0*ne/tot),
-                     co, int(100.0*co/tot),
+        print(fmt % (k, eq, int(100.0 * eq / tot),
+                     ne, int(100.0 * ne / tot),
+                     co, int(100.0 * co / tot),
                      tot))
 
 

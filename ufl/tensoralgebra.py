@@ -165,7 +165,7 @@ class Inner(CompoundTensorOperator):
             fi, fid = merge_nonoverlapping_indices(a, b)
             return Zero((), fi, fid)
         elif ash == ():
-            return a*Conj(b)
+            return a * Conj(b)
         # sort operands for unique representation,
         # must be independent of various counts etc.
         # as explained in cmp_expr

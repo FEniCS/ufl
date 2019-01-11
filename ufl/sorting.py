@@ -104,7 +104,7 @@ def _cmp_terminal_by_repr(a, b):
 
 
 # Hack up a MultiFunction-like type dispatch for terminal comparisons
-_terminal_cmps = [_cmp_terminal_by_repr]*Expr._ufl_num_typecodes_
+_terminal_cmps = [_cmp_terminal_by_repr] * Expr._ufl_num_typecodes_
 _terminal_cmps[MultiIndex._ufl_typecode_] = _cmp_multi_index
 _terminal_cmps[Argument._ufl_typecode_] = _cmp_argument
 _terminal_cmps[Coefficient._ufl_typecode_] = _cmp_coefficient

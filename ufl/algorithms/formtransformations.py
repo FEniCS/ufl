@@ -328,7 +328,7 @@ def compute_form_with_arity(form, arity, arguments=None):
 
     if len(arguments) < arity:
         warning("Form has no parts with arity %d." % arity)
-        return 0*form
+        return 0 * form
 
     # Assuming that the form is not a sum of terms
     # that depend on different arguments, e.g. (u+v)*dx
@@ -356,7 +356,7 @@ def compute_form_arities(form):
         error("compute_form_arities cannot handle parts.")
 
     arities = set()
-    for arity in range(len(arguments)+1):
+    for arity in range(len(arguments) + 1):
 
         # Compute parts with arity "arity"
         parts = compute_form_with_arity(form, arity, arguments)

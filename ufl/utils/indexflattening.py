@@ -24,10 +24,10 @@ def shape_to_strides(sh):
     n = len(sh)
     if not n:
         return ()
-    strides = [None]*n
-    strides[n-1] = 1
-    for i in range(n-1, 0, -1):
-        strides[i-1] = strides[i]*sh[i]
+    strides = [None] * n
+    strides[n - 1] = 1
+    for i in range(n - 1, 0, -1):
+        strides[i - 1] = strides[i] * sh[i]
     return tuple(strides)
 
 

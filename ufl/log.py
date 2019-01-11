@@ -174,7 +174,7 @@ class Logger:
     def begin(self, *message):
         "Begin task: write message and increase indentation level."
         self.info(*message)
-        self.info("-"*len(self._format_raw(*message)))
+        self.info("-" * len(self._format_raw(*message)))
         self.add_indent()
 
     def end(self):
@@ -231,7 +231,7 @@ class Logger:
 
     def _format(self, *message):
         "Format message including indentation."
-        indent = self._prefix + 2*self._indent_level*" "
+        indent = self._prefix + 2 * self._indent_level * " "
         return "\n".join([indent + line for line in (message[0] % message[1:]).split("\n")])
 
     def _format_raw(self, *message):

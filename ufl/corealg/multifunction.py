@@ -34,6 +34,7 @@ def get_num_args(function):
 
 def memoized_handler(handler):
     "Function decorator to memoize ``MultiFunction`` handlers."
+
     def _memoized_handler(self, o):
         c = getattr(self, "_memoized_handler_cache")
         r = c.get(o)
@@ -66,7 +67,7 @@ class MultiFunction(object):
         algorithm_class = type(self)
         cache_data = MultiFunction._handlers_cache.get(algorithm_class)
         if not cache_data:
-            handler_names = [None]*len(Expr._ufl_all_classes_)
+            handler_names = [None] * len(Expr._ufl_all_classes_)
 
             # Iterate over the inheritance chain for each Expr
             # subclass (NB! This assumes that all UFL classes inherits

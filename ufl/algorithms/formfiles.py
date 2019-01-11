@@ -66,7 +66,7 @@ def read_lines_decoded(fn):
         if m:
             encoding, = m.groups()
             # Drop encoding line
-            lines = lines[:i] + lines[i+1:]
+            lines = lines[:i] + lines[i + 1:]
             break
     else:
         # Default to utf-8 (works for ascii files

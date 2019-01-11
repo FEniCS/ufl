@@ -44,6 +44,7 @@ class VariableRenumberingTransformer(ReuseTransformer):
 
 class IndexRenumberingTransformer(VariableRenumberingTransformer):
     "This is a poorly designed algorithm. It is used in some tests, please do not use for anything else."
+
     def __init__(self):
         VariableRenumberingTransformer.__init__(self)
         self.index_map = {}
