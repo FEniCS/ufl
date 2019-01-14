@@ -14,4 +14,3 @@ UFL user manual
    examples
    internal_representation
    algorithms
-   command_line_utils
