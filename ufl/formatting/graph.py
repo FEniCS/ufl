@@ -115,6 +115,7 @@ def extract_outgoing_vertex_connections(G):  # O(n)
 
 class Graph:
     "Graph class which computes connectivity on demand."
+
     def __init__(self, expression):
         self._V, self._E = build_graph(expression)
         self._Ein = None
@@ -214,6 +215,7 @@ class StringDependencyDefiner(MultiFunction):
         "x"       - depends on local coordinates
         "v%d" % i - depends on argument i, for i in [0,rank)
     """
+
     def __init__(self, argument_deps=None, coefficient_deps=None):
         MultiFunction.__init__(self)
         if argument_deps is None:
@@ -273,7 +275,7 @@ def partition(G, criteria=string_set_criteria):
     Vout = G.Vout()
 
     partitions = defaultdict(list)
-    keys = [None]*n
+    keys = [None] * n
     for iv, v in enumerate(V):
         # Get keys from all outgoing edges
         edge_keys = [keys[ii] for ii in Vout[iv]]

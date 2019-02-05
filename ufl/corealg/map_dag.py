@@ -58,8 +58,8 @@ def map_expr_dags(function, expressions, compress=True):
         handlers = function._handlers  # Optimization
     else:
         # Regular function: no skipping supported
-        cutoff_types = [False]*Expr._ufl_num_typecodes_
-        handlers = [function]*Expr._ufl_num_typecodes_
+        cutoff_types = [False] * Expr._ufl_num_typecodes_
+        handlers = [function] * Expr._ufl_num_typecodes_
 
     # Create visited set here to share between traversal calls
     visited = set()

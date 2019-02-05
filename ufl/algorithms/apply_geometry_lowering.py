@@ -57,7 +57,7 @@ class GeometryLoweringApplier(MultiFunction):
     def __init__(self, preserve_types=()):
         MultiFunction.__init__(self)
         # Store preserve_types as boolean lookup table
-        self._preserve_types = [False]*Expr._ufl_num_typecodes_
+        self._preserve_types = [False] * Expr._ufl_num_typecodes_
         for cls in preserve_types:
             self._preserve_types[cls._ufl_typecode_] = True
 
@@ -114,7 +114,7 @@ class GeometryLoweringApplier(MultiFunction):
         #       specific type for the unsigned pseudo-determinant.
         if domain.topological_dimension() < domain.geometric_dimension():
             co = CellOrientation(domain)
-            detJ = co*detJ
+            detJ = co * detJ
 
         return detJ
 
@@ -127,7 +127,7 @@ class GeometryLoweringApplier(MultiFunction):
         J = self.jacobian(Jacobian(domain))
         RFJ = CellFacetJacobian(domain)
         i, j, k = indices(3)
-        return as_tensor(J[i, k]*RFJ[k, j], (i, j))
+        return as_tensor(J[i, k] * RFJ[k, j], (i, j))
 
     @memoized_handler
     def facet_jacobian_inverse(self, o):
@@ -249,7 +249,7 @@ class GeometryLoweringApplier(MultiFunction):
         edges = CellEdgeVectors(domain)
         num_edges = edges.ufl_shape[0]
         j = Index()
-        elen = [sqrt(edges[e, j]*edges[e, j]) for e in range(num_edges)]
+        elen = [sqrt(edges[e, j] * edges[e, j]) for e in range(num_edges)]
 
         if cellname == "triangle":
             return (elen[0] * elen[1] * elen[2]) / (4.0 * cellvolume)
@@ -296,7 +296,7 @@ class GeometryLoweringApplier(MultiFunction):
             edges = CellEdgeVectors(domain)
             num_edges = edges.ufl_shape[0]
             j = Index()
-            elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
+            elen2 = [edges[e, j] * edges[e, j] for e in range(num_edges)]
             return sqrt(reduce(reduction_op, elen2))
 
     @memoized_handler
@@ -320,7 +320,7 @@ class GeometryLoweringApplier(MultiFunction):
             verts = CellVertices(domain)
             verts = [verts[v, ...] for v in range(verts.ufl_shape[0])]
             j = Index()
-            elen2 = ((v0-v1)[j]*(v0-v1)[j] for v0, v1 in combinations(verts, 2))
+            elen2 = ((v0 - v1)[j] * (v0 - v1)[j] for v0, v1 in combinations(verts, 2))
             return sqrt(reduce(max_value, elen2))
 
     @memoized_handler
@@ -350,7 +350,7 @@ class GeometryLoweringApplier(MultiFunction):
             edges = FacetEdgeVectors(domain)
             num_edges = edges.ufl_shape[0]
             j = Index()
-            elen2 = [edges[e, j]*edges[e, j] for e in range(num_edges)]
+            elen2 = [edges[e, j] * edges[e, j] for e in range(num_edges)]
             return sqrt(reduce(reduction_op, elen2))
 
     @memoized_handler
@@ -381,7 +381,7 @@ class GeometryLoweringApplier(MultiFunction):
             # Return normalized vector, sign corrected by cell
             # orientation
             co = CellOrientation(domain)
-            return co * cell_normal / sqrt(cell_normal[i]*cell_normal[i])
+            return co * cell_normal / sqrt(cell_normal[i] * cell_normal[i])
         else:
             error("What do you want cell normal in gdim={0}, tdim={1} to be?".format(gdim, tdim))
 
@@ -404,7 +404,7 @@ class GeometryLoweringApplier(MultiFunction):
                 nlen = abs(ndir[0])
             else:
                 i = Index()
-                nlen = sqrt(ndir[i]*ndir[i])
+                nlen = sqrt(ndir[i] * ndir[i])
 
             rn = ReferenceNormal(domain)  # +/- 1.0 here
             n = rn[0] * ndir / nlen
@@ -423,7 +423,7 @@ class GeometryLoweringApplier(MultiFunction):
 
             # normalise
             i = Index()
-            n = ndir / sqrt(ndir[i]*ndir[i])
+            n = ndir / sqrt(ndir[i] * ndir[i])
             r = n
 
         if r.ufl_shape != o.ufl_shape:

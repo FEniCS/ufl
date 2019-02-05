@@ -53,7 +53,6 @@ __all__ = as_native_strings([
     "change_to_reference_grad",
     "expand_compounds",
     "validate_form",
-    "ufl2latex",
     "FormSplitter",
     "extract_arguments",
     "compute_form_adjoint",
@@ -82,7 +81,7 @@ from ufl.algorithms.analysis import (
     extract_type,
     extract_arguments,
     extract_coefficients,
-    #extract_arguments_and_coefficients,
+    # extract_arguments_and_coefficients,
     extract_elements,
     extract_unique_elements,
     extract_sub_elements,
@@ -136,4 +135,3 @@ from ufl.algorithms.formfiles import load_forms
 # Utilities for UFL object printing
 # from ufl.formatting.printing import integral_info, form_info
 from ufl.formatting.printing import tree_format
-from ufl.formatting.ufl2latex import ufl2latex

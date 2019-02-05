@@ -201,7 +201,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
     elif n > 2:
         oplabels = ["op%d" % i for i in range(n)]
     else:
-        oplabels = [None]*n
+        oplabels = [None] * n
 
     for i, o in enumerate(ops):
         # Handle entire subtree for expression o
