@@ -1215,5 +1215,12 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
 
 
 def apply_coordinate_derivatives(expression):
+    spaces = set(c.ufl_element().family() for c in expression.coefficients()) \
+        | set(a.ufl_element().family() for a in expression.arguments())
+
+    unsupported_spaces = {"Argyris", "Bell", "Hermite", "Morley"}
+    if spaces & unsupported_spaces:
+        error("CoordinateDerivative is not supported for elements of type %s. "
+              "This is because their pullback is not implemented in UFL." % unsupported_spaces)
     rules = CoordinateDerivativeRuleDispatcher()
     return map_integrand_dags(rules, expression)
