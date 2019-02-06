@@ -24,14 +24,15 @@
 import io
 import os
 import re
+
 import ufl
-from ufl.log import error, warning
-from ufl.utils.sorting import sorted_by_key
-from ufl.form import Form
-from ufl.finiteelement import FiniteElementBase
-from ufl.core.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
+from ufl.core.expr import Expr
+from ufl.finiteelement import FiniteElementBase
+from ufl.form import Form
+from ufl.log import error, warning
+from ufl.utils.sorting import sorted_by_key
 
 
 class FileData(object):

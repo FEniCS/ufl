@@ -19,6 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from functools import reduce
+
 import numpy
 
 

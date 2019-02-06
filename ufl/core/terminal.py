@@ -22,10 +22,9 @@ for all types that are terminal nodes in an expression tree."""
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error, warning
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
-
+from ufl.log import error, warning
 
 # --- Base class for terminal objects ---
 

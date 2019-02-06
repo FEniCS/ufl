@@ -23,15 +23,14 @@
 
 from itertools import chain
 
-from ufl.log import error
-from ufl.utils.sorting import sorted_by_count, topological_sorting
-
-from ufl.core.terminal import Terminal, FormArgument
+from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.algorithms.traversal import iter_expressions
-from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
-
+from ufl.core.terminal import FormArgument, Terminal
+from ufl.corealg.traversal import (traverse_unique_terminals,
+                                   unique_pre_traversal)
+from ufl.log import error
+from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 # TODO: Some of these can possibly be optimised by implementing
 # inlined stack based traversal algorithms

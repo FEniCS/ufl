@@ -3,11 +3,11 @@
 
 from itertools import chain
 
-from ufl.log import UFLException
-from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
 from ufl.classes import Argument, Zero
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.log import UFLException
 
 
 class ArityMismatch(UFLException):

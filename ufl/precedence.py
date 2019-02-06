@@ -20,7 +20,6 @@
 
 from ufl.log import warning
 
-
 # FIXME: This code is crap...
 
 def parstr(child, parent, pre="(", post=")", format=str):

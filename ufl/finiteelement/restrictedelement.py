@@ -22,9 +22,9 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.log import error
+from ufl.utils.str import as_native_str
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 

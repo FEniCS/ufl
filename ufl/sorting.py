@@ -25,9 +25,9 @@ is more robust w.r.t. argument numbering than using repr."""
 
 from functools import cmp_to_key
 
-from ufl.core.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
+from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.variable import Label
 

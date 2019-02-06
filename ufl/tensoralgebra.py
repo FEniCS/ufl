@@ -18,15 +18,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error
-from ufl.utils.str import as_native_strings
+from ufl.algebra import Conj, Operator
+from ufl.constantvalue import Zero
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import Zero
-from ufl.algebra import Operator, Conj
+from ufl.index_combination_utils import merge_nonoverlapping_indices
+from ufl.log import error
 from ufl.precedence import parstr
 from ufl.sorting import sorted_expr
-from ufl.index_combination_utils import merge_nonoverlapping_indices
+from ufl.utils.str import as_native_strings
 
 # Algebraic operations on tensors:
 # FloatValues:

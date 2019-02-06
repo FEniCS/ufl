@@ -23,17 +23,15 @@
 
 from math import atan2
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
-from ufl.log import error, UFLValueError
-from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
-from ufl.core.multiindex import Index, FixedIndex
-from ufl.core.ufl_type import ufl_type
-
 # --- Helper functions imported here for compatibility---
-from ufl.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar  # noqa: F401
-
+from ufl.checks import (is_python_scalar, is_true_ufl_scalar,  # noqa: F401
+                        is_ufl_scalar)
+from ufl.core.expr import Expr
+from ufl.core.multiindex import FixedIndex, Index
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
+from ufl.log import UFLValueError, error
+from ufl.utils.str import as_native_str, as_native_strings
 
 # Precision for float formatting
 precision = None

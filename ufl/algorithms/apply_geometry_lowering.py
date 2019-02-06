@@ -25,32 +25,27 @@ of mostly the Jacobian and reference cell data.
 from functools import reduce
 from itertools import combinations
 
-from ufl.log import error, warning
-
+from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian,
+                         CellOrientation, CellOrigin, CellVertices, CellVolume,
+                         Expr, FacetEdgeVectors, FacetJacobian,
+                         FacetJacobianDeterminant, FloatValue, Form, Integral,
+                         Jacobian, JacobianDeterminant, JacobianInverse,
+                         MaxCellEdgeLength, ReferenceCellVolume,
+                         ReferenceFacetVolume, ReferenceGrad, ReferenceNormal,
+                         SpatialCoordinate)
+from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
-from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.multifunction import MultiFunction, memoized_handler
+from ufl.log import error, warning
 from ufl.measure import custom_integral_types, point_integral_types
+from ufl.operators import max_value, min_value, sqrt
+from ufl.tensors import as_tensor, as_vector
 
-from ufl.classes import (Expr, Form, Integral,
-                         ReferenceGrad,
-                         Jacobian, JacobianInverse, JacobianDeterminant,
-                         CellOrientation, CellOrigin, CellCoordinate,
-                         FacetJacobian, FacetJacobianDeterminant,
-                         CellFacetJacobian,
-                         MaxCellEdgeLength,
-                         CellEdgeVectors, FacetEdgeVectors, CellVertices,
-                         ReferenceNormal,
-                         ReferenceCellVolume, ReferenceFacetVolume, CellVolume,
-                         SpatialCoordinate,
-                         FloatValue)
 # FacetJacobianInverse,
 # FacetOrientation, QuadratureWeight,
 
-from ufl.tensors import as_tensor, as_vector
-from ufl.operators import sqrt, max_value, min_value
 
-from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 
 
 class GeometryLoweringApplier(MultiFunction):

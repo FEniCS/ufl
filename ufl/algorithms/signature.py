@@ -19,14 +19,13 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 import hashlib
-from ufl.classes import (Label,
-                         Index, MultiIndex,
-                         Coefficient, Argument,
-                         GeometricQuantity, ConstantValue,
-                         ExprList, ExprMapping)
-from ufl.log import error
-from ufl.corealg.traversal import traverse_unique_terminals, pre_traversal
+
 from ufl.algorithms.domain_analysis import canonicalize_metadata
+from ufl.classes import (Argument, Coefficient, ConstantValue, ExprList,
+                         ExprMapping, GeometricQuantity, Index, Label,
+                         MultiIndex)
+from ufl.corealg.traversal import pre_traversal, traverse_unique_terminals
+from ufl.log import error
 
 
 def compute_multiindex_hashdata(expr, index_numbering):

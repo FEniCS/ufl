@@ -20,11 +20,10 @@
 #
 # Modified by Anders Logg, 2009-2010
 
+from ufl.core.multiindex import Index, indices
 from ufl.log import error
-from ufl.core.multiindex import indices, Index
-from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.operators import sqrt
-
+from ufl.tensors import as_matrix, as_tensor, as_vector
 
 # Note: To avoid typing errors, the expressions for cofactor and
 # deviatoric parts below were created with the script

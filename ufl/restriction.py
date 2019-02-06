@@ -19,9 +19,8 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.core.operator import Operator
-from ufl.precedence import parstr
 from ufl.core.ufl_type import ufl_type
-
+from ufl.precedence import parstr
 
 # --- Restriction operators ---
 

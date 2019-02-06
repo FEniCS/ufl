@@ -23,15 +23,13 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
-from ufl.utils.formatting import istr
-from ufl.cell import as_cell
-
-from ufl.cell import TensorProductCell
-from ufl.finiteelement.elementlist import canonical_element_description, simplices
+from ufl.cell import TensorProductCell, as_cell
+from ufl.finiteelement.elementlist import (canonical_element_description,
+                                           simplices)
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.log import error
+from ufl.utils.formatting import istr
+from ufl.utils.str import as_native_str, as_native_strings
 
 
 class FiniteElement(FiniteElementBase):

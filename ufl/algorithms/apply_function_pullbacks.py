@@ -21,16 +21,12 @@
 # Modified by Lizao Li <lzlarryli@gmail.com>, 2016
 
 
-from ufl.log import error
-
+from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.classes import (Index, Jacobian, JacobianDeterminant, JacobianInverse,
+                         ReferenceValue)
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
-from ufl.algorithms.map_integrands import map_integrand_dags
-
-from ufl.classes import (ReferenceValue,
-                         Jacobian, JacobianInverse, JacobianDeterminant,
-                         Index)
-
+from ufl.log import error
 from ufl.tensors import as_tensor, as_vector
 from ufl.utils.sequences import product
 

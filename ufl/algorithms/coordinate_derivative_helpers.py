@@ -19,11 +19,11 @@ coordinate derivatives at the right time point in compute_form_data."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error
-from ufl.differentiation import CoordinateDerivative
 from ufl.algorithms.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dags
 from ufl.classes import Integral
+from ufl.corealg.map_dag import map_expr_dags
+from ufl.differentiation import CoordinateDerivative
+from ufl.log import error
 
 
 class CoordinateDerivativeIsOutermostChecker(MultiFunction):

@@ -26,11 +26,10 @@ elements by calling the function register_element."""
 
 from numpy import asarray
 
-from ufl.log import warning, error
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv
-from ufl.utils.formatting import istr
 from ufl.cell import Cell, TensorProductCell
-
+from ufl.log import error, warning
+from ufl.sobolevspace import H1, H2, L2, HCurl, HDiv, HDivDiv, HEin
+from ufl.utils.formatting import istr
 
 # List of valid elements
 ufl_elements = {}

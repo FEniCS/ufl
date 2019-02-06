@@ -19,15 +19,14 @@ expressions as variables for differentiation."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.utils.counted import counted_init
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
-from ufl.log import error
-from ufl.core.expr import Expr
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal
-from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl
+from ufl.core.expr import Expr
+from ufl.core.operator import Operator
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
+from ufl.log import error
+from ufl.utils.counted import counted_init
+from ufl.utils.str import as_native_str, as_native_strings
 
 
 @ufl_type()

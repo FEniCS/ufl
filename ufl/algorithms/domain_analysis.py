@@ -18,17 +18,18 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+import numbers
 from collections import defaultdict
 
 import ufl
-from ufl.log import error
-from ufl.utils.str import as_native_strings
-from ufl.integral import Integral
+from ufl.algorithms.coordinate_derivative_helpers import (attach_coordinate_derivatives,
+                                                          strip_coordinate_derivatives)
 from ufl.form import Form
+from ufl.integral import Integral
+from ufl.log import error
 from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
-from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
-import numbers
+from ufl.utils.str import as_native_strings
 
 
 class IntegralData(object):

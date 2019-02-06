@@ -18,10 +18,9 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.sobolevspace import HDiv, HCurl
+from ufl.sobolevspace import HCurl, HDiv
+from ufl.utils.str import as_native_str, as_native_strings
 
 
 class HDivElement(FiniteElementBase):

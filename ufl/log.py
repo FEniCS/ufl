@@ -22,10 +22,11 @@ output messages. These may be redirected by the user of UFL."""
 # Modified by Johan Hake, 2009.
 # Modified by Massimiliano Leoni, 2016
 
+import logging
 import sys
 import types
-import logging
-from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL  # noqa: F401
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING  # noqa: F401
+
 from ufl.utils.str import as_native_strings
 
 log_functions = ["log", "debug", "info", "deprecate", "warning", "error",

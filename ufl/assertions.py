@@ -18,12 +18,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error
-
-
 # TODO: Move to this file and make other files import from here
 from ufl.core.expr import ufl_err_str
-
+from ufl.log import error
 
 # TODO: Use these and add more
 # --- Standardized error messages ---

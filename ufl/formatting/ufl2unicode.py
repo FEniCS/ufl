@@ -3,12 +3,12 @@
 import numbers
 
 import ufl
-from ufl.log import error
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.core.multiindex import Index, FixedIndex
-from ufl.form import Form
 from ufl.algorithms import compute_form_data
+from ufl.core.multiindex import FixedIndex, Index
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.multifunction import MultiFunction
+from ufl.form import Form
+from ufl.log import error
 
 
 class PrecedenceRules(MultiFunction):

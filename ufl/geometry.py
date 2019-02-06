@@ -23,12 +23,11 @@
 # Modified by Marie E. Rognes 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
-from ufl.log import error
-from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain
+from ufl.log import error
+from ufl.utils.str import as_native_str, as_native_strings
 
 """
 

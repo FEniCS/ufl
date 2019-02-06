@@ -20,9 +20,9 @@
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.log import warning
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.log import warning
 
 
 def expand_derivatives(form, **kwargs):

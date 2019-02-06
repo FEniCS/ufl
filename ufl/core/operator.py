@@ -20,11 +20,9 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
-
+from ufl.utils.str import as_native_str, as_native_strings
 
 # --- Base class for operator objects ---
 

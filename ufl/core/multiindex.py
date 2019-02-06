@@ -21,12 +21,11 @@
 # Modified by Massimiliano Leoni, 2016.
 
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
 from ufl.log import error
 from ufl.utils.counted import counted_init
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal
+from ufl.utils.str import as_native_str, as_native_strings
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings(["IndexBase", "FixedIndex", "Index"])

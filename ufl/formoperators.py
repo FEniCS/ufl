@@ -21,33 +21,31 @@
 # Modified by Anders Logg, 2009
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
-from ufl.form import Form, as_form
-from ufl.core.expr import Expr, ufl_err_str
-from ufl.split_functions import split
-from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.variable import Variable
-from ufl.finiteelement import MixedElement
+# Part of the external interface
+# An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
+from ufl.algorithms import replace  # noqa
+from ufl.algorithms import (FormSplitter, compute_energy_norm,
+                            compute_form_action, compute_form_adjoint,
+                            compute_form_functional, compute_form_lhs,
+                            compute_form_rhs, expand_derivatives,
+                            extract_arguments)
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
-from ufl.constantvalue import is_true_ufl_scalar, as_ufl
-from ufl.indexed import Indexed
+from ufl.constantvalue import as_ufl, is_true_ufl_scalar
+from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex
-from ufl.tensors import as_tensor, ListTensor
-from ufl.sorting import sorted_expr
+from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
+from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.finiteelement import MixedElement
+from ufl.form import Form, as_form
 from ufl.functionspace import FunctionSpace
 from ufl.geometry import SpatialCoordinate
-
-# An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import compute_form_adjoint, compute_form_action
-from ufl.algorithms import compute_energy_norm
-from ufl.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
-from ufl.algorithms import expand_derivatives, extract_arguments
-from ufl.algorithms import FormSplitter
-
-# Part of the external interface
-from ufl.algorithms import replace  # noqa
+from ufl.indexed import Indexed
+from ufl.log import error
+from ufl.sorting import sorted_expr
+from ufl.split_functions import split
+from ufl.tensors import ListTensor, as_tensor
+from ufl.variable import Variable
 
 
 def block_split(form, ix, iy=0):
