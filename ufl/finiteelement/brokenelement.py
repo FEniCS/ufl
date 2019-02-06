@@ -18,8 +18,8 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.utils.str import as_native_str
 
 
 class BrokenElement(FiniteElementBase):

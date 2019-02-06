@@ -21,13 +21,13 @@
 # Modified by Anders Logg, 2009-2010
 # Modified by Jan Blechta, 2012
 
-from ufl.log import warning, error
-from ufl.form import Form
-from ufl.integral import Integral
 from ufl.algorithms.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dags
 from ufl.checks import is_cellwise_constant
 from ufl.constantvalue import IntValue
+from ufl.corealg.map_dag import map_expr_dags
+from ufl.form import Form
+from ufl.integral import Integral
+from ufl.log import error, warning
 
 
 class IrreducibleInt(int):

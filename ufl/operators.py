@@ -26,27 +26,29 @@ objects."""
 
 import operator
 
-from ufl.log import error, warning
-from ufl.form import Form
-from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
-from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
-from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
-    Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
-from ufl.coefficient import Coefficient
-from ufl.variable import Variable
-from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
-from ufl.conditional import EQ, NE, \
-    AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue
-from ufl.algebra import Conj, Real, Imag
-from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
-    Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
-    BesselJ, BesselY, BesselI, BesselK
+from ufl.algebra import Conj, Imag, Real
 from ufl.averaging import CellAvg, FacetAvg
-from ufl.core.multiindex import indices
-from ufl.indexed import Indexed
-from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.checks import is_cellwise_constant
+from ufl.coefficient import Coefficient
+from ufl.conditional import (EQ, NE, AndCondition, Conditional, MaxValue,
+                             MinValue, NotCondition, OrCondition)
+from ufl.constantvalue import ComplexValue, RealValue, Zero, as_ufl
+from ufl.core.multiindex import indices
+from ufl.differentiation import (Curl, Div, Grad, NablaDiv, NablaGrad,
+                                 VariableDerivative)
 from ufl.domain import extract_domains
+from ufl.form import Form
+from ufl.geometry import FacetNormal, SpatialCoordinate
+from ufl.indexed import Indexed
+from ufl.log import error, warning
+from ufl.mathfunctions import (Acos, Asin, Atan, Atan2, BesselI, BesselJ,
+                               BesselK, BesselY, Cos, Cosh, Erf, Exp, Ln, Sin,
+                               Sinh, Sqrt, Tan, Tanh)
+from ufl.tensoralgebra import (Cofactor, Cross, Determinant, Deviatoric, Dot,
+                               Inner, Inverse, Outer, Skew, Sym, Trace,
+                               Transposed)
+from ufl.tensors import ListTensor, as_matrix, as_tensor, as_vector
+from ufl.variable import Variable
 
 # --- Basic operators ---
 

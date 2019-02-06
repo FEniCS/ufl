@@ -20,11 +20,11 @@ mostly intended for debugging purposers."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error
+from ufl.algorithms.multifunction import MultiFunction
 from ufl.core.expr import Expr
 from ufl.form import Form
+from ufl.log import error
 from ufl.variable import Variable
-from ufl.algorithms.multifunction import MultiFunction
 
 
 class ReprLabeller(MultiFunction):

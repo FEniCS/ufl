@@ -18,10 +18,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error
-from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
-from ufl.measure import custom_integral_types, point_integral_types
+from ufl.classes import (FacetJacobianDeterminant, Form, Integral,
+                         JacobianDeterminant, QuadratureWeight)
 from ufl.differentiation import CoordinateDerivative
+from ufl.log import error
+from ufl.measure import custom_integral_types, point_integral_types
 
 
 def compute_integrand_scaling_factor(integral):

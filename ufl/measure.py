@@ -23,16 +23,14 @@
 
 import numbers
 
-from ufl.utils.str import as_native_strings
-from ufl.utils.str import as_native_str
-from ufl.log import error, deprecate
-from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
-from ufl.utils.dicts import EmptyDict
-from ufl.domain import as_domain, AbstractDomain, extract_domains
+from ufl.core.expr import Expr
+from ufl.domain import AbstractDomain, as_domain, extract_domains
+from ufl.log import deprecate, error
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
-
+from ufl.utils.dicts import EmptyDict
+from ufl.utils.str import as_native_str, as_native_strings
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings(["Measure", "MeasureSum", "MeasureProduct"])

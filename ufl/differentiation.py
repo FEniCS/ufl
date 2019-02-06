@@ -20,21 +20,19 @@
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.log import error
-from ufl.utils.str import as_native_strings
-from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
-from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
-
-from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.constantvalue import Zero
-from ufl.coefficient import Coefficient
-from ufl.variable import Variable
-from ufl.precedence import parstr
-from ufl.domain import find_geometric_dimension
 from ufl.checks import is_cellwise_constant
-
+from ufl.coefficient import Coefficient
+from ufl.constantvalue import Zero
+from ufl.core.expr import Expr
+from ufl.core.operator import Operator
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
+from ufl.domain import find_geometric_dimension
+from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.log import error
+from ufl.precedence import parstr
+from ufl.utils.str import as_native_strings
+from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
 

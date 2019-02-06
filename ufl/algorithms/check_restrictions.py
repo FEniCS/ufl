@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error
-from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.multifunction import MultiFunction
+from ufl.log import error
 
 
 class RestrictionChecker(MultiFunction):

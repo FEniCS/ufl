@@ -24,19 +24,17 @@ complete Forms into new related Forms."""
 # Modified by Marie E. Rognes, 2010.
 
 
-from ufl.log import error, warning, debug
-
-# All classes:
-from ufl.core.expr import ufl_err_str
+from ufl.algebra import Conj
+# Other algorithms:
+from ufl.algorithms.map_integrands import map_integrands
+from ufl.algorithms.replace import replace
+from ufl.algorithms.transformer import Transformer
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
-from ufl.algebra import Conj
-
-# Other algorithms:
-from ufl.algorithms.map_integrands import map_integrands
-from ufl.algorithms.transformer import Transformer
-from ufl.algorithms.replace import replace
+# All classes:
+from ufl.core.expr import ufl_err_str
+from ufl.log import debug, error, warning
 
 
 # FIXME: Don't use this below, it makes partextracter more expensive than necessary

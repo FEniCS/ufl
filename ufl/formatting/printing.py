@@ -21,13 +21,13 @@ of UFL objects, mostly intended for debugging purposes."""
 #
 # Modified by Anders Logg 2009, 2014
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.form import Form
 from ufl.integral import Integral
-
+from ufl.log import error
 
 # --- Utilities for constructing informative strings from UFL objects
+
 
 def integral_info(integral):
     if not isinstance(integral, Integral):

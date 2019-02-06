@@ -21,18 +21,17 @@
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
 
-from itertools import chain
 from collections import defaultdict
+from itertools import chain
 
-from ufl.log import error, warning
-from ufl.domain import sort_domains
-from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
-from ufl.equation import Equation
-from ufl.core.expr import Expr
-from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
-from ufl.utils.str import as_native_strings, as_native_str
+from ufl.core.expr import Expr, ufl_err_str
+from ufl.domain import sort_domains
+from ufl.equation import Equation
+from ufl.integral import Integral
+from ufl.log import error, warning
+from ufl.utils.str import as_native_str, as_native_strings
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings(["Form"])

@@ -19,12 +19,12 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 
-from ufl.log import error
 from ufl.core.multiindex import FixedIndex, Index, indices
-
+from ufl.log import error
 
 # FIXME: Some of these might be merged into one function, some might
 # be optimized
+
 
 def unique_sorted_indices(indices):
     """Given a list of (id, dim) tuples already sorted by id,

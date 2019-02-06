@@ -24,12 +24,11 @@
 
 from itertools import chain
 
-from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.cell import TensorProductCell, as_cell
-from ufl.sobolevspace import DirectionalSobolevSpace
-
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.log import error
+from ufl.sobolevspace import DirectionalSobolevSpace
+from ufl.utils.str import as_native_strings
 
 
 class TensorProductElement(FiniteElementBase):

@@ -18,14 +18,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.utils.str import as_native_str
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-
+from ufl.log import error
+from ufl.utils.str import as_native_str
 
 # --- Non-tensor types ---
+
 
 @ufl_type(num_ops="varying")
 class ExprList(Operator):

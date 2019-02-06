@@ -21,15 +21,17 @@
 # Modified by Anders Logg, 2008
 # Modified by Kristian B. Oelgaard, 2011
 
-import math
 import cmath
+import math
 import numbers
 
-from ufl.utils.str import as_native_strings
-from ufl.log import warning, error
+from ufl.constantvalue import (ComplexValue, ConstantValue, FloatValue,
+                               IntValue, RealValue, Zero, as_ufl,
+                               is_true_ufl_scalar)
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
+from ufl.log import error, warning
+from ufl.utils.str import as_native_strings
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):

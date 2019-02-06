@@ -21,16 +21,14 @@ equivalent representations using basic operators."""
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.log import error
-
-from ufl.classes import Product, Grad, Conj
-from ufl.core.multiindex import indices, Index, FixedIndex
-from ufl.tensors import as_tensor, as_matrix, as_vector
-
-from ufl.compound_expressions import deviatoric_expr, determinant_expr, cofactor_expr, inverse_expr
-
-from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.classes import Conj, Grad, Product
+from ufl.compound_expressions import (cofactor_expr, determinant_expr,
+                                      deviatoric_expr, inverse_expr)
+from ufl.core.multiindex import FixedIndex, Index, indices
+from ufl.corealg.multifunction import MultiFunction
+from ufl.log import error
+from ufl.tensors import as_matrix, as_tensor, as_vector
 
 
 class LowerCompoundAlgebra(MultiFunction):

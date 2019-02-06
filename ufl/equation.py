@@ -19,8 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.log import error
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
+from ufl.utils.str import as_native_str, as_native_strings
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings(["Equation"])

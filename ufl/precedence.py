@@ -20,8 +20,8 @@
 
 from ufl.log import warning
 
-
 # FIXME: This code is crap...
+
 
 def parstr(child, parent, pre="(", post=")", format=str):
     # Execute when needed instead of on import, which leads to all

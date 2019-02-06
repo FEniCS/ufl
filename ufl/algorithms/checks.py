@@ -21,19 +21,17 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Mehdi Nikbakht, 2010.
 
-from ufl.log import error
-
-# UFL classes
-from ufl.core.expr import ufl_err_str
-from ufl.form import Form
+from ufl.algorithms.check_restrictions import check_restrictions
+# UFL algorithms
+from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import is_true_ufl_scalar
-
-# UFL algorithms
-from ufl.algorithms.traversal import iter_expressions
+# UFL classes
+from ufl.core.expr import ufl_err_str
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.algorithms.check_restrictions import check_restrictions
+from ufl.form import Form
+from ufl.log import error
 
 
 def validate_form(form):  # TODO: Can we make this return a list of errors instead of raising exception?

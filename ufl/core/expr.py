@@ -30,11 +30,11 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_strings
 from ufl.log import error
-
+from ufl.utils.str import as_native_strings
 
 # --- The base object for all UFL expression tree nodes ---
+
 
 class Expr(object):
     """Base class for all UFL expression types.

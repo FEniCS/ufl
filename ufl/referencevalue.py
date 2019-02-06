@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument
+from ufl.core.ufl_type import ufl_type
 from ufl.log import error
 
 
