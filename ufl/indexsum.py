@@ -30,6 +30,7 @@ from ufl.utils.str import as_native_strings
 
 # --- Sum over an index ---
 
+
 @ufl_type(num_ops=2)
 class IndexSum(Operator):
     __slots__ = as_native_strings((

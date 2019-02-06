@@ -31,6 +31,7 @@ from ufl.utils.str import as_native_strings
 
 # --- Indexed expression ---
 
+
 @ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
     __slots__ = as_native_strings((

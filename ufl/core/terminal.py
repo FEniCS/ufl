@@ -28,6 +28,7 @@ from ufl.log import error, warning
 
 # --- Base class for terminal objects ---
 
+
 @ufl_type(is_abstract=True, is_terminal=True)
 class Terminal(Expr):
     "A terminal node in the UFL expression tree."

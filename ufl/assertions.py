@@ -25,6 +25,7 @@ from ufl.log import error
 # TODO: Use these and add more
 # --- Standardized error messages ---
 
+
 def expecting_instance(v, c):
     error("Expecting %s instance, not %s." % (c.__name__, ufl_err_str(v)))
 

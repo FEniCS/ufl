@@ -46,7 +46,6 @@ from ufl.utils.stacks import StackDict
 # --- Boolean operators ---
 
 
-
 def _le(left, right):
     "UFL operator: A boolean expresion (left <= right) for use with conditional."
     return LE(left, right)

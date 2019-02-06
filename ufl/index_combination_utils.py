@@ -25,6 +25,7 @@ from ufl.log import error
 # FIXME: Some of these might be merged into one function, some might
 # be optimized
 
+
 def unique_sorted_indices(indices):
     """Given a list of (id, dim) tuples already sorted by id,
     return a unique list with duplicates removed.

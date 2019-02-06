@@ -35,6 +35,7 @@ from ufl.utils.str import as_native_strings
 
 # --- The base object for all UFL expression tree nodes ---
 
+
 class Expr(object):
     """Base class for all UFL expression types.
 

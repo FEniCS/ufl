@@ -35,6 +35,7 @@ from ufl.utils.sorting import sorted_by_count, topological_sorting
 # TODO: Some of these can possibly be optimised by implementing
 # inlined stack based traversal algorithms
 
+
 def _sorted_by_number_and_part(seq):
     return sorted(seq, key=lambda x: (x.number(), x.part()))
 

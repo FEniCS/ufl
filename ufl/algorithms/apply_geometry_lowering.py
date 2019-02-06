@@ -46,8 +46,6 @@ from ufl.tensors import as_tensor, as_vector
 # FacetOrientation, QuadratureWeight,
 
 
-
-
 class GeometryLoweringApplier(MultiFunction):
     def __init__(self, preserve_types=()):
         MultiFunction.__init__(self)

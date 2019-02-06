@@ -27,6 +27,7 @@ from ufl.log import error
 
 # --- Traversal utilities ---
 
+
 def iter_expressions(a):
     """Utility function to handle Form, Integral and any Expr
     the same way when inspecting expressions.

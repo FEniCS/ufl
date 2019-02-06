@@ -26,6 +26,7 @@ from ufl.utils.str import as_native_str
 
 # --- Non-tensor types ---
 
+
 @ufl_type(num_ops="varying")
 class ExprList(Operator):
     "List of Expr objects. For internal use, never to be created by end users."

@@ -26,6 +26,7 @@ from ufl.utils.formatting import camel2underscore
 # Make UFL type coercion available under the as_ufl name
 # as_ufl = Expr._ufl_coerce_
 
+
 def attach_operators_from_hash_data(cls):
     """Class decorator to attach ``__hash__``, ``__eq__`` and ``__ne__`` implementations.
 

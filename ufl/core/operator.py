@@ -26,6 +26,7 @@ from ufl.utils.str import as_native_str, as_native_strings
 
 # --- Base class for operator objects ---
 
+
 @ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
     "Base class for all operators, i.e. non-terminal expression types."
