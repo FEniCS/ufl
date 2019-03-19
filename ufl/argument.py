@@ -162,20 +162,12 @@ class Argument(FormArgument):
 
 def TestFunction(function_space, part=None):
     """UFL value: Create a test function argument to a form."""
-    if isinstance(function_space, FunctionSpaceProduct):
-        return [Argument(function_space.ufl_sub_space(i), 0, i)
-                for i in range(function_space.num_sub_spaces())]
-    else:
-        return Argument(function_space, 0, part)
+    return Argument(function_space, 0, part)
 
 
 def TrialFunction(function_space, part=None):
     """UFL value: Create a trial function argument to a form."""
-    if isinstance(function_space, FunctionSpaceProduct):
-        return [Argument(function_space.ufl_sub_space(i), 1, i)
-                for i in range(function_space.num_sub_spaces())]
-    else:
-        return Argument(function_space, 1, part)
+    return Argument(function_space, 1, part)
 
 
 # --- Helper functions for creating subfunctions on mixed elements ---
@@ -183,7 +175,11 @@ def TrialFunction(function_space, part=None):
 def Arguments(function_space, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(Argument(function_space, number))
+    if isinstance(function_space, FunctionSpaceProduct):
+        return [Argument(function_space.ufl_sub_space(i), number, i)
+                for i in range(function_space.num_sub_spaces())]
+    else:
+        return split(Argument(function_space, number))
 
 
 def TestFunctions(function_space):
