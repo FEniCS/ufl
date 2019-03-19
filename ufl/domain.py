@@ -21,6 +21,7 @@
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
+# Modified by Cecile Daversin-Catty, 2018
 
 import numbers
 
@@ -43,6 +44,7 @@ class AbstractDomain(object):
     and topological dimension.
 
     """
+
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
@@ -76,6 +78,7 @@ class AbstractDomain(object):
 @attach_ufl_id
 class Mesh(AbstractDomain):
     """Symbolic representation of a mesh."""
+
     def __init__(self, coordinate_element, ufl_id=None, cargo=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
 
@@ -147,6 +150,7 @@ class Mesh(AbstractDomain):
 @attach_ufl_id
 class MeshView(AbstractDomain):
     """Symbolic representation of a mesh."""
+
     def __init__(self, mesh, topological_dimension, ufl_id=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
 
@@ -196,6 +200,7 @@ class MeshView(AbstractDomain):
 @attach_ufl_id
 class TensorProductMesh(AbstractDomain):
     """Symbolic representation of a mesh."""
+
     def __init__(self, meshes, ufl_id=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
 
@@ -273,7 +278,7 @@ def default_domain(cell):
     if domain is None:
         # Create one and only one affine Mesh with a negative ufl_id
         # to avoid id collision
-        ufl_id = -(len(_default_domains)+1)
+        ufl_id = -(len(_default_domains) + 1)
         domain = affine_mesh(cell, ufl_id=ufl_id)
         _default_domains[cell] = domain
     return domain

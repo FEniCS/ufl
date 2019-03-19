@@ -20,6 +20,7 @@
 #
 # Modified by Anders Logg, 2009
 # Modified by Massimiliano Leoni, 2016
+# Modified by Cecile Daversin-Catty, 2018
 
 from ufl.log import error
 from ufl.form import Form, as_form
@@ -151,7 +152,7 @@ def zero_lists(shape):
     if len(shape) == 0:
         error("Invalid shape.")
     elif len(shape) == 1:
-        return [0]*shape[0]
+        return [0] * shape[0]
     else:
         return [zero_lists(shape[1:]) for i in range(shape[0])]
 

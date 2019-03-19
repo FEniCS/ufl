@@ -226,7 +226,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
             K = K(restricted)
 
         # Create Hdiv mapping from possibly restricted geometry objects
-        Mdiv = (1.0/detJ) * J
+        Mdiv = (1.0 / detJ) * J
 
         # Get component indices of global and reference terminal objects
         gtsh = g.ufl_shape
@@ -261,7 +261,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
             if len(shape) == 0:
                 return [None]
             elif len(shape) == 1:
-                return [None]*shape[-1]
+                return [None] * shape[-1]
             else:
                 return [ndarray(shape[1:]) for i in range(shape[0])]
         global_components = ndarray(gsh)
@@ -421,12 +421,12 @@ class OLDChangeToReferenceGrad(MultiFunction):
 
             # Apply mappings with scalar indexing operations (assumes
             # ReferenceGrad(Jinv) is zero)
-            jinv_lgrad_f = lgrad[ii+jj]
+            jinv_lgrad_f = lgrad[ii + jj]
             for j, k in zip(jj, kk):
-                jinv_lgrad_f = Jinv[j, k]*jinv_lgrad_f
+                jinv_lgrad_f = Jinv[j, k] * jinv_lgrad_f
 
             # Wrap back in tensor shape, derivative axes at the end
-            jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii+kk)
+            jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii + kk)
 
         else:
             # J^(-T)RefGrad(J^(-T)RefGrad(...))
@@ -442,10 +442,10 @@ class OLDChangeToReferenceGrad(MultiFunction):
                 j, k = indices(2)
 
                 lgrad = ReferenceGrad(jinv_lgrad_f)
-                jinv_lgrad_f = Jinv[j, k]*lgrad[ii+(j,)]
+                jinv_lgrad_f = Jinv[j, k] * lgrad[ii + (j,)]
 
                 # Wrap back in tensor shape, derivative axes at the end
-                jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii+(k,))
+                jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii + (k,))
 
         return jinv_lgrad_f
 

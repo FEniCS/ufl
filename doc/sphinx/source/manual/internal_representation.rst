@@ -178,10 +178,10 @@ Adding new types to the UFL class hierarchy must be done with care. If
 you can get away with implementing a new operator as a combination of
 existing ones, that is the easiest route. The reason is that only some
 of the properties of an operator is represented by the ``Expr``
-subclass. Other properties are part of the various algorithms in
-UFL. One example is derivatives, which are defined in the differentiation
-algorithm, and how to render a type to the ``LaTeX`` or dot formats. These
-properties could be merged into the class hierarchy, but other properties
-like how to map a UFL type to some ``ffc`` or ``dolfin`` type
-cannot be part of UFL. So before adding a new class, consider that doing
-so may require changes in multiple algorithms and even other projects.
+subclass. Other properties are part of the various algorithms in UFL.
+One example is derivatives, which are defined in the differentiation
+algorithm, and how to render a type to the dot formats. These properties
+could be merged into the class hierarchy, but other properties like how
+to map a UFL type to some ``ffc`` or ``dolfin`` type cannot be part of
+UFL. So before adding a new class, consider that doing so may require
+changes in multiple algorithms and even other projects.

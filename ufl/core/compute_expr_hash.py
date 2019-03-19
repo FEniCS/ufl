@@ -33,7 +33,7 @@ def compute_expr_hash(expr):
     if expr._hash is not None:
         return expr._hash
 
-    stack = [None]*_recursion_limit_
+    stack = [None] * _recursion_limit_
     stacksize = 0
 
     ops = expr.ufl_operands

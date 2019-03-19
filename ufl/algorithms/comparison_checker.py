@@ -21,6 +21,7 @@ class CheckComparisons(MultiFunction):
     Terminals default to complex, and Sqrt, Pow (defensively) imply complex.
     Otherwise, operators preserve the type of their operands.
     """
+
     def __init__(self):
         MultiFunction.__init__(self)
         self.nodetype = {}

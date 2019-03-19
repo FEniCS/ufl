@@ -81,7 +81,7 @@ def form_info(form):
 
 
 def _indent_string(n):
-    return "    "*n
+    return "    " * n
 
 
 def _tree_format_expression(expression, indentation, parentheses):
@@ -89,7 +89,7 @@ def _tree_format_expression(expression, indentation, parentheses):
     if expression._ufl_is_terminal_:
         s = "%s%s" % (ind, repr(expression))
     else:
-        sops = [_tree_format_expression(o, indentation+1, parentheses) for o in expression.ufl_operands]
+        sops = [_tree_format_expression(o, indentation + 1, parentheses) for o in expression.ufl_operands]
         s = "%s%s\n" % (ind, expression._ufl_class_.__name__)
         if parentheses and len(sops) > 1:
             s += "%s(\n" % (ind,)
@@ -112,16 +112,16 @@ def tree_format(expression, indentation=0, parentheses=True):
 
         ind = _indent_string(indentation)
         s += ind + "Form:\n"
-        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in itgs)
+        s += "\n".join(tree_format(itg, indentation + 1, parentheses) for itg in itgs)
 
     elif isinstance(expression, Integral):
         ind = _indent_string(indentation)
         s += ind + "Integral:\n"
-        ind = _indent_string(indentation+1)
+        ind = _indent_string(indentation + 1)
         s += ind + "integral type: %s\n" % expression.integral_type()
         s += ind + "subdomain id: %s\n" % expression.subdomain_id()
         s += ind + "integrand:\n"
-        s += tree_format(expression._integrand, indentation+2, parentheses)
+        s += tree_format(expression._integrand, indentation + 2, parentheses)
 
     elif isinstance(expression, Expr):
         s += _tree_format_expression(expression, indentation, parentheses)

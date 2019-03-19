@@ -21,6 +21,7 @@ of related classes, including Constant."""
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
+# Modified by Cecile Daversin-Catty, 2018.
 
 from ufl.utils.str import as_native_str
 from ufl.log import error

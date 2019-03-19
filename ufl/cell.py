@@ -101,7 +101,7 @@ num_cell_entities = {"vertex": (1,),
                      "hexahedron": (8, 12, 6, 1)}
 
 # Mapping from cell name to topological dimension
-cellname2dim = dict((k, len(v)-1) for k, v in num_cell_entities.items())
+cellname2dim = dict((k, len(v) - 1) for k, v in num_cell_entities.items())
 
 # Mapping from cell name to facet name
 # Note: This is not generalizable to product elements but it's still
@@ -171,7 +171,7 @@ class Cell(AbstractCell):
     def num_facets(self):
         "The number of cell facets."
         tdim = self.topological_dimension()
-        return num_cell_entities[self.cellname()][tdim-1]
+        return num_cell_entities[self.cellname()][tdim - 1]
 
     # --- Facet properties ---
 

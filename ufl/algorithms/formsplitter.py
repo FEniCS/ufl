@@ -17,6 +17,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Cecile Daversin-Catty, 2018
 
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -114,7 +116,7 @@ def fs_extract_blocks(form, i=None, j=None):
 
     if i is not None:
         if bilinear and j is not None:
-            return forms_tuple[i*len(parts) + j]
+            return forms_tuple[i * len(parts) + j]
         else:
             return forms_tuple[i]
     else:

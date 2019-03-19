@@ -70,13 +70,13 @@ def tstr(t, colsize=80):
             value = "'%s'" % value
         else:
             value = str(value)
-        s += key + ":" + " "*(keylen - len(key) + 1)
+        s += key + ":" + " " * (keylen - len(key) + 1)
         space = ""
         while len(value) > 0:
             end = min(len(value), colsize - keylen)
             s += space + value[:end] + "\n"
             value = value[end:]
-            space = " "*(keylen + 2)
+            space = " " * (keylen + 2)
     return s
 
 

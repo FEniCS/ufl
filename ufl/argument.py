@@ -21,6 +21,7 @@ classes (functions), including TestFunction and TrialFunction."""
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
+# Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
 from ufl.utils.str import as_native_str

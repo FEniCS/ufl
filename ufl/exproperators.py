@@ -293,7 +293,7 @@ Expr.__rpow__ = _rpow
 
 # TODO: Add Negated class for this? Might simplify reductions in Add.
 def _neg(self):
-    return -1*self
+    return -1 * self
 
 
 Expr.__neg__ = _neg
