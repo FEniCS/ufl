@@ -233,6 +233,7 @@ def compute_form_data(form,
                       do_apply_default_restrictions=True,
                       do_apply_restrictions=True,
                       do_estimate_degrees=True,
+                      do_append_everywhere_integrals=True,
                       complex_mode=False,
                       ):
 
@@ -283,7 +284,8 @@ def compute_form_data(form,
     # TODO: Refactor this, it's rather opaque what this does
     # TODO: Is self.original_form.ufl_domains() right here?
     #       It will matter when we start including 'num_domains' in ufc form.
-    form = group_form_integrals(form, self.original_form.ufl_domains())
+    form = group_form_integrals(form, self.original_form.ufl_domains(),
+                                do_append_everywhere_integrals=do_append_everywhere_integrals)
 
     # attach coordinate derivatives again
     form = attach_coordinate_derivatives(form, coordinate_derivatives)
