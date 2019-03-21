@@ -36,8 +36,9 @@ class FormSplitter(MultiFunction):
         return map_integrand_dags(self, form)
 
     def argument(self, obj):
-
-        if isinstance(obj, Argument):
+        if (obj.part() is not None):
+            # Mixed element built from MixedFunctionSpace,
+            # whose sub-function spaces are indexed by obj.part()
             if len(obj.ufl_shape) == 0:
                 if (obj.part() == self.idx[obj.number()]):
                     return obj
@@ -47,11 +48,14 @@ class FormSplitter(MultiFunction):
                 indices = [()]
                 for m in obj.ufl_shape:
                     indices = [(k + (j,)) for k in indices for j in range(m)]
+
                 if (obj.part() == self.idx[obj.number()]):
                     return as_vector([obj[j] for j in indices])
                 else:
                     return as_vector([Zero() for j in indices])
         else:
+            # Mixed element built from MixedElement,
+            # whose sub-elements need their function space to be created
             Q = obj.ufl_function_space()
             dom = Q.ufl_domain()
             sub_elements = obj.ufl_element().sub_elements()
@@ -60,7 +64,6 @@ class FormSplitter(MultiFunction):
             if (len(sub_elements) == 0):
                 return obj
 
-            # Split into sub-elements, creating appropriate space for each
             args = []
             for i, sub_elem in enumerate(sub_elements):
                 Q_i = FunctionSpace(dom, sub_elem)
