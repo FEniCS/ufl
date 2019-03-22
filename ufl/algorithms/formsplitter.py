@@ -95,7 +95,7 @@ def block_split(form, i=None, j=None):
     arity = len(numbers)
     parts = tuple(sorted(set(a.part() for a in arguments)))
 
-    if arity is 0:
+    if arity == 0:
         return (form, )
 
     for pi in parts:
