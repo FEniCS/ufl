@@ -88,7 +88,7 @@ A very brief overview of the language contents follows:
 * Function spaces::
 
     - FunctionSpace
-    - FunctionSpaceProduct
+    - MixedFunctionSpace
 
 * Arguments::
 
@@ -294,7 +294,7 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, \
 from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
 
 # Function spaces
-from ufl.functionspace import FunctionSpace, MixedFunctionSpace, FunctionSpaceProduct
+from ufl.functionspace import FunctionSpace, MixedFunctionSpace
 
 # Arguments
 from ufl.argument import Argument, TestFunction, TrialFunction, \
@@ -392,7 +392,7 @@ __all__ = as_native_strings([
     'HDivElement', 'HCurlElement',
     'BrokenElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
-    'FunctionSpace','FunctionSpaceProduct',
+    'FunctionSpace', 'MixedFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Coefficients',

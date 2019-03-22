@@ -29,7 +29,7 @@ from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.domain import as_domain, default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, FunctionSpaceProduct
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
 
@@ -151,7 +151,7 @@ def TensorConstant(domain, shape=None, symmetry=None, count=None):
 def Coefficients(function_space):
     """UFL value: Create a Coefficient in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    if isinstance(function_space, FunctionSpaceProduct):
+    if isinstance(function_space, MixedFunctionSpace):
         return [Coefficient(function_space.ufl_sub_space(i))
                 for i in range(function_space.num_sub_spaces())]
     else:
