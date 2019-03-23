@@ -23,7 +23,7 @@ from ufl.log import error
 from ufl.differentiation import CoordinateDerivative
 from ufl.algorithms.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dags
-from ufl.classes import Form, Integral
+from ufl.classes import Integral
 
 
 class CoordinateDerivativeIsOutermostChecker(MultiFunction):
@@ -50,35 +50,19 @@ class CoordinateDerivativeIsOutermostChecker(MultiFunction):
         return True
 
 
-def assert_that_coordinate_derivatives_are_the_same(cds):
-    # make sure that the coordinate derivatives that were stripped are all the
-    # same
-    hashes_per_integral = []
-    for cd in cds:
-        hsh = sum(sum(tuple_elem._ufl_compute_hash_() for tuple_elem in tuple_) for tuple_ in cd)
-        hashes_per_integral.append(hsh)
-    if not all(hsh == hashes_per_integral[0] for hsh in hashes_per_integral):
-        error("Did not apply the same CoordinateDerivative to all integrals.")
+def strip_coordinate_derivatives(integrals):
 
-
-def strip_coordinate_derivatives(form):
-
-    if isinstance(form, Form):
-        if len(form.integrals()) == 0:
-            return form, None
-        stripped_integrals = []
-        coordinate_derivatives = []
-        for integral in form.integrals():
+    if isinstance(integrals, list):
+        if len(integrals) == 0:
+            return integrals, None
+        stripped_integrals_and_cds = []
+        for integral in integrals:
             (si, cd) = strip_coordinate_derivatives(integral)
-            stripped_integrals.append(si)
-            coordinate_derivatives.append(cd)
-        assert_that_coordinate_derivatives_are_the_same(coordinate_derivatives)
-        # now that we have checked that the coordinate derivative that we apply is
-        # the same for all integrals, we only have to return them for the first integral
-        return (Form(stripped_integrals), coordinate_derivatives[0])
+            stripped_integrals_and_cds.append((si, cd))
+        return stripped_integrals_and_cds
 
-    elif isinstance(form, Integral):
-        integral = form
+    elif isinstance(integrals, Integral):
+        integral = integrals
         integrand = integral.integrand()
         checker = CoordinateDerivativeIsOutermostChecker()
         map_expr_dags(checker, [integrand])
@@ -98,24 +82,18 @@ def strip_coordinate_derivatives(form):
         return (integral.reconstruct(integrand=newintegrand), coordinate_derivatives)
 
     else:
-        error("Invalid type %s" % (form.__class__.__name__,))
+        error("Invalid type %s" % (integrals.__class__.__name__,))
 
 
-def attach_coordinate_derivatives(form, coordinate_derivatives):
+def attach_coordinate_derivatives(integral, coordinate_derivatives):
     if coordinate_derivatives is None:
-        return form
+        return integral
 
-    if isinstance(form, Form):
-        cds = coordinate_derivatives
-        new_integrals = [attach_coordinate_derivatives(integ, cds) for integ in form.integrals()]
-        return Form(new_integrals)
-
-    elif isinstance(form, Integral):
-        integral = form
+    if isinstance(integral, Integral):
         integrand = integral.integrand()
         # apply the stored coordinate derivatives back onto the integrand
         for tup in reversed(coordinate_derivatives):
             integrand = CoordinateDerivative(integrand, tup[0], tup[1], tup[2])
         return integral.reconstruct(integrand=integrand)
     else:
-        error("Invalid type %s" % (form.__class__.__name__,))
+        error("Invalid type %s" % (integral.__class__.__name__,))

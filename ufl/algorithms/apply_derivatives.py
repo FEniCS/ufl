@@ -1208,6 +1208,12 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
         return o
 
     def coordinate_derivative(self, o):
+        from ufl.algorithms import extract_unique_elements
+        spaces = set(c.family() for c in extract_unique_elements(o))
+        unsupported_spaces = {"Argyris", "Bell", "Hermite", "Morley"}
+        if spaces & unsupported_spaces:
+            error("CoordinateDerivative is not supported for elements of type %s. "
+                  "This is because their pullback is not implemented in UFL." % unsupported_spaces)
         f, w, v, cd = o.ufl_operands
         f = self(f)  # transform f
         rules = CoordinateDerivativeRuleset(w, v, cd)
