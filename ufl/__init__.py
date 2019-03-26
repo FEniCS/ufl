@@ -355,7 +355,7 @@ import ufl.measureoperators as __measureoperators
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
-system, functional, adjoint, sensitivity_rhs, block_split #, dirichlet_functional
+system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functional
 
 # Predefined convenience objects
 from ufl.objects import (
@@ -419,7 +419,7 @@ __all__ = as_native_strings([
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
     'Form',
     'Integral', 'Measure', 'register_integral_type', 'integral_types', 'custom_integral_types',
-    'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'block_split',
+    'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'extract_blocks',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'dx', 'ds', 'dS', 'dP',
     'dc', 'dC', 'dO', 'dI', 'dX',

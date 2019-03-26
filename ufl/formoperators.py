@@ -50,7 +50,7 @@ from ufl.algorithms import expand_derivatives, extract_arguments
 from ufl.algorithms import replace  # noqa
 
 
-def block_split(form, i=None, j=None):
+def extract_blocks(form, i=None, j=None):
     """UFL form operator:
     Given a linear or bilinear form on a mixed space,
     extract the block corresponding to the indices ix, iy.
@@ -58,10 +58,10 @@ def block_split(form, i=None, j=None):
     Example:
 
        a = inner(grad(u), grad(v))*dx + div(u)*q*dx + div(v)*p*dx
-       block_split(a, 0, 0) -> inner(grad(u), grad(v))*dx
-       block_split(a) -> [inner(grad(u), grad(v))*dx, div(v)*p*dx, div(u)*q*dx, 0]
+       extract_blocks(a, 0, 0) -> inner(grad(u), grad(v))*dx
+       extract_blocks(a) -> [inner(grad(u), grad(v))*dx, div(v)*p*dx, div(u)*q*dx, 0]
     """
-    return ufl.algorithms.formsplitter.block_split(form, i, j)
+    return ufl.algorithms.formsplitter.extract_blocks(form, i, j)
 
 
 def lhs(form):

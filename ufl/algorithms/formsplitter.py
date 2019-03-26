@@ -86,7 +86,7 @@ class FormSplitter(MultiFunction):
     expr = MultiFunction.reuse_if_untouched
 
 
-def block_split(form, i=None, j=None):
+def extract_blocks(form, i=None, j=None):
     fs = FormSplitter()
     arguments = form.arguments()
     forms = []
@@ -94,6 +94,7 @@ def block_split(form, i=None, j=None):
     numbers = tuple(sorted(set(a.number() for a in arguments)))
     arity = len(numbers)
     parts = tuple(sorted(set(a.part() for a in arguments)))
+    assert arity <= 2
 
     if arity == 0:
         return (form, )
