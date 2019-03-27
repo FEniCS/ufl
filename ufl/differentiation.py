@@ -26,6 +26,7 @@ from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
+from ufl.core.nolibox import Nolibox
 
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.constantvalue import Zero
@@ -104,11 +105,11 @@ class VariableDerivative(Derivative):
         # Checks
         if not isinstance(f, Expr):
             error("Expecting an Expr in VariableDerivative.")
-        if not isinstance(v, (Variable, Coefficient)):
+        if not isinstance(v, (Variable, Coefficient, Nolibox)):
             error("Expecting a Variable in VariableDerivative.")
         if v.ufl_free_indices:
             error("Differentiation variable cannot have free indices.")
-
+        
         # Simplification
         # Return zero if expression is trivially independent of variable
         if f._ufl_is_terminal_ and f != v:
@@ -120,6 +121,9 @@ class VariableDerivative(Derivative):
 
     def __init__(self, f, v):
         Derivative.__init__(self, (f, v))
+        if isinstance(f,Nolibox): 
+            if v in f.ufl_operands:
+                f.pending_derivatives = f.pending_derivatives + (f.ufl_operands.index(v),)
         self.ufl_free_indices = f.ufl_free_indices
         self.ufl_index_dimensions = f.ufl_index_dimensions
         self.ufl_shape = f.ufl_shape + v.ufl_shape

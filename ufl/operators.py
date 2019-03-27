@@ -47,6 +47,7 @@ from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.checks import is_cellwise_constant
 from ufl.domain import extract_domains
+from ufl.core.nolibox import Nolibox
 
 # --- Basic operators ---
 
@@ -346,6 +347,7 @@ def diff(f, v):
 
     If *f* is a form, ``diff`` is applied to each integrand.
     """
+    
     # Apply to integrands
     if isinstance(f, Form):
         from ufl.algorithms.map_integrands import map_integrands
@@ -354,8 +356,10 @@ def diff(f, v):
     # Apply to expression
     f = as_ufl(f)
     if isinstance(v, SpatialCoordinate):
-        return grad(f)
-    elif isinstance(v, (Variable, Coefficient)):
+        if not isinstance(f,Nolibox):
+            return grad(f)
+        error("Nolibox spatial derivatives are not implemented")
+    elif isinstance(v, (Variable, Coefficient, Nolibox)):
         return VariableDerivative(f, v)
     else:
         error("Expecting a Variable or SpatialCoordinate in diff.")

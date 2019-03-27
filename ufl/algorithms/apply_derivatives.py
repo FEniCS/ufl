@@ -24,6 +24,7 @@ from ufl.log import error, warning
 from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import MultiIndex, FixedIndex, indices
+from ufl.core.nolibox import Nolibox
 
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
 
@@ -311,8 +312,35 @@ class GenericDerivativeRuleset(MultiFunction):
     def imag(self, o, df):
         return Imag(df)
 
+    def nolibox(self, o, *tdf):
+        
+        #Checks
+        j = len(o.deriv_index)
+        df = tdf
+        if len(o.pending_derivatives) != 0:
+            j = o.pending_derivatives[0]
+            o.pending_derivatives = ()
+            df = tdf[j]
+        elif isinstance(df,tuple):  #To get rid of Zeros((),(),()) elements
+            for tdfi in tdf:
+                if tdfi != 0:
+                    df = tdfi
+                    break
+        if not isinstance(o, Nolibox):
+            error("Expecting Nolibox argument")
+        temp_eval_space = None
+        if hasattr(o,'eval_space'):
+            temp_eval_space = o.eval_space
+        
+        temp_derivatives = ()
+        for i in range(0,len(o.deriv_index)): 
+            temp_derivatives = temp_derivatives + (o.deriv_index[i] + int(j==i),) 
+            
+        temp_nolibox = Nolibox(*o.ufl_operands, eval_space = temp_eval_space, derivatives = temp_derivatives)
+        return df*temp_nolibox
+        
     # --- Mathfunctions
-
+    
     def math_function(self, o, df):
         # FIXME: Introduce a UserOperator type instead of this hack
         # and define user derivative() function properly
