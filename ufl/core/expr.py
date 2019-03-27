@@ -390,14 +390,6 @@ class Expr(object):
         "Return a short string to represent this Expr in an error message."
         return "<%s id=%d>" % (self._ufl_class_.__name__, id(self))
 
-    def _repr_latex_(self):
-        from ufl.algorithms import ufl2latex
-        return "$%s$" % ufl2latex(self)
-
-    def _repr_png_(self):
-        from IPython.lib.latextools import latex_to_png
-        return latex_to_png(self._repr_latex_())
-
     # --- Special functions used for processing expressions ---
 
     def __eq__(self, other):
