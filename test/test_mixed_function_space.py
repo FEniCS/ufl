@@ -19,19 +19,24 @@ def test_mixed_functionspace(self):
     domain_3d = default_domain(tetrahedron)
     domain_2d = default_domain(triangle)
     domain_1d = default_domain(interval)
-    
+    # Finite elements
     f_1d = FiniteElement("CG", interval, 1)
     f_2d = FiniteElement("CG", triangle, 1)
     f_3d = FiniteElement("CG", tetrahedron, 1)
-
     # Function spaces
     V_3d = FunctionSpace(domain_3d, f_3d)
     V_2d = FunctionSpace(domain_2d, f_2d)
     V_1d = FunctionSpace(domain_1d, f_1d)
 
-    # Mixed function space definition
+    # MixedFunctionSpace = V_3d x V_2d x V_1d
     V = MixedFunctionSpace(V_3d, V_2d, V_1d)
-    # Check Arguments definition from a MixedFunctionSpace
+    # Check sub spaces
+    assert( V.num_sub_spaces() == 3 )
+    assert( V.ufl_sub_space(0) == V_3d )
+    assert( V.ufl_sub_space(1) == V_2d )
+    assert( V.ufl_sub_space(2) == V_1d )
+
+    # Arguments from MixedFunctionSpace
     (u_3d, u_2d, u_1d) = TrialFunctions(V)
     (v_3d, v_2d, v_1d) = TestFunctions(V)
     
