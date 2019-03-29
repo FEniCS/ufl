@@ -109,7 +109,7 @@ class VariableDerivative(Derivative):
             error("Expecting a Variable in VariableDerivative.")
         if v.ufl_free_indices:
             error("Differentiation variable cannot have free indices.")
-        
+
         # Simplification
         # Return zero if expression is trivially independent of variable
         if f._ufl_is_terminal_ and f != v:

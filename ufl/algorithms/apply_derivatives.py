@@ -313,26 +313,26 @@ class GenericDerivativeRuleset(MultiFunction):
         return Imag(df)
 
     def nolibox(self, o, *tdf):
-        #Checks        
+        # Checks
         if not isinstance(o, Nolibox):
             error("Expecting Nolibox argument")
         temp_eval_space = None
-        if hasattr(o,'eval_space'):
+        if hasattr(o, 'eval_space'):
             temp_eval_space = o.eval_space
-        
+
         result = Zero(o.ufl_shape)
-        for i in range(0,len(o.deriv_index)):
+        for i in range(0, len(o.deriv_index)):
             temp_derivatives = ()
-            for j in range(0,len(o.deriv_index)):
-                temp_derivatives = temp_derivatives + (o.deriv_index[i] + int(j==i),) 
+            for j in range(0, len(o.deriv_index)):
+                temp_derivatives = temp_derivatives + (o.deriv_index[i] + int(j == i),)
             nl = Nolibox(*o.ufl_operands, eval_space=temp_eval_space, derivatives=temp_derivatives)
-            temp_extop = Product(tdf[i],nl)
-            result = Sum(result,temp_extop)
-            
+            temp_extop = Product(tdf[i], nl)
+            result = Sum(result, temp_extop)
+
         return result
-        
+
     # --- Mathfunctions
-    
+
     def math_function(self, o, df):
         # FIXME: Introduce a UserOperator type instead of this hack
         # and define user derivative() function properly
