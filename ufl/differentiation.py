@@ -26,7 +26,7 @@ from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.core.nolibox import Nolibox
+from ufl.core.external_operator import ExternalOperator
 
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.constantvalue import Zero
@@ -105,7 +105,7 @@ class VariableDerivative(Derivative):
         # Checks
         if not isinstance(f, Expr):
             error("Expecting an Expr in VariableDerivative.")
-        if not isinstance(v, (Variable, Coefficient, Nolibox)):
+        if not isinstance(v, (Variable, Coefficient, ExternalOperator)):
             error("Expecting a Variable in VariableDerivative.")
         if v.ufl_free_indices:
             error("Differentiation variable cannot have free indices.")

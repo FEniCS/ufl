@@ -24,7 +24,7 @@ from ufl.log import error, warning
 from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import MultiIndex, FixedIndex, indices
-from ufl.core.nolibox import Nolibox
+from ufl.core.external_operator import ExternalOperator
 
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
 
@@ -312,10 +312,10 @@ class GenericDerivativeRuleset(MultiFunction):
     def imag(self, o, df):
         return Imag(df)
 
-    def nolibox(self, o, *tdf):
+    def external_operator(self, o, *tdf):
         # Checks
-        if not isinstance(o, Nolibox):
-            error("Expecting Nolibox argument")
+        if not isinstance(o, ExternalOperator):
+            error("Expecting ExternalOperator argument")
         temp_eval_space = None
         if hasattr(o, 'eval_space'):
             temp_eval_space = o.eval_space
@@ -325,7 +325,7 @@ class GenericDerivativeRuleset(MultiFunction):
             temp_derivatives = ()
             for j in range(0, len(o.deriv_index)):
                 temp_derivatives = temp_derivatives + (o.deriv_index[i] + int(j == i),)
-            nl = Nolibox(*o.ufl_operands, eval_space=temp_eval_space, derivatives=temp_derivatives)
+            nl = ExternalOperator(*o.ufl_operands, eval_space=temp_eval_space, derivatives=temp_derivatives)
             temp_extop = Product(tdf[i], nl)
             result = Sum(result, temp_extop)
 

@@ -9,7 +9,7 @@ from ufl.log import error
 
 
 @ufl_type(inherit_indices_from_operand=0, num_ops=1, is_terminal_modifier=True, is_differential=True)
-class Nolibox(Operator):
+class ExternalOperator(Operator):
     __slots__ = as_native_strings(("ufl_operands", "eval_space", "deriv_index", "ufl_shape"))
 
     def __init__(self, *operands, eval_space=None, derivatives=None, shape=None):
@@ -47,7 +47,7 @@ class Nolibox(Operator):
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
     def __str__(self):
-        "Default repr string construction for Nolibox operators."
+        "Default repr string construction for ExternalOperator operators."
         # This should work for most cases
         space = None
         if hasattr(self, 'eval_space'):

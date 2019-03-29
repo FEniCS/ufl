@@ -6,7 +6,7 @@ __date__ = "2019-03-26"
 
 
 """
-Test Nolibox object
+Test ExternalOperator object
 """
 
 import pytest
@@ -14,7 +14,7 @@ import math
 
 # This imports everything external code will see from ufl
 from ufl import *
-from ufl.core.nolibox import Nolibox
+from ufl.core.external_operator import ExternalOperator
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.constantvalue import as_ufl
 
@@ -27,7 +27,7 @@ def test_properties(self, cell):
     v = Coefficient(S)
     r = Coefficient(S)
     
-    nl = Nolibox(u,r,eval_space=S)
+    nl = ExternalOperator(u,r,eval_space=S)
 
     space = S
     num_op = 2
@@ -38,7 +38,7 @@ def test_properties(self, cell):
     assert nl.deriv_index == (0,0)
     assert nl.ufl_shape == ()
 
-    nl2 = Nolibox(u, r, eval_space=S, derivatives=(3,4),shape = (2,))
+    nl2 = ExternalOperator(u, r, eval_space=S, derivatives=(3,4),shape = (2,))
     assert nl2.deriv_index == (3,4)
     assert nl2.ufl_shape == (2,)
     
@@ -70,56 +70,56 @@ def _test_multivariable(f, df1, df2, df3):
 
 def testVariable():
     def f(v):
-        nl = Nolibox(v)
+        nl = ExternalOperator(v)
         return nl
 
     def df(v):
-        nl = Nolibox(v, derivatives=(1,))
+        nl = ExternalOperator(v, derivatives=(1,))
         return as_ufl(nl)
     
     def d2f(v):
-        nl = Nolibox(v, derivatives=(2,))
+        nl = ExternalOperator(v, derivatives=(2,))
         return as_ufl(nl)
     _test(f, df)
     _test(df,d2f)
 
 def testProduct():
     def f(v):
-        nl = Nolibox(v)
+        nl = ExternalOperator(v)
         return 3 * nl
 
     def df(v):
-        nl = Nolibox(v,derivatives=(1,))
+        nl = ExternalOperator(v,derivatives=(1,))
         return as_ufl(3*nl)
     _test(f, df)
     
-def testProductNolibox():
+def testProductExternalOperator():
     cst = 2.0
     def f(v):
-        nl = Nolibox(cst*v)
-        nl2 = Nolibox(v,derivatives=(1,))
+        nl = ExternalOperator(cst*v)
+        nl2 = ExternalOperator(v,derivatives=(1,))
         return nl*nl2
 
     def df(v):
-        nl = Nolibox(cst*v)
-        nl2 = Nolibox(v,derivatives=(1,))
-        dnl = cst*Nolibox(cst*v,derivatives=(1,))
-        dnl2 = Nolibox(v,derivatives=(2,))
+        nl = ExternalOperator(cst*v)
+        nl2 = ExternalOperator(v,derivatives=(1,))
+        dnl = cst*ExternalOperator(cst*v,derivatives=(1,))
+        dnl2 = ExternalOperator(v,derivatives=(2,))
         return as_ufl(dnl*nl2+dnl2*nl)
     _test(f, df)
     
 def testmultiVariable():
     def f(v1,v2,v3):
-        nl = cos(v1)*sin(v2)*Nolibox(v1,v2,v3)
+        nl = cos(v1)*sin(v2)*ExternalOperator(v1,v2,v3)
         return nl
     def df1(v1,v2,v3):
-        nl =  - sin(v1)*sin(v2)*Nolibox(v1,v2,v3,derivatives=(0,0,0)) + cos(v1)*sin(v2)*Nolibox(v1,v2,v3,derivatives=(1,0,0))
+        nl =  - sin(v1)*sin(v2)*ExternalOperator(v1,v2,v3,derivatives=(0,0,0)) + cos(v1)*sin(v2)*ExternalOperator(v1,v2,v3,derivatives=(1,0,0))
         return as_ufl(nl)
     def df2(v1,v2,v3):
-        nl = cos(v2)*cos(v1)*Nolibox(v1,v2,v3,derivatives=(0,0,0)) + cos(v1)*sin(v2)*Nolibox(v1,v2,v3,derivatives=(0,1,0))
+        nl = cos(v2)*cos(v1)*ExternalOperator(v1,v2,v3,derivatives=(0,0,0)) + cos(v1)*sin(v2)*ExternalOperator(v1,v2,v3,derivatives=(0,1,0))
         return as_ufl(nl)
     def df3(v1,v2,v3):
-        nl = cos(v1)*sin(v2)*Nolibox(v1,v2,v3,derivatives=(0,0,1))
+        nl = cos(v1)*sin(v2)*ExternalOperator(v1,v2,v3,derivatives=(0,0,1))
         return as_ufl(nl)
     _test_multivariable(f, df1, df2, df3)
 
@@ -131,8 +131,8 @@ def test_form(self):
     u_hat = Coefficient(V)
     v = TestFunction(V)
     
-    nl = Nolibox(u,m)
-    dnl_du = Nolibox(u,m,derivatives=(1,0))
+    nl = ExternalOperator(u,m)
+    dnl_du = ExternalOperator(u,m,derivatives=(1,0))
     a = nl * v
     actual = derivative(a, u, u_hat)
     expected = u_hat*dnl_du*v
