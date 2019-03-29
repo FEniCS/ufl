@@ -356,9 +356,7 @@ def diff(f, v):
     # Apply to expression
     f = as_ufl(f)
     if isinstance(v, SpatialCoordinate):
-        if not isinstance(f,Nolibox):
-            return grad(f)
-        error("Nolibox spatial derivatives are not implemented")
+        return grad(f)
     elif isinstance(v, (Variable, Coefficient, Nolibox)):
         return VariableDerivative(f, v)
     else:

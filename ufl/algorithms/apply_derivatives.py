@@ -313,31 +313,23 @@ class GenericDerivativeRuleset(MultiFunction):
         return Imag(df)
 
     def nolibox(self, o, *tdf):
-        
-        #Checks
-        j = len(o.deriv_index)
-        df = tdf
-        if len(o.pending_derivatives) != 0:
-            j = o.pending_derivatives[0]
-            o.pending_derivatives = ()
-            df = tdf[j]
-        elif isinstance(df,tuple):  #To get rid of Zeros((),(),()) elements
-            for tdfi in tdf:
-                if tdfi != 0:
-                    df = tdfi
-                    break
+        #Checks        
         if not isinstance(o, Nolibox):
             error("Expecting Nolibox argument")
         temp_eval_space = None
         if hasattr(o,'eval_space'):
             temp_eval_space = o.eval_space
         
-        temp_derivatives = ()
-        for i in range(0,len(o.deriv_index)): 
-            temp_derivatives = temp_derivatives + (o.deriv_index[i] + int(j==i),) 
+        result = Zero(o.ufl_shape)
+        for i in range(0,len(o.deriv_index)):
+            temp_derivatives = ()
+            for j in range(0,len(o.deriv_index)):
+                temp_derivatives = temp_derivatives + (o.deriv_index[i] + int(j==i),) 
+            nl = Nolibox(*o.ufl_operands, eval_space=temp_eval_space, derivatives=temp_derivatives)
+            temp_extop = Product(tdf[i],nl)
+            result = Sum(result,temp_extop)
             
-        temp_nolibox = Nolibox(*o.ufl_operands, eval_space = temp_eval_space, derivatives = temp_derivatives)
-        return df*temp_nolibox
+        return result
         
     # --- Mathfunctions
     
