@@ -42,7 +42,7 @@ from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.operators import (conditional, sign,
                            sqrt, exp, ln, cos, sin, cosh, sinh,
                            bessel_J, bessel_Y, bessel_I, bessel_K,
-                           cell_avg, facet_avg)
+                           cell_avg, facet_avg, dot)
 
 from math import pi
 
@@ -322,11 +322,12 @@ class GenericDerivativeRuleset(MultiFunction):
 
         result = Zero(o.ufl_shape)
         for i in range(0, len(o.deriv_index)):
+            temp_shape = o.ufl_shape + o.ufl_operands[i].ufl_shape
             temp_derivatives = ()
             for j in range(0, len(o.deriv_index)):
                 temp_derivatives = temp_derivatives + (o.deriv_index[i] + int(j == i),)
-            nl = ExternalOperator(*o.ufl_operands, eval_space=temp_eval_space, derivatives=temp_derivatives)
-            temp_extop = Product(tdf[i], nl)
+            nl = ExternalOperator(*o.ufl_operands, eval_space=temp_eval_space, derivatives=temp_derivatives, shape=temp_shape)
+            temp_extop = dot(tdf[i], nl)
             result = Sum(result, temp_extop)
 
         return result
