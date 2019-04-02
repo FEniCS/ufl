@@ -24,7 +24,7 @@ class ExternalOperator(Operator):
 
         # Checks
         if eval_space is not None and not isinstance(eval_space, (AbstractFunctionSpace, FiniteElementBase)):
-                error("Expecting a FunctionSpace or FiniteElement")
+            error("Expecting a FunctionSpace or FiniteElement")
         if derivatives is not None:
             if not isinstance(derivatives, tuple):
                 error("Expecting a tuple for derivatives and not %s" % derivatives)
