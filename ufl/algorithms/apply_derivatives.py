@@ -42,7 +42,7 @@ from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.operators import (conditional, sign,
                            sqrt, exp, ln, cos, sin, cosh, sinh,
                            bessel_J, bessel_Y, bessel_I, bessel_K,
-                           cell_avg, facet_avg, dot)
+                           cell_avg, facet_avg)
 
 from math import pi
 
@@ -312,23 +312,21 @@ class GenericDerivativeRuleset(MultiFunction):
     def imag(self, o, df):
         return Imag(df)
 
-    def external_operator(self, o, *tdf):
+    def external_operator(self, o, *dfs):
         # Checks
         if not isinstance(o, ExternalOperator):
             error("Expecting ExternalOperator argument")
-        temp_eval_space = None
-        if hasattr(o, 'eval_space'):
-            temp_eval_space = o.eval_space
 
         result = Zero(o.ufl_shape)
-        for i in range(0, len(o.deriv_index)):
-            temp_shape = o.ufl_shape + o.ufl_operands[i].ufl_shape
-            temp_derivatives = ()
-            for j in range(0, len(o.deriv_index)):
-                temp_derivatives = temp_derivatives + (o.deriv_index[i] + int(j == i),)
-            nl = ExternalOperator(*o.ufl_operands, eval_space=temp_eval_space, derivatives=temp_derivatives, shape=temp_shape)
-            temp_extop = dot(tdf[i], nl)
-            result = Sum(result, temp_extop)
+        for i, df in enumerate(dfs):
+            shape = o.ufl_shape + df.ufl_shape
+            derivatives = tuple(di + int(i == j) for j, di in enumerate(o.deriv_index))
+            nl = o._ufl_expr_reconstruct_(*o.ufl_operands, eval_space=o.eval_space, derivatives=derivatives, shape=shape)
+            mi = indices(len(shape))
+            extop = df[mi[len(o.ufl_shape):]] * nl[mi]
+            if len(o.ufl_shape):
+                extop = ComponentTensor(extop, MultiIndex(mi[:len(o.ufl_shape)]))
+            result += extop
 
         return result
 

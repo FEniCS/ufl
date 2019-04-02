@@ -20,12 +20,10 @@ class ExternalOperator(Operator):
 
         Operator.__init__(self, operands)
         self.ufl_shape = ()
+        self.eval_space = eval_space
 
         # Checks
-        if eval_space is not None:
-            if isinstance(eval_space, AbstractFunctionSpace) or isinstance(eval_space, FiniteElementBase):
-                self.eval_space = eval_space
-            else:
+        if eval_space is not None and not isinstance(eval_space, (AbstractFunctionSpace, FiniteElementBase)):
                 error("Expecting a FunctionSpace or FiniteElement")
         if derivatives is not None:
             if not isinstance(derivatives, tuple):
@@ -45,6 +43,10 @@ class ExternalOperator(Operator):
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
+
+    def _ufl_expr_reconstruct_(self, *operands, eval_space=None, derivatives=None, shape=None):
+        "Return a new object of the same type with new operands."
+        return self._ufl_class_(*operands, eval_space=eval_space, derivatives=derivatives, shape=shape)
 
     def __str__(self):
         "Default repr string construction for ExternalOperator operators."
