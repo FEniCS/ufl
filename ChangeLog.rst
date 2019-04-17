@@ -1,10 +1,10 @@
 Changelog
 =========
 
-2018.2.0
---------
+2019.1.0 (2019-04-17)
+---------------------
 
-- Remove scipts
+- Remove scripts
 - Remove LaTeX support (not functional)
 - Add support for complex valued elements; complex mode
   is chosen by ``compute_form_data(form, complex_mode=True)`` typically

@@ -9,7 +9,7 @@ if sys.version_info < (3, 5):
     print("Python 3.5 or higher required, please upgrade.")
     sys.exit(1)
 
-version = "2018.2.0.dev0"
+version = "2019.1.0"
 
 url = "https://bitbucket.org/fenics-project/{}/".format(module_name)
 tarball = None
