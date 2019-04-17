@@ -59,6 +59,7 @@ def attach_ufl_id(cls):
     def _init_ufl_id(cls):
         "Initialize new ufl_id for the object under construction."
         # Bind cls with closure here
+
         def init_ufl_id(self, ufl_id):
             if ufl_id is None:
                 ufl_id = cls._ufl_global_id

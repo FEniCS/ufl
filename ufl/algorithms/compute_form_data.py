@@ -35,11 +35,13 @@ from ufl.algorithms.check_arities import check_form_arity
 # These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
-from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.apply_derivatives import apply_derivatives, apply_coordinate_derivatives
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
+from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.algorithms.comparison_checker import do_comparison_check
 
 # See TODOs at the call sites of these below:
 from ufl.algorithms.domain_analysis import build_integral_data
@@ -230,6 +232,8 @@ def compute_form_data(form,
                       do_apply_default_restrictions=True,
                       do_apply_restrictions=True,
                       do_estimate_degrees=True,
+                      do_append_everywhere_integrals=True,
+                      complex_mode=False,
                       ):
 
     # TODO: Move this to the constructor instead
@@ -248,10 +252,22 @@ def compute_form_data(form,
     # Note: Default behaviour here will process form the way that is
     # currently expected by vanilla FFC
 
+    # Check that the form does not try to compare complex quantities:
+    # if the quantites being compared are 'provably' real, wrap them
+    # with Real, otherwise throw an error.
+    if complex_mode:
+        form = do_comparison_check(form)
+
     # Lower abstractions for tensor-algebra types into index notation,
     # reducing the number of operators later algorithms and form
     # compilers need to handle
     form = apply_algebra_lowering(form)
+
+    # After lowering to index notation, remove any complex nodes that
+    # have been introduced but are not wanted when working in real mode,
+    # allowing for purely real forms to be written
+    if not complex_mode:
+        form = remove_complex_nodes(form)
 
     # Apply differentiation before function pullbacks, because for
     # example coefficient derivatives are more complicated to derive
@@ -263,7 +279,8 @@ def compute_form_data(form,
     # TODO: Refactor this, it's rather opaque what this does
     # TODO: Is self.original_form.ufl_domains() right here?
     #       It will matter when we start including 'num_domains' in ufc form.
-    form = group_form_integrals(form, self.original_form.ufl_domains())
+    form = group_form_integrals(form, self.original_form.ufl_domains(),
+                                do_append_everywhere_integrals=do_append_everywhere_integrals)
 
     # Estimate polynomial degree of integrands now, before applying
     # any pullbacks and geometric lowering.  Otherwise quad degrees
@@ -307,6 +324,8 @@ def compute_form_data(form,
             form = apply_geometry_lowering(form, preserve_geometry_types)
             # Lower derivatives that may have appeared
             form = apply_derivatives(form)
+
+    form = apply_coordinate_derivatives(form)
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
@@ -391,7 +410,12 @@ def compute_form_data(form,
     # TODO: This is a very expensive check... Replace with something
     # faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
-    check_form_arity(preprocessed_form, self.original_form.arguments())  # Currently testing how fast this is
+
+    # If in real mode, remove complex nodes entirely.
+    if not complex_mode:
+        preprocessed_form = remove_complex_nodes(preprocessed_form)
+
+    check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)  # Currently testing how fast this is
 
     # TODO: This member is used by unit tests, change the tests to
     # remove this!

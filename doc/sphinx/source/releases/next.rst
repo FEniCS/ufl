@@ -6,7 +6,7 @@ Changes in the next release
 Summary of changes
 ==================
 
-- Remove Python 2 support. Now requires Python 3.5 or above.
+- Add support for complex valued elements
 
 .. note:: Developers should use this page to track and list changes
           during development. At the time of release, this page should

@@ -1,10 +1,20 @@
 Changelog
 =========
 
-2018.1.0 (2018-06-14)
--------------
+2018.2.0
+--------
 
-- Remove python2 support. 
+- Remove scipts
+- Remove LaTeX support (not functional)
+- Add support for complex valued elements; complex mode
+  is chosen by ``compute_form_data(form, complex_mode=True)`` typically
+  by a form compiler; otherwise UFL language is agnostic to the choice
+  of real/complex domain
+
+2018.1.0 (2018-06-14)
+---------------------
+
+- Remove python2 support
 
 2017.2.0 (2017-12-05)
 ---------------------

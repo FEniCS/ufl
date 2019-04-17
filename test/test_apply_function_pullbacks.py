@@ -41,6 +41,8 @@ def test_apply_single_function_pullbacks_triangle3d():
     Vc = FiniteElement("N1curl", cell, 1)
     T = TensorElement("CG", cell, 1)
     S = TensorElement("CG", cell, 1, symmetry=True)
+    COV2T = FiniteElement("Regge", cell, 0)   # (0, 2)-symmetric tensors
+    CONTRA2T = FiniteElement("HHJ", cell, 0)  # (2, 0)-symmetric tensors
 
     Um = U*U
     Vm = U*V
@@ -59,6 +61,8 @@ def test_apply_single_function_pullbacks_triangle3d():
     vc = Coefficient(Vc)
     t = Coefficient(T)
     s = Coefficient(S)
+    cov2t = Coefficient(COV2T)
+    contra2t = Coefficient(CONTRA2T)
 
     um = Coefficient(Um)
     vm = Coefficient(Vm)
@@ -77,6 +81,8 @@ def test_apply_single_function_pullbacks_triangle3d():
     rvc = ReferenceValue(vc)
     rt = ReferenceValue(t)
     rs = ReferenceValue(s)
+    rcov2t = ReferenceValue(cov2t)
+    rcontra2t = ReferenceValue(contra2t)
 
     rum = ReferenceValue(um)
     rvm = ReferenceValue(vm)
@@ -117,6 +123,9 @@ def test_apply_single_function_pullbacks_triangle3d():
         s: as_tensor([[rs[0], rs[1], rs[2]],
                       [rs[1], rs[3], rs[4]],
                       [rs[2], rs[4], rs[5]]]),
+        cov2t: as_tensor(Jinv[k, i] * rcov2t[k, l] * Jinv[l, j], (i, j)),
+        contra2t: as_tensor((1.0 / detJ) * (1.0 / detJ)
+                            * J[i, k] * rcontra2t[k, l] * J[j, l], (i, j)),
         # Mixed elements become a bit more complicated
         um: rum,
         vm: rvm,
@@ -201,6 +210,8 @@ def test_apply_single_function_pullbacks_triangle3d():
     check_single_function_pullback(vc, mappings)
     check_single_function_pullback(t, mappings)
     check_single_function_pullback(s, mappings)
+    check_single_function_pullback(cov2t, mappings)
+    check_single_function_pullback(contra2t, mappings)
 
     # Check functions of various elements inside a mixed context
     check_single_function_pullback(um, mappings)

@@ -3,6 +3,7 @@
 import pytest
 from ufl import *
 from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.algorithms.check_arities import ArityMismatch
 
 
 def test_check_arities():
@@ -30,3 +31,23 @@ def test_check_arities():
     fd = compute_form_data(a)
 
     assert True
+
+
+def test_complex_arities():
+    cell = tetrahedron
+    D = Mesh(cell)
+    V = FunctionSpace(D, VectorElement("P", cell, 2))
+    v = TestFunction(V)
+    u = TrialFunction(V)
+
+    # Valid form.
+    F = inner(u, v) * dx
+    compute_form_data(F, complex_mode=True)
+    # Check that adjoint conjugates correctly
+    compute_form_data(adjoint(F), complex_mode=True)
+
+    with pytest.raises(ArityMismatch):
+        compute_form_data(inner(v, u) * dx, complex_mode=True)
+
+    with pytest.raises(ArityMismatch):
+        compute_form_data(inner(conj(v), u) * dx, complex_mode=True)

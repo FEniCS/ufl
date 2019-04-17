@@ -86,7 +86,7 @@ class SumDegreeEstimator(MultiFunction):
         are taken. Does not reduce the degree when TensorProduct elements
         or quadrilateral elements are involved."""
         if isinstance(f, int) and not isinstance(f, IrreducibleInt):
-            return max(f-1, 0)
+            return max(f - 1, 0)
         else:
             # if tuple, do not reduce
             return f
@@ -162,6 +162,15 @@ class SumDegreeEstimator(MultiFunction):
     def negative_restricted(self, v, a):
         return a
 
+    def conj(self, v, a):
+        return a
+
+    def real(self, v, a):
+        return a
+
+    def imag(self, v, a):
+        return a
+
     # A sum takes the max degree of its operands:
     sum = _max_degrees
 
@@ -232,9 +241,9 @@ class SumDegreeEstimator(MultiFunction):
             gi = g.value()
             if gi >= 0:
                 if isinstance(a, int):
-                    return a*gi
+                    return a * gi
                 else:
-                    return tuple(foo*gi for foo in a)
+                    return tuple(foo * gi for foo in a)
 
         # Something to a non-(positive integer) power, e.g. float,
         # negative integer, Coefficient, etc.
@@ -295,6 +304,18 @@ class SumDegreeEstimator(MultiFunction):
         """Same as conditional."""
         return self._max_degrees(v, l, r)
     max_value = min_value
+
+    def coordinate_derivative(self, v, integrand_degree, b, direction_degree, d):
+        """ We use the heuristic that a shape derivative in direction V
+        introduces terms V and grad(V) into the integrand. Hence we add the
+        degree of the deformation to the estimate. """
+        return self._add_degrees(v, integrand_degree, direction_degree)
+
+    def expr_list(self, v, *o):
+        return self._max_degrees(v, *o)
+
+    def expr_mapping(self, v, *o):
+        return self._max_degrees(v, *o)
 
 
 def estimate_total_polynomial_degree(e, default_degree=1,

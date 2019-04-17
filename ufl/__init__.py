@@ -185,6 +185,11 @@ A very brief overview of the language contents follows:
     - cosh, sinh, tanh
     - bessel_J, bessel_Y, bessel_I, bessel_K
 
+* Complex operations::
+
+    - conj, real, imag
+    conjugate is an alias for conj
+
 * Discontinuous Galerkin operators::
 
     - v('+'), v('-')
@@ -246,7 +251,7 @@ import pkg_resources
 
 __version__ = pkg_resources.get_distribution("fenics-ufl").version
 
-########## README
+# README
 # Imports here should be what the user sees when doing "from ufl import *",
 # which means we should _not_ import f.ex. "Grad", but "grad".
 # This way we expose the language, the operation "grad", but less
@@ -271,7 +276,7 @@ from ufl.geometry import (
     CellVolume, CellDiameter, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     Jacobian, JacobianDeterminant, JacobianInverse
-    )
+)
 
 # Sobolev spaces
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
@@ -284,18 +289,18 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     FacetElement, InteriorElement
 
 # Hook to extend predefined element families
-from ufl.finiteelement.elementlist import register_element, show_elements #, ufl_elements
+from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
 
 # Function spaces
 from ufl.functionspace import FunctionSpace, MixedFunctionSpace
 
 # Arguments
 from ufl.argument import Argument, TestFunction, TrialFunction, \
-                         Arguments, TestFunctions, TrialFunctions
+    Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
 from ufl.coefficient import Coefficient, Coefficients, \
-                            Constant, VectorConstant, TensorConstant
+    Constant, VectorConstant, TensorConstant
 
 # Split function
 from ufl.split_functions import split
@@ -316,21 +321,22 @@ from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
 from ufl.operators import rank, shape, \
-                       outer, inner, dot, cross, perp, \
-                       det, inv, cofac, \
-                       transpose, tr, diag, diag_vector, \
-                       dev, skew, sym, \
-                       sqrt, exp, ln, erf, \
-                       cos, sin, tan, \
-                       acos, asin, atan, atan_2, \
-                       cosh, sinh, tanh, \
-                       bessel_J, bessel_Y, bessel_I, bessel_K, \
-                       eq, ne, le, ge, lt, gt, And, Or, Not, \
-                       conditional, sign, max_value, min_value, Max, Min, \
-                       variable, diff, \
-                       Dx,  grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
-                       jump, avg, cell_avg, facet_avg, \
-                       elem_mult, elem_div, elem_pow, elem_op
+    conj, real, imag, \
+    outer, inner, dot, cross, perp, \
+    det, inv, cofac, \
+    transpose, tr, diag, diag_vector, \
+    dev, skew, sym, \
+    sqrt, exp, ln, erf, \
+    cos, sin, tan, \
+    acos, asin, atan, atan_2, \
+    cosh, sinh, tanh, \
+    bessel_J, bessel_Y, bessel_I, bessel_K, \
+    eq, ne, le, ge, lt, gt, And, Or, Not, \
+    conditional, sign, max_value, min_value, Max, Min, \
+    variable, diff, \
+    Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
+    jump, avg, cell_avg, facet_avg, \
+    elem_mult, elem_div, elem_pow, elem_op
 
 # Measure classes
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
@@ -347,7 +353,7 @@ import ufl.measureoperators as __measureoperators
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
-    system, functional, adjoint, sensitivity_rhs, block_split #, dirichlet_functional
+    system, functional, adjoint, sensitivity_rhs, block_split  # , dirichlet_functional
 
 # Predefined convenience objects
 from ufl.objects import (
@@ -357,7 +363,7 @@ from ufl.objects import (
     dx, ds, dS, dP,
     dc, dC, dO, dI, dX,
     ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
-    )
+)
 
 # Useful constants
 from math import e, pi
@@ -394,7 +400,7 @@ __all__ = as_native_strings([
     'Index', 'indices',
     'as_tensor', 'as_vector', 'as_matrix', 'relabel',
     'unit_vector', 'unit_vectors', 'unit_matrix', 'unit_matrices',
-    'rank', 'shape',
+    'rank', 'shape', 'conj', 'real', 'imag',
     'outer', 'inner', 'dot', 'cross', 'perp',
     'det', 'inv', 'cofac',
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',

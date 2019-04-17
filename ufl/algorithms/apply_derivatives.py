@@ -33,6 +33,7 @@ from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
+from ufl.classes import Conj, Real, Imag
 from ufl.classes import JacobianInverse
 from ufl.classes import SpatialCoordinate
 
@@ -49,7 +50,7 @@ from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
 
 from ufl.checks import is_cellwise_constant
-
+from ufl.differentiation import CoordinateDerivative
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset
@@ -276,11 +277,11 @@ class GenericDerivativeRuleset(MultiFunction):
         if isinstance(gp, Zero):
             # This probably produces better results for the common
             # case of f**constant
-            op = fp * g * f**(g-1)
+            op = fp * g * f**(g - 1)
         else:
             # Note: This produces expressions like (1/w)*w**5 instead of w**4
             # op = o * (fp * g / f + gp * ln(f)) # This reuses o
-            op = f**(g-1) * (g*fp + f*ln(f)*gp)  # This gives better accuracy in dolfin integration test
+            op = f**(g - 1) * (g * fp + f * ln(f) * gp)  # This gives better accuracy in dolfin integration test
 
         # Example: d/dx[x**(x**3)]:
         # f = x
@@ -299,6 +300,17 @@ class GenericDerivativeRuleset(MultiFunction):
         # return conditional(eq(f, 0), 0, Product(sign(f), df))
         return sign(f) * df
 
+    # --- Complex algebra
+
+    def conj(self, o, df):
+        return Conj(df)
+
+    def real(self, o, df):
+        return Real(df)
+
+    def imag(self, o, df):
+        return Imag(df)
+
     # --- Mathfunctions
 
     def math_function(self, o, df):
@@ -310,7 +322,7 @@ class GenericDerivativeRuleset(MultiFunction):
         error("Unknown math function.")
 
     def sqrt(self, o, fp):
-        return fp / (2*o)
+        return fp / (2 * o)
 
     def exp(self, o, fp):
         return fp * o
@@ -331,7 +343,7 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def tan(self, o, fp):
         f, = o.ufl_operands
-        return 2.0*fp / (cos(2.0*f) + 1.0)
+        return 2.0 * fp / (cos(2.0 * f) + 1.0)
 
     def cosh(self, o, fp):
         f, = o.ufl_operands
@@ -345,7 +357,7 @@ class GenericDerivativeRuleset(MultiFunction):
         f, = o.ufl_operands
 
         def sech(y):
-            return (2.0*cosh(y)) / (cosh(2.0*y) + 1.0)
+            return (2.0 * cosh(y)) / (cosh(2.0 * y) + 1.0)
         return fp * sech(f)**2
 
     def acos(self, o, fp):
@@ -362,7 +374,7 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def atan_2(self, o, fp, gp):
         f, g = o.ufl_operands
-        return (g*fp - f*gp) / (f**2 + g**2)
+        return (g * fp - f * gp) / (f**2 + g**2)
 
     def erf(self, o, fp):
         f, = o.ufl_operands
@@ -378,7 +390,7 @@ class GenericDerivativeRuleset(MultiFunction):
         if isinstance(nu, Zero):
             op = -bessel_J(1, f)
         else:
-            op = 0.5 * (bessel_J(nu-1, f) - bessel_J(nu+1, f))
+            op = 0.5 * (bessel_J(nu - 1, f) - bessel_J(nu + 1, f))
         return op * fp
 
     def bessel_y(self, o, nup, fp):
@@ -389,7 +401,7 @@ class GenericDerivativeRuleset(MultiFunction):
         if isinstance(nu, Zero):
             op = -bessel_Y(1, f)
         else:
-            op = 0.5 * (bessel_Y(nu-1, f) - bessel_Y(nu+1, f))
+            op = 0.5 * (bessel_Y(nu - 1, f) - bessel_Y(nu + 1, f))
         return op * fp
 
     def bessel_i(self, o, nup, fp):
@@ -400,7 +412,7 @@ class GenericDerivativeRuleset(MultiFunction):
         if isinstance(nu, Zero):
             op = bessel_I(1, f)
         else:
-            op = 0.5 * (bessel_I(nu-1, f) + bessel_I(nu+1, f))
+            op = 0.5 * (bessel_I(nu - 1, f) + bessel_I(nu + 1, f))
         return op * fp
 
     def bessel_k(self, o, nup, fp):
@@ -411,7 +423,7 @@ class GenericDerivativeRuleset(MultiFunction):
         if isinstance(nu, Zero):
             op = -bessel_K(1, f)
         else:
-            op = -0.5 * (bessel_K(nu-1, f) + bessel_K(nu+1, f))
+            op = -0.5 * (bessel_K(nu - 1, f) + bessel_K(nu + 1, f))
         return op * fp
 
     # --- Restrictions
@@ -445,7 +457,7 @@ class GenericDerivativeRuleset(MultiFunction):
             # or df become NaN or Inf in floating point computations!
             c = o.ufl_operands[0]
             dc = conditional(c, 1, 0)
-            return dc*dt + (1.0 - dc)*df
+            return dc * dt + (1.0 - dc) * df
         else:
             # Not placing t[1],f[1] outside, allowing arguments inside
             # conditionals.  This will make legacy ffc fail, but
@@ -461,7 +473,7 @@ class GenericDerivativeRuleset(MultiFunction):
         # conditionals
         f, g = o.ufl_operands
         dc = conditional(f > g, 1, 0)
-        return dc*df + (1.0 - dc)*dg
+        return dc * df + (1.0 - dc) * dg
 
     def min_value(self, o, df, dg):
         # d/dx min(f, g) =
@@ -471,7 +483,7 @@ class GenericDerivativeRuleset(MultiFunction):
         #  inside conditionals
         f, g = o.ufl_operands
         dc = conditional(f < g, 1, 0)
-        return dc*df + (1.0 - dc)*dg
+        return dc * df + (1.0 - dc) * dg
 
 
 class GradRuleset(GenericDerivativeRuleset):
@@ -499,7 +511,7 @@ class GradRuleset(GenericDerivativeRuleset):
             error("ReferenceValue can only wrap a terminal")
         r = indices(len(o.ufl_shape))
         i, j = indices(2)
-        Do = as_tensor(o[j, i]*ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = as_tensor(o[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
 
     # TODO: Add more explicit geometry type handlers here, with
@@ -541,7 +553,7 @@ class GradRuleset(GenericDerivativeRuleset):
         K = JacobianInverse(domain)
         r = indices(len(o.ufl_shape))
         i, j = indices(2)
-        Do = as_tensor(K[j, i]*ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
 
     def reference_grad(self, o):
@@ -554,7 +566,7 @@ class GradRuleset(GenericDerivativeRuleset):
         K = JacobianInverse(domain)
         r = indices(len(o.ufl_shape))
         i, j = indices(2)
-        Do = as_tensor(K[j, i]*ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
 
     # --- Nesting of gradients
@@ -754,6 +766,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         D_w[v](e) = d/dtau e(w+tau v)|tau=0
 
     """
+
     def __init__(self, coefficients, arguments, coefficient_derivatives):
         GenericDerivativeRuleset.__init__(self, var_shape=())
 
@@ -774,7 +787,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Build more convenient dict {f: df/dw} for each coefficient f
         # where df/dw is nonzero
         cd = coefficient_derivatives.ufl_operands
-        self._cd = {cd[2*i]: cd[2*i+1] for i in range(len(cd)//2)}
+        self._cd = {cd[2 * i]: cd[2 * i + 1] for i in range(len(cd) // 2)}
 
     # Explicitly defining dg/dw == 0
     geometric_quantity = GenericDerivativeRuleset.independent_terminal
@@ -829,7 +842,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                 rv = len(v.ufl_shape)
                 oi1 = oi[:-rv]
                 oi2 = oi[-rv:]
-                prod = so*v[oi2]
+                prod = so * v[oi2]
                 if oi1:
                     dosum += as_tensor(prod, oi1)
                 else:
@@ -912,14 +925,14 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             # Apply gradients directly to argument vval, and get the
             # right indexed scalar component(s)
             kk = indices(ngrads)
-            Dvkk = apply_grads(vval)[vcomp+kk]
+            Dvkk = apply_grads(vval)[vcomp + kk]
             # Place scalar component(s) Dvkk into the right tensor
             # positions
             if wshape:
                 Ejj, jj = unit_indexed_tensor(wshape, wcomp)
             else:
                 Ejj, jj = 1, ()
-            gprimeterm = as_tensor(Ejj*Dvkk, jj+kk)
+            gprimeterm = as_tensor(Ejj * Dvkk, jj + kk)
             return gprimeterm
 
         # Accumulate contributions from variations in different
@@ -1001,13 +1014,17 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                     rv = len(v.ufl_shape)
                     oi1 = oi[:-rv]
                     oi2 = oi[-rv:]
-                    prod = so*v[oi2]
+                    prod = so * v[oi2]
                     if oi1:
                         gprimesum += as_tensor(prod, oi1)
                     else:
                         gprimesum += prod
 
         return gprimesum
+
+    def coordinate_derivative(self, o):
+        o = o.ufl_operands
+        return CoordinateDerivative(map_expr_dag(self, o[0]), o[1], o[2], o[3])
 
 
 class DerivativeRuleDispatcher(MultiFunction):
@@ -1038,6 +1055,10 @@ class DerivativeRuleDispatcher(MultiFunction):
         dummy, w, v, cd = o.ufl_operands
         rules = GateauxDerivativeRuleset(w, v, cd)
         return map_expr_dag(rules, f)
+
+    def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
+        o_ = o.ufl_operands
+        return CoordinateDerivative(map_expr_dag(self, o_[0]), o_[1], o_[2], o_[3])
 
     def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
         # Reuse if untouched
@@ -1071,4 +1092,134 @@ class DerivativeRuleDispatcher(MultiFunction):
 
 def apply_derivatives(expression):
     rules = DerivativeRuleDispatcher()
+    return map_integrand_dags(rules, expression)
+
+
+class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
+    """Apply AFD (Automatic Functional Differentiation) to expression.
+
+    Implements rules for the Gateaux derivative D_w[v](...) defined as
+
+        D_w[v](e) = d/dtau e(w+tau v)|tau=0
+
+    where 'e' is a ufl form after pullback and w is a SpatialCoordinate.
+
+    """
+
+    def __init__(self, coefficients, arguments, coefficient_derivatives):
+        GenericDerivativeRuleset.__init__(self, var_shape=())
+
+        # Type checking
+        if not isinstance(coefficients, ExprList):
+            error("Expecting a ExprList of coefficients.")
+        if not isinstance(arguments, ExprList):
+            error("Expecting a ExprList of arguments.")
+        if not isinstance(coefficient_derivatives, ExprMapping):
+            error("Expecting a coefficient-coefficient ExprMapping.")
+
+        # The coefficient(s) to differentiate w.r.t. and the
+        # argument(s) s.t. D_w[v](e) = d/dtau e(w+tau v)|tau=0
+        self._w = coefficients.ufl_operands
+        self._v = arguments.ufl_operands
+        self._w2v = {w: v for w, v in zip(self._w, self._v)}
+
+        # Build more convenient dict {f: df/dw} for each coefficient f
+        # where df/dw is nonzero
+        cd = coefficient_derivatives.ufl_operands
+        self._cd = {cd[2 * i]: cd[2 * i + 1] for i in range(len(cd) // 2)}
+
+    # Explicitly defining dg/dw == 0
+    geometric_quantity = GenericDerivativeRuleset.independent_terminal
+
+    # Explicitly defining da/dw == 0
+    argument = GenericDerivativeRuleset.independent_terminal
+
+    def coefficient(self, o):
+        error("CoordinateDerivative of coefficient in physical space is not implemented.")
+
+    def grad(self, o):
+        error("CoordinateDerivative grad in physical space is not implemented.")
+
+    def spatial_coordinate(self, o):
+        do = self._w2v.get(o)
+        # d x /d x => Argument(x.function_space())
+        if do is not None:
+            return do
+        else:
+            error("Not implemented: CoordinateDerivative found a SpatialCoordinate that is different from the one being differentiated.")
+
+    def reference_value(self, o):
+        do = self._cd.get(o)
+        if do is not None:
+            return do
+        else:
+            return self.independent_terminal(o)
+
+    def reference_grad(self, g):
+        # d (grad_X(...(x)) / dx => grad_X(...(Argument(x.function_space()))
+        o = g
+        ngrads = 0
+        while isinstance(o, ReferenceGrad):
+            o, = o.ufl_operands
+            ngrads += 1
+        if not (isinstance(o, SpatialCoordinate) or isinstance(o.ufl_operands[0], FormArgument)):
+            error("Expecting gradient of a FormArgument, not %s" % ufl_err_str(o))
+
+        def apply_grads(f):
+            for i in range(ngrads):
+                f = ReferenceGrad(f)
+            return f
+
+        # Find o among all w without any indexing, which makes this
+        # easy
+        for (w, v) in zip(self._w, self._v):
+            if o == w and isinstance(v, ReferenceValue) and isinstance(v.ufl_operands[0], FormArgument):
+                # Case: d/dt [w + t v]
+                return apply_grads(v)
+        return self.independent_terminal(o)
+
+    def jacobian(self, o):
+        # d (grad_X(x))/d x => grad_X(Argument(x.function_space())
+        for (w, v) in zip(self._w, self._v):
+            if o.ufl_domain() == w.ufl_domain() and isinstance(v.ufl_operands[0], FormArgument):
+                return ReferenceGrad(v)
+        return self.independent_terminal(o)
+
+
+class CoordinateDerivativeRuleDispatcher(MultiFunction):
+    def __init__(self):
+        MultiFunction.__init__(self)
+
+    def terminal(self, o):
+        return o
+
+    def derivative(self, o):
+        error("Missing derivative handler for {0}.".format(type(o).__name__))
+
+    expr = MultiFunction.reuse_if_untouched
+
+    def grad(self, o):
+        return o
+
+    def reference_grad(self, o):
+        return o
+
+    def coefficient_derivative(self, o):
+        return o
+
+    def coordinate_derivative(self, o):
+        from ufl.algorithms import extract_unique_elements
+        spaces = set(c.family() for c in extract_unique_elements(o))
+        unsupported_spaces = {"Argyris", "Bell", "Hermite", "Morley"}
+        if spaces & unsupported_spaces:
+            error("CoordinateDerivative is not supported for elements of type %s. "
+                  "This is because their pullback is not implemented in UFL." % unsupported_spaces)
+        f, w, v, cd = o.ufl_operands
+        f = self(f)  # transform f
+        rules = CoordinateDerivativeRuleset(w, v, cd)
+        return map_expr_dag(rules, f)
+
+
+def apply_coordinate_derivatives(expression):
+    rules = CoordinateDerivativeRuleDispatcher()
     return map_integrand_dags(rules, expression)

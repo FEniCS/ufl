@@ -23,7 +23,7 @@ equivalent representations using basic operators."""
 
 from ufl.log import error
 
-from ufl.classes import Product, Grad
+from ufl.classes import Product, Grad, Conj
 from ufl.core.multiindex import indices, Index, FixedIndex
 from ufl.tensors import as_tensor, as_matrix, as_vector
 
@@ -36,6 +36,7 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 class LowerCompoundAlgebra(MultiFunction):
     """Expands high level compound operators (e.g. inner) to equivalent
     representations using basic operators (e.g. index notation)."""
+
     def __init__(self):
         MultiFunction.__init__(self)
 
@@ -87,16 +88,16 @@ class LowerCompoundAlgebra(MultiFunction):
         else:
             k = (Index(),)
         # Potentially creates a single IndexSum over a Product
-        s = a[ai+k]*b[k+bi]
-        return as_tensor(s, ai+bi)
+        s = a[ai + k] * b[k + bi]
+        return as_tensor(s, ai + bi)
 
     def dot(self, o, a, b):
-        ai = indices(len(a.ufl_shape)-1)
-        bi = indices(len(b.ufl_shape)-1)
+        ai = indices(len(a.ufl_shape) - 1)
+        bi = indices(len(b.ufl_shape) - 1)
         k = (Index(),)
         # Creates a single IndexSum over a Product
-        s = a[ai+k]*b[k+bi]
-        return as_tensor(s, ai+bi)
+        s = a[ai + k] * b[k + bi]
+        return as_tensor(s, ai + bi)
 
     def alternative_inner(self, o, a, b):  # TODO: Test this
         ash = a.ufl_shape
@@ -115,7 +116,7 @@ class LowerCompoundAlgebra(MultiFunction):
         ii = tuple(ii)
         # ii = indices(len(a.ufl_shape))
         # Potentially creates multiple IndexSums over a Product
-        s = a[ii]*b[ii]
+        s = a[ii] * Conj(b[ii])
         return s
 
     def inner(self, o, a, b):
@@ -125,15 +126,15 @@ class LowerCompoundAlgebra(MultiFunction):
             error("Nonmatching shapes.")
         ii = indices(len(ash))
         # Creates multiple IndexSums over a Product
-        s = a[ii]*b[ii]
+        s = a[ii] * Conj(b[ii])
         return s
 
     def outer(self, o, a, b):
         ii = indices(len(a.ufl_shape))
         jj = indices(len(b.ufl_shape))
         # Create a Product with no shared indices
-        s = a[ii]*b[jj]
-        return as_tensor(s, ii+jj)
+        s = Conj(a[ii]) * b[jj]
+        return as_tensor(s, ii + jj)
 
     def determinant(self, o, A):
         return determinant_expr(A)

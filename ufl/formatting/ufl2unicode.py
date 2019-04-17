@@ -13,6 +13,7 @@ from ufl.algorithms import compute_form_data
 
 class PrecedenceRules(MultiFunction):
     "An enum-like class for C operator precedence levels."
+
     def __init__(self):
         MultiFunction.__init__(self)
 
@@ -616,6 +617,16 @@ class Expression2UnicodeHandler(MultiFunction):
 
     def sym(self, o, A):
         return mathop(o, A, "sym")
+
+    def conj(self, o, a):
+        # Overbar is already taken for average, and there is no superscript asterix in unicode.
+        return mathop(o, a, "conj")
+
+    def real(self, o, a):
+        return mathop(o, a, "Re")
+
+    def imag(self, o, a):
+        return mathop(o, a, "Im")
 
     def list_tensor(self, o, *ops):
         l = ", ".join(ops)  # noqa: E741

@@ -182,6 +182,11 @@ class SpatialCoordinate(GeometricCellQuantity):
         else:
             return float(x[component[0]])
 
+    def count(self):
+        # FIXME: Hack to make SpatialCoordinate behave like a coefficient.
+        # When calling `derivative`, the count is used to sort over.
+        return -1
+
 
 @ufl_type()
 class CellCoordinate(GeometricCellQuantity):
@@ -230,7 +235,7 @@ class FacetCoordinate(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         t = self._domain.topological_dimension()
-        return (t-1,)
+        return (t - 1,)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -330,7 +335,7 @@ class FacetJacobian(GeometricFacetQuantity):
     def ufl_shape(self):
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
-        return (g, t-1)
+        return (g, t - 1)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -357,7 +362,7 @@ class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
     @property
     def ufl_shape(self):
         t = self._domain.topological_dimension()
-        return (t, t-1)
+        return (t, t - 1)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -573,7 +578,7 @@ class FacetJacobianInverse(GeometricFacetQuantity):
     def ufl_shape(self):
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
-        return (t-1, g)
+        return (t - 1, g)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -597,7 +602,7 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         t = self._domain.topological_dimension()
-        return (t-1, t)
+        return (t - 1, t)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."

@@ -46,7 +46,7 @@ class IndexSum(Operator):
         if not isinstance(index, MultiIndex):
             error("Expecting MultiIndex instance, got %s" % ufl_err_str(index))
         if len(index) != 1:
-            error("Expecting a single Index onlym got %d." % len(index))
+            error("Expecting a single Index but got %d." % len(index))
 
         # Simplification to zero
         if isinstance(summand, Zero):
@@ -55,8 +55,8 @@ class IndexSum(Operator):
             fi = summand.ufl_free_indices
             fid = summand.ufl_index_dimensions
             pos = fi.index(j.count())
-            fi = fi[:pos] + fi[pos+1:]
-            fid = fid[:pos] + fid[pos+1:]
+            fi = fi[:pos] + fi[pos + 1:]
+            fid = fid[:pos] + fid[pos + 1:]
             return Zero(sh, fi, fid)
 
         return Operator.__new__(cls)
@@ -67,8 +67,8 @@ class IndexSum(Operator):
         fid = summand.ufl_index_dimensions
         pos = fi.index(j.count())
         self._dimension = fid[pos]
-        self.ufl_free_indices = fi[:pos] + fi[pos+1:]
-        self.ufl_index_dimensions = fid[:pos] + fid[pos+1:]
+        self.ufl_free_indices = fi[:pos] + fi[pos + 1:]
+        self.ufl_index_dimensions = fid[:pos] + fid[pos + 1:]
         Operator.__init__(self, (summand, index))
 
     def index(self):

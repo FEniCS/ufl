@@ -183,7 +183,7 @@ def _mult(a, b):
 
 # --- Extend Expr with algebraic operators ---
 
-_valid_types = (Expr, numbers.Real, numbers.Integral)
+_valid_types = (Expr, numbers.Real, numbers.Integral, numbers.Complex)
 
 
 def _mul(self, o):
@@ -293,7 +293,7 @@ Expr.__rpow__ = _rpow
 
 # TODO: Add Negated class for this? Might simplify reductions in Add.
 def _neg(self):
-    return -1*self
+    return -1 * self
 
 
 Expr.__neg__ = _neg

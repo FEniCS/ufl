@@ -108,7 +108,7 @@ def split(v):
         elif rank <= 1:
             subv = as_vector(components)
         elif rank == 2:
-            subv = as_matrix([components[i*shape[1]: (i+1)*shape[1]]
+            subv = as_matrix([components[i * shape[1]: (i + 1) * shape[1]]
                               for i in range(shape[0])])
         else:
             error("Don't know how to split functions with sub functions of rank %d." % rank)

@@ -13,13 +13,13 @@ def x1():
 
 @pytest.fixture
 def x2():
-    x = x1()
+    x = SpatialCoordinate(triangle)
     return outer(x, x)
 
 
 @pytest.fixture
 def x3():
-    x = x1()
+    x = SpatialCoordinate(triangle)
     return outer(outer(x, x), x)
 
 

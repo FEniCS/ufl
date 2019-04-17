@@ -336,6 +336,14 @@ class Expr(object):
             v = NotImplemented
         return v
 
+    def __complex__(self):
+        "Try to evaluate as scalar and cast to complex."
+        try:
+            v = complex(self._ufl_evaluate_scalar_())
+        except TypeError:
+            v = NotImplemented
+        return v
+
     def __bool__(self):
         "By default, all Expr are nonzero/False."
         return True
@@ -382,14 +390,6 @@ class Expr(object):
         "Return a short string to represent this Expr in an error message."
         return "<%s id=%d>" % (self._ufl_class_.__name__, id(self))
 
-    def _repr_latex_(self):
-        from ufl.algorithms import ufl2latex
-        return "$%s$" % ufl2latex(self)
-
-    def _repr_png_(self):
-        from IPython.lib.latextools import latex_to_png
-        return latex_to_png(self._repr_latex_())
-
     # --- Special functions used for processing expressions ---
 
     def __eq__(self, other):
@@ -420,7 +420,15 @@ class Expr(object):
 
     def __round__(self, n=None):
         "Round to nearest integer or to nearest nth decimal."
-        return round(float(self), n)
+        try:
+            val = float(self._ufl_evaluate_scalar_())
+            val = round(val, n)
+        except TypeError:
+            val = complex(self._ufl_evaluate_scalar_())
+            val = round(val.real, n) + round(val.imag, n) * 1j
+        except TypeError:
+            val = NotImplemented
+        return val
 
     # --- Deprecated functions
 

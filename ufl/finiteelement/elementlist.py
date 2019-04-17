@@ -125,8 +125,9 @@ register_element("Raviart-Thomas", "RT", 1, HDiv, "contravariant Piola",
                  (1, None), simplices[1:])   # "RTF"  (2d), "N1F" (3d)
 
 # Elements not in the periodic table
-register_element("Argyris", "ARG", 0, H2, "identity", (1, None), simplices[1:])
+register_element("Argyris", "ARG", 0, H2, "identity", (5, 5), ("triangle",))
 register_element("Arnold-Winther", "AW", 0, H1, "identity", None, ("triangle",))
+register_element("Bell", "BELL", 0, H2, "identity", (5, 5), ("triangle",))
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, HDiv,
                  "contravariant Piola", (1, None), simplices[1:])
 register_element("Crouzeix-Raviart", "CR", 0, L2, "identity", (1, 1),
@@ -134,15 +135,16 @@ register_element("Crouzeix-Raviart", "CR", 0, L2, "identity", (1, 1),
 # TODO: Implement generic Tear operator for elements instead of this:
 register_element("Discontinuous Raviart-Thomas", "DRT", 1, L2,
                  "contravariant Piola", (1, None), simplices[1:])
-register_element("Hermite", "HER", 0, H1, "identity", None, simplices[1:])
+register_element("Hermite", "HER", 0, H1, "identity", (3, 3), simplices)
 register_element("Mardal-Tai-Winther", "MTW", 0, H1, "identity", None,
                  ("triangle",))
-register_element("Morley", "MOR", 0, H2, "identity", None, ("triangle",))
+register_element("Morley", "MOR", 0, H2, "identity", (2, 2), ("triangle",))
 
 # Special elements
 register_element("Boundary Quadrature", "BQ", 0, L2, "identity", (0, None),
                  any_cell)
 register_element("Bubble", "B", 0, H1, "identity", (2, None), simplices)
+register_element("FacetBubble", "FB", 0, H1, "identity", (2, None), simplices)
 register_element("Quadrature", "Quadrature", 0, L2, "identity", (0, None),
                  any_cell)
 register_element("Real", "R", 0, L2, "identity", (0, 0),
@@ -163,6 +165,8 @@ register_alias("Lobatto",
                lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
 register_alias("Lob",
                lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
+
+register_element2("Bernstein", 0, H1, "identity", (1, None), simplices)
 
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
