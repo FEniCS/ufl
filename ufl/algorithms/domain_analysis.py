@@ -161,7 +161,7 @@ def integral_subdomain_ids(integral):
         error("Invalid domain id %s." % did)
 
 
-def rearrange_integrals_by_single_subdomains(integrals):
+def rearrange_integrals_by_single_subdomains(integrals, do_append_everywhere_integrals):
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
     Input:
@@ -197,14 +197,14 @@ def rearrange_integrals_by_single_subdomains(integrals):
     otherwise_integrals = []
     for ev_itg in everywhere_integrals:
         # Restrict everywhere integral to 'otherwise'
-        otherwise_integrals.append(
-            ev_itg.reconstruct(subdomain_id="otherwise"))
+        otherwise_integrals.append(ev_itg.reconstruct(subdomain_id="otherwise"))
 
         # Restrict everywhere integral to each subdomain
         # and append to each integral list
-        for subdomain_id in sorted(single_subdomain_integrals.keys()):
-            single_subdomain_integrals[subdomain_id].append(
-                ev_itg.reconstruct(subdomain_id=subdomain_id))
+        if do_append_everywhere_integrals:
+            for subdomain_id in sorted(single_subdomain_integrals.keys()):
+                single_subdomain_integrals[subdomain_id].append(
+                    ev_itg.reconstruct(subdomain_id=subdomain_id))
 
     if otherwise_integrals:
         single_subdomain_integrals["otherwise"] = otherwise_integrals
@@ -281,7 +281,7 @@ def build_integral_data(integrals):
     return integral_datas
 
 
-def group_form_integrals(form, domains):
+def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
     """Group integrals by domain and type, performing canonical simplification.
 
     :arg form: the :class:`~.Form` to group the integrals of.
@@ -305,7 +305,7 @@ def group_form_integrals(form, domains):
             # (note: before this call, 'everywhere' is a valid subdomain_id,
             # and after this call, 'otherwise' is a valid subdomain_id)
             single_subdomain_integrals = \
-                rearrange_integrals_by_single_subdomains(ddt_integrals)
+                rearrange_integrals_by_single_subdomains(ddt_integrals, do_append_everywhere_integrals)
 
             for subdomain_id, ss_integrals in sorted_by_key(single_subdomain_integrals):
 
