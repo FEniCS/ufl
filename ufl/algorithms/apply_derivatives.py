@@ -320,14 +320,13 @@ class GenericDerivativeRuleset(MultiFunction):
         result = Zero(o.ufl_shape)
         for i, df in enumerate(dfs):
             shape = o.ufl_shape + df.ufl_shape
-            derivatives = tuple(di + int(i == j) for j, di in enumerate(o.deriv_index))
-            nl = o._ufl_expr_reconstruct_(*o.ufl_operands, eval_space=o.eval_space, derivatives=derivatives, shape=shape)
+            derivatives = tuple(di + int(i == j) for j, di in enumerate(o.derivatives))
+            nl = o._ufl_expr_reconstruct_(*o.ufl_operands, eval_space=o._ufl_function_space, derivatives=derivatives, shape=shape, count=o._count)
             mi = indices(len(shape))
             extop = df[mi[len(o.ufl_shape):]] * nl[mi]
             if len(o.ufl_shape):
                 extop = ComponentTensor(extop, MultiIndex(mi[:len(o.ufl_shape)]))
             result += extop
-
         return result
 
     # --- Mathfunctions

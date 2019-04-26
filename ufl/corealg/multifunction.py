@@ -116,7 +116,10 @@ class MultiFunction(object):
         if all(a is b for a, b in zip(o.ufl_operands, ops)):
             return o
         else:
-            return o._ufl_expr_reconstruct_(*ops)
+            if hasattr(o, 'point_expr'):
+                return o._ufl_expr_reconstruct_(*ops, eval_space=o._ufl_function_space, derivatives=o.derivatives, shape=o.ufl_shape, count=o._count, point_expr=o.point_expr)
+            else:
+                return o._ufl_expr_reconstruct_(*ops)
 
     # Set default behaviour for any Expr as undefined
     expr = undefined
