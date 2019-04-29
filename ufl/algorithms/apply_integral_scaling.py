@@ -22,6 +22,8 @@ from ufl.log import error
 from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
 from ufl.measure import custom_integral_types, point_integral_types
 from ufl.differentiation import CoordinateDerivative
+from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
+from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 
 
 def compute_integrand_scaling_factor(integral):
@@ -34,14 +36,22 @@ def compute_integrand_scaling_factor(integral):
     tdim = domain.topological_dimension()
     # gdim = domain.geometric_dimension()
 
+    # Polynomial degree of integrand scaling
+    degree = 0
     if integral_type == "cell":
-        scale = abs(JacobianDeterminant(domain)) * weight
+        detJ = JacobianDeterminant(domain)
+        degree = estimate_total_polynomial_degree(apply_geometry_lowering(detJ))
+        # Despite the abs, |detJ| is polynomial except for
+        # self-intersecting cells, where we have other problems.
+        scale = abs(detJ) * weight
 
     elif integral_type.startswith("exterior_facet"):
         if tdim > 1:
             # Scaling integral by facet jacobian determinant and
             # quadrature weight
-            scale = FacetJacobianDeterminant(domain) * weight
+            detFJ = FacetJacobianDeterminant(domain)
+            degree = estimate_total_polynomial_degree(apply_geometry_lowering(detFJ))
+            scale = detFJ * weight
         else:
             # No need to scale 'integral' over a vertex
             scale = 1
@@ -50,7 +60,9 @@ def compute_integrand_scaling_factor(integral):
         if tdim > 1:
             # Scaling integral by facet jacobian determinant from one
             # side and quadrature weight
-            scale = FacetJacobianDeterminant(domain)('+') * weight
+            detFJ = FacetJacobianDeterminant(domain)
+            degree = estimate_total_polynomial_degree(apply_geometry_lowering(detFJ))
+            scale = detFJ('+') * weight
         else:
             # No need to scale 'integral' over a vertex
             scale = 1
@@ -67,7 +79,7 @@ def compute_integrand_scaling_factor(integral):
     else:
         error("Unknown integral type {}, don't know how to scale.".format(integral_type))
 
-    return scale
+    return scale, degree
 
 
 def apply_integral_scaling(form):
@@ -85,7 +97,21 @@ def apply_integral_scaling(form):
         # Compute and apply integration scaling factor since we want to compute
         # coordinate derivatives at the end, the scaling factor has to be moved
         # inside those
-        scale = compute_integrand_scaling_factor(integral)
+        scale, degree = compute_integrand_scaling_factor(integral)
+        md = {}
+        md.update(integral.metadata())
+        new_degree = degree
+        cur_degree = md.get("estimated_polynomial_degree")
+        if cur_degree is not None:
+            if isinstance(cur_degree, tuple) and isinstance(degree, tuple):
+                new_degree = tuple(d[0] + d[1] for d in zip(cur_degree, degree))
+            elif isinstance(cur_degree, tuple):
+                new_degree = tuple(d + degree for d in cur_degree)
+            elif isinstance(degree, tuple):
+                new_degree = tuple(cur_degree + d for d in degree)
+            else:
+                new_degree = cur_degree + degree
+        md["estimated_polynomial_degree"] = new_degree
 
         def scale_coordinate_derivative(o, scale):
             o_ = o.ufl_operands
@@ -94,7 +120,7 @@ def apply_integral_scaling(form):
             else:
                 return scale * o
         newintegrand = scale_coordinate_derivative(integrand, scale)
-        return integral.reconstruct(integrand=newintegrand)
+        return integral.reconstruct(integrand=newintegrand, metadata=md)
 
     else:
         error("Invalid type %s" % (form.__class__.__name__,))

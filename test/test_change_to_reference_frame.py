@@ -51,8 +51,8 @@ def change_integral_to_reference_frame(form, context):
         integrand = change_to_reference_frame(integral.integrand())
 
         # Compute and apply integration scaling factor
-        scale = compute_integrand_scaling_factor(integral.ufl_domain(),
-                                                 integral.integral_type())
+        scale, degree = compute_integrand_scaling_factor(integral.ufl_domain(),
+                                                         integral.integral_type())
 
         return integral.reconstruct(integrand * scale)  # TODO: , reference=True)
 
