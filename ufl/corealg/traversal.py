@@ -37,10 +37,10 @@ def pre_traversal(expr):
         stacksize -= 1
         expr = stack[stacksize]
         yield expr
-        for op in expr.ufl_operands:
-            stack[stacksize] = op
-            stacksize += 1
-
+        if not expr._ufl_is_terminal_ :
+            for op in expr.ufl_operands:
+                stack[stacksize] = op
+                stacksize += 1
 
 def post_traversal(expr):
     """Yield ``o`` for each node ``o`` in *expr*, child before parent."""

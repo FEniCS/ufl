@@ -5,7 +5,7 @@ from ufl.constantvalue import as_ufl
 from ufl.log import error
 
 
-@ufl_type(inherit_indices_from_operand=0, is_terminal=False, is_terminal_modifier=True, is_differential=True)
+@ufl_type(inherit_indices_from_operand=0, is_terminal=True, is_differential=True)
 class ExternalOperator(Coefficient):
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
