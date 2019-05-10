@@ -361,9 +361,6 @@ class TensorElement(MixedElement):
             # Create scalar sub element
             sub_element = FiniteElement(family, cell, degree, quad_scheme=quad_scheme)
 
-        if sub_element.value_shape() != ():
-            error("Expecting only scalar valued subelement for TensorElement.")
-
         # Set default shape if not specified
         if shape is None:
             if cell is None:
@@ -424,6 +421,8 @@ class TensorElement(MixedElement):
             reference_value_shape = shape
             self._mapping = "identity"
 
+        value_shape = value_shape + sub_element.value_shape()
+        reference_value_shape = reference_value_shape + sub_element.reference_value_shape()
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape,
                               reference_value_shape=reference_value_shape)
