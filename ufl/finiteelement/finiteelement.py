@@ -125,6 +125,13 @@ class FiniteElement(FiniteElementBase):
                                               for c in cell.sub_cells()],
                                             cell=cell)
 
+            elif family == "DQ L2":
+                def dq_family_l2(cell):
+                    return "DG L2" if cell.cellname() in simplices else "DQ L2"
+                return TensorProductElement(*[FiniteElement(dq_family_l2(c), c, degree, variant=variant)
+                                              for c in cell.sub_cells()],
+                                            cell=cell)
+
         return super(FiniteElement, cls).__new__(cls)
 
     def __init__(self,
