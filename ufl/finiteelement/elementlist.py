@@ -259,7 +259,6 @@ register_alias("Q- L2", lambda family, dim, order,
                degree: feec_element_l2(family, dim, order, degree))
 
 
-
 def feec_element(family, n, r, k):
     """Finite element exterior calculus notation
     n = topological dimension of domain
@@ -305,7 +304,8 @@ def feec_element(family, n, r, k):
 
     return family, r
 
-def feec_element(family, n, r, k):
+
+def feec_element_l2(family, n, r, k):
     """Finite element exterior calculus notation
     n = topological dimension of domain
     r = polynomial order
@@ -350,6 +350,7 @@ def feec_element(family, n, r, k):
 
     return family, r
 
+
 # General FEEC notation, old verbose (can be removed)
 register_alias("P- Lambda", lambda family, dim, order,
                degree: feec_element(family, dim, order, degree))
@@ -365,8 +366,6 @@ register_alias("P-", lambda family, dim, order,
                degree: feec_element(family, dim, order, degree))
 register_alias("Q-", lambda family, dim, order,
                degree: feec_element(family, dim, order, degree))
-
-
 
 
 def canonical_element_description(family, cell, order, form_degree):
