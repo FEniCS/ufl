@@ -241,6 +241,25 @@ register_element("Gauss-Legendre L2", "GL L2", 0, L2, "L2 Piola", (0, None),
 register_element("Discontinuous Lagrange L2", "DG L2", 0, L2, "L2 Piola", (0, None),
                  any_cell)  # "DP"
 
+register_alias("DP L2", lambda family, dim, order,
+               degree: ("Discontinuous Lagrange L2", order))
+
+register_alias("P- Lambda L2", lambda family, dim, order,
+               degree: feec_element_l2(family, dim, order, degree))
+register_alias("P Lambda L2", lambda family, dim, order,
+               degree: feec_element_l2(family, dim, order, degree))
+register_alias("Q- Lambda L2", lambda family, dim, order,
+               degree: feec_element_l2(family, dim, order, degree))
+register_alias("S Lambda L2", lambda family, dim, order,
+               degree: feec_element_l2(family, dim, order, degree))
+
+register_alias("P- L2", lambda family, dim, order,
+               degree: feec_element_l2(family, dim, order, degree))
+register_alias("Q- L2", lambda family, dim, order,
+               degree: feec_element_l2(family, dim, order, degree))
+
+
+
 def feec_element(family, n, r, k):
     """Finite element exterior calculus notation
     n = topological dimension of domain
@@ -286,6 +305,50 @@ def feec_element(family, n, r, k):
 
     return family, r
 
+def feec_element(family, n, r, k):
+    """Finite element exterior calculus notation
+    n = topological dimension of domain
+    r = polynomial order
+    k = form_degree"""
+
+    # Note: We always map to edge elements in 2D, don't know how to
+    # differentiate otherwise?
+
+    # Mapping from (feec name, domain dimension, form degree) to
+    # (family name, polynomial order)
+    _feec_elements = {
+        "P- Lambda L2": (
+            (("P", r), ("DP L2", r - 1)),
+            (("P", r), ("RTE", r), ("DP L2", r - 1)),
+            (("P", r), ("N1E", r), ("N1F", r), ("DP L2", r - 1)),
+        ),
+        "P Lambda L2": (
+            (("P", r), ("DP L2", r)),
+            (("P", r), ("BDME", r), ("DP L2", r)),
+            (("P", r), ("N2E", r), ("N2F", r), ("DP L2", r)),
+        ),
+        "Q- Lambda L2": (
+            (("Q", r), ("DQ L2", r - 1)),
+            (("Q", r), ("RTCE", r), ("DQ L2", r - 1)),
+            (("Q", r), ("NCE", r), ("NCF", r), ("DQ L2", r - 1)),
+        ),
+        "S Lambda L2": (
+            (("S", r), ("DPC L2", r)),
+            (("S", r), ("BDMCE", r), ("DPC L2", r)),
+            (("S", r), ("AAE", r), ("AAF", r), ("DPC L2", r)),
+        ),
+    }
+
+    # New notation, old verbose notation (including "Lambda") might be
+    # removed
+    _feec_elements["P- L2"] = _feec_elements["P- Lambda L2"]
+    _feec_elements["P L2"] = _feec_elements["P Lambda L2"]
+    _feec_elements["Q- L2"] = _feec_elements["Q- Lambda L2"]
+    _feec_elements["S L2"] = _feec_elements["S Lambda L2"]
+
+    family, r = _feec_elements[family][n - 1][k]
+
+    return family, r
 
 # General FEEC notation, old verbose (can be removed)
 register_alias("P- Lambda", lambda family, dim, order,
@@ -302,6 +365,8 @@ register_alias("P-", lambda family, dim, order,
                degree: feec_element(family, dim, order, degree))
 register_alias("Q-", lambda family, dim, order,
                degree: feec_element(family, dim, order, degree))
+
+
 
 
 def canonical_element_description(family, cell, order, form_degree):
@@ -332,6 +397,9 @@ def canonical_element_description(family, cell, order, form_degree):
     if form_degree is not None and family in ("P", "S"):
         family, order = feec_element(family, tdim, order, form_degree)
 
+    if form_degree is not None and family in ("P L2", "S L2"):
+        family, order = feec_element_l2(family, tdim, order, form_degree)
+
     # Check whether this family is an alias for something else
     while family in aliases:
         if tdim is None:
@@ -354,6 +422,10 @@ def canonical_element_description(family, cell, order, form_degree):
             if order >= 1:
                 warning("Discontinuous Lagrange element requested on %s, creating DQ element." % cell.cellname())
             family = "DQ"
+        elif family == "Discontinuous Lagrange L2":
+            if order >= 1:
+                warning("Discontinuous Lagrange L2 element requested on %s, creating DQ L2 element." % cell.cellname())
+            family = "DQ L2"
 
     # Validate cellname if a valid cell is specified
     if not (cellname is None or cellname in cellnames):
