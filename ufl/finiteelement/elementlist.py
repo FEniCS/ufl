@@ -233,6 +233,13 @@ register_alias("N2E", lambda family, dim, order,
 register_alias("N2F", lambda family, dim, order,
                degree: ("Brezzi-Douglas-Marini", order))
 
+# discontinuous elements using l2 pullbacks
+register_element2("DPC L2", 0, L2, "L2 Piola", (1, None), cubes)
+register_element2("DQ L2", 0, L2, "L2 Piola", (0, None), cubes)
+register_element("Gauss-Legendre L2", "GL L2", 0, L2, "L2 Piola", (0, None),
+                 ("interval",))
+register_element("Discontinuous Lagrange L2", "DG L2", 0, L2, "L2 Piola", (0, None),
+                 any_cell)  # "DP"
 
 def feec_element(family, n, r, k):
     """Finite element exterior calculus notation
