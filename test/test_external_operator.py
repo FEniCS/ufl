@@ -27,7 +27,7 @@ def test_properties(self, cell):
     v = Coefficient(S)
     r = Coefficient(S)
 
-    nl = ExternalOperator(u, r, eval_space=S)
+    nl = ExternalOperator(u, r, function_space=S)
 
     domain = default_domain(cell)
     space = FunctionSpace(domain, S)
@@ -38,7 +38,7 @@ def test_properties(self, cell):
     assert nl.derivatives == (0, 0)
     assert nl.ufl_shape == ()
 
-    nl2 = ExternalOperator(u, r, eval_space=S, derivatives=(3, 4), shape = (2,))
+    nl2 = ExternalOperator(u, r, function_space=S, derivatives=(3, 4), shape = (2,))
     assert nl2.derivatives == (3, 4)
     assert nl2.ufl_shape == (2,)
 
@@ -72,23 +72,23 @@ def _test_multivariable(f, df1, df2, df3):
 
 def testVariable():
     def f(v, space):
-        return ExternalOperator(v, eval_space=space)
+        return ExternalOperator(v, function_space=space)
 
     def df(v, space):
         e = f(v, space)
-        nl = e._ufl_expr_reconstruct_(v, derivatives=(1,), eval_space=space, count=e._count - 1)
+        nl = e._ufl_expr_reconstruct_(v, derivatives=(1,), function_space=space, count=e._count - 1)
         return as_ufl(nl)
 
     def df2(v, space):
         e = f(v, space)
-        nl = e._ufl_expr_reconstruct_(v, derivatives=(2,), eval_space=space, count=e._count - 2)
+        nl = e._ufl_expr_reconstruct_(v, derivatives=(2,), function_space=space, count=e._count - 2)
         return as_ufl(nl)
     _test(f, df)
     _test(df, df2)
 
 def testProduct():
     def g(v, space):
-        nl = ExternalOperator(v, eval_space=space)
+        nl = ExternalOperator(v, function_space=space)
         return nl
 
     def f(v,space):
@@ -96,15 +96,15 @@ def testProduct():
 
     def df(v, space):
         e = g(v, space)
-        nl = e._ufl_expr_reconstruct_(v, derivatives=(1,), eval_space=space, count=e._count-1)
+        nl = e._ufl_expr_reconstruct_(v, derivatives=(1,), function_space=space, count=e._count-1)
         return as_ufl(3*nl)
     _test(f, df)
 
 def testProductExternalOperator():
     cst = 2.0
     def g(v, space):
-        nl = ExternalOperator(cst*v, eval_space=space)
-        nl2 = ExternalOperator(v, derivatives=(1,), eval_space=space)
+        nl = ExternalOperator(cst*v, function_space=space)
+        nl2 = ExternalOperator(v, derivatives=(1,), function_space=space)
         return nl, nl2
 
     def f(v, space):
@@ -118,34 +118,34 @@ def testProductExternalOperator():
         e1 = gg[0]
         e2 = gg[1]
 
-        nl = e1._ufl_expr_reconstruct_(cst*v, eval_space=space, count=e1._count-2)
-        nl2 = e2._ufl_expr_reconstruct_(v,derivatives=(1,), eval_space=space, count=e2._count-2)
-        dnl = cst*e1._ufl_expr_reconstruct_(cst*v,derivatives=(1,), eval_space=space, count=e1._count-2)
-        dnl2 = e2._ufl_expr_reconstruct_(v,derivatives=(2,), eval_space=space, count=e2._count-2)
+        nl = e1._ufl_expr_reconstruct_(cst*v, function_space=space, count=e1._count-2)
+        nl2 = e2._ufl_expr_reconstruct_(v,derivatives=(1,), function_space=space, count=e2._count-2)
+        dnl = cst*e1._ufl_expr_reconstruct_(cst*v,derivatives=(1,), function_space=space, count=e1._count-2)
+        dnl2 = e2._ufl_expr_reconstruct_(v,derivatives=(2,), function_space=space, count=e2._count-2)
 
         return as_ufl(dnl*nl2+dnl2*nl)
     _test(f, df)
 
 def testmultiVariable():
     def g(v1, v2, v3, space):
-        return ExternalOperator(v1, v2, v3, eval_space=space)
+        return ExternalOperator(v1, v2, v3, function_space=space)
     def f(v1, v2, v3, space):
         return cos(v1)*sin(v2)*g(v1, v2, v3, space)
     def df1(v1, v2, v3, space):
         r = g(v1, v2, v3, space)
-        g1 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 0, 0), eval_space=space, count=r._count-1)
-        g2 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(1, 0, 0), eval_space=space, count=r._count-1)
+        g1 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 0, 0), function_space=space, count=r._count-1)
+        g2 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(1, 0, 0), function_space=space, count=r._count-1)
         nl =  - sin(v1)*sin(v2)*g1 + cos(v1)*sin(v2)*g2
         return as_ufl(nl)
     def df2(v1, v2, v3, space):
         r = g(v1,v2,v3,space)
-        g1 = r._ufl_expr_reconstruct_(v1, v2, v3,derivatives=(0, 0, 0), eval_space=space, count=r._count-1)
-        g2 = r._ufl_expr_reconstruct_(v1, v2, v3,derivatives=(0, 1, 0), eval_space=space, count=r._count-1)
+        g1 = r._ufl_expr_reconstruct_(v1, v2, v3,derivatives=(0, 0, 0), function_space=space, count=r._count-1)
+        g2 = r._ufl_expr_reconstruct_(v1, v2, v3,derivatives=(0, 1, 0), function_space=space, count=r._count-1)
         nl = cos(v2)*cos(v1)*g1 + cos(v1)*sin(v2)*g2
         return as_ufl(nl)
     def df3(v1, v2, v3, space):
         r = g(v1, v2, v3, space)
-        g1 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 0, 1), eval_space=space, count=r._count-1)
+        g1 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 0, 1), function_space=space, count=r._count-1)
         nl = cos(v1)*sin(v2)*g1
         return as_ufl(nl)
     _test_multivariable(f, df1, df2, df3)
@@ -159,11 +159,11 @@ def test_form(self):
     u_hat = Coefficient(V)
     v = TestFunction(V)
 
-    nl = ExternalOperator(u, m, eval_space=P)
+    nl = ExternalOperator(u, m, function_space=P)
     a = nl * v
     actual = derivative(a, u, u_hat)
 
     dnl_du = nl
-    dnl_du = nl._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), eval_space=P, count=nl._count) 
+    dnl_du = nl._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), function_space=P, count=nl._count)
     expected = u_hat*dnl_du*v
     assert apply_derivatives(actual) == expected

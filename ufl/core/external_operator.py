@@ -13,7 +13,7 @@ class ExternalOperator(Coefficient):
     # __slots__ = as_native_strings(("ufl_operands", "_ufl_function_space", "derivatives", "_ufl_shape"))
     _ufl_noslots_ = True
 
-    def __init__(self, *operands, eval_space, derivatives=None, shape=None, count=None):
+    def __init__(self, *operands, function_space, derivatives=None, shape=None, count=None):
 
         # Check operands
         for i in operands:
@@ -21,7 +21,7 @@ class ExternalOperator(Coefficient):
 
         self.ufl_operands = operands
 
-        Coefficient.__init__(self, eval_space, count)
+        Coefficient.__init__(self, function_space, count)
         self._ufl_shape = ()
 
         # Checks
@@ -44,9 +44,12 @@ class ExternalOperator(Coefficient):
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def _ufl_expr_reconstruct_(self, *operands, eval_space=None, derivatives=None, shape=None, count=None):
+    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, shape=None, count=None):
         "Return a new object of the same type with new operands."
-        return self._ufl_class_(*operands, eval_space=eval_space, derivatives=derivatives, shape=shape, count=count)
+        return self._ufl_class_(*operands, function_space=function_space or self._ufl_function_space,
+                                derivatives=derivatives or self.derivatives,
+                                shape=shape or self._ufl_shape,
+                                count=count or self._count)
 
     def __str__(self):
         "Default repr string construction for ExternalOperator operators."

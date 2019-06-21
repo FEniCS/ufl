@@ -316,17 +316,28 @@ class GenericDerivativeRuleset(MultiFunction):
         # Checks
         if not isinstance(o, ExternalOperator):
             error("Expecting ExternalOperator argument")
+        if hasattr(o, '_control'):
+            if dfs[o._control] != 0:
+                from ufl.log import ControlDifferentiationError
+                exception = ControlDifferentiationError(o, dfs[o._control])
+                exception.message()
 
-        result = Zero(o.ufl_shape)
         for i, df in enumerate(dfs):
-            shape = o.ufl_shape + df.ufl_shape
-            derivatives = tuple(di + int(i == j) for j, di in enumerate(o.derivatives))
-            nl = o._ufl_expr_reconstruct_(*o.ufl_operands, eval_space=o._ufl_function_space, derivatives=derivatives, shape=shape, count=o._count)
-            mi = indices(len(shape))
-            extop = df[mi[len(o.ufl_shape):]] * nl[mi]
-            if len(o.ufl_shape):
-                extop = ComponentTensor(extop, MultiIndex(mi[:len(o.ufl_shape)]))
-            result += extop
+            o_rank = len(o.ufl_shape)
+            df_rank = len(df.ufl_shape)
+            f_rank = len(o.ufl_operands[i].ufl_shape)
+
+            o_new_shape = o.ufl_shape + o.ufl_operands[i].ufl_shape
+            derivatives = tuple(dj + int(i == j) for j, dj in enumerate(o.derivatives))
+            o_new = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives, shape=o_new_shape)
+            mi = indices(o_rank + df_rank)
+            extop = df[mi[o_rank:]] * o_new[mi[:o_rank + f_rank]]
+            if len(extop.ufl_free_indices):
+                extop = ComponentTensor(extop, MultiIndex(mi[-len(extop.ufl_free_indices):]))
+            if i == 0:
+                result = extop
+            else:
+                result += extop
         return result
 
     # --- Mathfunctions
