@@ -86,8 +86,8 @@ class TensorProductElement(FiniteElementBase):
     def mapping(self):
         if all(e.mapping() == "identity" for e in self._sub_elements):
             return "identity"
-        elif all(e.mapping() == "l2 Piola" for e in self._sub_elements):
-            return "l2 Piola"
+        elif all(e.mapping() == "L2 Piola" for e in self._sub_elements):
+            return "L2 Piola"
         else:
             return "undefined"
 
