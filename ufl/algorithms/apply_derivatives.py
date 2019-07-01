@@ -316,11 +316,12 @@ class GenericDerivativeRuleset(MultiFunction):
         # Checks
         if not isinstance(o, ExternalOperator):
             error("Expecting ExternalOperator argument")
-        if hasattr(o, '_control'):
-            if dfs[o._control] != 0:
-                from ufl.log import ControlDifferentiationError
-                exception = ControlDifferentiationError(o, dfs[o._control])
-                exception.message()
+        if hasattr(o, '_controls'):
+            for index_control in o._controls:
+                if dfs[index_control] != 0:
+                    from ufl.log import ControlDifferentiationError
+                    exception = ControlDifferentiationError(o, index_control, dfs[index_control])
+                    exception.message()
 
         for i, df in enumerate(dfs):
             o_rank = len(o.ufl_shape)
@@ -742,6 +743,13 @@ class VariableRuleset(GenericDerivativeRuleset):
             # df/v = 0
             return self.independent_terminal(o)
 
+    def external_operator(self, o, *dfs):
+        d_coeff = self.coefficient(o)
+        if d_coeff == 0:
+            return GenericDerivativeRuleset.external_operator(self, o, *dfs)
+        else:
+            return d_coeff
+
     def variable(self, o, df, l):
         v = self._variable
         if isinstance(v, Variable) and v.label() == l:
@@ -836,7 +844,6 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     def coefficient(self, o):
         # Define dw/dw := d/ds [w + s v] = v
-
         # Return corresponding argument if we can find o among w
         do = self._w2v.get(o)
         if do is not None:
@@ -877,6 +884,13 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                 else:
                     dosum += prod
             return dosum
+
+    def external_operator(self, o, *dfs):
+        d_coeff = self.coefficient(o)
+        if d_coeff == 0:
+            return GenericDerivativeRuleset.external_operator(self, o, *dfs)
+        else:
+            return d_coeff
 
     def reference_value(self, o):
         error("Currently no support for ReferenceValue in CoefficientDerivative.")

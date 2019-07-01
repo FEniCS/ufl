@@ -31,6 +31,7 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
+from ufl.core.external_operator import ExternalOperator
 
 
 # TODO: Some of these can possibly be optimised by implementing
@@ -66,9 +67,16 @@ def extract_type(a, ufl_type):
     The argument a can be a Form, Integral or Expr."""
     if issubclass(ufl_type, Terminal):
         # Optimization
-        return set(o for e in iter_expressions(a)
-                   for o in traverse_unique_terminals(e)
-                   if isinstance(o, ufl_type))
+        objects = set(o for e in iter_expressions(a)
+                      for o in traverse_unique_terminals(e)
+                      if isinstance(o, ufl_type))
+        if ufl_type in (Coefficient, FormArgument):
+            extop_ufl_coeffs = tuple(cj for o in objects
+                                       if isinstance(o, ExternalOperator)
+                                       for opi in o.ufl_operands
+                                       for cj in extract_coefficients(opi))
+            objects.update(extop_ufl_coeffs)
+        return objects
     else:
         return set(o for e in iter_expressions(a)
                    for o in unique_pre_traversal(e)
