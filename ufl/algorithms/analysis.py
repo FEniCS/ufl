@@ -72,9 +72,9 @@ def extract_type(a, ufl_type):
                       if isinstance(o, ufl_type))
         if ufl_type in (Coefficient, FormArgument):
             extop_ufl_coeffs = tuple(cj for o in objects
-                                       if isinstance(o, ExternalOperator)
-                                       for opi in o.ufl_operands
-                                       for cj in extract_coefficients(opi))
+                                     if isinstance(o, ExternalOperator)
+                                     for opi in o.ufl_operands
+                                     for cj in extract_coefficients(opi))
             objects.update(extop_ufl_coeffs)
         return objects
     else:
