@@ -120,7 +120,7 @@ class Coefficient(FormArgument):
 # --- Subclasses for defining constant coefficients without
 # --- specifying element ---
 
-class Constant(ufl.Coefficient):
+class Constant(Coefficient):
     """UFL value: Represents a globally constant scalar valued coefficient."""
     def __init__(self, domain, count=None):
         domain = as_domain(domain)
@@ -129,7 +129,7 @@ class Constant(ufl.Coefficient):
         super().__init__(fs, count=count)
 
 
-class VectorConstant(ufl.Coefficient):
+class VectorConstant(Coefficient):
     """UFL value: Represents a globally constant vector valued coefficient."""
     def __init__(self, domain, dim=None, count=None):
         domain = as_domain(domain)
@@ -138,7 +138,7 @@ class VectorConstant(ufl.Coefficient):
         super().__init__(fs, count=count)
 
 
-class TensorConstant(ufl.Coefficient):
+class TensorConstant(Coefficient):
     """UFL value: Represents a globally constant tensor valued coefficient."""
     def __init__(self, domain, shape=None, symmetry=None, count=None):
         domain = as_domain(domain)
