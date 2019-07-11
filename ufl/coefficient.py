@@ -117,32 +117,35 @@ class Coefficient(FormArgument):
                 self._ufl_function_space == other._ufl_function_space)
 
 
-# --- Helper functions for defining constant coefficients without
+# --- Subclasses for defining constant coefficients without
 # --- specifying element ---
 
-def Constant(domain, count=None):
+class Constant(ufl.Coefficient):
     """UFL value: Represents a globally constant scalar valued coefficient."""
-    domain = as_domain(domain)
-    element = FiniteElement("Real", domain.ufl_cell(), 0)
-    fs = FunctionSpace(domain, element)
-    return Coefficient(fs, count=count)
+    def __init__(self, domain, count=None):
+        domain = as_domain(domain)
+        element = FiniteElement("Real", domain.ufl_cell(), 0)
+        fs = FunctionSpace(domain, element)
+        super().__init__(fs, count=count)
 
 
-def VectorConstant(domain, dim=None, count=None):
+class VectorConstant(ufl.Coefficient):
     """UFL value: Represents a globally constant vector valued coefficient."""
-    domain = as_domain(domain)
-    element = VectorElement("Real", domain.ufl_cell(), 0, dim)
-    fs = FunctionSpace(domain, element)
-    return Coefficient(fs, count=count)
+    def __init__(self, domain, dim=None, count=None):
+        domain = as_domain(domain)
+        element = VectorElement("Real", domain.ufl_cell(), 0, dim)
+        fs = FunctionSpace(domain, element)
+        super().__init__(fs, count=count)
 
 
-def TensorConstant(domain, shape=None, symmetry=None, count=None):
+class TensorConstant(ufl.Coefficient):
     """UFL value: Represents a globally constant tensor valued coefficient."""
-    domain = as_domain(domain)
-    element = TensorElement("Real", domain.ufl_cell(), 0, shape=shape,
-                            symmetry=symmetry)
-    fs = FunctionSpace(domain, element)
-    return Coefficient(fs, count=count)
+    def __init__(self, domain, shape=None, symmetry=None, count=None):
+        domain = as_domain(domain)
+        element = TensorElement("Real", domain.ufl_cell(), 0, shape=shape,
+                                symmetry=symmetry)
+        fs = FunctionSpace(domain, element)
+        super().__init__(fs, count=count)
 
 
 # --- Helper functions for subfunctions on mixed elements ---
