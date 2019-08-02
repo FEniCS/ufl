@@ -136,6 +136,9 @@ def apply_single_function_pullbacks(g):
         f = as_tensor((1.0 / detJ) * (1.0 / detJ) * J[i, m] * r[m, n] * J[j, n], (i, j))
         assert f.ufl_shape == g.ufl_shape
         return f
+    elif mapping == "L2 Piola":
+        assert rsh == gsh
+        return r / detJ
 
     # By placing components in a list and using as_vector at the end,
     # we're assuming below that both global function g and its
@@ -224,6 +227,11 @@ def apply_single_function_pullbacks(g):
                             gv += ((1.0 / detJ) * (1.0 / detJ) *
                                    J[i, m] * rv[m * rdim + n] * J[j, n])
                     g_components[gpos + i * gdim + j] = gv
+
+        elif mp == "L2 Piola":
+            assert gm == rm
+            for i in range(gm):
+                g_components[gpos + i] = r[rpos + i] / detJ
 
         else:
             error("Unknown subelement mapping type %s for element %s." % (mp, str(subelm)))
