@@ -201,7 +201,7 @@ register_element2("NCF", 1, HDiv, "contravariant Piola", (1, None),
                   ("hexahedron",))
 
 register_element2("S", 0, H1, "identity", (1, None), cubes)
-register_element2("DPC", 0, L2, "identity", (1, None), cubes)
+register_element2("DPC", 0, L2, "identity", (0, None), cubes)
 register_element2("BDMCE", 1, HCurl, "covariant Piola", (1, None),
                   ("quadrilateral",))
 register_element2("BDMCF", 1, HDiv, "contravariant Piola", (1, None),
