@@ -116,6 +116,8 @@ class GenericDerivativeRuleset(MultiFunction):
     # Literals are by definition independent of any differentiation variable
     constant_value = independent_terminal
 
+    constant = independent_terminal
+
     # Rules for form arguments must be specified in specialized rule set
     form_argument = override
 

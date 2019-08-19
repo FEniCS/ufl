@@ -172,11 +172,6 @@ def testIndexSum(v):
     _test(f, df)
 
 
-def testCoefficient():
-    v = Constant(triangle)
-    assert round(expand_derivatives(diff(v, v))-1.0, 7) == 0
-
-
 def testDiffX():
     cell = triangle
     x = SpatialCoordinate(cell)

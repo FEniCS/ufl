@@ -117,20 +117,6 @@ class Coefficient(FormArgument):
                 self._ufl_function_space == other._ufl_function_space)
 
 
-# --- Subclasses for defining constant coefficients without
-# --- specifying element ---
-
-@ufl_type()
-class Constant(Coefficient):
-    _ufl_noslots_ = True
-    """UFL value: Represents a globally constant scalar valued coefficient."""
-    def __init__(self, domain, count=None):
-        domain = as_domain(domain)
-        element = FiniteElement("Real", domain.ufl_cell(), 0)
-        fs = FunctionSpace(domain, element)
-        super().__init__(fs, count=count)
-
-
 @ufl_type()
 class VectorConstant(Coefficient):
     _ufl_noslots_ = True

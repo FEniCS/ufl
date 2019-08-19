@@ -50,6 +50,9 @@ class SumDegreeEstimator(MultiFunction):
         "Constant values are constant."
         return 0
 
+    def constant(self, v):
+        return 0
+
     def geometric_quantity(self, v):
         "Some geometric quantities are cellwise constant. Others are nonpolynomial and thus hard to estimate."
         if is_cellwise_constant(v):

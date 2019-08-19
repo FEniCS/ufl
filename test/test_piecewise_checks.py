@@ -214,6 +214,7 @@ def test_facetnormal_not_cellwise_constant_nonlinear(nonlinear_domains):
 
 
 def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
+
     e = Constant(domains_not_linear)
     assert is_cellwise_constant(e)
 

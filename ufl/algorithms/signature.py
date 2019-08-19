@@ -22,7 +22,7 @@ import hashlib
 from ufl.classes import (Label,
                          Index, MultiIndex,
                          Coefficient, Argument,
-                         GeometricQuantity, ConstantValue,
+                         GeometricQuantity, ConstantValue, Constant,
                          ExprList, ExprMapping)
 from ufl.log import error
 from ufl.corealg.traversal import traverse_unique_terminals, pre_traversal
@@ -69,6 +69,9 @@ def compute_terminal_hashdata(expressions, renumbering):
                 data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Coefficient):
+                data = expr._ufl_signature_data_(renumbering)
+
+            elif isinstance(expr, Constant):
                 data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Argument):
