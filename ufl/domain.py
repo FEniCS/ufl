@@ -380,8 +380,6 @@ def find_geometric_dimension(expr):
                 cell = element.cell()
                 if cell is not None:
                     gdims.add(cell.geometric_dimension())
-        if hasattr(t, "ufl_cell"):
-            gdims.add(t.ufl_cell.geometric_dimension())
 
     if len(gdims) != 1:
         error("Cannot determine geometric dimension from expression.")
