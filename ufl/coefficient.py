@@ -26,7 +26,7 @@ from ufl.utils.str import as_native_str
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
-from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
+from ufl.finiteelement import FiniteElementBase, VectorElement, TensorElement
 from ufl.domain import as_domain, default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.split_functions import split

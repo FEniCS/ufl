@@ -5,7 +5,6 @@ from ufl.domain import as_domain
 from ufl.utils.counted import counted_init
 
 
-
 @ufl_type()
 class Constant(FormArgument):
     """UFL Constant"""
@@ -45,5 +44,3 @@ class Constant(FormArgument):
 
     def __repr__(self):
         return self._repr
-
-
