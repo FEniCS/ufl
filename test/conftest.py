@@ -103,7 +103,6 @@ class UFLTestDataBase(object):
         # Cache file reads
         content = self.cache.get(name)
         if content is None:
-            print("Loading ", name)
             content = load_ufl_file(name)
             self.cache[name] = content
         return content
