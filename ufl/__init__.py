@@ -299,11 +299,9 @@ from ufl.argument import Argument, TestFunction, TrialFunction, \
     Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
-from ufl.coefficient import Coefficient, Coefficients, \
-    VectorConstant, TensorConstant
+from ufl.coefficient import Coefficient, Coefficients
 
-
-from ufl.constant import Constant
+from ufl.constant import Constant, VectorConstant, TensorConstant
 
 # Split function
 from ufl.split_functions import split

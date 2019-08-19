@@ -44,3 +44,13 @@ class Constant(FormArgument):
 
     def __repr__(self):
         return self._repr
+
+
+def VectorConstant(domain, count=None):
+    domain = as_domain(domain)
+    return Constant(domain, shape=(domain.geometric_dimension(), ), count=count)
+
+
+def TensorConstant(domain, count=None):
+    domain = as_domain(domain)
+    return Constant(domain, shape=(domain.geometric_dimension(), domain.geometric_dimension()), count=count)
