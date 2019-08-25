@@ -240,7 +240,6 @@ class Form(object):
         return self._coefficient_numbering
 
     def constants(self):
-        """Return all ``Constant`` objects found in form."""
         return self._constants
 
     def signature(self):
