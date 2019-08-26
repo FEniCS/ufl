@@ -66,6 +66,15 @@ class Constant(Terminal):
     def __repr__(self):
         return self._repr
 
+    def __eq__(self, other):
+        if not isinstance(other, Constant):
+            return False
+        if self is other:
+            return True
+        return (self._count == other._count and
+                self._ufl_domain == other._ufl_domain and
+                self._ufl_shape == self._ufl_shape)
+
 
 def VectorConstant(domain, count=None):
     domain = as_domain(domain)
