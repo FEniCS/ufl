@@ -328,13 +328,23 @@ class GenericDerivativeRuleset(MultiFunction):
             df_rank = len(df.ufl_shape)
             f_rank = len(o.ufl_operands[i].ufl_shape)
 
-            o_new_shape = o.ufl_shape + o.ufl_operands[i].ufl_shape
             derivatives = tuple(dj + int(i == j) for j, dj in enumerate(o.derivatives))
-            o_new = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives, shape=o_new_shape)
-            mi = indices(o_rank + df_rank)
-            extop = df[mi[o_rank:]] * o_new[mi[:o_rank + f_rank]]
+            o_new = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives)
+            o_new_rank = len(o_new.ufl_shape)
+            mi = indices(o_new_rank + df_rank - f_rank)
+
+            start = len(o.ufl_shape)
+            for j, e in enumerate(o.derivatives[:i]):
+                start += len(o.ufl_operands[j].ufl_shape*e)
+            end = start + len(o.ufl_operands[i].ufl_shape*(derivatives[i]-o.derivatives[i]))
+
+            # Computation of the sets of indices involved in the tensor contraction
+            aa = mi[start:end] + mi[o_new_rank:]
+            bb = mi[:o_new_rank]
+            extop = df[aa] * o_new[bb]
+            mi_tensor = tuple(e for e in mi if not (e in aa and e in bb))
             if len(extop.ufl_free_indices):
-                extop = ComponentTensor(extop, MultiIndex(mi[-len(extop.ufl_free_indices):]))
+                extop = as_tensor(extop, mi_tensor)
             if i == 0:
                 result = extop
             else:
@@ -744,8 +754,11 @@ class VariableRuleset(GenericDerivativeRuleset):
             return self.independent_terminal(o)
 
     def external_operator(self, o, *dfs):
+        """If d_coeff = 0 => ExternalOperator's derivative is taken wrt a variable => we call the appropriate handler
+        Otherwise => differentiation done wrt the ExternalOperator => we treat o as a Coefficient
+        """
         d_coeff = self.coefficient(o)
-        if d_coeff == 0:
+        if d_coeff == 0:  # It also handles the non-scalar case
             return GenericDerivativeRuleset.external_operator(self, o, *dfs)
         else:
             return d_coeff
@@ -886,8 +899,11 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             return dosum
 
     def external_operator(self, o, *dfs):
+        """If d_coeff = 0 => ExternalOperator's derivative is taken wrt a variable => we call the appropriate handler
+        Otherwise => differentiation done wrt the ExternalOperator => we treat o as a Coefficient
+        """
         d_coeff = self.coefficient(o)
-        if d_coeff == 0:
+        if d_coeff == 0:  # It also handles the non-scalar case
             return GenericDerivativeRuleset.external_operator(self, o, *dfs)
         else:
             return d_coeff
@@ -1075,6 +1091,10 @@ class DerivativeRuleDispatcher(MultiFunction):
         MultiFunction.__init__(self)
 
     def terminal(self, o):
+        if isinstance(o, ExternalOperator):
+            rules = DerivativeRuleDispatcher()
+            o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op)  for op in o.ufl_operands))
+            return o_new
         return o
 
     def derivative(self, o):

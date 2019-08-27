@@ -338,6 +338,9 @@ from ufl.operators import rank, shape, \
     jump, avg, cell_avg, facet_avg, \
     elem_mult, elem_div, elem_pow, elem_op
 
+# External Operator
+from ufl.core.external_operator import ExternalOperator
+
 # Measure classes
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
 

@@ -26,6 +26,7 @@ from ufl.log import error, info
 from ufl.utils.sequences import max_degree
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
+from ufl.core.external_operator import ExternalOperator, find_initial_external_operator
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData
@@ -186,11 +187,14 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
     to new objects, and lists of the new objects."""
     if element_mapping is None:
         element_mapping = {}
-
     new_coefficients = []
     replace_map = {}
+
     for i, f in enumerate(coefficients):
-        old_e = f.ufl_element()
+        if isinstance(f,ExternalOperator):
+            old_e = f.original_function_space.ufl_element()
+        else:
+            old_e = f.ufl_element()
         new_e = element_mapping.get(old_e, old_e)
         # XXX: This is a hack to ensure that if the original
         # coefficient had a domain, the new one does too.
@@ -201,7 +205,6 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         new_f = Coefficient(new_e, count=i)
         new_coefficients.append(new_f)
         replace_map[f] = new_f
-
     return new_coefficients, replace_map
 
 
@@ -355,9 +358,19 @@ def compute_form_data(form,
     self.reduced_coefficients = sorted(reduced_coefficients_set,
                                        key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
-    self.original_coefficient_positions = [i for i, c in enumerate(self.original_form.coefficients())
-                                           if c in self.reduced_coefficients]
+    
+    updated_original_form_coefficients = self.original_form.coefficients()
+    self.coefficients = updated_original_form_coefficients
+    for c in self.original_form.coefficients():
+        if isinstance(c, ExternalOperator):
+            key_e = find_initial_external_operator(c)
+            updated_original_form_coefficients += tuple(e for e in ExternalOperator._ufl_all_external_operators_[key_e].values()
+                                           if e in self.reduced_coefficients)
 
+    updated_original_form_coefficients = sorted(updated_original_form_coefficients,
+                                                key=lambda c: c.count())
+    self.original_coefficient_positions = [i for i, c in enumerate(updated_original_form_coefficients)#(self.original_form.coefficients())
+                                           if c in self.reduced_coefficients]
     # Store back into integral data which form coefficients are used
     # by each integral
     for itg_data in self.integral_data:

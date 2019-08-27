@@ -38,9 +38,9 @@ def test_properties(self, cell):
     assert nl.derivatives == (0, 0)
     assert nl.ufl_shape == ()
 
-    nl2 = ExternalOperator(u, r, function_space=S, derivatives=(3, 4), shape = (2,))
+    nl2 = ExternalOperator(u, r, function_space=S, derivatives=(3, 4))
     assert nl2.derivatives == (3, 4)
-    assert nl2.ufl_shape == (2,)
+    assert nl2.ufl_shape == ()
 
 def _test(f, df):
     v =variable(5.0)
