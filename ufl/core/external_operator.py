@@ -5,7 +5,7 @@ from ufl.constantvalue import as_ufl
 from ufl.log import error
 from ufl.finiteelement.mixedelement import TensorElement
 from ufl.functionspace import FunctionSpace
-from ufl.domain import as_domain, default_domain
+from ufl.domain import default_domain
 import weakref
 
 
@@ -36,7 +36,7 @@ class ExternalOperator(Coefficient):
                 self.derivatives = derivatives
                 s = self.ufl_shape
                 for i, e in enumerate(self.derivatives):
-                    s += self.ufl_operands[i].ufl_shape*e
+                    s += self.ufl_operands[i].ufl_shape * e
                 if len(s) > len(self.ufl_shape):
                     sub_element = self._ufl_function_space.ufl_element()
                     if len(sub_element.sub_elements()) != 0:
@@ -56,10 +56,9 @@ class ExternalOperator(Coefficient):
             self.derivatives = (0,) * len(self.ufl_operands)
 
         key_e = find_initial_external_operator(self)
-        if key_e is None:#not self.name() in tuple(e.name() for e in type(self)._ufl_all_external_operators_.keys()):
+        if key_e is None:
             type(self)._ufl_all_external_operators_[self] = weakref.WeakValueDictionary()
             type(self)._ufl_all_external_operators_[self][self.derivatives] = self
-
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
@@ -71,15 +70,18 @@ class ExternalOperator(Coefficient):
 
         if deriv_multiindex in type(self)._ufl_all_external_operators_[self].keys():
             corresponding_count = type(self)._ufl_all_external_operators_[self][deriv_multiindex]._count
-            self._ufl_class_(*operands, function_space=function_space or self.original_function_space,#change by intrinsic space
-                                derivatives=deriv_multiindex,
-                                count=corresponding_count)
+            self._ufl_class_(*operands,
+                             function_space=function_space or self.original_function_space,  # change by intrinsic space
+                             derivatives=deriv_multiindex,
+                             count=corresponding_count)
         else:
-            reconstruct_extop = self._ufl_class_(*operands, function_space=function_space or self.original_function_space,#change by intrinsic space
-                                derivatives=deriv_multiindex)
+            reconstruct_extop = self._ufl_class_(*operands,
+                                                 function_space=function_space or self.original_function_space,  # change by intrinsic space
+                                                 derivatives=deriv_multiindex)
 
             type(self)._ufl_all_external_operators_[self][deriv_multiindex] = reconstruct_extop
             return reconstruct_extop
+
     def __str__(self):
         "Default repr string construction for ExternalOperator operators."
         # This should work for most cases

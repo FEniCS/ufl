@@ -191,7 +191,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
     replace_map = {}
 
     for i, f in enumerate(coefficients):
-        if isinstance(f,ExternalOperator):
+        if isinstance(f, ExternalOperator):
             old_e = f.original_function_space.ufl_element()
         else:
             old_e = f.ufl_element()
@@ -358,18 +358,18 @@ def compute_form_data(form,
     self.reduced_coefficients = sorted(reduced_coefficients_set,
                                        key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
-    
+
     updated_original_form_coefficients = self.original_form.coefficients()
     self.coefficients = updated_original_form_coefficients
     for c in self.original_form.coefficients():
         if isinstance(c, ExternalOperator):
             key_e = find_initial_external_operator(c)
             updated_original_form_coefficients += tuple(e for e in ExternalOperator._ufl_all_external_operators_[key_e].values()
-                                           if e in self.reduced_coefficients)
+                                                        if e in self.reduced_coefficients)
 
     updated_original_form_coefficients = sorted(updated_original_form_coefficients,
                                                 key=lambda c: c.count())
-    self.original_coefficient_positions = [i for i, c in enumerate(updated_original_form_coefficients)#(self.original_form.coefficients())
+    self.original_coefficient_positions = [i for i, c in enumerate(updated_original_form_coefficients)
                                            if c in self.reduced_coefficients]
     # Store back into integral data which form coefficients are used
     # by each integral

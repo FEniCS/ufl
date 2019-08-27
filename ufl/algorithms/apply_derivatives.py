@@ -324,7 +324,6 @@ class GenericDerivativeRuleset(MultiFunction):
                     exception.message()
 
         for i, df in enumerate(dfs):
-            o_rank = len(o.ufl_shape)
             df_rank = len(df.ufl_shape)
             f_rank = len(o.ufl_operands[i].ufl_shape)
 
@@ -335,8 +334,8 @@ class GenericDerivativeRuleset(MultiFunction):
 
             start = len(o.ufl_shape)
             for j, e in enumerate(o.derivatives[:i]):
-                start += len(o.ufl_operands[j].ufl_shape*e)
-            end = start + len(o.ufl_operands[i].ufl_shape*(derivatives[i]-o.derivatives[i]))
+                start += len(o.ufl_operands[j].ufl_shape * e)
+            end = start + len(o.ufl_operands[i].ufl_shape * (derivatives[i] - o.derivatives[i]))
 
             # Computation of the sets of indices involved in the tensor contraction
             aa = mi[start:end] + mi[o_new_rank:]
@@ -1093,7 +1092,7 @@ class DerivativeRuleDispatcher(MultiFunction):
     def terminal(self, o):
         if isinstance(o, ExternalOperator):
             rules = DerivativeRuleDispatcher()
-            o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op)  for op in o.ufl_operands))
+            o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op) for op in o.ufl_operands))
             return o_new
         return o
 

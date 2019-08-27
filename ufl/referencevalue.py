@@ -40,7 +40,7 @@ class ReferenceValue(Operator):
 
     @property
     def ufl_shape(self):
-        if not isinstance(self.ufl_operands[0],ExternalOperator):
+        if not isinstance(self.ufl_operands[0], ExternalOperator):
             return self.ufl_operands[0].ufl_element().reference_value_shape()
         else:
             return self.ufl_operands[0].ufl_shape
