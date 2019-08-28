@@ -1,0 +1,18 @@
+===========================
+Changes in version 2019.1.0
+===========================
+
+Summary of changes
+==================
+
+- Add support for complex valued elements
+- Remove LaTeX support (not functional)
+- Remove scripts
+
+Detailed changes
+================
+
+- Add support for complex valued elements; complex mode
+  is chosen by ``compute_form_data(form, complex_mode=True)`` typically
+  by a form compiler; otherwise UFL language is agnostic to the choice
+  of real/complex domain
