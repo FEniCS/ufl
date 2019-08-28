@@ -40,8 +40,8 @@ class Constant(Terminal):
 
         # Repr string is build in such way, that reconstruction
         # with eval() is possible
-        self._repr = as_native_str("Constant(%s, %s, %s)" % (
-            repr(self._ufl_domain), repr(self._ufl_shape), repr(self._count)))
+        self._repr = "Constant({}, {}, {})".format(
+            repr(self._ufl_domain), repr(self._ufl_shape), repr(self._count))
 
     def count(self):
         return self._count
