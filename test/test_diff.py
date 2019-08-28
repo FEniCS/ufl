@@ -176,7 +176,6 @@ def testCoefficient():
     coord_elem = VectorElement("P", triangle, 1, dim=3)
     mesh = Mesh(coord_elem)
     V = FunctionSpace(mesh, FiniteElement("P", triangle, 1))
-
     v = Coefficient(V)
     assert round(expand_derivatives(diff(v, v))-1.0, 7) == 0
 

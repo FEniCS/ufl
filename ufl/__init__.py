@@ -300,7 +300,6 @@ from ufl.argument import Argument, TestFunction, TrialFunction, \
 
 # Coefficients
 from ufl.coefficient import Coefficient, Coefficients
-
 from ufl.constant import Constant, VectorConstant, TensorConstant
 
 # Split function
