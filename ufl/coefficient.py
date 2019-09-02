@@ -26,8 +26,8 @@ from ufl.utils.str import as_native_str
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
-from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
-from ufl.domain import as_domain, default_domain
+from ufl.finiteelement import FiniteElementBase
+from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
@@ -115,34 +115,6 @@ class Coefficient(FormArgument):
             return True
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
-
-
-# --- Helper functions for defining constant coefficients without
-# --- specifying element ---
-
-def Constant(domain, count=None):
-    """UFL value: Represents a globally constant scalar valued coefficient."""
-    domain = as_domain(domain)
-    element = FiniteElement("Real", domain.ufl_cell(), 0)
-    fs = FunctionSpace(domain, element)
-    return Coefficient(fs, count=count)
-
-
-def VectorConstant(domain, dim=None, count=None):
-    """UFL value: Represents a globally constant vector valued coefficient."""
-    domain = as_domain(domain)
-    element = VectorElement("Real", domain.ufl_cell(), 0, dim)
-    fs = FunctionSpace(domain, element)
-    return Coefficient(fs, count=count)
-
-
-def TensorConstant(domain, shape=None, symmetry=None, count=None):
-    """UFL value: Represents a globally constant tensor valued coefficient."""
-    domain = as_domain(domain)
-    element = TensorElement("Real", domain.ufl_cell(), 0, shape=shape,
-                            symmetry=symmetry)
-    fs = FunctionSpace(domain, element)
-    return Coefficient(fs, count=count)
 
 
 # --- Helper functions for subfunctions on mixed elements ---
