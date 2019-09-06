@@ -125,6 +125,13 @@ class FiniteElement(FiniteElementBase):
                                               for c in cell.sub_cells()],
                                             cell=cell)
 
+            elif family == "DQ L2":
+                def dq_family_l2(cell):
+                    return "DG L2" if cell.cellname() in simplices else "DQ L2"
+                return TensorProductElement(*[FiniteElement(dq_family_l2(c), c, degree, variant=variant)
+                                              for c in cell.sub_cells()],
+                                            cell=cell)
+
         return super(FiniteElement, cls).__new__(cls)
 
     def __init__(self,
@@ -204,7 +211,7 @@ class FiniteElement(FiniteElementBase):
     def variant(self):
         return self._variant
 
-    def reconstruct(self, family=None, cell=None, degree=None):
+    def reconstruct(self, family=None, cell=None, degree=None, quad_scheme=None, variant=None):
         """Construct a new FiniteElement object with some properties
         replaced with new values."""
         if family is None:
@@ -213,7 +220,11 @@ class FiniteElement(FiniteElementBase):
             cell = self.cell()
         if degree is None:
             degree = self.degree()
-        return FiniteElement(family, cell, degree, quad_scheme=self.quadrature_scheme(), variant=self.variant())
+        if quad_scheme is None:
+            quad_scheme = self.quadrature_scheme()
+        if variant is None:
+            variant = self.variant()
+        return FiniteElement(family, cell, degree, quad_scheme=quad_scheme, variant=variant)
 
     def __str__(self):
         "Format as string for pretty printing."

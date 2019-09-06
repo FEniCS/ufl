@@ -93,6 +93,7 @@ class Form(object):
         "_arguments",
         "_coefficients",
         "_coefficient_numbering",
+        "_constants",
         "_hash",
         "_signature",
         # --- Dict that external frameworks can place framework-specific
@@ -122,6 +123,9 @@ class Form(object):
         self._arguments = None
         self._coefficients = None
         self._coefficient_numbering = None
+
+        from ufl.algorithms.analysis import extract_constants
+        self._constants = extract_constants(self)
 
         # Internal variables for caching of hash and signature after
         # first request
@@ -241,6 +245,9 @@ class Form(object):
         if self._coefficient_numbering is None:
             self._analyze_form_arguments()
         return self._coefficient_numbering
+
+    def constants(self):
+        return self._constants
 
     def signature(self):
         "Signature for use with jit cache (independent of incidental numbering of indices etc.)"

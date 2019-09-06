@@ -34,6 +34,7 @@ def test_apply_single_function_pullbacks_triangle3d():
     cell = triangle3d
     domain = as_domain(cell)
 
+    UL2 = FiniteElement("DG L2", cell, 1)
     U0 = FiniteElement("DG", cell, 0)
     U = FiniteElement("CG", cell, 1)
     V = VectorElement("CG", cell, 1)
@@ -44,6 +45,7 @@ def test_apply_single_function_pullbacks_triangle3d():
     COV2T = FiniteElement("Regge", cell, 0)   # (0, 2)-symmetric tensors
     CONTRA2T = FiniteElement("HHJ", cell, 0)  # (2, 0)-symmetric tensors
 
+    Uml2 = UL2*UL2
     Um = U*U
     Vm = U*V
     Vdm = V*Vd
@@ -55,6 +57,7 @@ def test_apply_single_function_pullbacks_triangle3d():
 
     W = S*T*Vc*Vd*V*U
 
+    ul2 = Coefficient(UL2)
     u = Coefficient(U)
     v = Coefficient(V)
     vd = Coefficient(Vd)
@@ -64,6 +67,7 @@ def test_apply_single_function_pullbacks_triangle3d():
     cov2t = Coefficient(COV2T)
     contra2t = Coefficient(CONTRA2T)
 
+    uml2 = Coefficient(Uml2)
     um = Coefficient(Um)
     vm = Coefficient(Vm)
     vdm = Coefficient(Vdm)
@@ -75,6 +79,7 @@ def test_apply_single_function_pullbacks_triangle3d():
 
     w = Coefficient(W)
 
+    rul2 = ReferenceValue(ul2)
     ru = ReferenceValue(u)
     rv = ReferenceValue(v)
     rvd = ReferenceValue(vd)
@@ -84,6 +89,7 @@ def test_apply_single_function_pullbacks_triangle3d():
     rcov2t = ReferenceValue(cov2t)
     rcontra2t = ReferenceValue(contra2t)
 
+    ruml2 = ReferenceValue(uml2)
     rum = ReferenceValue(um)
     rvm = ReferenceValue(vm)
     rvdm = ReferenceValue(vdm)
@@ -115,6 +121,7 @@ def test_apply_single_function_pullbacks_triangle3d():
 
     mappings = {
         # Simple elements should get a simple representation
+        ul2: rul2 / detJ,
         u: ru,
         v: rv,
         vd: as_vector(M_hdiv[i, j]*rvd[j], i),
@@ -127,6 +134,7 @@ def test_apply_single_function_pullbacks_triangle3d():
         contra2t: as_tensor((1.0 / detJ) * (1.0 / detJ)
                             * J[i, k] * rcontra2t[k, l] * J[j, l], (i, j)),
         # Mixed elements become a bit more complicated
+        uml2: as_vector([ruml2[0] / detJ, ruml2[1] / detJ]),
         um: rum,
         vm: rvm,
         vdm: as_vector([
@@ -204,6 +212,7 @@ def test_apply_single_function_pullbacks_triangle3d():
     }
 
     # Check functions of various elements outside a mixed context
+    check_single_function_pullback(ul2, mappings)
     check_single_function_pullback(u, mappings)
     check_single_function_pullback(v, mappings)
     check_single_function_pullback(vd, mappings)
@@ -214,6 +223,7 @@ def test_apply_single_function_pullbacks_triangle3d():
     check_single_function_pullback(contra2t, mappings)
 
     # Check functions of various elements inside a mixed context
+    check_single_function_pullback(uml2, mappings)
     check_single_function_pullback(um, mappings)
     check_single_function_pullback(vm, mappings)
     check_single_function_pullback(vdm, mappings)
@@ -229,6 +239,7 @@ def test_apply_single_function_pullbacks_triangle():
     cell = triangle
     domain = as_domain(cell)
 
+    Ul2 = FiniteElement("DG L2", cell, 1)
     U = FiniteElement("CG", cell, 1)
     V = VectorElement("CG", cell, 1)
     Vd = FiniteElement("RT", cell, 1)
@@ -236,6 +247,7 @@ def test_apply_single_function_pullbacks_triangle():
     T = TensorElement("CG", cell, 1)
     S = TensorElement("CG", cell, 1, symmetry=True)
 
+    Uml2 = Ul2*Ul2
     Um = U*U
     Vm = U*V
     Vdm = V*Vd
@@ -245,6 +257,7 @@ def test_apply_single_function_pullbacks_triangle():
 
     W = S*T*Vc*Vd*V*U
 
+    ul2 = Coefficient(Ul2)
     u = Coefficient(U)
     v = Coefficient(V)
     vd = Coefficient(Vd)
@@ -252,6 +265,7 @@ def test_apply_single_function_pullbacks_triangle():
     t = Coefficient(T)
     s = Coefficient(S)
 
+    uml2 = Coefficient(Uml2)
     um = Coefficient(Um)
     vm = Coefficient(Vm)
     vdm = Coefficient(Vdm)
@@ -261,6 +275,7 @@ def test_apply_single_function_pullbacks_triangle():
 
     w = Coefficient(W)
 
+    rul2 = ReferenceValue(ul2)
     ru = ReferenceValue(u)
     rv = ReferenceValue(v)
     rvd = ReferenceValue(vd)
@@ -268,6 +283,7 @@ def test_apply_single_function_pullbacks_triangle():
     rt = ReferenceValue(t)
     rs = ReferenceValue(s)
 
+    ruml2 = ReferenceValue(uml2)
     rum = ReferenceValue(um)
     rvm = ReferenceValue(vm)
     rvdm = ReferenceValue(vdm)
@@ -294,6 +310,7 @@ def test_apply_single_function_pullbacks_triangle():
 
     mappings = {
         # Simple elements should get a simple representation
+        ul2: rul2 / detJ,
         u: ru,
         v: rv,
         vd: as_vector(M_hdiv[i, j]*rvd[j], i),
@@ -301,6 +318,7 @@ def test_apply_single_function_pullbacks_triangle():
         t: rt,
         s: as_tensor([[rs[0], rs[1]], [rs[1], rs[2]]]),
         # Mixed elements become a bit more complicated
+        uml2: as_vector([ruml2[0] / detJ, ruml2[1] / detJ]),
         um: rum,
         vm: rvm,
         vdm: as_vector([
@@ -358,6 +376,7 @@ def test_apply_single_function_pullbacks_triangle():
     }
 
     # Check functions of various elements outside a mixed context
+    check_single_function_pullback(ul2, mappings)
     check_single_function_pullback(u, mappings)
     check_single_function_pullback(v, mappings)
     check_single_function_pullback(vd, mappings)
@@ -366,6 +385,7 @@ def test_apply_single_function_pullbacks_triangle():
     check_single_function_pullback(s, mappings)
 
     # Check functions of various elements inside a mixed context
+    check_single_function_pullback(uml2, mappings)
     check_single_function_pullback(um, mappings)
     check_single_function_pullback(vm, mappings)
     check_single_function_pullback(vdm, mappings)
