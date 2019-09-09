@@ -29,7 +29,7 @@ Automated Testing
 We use CircleCI to perform automated testing.
 
 .. image:: https://circleci.com/gh/FEniCS/ufl.svg?style=shield
-    :target: https://circleci.com/gh/FEniCS/ufl
+   :target: https://circleci.com/gh/FEniCS/ufl
    :alt: Build Status
 
 
