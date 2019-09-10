@@ -199,3 +199,25 @@ def test_radau():
 
         element = FiniteElement("Radau", cell, degree)
         assert element == eval(repr(element))
+
+
+def test_mse():
+    for degree in (2, 3, 4, 5):
+        element = FiniteElement('EGL', interval, degree)
+        assert element == eval(repr(element))
+
+        element = FiniteElement('EGL-Edge', interval, degree - 1)
+        assert element == eval(repr(element))
+
+        element = FiniteElement('EGL-Edge L2', interval, degree - 1)
+        assert element == eval(repr(element))
+
+    for degree in (1, 2, 3, 4, 5):
+        element = FiniteElement('GLL', interval, degree)
+        assert element == eval(repr(element))
+
+        element = FiniteElement('GLL-Edge', interval, degree - 1)
+        assert element == eval(repr(element))
+
+        element = FiniteElement('GLL-Edge L2', interval, degree - 1)
+        assert element == eval(repr(element))
