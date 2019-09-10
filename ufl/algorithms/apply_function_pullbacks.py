@@ -33,6 +33,7 @@ from ufl.classes import (ReferenceValue,
 
 from ufl.tensors import as_tensor, as_vector
 from ufl.utils.sequences import product
+import numpy
 
 
 def sub_elements_with_mappings(element):
@@ -135,6 +136,9 @@ def apply_single_function_pullbacks(g):
         f = as_tensor((1.0 / detJ) * (1.0 / detJ) * J[i, m] * r[m, n] * J[j, n], (i, j))
         assert f.ufl_shape == g.ufl_shape
         return f
+    elif mapping == "L2 Piola":
+        assert rsh == gsh
+        return r / detJ
 
     # By placing components in a list and using as_vector at the end,
     # we're assuming below that both global function g and its
@@ -146,14 +150,12 @@ def apply_single_function_pullbacks(g):
     #     (ONLY IF REFERENCE VALUE SHAPE PRESERVES TENSOR RANK)
     #   - All cases with scalar subelements and without symmetries are
     #     covered by the shortcut above
-    # - VectorElements of vector-valued basic elements (FIXME)
-    # - TensorElements with symmetries (FIXME)
-    assert len(gsh) == 1
-    assert len(rsh) == 1
 
     g_components = [None] * gsize
     gpos = 0
     rpos = 0
+
+    r = as_vector([r[idx] for idx in numpy.ndindex(r.ufl_shape)])
     for subelm in sub_elements_with_mappings(element):
         gm = product(subelm.value_shape())
         rm = product(subelm.reference_value_shape())
@@ -226,6 +228,11 @@ def apply_single_function_pullbacks(g):
                                    J[i, m] * rv[m * rdim + n] * J[j, n])
                     g_components[gpos + i * gdim + j] = gv
 
+        elif mp == "L2 Piola":
+            assert gm == rm
+            for i in range(gm):
+                g_components[gpos + i] = r[rpos + i] / detJ
+
         else:
             error("Unknown subelement mapping type %s for element %s." % (mp, str(subelm)))
 
@@ -234,8 +241,7 @@ def apply_single_function_pullbacks(g):
 
     # Wrap up components in a vector, must return same shape as input
     # function g
-    assert len(gsh) == 1
-    f = as_vector(g_components)
+    f = as_tensor(numpy.asarray(g_components).reshape(gsh))
     assert f.ufl_shape == g.ufl_shape
     return f
 

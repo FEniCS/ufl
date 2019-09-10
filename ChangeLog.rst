@@ -1,13 +1,20 @@
 Changelog
 =========
 
-2018.2.0
---------
+2019.2.0.dev0
+-------------
 
+- No changes yet.
+
+2019.1.0 (2019-04-17)
+---------------------
+
+- Remove scripts
+- Remove LaTeX support (not functional)
 - Add support for complex valued elements; complex mode
-  is chosen by ``compute_form_data(form, complex_mode=True)``
-  typically by a form compiler; otherwise UFL language is
-  agnostic to the choice of real/complex domain
+  is chosen by ``compute_form_data(form, complex_mode=True)`` typically
+  by a form compiler; otherwise UFL language is agnostic to the choice
+  of real/complex domain
 
 2018.1.0 (2018-06-14)
 ---------------------

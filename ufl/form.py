@@ -20,6 +20,7 @@
 #
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
+# Modified by Cecile Daversin-Catty, 2018.
 
 from itertools import chain
 from collections import defaultdict
@@ -46,11 +47,14 @@ def _sorted_integrals(integrals):
 
     # Group integrals in multilevel dict by keys
     # [domain][integral_type][subdomain_id]
-    integrals_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    integrals_dict = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(list)))
     for integral in integrals:
         d = integral.ufl_domain()
         if d is None:
-            error("Each integral in a form must have a uniquely defined integration domain.")
+            error(
+                "Each integral in a form must have a uniquely defined integration domain."
+            )
         it = integral.integral_type()
         si = integral.subdomain_id()
         integrals_dict[d][it][si] += [integral]
@@ -60,8 +64,9 @@ def _sorted_integrals(integrals):
     # Order integrals canonically to increase signature stability
     for d in sort_domains(integrals_dict):
         for it in sorted(integrals_dict[d]):  # str is sortable
-            for si in sorted(integrals_dict[d][it],
-                             key=lambda x: (type(x).__name__, x)):  # int/str are sortable
+            for si in sorted(
+                    integrals_dict[d][it], key=lambda x: (type(x).__name__, x)
+            ):  # int/str are sortable
                 unsorted_integrals = integrals_dict[d][it][si]
                 # TODO: At this point we could order integrals by
                 #       metadata and integrand, or even add the
@@ -88,6 +93,7 @@ class Form(object):
         "_arguments",
         "_coefficients",
         "_coefficient_numbering",
+        "_constants",
         "_hash",
         "_signature",
         # --- Dict that external frameworks can place framework-specific
@@ -118,6 +124,9 @@ class Form(object):
         self._coefficients = None
         self._coefficient_numbering = None
 
+        from ufl.algorithms.analysis import extract_constants
+        self._constants = extract_constants(self)
+
         # Internal variables for caching of hash and signature after
         # first request
         self._hash = None
@@ -136,6 +145,11 @@ class Form(object):
         "Return a sequence of all integrals with a particular domain type."
         return tuple(integral for integral in self.integrals()
                      if integral.integral_type() == integral_type)
+
+    def integrals_by_domain(self, domain):
+        "Return a sequence of all integrals with a particular integration domain."
+        return tuple(integral for integral in self.integrals()
+                     if integral.ufl_domain() == domain)
 
     def empty(self):
         "Returns whether the form has no integrals."
@@ -175,17 +189,21 @@ class Form(object):
         # Check that all are equal TODO: don't return more than one if
         # all are equal?
         if not all(domain == domains[0] for domain in domains):
-            error("Calling Form.ufl_domain() is only valid if all integrals share domain.")
+            error(
+                "Calling Form.ufl_domain() is only valid if all integrals share domain."
+            )
+
         # Return the one and only domain
         return domains[0]
 
     def geometric_dimension(self):
         "Return the geometric dimension shared by all domains and functions in this form."
-        gdims = tuple(set(domain.geometric_dimension()
-                          for domain in self.ufl_domains()))
+        gdims = tuple(
+            set(domain.geometric_dimension() for domain in self.ufl_domains()))
         if len(gdims) != 1:
             error("Expecting all domains and functions in a form "
-                  "to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
+                  "to share geometric dimension, got %s." % str(
+                      tuple(sorted(gdims))))
         return gdims[0]
 
     def domain_numbering(self):
@@ -227,6 +245,9 @@ class Form(object):
         if self._coefficient_numbering is None:
             self._analyze_form_arguments()
         return self._coefficient_numbering
+
+    def constants(self):
+        return self._constants
 
     def signature(self):
         "Signature for use with jit cache (independent of incidental numbering of indices etc.)"
@@ -278,7 +299,9 @@ class Form(object):
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
 
-        elif isinstance(other, Zero) and not (other.ufl_shape or other.ufl_free_indices):
+        elif isinstance(
+                other,
+                Zero) and not (other.ufl_shape or other.ufl_free_indices):
             # Allow adding ufl Zero as a no-op, needed for sum([a,b])
             return self
 
@@ -344,7 +367,8 @@ class Form(object):
         if args:
             arguments = self.arguments()
             if len(arguments) != len(args):
-                error("Need %d arguments to form(), got %d." % (len(arguments), len(args)))
+                error("Need %d arguments to form(), got %d." % (len(arguments),
+                                                                len(args)))
             repdict.update(zip(arguments, args))
 
         coefficients = kwargs.pop("coefficients")
@@ -386,28 +410,22 @@ class Form(object):
         r = "Form([" + itgs + "])"
         return as_native_str(r)
 
-    def x_repr_latex_(self):  # TODO: This works, but enable when form latex rendering is fixed
-        from ufl.algorithms import ufl2latex
-        return "$$%s$$" % ufl2latex(self)
-
-    def x_repr_png_(self):  # TODO: This works, but enable when form latex rendering is fixed
-        from IPython.lib.latextools import latex_to_png
-        return latex_to_png(self._repr_latex_())
-
     # --- Analysis functions, precomputation and caching of various quantities
 
     def _analyze_domains(self):
         from ufl.domain import join_domains, sort_domains
 
         # Collect unique integration domains
-        integration_domains = join_domains([itg.ufl_domain() for itg in self._integrals])
+        integration_domains = join_domains(
+            [itg.ufl_domain() for itg in self._integrals])
 
         # Make canonically ordered list of the domains
         self._integration_domains = sort_domains(integration_domains)
 
         # TODO: Not including domains from coefficients and arguments
         # here, may need that later
-        self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
+        self._domain_numbering = dict(
+            (d, i) for i, d in enumerate(self._integration_domains))
 
     def _analyze_subdomain_data(self):
         integration_domains = self.ufl_domains()
@@ -430,7 +448,9 @@ class Form(object):
                 subdomain_data[domain][it] = sd
             elif sd is not None:
                 if data.ufl_id() != sd.ufl_id():
-                    error("Integrals in form have different subdomain_data objects.")
+                    error(
+                        "Integrals in form have different subdomain_data objects."
+                    )
         self._subdomain_data = subdomain_data
 
     def _analyze_form_arguments(self):
@@ -439,12 +459,12 @@ class Form(object):
         arguments, coefficients = extract_arguments_and_coefficients(self)
 
         # Define canonical numbering of arguments and coefficients
-        self._arguments = tuple(sorted(set(arguments),
-                                       key=lambda x: x.number()))
-        self._coefficients = tuple(sorted(set(coefficients),
-                                          key=lambda x: x.count()))
-        self._coefficient_numbering = dict((c, i) for i,
-                                           c in enumerate(self._coefficients))
+        self._arguments = tuple(
+            sorted(set(arguments), key=lambda x: x.number()))
+        self._coefficients = tuple(
+            sorted(set(coefficients), key=lambda x: x.count()))
+        self._coefficient_numbering = dict(
+            (c, i) for i, c in enumerate(self._coefficients))
 
     def _compute_renumbering(self):
         # Include integration domains and coefficients in renumbering
@@ -463,12 +483,27 @@ class Form(object):
                 renumbering[d] = k
                 k += 1
 
+        # Add domains of arguments, these may include domains not
+        # among integration domains
+        for a in self._arguments:
+            d = a.ufl_function_space().ufl_domain()
+            if d is not None and d not in renumbering:
+                renumbering[d] = k
+                k += 1
+
         return renumbering
 
     def _compute_signature(self):
         from ufl.algorithms.signature import compute_form_signature
         self._signature = compute_form_signature(self,
                                                  self._compute_renumbering())
+
+
+def sub_forms_by_domain(form):
+    "Return a list of forms each with an integration domain"
+    if not isinstance(form, Form):
+        error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
+    return [Form(form.integrals_by_domain(domain)) for domain in form.ufl_domains()]
 
 
 def as_form(form):

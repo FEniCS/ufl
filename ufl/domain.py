@@ -21,6 +21,7 @@
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
+# Modified by Cecile Daversin-Catty, 2018
 
 import numbers
 
@@ -380,6 +381,7 @@ def find_geometric_dimension(expr):
                 cell = element.cell()
                 if cell is not None:
                     gdims.add(cell.geometric_dimension())
+
     if len(gdims) != 1:
         error("Cannot determine geometric dimension from expression.")
     gdim, = gdims

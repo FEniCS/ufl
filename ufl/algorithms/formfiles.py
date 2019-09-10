@@ -30,6 +30,7 @@ from ufl.utils.sorting import sorted_by_key
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
 from ufl.core.expr import Expr
+from ufl.constant import Constant
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 
@@ -148,7 +149,7 @@ def interpret_ufl_namespace(namespace):
             # FIXME: Remove after FFC is updated to use reserved_objects:
             ufd.object_names[name] = value
             ufd.object_by_name[name] = value
-        elif isinstance(value, (FiniteElementBase, Coefficient, Argument, Form, Expr)):
+        elif isinstance(value, (FiniteElementBase, Coefficient, Constant, Argument, Form, Expr)):
             # Store instance <-> name mappings for important objects
             # without a reserved name
             ufd.object_names[id(value)] = name

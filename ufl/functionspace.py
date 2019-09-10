@@ -19,13 +19,13 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Massimiliano Leoni, 2016
+# Modified by Cecile Daversin-Catty, 2018
 
 from ufl.utils.str import as_native_str
 from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
-from ufl.finiteelement import MixedElement
 
 # Export list for ufl.classes
 __all_classes__ = as_native_strings([
@@ -113,19 +113,56 @@ class FunctionSpace(AbstractFunctionSpace):
 
 
 @attach_operators_from_hash_data
-class MixedFunctionSpace(AbstractFunctionSpace):
+class TensorProductFunctionSpace(AbstractFunctionSpace):
     def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
         self._ufl_function_spaces = function_spaces
-        self._ufl_element = MixedElement(*[fs.ufl_element() for fs in function_spaces])
+
+    def ufl_sub_spaces(self):
+        return self._ufl_function_spaces
+
+    def _ufl_hash_data_(self):
+        return ("TensorProductFunctionSpace",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
+
+    def _ufl_signature_data_(self, renumbering):
+        return ("TensorProductFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
+
+    def __repr__(self):
+        r = "TensorProductFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
+        return as_native_str(r)
+
+
+@attach_operators_from_hash_data
+class MixedFunctionSpace(AbstractFunctionSpace):
+    def __init__(self, *args):
+        AbstractFunctionSpace.__init__(self)
+        self._ufl_function_spaces = args
+        self._ufl_elements = list()
+        for fs in args:
+            if isinstance(fs, FunctionSpace):
+                self._ufl_elements.append(fs.ufl_element())
+            else:
+                error("Expecting FunctionSpace objects")
 
     def ufl_sub_spaces(self):
         "Return ufl sub spaces."
         return self._ufl_function_spaces
 
+    def ufl_sub_space(self, i):
+        "Return i-th ufl sub space."
+        return self._ufl_function_spaces[i]
+
+    def ufl_elements(self):
+        "Return ufl elements."
+        return self._ufl_elements
+
     def ufl_element(self):
-        "Return ufl element."
-        return self._ufl_element
+        if len(self._ufl_elements) == 1:
+            return self._ufl_elements[0]
+        else:
+            error("""Found multiple elements. Cannot return only one.
+            Consider building a FunctionSpace from a MixedElement
+            in case of homogeneous dimension.""")
 
     def ufl_domains(self):
         "Return ufl domains."
@@ -144,6 +181,9 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         else:
             return None
 
+    def num_sub_spaces(self):
+        return len(self._ufl_function_spaces)
+
     def _ufl_hash_data_(self):
         return ("MixedFunctionSpace",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
 
@@ -152,24 +192,4 @@ class MixedFunctionSpace(AbstractFunctionSpace):
 
     def __repr__(self):
         r = "MixedFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
-        return as_native_str(r)
-
-
-@attach_operators_from_hash_data
-class TensorProductFunctionSpace(AbstractFunctionSpace):
-    def __init__(self, *function_spaces):
-        AbstractFunctionSpace.__init__(self)
-        self._ufl_function_spaces = function_spaces
-
-    def ufl_sub_spaces(self):
-        return self._ufl_function_spaces
-
-    def _ufl_hash_data_(self):
-        return ("TensorProductFunctionSpace",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
-
-    def _ufl_signature_data_(self, renumbering):
-        return ("TensorProductFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
-
-    def __repr__(self):
-        r = "TensorProductFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
         return as_native_str(r)

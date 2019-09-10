@@ -15,7 +15,7 @@ all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 def test_scalar_galerkin():
     for cell in all_cells:
         for p in range(1, 10):
-            for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
+            for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG", "Discontinuous Lagrange L2", "DG L2"):
                 element = FiniteElement(family, cell, p)
                 assert element.value_shape() == ()
                 assert element == eval(repr(element))
@@ -31,7 +31,7 @@ def test_vector_galerkin():
         # shape = () if dim == 1 else (dim,)
         shape = (dim,)
         for p in range(1, 10):
-            for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
+            for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG", "Discontinuous Lagrange L2", "DG L2"):
                 element = VectorElement(family, cell, p)
                 assert element.value_shape() == shape
                 assert element == eval(repr(element))
@@ -46,7 +46,7 @@ def test_tensor_galerkin():
         # shape = () if dim == 1 else (dim,dim)
         shape = (dim, dim)
         for p in range(1, 10):
-            for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
+            for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG", "Discontinuous Lagrange L2", "DG L2"):
                 element = TensorElement(family, cell, p)
                 assert element.value_shape() == shape
                 assert element == eval(repr(element))
@@ -65,7 +65,7 @@ def test_tensor_symmetry():
                 if isinstance(s, dict) and cell == interval:
                     continue
 
-                for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
+                for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG", "Discontinuous Lagrange L2", "DG L2"):
                     if isinstance(s, dict):
                         element = TensorElement(
                             family, cell, p, shape=(dim, dim), symmetry=s)
@@ -169,7 +169,8 @@ def test_missing_cell():
         assert element == eval(repr(element))
         element = TensorElement("DG", cell, 1, shape=(2, 2))
         assert element == eval(repr(element))
-
+        element = TensorElement("DG L2", cell, 1, shape=(2, 2))
+        assert element == eval(repr(element))
 
 def test_invalid_degree():
     cell = triangle

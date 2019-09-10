@@ -21,14 +21,15 @@ of related classes, including Constant."""
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
+# Modified by Cecile Daversin-Catty, 2018.
 
 from ufl.utils.str import as_native_str
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
-from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
-from ufl.domain import as_domain, default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
+from ufl.finiteelement import FiniteElementBase
+from ufl.domain import default_domain
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
 
@@ -117,37 +118,13 @@ class Coefficient(FormArgument):
                 self._ufl_function_space == other._ufl_function_space)
 
 
-# --- Helper functions for defining constant coefficients without
-# --- specifying element ---
-
-def Constant(domain, count=None):
-    """UFL value: Represents a globally constant scalar valued coefficient."""
-    domain = as_domain(domain)
-    element = FiniteElement("Real", domain.ufl_cell(), 0)
-    fs = FunctionSpace(domain, element)
-    return Coefficient(fs, count=count)
-
-
-def VectorConstant(domain, dim=None, count=None):
-    """UFL value: Represents a globally constant vector valued coefficient."""
-    domain = as_domain(domain)
-    element = VectorElement("Real", domain.ufl_cell(), 0, dim)
-    fs = FunctionSpace(domain, element)
-    return Coefficient(fs, count=count)
-
-
-def TensorConstant(domain, shape=None, symmetry=None, count=None):
-    """UFL value: Represents a globally constant tensor valued coefficient."""
-    domain = as_domain(domain)
-    element = TensorElement("Real", domain.ufl_cell(), 0, shape=shape,
-                            symmetry=symmetry)
-    fs = FunctionSpace(domain, element)
-    return Coefficient(fs, count=count)
-
-
 # --- Helper functions for subfunctions on mixed elements ---
 
 def Coefficients(function_space):
     """UFL value: Create a Coefficient in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(Coefficient(function_space))
+    if isinstance(function_space, MixedFunctionSpace):
+        return [Coefficient(function_space.ufl_sub_space(i))
+                for i in range(function_space.num_sub_spaces())]
+    else:
+        return split(Coefficient(function_space))

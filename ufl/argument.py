@@ -21,6 +21,7 @@ classes (functions), including TestFunction and TrialFunction."""
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
+# Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
 from ufl.utils.str import as_native_str
@@ -31,7 +32,7 @@ from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = as_native_strings(["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"])
@@ -156,8 +157,8 @@ class Argument(FormArgument):
                 self._part == other._part and
                 self._ufl_function_space == other._ufl_function_space)
 
-
 # --- Helper functions for pretty syntax ---
+
 
 def TestFunction(function_space, part=None):
     """UFL value: Create a test function argument to a form."""
@@ -174,7 +175,11 @@ def TrialFunction(function_space, part=None):
 def Arguments(function_space, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(Argument(function_space, number))
+    if isinstance(function_space, MixedFunctionSpace):
+        return [Argument(function_space.ufl_sub_space(i), number, i)
+                for i in range(function_space.num_sub_spaces())]
+    else:
+        return split(Argument(function_space, number))
 
 
 def TestFunctions(function_space):

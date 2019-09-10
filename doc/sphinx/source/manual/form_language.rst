@@ -424,9 +424,8 @@ There is a shorthand for this, whose use is similar to ``Arguments``, called
 
   u, p = Coefficients(TH)
 
-Spatially constant (or discontinuous piecewise constant) functions can
-conveniently be represented by ``Constant``, ``VectorConstant``, and
-``TensorConstant``::
+Spatially constant values can conveniently be represented by
+``Constant``, ``VectorConstant``, and ``TensorConstant``::
 
   c0 = Constant(cell)
   v0 = VectorConstant(cell)

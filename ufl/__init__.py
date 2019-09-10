@@ -88,6 +88,7 @@ A very brief overview of the language contents follows:
 * Function spaces::
 
     - FunctionSpace
+    - MixedFunctionSpace
 
 * Arguments::
 
@@ -246,6 +247,7 @@ A very brief overview of the language contents follows:
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Lawrence Mitchell, 2014
 # Modified by Massimiliano Leoni, 2016
+# Modified by Cecile Daversin-Catty, 2018
 
 import pkg_resources
 
@@ -299,8 +301,8 @@ from ufl.argument import Argument, TestFunction, TrialFunction, \
     Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
-from ufl.coefficient import Coefficient, Coefficients, \
-    Constant, VectorConstant, TensorConstant
+from ufl.coefficient import Coefficient, Coefficients
+from ufl.constant import Constant, VectorConstant, TensorConstant
 
 # Split function
 from ufl.split_functions import split
@@ -353,7 +355,7 @@ import ufl.measureoperators as __measureoperators
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
-    system, functional, adjoint, sensitivity_rhs, block_split  # , dirichlet_functional
+system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functional
 
 # Predefined convenience objects
 from ufl.objects import (
@@ -390,7 +392,7 @@ __all__ = as_native_strings([
     'HDivElement', 'HCurlElement',
     'BrokenElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
-    'FunctionSpace',
+    'FunctionSpace', 'MixedFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Coefficients',
@@ -417,7 +419,7 @@ __all__ = as_native_strings([
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
     'Form',
     'Integral', 'Measure', 'register_integral_type', 'integral_types', 'custom_integral_types',
-    'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'block_split',
+    'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'extract_blocks',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'dx', 'ds', 'dS', 'dP',
     'dc', 'dC', 'dO', 'dI', 'dX',
