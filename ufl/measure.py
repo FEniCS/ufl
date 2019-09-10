@@ -218,6 +218,7 @@ class Measure(object):
         new values.
 
         Example:
+        -------
             <dm = Measure instance>
             b = dm.reconstruct(subdomain_id=2)
             c = dm.reconstruct(metadata={ "quadrature_degree": 3 })

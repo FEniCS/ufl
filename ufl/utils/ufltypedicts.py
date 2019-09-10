@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"Various utility data structures."
+"""Various utility data structures."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #

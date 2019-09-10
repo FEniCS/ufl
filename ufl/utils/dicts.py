@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"Various dict manipulation utilities."
+"""Various dict manipulation utilities."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -20,7 +20,7 @@
 
 
 def split_dict(d, criteria):
-    "Split a dict d into two dicts based on a criteria on the keys."
+    """Split a dict d into two dicts based on a criteria on the keys."""
     a = {}
     b = {}
     for (k, v) in d.items():
@@ -36,7 +36,7 @@ def slice_dict(dictionary, keys, default=None):
 
 
 def some_key(a_dict):
-    "Return an arbitrary key from a dictionary."
+    """Return an arbitrary key from a dictionary."""
     return next(a_dict.keys())
 
 
@@ -58,7 +58,7 @@ def subdict(superdict, keys):
 
 
 def dict_sum(items):
-    "Construct a dict, in between dict(items) and sum(items), by accumulating items for each key."
+    """Construct a dict, in between dict(items) and sum(items), by accumulating items for each key."""
     d = {}
     for k, v in items:
         if k not in d:
