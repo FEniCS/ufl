@@ -31,9 +31,9 @@ def product(sequence):
 
 
 def unzip(seq):
-"""Inverse operation of zip:
+    """Inverse operation of zip:
 
-   unzip(zip(a, b)) == (a, b)."""
+    unzip(zip(a, b)) == (a, b)."""
     return [s[0] for s in seq], [s[1] for s in seq]
 
 

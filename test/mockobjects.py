@@ -19,8 +19,7 @@ class MockMesh:
 
 
 class MockMeshFunction:
-
-    "Mock class for the pydolfin compatibility hack for domain data with [] syntax."
+    """Mock class for the pydolfin compatibility hack for domain data with [] syntax."""
 
     def __init__(self, ufl_id, mesh):
         self._mesh = mesh

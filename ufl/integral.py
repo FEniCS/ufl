@@ -63,6 +63,7 @@ class Integral(object):
         new values.
 
         Example:
+        -------
             <a = Integral instance>
             b = a.reconstruct(expand_compounds(a.integrand()))
             c = a.reconstruct(metadata={'quadrature_degree':2})

@@ -27,7 +27,6 @@ from ufl.classes import Integral
 
 
 class CoordinateDerivativeIsOutermostChecker(MultiFunction):
-
     """ Traverses the tree to make sure that CoordinateDerivatives are only on
     the outside. The visitor returns False as long as no CoordinateDerivative
     has been seen. """
