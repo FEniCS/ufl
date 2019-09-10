@@ -188,8 +188,10 @@ def merge_nonoverlapping_indices(a, b):
     """Merge non-overlapping free indices into one representation.
 
     Example:
+    -------
       C[i,j,r,s] = outer(A[i,s], B[j,r])
       A, B -> (i,j,r,s), (idim,jdim,rdim,sdim)
+
     """
 
     # Extract input properties
@@ -215,8 +217,10 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
     """Merge overlapping free indices into one free and one repeated representation.
 
     Example:
+    -------
       C[j,r] := A[i,j,k] * B[i,r,k]
       A, B -> (j,r), (jdim,rdim), (i,k), (idim,kdim)
+
     """
 
     # Extract input properties

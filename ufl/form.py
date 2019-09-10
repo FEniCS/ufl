@@ -350,7 +350,7 @@ class Form(object):
         to replace Coefficients with expressions of matching shapes.
 
         Example:
-
+        -------
           V = FiniteElement("CG", triangle, 1)
           v = TestFunction(V)
           u = TrialFunction(V)

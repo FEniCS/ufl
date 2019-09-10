@@ -372,9 +372,10 @@ def compute_form_lhs(form):
     """Compute the left hand side of a form.
 
     Example:
-
+    -------
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
+
     """
     return compute_form_with_arity(form, 2)
 
@@ -383,9 +384,10 @@ def compute_form_rhs(form):
     """Compute the right hand side of a form.
 
     Example:
-
+    -------
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
+
     """
     return -compute_form_with_arity(form, 1)
 
