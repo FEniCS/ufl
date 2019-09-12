@@ -9,7 +9,6 @@
 
 
 from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator
@@ -22,11 +21,9 @@ from ufl.constantvalue import Zero
 
 @ufl_type(num_ops=2)
 class IndexSum(Operator):
-    __slots__ = as_native_strings((
-        "_dimension",
-        "ufl_free_indices",
-        "ufl_index_dimensions",
-    ))
+    __slots__ = ("_dimension",
+                 "ufl_free_indices",
+                 "ufl_index_dimensions",)
 
     def __new__(cls, summand, index):
         # Error checks

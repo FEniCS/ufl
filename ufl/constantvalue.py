@@ -12,8 +12,6 @@
 
 from math import atan2
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.log import error, UFLValueError
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
@@ -54,27 +52,6 @@ class ConstantValue(Terminal):
         return ()
 
 
-# --- Class for representing abstract constant symbol only for use internally in form compilers
-# @ufl_type()
-# class AbstractSymbol(ConstantValue):
-#     "UFL literal type: Representation of a constant valued symbol with unknown properties."
-#     __slots__ = as_native_strings(("_name", "ufl_shape"))
-#     def __init__(self, name, shape):
-#         ConstantValue.__init__(self)
-#         self._name = name
-#         self.ufl_shape = shape
-#
-#     def __str__(self):
-#        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self.ufl_shape)
-#
-#     def __repr__(self):
-#         r = "AbstractSymbol(%s, %s)" % (repr(self._name), repr(self.ufl_shape))
-#         return as_native_str(r)
-#
-#     def __eq__(self, other):
-#         return isinstance(other, AbstractSymbol) and self._name == other._name and self.ufl_shape == other.ufl_shape
-
-
 # --- Class for representing zero tensors of different shapes ---
 
 # TODO: Add geometric dimension/domain and Argument dependencies to
@@ -82,7 +59,7 @@ class ConstantValue(Terminal):
 @ufl_type(is_literal=True)
 class Zero(ConstantValue):
     "UFL literal type: Representation of a zero valued expression."
-    __slots__ = as_native_strings(("ufl_shape", "ufl_free_indices", "ufl_index_dimensions"))
+    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
 
     _cache = {}
 
@@ -153,7 +130,7 @@ class Zero(ConstantValue):
             repr(self.ufl_shape),
             repr(self.ufl_free_indices),
             repr(self.ufl_index_dimensions))
-        return as_native_str(r)
+        return r
 
     def __eq__(self, other):
         if isinstance(other, Zero):
@@ -200,7 +177,7 @@ def zero(*shape):
 @ufl_type(is_abstract=True, is_scalar=True)
 class ScalarValue(ConstantValue):
     "A constant scalar value."
-    __slots__ = as_native_strings(("_value",))
+    __slots__ = ("_value",)
 
     def __init__(self, value):
         ConstantValue.__init__(self)
@@ -284,7 +261,7 @@ class ComplexValue(ScalarValue):
 
     def __repr__(self):
         r = "%s(%s)" % (type(self).__name__, repr(self._value))
-        return as_native_str(r)
+        return r
 
     def __float__(self):
         raise TypeError("ComplexValues cannot be cast to float")
@@ -318,7 +295,7 @@ class FloatValue(RealValue):
 
     def __repr__(self):
         r = "%s(%s)" % (type(self).__name__, format_float(self._value))
-        return as_native_str(r)
+        return r
 
 
 @ufl_type(wraps_type=int, is_literal=True)
@@ -356,7 +333,7 @@ class IntValue(RealValue):
 
     def __repr__(self):
         r = "%s(%s)" % (type(self).__name__, repr(self._value))
-        return as_native_str(r)
+        return r
 
 
 # --- Identity matrix ---
@@ -364,7 +341,7 @@ class IntValue(RealValue):
 @ufl_type()
 class Identity(ConstantValue):
     "UFL literal type: Representation of an identity matrix."
-    __slots__ = as_native_strings(("_dim", "ufl_shape"))
+    __slots__ = ("_dim", "ufl_shape")
 
     def __init__(self, dim):
         ConstantValue.__init__(self)
@@ -388,7 +365,7 @@ class Identity(ConstantValue):
 
     def __repr__(self):
         r = "Identity(%d)" % self._dim
-        return as_native_str(r)
+        return r
 
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim
@@ -402,7 +379,7 @@ class PermutationSymbol(ConstantValue):
 
     This is also known as the Levi-Civita symbol, antisymmetric symbol,
     or alternating symbol."""
-    __slots__ = as_native_strings(("ufl_shape", "_dim"))
+    __slots__ = ("ufl_shape", "_dim")
 
     def __init__(self, dim):
         ConstantValue.__init__(self)
@@ -425,7 +402,7 @@ class PermutationSymbol(ConstantValue):
 
     def __repr__(self):
         r = "PermutationSymbol(%d)" % self._dim
-        return as_native_str(r)
+        return r
 
     def __eq__(self, other):
         return isinstance(other, PermutationSymbol) and self._dim == other._dim

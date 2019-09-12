@@ -22,10 +22,9 @@ from ufl.equation import Equation
 from ufl.core.expr import Expr
 from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
-from ufl.utils.str import as_native_strings, as_native_str
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["Form"])
+__all_classes__ = ["Form"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -397,7 +396,7 @@ class Form(object):
         # Not caching this because it can be huge
         itgs = ", ".join(repr(itg) for itg in self.integrals())
         r = "Form([" + itgs + "])"
-        return as_native_str(r)
+        return r
 
     # --- Analysis functions, precomputation and caching of various quantities
 

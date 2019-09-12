@@ -9,8 +9,6 @@ expressions as variables for differentiation."""
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.utils.counted import counted_init
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
@@ -21,7 +19,7 @@ from ufl.constantvalue import as_ufl
 
 @ufl_type()
 class Label(Terminal):
-    __slots__ = as_native_strings(("_count",))
+    __slots__ = ("_count",)
 
     _globalcount = 0
 
@@ -37,7 +35,7 @@ class Label(Terminal):
 
     def __repr__(self):
         r = "Label(%d)" % self._count
-        return as_native_str(r)
+        return r
 
     @property
     def ufl_shape(self):

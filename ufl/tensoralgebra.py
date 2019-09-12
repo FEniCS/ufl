@@ -8,7 +8,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import Zero
@@ -111,8 +110,7 @@ class Transposed(CompoundTensorOperator):
 
 @ufl_type(num_ops=2)
 class Outer(CompoundTensorOperator):
-    __slots__ = as_native_strings(("ufl_free_indices",
-                                   "ufl_index_dimensions"))
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
         ash, bsh = a.ufl_shape, b.ufl_shape
@@ -140,8 +138,7 @@ class Outer(CompoundTensorOperator):
 
 @ufl_type(num_ops=2)
 class Inner(CompoundTensorOperator):
-    __slots__ = as_native_strings(("ufl_free_indices",
-                                   "ufl_index_dimensions"))
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
         # Checks
@@ -180,8 +177,7 @@ class Inner(CompoundTensorOperator):
 
 @ufl_type(num_ops=2)
 class Dot(CompoundTensorOperator):
-    __slots__ = as_native_strings(("ufl_free_indices",
-                                   "ufl_index_dimensions"))
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
         ash = a.ufl_shape
@@ -223,8 +219,7 @@ class Dot(CompoundTensorOperator):
 
 @ufl_type(num_ops=2)
 class Cross(CompoundTensorOperator):
-    __slots__ = as_native_strings(("ufl_free_indices",
-                                   "ufl_index_dimensions"))
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
         ash = a.ufl_shape

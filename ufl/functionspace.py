@@ -10,19 +10,17 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings([
+__all_classes__ = [
     "AbstractFunctionSpace",
     "FunctionSpace",
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
-])
+]
 
 
 class AbstractFunctionSpace(object):
@@ -98,7 +96,7 @@ class FunctionSpace(AbstractFunctionSpace):
 
     def __repr__(self):
         r = "FunctionSpace(%s, %s)" % (repr(self._ufl_domain), repr(self._ufl_element))
-        return as_native_str(r)
+        return r
 
 
 @attach_operators_from_hash_data
@@ -118,7 +116,7 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
 
     def __repr__(self):
         r = "TensorProductFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
-        return as_native_str(r)
+        return r
 
 
 @attach_operators_from_hash_data
@@ -181,4 +179,4 @@ class MixedFunctionSpace(AbstractFunctionSpace):
 
     def __repr__(self):
         r = "MixedFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
-        return as_native_str(r)
+        return r

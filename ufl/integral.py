@@ -16,23 +16,19 @@ from ufl.core.expr import Expr
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.measure import Measure  # noqa
 from ufl.protocols import id_or_none
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["Integral"])
+__all_classes__ = ["Integral"]
 
 
 class Integral(object):
     "An integral over a single domain."
-    __slots__ = as_native_strings((
-        "_integrand",
-        "_integral_type",
-        "_ufl_domain",
-        "_subdomain_id",
-        "_metadata",
-        "_subdomain_data",
-    ))
+    __slots__ = ("_integrand",
+                 "_integral_type",
+                 "_ufl_domain",
+                 "_subdomain_id",
+                 "_metadata",
+                 "_subdomain_data",)
 
     def __init__(self, integrand, integral_type, domain, subdomain_id,
                  metadata, subdomain_data):
@@ -123,7 +119,7 @@ class Integral(object):
                                                   repr(self._subdomain_id),
                                                   repr(self._metadata),
                                                   repr(self._subdomain_data))
-        return as_native_str(r)
+        return r
 
     def __eq__(self, other):
         return (isinstance(other, Integral) and

@@ -9,8 +9,6 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -20,7 +18,7 @@ from ufl.core.ufl_type import ufl_type
 @ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
     "Base class for all operators, i.e. non-terminal expression types."
-    __slots__ = as_native_strings(("ufl_operands",))
+    __slots__ = ("ufl_operands",)
 
     def __init__(self, operands=None):
         Expr.__init__(self)
@@ -48,4 +46,4 @@ class Operator(Expr):
         # This should work for most cases
         r = "%s(%s)" % (self._ufl_class_.__name__,
                         ", ".join(repr(op) for op in self.ufl_operands))
-        return as_native_str(r)
+        return r

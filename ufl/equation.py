@@ -8,11 +8,9 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.log import error
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["Equation"])
+__all_classes__ = ["Equation"]
 
 
 class Equation(object):
@@ -57,4 +55,4 @@ class Equation(object):
 
     def __repr__(self):
         r = "Equation(%s, %s)" % (repr(self.lhs), repr(self.rhs))
-        return as_native_str(r)
+        return r

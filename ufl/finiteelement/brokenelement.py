@@ -7,7 +7,6 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
@@ -15,7 +14,7 @@ class BrokenElement(FiniteElementBase):
     """The discontinuous version of an existing Finite Element space."""
     def __init__(self, element):
         self._element = element
-        self._repr = as_native_str("BrokenElement(%s)" % repr(element))
+        self._repr = "BrokenElement(%s)" % repr(element)
 
         family = "BrokenElement"
         cell = element.cell()

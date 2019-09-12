@@ -7,8 +7,6 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.sobolevspace import HDiv, HCurl
 
@@ -16,11 +14,11 @@ from ufl.sobolevspace import HDiv, HCurl
 class HDivElement(FiniteElementBase):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = as_native_strings(("_element",))
+    __slots__ = ("_element",)
 
     def __init__(self, element):
         self._element = element
-        self._repr = as_native_str("HDivElement(%s)" % repr(element))
+        self._repr = "HDivElement(%s)" % repr(element)
 
         family = "TensorProductElement"
         cell = element.cell()
@@ -54,11 +52,11 @@ class HDivElement(FiniteElementBase):
 class HCurlElement(FiniteElementBase):
     """A curl-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = as_native_strings(("_element",))
+    __slots__ = ("_element",)
 
     def __init__(self, element):
         self._element = element
-        self._repr = as_native_str("HCurlElement(%s)" % repr(element))
+        self._repr = "HCurlElement(%s)" % repr(element)
 
         family = "TensorProductElement"
         cell = element.cell()

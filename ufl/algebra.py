@@ -10,7 +10,6 @@
 # Modified by Anders Logg, 2008
 
 from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
@@ -115,10 +114,7 @@ class Sum(Operator):
           binop="__mul__", rbinop="__rmul__")
 class Product(Operator):
     """The product of two or more UFL objects."""
-    __slots__ = as_native_strings((
-        "ufl_free_indices",
-        "ufl_index_dimensions",
-    ))
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
         # Conversion

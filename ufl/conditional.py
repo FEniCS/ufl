@@ -8,7 +8,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.log import warning, error
-from ufl.utils.str import as_native_strings
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
@@ -38,7 +37,7 @@ class Condition(Operator):
 
 @ufl_type(is_abstract=True, num_ops=2)
 class BinaryCondition(Condition):
-    __slots__ = as_native_strings(('_name',))
+    __slots__ = ('_name',)
 
     def __init__(self, name, left, right):
         left = as_ufl(left)

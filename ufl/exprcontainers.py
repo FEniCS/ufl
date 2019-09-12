@@ -7,7 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.utils.str import as_native_str
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
@@ -40,7 +39,7 @@ class ExprList(Operator):
 
     def __repr__(self):
         r = "ExprList(*%s)" % repr(self.ufl_operands)
-        return as_native_str(r)
+        return r
 
     @property
     def ufl_shape(self):
@@ -93,7 +92,7 @@ class ExprMapping(Operator):
 
     def __repr__(self):
         r = "ExprMapping(*%s)" % repr(self.ufl_operands)
-        return as_native_str(r)
+        return r
 
     @property
     def ufl_shape(self):

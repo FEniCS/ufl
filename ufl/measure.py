@@ -12,8 +12,6 @@
 
 import numbers
 
-from ufl.utils.str import as_native_strings
-from ufl.utils.str import as_native_str
 from ufl.log import error, deprecate
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
@@ -24,7 +22,7 @@ from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["Measure", "MeasureSum", "MeasureProduct"])
+__all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
 
 
 # TODO: Design a class IntegralType(name, shortname, codim, num_cells, ...)?
@@ -100,11 +98,11 @@ def measure_names():
 
 
 class Measure(object):
-    __slots__ = as_native_strings(("_integral_type",
-                                   "_domain",
-                                   "_subdomain_id",
-                                   "_metadata",
-                                   "_subdomain_data"))
+    __slots__ = ("_integral_type",
+                 "_domain",
+                 "_subdomain_id",
+                 "_metadata",
+                 "_subdomain_data")
     """Representation of an integration measure.
 
     The Measure object holds information about integration properties
@@ -329,7 +327,7 @@ class Measure(object):
             args.append("subdomain_data=%s" % repr(self._subdomain_data))
 
         r = "%s(%s)" % (type(self).__name__, ', '.join(args))
-        return as_native_str(r)
+        return r
 
     def __hash__(self):
         "Return a hash value for this Measure."
@@ -453,7 +451,7 @@ class MeasureSum(object):
 
         f*ds(1) + f*ds(3)
     """
-    __slots__ = as_native_strings(("_measures",))
+    __slots__ = ("_measures",)
 
     def __init__(self, *measures):
         self._measures = measures
@@ -484,7 +482,7 @@ class MeasureProduct(object):
     in other parts of ufl and the rest of the code generation chain.
 
     """
-    __slots__ = as_native_strings(("_measures",))
+    __slots__ = ("_measures",)
 
     def __init__(self, *measures):
         "Create MeasureProduct from given list of measures."

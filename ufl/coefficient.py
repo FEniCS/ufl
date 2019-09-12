@@ -12,7 +12,6 @@ of related classes, including Constant."""
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 
-from ufl.utils.str import as_native_str
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
@@ -51,8 +50,8 @@ class Coefficient(FormArgument):
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
-        self._repr = as_native_str("Coefficient(%s, %s)" % (
-            repr(self._ufl_function_space), repr(self._count)))
+        self._repr = "Coefficient(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count))
 
     def count(self):
         return self._count

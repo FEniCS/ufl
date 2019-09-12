@@ -19,7 +19,6 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 
 
@@ -87,7 +86,7 @@ class Expr(object):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = as_native_strings(("_hash",))
+    __slots__ = ("_hash",)
     # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
