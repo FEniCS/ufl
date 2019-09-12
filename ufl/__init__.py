@@ -372,8 +372,7 @@ from math import e, pi
 
 
 # Define ufl.* namespace
-from ufl.utils.str import as_native_strings
-__all__ = as_native_strings([
+__all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
@@ -428,4 +427,4 @@ __all__ = as_native_strings([
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
-])
+]

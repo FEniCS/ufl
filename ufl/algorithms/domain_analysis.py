@@ -22,7 +22,6 @@ from collections import defaultdict
 
 import ufl
 from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
@@ -39,10 +38,10 @@ class IntegralData(object):
     associating metadata with each object.
 
     """
-    __slots__ = as_native_strings(('domain', 'integral_type', 'subdomain_id',
-                                   'integrals', 'metadata',
-                                   'integral_coefficients',
-                                   'enabled_coefficients'))
+    __slots__ = ('domain', 'integral_type', 'subdomain_id',
+                 'integrals', 'metadata',
+                 'integral_coefficients',
+                 'enabled_coefficients')
 
     def __init__(self, domain, integral_type, subdomain_id, integrals,
                  metadata):
@@ -105,7 +104,7 @@ def dicts_lt(a, b):
 
 # Tuple comparison helper
 class ExprTupleKey(object):
-    __slots__ = as_native_strings(('x',))
+    __slots__ = ('x',)
 
     def __init__(self, x):
         self.x = x

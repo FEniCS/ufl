@@ -22,7 +22,6 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_strings
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.log import error
@@ -31,14 +30,14 @@ from ufl.cell import AbstractCell, as_cell
 
 class FiniteElementBase(object):
     "Base class for all finite elements."
-    __slots__ = as_native_strings(("_family",
-                                   "_cell",
-                                   "_degree",
-                                   "_quad_scheme",
-                                   "_value_shape",
-                                   "_reference_value_shape",
-                                   "_repr",
-                                   "__weakref__"))
+    __slots__ = ("_family",
+                 "_cell",
+                 "_degree",
+                 "_quad_scheme",
+                 "_value_shape",
+                 "_reference_value_shape",
+                 "_repr",
+                 "__weakref__")
 
     # TODO: Not all these should be in the base class! In particular
     # family, degree, and quad_scheme do not belong here.

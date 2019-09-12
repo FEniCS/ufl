@@ -22,7 +22,6 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
 from ufl.log import error
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
@@ -66,7 +65,7 @@ class EnrichedElementBase(FiniteElementBase):
         #    error("Element mapping mismatch.")
 
         # Get name of subclass: EnrichedElement or NodalEnrichedElement
-        class_name = as_native_str(self.__class__.__name__)
+        class_name = self.__class__.__name__
 
         # Initialize element data
         FiniteElementBase.__init__(self, class_name, cell, degree,
@@ -74,8 +73,7 @@ class EnrichedElementBase(FiniteElementBase):
                                    reference_value_shape)
 
         # Cache repr string
-        self._repr = as_native_str("%s(%s)" %
-                                   (class_name, ", ".join(repr(e) for e in self._elements)))
+        self._repr = "%s(%s)" % (class_name, ", ".join(repr(e) for e in self._elements))
 
     def mapping(self):
         return self._elements[0].mapping()

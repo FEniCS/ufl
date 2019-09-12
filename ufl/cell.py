@@ -27,14 +27,12 @@
 import numbers
 import functools
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["AbstractCell", "Cell", "TensorProductCell"])
+__all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 
 # --- The most abstract cell class, base class for other cell types
@@ -44,8 +42,8 @@ class AbstractCell(object):
     dimensions known.
 
     """
-    __slots__ = as_native_strings(("_topological_dimension",
-                                   "_geometric_dimension"))
+    __slots__ = ("_topological_dimension",
+                 "_geometric_dimension")
 
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
@@ -118,7 +116,7 @@ cellname2facetname = {"interval": "vertex",
 @attach_operators_from_hash_data
 class Cell(AbstractCell):
     "Representation of a named finite element cell with known structure."
-    __slots__ = as_native_strings(("_cellname",))
+    __slots__ = ("_cellname",)
 
     def __init__(self, cellname, geometric_dimension=None):
         "Initialize basic cell description."
@@ -202,7 +200,7 @@ class Cell(AbstractCell):
             r = name
         else:
             r = "Cell(%s, %s)" % (repr(name), repr(gdim))
-        return as_native_str(r)
+        return r
 
     def _ufl_hash_data_(self):
         return (self._geometric_dimension, self._topological_dimension,
@@ -211,7 +209,7 @@ class Cell(AbstractCell):
 
 @attach_operators_from_hash_data
 class TensorProductCell(AbstractCell):
-    __slots__ = as_native_strings(("_cells",))
+    __slots__ = ("_cells",)
 
     def __init__(self, *cells, **kwargs):
         keywords = list(kwargs.keys())

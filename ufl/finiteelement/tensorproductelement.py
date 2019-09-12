@@ -25,7 +25,6 @@
 from itertools import chain
 
 from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.cell import TensorProductCell, as_cell
 from ufl.sobolevspace import DirectionalSobolevSpace
 
@@ -41,7 +40,7 @@ class TensorProductElement(FiniteElementBase):
     :math:`\{ \phi_{j_1} \otimes \phi_{j_2} \otimes \cdots \otimes \phi_{j_d}
     \}` forms a basis for :math:`V`.
     """
-    __slots__ = as_native_strings(("_sub_elements", "_cell"))
+    __slots__ = ("_sub_elements", "_cell")
 
     def __init__(self, *elements, **kwargs):
         "Create TensorProductElement from a given list of elements."

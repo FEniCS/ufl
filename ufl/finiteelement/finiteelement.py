@@ -24,8 +24,6 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
 
@@ -37,10 +35,10 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements."
     # TODO: Move these to base?
-    __slots__ = as_native_strings(("_short_name",
-                                   "_sobolev_space",
-                                   "_mapping",
-                                   "_variant"))
+    __slots__ = ("_short_name",
+                 "_sobolev_space",
+                 "_mapping",
+                 "_variant")
 
     def __new__(cls,
                 family,
@@ -197,8 +195,8 @@ class FiniteElement(FiniteElementBase):
             var_str = ""
         else:
             var_str = ", variant=%s" % repr(v)
-        self._repr = as_native_str("FiniteElement(%s, %s, %s%s%s)" % (
-            repr(self.family()), repr(self.cell()), repr(self.degree()), quad_str, var_str))
+        self._repr = "FiniteElement(%s, %s, %s%s%s)" % (
+            repr(self.family()), repr(self.cell()), repr(self.degree()), quad_str, var_str)
         assert '"' not in self._repr
 
     def mapping(self):

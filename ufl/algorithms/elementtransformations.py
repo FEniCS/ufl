@@ -20,12 +20,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.finiteelement import FiniteElement, VectorElement, TensorElement, \
     MixedElement, EnrichedElement, NodalEnrichedElement
 
-__all__ = as_native_strings(['increase_order', 'tear'])
+__all__ = ['increase_order', 'tear']
 
 
 def increase_order(element):

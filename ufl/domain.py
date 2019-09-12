@@ -25,8 +25,6 @@
 
 import numbers
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -36,7 +34,7 @@ from ufl.finiteelement.tensorproductelement import TensorProductElement
 
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"])
+__all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
 
 
 class AbstractDomain(object):
@@ -122,7 +120,7 @@ class Mesh(AbstractDomain):
 
     def __repr__(self):
         r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_element), repr(self._ufl_id))
-        return as_native_str(r)
+        return r
 
     def __str__(self):
         return "<Mesh #%s>" % (self._ufl_id,)
@@ -170,7 +168,7 @@ class MeshView(AbstractDomain):
     def __repr__(self):
         tdim = self.topological_dimension()
         r = "MeshView(%s, %s, %s)" % (repr(self._ufl_mesh), repr(tdim), repr(self._ufl_id))
-        return as_native_str(r)
+        return r
 
     def __str__(self):
         return "<MeshView #%s of dimension %d over mesh %s>" % (
@@ -227,7 +225,7 @@ class TensorProductMesh(AbstractDomain):
 
     def __repr__(self):
         r = "TensorProductMesh(%s, %s)" % (repr(self._ufl_meshes), repr(self._ufl_id))
-        return as_native_str(r)
+        return r
 
     def __str__(self):
         return "<TensorProductMesh #%s with meshes %s>" % (

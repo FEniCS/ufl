@@ -24,7 +24,6 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.permutation import compute_indices
 from ufl.utils.sequences import product, max_degree
 from ufl.utils.dicts import EmptyDict
@@ -38,7 +37,7 @@ from ufl.finiteelement.finiteelement import FiniteElement
 class MixedElement(FiniteElementBase):
     """A finite element composed of a nested hierarchy of mixed or simple
     elements."""
-    __slots__ = as_native_strings(("_sub_elements", "_cells"))
+    __slots__ = ("_sub_elements", "_cells")
 
     def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
@@ -334,10 +333,10 @@ class TensorElement(MixedElement):
     equal.
 
     """
-    __slots__ = as_native_strings(("_sub_element", "_shape", "_symmetry",
-                                   "_sub_element_mapping",
-                                   "_flattened_sub_element_mapping",
-                                   "_mapping"))
+    __slots__ = ("_sub_element", "_shape", "_symmetry",
+                 "_sub_element_mapping",
+                 "_flattened_sub_element_mapping",
+                 "_mapping")
 
     def __init__(self, family, cell=None, degree=None, shape=None,
                  symmetry=None, quad_scheme=None):

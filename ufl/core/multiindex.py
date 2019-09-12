@@ -21,15 +21,13 @@
 # Modified by Massimiliano Leoni, 2016.
 
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.utils.counted import counted_init
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["IndexBase", "FixedIndex", "Index"])
+__all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
 
 class IndexBase(object):
@@ -42,7 +40,7 @@ class IndexBase(object):
 
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
-    __slots__ = as_native_strings(("_value", "_hash"))
+    __slots__ = ("_value", "_hash")
 
     _cache = {}
 
@@ -81,14 +79,14 @@ class FixedIndex(IndexBase):
 
     def __repr__(self):
         r = "FixedIndex(%d)" % self._value
-        return as_native_str(r)
+        return r
 
 
 class Index(IndexBase):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
-    __slots__ = as_native_strings(("_count",))
+    __slots__ = ("_count",)
 
     _globalcount = 0
 
@@ -113,13 +111,13 @@ class Index(IndexBase):
 
     def __repr__(self):
         r = "Index(%d)" % self._count
-        return as_native_str(r)
+        return r
 
 
 @ufl_type()
 class MultiIndex(Terminal):
     "Represents a sequence of indices, either fixed or free."
-    __slots__ = as_native_strings(("_indices",))
+    __slots__ = ("_indices",)
 
     _cache = {}
 
@@ -226,7 +224,7 @@ class MultiIndex(Terminal):
 
     def __repr__(self):
         r = "MultiIndex(%s)" % repr(self._indices)
-        return as_native_str(r)
+        return r
 
     # --- Iteration protocol ---
 

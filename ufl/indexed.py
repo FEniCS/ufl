@@ -19,7 +19,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.ufl_type import ufl_type
@@ -33,10 +32,10 @@ from ufl.precedence import parstr
 
 @ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
-    __slots__ = as_native_strings((
+    __slots__ = (
         "ufl_free_indices",
         "ufl_index_dimensions",
-    ))
+    )
 
     def __new__(cls, expression, multiindex):
         if isinstance(expression, Zero):

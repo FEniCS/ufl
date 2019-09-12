@@ -27,8 +27,6 @@ symbolic reasoning about the spaces in which finite elements lie."""
 
 from functools import total_ordering
 
-from ufl.utils.str import as_native_str
-
 
 @total_ordering
 class SobolevSpace(object):
@@ -67,7 +65,7 @@ class SobolevSpace(object):
     def __repr__(self):
         r = "SobolevSpace(%s, %s)" % (repr(self.name), repr(
             list(self.parents)))
-        return as_native_str(r)
+        return r
 
     def __eq__(self, other):
         return isinstance(other, SobolevSpace) and self.name == other.name

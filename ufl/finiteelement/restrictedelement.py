@@ -22,7 +22,6 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.log import error
 
@@ -47,8 +46,8 @@ class RestrictedElement(FiniteElementBase):
 
         self._restriction_domain = restriction_domain
 
-        self._repr = as_native_str("RestrictedElement(%s, %s)" % (
-            repr(self._element), repr(self._restriction_domain)))
+        self._repr = "RestrictedElement(%s, %s)" % (
+            repr(self._element), repr(self._restriction_domain))
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this element is spatially
