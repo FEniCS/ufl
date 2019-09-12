@@ -247,6 +247,20 @@ register_alias("P- L2", lambda family, dim, order,
 register_alias("Q- L2", lambda family, dim, order,
                degree: feec_element_l2(family, dim, order, degree))
 
+# mimetic spectral elements - primal and dual complexs
+register_element("Extended-Gauss-Legendre", "EGL", 0, H1, "identity", (2, None),
+                 ("interval",))
+register_element("Extended-Gauss-Legendre Edge", "EGL-Edge", 0, L2, "identity", (1, None),
+                 ("interval",))
+register_element("Extended-Gauss-Legendre Edge L2", "EGL-Edge L2", 0, L2, "L2 Piola", (1, None),
+                 ("interval",))
+register_element("Gauss-Lobatto-Legendre Edge", "GLL-Edge", 0, L2, "identity", (0, None),
+                 ("interval",))
+register_element("Gauss-Lobatto-Legendre Edge L2", "GLL-Edge L2", 0, L2, "L2 Piola", (0, None),
+                 ("interval",))
+
+
+# NOTE- the edge elements for primal mimetic spectral elements are accessed by using variant='mse' in the appropriate places
 
 def feec_element(family, n, r, k):
     """Finite element exterior calculus notation
