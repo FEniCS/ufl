@@ -102,6 +102,7 @@ class RestrictionPropagator(MultiFunction):
 
     # Default: Literals should ignore restriction
     constant_value = _ignore_restriction
+    constant = _ignore_restriction
 
     # Even arguments with continuous elements such as Lagrange must be
     # restricted to associate with the right part of the element
