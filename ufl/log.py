@@ -264,7 +264,7 @@ class ControlDifferentiationError(Exception):
 
     def __init__(self, o, index, df):
         from ufl.core.external_operator import ExternalOperator
-        # Checks
+        # Check
         if not isinstance(o, ExternalOperator):
             ufl_logger.error("Expecting an ExternalOperator instead of : ", o)
 

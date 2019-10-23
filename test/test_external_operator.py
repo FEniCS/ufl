@@ -10,21 +10,21 @@ Test ExternalOperator object
 """
 
 import pytest
-import math 
 
 # This imports everything external code will see from ufl
 from ufl import *
 from ufl.core.external_operator import ExternalOperator
 from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms import expand_derivatives
 from ufl.constantvalue import as_ufl
 from ufl.domain import default_domain
+
+from functools import partial
 
 
 def test_properties(self, cell):
     S = FiniteElement("CG", cell, 1)
-    cs = Constant(cell)
     u = Coefficient(S)
-    v = Coefficient(S)
     r = Coefficient(S)
 
     nl = ExternalOperator(u, r, function_space=S)
@@ -42,115 +42,155 @@ def test_properties(self, cell):
     assert nl2.derivatives == (3, 4)
     assert nl2.ufl_shape == ()
 
+
+def _create_external_operator(V=None, nops=1):
+    if V is None:
+        space = FiniteElement("Quadrature", triangle, 1)
+    else:
+        space = V
+    return ExternalOperator(*[variable(0.) for i in range(nops)], function_space=space)
+
+
 def _test(f, df):
-    v =variable(5.0)
+    v = variable(5.0)
     v1 = variable(6.0)
-    P = FiniteElement("Quadrature", triangle, 2)
-    dfvtest = diff(f(v, P), v1)
-    
-    dfv1 = diff(f(v, P), v)
-    dfv2 = df(v, P)
-    assert apply_derivatives(dfv1) == dfv2 
+    fexpr = f(v)
+
+    dfv1 = diff(fexpr, v)
+    dfv2 = df(v)
+    assert apply_derivatives(dfv1) == dfv2
+
 
 def _test_multivariable(f, df1, df2, df3):
     v1 = variable(4450.567)
     v2 = variable(3495.348)
     v3 = variable(1294.387)
-    P = FiniteElement("Quadrature", triangle, 2)
+    fexpr = f(v1, v2, v3)
 
-    dfv1 = diff(f(v1, v2, v3, P), v1)
-    dfv2 = df1(v1, v2, v3, P)
+    dfv1 = diff(fexpr, v1)
+    dfv2 = df1(v1, v2, v3)
     assert apply_derivatives(dfv1) == dfv2
 
-    dfv1 = diff(f(v1, v2, v3, P), v2)
-    dfv2 = df2(v1, v2, v3, P)
+    dfv1 = diff(fexpr, v2)
+    dfv2 = df2(v1, v2, v3)
     assert apply_derivatives(dfv1) == dfv2
 
-    dfv1 = diff(f(v1, v2, v3, P), v3)
-    dfv2 = df3(v1, v2, v3, P)
+    dfv1 = diff(fexpr, v3)
+    dfv2 = df3(v1, v2, v3)
     assert apply_derivatives(dfv1) == dfv2
+
 
 def testVariable():
-    def f(v, space):
-        return ExternalOperator(v, function_space=space)
+    V = FiniteElement("Quadrature", triangle, 2)
+    e = _create_external_operator(V)
 
-    def df(v, space):
-        e = f(v, space)
-        nl = e._ufl_expr_reconstruct_(v, derivatives=(1,), function_space=space, count=e._count - 1)
+    def f(v, e):
+        nl = e._ufl_expr_reconstruct_(v, derivatives=(0,))
         return as_ufl(nl)
 
-    def df2(v, space):
-        e = f(v, space)
-        nl = e._ufl_expr_reconstruct_(v, derivatives=(2,), function_space=space, count=e._count - 2)
+    def df(v, e):
+        nl = e._ufl_expr_reconstruct_(v, derivatives=(1,))
         return as_ufl(nl)
-    _test(f, df)
-    _test(df, df2)
+
+    def df2(v, e):
+        nl = e._ufl_expr_reconstruct_(v, derivatives=(2,))
+        return as_ufl(nl)
+
+    fe = partial(f, e=e)
+    dfe = partial(df, e=e)
+    df2e = partial(df2, e=e)
+    _test(fe, dfe)
+    _test(dfe, df2e)
+
 
 def testProduct():
-    def g(v, space):
-        nl = ExternalOperator(v, function_space=space)
-        return nl
+    V = FiniteElement("Quadrature", triangle, 3)
+    e = _create_external_operator(V)
 
-    def f(v,space):
-        return 3*g(v,space)
+    def g(v, e):
+        nl = e._ufl_expr_reconstruct_(v, derivatives=(0,))
+        return as_ufl(nl)
 
-    def df(v, space):
-        e = g(v, space)
-        nl = e._ufl_expr_reconstruct_(v, derivatives=(1,), function_space=space, count=e._count-1)
-        return as_ufl(3*nl)
-    _test(f, df)
+    def f(v, e):
+        return 3 * g(v, e)
+
+    def df(v, e):
+        e = g(v, e)
+        nl = e._ufl_expr_reconstruct_(v, derivatives=(1,))
+        return as_ufl(3 * nl)
+
+    fe = partial(f, e=e)
+    dfe = partial(df, e=e)
+    _test(fe, dfe)
+
 
 def testProductExternalOperator():
+    V = FiniteElement("Quadrature", triangle, 3)
+    e1 = _create_external_operator(V)
+    e2 = _create_external_operator(V)
+
     cst = 2.0
-    def g(v, space):
-        nl = ExternalOperator(cst*v, function_space=space)
-        nl2 = ExternalOperator(v, derivatives=(1,), function_space=space)
+
+    def g(v, e1, e2):
+        nl = e1._ufl_expr_reconstruct_(cst * v)
+        nl2 = e2._ufl_expr_reconstruct_(v)
         return nl, nl2
 
-    def f(v, space):
-        gg = g(v,space)
-        nl = gg[0]
-        nl2 = gg[1]
-        return nl*nl2
+    def f(v, e1, e2):
+        eo1, eo2 = g(v, e1, e2)
+        return eo1 * eo2
 
-    def df(v, space):
-        gg = g(v, space)
-        e1 = gg[0]
-        e2 = gg[1]
+    def df(v, e1, e2):
+        nl = e1._ufl_expr_reconstruct_(cst * v)
+        nl2 = e2._ufl_expr_reconstruct_(v)
+        dnl = cst * e1._ufl_expr_reconstruct_(cst * v, derivatives=(1,))
+        dnl2 = e2._ufl_expr_reconstruct_(v, derivatives=(1,))
 
-        nl = e1._ufl_expr_reconstruct_(cst*v, function_space=space, count=e1._count-2)
-        nl2 = e2._ufl_expr_reconstruct_(v,derivatives=(1,), function_space=space, count=e2._count-2)
-        dnl = cst*e1._ufl_expr_reconstruct_(cst*v,derivatives=(1,), function_space=space, count=e1._count-2)
-        dnl2 = e2._ufl_expr_reconstruct_(v,derivatives=(2,), function_space=space, count=e2._count-2)
+        return as_ufl(dnl * nl2 + dnl2 * nl)
 
-        return as_ufl(dnl*nl2+dnl2*nl)
-    _test(f, df)
+    fe = partial(f, e1=e1, e2=e2)
+    dfe = partial(df, e1=e1, e2=e2)
+    _test(fe, dfe)
+
 
 def testmultiVariable():
-    def g(v1, v2, v3, space):
-        return ExternalOperator(v1, v2, v3, function_space=space)
-    def f(v1, v2, v3, space):
-        return cos(v1)*sin(v2)*g(v1, v2, v3, space)
-    def df1(v1, v2, v3, space):
-        r = g(v1, v2, v3, space)
-        g1 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 0, 0), function_space=space, count=r._count-1)
-        g2 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(1, 0, 0), function_space=space, count=r._count-1)
-        nl =  - sin(v1)*sin(v2)*g1 + cos(v1)*sin(v2)*g2
-        return as_ufl(nl)
-    def df2(v1, v2, v3, space):
-        r = g(v1,v2,v3,space)
-        g1 = r._ufl_expr_reconstruct_(v1, v2, v3,derivatives=(0, 0, 0), function_space=space, count=r._count-1)
-        g2 = r._ufl_expr_reconstruct_(v1, v2, v3,derivatives=(0, 1, 0), function_space=space, count=r._count-1)
-        nl = cos(v2)*cos(v1)*g1 + cos(v1)*sin(v2)*g2
-        return as_ufl(nl)
-    def df3(v1, v2, v3, space):
-        r = g(v1, v2, v3, space)
-        g1 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 0, 1), function_space=space, count=r._count-1)
-        nl = cos(v1)*sin(v2)*g1
-        return as_ufl(nl)
-    _test_multivariable(f, df1, df2, df3)
+    V = FiniteElement("Quadrature", triangle, 3)
+    e = _create_external_operator(V, 3)
 
-def test_form(self):
+    def g(v1, v2, v3, e):
+        return e._ufl_expr_reconstruct_(v1, v2, v3)
+
+    def f(v1, v2, v3, e):
+        return cos(v1) * sin(v2) * g(v1, v2, v3, e)
+
+    def df1(v1, v2, v3, e):
+        r = g(v1, v2, v3, e)
+        g1 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 0, 0))
+        g2 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(1, 0, 0))
+        nl = - sin(v1) * sin(v2) * g1 + cos(v1) * sin(v2) * g2
+        return as_ufl(nl)
+
+    def df2(v1, v2, v3, e):
+        r = g(v1, v2, v3, e)
+        g1 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 0, 0))
+        g2 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 1, 0))
+        nl = cos(v2) * cos(v1) * g1 + cos(v1) * sin(v2) * g2
+        return as_ufl(nl)
+
+    def df3(v1, v2, v3, e):
+        r = g(v1, v2, v3, e)
+        g1 = r._ufl_expr_reconstruct_(v1, v2, v3, derivatives=(0, 0, 1))
+        nl = cos(v1) * sin(v2) * g1
+        return as_ufl(nl)
+
+    fe = partial(f, e=e)
+    df1e = partial(df1, e=e)
+    df2e = partial(df2, e=e)
+    df3e = partial(df3, e=e)
+    _test_multivariable(fe, df1e, df2e, df3e)
+
+
+def test_form():
     cell = triangle
     V = FiniteElement("CG", cell, 1)
     P = FiniteElement("Quadrature", cell, 2)
@@ -164,6 +204,152 @@ def test_form(self):
     actual = derivative(a, u, u_hat)
 
     dnl_du = nl
-    dnl_du = nl._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), function_space=P, count=nl._count)
-    expected = u_hat*dnl_du*v
+    dnl_du = nl._ufl_expr_reconstruct_(u, m, derivatives=(1, 0))
+    expected = u_hat * dnl_du * v
     assert apply_derivatives(actual) == expected
+
+
+def test_dependency():
+    V = FiniteElement("CG", triangle, 1)
+    Vv = VectorElement("CG", triangle, 1)
+
+    u = Coefficient(V)
+    w = Coefficient(V)
+
+    e = ExternalOperator(u, w, function_space=V)
+
+    dedu = e._ufl_expr_reconstruct_(u, w, derivatives=(1, 0))
+    dedw = e._ufl_expr_reconstruct_(u, w, derivatives=(0, 1))
+
+    d2edu = dedu._ufl_expr_reconstruct_(u, w, derivatives=(2, 0))
+
+    assert e == dedu._extop_master
+    assert e == dedw._extop_master
+
+    assert e._extop_dependencies[0] == e
+    assert e._extop_dependencies[1] == dedu
+    assert e._extop_dependencies[2] == dedw
+
+    assert e._extop_dependencies[3] == d2edu
+    assert len(e._extop_dependencies) == 4
+
+    e2 = ExternalOperator(u, w, grad(u), div(w), function_space=V)
+    der = [(0, 0, 0, 1), (1, 0, 0, 1), (2, 0, 1, 1)]
+    e2._add_dependencies(der)
+
+    assert e2._extop_dependencies[0] == e2
+    assert e2._extop_dependencies[1].derivatives == der[0]
+    assert e2._extop_dependencies[2].derivatives == der[1]
+    assert e2._extop_dependencies[3].derivatives == der[2]
+    assert e2._extop_dependencies[1]._extop_master == e2
+    assert e2._extop_dependencies[2]._extop_master == e2
+    assert e2._extop_dependencies[3]._extop_master == e2
+
+    e3 = ExternalOperator(u, function_space=V)
+    u_hat = Coefficient(V)
+
+    a = inner(grad(e3), grad(w))
+    Ja = derivative(a, u, u_hat)
+    expand_derivatives(Ja)
+
+    assert len(e3._extop_dependencies) == 3
+    assert e3._extop_dependencies[0].derivatives == (0,)
+    assert e3._extop_dependencies[1].derivatives == (1,)
+    assert e3._extop_dependencies[2].derivatives == (2,)
+    assert e3._extop_dependencies[0]._extop_master == e3
+    assert e3._extop_dependencies[1]._extop_master == e3
+    assert e3._extop_dependencies[2]._extop_master == e3
+
+    e4 = ExternalOperator(u, function_space=Vv)
+
+    a = inner(div(e4), w)
+    Ja = derivative(a, u, u_hat)
+    expand_derivatives(Ja)
+
+    assert len(e4._extop_dependencies) == 3
+    assert e4._extop_dependencies[0].derivatives == (0,)
+    assert e4._extop_dependencies[1].derivatives == (1,)
+    assert e4._extop_dependencies[2].derivatives == (2,)
+    assert e4._extop_dependencies[0]._extop_master == e4
+    assert e4._extop_dependencies[1]._extop_master == e4
+    assert e4._extop_dependencies[2]._extop_master == e4
+
+
+def test_function_spaces_derivatives():
+    V = FiniteElement("CG", triangle, 1)
+    Vv = VectorElement("CG", triangle, 1)
+    Vt = TensorElement("CG", triangle, 1)
+    Vt2 = TensorElement(V, shape=(2, 2, 2))
+    Vt3 = TensorElement(V, shape=(2, 2, 2, 2))
+    Vt4 = TensorElement(V, shape=(2, 2, 2, 2, 2))
+    Vt5 = TensorElement(V, shape=(2, 2, 2, 2, 2, 2))
+
+    def _check_space_shape_fct_space(x, der, shape, space, original_space):
+        assert x.derivatives == der
+        assert x.ufl_shape == shape
+        assert x._ufl_function_space.ufl_element() == space
+        assert x.original_function_space().ufl_element() == original_space
+
+    u = Coefficient(V)
+    w = Coefficient(V)
+
+    uv = Coefficient(Vv)
+    ut = Coefficient(Vt)
+
+    # Scalar case
+    e = ExternalOperator(u, w, function_space=V)
+    dedu = e._ufl_expr_reconstruct_(u, w, derivatives=(1, 0))
+    dedw = e._ufl_expr_reconstruct_(u, w, derivatives=(0, 1))
+    d2edu = e._ufl_expr_reconstruct_(u, w, derivatives=(2, 0))
+    dedwdu = e._ufl_expr_reconstruct_(u, w, derivatives=(1, 1))
+    d2edw = e._ufl_expr_reconstruct_(u, w, derivatives=(0, 2))
+
+    _check_space_shape_fct_space(dedu, (1, 0), (), V, V)
+    _check_space_shape_fct_space(dedw, (0, 1), (), V, V)
+
+    _check_space_shape_fct_space(d2edu, (2, 0), (), V, V)
+    _check_space_shape_fct_space(dedwdu, (1, 1), (), V, V)
+    _check_space_shape_fct_space(d2edw, (0, 2), (), V, V)
+
+    # Vector case
+    ev = ExternalOperator(uv, w, function_space=Vv)
+    deduv = ev._ufl_expr_reconstruct_(uv, w, derivatives=(1, 0))
+    dedw = ev._ufl_expr_reconstruct_(uv, w, derivatives=(0, 1))
+    d2eduv = ev._ufl_expr_reconstruct_(uv, w, derivatives=(2, 0))
+    dedwduv = ev._ufl_expr_reconstruct_(uv, w, derivatives=(1, 1))
+    d2edw = ev._ufl_expr_reconstruct_(uv, w, derivatives=(0, 2))
+
+    _check_space_shape_fct_space(deduv, (1, 0), (2, 2), Vv, Vt)
+    _check_space_shape_fct_space(dedw, (0, 1), (2,), Vv, Vv)
+
+    _check_space_shape_fct_space(d2eduv, (2, 0), (2, 2, 2), Vv, Vt2)
+    _check_space_shape_fct_space(dedwduv, (1, 1), (2, 2), Vv, Vt)
+    _check_space_shape_fct_space(d2edw, (0, 2), (2,), Vv, Vv)
+
+    # Tensor case
+    et = ExternalOperator(ut, uv, w, function_space=Vt)
+    dedut = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(1, 0, 0))
+    deduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 1, 0))
+    dedw = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 0, 1))
+
+    _check_space_shape_fct_space(dedut, (1, 0, 0), (2, 2, 2, 2), Vt, Vt3)
+    _check_space_shape_fct_space(deduv, (0, 1, 0), (2, 2, 2), Vt, Vt2)
+    _check_space_shape_fct_space(dedw, (0, 0, 1), (2, 2), Vt, Vt)
+
+    d2edut = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(2, 0, 0))
+    d2eduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 2, 0))
+    d2edw = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 0, 2))
+
+    _check_space_shape_fct_space(d2edut, (2, 0, 0), (2, 2, 2, 2, 2, 2), Vt, Vt5)
+    _check_space_shape_fct_space(d2eduv, (0, 2, 0), (2, 2, 2, 2), Vt, Vt3)
+    _check_space_shape_fct_space(d2edw, (0, 0, 2), (2, 2), Vt, Vt)
+
+    dedwduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 1, 1))
+    dedwdut = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(1, 0, 1))
+    dedutduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(1, 1, 0))
+
+    _check_space_shape_fct_space(dedwduv, (0, 1, 1), (2, 2, 2), Vt, Vt2)
+    _check_space_shape_fct_space(dedwdut, (1, 0, 1), (2, 2, 2, 2), Vt, Vt3)
+    _check_space_shape_fct_space(dedutduv, (1, 1, 0), (2, 2, 2, 2, 2), Vt, Vt4)
+
+    # TODO: MIXED ELEMENT

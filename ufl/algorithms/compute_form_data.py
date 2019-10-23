@@ -26,7 +26,7 @@ from ufl.log import error, info
 from ufl.utils.sequences import max_degree
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
-from ufl.core.external_operator import ExternalOperator, find_initial_external_operator
+from ufl.core.external_operator import ExternalOperator
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData
@@ -192,7 +192,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
 
     for i, f in enumerate(coefficients):
         if isinstance(f, ExternalOperator):
-            old_e = f.original_function_space.ufl_element()
+            old_e = f.original_function_space().ufl_element()
         else:
             old_e = f.ufl_element()
         new_e = element_mapping.get(old_e, old_e)
@@ -359,18 +359,39 @@ def compute_form_data(form,
                                        key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
 
-    updated_original_form_coefficients = self.original_form.coefficients()
-    self.coefficients = updated_original_form_coefficients
-    for c in self.original_form.coefficients():
+    old_coefficients = list(self.original_form.coefficients())
+    extops_positions = {}
+    for i, c in reversed(list(enumerate(self.original_form.coefficients()))):
         if isinstance(c, ExternalOperator):
-            key_e = find_initial_external_operator(c)
-            updated_original_form_coefficients += tuple(e for e in ExternalOperator._ufl_all_external_operators_[key_e].values()
-                                                        if e in self.reduced_coefficients)
+            e = old_coefficients.pop(i)
+            if e.derivatives == (0,) * len(e.ufl_operands):
+                # Set the extop_id as the position in the original_form of e and its dependency
+                extops_positions[e._count] = i
 
-    updated_original_form_coefficients = sorted(updated_original_form_coefficients,
-                                                key=lambda c: c.count())
-    self.original_coefficient_positions = [i for i, c in enumerate(updated_original_form_coefficients)
+    # Store all the external operators and their derivative multiindex
+    # turning up in the form (Differentiation may have introduced new external operators)
+    derivatives_dict = {}
+    extop_dict = {}
+    for e in self.reduced_coefficients:
+        if isinstance(e, ExternalOperator):
+            eid = extops_positions[e._extop_master._count]
+            if eid not in derivatives_dict.keys():
+                derivatives_dict[eid] = ()
+                extop_dict[eid] = ()
+            derivatives_dict[eid] += (e.derivatives,)
+            extop_dict[eid] += (e,)
+    self.external_operators = derivatives_dict
+    sorted_keys = sorted(extop_dict.keys())
+
+    new_external_operators = []
+    for i in sorted_keys:
+        sorted_extop_i = sorted(extop_dict[i], key=lambda e: e.derivatives)
+        new_external_operators += sorted_extop_i
+
+    new_coefficients = tuple(old_coefficients + new_external_operators)
+    self.original_coefficient_positions = [i for i, c in enumerate(new_coefficients)
                                            if c in self.reduced_coefficients]
+
     # Store back into integral data which form coefficients are used
     # by each integral
     for itg_data in self.integral_data:
