@@ -3,20 +3,9 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
@@ -24,7 +13,6 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.permutation import compute_indices
 from ufl.utils.sequences import product, max_degree
 from ufl.utils.dicts import EmptyDict
@@ -38,7 +26,7 @@ from ufl.finiteelement.finiteelement import FiniteElement
 class MixedElement(FiniteElementBase):
     """A finite element composed of a nested hierarchy of mixed or simple
     elements."""
-    __slots__ = as_native_strings(("_sub_elements", "_cells"))
+    __slots__ = ("_sub_elements", "_cells")
 
     def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
@@ -334,10 +322,10 @@ class TensorElement(MixedElement):
     equal.
 
     """
-    __slots__ = as_native_strings(("_sub_element", "_shape", "_symmetry",
-                                   "_sub_element_mapping",
-                                   "_flattened_sub_element_mapping",
-                                   "_mapping"))
+    __slots__ = ("_sub_element", "_shape", "_symmetry",
+                 "_sub_element_mapping",
+                 "_flattened_sub_element_mapping",
+                 "_mapping")
 
     def __init__(self, family, cell=None, degree=None, shape=None,
                  symmetry=None, quad_scheme=None):

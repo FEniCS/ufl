@@ -1,9 +1,0 @@
-image: quay.io/fenicsproject/pipelines
-
-pipelines:
-  default:
-    - step:
-        script:
-          - pip3 install .
-          - python3 -m flake8 ufl/
-          - python3 -m pytest -v test/

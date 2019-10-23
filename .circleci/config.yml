@@ -8,15 +8,21 @@ jobs:
       - checkout
       - run:
           name: Install dependencies  # Install with sudo as tests not run as superuser in circleci/python
-          command: sudo pip install flake8 numpy pytest --upgrade
+          command: sudo pip install flake8 numpy pytest pydocstyle coverage coveralls --upgrade
       - run:
           name: Install UFL
           command: pip install --user .
       - run:
-          name: Run flake8 tests
-          command: python -m flake8 .
+          name: Run flake8 and pydocstyle tests
+          command: |
+              python -m flake8 .
+              python -m pydocstyle .
       - run:
           name: Run unit tests
-          command: python -m pytest --junitxml=test-output test/
+          command: |
+                coverage run --source ufl -m pytest --junitxml=test-output test/
+                if [ -v COVERALLS_REPO_TOKEN ]; then
+                  coveralls
+                fi
       - store_test_results:
           path: test-output/

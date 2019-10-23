@@ -5,20 +5,9 @@ elements by calling the function register_element."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
 # Modified by Lizao Li <lzlarryli@gmail.com>, 2015, 2016
@@ -258,6 +247,20 @@ register_alias("P- L2", lambda family, dim, order,
 register_alias("Q- L2", lambda family, dim, order,
                degree: feec_element_l2(family, dim, order, degree))
 
+# mimetic spectral elements - primal and dual complexs
+register_element("Extended-Gauss-Legendre", "EGL", 0, H1, "identity", (2, None),
+                 ("interval",))
+register_element("Extended-Gauss-Legendre Edge", "EGL-Edge", 0, L2, "identity", (1, None),
+                 ("interval",))
+register_element("Extended-Gauss-Legendre Edge L2", "EGL-Edge L2", 0, L2, "L2 Piola", (1, None),
+                 ("interval",))
+register_element("Gauss-Lobatto-Legendre Edge", "GLL-Edge", 0, L2, "identity", (0, None),
+                 ("interval",))
+register_element("Gauss-Lobatto-Legendre Edge L2", "GLL-Edge L2", 0, L2, "L2 Piola", (0, None),
+                 ("interval",))
+
+
+# NOTE- the edge elements for primal mimetic spectral elements are accessed by using variant='mse' in the appropriate places
 
 def feec_element(family, n, r, k):
     """Finite element exterior calculus notation

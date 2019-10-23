@@ -4,20 +4,9 @@ output messages. These may be redirected by the user of UFL."""
 
 # Copyright (C) 2005-2016 Anders Logg and Martin Sandve Alnaes
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Johan Hake, 2009.
 # Modified by Massimiliano Leoni, 2016
@@ -26,7 +15,6 @@ import sys
 import types
 import logging
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL  # noqa: F401
-from ufl.utils.str import as_native_strings
 
 log_functions = ["log", "debug", "info", "deprecate", "warning", "error",
                  "begin", "end",
@@ -37,11 +25,9 @@ log_functions = ["log", "debug", "info", "deprecate", "warning", "error",
                  "info_red", "info_green", "info_blue",
                  "warning_red", "warning_green", "warning_blue"]
 
-__all__ = as_native_strings(
-    log_functions +
-    ["Logger", "log_functions"] +
+__all__ = log_functions + ["Logger", "log_functions"] +\
     ["DEBUG", "INFO", "DEPRECATE", "WARNING", "ERROR", "CRITICAL"]
-)
+
 
 DEPRECATE = (INFO + WARNING) // 2
 

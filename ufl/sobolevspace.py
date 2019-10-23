@@ -4,20 +4,9 @@ symbolic reasoning about the spaces in which finite elements lie."""
 
 # Copyright (C) 2014 Imperial College London and others
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Written by David Ham 2014
 #
@@ -26,8 +15,6 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Thomas Gibson 2017
 
 from functools import total_ordering
-
-from ufl.utils.str import as_native_str
 
 
 @total_ordering
@@ -67,7 +54,7 @@ class SobolevSpace(object):
     def __repr__(self):
         r = "SobolevSpace(%s, %s)" % (repr(self.name), repr(
             list(self.parents)))
-        return as_native_str(r)
+        return r
 
     def __eq__(self, other):
         return isinstance(other, SobolevSpace) and self.name == other.name

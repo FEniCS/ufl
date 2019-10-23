@@ -3,20 +3,9 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
@@ -24,8 +13,6 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
 
@@ -37,10 +24,10 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements."
     # TODO: Move these to base?
-    __slots__ = as_native_strings(("_short_name",
-                                   "_sobolev_space",
-                                   "_mapping",
-                                   "_variant"))
+    __slots__ = ("_short_name",
+                 "_sobolev_space",
+                 "_mapping",
+                 "_variant")
 
     def __new__(cls,
                 family,
@@ -197,8 +184,8 @@ class FiniteElement(FiniteElementBase):
             var_str = ""
         else:
             var_str = ", variant=%s" % repr(v)
-        self._repr = as_native_str("FiniteElement(%s, %s, %s%s%s)" % (
-            repr(self.family()), repr(self.cell()), repr(self.degree()), quad_str, var_str))
+        self._repr = "FiniteElement(%s, %s, %s%s%s)" % (
+            repr(self.family()), repr(self.cell()), repr(self.degree()), quad_str, var_str)
         assert '"' not in self._repr
 
     def mapping(self):
