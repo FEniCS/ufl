@@ -336,7 +336,6 @@ def diff(f, v):
 
     If *f* is a form, ``diff`` is applied to each integrand.
     """
-
     # Apply to integrands
     if isinstance(f, Form):
         from ufl.algorithms.map_integrands import map_integrands

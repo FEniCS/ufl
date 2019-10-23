@@ -178,7 +178,6 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         element_mapping = {}
     new_coefficients = []
     replace_map = {}
-
     for i, f in enumerate(coefficients):
         if isinstance(f, ExternalOperator):
             old_e = f.original_function_space().ufl_element()
