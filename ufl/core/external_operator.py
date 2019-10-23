@@ -1,4 +1,3 @@
-from ufl.utils.str import as_native_str
 from ufl.coefficient import Coefficient
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import as_ufl
@@ -14,7 +13,6 @@ class ExternalOperator(Coefficient):
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
-    # __slots__ = as_native_strings(("ufl_operands", "_ufl_function_space", "derivatives", "_ufl_shape"))
     _ufl_noslots_ = True
 
     def __init__(self, *operands, function_space, derivatives=None, count=None, extop_id=None):
@@ -134,4 +132,4 @@ class ExternalOperator(Coefficient):
         "Default repr string construction for ExternalOperator operators."
         # This should work for most cases
         r = "%s(%s,%s,%s,%s,%s)" % (self._ufl_class_.__name__, ", ".join(repr(op) for op in self.ufl_operands), repr(self._ufl_function_space), repr(self.derivatives), repr(self._ufl_shape), repr(self._count))
-        return as_native_str(r)
+        return r
