@@ -352,9 +352,10 @@ def compute_form_data(form,
     for i, c in reversed(list(enumerate(self.original_form.coefficients()))):
         if isinstance(c, ExternalOperator):
             e = old_coefficients.pop(i)
-            if e.derivatives == (0,) * len(e.ufl_operands):
+            # Also handle the case e.derivatives == (0,)*num_operands
+            if e._extop_master not in old_coefficients: #e.derivatives == (0,) * len(e.ufl_operands):
                 # Set the extop_id as the position in the original_form of e and its dependency
-                extops_positions[e._count] = i
+                extops_positions[e._extop_master._count] = i
 
     # Store all the external operators and their derivative multiindex
     # turning up in the form (Differentiation may have introduced new external operators)

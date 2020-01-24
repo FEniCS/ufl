@@ -30,9 +30,15 @@ class Replacer(MultiFunction):
 
     def terminal(self, o):
         e = self._mapping.get(o)
-        if e is None:
+        if e is None and len(o.ufl_operands) == 0:
             return o
         else:
+            if e is None:
+                e = o
+            # Because ExternalOperators are Terminals with operands: we need to replace them as well.
+            if len(e.ufl_operands)>0:
+                new_ops = tuple(self._mapping.get(op, op) for op in e.ufl_operands)
+                return e._ufl_expr_reconstruct_(*new_ops)
             return e
 
     def coefficient_derivative(self, o):
