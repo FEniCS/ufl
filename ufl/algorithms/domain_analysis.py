@@ -3,26 +3,14 @@
 
 # Copyright (C) 2009-2016 Anders Logg and Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from collections import defaultdict
 
 import ufl
 from ufl.log import error
-from ufl.utils.str import as_native_strings
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
@@ -39,10 +27,10 @@ class IntegralData(object):
     associating metadata with each object.
 
     """
-    __slots__ = as_native_strings(('domain', 'integral_type', 'subdomain_id',
-                                   'integrals', 'metadata',
-                                   'integral_coefficients',
-                                   'enabled_coefficients'))
+    __slots__ = ('domain', 'integral_type', 'subdomain_id',
+                 'integrals', 'metadata',
+                 'integral_coefficients',
+                 'enabled_coefficients')
 
     def __init__(self, domain, integral_type, subdomain_id, integrals,
                  metadata):
@@ -105,7 +93,7 @@ def dicts_lt(a, b):
 
 # Tuple comparison helper
 class ExprTupleKey(object):
-    __slots__ = as_native_strings(('x',))
+    __slots__ = ('x',)
 
     def __init__(self, x):
         self.x = x
@@ -161,7 +149,7 @@ def integral_subdomain_ids(integral):
         error("Invalid domain id %s." % did)
 
 
-def rearrange_integrals_by_single_subdomains(integrals):
+def rearrange_integrals_by_single_subdomains(integrals, do_append_everywhere_integrals):
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
     Input:
@@ -197,14 +185,14 @@ def rearrange_integrals_by_single_subdomains(integrals):
     otherwise_integrals = []
     for ev_itg in everywhere_integrals:
         # Restrict everywhere integral to 'otherwise'
-        otherwise_integrals.append(
-            ev_itg.reconstruct(subdomain_id="otherwise"))
+        otherwise_integrals.append(ev_itg.reconstruct(subdomain_id="otherwise"))
 
         # Restrict everywhere integral to each subdomain
         # and append to each integral list
-        for subdomain_id in sorted(single_subdomain_integrals.keys()):
-            single_subdomain_integrals[subdomain_id].append(
-                ev_itg.reconstruct(subdomain_id=subdomain_id))
+        if do_append_everywhere_integrals:
+            for subdomain_id in sorted(single_subdomain_integrals.keys()):
+                single_subdomain_integrals[subdomain_id].append(
+                    ev_itg.reconstruct(subdomain_id=subdomain_id))
 
     if otherwise_integrals:
         single_subdomain_integrals["otherwise"] = otherwise_integrals
@@ -281,7 +269,7 @@ def build_integral_data(integrals):
     return integral_datas
 
 
-def group_form_integrals(form, domains):
+def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
     """Group integrals by domain and type, performing canonical simplification.
 
     :arg form: the :class:`~.Form` to group the integrals of.
@@ -305,7 +293,7 @@ def group_form_integrals(form, domains):
             # (note: before this call, 'everywhere' is a valid subdomain_id,
             # and after this call, 'otherwise' is a valid subdomain_id)
             single_subdomain_integrals = \
-                rearrange_integrals_by_single_subdomains(ddt_integrals)
+                rearrange_integrals_by_single_subdomains(ddt_integrals, do_append_everywhere_integrals)
 
             for subdomain_id, ss_integrals in sorted_by_key(single_subdomain_integrals):
 

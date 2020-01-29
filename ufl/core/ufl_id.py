@@ -3,24 +3,11 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Massimiliano Leoni, 2016
-
-from ufl.utils.str import as_native_str
 
 
 def attach_ufl_id(cls):
@@ -69,7 +56,7 @@ def attach_ufl_id(cls):
 
     # Modify class:
     if hasattr(cls, "__slots__"):
-        assert as_native_str("_ufl_id") in cls.__slots__
+        assert "_ufl_id" in cls.__slots__
     cls._ufl_global_id = 0
     cls.ufl_id = _get_ufl_id
     cls._init_ufl_id = _init_ufl_id(cls)

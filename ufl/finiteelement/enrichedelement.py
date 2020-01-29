@@ -3,26 +3,14 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
 from ufl.log import error
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
@@ -66,7 +54,7 @@ class EnrichedElementBase(FiniteElementBase):
         #    error("Element mapping mismatch.")
 
         # Get name of subclass: EnrichedElement or NodalEnrichedElement
-        class_name = as_native_str(self.__class__.__name__)
+        class_name = self.__class__.__name__
 
         # Initialize element data
         FiniteElementBase.__init__(self, class_name, cell, degree,
@@ -74,8 +62,7 @@ class EnrichedElementBase(FiniteElementBase):
                                    reference_value_shape)
 
         # Cache repr string
-        self._repr = as_native_str("%s(%s)" %
-                                   (class_name, ", ".join(repr(e) for e in self._elements)))
+        self._repr = "%s(%s)" % (class_name, ", ".join(repr(e) for e in self._elements))
 
     def mapping(self):
         return self._elements[0].mapping()

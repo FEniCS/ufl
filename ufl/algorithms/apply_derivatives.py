@@ -3,20 +3,9 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
 from ufl.log import error, warning
@@ -115,6 +104,9 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # Literals are by definition independent of any differentiation variable
     constant_value = independent_terminal
+
+    # Constants are independent of any differentiation
+    constant = independent_terminal
 
     # Rules for form arguments must be specified in specialized rule set
     form_argument = override
@@ -1208,6 +1200,12 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
         return o
 
     def coordinate_derivative(self, o):
+        from ufl.algorithms import extract_unique_elements
+        spaces = set(c.family() for c in extract_unique_elements(o))
+        unsupported_spaces = {"Argyris", "Bell", "Hermite", "Morley"}
+        if spaces & unsupported_spaces:
+            error("CoordinateDerivative is not supported for elements of type %s. "
+                  "This is because their pullback is not implemented in UFL." % unsupported_spaces)
         f, w, v, cd = o.ufl_operands
         f = self(f)  # transform f
         rules = CoordinateDerivativeRuleset(w, v, cd)
@@ -1215,12 +1213,5 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
 
 
 def apply_coordinate_derivatives(expression):
-    spaces = set(c.ufl_element().family() for c in expression.coefficients()) \
-        | set(a.ufl_element().family() for a in expression.arguments())
-
-    unsupported_spaces = {"Argyris", "Bell", "Hermite", "Morley"}
-    if spaces & unsupported_spaces:
-        error("CoordinateDerivative is not supported for elements of type %s. "
-              "This is because their pullback is not implemented in UFL." % unsupported_spaces)
     rules = CoordinateDerivativeRuleDispatcher()
     return map_integrand_dags(rules, expression)

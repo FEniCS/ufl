@@ -603,18 +603,15 @@ def testHyperElasticity(self):
         assert derivatives == (0,)
         return dw
 
-    w, b, K = form_data_f.original_form.coefficients()
     mapping = {K: Kv, b: bv, w: Nw}
     fv2 = f_expression((0,), mapping)
     self.assertAlmostEqual(fv, fv2)
 
-    w, b, K = form_data_F.original_form.coefficients()
     v, = form_data_F.original_form.arguments()
     mapping = {K: Kv, b: bv, v: Nv, w: Nw}
     Fv2 = F_expression((0,), mapping)
     self.assertAlmostEqual(Fv, Fv2)
 
-    w, b, K = form_data_J.original_form.coefficients()
     v, u = form_data_J.original_form.arguments()
     mapping = {K: Kv, b: bv, v: Nv, u: Nu, w: Nw}
     Jv2 = J_expression((0,), mapping)

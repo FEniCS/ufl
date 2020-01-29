@@ -3,29 +3,17 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
+# Modified by Cecile Daversin-Catty, 2018
 
 import numbers
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -35,7 +23,7 @@ from ufl.finiteelement.tensorproductelement import TensorProductElement
 
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"])
+__all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
 
 
 class AbstractDomain(object):
@@ -121,7 +109,7 @@ class Mesh(AbstractDomain):
 
     def __repr__(self):
         r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_element), repr(self._ufl_id))
-        return as_native_str(r)
+        return r
 
     def __str__(self):
         return "<Mesh #%s>" % (self._ufl_id,)
@@ -169,7 +157,7 @@ class MeshView(AbstractDomain):
     def __repr__(self):
         tdim = self.topological_dimension()
         r = "MeshView(%s, %s, %s)" % (repr(self._ufl_mesh), repr(tdim), repr(self._ufl_id))
-        return as_native_str(r)
+        return r
 
     def __str__(self):
         return "<MeshView #%s of dimension %d over mesh %s>" % (
@@ -226,7 +214,7 @@ class TensorProductMesh(AbstractDomain):
 
     def __repr__(self):
         r = "TensorProductMesh(%s, %s)" % (repr(self._ufl_meshes), repr(self._ufl_id))
-        return as_native_str(r)
+        return r
 
     def __str__(self):
         return "<TensorProductMesh #%s with meshes %s>" % (
@@ -380,6 +368,7 @@ def find_geometric_dimension(expr):
                 cell = element.cell()
                 if cell is not None:
                     gdims.add(cell.geometric_dimension())
+
     if len(gdims) != 1:
         error("Cannot determine geometric dimension from expression.")
     gdim, = gdims

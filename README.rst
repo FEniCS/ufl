@@ -26,26 +26,21 @@ Documentation can be viewed at http://fenics-ufl.readthedocs.org/.
 Automated Testing
 =================
 
-We use Bitbucket Pipelines and Atlassian Bamboo to perform automated
-testing.
+We use CircleCI to perform automated testing.
 
-.. image:: https://bitbucket-badges.useast.atlassian.io/badge/fenics-project/ufl.svg
-   :target: https://bitbucket.org/fenics-project/ufl/addon/pipelines/home
-   :alt: Pipelines Build Status
-
-.. image:: http://fenics-bamboo.simula.no:8085/plugins/servlet/wittified/build-status/UFL-UD
-   :target: http://fenics-bamboo.simula.no:8085/browse/UFL-UD/latest
-   :alt: Bamboo Build Status
+.. image:: https://circleci.com/gh/FEniCS/ufl.svg?style=shield
+   :target: https://circleci.com/gh/FEniCS/ufl
+   :alt: Build Status
 
 
 Code Coverage
 =============
 
 Code coverage reports can be viewed at
-https://coveralls.io/bitbucket/fenics-project/ufl.
+https://coveralls.io/github/FEniCS/ufl.
 
-.. image:: https://coveralls.io/repos/bitbucket/fenics-project/ufl/badge.svg?branch=master
-   :target: https://coveralls.io/bitbucket/fenics-project/ufl?branch=master
+.. image:: https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=master
+   :target: https://coveralls.io/github/FEniCS/ufl?branch=master
    :alt: Coverage Status
 
 

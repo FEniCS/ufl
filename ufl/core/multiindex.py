@@ -3,33 +3,20 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Massimiliano Leoni, 2016.
 
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.utils.counted import counted_init
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["IndexBase", "FixedIndex", "Index"])
+__all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
 
 class IndexBase(object):
@@ -42,7 +29,7 @@ class IndexBase(object):
 
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
-    __slots__ = as_native_strings(("_value", "_hash"))
+    __slots__ = ("_value", "_hash")
 
     _cache = {}
 
@@ -81,14 +68,14 @@ class FixedIndex(IndexBase):
 
     def __repr__(self):
         r = "FixedIndex(%d)" % self._value
-        return as_native_str(r)
+        return r
 
 
 class Index(IndexBase):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
-    __slots__ = as_native_strings(("_count",))
+    __slots__ = ("_count",)
 
     _globalcount = 0
 
@@ -113,13 +100,13 @@ class Index(IndexBase):
 
     def __repr__(self):
         r = "Index(%d)" % self._count
-        return as_native_str(r)
+        return r
 
 
 @ufl_type()
 class MultiIndex(Terminal):
     "Represents a sequence of indices, either fixed or free."
-    __slots__ = as_native_strings(("_indices",))
+    __slots__ = ("_indices",)
 
     _cache = {}
 
@@ -226,7 +213,7 @@ class MultiIndex(Terminal):
 
     def __repr__(self):
         r = "MultiIndex(%s)" % repr(self._indices)
-        return as_native_str(r)
+        return r
 
     # --- Iteration protocol ---
 

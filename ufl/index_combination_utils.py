@@ -3,20 +3,9 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
 from ufl.log import error
@@ -188,8 +177,10 @@ def merge_nonoverlapping_indices(a, b):
     """Merge non-overlapping free indices into one representation.
 
     Example:
+    -------
       C[i,j,r,s] = outer(A[i,s], B[j,r])
       A, B -> (i,j,r,s), (idim,jdim,rdim,sdim)
+
     """
 
     # Extract input properties
@@ -215,8 +206,10 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
     """Merge overlapping free indices into one free and one repeated representation.
 
     Example:
+    -------
       C[j,r] := A[i,j,k] * B[i,r,k]
       A, B -> (j,r), (jdim,rdim), (i,k), (idim,kdim)
+
     """
 
     # Extract input properties

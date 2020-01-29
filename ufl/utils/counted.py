@@ -3,23 +3,9 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
-
-
-from ufl.utils.str import as_native_strings
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
 def counted_init(self, count=None, countedclass=None):
@@ -43,7 +29,7 @@ class ExampleCounted(object):
     Mimic this class to create globally counted objects within a single type.
     """
     # Store the count for each object
-    __slots__ = as_native_strings(("_count",))
+    __slots__ = ("_count",)
 
     # Store a global counter with the class
     _globalcount = 0

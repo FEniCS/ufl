@@ -3,20 +3,9 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2008
 # Modified by Kristian B. Oelgaard, 2011
@@ -25,7 +14,6 @@ import math
 import cmath
 import numbers
 
-from ufl.utils.str import as_native_strings
 from ufl.log import warning, error
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -59,7 +47,7 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 class MathFunction(Operator):
     "Base class for all unary scalar math functions."
     # Freeze member variables for objects in this class
-    __slots__ = as_native_strings(("_name",))
+    __slots__ = ("_name",)
 
     def __init__(self, name, argument):
         Operator.__init__(self, (argument,))
@@ -348,7 +336,7 @@ class Erf(MathFunction):
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
 class BesselFunction(Operator):
     "Base class for all bessel functions"
-    __slots__ = as_native_strings(("_name", "_classname"))
+    __slots__ = ("_name", "_classname")
 
     def __init__(self, name, classname, nu, argument):
         if not is_true_ufl_scalar(nu):

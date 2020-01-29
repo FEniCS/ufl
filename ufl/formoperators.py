@@ -3,23 +3,13 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2009
 # Modified by Massimiliano Leoni, 2016
+# Modified by Cecile Daversin-Catty, 2018
 
 from ufl.log import error
 from ufl.form import Form, as_form
@@ -44,24 +34,24 @@ from ufl.algorithms import compute_form_adjoint, compute_form_action
 from ufl.algorithms import compute_energy_norm
 from ufl.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
 from ufl.algorithms import expand_derivatives, extract_arguments
-from ufl.algorithms import FormSplitter
 
 # Part of the external interface
 from ufl.algorithms import replace  # noqa
 
 
-def block_split(form, ix, iy=0):
+def extract_blocks(form, i=None, j=None):
     """UFL form operator:
     Given a linear or bilinear form on a mixed space,
-    extract the block correspoinding to the indices ix, iy.
+    extract the block corresponding to the indices ix, iy.
 
     Example:
-
+    -------
        a = inner(grad(u), grad(v))*dx + div(u)*q*dx + div(v)*p*dx
-       a = block_split(a, 0, 0) -> inner(grad(u), grad(v))*dx
+       extract_blocks(a, 0, 0) -> inner(grad(u), grad(v))*dx
+       extract_blocks(a) -> [inner(grad(u), grad(v))*dx, div(v)*p*dx, div(u)*q*dx, 0]
+
     """
-    fs = FormSplitter()
-    return fs.split(form, ix, iy)
+    return ufl.algorithms.formsplitter.extract_blocks(form, i, j)
 
 
 def lhs(form):
@@ -69,10 +59,11 @@ def lhs(form):
     Given a combined bilinear and linear form,
     extract the left hand side (bilinear form part).
 
-    Example::
-
+    Example:
+    -------
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
+
     """
     form = as_form(form)
     form = expand_derivatives(form)
@@ -84,10 +75,11 @@ def rhs(form):
     Given a combined bilinear and linear form,
     extract the right hand side (negated linear form part).
 
-    Example::
-
+    Example:
+    -------
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
+
     """
     form = as_form(form)
     form = expand_derivatives(form)

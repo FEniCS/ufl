@@ -3,20 +3,9 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2008-2009
 # Modified by Massimiliano Leoni, 2016.
@@ -27,23 +16,19 @@ from ufl.core.expr import Expr
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.measure import Measure  # noqa
 from ufl.protocols import id_or_none
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 
 # Export list for ufl.classes
-__all_classes__ = as_native_strings(["Integral"])
+__all_classes__ = ["Integral"]
 
 
 class Integral(object):
     "An integral over a single domain."
-    __slots__ = as_native_strings((
-        "_integrand",
-        "_integral_type",
-        "_ufl_domain",
-        "_subdomain_id",
-        "_metadata",
-        "_subdomain_data",
-    ))
+    __slots__ = ("_integrand",
+                 "_integral_type",
+                 "_ufl_domain",
+                 "_subdomain_id",
+                 "_metadata",
+                 "_subdomain_data",)
 
     def __init__(self, integrand, integral_type, domain, subdomain_id,
                  metadata, subdomain_data):
@@ -63,6 +48,7 @@ class Integral(object):
         new values.
 
         Example:
+        -------
             <a = Integral instance>
             b = a.reconstruct(expand_compounds(a.integrand()))
             c = a.reconstruct(metadata={'quadrature_degree':2})
@@ -133,7 +119,7 @@ class Integral(object):
                                                   repr(self._subdomain_id),
                                                   repr(self._metadata),
                                                   repr(self._subdomain_data))
-        return as_native_str(r)
+        return r
 
     def __eq__(self, other):
         return (isinstance(other, Integral) and
