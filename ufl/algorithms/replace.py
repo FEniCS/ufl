@@ -35,7 +35,7 @@ class Replacer(MultiFunction):
 
 
 def replace(e, mapping):
-    """Replace terminal objects in expression.
+    """Replace subexpressions in expression.
 
     @param e:
         An Expr or Form.
