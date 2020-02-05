@@ -259,6 +259,10 @@ register_element("Gauss-Lobatto-Legendre Edge", "GLL-Edge", 0, L2, "identity", (
 register_element("Gauss-Lobatto-Legendre Edge L2", "GLL-Edge L2", 0, L2, "L2 Piola", (0, None),
                  ("interval",))
 
+# directly-defined serendipity elements ala Arbogast
+register_element2("Sphys", 0, H1, "identity", (1, 1), ("quadrilateral",))
+
+
 
 # NOTE- the edge elements for primal mimetic spectral elements are accessed by using variant='mse' in the appropriate places
 
