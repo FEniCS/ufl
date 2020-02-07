@@ -65,6 +65,9 @@ def apply_single_function_pullbacks(g):
 
     r = ReferenceValue(g)
 
+    if element.family() in ['Sphys']:
+        return r
+
     gsh = g.ufl_shape
     rsh = r.ufl_shape
 

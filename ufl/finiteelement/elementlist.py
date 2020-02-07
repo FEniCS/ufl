@@ -260,7 +260,7 @@ register_element("Gauss-Lobatto-Legendre Edge L2", "GLL-Edge L2", 0, L2, "L2 Pio
                  ("interval",))
 
 # directly-defined serendipity elements ala Arbogast
-register_element2("Sphys", 0, H1, "identity", (1, 1), ("quadrilateral",))
+register_element2("Sphys", 0, H1, "identity", (1, 2), ("quadrilateral",))
 
 
 
