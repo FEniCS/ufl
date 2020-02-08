@@ -539,7 +539,8 @@ class GradRuleset(GenericDerivativeRuleset):
     def reference_value(self, o):
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
-        if f.ufl_element().family() in ['Sphys']:
+        if f.ufl_element().mapping() == "physical":
+            # TODO: Do we need to be more careful for immersed things?
             return ReferenceGrad(o)
 
         if not f._ufl_is_terminal_:
