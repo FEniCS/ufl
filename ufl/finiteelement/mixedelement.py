@@ -245,7 +245,7 @@ class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal."
 
     def __init__(self, family, cell=None, degree=None, dim=None,
-                 form_degree=None, quad_scheme=None):
+                 form_degree=None, quad_scheme=None, variant=None):
         """
         Create vector element (repeated mixed element)
 
@@ -263,6 +263,8 @@ class VectorElement(MixedElement):
                viewed as k-form), ignored if family is a FiniteElement
             quad_scheme
                The quadrature scheme (optional), ignored if family is a FiniteElement
+            variant
+               Hint for the local basis function variant (optional)
         """
 
         if isinstance(family, FiniteElementBase):
@@ -274,7 +276,8 @@ class VectorElement(MixedElement):
             # Create sub element
             sub_element = FiniteElement(family, cell, degree,
                                         form_degree=form_degree,
-                                        quad_scheme=quad_scheme)
+                                        quad_scheme=quad_scheme,
+                                        variant=variant)
 
         # Set default size if not specified
         if dim is None:
