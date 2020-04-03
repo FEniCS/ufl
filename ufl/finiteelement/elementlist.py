@@ -156,9 +156,9 @@ register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
 register_element("HDiv Trace", "HDivT", 0, L2, "identity", (0, None), any_cell)
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
-register_element("Nonconforming Arnold-Awanou-Winther", "AAWnc", 2, HDivDiv,
+register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle", "tetrahedron"))
-register_element("Conforming Arnold-Awanou-Winther", "AAWc", 2, HDivDiv,
+register_element("Conforming Arnold-Winther", "AWc", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle", "tetrahedron"))
 # Spectral elements.
 register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
