@@ -86,7 +86,8 @@ class Expr(object):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = ("_hash",)
+    __slots__ = ("_hash",
+                 "__weakref__")
     # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
