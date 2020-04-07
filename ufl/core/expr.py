@@ -104,9 +104,6 @@ class Expr(object):
     def __init__(self):
         self._hash = None
 
-    def __del__(self):
-        pass
-
     # This shows the principal behaviour of the hash function attached
     # in ufl_type:
     # def __hash__(self):
@@ -258,7 +255,6 @@ class Expr(object):
 
     # Backup of default init and del
     _ufl_regular__init__ = __init__
-    _ufl_regular__del__ = __del__
 
     def _ufl_profiling__init__(self):
         "Replacement constructor with object counting."
@@ -267,14 +263,13 @@ class Expr(object):
 
     def _ufl_profiling__del__(self):
         "Replacement destructor with object counting."
-        Expr._ufl_regular__del__(self)
         Expr._ufl_obj_del_counts_[self._ufl_typecode_] -= 1
 
     @staticmethod
     def ufl_enable_profiling():
         "Turn on the object counting mechanism and reset counts to zero."
         Expr.__init__ = Expr._ufl_profiling__init__
-        Expr.__del__ = Expr._ufl_profiling__del__
+        setattr(Expr, "__del__", Expr._ufl_profiling__del__)
         for i in range(len(Expr._ufl_obj_init_counts_)):
             Expr._ufl_obj_init_counts_[i] = 0
             Expr._ufl_obj_del_counts_[i] = 0
@@ -283,7 +278,7 @@ class Expr(object):
     def ufl_disable_profiling():
         "Turn off the object counting mechanism. Return object init and del counts."
         Expr.__init__ = Expr._ufl_regular__init__
-        Expr.__del__ = Expr._ufl_regular__del__
+        delattr(Expr, "__del__")
         return (Expr._ufl_obj_init_counts_, Expr._ufl_obj_del_counts_)
 
     # === Abstract functions that must be implemented by subclasses ===
