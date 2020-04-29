@@ -308,12 +308,6 @@ class GenericDerivativeRuleset(MultiFunction):
         # Checks
         if not isinstance(o, ExternalOperator):
             error("Expecting ExternalOperator argument")
-        if hasattr(o, '_controls'):
-            for index_control in o._controls:
-                if dfs[index_control] != 0:
-                    from ufl.log import ControlDifferentiationError
-                    exception = ControlDifferentiationError(o, index_control, dfs[index_control])
-                    exception.message()
 
         for i, df in enumerate(dfs):
             df_rank = len(df.ufl_shape)
