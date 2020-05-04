@@ -20,32 +20,32 @@ from ufl.algorithms.analysis import has_exact_type
 
 class Replacer(MultiFunction):
     def __init__(self, mapping):
-        MultiFunction.__init__(self)
+        super().__init__()
         self.mapping = mapping
-
         if not all(k.ufl_shape == v.ufl_shape for k, v in mapping.items()):
             error("Replacement expressions must have the same shape as what they replace.")
 
+
+    def expr(self, o, *args):
+        if isinstance(o, ExternalOperator):
+            return self._external_operators(o)
+
+        try:
+            return self.mapping[o]
+        except KeyError:
+            return self.reuse_if_untouched(o, *args)
 
     def _external_operators(self, o):
         e = self.mapping.get(o) or o
         new_ops = tuple(self.mapping.get(op, op) for op in e.ufl_operands)
         return e._ufl_expr_reconstruct_(*new_ops)
 
-    def expr(self, o, *args):
-        if isinstance(o, ExternalOperator):
-            return self._external_operators(o)
-        try:
-            return self.mapping[o]
-        except KeyError:
-            return self.reuse_if_untouched(o, *args)
-
     def coefficient_derivative(self, o):
         error("Derivatives should be applied before executing replace.")
 
 
 def replace(e, mapping):
-    """Replace terminal objects in expression.
+    """Replace subexpressions in expression.
 
     @param e:
         An Expr or Form.
@@ -55,6 +55,14 @@ def replace(e, mapping):
     mapping2 = dict((k, as_ufl(v)) for (k, v) in mapping.items())
 
     # Workaround for problem with delayed derivative evaluation
+    # The problem is that J = derivative(f(g, h), g) does not evaluate immediately
+    # So if we subsequently do replace(J, {g: h}) we end up with an expression:
+    # derivative(f(h, h), h)
+    # rather than what were were probably thinking of:
+    # replace(derivative(f(g, h), g), {g: h})
+    #
+    # To fix this would require one to expand derivatives early (which
+    # is not attractive), or make replace lazy too.
     if has_exact_type(e, CoefficientDerivative):
         # Hack to avoid circular dependencies
         from ufl.algorithms.ad import expand_derivatives
