@@ -25,7 +25,6 @@ class Replacer(MultiFunction):
         if not all(k.ufl_shape == v.ufl_shape for k, v in mapping.items()):
             error("Replacement expressions must have the same shape as what they replace.")
 
-
     def expr(self, o, *args):
         if isinstance(o, ExternalOperator):
             return self._external_operators(o)
