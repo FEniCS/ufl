@@ -13,6 +13,7 @@ from ufl.log import error
 from ufl.classes import CoefficientDerivative
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
+from ufl.core.external_operator import ExternalOperator
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.analysis import has_exact_type
 
@@ -20,26 +21,24 @@ from ufl.algorithms.analysis import has_exact_type
 class Replacer(MultiFunction):
     def __init__(self, mapping):
         MultiFunction.__init__(self)
-        self._mapping = mapping
-        if not all(k._ufl_is_terminal_ for k in mapping.keys()):
-            error("This implementation can only replace Terminal objects.")
+        self.mapping = mapping
+
         if not all(k.ufl_shape == v.ufl_shape for k, v in mapping.items()):
             error("Replacement expressions must have the same shape as what they replace.")
 
-    expr = MultiFunction.reuse_if_untouched
 
-    def terminal(self, o):
-        e = self._mapping.get(o)
-        if e is None and len(o.ufl_operands) == 0:
-            return o
-        else:
-            if e is None:
-                e = o
-            # Because ExternalOperators are Terminals with operands: we need to replace them as well.
-            if len(e.ufl_operands) > 0:
-                new_ops = tuple(self._mapping.get(op, op) for op in e.ufl_operands)
-                return e._ufl_expr_reconstruct_(*new_ops)
-            return e
+    def _external_operators(self, o):
+        e = self.mapping.get(o) or o
+        new_ops = tuple(self.mapping.get(op, op) for op in e.ufl_operands)
+        return e._ufl_expr_reconstruct_(*new_ops)
+
+    def expr(self, o, *args):
+        if isinstance(o, ExternalOperator):
+            return self._external_operators(o)
+        try:
+            return self.mapping[o]
+        except KeyError:
+            return self.reuse_if_untouched(o, *args)
 
     def coefficient_derivative(self, o):
         error("Derivatives should be applied before executing replace.")
