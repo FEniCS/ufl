@@ -36,7 +36,7 @@ class Replacer(MultiFunction):
             if e is None:
                 e = o
             # Because ExternalOperators are Terminals with operands: we need to replace them as well.
-            if len(e.ufl_operands)>0:
+            if len(e.ufl_operands) > 0:
                 new_ops = tuple(self._mapping.get(op, op) for op in e.ufl_operands)
                 return e._ufl_expr_reconstruct_(*new_ops)
             return e

@@ -15,7 +15,7 @@ class ExternalOperator(Coefficient):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    def __init__(self, *operands, function_space, derivatives=None, count=None, extop_id=None):
+    def __init__(self, *operands, function_space, derivatives=None, count=None):
         r"""
         :param operands: operands on which acts the :class:`ExternalOperator`.
         :param function_space: the :class:`.FunctionSpace`,
@@ -23,7 +23,6 @@ class ExternalOperator(Coefficient):
         Alternatively, another :class:`Function` may be passed here and its function space
         will be used to build this :class:`Function`.  In this case, the function values are copied.
         :param derivatives: tuple scecifiying the derivative multiindex.
-        :param extop_id: dictionary that store the position of the :class:`ExternalOperator` in the forms where it turns up.
         """
 
         self.ufl_operands = tuple(map(as_ufl, operands))
