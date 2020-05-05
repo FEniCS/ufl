@@ -15,7 +15,7 @@
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
-from ufl.domain import as_domain
+from ufl.domain import as_domain, TopologicalMesh
 
 """
 
@@ -88,6 +88,7 @@ class GeometricQuantity(Terminal):
 
     def __init__(self, domain):
         Terminal.__init__(self)
+        assert not isinstance(domain, TopologicalMesh), "Unable to define GeometricQuantity on TopologicalMesh."
         self._domain = as_domain(domain)
 
     def ufl_domains(self):

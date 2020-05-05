@@ -133,6 +133,8 @@ class RestrictionPropagator(MultiFunction):
         else:
             return self._require_restriction(o)
 
+    topological_coefficient = coefficient
+
     def facet_normal(self, o):
         D = o.ufl_domain()
         e = D.ufl_coordinate_element()

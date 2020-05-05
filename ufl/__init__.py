@@ -305,6 +305,9 @@ from ufl.constantvalue import PermutationSymbol, Identity, zero, as_ufl
 # Indexing of tensor expressions
 from ufl.core.multiindex import Index, indices
 
+# Transformed
+from ufl.transformed import Transformed
+
 # Special functions for expression base classes
 # (ensure this is imported, since it attaches operators to Expr)
 import ufl.exproperators as __exproperators
@@ -388,6 +391,7 @@ __all__ = [
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Coefficients', 'TopologicalCoefficient',
     'Constant', 'VectorConstant', 'TensorConstant',
+    'Transformed',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
     'Index', 'indices',
