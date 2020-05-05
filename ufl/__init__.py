@@ -107,6 +107,7 @@ A very brief overview of the language contents follows:
     - Constant
     - VectorConstant
     - TensorConstant
+    - TopologicalCoefficient
 
 * Splitting form arguments in mixed spaces::
 
@@ -292,7 +293,7 @@ from ufl.argument import Argument, TestFunction, TrialFunction, \
     Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
-from ufl.coefficient import Coefficient, Coefficients
+from ufl.coefficient import Coefficient, Coefficients, TopologicalCoefficient
 from ufl.constant import Constant, VectorConstant, TensorConstant
 
 # Split function
@@ -385,7 +386,7 @@ __all__ = [
     'FunctionSpace', 'MixedFunctionSpace', 'TopologicalFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
-    'Coefficient', 'Coefficients',
+    'Coefficient', 'Coefficients', 'TopologicalCoefficient',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',

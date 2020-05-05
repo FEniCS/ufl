@@ -14,10 +14,10 @@ of related classes, including Constant."""
 
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import FormArgument
+from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.domain import default_domain, default_topological_domain
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace, TopologicalFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
 
@@ -116,3 +116,84 @@ def Coefficients(function_space):
                 for i in range(function_space.num_sub_spaces())]
     else:
         return split(Coefficient(function_space))
+
+
+# --- TopologicalCoefficient with no underlying geometry ---
+
+@ufl_type()
+class TopologicalCoefficient(Terminal):
+    """UFL terminal type: Representation of a topological coefficient."""
+
+    __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
+    _globalcount = 0
+
+    def __init__(self, function_space, count=None):
+        Terminal.__init__(self)
+        counted_init(self, count, TopologicalCoefficient)
+
+        if isinstance(function_space, FiniteElementBase):
+            # For legacy support for .ufl files using cells, we map
+            # the cell to The Default Mesh
+            element = function_space
+            domain = default_topological_domain(element.cell())
+            function_space = TopologicalFunctionSpace(domain, element)
+        elif not isinstance(function_space, TopologicalFunctionSpace):
+            error("Expecting a TopologicalFunctionSpace.")
+
+        self._ufl_function_space = function_space
+        self._ufl_shape = function_space.ufl_element().value_shape()
+
+        self._repr = "TopologicalCoefficient(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count))
+
+    def count(self):
+        return self._count
+
+    @property
+    def ufl_shape(self):
+        "Return the associated UFL shape."
+        return self._ufl_shape
+
+    def ufl_function_space(self):
+        "Get the topological function space of this topological coefficient."
+        return self._ufl_function_space
+
+    def ufl_domain(self):
+        "Shortcut to get the topological domain of the topological function space of this topological coefficient."
+        return self._ufl_function_space.ufl_domain()
+
+    def ufl_element(self):
+        "Shortcut to get the finite element of the topological function space of this topological coefficient."
+        return self._ufl_function_space.ufl_element()
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return self.ufl_element().is_cellwise_constant()
+
+    def ufl_domains(self):
+        "Return tuple of domains related to this terminal object."
+        return self._ufl_function_space.ufl_domains()
+
+    def _ufl_signature_data_(self, renumbering):
+        "Signature data depend on the global numbering of the topological coeff and domains."
+        count = renumbering[self]
+        fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
+        return ("TopologicalCoefficient", count, fsdata)
+
+    def __str__(self):
+        count = str(self._count)
+        if len(count) == 1:
+            return "t_%s" % count
+        else:
+            return "t_{%s}" % count
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        if self is other:
+            return True
+        return (self._count == other._count and
+                self._ufl_function_space == other._ufl_function_space)
