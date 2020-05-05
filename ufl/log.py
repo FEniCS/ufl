@@ -243,22 +243,3 @@ for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))
 
 set_level(DEPRECATE)  # noqa
-
-
-class ControlDifferentiationError(Exception):
-    "Class for the exception regarding the differentiation of an ExternalOperator with respect to a control."
-
-    def __init__(self, o, index, df):
-        from ufl.core.external_operator import ExternalOperator
-        # Check
-        if not isinstance(o, ExternalOperator):
-            ufl_logger.error("Expecting an ExternalOperator instead of : ", o)
-
-        self.pointwise_operator = o
-        self.control = o.controls[index]
-        self.diff_control = df
-
-    def message(self):
-        "Write message and raise an exception."
-        # self._log.error(*message)
-        raise Exception("WARNING : The derivative with respect to the control was taken !!")
