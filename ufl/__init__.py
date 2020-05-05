@@ -60,6 +60,7 @@ A very brief overview of the language contents follows:
     - Mesh
     - MeshView
     - TensorProductMesh
+    - TopologicalMesh
 
 * Sobolev spaces::
 
@@ -260,7 +261,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 # Types for geometric quantities
 
 from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell
-from ufl.domain import as_domain, AbstractDomain, Mesh, MeshView, TensorProductMesh
+from ufl.domain import as_domain, AbstractDomain, Mesh, MeshView, TensorProductMesh, TopologicalMesh
 from ufl.geometry import (
     SpatialCoordinate,
     FacetNormal, CellNormal,
@@ -366,7 +367,7 @@ __all__ = [
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
-    'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
+    'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh', 'TopologicalMesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv',
     'SpatialCoordinate',
     'CellVolume', 'CellDiameter', 'Circumradius',

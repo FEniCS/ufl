@@ -23,7 +23,7 @@ from ufl.finiteelement.tensorproductelement import TensorProductElement
 
 
 # Export list for ufl.classes
-__all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
+__all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh", "TopologicalMesh"]
 
 
 class AbstractDomain(object):
@@ -234,6 +234,63 @@ class TensorProductMesh(AbstractDomain):
                 "TensorProductMesh", typespecific)
 
 
+@attach_operators_from_hash_data
+@attach_ufl_id
+class TopologicalMesh(AbstractDomain):
+    """Symbolic representation of a topological mesh."""
+
+    def __init__(self, cell, ufl_id=None, cargo=None):
+        self._ufl_id = self._init_ufl_id(ufl_id)
+
+        # Store reference to object that will not be used by UFL
+        self._ufl_cargo = cargo
+        if cargo is not None and cargo.ufl_id() != self._ufl_id:
+            error("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
+
+        assert isinstance(cell, AbstractCell), "Must be an instance of AbstractCell."
+
+        # Derive dimensions from element
+        gdim = cell.geometric_dimension()
+        tdim = cell.topological_dimension()
+        AbstractDomain.__init__(self, tdim, gdim)
+
+        # Store cell
+        self._ufl_cell = cell
+
+    def ufl_cargo(self):
+        "Return carried object that will not be used by UFL."
+        return self._ufl_cargo
+
+    def ufl_coordinate_element(self):
+        error("TopologicalMesh does not have a coordinate element.")
+
+    def ufl_cell(self):
+        return self._ufl_cell
+
+    def is_piecewise_linear_simplex_domain(self):
+        error("TopologicalMesh does not have a coordinate element.")
+
+    def __repr__(self):
+        r = "TopologicalMesh(%s, %s)" % (repr(self._ufl_cell), repr(self._ufl_id))
+        return r
+
+    def __str__(self):
+        return "<TopologicalMesh #%s>" % (self._ufl_id,)
+
+    def _ufl_hash_data_(self):
+        return (self._ufl_id, self._ufl_cell)
+
+    def _ufl_signature_data_(self, renumbering):
+        return ("TopologicalMesh", renumbering[self], self._ufl_cell)
+
+    # NB! Dropped __lt__ here, don't want users to write 'mesh1 <
+    # mesh2'.
+    def _ufl_sort_key_(self):
+        typespecific = (self._ufl_id, self._ufl_cell)
+        return (self.geometric_dimension(), self.topological_dimension(),
+                "TopologicalMesh", typespecific)
+
+
 # --- Utility conversion functions
 
 def affine_mesh(cell, ufl_id=None):
@@ -247,6 +304,7 @@ def affine_mesh(cell, ufl_id=None):
 
 
 _default_domains = {}
+_default_topological_domains = {}
 
 
 def default_domain(cell):
@@ -263,6 +321,23 @@ def default_domain(cell):
         ufl_id = -(len(_default_domains) + 1)
         domain = affine_mesh(cell, ufl_id=ufl_id)
         _default_domains[cell] = domain
+    return domain
+
+
+def default_topological_domain(cell):
+    """Create a singular default TopologicalMesh from a cell, always returning the
+    same TopologicalMesh object for the same cell.
+
+    """
+    global _default_topological_domains
+    assert isinstance(cell, AbstractCell)
+    domain = _default_topological_domains.get(cell)
+    if domain is None:
+        # Create one and only one affine TopologicalMesh with a negative ufl_id
+        # to avoid id collision
+        ufl_id = -(len(_default_topological_domains) + 1)
+        domain = TopologicalMesh(cell, ufl_id=ufl_id)
+        _default_topological_domains[cell] = domain
     return domain
 
 
@@ -340,7 +415,9 @@ def extract_domains(expr):
     domainlist = []
     for t in traverse_unique_terminals(expr):
         domainlist.extend(t.ufl_domains())
-    return sorted(join_domains(domainlist))
+    # Do not include TopologicalMesh
+    domainlist = [d for d in domainlist if not isinstance(d, TopologicalMesh)]
+    return sort_domains(join_domains(domainlist))
 
 
 def extract_unique_domain(expr):
