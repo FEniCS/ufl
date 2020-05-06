@@ -13,7 +13,6 @@ from ufl.log import error
 from ufl.classes import CoefficientDerivative
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
-from ufl.core.external_operator import ExternalOperator
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.analysis import has_exact_type
 
@@ -26,15 +25,12 @@ class Replacer(MultiFunction):
             error("Replacement expressions must have the same shape as what they replace.")
 
     def expr(self, o, *args):
-        if isinstance(o, ExternalOperator):
-            return self._external_operators(o)
-
         try:
             return self.mapping[o]
         except KeyError:
             return self.reuse_if_untouched(o, *args)
 
-    def _external_operators(self, o):
+    def external_operator(self, o):
         e = self.mapping.get(o) or o
         new_ops = tuple(self.mapping.get(op, op) for op in e.ufl_operands)
         return e._ufl_expr_reconstruct_(*new_ops)

@@ -13,7 +13,6 @@ from ufl.log import error, warning
 from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import MultiIndex, FixedIndex, indices
-from ufl.core.external_operator import ExternalOperator
 
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
 
@@ -305,10 +304,7 @@ class GenericDerivativeRuleset(MultiFunction):
         return Imag(df)
 
     def external_operator(self, o, *dfs):
-        # Checks
-        if not isinstance(o, ExternalOperator):
-            error("Expecting ExternalOperator argument")
-
+        result = ()
         for i, df in enumerate(dfs):
             df_rank = len(df.ufl_shape)
             f_rank = len(o.ufl_operands[i].ufl_shape)
@@ -330,11 +326,8 @@ class GenericDerivativeRuleset(MultiFunction):
             mi_tensor = tuple(e for e in mi if not (e in aa and e in bb))
             if len(extop.ufl_free_indices):
                 extop = as_tensor(extop, mi_tensor)
-            if i == 0:
-                result = extop
-            else:
-                result += extop
-        return result
+            result += (extop,)
+        return sum(result)
 
     # --- Mathfunctions
 
@@ -1076,11 +1069,12 @@ class DerivativeRuleDispatcher(MultiFunction):
         MultiFunction.__init__(self)
 
     def terminal(self, o):
-        if isinstance(o, ExternalOperator):
-            rules = DerivativeRuleDispatcher()
-            o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op) for op in o.ufl_operands))
-            return o_new
         return o
+
+    def external_operator(self, o):
+        rules = DerivativeRuleDispatcher()
+        o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op) for op in o.ufl_operands))
+        return o_new
 
     def derivative(self, o):
         error("Missing derivative handler for {0}.".format(type(o).__name__))

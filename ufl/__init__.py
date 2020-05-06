@@ -386,7 +386,7 @@ __all__ = [
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
-    'Coefficient', 'Coefficients',
+    'Coefficient', 'Coefficients', 'ExternalOperator',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
