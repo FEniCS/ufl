@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.8
+      - name: Set up Python
         uses: actions/setup-python@v1
-          with:
-            python-version: ${{ matrix.python-version }}
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Lint with flake8
         run: |
           pip install flake8
