@@ -297,8 +297,11 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def abs(self, o, df):
         f, = o.ufl_operands
-        # return conditional(eq(f, 0), 0, Product(sign(f), df))
-        return sign(f) * df
+        # return conditional(eq(f, 0), 0, Product(sign(f), df)) abs is
+        # not complex differentiable, so we workaround the case of a
+        # real F in complex mode by defensively casting to real inside
+        # the sign.
+        return sign(Real(f)) * df
 
     # --- Complex algebra
 
