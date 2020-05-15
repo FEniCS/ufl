@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """This module defines the Transformed class."""
 
-# Copyright (C) 2008-2016 Martin Sandve Alnæs
+# Copyright (C) 2020 Imperial College London and others
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+#
+# Written by Koki Sagiyama 2020
 
 from ufl.constantvalue import Zero
 from ufl.core.ufl_type import ufl_type

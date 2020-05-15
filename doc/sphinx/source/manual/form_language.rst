@@ -372,14 +372,6 @@ not matter).  Their usage is otherwise the same as for ``Argument``::
   v, q = TestFunctions(TH)
   u, p = TrialFunctions(TH)
 
-
-Meshes and function spaces
---------------------------
-
-Note that newer versions of UFL introduce the concept of a
-Mesh and a FunctionSpace. These are currently not documented here.
-
-
 Coefficient functions
 ---------------------
 
@@ -442,6 +434,104 @@ on each, illustrated here::
   c1 = Coefficient(DG0)
   v1 = Coefficient(DG0v)
   t1 = Coefficient(DG0t)
+
+Meshes and function spaces
+--------------------------
+
+Note that newer versions of UFL introduce the concept of a
+Mesh and a FunctionSpace.
+A ``Mesh`` is declared for a coordinate_element, which represents the
+cell type and the coordinate field::
+
+  coordinate_element = VectorElement("Lagrange", cell, 1,
+                                     dim=cell.geometric_dimension())
+  mesh = Mesh(coordinate_element)
+
+and a ``FunctionSpace`` is defined on a ``Mesh`` and a
+``FiniteElement`` (or a ``MixedElement``)::
+
+  V = FunctionSpace(mesh, element)
+
+It is often more convenient in a problem solving environment to
+declare ``Argument`` and ``Coefficient`` for a ``FunctionSpace``::
+
+  v = Argument(V)
+  u = Coefficient(V)
+
+Quantities attached to basis functions
+======================================
+
+Some mathematical concepts can be encoded, in the discrete setting,
+in an object that assigns a scalar value to each finite element
+basis function; examples include function space modification due to
+strong Dirichlet boundary condition and representation of boundary
+normals attached to each basis function in curvilinear coordinate
+systems. Such object can also be viewed as a sclar valued map on a
+set of basis functions.
+Concepts required here are the topological structure of the ``Mesh``
+of interest and the function space node distribution pattern in
+each mesh cell that the ``FiniteElement`` represents, and the
+specific coordinate values at the mesh vertices or the spatial
+interpolation at arbitrary point in a cell is not of relevance.
+This motivates us to introduce ``MeshTopology`` and
+``TopologicalFunctionSpace`` as explained in the folowing, and
+we define a ``TopologicalCoefficient`` on a
+``TopologicalFunctionSpace`` that assigns a scalar value to each
+basis function.
+
+Topological meshes and topological function spaces
+--------------------------------------------------
+
+A ``Mesh`` is fixed in space by coordinate function values attached
+to the mesh vertices. We define ``TopologicalMesh`` as ``Mesh`` with
+fixed coordinate function values removed. As such, a ``TopologicalMesh``
+is defined on a cell::
+
+  tmesh = TopologicalMesh(cell)
+
+We then define ``TopologicalFunctionSpace`` by attaching a
+``FiniteElement`` to the ``TopologicalMesh``::
+
+  tV = TopologicalFunctionSpace(tmesh, element)
+
+Topological coefficient
+-----------------------
+
+The data type ``TopologicalCoefficient`` is similar to ``Coefficient``,
+but it is more abstract in the sense that it is invariant under
+change of coordinate values of the ``Mesh``, and thus it does not
+carry the concept of spatial interpolation.
+``TopologicalCoefficient`` can represent quantities or 
+operations, which, in the discrete setting, can be encoded into values
+directly attached to the basis functions of the finite element space. A
+typical example is a projection of a full test function ``v`` to ``v0``
+that vanish on boundary in a Dirichlet boundary value problem.  In the
+discrete setting we write ``v`` as a linear combination of basis
+functions, and we obtain ``v0`` by filtering out basis functions that
+are non-zero on the boundary.  This can be represented by a
+``TopologicalCoefficient`` that assigns zero to the basis functions
+active on the boundary and one to the others. A ``TopologicalCoefficient``
+is declared for a ``FiniteElement``::
+
+  t = TopologicalCoefficient(element)
+
+or for a ``TopologicalFunctionSpace``::
+
+  t = TopologicalCoefficient(tV)
+
+The ``split`` function is also valid for a ``TopologicalCoefficient``
+on a ``MixedElement`` to extract values on subspaces as::
+
+  tutp = TopologicalCoefficient(TH)
+  tu, tp = split(tutp)
+
+.. note::
+
+    Note that ``ToplogicalCoefficient`` is not ``FormArgument``. The
+    critical difference between the two is that the former lacks the
+    concept of spatial dependence, and so typical operations such as
+    ``grad`` on ``ToplogicalCoefficient`` is not meaningful.
+
 
 Basic Datatypes
 ===============
@@ -757,6 +847,35 @@ Multiplication, ``a * b``:
 * If either of the operands have any free indices, both must be scalar.
 
 * If any free indices are repeated, summation is implied.
+
+
+Transforming form arguments
+===========================
+
+A form argument is always defined on a full ``FunctionSpace``. When
+transforming a form argument ``v`` to live on a modified function space,
+such as when dealing with Dirichlet boundary conditions, one can apply the
+``Transformed`` operator to that form argument::
+
+  v0 = Transformed(v, t)
+
+where ``t`` is a ``TopologicalCoefficient`` that encodes the modification
+of the function space and ``v0`` is the transformed form argument, which
+one can use just like other form arguments. In the discrete setting
+``FormArgument`` is represented as a linear combination of the basis
+functions and ``TopologicalCoefficient`` assigns a scalar value to each
+basis function, and thus ``Transformed`` represents the function space
+modification by multiplying this scalar value to each basis function
+appearing in the sum. For instance, when assembling a weak form with
+Dirichlet boundary condition on the boundary, values in ``t`` are set
+:math:`0` for basis functions that are active on the boundary and
+:math:`1` for all other basis functions.
+
+.. note::
+
+    Strong application of Dirichlet boundary conditions is
+    traditionally done by problem solving environments, but, using
+    ``Transformed``, one can represent this at UFL level.
 
 
 Basic nonlinear functions

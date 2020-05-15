@@ -380,6 +380,53 @@ This example is implemented in the file ``PoissonDG.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
+Poisson equation with Dirichlet boundary conditions
+===================================================
+
+The bilinear and linear forms for Poisson's equation with Dirichlet
+boundary condition,
+
+.. math::
+
+   \int_{\partial\Omega} u \mathop{dx} &= \int_{\partial\Omega} g \mathop{dx},
+
+is implemented in the following. As before, we have::
+
+  element = FiniteElement("Lagrange", triangle, 1)
+
+  v = TestFunction(element)
+  u = TrialFunction(element)
+  f = Coefficient(element)
+
+Here, we also define a coefficient for the Dirichlet boundary value as::
+
+  g = Coefficient(element)
+
+We then mark degrees of freedom for which we implement the
+domain equation::
+
+  transform_op_0 = TopologicalCoefficient(element)
+
+and those on which the Dirichlet condition is enforced::
+
+  transform_op_1 = TopologicalCoefficient(element)
+
+We then project :math:`v`, :math:`u`, and :math:`g` to
+appropriate subspaces as::
+
+  v0 = Transformed(v, transform_op_0)
+  v1 = Transformed(v, transform_op_1)
+  u0 = Transformed(u, transform_op_0)
+  u1 = Transformed(u, transform_op_1)
+  g1 = Transformed(g, transform_op_1)
+
+The Poisson equation with Dirichlet boundary condition is
+then implemented as::
+
+  a = dot(grad(u0), grad(v0)) * dx + u1 * v1 * ds
+  L = f * v0 * dx - dot(grad(g1), grad(v0)) * dx + g * v1 * ds
+
+Note that the bilinear form :math:`a` is symmetrized.
 
 The Quadrature family
 =====================
