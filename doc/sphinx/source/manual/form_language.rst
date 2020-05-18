@@ -443,6 +443,49 @@ on each, illustrated here::
   v1 = Coefficient(DG0v)
   t1 = Coefficient(DG0t)
 
+
+External Operators
+---------------------
+The data type ``ExternalOperator`` subclasses ``Coefficient``, as for ``Coefficient`` it represents a function belonging to a given finite element space. In addition, it is equipped with operands and with a derivative multi-index. It can be seen as a ``Coefficient`` which carries operands by which one can evaluate its value. The way to correlate the operands to evaluate the ``ExternalOperator`` is defined at a later stage. Its operands can be ``Coefficient``, ``Expr`` and all their subclasses. As for ``Operators``, their constructors should take these operands as the position arguments, it has its own implementation of ``reconstruct`` which takes into account the operands as well as the derivative multi-index.
+
+An ``ExternalOperator`` must be declared with a list of operands and a ``FiniteElement`` ::::
+
+      V  = FiniteElement("Lagrange", "triangle", 1)
+      DG0 = FiniteElement("Discontinuous Lagrange", cell, 0)
+
+      u = Coefficient(V)
+      g = Coefficient(DG0)
+      c = Constant(Cell)
+      p = ExternalOperator(u, g, c, function_space=V)
+
+``ExternalOperator`` has a a symbolic differentiation mechanism, therfore:::
+
+    u = Coefficient(V)
+    g = Coefficient(V)
+    p = ExternalOperator(cos(u), g, function_space=V)
+
+    dpdu = diff(p, u)
+
+is equivalent after processing the expression to:::
+
+    dpdu = - sin(u) * p2
+
+where:::
+
+    p2 = p._ufl_expr_reconstruct_(cos(u), g, derivatives=(1, 0))
+
+Likewise, when using ``derivative``:::
+
+    v = TestFunction(V)
+    u_hat = Coefficient(V)
+    a = p * v
+    F = derivative(a, u, u_hat)
+
+is equivalent to:::
+
+    F = -sin(u) * u_hat * p2 * v
+
+
 Basic Datatypes
 ===============
 
