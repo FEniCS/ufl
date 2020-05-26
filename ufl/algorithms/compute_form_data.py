@@ -320,6 +320,10 @@ def compute_form_data(form,
     if do_apply_restrictions:
         form = apply_restrictions(form)
 
+    # If in real mode, remove any complex nodes introduced during form processing.
+    if not complex_mode:
+        form = remove_complex_nodes(form)
+
     # --- Group integrals into IntegralData objects
     # Most of the heavy lifting is done above in group_form_integrals.
     self.integral_data = build_integral_data(form.integrals())
@@ -399,10 +403,6 @@ def compute_form_data(form,
     # TODO: This is a very expensive check... Replace with something
     # faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
-
-    # If in real mode, remove complex nodes entirely.
-    if not complex_mode:
-        preprocessed_form = remove_complex_nodes(preprocessed_form)
 
     check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)  # Currently testing how fast this is
 
