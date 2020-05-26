@@ -264,18 +264,18 @@ def compute_form_data(form,
     # user-defined coefficient relations it just gets too messy
     form = apply_derivatives(form)
 
+    # Estimate polynomial degree of integrands now, before applying
+    # any pullbacks and geometric lowering.  Otherwise quad degrees
+    # blow up horrifically.
+    if do_estimate_degrees:
+        form = attach_estimated_degrees(form)
+
     # --- Group form integrals
     # TODO: Refactor this, it's rather opaque what this does
     # TODO: Is self.original_form.ufl_domains() right here?
     #       It will matter when we start including 'num_domains' in ufc form.
     form = group_form_integrals(form, self.original_form.ufl_domains(),
                                 do_append_everywhere_integrals=do_append_everywhere_integrals)
-
-    # Estimate polynomial degree of integrands now, before applying
-    # any pullbacks and geometric lowering.  Otherwise quad degrees
-    # blow up horrifically.
-    if do_estimate_degrees:
-        form = attach_estimated_degrees(form)
 
     if do_apply_function_pullbacks:
         # Rewrite coefficients and arguments in terms of their
