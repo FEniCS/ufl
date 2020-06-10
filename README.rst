@@ -3,46 +3,27 @@ UFL - Unified Form Language
 ===========================
 
 The Unified Form Language (UFL) is a domain specific language for
-declaration of finite element discretizations of variational
-forms. More precisely, it defines a flexible interface for choosing
-finite element spaces and defining expressions for weak forms in a
-notation close to mathematical notation.
+declaration of finite element discretizations of variational forms. More
+precisely, it defines a flexible interface for choosing finite element
+spaces and defining expressions for weak forms in a notation close to
+mathematical notation.
 
-UFL is part of the FEniCS Project.
+UFL is part of the FEniCS Project. For more information, visit
+https://www.fenicsproject.org
 
-For more information, visit http://www.fenicsproject.org
-
+.. image:: https://github.com/FEniCS/ufl/workflows/UFL%20CI/badge.svg
+   :target: https://github.com/FEniCS/ufl/workflows/UFL%20CI
+.. image:: https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=master
+   :target: https://coveralls.io/github/FEniCS/ufl?branch=master
+   :alt: Coverage Status
+.. image:: https://readthedocs.org/projects/fenics-ufl/badge/?version=latest
+   :target: https://fenics.readthedocs.io/projects/ufl/en/latest/?badge=latest
+   :alt: Documentation Status
 
 Documentation
 =============
 
-Documentation can be viewed at http://fenics-ufl.readthedocs.org/.
-
-.. image:: https://readthedocs.org/projects/fenics-ufl/badge/?version=latest
-   :target: http://fenics.readthedocs.io/projects/ufl/en/latest/?badge=latest
-   :alt: Documentation Status
-
-
-Automated Testing
-=================
-
-We use CircleCI to perform automated testing.
-
-.. image:: https://circleci.com/gh/FEniCS/ufl.svg?style=shield
-   :target: https://circleci.com/gh/FEniCS/ufl
-   :alt: Build Status
-
-
-Code Coverage
-=============
-
-Code coverage reports can be viewed at
-https://coveralls.io/github/FEniCS/ufl.
-
-.. image:: https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=master
-   :target: https://coveralls.io/github/FEniCS/ufl?branch=master
-   :alt: Coverage Status
-
+Documentation can be viewed at https://fenics-ufl.readthedocs.org/.
 
 License
 =======
@@ -58,4 +39,4 @@ License
   GNU Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
+  along with this program. If not, see <https://www.gnu.org/licenses/>.

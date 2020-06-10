@@ -2,7 +2,7 @@
 # with a single version of Python For more information see:
 # https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: UFL
+name: UFL CI
 
 on: [push, pull_request]
 
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
       - name: Lint with flake8
@@ -30,7 +30,12 @@ jobs:
           python -m pydocstyle .
       - name: Install UFL
         run: pip install .
-      - name: Test with pytest
+      - name: Run unit tests
         run: |
-          pip install pytest
-          pytest test/
+          pip install coveralls coverage pytest pytest-cov pytest-xdist
+          pytest -n auto --cov=ufl/ --junitxml=junit/test-results-${{ matrix.os }}-${{ matrix.python-version }}.xml test/
+      - name: Upload to Coveralls
+        if: ${{ github.repository == 'FEniCS/ufl' && github.head_ref == '' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8' }}
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        run: coveralls
