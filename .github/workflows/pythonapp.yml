@@ -32,7 +32,7 @@ jobs:
         run: pip install .
       - name: Run unit tests
         run: |
-          pip install coveralls coverage pytest pytest-cov
+          pip install coveralls coverage pytest pytest-cov pytest-xdist
           pytest -n auto --cov=ufl/ --junitxml=junit/test-results-${{ matrix.os }}-${{ matrix.python-version }}.xml test/
       - name: Upload to Coveralls
         if: ${{ github.repository == 'FEniCS/ufl' && github.head_ref == '' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8' }}

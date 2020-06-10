@@ -11,10 +11,8 @@ mathematical notation.
 UFL is part of the FEniCS Project. For more information, visit
 https://www.fenicsproject.org
 
-
-.. image:: https://circleci.com/gh/FEniCS/ufl.svg?style=shield
-   :target: https://circleci.com/gh/FEniCS/ufl
-   :alt: Build Status
+.. image:: https://github.com/FEniCS/ufl/workflows/UFL%20CI/badge.svg
+   :target: https://github.com/FEniCS/ufl/workflows/UFL%20CI
 .. image:: https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=master
    :target: https://coveralls.io/github/FEniCS/ufl?branch=master
    :alt: Coverage Status
