@@ -67,7 +67,7 @@ def apply_single_function_pullbacks(g):
     gsh = g.ufl_shape
     rsh = r.ufl_shape
 
-    if element.mapping() == "physical":
+    if mapping == "physical":
         # TODO: Is this right for immersed things
         assert gsh == rsh
         return r
