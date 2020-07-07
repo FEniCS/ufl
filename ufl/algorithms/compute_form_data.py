@@ -13,6 +13,7 @@ from itertools import chain
 
 from ufl.log import error, info
 from ufl.utils.sequences import max_degree
+from ufl.measure import custom_integral_types
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -20,6 +21,7 @@ from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, 
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
+from ufl.algorithms.check_restrictions import check_restrictions
 
 # These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
@@ -140,7 +142,7 @@ def _check_elements(form_data):
     for element in chain(form_data.unique_elements,
                          form_data.unique_sub_elements):
         if element.family() is None:
-            error("Found element with undefined familty: %s" % repr(element))
+            error("Found element with undefined family: %s" % repr(element))
         if element.cell() is None:
             error("Found element with undefined cell: %s" % repr(element))
 
@@ -167,6 +169,17 @@ def _check_form_arity(preprocessed_form):
     # and/or replaced with something faster
     if 1 != len(compute_form_arities(preprocessed_form)):
         error("All terms in form must have same rank.")
+
+
+def _check_restrictions(integral_data):
+    # Only allow restrictions on interior facet integrals
+    for itg_data in integral_data:
+        for itg in itg_data.integrals:
+            if itg_data.integral_type not in custom_integral_types:  # Allowing custom integrals to pass
+                if itg_data.integral_type.startswith("interior_facet"):
+                    check_restrictions(itg.integrand(), True)
+                else:
+                    check_restrictions(itg.integrand(), False)
 
 
 def _build_coefficient_replace_map(coefficients, element_mapping=None):
@@ -399,6 +412,7 @@ def compute_form_data(form,
     # --- Checks
     _check_elements(self)
     _check_facet_geometry(self.integral_data)
+    _check_restrictions(self.integral_data)
 
     # TODO: This is a very expensive check... Replace with something
     # faster!

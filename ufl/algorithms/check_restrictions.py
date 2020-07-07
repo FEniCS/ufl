@@ -11,6 +11,8 @@ from ufl.log import error
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 
+from ufl.classes import Restricted
+
 
 class RestrictionChecker(MultiFunction):
     def __init__(self, require_restriction):
@@ -18,8 +20,25 @@ class RestrictionChecker(MultiFunction):
         self.current_restriction = None
         self.require_restriction = require_restriction
 
+    def find_restriction(self, ops):
+        if self.current_restriction is not None:
+            return
+        for op in ops.ufl_operands:
+            if isinstance(op, Restricted):
+                self.current_restriction = op.side()
+                break
+            self.find_restriction(op)
+
     def expr(self, o):
-        pass
+        # Check is given expression involves restrictions
+        self.find_restriction(o)
+        # Restrictions are needed and only allowed for interior facet integrals
+        if self.require_restriction:
+            if self.current_restriction is None:
+                error("Form argument must be restricted in interior facet integrals.")
+        else:
+            if self.current_restriction is not None:
+                error("Restrictions are only allowed for interior facet and custom integral types.")
 
     def restricted(self, o):
         if self.current_restriction is not None:
