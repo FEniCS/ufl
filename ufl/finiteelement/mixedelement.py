@@ -56,9 +56,12 @@ class MixedElement(FiniteElementBase):
 
         # Check that all elements use the same quadrature scheme TODO:
         # We can allow the scheme not to be defined.
-        quad_scheme = elements[0].quadrature_scheme()
-        if not all(e.quadrature_scheme() == quad_scheme for e in elements):
-            error("Quadrature scheme mismatch for sub elements of mixed element.")
+        if len(elements) == 0:
+            quad_scheme = None
+        else:
+            quad_scheme = elements[0].quadrature_scheme()
+            if not all(e.quadrature_scheme() == quad_scheme for e in elements):
+                error("Quadrature scheme mismatch for sub elements of mixed element.")
 
         # Compute value sizes in global and reference configurations
         value_size_sum = sum(product(s.value_shape()) for s in self._sub_elements)
@@ -292,10 +295,8 @@ class VectorElement(MixedElement):
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape,
                               reference_value_shape=reference_value_shape)
-        # FIXME: Storing this here is strange, isn't that handled by
-        # subclass?
-        self._family = sub_element.family()
-        self._degree = sub_element.degree()
+        FiniteElementBase.__init__(self, sub_element.family(), cell, sub_element.degree(), quad_scheme,
+                                   value_shape, reference_value_shape)
         self._sub_element = sub_element
 
         # Cache repr string
