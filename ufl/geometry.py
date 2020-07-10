@@ -111,6 +111,7 @@ Xe = CEK * (X - X0e)
 
 # --- Expression node types
 
+
 @ufl_type(is_abstract=True)
 class GeometricQuantity(Terminal):
     __slots__ = ("_domain",)
@@ -264,6 +265,7 @@ class FacetCoordinate(GeometricFacetQuantity):
         # (with a vertex facet).
         t = self._domain.topological_dimension()
         return t <= 1
+
 
 @ufl_type()
 class EdgeCoordinate(GeometricEdgeQuantity):
@@ -706,6 +708,7 @@ class CellFacetJacobianDeterminant(GeometricFacetQuantity):
         # Only true for a piecewise linear coordinate field in simplex
         # cells
         return self._domain.is_piecewise_linear_simplex_domain()
+
 
 @ufl_type()
 class CellEdgeJacobianDeterminant(GeometricEdgeQuantity):

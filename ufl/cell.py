@@ -104,6 +104,7 @@ cellname2edgename = {"tetrahedron": "interval",
 
 # --- Basic cell representation classes
 
+
 @attach_operators_from_hash_data
 class Cell(AbstractCell):
     "Representation of a named finite element cell with known structure."

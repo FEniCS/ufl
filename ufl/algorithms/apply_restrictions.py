@@ -216,6 +216,7 @@ class DefaultRestrictionApplier(MultiFunction):
     edge_jacobian_determinant = _default_restricted
     edge_jacobian_inverse = _default_restricted
 
+
 def apply_default_restrictions(expression):
     """Some terminals can be restricted from either side.
 
