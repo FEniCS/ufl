@@ -26,7 +26,8 @@ from ufl.classes import (Expr, Form, Integral,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          CellOrientation, CellOrigin, CellCoordinate,
                          FacetJacobian, FacetJacobianDeterminant,
-                         CellFacetJacobian,
+                         EdgeJacobian, #EdgeJacobianDeterminant,
+                         CellFacetJacobian, CellEdgeJacobian,
                          MaxCellEdgeLength,
                          CellEdgeVectors, FacetEdgeVectors, CellVertices,
                          ReferenceNormal,
@@ -104,7 +105,6 @@ class GeometryLoweringApplier(MultiFunction):
         if domain.topological_dimension() < domain.geometric_dimension():
             co = CellOrientation(domain)
             detJ = co * detJ
-
         return detJ
 
     @memoized_handler
@@ -146,6 +146,36 @@ class GeometryLoweringApplier(MultiFunction):
         #     detFJ = co*detFJ
 
         return detFJ
+
+    @memoized_handler
+    def edge_jacobian(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
+        domain = o.ufl_domain()
+        J = self.jacobian(Jacobian(domain))
+        REJ = CellEdgeJacobian(domain)
+        i, j, k = indices(3)
+        return as_tensor(J[i, k] * REJ[k, j], (i, j))
+
+    @memoized_handler
+    def edge_jacobian_inverse(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
+        domain = o.ufl_domain()
+        EJ = self.edge_jacobian(EdgeJacobian(domain))
+        return inverse_expr(EJ)
+
+    @memoized_handler
+    def edge_jacobian_determinant(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
+        domain = o.ufl_domain()
+        EJ = self.edge_jacobian(EdgeJacobian(domain))
+        detEJ = determinant_expr(EJ)
+        return detEJ
 
     @memoized_handler
     def spatial_coordinate(self, o):

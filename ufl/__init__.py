@@ -207,7 +207,7 @@ A very brief overview of the language contents follows:
 
 * Integral measures::
 
-    - dx, ds, dS, dP
+    - dx, ds, dS, dP, dl
     - dc, dC, dO, dI, dX
     - ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
 
@@ -351,7 +351,7 @@ from ufl.objects import (
     vertex, interval, triangle, tetrahedron,
     quadrilateral, hexahedron, facet,
     i, j, k, l, p, q, r, s,
-    dx, ds, dS, dP,
+    dx, ds, dS, dP, dl,
     dc, dC, dO, dI, dX,
     ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
 )
@@ -409,7 +409,7 @@ __all__ = [
     'Integral', 'Measure', 'register_integral_type', 'integral_types', 'custom_integral_types',
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'extract_blocks',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
-    'dx', 'ds', 'dS', 'dP',
+    'dx', 'ds', 'dS', 'dP', 'dl',
     'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',

@@ -99,6 +99,8 @@ cellname2facetname = {"interval": "vertex",
                       "tetrahedron": "triangle",
                       "hexahedron": "quadrilateral"}
 
+cellname2edgename = {"tetrahedron": "interval",
+                     "hexahedron": "interval"}
 
 # --- Basic cell representation classes
 

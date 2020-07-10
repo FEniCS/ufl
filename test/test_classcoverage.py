@@ -184,6 +184,16 @@ def testAll(self):
     g = FacetJacobianInverse(cell)
     _test_object(g, (dim-1, dim), ())
 
+    cell3D = tetrahedron  # EdgeJacobian is not available in 2D
+    dim3D = cell3D.geometric_dimension()
+    assert dim3D == 3
+    g = EdgeJacobian(cell3D)
+    _test_object(g, (dim3D, dim3D-2), ())
+    g = EdgeJacobianDeterminant(cell3D)
+    _test_object(g, (), ())
+    g = EdgeJacobianInverse(cell3D)
+    _test_object(g, (dim3D-2, dim3D), ())
+
     g = FacetNormal(cell)
     _test_object(g, (dim,), ())
     # g = CellNormal(cell)

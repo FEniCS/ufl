@@ -30,6 +30,8 @@ X = X[q]
 x = x[q]
     SpatialCoordinate = quadrature point from input array (dc)
 
+Xe = Xe[q]
+    EdgeCoordinate = quadrature point on edge (dl)
 
 Jacobians of mappings between coordinates:
 
@@ -42,12 +44,31 @@ Jxc = dx/dX = grad_X x(X)
 Jxf = dx/dXf = grad_Xf x(Xf)  =  Jxc Jcf = dx/dX dX/dXf = grad_X x(X) grad_Xf X(Xf)
     FacetJacobian = Jacobian * CellFacetJacobian
 
+Jce = dX/dXe = grad_Xe X(Xe)
+    CellEdgeJacobian
+
+Jfe = dXf/dXe = grad_Xe Xf(Xe)
+    FacetEdgeJacobian
+
+Jxe = dx/dXe = grad_Xe x(Xe) = Jxc Jce = dx/dX dX/dXe =  grad_X x(X) grad_Xe X(Xe)
+    EdgeJacobian = Jacobian * CellEdgeJacobian
+# NOTE : Jxe could also be defined from CellFacetJacobian and FacetEdgeJacobian
+# Jxe(v2) =  dx/dXe = grad_Xe x(Xe) = Jxc Jcf Jfe = dx/dX dX/dXf dXf/dXe
+# = grad_X x(X) grad_Xf X(Xf) grad_Xe Xf(Xe)
+#    EdgeJacobian = Jacobian * CellFacetJacobian * FacetEdgeJacobian
 
 Possible computation of X from Xf:
 
 X = Jcf Xf + X0f
     CellCoordinate = CellFacetJacobian * FacetCoordinate + CellFacetOrigin
 
+Possible computation of X and Xf from Xe:
+
+X = Jce Xe + X0e
+    CellCoordinate = CellEdgeJacobian * EdgeCoordinate + CellEdgeOrigin
+
+Xf = Jfe Xe + X0e and X = Jcf (Jfe Xe + X0e) + X0f
+    FacetCoordinate = FacetEdgeJacobian * EdgeCoordinate + CellEdgeOrigin
 
 Possible computation of x from X:
 
@@ -65,6 +86,10 @@ x = x(X(Xf))
 x = Jxf Xf + x0f
     SpatialCoordinate = FacetJacobian * FacetCoordinate + FacetOrigin
 
+Possible computation of x from Xe:
+
+x = x(X(Xe)) = Jxe Xe + x0e
+    SpatialCoordinate = EdgeJacobian * EdgeCoordinate + EdgeOrigin
 
 Inverse relations:
 
@@ -77,8 +102,12 @@ Xf = FK * (x - x0f)
 Xf = CFK * (X - X0f)
     FacetCoordinate = CellFacetJacobianInverse * (CellCoordinate - CellFacetOrigin)
 
-"""
+Xe = EK * (x - x0e)
+    EdgeCoordinate = EdgeJacobianInverse * (SpatialCoordinate - EdgeOrigin)
 
+Xe = CEK * (X - X0e)
+    EdgeCoordinate = CellEdgeJacobianInverse * (CellCoordinate - CellEdgeOrigin)
+"""
 
 # --- Expression node types
 
@@ -128,6 +157,11 @@ class GeometricCellQuantity(GeometricQuantity):
 
 @ufl_type(is_abstract=True)
 class GeometricFacetQuantity(GeometricQuantity):
+    __slots__ = ()
+
+
+@ufl_type(is_abstract=True)
+class GeometricEdgeQuantity(GeometricQuantity):
     __slots__ = ()
 
 
@@ -231,6 +265,34 @@ class FacetCoordinate(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         return t <= 1
 
+@ufl_type()
+class EdgeCoordinate(GeometricEdgeQuantity):
+    """UFL geometry representation: The coordinate in a reference cell of an edge.
+
+    In the context of expression integration over an edge,
+    represents the reference edge coordinate of each quadrature point.
+
+    In the context of expression evaluation in a point on an edge,
+    represents that point in the reference coordinate system of the edge.
+    """
+    __slots__ = ()
+    name = "Xe"
+
+    def __init__(self, domain):
+        GeometricEdgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 3:
+            error("EdgeCoordinate is only defined for topological dimensions >= 3.")
+
+    @property
+    def ufl_shape(self):
+        t = self._domain.topological_dimension()
+        return (t - 2,)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return False
+
 
 # --- Origin of coordinate systems in larger coordinate systems
 
@@ -262,10 +324,34 @@ class FacetOrigin(GeometricFacetQuantity):
 
 
 @ufl_type()
+class EdgeOrigin(GeometricEdgeQuantity):
+    """UFL geometry representation: The spatial coordinate corresponding to origin of a reference edge."""
+    __slots__ = ()
+    name = "x0e"
+
+    @property
+    def ufl_shape(self):
+        g = self._domain.geometric_dimension()
+        return (g,)
+
+
+@ufl_type()
 class CellFacetOrigin(GeometricFacetQuantity):
     """UFL geometry representation: The reference cell coordinate corresponding to origin of a reference facet."""
     __slots__ = ()
     name = "X0f"
+
+    @property
+    def ufl_shape(self):
+        t = self._domain.topological_dimension()
+        return (t,)
+
+
+@ufl_type()
+class CellEdgeOrigin(GeometricEdgeQuantity):
+    """UFL geometry representation: The reference cell coordinate corresponding to origin of a reference edge."""
+    __slots__ = ()
+    name = "X0e"
 
     @property
     def ufl_shape(self):
@@ -332,6 +418,39 @@ class FacetJacobian(GeometricFacetQuantity):
 
 
 @ufl_type()
+class EdgeJacobian(GeometricEdgeQuantity):
+    """UFL geometry representation: The Jacobian of the mapping from reference edge to spatial coordinates.
+
+      EJ_ij = dx_i/dXe_j
+
+    The EdgeJacobian is the product of the Jacobian and CellEdgeJacobian:
+
+      EJ = dx/dXe = dx/dX dX/dXe = J * CEJ
+
+    """
+    __slots__ = ()
+    name = "EJ"
+
+    def __init__(self, domain):
+        GeometricEdgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 3:
+            error("EdgeJacobian is only defined for topological dimensions >= 3.")
+
+    @property
+    def ufl_shape(self):
+        g = self._domain.geometric_dimension()
+        t = self._domain.topological_dimension()
+        return (g, t - 2)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex
+        # cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+@ufl_type()
 class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
     """UFL geometry representation: The Jacobian of the mapping from reference facet to reference cell coordinates.
 
@@ -350,6 +469,60 @@ class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
     def ufl_shape(self):
         t = self._domain.topological_dimension()
         return (t, t - 1)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always a constant mapping between two reference
+        # coordinate systems.
+        return True
+
+
+@ufl_type()
+class CellEdgeJacobian(GeometricEdgeQuantity):  # dX/dXe
+    """UFL geometry representation: The Jacobian of the mapping from reference edge to reference cell coordinates.
+
+    CEJ_ij = dX_i/dXe_j
+    """
+    __slots__ = ()
+    name = "CEJ"
+
+    def __init__(self, domain):
+        GeometricEdgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 3:
+            error("CellEdgeJacobian is only defined for topological dimensions >= 3.")
+
+    @property
+    def ufl_shape(self):
+        t = self._domain.topological_dimension()
+        return (t, t - 2)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always a constant mapping between two reference
+        # coordinate systems.
+        return True
+
+
+@ufl_type()
+class FacetEdgeJacobian(GeometricEdgeQuantity):  # dXf/dXe
+    """UFL geometry representation: The Jacobian of the mapping from reference edge to reference facet coordinates.
+
+    FEJ_ij = dXf_i/dXe_j
+    """
+    __slots__ = ()
+    name = "FEJ"
+
+    def __init__(self, domain):
+        GeometricEdgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 3:
+            error("FacetEdgeJacobian is only defined for topological dimensions >= 3.")
+
+    @property
+    def ufl_shape(self):
+        t = self._domain.topological_dimension()
+        return (t - 1, t - 2)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -511,10 +684,34 @@ class FacetJacobianDeterminant(GeometricFacetQuantity):
 
 
 @ufl_type()
+class EdgeJacobianDeterminant(GeometricEdgeQuantity):
+    """UFL geometry representation: The pseudo-determinant of the EdgeJacobian."""
+    __slots__ = ()
+    name = "detEJ"
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+@ufl_type()
 class CellFacetJacobianDeterminant(GeometricFacetQuantity):
     """UFL geometry representation: The pseudo-determinant of the CellFacetJacobian."""
     __slots__ = ()
     name = "detCFJ"
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex
+        # cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+@ufl_type()
+class CellEdgeJacobianDeterminant(GeometricEdgeQuantity):
+    """UFL geometry representation: The pseudo-determinant of the CellEdgeJacobian."""
+    __slots__ = ()
+    name = "detCEJ"
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -575,6 +772,31 @@ class FacetJacobianInverse(GeometricFacetQuantity):
 
 
 @ufl_type()
+class EdgeJacobianInverse(GeometricEdgeQuantity):
+    """UFL geometry representation: The pseudo-inverse of the EdgeJacobian."""
+    __slots__ = ()
+    name = "EK"
+
+    def __init__(self, domain):
+        GeometricEdgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 3:
+            error("EdgeJacobianInverse is only defined for topological dimensions >= 3.")
+
+    @property
+    def ufl_shape(self):
+        g = self._domain.geometric_dimension()
+        t = self._domain.topological_dimension()
+        return (t - 2, g)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex
+        # cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+@ufl_type()
 class CellFacetJacobianInverse(GeometricFacetQuantity):
     """UFL geometry representation: The pseudo-inverse of the CellFacetJacobian."""
     __slots__ = ()
@@ -590,6 +812,29 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
     def ufl_shape(self):
         t = self._domain.topological_dimension()
         return (t - 1, t)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+@ufl_type()
+class CellEdgeJacobianInverse(GeometricEdgeQuantity):
+    """UFL geometry representation: The pseudo-inverse of the EdgeFacetJacobian."""
+    __slots__ = ()
+    name = "CEK"
+
+    def __init__(self, domain):
+        GeometricEdgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 3:
+            error("CellEdgeJacobianInverse is only defined for topological dimensions >= 3.")
+
+    @property
+    def ufl_shape(self):
+        t = self._domain.topological_dimension()
+        return (t - 2, t)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."

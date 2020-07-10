@@ -182,6 +182,13 @@ def mappings_are_cellwise_constant(domain, test):
         assert is_cellwise_constant(e) == test
         e = FacetJacobianInverse(domain)
         assert is_cellwise_constant(e) == test
+    if domain.topological_dimension() > 2:
+        e = EdgeJacobian(domain)
+        assert is_cellwise_constant(e) == test
+        e = EdgeJacobianDeterminant(domain)
+        assert is_cellwise_constant(e) == test
+        e = EdgeJacobianInverse(domain)
+        assert is_cellwise_constant(e) == test
 
 
 def test_mappings_are_cellwise_constant_on_linear_affine_cells(affine_domains):

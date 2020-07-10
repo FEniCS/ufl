@@ -212,7 +212,9 @@ class DefaultRestrictionApplier(MultiFunction):
     min_facet_edge_length = _default_restricted
     max_facet_edge_length = _default_restricted
     facet_origin = _default_restricted  # FIXME: Is this valid for quads?
-
+    edge_jacobian = _default_restricted
+    edge_jacobian_determinant = _default_restricted
+    edge_jacobian_inverse = _default_restricted
 
 def apply_default_restrictions(expression):
     """Some terminals can be restricted from either side.

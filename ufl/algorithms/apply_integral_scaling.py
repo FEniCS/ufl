@@ -8,7 +8,7 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.log import error
-from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
+from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, EdgeJacobianDeterminant, QuadratureWeight, Form, Integral
 from ufl.measure import custom_integral_types, point_integral_types
 from ufl.differentiation import CoordinateDerivative
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
@@ -58,6 +58,16 @@ def compute_integrand_scaling_factor(integral):
             scale = detFJ('+') * weight
         else:
             # No need to scale 'integral' over a vertex
+            scale = 1
+    elif integral_type.startswith("edge"):
+        if tdim > 2:
+            # Scaling integral by edge jacobian determinant from one
+            # side and quadrature weight
+            detEJ = EdgeJacobianDeterminant(domain)
+            degree = estimate_total_polynomial_degree(apply_geometry_lowering(detEJ))
+            scale = detEJ * weight
+        else:
+            # Edge integral doesnt make sense if tdim <= 2
             scale = 1
 
     elif integral_type in custom_integral_types:
