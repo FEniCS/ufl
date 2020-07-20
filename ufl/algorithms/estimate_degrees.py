@@ -73,7 +73,7 @@ class SumDegreeEstimator(MultiFunction):
             d = self.default_degree
         return d
 
-    def topological_coefficient(self, v):
+    def subspace(self, v):
         """A topological coefficient has no underlying geometry, and
         must not be used in a way that it would contribute to the degree."""
         return 0
@@ -148,7 +148,7 @@ class SumDegreeEstimator(MultiFunction):
     def indexed(self, v, A, ii):
         return A
 
-    def transformed(self, v, A, transform_op):
+    def masked(self, v, A, subspace):
         return A
 
     def component_tensor(self, v, A, ii):

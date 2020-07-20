@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module defines the Transformed class."""
+"""This module defines the Masked class."""
 
 # Copyright (C) 2020 Imperial College London and others
 #
@@ -16,7 +16,7 @@ from ufl.precedence import parstr
 
 
 @ufl_type(num_ops=2, is_terminal_modifier=True, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class Transformed(Operator):
+class Masked(Operator):
     __slots__ = (
         "ufl_shape",
         "ufl_free_indices",

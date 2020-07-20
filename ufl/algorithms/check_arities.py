@@ -133,7 +133,7 @@ class ArityChecker(MultiFunction):
     indexed = linear_indexed_type
     index_sum = linear_indexed_type
     component_tensor = linear_indexed_type
-    transformed = linear_indexed_type
+    masked = linear_indexed_type
 
     def list_tensor(self, o, *ops):
         args = set(chain(*ops))

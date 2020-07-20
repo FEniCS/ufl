@@ -405,20 +405,20 @@ Here, we also define a coefficient for the Dirichlet boundary value as::
 We then mark degrees of freedom for which we implement the
 domain equation::
 
-  transform_op_0 = TopologicalCoefficient(element)
+  transform_op_0 = Subspace(element)
 
 and those on which the Dirichlet condition is enforced::
 
-  transform_op_1 = TopologicalCoefficient(element)
+  transform_op_1 = Subspace(element)
 
 We then project :math:`v`, :math:`u`, and :math:`g` to
 appropriate subspaces as::
 
-  v0 = Transformed(v, transform_op_0)
-  v1 = Transformed(v, transform_op_1)
-  u0 = Transformed(u, transform_op_0)
-  u1 = Transformed(u, transform_op_1)
-  g1 = Transformed(g, transform_op_1)
+  v0 = Masked(v, transform_op_0)
+  v1 = Masked(v, transform_op_1)
+  u0 = Masked(u, transform_op_0)
+  u1 = Masked(u, transform_op_1)
+  g1 = Masked(g, transform_op_1)
 
 The Poisson equation with Dirichlet boundary condition is
 then implemented as::

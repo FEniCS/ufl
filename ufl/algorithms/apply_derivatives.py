@@ -20,7 +20,7 @@ from ufl.classes import ConstantValue, Identity, Zero, FloatValue
 from ufl.classes import Coefficient, FormArgument, ReferenceValue
 from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
-from ufl.classes import Transformed
+from ufl.classes import Masked
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
 from ufl.classes import Conj, Real, Imag
@@ -84,7 +84,7 @@ class GenericDerivativeRuleset(MultiFunction):
         return o
     label = non_differentiable_terminal
     multi_index = non_differentiable_terminal
-    topological_coefficient = non_differentiable_terminal
+    subspace = non_differentiable_terminal
 
     # --- Helper functions for creating zeros with the right shapes
 
@@ -200,11 +200,11 @@ class GenericDerivativeRuleset(MultiFunction):
             op = Indexed(Ap, ii)
         return op
 
-    def transformed(self, o, Ap, transform_op):
+    def masked(self, o, Ap, transform_op):
         # Propagate zeros
         if isinstance(Ap, Zero):
             return self.independent_operator(o)
-        return Transformed(Ap, transform_op)
+        return Masked(Ap, transform_op)
 
     def list_tensor(self, o, *dops):
         return ListTensor(*dops)
@@ -901,7 +901,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Find o among all w without any indexing, which makes this
         # easy
         for (w, v) in zip(self._w, self._v):
-            if o == w and isinstance(v, (FormArgument, Transformed)):
+            if o == w and isinstance(v, (FormArgument, Masked)):
                 # Case: d/dt [w + t v]
                 return apply_grads(v)
 

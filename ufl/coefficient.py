@@ -118,10 +118,10 @@ def Coefficients(function_space):
         return split(Coefficient(function_space))
 
 
-# --- TopologicalCoefficient with no underlying geometry ---
+# --- Subspace ---
 
 @ufl_type()
-class TopologicalCoefficient(Terminal):
+class Subspace(Terminal):
     """UFL terminal type: Representation of a topological coefficient."""
 
     __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
@@ -129,7 +129,7 @@ class TopologicalCoefficient(Terminal):
 
     def __init__(self, function_space, count=None):
         Terminal.__init__(self)
-        counted_init(self, count, TopologicalCoefficient)
+        counted_init(self, count, Subspace)
 
         if isinstance(function_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
@@ -143,7 +143,7 @@ class TopologicalCoefficient(Terminal):
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
-        self._repr = "TopologicalCoefficient(%s, %s)" % (
+        self._repr = "Subspace(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))
 
     def count(self):
@@ -178,7 +178,7 @@ class TopologicalCoefficient(Terminal):
         "Signature data depend on the global numbering of the topological coeff and domains."
         count = renumbering[self]
         fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
-        return ("TopologicalCoefficient", count, fsdata)
+        return ("Subspace", count, fsdata)
 
     def __str__(self):
         count = str(self._count)

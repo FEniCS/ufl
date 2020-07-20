@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Test use of transformed.
+Test use of masked.
 """
 
 import pytest
@@ -10,7 +10,7 @@ from ufl import *
 from ufl.algorithms import compute_form_data
 
 
-def test_transformed_one_form():
+def test_masked_one_form():
     cell = triangle
     element = VectorElement("Lagrange", cell, 1)
 
@@ -34,8 +34,8 @@ def test_transformed_one_form():
     # this restriction can be encoded in a topological
     # coefficient defined on the associated topological
     # function space t_V.
-    transform_op = TopologicalCoefficient(t_V)
-    v0 = Transformed(v, transform_op)
+    transform_op = Subspace(t_V)
+    v0 = Masked(v, transform_op)
 
     # Some form for testing.
     form = inner(c, grad(v0[1])) * dx
@@ -52,8 +52,8 @@ def test_transformed_one_form():
         complex_mode=True
     )
 
-    assert fd.num_topological_coefficients == 1
-    assert fd.reduced_topological_coefficients[0] is transform_op
-    assert fd.original_topological_coefficient_positions == [0, ]
-    assert fd.integral_data[0].integral_topological_coefficients == set((transform_op, ))
-    assert fd.integral_data[0].enabled_topological_coefficients == [True, ]
+    assert fd.num_subspaces == 1
+    assert fd.reduced_subspaces[0] is transform_op
+    assert fd.original_subspace_positions == [0, ]
+    assert fd.integral_data[0].integral_subspaces == set((transform_op, ))
+    assert fd.integral_data[0].enabled_subspaces == [True, ]

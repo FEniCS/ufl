@@ -475,7 +475,7 @@ specific coordinate values at the mesh vertices or the spatial
 interpolation at arbitrary point in a cell is not of relevance.
 This motivates us to introduce ``MeshTopology`` and
 ``TopologicalFunctionSpace`` as explained in the folowing, and
-we define a ``TopologicalCoefficient`` on a
+we define a ``Subspace`` on a
 ``TopologicalFunctionSpace`` that assigns a scalar value to each
 basis function.
 
@@ -497,11 +497,11 @@ We then define ``TopologicalFunctionSpace`` by attaching a
 Topological coefficient
 -----------------------
 
-The data type ``TopologicalCoefficient`` is similar to ``Coefficient``,
+The data type ``Subspace`` is similar to ``Coefficient``,
 but it is more abstract in the sense that it is invariant under
 change of coordinate values of the ``Mesh``, and thus it does not
 carry the concept of spatial interpolation.
-``TopologicalCoefficient`` can represent quantities or 
+``Subspace`` can represent quantities or 
 operations, which, in the discrete setting, can be encoded into values
 directly attached to the basis functions of the finite element space. A
 typical example is a projection of a full test function ``v`` to ``v0``
@@ -509,20 +509,20 @@ that vanish on boundary in a Dirichlet boundary value problem.  In the
 discrete setting we write ``v`` as a linear combination of basis
 functions, and we obtain ``v0`` by filtering out basis functions that
 are non-zero on the boundary.  This can be represented by a
-``TopologicalCoefficient`` that assigns zero to the basis functions
-active on the boundary and one to the others. A ``TopologicalCoefficient``
+``Subspace`` that assigns zero to the basis functions
+active on the boundary and one to the others. A ``Subspace``
 is declared for a ``FiniteElement``::
 
-  t = TopologicalCoefficient(element)
+  t = Subspace(element)
 
 or for a ``TopologicalFunctionSpace``::
 
-  t = TopologicalCoefficient(tV)
+  t = Subspace(tV)
 
-The ``split`` function is also valid for a ``TopologicalCoefficient``
+The ``split`` function is also valid for a ``Subspace``
 on a ``MixedElement`` to extract values on subspaces as::
 
-  tutp = TopologicalCoefficient(TH)
+  tutp = Subspace(TH)
   tu, tp = split(tutp)
 
 .. note::
@@ -855,16 +855,16 @@ Transforming form arguments
 A form argument is always defined on a full ``FunctionSpace``. When
 transforming a form argument ``v`` to live on a modified function space,
 such as when dealing with Dirichlet boundary conditions, one can apply the
-``Transformed`` operator to that form argument::
+``Masked`` operator to that form argument::
 
-  v0 = Transformed(v, t)
+  v0 = Masked(v, t)
 
-where ``t`` is a ``TopologicalCoefficient`` that encodes the modification
-of the function space and ``v0`` is the transformed form argument, which
+where ``t`` is a ``Subspace`` that encodes the modification
+of the function space and ``v0`` is the masked form argument, which
 one can use just like other form arguments. In the discrete setting
 ``FormArgument`` is represented as a linear combination of the basis
-functions and ``TopologicalCoefficient`` assigns a scalar value to each
-basis function, and thus ``Transformed`` represents the function space
+functions and ``Subspace`` assigns a scalar value to each
+basis function, and thus ``Masked`` represents the function space
 modification by multiplying this scalar value to each basis function
 appearing in the sum. For instance, when assembling a weak form with
 Dirichlet boundary condition on the boundary, values in ``t`` are set
@@ -875,7 +875,7 @@ Dirichlet boundary condition on the boundary, values in ``t`` are set
 
     Strong application of Dirichlet boundary conditions is
     traditionally done by problem solving environments, but, using
-    ``Transformed``, one can represent this at UFL level.
+    ``Masked``, one can represent this at UFL level.
 
 
 Basic nonlinear functions

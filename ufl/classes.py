@@ -37,7 +37,7 @@ import ufl.geometry
 # Operator types
 import ufl.averaging
 import ufl.indexed
-import ufl.transformed
+import ufl.masked
 import ufl.indexsum
 import ufl.variable
 import ufl.tensors

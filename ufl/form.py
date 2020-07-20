@@ -82,8 +82,8 @@ class Form(object):
         "_coefficients",
         "_coefficient_numbering",
         "_constants",
-        "_topological_coefficients",
-        "_topological_coefficient_numbering",
+        "_subspaces",
+        "_subspace_numbering",
         "_hash",
         "_signature",
         # --- Dict that external frameworks can place framework-specific
@@ -118,8 +118,8 @@ class Form(object):
         self._constants = extract_constants(self)
 
         # Internal variables for caching topological coefficient data
-        self._topological_coefficients = None
-        self._topological_coefficient_numbering = None
+        self._subspaces = None
+        self._subspace_numbering = None
 
         # Internal variables for caching of hash and signature after
         # first request
@@ -243,18 +243,18 @@ class Form(object):
     def constants(self):
         return self._constants
 
-    def topological_coefficients(self):
-        "Return all ``TopologicalCoefficient`` objects found in form."
-        if self._topological_coefficients is None:
-            self._analyze_topological_coefficients()
-        return self._topological_coefficients
+    def subspaces(self):
+        "Return all ``Subspace`` objects found in form."
+        if self._subspaces is None:
+            self._analyze_subspaces()
+        return self._subspaces
 
-    def topological_coefficient_numbering(self):
+    def subspace_numbering(self):
         """Return a contiguous numbering of topological coefficients in a mapping
-        ``{topological_coefficient:number}``."""
-        if self._topological_coefficient_numbering is None:
-            self._analyze_topological_coefficients()
-        return self._topological_coefficient_numbering
+        ``{subspace:number}``."""
+        if self._subspace_numbering is None:
+            self._analyze_subspaces()
+        return self._subspace_numbering
 
     def signature(self):
         "Signature for use with jit cache (independent of incidental numbering of indices etc.)"
@@ -473,22 +473,22 @@ class Form(object):
         self._coefficient_numbering = dict(
             (c, i) for i, c in enumerate(self._coefficients))
 
-    def _analyze_topological_coefficients(self):
-        "Analyze which TopologicalCoefficient objects can be found in the form."
-        from ufl.algorithms.analysis import extract_topological_coefficients
-        topo_coeffs = extract_topological_coefficients(self)
+    def _analyze_subspaces(self):
+        "Analyze which Subspace objects can be found in the form."
+        from ufl.algorithms.analysis import extract_subspaces
+        topo_coeffs = extract_subspaces(self)
 
         # Define canonical numbering of topological coefficients
-        self._topological_coefficients = tuple(
+        self._subspaces = tuple(
             sorted(set(topo_coeffs), key=lambda x: x.count()))
-        self._topological_coefficient_numbering = dict(
-            (f, i) for i, f in enumerate(self._topological_coefficients))
+        self._subspace_numbering = dict(
+            (f, i) for i, f in enumerate(self._subspaces))
 
     def _compute_renumbering(self):
-        # Include integration domains, coefficients, and topological coefficients in renumbering
+        # Include integration domains, coefficients, and subspaces in renumbering
         dn = self.domain_numbering()
         cn = self.coefficient_numbering()
-        fn = self.topological_coefficient_numbering()
+        fn = self.subspace_numbering()
         renumbering = {}
         renumbering.update(dn)
         renumbering.update(cn)

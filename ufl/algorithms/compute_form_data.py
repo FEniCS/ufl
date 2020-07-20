@@ -14,10 +14,10 @@ from itertools import chain
 from ufl.log import error, info
 from ufl.utils.sequences import max_degree
 
-from ufl.classes import GeometricFacetQuantity, Coefficient, TopologicalCoefficient, Form, FunctionSpace, TopologicalFunctionSpace
+from ufl.classes import GeometricFacetQuantity, Coefficient, Subspace, Form, FunctionSpace, TopologicalFunctionSpace
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.domain import TopologicalMesh
-from ufl.algorithms.analysis import extract_coefficients, extract_topological_coefficients, extract_sub_elements, unique_tuple
+from ufl.algorithms.analysis import extract_coefficients, extract_subspaces, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
@@ -64,7 +64,7 @@ def _compute_element_mapping(form):
     # Extract all elements and include subelements of mixed elements
     elements = [obj.ufl_element() for obj in chain(form.arguments(),
                                                    form.coefficients(),
-                                                   form.topological_coefficients())]
+                                                   form.subspaces())]
     elements = extract_sub_elements(elements)
 
     # Try to find a common degree for elements
@@ -118,10 +118,10 @@ def _compute_max_subdomain_ids(integral_data):
     return max_subdomain_ids
 
 
-def _compute_form_data_elements(self, arguments, coefficients, topological_coefficients, domains):
+def _compute_form_data_elements(self, arguments, coefficients, subspaces, domains):
     self.argument_elements = tuple(f.ufl_element() for f in arguments)
     self.coefficient_elements = tuple(f.ufl_element() for f in coefficients)
-    self.topological_coefficient_elements = tuple(f.ufl_element() for f in topological_coefficients)
+    self.subspace_elements = tuple(f.ufl_element() for f in subspaces)
     self.coordinate_elements = tuple(domain.ufl_coordinate_element() for domain in domains)
 
     # TODO: Include coordinate elements from argument and coefficient
@@ -133,7 +133,7 @@ def _compute_form_data_elements(self, arguments, coefficients, topological_coeff
     #       almost working, with the introduction of the coordinate
     #       elements here.
 
-    all_elements = self.argument_elements + self.coefficient_elements + self.topological_coefficient_elements + self.coordinate_elements
+    all_elements = self.argument_elements + self.coefficient_elements + self.subspace_elements + self.coordinate_elements
     all_sub_elements = extract_sub_elements(all_elements)
 
     self.unique_elements = unique_tuple(all_elements)
@@ -174,7 +174,7 @@ def _check_form_arity(preprocessed_form):
 
 
 def _build_replace_map(cls, objects, element_mapping=None):
-    """Create new cls (Coefficient/TopologicalCoefficient) objects
+    """Create new cls (Coefficient/Subspace) objects
     with count starting at 0. Return mapping from old
     to new objects, and lists of the new objects."""
     if element_mapping is None:
@@ -349,37 +349,35 @@ def compute_form_data(form,
         # Get all coefficients/topological coefficients in integrand
         for itg in itg_data.integrals:
             itg_coeffs.update(extract_coefficients(itg.integrand()))
-            itg_topo_coeffs.update(extract_topological_coefficients(itg.integrand()))
+            itg_topo_coeffs.update(extract_subspaces(itg.integrand()))
         # Store with IntegralData object
         itg_data.integral_coefficients = itg_coeffs
-        itg_data.integral_topological_coefficients = itg_topo_coeffs
+        itg_data.integral_subspaces = itg_topo_coeffs
 
     # Figure out which coefficients/topological coefficients from the original form are
     # actually used in any integral (Differentiation may reduce the
     # set of coefficients w.r.t. the original form)
     reduced_coefficients_set = set()
-    reduced_topological_coefficient_set = set()
+    reduced_subspace_set = set()
     for itg_data in self.integral_data:
         reduced_coefficients_set.update(itg_data.integral_coefficients)
-        reduced_topological_coefficient_set.update(itg_data.integral_topological_coefficients)
-    self.reduced_coefficients = sorted(reduced_coefficients_set,
-                                       key=lambda c: c.count())
-    self.reduced_topological_coefficients = sorted(reduced_topological_coefficient_set,
-                                                   key=lambda c: c.count())
+        reduced_subspace_set.update(itg_data.integral_subspaces)
+    self.reduced_coefficients = sorted(reduced_coefficients_set, key=lambda c: c.count())
+    self.reduced_subspaces = sorted(reduced_subspace_set, key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
-    self.num_topological_coefficients = len(self.reduced_topological_coefficients)
+    self.num_subspaces = len(self.reduced_subspaces)
     self.original_coefficient_positions = [i for i, c in enumerate(self.original_form.coefficients())
                                            if c in self.reduced_coefficients]
-    self.original_topological_coefficient_positions = [i for i, c in enumerate(self.original_form.topological_coefficients())
-                                                       if c in self.reduced_topological_coefficients]
+    self.original_subspace_positions = [i for i, c in enumerate(self.original_form.subspaces())
+                                        if c in self.reduced_subspaces]
 
     # Store back into integral data which form coefficients/topological coefficients are used
     # by each integral
     for itg_data in self.integral_data:
         itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
                                          for coeff in self.reduced_coefficients]
-        itg_data.enabled_topological_coefficients = [bool(topo_coeff in itg_data.integral_topological_coefficients)
-                                                     for topo_coeff in self.reduced_topological_coefficients]
+        itg_data.enabled_subspaces = [bool(topo_coeff in itg_data.integral_subspaces)
+                                                     for topo_coeff in self.reduced_subspaces]
 
     # --- Collect some trivial data
 
@@ -408,17 +406,17 @@ def compute_form_data(form,
                            self.element_replace_map)
     self.function_replace_map = function_replace_map
 
-    renumbered_topological_coefficients, topological_coefficient_replace_map = \
-        _build_replace_map(TopologicalCoefficient, self.reduced_topological_coefficients,
+    renumbered_subspaces, subspace_replace_map = \
+        _build_replace_map(Subspace, self.reduced_subspaces,
                            self.element_replace_map)
-    self.topological_coefficient_replace_map = topological_coefficient_replace_map
+    self.subspace_replace_map = subspace_replace_map
 
     # --- Store various lists of elements and sub elements (adds
     #     members to self)
     _compute_form_data_elements(self,
                                 self.original_form.arguments(),
                                 renumbered_coefficients,
-                                renumbered_topological_coefficients,
+                                renumbered_subspaces,
                                 self.original_form.ufl_domains())
 
     # --- Store number of domains for integral types

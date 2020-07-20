@@ -107,7 +107,7 @@ A very brief overview of the language contents follows:
     - Constant
     - VectorConstant
     - TensorConstant
-    - TopologicalCoefficient
+    - Subspace
 
 * Splitting form arguments in mixed spaces::
 
@@ -293,7 +293,7 @@ from ufl.argument import Argument, TestFunction, TrialFunction, \
     Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
-from ufl.coefficient import Coefficient, Coefficients, TopologicalCoefficient
+from ufl.coefficient import Coefficient, Coefficients, Subspace
 from ufl.constant import Constant, VectorConstant, TensorConstant
 
 # Split function
@@ -305,8 +305,8 @@ from ufl.constantvalue import PermutationSymbol, Identity, zero, as_ufl
 # Indexing of tensor expressions
 from ufl.core.multiindex import Index, indices
 
-# Transformed
-from ufl.transformed import Transformed
+# Masked
+from ufl.masked import Masked
 
 # Special functions for expression base classes
 # (ensure this is imported, since it attaches operators to Expr)
@@ -389,9 +389,9 @@ __all__ = [
     'FunctionSpace', 'MixedFunctionSpace', 'TopologicalFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
-    'Coefficient', 'Coefficients', 'TopologicalCoefficient',
+    'Coefficient', 'Coefficients', 'Subspace',
     'Constant', 'VectorConstant', 'TensorConstant',
-    'Transformed',
+    'Masked',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
     'Index', 'indices',

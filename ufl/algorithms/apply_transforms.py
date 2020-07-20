@@ -8,7 +8,7 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
-from ufl.classes import FormArgument, Transformed
+from ufl.classes import FormArgument, Masked
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -29,7 +29,7 @@ class TransformedRuleset(MultiFunction):
         f, = o.ufl_operands
         assert f._ufl_is_terminal_
         assert isinstance(f, FormArgument)
-        return Transformed(o, self._transform_op)
+        return Masked(o, self._transform_op)
 
 
 class TransformedRuleDispatcher(MultiFunction):
@@ -41,8 +41,8 @@ class TransformedRuleDispatcher(MultiFunction):
 
     expr = MultiFunction.reuse_if_untouched
 
-    def transformed(self, o, A, transform_op):
-        rules = TransformedRuleset(transform_op)
+    def masked(self, o, A, subspace):
+        rules = TransformedRuleset(subspace)
         return map_expr_dag(rules, A)
 
 
