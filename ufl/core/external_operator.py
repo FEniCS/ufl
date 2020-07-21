@@ -30,7 +30,7 @@ class ExternalOperator(Operator):
 
     _external_operator_type = ''
 
-    def __init__(self, *operands, function_space, derivatives=None, count=None, coefficient=None, arguments=(), action_args=()):
+    def __init__(self, *operands, function_space, derivatives=None, count=None, coefficient=None, arguments=()):
         r"""
         :param operands: operands on which acts the :class:`ExternalOperator`.
         :param function_space: the :class:`.FunctionSpace`,
@@ -41,16 +41,14 @@ class ExternalOperator(Operator):
         :param count: count of the associated coefficient
         :param coefficient: ufl.Coefficient associated to the ExternalOperator representing what is produced by the operator
         :param arguments: tuple of ufl.Arguments or ufl.Expr containing several ufl.Argument objects: used when we take the action.
-        :param action_args: tuple of ufl.Coefficient: populated when we replace the arguments by coefficients via ufl.action
         """
 
         ufl_operands = tuple(map(as_ufl, operands))
         Operator.__init__(self, ufl_operands)
 
         # Process arguments and action arguments
-        action_args = tuple(map(as_ufl, action_args))
         arguments = tuple(map(as_ufl, arguments))
-        self._action_args, self._arguments = self._extract_ops_and_args(arguments + action_args)
+        self._action_args, self._arguments = self._extract_ops_and_args(arguments)
 
         # Make the coefficient associated to the external operator
         ref_coefficient = Coefficient(function_space, count=count)
@@ -202,7 +200,7 @@ class ExternalOperator(Operator):
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, count=None, coefficient=None, arguments=None, action_args=None):
+    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, count=None, coefficient=None, arguments=None):
         "Return a new object of the same type with new operands."
         deriv_multiindex = derivatives or self.derivatives
 
@@ -216,8 +214,7 @@ class ExternalOperator(Operator):
                     return ext._ufl_expr_reconstruct_(*operands, function_space=function_space,
                                                       derivatives=deriv_multiindex, count=count,
                                                       coefficient=coefficient,
-                                                      arguments=arguments,
-                                                      action_args=action_args)
+                                                      arguments=arguments)
         else:
             corresponding_count = self.count()
             corresponding_coefficient = coefficient or self._coefficient
@@ -226,8 +223,7 @@ class ExternalOperator(Operator):
                                     derivatives=deriv_multiindex,
                                     count=corresponding_count,
                                     coefficient=corresponding_coefficient,
-                                    arguments=arguments or self.arguments(),
-                                    action_args=action_args or self.action_args())
+                                    arguments=arguments or (self.arguments() + self.action_args()))
 
         if deriv_multiindex != self.derivatives:
             # If we are constructing a derivative
