@@ -73,6 +73,9 @@ class SumDegreeEstimator(MultiFunction):
             d = self.default_degree
         return d
 
+    def external_operator(self, v):
+        return self.coefficient(v.coefficient)
+
     def _reduce_degree(self, v, f):
         """Reduces the estimated degree by one; used when derivatives
         are taken. Does not reduce the degree when TensorProduct elements
