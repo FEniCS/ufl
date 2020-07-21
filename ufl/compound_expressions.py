@@ -13,6 +13,7 @@ from ufl.log import error
 from ufl.core.multiindex import indices, Index
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.operators import sqrt
+from ufl.constantvalue import Zero, zero
 
 
 # Note: To avoid typing errors, the expressions for cofactor and
@@ -82,7 +83,9 @@ def pseudo_inverse_expr(A):
 def determinant_expr(A):
     "Compute the (pseudo-)determinant of A."
     sh = A.ufl_shape
-    if sh == ():
+    if isinstance(A, Zero):
+        return zero()
+    elif sh == ():
         return A
     elif sh[0] == sh[1]:
         if sh[0] == 1:
