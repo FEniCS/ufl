@@ -235,7 +235,8 @@ def test_dependency():
 
     e2 = ExternalOperator(u, w, grad(u), div(w), function_space=V)
     der = [(0, 0, 0, 1), (1, 0, 0, 1), (2, 0, 1, 1)]
-    e2._add_dependencies(der)
+    args = [(), (), ()]
+    e2._add_dependencies(der, args)
 
     assert e2._extop_dependencies[0] == e2
     assert e2._extop_dependencies[1].derivatives == der[0]
@@ -287,7 +288,7 @@ def test_function_spaces_derivatives():
     def _check_space_shape_fct_space(x, der, shape, space, original_space):
         assert x.derivatives == der
         assert x.ufl_shape == shape
-        assert x._ufl_function_space.ufl_element() == space
+        assert x.ufl_function_space().ufl_element() == space
         assert x.original_function_space().ufl_element() == original_space
 
     u = Coefficient(V)
@@ -297,6 +298,7 @@ def test_function_spaces_derivatives():
     ut = Coefficient(Vt)
 
     # Scalar case
+
     e = ExternalOperator(u, w, function_space=V)
     dedu = e._ufl_expr_reconstruct_(u, w, derivatives=(1, 0))
     dedw = e._ufl_expr_reconstruct_(u, w, derivatives=(0, 1))
@@ -353,3 +355,104 @@ def test_function_spaces_derivatives():
     _check_space_shape_fct_space(dedutduv, (1, 1, 0), (2, 2, 2, 2, 2), Vt, Vt4)
 
     # TODO: MIXED ELEMENT
+
+
+def test_differentiation_procedure_action():
+    V = VectorElement("CG", triangle, 1)
+    u = Coefficient(V)
+    w = Coefficient(V)
+
+    # Define a class with a GLOBAL external operator type to check the differentiation procedure for the action case
+    class ActionExternalOperator(ExternalOperator):
+
+        _external_operator_type = 'GLOBAL'
+
+        def __init__(self, *args, **kwargs):
+            ExternalOperator.__init__(self, *args, **kwargs)
+
+    # External operators
+    e_action = ActionExternalOperator(u, w, function_space=V)
+    e = ExternalOperator(u, w, function_space=V)
+
+    u_hat = TrialFunction(V)
+
+    # Bilinear forms
+    a = inner(e, w) * dx
+    Ja = derivative(a, u, u_hat)
+    Ja = expand_derivatives(Ja)
+
+    a_action = inner(e_action, w) * dx
+    Ja_action = derivative(a_action, u, u_hat)
+    Ja_action = expand_derivatives(Ja_action)
+
+    # Get external operators
+    extop_Ja, = Ja.external_operators()
+    extop_Ja_action, = Ja_action.external_operators()
+
+    # Check derivatives
+    assert extop_Ja.derivatives == (1, 0)
+    assert extop_Ja_action.derivatives == (1, 0)
+
+    # Check arguments
+    assert extop_Ja.arguments() == ()
+    assert extop_Ja_action.arguments() == (u_hat,)
+    assert extop_Ja.action_args() == ()
+    assert extop_Ja_action.action_args() == ()
+
+    # Check shape
+    assert extop_Ja.ufl_shape == (2, 2)
+    assert extop_Ja_action.ufl_shape == (2,)
+
+
+def test_extractions():
+    from ufl.algorithms.analysis import (extract_coefficients, extract_arguments,
+                                         extract_arguments_and_coefficients,
+                                         extract_external_operators, extract_constants)
+
+    V = FiniteElement("CG", triangle, 1)
+    u = Coefficient(V)
+    c = Constant(triangle)
+
+    e = ExternalOperator(u, c, function_space=V)
+
+    assert extract_coefficients(e) == [u, e.coefficient]
+    assert extract_arguments_and_coefficients(e) == ([], [u, e.coefficient])
+    assert extract_constants(e) == [c]
+    assert extract_external_operators(e) == [e]
+
+    F = e * dx
+
+    assert extract_coefficients(F) == [u, e.coefficient]
+    assert extract_arguments_and_coefficients(e) == ([], [u, e.coefficient])
+    assert extract_constants(F) == [c]
+    assert F.external_operators() == (e,)
+
+    u_hat = TrialFunction(V)
+    e = ExternalOperator(u, function_space=V, arguments=(u_hat,))
+
+    assert extract_coefficients(e) == [u, e.coefficient]
+    assert extract_arguments(e) == [u_hat]
+    assert extract_arguments_and_coefficients(e) == ([u_hat], [u, e.coefficient])
+    assert extract_external_operators(e) == [e]
+
+    F = e * dx
+
+    assert extract_coefficients(F) == [u, e.coefficient]
+    assert extract_arguments(e) == [u_hat]
+    assert extract_arguments_and_coefficients(e) == ([u_hat], [u, e.coefficient])
+    assert F.external_operators() == (e,)
+
+    w = Coefficient(V)
+    e2 = ExternalOperator(w, e, function_space=V)
+
+    assert extract_coefficients(e2) == [u, e.coefficient, w, e2.coefficient]
+    assert extract_arguments(e2) == [u_hat]
+    assert extract_arguments_and_coefficients(e2) == ([u_hat], [u, e.coefficient, w, e2.coefficient])
+    assert extract_external_operators(e2) == [e, e2]
+
+    F = e2 * dx
+
+    assert extract_coefficients(e2) == [u, e.coefficient, w, e2.coefficient]
+    assert extract_arguments(e2) == [u_hat]
+    assert extract_arguments_and_coefficients(e2) == ([u_hat], [u, e.coefficient, w, e2.coefficient])
+    assert F.external_operators() == (e, e2)

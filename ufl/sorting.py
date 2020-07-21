@@ -18,7 +18,6 @@ from ufl.core.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.core.multiindex import FixedIndex, MultiIndex
-from ufl.core.external_operator import ExternalOperator
 from ufl.variable import Label
 
 
@@ -116,7 +115,7 @@ def cmp_expr(a, b):
 
         # Now we know that the type is the same, check further based
         # on type specific properties.
-        if a._ufl_is_terminal_ and not isinstance(a, ExternalOperator):
+        if a._ufl_is_terminal_:
             c = _terminal_cmps[x](a, b)
             if c:
                 return c

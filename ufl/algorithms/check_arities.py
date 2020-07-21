@@ -43,6 +43,10 @@ class ArityChecker(MultiFunction):
 
     expr = nonlinear_operator
 
+    def external_operator(self, o):
+        res = tuple(map_expr_dag(self, arg, compress=False)[0] for arg in o.arguments())
+        return res
+
     def sum(self, o, a, b):
         if a != b:
             raise ArityMismatch("Adding expressions with non-matching form arguments {0} vs {1}.".format(_afmt(a), _afmt(b)))

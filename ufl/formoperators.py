@@ -20,6 +20,7 @@ from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
+from ufl.core.external_operator import ExternalOperator
 from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
@@ -215,7 +216,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             error("Coefficient and argument shapes do not match!")
-        if isinstance(c, Coefficient) or isinstance(c, SpatialCoordinate):
+        if isinstance(c, (Coefficient, ExternalOperator)) or isinstance(c, SpatialCoordinate):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
@@ -363,6 +364,7 @@ def sensitivity_rhs(a, u, L, v):
     """
     if not (isinstance(a, Form) and
             isinstance(u, Coefficient) and
+            isinstance(u, ExternalOperator) and
             isinstance(L, Form) and
             isinstance(v, Variable)):
         error("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")

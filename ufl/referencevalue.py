@@ -9,7 +9,6 @@
 
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
-from ufl.core.external_operator import ExternalOperator
 from ufl.core.terminal import FormArgument
 from ufl.log import error
 
@@ -29,10 +28,7 @@ class ReferenceValue(Operator):
 
     @property
     def ufl_shape(self):
-        if not isinstance(self.ufl_operands[0], ExternalOperator):
-            return self.ufl_operands[0].ufl_element().reference_value_shape()
-        else:
-            return self.ufl_operands[0].ufl_shape
+        return self.ufl_operands[0].ufl_shape
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."

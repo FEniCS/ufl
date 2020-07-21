@@ -15,7 +15,6 @@ from ufl.log import error, info
 from ufl.utils.sequences import max_degree
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
-from ufl.core.external_operator import ExternalOperator
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData
@@ -179,10 +178,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
     new_coefficients = []
     replace_map = {}
     for i, f in enumerate(coefficients):
-        if isinstance(f, ExternalOperator):
-            old_e = f.original_function_space().ufl_element()
-        else:
-            old_e = f.ufl_element()
+        old_e = f.ufl_element()
         new_e = element_mapping.get(old_e, old_e)
         # XXX: This is a hack to ensure that if the original
         # coefficient had a domain, the new one does too.
@@ -351,38 +347,29 @@ def compute_form_data(form,
                                        key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
 
-    old_coefficients = list(self.original_form.coefficients())
-    extops_positions = {}
-    for i, c in reversed(list(enumerate(self.original_form.coefficients()))):
-        if isinstance(c, ExternalOperator):
-            e = old_coefficients.pop(i)
-            # Also handle the case e.derivatives == (0,)*num_operands
-            if e._extop_master not in old_coefficients:
-                # Set the extop id as the position in the original_form of e and its dependency
-                extops_positions[e._extop_master._count] = i
-
     # Store all the external operators and their derivative multiindex
     # turning up in the form (Differentiation may have introduced new external operators)
+    extops_pos = {e._extop_master.count(): i for i, e in reversed(list(enumerate(self.original_form.external_operators())))}
     derivatives_dict = {}
     extop_dict = {}
-    for e in self.reduced_coefficients:
-        if isinstance(e, ExternalOperator):
-            eid = extops_positions[e._extop_master._count]
+
+    for e in form.external_operators():
+        if e.coefficient in self.reduced_coefficients:
+            eid = extops_pos[e._extop_master._count]
             if eid not in derivatives_dict.keys():
-                derivatives_dict[eid] = ()
+                derivatives_dict[eid] = {}
                 extop_dict[eid] = ()
-            derivatives_dict[eid] += (e.derivatives,)
-            extop_dict[eid] += (e,)
+            e_args = tuple(i for e_arg in e.arguments()
+                           for i, arg in enumerate(form.arguments())
+                           if e_arg == arg)
+            derivatives_dict[eid].update({e.derivatives: e_args})
+            extop_dict[eid] += (e.coefficient,)
 
     self.external_operators = derivatives_dict
-    sorted_keys = sorted(extop_dict.keys())
+    new_external_operators = [e for i in sorted(extop_dict.keys()) for e in sorted(extop_dict[i], key=lambda e: e.count())]
+    new_coefficients = tuple(e for e in self.original_form.coefficients() if e not in new_external_operators)
+    new_coefficients += tuple(new_external_operators)
 
-    new_external_operators = []
-    for i in sorted_keys:
-        sorted_extop_i = sorted(extop_dict[i], key=lambda e: e.derivatives)
-        new_external_operators += sorted_extop_i
-
-    new_coefficients = tuple(old_coefficients + new_external_operators)
     self.original_coefficient_positions = [i for i, c in enumerate(new_coefficients)
                                            if c in self.reduced_coefficients]
 

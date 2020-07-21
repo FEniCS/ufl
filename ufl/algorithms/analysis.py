@@ -60,12 +60,13 @@ def extract_type(a, ufl_type):
         objects = set(o for e in iter_expressions(a)
                       for o in traverse_unique_terminals(e)
                       if isinstance(o, ufl_type))
-        if ufl_type in (Coefficient, FormArgument):
-            extop_ufl_coeffs = tuple(cj for o in objects
-                                     if isinstance(o, ExternalOperator)
-                                     for opi in o.ufl_operands
-                                     for cj in extract_coefficients(opi))
-            objects.update(extop_ufl_coeffs)
+
+        # Need to extract objects of type ufl_type contained in external operators
+        extops = extract_type(a, ExternalOperator)
+        extop_objects = tuple(cj for o in extops
+                              for opi in o._extop_items
+                              for cj in extract_type(opi, ufl_type))
+        objects.update(extop_objects)
         return objects
     else:
         return set(o for e in iter_expressions(a)
@@ -108,6 +109,12 @@ def extract_coefficients(a):
     return sorted_by_count(extract_type(a, Coefficient))
 
 
+def extract_external_operators(a):
+    """Build a sorted list of all external operators in a,
+    which can be a Form, Integral or Expr."""
+    return sorted_by_count(extract_type(a, ExternalOperator))
+
+
 def extract_constants(a):
     """Build a sorted list of all constants in a"""
     return sorted_by_count(extract_type(a, Constant))
@@ -122,8 +129,11 @@ def extract_arguments_and_coefficients(a):
 
     # Extract lists of all form argument instances
     terminals = extract_type(a, FormArgument)
+    external_operators = extract_type(a, ExternalOperator)
     arguments = [f for f in terminals if isinstance(f, Argument)]
+    arguments += [e for f in external_operators for e in f.arguments() if e not in arguments]
     coefficients = [f for f in terminals if isinstance(f, Coefficient)]
+    coefficients += [f.coefficient for f in external_operators if f.coefficient not in coefficients]
 
     # Build number,part: instance mappings, should be one to one
     bfnp = dict((f, (f.number(), f.part())) for f in arguments)

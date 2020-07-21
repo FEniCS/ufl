@@ -446,7 +446,7 @@ on each, illustrated here::
 
 External Operators
 ---------------------
-The data type ``ExternalOperator`` subclasses ``Coefficient``, as for ``Coefficient`` it represents a function belonging to a given finite element space. In addition, it is equipped with operands and with a derivative multi-index. It can be seen as a ``Coefficient`` which carries operands by which one can evaluate its value. The way to correlate the operands to evaluate the ``ExternalOperator`` is defined at a later stage. Its operands can be ``Coefficient``, ``Expr`` and all their subclasses. As for ``Operators``, their constructors should take these operands as the position arguments, it has its own implementation of ``reconstruct`` which takes into account the operands as well as the derivative multi-index.
+The data type ``ExternalOperator`` subclasses ``Operator``,  it is an operator that takes operands and produces a ``Coefficient`` out of it. In addition, it is equipped with a derivative multi-index. The way to correlate the operands to evaluate the ``ExternalOperator`` is defined at a later stage. Its operands can be ``Coefficient``, ``Expr`` and all their subclasses. As for ``Operators``, their constructors should take these operands as the position arguments, it has its own implementation of ``reconstruct`` which takes into account the operands as well as the derivative multi-index.
 
 An ``ExternalOperator`` must be declared with a list of operands and a ``FiniteElement``::
 

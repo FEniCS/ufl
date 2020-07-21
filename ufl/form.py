@@ -81,6 +81,7 @@ class Form(object):
         "_arguments",
         "_coefficients",
         "_coefficient_numbering",
+        "_external_operators",
         "_constants",
         "_hash",
         "_signature",
@@ -111,6 +112,7 @@ class Form(object):
         self._arguments = None
         self._coefficients = None
         self._coefficient_numbering = None
+        self._external_operators = None
 
         from ufl.algorithms.analysis import extract_constants
         self._constants = extract_constants(self)
@@ -233,6 +235,14 @@ class Form(object):
         if self._coefficient_numbering is None:
             self._analyze_form_arguments()
         return self._coefficient_numbering
+
+    def external_operators(self):
+        "Return all ``ExternalOperator`` objects found in form."
+        if self._external_operators is None:
+            from ufl.algorithms.analysis import extract_external_operators
+            extops = extract_external_operators(self)
+            self._external_operators = tuple(sorted(extops, key=lambda x: x.count()))
+        return self._external_operators
 
     def constants(self):
         return self._constants

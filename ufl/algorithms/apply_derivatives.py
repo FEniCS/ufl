@@ -12,6 +12,7 @@ from ufl.log import error, warning
 
 from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
+from ufl.core.external_operator import ExternalOperator
 from ufl.core.multiindex import MultiIndex, FixedIndex, indices
 
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
@@ -26,6 +27,7 @@ from ufl.classes import Conj, Real, Imag
 from ufl.classes import JacobianInverse
 from ufl.classes import SpatialCoordinate
 
+from ufl.algorithms.analysis import extract_arguments
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.operators import (conditional, sign,
                            sqrt, exp, ln, cos, sin, cosh, sinh,
@@ -313,22 +315,30 @@ class GenericDerivativeRuleset(MultiFunction):
             f_rank = len(o.ufl_operands[i].ufl_shape)
 
             derivatives = tuple(dj + int(i == j) for j, dj in enumerate(o.derivatives))
-            o_new = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives)
-            o_new_rank = len(o_new.ufl_shape)
-            mi = indices(o_new_rank + df_rank - f_rank)
+            if len(extract_arguments(df)) != 0 and o._external_operator_type == 'GLOBAL':
+                # Handle the symbolic differentiation for the case where we want only want to
+                # deal with the action of the external operator
+                new_args = o.arguments() + (df,)
+                function_space = o._make_function_space_args(i, df)
+                extop = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives,
+                                                 function_space=function_space, arguments=new_args)
+            else:
+                o_new = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives)
+                o_new_rank = len(o_new.ufl_shape)
+                mi = indices(o_new_rank + df_rank - f_rank)
 
-            start = len(o.ufl_shape)
-            for j, e in enumerate(o.derivatives[:i]):
-                start += len(o.ufl_operands[j].ufl_shape * e)
-            end = start + len(o.ufl_operands[i].ufl_shape * (derivatives[i] - o.derivatives[i]))
+                start = len(o.ufl_shape)
+                for j, e in enumerate(o.derivatives[:i]):
+                    start += len(o.ufl_operands[j].ufl_shape * e)
+                end = start + len(o.ufl_operands[i].ufl_shape * (derivatives[i] - o.derivatives[i]))
 
-            # Computation of the sets of indices involved in the tensor contraction
-            aa = mi[start:end] + mi[o_new_rank:]
-            bb = mi[:o_new_rank]
-            extop = df[aa] * o_new[bb]
-            mi_tensor = tuple(e for e in mi if not (e in aa and e in bb))
-            if len(extop.ufl_free_indices):
-                extop = as_tensor(extop, mi_tensor)
+                # Computation of the sets of indices involved in the tensor contraction
+                aa = mi[start:end] + mi[o_new_rank:]
+                bb = mi[:o_new_rank]
+                extop = df[aa] * o_new[bb]
+                mi_tensor = tuple(e for e in mi if not (e in aa and e in bb))
+                if len(extop.ufl_free_indices):
+                    extop = as_tensor(extop, mi_tensor)
             result += (extop,)
         return sum(result)
 
@@ -727,7 +737,7 @@ class VariableRuleset(GenericDerivativeRuleset):
         then df/dv == df/df = Id.
         """
         v = self._variable
-        if isinstance(v, Coefficient) and o == v:
+        if isinstance(v, (Coefficient, ExternalOperator)) and o == v:
             # dv/dv = identity of rank 2*rank(v)
             return self._Id
         else:
@@ -738,6 +748,7 @@ class VariableRuleset(GenericDerivativeRuleset):
         """If d_coeff = 0 => ExternalOperator's derivative is taken wrt a variable => we call the appropriate handler
         Otherwise => differentiation done wrt the ExternalOperator => we treat o as a Coefficient
         """
+
         d_coeff = self.coefficient(o)
         if d_coeff == 0:  # It also handles the non-scalar case
             return GenericDerivativeRuleset.external_operator(self, o, *dfs)
@@ -980,7 +991,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         for (w, v) in zip(self._w, self._v):
 
             # Analyse differentiation variable coefficient
-            if isinstance(w, FormArgument):
+            if isinstance(w, (FormArgument, ExternalOperator)):
                 if not w == o:
                     continue
                 wshape = w.ufl_shape
@@ -1071,13 +1082,13 @@ class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
 
-    def terminal(self, o):
-        return o
-
     def external_operator(self, o):
         rules = DerivativeRuleDispatcher()
         o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op) for op in o.ufl_operands))
         return o_new
+
+    def terminal(self, o):
+        return o
 
     def derivative(self, o):
         error("Missing derivative handler for {0}.".format(type(o).__name__))
