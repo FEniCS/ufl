@@ -28,7 +28,7 @@ class ReferenceValue(Operator):
 
     @property
     def ufl_shape(self):
-        return self.ufl_operands[0].ufl_shape
+        return self.ufl_operands[0].ufl_element().reference_value_shape()
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."

@@ -364,7 +364,6 @@ def sensitivity_rhs(a, u, L, v):
     """
     if not (isinstance(a, Form) and
             isinstance(u, Coefficient) and
-            isinstance(u, ExternalOperator) and
             isinstance(L, Form) and
             isinstance(v, Variable)):
         error("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
