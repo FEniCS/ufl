@@ -12,7 +12,7 @@
 
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
-from ufl.domain import join_domains, TopologicalMesh
+from ufl.domain import join_domains
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -20,7 +20,6 @@ __all_classes__ = [
     "FunctionSpace",
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
-    "TopologicalFunctionSpace",
 ]
 
 
@@ -180,76 +179,4 @@ class MixedFunctionSpace(AbstractFunctionSpace):
 
     def __repr__(self):
         r = "MixedFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
-        return r
-
-
-@attach_operators_from_hash_data
-class TopologicalFunctionSpace(AbstractFunctionSpace):
-    def __init__(self, domain, element):
-        assert isinstance(domain, TopologicalMesh), "domain must be an instance of TopologicalMesh, not of %s." % domain.__class__.__name__
-        if domain is None:
-            # DOLFIN hack
-            # TODO: Is anything expected from element.cell() in this case?
-            pass
-        else:
-            try:
-                domain_cell = domain.ufl_cell()
-            except AttributeError:
-                error("Expected non-abstract domain for initalization of topological function space.")
-            else:
-                if element.cell() != domain_cell:
-                    error("Non-matching cell of finite element and domain.")
-
-        AbstractFunctionSpace.__init__(self)
-        self._ufl_domain = domain
-        self._ufl_element = element
-
-    def ufl_sub_spaces(self):
-        "Return ufl sub spaces."
-        return ()
-
-    def ufl_domain(self):
-        "Return ufl domain."
-        return self._ufl_domain
-
-    def ufl_element(self):
-        "Return ufl element."
-        return self._ufl_element
-
-    def ufl_domains(self):
-        "Return ufl domains."
-        domain = self.ufl_domain()
-        if domain is None:
-            return ()
-        else:
-            return (domain,)
-
-    def _ufl_hash_data_(self):
-        domain = self.ufl_domain()
-        element = self.ufl_element()
-        if domain is None:
-            ddata = None
-        else:
-            ddata = domain._ufl_hash_data_()
-        if element is None:
-            edata = None
-        else:
-            edata = element._ufl_hash_data_()
-        return ("TopologicalFunctionSpace", ddata, edata)
-
-    def _ufl_signature_data_(self, renumbering):
-        domain = self.ufl_domain()
-        element = self.ufl_element()
-        if domain is None:
-            ddata = None
-        else:
-            ddata = domain._ufl_signature_data_(renumbering)
-        if element is None:
-            edata = None
-        else:
-            edata = element._ufl_signature_data_()
-        return ("TopologicalFunctionSpace", ddata, edata)
-
-    def __repr__(self):
-        r = "TopologicalFunctionSpace(%s, %s)" % (repr(self._ufl_domain), repr(self._ufl_element))
         return r

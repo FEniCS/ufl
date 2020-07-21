@@ -16,8 +16,8 @@ from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain, default_topological_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace, TopologicalFunctionSpace
+from ufl.domain import default_domain
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
 
@@ -122,7 +122,7 @@ def Coefficients(function_space):
 
 @ufl_type()
 class Subspace(Terminal):
-    """UFL terminal type: Representation of a topological coefficient."""
+    """UFL terminal type: Representation of a subspace."""
 
     __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
     _globalcount = 0
@@ -135,10 +135,10 @@ class Subspace(Terminal):
             # For legacy support for .ufl files using cells, we map
             # the cell to The Default Mesh
             element = function_space
-            domain = default_topological_domain(element.cell())
-            function_space = TopologicalFunctionSpace(domain, element)
-        elif not isinstance(function_space, TopologicalFunctionSpace):
-            error("Expecting a TopologicalFunctionSpace.")
+            domain = default_domain(element.cell())
+            function_space = FunctionSpace(domain, element)
+        elif not isinstance(function_space, FunctionSpace):
+            error("Expecting a FunctionSpace.")
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
@@ -155,15 +155,15 @@ class Subspace(Terminal):
         return self._ufl_shape
 
     def ufl_function_space(self):
-        "Get the topological function space of this topological coefficient."
+        "Get the function space of this subspace."
         return self._ufl_function_space
 
     def ufl_domain(self):
-        "Shortcut to get the topological domain of the topological function space of this topological coefficient."
+        "Shortcut to get the domain of the function space of this subspace."
         return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
-        "Shortcut to get the finite element of the topological function space of this topological coefficient."
+        "Shortcut to get the finite element of the function space of this subspace."
         return self._ufl_function_space.ufl_element()
 
     def is_cellwise_constant(self):
@@ -175,7 +175,7 @@ class Subspace(Terminal):
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
-        "Signature data depend on the global numbering of the topological coeff and domains."
+        "Signature data depend on the global numbering of the subspace and domains."
         count = renumbering[self]
         fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
         return ("Subspace", count, fsdata)
