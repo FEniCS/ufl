@@ -120,16 +120,15 @@ def Coefficients(function_space):
 
 # --- Subspace ---
 
-@ufl_type()
-class Subspace(Terminal):
-    """UFL terminal type: Representation of a subspace."""
+@ufl_type(is_abstract=True)
+class AbstractSubspace(Terminal):
+    """An abstract class for a subspace."""
 
     __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
-    _globalcount = 0
 
     def __init__(self, function_space, count=None):
         Terminal.__init__(self)
-        counted_init(self, count, Subspace)
+        counted_init(self, count, type(self))
 
         if isinstance(function_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
@@ -142,8 +141,8 @@ class Subspace(Terminal):
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
-
-        self._repr = "Subspace(%s, %s)" % (
+        self._repr = "%s(%s, %s)" % (
+            type(self).__name__,
             repr(self._ufl_function_space), repr(self._count))
 
     def count(self):
@@ -178,14 +177,14 @@ class Subspace(Terminal):
         "Signature data depend on the global numbering of the subspace and domains."
         count = renumbering[self]
         fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
-        return ("Subspace", count, fsdata)
+        return (type(self).__name__, count, fsdata)
 
     def __str__(self):
         count = str(self._count)
         if len(count) == 1:
-            return "t_%s" % count
+            return "s_%s" % count
         else:
-            return "t_{%s}" % count
+            return "s_{%s}" % count
 
     def __repr__(self):
         return self._repr
@@ -197,3 +196,14 @@ class Subspace(Terminal):
             return True
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
+
+
+@ufl_type()
+class Subspace(AbstractSubspace):
+    """UFL abstract subspace type: Representation of a subspace."""
+
+    __slots__ = ()
+    _globalcount = 0
+
+    def __init__(self, function_space, count=None):
+        AbstractSubspace.__init__(self, function_space, count=count)
