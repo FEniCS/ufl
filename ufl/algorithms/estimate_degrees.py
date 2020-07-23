@@ -74,7 +74,7 @@ class SumDegreeEstimator(MultiFunction):
         return d
 
     def subspace(self, v):
-        """A topological coefficient has no underlying geometry, and
+        """A subspace has no underlying geometry, and
         must not be used in a way that it would contribute to the degree."""
         return 0
 

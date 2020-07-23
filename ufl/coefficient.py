@@ -120,11 +120,12 @@ def Coefficients(function_space):
 
 # --- Subspace ---
 
-@ufl_type(is_abstract=True)
-class AbstractSubspace(Terminal):
-    """An abstract class for a subspace."""
+@ufl_type()
+class Subspace(Terminal):
+    """UFL terminal type: Representation of a subspace."""
 
     __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
+    _globalcount = 0
 
     def __init__(self, function_space, count=None):
         Terminal.__init__(self)
@@ -196,14 +197,3 @@ class AbstractSubspace(Terminal):
             return True
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
-
-
-@ufl_type()
-class Subspace(AbstractSubspace):
-    """UFL abstract subspace type: Representation of a subspace."""
-
-    __slots__ = ()
-    _globalcount = 0
-
-    def __init__(self, function_space, count=None):
-        AbstractSubspace.__init__(self, function_space, count=count)
