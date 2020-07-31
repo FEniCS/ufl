@@ -476,11 +476,11 @@ class Form(object):
     def _analyze_subspaces(self):
         "Analyze which Subspace objects can be found in the form."
         from ufl.algorithms.analysis import extract_subspaces
-        topo_coeffs = extract_subspaces(self)
+        subspaces = extract_subspaces(self)
 
-        # Define canonical numbering of topological coefficients
+        # Define canonical numbering of subspaces
         self._subspaces = tuple(
-            sorted(set(topo_coeffs), key=lambda x: x.count()))
+            sorted(set(subspaces), key=lambda x: x.count()))
         self._subspace_numbering = dict(
             (f, i) for i, f in enumerate(self._subspaces))
 
