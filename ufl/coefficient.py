@@ -129,7 +129,7 @@ class Subspace(Terminal):
 
     def __init__(self, function_space, count=None):
         Terminal.__init__(self)
-        counted_init(self, count, type(self))
+        counted_init(self, count, Subspace)
 
         if isinstance(function_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
@@ -142,8 +142,7 @@ class Subspace(Terminal):
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
-        self._repr = "%s(%s, %s)" % (
-            type(self).__name__,
+        self._repr = "Subspace(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))
 
     def count(self):
@@ -178,7 +177,7 @@ class Subspace(Terminal):
         "Signature data depend on the global numbering of the subspace and domains."
         count = renumbering[self]
         fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
-        return (type(self).__name__, count, fsdata)
+        return ("Subspace", count, fsdata)
 
     def __str__(self):
         count = str(self._count)
@@ -191,7 +190,7 @@ class Subspace(Terminal):
         return self._repr
 
     def __eq__(self, other):
-        if not isinstance(other, type(self)):
+        if not isinstance(other, Subspace):
             return False
         if self is other:
             return True
