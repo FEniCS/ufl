@@ -296,6 +296,9 @@ class VectorElement(MixedElement):
         MixedElement.__init__(self, sub_elements, value_shape=value_shape,
                               reference_value_shape=reference_value_shape)
 
+        FiniteElementBase.__init__(self, sub_element.family(), sub_element.cell(), sub_element.degree(),
+                                   sub_element.quadrature_scheme(), value_shape, reference_value_shape)
+
         self._sub_element = sub_element
 
         # Cache repr string
