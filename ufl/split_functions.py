@@ -12,8 +12,10 @@
 from ufl.log import error
 from ufl.utils.sequences import product
 from ufl.finiteelement import MixedElement, TensorElement
-from ufl.tensors import as_vector, as_matrix, ListTensor
+from ufl.constantvalue import ConstantValue
+from ufl.tensors import as_vector, as_matrix, ListTensor, ComponentTensor
 from ufl.indexed import Indexed
+from ufl.algebra import Sum, Product
 from ufl.permutation import compute_indices
 from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides
 
@@ -26,7 +28,10 @@ def split(v):
     begin = 0
     end = None
 
-    if isinstance(v, Indexed):
+    if isinstance(v, Sum):
+        return tuple(Sum(a, b) for a, b in zip(split(v.ufl_operands[0]), split(v.ufl_operands[1])))
+
+    elif isinstance(v, Indexed):
         # Special case: split previous output of split again
         # Consistent with simple element, just return function in a tuple
         return (v,)
@@ -46,6 +51,28 @@ def split(v):
                 end = int(end) + 1
             else:
                 error("Don't know how to split %s." % (v,))
+        else:
+            error("Don't know how to split %s." % (v,))
+
+    elif isinstance(v, ComponentTensor):
+        # Split ComponentTensor(Product(ConstantValue(...), Indexed(form_argument, ii)), ii)
+        comp = v.ufl_operands[0]
+        indices = v.ufl_operands[1]
+        ops =comp.ufl_operands
+        if isinstance(comp, Indexed):
+            assert indices == comp.ufl_operands[1]
+            return split(comp.ufl_operands[0])
+        elif isinstance(comp, Product):
+            if isinstance(ops[0], ConstantValue):
+                c, op = ops
+            elif isinstance(ops[1], ConstantValue):
+                op, c = ops
+            else:
+                error("Don't know how to split %s." % (v,))
+            if not isinstance(op, Indexed):
+                error("Don't know how to split %s." % (v,))
+            assert indices == op.ufl_operands[1]
+            return tuple(c * s for s in split(op.ufl_operands[0]))
         else:
             error("Don't know how to split %s." % (v,))
 

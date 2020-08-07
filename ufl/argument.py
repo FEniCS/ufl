@@ -16,7 +16,6 @@ import numbers
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
-from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
@@ -162,6 +161,7 @@ def TrialFunction(function_space, part=None):
 def Arguments(function_space, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
+    from ufl.split_functions import split
     if isinstance(function_space, MixedFunctionSpace):
         return [Argument(function_space.ufl_sub_space(i), number, i)
                 for i in range(function_space.num_sub_spaces())]
