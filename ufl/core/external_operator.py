@@ -40,15 +40,15 @@ class ExternalOperator(Operator):
         :param derivatives: tuple scecifiying the derivative multiindex.
         :param count: count of the associated coefficient
         :param coefficient: ufl.Coefficient associated to the ExternalOperator representing what is produced by the operator
-        :param arguments: tuple of ufl.Arguments or ufl.Expr containing several ufl.Argument objects: used when we take the action.
+        :param arguments: tuple composed of tuples whose first argument is a ufl.Argument or ufl.Expr containing several ufl.Argument objects and whose second arguments is a boolean indicating whether we take the action of the adjoint: used when we take the action.
         """
 
         ufl_operands = tuple(map(as_ufl, operands))
         Operator.__init__(self, ufl_operands)
 
         # Process arguments and action arguments
-        arguments = tuple(map(as_ufl, arguments))
-        self._action_args, self._arguments = self._extract_ops_and_args(arguments)
+        arguments = tuple((as_ufl(args), is_adjoint) for args, is_adjoint in arguments)
+        self._action_args, self._arguments = self._extract_coeffs_and_args(arguments)
 
         # Make the coefficient associated to the external operator
         ref_coefficient = Coefficient(function_space, count=count)
@@ -104,10 +104,10 @@ class ExternalOperator(Operator):
     def coefficient(self):
         return self._coefficient
 
-    def _extract_ops_and_args(self, operands):
+    def _extract_coeffs_and_args(self, operands):
         from ufl.algorithms.analysis import extract_arguments
-        args = tuple(e for e in operands if len(extract_arguments(e)) != 0)
-        ops = tuple(e for e in operands if e not in args)
+        args = tuple((e, is_adjoint) for e, is_adjoint in operands if len(extract_arguments(e)) != 0)
+        ops = tuple((e, is_adjoint) for e, is_adjoint in operands if (e, is_adjoint) not in args)
         return ops, args
 
     def arguments(self):
@@ -118,7 +118,7 @@ class ExternalOperator(Operator):
 
     @property
     def _extop_items(self):
-        return self.ufl_operands + (self.coefficient,) + self._arguments
+        return self.ufl_operands + (self.coefficient,) + tuple(arg for arg, _ in self._arguments)
 
     def count(self):
         return self._count
@@ -156,16 +156,21 @@ class ExternalOperator(Operator):
     def original_function_space(self):
         return self._original_function_space
 
-    def _make_function_space_args(self, k, y):
-        """Make the function space of the Gateaux derivative: dN[x] = \frac{dN}{dOperands[k]} * y(x)"""
-        opi_shape = self.ufl_operands[k].ufl_shape
+    def _make_function_space_args(self, k, y, adjoint=False):
+        """Make the function space of the Gateaux derivative: dN[x] = \frac{dN}{dOperands[k]} * y(x) if adjoint is False
+        and of \frac{dN}{dOperands[k]}^{*} * y(x) if adjoint is True"""
+        opk_shape = self.ufl_operands[k].ufl_shape
         y_shape = y.ufl_shape
-        add_shape = y_shape[len(opi_shape):]
-
         shape = self.original_function_space().ufl_element().reference_value_shape()
         for i, e in enumerate(self.derivatives):
             shape += self.ufl_operands[i].ufl_shape * (e - int(i == k))
-        shape += add_shape
+
+        if not adjoint:
+            add_shape = y_shape[len(opk_shape):]
+            shape += add_shape
+        else:
+            add_shape = y_shape[len(shape):]
+            shape = tuple(reversed(opk_shape)) + add_shape
         return self._make_function_space(shape)
 
     def _make_function_space(self, s, sub_element=None):
@@ -262,7 +267,7 @@ class ExternalOperator(Operator):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
         # Type(self) encompasses the information about the external operator type (GLOBAL or LOCAL)
         coefficient_signature = self.coefficient._ufl_signature_data_(renumbering)
-        return ("ExternalOperator", type(self), *coefficient_signature, *self.derivatives)
+        return ("ExternalOperator", self._external_operator_type, *coefficient_signature, *self.derivatives)
 
     def __eq__(self, other):
         if not isinstance(other, ExternalOperator):

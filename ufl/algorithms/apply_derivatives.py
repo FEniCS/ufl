@@ -318,7 +318,7 @@ class GenericDerivativeRuleset(MultiFunction):
             if len(extract_arguments(df)) != 0 and o._external_operator_type == 'GLOBAL':
                 # Handle the symbolic differentiation for the case where we want only want to
                 # deal with the action of the external operator
-                new_args = o.arguments() + (df,)
+                new_args = o.arguments() + ((df, False),)
                 function_space = o._make_function_space_args(i, df)
                 extop = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives,
                                                  function_space=function_space, arguments=new_args)

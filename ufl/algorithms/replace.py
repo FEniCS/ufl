@@ -37,7 +37,7 @@ class Replacer(MultiFunction):
         except KeyError:
             coeff = self.mapping.get(o.coefficient) or o.coefficient
         new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
-        new_args = tuple(replace(arg, self.mapping) for arg in o.arguments())
+        new_args = tuple((replace(arg, self.mapping), is_adjoint) for arg, is_adjoint in o.arguments())
         return o._ufl_expr_reconstruct_(*new_ops, coefficient=coeff, arguments=new_args)
 
     def coefficient_derivative(self, o):

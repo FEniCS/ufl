@@ -131,7 +131,7 @@ def extract_arguments_and_coefficients(a):
     terminals = extract_type(a, FormArgument)
     external_operators = extract_type(a, ExternalOperator)
     arguments = [f for f in terminals if isinstance(f, Argument)]
-    arguments += [e for f in external_operators for e in f.arguments() if e not in arguments]
+    arguments += [e for f in external_operators for e, _ in f.arguments() if e not in arguments]
     coefficients = [f for f in terminals if isinstance(f, Coefficient)]
     coefficients += [f.coefficient for f in external_operators if f.coefficient not in coefficients]
 

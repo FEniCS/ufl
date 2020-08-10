@@ -359,7 +359,7 @@ def compute_form_data(form,
             if eid not in derivatives_dict.keys():
                 derivatives_dict[eid] = {}
                 extop_dict[eid] = ()
-            e_args = tuple(i for e_arg in e.arguments()
+            e_args = tuple((i, is_adj) for e_arg, is_adj in e.arguments()
                            for i, arg in enumerate(form.arguments())
                            if e_arg == arg)
             derivatives_dict[eid].update({e.derivatives: e_args})

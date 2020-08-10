@@ -395,7 +395,7 @@ def test_differentiation_procedure_action():
 
     # Check arguments
     assert extop_Ja.arguments() == ()
-    assert extop_Ja_action.arguments() == (u_hat,)
+    assert extop_Ja_action.arguments() == ((u_hat, False),)
     assert extop_Ja.action_args() == ()
     assert extop_Ja_action.action_args() == ()
 
@@ -428,7 +428,7 @@ def test_extractions():
     assert F.external_operators() == (e,)
 
     u_hat = TrialFunction(V)
-    e = ExternalOperator(u, function_space=V, arguments=(u_hat,))
+    e = ExternalOperator(u, function_space=V, arguments=((u_hat, False),))
 
     assert extract_coefficients(e) == [u, e.coefficient]
     assert extract_arguments(e) == [u_hat]

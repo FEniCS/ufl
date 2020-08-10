@@ -44,7 +44,7 @@ class ArityChecker(MultiFunction):
     expr = nonlinear_operator
 
     def external_operator(self, o):
-        res = tuple(map_expr_dag(self, arg, compress=False)[0] for arg in o.arguments())
+        res = tuple(map_expr_dag(self, arg, compress=False)[0] for arg, _ in o.arguments())
         return res
 
     def sum(self, o, a, b):
