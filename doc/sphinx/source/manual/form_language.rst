@@ -446,7 +446,7 @@ on each, illustrated here::
 
 External Operators
 ---------------------
-The data type ``ExternalOperator`` subclasses ``Operator``,  it is an operator that takes operands and produces a ``Coefficient`` out of it. In addition, it is equipped with a derivative multi-index. The way to correlate the operands to evaluate the ``ExternalOperator`` is defined at a later stage. Its operands can be ``Coefficient``, ``Expr`` and all their subclasses. As for ``Operators``, their constructors should take these operands as the position arguments, it has its own implementation of ``reconstruct`` which takes into account the operands as well as the derivative multi-index.
+The data type ``ExternalOperator`` subclasses ``Operator``,  it is an operator that takes operands and produces a ``Coefficient`` out of it. In addition, it is equipped with a derivative multi-index. The way to correlate the operands to evaluate the ``ExternalOperator`` is defined at a later stage. Its operands are UFL expressions: ``Expr`` and all its subclasses (e.g. ``Coefficient`` or even ``ExternalOperator``). As for ``Operators``, their constructors should take these operands as the position arguments, it has its own implementation of ``reconstruct`` which takes into account the operands as well as the derivative multi-index.
 
 An ``ExternalOperator`` must be declared with a list of operands and a ``FiniteElement``::
 
@@ -458,9 +458,9 @@ An ``ExternalOperator`` must be declared with a list of operands and a ``FiniteE
       c = Constant(Cell)
       p = ExternalOperator(u, g, c, function_space=V)
 
-``ExternalOperator`` has a a symbolic differentiation mechanism, therfore::
+``ExternalOperator`` has a symbolic differentiation mechanism, therefore::
 
-    u = Coefficient(V)
+    u = variable(Coefficient(V))
     g = Coefficient(V)
     p = ExternalOperator(cos(u), g, function_space=V)
 
@@ -473,6 +473,10 @@ is equivalent after processing the expression to::
 where::
 
     p2 = p._ufl_expr_reconstruct_(cos(u), g, derivatives=(1, 0))
+
+The derivatives keyword refers to the derivatives multi-index, in this example p2 is equivalent to 
+
+    :math:`\frac{\partial p}{\partial op_1}`, where :math: `op_1 = cos(u)`
 
 Likewise, when using ``derivative``::
 

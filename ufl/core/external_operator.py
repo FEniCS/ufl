@@ -30,17 +30,18 @@ class ExternalOperator(Operator):
 
     _external_operator_type = ''
 
-    def __init__(self, *operands, function_space, derivatives=None, count=None, coefficient=None, arguments=()):
+    def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=()):
         r"""
         :param operands: operands on which acts the :class:`ExternalOperator`.
-        :param function_space: the :class:`.FunctionSpace`,
-        or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
-        Alternatively, another :class:`Function` may be passed here and its function space
-        will be used to build this :class:`Function`.  In this case, the function values are copied.
+        :param function_space: the :class:`.FunctionSpace`, 
+            or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
+            Alternatively, another :class:`Coefficient` may be passed here and its function space
+            will be used.
         :param derivatives: tuple scecifiying the derivative multiindex.
-        :param count: count of the associated coefficient
         :param coefficient: ufl.Coefficient associated to the ExternalOperator representing what is produced by the operator
-        :param arguments: tuple composed of tuples whose first argument is a ufl.Argument or ufl.Expr containing several ufl.Argument objects and whose second arguments is a boolean indicating whether we take the action of the adjoint: used when we take the action.
+        :param arguments: tuple composed of tuples whose first argument is a ufl.Argument or ufl.Expr
+            containing several ufl.Argument objects and whose second arguments is a boolean indicating
+            whether we take the action of the adjoint: used when we take the action.
         """
 
         ufl_operands = tuple(map(as_ufl, operands))
@@ -51,7 +52,7 @@ class ExternalOperator(Operator):
         self._action_args, self._arguments = self._extract_coeffs_and_args(arguments)
 
         # Make the coefficient associated to the external operator
-        ref_coefficient = Coefficient(function_space, count=count)
+        ref_coefficient = Coefficient(function_space)
         self._ufl_function_space = ref_coefficient.ufl_function_space()
 
         # Checks
@@ -78,21 +79,17 @@ class ExternalOperator(Operator):
                 for i, e in enumerate(self.derivatives):
                     s += self.ufl_operands[i].ufl_shape * e
                 original_function_space = self._make_function_space(s, sub_element=ref_coefficient.ufl_element())
-                ufl_shape = original_function_space.ufl_element().reference_value_shape()
             else:
-                ufl_shape = ref_coefficient.ufl_element().reference_value_shape()
                 original_function_space = ref_coefficient.ufl_function_space()
         else:
-            ufl_shape = ref_coefficient.ufl_element().reference_value_shape()
             original_function_space = ref_coefficient.ufl_function_space()
             self.derivatives = (0,) * len(self.ufl_operands)
 
         if coefficient is None:
-            coefficient = Coefficient(original_function_space, count=count)
+            coefficient = Coefficient(original_function_space)
         elif not isinstance(coefficient, Coefficient):
             raise TypeError('Expecting a Coefficient and not %s', type(coefficient))
         self._coefficient = coefficient
-        self.ufl_shape = ufl_shape
         self._original_function_space = self.coefficient.ufl_function_space()
 
         self._extop_dependencies = [self, ]
@@ -116,10 +113,6 @@ class ExternalOperator(Operator):
     def action_args(self):
         return self._action_args
 
-    @property
-    def _extop_items(self):
-        return self.ufl_operands + (self.coefficient,) + tuple(arg for arg, _ in self._arguments)
-
     def count(self):
         return self._count
 
@@ -127,18 +120,10 @@ class ExternalOperator(Operator):
     def _count(self):
         return self.coefficient._count
 
-    @_count.setter
-    def _count(self, value):
-        self.coefficient._count = value
-
     @property
     def ufl_shape(self):
         "Return the UFL shape of self.coefficient."
         return self.coefficient._ufl_shape
-
-    @ufl_shape.setter
-    def ufl_shape(self, shape):
-        self.coefficient._ufl_shape = shape
 
     def ufl_function_space(self):
         return self._ufl_function_space
@@ -147,11 +132,6 @@ class ExternalOperator(Operator):
     def _original_ufl_function_space(self):
         "Get the function space of this coefficient."
         return self.coefficient._ufl_function_space
-
-    @_original_ufl_function_space.setter
-    def _original_ufl_function_space(self, func_space):
-        "Get the function space of this coefficient."
-        self.coefficient._ufl_function_space = func_space
 
     def original_function_space(self):
         return self._original_function_space
@@ -205,28 +185,25 @@ class ExternalOperator(Operator):
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, count=None, coefficient=None, arguments=None):
+    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None):
         "Return a new object of the same type with new operands."
         deriv_multiindex = derivatives or self.derivatives
 
         if deriv_multiindex != self.derivatives:
             # If we are constructing a derivative
-            corresponding_count = None
             corresponding_coefficient = None
             e_master = self._extop_master
             for ext in e_master._extop_dependencies:
                 if ext.derivatives == deriv_multiindex:
                     return ext._ufl_expr_reconstruct_(*operands, function_space=function_space,
-                                                      derivatives=deriv_multiindex, count=count,
+                                                      derivatives=deriv_multiindex,
                                                       coefficient=coefficient,
                                                       arguments=arguments)
         else:
-            corresponding_count = self.count()
             corresponding_coefficient = coefficient or self._coefficient
 
         reconstruct_op = type(self)(*operands, function_space=function_space or self.ufl_function_space(),
                                     derivatives=deriv_multiindex,
-                                    count=corresponding_count,
                                     coefficient=corresponding_coefficient,
                                     arguments=arguments or (self.arguments() + self.action_args()))
 
@@ -256,7 +233,7 @@ class ExternalOperator(Operator):
         # This should work for most cases
         r = "%s(%s,%s,%s,%s,%s)" % (self._ufl_class_.__name__, ", ".join(repr(op) for op in self.ufl_operands),
                                     repr(self.ufl_function_space()), repr(self.derivatives), repr(self.ufl_shape),
-                                    repr(self._count))
+                                    repr(self.count()))
         return r
 
     def _ufl_compute_hash_(self):

@@ -216,7 +216,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             error("Coefficient and argument shapes do not match!")
-        if isinstance(c, (Coefficient, ExternalOperator)) or isinstance(c, SpatialCoordinate):
+        if isinstance(c, (Coefficient, ExternalOperator, SpatialCoordinate)):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
