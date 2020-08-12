@@ -474,7 +474,7 @@ where::
 
     p2 = p._ufl_expr_reconstruct_(cos(u), g, derivatives=(1, 0))
 
-The derivatives keyword refers to the derivatives multi-index, in this example p2 is equivalent to 
+The derivatives keyword refers to the derivatives multi-index, in this example p2 is equivalent to
 
     :math:`\frac{\partial p}{\partial op_1}`, where :math: `op_1 = cos(u)`
 

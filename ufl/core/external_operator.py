@@ -33,7 +33,7 @@ class ExternalOperator(Operator):
     def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=()):
         r"""
         :param operands: operands on which acts the :class:`ExternalOperator`.
-        :param function_space: the :class:`.FunctionSpace`, 
+        :param function_space: the :class:`.FunctionSpace`,
             or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
             Alternatively, another :class:`Coefficient` may be passed here and its function space
             will be used.
