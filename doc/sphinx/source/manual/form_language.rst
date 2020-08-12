@@ -448,7 +448,7 @@ External Operators
 ---------------------
 The data type ``ExternalOperator`` subclasses ``Operator``,  it is an operator that takes operands and produces a ``Coefficient`` out of it. In addition, it is equipped with a derivative multi-index. The way to correlate the operands to evaluate the ``ExternalOperator`` is defined at a later stage. Its operands are UFL expressions: ``Expr`` and all its subclasses (e.g. ``Coefficient`` or even ``ExternalOperator``). As for ``Operators``, their constructors should take these operands as the position arguments, it has its own implementation of ``reconstruct`` which takes into account the operands as well as the derivative multi-index.
 
-An ``ExternalOperator`` must be declared with a list of operands and a ``FiniteElement``::
+An ``ExternalOperator`` must be declared with a list of operands and a ``ufl.FunctionSpace``::
 
       V  = FiniteElement("Lagrange", "triangle", 1)
       DG0 = FiniteElement("Discontinuous Lagrange", cell, 0)
