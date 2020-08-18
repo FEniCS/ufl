@@ -3,20 +3,9 @@
 
 # Copyright (C) 2013-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.log import error
 from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
@@ -39,11 +28,15 @@ def compute_integrand_scaling_factor(integral):
     # Polynomial degree of integrand scaling
     degree = 0
     if integral_type == "cell":
-        detJ = JacobianDeterminant(domain)
-        degree = estimate_total_polynomial_degree(apply_geometry_lowering(detJ))
-        # Despite the abs, |detJ| is polynomial except for
-        # self-intersecting cells, where we have other problems.
-        scale = abs(detJ) * weight
+        if tdim > 0:
+            detJ = JacobianDeterminant(domain)
+            degree = estimate_total_polynomial_degree(apply_geometry_lowering(detJ))
+            # Despite the abs, |detJ| is polynomial except for
+            # self-intersecting cells, where we have other problems.
+            scale = abs(detJ) * weight
+        else:
+            # No need to scale 'integral' over a vertex
+            scale = 1
 
     elif integral_type.startswith("exterior_facet"):
         if tdim > 1:

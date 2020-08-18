@@ -1,26 +1,15 @@
 # -*- coding: utf-8 -*-
-"Various string formatting utilities."
+"""Various string formatting utilities."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
 def camel2underscore(name):
-    "Convert a CamelCaps string to underscore_syntax."
+    """Convert a CamelCaps string to underscore_syntax."""
     letters = []
     lastlower = False
     for l in name:
@@ -36,7 +25,7 @@ def camel2underscore(name):
 
 
 def lstr(l):
-    "Pretty-print list or tuple, invoking str() on items instead of repr() like str() does."
+    """Pretty-print list or tuple, invoking str() on items instead of repr() like str() does."""
     if isinstance(l, list):
         return "[" + ", ".join(lstr(item) for item in l) + "]"
     elif isinstance(l, tuple):
@@ -45,13 +34,13 @@ def lstr(l):
 
 
 def dstr(d, colsize=80):
-    "Pretty-print dictionary of key-value pairs."
+    """Pretty-print dictionary of key-value pairs."""
     sorted_keys = sorted(d.keys())
     return tstr([(key, d[key]) for key in sorted_keys], colsize)
 
 
 def tstr(t, colsize=80):
-    "Pretty-print list of tuples of key-value pairs."
+    """Pretty-print list of tuples of key-value pairs."""
     if not t:
         return ""
 
@@ -81,12 +70,12 @@ def tstr(t, colsize=80):
 
 
 def sstr(s):
-    "Pretty-print set."
+    """Pretty-print set."""
     return ", ".join(str(x) for x in s)
 
 
 def istr(o):
-    "Format object as string, inserting ? for None."
+    """Format object as string, inserting ? for None."""
     if o is None:
         return "?"
     else:
@@ -94,5 +83,5 @@ def istr(o):
 
 
 def estr(elements):
-    "Format list of elements for printing."
+    """Format list of elements for printing."""
     return ", ".join(e.shortstr() for e in elements)

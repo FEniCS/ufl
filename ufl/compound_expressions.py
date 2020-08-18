@@ -3,20 +3,9 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2009-2010
 
@@ -24,6 +13,7 @@ from ufl.log import error
 from ufl.core.multiindex import indices, Index
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.operators import sqrt
+from ufl.constantvalue import Zero, zero
 
 
 # Note: To avoid typing errors, the expressions for cofactor and
@@ -93,7 +83,9 @@ def pseudo_inverse_expr(A):
 def determinant_expr(A):
     "Compute the (pseudo-)determinant of A."
     sh = A.ufl_shape
-    if sh == ():
+    if isinstance(A, Zero):
+        return zero()
+    elif sh == ():
         return A
     elif sh[0] == sh[1]:
         if sh[0] == 1:

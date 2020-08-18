@@ -3,26 +3,14 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_strings
 from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.log import error
@@ -31,14 +19,14 @@ from ufl.cell import AbstractCell, as_cell
 
 class FiniteElementBase(object):
     "Base class for all finite elements."
-    __slots__ = as_native_strings(("_family",
-                                   "_cell",
-                                   "_degree",
-                                   "_quad_scheme",
-                                   "_value_shape",
-                                   "_reference_value_shape",
-                                   "_repr",
-                                   "__weakref__"))
+    __slots__ = ("_family",
+                 "_cell",
+                 "_degree",
+                 "_quad_scheme",
+                 "_value_shape",
+                 "_reference_value_shape",
+                 "_repr",
+                 "__weakref__")
 
     # TODO: Not all these should be in the base class! In particular
     # family, degree, and quad_scheme do not belong here.

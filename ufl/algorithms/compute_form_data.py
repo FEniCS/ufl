@@ -5,20 +5,9 @@ raw input form given by a user."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from itertools import chain
 
@@ -331,6 +320,10 @@ def compute_form_data(form,
     if do_apply_restrictions:
         form = apply_restrictions(form)
 
+    # If in real mode, remove any complex nodes introduced during form processing.
+    if not complex_mode:
+        form = remove_complex_nodes(form)
+
     # --- Group integrals into IntegralData objects
     # Most of the heavy lifting is done above in group_form_integrals.
     self.integral_data = build_integral_data(form.integrals())
@@ -410,10 +403,6 @@ def compute_form_data(form,
     # TODO: This is a very expensive check... Replace with something
     # faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
-
-    # If in real mode, remove complex nodes entirely.
-    if not complex_mode:
-        preprocessed_form = remove_complex_nodes(preprocessed_form)
 
     check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)  # Currently testing how fast this is
 

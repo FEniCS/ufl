@@ -12,25 +12,13 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 
 
@@ -98,7 +86,8 @@ class Expr(object):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = as_native_strings(("_hash",))
+    __slots__ = ("_hash",
+                 "__weakref__")
     # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
@@ -114,9 +103,6 @@ class Expr(object):
 
     def __init__(self):
         self._hash = None
-
-    def __del__(self):
-        pass
 
     # This shows the principal behaviour of the hash function attached
     # in ufl_type:
@@ -269,7 +255,6 @@ class Expr(object):
 
     # Backup of default init and del
     _ufl_regular__init__ = __init__
-    _ufl_regular__del__ = __del__
 
     def _ufl_profiling__init__(self):
         "Replacement constructor with object counting."
@@ -278,14 +263,13 @@ class Expr(object):
 
     def _ufl_profiling__del__(self):
         "Replacement destructor with object counting."
-        Expr._ufl_regular__del__(self)
         Expr._ufl_obj_del_counts_[self._ufl_typecode_] -= 1
 
     @staticmethod
     def ufl_enable_profiling():
         "Turn on the object counting mechanism and reset counts to zero."
         Expr.__init__ = Expr._ufl_profiling__init__
-        Expr.__del__ = Expr._ufl_profiling__del__
+        setattr(Expr, "__del__", Expr._ufl_profiling__del__)
         for i in range(len(Expr._ufl_obj_init_counts_)):
             Expr._ufl_obj_init_counts_[i] = 0
             Expr._ufl_obj_del_counts_[i] = 0
@@ -294,7 +278,7 @@ class Expr(object):
     def ufl_disable_profiling():
         "Turn off the object counting mechanism. Return object init and del counts."
         Expr.__init__ = Expr._ufl_regular__init__
-        Expr.__del__ = Expr._ufl_regular__del__
+        delattr(Expr, "__del__")
         return (Expr._ufl_obj_init_counts_, Expr._ufl_obj_del_counts_)
 
     # === Abstract functions that must be implemented by subclasses ===

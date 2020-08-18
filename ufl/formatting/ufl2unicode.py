@@ -443,6 +443,15 @@ class Expression2UnicodeHandler(MultiFunction):
             return "%s%s" % (var, superscript_number(i))
         return self.coefficient_names[o.count()]
 
+    def constant(self, o):
+        i = o.count()
+        var = "c"
+        if len(o.ufl_shape) == 1:
+            var += UC.combining_right_arrow_above
+        elif len(o.ufl_shape) > 1 and self.colorama_bold:
+            var = "%s%s%s" % (colorama.Style.BRIGHT, var, colorama.Style.RESET_ALL)
+        return "%s%s" % (var, superscript_number(i))
+
     def multi_index(self, o):
         return ",".join(format_index(i) for i in o)
 

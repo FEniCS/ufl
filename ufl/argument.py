@@ -4,37 +4,25 @@ classes (functions), including TestFunction and TrialFunction."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
+# Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
-__all_classes__ = as_native_strings(["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"])
+__all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
 
 
 # --- Class representing an argument (basis function) in a form ---
@@ -42,13 +30,13 @@ __all_classes__ = as_native_strings(["TestFunction", "TrialFunction", "TestFunct
 @ufl_type()
 class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
-    __slots__ = as_native_strings((
+    __slots__ = (
         "_ufl_function_space",
         "_ufl_shape",
         "_number",
         "_part",
         "_repr",
-    ))
+    )
 
     def __init__(self, function_space, number, part=None):
         FormArgument.__init__(self)
@@ -72,8 +60,8 @@ class Argument(FormArgument):
         self._number = number
         self._part = part
 
-        self._repr = as_native_str("Argument(%s, %s, %s)" % (
-            repr(self._ufl_function_space), repr(self._number), repr(self._part)))
+        self._repr = "Argument(%s, %s, %s)" % (
+            repr(self._ufl_function_space), repr(self._number), repr(self._part))
 
     @property
     def ufl_shape(self):
@@ -156,8 +144,8 @@ class Argument(FormArgument):
                 self._part == other._part and
                 self._ufl_function_space == other._ufl_function_space)
 
-
 # --- Helper functions for pretty syntax ---
+
 
 def TestFunction(function_space, part=None):
     """UFL value: Create a test function argument to a form."""
@@ -174,7 +162,11 @@ def TrialFunction(function_space, part=None):
 def Arguments(function_space, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(Argument(function_space, number))
+    if isinstance(function_space, MixedFunctionSpace):
+        return [Argument(function_space.ufl_sub_space(i), number, i)
+                for i in range(function_space.num_sub_spaces())]
+    else:
+        return split(Argument(function_space, number))
 
 
 def TestFunctions(function_space):

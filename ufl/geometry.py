@@ -3,28 +3,15 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL.
+# This file is part of UFL (https://www.fenicsproject.org)
 #
-# UFL is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# UFL is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.str import as_native_str
-from ufl.utils.str import as_native_strings
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
@@ -97,7 +84,7 @@ Xf = CFK * (X - X0f)
 
 @ufl_type(is_abstract=True)
 class GeometricQuantity(Terminal):
-    __slots__ = as_native_strings(("_domain",))
+    __slots__ = ("_domain",)
 
     def __init__(self, domain):
         Terminal.__init__(self)
@@ -125,7 +112,7 @@ class GeometricQuantity(Terminal):
 
     def __repr__(self):
         r = "%s(%s)" % (self._ufl_class_.__name__, repr(self._domain))
-        return as_native_str(r)
+        return r
 
     def _ufl_compute_hash_(self):
         return hash((type(self).__name__,) + self._domain._ufl_hash_data_())
