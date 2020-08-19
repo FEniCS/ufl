@@ -28,11 +28,15 @@ def compute_integrand_scaling_factor(integral):
     # Polynomial degree of integrand scaling
     degree = 0
     if integral_type == "cell":
-        detJ = JacobianDeterminant(domain)
-        degree = estimate_total_polynomial_degree(apply_geometry_lowering(detJ))
-        # Despite the abs, |detJ| is polynomial except for
-        # self-intersecting cells, where we have other problems.
-        scale = abs(detJ) * weight
+        if tdim > 0:
+            detJ = JacobianDeterminant(domain)
+            degree = estimate_total_polynomial_degree(apply_geometry_lowering(detJ))
+            # Despite the abs, |detJ| is polynomial except for
+            # self-intersecting cells, where we have other problems.
+            scale = abs(detJ) * weight
+        else:
+            # No need to scale 'integral' over a vertex
+            scale = 1
 
     elif integral_type.startswith("exterior_facet"):
         if tdim > 1:
