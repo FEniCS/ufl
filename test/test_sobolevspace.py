@@ -137,7 +137,6 @@ def test_contains_hdiv():
         FiniteElement("RT", triangle, 1),
         FiniteElement("BDM", triangle, 1),
         FiniteElement("BDFM", triangle, 2),
-        
         # HDiv elements:
         HDiv(TensorProductElement(FiniteElement("DG", triangle, 1),
                                   FiniteElement("CG", interval, 2))),
@@ -145,7 +144,6 @@ def test_contains_hdiv():
                                   FiniteElement("DG", interval, 1))),
         HDiv(TensorProductElement(FiniteElement("N1curl", triangle, 1),
                                   FiniteElement("DG", interval, 1)))
-
     ]
     for hdiv_element in hdiv_elements:
         assert hdiv_element in HDiv
