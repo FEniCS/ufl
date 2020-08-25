@@ -262,6 +262,15 @@ register_element("Gauss-Lobatto-Legendre Edge", "GLL-Edge", 0, L2, "identity", (
 register_element("Gauss-Lobatto-Legendre Edge L2", "GLL-Edge L2", 0, L2, "L2 Piola", (0, None),
                  ("interval",))
 
+# directly-defined serendipity elements ala Arbogast
+# currently the theory is only really worked out for quads.
+register_element("Direct Serendipity", "Sdirect", 0, H1, "physical", (1, None),
+                 ("quadrilateral",))
+register_element("Direct Serendipity Full H(div)", "Sdirect H(div)", 1, HDiv, "physical", (1, None),
+                 ("quadrilateral",))
+register_element("Direct Serendipity Reduced H(div)", "Sdirect H(div) red", 1, HDiv, "physical", (1, None),
+                 ("quadrilateral",))
+
 
 # NOTE- the edge elements for primal mimetic spectral elements are accessed by using variant='mse' in the appropriate places
 
