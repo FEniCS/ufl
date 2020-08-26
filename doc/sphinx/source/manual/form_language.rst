@@ -489,6 +489,16 @@ is equivalent to::
 
     F = - sin(u) * u_hat * p2 * v
 
+When the external operator acts globally on its operands, we can end up dealing with a dense matrix. More specifically, if p acts globally on u, then the derivative with respect to the first operand (p2) is a dense matrix. This situation results naturally from the differentiation process. External operators enable to deal conveniently (without assembling the dense matrix) with this situation by engraving in the symbolic the action of the gradient. In this case, the differentiation process would instead result in::
+
+    F = - sin(u) * u_hat * p2Action
+
+where p2Action represents the action of the gradient p2 on v, that is
+
+    :math:`p2Action = p2 * v`
+
+At the external operator level, one can specify that he wants to deal with the action by setting up the `_external_operator_type` attribute to `GLOBAL`.
+
 
 Basic Datatypes
 ===============

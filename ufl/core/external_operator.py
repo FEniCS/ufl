@@ -242,7 +242,6 @@ class ExternalOperator(Operator):
 
     def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        # Type(self) encompasses the information about the external operator type (GLOBAL or LOCAL)
         coefficient_signature = self.coefficient._ufl_signature_data_(renumbering)
         return ("ExternalOperator", self._external_operator_type, *coefficient_signature, *self.derivatives)
 

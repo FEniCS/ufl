@@ -317,12 +317,25 @@ class GenericDerivativeRuleset(MultiFunction):
             derivatives = tuple(dj + int(i == j) for j, dj in enumerate(o.derivatives))
             if len(extract_arguments(df)) != 0 and o._external_operator_type == 'GLOBAL':
                 # Handle the symbolic differentiation for the case where we want only want to
-                # deal with the action of the external operator
+                # deal with the action of the external operator.
+                # This bit returns:
+                #
+                #   `\sum_{i} dNdOi(..., Oi, ...; DOi(u)[v])`; where we differentate wrt u, Oi is the i-th operand,
+                #                                              N an ExternalOperator and v the direction (Argument).
+                #
+                # dNdOi(..., Oi, ...; DOi(u)[v]) represents the action of dNdOi on the Gateaux derivative DOi(u)[v]
+                # For example, if we take N(u) = u**2, we get `dNdu(u; v)` which represents dNdu(u) * v.
                 new_args = o.arguments() + ((df, False),)
                 function_space = o._make_function_space_args(i, df)
                 extop = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives,
                                                  function_space=function_space, arguments=new_args)
             else:
+                # This bit returns:
+                #
+                #   \sum_{k} dNdOi(..., Oi, ...) * dOidu
+                #
+                # For example, if we take N(cos(g1), g2*g1**2) and u = g1 we get: `- sin(g1)*dNdO1 + 2*g1*g2*dNdO2`,
+                # with O1 = cos(g1) and O2 = g2*g1**2
                 o_new = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives)
                 o_new_rank = len(o_new.ufl_shape)
                 mi = indices(o_new_rank + df_rank - f_rank)
