@@ -133,7 +133,7 @@ class RestrictionPropagator(MultiFunction):
         else:
             return self._require_restriction(o)
 
-    subspace = coefficient
+    abstract_subspace = coefficient
 
     def facet_normal(self, o):
         D = o.ufl_domain()

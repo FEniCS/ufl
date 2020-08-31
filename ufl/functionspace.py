@@ -11,8 +11,11 @@
 # Modified by Cecile Daversin-Catty, 2018
 
 from ufl.log import error
-from ufl.core.ufl_type import attach_operators_from_hash_data
-from ufl.domain import join_domains
+from ufl.core.ufl_type import attach_operators_from_hash_data, ufl_type
+from ufl.core.terminal import Terminal
+from ufl.finiteelement import FiniteElementBase
+from ufl.domain import default_domain, join_domains
+from ufl.utils.counted import counted_init
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -20,6 +23,9 @@ __all_classes__ = [
     "FunctionSpace",
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
+    "AbstractSubspace",
+    "Subspace",
+    "RotatedSubspace"
 ]
 
 
@@ -180,3 +186,107 @@ class MixedFunctionSpace(AbstractFunctionSpace):
     def __repr__(self):
         r = "MixedFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
         return r
+
+
+# --- Subspace ---
+
+@ufl_type(is_abstract=True)
+class AbstractSubspace(Terminal):
+    """UFL terminal type: Abstract representation of a subspace."""
+
+    __slots__ = ("_count", "_ufl_function_space", "_ufl_shape")
+    _globalcount = 0
+
+    def __init__(self, function_space, count=None):
+        Terminal.__init__(self)
+        counted_init(self, count, AbstractSubspace)
+
+        if isinstance(function_space, FiniteElementBase):
+            # For legacy support for .ufl files using cells, we map
+            # the cell to The Default Mesh
+            element = function_space
+            domain = default_domain(element.cell())
+            function_space = FunctionSpace(domain, element)
+        elif not isinstance(function_space, FunctionSpace):
+            error("Expecting a FunctionSpace.")
+
+        self._ufl_function_space = function_space
+        self._ufl_shape = function_space.ufl_element().value_shape()
+
+    def count(self):
+        return self._count
+
+    @property
+    def ufl_shape(self):
+        "Return the associated UFL shape."
+        return self._ufl_shape
+
+    def ufl_function_space(self):
+        "Get the function space of this subspace."
+        return self._ufl_function_space
+
+    def ufl_domain(self):
+        "Shortcut to get the domain of the function space of this subspace."
+        return self._ufl_function_space.ufl_domain()
+
+    def ufl_element(self):
+        "Shortcut to get the finite element of the function space of this subspace."
+        return self._ufl_function_space.ufl_element()
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return self.ufl_element().is_cellwise_constant()
+
+    def ufl_domains(self):
+        "Return tuple of domains related to this terminal object."
+        return self._ufl_function_space.ufl_domains()
+
+    def _ufl_signature_data_(self, renumbering):
+        "Signature data depend on the global numbering of the subspace and domains."
+        count = renumbering[self]
+        fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
+        return ("AbstractSubspace", count, fsdata)
+
+    def __str__(self):
+        count = str(self._count)
+        if len(count) == 1:
+            return "s_%s" % count
+        else:
+            return "s_{%s}" % count
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        if not isinstance(other, AbstractSubspace):
+            return False
+        if self is other:
+            return True
+        return (self._count == other._count and
+                self._ufl_function_space == other._ufl_function_space)
+
+
+@ufl_type()
+class Subspace(AbstractSubspace):
+    """UFL terminal type: Representation of a subspace."""
+
+    __slots__ = ("_repr", )
+
+    def __init__(self, function_space, count=None):
+        AbstractSubspace.__init__(self, function_space, count=count)
+
+        self._repr = "Subspace(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count))
+
+
+@ufl_type()
+class RotatedSubspace(AbstractSubspace):
+    """UFL terminal type: Representation of a subspace."""
+
+    __slots__ = ("_repr", )
+
+    def __init__(self, function_space, count=None):
+        AbstractSubspace.__init__(self, function_space, count=count)
+
+        self._repr = "RotatedSubspace(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count))

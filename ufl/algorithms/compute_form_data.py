@@ -14,7 +14,7 @@ from itertools import chain
 from ufl.log import error, info
 from ufl.utils.sequences import max_degree
 
-from ufl.classes import GeometricFacetQuantity, Coefficient, Subspace, Form, FunctionSpace
+from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_subspaces, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData
@@ -173,11 +173,16 @@ def _check_form_arity(preprocessed_form):
 
 
 def _build_replace_map(cls, objects, element_mapping=None):
-    """Create new cls (Coefficient/Subspace) objects
+    """Create new cls (Coefficient/AbstractSubspace) objects
     with count starting at 0. Return mapping from old
     to new objects, and lists of the new objects."""
     if element_mapping is None:
         element_mapping = {}
+
+    try:
+        cls = tuple(cls)
+    except TypeError:
+        cls = tuple(cls for _ in objects)
 
     new_objects = []
     replace_map = {}
@@ -190,7 +195,7 @@ def _build_replace_map(cls, objects, element_mapping=None):
         # always have a domain.
         if f.ufl_domain() is not None:
             new_e = FunctionSpace(f.ufl_domain(), new_e)
-        new_f = cls(new_e, count=i)
+        new_f = cls[i](new_e, count=i)
         new_objects.append(new_f)
         replace_map[f] = new_f
 
@@ -403,7 +408,8 @@ def compute_form_data(form,
     self.function_replace_map = function_replace_map
 
     renumbered_subspaces, subspace_replace_map = \
-        _build_replace_map(Subspace, self.reduced_subspaces,
+        _build_replace_map(tuple(s._ufl_class_ for s in self.reduced_subspaces),
+                           self.reduced_subspaces,
                            self.element_replace_map)
     self.subspace_replace_map = subspace_replace_map
 

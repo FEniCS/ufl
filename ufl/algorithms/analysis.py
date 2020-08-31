@@ -17,7 +17,8 @@ from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.argument import Argument
-from ufl.coefficient import Coefficient, Subspace
+from ufl.functionspace import AbstractSubspace
+from ufl.coefficient import Coefficient
 from ufl.constant import Constant
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
@@ -103,7 +104,7 @@ def extract_coefficients(a):
 def extract_subspaces(a):
     """Build a sorted list of all subspaces in a,
     which can be a Form, Integral or Expr."""
-    return sorted_by_count(extract_type(a, Subspace))
+    return sorted_by_count(extract_type(a, AbstractSubspace))
 
 
 def extract_constants(a):

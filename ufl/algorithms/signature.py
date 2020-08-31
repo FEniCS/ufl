@@ -10,7 +10,7 @@
 import hashlib
 from ufl.classes import (Label,
                          Index, MultiIndex,
-                         Coefficient, Subspace, Argument,
+                         Coefficient, AbstractSubspace, Argument,
                          GeometricQuantity, ConstantValue, Constant,
                          ExprList, ExprMapping)
 from ufl.log import error
@@ -60,7 +60,7 @@ def compute_terminal_hashdata(expressions, renumbering):
             elif isinstance(expr, Coefficient):
                 data = expr._ufl_signature_data_(renumbering)
 
-            elif isinstance(expr, Subspace):
+            elif isinstance(expr, AbstractSubspace):
                 data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Constant):

@@ -244,7 +244,7 @@ class Form(object):
         return self._constants
 
     def subspaces(self):
-        "Return all ``Subspace`` objects found in form."
+        "Return all ``AbstractSubspace`` objects found in form."
         if self._subspaces is None:
             self._analyze_subspaces()
         return self._subspaces
@@ -474,7 +474,7 @@ class Form(object):
             (c, i) for i, c in enumerate(self._coefficients))
 
     def _analyze_subspaces(self):
-        "Analyze which Subspace objects can be found in the form."
+        "Analyze which AbstractSubspace objects can be found in the form."
         from ufl.algorithms.analysis import extract_subspaces
         subspaces = extract_subspaces(self)
 

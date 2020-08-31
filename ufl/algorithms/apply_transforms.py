@@ -41,8 +41,8 @@ class TransformedRuleDispatcher(MultiFunction):
 
     expr = MultiFunction.reuse_if_untouched
 
-    def masked(self, o, A, subspace):
-        rules = TransformedRuleset(subspace)
+    def masked(self, o, A, a_subspace):
+        rules = TransformedRuleset(a_subspace)
         return map_expr_dag(rules, A)
 
 

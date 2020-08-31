@@ -84,7 +84,7 @@ class GenericDerivativeRuleset(MultiFunction):
         return o
     label = non_differentiable_terminal
     multi_index = non_differentiable_terminal
-    subspace = non_differentiable_terminal
+    abstract_subspace = non_differentiable_terminal
 
     # --- Helper functions for creating zeros with the right shapes
 

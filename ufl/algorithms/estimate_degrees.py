@@ -73,7 +73,7 @@ class SumDegreeEstimator(MultiFunction):
             d = self.default_degree
         return d
 
-    def subspace(self, v):
+    def abstract_subspace(self, v):
         """A subspace has no underlying geometry, and
         must not be used in a way that it would contribute to the degree."""
         return 0
@@ -148,7 +148,7 @@ class SumDegreeEstimator(MultiFunction):
     def indexed(self, v, A, ii):
         return A
 
-    def masked(self, v, A, subspace):
+    def masked(self, v, A, abstract_subspace):
         return A
 
     def component_tensor(self, v, A, ii):
