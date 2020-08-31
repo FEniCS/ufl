@@ -458,80 +458,65 @@ declare ``Argument`` and ``Coefficient`` for a ``FunctionSpace``::
   v = Argument(V)
   u = Coefficient(V)
 
-Quantities attached to basis functions
-======================================
+Form arguments on subspaces
+===========================
 
-Some mathematical concepts can be encoded, in the discrete setting,
-in an object that assigns a scalar value to each finite element
-basis function; examples include function space modification due to
-strong Dirichlet boundary condition and representation of boundary
-normals attached to each basis function in curvilinear coordinate
-systems. Such object can also be viewed as a sclar valued map on a
-set of basis functions.
-Concepts required here are the topological structure of the ``Mesh``
-of interest and the function space node distribution pattern in
-each mesh cell that the ``FiniteElement`` represents, and the
-specific coordinate values at the mesh vertices or the spatial
-interpolation at arbitrary point in a cell is not of relevance.
-This motivates us to introduce ``MeshTopology`` and
-``TopologicalFunctionSpace`` as explained in the folowing, and
-we define a ``Subspace`` on a
-``TopologicalFunctionSpace`` that assigns a scalar value to each
-basis function.
+Although a ``FormArgument`` is always declared, directly or
+indirectly, for a full ``FunctionSpace``, say ``V``, many boundary
+value problems actually requres one to deal with those living in
+function subspaces of ``V``; examples include function space
+modification due to strong Dirichlet boundary condition and
+representation of boundary normal components in curvilinear
+coordinate systems. To represent such problems monolithically in
+UFL, we introduce ``Subspace`` and ``Masked``.
 
-Topological meshes and topological function spaces
---------------------------------------------------
+Subspace
+--------
 
-A ``Mesh`` is fixed in space by coordinate function values attached
-to the mesh vertices. We define ``TopologicalMesh`` as ``Mesh`` with
-fixed coordinate function values removed. As such, a ``TopologicalMesh``
-is defined on a cell::
+The data type ``Subspace`` is declared for an already declared
+``FunctionSpace``, or possibly for a ``FiniteElement``, and
+it represents a subspace of the given ``FunctionSpace``; e.g.
+a subspace whose memeber functions vanish on boundary.
 
-  tmesh = TopologicalMesh(cell)
+A ``Subspace`` is declared for a ``FiniteElement`` as::
 
-We then define ``TopologicalFunctionSpace`` by attaching a
-``FiniteElement`` to the ``TopologicalMesh``::
+  Vsub = Subspace(element)
 
-  tV = TopologicalFunctionSpace(tmesh, element)
+or for a ``FunctionSpace`` as::
 
-Topological coefficient
------------------------
-
-The data type ``Subspace`` is similar to ``Coefficient``,
-but it is more abstract in the sense that it is invariant under
-change of coordinate values of the ``Mesh``, and thus it does not
-carry the concept of spatial interpolation.
-``Subspace`` can represent quantities or 
-operations, which, in the discrete setting, can be encoded into values
-directly attached to the basis functions of the finite element space. A
-typical example is a projection of a full test function ``v`` to ``v0``
-that vanish on boundary in a Dirichlet boundary value problem.  In the
-discrete setting we write ``v`` as a linear combination of basis
-functions, and we obtain ``v0`` by filtering out basis functions that
-are non-zero on the boundary.  This can be represented by a
-``Subspace`` that assigns zero to the basis functions
-active on the boundary and one to the others. A ``Subspace``
-is declared for a ``FiniteElement``::
-
-  t = Subspace(element)
-
-or for a ``TopologicalFunctionSpace``::
-
-  t = Subspace(tV)
+  Vsub = Subspace(V)
 
 The ``split`` function is also valid for a ``Subspace``
 on a ``MixedElement`` to extract values on subspaces as::
 
-  tutp = Subspace(TH)
-  tu, tp = split(tutp)
+  Vsub = Subspace(V)
+  Vsub0, Vsub1 = split(Vsub)
+
+Note that, just as ``Coefficient``, UFL knows nothing about the
+concrete definition of subspaces represented by ``Subspace``.
+
+Masked
+------
+
+``Masked`` operator allows one to work with ``FormArgument`` that live in
+a given subspace, ``Vsub``::
+
+  vsub = Masked(v, Vsub)
+
+For an arbitrary ``v``, ``vsub`` is ``v`` if ``v`` is in ``Vsub`` and zero
+otherwise. This allows one to put multiple equations involving form arguments
+in multiple subspaces, such as domain and boundary equations, in a single
+UFL expression.
+If ``Vsub`` represents a subspace whose member functions vanish on boudnary,
+and ``v`` is the ``TestFunction``, ``vsub`` will represent test functions
+that vanish on boundary, which becomes useful for Dirichlet boundary problems.
+One can use ``vsub`` just like other form arguments.
 
 .. note::
 
-    Note that ``ToplogicalCoefficient`` is not ``FormArgument``. The
-    critical difference between the two is that the former lacks the
-    concept of spatial dependence, and so typical operations such as
-    ``grad`` on ``ToplogicalCoefficient`` is not meaningful.
-
+    Traditionally, Dirichlet boundary conditions are applied strongly
+    in problem solving environments, but, using ``Masked`` along with
+    ``Subspace``, one can represent this at UFL level.
 
 Basic Datatypes
 ===============
@@ -847,35 +832,6 @@ Multiplication, ``a * b``:
 * If either of the operands have any free indices, both must be scalar.
 
 * If any free indices are repeated, summation is implied.
-
-
-Transforming form arguments
-===========================
-
-A form argument is always defined on a full ``FunctionSpace``. When
-transforming a form argument ``v`` to live on a modified function space,
-such as when dealing with Dirichlet boundary conditions, one can apply the
-``Masked`` operator to that form argument::
-
-  v0 = Masked(v, t)
-
-where ``t`` is a ``Subspace`` that encodes the modification
-of the function space and ``v0`` is the masked form argument, which
-one can use just like other form arguments. In the discrete setting
-``FormArgument`` is represented as a linear combination of the basis
-functions and ``Subspace`` assigns a scalar value to each
-basis function, and thus ``Masked`` represents the function space
-modification by multiplying this scalar value to each basis function
-appearing in the sum. For instance, when assembling a weak form with
-Dirichlet boundary condition on the boundary, values in ``t`` are set
-:math:`0` for basis functions that are active on the boundary and
-:math:`1` for all other basis functions.
-
-.. note::
-
-    Strong application of Dirichlet boundary conditions is
-    traditionally done by problem solving environments, but, using
-    ``Masked``, one can represent this at UFL level.
 
 
 Basic nonlinear functions

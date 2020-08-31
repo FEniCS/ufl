@@ -383,50 +383,55 @@ distribution.
 Poisson equation with Dirichlet boundary conditions
 ===================================================
 
-The bilinear and linear forms for Poisson's equation with Dirichlet
-boundary condition,
+We consider Poisson's equation with Dirichlet boundary condition,
 
 .. math::
 
-   \int_{\partial\Omega} u \mathop{dx} &= \int_{\partial\Omega} g \mathop{dx},
+   u = g \text{ on }\partial\Omega.
 
-is implemented in the following. As before, we have::
+We first define primary UFL objects. For convenience, we here
+define ``Mesh`` and ``FucntionSpace`` explicitly::
 
   element = FiniteElement("Lagrange", triangle, 1)
+  mesh = Mesh(triangle)
+  V = FunctionSpace(mesh, element)
 
-  v = TestFunction(element)
-  u = TrialFunction(element)
-  f = Coefficient(element)
+  v = TestFunction(V)
+  u = TrialFunction(V)
+  f = Coefficient(V)
 
-Here, we also define a coefficient for the Dirichlet boundary value as::
+As we have Dirichlet boundary condition on the boundary, the domain
+equation must be tested tested against those fucntions living in
+the subspace of :math:`V` that satisfy :math:`v=0` on the boundary.
+We can represent such subspace as::
 
-  g = Coefficient(element)
+  V0 = Subspace(V)
 
-We then mark degrees of freedom for which we implement the
-domain equation::
+To selectively test the domain equation against test functions that
+live in :math:`V0`, we project :math:`v` on to :math:`V0` as::
 
-  transform_op_0 = Subspace(element)
+  v0 = Masked(v, V0)
 
-and those on which the Dirichlet condition is enforced::
+and formulate the domain equation with respect to :math:`v0`.
+Similary, variational derivative of the residual can also be taken
+selectively, the resulting bilinear form being written in terms of::
 
-  transform_op_1 = Subspace(element)
+  u0 = Masked(u, V0)
 
-We then project :math:`v`, :math:`u`, and :math:`g` to
-appropriate subspaces as::
+The bilinear form for the Poisson equation with Dirichlet boundary
+condition is then implemented as::
 
-  v0 = Masked(v, transform_op_0)
-  v1 = Masked(v, transform_op_1)
-  u0 = Masked(u, transform_op_0)
-  u1 = Masked(u, transform_op_1)
-  g1 = Masked(g, transform_op_1)
+  a = dot(grad(u0), grad(v0)) * dx
+  L = f * v0 * dx
 
-The Poisson equation with Dirichlet boundary condition is
-then implemented as::
+Note that the bilinear form :math:`a` is symmetric as before.
 
-  a = dot(grad(u0), grad(v0)) * dx + u1 * v1 * ds
-  L = f * v0 * dx - dot(grad(g1), grad(v0)) * dx + g * v1 * ds
+.. note::
+   
 
-Note that the bilinear form :math:`a` is symmetrized.
+
+
+
 
 The Quadrature family
 =====================
