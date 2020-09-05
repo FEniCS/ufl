@@ -550,6 +550,10 @@ class GradRuleset(GenericDerivativeRuleset):
     def reference_value(self, o):
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
+        if f.ufl_element().mapping() == "physical":
+            # TODO: Do we need to be more careful for immersed things?
+            return ReferenceGrad(o)
+
         if not f._ufl_is_terminal_:
             error("ReferenceValue can only wrap a terminal")
         domain = f.ufl_domain()
@@ -562,6 +566,7 @@ class GradRuleset(GenericDerivativeRuleset):
     def reference_grad(self, o):
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
+
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(f, (JacobianInverse, SpatialCoordinate))
         if not valid_operand:
             error("ReferenceGrad can only wrap a reference frame type!")
