@@ -90,7 +90,6 @@ A very brief overview of the language contents follows:
     - FunctionSpace
     - MixedFunctionSpace
     - Subspace
-    - RotatedSubspace
 
 * Arguments::
 
@@ -285,7 +284,7 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, \
 from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
 
 # Function spaces
-from ufl.functionspace import FunctionSpace, MixedFunctionSpace, Subspace, RotatedSubspace
+from ufl.functionspace import FunctionSpace, MixedFunctionSpace, Subspace
 
 # Arguments
 from ufl.argument import Argument, TestFunction, TrialFunction, \
@@ -385,7 +384,7 @@ __all__ = [
     'HDivElement', 'HCurlElement',
     'BrokenElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
-    'FunctionSpace', 'MixedFunctionSpace', 'Subspace', 'RotatedSubspace',
+    'FunctionSpace', 'MixedFunctionSpace', 'Subspace',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Coefficients',

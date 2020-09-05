@@ -24,8 +24,7 @@ __all_classes__ = [
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
     "AbstractSubspace",
-    "Subspace",
-    "RotatedSubspace"
+    "Subspace"
 ]
 
 
@@ -194,12 +193,10 @@ class MixedFunctionSpace(AbstractFunctionSpace):
 class AbstractSubspace(Terminal):
     """UFL terminal type: Abstract representation of a subspace."""
 
-    __slots__ = ("_count", "_ufl_function_space", "_ufl_shape")
-    _globalcount = 0
+    __slots__ = ("_ufl_function_space", "_ufl_shape")
 
-    def __init__(self, function_space, count=None):
+    def __init__(self, function_space):
         Terminal.__init__(self)
-        counted_init(self, count, AbstractSubspace)
 
         if isinstance(function_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
@@ -212,9 +209,6 @@ class AbstractSubspace(Terminal):
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
-
-    def count(self):
-        return self._count
 
     @property
     def ufl_shape(self):
@@ -241,11 +235,32 @@ class AbstractSubspace(Terminal):
         "Return tuple of domains related to this terminal object."
         return self._ufl_function_space.ufl_domains()
 
+    def __repr__(self):
+        return self._repr
+
+
+@ufl_type()
+class Subspace(AbstractSubspace):
+    """UFL terminal type: Representation of a subspace."""
+
+    __slots__ = ("_count", "_repr", )
+    _globalcount = 0
+
+    def __init__(self, function_space, count=None):
+        AbstractSubspace.__init__(self, function_space)
+        counted_init(self, count, Subspace)
+
+        self._repr = "Subspace(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count))
+
+    def count(self):
+        return self._count
+
     def _ufl_signature_data_(self, renumbering):
         "Signature data depend on the global numbering of the subspace and domains."
         count = renumbering[self]
         fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
-        return ("AbstractSubspace", count, fsdata)
+        return ("Subspace", count, fsdata)
 
     def __str__(self):
         count = str(self._count)
@@ -254,39 +269,11 @@ class AbstractSubspace(Terminal):
         else:
             return "s_{%s}" % count
 
-    def __repr__(self):
-        return self._repr
-
     def __eq__(self, other):
-        if not isinstance(other, AbstractSubspace):
+        if not isinstance(other, Subspace):
             return False
         if self is other:
             return True
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
 
-
-@ufl_type()
-class Subspace(AbstractSubspace):
-    """UFL terminal type: Representation of a subspace."""
-
-    __slots__ = ("_repr", )
-
-    def __init__(self, function_space, count=None):
-        AbstractSubspace.__init__(self, function_space, count=count)
-
-        self._repr = "Subspace(%s, %s)" % (
-            repr(self._ufl_function_space), repr(self._count))
-
-
-@ufl_type()
-class RotatedSubspace(AbstractSubspace):
-    """UFL terminal type: Representation of a subspace."""
-
-    __slots__ = ("_repr", )
-
-    def __init__(self, function_space, count=None):
-        AbstractSubspace.__init__(self, function_space, count=count)
-
-        self._repr = "RotatedSubspace(%s, %s)" % (
-            repr(self._ufl_function_space), repr(self._count))

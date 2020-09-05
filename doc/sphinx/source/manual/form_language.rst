@@ -463,20 +463,20 @@ Form arguments on subspaces
 
 Although a ``FormArgument`` is always declared, directly or
 indirectly, for a full ``FunctionSpace``, say ``V``, many boundary
-value problems actually requres one to deal with those living in
-function subspaces of ``V``; examples include function space
-modification due to strong Dirichlet boundary condition and
-representation of boundary normal components in curvilinear
-coordinate systems. To represent such problems monolithically in
-UFL, we introduce ``Subspace`` and ``Masked``.
+value problems actually requres one to deal with functions living
+in subspaces of ``V``; examples include function space
+modification due to strong Dirichlet boundary conditions.
+In this section ``Subspace`` and ``Masked`` are introduced to
+represent such problems monolithically in UFL.
 
 Subspace
 --------
 
 The data type ``Subspace`` is declared for an already declared
-``FunctionSpace``, or possibly for a ``FiniteElement``, and
-it represents a subspace of the given ``FunctionSpace``; e.g.
-a subspace whose memeber functions vanish on boundary.
+finite element ``FunctionSpace``, or possibly directly for a
+``FiniteElement``, and represents a subspace of the given
+``FunctionSpace``: e.g., a subspace of functions that vanish
+on boundary.
 
 A ``Subspace`` is declared for a ``FiniteElement`` as::
 
@@ -487,13 +487,24 @@ or for a ``FunctionSpace`` as::
   Vsub = Subspace(V)
 
 The ``split`` function is also valid for a ``Subspace``
-on a ``MixedElement`` to extract values on subspaces as::
+on a ``MixedElement``::
 
-  Vsub = Subspace(V)
   Vsub0, Vsub1 = split(Vsub)
 
 Note that, just as ``Coefficient``, UFL knows nothing about the
 concrete definition of subspaces represented by ``Subspace``.
+
+.. note::
+
+    A form compiler translates a ``FunctionSpace`` to a local
+    basis vector based on the attached ``FiniteElement`` referring
+    to a finite element tabular (or equivalent). When it encounters a
+    ``Subspace``, however, it further applies a transformation matrix
+    to the local basis vector based on the data attached to the
+    ``Subspace`` object by the problem solving environment.
+    ``Subspace`` is a generalization of ``FunctionSpace`` in the
+    sense that, if the transformation matrix was identity, it would
+    behave exactly like ``FunctionSpace``.
 
 Masked
 ------
@@ -503,11 +514,10 @@ a given subspace, ``Vsub``::
 
   vsub = Masked(v, Vsub)
 
-For an arbitrary ``v``, ``vsub`` is ``v`` if ``v`` is in ``Vsub`` and zero
-otherwise. This allows one to put multiple equations involving form arguments
+``vsub`` is the product of projection of ``v`` onto ``Vsub``.
 in multiple subspaces, such as domain and boundary equations, in a single
 UFL expression.
-If ``Vsub`` represents a subspace whose member functions vanish on boudnary,
+If ``Vsub`` represents a subspace of functions that vanish on boudnary,
 and ``v`` is the ``TestFunction``, ``vsub`` will represent test functions
 that vanish on boundary, which becomes useful for Dirichlet boundary problems.
 One can use ``vsub`` just like other form arguments.

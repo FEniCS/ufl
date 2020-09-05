@@ -380,14 +380,14 @@ This example is implemented in the file ``PoissonDG.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
-Poisson equation with Dirichlet boundary conditions
-===================================================
+Poisson equation with homogeneous Dirichlet boundary conditions
+===============================================================
 
 We consider Poisson's equation with Dirichlet boundary condition,
 
 .. math::
 
-   u = g \text{ on }\partial\Omega.
+   u = 0 \text{ on }\partial\Omega.
 
 We first define primary UFL objects. For convenience, we here
 define ``Mesh`` and ``FucntionSpace`` explicitly::
@@ -401,20 +401,20 @@ define ``Mesh`` and ``FucntionSpace`` explicitly::
   f = Coefficient(V)
 
 As we have Dirichlet boundary condition on the boundary, the domain
-equation must be tested tested against those fucntions living in
+equation must be tested against those fucntions living in
 the subspace of :math:`V` that satisfy :math:`v=0` on the boundary.
 We can represent such subspace as::
 
   V0 = Subspace(V)
 
-To selectively test the domain equation against test functions that
-live in :math:`V0`, we project :math:`v` on to :math:`V0` as::
+To selectively test the domain equation against test functions in
+:math:`V0`, we project :math:`v` on to :math:`V0` as::
 
   v0 = Masked(v, V0)
 
 and formulate the domain equation with respect to :math:`v0`.
 Similary, variational derivative of the residual can also be taken
-selectively, the resulting bilinear form being written in terms of::
+selectively with respect to trial functions in :math:`V0`::
 
   u0 = Masked(u, V0)
 
@@ -424,14 +424,7 @@ condition is then implemented as::
   a = dot(grad(u0), grad(v0)) * dx
   L = f * v0 * dx
 
-Note that the bilinear form :math:`a` is symmetric as before.
-
-.. note::
-   
-
-
-
-
+Note that this bilinear form :math:`a` is symmetric.
 
 The Quadrature family
 =====================
