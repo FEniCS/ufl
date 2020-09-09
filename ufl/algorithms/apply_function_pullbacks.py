@@ -64,9 +64,13 @@ def apply_single_function_pullbacks(g):
     mapping = element.mapping()
 
     r = ReferenceValue(g)
-
     gsh = g.ufl_shape
     rsh = r.ufl_shape
+
+    if mapping == "physical":
+        # TODO: Is this right for immersed things
+        assert gsh == rsh
+        return r
 
     # Shortcut the "identity" case which includes Expression and
     # Constant from dolfin that may be ill-formed without a domain
