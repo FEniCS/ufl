@@ -295,7 +295,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.ufl_domain()
 
-        if not domain.ufl_coordinate_element().degree() == 1:
+        if not domain.ufl_coordinate_element().degree() in {1, (1, 1)}:
             # Don't lower bendy cells, instead leave it to form compiler
             warning("Only know how to compute cell diameter of P1 or Q1 cell.")
             return o
