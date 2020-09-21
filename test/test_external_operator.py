@@ -234,7 +234,7 @@ def test_dependency():
     de2 = tuple(e2.coefficient_dict.values())
 
     assert sorted(e2.coefficient_dict.keys()) == der
-    assert der == [e.derivatives for e in de2]
+    assert der == sorted(e.derivatives for e in de2)
     assert de2[0]._extop_master == e2
     assert de2[1]._extop_master == e2
     assert de2[2]._extop_master == e2
