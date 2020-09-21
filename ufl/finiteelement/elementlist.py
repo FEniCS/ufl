@@ -115,7 +115,6 @@ register_element("Raviart-Thomas", "RT", 1, HDiv, "contravariant Piola",
 
 # Elements not in the periodic table
 register_element("Argyris", "ARG", 0, H2, "identity", (5, 5), ("triangle",))
-register_element("Arnold-Winther", "AW", 0, H1, "identity", None, ("triangle",))
 register_element("Bell", "BELL", 0, H2, "identity", (5, 5), ("triangle",))
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, HDiv,
                  "contravariant Piola", (1, None), simplices[1:])
@@ -125,6 +124,8 @@ register_element("Crouzeix-Raviart", "CR", 0, L2, "identity", (1, 1),
 register_element("Discontinuous Raviart-Thomas", "DRT", 1, L2,
                  "contravariant Piola", (1, None), simplices[1:])
 register_element("Hermite", "HER", 0, H1, "identity", (3, 3), simplices)
+register_element("Kong-Mulder-Veldhuizen", "KMV", 0, H1, "identity", (1, None),
+                 simplices[1:])
 register_element("Mardal-Tai-Winther", "MTW", 0, H1, "identity", None,
                  ("triangle",))
 register_element("Morley", "MOR", 0, H2, "identity", (2, 2), ("triangle",))
@@ -145,6 +146,10 @@ register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
 register_element("HDiv Trace", "HDivT", 0, L2, "identity", (0, None), any_cell)
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
+register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDivDiv,
+                 "double contravariant Piola", (2, 2), ("triangle", "tetrahedron"))
+register_element("Conforming Arnold-Winther", "AWc", 2, HDivDiv,
+                 "double contravariant Piola", (3, None), ("triangle", "tetrahedron"))
 # Spectral elements.
 register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
                  ("interval",))
