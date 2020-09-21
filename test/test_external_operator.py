@@ -225,26 +225,19 @@ def test_dependency():
 
     assert e == dedu._extop_master
     assert e == dedw._extop_master
-
-    assert e._extop_dependencies[0] == e
-    assert e._extop_dependencies[1] == dedu
-    assert e._extop_dependencies[2] == dedw
-
-    assert e._extop_dependencies[3] == d2edu
-    assert len(e._extop_dependencies) == 4
+    assert e.coefficient_dict == {(1, 0):dedu, (0, 1):dedw, (2,0):d2edu}
 
     e2 = ExternalOperator(u, w, grad(u), div(w), function_space=V)
     der = [(0, 0, 0, 1), (1, 0, 0, 1), (2, 0, 1, 1)]
     args = [(), (), ()]
     e2._add_dependencies(der, args)
+    de2 = tuple(e2.coefficient_dict.values())
 
-    assert e2._extop_dependencies[0] == e2
-    assert e2._extop_dependencies[1].derivatives == der[0]
-    assert e2._extop_dependencies[2].derivatives == der[1]
-    assert e2._extop_dependencies[3].derivatives == der[2]
-    assert e2._extop_dependencies[1]._extop_master == e2
-    assert e2._extop_dependencies[2]._extop_master == e2
-    assert e2._extop_dependencies[3]._extop_master == e2
+    assert list(e2.coefficient_dict.keys()) == der
+    assert der == [e.derivatives for e in de2]
+    assert de2[0]._extop_master == e2
+    assert de2[1]._extop_master == e2
+    assert de2[2]._extop_master == e2
 
     e3 = ExternalOperator(u, function_space=V)
     u_hat = Coefficient(V)
@@ -252,28 +245,22 @@ def test_dependency():
     a = inner(grad(e3), grad(w))
     Ja = derivative(a, u, u_hat)
     expand_derivatives(Ja)
+    de3 = tuple(e3.coefficient_dict.values())
 
-    assert len(e3._extop_dependencies) == 3
-    assert e3._extop_dependencies[0].derivatives == (0,)
-    assert e3._extop_dependencies[1].derivatives == (1,)
-    assert e3._extop_dependencies[2].derivatives == (2,)
-    assert e3._extop_dependencies[0]._extop_master == e3
-    assert e3._extop_dependencies[1]._extop_master == e3
-    assert e3._extop_dependencies[2]._extop_master == e3
+    assert list(e3.coefficient_dict.keys()) == [(1,), (2,)]
+    assert de3[0]._extop_master == e3
+    assert de3[1]._extop_master == e3
 
     e4 = ExternalOperator(u, function_space=Vv)
 
     a = inner(div(e4), w)
     Ja = derivative(a, u, u_hat)
     expand_derivatives(Ja)
+    de4 = tuple(e4.coefficient_dict.values())
 
-    assert len(e4._extop_dependencies) == 3
-    assert e4._extop_dependencies[0].derivatives == (0,)
-    assert e4._extop_dependencies[1].derivatives == (1,)
-    assert e4._extop_dependencies[2].derivatives == (2,)
-    assert e4._extop_dependencies[0]._extop_master == e4
-    assert e4._extop_dependencies[1]._extop_master == e4
-    assert e4._extop_dependencies[2]._extop_master == e4
+    assert list(e4.coefficient_dict.keys()) == [(1,), (2,)]
+    assert de4[0]._extop_master == e4
+    assert de4[1]._extop_master == e4
 
 
 def test_function_spaces_derivatives():

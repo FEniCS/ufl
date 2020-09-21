@@ -92,10 +92,9 @@ class ExternalOperator(Operator):
         self._coefficient = coefficient
         self._original_function_space = self.coefficient.ufl_function_space()
 
-        self._extop_dependencies = [self, ]
-
         if self.derivatives == (0,) * len(self.ufl_operands):
             self._extop_master = self
+            self.coefficient_dict = {}
 
     @property
     def coefficient(self):
@@ -193,7 +192,7 @@ class ExternalOperator(Operator):
             # If we are constructing a derivative
             corresponding_coefficient = None
             e_master = self._extop_master
-            for ext in e_master._extop_dependencies:
+            for ext in e_master.coefficient_dict.values():
                 if ext.derivatives == deriv_multiindex:
                     return ext._ufl_expr_reconstruct_(*operands, function_space=function_space,
                                                       derivatives=deriv_multiindex,
@@ -209,17 +208,16 @@ class ExternalOperator(Operator):
 
         if deriv_multiindex != self.derivatives:
             # If we are constructing a derivative
-            self._extop_master._extop_dependencies.append(reconstruct_op)
+            self._extop_master.coefficient_dict.update({deriv_multiindex: reconstruct_op})
             reconstruct_op._extop_master = self._extop_master
         else:
             reconstruct_op._extop_master = self._extop_master
-            reconstruct_op._extop_dependencies = [e._ufl_expr_reconstruct_(*operands) for e in self._extop_dependencies[1:]]
         return reconstruct_op
 
     def _add_dependencies(self, derivatives, args):
         v = list(self._ufl_expr_reconstruct_(*self.ufl_operands, derivatives=d, arguments=a)
                  for d, a in zip(derivatives, args))
-        self._extop_master._extop_dependencies.extend(x for x in v if x not in self._extop_master._extop_dependencies)
+        self._extop_master.coefficient_dict.update({e.derivatives: e for e in v})
         return self
 
     def __repr__(self):
