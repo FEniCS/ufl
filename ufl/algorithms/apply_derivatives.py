@@ -289,8 +289,11 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def abs(self, o, df):
         f, = o.ufl_operands
-        # return conditional(eq(f, 0), 0, Product(sign(f), df))
-        return sign(f) * df
+        # return conditional(eq(f, 0), 0, Product(sign(f), df)) abs is
+        # not complex differentiable, so we workaround the case of a
+        # real F in complex mode by defensively casting to real inside
+        # the sign.
+        return sign(Real(f)) * df
 
     # --- Complex algebra
 
@@ -539,6 +542,10 @@ class GradRuleset(GenericDerivativeRuleset):
     def reference_value(self, o):
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
+        if f.ufl_element().mapping() == "physical":
+            # TODO: Do we need to be more careful for immersed things?
+            return ReferenceGrad(o)
+
         if not f._ufl_is_terminal_:
             error("ReferenceValue can only wrap a terminal")
         domain = f.ufl_domain()
@@ -551,6 +558,7 @@ class GradRuleset(GenericDerivativeRuleset):
     def reference_grad(self, o):
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
+
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(f, (JacobianInverse, SpatialCoordinate))
         if not valid_operand:
             error("ReferenceGrad can only wrap a reference frame type!")
