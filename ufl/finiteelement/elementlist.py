@@ -126,7 +126,7 @@ register_element("Discontinuous Raviart-Thomas", "DRT", 1, L2,
 register_element("Hermite", "HER", 0, H1, "identity", (3, 3), simplices)
 register_element("Kong-Mulder-Veldhuizen", "KMV", 0, H1, "identity", (1, None),
                  simplices[1:])
-register_element("Mardal-Tai-Winther", "MTW", 0, H1, "identity", None,
+register_element("Mardal-Tai-Winther", "MTW", 1, H1, "contravariant Piola", (3, 3),
                  ("triangle",))
 register_element("Morley", "MOR", 0, H2, "identity", (2, 2), ("triangle",))
 
