@@ -354,7 +354,8 @@ def compute_form_data(form,
     extop_dict = {}
 
     for e in form.external_operators():
-        if e.coefficient in self.reduced_coefficients:
+        e_coeff = e.get_coefficient()
+        if e_coeff in self.reduced_coefficients:
             eid = extops_pos[e._extop_master._count]
             if eid not in derivatives_dict.keys():
                 derivatives_dict[eid] = {}
@@ -363,7 +364,7 @@ def compute_form_data(form,
                            for i, arg in enumerate(form.arguments())
                            if e_arg == arg)
             derivatives_dict[eid].update({e.derivatives: e_args})
-            extop_dict[eid] += (e.coefficient,)
+            extop_dict[eid] += (e_coeff,)
 
     self.external_operators = derivatives_dict
     new_external_operators = [e for i in sorted(extop_dict.keys()) for e in sorted(extop_dict[i], key=lambda e: e.count())]

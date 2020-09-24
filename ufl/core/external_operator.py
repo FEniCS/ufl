@@ -19,6 +19,7 @@ from ufl.finiteelement.finiteelement import FiniteElement
 from ufl.finiteelement.mixedelement import VectorElement, TensorElement
 from ufl.functionspace import FunctionSpace
 from ufl.domain import default_domain
+from ufl.referencevalue import ReferenceValue
 
 
 @ufl_type(num_ops="varying", inherit_indices_from_operand=0, is_differential=True)
@@ -87,7 +88,7 @@ class ExternalOperator(Operator):
 
         if coefficient is None:
             coefficient = Coefficient(original_function_space)
-        elif not isinstance(coefficient, Coefficient):
+        elif not isinstance(coefficient, (Coefficient, ReferenceValue)):
             raise TypeError('Expecting a Coefficient and not %s', type(coefficient))
         self._coefficient = coefficient
         self._original_function_space = self.coefficient.ufl_function_space()
@@ -106,6 +107,13 @@ class ExternalOperator(Operator):
         ops = tuple((e, is_adjoint) for e, is_adjoint in operands if (e, is_adjoint) not in args)
         return ops, args
 
+    def get_coefficient(self):
+        """Helper function returning the coefficient produced by the external operator"""
+        if isinstance(self.coefficient, ReferenceValue):
+            return self.coefficient.ufl_operands[0]
+        else:
+            return self.coefficient
+
     def arguments(self):
         return self._arguments
 
@@ -117,12 +125,12 @@ class ExternalOperator(Operator):
 
     @property
     def _count(self):
-        return self.coefficient._count
+        return self.get_coefficient()._count
 
     @property
     def ufl_shape(self):
         "Return the UFL shape of self.coefficient."
-        return self.coefficient._ufl_shape
+        return self.get_coefficient()._ufl_shape
 
     def ufl_function_space(self):
         return self._ufl_function_space
@@ -130,7 +138,7 @@ class ExternalOperator(Operator):
     @property
     def _original_ufl_function_space(self):
         "Get the function space of this coefficient."
-        return self.coefficient._ufl_function_space
+        return self.get_coefficient()._ufl_function_space
 
     def original_function_space(self):
         return self._original_function_space
@@ -240,7 +248,7 @@ class ExternalOperator(Operator):
 
     def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        coefficient_signature = self.coefficient._ufl_signature_data_(renumbering)
+        coefficient_signature = self.get_coefficient()._ufl_signature_data_(renumbering)
         return ("ExternalOperator", self._external_operator_type, *coefficient_signature, *self.derivatives)
 
     def __eq__(self, other):

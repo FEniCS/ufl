@@ -35,7 +35,7 @@ class Replacer(MultiFunction):
             o = self.mapping[o]
             coeff = o.coefficient
         except KeyError:
-            coeff = self.mapping.get(o.coefficient) or o.coefficient
+            coeff = replace(o.coefficient, self.mapping)
         new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
         new_args = tuple((replace(arg, self.mapping), is_adjoint) for arg, is_adjoint in o.arguments())
         return o._ufl_expr_reconstruct_(*new_ops, coefficient=coeff, arguments=new_args)
