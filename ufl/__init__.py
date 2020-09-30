@@ -330,7 +330,7 @@ from ufl.operators import rank, shape, \
     elem_mult, elem_div, elem_pow, elem_op
 
 # External Operator
-from ufl.core.external_operator import ExternalOperator
+from ufl.core.external_operator import ExternalOperator, GlobalExternalOperator
 
 # Measure classes
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
@@ -386,7 +386,7 @@ __all__ = [
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
-    'Coefficient', 'Coefficients', 'ExternalOperator',
+    'Coefficient', 'Coefficients', 'ExternalOperator', 'GlobalExternalOperator',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',

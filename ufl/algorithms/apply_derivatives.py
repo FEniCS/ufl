@@ -12,7 +12,7 @@ from ufl.log import error, warning
 
 from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
-from ufl.core.external_operator import ExternalOperator
+from ufl.core.external_operator import ExternalOperator, GlobalExternalOperator
 from ufl.core.multiindex import MultiIndex, FixedIndex, indices
 
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
@@ -315,7 +315,7 @@ class GenericDerivativeRuleset(MultiFunction):
             f_rank = len(o.ufl_operands[i].ufl_shape)
 
             derivatives = tuple(dj + int(i == j) for j, dj in enumerate(o.derivatives))
-            if len(extract_arguments(df)) != 0 and o._external_operator_type == 'GLOBAL':
+            if len(extract_arguments(df)) != 0 and o.is_type_global:
                 # Handle the symbolic differentiation for the case where we want only want to
                 # deal with the action of the external operator.
                 # This bit returns:

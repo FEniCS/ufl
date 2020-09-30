@@ -133,7 +133,7 @@ def extract_arguments_and_coefficients(a):
     arguments = [f for f in terminals if isinstance(f, Argument)]
     arguments += [e for f in external_operators for e, _ in f.arguments() if extract_type(e, Argument).pop() not in arguments]
     coefficients = [f for f in terminals if isinstance(f, Coefficient)]
-    coefficients += [f.coefficient for f in external_operators if f.get_coefficient() not in coefficients]
+    coefficients += [f.coefficient() for f in external_operators if f.get_coefficient() not in coefficients]
 
     # Build number,part: instance mappings, should be one to one
     bfnp = dict((f, (f.number(), f.part())) for f in arguments)

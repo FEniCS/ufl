@@ -497,7 +497,7 @@ where p2Action represents the action of the gradient p2 on v, that is
 
     :math:`p2Action = p2 * v`
 
-At the external operator level, one can specify that he wants to deal with the action by setting up the `_external_operator_type` attribute to `GLOBAL`.
+At the external operator level, one can specify that he wants to deal with the action by subclassing the GlobalExternalOperator class.
 
 
 Basic Datatypes

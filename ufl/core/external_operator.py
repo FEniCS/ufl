@@ -18,7 +18,6 @@ from ufl.log import error
 from ufl.finiteelement.finiteelement import FiniteElement
 from ufl.finiteelement.mixedelement import VectorElement, TensorElement
 from ufl.functionspace import FunctionSpace
-from ufl.domain import default_domain
 from ufl.referencevalue import ReferenceValue
 
 
@@ -29,8 +28,6 @@ class ExternalOperator(Operator):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    _external_operator_type = ''
-
     def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=()):
         r"""
         :param operands: operands on which acts the :class:`ExternalOperator`.
@@ -38,11 +35,11 @@ class ExternalOperator(Operator):
             or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
             Alternatively, another :class:`Coefficient` may be passed here and its function space
             will be used.
-        :param derivatives: tuple scecifiying the derivative multiindex.
+        :param derivatives: tuple specifiying the derivative multiindex.
         :param coefficient: ufl.Coefficient associated to the ExternalOperator representing what is produced by the operator
         :param arguments: tuple composed of tuples whose first argument is a ufl.Argument or ufl.Expr
             containing several ufl.Argument objects and whose second arguments is a boolean indicating
-            whether we take the action of the adjoint: used when we take the action.
+            whether we take the action of the adjoint. We have arguments when the operator is a GlobalExternalOperator.
         """
 
         ufl_operands = tuple(map(as_ufl, operands))
@@ -91,7 +88,10 @@ class ExternalOperator(Operator):
         elif not isinstance(coefficient, (Coefficient, ReferenceValue)):
             raise TypeError('Expecting a Coefficient and not %s', type(coefficient))
         self._coefficient = coefficient
-        self._original_function_space = self.coefficient.ufl_function_space()
+        self._original_function_space = self.coefficient().ufl_function_space()
+
+        if not self.coefficient().ufl_function_space() == original_function_space:
+            raise ValueError('The function spaces do not match!')
 
         if self.derivatives == (0,) * len(self.ufl_operands):
             self._extop_master = self
@@ -99,6 +99,7 @@ class ExternalOperator(Operator):
 
     @property
     def coefficient(self):
+        "Returns the coefficient produced by the external operator"
         return self._coefficient
 
     def _extract_coeffs_and_args(self, operands):
@@ -109,18 +110,29 @@ class ExternalOperator(Operator):
 
     def get_coefficient(self):
         """Helper function returning the coefficient produced by the external operator"""
-        if isinstance(self.coefficient, ReferenceValue):
-            return self.coefficient.ufl_operands[0]
+        if isinstance(self._coefficient, ReferenceValue):
+            return self._coefficient.ufl_operands[0]
         else:
-            return self.coefficient
+            return self._coefficient
 
     def arguments(self):
+        """Returns a tuple of expressions containing an argument.
+        This is the case when we take the Gateaux derivative of a GloibalExternalOperator"""
         return self._arguments
 
     def action_args(self):
+        """Returns a tuple of expressions containing a coefficient. When we take the action of a GlobalExternalOperator,
+        the arguments in self.arguments() are replaced by coefficients.
+        self.action_args() is equivalent to `ufl.replace(self.arguments(), dictionary_mapping_arguments_to_coefficients)`"""
         return self._action_args
 
+    @property
+    def is_type_global(self):
+        "States if the external operator is global"
+        return isinstance(self, GlobalExternalOperator)
+
     def count(self):
+        "Returns the count associated to the coefficient produced by the external operator"
         return self._count
 
     @property
@@ -129,22 +141,23 @@ class ExternalOperator(Operator):
 
     @property
     def ufl_shape(self):
-        "Return the UFL shape of self.coefficient."
+        "Returns the UFL shape of the coefficient.produced by the external operator"
         return self.get_coefficient()._ufl_shape
 
     def ufl_function_space(self):
+        "Returns the ufl function space associated to the external operator, the one we interpolate the operands on."
         return self._ufl_function_space
 
     @property
     def _original_ufl_function_space(self):
-        "Get the function space of this coefficient."
         return self.get_coefficient()._ufl_function_space
 
     def original_function_space(self):
+        "Returns the function space of the coefficient produced by the external operator."
         return self._original_function_space
 
     def _make_function_space_args(self, k, y, adjoint=False):
-        """Make the function space of the Gateaux derivative: dN[x] = \frac{dN}{dOperands[k]} * y(x) if adjoint is False
+        r"""Make the function space of the Gateaux derivative: dN[x] = \frac{dN}{dOperands[k]} * y(x) if adjoint is False
         and of \frac{dN}{dOperands[k]}^{*} * y(x) if adjoint is True"""
         opk_shape = self.ufl_operands[k].ufl_shape
         y_shape = y.ufl_shape
@@ -182,11 +195,10 @@ class ExternalOperator(Operator):
         if len(s) == 0:
             ufl_element = sub_element
         elif len(s) == 1:
-            ufl_element = VectorElement(sub_element)
+            ufl_element = VectorElement(sub_element, dim=s[0])
         else:
             ufl_element = TensorElement(sub_element, shape=s)
-        domain = default_domain(ufl_element.cell())
-        return FunctionSpace(domain, ufl_element)
+        return FunctionSpace(self.ufl_function_space().ufl_domain(), ufl_element)
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
@@ -222,7 +234,8 @@ class ExternalOperator(Operator):
             reconstruct_op._extop_master = self._extop_master
         return reconstruct_op
 
-    def _add_dependencies(self, derivatives, args):
+    def add_dependencies(self, derivatives, args):
+        """Reconstruct the external operator's dependency. More specifically, it reconstructs the external operators produced during form compiling and update adequately `coefficient_dict`"""
         v = list(self._ufl_expr_reconstruct_(*self.ufl_operands, derivatives=d, arguments=a)
                  for d, a in zip(derivatives, args))
         self._extop_master.coefficient_dict.update({e.derivatives: e for e in v})
@@ -249,7 +262,7 @@ class ExternalOperator(Operator):
     def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
         coefficient_signature = self.get_coefficient()._ufl_signature_data_(renumbering)
-        return ("ExternalOperator", self._external_operator_type, *coefficient_signature, *self.derivatives)
+        return ("ExternalOperator", self.is_type_global, *coefficient_signature, *self.derivatives)
 
     def __eq__(self, other):
         if not isinstance(other, ExternalOperator):
@@ -258,3 +271,8 @@ class ExternalOperator(Operator):
             return True
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
+
+
+class GlobalExternalOperator(ExternalOperator):
+    """DOCSTRING"""
+    pass

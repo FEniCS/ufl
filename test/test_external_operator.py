@@ -230,7 +230,7 @@ def test_dependency():
     e2 = ExternalOperator(u, w, grad(u), div(w), function_space=V)
     der = [(0, 0, 0, 1), (1, 0, 0, 1), (2, 0, 1, 1)]
     args = [(), (), ()]
-    e2._add_dependencies(der, args)
+    e2.add_dependencies(der, args)
     de2 = tuple(e2.coefficient_dict.values())
 
     assert sorted(e2.coefficient_dict.keys()) == der
@@ -350,9 +350,7 @@ def test_differentiation_procedure_action():
     w = Coefficient(V)
 
     # Define a class with a GLOBAL external operator type to check the differentiation procedure for the action case
-    class ActionExternalOperator(ExternalOperator):
-
-        _external_operator_type = 'GLOBAL'
+    class ActionExternalOperator(GlobalExternalOperator):
 
         def __init__(self, *args, **kwargs):
             ExternalOperator.__init__(self, *args, **kwargs)
