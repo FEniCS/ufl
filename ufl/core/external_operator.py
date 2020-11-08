@@ -28,7 +28,7 @@ class ExternalOperator(Operator):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=()):
+    def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=(), local_operands=()):
         r"""
         :param operands: operands on which acts the :class:`ExternalOperator`.
         :param function_space: the :class:`.FunctionSpace`,
@@ -40,6 +40,7 @@ class ExternalOperator(Operator):
         :param arguments: tuple composed of tuples whose first argument is a ufl.Argument or ufl.Expr
             containing several ufl.Argument objects and whose second arguments is a boolean indicating
             whether we take the action of the adjoint. We have arguments when the operator is a GlobalExternalOperator.
+        :param local_operands: tuple specyfing the operands on which the operator acts locally
         """
 
         ufl_operands = tuple(map(as_ufl, operands))
@@ -47,11 +48,13 @@ class ExternalOperator(Operator):
 
         # Process arguments and action arguments
         arguments = tuple((as_ufl(args), is_adjoint) for args, is_adjoint in arguments)
-        self._action_args, self._arguments = self._extract_coeffs_and_args(arguments)
+        self._action_coefficients, self._arguments = self._extract_coeffs_and_args(arguments)
+
+        # Process local operands
+        self.local_operands = tuple(map(as_ufl, local_operands))
 
         # Make the coefficient associated to the external operator
         ref_coefficient = Coefficient(function_space)
-        self._ufl_function_space = ref_coefficient.ufl_function_space()
 
         # Checks
         if derivatives is not None:
@@ -76,28 +79,27 @@ class ExternalOperator(Operator):
                 s = ref_coefficient.ufl_shape
                 for i, e in enumerate(self.derivatives):
                     s += self.ufl_operands[i].ufl_shape * e
-                original_function_space = self._make_function_space(s, sub_element=ref_coefficient.ufl_element())
+                new_function_space = self._make_function_space(s, sub_element=ref_coefficient.ufl_element(),
+                                                                    domain=ref_coefficient.ufl_domain())
             else:
-                original_function_space = ref_coefficient.ufl_function_space()
+                new_function_space = ref_coefficient.ufl_function_space()
         else:
-            original_function_space = ref_coefficient.ufl_function_space()
+            new_function_space = ref_coefficient.ufl_function_space()
             self.derivatives = (0,) * len(self.ufl_operands)
 
         if coefficient is None:
-            coefficient = Coefficient(original_function_space)
+            coefficient = Coefficient(new_function_space)
         elif not isinstance(coefficient, (Coefficient, ReferenceValue)):
             raise TypeError('Expecting a Coefficient and not %s', type(coefficient))
         self._coefficient = coefficient
-        self._original_function_space = self.coefficient().ufl_function_space()
 
-        if not self.coefficient().ufl_function_space() == original_function_space:
+        if not self.coefficient().ufl_function_space() == new_function_space:
             raise ValueError('The function spaces do not match!')
 
         if self.derivatives == (0,) * len(self.ufl_operands):
             self._extop_master = self
             self.coefficient_dict = {}
 
-    @property
     def coefficient(self):
         "Returns the coefficient produced by the external operator"
         return self._coefficient
@@ -120,16 +122,17 @@ class ExternalOperator(Operator):
         This is the case when we take the Gateaux derivative of a GloibalExternalOperator"""
         return self._arguments
 
-    def action_args(self):
+    def action_coefficients(self):
         """Returns a tuple of expressions containing a coefficient. When we take the action of a GlobalExternalOperator,
         the arguments in self.arguments() are replaced by coefficients.
-        self.action_args() is equivalent to `ufl.replace(self.arguments(), dictionary_mapping_arguments_to_coefficients)`"""
-        return self._action_args
+        self.action_coefficients() is equivalent to `ufl.replace(self.arguments(), dictionary_mapping_arguments_to_coefficients)`"""
+        return self._action_coefficients
 
     @property
     def is_type_global(self):
         "States if the external operator is global"
-        return isinstance(self, GlobalExternalOperator)
+        local_operands = self.local_operands
+        return tuple(e not in local_operands for e in self.ufl_operands)
 
     def count(self):
         "Returns the count associated to the coefficient produced by the external operator"
@@ -146,22 +149,14 @@ class ExternalOperator(Operator):
 
     def ufl_function_space(self):
         "Returns the ufl function space associated to the external operator, the one we interpolate the operands on."
-        return self._ufl_function_space
-
-    @property
-    def _original_ufl_function_space(self):
-        return self.get_coefficient()._ufl_function_space
-
-    def original_function_space(self):
-        "Returns the function space of the coefficient produced by the external operator."
-        return self._original_function_space
+        return self.get_coefficient()._ufl_function_space #self._ufl_function_space
 
     def _make_function_space_args(self, k, y, adjoint=False):
         r"""Make the function space of the Gateaux derivative: dN[x] = \frac{dN}{dOperands[k]} * y(x) if adjoint is False
         and of \frac{dN}{dOperands[k]}^{*} * y(x) if adjoint is True"""
         opk_shape = self.ufl_operands[k].ufl_shape
         y_shape = y.ufl_shape
-        shape = self.original_function_space().ufl_element().reference_value_shape()
+        shape = self.ufl_function_space().ufl_element().reference_value_shape()
         for i, e in enumerate(self.derivatives):
             shape += self.ufl_operands[i].ufl_shape * (e - int(i == k))
 
@@ -173,10 +168,12 @@ class ExternalOperator(Operator):
             shape = tuple(reversed(opk_shape)) + add_shape
         return self._make_function_space(shape)
 
-    def _make_function_space(self, s, sub_element=None):
+    def _make_function_space(self, s, sub_element=None, domain=None):
         """Make the function space of a Coefficient of shape s"""
         if sub_element is None:
-            sub_element = self.original_function_space().ufl_element()
+            sub_element = self.ufl_function_space().ufl_element()
+        if domain is None:
+            domain = self.ufl_function_space().ufl_domain()
         if not isinstance(sub_element, (FiniteElement, VectorElement, TensorElement)):
             # While TensorElement (resp. VectorElement) allows to build a tensor element of a given shape
             # where all the elements in the tensor (resp. vector) are equal, there is no mechanism to construct
@@ -198,13 +195,13 @@ class ExternalOperator(Operator):
             ufl_element = VectorElement(sub_element, dim=s[0])
         else:
             ufl_element = TensorElement(sub_element, shape=s)
-        return FunctionSpace(self.ufl_function_space().ufl_domain(), ufl_element)
+        return FunctionSpace(domain, ufl_element)
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None):
+    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None, local_operands=None):
         "Return a new object of the same type with new operands."
         deriv_multiindex = derivatives or self.derivatives
 
@@ -217,14 +214,16 @@ class ExternalOperator(Operator):
                     return ext._ufl_expr_reconstruct_(*operands, function_space=function_space,
                                                       derivatives=deriv_multiindex,
                                                       coefficient=coefficient,
-                                                      arguments=arguments)
+                                                      arguments=arguments,
+                                                      local_operands=local_operands)
         else:
             corresponding_coefficient = coefficient or self._coefficient
 
         reconstruct_op = type(self)(*operands, function_space=function_space or self.ufl_function_space(),
                                     derivatives=deriv_multiindex,
                                     coefficient=corresponding_coefficient,
-                                    arguments=arguments or (self.arguments() + self.action_args()))
+                                    arguments=arguments or (self.arguments() + self.action_coefficients()),
+                                    local_operands=local_operands or self.local_operands)
 
         if deriv_multiindex != self.derivatives:
             # If we are constructing a derivative
@@ -262,17 +261,12 @@ class ExternalOperator(Operator):
     def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
         coefficient_signature = self.get_coefficient()._ufl_signature_data_(renumbering)
-        return ("ExternalOperator", self.is_type_global, *coefficient_signature, *self.derivatives)
+        return ("ExternalOperator", *self.is_type_global, *coefficient_signature, *self.derivatives)
 
     def __eq__(self, other):
         if not isinstance(other, ExternalOperator):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
-
-
-class GlobalExternalOperator(ExternalOperator):
-    """DOCSTRING"""
-    pass
+        return (self.count() == other.count() and
+                self.ufl_function_space() == other.ufl_function_space())

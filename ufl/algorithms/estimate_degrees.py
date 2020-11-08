@@ -74,7 +74,7 @@ class SumDegreeEstimator(MultiFunction):
         return d
 
     def external_operator(self, v):
-        return self.coefficient(v.coefficient)
+        return self.coefficient(v.get_coefficient())
 
     def _reduce_degree(self, v, f):
         """Reduces the estimated degree by one; used when derivatives
