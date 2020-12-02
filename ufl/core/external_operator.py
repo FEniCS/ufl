@@ -93,8 +93,8 @@ class ExternalOperator(Operator):
             raise TypeError('Expecting a Coefficient and not %s', type(coefficient))
         self._coefficient = coefficient
 
-        if not self.coefficient().ufl_function_space() == new_function_space:
-            raise ValueError('The function spaces do not match!')
+        #if not self.coefficient().ufl_function_space() == new_function_space:
+        #    raise ValueError('The function spaces do not match!')
 
         if self.derivatives == (0,) * len(self.ufl_operands):
             self._extop_master = self
