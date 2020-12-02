@@ -28,7 +28,7 @@ class ExternalOperator(Operator):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=(), local_operands=()):
+    def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=(), local_operands=(), f=None):
         r"""
         :param operands: operands on which acts the :class:`ExternalOperator`.
         :param function_space: the :class:`.FunctionSpace`,
@@ -42,7 +42,6 @@ class ExternalOperator(Operator):
             whether we take the action of the adjoint. We have arguments when the operator is a GlobalExternalOperator.
         :param local_operands: tuple specyfing the operands on which the operator acts locally
         """
-
         ufl_operands = tuple(map(as_ufl, operands))
         Operator.__init__(self, ufl_operands)
 
@@ -52,6 +51,9 @@ class ExternalOperator(Operator):
 
         # Process local operands
         self.local_operands = tuple(map(as_ufl, local_operands))
+
+        # Attach callable
+        self.f = f
 
         # Make the coefficient associated to the external operator
         ref_coefficient = Coefficient(function_space)
@@ -201,7 +203,7 @@ class ExternalOperator(Operator):
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None, local_operands=None):
+    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None, local_operands=None, f=None):
         "Return a new object of the same type with new operands."
         deriv_multiindex = derivatives or self.derivatives
 
@@ -215,7 +217,8 @@ class ExternalOperator(Operator):
                                                       derivatives=deriv_multiindex,
                                                       coefficient=coefficient,
                                                       arguments=arguments,
-                                                      local_operands=local_operands)
+                                                      local_operands=local_operands,
+                                                      f=f)
         else:
             corresponding_coefficient = coefficient or self._coefficient
 
@@ -223,7 +226,8 @@ class ExternalOperator(Operator):
                                     derivatives=deriv_multiindex,
                                     coefficient=corresponding_coefficient,
                                     arguments=arguments or (self.arguments() + self.action_coefficients()),
-                                    local_operands=local_operands or self.local_operands)
+                                    local_operands=local_operands or self.local_operands,
+                                    f=f or self.f)
 
         if deriv_multiindex != self.derivatives:
             # If we are constructing a derivative
