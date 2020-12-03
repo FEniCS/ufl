@@ -30,7 +30,7 @@ class Replacer(MultiFunction):
         except KeyError:
             return self.reuse_if_untouched(o, *args)
 
-    def external_operator(self, o):
+    def external_operator(self, o, *args):
         try:
             return self.mapping[o]
         except KeyError:
