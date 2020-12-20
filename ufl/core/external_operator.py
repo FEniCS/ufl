@@ -80,7 +80,7 @@ class ExternalOperator(Operator):
                 for i, e in enumerate(self.derivatives):
                     s += self.ufl_operands[i].ufl_shape * e
                 new_function_space = self._make_function_space(s, sub_element=ref_coefficient.ufl_element(),
-                                                                    domain=ref_coefficient.ufl_domain())
+                                                               domain=ref_coefficient.ufl_domain())
             else:
                 new_function_space = ref_coefficient.ufl_function_space()
         else:
@@ -149,7 +149,7 @@ class ExternalOperator(Operator):
 
     def ufl_function_space(self):
         "Returns the ufl function space associated to the external operator, the one we interpolate the operands on."
-        return self.get_coefficient()._ufl_function_space #self._ufl_function_space
+        return self.get_coefficient()._ufl_function_space
 
     def _make_function_space_args(self, k, y, adjoint=False):
         r"""Make the function space of the Gateaux derivative: dN[x] = \frac{dN}{dOperands[k]} * y(x) if adjoint is False
