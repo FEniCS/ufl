@@ -139,6 +139,19 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         "Return i-th ufl sub space."
         return self._ufl_function_spaces[i]
 
+    def ufl_dual_space(self, *args):
+        if args == None:
+            return MixedFunctionSpace([space.ufl_dual_space() for space in self._ufl_function_spaces])
+
+        spaces = [0 for i in range(len(self._ufl_function_spaces))]
+        for i in range(len(self._ufl_function_spaces)):
+            if i in args:
+                spaces[i] = self._ufl_function_spaces[i].ufl_dual_space()
+            else:
+                spaces[i] = self._ufl_function_spaces[i]
+        return MixedFunctionSpace(spaces)
+					
+
     def ufl_elements(self):
         "Return ufl elements."
         return self._ufl_elements
