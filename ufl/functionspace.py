@@ -18,6 +18,7 @@ from ufl.domain import join_domains
 __all_classes__ = [
     "AbstractFunctionSpace",
     "FunctionSpace",
+    "DualSpace",
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
 ]
@@ -29,7 +30,7 @@ class AbstractFunctionSpace(object):
 
 
 @attach_operators_from_hash_data
-class FunctionSpace(AbstractFunctionSpace):
+class BaseFunctionSpace(AbstractFunctionSpace):
     def __init__(self, domain, element):
         if domain is None:
             # DOLFIN hack
@@ -99,6 +100,22 @@ class FunctionSpace(AbstractFunctionSpace):
         return r
 
 
+class FunctionSpace(BaseFunctionSpace):
+    def __init__(self, domain, element):
+        BaseFunctionSpace.__init__(self, domain, element)
+
+    def ufl_dual_space(self):
+        return DualSpace(self._ufl_domain, self._ufl_element)
+
+
+class DualSpace(BaseFunctionSpace):
+    def __init__(self, domain, element):
+        BaseFunctionSpace.__init__(self, domain, element)
+
+    def ufl_dual_space(self):
+        return FunctionSpace(self._ufl_domain, self._ufl_element)
+
+
 @attach_operators_from_hash_data
 class TensorProductFunctionSpace(AbstractFunctionSpace):
     def __init__(self, *function_spaces):
@@ -126,10 +143,10 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         self._ufl_function_spaces = args
         self._ufl_elements = list()
         for fs in args:
-            if isinstance(fs, FunctionSpace):
+            if isinstance(fs, BaseFunctionSpace):
                 self._ufl_elements.append(fs.ufl_element())
             else:
-                error("Expecting FunctionSpace objects")
+                error("Expecting BaseFunctionSpace objects")
 
     def ufl_sub_spaces(self):
         "Return ufl sub spaces."
@@ -140,17 +157,16 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         return self._ufl_function_spaces[i]
 
     def ufl_dual_space(self, *args):
-        if args == None:
-            return MixedFunctionSpace([space.ufl_dual_space() for space in self._ufl_function_spaces])
-
-        spaces = [0 for i in range(len(self._ufl_function_spaces))]
-        for i in range(len(self._ufl_function_spaces)):
-            if i in args:
-                spaces[i] = self._ufl_function_spaces[i].ufl_dual_space()
-            else:
-                spaces[i] = self._ufl_function_spaces[i]
-        return MixedFunctionSpace(spaces)
-					
+        if args:
+            spaces = [0 for i in range(len(self._ufl_function_spaces))]
+            for i in range(len(self._ufl_function_spaces)):
+                if i in args:
+                    spaces[i] = self._ufl_function_spaces[i].ufl_dual_space()
+                else:
+                    spaces[i] = self._ufl_function_spaces[i]
+            return MixedFunctionSpace(*spaces)
+        else:
+            return MixedFunctionSpace(*[space.ufl_dual_space() for space in self._ufl_function_spaces])
 
     def ufl_elements(self):
         "Return ufl elements."
