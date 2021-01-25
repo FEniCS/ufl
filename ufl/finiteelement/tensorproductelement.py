@@ -17,7 +17,7 @@ from ufl.log import error
 from ufl.cell import TensorProductCell, as_cell
 from ufl.sobolevspace import DirectionalSobolevSpace
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.finiteelement.finiteelementbase import FiniteElementBase, FiniteElement
 
 
 class TensorProductElement(FiniteElementBase):
@@ -103,8 +103,14 @@ class TensorProductElement(FiniteElementBase):
         "Return subelements (factors)."
         return self._sub_elements
 
-    def reconstruct(self, cell=None):
-        return TensorProductElement(*self.sub_elements(), cell=cell)
+    def reconstruct(self, cell=None, degree=None):
+        if degree is None:
+            return TensorProductElement(*self.sub_elements(), cell=cell)
+        elif isinstance(degree, int):
+            return TensorProductElement(*[FiniteElement(subel.family(),
+                                                        subel.cell(),
+                                                        degree)
+                                          for subel in self.sub_elements()])
 
     def __str__(self):
         "Pretty-print."
