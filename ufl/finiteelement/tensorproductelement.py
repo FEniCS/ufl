@@ -19,6 +19,8 @@ from ufl.sobolevspace import DirectionalSobolevSpace
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase, FiniteElement
 
+from collections.abc import Iterable
+
 
 class TensorProductElement(FiniteElementBase):
     r"""The tensor product of :math:`d` element spaces:
@@ -111,6 +113,11 @@ class TensorProductElement(FiniteElementBase):
                                                         subel.cell(),
                                                         degree)
                                           for subel in self.sub_elements()])
+        elif isinstance(degree, Iterable):
+            return TensorProductElement(*[FiniteElement(subel.family(),
+                                                        subel.cell(),
+                                                        deg)
+                                          for (subel, deg) in zip(self.sub_elements(), degree)])
 
     def __str__(self):
         "Pretty-print."
