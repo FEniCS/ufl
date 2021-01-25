@@ -17,7 +17,8 @@ from ufl.log import error
 from ufl.cell import TensorProductCell, as_cell
 from ufl.sobolevspace import DirectionalSobolevSpace
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase, FiniteElement
+from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.finiteelement.finiteelement import FiniteElement
 
 from collections.abc import Iterable
 
