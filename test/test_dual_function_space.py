@@ -8,7 +8,6 @@ __date__ = "2020-12-28 -- 2020-12-28"
 
 import pytest
 
-from ufl import *
 from ufl.domain import default_domain
 from ufl.duals import is_primal,is_dual
 
@@ -37,11 +36,13 @@ def test_mixed_functionspace(self):
     assert(is_primal(V))
 
      # Function spaces
-    V_dual = FunctionSpace(domain_3d, f_3d)
+    V_dual = V_3d.dual()
     
 
     # MixedFunctionSpace = V_dual x V_2d x V_1d
     V = MixedFunctionSpace(V_dual, V_2d, V_1d)
+    V_mixed_dual = MixedFunctionSpace(V_dual, V_2d.dual(), V_1d.dual())
 
     assert(is_dual(V_dual))
-    assert(is_dual(V))
+    assert(not is_dual(V))
+    assert(is_dual(V_mixed_dual))
