@@ -104,7 +104,7 @@ class FunctionSpace(BaseFunctionSpace):
     def __init__(self, domain, element):
         BaseFunctionSpace.__init__(self, domain, element)
 
-    def ufl_dual_space(self):
+    def dual(self):
         return DualSpace(self._ufl_domain, self._ufl_element)
 
 
@@ -112,7 +112,7 @@ class DualSpace(BaseFunctionSpace):
     def __init__(self, domain, element):
         BaseFunctionSpace.__init__(self, domain, element)
 
-    def ufl_dual_space(self):
+    def dual(self):
         return FunctionSpace(self._ufl_domain, self._ufl_element)
 
 
