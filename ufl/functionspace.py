@@ -99,7 +99,7 @@ class BaseFunctionSpace(AbstractFunctionSpace):
         r = "FunctionSpace(%s, %s)" % (repr(self._ufl_domain), repr(self._ufl_element))
         return r
 
-
+@attach_operators_from_hash_data
 class FunctionSpace(BaseFunctionSpace):
     def __init__(self, domain, element):
         BaseFunctionSpace.__init__(self, domain, element)
@@ -107,7 +107,7 @@ class FunctionSpace(BaseFunctionSpace):
     def dual(self):
         return DualSpace(self._ufl_domain, self._ufl_element)
 
-
+@attach_operators_from_hash_data
 class DualSpace(BaseFunctionSpace):
     def __init__(self, domain, element):
         BaseFunctionSpace.__init__(self, domain, element)
@@ -156,17 +156,17 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         "Return i-th ufl sub space."
         return self._ufl_function_spaces[i]
 
-    def ufl_dual_space(self, *args):
+    def dual(self, *args):
         if args:
             spaces = [0 for i in range(len(self._ufl_function_spaces))]
             for i in range(len(self._ufl_function_spaces)):
                 if i in args:
-                    spaces[i] = self._ufl_function_spaces[i].ufl_dual_space()
+                    spaces[i] = self._ufl_function_spaces[i].dual()
                 else:
                     spaces[i] = self._ufl_function_spaces[i]
             return MixedFunctionSpace(*spaces)
         else:
-            return MixedFunctionSpace(*[space.ufl_dual_space() for space in self._ufl_function_spaces])
+            return MixedFunctionSpace(*[space.dual() for space in self._ufl_function_spaces])
 
     def ufl_elements(self):
         "Return ufl elements."

@@ -17,9 +17,11 @@ def is_primal(object):
         return True
     elif isinstance(object, MixedFunctionSpace):
         return all([is_primal(subspace) for subspace in object.ufl_sub_spaces()])
+    return False
 
 def is_dual(object):
     if isinstance(object, DualSpace):
         return True
     elif isinstance(object, MixedFunctionSpace):
         return all([is_dual(subspace) for subspace in object.ufl_sub_spaces()])
+    return False

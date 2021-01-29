@@ -82,13 +82,13 @@ def test_mixed_functionspace(self):
     # Test dual space method
     V_dual = V.dual()
     assert( V_dual.num_sub_spaces() == 3 )
-    assert( V_dual.ufl_sub_space(0) == V_3d.ufl_dual_space() )
-    assert( V_dual.ufl_sub_space(1) == V_2d.ufl_dual_space() )
-    assert( V_dual.ufl_sub_space(2) == V_1d.ufl_dual_space() )
+    assert( V_dual.ufl_sub_space(0) == V_3d.dual() )
+    assert( V_dual.ufl_sub_space(1) == V_2d.dual() )
+    assert( V_dual.ufl_sub_space(2) == V_1d.dual() )
 
     V_dual = V.dual(*[0,2])
     assert( V_dual.num_sub_spaces() == 3 )
-    assert( V_dual.ufl_sub_space(0) == V_3d.ufl_dual_space() )
+    assert( V_dual.ufl_sub_space(0) == V_3d.dual() )
     assert( V_dual.ufl_sub_space(1) == V_2d )
-    assert( V_dual.ufl_sub_space(2) == V_1d.ufl_dual_space() )
+    assert( V_dual.ufl_sub_space(2) == V_1d.dual() )
 
