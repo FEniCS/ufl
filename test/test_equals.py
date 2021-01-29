@@ -22,7 +22,7 @@ def test_comparison_of_coefficients():
     u2 = Coefficient(U, count=2)
     u2b = Coefficient(Ub, count=2)
 
-    # Itentical objects
+    # Identical objects
     assert v1 == v1
     assert u2 == u2
 
@@ -35,6 +35,32 @@ def test_comparison_of_coefficients():
     assert not u1 == u2
     assert not v1 == u1
     assert not v2 == u2
+
+# def test_comparison_of_cofunctions():
+#     V = FiniteElement("CG", triangle, 1)
+#     U = FiniteElement("CG", triangle, 2)
+#     Ub = FiniteElement("CG", triangle, 2)
+#     v1 = Cofunction(V, count=1)
+#     v1b = Cofunction(V, count=1)
+#     v2 = Cofunction(V, count=2)
+#     u1 = Cofunction(U, count=1)
+#     u2 = Cofunction(U, count=2)
+#     u2b = Cofunction(Ub, count=2)
+
+#     # Identical objects
+#     assert v1 == v1
+#     assert u2 == u2
+
+#     # Equal but distinct objects
+#     assert v1 == v1b
+#     assert u2 == u2b
+
+#     # Different objects
+#     assert not v1 == v2
+#     assert not u1 == u2
+#     assert not v1 == u1
+#     assert not v2 == u2
+
 
 
 def test_comparison_of_products():

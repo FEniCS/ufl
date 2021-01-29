@@ -25,7 +25,7 @@ from ufl.utils.counted import counted_init
 
 
 @ufl_type()
-class Coefficient(FormArgument):
+class BaseCoefficient(FormArgument):
     """UFL form argument type: Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
@@ -98,6 +98,42 @@ class Coefficient(FormArgument):
         return self._repr
 
     def __eq__(self, other):
+        if not isinstance(other, BaseCoefficient):
+            return False
+        if self is other:
+            return True
+        return (self._count == other._count and
+                self._ufl_function_space == other._ufl_function_space)
+
+@ufl_type()
+class Cofunction(BaseCoefficient):
+
+    _ufl_noslots_ = True
+    _globalcount = 0
+
+    def __init__(self, function_space, count = None):
+        BaseCoefficient.__init__(self, function_space, count)
+
+    def __eq__(self, other):
+        if not isinstance(other, Cofunction):
+            return False
+        if self is other:
+            return True
+        return (self._count == other._count and
+                self._ufl_function_space == other._ufl_function_space)
+
+@ufl_type()
+class Coefficient(BaseCoefficient):
+
+    _ufl_noslots_ = True
+    _globalcount = 0
+
+
+    def __init__(self, function_space, count = None):
+        BaseCoefficient.__init__(self, function_space, count)
+
+    
+    def __eq__(self, other):
         if not isinstance(other, Coefficient):
             return False
         if self is other:
@@ -112,7 +148,9 @@ def Coefficients(function_space):
     """UFL value: Create a Coefficient in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     if isinstance(function_space, MixedFunctionSpace):
-        return [Coefficient(function_space.ufl_sub_space(i))
-                for i in range(function_space.num_sub_spaces())]
+        # return [Coefficient(function_space.ufl_sub_space(i))
+        #         for i in range(function_space.num_sub_spaces())]
+        return [Coefficient(fs) if is_primal(fs) else Cofunction(fs)
+            for fs in function_space.num_sub_spaces()]
     else:
         return split(Coefficient(function_space))
