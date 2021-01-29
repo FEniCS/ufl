@@ -20,6 +20,7 @@ from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.duals import is_primal
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
@@ -28,7 +29,7 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 # --- Class representing an argument (basis function) in a form ---
 
 @ufl_type()
-class Argument(FormArgument):
+class BaseArgument(FormArgument):
     """UFL value: Representation of an argument to a form."""
     __slots__ = (
         "_ufl_function_space",
@@ -144,6 +145,33 @@ class Argument(FormArgument):
                 self._part == other._part and
                 self._ufl_function_space == other._ufl_function_space)
 
+@ufl_type()
+class Argument(BaseArgument):
+    """UFL value: Representation of an argument to a form."""
+    __slots__ = (
+        "_ufl_function_space",
+        "_ufl_shape",
+        "_number",
+        "_part",
+        "_repr",
+    )
+
+    def __init__(self, function_space, number, part=None):
+        BaseArgument.__init__(self,function_space,number,part)
+
+@ufl_type()
+class Coargument(BaseArgument):
+    """UFL value: Representation of an argument to a form."""
+    __slots__ = (
+        "_ufl_function_space",
+        "_ufl_shape",
+        "_number",
+        "_part",
+        "_repr",
+    )
+
+    def __init__(self, function_space, number, part=None):
+        BaseArgument.__init__(self,function_space,number,part)
 # --- Helper functions for pretty syntax ---
 
 
@@ -163,8 +191,12 @@ def Arguments(function_space, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     if isinstance(function_space, MixedFunctionSpace):
-        return [Argument(function_space.ufl_sub_space(i), number, i)
-                for i in range(function_space.num_sub_spaces())]
+        # return [Argument(function_space.ufl_sub_space(i), number, i)
+        #         for i in range(function_space.num_sub_spaces())]
+        return [Argument(function_space.ufl_sub_spaces()[i], number, i) 
+            if is_primal(function_space.ufl_sub_spaces()[i]) 
+            else Coargument(function_space.ufl_sub_spaces()[i], number, i)
+            for i in range(function_space.num_sub_spaces())]
     else:
         return split(Argument(function_space, number))
 
