@@ -9,8 +9,9 @@
 #
 # Modified by India Marsden, 2021
 
-from ufl.log import error
+# from ufl.log import error
 from ufl.functionspace import FunctionSpace, DualSpace, MixedFunctionSpace
+
 
 def is_primal(object):
     if isinstance(object, FunctionSpace):
@@ -18,6 +19,7 @@ def is_primal(object):
     elif isinstance(object, MixedFunctionSpace):
         return all([is_primal(subspace) for subspace in object.ufl_sub_spaces()])
     return False
+
 
 def is_dual(object):
     if isinstance(object, DualSpace):

@@ -20,6 +20,7 @@ from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
+from ufl.duals import is_primal
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -105,13 +106,14 @@ class BaseCoefficient(FormArgument):
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
 
+
 @ufl_type()
 class Cofunction(BaseCoefficient):
 
     _ufl_noslots_ = True
     _globalcount = 0
 
-    def __init__(self, function_space, count = None):
+    def __init__(self, function_space, count=None):
         BaseCoefficient.__init__(self, function_space, count)
 
     def __eq__(self, other):
@@ -122,17 +124,16 @@ class Cofunction(BaseCoefficient):
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
 
+
 @ufl_type()
 class Coefficient(BaseCoefficient):
 
     _ufl_noslots_ = True
     _globalcount = 0
 
-
-    def __init__(self, function_space, count = None):
+    def __init__(self, function_space, count=None):
         BaseCoefficient.__init__(self, function_space, count)
 
-    
     def __eq__(self, other):
         if not isinstance(other, Coefficient):
             return False
@@ -151,6 +152,6 @@ def Coefficients(function_space):
         # return [Coefficient(function_space.ufl_sub_space(i))
         #         for i in range(function_space.num_sub_spaces())]
         return [Coefficient(fs) if is_primal(fs) else Cofunction(fs)
-            for fs in function_space.num_sub_spaces()]
+                for fs in function_space.num_sub_spaces()]
     else:
         return split(Coefficient(function_space))

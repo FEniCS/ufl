@@ -145,6 +145,7 @@ class BaseArgument(FormArgument):
                 self._part == other._part and
                 self._ufl_function_space == other._ufl_function_space)
 
+
 @ufl_type()
 class Argument(BaseArgument):
     """UFL value: Representation of an argument to a form."""
@@ -157,7 +158,8 @@ class Argument(BaseArgument):
     )
 
     def __init__(self, function_space, number, part=None):
-        BaseArgument.__init__(self,function_space,number,part)
+        BaseArgument.__init__(self, function_space, number, part)
+
 
 @ufl_type()
 class Coargument(BaseArgument):
@@ -171,7 +173,7 @@ class Coargument(BaseArgument):
     )
 
     def __init__(self, function_space, number, part=None):
-        BaseArgument.__init__(self,function_space,number,part)
+        BaseArgument.__init__(self, function_space, number, part)
 # --- Helper functions for pretty syntax ---
 
 
@@ -193,10 +195,10 @@ def Arguments(function_space, number):
     if isinstance(function_space, MixedFunctionSpace):
         # return [Argument(function_space.ufl_sub_space(i), number, i)
         #         for i in range(function_space.num_sub_spaces())]
-        return [Argument(function_space.ufl_sub_spaces()[i], number, i) 
-            if is_primal(function_space.ufl_sub_spaces()[i]) 
-            else Coargument(function_space.ufl_sub_spaces()[i], number, i)
-            for i in range(function_space.num_sub_spaces())]
+        return [Argument(function_space.ufl_sub_spaces()[i], number, i)
+                if is_primal(function_space.ufl_sub_spaces()[i])
+                else Coargument(function_space.ufl_sub_spaces()[i], number, i)
+                for i in range(function_space.num_sub_spaces())]
     else:
         return split(Argument(function_space, number))
 
