@@ -99,6 +99,7 @@ any_cell = (None,
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around
+register_element("NewElement", "NewElement", 0, H1, "identity", (3, 3), simplices[0])
 register_element("Lagrange", "CG", 0, H1, "identity", (1, None),
                  any_cell)  # "P"
 register_element("Brezzi-Douglas-Marini", "BDM", 1, HDiv,
