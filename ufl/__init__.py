@@ -286,11 +286,11 @@ from ufl.finiteelement.elementlist import register_element, show_elements  # , u
 from ufl.functionspace import FunctionSpace, MixedFunctionSpace
 
 # Arguments
-from ufl.argument import Argument, TestFunction, TrialFunction, \
+from ufl.argument import Argument, Coargument, TestFunction, TrialFunction, \
     Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
-from ufl.coefficient import Coefficient, Coefficients
+from ufl.coefficient import Coefficient, Cofunction, Coefficients
 from ufl.constant import Constant, VectorConstant, TensorConstant
 
 # Split function
@@ -381,9 +381,9 @@ __all__ = [
     'BrokenElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
     'FunctionSpace', 'MixedFunctionSpace',
-    'Argument', 'TestFunction', 'TrialFunction',
+    'Argument','Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
-    'Coefficient', 'Coefficients',
+    'Coefficient', 'Cofunction', 'Coefficients',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
