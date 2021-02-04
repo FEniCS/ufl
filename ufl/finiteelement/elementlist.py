@@ -99,7 +99,6 @@ any_cell = (None,
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around
-register_element("NewElement", "NewElement", 0, H1, "identity", (3, 3), simplices[0])
 register_element("Lagrange", "CG", 0, H1, "identity", (1, None),
                  any_cell)  # "P"
 register_element("Brezzi-Douglas-Marini", "BDM", 1, HDiv,
@@ -151,6 +150,7 @@ register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDivDiv,
                  "double contravariant Piola", (2, 2), ("triangle", "tetrahedron"))
 register_element("Conforming Arnold-Winther", "AWc", 2, HDivDiv,
                  "double contravariant Piola", (3, None), ("triangle", "tetrahedron"))
+register_element("C0 Modified", "C0Mod", 0, H1, "identity", (3, 3), simplices[0])
 # Spectral elements.
 register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
                  ("interval",))
