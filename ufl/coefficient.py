@@ -112,6 +112,8 @@ class Cofunction(BaseCoefficient):
 
     _ufl_noslots_ = True
     _globalcount = 0
+    _primal = False
+    _dual = True
 
     def __init__(self, function_space, count=None):
         BaseCoefficient.__init__(self, function_space, count)
@@ -130,6 +132,8 @@ class Coefficient(BaseCoefficient):
 
     _ufl_noslots_ = True
     _globalcount = 0
+    _primal = True
+    _dual = False
 
     def __init__(self, function_space, count=None):
         BaseCoefficient.__init__(self, function_space, count)

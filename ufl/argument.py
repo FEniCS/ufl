@@ -157,6 +157,9 @@ class Argument(BaseArgument):
         "_repr",
     )
 
+    _primal = True
+    _dual = False
+
     def __init__(self, function_space, number, part=None):
         BaseArgument.__init__(self, function_space, number, part)
 
@@ -171,6 +174,9 @@ class Coargument(BaseArgument):
         "_part",
         "_repr",
     )
+
+    _primal = False
+    _dual = True
 
     def __init__(self, function_space, number, part=None):
         BaseArgument.__init__(self, function_space, number, part)

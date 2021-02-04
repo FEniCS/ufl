@@ -13,6 +13,7 @@
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
+from ufl.duals import is_dual, is_primal
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -102,6 +103,9 @@ class BaseFunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class FunctionSpace(BaseFunctionSpace):
+    _primal = True
+    _dual = False
+
     def __init__(self, domain, element):
         BaseFunctionSpace.__init__(self, domain, element)
 
@@ -111,6 +115,9 @@ class FunctionSpace(BaseFunctionSpace):
 
 @attach_operators_from_hash_data
 class DualSpace(BaseFunctionSpace):
+    _primal = False
+    _dual = True
+
     def __init__(self, domain, element):
         BaseFunctionSpace.__init__(self, domain, element)
 
@@ -140,6 +147,7 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class MixedFunctionSpace(AbstractFunctionSpace):
+
     def __init__(self, *args):
         AbstractFunctionSpace.__init__(self)
         self._ufl_function_spaces = args
@@ -149,6 +157,9 @@ class MixedFunctionSpace(AbstractFunctionSpace):
                 self._ufl_elements.append(fs.ufl_element())
             else:
                 error("Expecting BaseFunctionSpace objects")
+
+        self._primal = all([is_primal(subspace) for subspace in self._ufl_function_spaces])
+        self._dual = all([is_dual(subspace) for subspace in self._ufl_function_spaces])
 
     def ufl_sub_spaces(self):
         "Return ufl sub spaces."
