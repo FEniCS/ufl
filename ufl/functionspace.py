@@ -103,6 +103,7 @@ class BaseFunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class FunctionSpace(BaseFunctionSpace):
+    """ Representation of a Function space"""
     _primal = True
     _dual = False
 
@@ -115,6 +116,7 @@ class FunctionSpace(BaseFunctionSpace):
 
 @attach_operators_from_hash_data
 class DualSpace(BaseFunctionSpace):
+    """ Representation of a Dual space"""
     _primal = False
     _dual = True
 
@@ -158,6 +160,7 @@ class MixedFunctionSpace(AbstractFunctionSpace):
             else:
                 error("Expecting BaseFunctionSpace objects")
 
+        "Mixed FS is only considered primal/dual if all the subspaces are primal/dual"
         self._primal = all([is_primal(subspace) for subspace in self._ufl_function_spaces])
         self._dual = all([is_dual(subspace) for subspace in self._ufl_function_spaces])
 

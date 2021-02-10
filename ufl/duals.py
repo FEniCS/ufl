@@ -14,8 +14,10 @@
 
 
 def is_primal(object):
+    """ determines if the object belongs to a primal space"""
     return hasattr(object, '_primal') and object._primal
 
 
 def is_dual(object):
+    """ determines if the object belongs to a dual space"""
     return hasattr(object, '_dual') and object._dual

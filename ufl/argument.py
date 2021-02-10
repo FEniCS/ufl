@@ -166,7 +166,7 @@ class Argument(BaseArgument):
 
 @ufl_type()
 class Coargument(BaseArgument):
-    """UFL value: Representation of an argument to a form."""
+    """UFL value: Representation of an argument to a form in a dual space."""
     __slots__ = (
         "_ufl_function_space",
         "_ufl_shape",

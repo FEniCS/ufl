@@ -27,7 +27,7 @@ from ufl.duals import is_primal
 
 @ufl_type()
 class BaseCoefficient(FormArgument):
-    """UFL form argument type: Representation of a form coefficient."""
+    """UFL form argument type: Parent Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
@@ -109,6 +109,7 @@ class BaseCoefficient(FormArgument):
 
 @ufl_type()
 class Cofunction(BaseCoefficient):
+    """UFL form argument type: Representation of a form coefficient from a dual space."""
 
     _ufl_noslots_ = True
     _globalcount = 0
@@ -129,6 +130,7 @@ class Cofunction(BaseCoefficient):
 
 @ufl_type()
 class Coefficient(BaseCoefficient):
+    """UFL form argument type: Representation of a form coefficient."""
 
     _ufl_noslots_ = True
     _globalcount = 0
