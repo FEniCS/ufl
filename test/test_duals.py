@@ -35,14 +35,30 @@ def test_mixed_functionspace(self):
     assert(is_primal(V_1d))
     assert(is_primal(V))
 
-     # Function spaces
+     # Get dual of V_3
     V_dual = V_3d.dual()
     
-
-    # MixedFunctionSpace = V_dual x V_2d x V_1d
+    #  Test dual functions on MixedFunctionSpace = V_dual x V_2d x V_1d
     V = MixedFunctionSpace(V_dual, V_2d, V_1d)
     V_mixed_dual = MixedFunctionSpace(V_dual, V_2d.dual(), V_1d.dual())
 
     assert(is_dual(V_dual))
     assert(not is_dual(V))
     assert(is_dual(V_mixed_dual))
+
+def test_dual_coefficients():
+    V = FiniteElement("CG", triangle, 1)
+    V_dual = V.dual()
+
+    v = Coefficient(V, count=1)
+    u = Coefficient(V_dual, count=1)
+    w = Cofunction(V_dual)
+    
+    assert(is_primal(v))
+    assert(not is_dual(v))
+
+    assert(is_dual(u))
+    assert(is_primal(u))
+
+    assert(is_dual(w))
+    assert(is_primal(w))
