@@ -86,3 +86,31 @@ class HCurlElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "HCurlElement(%s)" % str(self._element.shortstr())
+
+
+class WithMapping(FiniteElementBase):
+    def __init__(self, wrapee, mapping):
+        self._repr = "WithMapping(%s, %s)" % (repr(wrapee), mapping)
+        self._mapping = mapping
+        self.wrapee = wrapee
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self.wrapee, attr)
+        except AttributeError:
+            raise AttributeError("'%s' object has no attribute '%s'" %
+                                 (type(self).__name__, attr))
+
+    def mapping(self):
+        return self._mapping
+
+    def reconstruct(self, **kwargs):
+        mapping = kwargs.pop("mapping", self._mapping)
+        wrapee = self.wrapee.reconstruct(**kwargs)
+        return type(self)(wrapee, mapping)
+
+    def __str__(self):
+        return "WithMapping(%s, mapping=%s)" % (self.wrapee, self._mapping)
+
+    def shortstr(self):
+        return "WithMapping(%s, %s)" % (self.wrapee.shortstr(), self._mapping)
