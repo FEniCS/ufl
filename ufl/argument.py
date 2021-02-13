@@ -39,6 +39,9 @@ class BaseArgument(FormArgument):
         "_repr",
     )
 
+    def __getnewargs__(self):
+        return (self._ufl_function_space, self._number, self._part)
+
     def __init__(self, function_space, number, part=None):
         FormArgument.__init__(self)
 

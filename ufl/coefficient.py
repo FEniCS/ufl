@@ -35,6 +35,9 @@ class BaseCoefficient(FormArgument):
     _ufl_noslots_ = True
     _globalcount = 0
 
+    def __getnewargs__(self):
+        return (self._ufl_function_space, self._count)
+
     def __init__(self, function_space, count=None):
         FormArgument.__init__(self)
         counted_init(self, count, Coefficient)
