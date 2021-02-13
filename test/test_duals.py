@@ -47,7 +47,9 @@ def test_mixed_functionspace(self):
     assert(is_dual(V_mixed_dual))
 
 def test_dual_coefficients():
-    V = FiniteElement("CG", triangle, 1)
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
 
     v = Coefficient(V, count=1)
@@ -58,7 +60,7 @@ def test_dual_coefficients():
     assert(not is_dual(v))
 
     assert(is_dual(u))
-    assert(is_primal(u))
+    assert(not is_primal(u))
 
     assert(is_dual(w))
-    assert(is_primal(w))
+    assert(not is_primal(w))
