@@ -20,7 +20,7 @@ from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
-from ufl.duals import is_primal,is_dual
+from ufl.duals import is_primal, is_dual
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -148,7 +148,6 @@ class Coefficient(BaseCoefficient):
             return Cofunction(function_space, count)
 
         return super(Coefficient, cls).__new__(cls)
-
 
     def __init__(self, function_space, count=None):
         BaseCoefficient.__init__(self, function_space, count)
