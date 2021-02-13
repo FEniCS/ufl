@@ -20,7 +20,7 @@ from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
-from ufl.duals import is_primal
+from ufl.duals import is_primal,is_dual
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
@@ -160,6 +160,12 @@ class Argument(BaseArgument):
     _primal = True
     _dual = False
 
+    def __new__(cls, function_space, number, part=None):
+        if is_dual(function_space):
+            return Coargument(function_space, number, part)
+
+        return super(Argument, cls).__new__(cls)
+
     def __init__(self, function_space, number, part=None):
         BaseArgument.__init__(self, function_space, number, part)
 
@@ -177,6 +183,12 @@ class Coargument(BaseArgument):
 
     _primal = False
     _dual = True
+
+    def __new__(cls, function_space, number, part=None):
+        if is_primal(function_space):
+            return Argument(function_space, number, part)
+
+        return super(Coargument, cls).__new__(cls)
 
     def __init__(self, function_space, number, part=None):
         BaseArgument.__init__(self, function_space, number, part)

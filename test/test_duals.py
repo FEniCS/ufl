@@ -55,6 +55,7 @@ def test_dual_coefficients():
     v = Coefficient(V, count=1)
     u = Coefficient(V_dual, count=1)
     w = Cofunction(V_dual)
+    x = Cofunction(V)
     
     assert(is_primal(v))
     assert(not is_dual(v))
@@ -64,3 +65,29 @@ def test_dual_coefficients():
 
     assert(is_dual(w))
     assert(not is_primal(w))
+
+    assert(is_primal(x))
+    assert(not is_dual(x))
+
+def test_dual_arguments():
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+    V_dual = V.dual()
+
+    v = Argument(V,1)
+    u = Argument(V_dual, 2)
+    w = Coargument(V_dual, 3)
+    x = Coargument(V, 4)
+    
+    assert(is_primal(v))
+    assert(not is_dual(v))
+
+    assert(is_dual(u))
+    assert(not is_primal(u))
+
+    assert(is_dual(w))
+    assert(not is_primal(w))
+
+    assert(is_primal(v))
+    assert(not is_dual(v))
