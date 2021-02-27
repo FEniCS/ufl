@@ -13,10 +13,9 @@ from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
-from ufl.split_functions import split
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.utils.counted import counted_init
-from ufl.duals import is_primal, is_dual
+
 
 # --- The Matrix class represents a matrix, an assembled two form ---
 
@@ -32,16 +31,16 @@ class Matrix(FormArgument):
     _globalcount = 0
 
     def __getnewargs__(self):
-        return (self._ufl_function_space, self._count)
+        return (self._ufl_function_space[0], self._ufl_function_space[1], self._count)
 
     def __init__(self, row_space, column_space, count=None):
         FormArgument.__init__(self)
         counted_init(self, count, Matrix)
 
-        if isinstance(row_space, FiniteElementBase) and isinstance(function_space_1, FiniteElementBase):
+        if isinstance(row_space, FiniteElementBase) and isinstance(column_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
             # the cell to The Default Mesh
-            element = function_space
+            element = row_space
             domain = default_domain(element.cell())
             function_space = FunctionSpace(domain, element)
         elif not isinstance(function_space, AbstractFunctionSpace):
@@ -50,7 +49,7 @@ class Matrix(FormArgument):
         self._ufl_function_spaces = (row_space, column_space)
 
         self._repr = "Matrix(%s,%s, %s)" % (
-            repr(self._ufl_function_spaces[0]),repr(self._ufl_function_spaces[1]), repr(self._count))
+            repr(self._ufl_function_spaces[0]), repr(self._ufl_function_spaces[1]), repr(self._count))
 
     def count(self):
         return self._count
@@ -59,10 +58,10 @@ class Matrix(FormArgument):
         "Get the tuple of function spaces of this coefficient."
         return self._ufl_function_spaces
 
-    def ufl_row_space(self)
+    def ufl_row_space(self):
         return self._ufl_function_spaces[0]
 
-    def ufl_column_space(self)
+    def ufl_column_space(self):
         return self._ufl_function_spaces[1]
 
     def _ufl_signature_data_(self, renumbering):
