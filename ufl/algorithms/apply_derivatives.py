@@ -572,6 +572,15 @@ class GradRuleset(GenericDerivativeRuleset):
 
     # --- Specialized rules for form arguments
 
+    def external_operator(self, o):
+        try:
+            # Symbolic gradient of the external operator
+            return o.grad()
+        except NotImplementedError:
+            # Push the grad through the operator is not legal in most cases:
+            #    -> Not enouth regularity for chain rule to hold!
+            return Grad(o.get_coefficient())
+
     def coefficient(self, o):
         if is_cellwise_constant(o):
             return self.independent_terminal(o)

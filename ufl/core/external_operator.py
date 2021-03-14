@@ -197,6 +197,14 @@ class ExternalOperator(Operator):
             ufl_element = TensorElement(sub_element, shape=s)
         return FunctionSpace(domain, ufl_element)
 
+    def grad(self):
+        """Returns the symbolic grad of the external operator"""
+        # By default, differential rules produce grad(o.get_coefficient()) since
+        # the external operator may not be smooth enough for chain rule to hold.
+        # Symbolic gradient (grad(ExternalOperator)) depends on the operator considered
+        # and its implementation may be needed in some cases (e.g. convolution operator).
+        raise NotImplementedError('Symbolic gradient not defined for the external operator considered!')
+
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
