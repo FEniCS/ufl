@@ -249,9 +249,6 @@ def test_dependency():
 
     assert sorted(e3.coefficient_dict.keys()) == []
     assert de3 == ()
-    # assert sorted(e3.coefficient_dict.keys()) == [(1,), (2,)]
-    # assert de3[0]._extop_master == e3
-    # assert de3[1]._extop_master == e3
 
     e4 = ExternalOperator(u, function_space=Vv)
 
@@ -262,9 +259,6 @@ def test_dependency():
 
     assert sorted(e4.coefficient_dict.keys()) == []
     assert de4 == ()
-    # assert sorted(e4.coefficient_dict.keys()) == [(1,), (2,)]
-    # assert de4[0]._extop_master == e4
-    # assert de4[1]._extop_master == e4
 
 
 def test_function_spaces_derivatives():
@@ -445,3 +439,50 @@ def test_extractions():
     assert extract_arguments(e2) == [u_hat]
     assert extract_arguments_and_coefficients(e2) == ([u_hat], [u, e.coefficient(), w, e2.coefficient()])
     assert F.external_operators() == (e, e2)
+
+
+def test_grad():
+
+    V = FiniteElement("CG", triangle, 1)
+    u_test = Coefficient(V)
+    u = Coefficient(V)
+
+    # Define an external operator equipped with a _grad method
+    class ExternalOperatorCustomGrad(ExternalOperator):
+        """An external operator class implementing its own spatial derivatives"""
+        def __init__(self, *args, u_test, **kwargs):
+            ExternalOperator.__init__(self, *args, **kwargs)
+            self.u_test = u_test
+
+        def _ufl_expr_reconstruct_(self, *args, **kwargs):
+            r"""Overwrite _ufl_expr_reconstruct_ in order to keep the information
+                about u_test when the operator is reconstructed.
+            """
+            kwargs['add_kwargs'] = {'u_test': self.u_test}
+            return ExternalOperator._ufl_expr_reconstruct_(self, *args, **kwargs)
+
+        def _grad(self):
+            r"""Trivial grad implementation that returns the gradient of a given
+                coefficient u_test in order to check that this implementation
+                is taken into account during form compiling.
+            """
+            return grad(self.u_test)
+
+    # External operator with no specific gradient implementation provided
+    #  -> Differentiation rules will turn grad(e) into grad(e.get_coefficient())
+    # where e.get_coefficient() is the Coefficient produced by e
+    e = ExternalOperator(u, function_space=V)
+    expr = grad(e)
+    assert expr != grad(e.get_coefficient())
+
+    expr = expand_derivatives(expr)
+    assert expr == grad(e.get_coefficient())
+
+    # External operator with a specific gradient implementation provided
+    #  -> Differentiation rules will call e_cg._grad() and use the output to replace grad(e)
+    e_cg = ExternalOperatorCustomGrad(u, u_test=u_test, function_space=V)
+    expr = grad(e_cg)
+    assert expr != grad(u_test)
+
+    expr = expand_derivatives(expr)
+    assert expr == grad(u_test)

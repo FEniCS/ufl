@@ -575,7 +575,7 @@ class GradRuleset(GenericDerivativeRuleset):
     def external_operator(self, o):
         try:
             # Symbolic gradient of the external operator
-            return o.grad()
+            return o._grad()
         except NotImplementedError:
             # Push the grad through the operator is not legal in most cases:
             #    -> Not enouth regularity for chain rule to hold!

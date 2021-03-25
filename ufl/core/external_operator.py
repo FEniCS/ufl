@@ -197,7 +197,7 @@ class ExternalOperator(Operator):
             ufl_element = TensorElement(sub_element, shape=s)
         return FunctionSpace(domain, ufl_element)
 
-    def grad(self):
+    def _grad(self):
         """Returns the symbolic grad of the external operator"""
         # By default, differential rules produce grad(o.get_coefficient()) since
         # the external operator may not be smooth enough for chain rule to hold.
@@ -209,7 +209,7 @@ class ExternalOperator(Operator):
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None, local_operands=None):
+    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None, local_operands=None, add_kwargs={}):
         "Return a new object of the same type with new operands."
         deriv_multiindex = derivatives or self.derivatives
 
@@ -223,7 +223,8 @@ class ExternalOperator(Operator):
                                                       derivatives=deriv_multiindex,
                                                       coefficient=coefficient,
                                                       arguments=arguments,
-                                                      local_operands=local_operands)
+                                                      local_operands=local_operands,
+                                                      add_kwargs=add_kwargs)
         else:
             corresponding_coefficient = coefficient or self._coefficient
 
@@ -231,7 +232,8 @@ class ExternalOperator(Operator):
                                     derivatives=deriv_multiindex,
                                     coefficient=corresponding_coefficient,
                                     arguments=arguments or (self.arguments() + self.action_coefficients()),
-                                    local_operands=local_operands or self.local_operands)
+                                    local_operands=local_operands or self.local_operands,
+                                    **add_kwargs)
 
         if deriv_multiindex != self.derivatives:
             # If we are constructing a derivative
