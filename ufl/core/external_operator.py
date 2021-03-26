@@ -243,13 +243,6 @@ class ExternalOperator(Operator):
             reconstruct_op._extop_master = self._extop_master
         return reconstruct_op
 
-    def add_dependencies(self, derivatives, args):
-        """Reconstruct the external operator's dependency. More specifically, it reconstructs the external operators produced during form compiling and update adequately `coefficient_dict`"""
-        v = list(self._ufl_expr_reconstruct_(*self.ufl_operands, derivatives=d, arguments=a)
-                 for d, a in zip(derivatives, args))
-        self._extop_master.coefficient_dict.update({e.derivatives: e for e in v})
-        return self
-
     def __repr__(self):
         "Default repr string construction for operators."
         # This should work for most cases

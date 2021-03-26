@@ -227,38 +227,26 @@ def test_dependency():
     assert e == dedw._extop_master
     assert e.coefficient_dict == {(1, 0):dedu, (0, 1):dedw, (2,0):d2edu}
 
-    e2 = ExternalOperator(u, w, grad(u), div(w), function_space=V)
-    der = [(0, 0, 0, 1), (1, 0, 0, 1), (2, 0, 1, 1)]
-    args = [(), (), ()]
-    e2.add_dependencies(der, args)
-    de2 = tuple(e2.coefficient_dict.values())
-
-    assert sorted(e2.coefficient_dict.keys()) == der
-    assert der == sorted(e.derivatives for e in de2)
-    assert de2[0]._extop_master == e2
-    assert de2[1]._extop_master == e2
-    assert de2[2]._extop_master == e2
-
-    e3 = ExternalOperator(u, function_space=V)
+    e2 = ExternalOperator(u, function_space=V)
     u_hat = Coefficient(V)
 
-    a = inner(grad(e3), grad(w))
+    a = inner(grad(e2), grad(w))
+    Ja = derivative(a, u, u_hat)
+    expand_derivatives(Ja)
+    de2 = tuple(e2.coefficient_dict.values())
+
+    assert sorted(e2.coefficient_dict.keys()) == []
+    assert de2 == ()
+
+    e3 = ExternalOperator(u, function_space=Vv)
+
+    a = inner(div(e3), w)
     Ja = derivative(a, u, u_hat)
     expand_derivatives(Ja)
     de3 = tuple(e3.coefficient_dict.values())
 
     assert sorted(e3.coefficient_dict.keys()) == []
     assert de3 == ()
-
-    e4 = ExternalOperator(u, function_space=Vv)
-
-    a = inner(div(e4), w)
-    Ja = derivative(a, u, u_hat)
-    expand_derivatives(Ja)
-    de4 = tuple(e4.coefficient_dict.values())
-
-    assert sorted(e4.coefficient_dict.keys()) == []
-    assert de4 == ()
 
 
 def test_function_spaces_derivatives():
