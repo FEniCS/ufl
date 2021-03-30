@@ -89,6 +89,11 @@ class HCurlElement(FiniteElementBase):
 
 
 class WithMapping(FiniteElementBase):
+    """Specify an alternative mapping for the wrappee. For example,
+    to use identity mapping instead of Piola map with an element E,
+    write
+    remapped = WithMapping(E, "identity")
+    """
     def __init__(self, wrapee, mapping):
         self._repr = "WithMapping(%s, %s)" % (repr(wrapee), mapping)
         self._mapping = mapping
