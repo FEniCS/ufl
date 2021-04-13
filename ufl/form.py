@@ -68,8 +68,27 @@ def _sorted_integrals(integrals):
 
     return tuple(all_integrals)  # integrals_dict
 
+class BaseForm(object):
+    """Description of an object containing arguments"""
 
-class Form(object):
+    # Slots is kept empty to enable multiple inheritance with other classes.
+    __slots__ = ()
+    _ufl_is_abstract_ = True
+    _ufl_required_methods_ = ('_analyze_form_arguments')
+
+    def __init__(self):
+        # Internal variables for caching form argument data
+        self._arguments = None
+
+    def arguments(self):
+        "Return all ``Argument`` objects found in form."
+        if self._arguments is None:
+            self._analyze_form_arguments()
+        return self._arguments
+
+
+
+class Form(BaseForm):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = (
         # --- List of Integral objects (a Form is a sum of these Integrals, everything else is derived)
@@ -91,6 +110,7 @@ class Form(object):
     )
 
     def __init__(self, integrals):
+        BaseForm.__init__(self)
         # Basic input checking (further compatibilty analysis happens
         # later)
         if not all(isinstance(itg, Integral) for itg in integrals):
@@ -108,7 +128,7 @@ class Form(object):
         self._subdomain_data = None
 
         # Internal variables for caching form argument data
-        self._arguments = None
+        # self._arguments = None
         self._coefficients = None
         self._coefficient_numbering = None
 

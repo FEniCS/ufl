@@ -10,9 +10,11 @@
 
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import FormArgument
+from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
+from ufl.form import BaseForm
+from ufl.argument import Argument
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.utils.counted import counted_init
 
@@ -21,35 +23,55 @@ from ufl.utils.counted import counted_init
 
 
 @ufl_type()
-class Matrix(FormArgument):
+class Matrix(Terminal, BaseForm):
     """UFL form argument type: Parent Representation of a form coefficient."""
 
-    # Slots are disabled here because they cause trouble in PyDOLFIN
-    # multiple inheritance pattern:
-    # __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
-    _ufl_noslots_ = True
+    __slots__ = (
+        "_count",
+        "_ufl_function_spaces",
+        "_repr",
+        "_ufl_shape",
+        "_arguments")
     _globalcount = 0
 
     def __getnewargs__(self):
-        return (self._ufl_function_space[0], self._ufl_function_space[1], self._count)
+        return (self._ufl_function_spaces[0], self._ufl_function_spaces[1], self._count)
 
     def __init__(self, row_space, column_space, count=None):
-        FormArgument.__init__(self)
+        Terminal.__init__(self)
+        BaseForm.__init__(self)
         counted_init(self, count, Matrix)
 
-        if isinstance(row_space, FiniteElementBase) and isinstance(column_space, FiniteElementBase):
+        #  TODO figure out what this should actually be
+        self._ufl_shape = row_space.ufl_element().value_shape()
+
+        if isinstance(row_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
             # the cell to The Default Mesh
             element = row_space
             domain = default_domain(element.cell())
-            function_space = FunctionSpace(domain, element)
-        elif not isinstance(function_space, AbstractFunctionSpace):
-            error("Expecting a FunctionSpace or FiniteElement.")
+            row_space = FunctionSpace(domain, element)
+        elif not isinstance(row_space, AbstractFunctionSpace):
+            error("Expecting a FunctionSpace or FiniteElement as the row space.")
+
+        if isinstance(column_space, FiniteElementBase):
+            # For legacy support for .ufl files using cells, we map
+            # the cell to The Default Mesh
+            element = column_space
+            domain = default_domain(element.cell())
+            column_space = FunctionSpace(domain, element)
+        if not isinstance(column_space, AbstractFunctionSpace):
+            error("Expecting a FunctionSpace or FiniteElement as the column space.")
 
         self._ufl_function_spaces = (row_space, column_space)
 
         self._repr = "Matrix(%s,%s, %s)" % (
             repr(self._ufl_function_spaces[0]), repr(self._ufl_function_spaces[1]), repr(self._count))
+
+    @property
+    def ufl_shape(self):
+        "Return the associated UFL shape."
+        return self._ufl_shape
 
     def count(self):
         return self._count
@@ -70,6 +92,10 @@ class Matrix(FormArgument):
         row_fsdata = self._ufl_function_spaces[0]._ufl_signature_data_(renumbering)
         col_fsdata = self._ufl_function_spaces[1]._ufl_signature_data_(renumbering)
         return ("Matrix", count, row_fsdata, col_fsdata)
+
+    def _analyze_form_arguments(self):
+        "Define arguments of a matrix when considered as a form."
+        self._arguments = (Argument(self._ufl_function_spaces[0], 0),Argument(self._ufl_function_spaces[1], 1))
 
     def __str__(self):
         count = str(self._count)

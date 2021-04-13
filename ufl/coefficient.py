@@ -18,6 +18,8 @@ from ufl.core.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.form import BaseForm
+from ufl.argument import Argument
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
 from ufl.duals import is_primal, is_dual
@@ -33,6 +35,7 @@ class BaseCoefficient(FormArgument):
     # multiple inheritance pattern:
     # __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
     _ufl_noslots_ = True
+    __slots__ = ()
     _globalcount = 0
 
     def __getnewargs__(self):
@@ -111,11 +114,17 @@ class BaseCoefficient(FormArgument):
 
 
 @ufl_type()
-class Cofunction(BaseCoefficient):
+class Cofunction(BaseCoefficient,BaseForm):
     """UFL form argument type: Representation of a form coefficient from a dual space."""
 
-    _ufl_noslots_ = True
-    _globalcount = 0
+    __slots__ = (
+        "_count",
+        "_arguments",
+        "_ufl_function_space",
+         "_repr",
+         "_ufl_shape"
+    )
+    # _globalcount = 0
     _primal = False
     _dual = True
 
@@ -127,6 +136,7 @@ class Cofunction(BaseCoefficient):
 
     def __init__(self, function_space, count=None):
         BaseCoefficient.__init__(self, function_space, count)
+        BaseForm.__init__(self)
 
     def __eq__(self, other):
         if not isinstance(other, Cofunction):
@@ -135,6 +145,11 @@ class Cofunction(BaseCoefficient):
             return True
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
+
+    def _analyze_form_arguments(self):
+        "Analyze which Argument and Coefficient objects can be found in the form."
+        # Define canonical numbering of arguments and coefficients
+        self._arguments = (Argument(self._ufl_function_space, 0),)
 
 
 @ufl_type()
