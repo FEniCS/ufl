@@ -293,6 +293,9 @@ from ufl.argument import Argument, Coargument, TestFunction, TrialFunction, \
 from ufl.coefficient import Coefficient, Cofunction, Coefficients
 from ufl.constant import Constant, VectorConstant, TensorConstant
 
+# Matrices
+from ufl.matrix import Matrix
+
 # Split function
 from ufl.split_functions import split
 
@@ -383,7 +386,7 @@ __all__ = [
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument','Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
-    'Coefficient', 'Cofunction', 'Coefficients',
+    'Coefficient', 'Cofunction', 'Coefficients', 'Matrix',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
