@@ -164,6 +164,7 @@ class Coefficient(FormArgument, BaseCoefficient):
 
     __getnewargs__ = BaseCoefficient.__getnewargs__
     __str__ = BaseCoefficient.__str__
+    _ufl_signature_data_ = BaseCoefficient._ufl_signature_data_
 
     def __new__(cls, function_space, count=None):
         if is_dual(function_space):
