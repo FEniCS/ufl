@@ -29,22 +29,15 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 
 # --- Class representing an argument (basis function) in a form ---
 
-@ufl_type()
-class BaseArgument(FormArgument):
+class BaseArgument(object):
     """UFL value: Representation of an argument to a form."""
-    __slots__ = (
-        "_ufl_function_space",
-        "_ufl_shape",
-        "_number",
-        "_part",
-        "_repr",
-    )
+    __slots__ = ()
+    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         return (self._ufl_function_space, self._number, self._part)
 
     def __init__(self, function_space, number, part=None):
-        FormArgument.__init__(self)
 
         if isinstance(function_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map the cell to
@@ -151,7 +144,7 @@ class BaseArgument(FormArgument):
 
 
 @ufl_type()
-class Argument(BaseArgument):
+class Argument(FormArgument, BaseArgument):
     """UFL value: Representation of an argument to a form."""
     __slots__ = (
         "_ufl_function_space",
@@ -164,6 +157,9 @@ class Argument(BaseArgument):
     _primal = True
     _dual = False
 
+    __getnewargs__ = BaseArgument.__getnewargs__
+    __str__ = BaseArgument.__str__
+
     def __new__(cls, function_space, number, part=None):
         if is_dual(function_space):
             return Coargument(function_space, number, part)
@@ -171,18 +167,27 @@ class Argument(BaseArgument):
         return super(Argument, cls).__new__(cls)
 
     def __init__(self, function_space, number, part=None):
+        FormArgument.__init__(self)
         BaseArgument.__init__(self, function_space, number, part)
 
+    def ufl_domains(self):
+        return BaseArgument.ufl_domains(self)
+    
+    def __repr__(self):
+        return self._repr
 
-@ufl_type()
-class Coargument(BaseArgument):
+
+
+class Coargument(BaseForm, BaseArgument):
     """UFL value: Representation of an argument to a form in a dual space."""
     __slots__ = (
         "_ufl_function_space",
         "_ufl_shape",
+        "_arguments",
         "_number",
         "_part",
         "_repr",
+        "_hash"
     )
 
     _primal = False
@@ -196,6 +201,16 @@ class Coargument(BaseArgument):
 
     def __init__(self, function_space, number, part=None):
         BaseArgument.__init__(self, function_space, number, part)
+        BaseForm.__init__(self)
+
+    
+
+    def _analyze_form_arguments(self):
+        "Analyze which Argument and Coefficient objects can be found in the form."
+        # Define canonical numbering of arguments and coefficients
+        self._arguments = (Argument(self._ufl_function_space, 0),)
+
+
 # --- Helper functions for pretty syntax ---
 
 

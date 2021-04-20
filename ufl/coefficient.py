@@ -26,9 +26,7 @@ from ufl.duals import is_primal, is_dual
 
 # --- The Coefficient class represents a coefficient in a form ---
 
-
-@ufl_type()
-class BaseCoefficient(FormArgument):
+class BaseCoefficient(object):
     """UFL form argument type: Parent Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
@@ -37,12 +35,12 @@ class BaseCoefficient(FormArgument):
     _ufl_noslots_ = True
     __slots__ = ()
     _globalcount = 0
+    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         return (self._ufl_function_space, self._count)
 
     def __init__(self, function_space, count=None):
-        FormArgument.__init__(self)
         counted_init(self, count, Coefficient)
 
         if isinstance(function_space, FiniteElementBase):
@@ -113,7 +111,6 @@ class BaseCoefficient(FormArgument):
                 self._ufl_function_space == other._ufl_function_space)
 
 
-@ufl_type()
 class Cofunction(BaseCoefficient,BaseForm):
     """UFL form argument type: Representation of a form coefficient from a dual space."""
 
@@ -122,7 +119,8 @@ class Cofunction(BaseCoefficient,BaseForm):
         "_arguments",
         "_ufl_function_space",
          "_repr",
-         "_ufl_shape"
+         "_ufl_shape",
+         "_hash"
     )
     # _globalcount = 0
     _primal = False
@@ -145,6 +143,9 @@ class Cofunction(BaseCoefficient,BaseForm):
             return True
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
+    
+    def __hash__(self):
+        return hash(repr(self))
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
@@ -153,13 +154,16 @@ class Cofunction(BaseCoefficient,BaseForm):
 
 
 @ufl_type()
-class Coefficient(BaseCoefficient):
+class Coefficient(FormArgument, BaseCoefficient):
     """UFL form argument type: Representation of a form coefficient."""
 
     _ufl_noslots_ = True
     _globalcount = 0
     _primal = True
     _dual = False
+
+    __getnewargs__ = BaseCoefficient.__getnewargs__
+    __str__ = BaseCoefficient.__str__
 
     def __new__(cls, function_space, count=None):
         if is_dual(function_space):
@@ -168,7 +172,12 @@ class Coefficient(BaseCoefficient):
         return super(Coefficient, cls).__new__(cls)
 
     def __init__(self, function_space, count=None):
+        FormArgument.__init__(self)
         BaseCoefficient.__init__(self, function_space, count)
+    
+    def ufl_domains(self):
+        return BaseCoefficient.ufl_domains(self)
+
 
     def __eq__(self, other):
         if not isinstance(other, Coefficient):
@@ -177,6 +186,9 @@ class Coefficient(BaseCoefficient):
             return True
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
+    
+    def __repr__(self):
+        return self._repr
 
 
 # --- Helper functions for subfunctions on mixed elements ---
