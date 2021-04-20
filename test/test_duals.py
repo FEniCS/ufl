@@ -37,7 +37,7 @@ def test_mixed_functionspace(self):
 
      # Get dual of V_3
     V_dual = V_3d.dual()
-    
+
     #  Test dual functions on MixedFunctionSpace = V_dual x V_2d x V_1d
     V = MixedFunctionSpace(V_dual, V_2d, V_1d)
     V_mixed_dual = MixedFunctionSpace(V_dual, V_2d.dual(), V_1d.dual())
@@ -56,7 +56,7 @@ def test_dual_coefficients():
     u = Coefficient(V_dual, count=1)
     w = Cofunction(V_dual)
     x = Cofunction(V)
-    
+
     assert(is_primal(v))
     assert(not is_dual(v))
 
@@ -79,7 +79,7 @@ def test_dual_arguments():
     u = Argument(V_dual, 2)
     w = Coargument(V_dual, 3)
     x = Coargument(V, 4)
-    
+
     assert(is_primal(v))
     assert(not is_dual(v))
 
@@ -89,5 +89,41 @@ def test_dual_arguments():
     assert(is_dual(w))
     assert(not is_primal(w))
 
-    assert(is_primal(v))
-    assert(not is_dual(v))
+    assert(is_primal(x))
+    assert(not is_dual(x))
+
+def test_addition():
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+    V_dual = V.dual()
+
+    u = TrialFunction(V)
+    v = TestFunction(V)
+
+    # linear 1-form
+    L = v * dx
+    a = Cofunction(V_dual)
+    res = L + a
+
+    assert(res)
+
+    L = u * v * dx
+    a = Matrix(V, V)
+    res = L + a
+
+    assert(res)
+
+def test_scalar_mult():
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+    V_dual = V.dual()
+
+    # linear 1-form
+    a = Cofunction(V_dual)
+    res = 2 * a
+
+    assert(res)
+
+# domain_2d = default_domain(triangle);f_2d = FiniteElement("CG", triangle, 1);V = FunctionSpace(domain_2d, f_2d);V_dual = V.dual()
