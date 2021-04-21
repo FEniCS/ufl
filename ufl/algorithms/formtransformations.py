@@ -19,6 +19,7 @@ from ufl.log import error, warning, debug
 from ufl.core.expr import ufl_err_str
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
+from ufl.matrix import Matrix
 from ufl.constantvalue import Zero
 from ufl.algebra import Conj
 
@@ -490,3 +491,6 @@ def compute_form_adjoint(form, reordered_arguments=None):
         error("Element mismatch between new and old arguments (test functions).")
 
     return map_integrands(Conj, replace(form, {v: reordered_v, u: reordered_u}))
+
+def compute_matrix_adjoint(form):
+    return Matrix(form.ufl_column_space(), form.ufl_row_space)

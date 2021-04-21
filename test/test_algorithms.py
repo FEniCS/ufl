@@ -9,7 +9,7 @@ __date__ = "2008-03-12 -- 2009-01-28"
 import pytest
 from pprint import *
 
-from ufl import (FiniteElement, TestFunction, TrialFunction, triangle,
+from ufl import (FiniteElement, TestFunction, TrialFunction, Matrix, triangle,
                  div, grad, Argument, dx, adjoint, Coefficient,
                  FacetNormal, inner, dot, ds)
 from ufl.algorithms import (extract_arguments, expand_derivatives,
@@ -142,3 +142,7 @@ def test_adjoint():
     d = adjoint(b)
     d_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(d)]
     assert d_arg_degrees == [2, 1]
+
+    e = Matrix(V1,V2)
+    a_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(e)]
+    assert a_arg_degrees == [2, 1]

@@ -21,9 +21,7 @@ from ufl.utils.counted import counted_init
 
 # --- The Matrix class represents a matrix, an assembled two form ---
 
-
-@ufl_type()
-class Matrix(Terminal, BaseForm):
+class Matrix(BaseForm):
     """UFL form argument type: Parent Representation of a form coefficient."""
 
     __slots__ = (
@@ -38,12 +36,10 @@ class Matrix(Terminal, BaseForm):
         return (self._ufl_function_spaces[0], self._ufl_function_spaces[1], self._count)
 
     def __init__(self, row_space, column_space, count=None):
-        Terminal.__init__(self)
         BaseForm.__init__(self)
         counted_init(self, count, Matrix)
 
-        #  TODO figure out what this should actually be
-        self._ufl_shape = row_space.ufl_element().value_shape()
+        
 
         if isinstance(row_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
@@ -64,6 +60,8 @@ class Matrix(Terminal, BaseForm):
             error("Expecting a FunctionSpace or FiniteElement as the column space.")
 
         self._ufl_function_spaces = (row_space, column_space)
+        #  TODO figure out what this should actually be
+        self._ufl_shape = row_space.ufl_element().value_shape()
 
         self._repr = "Matrix(%s,%s, %s)" % (
             repr(self._ufl_function_spaces[0]), repr(self._ufl_function_spaces[1]), repr(self._count))
