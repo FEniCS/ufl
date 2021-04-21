@@ -105,13 +105,13 @@ def test_addition():
     L = v * dx
     a = Cofunction(V_dual)
     res = L + a
-
+    assert(isinstance(res,FormSum))
     assert(res)
 
     L = u * v * dx
     a = Matrix(V, V)
     res = L + a
-
+    assert(isinstance(res,FormSum))
     assert(res)
 
 def test_scalar_mult():
@@ -123,7 +123,10 @@ def test_scalar_mult():
     # linear 1-form
     a = Cofunction(V_dual)
     res = 2 * a
-
+    assert(isinstance(res,FormSum))
     assert(res)
 
-# domain_2d = default_domain(triangle);f_2d = FiniteElement("CG", triangle, 1);V = FunctionSpace(domain_2d, f_2d);V_dual = V.dual()
+    a = Matrix(V, V)
+    res = 2 * a
+    assert(isinstance(res,FormSum))
+    assert(res)

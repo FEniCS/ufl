@@ -112,64 +112,11 @@ class BaseForm(object):
         # Return the one and only domain
         return domains[0]
 
-    def geometric_dimension(self):
-        "Return the geometric dimension shared by all domains and functions in this form."
-        gdims = tuple(
-            set(domain.geometric_dimension() for domain in self.ufl_domains()))
-        if len(gdims) != 1:
-            error("Expecting all domains and functions in a form "
-                  "to share geometric dimension, got %s." % str(
-                      tuple(sorted(gdims))))
-        return gdims[0]
-
-    def domain_numbering(self):
-        """Return a contiguous numbering of domains in a mapping
-        ``{domain:number}``."""
-        if self._domain_numbering is None:
-            self._analyze_domains()
-        return self._domain_numbering
-
-    def subdomain_data(self):
-        """Returns a mapping on the form ``{domain:{integral_type:
-            subdomain_data}}``."""
-        if self._subdomain_data is None:
-            self._analyze_subdomain_data()
-        return self._subdomain_data
-
-    def max_subdomain_ids(self):
-        """Returns a mapping on the form
-        ``{domain:{integral_type:max_subdomain_id}}``."""
-        if self._max_subdomain_ids is None:
-            self._analyze_subdomain_data()
-        return self._max_subdomain_ids
-
     def arguments(self):
         "Return all ``Argument`` objects found in form."
         if self._arguments is None:
             self._analyze_form_arguments()
         return self._arguments
-
-    def coefficients(self):
-        "Return all ``Coefficient`` objects found in form."
-        if self._coefficients is None:
-            self._analyze_form_arguments()
-        return self._coefficients
-
-    def coefficient_numbering(self):
-        """Return a contiguous numbering of coefficients in a mapping
-        ``{coefficient:number}``."""
-        if self._coefficient_numbering is None:
-            self._analyze_form_arguments()
-        return self._coefficient_numbering
-
-    def constants(self):
-        return self._constants
-
-    def signature(self):
-        "Signature for use with jit cache (independent of incidental numbering of indices etc.)"
-        if self._signature is None:
-            self._compute_signature()
-        return self._signature
 
     # --- Operator implementations ---
 
@@ -740,7 +687,7 @@ def sub_forms_by_domain(form):
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
-    if not isinstance(form, Form):
+    if not isinstance(form, BaseForm):
         error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
     return form
 
@@ -778,7 +725,7 @@ def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
 
 
 class FormSum(BaseForm):
-    """Description of an object containing arguments
+    """Description of a weighted sum of variational forms and form-like objects
     components is the list of Forms to be summed
     arg_weights is a list of tuples of component index and weight"""
 
