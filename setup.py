@@ -5,16 +5,13 @@ import sys
 
 module_name = "ufl"
 
-if sys.version_info < (3, 5):
-    print("Python 3.5 or higher required, please upgrade.")
+if sys.version_info < (3, 6):
+    print("Python 3.6 or higher required, please upgrade.")
     sys.exit(1)
 
-version = "2019.2.0.dev0"
+version = "2021.1.0"
 
-url = "https://bitbucket.org/fenics-project/{}/".format(module_name)
-tarball = None
-if 'dev' not in version:
-    tarball = url + "downloads/fenics-{}-{}.tar.gz".format(module_name, version)
+url = "https://github.com/FEniCS/ufl"
 
 CLASSIFIERS = """\
 Development Status :: 5 - Production/Stable
@@ -27,8 +24,10 @@ Operating System :: MacOS :: MacOS X
 Operating System :: Microsoft :: Windows
 Programming Language :: Python
 Programming Language :: Python :: 3
-Programming Language :: Python :: 3.5
 Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
+Programming Language :: Python :: 3.8
+Programming Language :: Python :: 3.9
 Topic :: Scientific/Engineering :: Mathematics
 Topic :: Software Development :: Libraries :: Python Modules
 """
@@ -40,7 +39,6 @@ setup(
     author="Martin Sandve Alnæs, Anders Logg",
     author_email="fenics-dev@googlegroups.com",
     url=url,
-    download_url=tarball,
     classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
     packages=[
         "ufl",
