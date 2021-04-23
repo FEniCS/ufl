@@ -82,35 +82,6 @@ class BaseForm(object):
 
     # --- Accessor interface ---
 
-    def ufl_cell(self):
-        """Return the single cell this form is defined on, fails if multiple
-        cells are found.
-
-        """
-        return self.ufl_domain().ufl_cell()
-
-    def ufl_domain(self):
-        """Return the single geometric integration domain occuring in the
-        form.
-
-        Fails if multiple domains are found.
-
-        NB! This does not include domains of coefficients defined on
-        other meshes, look at form data for that additional
-        information.
-
-        """
-        # Collect all domains
-        domains = self.ufl_domains()
-        # Check that all are equal TODO: don't return more than one if
-        # all are equal?
-        if not all(domain == domains[0] for domain in domains):
-            error(
-                "Calling Form.ufl_domain() is only valid if all integrals share domain."
-            )
-
-        # Return the one and only domain
-        return domains[0]
 
     def arguments(self):
         "Return all ``Argument`` objects found in form."
@@ -782,30 +753,6 @@ class FormSum(BaseForm):
         self._components = other_components
         self._weights = new_weights
 
-    def ufl_domains(self):
-        """Return the geometric integration domains occuring in the form.
-
-        NB! This does not include domains of coefficients defined on other meshes.
-
-        The return type is a tuple even if only a single domain exists.
-        """
-        if self._domains is None:
-            self._analyze_domains()
-        return self._domains
-
-    def _analyze_domains(self):
-        from ufl.domain import join_domains, sort_domains
-
-        # Collect unique integration domains
-        domains = join_domains(sum([list(component.ufl_domains()) for component in self._components], []))
-
-        # Make canonically ordered list of the domains
-        self._domains = sort_domains(domains)
-
-        # TODO: Not including domains from coefficients and arguments
-        # here, may need that later
-        self._domain_numbering = dict(
-            (d, i) for i, d in enumerate(self._domains))
 
     def _analyze_form_arguments(self):
         "Return all ``Argument`` objects found in form."
