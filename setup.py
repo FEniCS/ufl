@@ -34,7 +34,7 @@ setup(
     name="fenics-ufl",
     version=version,
     description="Unified Form Language",
-    author="Martin Sandve Alnæs, Anders Logg",
+    author="FEniCS Project Team",
     author_email="fenics-dev@googlegroups.com",
     url=url,
     classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
