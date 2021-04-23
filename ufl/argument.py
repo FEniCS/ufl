@@ -161,11 +161,10 @@ class Argument(FormArgument, BaseArgument):
     __str__ = BaseArgument.__str__
     _ufl_signature_data_ = BaseArgument._ufl_signature_data_
 
-    def __new__(cls, function_space, number, part=None):
-        if is_dual(function_space):
-            return Coargument(function_space, number, part)
-
-        return super(Argument, cls).__new__(cls)
+    def __new__(cls, *args, **kw):
+        if args[0] and is_dual(args[0]):
+            return Coargument(*args, **kw)
+        return super().__new__(cls)
 
     def __init__(self, function_space, number, part=None):
         FormArgument.__init__(self)
@@ -194,11 +193,10 @@ class Coargument(BaseForm, BaseArgument):
     _primal = False
     _dual = True
 
-    def __new__(cls, function_space, number, part=None):
-        if is_primal(function_space):
-            return Argument(function_space, number, part)
-
-        return super(Coargument, cls).__new__(cls)
+    def __new__(cls, *args, **kw):
+        if args[0] and is_primal(args[0]):
+            return Argument(*args, **kw)
+        return super().__new__(cls)
 
     def __init__(self, function_space, number, part=None):
         BaseArgument.__init__(self, function_space, number, part)

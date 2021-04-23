@@ -126,11 +126,10 @@ class Cofunction(BaseCoefficient,BaseForm):
     _primal = False
     _dual = True
 
-    def __new__(cls, function_space, count=None):
-        if is_primal(function_space):
-            return Coefficient(function_space, count)
-
-        return super(Cofunction, cls).__new__(cls)
+    def __new__(cls, *args, **kw):
+        if args[0] and is_primal(args[0]):
+            return Coefficient(*args, **kw)
+        return super().__new__(cls)
 
     def __init__(self, function_space, count=None):
         BaseCoefficient.__init__(self, function_space, count)
@@ -166,11 +165,10 @@ class Coefficient(FormArgument, BaseCoefficient):
     __str__ = BaseCoefficient.__str__
     _ufl_signature_data_ = BaseCoefficient._ufl_signature_data_
 
-    def __new__(cls, function_space, count=None):
-        if is_dual(function_space):
-            return Cofunction(function_space, count)
-
-        return super(Coefficient, cls).__new__(cls)
+    def __new__(cls, *args, **kw):
+        if args[0] and is_dual(args[0]):
+            return Cofunction(*args, **kw)
+        return super().__new__(cls)
 
     def __init__(self, function_space, count=None):
         FormArgument.__init__(self)
