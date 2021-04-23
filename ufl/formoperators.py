@@ -31,7 +31,7 @@ from ufl.functionspace import FunctionSpace
 from ufl.geometry import SpatialCoordinate
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import compute_form_adjoint, compute_form_action, compute_matrix_adjoint
+from ufl.algorithms import compute_form_adjoint, compute_form_action
 from ufl.algorithms import compute_energy_norm
 from ufl.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
 from ufl.algorithms import expand_derivatives, extract_arguments
@@ -133,9 +133,9 @@ def adjoint(form, reordered_arguments=None):
     """
     form = as_form(form)
     form = expand_derivatives(form)
-    if isinstance(form, Matrix):
-        return compute_matrix_adjoint(form)
-    return compute_form_adjoint(form, reordered_arguments)
+    if isinstance(form, Form):
+        return compute_form_adjoint(form, reordered_arguments)
+    return Adjoint(form)
 
 
 def zero_lists(shape):

@@ -44,7 +44,6 @@ __all__ = [
     "FormSplitter",
     "extract_arguments",
     "compute_form_adjoint",
-    "compute_matrix_adjoint",
     "compute_form_action",
     "compute_energy_norm",
     "compute_form_lhs",
@@ -104,7 +103,6 @@ from ufl.algorithms.expand_indices import expand_indices, purge_list_tensors
 
 # Utilities for transforming complete Forms into other Forms
 from ufl.algorithms.formtransformations import compute_form_adjoint
-from ufl.algorithms.formtransformations import compute_matrix_adjoint
 from ufl.algorithms.formtransformations import compute_form_action
 from ufl.algorithms.formtransformations import compute_energy_norm
 from ufl.algorithms.formtransformations import compute_form_lhs

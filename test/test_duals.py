@@ -130,3 +130,16 @@ def test_scalar_mult():
     res = 2 * a
     assert(isinstance(res,FormSum))
     assert(res)
+
+def test_adjoint():
+    V = FiniteElement("CG", triangle, 1)
+    a = Matrix(V, V)
+
+    adjoint = Adjoint(a)
+    res = 2 * adjoint
+    assert(isinstance(res,FormSum))
+    assert(res)
+
+    res = Adjoint(2 * a)
+    assert(isinstance(res,FormSum))
+    assert(isinstance(res.components()[0], Adjoint))

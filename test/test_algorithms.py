@@ -142,7 +142,3 @@ def test_adjoint():
     d = adjoint(b)
     d_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(d)]
     assert d_arg_degrees == [2, 1]
-
-    e = Matrix(V1,V2)
-    a_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(e)]
-    assert a_arg_degrees == [2, 1]
