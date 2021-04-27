@@ -51,7 +51,7 @@ class Action(BaseForm):
 
     def _analyze_form_arguments(self):
         "Define arguments of a adjoint of a form as the reverse of the form arguments"
-        self._arguments = self._left.arguments()[:-1].extend(self._right.arguments()[1])
+        self._arguments = self._left.arguments()[:-1] + self._right.arguments()[1:]
 
     def __str__(self):
         return "Action(%s, %s)" % (repr(self._left), repr(self._right))

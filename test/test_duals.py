@@ -151,10 +151,9 @@ def test_action():
     u = Cofunction(U)
     v = Cofunction(V)
 
-    adjoint = Action(a, u)
-    res = 2 * adjoint
-    assert(isinstance(res,FormSum))
+    res = Action(a, u)
     assert(res)
+    assert(len(res.arguments()) < len(a.arguments()))
 
     res = Action(2 * a, u)
     assert(isinstance(res,FormSum))

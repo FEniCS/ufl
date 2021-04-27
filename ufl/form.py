@@ -753,7 +753,7 @@ class FormSum(BaseForm):
         arguments = []
         for component in self._components:
             arguments.append(component.arguments())
-        return arguments
+        self._arguments = arguments
 
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"
