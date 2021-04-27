@@ -9,8 +9,6 @@
 
 
 from ufl.log import error
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.form import BaseForm
@@ -38,8 +36,6 @@ class Matrix(BaseForm):
     def __init__(self, row_space, column_space, count=None):
         BaseForm.__init__(self)
         counted_init(self, count, Matrix)
-
-        
 
         if isinstance(row_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
@@ -93,7 +89,7 @@ class Matrix(BaseForm):
 
     def _analyze_form_arguments(self):
         "Define arguments of a matrix when considered as a form."
-        self._arguments = (Argument(self._ufl_function_spaces[0], 0),Argument(self._ufl_function_spaces[1], 1))
+        self._arguments = (Argument(self._ufl_function_spaces[0], 0), Argument(self._ufl_function_spaces[1], 1))
 
     def __str__(self):
         count = str(self._count)

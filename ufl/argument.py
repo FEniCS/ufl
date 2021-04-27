@@ -172,10 +172,9 @@ class Argument(FormArgument, BaseArgument):
 
     def ufl_domains(self):
         return BaseArgument.ufl_domains(self)
-    
+
     def __repr__(self):
         return self._repr
-
 
 
 class Coargument(BaseForm, BaseArgument):
@@ -202,13 +201,10 @@ class Coargument(BaseForm, BaseArgument):
         BaseArgument.__init__(self, function_space, number, part)
         BaseForm.__init__(self)
 
-    
-
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
         self._arguments = (Argument(self._ufl_function_space, 0),)
-
 
 # --- Helper functions for pretty syntax ---
 

@@ -68,6 +68,7 @@ def _sorted_integrals(integrals):
 
     return tuple(all_integrals)  # integrals_dict
 
+
 class BaseForm(object):
     """Description of an object containing arguments"""
 
@@ -81,8 +82,6 @@ class BaseForm(object):
         self._arguments = None
 
     # --- Accessor interface ---
-
-
     def arguments(self):
         "Return all ``Argument`` objects found in form."
         if self._arguments is None:
@@ -99,7 +98,7 @@ class BaseForm(object):
         to lhs_form.equals(rhs_form).
         """
         return Equation(self, other)
-    
+
     def __radd__(self, other):
         # Ordering of form additions make no difference
         return self.__add__(other)
@@ -107,7 +106,7 @@ class BaseForm(object):
     def __add__(self, other):
         if isinstance(other, BaseForm):
             # Add integrals from both forms
-            return FormSum((self,1), (other,1))
+            return FormSum((self, 1), (other, 1))
 
         elif isinstance(other, (int, float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
@@ -142,7 +141,7 @@ class BaseForm(object):
         "Multiply all integrals in form with constant scalar value."
         # This enables the handy "0*form" or "dt*form" syntax
         if is_scalar_constant_expression(scalar):
-            return FormSum((self,scalar))
+            return FormSum((self, scalar))
         return NotImplemented
 
     def __mul__(self, coefficient):
@@ -165,7 +164,6 @@ class BaseForm(object):
         if hash(self) != hash(other):
             return False
         return all(a == b for a, b in zip(self._integrals, other._integrals))
-
 
     def __call__(self, *args, **kwargs):
         """UFL form operator: Evaluate form by replacing arguments and
@@ -221,9 +219,6 @@ class BaseForm(object):
     __matmul__ = __mul__
 
     # --- String conversion functions, for UI purposes only ---
-
-
-
 
 
 class Form(BaseForm):
@@ -443,7 +438,7 @@ class Form(BaseForm):
 
         if isinstance(other, BaseForm):
             # Create form sum if form is of other type
-            return FormSum((self,1), (other,1))
+            return FormSum((self, 1), (other, 1))
 
         elif isinstance(other, (int, float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
@@ -705,7 +700,7 @@ class FormSum(BaseForm):
                  "_components",
                  "_domains",
                  "_domain_numbering",
-                  "_hash")
+                 "_hash")
     _ufl_required_methods_ = ('_analyze_form_arguments')
 
     def __init__(self, *components):
@@ -716,11 +711,11 @@ class FormSum(BaseForm):
         for (component, w) in components:
             if isinstance(component, FormSum):
                 full_components.extend(component.components())
-                weights.extend(w*(component.weights()))
+                weights.extend(w * component.weights())
             else:
                 full_components.append(component)
                 weights.append(w)
-            
+
         self._arguments = None
         self._domains = None
         self._domain_numbering = None
@@ -738,21 +733,20 @@ class FormSum(BaseForm):
         var_forms = None
         other_components = []
         new_weights = []
-        for (i,component) in enumerate(self._components):
-            if isinstance(component,Form):
+        for (i, component) in enumerate(self._components):
+            if isinstance(component, Form):
                 if var_forms:
                     var_forms = var_forms + (self._weights[i] * component)
                 else:
-                    var_forms = self._weights[i] * component 
+                    var_forms = self._weights[i] * component
             else:
                 other_components.append(component)
                 new_weights.append(self._weights[i])
         if var_forms:
             other_components.insert(0, var_forms)
-            new_weights.insert(0,1)
+            new_weights.insert(0, 1)
         self._components = other_components
         self._weights = new_weights
-
 
     def _analyze_form_arguments(self):
         "Return all ``Argument`` objects found in form."
@@ -761,13 +755,12 @@ class FormSum(BaseForm):
             arguments.append(component.arguments())
         return arguments
 
-
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"
         if self._hash is None:
             self._hash = hash(tuple(hash(component) for component in self.components()))
         return self._hash
-    
+
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
         # Warning used for making sure we don't use this in the general pipeline:
@@ -784,5 +777,3 @@ class FormSum(BaseForm):
         itgs = ", ".join(repr(component) for component in self.components())
         r = "FormSum([" + itgs + "])"
         return r
-
-

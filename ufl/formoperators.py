@@ -20,7 +20,7 @@ from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.matrix import Matrix
+from ufl.adjoint import Adjoint
 from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
