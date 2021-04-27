@@ -33,7 +33,8 @@ class Adjoint(BaseForm):
     def __getnewargs__(self):
         return (self._form)
 
-    def __new__(cls, form):
+    def __new__(cls, *args, **kw):
+        form = args[0]
         if isinstance(form, FormSum):
             # Adjoint distributes over sums
             return FormSum(*[(Adjoint(component), 1) for component in form.components()])
@@ -45,7 +46,7 @@ class Adjoint(BaseForm):
 
         self._form = form
 
-        self._repr = "Adjoint(%s)" % repr(self._form)
+        self._repr = "Action(%s)" % repr(self._form)
 
 
     def ufl_function_spaces(self):
@@ -63,8 +64,8 @@ class Adjoint(BaseForm):
         return self._repr
 
     def __eq__(self, other):
-        if not isinstance(other, BaseForm):
+        if not isinstance(other, Adjoint):
             return False
         if self is other:
             return True
-        return (self._ufl_function_spaces == other._ufl_function_spaces)
+        return (self._form == other._form)
