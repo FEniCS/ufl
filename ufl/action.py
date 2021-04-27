@@ -19,34 +19,40 @@ from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.utils.counted import counted_init
 
 
-# --- The Adjoint class represents the adjoint of a numerical object that needs to be computed at compile time ---
+# --- The Action class represents the adjoint of a numerical object that needs to be computed at compile time ---
 
-class Adjoint(BaseForm):
+class Action(BaseForm):
     """UFL base form type: respresents the adjoint of an object"""
 
     __slots__ = (
-        "_form",
+        "_left",
+        "_right",
         "_repr",
         "_arguments")
     _globalcount = 0
 
     def __getnewargs__(self):
-        return (self._form)
+        return (self._left, self._right)
 
     def __new__(cls, *args, **kw):
-        form = args[0]
-        if isinstance(form, FormSum):
+        assert(len(args) == 2)
+        left = args[0]
+        right = args[1]
+        if isinstance(left, FormSum):
             # Adjoint distributes over sums
-            return FormSum(*[(Adjoint(component), 1) for component in form.components()])
+            return FormSum(*[(Action(component, right), 1) for component in left.components()])
 
-        return super(Adjoint, cls).__new__(cls)
+        return super(Action, cls).__new__(cls)
 
-    def __init__(self, form):
+    def __init__(self, left, right):
         BaseForm.__init__(self)
 
-        self._form = form
+        self._left = left
+        self._right = right
 
-        self._repr = "Adjoint(%s)" % repr(self._form)
+        assert(self._left.arguments()[-1].ufl_function_space() == self._right.arguments()[0].ufl_function_space())
+
+        self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
 
 
     def ufl_function_spaces(self):
@@ -55,17 +61,17 @@ class Adjoint(BaseForm):
 
     def _analyze_form_arguments(self):
         "Define arguments of a adjoint of a form as the reverse of the form arguments"
-        self._arguments = self._form.arguments[::-1]
+        self._arguments = self._left.arguments()[:-1].extend(self._right.arguments()[1]) 
 
     def __str__(self):
-        return "Adjoint(%s)" % self._form
+        return "Action(%s, %s)" % (repr(self._left), repr(self._right))
 
     def __repr__(self):
         return self._repr
 
     def __eq__(self, other):
-        if not isinstance(other, Adjoint):
+        if not isinstance(other, Action):
             return False
         if self is other:
             return True
-        return (self._form == other._form)
+        return (self._left == other._left)

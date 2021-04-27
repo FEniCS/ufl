@@ -143,3 +143,23 @@ def test_adjoint():
     res = Adjoint(2 * a)
     assert(isinstance(res,FormSum))
     assert(isinstance(res.components()[0], Adjoint))
+
+def test_action():
+    V = FiniteElement("CG", triangle, 1)
+    U = FiniteElement("CG", interval, 1)
+    a = Matrix(V, U)
+    u = Cofunction(U)
+    v = Cofunction(V)
+
+    adjoint = Action(a, u)
+    res = 2 * adjoint
+    assert(isinstance(res,FormSum))
+    assert(res)
+
+    res = Action(2 * a, u)
+    assert(isinstance(res,FormSum))
+    assert(isinstance(res.components()[0], Action))
+
+    with pytest.raises(AssertionError):
+        res = Action(a, v)
+
