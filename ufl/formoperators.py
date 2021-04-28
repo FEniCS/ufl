@@ -106,7 +106,7 @@ def action(form, coefficient=None):
     Given a bilinear form, return a linear form
     with an additional coefficient, representing the
     action of the form on the coefficient. This can be
-    used for matrix-free methods. For formbase objects, 
+    used for matrix-free methods. For formbase objects,
     coefficient can be any object of the correct type."""
     form = as_form(form)
     form = expand_derivatives(form)
