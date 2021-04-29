@@ -25,7 +25,7 @@ from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
 
 # Export list for ufl.classes
-__all_classes__ = ["Form"]
+__all_classes__ = ["Form", "BaseForm"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -88,6 +88,16 @@ class BaseForm(object):
         if self._arguments is None:
             self._analyze_form_arguments()
         return self._arguments
+
+    def coefficients(self):
+        "Return all ``Coefficient`` objects found in form."
+        if self._coefficients is None:
+            self._analyze_form_arguments()
+        return self._coefficients
+
+    def _analyze_form_arguments(self):
+        "Analyze which Argument and Coefficient objects can be found in the form."
+        raise NotImplementedError(self.__class__._analyze_form_arguments)
 
     # --- Operator implementations ---
 

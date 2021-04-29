@@ -11,7 +11,7 @@
 # Modified by Nacime Bouziani, 2021
 
 from ufl.coefficient import Coefficient
-from ufl.argument import Argument
+from ufl.argument import Coargument
 from ufl.core.operator import Operator
 from ufl.form import BaseForm
 from ufl.core.ufl_type import ufl_type
@@ -92,7 +92,7 @@ class ExternalOperator(Operator, BaseForm):
             raise ValueError('The function spaces do not match!')
 
         # Make v*
-        v_star = Argument(new_function_space, 0)
+        v_star = Coargument(new_function_space, 0)
         if len(argument_slots) == 0:
             argument_slots = (v_star,)
         self._argument_slots = argument_slots
@@ -114,17 +114,11 @@ class ExternalOperator(Operator, BaseForm):
     def argument_slots(self):
         r"""Returns a tuple of expressions containing argument and coefficient based expressions.
             We get an argument uhat when we take the Gateaux derivative in the direction uhat:
-                -> d/du N(u; v*) = dNdu(u; uhat, v*) where uhat is a ufl.Argument
+                -> d/du N(u; v*) = dNdu(u; uhat, v*) where uhat is a ufl.Argument and v* a ufl.Coargument
             Applying the action replace the last argument by coefficient:
                 -> action(dNdu(u; uhat, v*), w) = dNdu(u; w, v*) where du is a ufl.Coefficient
         """
         return self._argument_slots
-
-    def coefficients(self):
-        "Return all ``Coefficient`` objects found in form."
-        if self._coefficients is None:
-            self._analyze_form_arguments()
-        return self._coefficients
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the base form."
