@@ -13,7 +13,7 @@
 from ufl.coefficient import Coefficient
 from ufl.argument import Argument
 from ufl.core.operator import Operator
-from ufl.form import FormBase
+from ufl.form import BaseForm
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import as_ufl
 from ufl.log import error
@@ -24,7 +24,7 @@ from ufl.referencevalue import ReferenceValue
 
 
 @ufl_type(num_ops="varying", inherit_indices_from_operand=0, is_differential=True)
-class ExternalOperator(Operator, FormBase):
+class ExternalOperator(Operator, BaseForm):
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
@@ -42,7 +42,7 @@ class ExternalOperator(Operator, FormBase):
         :param argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
         """
 
-        FormBase.__init__(self)
+        BaseForm.__init__(self)
         ufl_operands = tuple(map(as_ufl, operands))
         argument_slots = tuple(map(as_ufl, argument_slots))
         Operator.__init__(self, ufl_operands)
@@ -119,6 +119,12 @@ class ExternalOperator(Operator, FormBase):
                 -> action(dNdu(u; uhat, v*), w) = dNdu(u; w, v*) where du is a ufl.Coefficient
         """
         return self._argument_slots
+
+    def coefficients(self):
+        "Return all ``Coefficient`` objects found in form."
+        if self._coefficients is None:
+            self._analyze_form_arguments()
+        return self._coefficients
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the base form."

@@ -21,6 +21,8 @@ from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.core.external_operator import ExternalOperator
+from ufl.adjoint import Adjoint
+from ufl.action import Action
 from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
@@ -105,10 +107,13 @@ def action(form, coefficient=None):
     Given a bilinear form, return a linear form
     with an additional coefficient, representing the
     action of the form on the coefficient. This can be
-    used for matrix-free methods."""
+    used for matrix-free methods. For formbase objects,
+    coefficient can be any object of the correct type."""
     form = as_form(form)
     form = expand_derivatives(form)
-    return compute_form_action(form, coefficient)
+    if isinstance(form, Form):
+        return compute_form_action(form, coefficient)
+    return Action(form, coefficient)
 
 
 def energy_norm(form, coefficient=None):
@@ -133,7 +138,9 @@ def adjoint(form, reordered_arguments=None):
     """
     form = as_form(form)
     form = expand_derivatives(form)
-    return compute_form_adjoint(form, reordered_arguments)
+    if isinstance(form, Form):
+        return compute_form_adjoint(form, reordered_arguments)
+    return Adjoint(form)
 
 
 def zero_lists(shape):
