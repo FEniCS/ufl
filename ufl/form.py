@@ -93,6 +93,7 @@ class BaseForm(object):
 
     def __eq__(self, other):
         """Delayed evaluation of the == operator!
+
         Just 'lhs_form == rhs_form' gives an Equation,
         while 'bool(lhs_form == rhs_form)' delegates
         to lhs_form.equals(rhs_form).
@@ -132,6 +133,7 @@ class BaseForm(object):
 
     def __neg__(self):
         """Negate all integrals in form.
+
         This enables the handy "-form" syntax for e.g. the
         linearized system (J, -F) from a nonlinear form F."""
         return FormSum((self, -1))
@@ -167,11 +169,13 @@ class BaseForm(object):
     def __call__(self, *args, **kwargs):
         """UFL form operator: Evaluate form by replacing arguments and
         coefficients.
+
         Replaces form.arguments() with given positional arguments in
         same number and ordering. Number of positional arguments must
         be 0 or equal to the number of Arguments in the form.
         The optional keyword argument coefficients can be set to a dict
         to replace Coefficients with expressions of matching shapes.
+
         Example:
         -------
           V = FiniteElement("CG", triangle, 1)
@@ -181,7 +185,9 @@ class BaseForm(object):
           g = Coefficient(V)
           a = g*inner(grad(u), grad(v))*dx
           M = a(f, f, coefficients={ g: 1 })
+
         Is equivalent to M == grad(f)**2*dx.
+
         """
         repdict = {}
 
@@ -294,7 +300,9 @@ class Form(BaseForm):
 
     def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
+
         NB! This does not include domains of coefficients defined on other meshes.
+
         The return type is a tuple even if only a single domain exists.
         """
         if self._integration_domains is None:
@@ -304,16 +312,20 @@ class Form(BaseForm):
     def ufl_cell(self):
         """Return the single cell this form is defined on, fails if multiple
         cells are found.
+
         """
         return self.ufl_domain().ufl_cell()
 
     def ufl_domain(self):
         """Return the single geometric integration domain occuring in the
         form.
+
         Fails if multiple domains are found.
+
         NB! This does not include domains of coefficients defined on
         other meshes, look at form data for that additional
         information.
+
         """
         # Collect all domains
         domains = self.ufl_domains()
@@ -404,6 +416,7 @@ class Form(BaseForm):
 
     def __eq__(self, other):
         """Delayed evaluation of the == operator!
+
         Just 'lhs_form == rhs_form' gives an Equation,
         while 'bool(lhs_form == rhs_form)' delegates
         to lhs_form.equals(rhs_form).
@@ -461,6 +474,7 @@ class Form(BaseForm):
 
     def __neg__(self):
         """Negate all integrals in form.
+
         This enables the handy "-form" syntax for e.g. the
         linearized system (J, -F) from a nonlinear form F."""
         return Form([-itg for itg in self.integrals()])
@@ -482,11 +496,14 @@ class Form(BaseForm):
     def __call__(self, *args, **kwargs):
         """UFL form operator: Evaluate form by replacing arguments and
         coefficients.
+
         Replaces form.arguments() with given positional arguments in
         same number and ordering. Number of positional arguments must
         be 0 or equal to the number of Arguments in the form.
+
         The optional keyword argument coefficients can be set to a dict
         to replace Coefficients with expressions of matching shapes.
+
         Example:
         -------
           V = FiniteElement("CG", triangle, 1)
@@ -496,7 +513,9 @@ class Form(BaseForm):
           g = Coefficient(V)
           a = g*inner(grad(u), grad(v))*dx
           M = a(f, f, coefficients={ g: 1 })
+
         Is equivalent to M == grad(f)**2*dx.
+
         """
         repdict = {}
 
@@ -652,10 +671,12 @@ def as_form(form):
 def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     """Given a form and a domain, assign a common integration domain to
     all integrals.
+
     Does not modify the input form (``Form`` should always be
     immutable).  This is to support ill formed forms with no domain
     specified, sometimes occurring in pydolfin, e.g. assemble(1*dx,
     mesh=mesh).
+
     """
     domains = form.ufl_domains()
     if common_domain is not None:
