@@ -315,7 +315,7 @@ class GenericDerivativeRuleset(MultiFunction):
             f_rank = len(o.ufl_operands[i].ufl_shape)
 
             derivatives = tuple(dj + int(i == j) for j, dj in enumerate(o.derivatives))
-            if len(extract_arguments(df)) != 0 and o.is_type_global[i]:
+            if len(extract_arguments(df)) != 0:
                 # Handle the symbolic differentiation for the case where we want only want to
                 # deal with the action of the external operator.
                 # This bit returns:
@@ -325,10 +325,10 @@ class GenericDerivativeRuleset(MultiFunction):
                 #
                 # dNdOi(..., Oi, ...; DOi(u)[v]) represents the action of dNdOi on the Gateaux derivative DOi(u)[v]
                 # For example, if we take N(u) = u**2, we get `dNdu(u; v)` which represents dNdu(u) * v.
-                new_args = o.arguments() + ((df, False),)
+                new_args = o.argument_slots() + (df,)
                 function_space = o._make_function_space_args(i, df)
                 extop = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives,
-                                                 function_space=function_space, arguments=new_args)
+                                                 function_space=function_space, argument_slots=new_args)
             else:
                 # This bit returns:
                 #
@@ -579,7 +579,7 @@ class GradRuleset(GenericDerivativeRuleset):
         except NotImplementedError:
             # Push the grad through the operator is not legal in most cases:
             #    -> Not enouth regularity for chain rule to hold!
-            return Grad(o.get_coefficient())
+            return Grad(o.result_coefficient())
 
     def coefficient(self, o):
         if is_cellwise_constant(o):

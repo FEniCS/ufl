@@ -488,5 +488,4 @@ def compute_form_adjoint(form, reordered_arguments=None):
         error("Element mismatch between new and old arguments (trial functions).")
     if reordered_v.ufl_function_space() != v.ufl_function_space():
         error("Element mismatch between new and old arguments (test functions).")
-
     return map_integrands(Conj, replace(form, {v: reordered_v, u: reordered_u}))

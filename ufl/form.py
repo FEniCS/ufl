@@ -10,6 +10,7 @@
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
+# Modified by Nacime Bouziani, 2021.
 
 from itertools import chain
 from collections import defaultdict
@@ -24,7 +25,7 @@ from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
 
 # Export list for ufl.classes
-__all_classes__ = ["Form"]
+__all_classes__ = ["Form", "FormBase"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -69,7 +70,31 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
-class Form(object):
+class FormBase(object):
+    """Base classe for forms with arguments (e.g. Form and ExternalOperator)"""
+
+    def __init__(self):
+        # Internal variables for caching form argument data
+        self._arguments = None
+
+    def arguments(self):
+        "Return all ``Argument`` objects found in the base form."
+        if self._arguments is None:
+            self._analyze_form_arguments()
+        return self._arguments
+
+    def coefficients(self):
+        "Return all ``Coefficient`` objects found in form."
+        if self._coefficients is None:
+            self._analyze_form_arguments()
+        return self._coefficients
+
+    def _analyze_form_arguments(self):
+        "Analyze which Argument objects can be found in the base form."
+        raise NotImplementedError(self.__class__._analyze_form_arguments)
+
+
+class Form(FormBase):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = (
         # --- List of Integral objects (a Form is a sum of these Integrals, everything else is derived)
@@ -78,8 +103,6 @@ class Form(object):
         "_integration_domains",
         "_domain_numbering",
         "_subdomain_data",
-        "_arguments",
-        "_coefficients",
         "_coefficient_numbering",
         "_external_operators",
         "_constants",
@@ -92,6 +115,8 @@ class Form(object):
     )
 
     def __init__(self, integrals):
+        FormBase.__init__(self)
+
         # Basic input checking (further compatibilty analysis happens
         # later)
         if not all(isinstance(itg, Integral) for itg in integrals):
@@ -216,18 +241,6 @@ class Form(object):
         if self._max_subdomain_ids is None:
             self._analyze_subdomain_data()
         return self._max_subdomain_ids
-
-    def arguments(self):
-        "Return all ``Argument`` objects found in form."
-        if self._arguments is None:
-            self._analyze_form_arguments()
-        return self._arguments
-
-    def coefficients(self):
-        "Return all ``Coefficient`` objects found in form."
-        if self._coefficients is None:
-            self._analyze_form_arguments()
-        return self._coefficients
 
     def coefficient_numbering(self):
         """Return a contiguous numbering of coefficients in a mapping
@@ -506,7 +519,7 @@ def sub_forms_by_domain(form):
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
-    if not isinstance(form, Form):
+    if not isinstance(form, FormBase):
         error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
     return form
 
