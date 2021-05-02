@@ -34,7 +34,6 @@ class Adjoint(BaseForm):
         BaseForm.__init__(self)
 
         self._form = form
-
         self._repr = "Adjoint(%s)" % repr(self._form)
 
     def ufl_function_spaces(self):
@@ -51,9 +50,3 @@ class Adjoint(BaseForm):
     def __repr__(self):
         return self._repr
 
-    def __eq__(self, other):
-        if not isinstance(other, Adjoint):
-            return False
-        if self is other:
-            return True
-        return (self._form == other._form)

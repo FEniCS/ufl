@@ -132,7 +132,9 @@ def test_scalar_mult():
     assert(res)
 
 def test_adjoint():
-    V = FiniteElement("CG", triangle, 1)
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
     a = Matrix(V, V)
 
     adjoint = Adjoint(a)
@@ -145,11 +147,20 @@ def test_adjoint():
     assert(isinstance(res.components()[0], Adjoint))
 
 def test_action():
-    V = FiniteElement("CG", triangle, 1)
-    U = FiniteElement("CG", interval, 1)
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+    domain_1d = default_domain(interval)
+    f_1d = FiniteElement("CG", interval, 1)
+
+    U = FunctionSpace(domain_1d, f_1d)
     a = Matrix(V, U)
-    u = Cofunction(U)
-    v = Cofunction(V)
+    b = Matrix(V, U.dual())
+    u = Coefficient(U)
+    u_a = Argument(U,0)
+    v = Coefficient(V)
+    u_star = Cofunction(U.dual())
+    u_form = u_a * dx
 
     res = Action(a, u)
     assert(res)
@@ -159,6 +170,13 @@ def test_action():
     assert(isinstance(res,FormSum))
     assert(isinstance(res.components()[0], Action))
 
-    with pytest.raises(AssertionError):
+    res = Action(b, u_form)
+    assert(res)
+    assert(len(res.arguments()) < len(b.arguments()))
+
+    with pytest.raises(TypeError):
         res = Action(a, v)
+
+    with pytest.raises(TypeError):
+        res = Action(a, u_star)
 
