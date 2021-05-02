@@ -49,12 +49,11 @@ class Action(BaseForm):
         if isinstance(right, Form):
             if self._left.arguments()[-1].ufl_function_space().dual() != self._right.arguments()[0].ufl_function_space():
                 raise TypeError
-        elif isinstance(right, Coefficient): 
+        elif isinstance(right, Coefficient):
             if self._left.arguments()[-1].ufl_function_space() != self._right.ufl_function_space():
                 raise TypeError
         else:
             raise TypeError
-            
 
         self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
 
@@ -62,16 +61,15 @@ class Action(BaseForm):
         "Get the tuple of function spaces of the underlying form"
         if isinstance(self._right, Form):
             return self._left.ufl_function_spaces()[:-1] + self._right.ufl_function_spaces()[1:]
-        elif isinstance(self._right, Coefficient): 
+        elif isinstance(self._right, Coefficient):
             return self._left.ufl_function_spaces()[:-1]
-        
 
     def _analyze_form_arguments(self):
         "Define arguments of a adjoint of a form as the reverse of the form arguments"
         if isinstance(self._right, Form):
-             self._arguments = self._left.arguments()[:-1] + self._right.arguments()[1:]
-        elif isinstance(self._right, Coefficient): 
-             self._arguments = self._left.arguments()[:-1]
+            self._arguments = self._left.arguments()[:-1] + self._right.arguments()[1:]
+        elif isinstance(self._right, Coefficient):
+            self._arguments = self._left.arguments()[:-1]
         else:
             raise TypeError
 
@@ -80,4 +78,3 @@ class Action(BaseForm):
 
     def __repr__(self):
         return self._repr
-
