@@ -1,10 +1,10 @@
 Changelog
 =========
 
-2019.2.0.dev0
+2021.1.0
 -------------
 
-- No changes yet.
+- Mixed dimensional domain support
 
 2019.1.0 (2019-04-17)
 ---------------------
