@@ -109,8 +109,8 @@ def action(form, coefficient=None):
     used for matrix-free methods. For formbase objects,
     coefficient can be any object of the correct type."""
     form = as_form(form)
-    form = expand_derivatives(form)
     if isinstance(form, Form):
+        form = expand_derivatives(form)
         return compute_form_action(form, coefficient)
     return Action(form, coefficient)
 
@@ -136,8 +136,8 @@ def adjoint(form, reordered_arguments=None):
     In that case, the user must provide a tuple *reordered_arguments*=(u2,v2).
     """
     form = as_form(form)
-    form = expand_derivatives(form)
     if isinstance(form, Form):
+        form = expand_derivatives(form)
         return compute_form_adjoint(form, reordered_arguments)
     return Adjoint(form)
 

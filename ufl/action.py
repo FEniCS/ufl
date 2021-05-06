@@ -35,7 +35,7 @@ class Action(BaseForm):
             # Adjoint distributes over sums on the LHS
             return FormSum(*[(Action(component, right), 1) for component in left.components()])
         if isinstance(right, FormSum):
-            # Adjoint distributes over sums on the RHS
+            # Adjoint also distributes over sums on the RHS
             return FormSum(*[(Action(left, component), 1) for component in right.components()])
 
         return super(Action, cls).__new__(cls)
@@ -48,12 +48,12 @@ class Action(BaseForm):
 
         if isinstance(right, Form):
             if self._left.arguments()[-1].ufl_function_space().dual() != self._right.arguments()[0].ufl_function_space():
-                raise TypeError
+                raise TypeError("Incompatible function spaces in Action")
         elif isinstance(right, Coefficient):
             if self._left.arguments()[-1].ufl_function_space() != self._right.ufl_function_space():
-                raise TypeError
+                raise TypeError("Incompatible function spaces in Action")
         else:
-            raise TypeError
+            raise TypeError("Incompatible argument in Action")
 
         self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
 
