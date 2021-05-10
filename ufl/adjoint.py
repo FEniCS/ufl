@@ -16,7 +16,8 @@ class Adjoint(BaseForm):
     __slots__ = (
         "_form",
         "_repr",
-        "_arguments")
+        "_arguments",
+        "_hash")
     _globalcount = 0
 
     def __getnewargs__(self):
@@ -34,11 +35,15 @@ class Adjoint(BaseForm):
         BaseForm.__init__(self)
 
         self._form = form
+        self._hash = None
         self._repr = "Adjoint(%s)" % repr(self._form)
 
     def ufl_function_spaces(self):
         "Get the tuple of function spaces of the underlying form"
         return self._form.ufl_function_spaces()
+
+    def form(self):
+        return self._form
 
     def _analyze_form_arguments(self):
         "Define arguments of a adjoint of a form as the reverse of the form arguments"
@@ -49,3 +54,9 @@ class Adjoint(BaseForm):
 
     def __repr__(self):
         return self._repr
+
+    def __hash__(self):
+        "Hash code for use in dicts (includes incidental numbering of indices etc.)"
+        if self._hash is None:
+            self._hash = hash(tuple(["Adjoint", hash(self._form)]))
+        return self._hash

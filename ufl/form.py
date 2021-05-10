@@ -719,6 +719,7 @@ class FormSum(BaseForm):
         self._arguments = None
         self._domains = None
         self._domain_numbering = None
+        self._hash = None
         self._weights = weights
         self._components = full_components
         self._sum_variational_components()

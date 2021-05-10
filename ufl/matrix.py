@@ -101,6 +101,12 @@ class Matrix(BaseForm):
     def __repr__(self):
         return self._repr
 
+    def __hash__(self):
+        "Hash code for use in dicts "
+        if self._hash is None:
+            self._hash = hash(self._repr)
+        return self._hash
+
     def __eq__(self, other):
         if not isinstance(other, Matrix):
             return False

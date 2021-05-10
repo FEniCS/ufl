@@ -20,7 +20,8 @@ class Action(BaseForm):
         "_left",
         "_right",
         "_repr",
-        "_arguments")
+        "_arguments",
+        "_hash")
     _globalcount = 0
 
     def __getnewargs__(self):
@@ -56,6 +57,7 @@ class Action(BaseForm):
             raise TypeError("Incompatible argument in Action")
 
         self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
+        self._hash = None
 
     def ufl_function_spaces(self):
         "Get the tuple of function spaces of the underlying form"
@@ -63,6 +65,12 @@ class Action(BaseForm):
             return self._left.ufl_function_spaces()[:-1] + self._right.ufl_function_spaces()[1:]
         elif isinstance(self._right, Coefficient):
             return self._left.ufl_function_spaces()[:-1]
+
+    def left(self):
+        return self._left
+
+    def right(self):
+        return self._right
 
     def _analyze_form_arguments(self):
         "Define arguments of a adjoint of a form as the reverse of the form arguments"
@@ -78,3 +86,9 @@ class Action(BaseForm):
 
     def __repr__(self):
         return self._repr
+
+    def __hash__(self):
+        "Hash code for use in dicts "
+        if self._hash is None:
+            self._hash = hash(tuple(["Action", hash(self._right),hash(self._left)]))
+        return self._hash
