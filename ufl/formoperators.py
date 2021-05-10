@@ -106,8 +106,9 @@ def action(form, coefficient=None):
     Given a bilinear form, return a linear form
     with an additional coefficient, representing the
     action of the form on the coefficient. This can be
-    used for matrix-free methods. For formbase objects,
-    coefficient can be any object of the correct type."""
+    used for matrix-free methods.
+    For formbase objects,coefficient can be any object of the correct type,
+    and this function returns an Action object."""
     form = as_form(form)
     if isinstance(form, Form):
         form = expand_derivatives(form)
@@ -134,6 +135,9 @@ def adjoint(form, reordered_arguments=None):
     opposite ordering. However, if the adjoint form is to
     be added to other forms later, their arguments must match.
     In that case, the user must provide a tuple *reordered_arguments*=(u2,v2).
+
+    If the form is a baseform instance instead of a Form object, we return an Adjoint
+    object instructing the adjoint to be computed at a later point.
     """
     form = as_form(form)
     if isinstance(form, Form):

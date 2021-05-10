@@ -14,7 +14,10 @@ from ufl.coefficient import Coefficient
 
 
 class Action(BaseForm):
-    """UFL base form type: respresents the action of an object on another"""
+    """UFL base form type: respresents the action of an object on another.
+    For example:
+        res = Ax
+    A would be the first argument, left and x would be the second argument, right."""
 
     __slots__ = (
         "_left",
@@ -90,5 +93,5 @@ class Action(BaseForm):
     def __hash__(self):
         "Hash code for use in dicts "
         if self._hash is None:
-            self._hash = hash(tuple(["Action", hash(self._right),hash(self._left)]))
+            self._hash = hash(tuple(["Action", hash(self._right), hash(self._left)]))
         return self._hash
