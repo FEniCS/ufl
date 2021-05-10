@@ -209,6 +209,9 @@ class TensorProductMesh(AbstractDomain):
     def ufl_cell(self):
         return self._ufl_cell
 
+    def ufl_meshes(self):
+        return self._ufl_meshes
+
     def is_piecewise_linear_simplex_domain(self):
         return False  # TODO: Any cases this is True
 
