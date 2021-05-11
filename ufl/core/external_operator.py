@@ -55,7 +55,9 @@ class ExternalOperator(Operator, BaseForm):
             if not isinstance(derivatives, tuple):
                 raise TypeError("Expecting a tuple for derivatives and not %s" % derivatives)
             if not len(derivatives) == len(self.ufl_operands):
-                error("Expecting a size of %s for %s" % (len(self.ufl_operands), derivatives))
+                raise ValueError("Expecting a size of %s for %s" % (len(self.ufl_operands), derivatives))
+            if any(d < 0 for d in derivatives) or not all(isinstance(d, int) for d in derivatives):
+                raise ValueError("Expecting a derivative multi-index with nonnegative indices and not %s" % derivatives)
 
             self.derivatives = derivatives
             # If we have arguments obtained from a Gateaux-derivative,
@@ -238,17 +240,20 @@ class ExternalOperator(Operator, BaseForm):
 
     def __repr__(self):
         "Default repr string construction for operators."
-        # This should work for most cases
-        r = "ExternalOperator(%s; %s, %s)" % (", ".join(repr(op) for op in self.ufl_operands), self._arguments, self._count)
+        r = "ExternalOperator(%s; %s; derivatives=%s, %s)" % (", ".join(repr(op) for op in self.ufl_operands),
+                                                              ", ".join(repr(arg) for arg in self.argument_slots()),
+                                                              repr(self.derivatives),
+                                                              repr(self._count))
         return r
 
     def __str__(self):
-        "Default repr string construction for ExternalOperator operators."
-        # This should work for most cases
-        r = "%s(%s,%s,%s,%s,%s)" % (self._ufl_class_.__name__, ", ".join(repr(op) for op in self.ufl_operands),
-                                    repr(self.ufl_function_space()), repr(self.derivatives), repr(self.ufl_shape),
-                                    repr(self.count()))
-        return r
+        "Default str string for ExternalOperator operators."
+        d = '\N{PARTIAL DIFFERENTIAL}'
+        derivatives = self.derivatives
+        d_ops = "".join(d + "o" + str(i + 1) for i, di in enumerate(derivatives) for j in range(di))
+        e = "e(%s; %s)" % (", ".join(str(op) for op in self.ufl_operands),
+                           ", ".join(str(arg) for arg in reversed(self.argument_slots())))
+        return d + e + "/" + d_ops if sum(derivatives) > 0 else e
 
     def _ufl_compute_hash_(self):
         "Default hash of terminals just hash the repr string."
