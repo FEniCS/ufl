@@ -10,6 +10,9 @@
 # Modified by Anders Logg, 2009.
 
 from ufl.log import warning
+from ufl.form import FormSum
+from ufl.action import Action
+from ufl.adjoint import Adjoint
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 
@@ -26,6 +29,13 @@ def expand_derivatives(form, **kwargs):
     # args here)
     if kwargs:
         warning("Deprecation: expand_derivatives no longer takes any keyword arguments")
+
+    if isinstance(form, FormSum):
+        return FormSum(*[(expand_derivatives(component), 1) for component in form.components()])
+    if isinstance(form, Action):
+        return Action(expand_derivatives(form._left), expand_derivatives(form._right))
+    if isinstance(form, Adjoint):
+        return Adjoint(expand_derivatives(form._form))
 
     # Lower abstractions for tensor-algebra types into index notation
     form = apply_algebra_lowering(form)
