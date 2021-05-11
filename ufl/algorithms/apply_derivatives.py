@@ -39,9 +39,10 @@ from math import pi
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
-
+from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.checks import is_cellwise_constant
-from ufl.differentiation import CoordinateDerivative
+from ufl.differentiation import CoordinateDerivative, ExternalOperatorDerivative
+from ufl.action import Action
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset
@@ -858,6 +859,10 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         cd = coefficient_derivatives.ufl_operands
         self._cd = {cd[2 * i]: cd[2 * i + 1] for i in range(len(cd) // 2)}
 
+        # Record the operations delayed to the derivative expansion phase:
+        # Example: dN(u)/du where `N` is an ExternalOperator and `u` a Coefficient
+        self.pending_operations = (coefficients, {'arguments': arguments, 'coefficient_derivatives': coefficient_derivatives})
+
     # Explicitly defining dg/dw == 0
     geometric_quantity = GenericDerivativeRuleset.independent_terminal
 
@@ -923,8 +928,11 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         """
         d_coeff = self.coefficient(o)
         if d_coeff == 0:  # It also handles the non-scalar case
-            return GenericDerivativeRuleset.external_operator(self, o, *dfs)
+            self.pending_operations += (o,)
+            return d_coeff
         else:
+            # TODO:
+            #  ->We are in Gateaux-derivative so if we are here it means we want dF/dN[Nhat]
             return d_coeff
 
     def reference_value(self, o):
@@ -1109,6 +1117,10 @@ class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
 
+        # Record the operations delayed to the derivative expansion phase:
+        # Example: dN(u)/du where `N` is an ExternalOperator and `u` a Coefficient
+        self.pending_operations = ()
+
     def external_operator(self, o):
         rules = DerivativeRuleDispatcher()
         o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op) for op in o.ufl_operands))
@@ -1137,7 +1149,18 @@ class DerivativeRuleDispatcher(MultiFunction):
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         dummy, w, v, cd = o.ufl_operands
         rules = GateauxDerivativeRuleset(w, v, cd)
-        return map_expr_dag(rules, f)
+        mapped_expr = map_expr_dag(rules, f)
+        # We need to go through the dag first to record the pending operations
+        self.pending_operations = rules.pending_operations
+        return mapped_expr
+
+    def external_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
+        dummy, w, v, cd = o.ufl_operands
+        rules = GateauxDerivativeRuleset(w, v, cd)
+        dfs = tuple(map_expr_dag(rules, op) for op in f.ufl_operands)
+        # We need to go through the dag first to record the pending operations
+        self.pending_operations = rules.pending_operations
+        return GenericDerivativeRuleset.external_operator(self, f, *dfs)
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         o_ = o.ufl_operands
@@ -1174,8 +1197,34 @@ class DerivativeRuleDispatcher(MultiFunction):
 
 
 def apply_derivatives(expression):
+    # Note that `expression` can be a Form or an Expr.
+    # Notation: Let `var` be the thing we are differentating with respect to.
+
     rules = DerivativeRuleDispatcher()
-    return map_integrand_dags(rules, expression)
+
+    # If we hit an external operator, then if `var` is:
+    #    - an ExternalOperator → Return d(expression)/dw where w is the coefficient produced by the external operator `var`.
+    #    - else → Record the external operator on the MultiFunction object and returns 0.
+    # Example:
+    #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `\frac{\partial F}{\partial u}`.
+    dexpression_dvar = map_integrand_dags(rules, expression)
+
+    # Get the recorded delayed operations
+    pending_operations = rules.pending_operations
+
+    if len(pending_operations) <= 2:
+        return dexpression_dvar
+
+    # Retrieve the external operators, var, and the argument and coefficient_derivatives for `derivative`
+    var, der_kwargs, *extops = pending_operations
+    for N in extops:
+        # Replace dexpr/dvar by dexpr/dN
+        dexpr_dN = apply_derivatives(replace_derivative_nodes(expression, {var.ufl_operands[0]: N}))
+        # Add the ExternalOperatorDerivative node
+        dN_dvar = apply_derivatives(ExternalOperatorDerivative(N, var, **der_kwargs))
+        # Sum the Action: dF/du = \partial F/\partial u + \sum_{i=1,...} Action(dF/dNi, dNi/du)
+        dexpression_dvar += Action(dexpr_dN, dN_dvar)
+    return dexpression_dvar
 
 
 class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
