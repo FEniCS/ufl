@@ -36,6 +36,9 @@ class Replacer(MultiFunction):
             coeff = o.result_coefficient(unpack_reference=False)
         except KeyError:
             coeff = replace(o.result_coefficient(unpack_reference=False), self.mapping)
+        except AttributeError:
+            # ExternalOperator is replaced by something that is not an ExternalOperator
+            return o
         new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
         # Fix this
         if type(new_ops[0]).__name__ == 'Coefficient' and type(o.ufl_operands[0]).__name__ == 'Function':
