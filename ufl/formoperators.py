@@ -170,7 +170,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        if not all(isinstance(c, Coefficient) for c in coefficients):
+        if not all(isinstance(c, (Coefficient, ExternalOperator)) for c in coefficients):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one
