@@ -17,6 +17,7 @@ from ufl.core.ufl_type import ufl_type
 from ufl.core.external_operator import ExternalOperator
 
 from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.form import BaseForm
 from ufl.constantvalue import Zero
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
@@ -74,6 +75,24 @@ class CoefficientDerivative(Derivative):
 class CoordinateDerivative(CoefficientDerivative):
     """Derivative of the integrand of a form w.r.t. the SpatialCoordinates."""
     __slots__ = ()
+
+    def __str__(self):
+        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s"\
+            % (self.ufl_operands[0], self.ufl_operands[1],
+               self.ufl_operands[2], self.ufl_operands[3])
+
+
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class ExternalOperatorDerivative(CoefficientDerivative, BaseForm):
+    """TODO: Derivative of..."""
+    _ufl_noslots_ = True
+
+    def __init__(self, integrand, coefficients, arguments,
+                 coefficient_derivatives):
+        CoefficientDerivative.__init__(self, integrand, coefficients, arguments,
+                                       coefficient_derivatives)
+        BaseForm.__init__(self)
 
     def __str__(self):
         return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s"\
