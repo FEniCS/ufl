@@ -1215,6 +1215,8 @@ def apply_derivatives(expression):
     if len(pending_operations) <= 2:
         return dexpression_dvar
 
+    # Don't take into account empty Forms
+    dexpression_dvar = (dexpression_dvar,) if len(dexpression_dvar.integrals()) != 0 else ()
     # Retrieve the external operators, var, and the argument and coefficient_derivatives for `derivative`
     var, der_kwargs, *extops = pending_operations
     for N in extops:
@@ -1223,8 +1225,8 @@ def apply_derivatives(expression):
         # Add the ExternalOperatorDerivative node
         dN_dvar = apply_derivatives(ExternalOperatorDerivative(N, var, **der_kwargs))
         # Sum the Action: dF/du = \partial F/\partial u + \sum_{i=1,...} Action(dF/dNi, dNi/du)
-        dexpression_dvar += Action(dexpr_dN, dN_dvar)
-    return dexpression_dvar
+        dexpression_dvar += (Action(dexpr_dN, dN_dvar),)
+    return sum(dexpression_dvar)
 
 
 class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
