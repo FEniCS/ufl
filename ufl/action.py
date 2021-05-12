@@ -19,7 +19,8 @@ class Action(BaseForm):
         "_left",
         "_right",
         "_repr",
-        "_arguments")
+        "_arguments",
+        "_external_operators")
     _globalcount = 0
 
     def __getnewargs__(self):
@@ -52,6 +53,10 @@ class Action(BaseForm):
     def _analyze_form_arguments(self):
         "Define arguments of a adjoint of a form as the reverse of the form arguments"
         self._arguments = self._left.arguments()[:-1] + self._right.arguments()[1:]
+
+    def _analyze_external_operators(self):
+        "Define external_operators of Action"
+        self._external_operators = tuple(set(self._left.external_operators() + self._right.external_operators()))
 
     def __str__(self):
         return "Action(%s, %s)" % (repr(self._left), repr(self._right))

@@ -76,11 +76,12 @@ class BaseForm(object):
     # Slots is kept empty to enable multiple inheritance with other classes.
     __slots__ = ()
     _ufl_is_abstract_ = True
-    _ufl_required_methods_ = ('_analyze_form_arguments', "ufl_domains")
+    _ufl_required_methods_ = ('_analyze_form_arguments', "ufl_domains", '_analyze_external_operators')
 
     def __init__(self):
         # Internal variables for caching form argument data
         self._arguments = None
+        self._external_operators = None
 
     # --- Accessor interface ---
     def arguments(self):
@@ -95,9 +96,11 @@ class BaseForm(object):
             self._analyze_form_arguments()
         return self._coefficients
 
-    def _analyze_form_arguments(self):
-        "Analyze which Argument and Coefficient objects can be found in the form."
-        raise NotImplementedError(self.__class__._analyze_form_arguments)
+    def external_operators(self):
+        "Return all ``ExternalOperators`` objects found in form."
+        if self._external_operators is None:
+            self._analyze_external_operators()
+        return self._external_operators
 
     # --- Operator implementations ---
 
@@ -275,7 +278,6 @@ class Form(BaseForm):
         # self._arguments = None
         self._coefficients = None
         self._coefficient_numbering = None
-        self._external_operators = None
 
         from ufl.algorithms.analysis import extract_constants
         self._constants = extract_constants(self)
@@ -399,13 +401,11 @@ class Form(BaseForm):
             self._analyze_form_arguments()
         return self._coefficient_numbering
 
-    def external_operators(self):
-        "Return all ``ExternalOperator`` objects found in form."
-        if self._external_operators is None:
-            from ufl.algorithms.analysis import extract_external_operators
-            extops = extract_external_operators(self)
-            self._external_operators = tuple(sorted(extops, key=lambda x: x.count()))
-        return self._external_operators
+    def _analyze_external_operators(self):
+        "Analyze which ExternalOperator objects can be found in the form."
+        from ufl.algorithms.analysis import extract_external_operators
+        extops = extract_external_operators(self)
+        self._external_operators = tuple(sorted(extops, key=lambda x: x.count()))
 
     def constants(self):
         return self._constants
@@ -718,6 +718,7 @@ class FormSum(BaseForm):
     __slots__ = ("_arguments",
                  "_weights",
                  "_components",
+                 "_external_operators",
                  "_domains",
                  "_domain_numbering",
                  "_hash")
@@ -775,6 +776,10 @@ class FormSum(BaseForm):
         for component in self._components:
             arguments.append(component.arguments())
         self._arguments = arguments
+
+    def _analyze_external_operators(self):
+        "Analyze which ExternalOperator objects can be found in the components."
+        self._external_operators = tuple(set(e for comp in self._components for e in comp.external_operators()))
 
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"

@@ -131,6 +131,16 @@ class ExternalOperator(Operator, BaseForm):
         self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
+    def _analyze_external_operators(self):
+        r"""Analyze which ExternalOperator objects can be found in a given ExternalOperator.
+            Example: Let N1, N2 be ExternalOperators and u, w be Coefficients:
+                self = N1(u, N2(w); vstar)
+                -> self._external_operators = (N2, N1)
+        """
+        from ufl.algorithms.analysis import extract_external_operators
+        extops = (self,) + tuple(e for op in self.ufl_operands for e in extract_external_operators(op))
+        self._external_operators = tuple(set(sorted(extops, key=lambda x: x.count())))
+
     def count(self):
         "Returns the count associated to the coefficient produced by the external operator"
         return self._count
