@@ -26,6 +26,7 @@ class Matrix(BaseForm):
         "_count",
         "_ufl_function_spaces",
         "_repr",
+        "_hash",
         "_ufl_shape",
         "_arguments")
     _globalcount = 0
@@ -59,6 +60,7 @@ class Matrix(BaseForm):
         #  TODO figure out what this should actually be
         self._ufl_shape = row_space.ufl_element().value_shape()
 
+        self._hash = None
         self._repr = "Matrix(%s,%s, %s)" % (
             repr(self._ufl_function_spaces[0]), repr(self._ufl_function_spaces[1]), repr(self._count))
 
@@ -100,6 +102,12 @@ class Matrix(BaseForm):
 
     def __repr__(self):
         return self._repr
+
+    def __hash__(self):
+        "Hash code for use in dicts "
+        if self._hash is None:
+            self._hash = hash(self._repr)
+        return self._hash
 
     def __eq__(self, other):
         if not isinstance(other, Matrix):

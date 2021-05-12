@@ -186,10 +186,12 @@ class GenericDerivativeRuleset(MultiFunction):
                 C, kk = B.ufl_operands
                 kk = list(kk)
                 if all(j in kk for j in jj):
-                    Cind = list(kk)
-                    for i, j in zip(ii, jj):
-                        Cind[kk.index(j)] = i
-                    return Indexed(C, MultiIndex(tuple(Cind)))
+                    rep = dict(zip(jj, ii))
+                    Cind = [rep.get(k, k) for k in kk]
+                    expr = Indexed(C, MultiIndex(tuple(Cind)))
+                    assert expr.ufl_free_indices == o.ufl_free_indices
+                    assert expr.ufl_shape == o.ufl_shape
+                    return expr
 
         # Otherwise a more generic approach
         r = len(Ap.ufl_shape) - len(ii)
@@ -1180,10 +1182,12 @@ class DerivativeRuleDispatcher(MultiFunction):
 
                 kk = list(kk)
                 if all(j in kk for j in jj):
-                    Cind = list(kk)
-                    for i, j in zip(ii, jj):
-                        Cind[kk.index(j)] = i
-                    return Indexed(C, MultiIndex(tuple(Cind)))
+                    rep = dict(zip(jj, ii))
+                    Cind = [rep.get(k, k) for k in kk]
+                    expr = Indexed(C, MultiIndex(tuple(Cind)))
+                    assert expr.ufl_free_indices == o.ufl_free_indices
+                    assert expr.ufl_shape == o.ufl_shape
+                    return expr
 
         # Otherwise a more generic approach
         r = len(Ap.ufl_shape) - len(ii)

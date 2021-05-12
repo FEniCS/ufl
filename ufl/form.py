@@ -169,16 +169,6 @@ class BaseForm(object):
         "Immediate evaluation of the != operator (as opposed to the == operator)."
         return not self.equals(other)
 
-    def equals(self, other):
-        "Evaluate ``bool(lhs_form == rhs_form)``."
-        if type(other) != Form:
-            return False
-        if len(self._integrals) != len(other._integrals):
-            return False
-        if hash(self) != hash(other):
-            return False
-        return all(a == b for a, b in zip(self._integrals, other._integrals))
-
     def __call__(self, *args, **kwargs):
         """UFL form operator: Evaluate form by replacing arguments and
         coefficients.
@@ -423,15 +413,6 @@ class Form(BaseForm):
         if self._hash is None:
             self._hash = hash(tuple(hash(itg) for itg in self.integrals()))
         return self._hash
-
-    def __eq__(self, other):
-        """Delayed evaluation of the == operator!
-
-        Just 'lhs_form == rhs_form' gives an Equation,
-        while 'bool(lhs_form == rhs_form)' delegates
-        to lhs_form.equals(rhs_form).
-        """
-        return Equation(self, other)
 
     def __ne__(self, other):
         "Immediate evaluation of the != operator (as opposed to the == operator)."

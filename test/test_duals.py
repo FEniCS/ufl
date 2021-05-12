@@ -132,33 +132,56 @@ def test_scalar_mult():
     assert(res)
 
 def test_adjoint():
-    V = FiniteElement("CG", triangle, 1)
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
     a = Matrix(V, V)
 
-    adjoint = Adjoint(a)
-    res = 2 * adjoint
+    adj = adjoint(a)
+    res = 2 * adj
     assert(isinstance(res,FormSum))
     assert(res)
 
-    res = Adjoint(2 * a)
+    res = adjoint(2 * a)
     assert(isinstance(res,FormSum))
     assert(isinstance(res.components()[0], Adjoint))
 
 def test_action():
-    V = FiniteElement("CG", triangle, 1)
-    U = FiniteElement("CG", interval, 1)
-    a = Matrix(V, U)
-    u = Cofunction(U)
-    v = Cofunction(V)
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+    domain_1d = default_domain(interval)
+    f_1d = FiniteElement("CG", interval, 1)
+    U = FunctionSpace(domain_1d, f_1d)
 
-    res = Action(a, u)
+    a = Matrix(V, U)
+    b = Matrix(V, U.dual())
+    u = Coefficient(U)
+    u_a = Argument(U,0)
+    v = Coefficient(V)
+    u_star = Cofunction(U.dual())
+    u_form = u_a * dx
+
+    res = action(a, u)
     assert(res)
     assert(len(res.arguments()) < len(a.arguments()))
+    assert(isinstance(res, Action))
 
-    res = Action(2 * a, u)
+    repeat = action(res, v)
+    assert(repeat)
+    assert(len(repeat.arguments()) < len(res.arguments()))
+
+    res = action(2 * a, u)
     assert(isinstance(res,FormSum))
     assert(isinstance(res.components()[0], Action))
 
-    with pytest.raises(AssertionError):
-        res = Action(a, v)
+    res = action(b, u_form)
+    assert(res)
+    assert(len(res.arguments()) < len(b.arguments()))
+
+    with pytest.raises(TypeError):
+        res = action(a, v)
+
+    with pytest.raises(TypeError):
+        res = action(a, u_star)
 

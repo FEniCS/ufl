@@ -19,6 +19,7 @@ from ufl.log import error, warning, debug
 from ufl.core.expr import ufl_err_str
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
+from ufl.action import Action
 from ufl.constantvalue import Zero
 from ufl.algebra import Conj
 
@@ -446,7 +447,7 @@ def compute_energy_norm(form, coefficient):
         if coefficient.ufl_function_space() != U:
             error("Trying to compute action of form on a "
                   "coefficient in an incompatible element space.")
-    return replace(form, {u: coefficient, v: coefficient})
+    return Action(Action(form, coefficient), coefficient)
 
 
 def compute_form_adjoint(form, reordered_arguments=None):
