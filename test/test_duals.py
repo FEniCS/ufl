@@ -165,6 +165,7 @@ def test_action():
     res = action(a, u)
     assert(res)
     assert(len(res.arguments()) < len(a.arguments()))
+    assert(isinstance(res, Action))
 
     repeat = action(res, v)
     assert(repeat)
