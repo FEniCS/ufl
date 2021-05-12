@@ -166,6 +166,10 @@ def test_action():
     assert(res)
     assert(len(res.arguments()) < len(a.arguments()))
 
+    repeat = action(res, v)
+    assert(repeat)
+    assert(len(repeat.arguments()) < len(res.arguments()))
+
     res = action(2 * a, u)
     assert(isinstance(res,FormSum))
     assert(isinstance(res.components()[0], Action))
