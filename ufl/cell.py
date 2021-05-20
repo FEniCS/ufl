@@ -85,6 +85,7 @@ num_cell_entities = {"vertex": (1,),
                      "triangle": (3, 3, 1),
                      "quadrilateral": (4, 4, 1),
                      "tetrahedron": (4, 6, 4, 1),
+                     "prism": (6, 9, 5, 1),
                      "hexahedron": (8, 12, 6, 1)}
 
 # Mapping from cell name to topological dimension
