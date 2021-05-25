@@ -95,7 +95,7 @@ cubes = ("interval", "quadrilateral", "hexahedron")
 any_cell = (None,
             "vertex", "interval",
             "triangle", "tetrahedron", "prism",
-            "quadrilateral", "hexahedron")
+            "pyramid", "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around
