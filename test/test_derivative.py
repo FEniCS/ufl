@@ -9,9 +9,12 @@ import math
 from itertools import chain
 
 from ufl import *
+from ufl.classes import Indexed, MultiIndex, ReferenceGrad
 from ufl.constantvalue import as_ufl
 from ufl.algorithms import expand_indices, strip_variables, post_traversal, compute_form_data
-
+from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 
 def assertEqualBySampling(actual, expected):
     ad = compute_form_data(actual*dx)
@@ -659,8 +662,37 @@ def test_derivative_replace_works_together(self):
     assertEqualBySampling(J, J2)
     assertEqualBySampling(JR, JR2)
 
-# --- Scratch space
 
+def test_index_simplification_handles_repeated_indices(self):
+    mesh = Mesh(VectorElement("P", quadrilateral, 1))
+    V = FunctionSpace(mesh, TensorElement("DQ", quadrilateral, 0))
+    K = JacobianInverse(mesh)
+    G = outer(Identity(2), Identity(2))
+    i, j, k, l, m, n = indices(6)
+    A = as_tensor(K[m, i] * K[n, j] * G[i, j, k, l], (m, n, k, l))
+    i, j = indices(2)
+    # Can't use A[i, i, j, j] because UFL automagically index-sums
+    # repeated indices in the __getitem__ call.
+    Adiag = Indexed(A, MultiIndex((i, i, j, j)))
+    A = as_tensor(Adiag, (i, j))
+    v = TestFunction(V)
+    f = inner(A, v)*dx
+    fd = compute_form_data(f, do_apply_geometry_lowering=True)
+    integral, = fd.preprocessed_form.integrals()
+    assert integral.integrand().ufl_free_indices == ()
+
+
+def test_index_simplification_reference_grad(self):
+    mesh = Mesh(VectorElement("P", quadrilateral, 1))
+    i, = indices(1)
+    A = as_tensor(Indexed(Jacobian(mesh), MultiIndex((i, i))), (i,))
+    expr = apply_derivatives(apply_geometry_lowering(
+        apply_algebra_lowering(A[0])))
+    assert expr == ReferenceGrad(SpatialCoordinate(mesh))[0, 0]
+    assert expr.ufl_free_indices == ()
+    assert expr.ufl_shape == ()
+
+# --- Scratch space
 
 def test_foobar(self):
     element = VectorElement("Lagrange", triangle, 1)
