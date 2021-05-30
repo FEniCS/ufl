@@ -9,7 +9,7 @@ __date__ = "2008-03-12 -- 2009-01-28"
 import pytest
 from pprint import *
 
-from ufl import (FiniteElement, TestFunction, TrialFunction, triangle,
+from ufl import (FiniteElement, TestFunction, TrialFunction, Matrix, triangle,
                  div, grad, Argument, dx, adjoint, Coefficient,
                  FacetNormal, inner, dot, ds)
 from ufl.algorithms import (extract_arguments, expand_derivatives,

@@ -19,7 +19,9 @@ from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
+from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.duals import is_primal, is_dual
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
@@ -27,19 +29,15 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 
 # --- Class representing an argument (basis function) in a form ---
 
-@ufl_type()
-class Argument(FormArgument):
+class BaseArgument(object):
     """UFL value: Representation of an argument to a form."""
-    __slots__ = (
-        "_ufl_function_space",
-        "_ufl_shape",
-        "_number",
-        "_part",
-        "_repr",
-    )
+    __slots__ = ()
+    _ufl_is_abstract_ = True
+
+    def __getnewargs__(self):
+        return (self._ufl_function_space, self._number, self._part)
 
     def __init__(self, function_space, number, part=None):
-        FormArgument.__init__(self)
 
         if isinstance(function_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map the cell to
@@ -144,6 +142,70 @@ class Argument(FormArgument):
                 self._part == other._part and
                 self._ufl_function_space == other._ufl_function_space)
 
+
+@ufl_type()
+class Argument(FormArgument, BaseArgument):
+    """UFL value: Representation of an argument to a form."""
+    __slots__ = (
+        "_ufl_function_space",
+        "_ufl_shape",
+        "_number",
+        "_part",
+        "_repr",
+    )
+
+    _primal = True
+    _dual = False
+
+    __getnewargs__ = BaseArgument.__getnewargs__
+    __str__ = BaseArgument.__str__
+    _ufl_signature_data_ = BaseArgument._ufl_signature_data_
+
+    def __new__(cls, *args, **kw):
+        if args[0] and is_dual(args[0]):
+            return Coargument(*args, **kw)
+        return super().__new__(cls)
+
+    def __init__(self, function_space, number, part=None):
+        FormArgument.__init__(self)
+        BaseArgument.__init__(self, function_space, number, part)
+
+    def ufl_domains(self):
+        return BaseArgument.ufl_domains(self)
+
+    def __repr__(self):
+        return self._repr
+
+
+class Coargument(BaseForm, BaseArgument):
+    """UFL value: Representation of an argument to a form in a dual space."""
+    __slots__ = (
+        "_ufl_function_space",
+        "_ufl_shape",
+        "_arguments",
+        "_number",
+        "_part",
+        "_repr",
+        "_hash"
+    )
+
+    _primal = False
+    _dual = True
+
+    def __new__(cls, *args, **kw):
+        if args[0] and is_primal(args[0]):
+            return Argument(*args, **kw)
+        return super().__new__(cls)
+
+    def __init__(self, function_space, number, part=None):
+        BaseArgument.__init__(self, function_space, number, part)
+        BaseForm.__init__(self)
+
+    def _analyze_form_arguments(self):
+        "Analyze which Argument and Coefficient objects can be found in the form."
+        # Define canonical numbering of arguments and coefficients
+        self._arguments = (Argument(self._ufl_function_space, 0),)
+
 # --- Helper functions for pretty syntax ---
 
 
@@ -163,7 +225,11 @@ def Arguments(function_space, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     if isinstance(function_space, MixedFunctionSpace):
-        return [Argument(function_space.ufl_sub_space(i), number, i)
+        # return [Argument(function_space.ufl_sub_space(i), number, i)
+        #         for i in range(function_space.num_sub_spaces())]
+        return [Argument(function_space.ufl_sub_spaces()[i], number, i)
+                if is_primal(function_space.ufl_sub_spaces()[i])
+                else Coargument(function_space.ufl_sub_spaces()[i], number, i)
                 for i in range(function_space.num_sub_spaces())]
     else:
         return split(Argument(function_space, number))
