@@ -18,6 +18,7 @@ from ufl.utils.sorting import sorted_by_count, topological_sorting
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
+from ufl.form import Form
 from ufl.constant import Constant
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
@@ -64,7 +65,8 @@ def extract_type(a, ufl_type):
         # Need to extract objects of type ufl_type contained in external operators
         extops = extract_type(a, ExternalOperator)
         extop_objects = tuple(cj for o in extops
-                              for opi in (o.ufl_operands + (o.result_coefficient(),) + tuple(arg for arg in o.argument_slots()))
+                              for opi in (o.ufl_operands + (o.result_coefficient(),) +
+                                          tuple(arg for arg in o.argument_slots(isinstance(a, Form))))
                               for cj in extract_type(opi, ufl_type))
         objects.update(extop_objects)
         return objects
