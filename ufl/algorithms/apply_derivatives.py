@@ -43,6 +43,7 @@ from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.checks import is_cellwise_constant
 from ufl.differentiation import CoordinateDerivative, ExternalOperatorDerivative
 from ufl.action import Action
+from ufl.form import Form
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset
@@ -1220,7 +1221,10 @@ def apply_derivatives(expression):
         return dexpression_dvar
 
     # Don't take into account empty Forms
-    dexpression_dvar = (dexpression_dvar,) if len(dexpression_dvar.integrals()) != 0 else ()
+    if isinstance(dexpression_dvar, Form) and len(dexpression_dvar.integrals()) != 0:
+        dexpression_dvar = (dexpression_dvar,)
+    else:
+        dexpression_dvar = ()
     # Retrieve the external operators, var, and the argument and coefficient_derivatives for `derivative`
     var, der_kwargs, *extops = pending_operations
     for N in extops:
