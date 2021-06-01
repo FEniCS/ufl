@@ -9,6 +9,7 @@
 
 from ufl.form import BaseForm, FormSum, Form
 from ufl.coefficient import Coefficient
+from ufl.core.external_operator import ExternalOperator
 
 # --- The Action class represents the adjoint of a numerical object that needs to be computed at compile time ---
 
@@ -24,7 +25,7 @@ class Action(BaseForm):
         "_right",
         "_repr",
         "_arguments",
-        "_external_operators")
+        "_external_operators",
         "_hash")
     _globalcount = 0
 
@@ -54,7 +55,7 @@ class Action(BaseForm):
         if isinstance(right, Form):
             if self._left.arguments()[-1].ufl_function_space().dual() != self._right.arguments()[0].ufl_function_space():
                 raise TypeError("Incompatible function spaces in Action")
-        elif isinstance(right, Coefficient):
+        elif isinstance(right, (Coefficient, ExternalOperator)):
             if self._left.arguments()[-1].ufl_function_space() != self._right.ufl_function_space():
                 raise TypeError("Incompatible function spaces in Action")
         else:
@@ -78,7 +79,7 @@ class Action(BaseForm):
 
     def _analyze_form_arguments(self):
         "Define arguments of a adjoint of a form as the reverse of the form arguments"
-        if isinstance(self._right, Form):
+        if isinstance(self._right, (Form, ExternalOperator)):
             self._arguments = self._left.arguments()[:-1] + self._right.arguments()[1:]
         elif isinstance(self._right, Coefficient):
             self._arguments = self._left.arguments()[:-1]
@@ -87,7 +88,19 @@ class Action(BaseForm):
 
     def _analyze_external_operators(self):
         "Define external_operators of Action"
-        self._external_operators = tuple(set(self._left.external_operators() + self._right.external_operators()))
+        if isinstance(self._right, (Form, ExternalOperator)):
+            self._external_operators = tuple(set(self._left.external_operators() + self._right.external_operators()))
+        elif isinstance(self._right, Coefficient):
+            self._external_operators = self._left.external_operators()
+        else:
+            raise TypeError
+
+    def __eq__(self, other):
+        if not isinstance(other, Action):
+            return False
+        if self is other:
+            return True
+        return (self._left == other._left)
 
     def __str__(self):
         return "Action(%s, %s)" % (repr(self._left), repr(self._right))
