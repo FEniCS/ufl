@@ -28,7 +28,8 @@ class Matrix(BaseForm):
         "_repr",
         "_hash",
         "_ufl_shape",
-        "_arguments")
+        "_arguments",
+        "_external_operators")
     _globalcount = 0
 
     def __getnewargs__(self):

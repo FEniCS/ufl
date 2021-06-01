@@ -186,6 +186,7 @@ class Coargument(BaseForm, BaseArgument):
         "_number",
         "_part",
         "_repr",
+        "_external_operators",
         "_hash"
     )
 
