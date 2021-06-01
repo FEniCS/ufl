@@ -113,14 +113,20 @@ class ExternalOperator(Operator, BaseForm):
     # def get_coefficient(self):
     #         TODO: was replaced -> get_coefficient() = result_coefficient()
 
-    def argument_slots(self):
+    def argument_slots(self, outer_form=False):
         r"""Returns a tuple of expressions containing argument and coefficient based expressions.
             We get an argument uhat when we take the Gateaux derivative in the direction uhat:
                 -> d/du N(u; v*) = dNdu(u; uhat, v*) where uhat is a ufl.Argument and v* a ufl.Coargument
             Applying the action replace the last argument by coefficient:
                 -> action(dNdu(u; uhat, v*), w) = dNdu(u; w, v*) where du is a ufl.Coefficient
         """
-        return self._argument_slots
+        if not outer_form:
+            return self._argument_slots
+        # Takes into account argument contraction when an external operator is in an outer form:
+        # For example:
+        #   F = N(u; v*) * v * dx can be seen as Action(v1 * v * dx, N(u; v*))
+        #   => F.arguments() should return (v,)!
+        return self._argument_slots[1:]
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the base form."
@@ -128,7 +134,13 @@ class ExternalOperator(Operator, BaseForm):
         arguments = tuple(a for arg in self.argument_slots() for a in extract_arguments(arg))
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
-        self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
+        from collections import OrderedDict
+        # Need concept of order since we may have arguments with the same number
+        # because of `argument_slots(outer_form=True)`:
+        #  Example: Let u \in V1 and N \in V2 and F = N(u; v*) * dx, then
+        #  `derivative(F, u)` will contain dNdu(u; uhat, v*) with v* = Argument(0, V2)
+        #  and uhat = Argument(0, V1) (since F.arguments() = ())
+        self._arguments = tuple(sorted(OrderedDict.fromkeys(arguments), key=lambda x: x.number()))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def _analyze_external_operators(self):
