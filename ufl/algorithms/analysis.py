@@ -20,6 +20,7 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.form import Form
 from ufl.constant import Constant
+from ufl.form import BaseForm, Form
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
 from ufl.core.external_operator import ExternalOperator
@@ -56,6 +57,14 @@ def __unused__extract_classes(a):
 def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
     The argument a can be a Form, Integral or Expr."""
+
+    # BaseForms that aren't forms only have arguments
+    if isinstance(a, BaseForm) and not isinstance(a, Form):
+        if issubclass(ufl_type, Argument):
+            return set(a.arguments())
+        else:
+            return set()
+    
     if issubclass(ufl_type, Terminal):
         # Optimization
         objects = set(o for e in iter_expressions(a)
