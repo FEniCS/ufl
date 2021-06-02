@@ -48,7 +48,7 @@ class Adjoint(BaseForm):
 
     def _analyze_form_arguments(self):
         "Define arguments of a adjoint of a form as the reverse of the form arguments"
-        self._arguments = self._form._arguments[::-1]
+        self._arguments = self._form.arguments()[::-1]
 
     def _analyze_external_operators(self):
         "Define external_operators of Adjoint"
