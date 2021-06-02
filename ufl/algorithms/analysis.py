@@ -62,7 +62,7 @@ def extract_type(a, ufl_type):
             return set(a.arguments())
         else:
             return set()
-    
+
     if issubclass(ufl_type, Terminal):
         # Optimization
         return set(o for e in iter_expressions(a)
