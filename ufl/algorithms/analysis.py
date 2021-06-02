@@ -18,7 +18,6 @@ from ufl.utils.sorting import sorted_by_count, topological_sorting
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.form import Form
 from ufl.constant import Constant
 from ufl.form import BaseForm, Form
 from ufl.algorithms.traversal import iter_expressions
@@ -58,8 +57,8 @@ def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
     The argument a can be a Form, Integral or Expr."""
 
-    # BaseForms that aren't forms only have arguments
-    if isinstance(a, BaseForm) and not isinstance(a, Form):
+    # BaseForms that aren't forms or external operators only have arguments
+    if isinstance(a, BaseForm) and not isinstance(a, (Form, ExternalOperator)):
         if issubclass(ufl_type, Argument):
             return set(a.arguments())
         else:
