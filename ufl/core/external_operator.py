@@ -284,7 +284,8 @@ class ExternalOperator(Operator, BaseForm):
     def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
         coefficient_signature = self.result_coefficient()._ufl_signature_data_(renumbering)
-        return ("ExternalOperator", *self.is_type_global, *coefficient_signature, *self.derivatives)
+        # TODO: Do we need anything else in the signature?
+        return ("ExternalOperator", *coefficient_signature, *self.derivatives)
 
     def __eq__(self, other):
         if not isinstance(other, ExternalOperator):

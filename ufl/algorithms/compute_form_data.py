@@ -354,7 +354,7 @@ def compute_form_data(form,
     extop_dict = {}
 
     for e in form.external_operators():
-        e_coeff = e.get_coefficient()
+        e_coeff = e.result_coefficient()
         if e_coeff in self.reduced_coefficients:
             eid = extops_pos[e._extop_master._count]
             if eid not in derivatives_dict.keys():
