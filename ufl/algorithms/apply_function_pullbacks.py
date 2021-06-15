@@ -249,7 +249,7 @@ class FunctionPullbackApplier(MultiFunction):
         return t
 
     def external_operator(self, e):
-        return e._ufl_expr_reconstruct_(*e.ufl_operands, coefficient=apply_single_function_pullbacks(e.coefficient()))
+        return e._ufl_expr_reconstruct_(*e.ufl_operands, result_coefficient=apply_single_function_pullbacks(e.result_coefficient(unpack_reference=False)))
 
     @memoized_handler
     def form_argument(self, o):
