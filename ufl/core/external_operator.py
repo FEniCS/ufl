@@ -16,7 +16,6 @@ from ufl.core.operator import Operator
 from ufl.form import BaseForm
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import as_ufl
-from ufl.log import error
 from ufl.finiteelement.finiteelement import FiniteElement
 from ufl.finiteelement.mixedelement import VectorElement, TensorElement
 from ufl.functionspace import FunctionSpace
@@ -224,9 +223,9 @@ class ExternalOperator(Operator, BaseForm):
         # and its implementation may be needed in some cases (e.g. convolution operator).
         raise NotImplementedError('Symbolic gradient not defined for the external operator considered!')
 
-    def assemble(self, x, mapping, component, index_values):
-        """Evaluate expression at given coordinate with given values for terminals."""
-        error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
+    def assemble(self, *args, **kwargs):
+        """Assemble the external operator"""
+        raise NotImplementedError("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
     def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, result_coefficient=None, argument_slots=None, add_kwargs={}):
         "Return a new object of the same type with new operands."
