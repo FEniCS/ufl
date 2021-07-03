@@ -55,8 +55,8 @@ class ExternalOperator(Operator, BaseForm):
                 raise TypeError("Expecting a tuple for derivatives and not %s" % derivatives)
             if not len(derivatives) == len(self.ufl_operands):
                 raise ValueError("Expecting a size of %s for %s" % (len(self.ufl_operands), derivatives))
-            if any(d < 0 for d in derivatives) or not all(isinstance(d, int) for d in derivatives):
-                raise ValueError("Expecting a derivative multi-index with nonnegative indices and not %s" % derivatives)
+            if not all(isinstance(d, int) for d in derivatives) or any(d < 0 for d in derivatives):
+                raise ValueError("Expecting a derivative multi-index with nonnegative indices and not %s" % str(derivatives))
 
             self.derivatives = derivatives
             # If we have arguments obtained from a Gateaux-derivative,
