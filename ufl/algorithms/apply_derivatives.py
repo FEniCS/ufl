@@ -492,7 +492,7 @@ class GradRuleset(GenericDerivativeRuleset):
 
     def geometric_quantity(self, o):
         """Default for geometric quantities is do/dx = 0 if piecewise constant,
-        otherwise transform grad(o) to reference_grad(o).
+        otherwise transform derivatives to reference derivatives.
         Override for specific types if other behaviour is needed."""
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
