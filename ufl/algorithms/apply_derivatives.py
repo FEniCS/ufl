@@ -593,11 +593,11 @@ class GradRuleset(GenericDerivativeRuleset):
 
     def _grad_to_reference_grad(self, o, K):
         """Relates grad(o) to reference_grad(o) using the Jacobian inverse.
-            Parameters:
+            Parameters
             o: operand
             K: Jacobian inverse
 
-            Returns:
+            Returns
             grad(o) written in terms of reference_grad(o) and K"""
         r = indices(len(o.ufl_shape))
         i, j = indices(2)
