@@ -498,7 +498,10 @@ class GradRuleset(GenericDerivativeRuleset):
         else:
             # TODO: Which types does this involve? I don't think the
             # form compilers will handle this.
-            return Grad(o)
+            domain = o.ufl_domain()
+            K = JacobianInverse(domain)
+            Do = self._grad_to_reference_grad(o, K)
+            return Do
 
     def jacobian_inverse(self, o):
         # grad(K) == K_ji rgrad(K)_rj
