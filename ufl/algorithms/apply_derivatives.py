@@ -591,9 +591,10 @@ class GradRuleset(GenericDerivativeRuleset):
         # 2) if not f.has_derivatives(n): return zero(...)
 
     def _grad_to_reference_grad(self, o, K):
-        "Transforms grad to reference_grad"
+        "Transforms grad(o) to reference_grad(o)."
         r = indices(len(o.ufl_shape))
         i, j = indices(2)
+        # grad(o) == K_ji rgrad(o)_rj
         Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
 
