@@ -491,7 +491,8 @@ class GradRuleset(GenericDerivativeRuleset):
     # --- Specialized rules for geometric quantities
 
     def geometric_quantity(self, o):
-        """Default for geometric quantities is dg/dx = 0 if piecewise constant, otherwise keep Grad(g).
+        """Default for geometric quantities is do/dx = 0 if piecewise constant,
+        otherwise transform grad(o) to reference_grad(o).
         Override for specific types if other behaviour is needed."""
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
