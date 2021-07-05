@@ -506,9 +506,7 @@ class GradRuleset(GenericDerivativeRuleset):
             return self.independent_terminal(o)
         if not o._ufl_is_terminal_:
             error("ReferenceValue can only wrap a terminal")
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        Do = as_tensor(o[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = self._grad_to_reference_grad(o, o)
         return Do
 
     # TODO: Add more explicit geometry type handlers here, with
@@ -552,9 +550,7 @@ class GradRuleset(GenericDerivativeRuleset):
             error("ReferenceValue can only wrap a terminal")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = self._grad_to_reference_grad(o, K)
         return Do
 
     def reference_grad(self, o):
@@ -566,9 +562,7 @@ class GradRuleset(GenericDerivativeRuleset):
             error("ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = self._grad_to_reference_grad(o, K)
         return Do
 
     # --- Nesting of gradients
@@ -592,6 +586,13 @@ class GradRuleset(GenericDerivativeRuleset):
         #       if we should make a zero here?
         # 1) n = count number of Grads, get f
         # 2) if not f.has_derivatives(n): return zero(...)
+
+    def _grad_to_reference_grad(self, o, K):
+        "Transforms grad to reference_grad"
+        r = indices(len(o.ufl_shape))
+        i, j = indices(2)
+        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        return Do
 
     cell_avg = GenericDerivativeRuleset.independent_operator
     facet_avg = GenericDerivativeRuleset.independent_operator
