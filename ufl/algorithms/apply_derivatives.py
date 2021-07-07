@@ -1154,7 +1154,10 @@ class DerivativeRuleDispatcher(MultiFunction):
         rules = GateauxDerivativeRuleset(w, v, cd)
         mapped_expr = map_expr_dag(rules, f)
         # We need to go through the dag first to record the pending operations
-        self.pending_operations = rules.pending_operations
+        var, der_kwargs, *extops = rules.pending_operations
+        # Need to account for pending operations that have been stored in other integrands
+        extops = self.pending_operations[2:] + tuple(extops)
+        self.pending_operations = (var, der_kwargs, *extops)
         return mapped_expr
 
     def external_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
@@ -1162,7 +1165,10 @@ class DerivativeRuleDispatcher(MultiFunction):
         rules = GateauxDerivativeRuleset(w, v, cd)
         dfs = tuple(map_expr_dag(rules, op) for op in f.ufl_operands)
         # We need to go through the dag first to record the pending operations
-        self.pending_operations = rules.pending_operations
+        var, der_kwargs, *extops = rules.pending_operations
+        # Need to account for pending operations that have been stored in other integrands
+        extops = self.pending_operations[2:] + tuple(extops)
+        self.pending_operations = (var, der_kwargs, *extops)
         return GenericDerivativeRuleset.external_operator(self, f, *dfs)
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
