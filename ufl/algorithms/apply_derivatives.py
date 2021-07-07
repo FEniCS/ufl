@@ -491,14 +491,16 @@ class GradRuleset(GenericDerivativeRuleset):
     # --- Specialized rules for geometric quantities
 
     def geometric_quantity(self, o):
-        """Default for geometric quantities is dg/dx = 0 if piecewise constant, otherwise keep Grad(g).
+        """Default for geometric quantities is do/dx = 0 if piecewise constant,
+        otherwise transform derivatives to reference derivatives.
         Override for specific types if other behaviour is needed."""
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
         else:
-            # TODO: Which types does this involve? I don't think the
-            # form compilers will handle this.
-            return Grad(o)
+            domain = o.ufl_domain()
+            K = JacobianInverse(domain)
+            Do = grad_to_reference_grad(o, K)
+            return Do
 
     def jacobian_inverse(self, o):
         # grad(K) == K_ji rgrad(K)_rj
@@ -506,9 +508,7 @@ class GradRuleset(GenericDerivativeRuleset):
             return self.independent_terminal(o)
         if not o._ufl_is_terminal_:
             error("ReferenceValue can only wrap a terminal")
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        Do = as_tensor(o[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = grad_to_reference_grad(o, o)
         return Do
 
     # TODO: Add more explicit geometry type handlers here, with
@@ -552,9 +552,7 @@ class GradRuleset(GenericDerivativeRuleset):
             error("ReferenceValue can only wrap a terminal")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = grad_to_reference_grad(o, K)
         return Do
 
     def reference_grad(self, o):
@@ -566,9 +564,7 @@ class GradRuleset(GenericDerivativeRuleset):
             error("ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = grad_to_reference_grad(o, K)
         return Do
 
     # --- Nesting of gradients
@@ -595,6 +591,26 @@ class GradRuleset(GenericDerivativeRuleset):
 
     cell_avg = GenericDerivativeRuleset.independent_operator
     facet_avg = GenericDerivativeRuleset.independent_operator
+
+
+def grad_to_reference_grad(o, K):
+    """Relates grad(o) to reference_grad(o) using the Jacobian inverse.
+
+    Args
+    ----
+    o: Operand
+    K: Jacobian inverse
+
+    Returns
+    -------
+    Do: grad(o) written in terms of reference_grad(o) and K
+
+    """
+    r = indices(len(o.ufl_shape))
+    i, j = indices(2)
+    # grad(o) == K_ji rgrad(o)_rj
+    Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+    return Do
 
 
 class ReferenceGradRuleset(GenericDerivativeRuleset):
