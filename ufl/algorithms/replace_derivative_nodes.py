@@ -17,13 +17,20 @@ class DerivativeNodeReplacer(MultiFunction):
 
     expr = MultiFunction.reuse_if_untouched
 
-    def coefficient_derivative(self, cd, o, coefficients, arguments, coefficient_derivatives):
-        new_coefficients = tuple(self.mapping[c] if c in self.mapping.keys() else c for c in coefficients.ufl_operands)
-        return ufl.derivative(o, new_coefficients, **self.der_kwargs)
+    # TODO: Add other derivative nodes?
 
-    def derivative(self, d, *args):
-        # TODO: Raise Error?
-        pass
+    def coefficient_derivative(self, cd, o, coefficients, arguments, coefficient_derivatives):
+        der_kwargs = self.der_kwargs
+        new_coefficients = tuple(self.mapping[c] if c in self.mapping.keys() else c for c in coefficients.ufl_operands)
+
+        # Ensure type compatibility for arguments!
+        if 'argument' not in der_kwargs.keys():
+            # Argument's number/part can be retrieved from the former coefficient derivative.
+            arguments = tuple(type(a)(c.ufl_function_space(), a.number(), a.part())
+                              for c, a in zip(new_coefficients, arguments.ufl_operands))
+            der_kwargs.update({'argument': arguments})
+
+        return ufl.derivative(o, new_coefficients, **der_kwargs)
 
 
 def replace_derivative_nodes(expr, mapping, **derivative_kwargs):
