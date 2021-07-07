@@ -21,6 +21,7 @@ __all__ = [
     "estimate_total_polynomial_degree",
     "sort_elements",
     "compute_form_data",
+    "preprocess_form",
     "purge_list_tensors",
     "apply_transformer",
     "ReuseTransformer",
@@ -80,7 +81,7 @@ from ufl.algorithms.analysis import (
 
 # Preprocessing a form to extract various meta data
 # from ufl.algorithms.formdata import FormData
-from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.algorithms.compute_form_data import compute_form_data, preprocess_form
 
 # Utilities for checking properties of forms
 from ufl.algorithms.signature import compute_form_signature

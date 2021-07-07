@@ -210,31 +210,7 @@ def attach_estimated_degrees(form):
     return Form(new_integrals)
 
 
-def compute_form_data(form,
-                      # Default arguments configured to behave the way old FFC expects it:
-                      do_apply_function_pullbacks=False,
-                      do_apply_integral_scaling=False,
-                      do_apply_geometry_lowering=False,
-                      preserve_geometry_types=(),
-                      do_apply_default_restrictions=True,
-                      do_apply_restrictions=True,
-                      do_estimate_degrees=True,
-                      do_append_everywhere_integrals=True,
-                      complex_mode=False,
-                      ):
-
-    # TODO: Move this to the constructor instead
-    self = FormData()
-
-    # --- Store untouched form for reference.
-    # The user of FormData may get original arguments,
-    # original coefficients, and form signature from this object.
-    # But be aware that the set of original coefficients are not
-    # the same as the ones used in the final UFC form.
-    # See 'reduced_coefficients' below.
-    self.original_form = form
-
-    # --- Pass form integrands through some symbolic manipulation
+def preprocess_form(form, complex_mode):
 
     # Note: Default behaviour here will process form the way that is
     # currently expected by vanilla FFC
@@ -261,6 +237,37 @@ def compute_form_data(form,
     # after coefficients are rewritten, and in particular for
     # user-defined coefficient relations it just gets too messy
     form = apply_derivatives(form)
+
+    return form
+
+
+def compute_form_data(form,
+                      # Default arguments configured to behave the way old FFC expects it:
+                      do_apply_function_pullbacks=False,
+                      do_apply_integral_scaling=False,
+                      do_apply_geometry_lowering=False,
+                      preserve_geometry_types=(),
+                      do_apply_default_restrictions=True,
+                      do_apply_restrictions=True,
+                      do_estimate_degrees=True,
+                      do_append_everywhere_integrals=True,
+                      complex_mode=False,
+                      ):
+
+    # TODO: Move this to the constructor instead
+    self = FormData()
+
+    # --- Store untouched form for reference.
+    # The user of FormData may get original arguments,
+    # original coefficients, and form signature from this object.
+    # But be aware that the set of original coefficients are not
+    # the same as the ones used in the final UFC form.
+    # See 'reduced_coefficients' below.
+    self.original_form = form
+
+    # --- Pass form integrands through some symbolic manipulation
+
+    form = preprocess_form(form, complex_mode)
 
     # --- Group form integrals
     # TODO: Refactor this, it's rather opaque what this does
