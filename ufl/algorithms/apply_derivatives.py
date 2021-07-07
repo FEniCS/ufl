@@ -497,8 +497,6 @@ class GradRuleset(GenericDerivativeRuleset):
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
         else:
-            # TODO: Which types does this involve? I don't think the
-            # form compilers will handle this.
             domain = o.ufl_domain()
             K = JacobianInverse(domain)
             Do = grad_to_reference_grad(o, K)
