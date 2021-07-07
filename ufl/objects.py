@@ -33,6 +33,8 @@ vertex = Cell("vertex", 0)
 interval = Cell("interval", 1)
 triangle = Cell("triangle", 2)
 tetrahedron = Cell("tetrahedron", 3)
+prism = Cell("prism", 3)
+pyramid = Cell("pyramid", 3)
 quadrilateral = Cell("quadrilateral", 2)
 hexahedron = Cell("hexahedron", 3)
 
