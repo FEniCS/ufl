@@ -501,7 +501,7 @@ class GradRuleset(GenericDerivativeRuleset):
             # form compilers will handle this.
             domain = o.ufl_domain()
             K = JacobianInverse(domain)
-            Do = self._grad_to_reference_grad(o, K)
+            Do = grad_to_reference_grad(o, K)
             return Do
 
     def jacobian_inverse(self, o):
@@ -510,7 +510,7 @@ class GradRuleset(GenericDerivativeRuleset):
             return self.independent_terminal(o)
         if not o._ufl_is_terminal_:
             error("ReferenceValue can only wrap a terminal")
-        Do = self._grad_to_reference_grad(o, o)
+        Do = grad_to_reference_grad(o, o)
         return Do
 
     # TODO: Add more explicit geometry type handlers here, with
@@ -554,7 +554,7 @@ class GradRuleset(GenericDerivativeRuleset):
             error("ReferenceValue can only wrap a terminal")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        Do = self._grad_to_reference_grad(o, K)
+        Do = grad_to_reference_grad(o, K)
         return Do
 
     def reference_grad(self, o):
@@ -566,7 +566,7 @@ class GradRuleset(GenericDerivativeRuleset):
             error("ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        Do = self._grad_to_reference_grad(o, K)
+        Do = grad_to_reference_grad(o, K)
         return Do
 
     # --- Nesting of gradients
@@ -591,27 +591,28 @@ class GradRuleset(GenericDerivativeRuleset):
         # 1) n = count number of Grads, get f
         # 2) if not f.has_derivatives(n): return zero(...)
 
-    def _grad_to_reference_grad(self, o, K):
-        """Relates grad(o) to reference_grad(o) using the Jacobian inverse.
-
-        Args
-        ----
-        o: operand
-        K: Jacobian inverse
-
-        Returns
-        -------
-        Do: grad(o) written in terms of reference_grad(o) and K
-
-        """
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        # grad(o) == K_ji rgrad(o)_rj
-        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
-        return Do
-
     cell_avg = GenericDerivativeRuleset.independent_operator
     facet_avg = GenericDerivativeRuleset.independent_operator
+
+
+def grad_to_reference_grad(o, K):
+    """Relates grad(o) to reference_grad(o) using the Jacobian inverse.
+
+    Args
+    ----
+    o: Operand
+    K: Jacobian inverse
+
+    Returns
+    -------
+    Do: grad(o) written in terms of reference_grad(o) and K
+
+    """
+    r = indices(len(o.ufl_shape))
+    i, j = indices(2)
+    # grad(o) == K_ji rgrad(o)_rj
+    Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+    return Do
 
 
 class ReferenceGradRuleset(GenericDerivativeRuleset):
