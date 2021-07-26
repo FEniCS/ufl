@@ -32,7 +32,6 @@ class Action(BaseForm):
         "_repr",
         "_arguments",
         "_hash")
-    _globalcount = 0
 
     def __getnewargs__(self):
         return (self._left, self._right)
