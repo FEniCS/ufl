@@ -38,9 +38,7 @@ class Action(BaseForm):
         return (self._left, self._right)
 
     def __new__(cls, *args, **kw):
-        assert(len(args) == 2)
-        left = args[0]
-        right = args[1]
+        left, right = args
 
         if isinstance(left, FormSum):
             # Action distributes over sums on the LHS
