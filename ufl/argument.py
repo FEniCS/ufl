@@ -225,11 +225,7 @@ def Arguments(function_space, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     if isinstance(function_space, MixedFunctionSpace):
-        # return [Argument(function_space.ufl_sub_space(i), number, i)
-        #         for i in range(function_space.num_sub_spaces())]
-        return [Argument(function_space.ufl_sub_spaces()[i], number, i)
-                if is_primal(function_space.ufl_sub_spaces()[i])
-                else Coargument(function_space.ufl_sub_spaces()[i], number, i)
+        return [Argument(function_space.ufl_sub_space(i), number, i)
                 for i in range(function_space.num_sub_spaces())]
     else:
         return split(Argument(function_space, number))

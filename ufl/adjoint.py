@@ -40,7 +40,7 @@ class Adjoint(BaseForm):
     def __init__(self, form):
         BaseForm.__init__(self)
 
-        if len(form.arguments) != 2:
+        if len(form.arguments()) != 2:
             raise ValueError("Can only take Adjoint of a 2-form.")
 
         self._form = form

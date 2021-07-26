@@ -26,7 +26,6 @@ from ufl.algebra import Conj
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.transformer import Transformer
 from ufl.algorithms.replace import replace
-from ufl.formoperators import action
 
 
 # FIXME: Don't use this below, it makes partextracter more expensive than necessary
@@ -428,6 +427,8 @@ def compute_energy_norm(form, coefficient):
     Arguments, and one additional Coefficient at the
     end if no coefficient has been provided.
     """
+    from ufl.formoperators import action  # Delayed import to avoid circularity
+
     arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
