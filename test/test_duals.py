@@ -1,7 +1,10 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-from ufl import *
+from ufl import FiniteElement, FunctionSpace, MixedFunctionSpace, \
+    Coefficient, Matrix, Cofunction, FormSum, Argument, Coargument,\
+    TestFunction, TrialFunction, Adjoint, Action, \
+    action, adjoint, tetrahedron, triangle, interval, dx
 
 __authors__ = "India Marsden"
 __date__ = "2020-12-28 -- 2020-12-28"
@@ -9,8 +12,7 @@ __date__ = "2020-12-28 -- 2020-12-28"
 import pytest
 
 from ufl.domain import default_domain
-from ufl.duals import is_primal,is_dual
-
+from ufl.duals import is_primal, is_dual
 
 
 def test_mixed_functionspace(self):
@@ -35,7 +37,7 @@ def test_mixed_functionspace(self):
     assert(is_primal(V_1d))
     assert(is_primal(V))
 
-     # Get dual of V_3
+    # Get dual of V_3
     V_dual = V_3d.dual()
 
     #  Test dual functions on MixedFunctionSpace = V_dual x V_2d x V_1d
@@ -45,6 +47,7 @@ def test_mixed_functionspace(self):
     assert(is_dual(V_dual))
     assert(not is_dual(V))
     assert(is_dual(V_mixed_dual))
+
 
 def test_dual_coefficients():
     domain_2d = default_domain(triangle)
@@ -69,13 +72,14 @@ def test_dual_coefficients():
     assert(is_primal(x))
     assert(not is_dual(x))
 
+
 def test_dual_arguments():
     domain_2d = default_domain(triangle)
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
 
-    v = Argument(V,1)
+    v = Argument(V, 1)
     u = Argument(V_dual, 2)
     w = Coargument(V_dual, 3)
     x = Coargument(V, 4)
@@ -92,6 +96,7 @@ def test_dual_arguments():
     assert(is_primal(x))
     assert(not is_dual(x))
 
+
 def test_addition():
     domain_2d = default_domain(triangle)
     f_2d = FiniteElement("CG", triangle, 1)
@@ -105,14 +110,15 @@ def test_addition():
     L = v * dx
     a = Cofunction(V_dual)
     res = L + a
-    assert(isinstance(res,FormSum))
+    assert(isinstance(res, FormSum))
     assert(res)
 
     L = u * v * dx
     a = Matrix(V, V)
     res = L + a
-    assert(isinstance(res,FormSum))
+    assert(isinstance(res, FormSum))
     assert(res)
+
 
 def test_scalar_mult():
     domain_2d = default_domain(triangle)
@@ -123,13 +129,14 @@ def test_scalar_mult():
     # linear 1-form
     a = Cofunction(V_dual)
     res = 2 * a
-    assert(isinstance(res,FormSum))
+    assert(isinstance(res, FormSum))
     assert(res)
 
     a = Matrix(V, V)
     res = 2 * a
-    assert(isinstance(res,FormSum))
+    assert(isinstance(res, FormSum))
     assert(res)
+
 
 def test_adjoint():
     domain_2d = default_domain(triangle)
@@ -139,12 +146,13 @@ def test_adjoint():
 
     adj = adjoint(a)
     res = 2 * adj
-    assert(isinstance(res,FormSum))
+    assert(isinstance(res, FormSum))
     assert(res)
 
     res = adjoint(2 * a)
-    assert(isinstance(res,FormSum))
+    assert(isinstance(res, FormSum))
     assert(isinstance(res.components()[0], Adjoint))
+
 
 def test_action():
     domain_2d = default_domain(triangle)
@@ -157,7 +165,7 @@ def test_action():
     a = Matrix(V, U)
     b = Matrix(V, U.dual())
     u = Coefficient(U)
-    u_a = Argument(U,0)
+    u_a = Argument(U, 0)
     v = Coefficient(V)
     u_star = Cofunction(U.dual())
     u_form = u_a * dx
@@ -172,7 +180,7 @@ def test_action():
     assert(len(repeat.arguments()) < len(res.arguments()))
 
     res = action(2 * a, u)
-    assert(isinstance(res,FormSum))
+    assert(isinstance(res, FormSum))
     assert(isinstance(res.components()[0], Action))
 
     res = action(b, u_form)
@@ -184,4 +192,3 @@ def test_action():
 
     with pytest.raises(TypeError):
         res = action(a, u_star)
-
