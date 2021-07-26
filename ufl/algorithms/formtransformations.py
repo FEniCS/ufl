@@ -19,7 +19,6 @@ from ufl.log import error, warning, debug
 from ufl.core.expr import ufl_err_str
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.action import Action
 from ufl.constantvalue import Zero
 from ufl.algebra import Conj
 
@@ -27,6 +26,7 @@ from ufl.algebra import Conj
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.transformer import Transformer
 from ufl.algorithms.replace import replace
+from ufl.formoperators import action
 
 
 # FIXME: Don't use this below, it makes partextracter more expensive than necessary
@@ -447,7 +447,7 @@ def compute_energy_norm(form, coefficient):
         if coefficient.ufl_function_space() != U:
             error("Trying to compute action of form on a "
                   "coefficient in an incompatible element space.")
-    return Action(Action(form, coefficient), coefficient)
+    return action(action(form, coefficient), coefficient)
 
 
 def compute_form_adjoint(form, reordered_arguments=None):
