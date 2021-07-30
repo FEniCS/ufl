@@ -145,19 +145,18 @@ class BaseForm(object):
         return NotImplemented
 
     def __mul__(self, coefficient):
-        "UFL form operator: Take the action of this form on the given coefficient."
+        "Take the action of this form on the given coefficient."
         if isinstance(coefficient, Expr):
             from ufl.formoperators import action
             return action(self, coefficient)
         return NotImplemented
 
     def __ne__(self, other):
-        "Immediate evaluation of the != operator (as opposed to the == operator)."
+        "Immediately evaluate the != operator (as opposed to the == operator)."
         return not self.equals(other)
 
     def __call__(self, *args, **kwargs):
-        """UFL form operator: Evaluate form by replacing arguments and
-        coefficients.
+        """Evaluate form by replacing arguments and coefficients.
 
         Replaces form.arguments() with given positional arguments in
         same number and ordering. Number of positional arguments must
@@ -251,7 +250,6 @@ class Form(BaseForm):
         self._subdomain_data = None
 
         # Internal variables for caching form argument data
-        # self._arguments = None
         self._coefficients = None
         self._coefficient_numbering = None
 
