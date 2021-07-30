@@ -9,15 +9,20 @@
 #
 # Modified by India Marsden, 2021
 
-# from ufl.log import error
-# from ufl.functionspace import FunctionSpace, DualSpace, MixedFunctionSpace
-
 
 def is_primal(object):
-    """ Determines if the object belongs to a primal space"""
+    """Determine if the object belongs to a primal space
+    
+    This is not simply the negation of :func:`is_dual`, 
+    because a mixed function space containing both primal 
+    and dual components is neither primal nor dual."""
     return hasattr(object, '_primal') and object._primal
 
 
 def is_dual(object):
-    """ Determines if the object belongs to a dual space"""
+    """Determine if the object belongs to a dual space
+    
+    This is not simply the negation of :func:`is_primal`, 
+    because a mixed function space containing both primal 
+    and dual components is neither primal nor dual."""
     return hasattr(object, '_dual') and object._dual
