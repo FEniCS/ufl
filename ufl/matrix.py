@@ -9,18 +9,17 @@
 
 
 from ufl.log import error
-from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.form import BaseForm
 from ufl.argument import Argument
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
+from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import counted_init
 
 
 # --- The Matrix class represents a matrix, an assembled two form ---
 
 class Matrix(BaseForm):
-    """UFL form argument type: Parent Representation of a form coefficient."""
+    """An assemble linear operator between two function spaces."""
 
     __slots__ = (
         "_count",
@@ -38,36 +37,17 @@ class Matrix(BaseForm):
         BaseForm.__init__(self)
         counted_init(self, count, Matrix)
 
-        if isinstance(row_space, FiniteElementBase):
-            # For legacy support for .ufl files using cells, we map
-            # the cell to The Default Mesh
-            element = row_space
-            domain = default_domain(element.cell())
-            row_space = FunctionSpace(domain, element)
-        elif not isinstance(row_space, AbstractFunctionSpace):
-            error("Expecting a FunctionSpace or FiniteElement as the row space.")
+        if not isinstance(row_space, AbstractFunctionSpace):
+            error("Expecting a FunctionSpace as the row space.")
 
-        if isinstance(column_space, FiniteElementBase):
-            # For legacy support for .ufl files using cells, we map
-            # the cell to The Default Mesh
-            element = column_space
-            domain = default_domain(element.cell())
-            column_space = FunctionSpace(domain, element)
         if not isinstance(column_space, AbstractFunctionSpace):
-            error("Expecting a FunctionSpace or FiniteElement as the column space.")
+            error("Expecting a FunctionSpace as the column space.")
 
         self._ufl_function_spaces = (row_space, column_space)
-        #  TODO figure out what this should actually be
-        self._ufl_shape = row_space.ufl_element().value_shape()
 
         self._hash = None
         self._repr = "Matrix(%s,%s, %s)" % (
             repr(self._ufl_function_spaces[0]), repr(self._ufl_function_spaces[1]), repr(self._count))
-
-    @property
-    def ufl_shape(self):
-        "Return the associated UFL shape."
-        return self._ufl_shape
 
     def count(self):
         return self._count
