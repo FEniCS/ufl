@@ -59,11 +59,13 @@ class Action(BaseForm):
         if isinstance(right, Form):
             if (left.arguments()[-1].ufl_function_space().dual()
                 != right.arguments()[0].ufl_function_space()):
-                    raise TypeError("Incompatible function spaces in Action")
+
+                raise TypeError("Incompatible function spaces in Action")
         elif isinstance(right, Coefficient):
             if (left.arguments()[-1].ufl_function_space()
                 != right.ufl_function_space()):
-                    raise TypeError("Incompatible function spaces in Action")
+
+                raise TypeError("Incompatible function spaces in Action")
         else:
             raise TypeError("Incompatible argument in Action")
 
