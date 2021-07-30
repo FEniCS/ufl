@@ -184,7 +184,7 @@ class MixedFunctionSpace(AbstractFunctionSpace):
 
         If no additional arguments are passed then a MixedFunctionSpace is
         returned whose components are the duals of the originals.
-        
+
         If additional arguments are passed, these must be integers. In this
         case, the MixedFunctionSpace which is returned will have dual
         components in the positions corresponding to the arguments passed, and
@@ -236,8 +236,8 @@ class MixedFunctionSpace(AbstractFunctionSpace):
 
     def _ufl_signature_data_(self, renumbering):
         return ("MixedFunctionSpace",) \
-        + tuple(V._ufl_signature_data_(renumbering)
-                for V in self.ufl_sub_spaces())
+            + tuple(V._ufl_signature_data_(renumbering)
+                    for V in self.ufl_sub_spaces())
 
     def __repr__(self):
         r = "MixedFunctionSpace(*%s)" % repr(self._ufl_function_spaces)

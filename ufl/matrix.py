@@ -9,7 +9,6 @@
 
 
 from ufl.log import error
-from ufl.domain import default_domain
 from ufl.form import BaseForm
 from ufl.argument import Argument
 from ufl.functionspace import AbstractFunctionSpace
@@ -31,7 +30,8 @@ class Matrix(BaseForm):
     _globalcount = 0
 
     def __getnewargs__(self):
-        return (self._ufl_function_spaces[0], self._ufl_function_spaces[1], self._count)
+        return (self._ufl_function_spaces[0], self._ufl_function_spaces[1],
+                self._count)
 
     def __init__(self, row_space, column_space, count=None):
         BaseForm.__init__(self)
@@ -47,7 +47,9 @@ class Matrix(BaseForm):
 
         self._hash = None
         self._repr = "Matrix(%s,%s, %s)" % (
-            repr(self._ufl_function_spaces[0]), repr(self._ufl_function_spaces[1]), repr(self._count))
+            repr(self._ufl_function_spaces[0]),
+            repr(self._ufl_function_spaces[1]), repr(self._count)
+        )
 
     def count(self):
         return self._count
@@ -62,16 +64,10 @@ class Matrix(BaseForm):
     def ufl_column_space(self):
         return self._ufl_function_spaces[1]
 
-    def _ufl_signature_data_(self, renumbering):
-        "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        count = renumbering[self]
-        row_fsdata = self._ufl_function_spaces[0]._ufl_signature_data_(renumbering)
-        col_fsdata = self._ufl_function_spaces[1]._ufl_signature_data_(renumbering)
-        return ("Matrix", count, row_fsdata, col_fsdata)
-
     def _analyze_form_arguments(self):
         "Define arguments of a matrix when considered as a form."
-        self._arguments = (Argument(self._ufl_function_spaces[0], 0), Argument(self._ufl_function_spaces[1], 1))
+        self._arguments = (Argument(self._ufl_function_spaces[0], 0),
+                           Argument(self._ufl_function_spaces[1], 1))
 
     def __str__(self):
         count = str(self._count)
