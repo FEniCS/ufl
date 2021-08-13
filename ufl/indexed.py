@@ -62,7 +62,7 @@ class Indexed(Operator):
             error("Invalid number of indices (%d) for tensor "
                   "expression of rank %d:\n\t%s\n"
                   % (len(multiindex), len(expression.ufl_shape), ufl_err_str(expression)))
-        if any(int(di) >= int(si)
+        if any(int(di) >= int(si) or int(di) < 0
                for si, di in zip(shape, multiindex)
                if isinstance(di, FixedIndex)):
             error("Fixed index out of range!")
