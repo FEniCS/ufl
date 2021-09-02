@@ -285,6 +285,7 @@ class VectorElement(MixedElement):
                 error("Cannot infer vector dimension without a cell.")
             dim = cell.geometric_dimension()
 
+        self._mapping = sub_element.mapping()
         # Create list of sub elements for mixed element constructor
         sub_elements = [sub_element] * dim
 
@@ -306,6 +307,9 @@ class VectorElement(MixedElement):
     def reconstruct(self, **kwargs):
         sub_element = self._sub_element.reconstruct(**kwargs)
         return VectorElement(sub_element, dim=len(self.sub_elements()))
+
+    def mapping(self):
+        return self._mapping
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -402,13 +406,11 @@ class TensorElement(MixedElement):
 
         # Compute reference value shape based on symmetries
         if symmetry:
-            # Flatten and subtract symmetries
             reference_value_shape = (product(shape) - len(symmetry),)
             self._mapping = "symmetries"
         else:
-            # Do not flatten if there are no symmetries
             reference_value_shape = shape
-            self._mapping = "identity"
+            self._mapping = sub_element.mapping()
 
         value_shape = value_shape + sub_element.value_shape()
         reference_value_shape = reference_value_shape + sub_element.reference_value_shape()
@@ -428,10 +430,7 @@ class TensorElement(MixedElement):
             repr(sub_element), repr(self._shape), repr(self._symmetry))
 
     def mapping(self):
-        if self._symmetry:
-            return "symmetries"
-        else:
-            return "identity"
+        return self._mapping
 
     def flattened_sub_element_mapping(self):
         return self._flattened_sub_element_mapping

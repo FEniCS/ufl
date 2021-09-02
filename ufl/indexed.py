@@ -42,6 +42,8 @@ class Indexed(Operator):
             else:
                 fi, fid = (), ()
             return Zero(shape=(), free_indices=fi, index_dimensions=fid)
+        elif expression.ufl_shape == () and multiindex == ():
+            return expression
         else:
             return Operator.__new__(cls)
 
@@ -109,4 +111,8 @@ class Indexed(Operator):
                            self.ufl_operands[1])
 
     def __getitem__(self, key):
+        if key == ():
+            # So that one doesn't have to special case indexing of
+            # expressions without shape.
+            return self
         error("Attempting to index with %s, but object is already indexed: %s" % (ufl_err_str(key), ufl_err_str(self)))

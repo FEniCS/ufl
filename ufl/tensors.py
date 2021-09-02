@@ -198,7 +198,11 @@ def from_numpy_to_lists(expressions):
     try:
         import numpy
         if isinstance(expressions, numpy.ndarray):
-            expressions = numpy2nestedlists(expressions)
+            if expressions.shape == ():
+                # Unwrap scalar ndarray
+                return expressions.item()
+            else:
+                expressions = numpy2nestedlists(expressions)
     except Exception:
         pass
     return expressions
@@ -231,7 +235,7 @@ def as_tensor(expressions, indices=None):
             expressions = from_numpy_to_lists(expressions)
 
         # Sanity check
-        if not isinstance(expressions, (list, tuple)):
+        if not isinstance(expressions, (list, tuple, Expr)):
             error("Expecting nested list or tuple.")
 
         # Recursive conversion from nested lists to nested ListTensor
