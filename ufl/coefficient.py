@@ -166,10 +166,10 @@ class Coefficient(FormArgument, BaseCoefficient):
     __str__ = BaseCoefficient.__str__
     _ufl_signature_data_ = BaseCoefficient._ufl_signature_data_
 
-    def __new__(cls, *args, **kw):
-        if args[0] and is_dual(args[0]):
-            return Cofunction(*args, **kw)
-        return super().__new__(cls)
+    #def __new__(cls, *args, **kw):
+    #    if args[0] and is_dual(args[0]):
+    #        return Cofunction(*args, **kw)
+    #    return super().__new__(cls)
 
     def __init__(self, function_space, count=None):
         FormArgument.__init__(self)
