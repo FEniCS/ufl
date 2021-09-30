@@ -39,6 +39,10 @@ class Action(BaseForm):
     def __new__(cls, *args, **kw):
         left, right = args
 
+        # Check trivial case
+        if left == 0 or right == 0:
+            return 0
+
         if isinstance(left, FormSum):
             # Action distributes over sums on the LHS
             return FormSum(*[(Action(component, right), 1)
