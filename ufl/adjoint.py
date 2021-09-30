@@ -26,6 +26,10 @@ class Adjoint(BaseForm):
 
     def __new__(cls, *args, **kw):
         form = args[0]
+        # Check trivial case
+        if form == 0:
+            return 0
+
         if isinstance(form, FormSum):
             # Adjoint distributes over sums
             return FormSum(*[(Adjoint(component), 1) for component in form.components()])

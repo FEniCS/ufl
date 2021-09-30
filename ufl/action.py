@@ -37,6 +37,10 @@ class Action(BaseForm):
         left = args[0]
         right = args[1]
 
+        # Check trivial case
+        if left == 0 or right == 0:
+            return 0
+
         if isinstance(left, FormSum):
             # Adjoint distributes over sums on the LHS
             return FormSum(*[(Action(component, right), 1) for component in left.components()])
