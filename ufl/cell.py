@@ -16,6 +16,7 @@
 import numbers
 import functools
 
+import ufl.cell
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
@@ -169,6 +170,11 @@ class Cell(AbstractCell):
         # This is used in geometry.py
         fn = cellname2facetname[self.cellname()]
         return num_cell_entities[fn][1]
+
+    def facet_cell(self):
+        "The ufl.Cell representing the facets of self."
+        return ufl.Cell(cellname2facetname[self.cellname()],
+                        self.geometric_dimension())
 
     # --- Special functions for proper object behaviour ---
 
