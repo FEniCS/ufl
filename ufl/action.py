@@ -52,7 +52,7 @@ class Action(BaseForm):
         self._left = left
         self._right = right
 
-        if isinstance(right, Form):
+        if isinstance(right, (Form, Action)):
             if self._left.arguments()[-1].ufl_function_space().dual() != self._right.arguments()[0].ufl_function_space():
                 raise TypeError("Incompatible function spaces in Action")
         elif isinstance(right, (Coefficient, ExternalOperator)):
