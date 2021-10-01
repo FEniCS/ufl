@@ -525,7 +525,7 @@ def test_adjoint_action_jacobian():
     # Arguments for the Gateaux-derivative
     u_hat = lambda number: Argument(V1, number)   # V1: degree 1 # dFdu.arguments()[-1]
     m_hat = lambda number: Argument(V2, number)   # V2: degree 2 # dFdm.arguments()[-1]
-    vstar_N = lambda number: Argument(V3, number)  # V3: degree 3
+    vstar_N = lambda number: Coargument(V3, number)  # V3: degree 3
 
     # Coefficients for the action
     w = Coefficient(V1)  # for u
