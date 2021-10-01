@@ -12,7 +12,7 @@
 # Modified by Cecile Daversin-Catty, 2018
 
 from ufl.log import error
-from ufl.form import Form, as_form
+from ufl.form import Form, BaseForm, as_form
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
@@ -112,7 +112,7 @@ def action(form, coefficient=None):
     and this function returns an Action object."""
     form = as_form(form)
     # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
-    if isinstance(form, Form):
+    if isinstance(form, Form) and not (isinstance(coefficient, BaseForm) and len(coefficient.arguments()) > 1):
         # For external operators differentiation may turn a Form into a FormSum
         form = expand_derivatives(form)
         if isinstance(form, Form):
