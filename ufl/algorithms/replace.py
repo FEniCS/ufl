@@ -12,6 +12,7 @@
 from ufl.log import error
 from ufl.classes import CoefficientDerivative
 from ufl.constantvalue import as_ufl
+from ufl.argument import Coargument
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.analysis import has_exact_type
@@ -43,7 +44,12 @@ class Replacer(MultiFunction):
         # Fix this
         if type(new_ops[0]).__name__ == 'Coefficient' and type(o.ufl_operands[0]).__name__ == 'Function':
             new_ops = o.ufl_operands
-        new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+
+        # Does not need to use replace on the 0-slot argument of external operators (v*) since
+        # this can only be a Coargument or a Cofunction, so we directly check into the mapping.
+        # Also, replace is built to apply on Expr, Coargument is not an Expr.
+        new_args = tuple(replace(arg, self.mapping) if not isinstance(arg, Coargument) else self.mapping.get(arg, arg)
+                         for arg in o.argument_slots())
         return o._ufl_expr_reconstruct_(*new_ops, result_coefficient=coeff, argument_slots=new_args)
 
     def coefficient_derivative(self, o):
