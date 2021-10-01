@@ -58,7 +58,6 @@ def test_dual_coefficients():
     v = Coefficient(V, count=1)
     u = Coefficient(V_dual, count=1)
     w = Cofunction(V_dual)
-    x = Cofunction(V)
 
     assert is_primal(v)
     assert not is_dual(v)
@@ -69,8 +68,11 @@ def test_dual_coefficients():
     assert is_dual(w)
     assert not is_primal(w)
 
-    assert is_primal(x)
-    assert not is_dual(x)
+    try:
+        x = Cofunction(V)
+        assert False
+    except ValueError:
+        pass
 
 
 def test_dual_arguments():
@@ -82,7 +84,6 @@ def test_dual_arguments():
     v = Argument(V, 1)
     u = Argument(V_dual, 2)
     w = Coargument(V_dual, 3)
-    x = Coargument(V, 4)
 
     assert is_primal(v)
     assert not is_dual(v)
@@ -93,8 +94,11 @@ def test_dual_arguments():
     assert is_dual(w)
     assert not is_primal(w)
 
-    assert is_primal(x)
-    assert not is_dual(x)
+    try:
+        x = Coargument(V, 4)
+        assert False
+    except ValueError:
+        pass
 
 
 def test_addition():

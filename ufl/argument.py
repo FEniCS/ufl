@@ -194,7 +194,7 @@ class Coargument(BaseForm, BaseArgument):
 
     def __new__(cls, *args, **kw):
         if args[0] and is_primal(args[0]):
-            return Argument(*args, **kw)
+            raise ValueError('ufl.Coargument takes in a dual space! If you want to define an argument in the primal space you should use ufl.Argument.')
         return super().__new__(cls)
 
     def __init__(self, function_space, number, part=None):
