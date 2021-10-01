@@ -533,7 +533,7 @@ def test_adjoint_action_jacobian():
 
     v2 = TestFunction(V2)
     v3 = TestFunction(V3)
-    form_base_expressions = (N * dx, N*v2*dx, N*v3*dx)#, N)
+    form_base_expressions = (N * dx, N*v2*dx, N*v3*dx) #, N)
     for F in form_base_expressions:
 
         # Get test function
@@ -713,3 +713,95 @@ def test_grad():
 
     expr = expand_derivatives(expr)
     assert expr == grad(u_test)
+
+
+def test_multiple_external_operators():
+
+    V = FiniteElement("CG", triangle, 1)
+    W = FiniteElement("CG", triangle, 2)
+    u = Coefficient(V)
+    m = Coefficient(V)
+    w = Coefficient(W)
+
+    v = TestFunction(V)
+    v_hat = TrialFunction(V)
+    w_hat = TrialFunction(W)
+
+    # N1(u, m; v*)
+    N1 = ExternalOperator(u, m, function_space=V)
+
+    # N2(w; v*)
+    N2 = ExternalOperator(w, function_space=W)
+
+    # N3(u; v*)
+    N3 = ExternalOperator(u, function_space=V)
+
+    # N4(N1, u; v*)
+    N4 = ExternalOperator(N1, u, function_space=V)
+
+    # --- F = < N1(u, m; v*), v > + <N2(w; v*), v> + <N3(u; v*), v> --- #
+
+    F = (inner(N1, v) + inner(N2, v) + inner(N3, v)) * dx
+
+    # dFdu = Action(dFdN1, dN1du) + Action(dFdN3, dN3du)
+    dFdu = expand_derivatives(derivative(F, u))
+    dFdN1 = inner(v_hat, v) * dx
+    dFdN2 = inner(w_hat, v) * dx
+    dFdN3 = inner(v_hat, v) * dx
+    dN1du = N1._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=N1.arguments() + (v_hat,))
+    dN3du = N3._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=N3.arguments() + (v_hat,))
+
+    assert dFdu == Action(dFdN1, dN1du) + Action(dFdN3, dN3du)
+
+    # dFdm = Action(dFdN1, dN1dm)
+    dFdm = expand_derivatives(derivative(F, m))
+    dN1dm = N1._ufl_expr_reconstruct_(u, m, derivatives=(0, 1), argument_slots=N1.arguments() + (v_hat,))
+
+    assert dFdm == Action(dFdN1, dN1dm)
+
+    # dFdw = Action(dFdN2, dN2dw)
+    dFdw = expand_derivatives(derivative(F, w))
+    dN2dw = N2._ufl_expr_reconstruct_(w, derivatives=(1,), argument_slots=N2.arguments() + (w_hat,))
+
+    assert dFdw == Action(dFdN2, dN2dw)
+
+    # --- F = < N4(N1(u, m), u; v*), v > --- #
+
+    F = inner(N4, v) * dx
+
+    # dFdu = \partial F/\partial u + Action(\partial F/\partial N1, dN1/du) + Action(\partial F/\partial N4, dN4/du)
+    #      = Action(\partial F/\partial N4, dN4/du), since \partial F/\partial u = 0 and \partial F/\partial N1 = 0
+    #
+    # In addition, we have:
+    # dN4/du = \partial N4/\partial u + Action(\partial N4/\partial N1, dN1/du)
+    #
+    # Using the fact that Action is distributive, we have:
+    #
+    # dFdu = Action(\partial F/\partial N4, \partial N4/\partial u) +
+    #         Action(\partial F/\partial N4, Action(\partial N4/\partial N1, dN1/du))
+    dFdu = expand_derivatives(derivative(F, u))
+    dFdN4_partial = inner(v_hat, v) * dx
+    dN4dN1_partial = N4._ufl_expr_reconstruct_(N1, u, derivatives=(1, 0), argument_slots=N4.arguments() + (v_hat,))
+    dN4du_partial = N4._ufl_expr_reconstruct_(N1, u, derivatives=(0, 1), argument_slots=N4.arguments() + (v_hat,))
+
+    assert dFdu == Action(dFdN4_partial, Action(dN4dN1_partial, dN1du)) + Action(dFdN4_partial, dN4du_partial)
+
+    # dFdm = Action(\partial F/\partial N4, Action(\partial N4/\partial N1, dN1/dm))
+    dFdm = expand_derivatives(derivative(F, m))
+
+    assert dFdm == Action(dFdN4_partial, Action(dN4dN1_partial, dN1dm))
+
+    # --- F = < N1(u, m; v*), v > + <N2(w; v*), v> + <N3(u; v*), v> + < N4(N1(u, m), u; v*), v > --- #
+
+    F = (inner(N1, v) + inner(N2, v) + inner(N3, v) + inner(N4, v)) * dx
+
+    dFdu = expand_derivatives(derivative(F, u))
+    assert dFdu == Action(dFdN1, dN1du) + Action(dFdN3, dN3du) +\
+                   Action(dFdN4_partial, Action(dN4dN1_partial, dN1du)) +\
+                   Action(dFdN4_partial, dN4du_partial)
+
+    dFdm = expand_derivatives(derivative(F, m))
+    assert dFdm == Action(dFdN1, dN1dm) + Action(dFdN4_partial, Action(dN4dN1_partial, dN1dm))
+
+    dFdw = expand_derivatives(derivative(F, w))
+    assert dFdw == Action(dFdN2, dN2dw)
