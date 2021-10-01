@@ -23,7 +23,7 @@ from ufl.coefficient import Coefficient
 from ufl.core.external_operator import ExternalOperator
 from ufl.adjoint import Adjoint
 from ufl.action import Action
-from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
+from ufl.differentiation import CoefficientDerivative, ExternalOperatorDerivative, CoordinateDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
@@ -111,8 +111,9 @@ def action(form, coefficient=None):
     For formbase objects,coefficient can be any object of the correct type,
     and this function returns an Action object."""
     form = as_form(form)
+    # For external operators differentiation may turn a Form into a FormSum
+    form = expand_derivatives(form)
     if isinstance(form, Form):
-        form = expand_derivatives(form)
         return compute_form_action(form, coefficient)
     return Action(form, coefficient)
 
@@ -141,8 +142,9 @@ def adjoint(form, reordered_arguments=None):
     object instructing the adjoint to be computed at a later point.
     """
     form = as_form(form)
+    # For external operators differentiation may turn a Form into a FormSum
+    form = expand_derivatives(form)
     if isinstance(form, Form):
-        form = expand_derivatives(form)
         return compute_form_adjoint(form, reordered_arguments)
     return Adjoint(form)
 
@@ -305,6 +307,9 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
+    elif isinstance(form, ExternalOperator):
+        if not isinstance(coefficient, SpatialCoordinate):
+            return ExternalOperatorDerivative(form, coefficients, arguments, coefficient_derivatives)
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
         if not isinstance(coefficient, SpatialCoordinate):

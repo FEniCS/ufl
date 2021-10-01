@@ -333,7 +333,11 @@ class GenericDerivativeRuleset(MultiFunction):
                 function_space = o._make_function_space_args(i, df)
                 extop = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives,
                                                  function_space=function_space, argument_slots=new_args)
+            # elif df == 0:
+            #    extop = 0
             else:
+                # raise NotImplementedError('Interp needs to be implemented in order to perform Frechet derivative on external operators!')
+                # """
                 # This bit returns:
                 #
                 #   \sum_{k} dNdOi(..., Oi, ...) * dOidu
@@ -356,6 +360,7 @@ class GenericDerivativeRuleset(MultiFunction):
                 mi_tensor = tuple(e for e in mi if not (e in aa and e in bb))
                 if len(extop.ufl_free_indices):
                     extop = as_tensor(extop, mi_tensor)
+                # """
             result += (extop,)
         return sum(result)
 
@@ -1163,6 +1168,10 @@ class DerivativeRuleDispatcher(MultiFunction):
     def external_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         dummy, w, v, cd = o.ufl_operands
         rules = GateauxDerivativeRuleset(w, v, cd)
+        mapped_f = rules.coefficient(f)
+        if mapped_f != 0:
+            # If dN/dN needs to return an Argument in N space
+            return mapped_f
         dfs = tuple(map_expr_dag(rules, op) for op in f.ufl_operands)
         # We need to go through the dag first to record the pending operations
         var, der_kwargs, *extops = rules.pending_operations
@@ -1208,7 +1217,7 @@ class DerivativeRuleDispatcher(MultiFunction):
 
 
 def apply_derivatives(expression):
-    # Note that `expression` can be a Form or an Expr.
+    # Note that `expression` can be a Form, an Expr or an ExternalOperator.
     # Notation: Let `var` be the thing we are differentating with respect to.
 
     rules = DerivativeRuleDispatcher()
@@ -1227,19 +1236,22 @@ def apply_derivatives(expression):
         return dexpression_dvar
 
     # Don't take into account empty Forms
-    if isinstance(dexpression_dvar, Form) and len(dexpression_dvar.integrals()) != 0:
+    if not (isinstance(dexpression_dvar, Form) and len(dexpression_dvar.integrals()) == 0):
         dexpression_dvar = (dexpression_dvar,)
     else:
         dexpression_dvar = ()
+
     # Retrieve the external operators, var, and the argument and coefficient_derivatives for `derivative`
     var, der_kwargs, *extops = pending_operations
-    for N in extops:
-        # Replace dexpr/dvar by dexpr/dN
-        dexpr_dN = apply_derivatives(replace_derivative_nodes(expression, {var.ufl_operands[0]: N}))
+    for N in sorted(set(extops), key=lambda x: x.count()):
+        # Replace dexpr/dvar by dexpr/dN. We don't use `apply_derivatives` since
+        # the differentiation is done via `\partial` and not `d`.
+        dexpr_dN = map_integrand_dags(rules, replace_derivative_nodes(expression, {var.ufl_operands[0]: N}))
         # Add the ExternalOperatorDerivative node
         dN_dvar = apply_derivatives(ExternalOperatorDerivative(N, var, **der_kwargs))
         # Sum the Action: dF/du = \partial F/\partial u + \sum_{i=1,...} Action(dF/dNi, dNi/du)
-        dexpression_dvar += (Action(dexpr_dN, dN_dvar),)
+        if not (isinstance(dexpr_dN, Form) and len(dexpr_dN.integrals()) == 0):
+            dexpression_dvar += (Action(dexpr_dN, dN_dvar),)
     return sum(dexpression_dvar)
 
 
