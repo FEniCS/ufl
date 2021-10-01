@@ -11,7 +11,7 @@
 # Modified by Nacime Bouziani, 2021
 
 from ufl.coefficient import Coefficient
-from ufl.argument import Coargument
+from ufl.argument import Argument
 from ufl.core.operator import Operator
 from ufl.form import BaseForm
 from ufl.core.ufl_type import ufl_type
@@ -92,11 +92,15 @@ class ExternalOperator(Operator, BaseForm):
         if not self.result_coefficient().ufl_function_space() == new_function_space:
             raise ValueError('The function spaces do not match!')
 
-        # Make v*
-        v_star = Coargument(new_function_space, 0)
         if len(argument_slots) == 0:
+            # Make v*
+            v_star = Argument(new_function_space.dual(), 0)
             argument_slots = (v_star,)
         self._argument_slots = argument_slots
+
+        # if sum(self.derivatives) + 1 != len(self._argument_slots):
+        #    import ipdb; ipdb.set_trace()
+        #    raise ValueError('Expecting sum(derivatives) + 1 to be equal to len(argument_slots)!')
 
         if self.derivatives == (0,) * len(self.ufl_operands):
             self._extop_master = self
@@ -125,7 +129,8 @@ class ExternalOperator(Operator, BaseForm):
         # For example:
         #   F = N(u; v*) * v * dx can be seen as Action(v1 * v * dx, N(u; v*))
         #   => F.arguments() should return (v,)!
-        return self._argument_slots[1:]
+        from ufl.algorithms.analysis import extract_arguments
+        return tuple(a for a in self._argument_slots[1:] if len(extract_arguments(a)) != 0)
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the base form."
@@ -150,7 +155,7 @@ class ExternalOperator(Operator, BaseForm):
         """
         from ufl.algorithms.analysis import extract_external_operators
         extops = (self,) + tuple(e for op in self.ufl_operands for e in extract_external_operators(op))
-        self._external_operators = tuple(set(sorted(extops, key=lambda x: x.count())))
+        self._external_operators = tuple(sorted(set(extops), key=lambda x: x.count()))
 
     def count(self):
         "Returns the count associated to the coefficient produced by the external operator"
