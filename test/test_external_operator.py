@@ -23,6 +23,21 @@ from ufl.domain import default_domain
 from functools import partial
 
 
+@pytest.fixture(scope='module')
+def V1():
+    return FiniteElement("CG", triangle, 1)
+
+
+@pytest.fixture(scope='module')
+def V2():
+    return FiniteElement("CG", triangle, 2)
+
+
+@pytest.fixture(scope='module')
+def V3():
+    return FiniteElement("CG", triangle, 3)
+
+
 def test_properties(self, cell):
     S = FiniteElement("CG", cell, 1)
     u = Coefficient(S, count=0)
@@ -52,23 +67,20 @@ def test_properties(self, cell):
     e = ExternalOperator(u, function_space=S)
     assert str(e) == 'e(w_0; v_0)'
 
-    e = ExternalOperator(u, function_space=S, derivatives = (1,))
+    e = ExternalOperator(u, function_space=S, derivatives=(1,))
     assert str(e) == '∂e(w_0; v_0)/∂o1'
 
-    e = ExternalOperator(u, r, 2*s, t, function_space=S, derivatives = (1, 0, 1, 2), argument_slots=(v0, v1))
+    e = ExternalOperator(u, r, 2 * s, t, function_space=S, derivatives=(1, 0, 1, 2), argument_slots=(v0, v1))
     assert str(e) == '∂e(w_0, w_1, 2 * w_2, w_3; v_1, v_0)/∂o1∂o3∂o4∂o4'
 
 
-def _create_external_operator(V=None, nops=1):
-    if V is None:
-        space = FiniteElement("Quadrature", triangle, 1)
-    else:
-        space = V
-    return ExternalOperator(*[variable(0.) for i in range(nops)], function_space=space)
+def _make_external_operator(V=None, nops=1):
+    space = V or FiniteElement("Quadrature", triangle, 1)
+    return ExternalOperator(*[variable(0.) for _ in range(nops)], function_space=space)
 
 
-def _test(f, df):
-    v = variable(5.0)
+def _test(f, df, V):
+    v = Coefficient(V)
     fexpr = f(v)
 
     dfv1 = diff(fexpr, v)
@@ -76,10 +88,10 @@ def _test(f, df):
     assert apply_derivatives(dfv1) == dfv2
 
 
-def _test_multivariable(f, df1, df2, df3):
-    v1 = variable(4450.567)
-    v2 = variable(3495.348)
-    v3 = variable(1294.387)
+def _test_multivariable(f, df1, df2, df3, V):
+    v1 = Coefficient(V)
+    v2 = Coefficient(V)
+    v3 = Coefficient(V)
     fexpr = f(v1, v2, v3)
 
     dfv1 = diff(fexpr, v1)
@@ -95,9 +107,8 @@ def _test_multivariable(f, df1, df2, df3):
     assert apply_derivatives(dfv1) == dfv2
 
 
-def testVariable():
-    V = FiniteElement("Quadrature", triangle, 2)
-    e = _create_external_operator(V)
+def testVariable(V1):
+    e = _make_external_operator(V1)
 
     def f(v, e):
         nl = e._ufl_expr_reconstruct_(v, derivatives=(0,))
@@ -114,13 +125,12 @@ def testVariable():
     fe = partial(f, e=e)
     dfe = partial(df, e=e)
     df2e = partial(df2, e=e)
-    _test(fe, dfe)
-    _test(dfe, df2e)
+    _test(fe, dfe, V1)
+    _test(dfe, df2e, V1)
 
 
-def testProduct():
-    V = FiniteElement("Quadrature", triangle, 3)
-    e = _create_external_operator(V)
+def testProduct(V1):
+    e = _make_external_operator(V1)
 
     def g(v, e):
         nl = e._ufl_expr_reconstruct_(v, derivatives=(0,))
@@ -136,13 +146,12 @@ def testProduct():
 
     fe = partial(f, e=e)
     dfe = partial(df, e=e)
-    _test(fe, dfe)
+    _test(fe, dfe, V1)
 
 
-def testProductExternalOperator():
-    V = FiniteElement("Quadrature", triangle, 3)
-    e1 = _create_external_operator(V)
-    e2 = _create_external_operator(V)
+def testProductExternalOperator(V1):
+    e1 = _make_external_operator(V1)
+    e2 = _make_external_operator(V1)
 
     cst = 2.0
 
@@ -165,12 +174,11 @@ def testProductExternalOperator():
 
     fe = partial(f, e1=e1, e2=e2)
     dfe = partial(df, e1=e1, e2=e2)
-    _test(fe, dfe)
+    _test(fe, dfe, V1)
 
 
-def testmultiVariable():
-    V = FiniteElement("Quadrature", triangle, 3)
-    e = _create_external_operator(V, 3)
+def testmultiVariable(V1):
+    e = _make_external_operator(V1, 3)
 
     def g(v1, v2, v3, e):
         return e._ufl_expr_reconstruct_(v1, v2, v3)
@@ -202,7 +210,7 @@ def testmultiVariable():
     df1e = partial(df1, e=e)
     df2e = partial(df2, e=e)
     df3e = partial(df3, e=e)
-    _test_multivariable(fe, df1e, df2e, df3e)
+    _test_multivariable(fe, df1e, df2e, df3e, V1)
 
 
 def test_form():
@@ -222,7 +230,7 @@ def test_form():
     vstar, = N.arguments()
     Nhat = TrialFunction(N.ufl_function_space())
 
-    dNdu = N._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots= (vstar, u_hat))
+    dNdu = N._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=(vstar, u_hat))
     dFdN = Nhat * v * dx
     expected = Action(dFdN, dNdu)
 
@@ -243,46 +251,6 @@ def test_form():
     assert apply_derivatives(actual) == expected
 
 
-def test_dependency():
-    V = FiniteElement("CG", triangle, 1)
-    Vv = VectorElement("CG", triangle, 1)
-
-    u = Coefficient(V)
-    w = Coefficient(V)
-
-    e = ExternalOperator(u, w, function_space=V)
-
-    dedu = e._ufl_expr_reconstruct_(u, w, derivatives=(1, 0))
-    dedw = e._ufl_expr_reconstruct_(u, w, derivatives=(0, 1))
-
-    d2edu = dedu._ufl_expr_reconstruct_(u, w, derivatives=(2, 0))
-
-    assert e == dedu._extop_master
-    assert e == dedw._extop_master
-    assert e.coefficient_dict == {(1, 0): dedu, (0, 1): dedw, (2, 0): d2edu}
-
-    e2 = ExternalOperator(u, function_space=V)
-    u_hat = Coefficient(V)
-
-    a = inner(grad(e2), grad(w))
-    Ja = derivative(a, u, u_hat)
-    expand_derivatives(Ja)
-    de2 = tuple(e2.coefficient_dict.values())
-
-    assert sorted(e2.coefficient_dict.keys()) == []
-    assert de2 == ()
-
-    e3 = ExternalOperator(u, function_space=Vv)
-
-    a = inner(div(e3), w)
-    Ja = derivative(a, u, u_hat)
-    expand_derivatives(Ja)
-    de3 = tuple(e3.coefficient_dict.values())
-
-    assert sorted(e3.coefficient_dict.keys()) == []
-    assert de3 == ()
-
-
 def test_function_spaces_derivatives():
     V = FiniteElement("CG", triangle, 1)
     Vv = VectorElement("CG", triangle, 1)
@@ -292,11 +260,10 @@ def test_function_spaces_derivatives():
     Vt4 = TensorElement(V, shape=(2, 2, 2, 2, 2))
     Vt5 = TensorElement(V, shape=(2, 2, 2, 2, 2, 2))
 
-    def _check_space_shape_fct_space(x, der, shape, space_extop_master, space):
+    def _check_space_shape_fct_space(x, der, shape, space):
         assert x.derivatives == der
         assert x.ufl_shape == shape
         assert x.ufl_function_space().ufl_element() == space
-        assert x._extop_master.ufl_function_space().ufl_element() == space_extop_master
 
     u = Coefficient(V)
     w = Coefficient(V)
@@ -313,12 +280,12 @@ def test_function_spaces_derivatives():
     dedwdu = e._ufl_expr_reconstruct_(u, w, derivatives=(1, 1))
     d2edw = e._ufl_expr_reconstruct_(u, w, derivatives=(0, 2))
 
-    _check_space_shape_fct_space(dedu, (1, 0), (), V, V)
-    _check_space_shape_fct_space(dedw, (0, 1), (), V, V)
+    _check_space_shape_fct_space(dedu, (1, 0), (), V)
+    _check_space_shape_fct_space(dedw, (0, 1), (), V)
 
-    _check_space_shape_fct_space(d2edu, (2, 0), (), V, V)
-    _check_space_shape_fct_space(dedwdu, (1, 1), (), V, V)
-    _check_space_shape_fct_space(d2edw, (0, 2), (), V, V)
+    _check_space_shape_fct_space(d2edu, (2, 0), (), V)
+    _check_space_shape_fct_space(dedwdu, (1, 1), (), V)
+    _check_space_shape_fct_space(d2edw, (0, 2), (), V)
 
     # Vector case
     ev = ExternalOperator(uv, w, function_space=Vv)
@@ -328,12 +295,12 @@ def test_function_spaces_derivatives():
     dedwduv = ev._ufl_expr_reconstruct_(uv, w, derivatives=(1, 1))
     d2edw = ev._ufl_expr_reconstruct_(uv, w, derivatives=(0, 2))
 
-    _check_space_shape_fct_space(deduv, (1, 0), (2, 2), Vv, Vt)
-    _check_space_shape_fct_space(dedw, (0, 1), (2,), Vv, Vv)
+    _check_space_shape_fct_space(deduv, (1, 0), (2, 2), Vt)
+    _check_space_shape_fct_space(dedw, (0, 1), (2,), Vv)
 
-    _check_space_shape_fct_space(d2eduv, (2, 0), (2, 2, 2), Vv, Vt2)
-    _check_space_shape_fct_space(dedwduv, (1, 1), (2, 2), Vv, Vt)
-    _check_space_shape_fct_space(d2edw, (0, 2), (2,), Vv, Vv)
+    _check_space_shape_fct_space(d2eduv, (2, 0), (2, 2, 2), Vt2)
+    _check_space_shape_fct_space(dedwduv, (1, 1), (2, 2), Vt)
+    _check_space_shape_fct_space(d2edw, (0, 2), (2,), Vv)
 
     # Tensor case
     et = ExternalOperator(ut, uv, w, function_space=Vt)
@@ -341,25 +308,25 @@ def test_function_spaces_derivatives():
     deduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 1, 0))
     dedw = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 0, 1))
 
-    _check_space_shape_fct_space(dedut, (1, 0, 0), (2, 2, 2, 2), Vt, Vt3)
-    _check_space_shape_fct_space(deduv, (0, 1, 0), (2, 2, 2), Vt, Vt2)
-    _check_space_shape_fct_space(dedw, (0, 0, 1), (2, 2), Vt, Vt)
+    _check_space_shape_fct_space(dedut, (1, 0, 0), (2, 2, 2, 2), Vt3)
+    _check_space_shape_fct_space(deduv, (0, 1, 0), (2, 2, 2), Vt2)
+    _check_space_shape_fct_space(dedw, (0, 0, 1), (2, 2), Vt)
 
     d2edut = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(2, 0, 0))
     d2eduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 2, 0))
     d2edw = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 0, 2))
 
-    _check_space_shape_fct_space(d2edut, (2, 0, 0), (2, 2, 2, 2, 2, 2), Vt, Vt5)
-    _check_space_shape_fct_space(d2eduv, (0, 2, 0), (2, 2, 2, 2), Vt, Vt3)
-    _check_space_shape_fct_space(d2edw, (0, 0, 2), (2, 2), Vt, Vt)
+    _check_space_shape_fct_space(d2edut, (2, 0, 0), (2, 2, 2, 2, 2, 2), Vt5)
+    _check_space_shape_fct_space(d2eduv, (0, 2, 0), (2, 2, 2, 2), Vt3)
+    _check_space_shape_fct_space(d2edw, (0, 0, 2), (2, 2), Vt)
 
     dedwduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 1, 1))
     dedwdut = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(1, 0, 1))
     dedutduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(1, 1, 0))
 
-    _check_space_shape_fct_space(dedwduv, (0, 1, 1), (2, 2, 2), Vt, Vt2)
-    _check_space_shape_fct_space(dedwdut, (1, 0, 1), (2, 2, 2, 2), Vt, Vt3)
-    _check_space_shape_fct_space(dedutduv, (1, 1, 0), (2, 2, 2, 2, 2), Vt, Vt4)
+    _check_space_shape_fct_space(dedwduv, (0, 1, 1), (2, 2, 2), Vt2)
+    _check_space_shape_fct_space(dedwdut, (1, 0, 1), (2, 2, 2, 2), Vt3)
+    _check_space_shape_fct_space(dedutduv, (1, 1, 0), (2, 2, 2, 2, 2), Vt4)
 
     # TODO: MIXED ELEMENT
 
@@ -510,11 +477,8 @@ def get_external_operators(form_base):
         raise ValueError('Expecting FormBase argument!')
 
 
-def test_adjoint_action_jacobian():
+def test_adjoint_action_jacobian(V1, V2, V3):
 
-    V1 = FiniteElement("CG", triangle, 1)
-    V2 = FiniteElement("CG", triangle, 2)
-    V3 = FiniteElement("CG", triangle, 3)
     u = Coefficient(V1)
     m = Coefficient(V2)
 
@@ -533,7 +497,8 @@ def test_adjoint_action_jacobian():
 
     v2 = TestFunction(V2)
     v3 = TestFunction(V3)
-    form_base_expressions = (N * dx, N*v2*dx, N*v3*dx) #, N)
+    form_base_expressions = (N * dx, N * v2 * dx, N * v3 * dx)  # , N)
+
     for F in form_base_expressions:
 
         # Get test function
@@ -542,11 +507,11 @@ def test_adjoint_action_jacobian():
         assert n_arg < 2
 
         # Differentiate
-        dFdu = expand_derivatives(derivative(F, u, u_hat(n_arg+1)))
-        dFdm = expand_derivatives(derivative(F, m, m_hat(n_arg+1)))
+        dFdu = expand_derivatives(derivative(F, u, u_hat(n_arg + 1)))
+        dFdm = expand_derivatives(derivative(F, m, m_hat(n_arg + 1)))
 
-        assert dFdu.arguments() == v_F + (u_hat(n_arg+1),)
-        assert dFdm.arguments() == v_F + (m_hat(n_arg+1),)
+        assert dFdu.arguments() == v_F + (u_hat(n_arg + 1),)
+        assert dFdm.arguments() == v_F + (m_hat(n_arg + 1),)
 
         # dNdu(u, m; u_hat, v*)
         dNdu, = dFdu.external_operators()
@@ -555,8 +520,8 @@ def test_adjoint_action_jacobian():
 
         assert dNdu.derivatives == (1, 0)
         assert dNdm.derivatives == (0, 1)
-        assert dNdu.arguments() == (vstar_N(0), u_hat(n_arg+1))
-        assert dNdm.arguments() == (vstar_N(0), m_hat(n_arg+1))
+        assert dNdu.arguments() == (vstar_N(0), u_hat(n_arg + 1))
+        assert dNdm.arguments() == (vstar_N(0), m_hat(n_arg + 1))
         assert dNdu.argument_slots() == dNdu.arguments()
         assert dNdm.argument_slots() == dNdm.arguments()
 
@@ -573,16 +538,16 @@ def test_adjoint_action_jacobian():
             dFdu_adj = adjoint(dFdu)
             dFdm_adj = adjoint(dFdm)
 
-            assert dFdu_adj.arguments() == (u_hat(n_arg+1),) + v_F
-            assert dFdm_adj.arguments() == (m_hat(n_arg+1),) + v_F
+            assert dFdu_adj.arguments() == (u_hat(n_arg + 1),) + v_F
+            assert dFdm_adj.arguments() == (m_hat(n_arg + 1),) + v_F
 
             # Action of the adjoint
             q = Coefficient(v_F[0].ufl_function_space())
             action_dFdu_adj = action(dFdu_adj, q)
             action_dFdm_adj = action(dFdm_adj, q)
 
-            assert action_dFdu_adj.arguments() == (u_hat(n_arg+1),)
-            assert action_dFdm_adj.arguments() == (m_hat(n_arg+1),)
+            assert action_dFdu_adj.arguments() == (u_hat(n_arg + 1),)
+            assert action_dFdm_adj.arguments() == (m_hat(n_arg + 1),)
 
 
 """

@@ -102,10 +102,6 @@ class ExternalOperator(Operator, BaseForm):
         #    import ipdb; ipdb.set_trace()
         #    raise ValueError('Expecting sum(derivatives) + 1 to be equal to len(argument_slots)!')
 
-        if self.derivatives == (0,) * len(self.ufl_operands):
-            self._extop_master = self
-            self.coefficient_dict = {}
-
     def result_coefficient(self, unpack_reference=True):
         "Returns the coefficient produced by the external operator"
         result_coefficient = self._result_coefficient
@@ -239,30 +235,14 @@ class ExternalOperator(Operator, BaseForm):
         if deriv_multiindex != self.derivatives:
             # If we are constructing a derivative
             corresponding_coefficient = None
-            e_master = self._extop_master
-            for ext in e_master.coefficient_dict.values():
-                if ext.derivatives == deriv_multiindex:
-                    return ext._ufl_expr_reconstruct_(*operands, function_space=function_space,
-                                                      derivatives=deriv_multiindex,
-                                                      result_coefficient=result_coefficient,
-                                                      argument_slots=argument_slots,
-                                                      add_kwargs=add_kwargs)
         else:
             corresponding_coefficient = result_coefficient or self._result_coefficient
 
-        reconstruct_op = type(self)(*operands, function_space=function_space or self.ufl_function_space(),
-                                    derivatives=deriv_multiindex,
-                                    result_coefficient=corresponding_coefficient,
-                                    argument_slots=argument_slots or self.argument_slots(),
-                                    **add_kwargs)
-
-        if deriv_multiindex != self.derivatives:
-            # If we are constructing a derivative
-            self._extop_master.coefficient_dict.update({deriv_multiindex: reconstruct_op})
-            reconstruct_op._extop_master = self._extop_master
-        else:
-            reconstruct_op._extop_master = self._extop_master
-        return reconstruct_op
+        return type(self)(*operands, function_space=function_space or self.ufl_function_space(),
+                          derivatives=deriv_multiindex,
+                          result_coefficient=corresponding_coefficient,
+                          argument_slots=argument_slots or self.argument_slots(),
+                          **add_kwargs)
 
     def __repr__(self):
         "Default repr string construction for operators."
@@ -283,7 +263,14 @@ class ExternalOperator(Operator, BaseForm):
 
     def _ufl_compute_hash_(self):
         "Default hash of terminals just hash the repr string."
-        return hash(repr(self))
+        hashdata = (type(self),
+                    # What about Interpolation/ExternalOperator inside operands that
+                    # get evaluated and turned into Coefficients ?
+                    tuple(type(op) for op in self.ufl_operands),
+                    # tuple((type(op), op.ufl_function_space()) for op in self.ufl_operands),
+                    self.derivatives,
+                    self.ufl_function_space())
+        return hash(hashdata)  # hash(repr(self))
 
     def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
@@ -296,5 +283,13 @@ class ExternalOperator(Operator, BaseForm):
             return False
         if self is other:
             return True
-        return (self.count() == other.count() and
+        return (type(self) == type(other) and
+                # What about Interpolation/ExternalOperator inside operands that
+                # get evaluated and turned into Coefficients ?
+                all(type(a) == type(b) for a, b in zip(self.ufl_operands, other.ufl_operands)) and
+                # all(type(a) == type(b) and a.ufl_function_space() == b.ufl_function_space()
+                #    for a, b in zip(self.ufl_operands, other.ufl_operands)) and
+                self.derivatives == other.derivatives and
                 self.ufl_function_space() == other.ufl_function_space())
+        # return (self.count() == other.count() and
+        #        self.ufl_function_space() == other.ufl_function_space())

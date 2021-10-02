@@ -354,25 +354,9 @@ def compute_form_data(form,
                                        key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
 
-    # Store all the external operators and their derivative multiindex
-    # turning up in the form (Differentiation may have introduced new external operators)
-    extops_pos = {e._extop_master.count(): i for i, e in reversed(list(enumerate(self.original_form.external_operators())))}
-    derivatives_dict = {}
-    extop_dict = {}
-
-    for e in form.external_operators():
-        e_coeff = e.result_coefficient()
-        if e_coeff in self.reduced_coefficients:
-            eid = extops_pos[e._extop_master._count]
-            if eid not in derivatives_dict.keys():
-                derivatives_dict[eid] = {}
-                extop_dict[eid] = ()
-            e_args = tuple(i for i, arg in enumerate(form.arguments()) for e_arg in e.arguments() if e_arg == arg)
-            derivatives_dict[eid].update({e.derivatives: e_args})
-            extop_dict[eid] += (e_coeff,)
-
-    self.external_operators = derivatives_dict
-    new_external_operators = [e for i in sorted(extop_dict.keys()) for e in sorted(extop_dict[i], key=lambda e: e.count())]
+    new_external_operators = sorted((e.result_coefficient() for e in form.external_operators()
+                                     if e in self.reduced_coefficients),
+                                    key=lambda e: e.count())
     new_coefficients = tuple(e for e in self.original_form.coefficients() if e not in new_external_operators)
     new_coefficients += tuple(new_external_operators)
 
