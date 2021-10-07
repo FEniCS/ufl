@@ -145,6 +145,8 @@ def nonrecursive_expr_equals(self, other):
                 left.append((s, o))
 
     # Equal if we get out of the above loop!
+    # Eagerly DAGify to reduce the size of the tree.
+    self.ufl_operands = other.ufl_operands
     return True
 
 
