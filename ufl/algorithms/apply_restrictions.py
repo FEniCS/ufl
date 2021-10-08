@@ -21,6 +21,9 @@ class RestrictionPropagator(MultiFunction):
         MultiFunction.__init__(self)
         self.current_restriction = side
         self.default_restriction = "+"
+        # Caches for propagating the restriction with map_expr_dag
+        self.vcaches = {"+": {}, "-": {}}
+        self.rcaches = {"+": {}, "-": {}}
         if self.current_restriction is None:
             self._rp = {"+": RestrictionPropagator("+"),
                         "-": RestrictionPropagator("-")}
@@ -32,8 +35,10 @@ class RestrictionPropagator(MultiFunction):
         if self.current_restriction is not None:
             error("Cannot restrict an expression twice.")
         # Configure a propagator for this side and apply to subtree
-        # FIXME: Reuse cache between these calls!
-        return map_expr_dag(self._rp[o.side()], o.ufl_operands[0])
+        side = o.side()
+        return map_expr_dag(self._rp[side], o.ufl_operands[0],
+                            vcache=self.vcaches[side],
+                            rcache=self.rcaches[side])
 
     # --- Reusable rules
 
