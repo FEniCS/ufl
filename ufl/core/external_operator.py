@@ -216,7 +216,7 @@ class ExternalOperator(Operator, BaseForm):
             ufl_element = TensorElement(sub_element, shape=s)
         return FunctionSpace(domain, ufl_element)
 
-    def _grad(self):
+    def grad(self):
         """Returns the symbolic grad of the external operator"""
         # By default, differential rules produce grad(o.result_coefficient()) since
         # the external operator may not be smooth enough for chain rule to hold.

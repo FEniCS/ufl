@@ -653,7 +653,7 @@ def test_grad():
             kwargs['add_kwargs'] = {'u_test': self.u_test}
             return ExternalOperator._ufl_expr_reconstruct_(self, *args, **kwargs)
 
-        def _grad(self):
+        def grad(self):
             r"""Trivial grad implementation that returns the gradient of a given
                 coefficient u_test in order to check that this implementation
                 is taken into account during form compiling.
