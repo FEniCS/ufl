@@ -15,9 +15,9 @@ from itertools import chain
 from ufl.log import error
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
-from ufl.core.terminal import Terminal, FormArgument
-from ufl.argument import Argument
-from ufl.coefficient import Coefficient
+from ufl.core.terminal import Terminal
+from ufl.argument import BaseArgument
+from ufl.coefficient import BaseCoefficient
 from ufl.constant import Constant
 from ufl.form import BaseForm, Form
 from ufl.algorithms.traversal import iter_expressions
@@ -59,7 +59,7 @@ def extract_type(a, ufl_type):
 
     # BaseForms that aren't forms or external operators only have arguments
     if isinstance(a, BaseForm) and not isinstance(a, (Form, ExternalOperator)):
-        if issubclass(ufl_type, Argument):
+        if issubclass(ufl_type, BaseArgument):
             return set(a.arguments())
         else:
             return set()
@@ -69,19 +69,32 @@ def extract_type(a, ufl_type):
         objects = set(o for e in iter_expressions(a)
                       for o in traverse_unique_terminals(e)
                       if isinstance(o, ufl_type))
-
-        # Need to extract objects of type ufl_type contained in external operators
-        extops = extract_type(a, ExternalOperator)
-        extop_objects = tuple(cj for o in extops
-                              for opi in (o.ufl_operands + (o.result_coefficient(),) +
-                                          tuple(arg for arg in o.argument_slots(isinstance(a, Form))))
-                              for cj in extract_type(opi, ufl_type))
-        objects.update(extop_objects)
-        return objects
     else:
-        return set(o for e in iter_expressions(a)
-                   for o in unique_pre_traversal(e)
-                   if isinstance(o, ufl_type))
+        objects = set(o for e in iter_expressions(a)
+                      for o in unique_pre_traversal(e)
+                      if isinstance(o, ufl_type))
+
+    # Need to extract objects of type ufl_type contained in external operators
+    if not issubclass(ufl_type, ExternalOperator):
+        # For the case where there are no external operators in `a`, this effectively doubles the time
+        # since we traverse the DAG twice.
+        # -> A solution would be to have a mechanism to collect external operators as we traverse
+        #    the DAG for the first time and use that information.
+        extops = extract_type(a, ExternalOperator)
+        if issubclass(ufl_type, BaseArgument):
+            # Look for BaseArguments in ExternalOperator's argument slots only since that's where they are by definition.
+            # Don't look into operands, which is convenient for external operator composition, e.g. N1(N2; v*)
+            # where N2 is seen as an operator and not a form.
+            extop_objects = tuple(cj for o in extops
+                                  for ai in tuple(arg for arg in o.argument_slots(isinstance(a, Form)))
+                                  for cj in extract_type(ai, ufl_type))
+        else:
+            extop_objects = tuple(cj for o in extops
+                                  for opi in (o.ufl_operands + (o.result_coefficient(),) +
+                                              tuple(arg for arg in o.argument_slots(isinstance(a, Form))))
+                                  for cj in extract_type(opi, ufl_type))
+        objects.update(extop_objects)
+    return objects
 
 
 def has_type(a, ufl_type):
@@ -110,13 +123,13 @@ def has_exact_type(a, ufl_type):
 def extract_arguments(a):
     """Build a sorted list of all arguments in a,
     which can be a Form, Integral or Expr."""
-    return _sorted_by_number_and_part(extract_type(a, Argument))
+    return _sorted_by_number_and_part(extract_type(a, BaseArgument))
 
 
 def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or Expr."""
-    return sorted_by_count(extract_type(a, Coefficient))
+    return sorted_by_count(extract_type(a, BaseCoefficient))
 
 
 def extract_external_operators(a):
@@ -138,9 +151,12 @@ def extract_arguments_and_coefficients(a):
     # for large forms, and has more validation built in.
 
     # Extract lists of all form argument instances
-    terminals = extract_type(a, FormArgument)
-    arguments = [f for f in terminals if isinstance(f, Argument)]
-    coefficients = [f for f in terminals if isinstance(f, Coefficient)]
+    # TODO: Fix that! This basically ruins the performance since we call extract_type twice,
+    # this is caused by the fact that unlike to Coefficient/Argument,
+    # BaseCoefficient and BaseArgument don't have a common parent
+    terminals = extract_type(a, BaseCoefficient).union(extract_type(a, BaseArgument))
+    arguments = [f for f in terminals if isinstance(f, BaseArgument)]
+    coefficients = [f for f in terminals if isinstance(f, BaseCoefficient)]
 
     # Build number,part: instance mappings, should be one to one
     bfnp = dict((f, (f.number(), f.part())) for f in arguments)
