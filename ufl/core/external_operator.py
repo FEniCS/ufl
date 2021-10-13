@@ -67,7 +67,6 @@ class ExternalOperator(Operator, BaseForm):
         self.derivatives = derivatives
 
         # Produce the resulting Coefficient: Is that really needed?
-        # If not -> Add checks on function space
         if result_coefficient is None:
             result_coefficient = Coefficient(function_space)
         elif not isinstance(result_coefficient, (Coefficient, ReferenceValue)):
