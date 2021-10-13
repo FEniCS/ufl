@@ -17,10 +17,7 @@ from ufl.core.external_operator import ExternalOperator
 from ufl.form import BaseForm
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms import expand_derivatives
-from ufl.constantvalue import as_ufl
 from ufl.domain import default_domain
-
-from functools import partial
 
 
 @pytest.fixture(scope='module')
@@ -78,6 +75,9 @@ def _make_external_operator(V=None, nops=1):
     space = V or FiniteElement("Quadrature", triangle, 1)
     return ExternalOperator(*[variable(0.) for _ in range(nops)], function_space=space)
 
+
+"""
+# -- Frechet derivative tests -- #
 
 def _test(f, df, V):
     v = Coefficient(V)
@@ -211,6 +211,7 @@ def testmultiVariable(V1):
     df2e = partial(df2, e=e)
     df3e = partial(df3, e=e)
     _test_multivariable(fe, df1e, df2e, df3e, V1)
+"""
 
 
 def test_form():
