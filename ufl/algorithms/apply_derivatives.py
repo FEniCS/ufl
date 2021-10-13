@@ -315,52 +315,25 @@ class GenericDerivativeRuleset(MultiFunction):
     def external_operator(self, o, *dfs):
         result = ()
         for i, df in enumerate(dfs):
-            df_rank = len(df.ufl_shape)
-            f_rank = len(o.ufl_operands[i].ufl_shape)
-
             derivatives = tuple(dj + int(i == j) for j, dj in enumerate(o.derivatives))
             if len(extract_arguments(df)) != 0:
-                # Handle the symbolic differentiation for the case where we want only want to
-                # deal with the action of the external operator.
+                # Handle the symbolic differentiation of external operators.
                 # This bit returns:
                 #
-                #   `\sum_{i} dNdOi(..., Oi, ...; DOi(u)[v])`; where we differentate wrt u, Oi is the i-th operand,
-                #                                              N an ExternalOperator and v the direction (Argument).
+                #   `\sum_{i} dNdOi(..., Oi, ...; DOi(u)[v], ..., v*)`
                 #
-                # dNdOi(..., Oi, ...; DOi(u)[v]) represents the action of dNdOi on the Gateaux derivative DOi(u)[v]
-                # For example, if we take N(u) = u**2, we get `dNdu(u; v)` which represents dNdu(u) * v.
+                # where we differentate wrt u, Oi is the i-th operand, N(..., Oi, ...; ..., v*) an ExternalOperator
+                # and v the direction (Argument). dNdOi(..., Oi, ...; DOi(u)[v]) is an ExternalOperator
+                # representing the Gateaux-derivative of N. For example:
+                #  -> From N(u) = u**2, we get `dNdu(u; uhat, v*) = 2 * u * uhat`.
                 new_args = o.argument_slots() + (df,)
                 function_space = o._make_function_space_args(i, df)
                 extop = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives,
                                                  function_space=function_space, argument_slots=new_args)
-            # elif df == 0:
-            #    extop = 0
+            elif df == 0:
+                extop = Zero(o.ufl_shape)
             else:
-                # raise NotImplementedError('Interp needs to be implemented in order to perform Frechet derivative on external operators!')
-                # """
-                # This bit returns:
-                #
-                #   \sum_{k} dNdOi(..., Oi, ...) * dOidu
-                #
-                # For example, if we take N(cos(g1), g2*g1**2) and u = g1 we get: `- sin(g1)*dNdO1 + 2*g1*g2*dNdO2`,
-                # with O1 = cos(g1) and O2 = g2*g1**2
-                o_new = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives)
-                o_new_rank = len(o_new.ufl_shape)
-                mi = indices(o_new_rank + df_rank - f_rank)
-
-                start = len(o.ufl_shape)
-                for j, e in enumerate(o.derivatives[:i]):
-                    start += len(o.ufl_operands[j].ufl_shape * e)
-                end = start + len(o.ufl_operands[i].ufl_shape * (derivatives[i] - o.derivatives[i]))
-
-                # Computation of the sets of indices involved in the tensor contraction
-                aa = mi[start:end] + mi[o_new_rank:]
-                bb = mi[:o_new_rank]
-                extop = df[aa] * o_new[bb]
-                mi_tensor = tuple(e for e in mi if not (e in aa and e in bb))
-                if len(extop.ufl_free_indices):
-                    extop = as_tensor(extop, mi_tensor)
-                # """
+                raise NotImplementedError('Frechet derivative of external operators need to be provided!')
             result += (extop,)
         return sum(result)
 
