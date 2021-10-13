@@ -256,10 +256,6 @@ def test_function_spaces_derivatives():
     V = FiniteElement("CG", triangle, 1)
     Vv = VectorElement("CG", triangle, 1)
     Vt = TensorElement("CG", triangle, 1)
-    Vt2 = TensorElement(V, shape=(2, 2, 2))
-    Vt3 = TensorElement(V, shape=(2, 2, 2, 2))
-    Vt4 = TensorElement(V, shape=(2, 2, 2, 2, 2))
-    Vt5 = TensorElement(V, shape=(2, 2, 2, 2, 2, 2))
 
     def _check_space_shape_fct_space(x, der, shape, space):
         assert x.derivatives == der
@@ -296,11 +292,11 @@ def test_function_spaces_derivatives():
     dedwduv = ev._ufl_expr_reconstruct_(uv, w, derivatives=(1, 1))
     d2edw = ev._ufl_expr_reconstruct_(uv, w, derivatives=(0, 2))
 
-    _check_space_shape_fct_space(deduv, (1, 0), (2, 2), Vt)
+    _check_space_shape_fct_space(deduv, (1, 0), (2,), Vv)
     _check_space_shape_fct_space(dedw, (0, 1), (2,), Vv)
 
-    _check_space_shape_fct_space(d2eduv, (2, 0), (2, 2, 2), Vt2)
-    _check_space_shape_fct_space(dedwduv, (1, 1), (2, 2), Vt)
+    _check_space_shape_fct_space(d2eduv, (2, 0), (2,), Vv)
+    _check_space_shape_fct_space(dedwduv, (1, 1), (2,), Vv)
     _check_space_shape_fct_space(d2edw, (0, 2), (2,), Vv)
 
     # Tensor case
@@ -309,25 +305,25 @@ def test_function_spaces_derivatives():
     deduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 1, 0))
     dedw = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 0, 1))
 
-    _check_space_shape_fct_space(dedut, (1, 0, 0), (2, 2, 2, 2), Vt3)
-    _check_space_shape_fct_space(deduv, (0, 1, 0), (2, 2, 2), Vt2)
+    _check_space_shape_fct_space(dedut, (1, 0, 0), (2, 2,), Vt)
+    _check_space_shape_fct_space(deduv, (0, 1, 0), (2, 2,), Vt)
     _check_space_shape_fct_space(dedw, (0, 0, 1), (2, 2), Vt)
 
     d2edut = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(2, 0, 0))
     d2eduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 2, 0))
     d2edw = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 0, 2))
 
-    _check_space_shape_fct_space(d2edut, (2, 0, 0), (2, 2, 2, 2, 2, 2), Vt5)
-    _check_space_shape_fct_space(d2eduv, (0, 2, 0), (2, 2, 2, 2), Vt3)
+    _check_space_shape_fct_space(d2edut, (2, 0, 0), (2, 2), Vt)
+    _check_space_shape_fct_space(d2eduv, (0, 2, 0), (2, 2), Vt)
     _check_space_shape_fct_space(d2edw, (0, 0, 2), (2, 2), Vt)
 
     dedwduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(0, 1, 1))
     dedwdut = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(1, 0, 1))
     dedutduv = et._ufl_expr_reconstruct_(ut, uv, w, derivatives=(1, 1, 0))
 
-    _check_space_shape_fct_space(dedwduv, (0, 1, 1), (2, 2, 2), Vt2)
-    _check_space_shape_fct_space(dedwdut, (1, 0, 1), (2, 2, 2, 2), Vt3)
-    _check_space_shape_fct_space(dedutduv, (1, 1, 0), (2, 2, 2, 2, 2), Vt4)
+    _check_space_shape_fct_space(dedwduv, (0, 1, 1), (2, 2), Vt)
+    _check_space_shape_fct_space(dedwdut, (1, 0, 1), (2, 2), Vt)
+    _check_space_shape_fct_space(dedutduv, (1, 1, 0), (2, 2), Vt)
 
     # TODO: MIXED ELEMENT
 

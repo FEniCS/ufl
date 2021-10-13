@@ -327,9 +327,7 @@ class GenericDerivativeRuleset(MultiFunction):
                 # representing the Gateaux-derivative of N. For example:
                 #  -> From N(u) = u**2, we get `dNdu(u; uhat, v*) = 2 * u * uhat`.
                 new_args = o.argument_slots() + (df,)
-                function_space = o._make_function_space_args(i, df)
-                extop = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives,
-                                                 function_space=function_space, argument_slots=new_args)
+                extop = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives, argument_slots=new_args)
             elif df == 0:
                 extop = Zero(o.ufl_shape)
             else:

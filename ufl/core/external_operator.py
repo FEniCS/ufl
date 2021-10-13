@@ -16,9 +16,9 @@ from ufl.core.operator import Operator
 from ufl.form import BaseForm
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import as_ufl
-from ufl.finiteelement.finiteelement import FiniteElement
-from ufl.finiteelement.mixedelement import VectorElement, TensorElement
-from ufl.functionspace import FunctionSpace
+from ufl.finiteelement import FiniteElementBase
+from ufl.domain import default_domain
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.referencevalue import ReferenceValue
 
 
@@ -33,9 +33,7 @@ class ExternalOperator(Operator, BaseForm):
         r"""
         :param operands: operands on which acts the :class:`ExternalOperator`.
         :param function_space: the :class:`.FunctionSpace`,
-            or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
-            Alternatively, another :class:`Coefficient` may be passed here and its function space
-            will be used.
+               or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
         :param derivatives: tuple specifiying the derivative multiindex.
         :param result_coefficient: ufl.Coefficient associated to the ExternalOperator representing what is produced by the operator
         :param argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
@@ -46,10 +44,17 @@ class ExternalOperator(Operator, BaseForm):
         argument_slots = tuple(map(as_ufl, argument_slots))
         Operator.__init__(self, ufl_operands)
 
-        # Make the coefficient associated to the external operator
-        ref_coefficient = Coefficient(function_space)
+        # -- Function space -- #
+        if isinstance(function_space, FiniteElementBase):
+            # For legacy support for .ufl files using cells, we map
+            # the cell to The Default Mesh
+            element = function_space
+            domain = default_domain(element.cell())
+            function_space = FunctionSpace(domain, element)
+        elif not isinstance(function_space, AbstractFunctionSpace):
+            raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
-        # Checks
+        # -- Derivatives -- #
         if derivatives is not None:
             if not isinstance(derivatives, tuple):
                 raise TypeError("Expecting a tuple for derivatives and not %s" % derivatives)
@@ -57,50 +62,24 @@ class ExternalOperator(Operator, BaseForm):
                 raise ValueError("Expecting a size of %s for %s" % (len(self.ufl_operands), derivatives))
             if not all(isinstance(d, int) for d in derivatives) or any(d < 0 for d in derivatives):
                 raise ValueError("Expecting a derivative multi-index with nonnegative indices and not %s" % str(derivatives))
-
-            self.derivatives = derivatives
-            # If we have arguments obtained from a Gateaux-derivative,
-            # the appropriate function space has already been set up upstream
-            if len(argument_slots) == 1:
-                # In this block, we construct the function space on which lives the ExternalOperator
-                # accordingly to the derivatives taken, for instance in 2d:
-                #      for V = VectorFunctionSpace(...)
-                #      if u = Function(V); e = ExternalOperator(u, function_space=V)
-                #      then, e.ufl_shape = (2,)
-                #            dedu.ufl_shape = (2,2)
-                #            ...
-                # Therefore, for 'dedu' we need to construct the new TensorElement to end up with the appropriate
-                # function space and we also need to store the VectorElement corresponding to V since it is on this
-                # function_space that we will interpolate the operands.
-                s = ref_coefficient.ufl_shape
-                for i, e in enumerate(self.derivatives):
-                    s += self.ufl_operands[i].ufl_shape * e
-                new_function_space = self._make_function_space(s, sub_element=ref_coefficient.ufl_element(),
-                                                               domain=ref_coefficient.ufl_domain())
-            else:
-                new_function_space = ref_coefficient.ufl_function_space()
         else:
-            new_function_space = ref_coefficient.ufl_function_space()
-            self.derivatives = (0,) * len(self.ufl_operands)
+            derivatives = (0,) * len(self.ufl_operands)
+        self.derivatives = derivatives
 
+        # Produce the resulting Coefficient: Is that really needed?
+        # If not -> Add checks on function space
         if result_coefficient is None:
-            result_coefficient = Coefficient(new_function_space)
+            result_coefficient = Coefficient(function_space)
         elif not isinstance(result_coefficient, (Coefficient, ReferenceValue)):
             raise TypeError('Expecting a Coefficient and not %s', type(result_coefficient))
         self._result_coefficient = result_coefficient
 
-        if not self.result_coefficient().ufl_function_space() == new_function_space:
-            raise ValueError('The function spaces do not match!')
-
+        # -- Argument slots -- #
         if len(argument_slots) == 0:
             # Make v*
-            v_star = Argument(new_function_space.dual(), 0)
+            v_star = Argument(function_space.dual(), 0)
             argument_slots = (v_star,)
         self._argument_slots = argument_slots
-
-        # if sum(self.derivatives) + 1 != len(self._argument_slots):
-        #    import ipdb; ipdb.set_trace()
-        #    raise ValueError('Expecting sum(derivatives) + 1 to be equal to len(argument_slots)!')
 
     def result_coefficient(self, unpack_reference=True):
         "Returns the coefficient produced by the external operator"
@@ -108,9 +87,6 @@ class ExternalOperator(Operator, BaseForm):
         if unpack_reference and isinstance(result_coefficient, ReferenceValue):
             return result_coefficient.ufl_operands[0]
         return result_coefficient
-
-    # def get_coefficient(self):
-    #         TODO: was replaced -> get_coefficient() = result_coefficient()
 
     def argument_slots(self, outer_form=False):
         r"""Returns a tuple of expressions containing argument and coefficient based expressions.
@@ -167,54 +143,8 @@ class ExternalOperator(Operator, BaseForm):
         return self.result_coefficient()._ufl_shape
 
     def ufl_function_space(self):
-        "Returns the ufl function space associated to the external operator, the one we interpolate the operands on."
+        "Returns the ufl function space associated to the external operator"
         return self.result_coefficient()._ufl_function_space
-
-    def _make_function_space_args(self, k, y, adjoint=False):
-        r"""Make the function space of the Gateaux derivative: dN[x] = \frac{dN}{dOperands[k]} * y(x) if adjoint is False
-        and of \frac{dN}{dOperands[k]}^{*} * y(x) if adjoint is True"""
-        opk_shape = self.ufl_operands[k].ufl_shape
-        y_shape = y.ufl_shape
-        shape = self.ufl_function_space().ufl_element().reference_value_shape()
-        for i, e in enumerate(self.derivatives):
-            shape += self.ufl_operands[i].ufl_shape * (e - int(i == k))
-
-        if not adjoint:
-            add_shape = y_shape[len(opk_shape):]
-            shape += add_shape
-        else:
-            add_shape = y_shape[len(shape):]
-            shape = tuple(reversed(opk_shape)) + add_shape
-        return self._make_function_space(shape)
-
-    def _make_function_space(self, s, sub_element=None, domain=None):
-        """Make the function space of a Coefficient of shape s"""
-        if sub_element is None:
-            sub_element = self.ufl_function_space().ufl_element()
-        if domain is None:
-            domain = self.ufl_function_space().ufl_domain()
-        if not isinstance(sub_element, (FiniteElement, VectorElement, TensorElement)):
-            # While TensorElement (resp. VectorElement) allows to build a tensor element of a given shape
-            # where all the elements in the tensor (resp. vector) are equal, there is no mechanism to construct
-            # an element of a given shape with hybrid elements in it.
-            # MixedElement flatten out the shape of the elements passed in as arguments.
-            # For instance, starting from an ExternalOperator based on an MixedElement (F1, F2) of shape (2,),
-            # we would like to have a mechanism to construct the gradient of it based on the
-            # MixedElement (F1, F1)
-            #              (F2, F2) of shape (2, 2)
-            # TODO: subclass MixedElement to be able to do that !
-            raise NotImplementedError("MixedFunctionSpaces not handled yet")
-
-        if len(sub_element.sub_elements()) != 0:
-            sub_element = sub_element.sub_elements()[0]
-
-        if len(s) == 0:
-            ufl_element = sub_element
-        elif len(s) == 1:
-            ufl_element = VectorElement(sub_element, dim=s[0])
-        else:
-            ufl_element = TensorElement(sub_element, shape=s)
-        return FunctionSpace(domain, ufl_element)
 
     def grad(self):
         """Returns the symbolic grad of the external operator"""
