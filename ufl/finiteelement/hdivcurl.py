@@ -97,7 +97,7 @@ class WithMapping(FiniteElementBase):
     def __init__(self, wrapee, mapping):
         self._repr = "WithMapping(%s, %s)" % (repr(wrapee), mapping)
         if mapping == "symmetries":
-            error("Can't changing mapping to 'symmetries'")
+            raise ValueError("Can't change mapping to 'symmetries'")
         self._mapping = mapping
         self.wrapee = wrapee
 
