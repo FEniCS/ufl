@@ -7,6 +7,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from collections import defaultdict
 
 from ufl.log import error, warning
 
@@ -1048,6 +1049,9 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
+        # caches for reuse in the dispatched transformers
+        self.vcaches = defaultdict(dict)
+        self.rcaches = defaultdict(dict)
 
     def terminal(self, o):
         return o
@@ -1059,24 +1063,41 @@ class DerivativeRuleDispatcher(MultiFunction):
 
     def grad(self, o, f):
         rules = GradRuleset(o.ufl_shape[-1])
-        return map_expr_dag(rules, f)
+        key = (GradRuleset, o.ufl_shape[-1])
+        return map_expr_dag(rules, f,
+                            vcache=self.vcaches[key],
+                            rcache=self.rcaches[key])
 
     def reference_grad(self, o, f):
         rules = ReferenceGradRuleset(o.ufl_shape[-1])  # FIXME: Look over this and test better.
-        return map_expr_dag(rules, f)
+        key = (ReferenceGradRuleset, o.ufl_shape[-1])
+        return map_expr_dag(rules, f,
+                            vcache=self.vcaches[key],
+                            rcache=self.rcaches[key])
 
     def variable_derivative(self, o, f, dummy_v):
-        rules = VariableRuleset(o.ufl_operands[1])
-        return map_expr_dag(rules, f)
+        op = o.ufl_operands[1]
+        rules = VariableRuleset(op)
+        key = (VariableRuleset, op)
+        return map_expr_dag(rules, f,
+                            vcache=self.vcaches[key],
+                            rcache=self.rcaches[key])
 
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         dummy, w, v, cd = o.ufl_operands
         rules = GateauxDerivativeRuleset(w, v, cd)
-        return map_expr_dag(rules, f)
+        key = (GateauxDerivativeRuleset, w, v, cd)
+        return map_expr_dag(rules, f,
+                            vcache=self.vcaches[key],
+                            rcache=self.rcaches[key])
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         o_ = o.ufl_operands
-        return CoordinateDerivative(map_expr_dag(self, o_[0]), o_[1], o_[2], o_[3])
+        key = (CoordinateDerivative, o_[0])
+        return CoordinateDerivative(map_expr_dag(self, o_[0],
+                                                 vcache=self.vcaches[key],
+                                                 rcache=self.rcaches[key]),
+                                    o_[1], o_[2], o_[3])
 
     def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
         # Reuse if untouched
@@ -1209,6 +1230,8 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
 class CoordinateDerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
+        self.vcache = defaultdict(dict)
+        self.rcache = defaultdict(dict)
 
     def terminal(self, o):
         return o
@@ -1227,17 +1250,17 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
     def coefficient_derivative(self, o):
         return o
 
-    def coordinate_derivative(self, o):
+    def coordinate_derivative(self, o, f, w, v, cd):
         from ufl.algorithms import extract_unique_elements
         spaces = set(c.family() for c in extract_unique_elements(o))
         unsupported_spaces = {"Argyris", "Bell", "Hermite", "Morley"}
         if spaces & unsupported_spaces:
             error("CoordinateDerivative is not supported for elements of type %s. "
                   "This is because their pullback is not implemented in UFL." % unsupported_spaces)
-        f, w, v, cd = o.ufl_operands
-        f = self(f)  # transform f
+        _, w, v, cd = o.ufl_operands
         rules = CoordinateDerivativeRuleset(w, v, cd)
-        return map_expr_dag(rules, f)
+        key = (CoordinateDerivativeRuleset, w, v, cd)
+        return map_expr_dag(rules, f, vcache=self.vcache[key], rcache=self.rcache[key])
 
 
 def apply_coordinate_derivatives(expression):
