@@ -273,6 +273,7 @@ class VectorElement(MixedElement):
         if isinstance(family, FiniteElementBase):
             sub_element = family
             cell = sub_element.cell()
+            variant = sub_element.variant()
         else:
             if cell is not None:
                 cell = as_cell(cell)
@@ -303,10 +304,10 @@ class VectorElement(MixedElement):
                                    value_shape, reference_value_shape)
         self._sub_element = sub_element
 
-        if sub_element._variant is None:
+        if variant is None:
             var_str = ""
         else:
-            var_str = ", variant='" + sub_element._variant + "'"
+            var_str = ", variant='" + variant + "'"
 
         # Cache repr string
         self._repr = "VectorElement(%s, dim=%d%s)" % (
@@ -315,6 +316,10 @@ class VectorElement(MixedElement):
     def reconstruct(self, **kwargs):
         sub_element = self._sub_element.reconstruct(**kwargs)
         return VectorElement(sub_element, dim=len(self.sub_elements()))
+
+    def variant(self):
+        """Return the variant used to initialise the element."""
+        return self._sub_element.variant()
 
     def mapping(self):
         return self._mapping
@@ -357,6 +362,7 @@ class TensorElement(MixedElement):
         if isinstance(family, FiniteElementBase):
             sub_element = family
             cell = sub_element.cell()
+            variant = sub_element.variant()
         else:
             if cell is not None:
                 cell = as_cell(cell)
@@ -435,14 +441,18 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
         self._flattened_sub_element_mapping = flattened_sub_element_mapping
 
-        if sub_element._variant is None:
+        if variant is None:
             var_str = ""
         else:
-            var_str = ", variant='" + sub_element._variant + "'"
+            var_str = ", variant='" + variant + "'"
 
         # Cache repr string
         self._repr = "TensorElement(%s, shape=%s, symmetry=%s%s)" % (
             repr(sub_element), repr(self._shape), repr(self._symmetry), var_str)
+
+    def variant(self):
+        """Return the variant used to initialise the element."""
+        return self._sub_element.variant()
 
     def mapping(self):
         return self._mapping
