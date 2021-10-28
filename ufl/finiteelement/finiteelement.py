@@ -196,6 +196,7 @@ class FiniteElement(FiniteElementBase):
         return self._sobolev_space
 
     def variant(self):
+        """Return the variant used to initialise the element."""
         return self._variant
 
     def reconstruct(self, family=None, cell=None, degree=None, quad_scheme=None, variant=None):
