@@ -303,10 +303,10 @@ class VectorElement(MixedElement):
                                    value_shape, reference_value_shape)
         self._sub_element = sub_element
 
-        if variant is None:
+        if sub_element._variant is None:
             var_str = ""
         else:
-            var_str = ", variant='" + variant + "'"
+            var_str = ", variant='" + sub_element._variant + "'"
 
         # Cache repr string
         self._repr = "VectorElement(%s, dim=%d%s)" % (
@@ -435,10 +435,10 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
         self._flattened_sub_element_mapping = flattened_sub_element_mapping
 
-        if variant is None:
+        if sub_element._variant is None:
             var_str = ""
         else:
-            var_str = ", variant='" + variant + "'"
+            var_str = ", variant='" + sub_element._variant + "'"
 
         # Cache repr string
         self._repr = "TensorElement(%s, shape=%s, symmetry=%s%s)" % (
