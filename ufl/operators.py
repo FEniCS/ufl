@@ -169,7 +169,7 @@ def _partial_inner(a, b):
 
 
 def dot(a, b):
-    "UFL operator: Take the dot product of *a* and *b*. The complex conjugate of the second argument is taken."
+    "UFL operator: Take the dot product of *a* and *b*. This won't take the complex conjugate of the second argument."
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():

@@ -53,6 +53,8 @@ A very brief overview of the language contents follows:
     - tetrahedron
     - quadrilateral
     - hexahedron
+    - prism
+    - pyramid
 
 * Domains::
 
@@ -362,7 +364,7 @@ system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functi
 # Predefined convenience objects
 from ufl.objects import (
     vertex, interval, triangle, tetrahedron,
-    quadrilateral, hexahedron, facet,
+    quadrilateral, hexahedron, prism, pyramid, facet,
     i, j, k, l, p, q, r, s,
     dx, ds, dS, dP,
     dc, dC, dO, dI, dX,
@@ -426,6 +428,7 @@ __all__ = [
     'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
+    'prism', 'pyramid',
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',

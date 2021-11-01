@@ -7,6 +7,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from collections import defaultdict
 
 from ufl.log import error, warning
 
@@ -518,14 +519,16 @@ class GradRuleset(GenericDerivativeRuleset):
     # --- Specialized rules for geometric quantities
 
     def geometric_quantity(self, o):
-        """Default for geometric quantities is dg/dx = 0 if piecewise constant, otherwise keep Grad(g).
+        """Default for geometric quantities is do/dx = 0 if piecewise constant,
+        otherwise transform derivatives to reference derivatives.
         Override for specific types if other behaviour is needed."""
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
         else:
-            # TODO: Which types does this involve? I don't think the
-            # form compilers will handle this.
-            return Grad(o)
+            domain = o.ufl_domain()
+            K = JacobianInverse(domain)
+            Do = grad_to_reference_grad(o, K)
+            return Do
 
     def jacobian_inverse(self, o):
         # grad(K) == K_ji rgrad(K)_rj
@@ -533,9 +536,7 @@ class GradRuleset(GenericDerivativeRuleset):
             return self.independent_terminal(o)
         if not o._ufl_is_terminal_:
             error("ReferenceValue can only wrap a terminal")
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        Do = as_tensor(o[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = grad_to_reference_grad(o, o)
         return Do
 
     # TODO: Add more explicit geometry type handlers here, with
@@ -588,9 +589,7 @@ class GradRuleset(GenericDerivativeRuleset):
             error("ReferenceValue can only wrap a terminal")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = grad_to_reference_grad(o, K)
         return Do
 
     def reference_grad(self, o):
@@ -602,9 +601,7 @@ class GradRuleset(GenericDerivativeRuleset):
             error("ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(len(o.ufl_shape))
-        i, j = indices(2)
-        Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+        Do = grad_to_reference_grad(o, K)
         return Do
 
     # --- Nesting of gradients
@@ -631,6 +628,26 @@ class GradRuleset(GenericDerivativeRuleset):
 
     cell_avg = GenericDerivativeRuleset.independent_operator
     facet_avg = GenericDerivativeRuleset.independent_operator
+
+
+def grad_to_reference_grad(o, K):
+    """Relates grad(o) to reference_grad(o) using the Jacobian inverse.
+
+    Args
+    ----
+    o: Operand
+    K: Jacobian inverse
+
+    Returns
+    -------
+    Do: grad(o) written in terms of reference_grad(o) and K
+
+    """
+    r = indices(len(o.ufl_shape))
+    i, j = indices(2)
+    # grad(o) == K_ji rgrad(o)_rj
+    Do = as_tensor(K[j, i] * ReferenceGrad(o)[r + (j,)], r + (i,))
+    return Do
 
 
 class ReferenceGradRuleset(GenericDerivativeRuleset):
@@ -1095,6 +1112,9 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
+        # caches for reuse in the dispatched transformers
+        self.vcaches = defaultdict(dict)
+        self.rcaches = defaultdict(dict)
 
         # Record the operations delayed to the derivative expansion phase:
         # Example: dN(u)/du where `N` is an ExternalOperator and `u` a Coefficient
@@ -1115,20 +1135,33 @@ class DerivativeRuleDispatcher(MultiFunction):
 
     def grad(self, o, f):
         rules = GradRuleset(o.ufl_shape[-1])
-        return map_expr_dag(rules, f)
+        key = (GradRuleset, o.ufl_shape[-1])
+        return map_expr_dag(rules, f,
+                            vcache=self.vcaches[key],
+                            rcache=self.rcaches[key])
 
     def reference_grad(self, o, f):
         rules = ReferenceGradRuleset(o.ufl_shape[-1])  # FIXME: Look over this and test better.
-        return map_expr_dag(rules, f)
+        key = (ReferenceGradRuleset, o.ufl_shape[-1])
+        return map_expr_dag(rules, f,
+                            vcache=self.vcaches[key],
+                            rcache=self.rcaches[key])
 
     def variable_derivative(self, o, f, dummy_v):
-        rules = VariableRuleset(o.ufl_operands[1])
-        return map_expr_dag(rules, f)
+        op = o.ufl_operands[1]
+        rules = VariableRuleset(op)
+        key = (VariableRuleset, op)
+        return map_expr_dag(rules, f,
+                            vcache=self.vcaches[key],
+                            rcache=self.rcaches[key])
 
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         dummy, w, v, cd = o.ufl_operands
         rules = GateauxDerivativeRuleset(w, v, cd)
-        mapped_expr = map_expr_dag(rules, f)
+        key = (GateauxDerivativeRuleset, w, v, cd)
+        mapped_expr = map_expr_dag(rules, f,
+                                   vcache=self.vcaches[key],
+                                   rcache=self.rcaches[key])
         # We need to go through the dag first to record the pending operations
         var, der_kwargs, *extops = rules.pending_operations
         # Need to account for pending operations that have been stored in other integrands
@@ -1139,11 +1172,15 @@ class DerivativeRuleDispatcher(MultiFunction):
     def external_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         dummy, w, v, cd = o.ufl_operands
         rules = GateauxDerivativeRuleset(w, v, cd)
+        key = (GateauxDerivativeRuleset, w, v, cd)
         mapped_f = rules.coefficient(f)
         if mapped_f != 0:
             # If dN/dN needs to return an Argument in N space
             return mapped_f
-        dfs = tuple(map_expr_dag(rules, op) for op in f.ufl_operands)
+        dfs = tuple(map_expr_dag(rules, op,
+                                 vcache=self.vcaches[key],
+                                 rcache=self.rcaches[key])
+                    for op in f.ufl_operands)
         # We need to go through the dag first to record the pending operations
         var, der_kwargs, *extops = rules.pending_operations
         # Need to account for pending operations that have been stored in other integrands
@@ -1153,7 +1190,11 @@ class DerivativeRuleDispatcher(MultiFunction):
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         o_ = o.ufl_operands
-        return CoordinateDerivative(map_expr_dag(self, o_[0]), o_[1], o_[2], o_[3])
+        key = (CoordinateDerivative, o_[0])
+        return CoordinateDerivative(map_expr_dag(self, o_[0],
+                                                 vcache=self.vcaches[key],
+                                                 rcache=self.rcaches[key]),
+                                    o_[1], o_[2], o_[3])
 
     def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
         # Reuse if untouched
@@ -1320,6 +1361,8 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
 class CoordinateDerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
+        self.vcache = defaultdict(dict)
+        self.rcache = defaultdict(dict)
 
     def terminal(self, o):
         return o
@@ -1338,17 +1381,17 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
     def coefficient_derivative(self, o):
         return o
 
-    def coordinate_derivative(self, o):
+    def coordinate_derivative(self, o, f, w, v, cd):
         from ufl.algorithms import extract_unique_elements
         spaces = set(c.family() for c in extract_unique_elements(o))
         unsupported_spaces = {"Argyris", "Bell", "Hermite", "Morley"}
         if spaces & unsupported_spaces:
             error("CoordinateDerivative is not supported for elements of type %s. "
                   "This is because their pullback is not implemented in UFL." % unsupported_spaces)
-        f, w, v, cd = o.ufl_operands
-        f = self(f)  # transform f
+        _, w, v, cd = o.ufl_operands
         rules = CoordinateDerivativeRuleset(w, v, cd)
-        return map_expr_dag(rules, f)
+        key = (CoordinateDerivativeRuleset, w, v, cd)
+        return map_expr_dag(rules, f, vcache=self.vcache[key], rcache=self.rcache[key])
 
 
 def apply_coordinate_derivatives(expression):
