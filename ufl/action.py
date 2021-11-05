@@ -83,7 +83,7 @@ class Action(BaseForm):
 
     def _analyze_form_arguments(self):
         "Define arguments of a adjoint of a form as the reverse of the form arguments"
-        if isinstance(self._right, (Form, Action, ExternalOperator)):
+        if isinstance(self._right, BaseForm):
             self._arguments = self._left.arguments()[:-1] + self._right.arguments()[1:]
         elif isinstance(self._right, Coefficient):
             self._arguments = self._left.arguments()[:-1]
