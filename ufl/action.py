@@ -8,7 +8,7 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.form import BaseForm, FormSum, Form
-from ufl.coefficient import Coefficient
+from ufl.coefficient import Coefficient, Cofunction
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -60,12 +60,12 @@ class Action(BaseForm):
         self._left = left
         self._right = right
 
-        if isinstance(right, Form):
+        if isinstance(right, (Form, Action)):
             if (left.arguments()[-1].ufl_function_space().dual()
                 != right.arguments()[0].ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
-        elif isinstance(right, Coefficient):
+        elif isinstance(right, (Coefficient, Cofunction)):
             if (left.arguments()[-1].ufl_function_space()
                 != right.ufl_function_space()):
 
