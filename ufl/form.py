@@ -24,7 +24,7 @@ from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
 
 # Export list for ufl.classes
-__all_classes__ = ["Form"]
+__all_classes__ = ["Form", "BaseForm"]
 
 # --- The Form class, representing a complete variational form or functional ---
 

@@ -344,7 +344,7 @@ from ufl.operators import rank, shape, \
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
 
 # Form class
-from ufl.form import Form, FormSum, replace_integral_domains
+from ufl.form import Form, BaseForm, FormSum, replace_integral_domains
 
 # Integral classes
 from ufl.integral import Integral
