@@ -248,7 +248,7 @@ class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal."
 
     def __init__(self, family, cell=None, degree=None, dim=None,
-                 form_degree=None, quad_scheme=None):
+                 form_degree=None, quad_scheme=None, variant=None):
         """
         Create vector element (repeated mixed element)
 
@@ -266,18 +266,22 @@ class VectorElement(MixedElement):
                viewed as k-form), ignored if family is a FiniteElement
             quad_scheme
                The quadrature scheme (optional), ignored if family is a FiniteElement
+            variant
+               Hint for the local basis function variant (optional)
         """
 
         if isinstance(family, FiniteElementBase):
             sub_element = family
             cell = sub_element.cell()
+            variant = sub_element.variant()
         else:
             if cell is not None:
                 cell = as_cell(cell)
             # Create sub element
             sub_element = FiniteElement(family, cell, degree,
                                         form_degree=form_degree,
-                                        quad_scheme=quad_scheme)
+                                        quad_scheme=quad_scheme,
+                                        variant=variant)
 
         # Set default size if not specified
         if dim is None:
@@ -300,13 +304,22 @@ class VectorElement(MixedElement):
                                    value_shape, reference_value_shape)
         self._sub_element = sub_element
 
+        if variant is None:
+            var_str = ""
+        else:
+            var_str = ", variant='" + variant + "'"
+
         # Cache repr string
-        self._repr = "VectorElement(%s, dim=%d)" % (
-            repr(sub_element), len(self._sub_elements))
+        self._repr = "VectorElement(%s, dim=%d%s)" % (
+            repr(sub_element), len(self._sub_elements), var_str)
 
     def reconstruct(self, **kwargs):
         sub_element = self._sub_element.reconstruct(**kwargs)
         return VectorElement(sub_element, dim=len(self.sub_elements()))
+
+    def variant(self):
+        """Return the variant used to initialise the element."""
+        return self._sub_element.variant()
 
     def mapping(self):
         return self._mapping
@@ -333,7 +346,7 @@ class TensorElement(MixedElement):
                  "_mapping")
 
     def __init__(self, family, cell=None, degree=None, shape=None,
-                 symmetry=None, quad_scheme=None):
+                 symmetry=None, quad_scheme=None, variant=None):
         """Create tensor element (repeated mixed element with optional symmetries).
 
         :arg family: The family string, or an existing FiniteElement.
@@ -343,16 +356,19 @@ class TensorElement(MixedElement):
              tensor given by the geometric dimension of the cell).
         :arg symmetry: Optional symmetries.
         :arg quad_scheme: Optional quadrature scheme (ignored if
-             family is a FiniteElement)."""
+             family is a FiniteElement).
+        :arg variant:  Hint for the local basis function variant (optional)"""
 
         if isinstance(family, FiniteElementBase):
             sub_element = family
             cell = sub_element.cell()
+            variant = sub_element.variant()
         else:
             if cell is not None:
                 cell = as_cell(cell)
             # Create scalar sub element
-            sub_element = FiniteElement(family, cell, degree, quad_scheme=quad_scheme)
+            sub_element = FiniteElement(family, cell, degree, quad_scheme=quad_scheme,
+                                        variant=variant)
 
         # Set default shape if not specified
         if shape is None:
@@ -425,9 +441,18 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
         self._flattened_sub_element_mapping = flattened_sub_element_mapping
 
+        if variant is None:
+            var_str = ""
+        else:
+            var_str = ", variant='" + variant + "'"
+
         # Cache repr string
-        self._repr = "TensorElement(%s, shape=%s, symmetry=%s)" % (
-            repr(sub_element), repr(self._shape), repr(self._symmetry))
+        self._repr = "TensorElement(%s, shape=%s, symmetry=%s%s)" % (
+            repr(sub_element), repr(self._shape), repr(self._symmetry), var_str)
+
+    def variant(self):
+        """Return the variant used to initialise the element."""
+        return self._sub_element.variant()
 
     def mapping(self):
         return self._mapping
