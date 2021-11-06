@@ -105,6 +105,13 @@ class Action(BaseForm):
         else:
             raise TypeError
 
+    def __eq__(self, other):
+        if not isinstance(other, Action):
+            return False
+        if self is other:
+            return True
+        return (self._left == other._left and self._right == other._right)
+
     def __str__(self):
         return "Action(%s, %s)" % (repr(self._left), repr(self._right))
 
