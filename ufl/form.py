@@ -741,6 +741,13 @@ class FormSum(BaseForm):
             self._hash = hash(tuple(hash(component) for component in self.components()))
         return self._hash
 
+    def equals(self, other):
+        "Evaluate ``bool(lhs_form == rhs_form)``."
+        if type(other) != FormSum:
+            return False
+        return (len(self.components()) == len(other.components()) and
+                all(a == b for a, b in zip(self.components(), other.components())))
+
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."
         # Warning used for making sure we don't use this in the general pipeline:
