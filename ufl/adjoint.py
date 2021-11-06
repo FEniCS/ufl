@@ -62,6 +62,13 @@ class Adjoint(BaseForm):
         """The arguments of adjoint are the reverse of the form arguments."""
         self._arguments = self._form.arguments()[::-1]
 
+    def __eq__(self, other):
+        if not isinstance(other, Adjoint):
+            return False
+        if self is other:
+            return True
+        return (self._form == other._form)
+
     def __str__(self):
         return "Adjoint(%s)" % self._form
 
