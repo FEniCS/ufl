@@ -22,7 +22,7 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.adjoint import Adjoint
 from ufl.action import Action
-from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
+from ufl.differentiation import CoefficientDerivative, BaseFormDerivative, CoordinateDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
@@ -303,6 +303,10 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                                           arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
+
+    elif isinstance(form, BaseForm):
+        if not isinstance(coefficient, SpatialCoordinate):
+            return BaseFormDerivative(form, coefficients, arguments, coefficient_derivatives)
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
