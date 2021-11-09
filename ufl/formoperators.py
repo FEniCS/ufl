@@ -314,6 +314,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     elif isinstance(form, ExternalOperator):
         if not isinstance(coefficient, SpatialCoordinate):
             return ExternalOperatorDerivative(form, coefficients, arguments, coefficient_derivatives)
+
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
         if not isinstance(coefficient, SpatialCoordinate):
