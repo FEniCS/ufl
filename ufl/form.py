@@ -745,6 +745,8 @@ class FormSum(BaseForm):
         "Evaluate ``bool(lhs_form == rhs_form)``."
         if type(other) != FormSum:
             return False
+        if self is other:
+            return True
         return (len(self.components()) == len(other.components()) and
                 all(a == b for a, b in zip(self.components(), other.components())))
 

@@ -74,7 +74,8 @@ class BaseFunctionSpace(AbstractFunctionSpace):
         else:
             return (domain,)
 
-    def _ufl_hash_data_(self):
+    def _ufl_hash_data_(self, name=None):
+        name = name or "BaseFunctionSpace"
         domain = self.ufl_domain()
         element = self.ufl_element()
         if domain is None:
@@ -85,9 +86,10 @@ class BaseFunctionSpace(AbstractFunctionSpace):
             edata = None
         else:
             edata = element._ufl_hash_data_()
-        return ("FunctionSpace", ddata, edata)
+        return (name, ddata, edata)
 
-    def _ufl_signature_data_(self, renumbering):
+    def _ufl_signature_data_(self, renumbering, name=None):
+        name = name or "BaseFunctionSpace"
         domain = self.ufl_domain()
         element = self.ufl_element()
         if domain is None:
@@ -98,7 +100,7 @@ class BaseFunctionSpace(AbstractFunctionSpace):
             edata = None
         else:
             edata = element._ufl_signature_data_()
-        return ("FunctionSpace", ddata, edata)
+        return (name, ddata, edata)
 
     def __repr__(self):
         r = "BaseFunctionSpace(%s, %s)" % (repr(self._ufl_domain),
@@ -114,6 +116,12 @@ class FunctionSpace(BaseFunctionSpace):
 
     def dual(self):
         return DualSpace(self._ufl_domain, self._ufl_element)
+
+    def _ufl_hash_data_(self):
+        return BaseFunctionSpace._ufl_hash_data_(self, "FunctionSpace")
+
+    def _ufl_signature_data_(self, renumbering):
+        return BaseFunctionSpace._ufl_signature_data_(self, renumbering, "FunctionSpace")
 
     def __repr__(self):
         r = "FunctionSpace(%s, %s)" % (repr(self._ufl_domain),
@@ -132,6 +140,12 @@ class DualSpace(BaseFunctionSpace):
 
     def dual(self):
         return FunctionSpace(self._ufl_domain, self._ufl_element)
+
+    def _ufl_hash_data_(self):
+        return BaseFunctionSpace._ufl_hash_data_(self, "DualSpace")
+
+    def _ufl_signature_data_(self, renumbering):
+        return BaseFunctionSpace._ufl_signature_data_(self, renumbering, "DualSpace")
 
     def __repr__(self):
         r = "DualSpace(%s, %s)" % (repr(self._ufl_domain),

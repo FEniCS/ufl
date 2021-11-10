@@ -148,7 +148,10 @@ class Cofunction(BaseCoefficient, BaseForm):
                 self._ufl_function_space == other._ufl_function_space)
 
     def __hash__(self):
-        return hash(repr(self))
+        """Hash code for use in dicts."""
+        return hash(tuple(["Cofunction",
+                           hash(self._ufl_function_space),
+                           self._count]))
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."

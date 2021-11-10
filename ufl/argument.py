@@ -213,15 +213,19 @@ class Coargument(BaseForm, BaseArgument):
         self._arguments = (Argument(self._ufl_function_space, 0),)
 
     def __eq__(self, other):
-        """Default comparison just compares repr strings and types.
-        Comparing the type is needed since ufl.Argument and ufl.Coargument have the same repr string."""
-        return (type(self) == type(other) and repr(self) == repr(other))
+        if not isinstance(other, Coargument):
+            return False
+        if self is other:
+            return True
+        return (self._ufl_function_space == other._ufl_function_space and
+                self._number == other._number and self.part == other._part)
 
     def __hash__(self):
-        """Default hash just hashes the type and the repr string.
-        Including the type is needed since ufl.Argument and ufl.Coargument have the same repr string."""
-        hashdata = (type(self), repr(self))
-        return hash(hashdata)
+        """Hash code for use in dicts."""
+        return hash(tuple(["Coargument",
+                           hash(self._ufl_function_space),
+                           self._number,
+                           self._part]))
 
 # --- Helper functions for pretty syntax ---
 
