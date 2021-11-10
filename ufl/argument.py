@@ -58,7 +58,7 @@ class BaseArgument(object):
         self._number = number
         self._part = part
 
-        self._repr = "Argument(%s, %s, %s)" % (
+        self._repr = "BaseArgument(%s, %s, %s)" % (
             repr(self._ufl_function_space), repr(self._number), repr(self._part))
 
     @property
@@ -170,6 +170,9 @@ class Argument(FormArgument, BaseArgument):
         FormArgument.__init__(self)
         BaseArgument.__init__(self, function_space, number, part)
 
+        self._repr = "Argument(%s, %s, %s)" % (
+            repr(self._ufl_function_space), repr(self._number), repr(self._part))
+
     def ufl_domains(self):
         return BaseArgument.ufl_domains(self)
 
@@ -200,6 +203,9 @@ class Coargument(BaseForm, BaseArgument):
     def __init__(self, function_space, number, part=None):
         BaseArgument.__init__(self, function_space, number, part)
         BaseForm.__init__(self)
+
+        self._repr = "Coargument(%s, %s, %s)" % (
+            repr(self._ufl_function_space), repr(self._number), repr(self._part))
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."

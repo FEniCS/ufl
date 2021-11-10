@@ -56,7 +56,7 @@ class BaseCoefficient(object):
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
-        self._repr = "Coefficient(%s, %s)" % (
+        self._repr = "BaseCoefficient(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))
 
     def count(self):
@@ -136,6 +136,9 @@ class Cofunction(BaseCoefficient, BaseForm):
         BaseCoefficient.__init__(self, function_space, count)
         BaseForm.__init__(self)
 
+        self._repr = "Cofunction(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count))
+
     def __eq__(self, other):
         if not isinstance(other, Cofunction):
             return False
@@ -174,6 +177,9 @@ class Coefficient(FormArgument, BaseCoefficient):
     def __init__(self, function_space, count=None):
         FormArgument.__init__(self)
         BaseCoefficient.__init__(self, function_space, count)
+
+        self._repr = "Coefficient(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count))
 
     def ufl_domains(self):
         return BaseCoefficient.ufl_domains(self)

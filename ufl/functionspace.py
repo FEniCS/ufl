@@ -101,8 +101,8 @@ class BaseFunctionSpace(AbstractFunctionSpace):
         return ("FunctionSpace", ddata, edata)
 
     def __repr__(self):
-        r = "FunctionSpace(%s, %s)" % (repr(self._ufl_domain),
-                                       repr(self._ufl_element))
+        r = "BaseFunctionSpace(%s, %s)" % (repr(self._ufl_domain),
+                                           repr(self._ufl_element))
         return r
 
 
@@ -114,6 +114,11 @@ class FunctionSpace(BaseFunctionSpace):
 
     def dual(self):
         return DualSpace(self._ufl_domain, self._ufl_element)
+
+    def __repr__(self):
+        r = "FunctionSpace(%s, %s)" % (repr(self._ufl_domain),
+                                       repr(self._ufl_element))
+        return r
 
 
 @attach_operators_from_hash_data
@@ -127,6 +132,11 @@ class DualSpace(BaseFunctionSpace):
 
     def dual(self):
         return FunctionSpace(self._ufl_domain, self._ufl_element)
+
+    def __repr__(self):
+        r = "DualSpace(%s, %s)" % (repr(self._ufl_domain),
+                                   repr(self._ufl_element))
+        return r
 
 
 @attach_operators_from_hash_data
