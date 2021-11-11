@@ -174,11 +174,11 @@ class ExternalOperator(Operator, BaseForm):
                           **add_kwargs)
 
     def __repr__(self):
-        "Default repr string construction for operators."
-        r = "ExternalOperator(%s; %s; derivatives=%s, %s)" % (", ".join(repr(op) for op in self.ufl_operands),
+        "Default repr string construction for external operators."
+        r = "ExternalOperator(%s; %s; %s; derivatives=%s)" % (", ".join(repr(op) for op in self.ufl_operands),
+                                                              repr(self.ufl_function_space()),
                                                               ", ".join(repr(arg) for arg in self.argument_slots()),
-                                                              repr(self.derivatives),
-                                                              repr(self._count))
+                                                              repr(self.derivatives))
         return r
 
     def __str__(self):
@@ -190,22 +190,14 @@ class ExternalOperator(Operator, BaseForm):
                            ", ".join(str(arg) for arg in reversed(self.argument_slots())))
         return d + e + "/" + d_ops if sum(derivatives) > 0 else e
 
-    def _ufl_compute_hash_(self):
-        "Default hash of terminals just hash the repr string."
+    def __hash__(self):
+        "Hash code for use in dicts."
         hashdata = (type(self),
-                    # What about Interpolation/ExternalOperator inside operands that
-                    # get evaluated and turned into Coefficients ?
-                    tuple(type(op) for op in self.ufl_operands),
-                    # tuple((type(op), op.ufl_function_space()) for op in self.ufl_operands),
+                    tuple(hash(op) for op in self.ufl_operands),
+                    tuple(hash(arg) for arg in self._argument_slots),
                     self.derivatives,
-                    self.ufl_function_space())
-        return hash(hashdata)  # hash(repr(self))
-
-    def _ufl_signature_data_(self, renumbering):
-        "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        coefficient_signature = self.result_coefficient()._ufl_signature_data_(renumbering)
-        # TODO: Do we need anything else in the signature?
-        return ("ExternalOperator", *coefficient_signature, *self.derivatives)
+                    hash(self.ufl_function_space()))
+        return hash(hashdata)
 
     def __eq__(self, other):
         if not isinstance(other, ExternalOperator):
@@ -213,12 +205,9 @@ class ExternalOperator(Operator, BaseForm):
         if self is other:
             return True
         return (type(self) == type(other) and
-                # What about Interpolation/ExternalOperator inside operands that
-                # get evaluated and turned into Coefficients ?
-                all(type(a) == type(b) for a, b in zip(self.ufl_operands, other.ufl_operands)) and
-                # all(type(a) == type(b) and a.ufl_function_space() == b.ufl_function_space()
-                #    for a, b in zip(self.ufl_operands, other.ufl_operands)) and
+                # Operands' output spaces will be taken into account via Interp.__eq__
+                # -> N(Interp(u, V1); v*) and N(Interp(u, V2); v*) will compare different.
+                all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands)) and
+                all(a == b for a, b in zip(self._argument_slots, other._argument_slots)) and
                 self.derivatives == other.derivatives and
                 self.ufl_function_space() == other.ufl_function_space())
-        # return (self.count() == other.count() and
-        #        self.ufl_function_space() == other.ufl_function_space())
