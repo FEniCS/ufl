@@ -13,6 +13,7 @@ import pytest
 
 from ufl.domain import default_domain
 from ufl.duals import is_primal, is_dual
+# from ufl.algorithms.ad import expand_derivatives
 
 
 def test_mixed_functionspace(self):
@@ -196,3 +197,28 @@ def test_action():
 
     with pytest.raises(TypeError):
         res = action(a, u_star)
+
+
+"""
+def test_differentiation():
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+    domain_1d = default_domain(interval)
+    f_1d = FiniteElement("CG", interval, 1)
+    U = FunctionSpace(domain_1d, f_1d)
+
+    u = Coefficient(U)
+    # Matrix
+    M = Matrix(V, U)
+    # Cofunction
+    u_star = Cofunction(U.dual())
+    # Action
+    Ac = Action(M, u)
+    # Adjoint
+    Ad = Adjoint(M)
+    # Form sum
+    Fs = M + Ad
+
+    dMdu = expand_derivatives(derivative(M, u))
+"""

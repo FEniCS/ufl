@@ -1045,6 +1045,26 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         o = o.ufl_operands
         return CoordinateDerivative(map_expr_dag(self, o[0]), o[1], o[2], o[3])
 
+    # -- Handlers for BaseForm objects -- #
+
+    def form_sum(self, o):
+        raise NotImplementedError
+
+    def adjoint(self, o):
+        raise NotImplementedError
+
+    def action(self, o):
+        raise NotImplementedError
+
+    def cofunction(self, o):
+        raise NotImplementedError
+
+    def coargument(self, o):
+        raise NotImplementedError
+
+    def matrix(self, o):
+        raise NotImplementedError
+
 
 class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
