@@ -141,6 +141,10 @@ class ExternalOperator(Operator, BaseForm):
         "Returns the UFL shape of the coefficient.produced by the external operator"
         return self.result_coefficient()._ufl_shape
 
+    def ufl_element(self):
+        "Shortcut to get the finite element of the function space of the external operator"
+        return self.result_coefficient().ufl_element()
+
     def ufl_function_space(self):
         "Returns the ufl function space associated to the external operator"
         return self.result_coefficient()._ufl_function_space
