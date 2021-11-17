@@ -135,10 +135,6 @@ class BaseFormOperator(Operator, BaseForm):
         "Returns the ufl function space associated to the operator"
         return self.result_coefficient()._ufl_function_space
 
-    def assemble(self, *args, **kwargs):
-        """Assemble the operator"""
-        raise NotImplementedError("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
-
     def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None,
                                result_coefficient=None, argument_slots=None):
         "Return a new object of the same type with new operands."
