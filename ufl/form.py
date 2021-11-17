@@ -19,7 +19,7 @@ from ufl.domain import sort_domains
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
-from ufl.core.expr import Expr
+from ufl.core.expr import Expr, UFLType
 from ufl.core.expr import ufl_err_str
 from ufl.constantvalue import Zero
 
@@ -69,7 +69,7 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
-class BaseForm(object):
+class BaseForm(object, metaclass=UFLType):
     """Description of an object containing arguments"""
 
     # Slots is kept empty to enable multiple inheritance with other classes.

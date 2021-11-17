@@ -10,7 +10,6 @@
 
 from ufl.core.expr import Expr
 from ufl.core.compute_expr_hash import compute_expr_hash
-from ufl.utils.formatting import camel2underscore
 
 
 # Make UFL type coercion available under the as_ufl name
@@ -214,9 +213,6 @@ def attach_implementations_of_indexing_interface(cls,
 
 def update_global_expr_attributes(cls):
     "Update global ``Expr`` attributes, mainly by adding *cls* to global collections of ufl types."
-    Expr._ufl_all_classes_.append(cls)
-    Expr._ufl_all_handler_names_.add(cls._ufl_handler_name_)
-
     if cls._ufl_is_terminal_modifier_:
         Expr._ufl_terminal_modifiers_.append(cls)
 
@@ -227,11 +223,6 @@ def update_global_expr_attributes(cls):
     if not cls._ufl_is_abstract_ and hasattr(cls, "_ufl_function_"):
         cls._ufl_function_.__func__.__doc__ = cls.__doc__
         Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
-
-    # Append space for counting object creation and destriction of
-    # this this type.
-    Expr._ufl_obj_init_counts_.append(0)
-    Expr._ufl_obj_del_counts_.append(0)
 
 
 def ufl_type(is_abstract=False,
@@ -264,13 +255,6 @@ def ufl_type(is_abstract=False,
     """
 
     def _ufl_type_decorator_(cls):
-        # Determine integer typecode by oncrementally counting all types
-        typecode = Expr._ufl_num_typecodes_
-        Expr._ufl_num_typecodes_ += 1
-
-        # Determine handler name by a mapping from "TypeName" to "type_name"
-        handler_name = camel2underscore(cls.__name__)
-
         # is_scalar implies is_index_free
         if is_scalar:
             _is_index_free = True
@@ -279,8 +263,6 @@ def ufl_type(is_abstract=False,
 
         # Store type traits
         cls._ufl_class_ = cls
-        set_trait(cls, "handler_name", handler_name, inherit=False)
-        set_trait(cls, "typecode", typecode, inherit=False)
         set_trait(cls, "is_abstract", is_abstract, inherit=False)
 
         set_trait(cls, "is_terminal", is_terminal, inherit=True)
