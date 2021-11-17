@@ -10,7 +10,12 @@
 # Modified by Nacime Bouziani, 2021
 
 from ufl.core.ufl_type import ufl_type
-from ufl.coefficient import Coefficient
+from ufl.constantvalue import as_ufl
+from ufl.finiteelement import FiniteElementBase
+from ufl.domain import default_domain
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
+from ufl.argument import Argument
+from ufl.cofunction import Cofunction
 from ufl.core.base_form_operator import BaseFormOperator
 
 
@@ -21,7 +26,7 @@ class Interp(BaseFormOperator):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    def __init__(self, operand, function_space, derivatives=None, result_coefficient=None, argument_slots=()):
+    def __init__(self, expr, v, derivatives=None, result_coefficient=None, argument_slots=()):
         r"""
         :arg expr: a UFL expression to interpolate.
         :arg function_space: the :class:`.FunctionSpace` to interpolate into (or else
@@ -31,11 +36,21 @@ class Interp(BaseFormOperator):
         :param argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
         """
 
-        if isinstance(function_space, Coefficient):
-            # Is there anything else we should do with this Coefficient?
-            function_space = function_space.ufl_function_space()
+        if isinstance(v, FiniteElementBase):
+            # For legacy support for .ufl files using cells, we map
+            # the cell to The Default Mesh
+            element = v
+            domain = default_domain(element.cell())
+            function_space = FunctionSpace(domain, element)
+            v = Argument(function_space.dual(), 0)
+        elif isinstance(v, AbstractFunctionSpace):
+            v = Argument(v.dual(), 0)
+        elif not isinstance(v, Cofunction):
+            raise ValueError("Expecting a Cofunction, FunctionSpace or FiniteElement.")
 
-        BaseFormOperator.__init__(self, operand, function_space=function_space, derivatives=derivatives,
+        expr = as_ufl(expr)
+        argument_slots = (expr, v)
+        BaseFormOperator.__init__(self, function_space=v.ufl_function_space(), derivatives=derivatives,
                                   result_coefficient=result_coefficient, argument_slots=argument_slots)
 
     def __repr__(self):
