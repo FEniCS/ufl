@@ -14,9 +14,9 @@ from ufl.constantvalue import as_ufl
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
-from ufl.argument import Argument
-from ufl.cofunction import Cofunction
+from ufl.argument import Argument, Coargument
 from ufl.core.base_form_operator import BaseFormOperator
+from ufl.duals import is_dual
 
 
 @ufl_type(num_ops="varying", inherit_indices_from_operand=0, is_differential=True)
@@ -44,9 +44,12 @@ class Interp(BaseFormOperator):
             function_space = FunctionSpace(domain, element)
             v = Argument(function_space.dual(), 0)
         elif isinstance(v, AbstractFunctionSpace):
+            if is_dual(v):
+                raise ValueError('Expecting a primal function space.')
             v = Argument(v.dual(), 0)
-        elif not isinstance(v, Cofunction):
-            raise ValueError("Expecting a Cofunction, FunctionSpace or FiniteElement.")
+        elif not isinstance(v, Coargument):
+            raise ValueError("Expecting a Coargument, FunctionSpace or FiniteElement.")
+        # If v is a Coargument, should we impose its number to be 0 ?
 
         expr = as_ufl(expr)
         argument_slots = (expr, v)
@@ -54,12 +57,18 @@ class Interp(BaseFormOperator):
                                   result_coefficient=result_coefficient, argument_slots=argument_slots)
 
     def __repr__(self):
-        "Default repr string construction for external operators."
-        r = "Interp(%s; %s; %s; derivatives=%s)" % (", ".join(repr(op) for op in self.ufl_operands),
-                                                    repr(self.ufl_function_space()),
-                                                    ", ".join(repr(arg) for arg in self.argument_slots()),
-                                                    repr(self.derivatives))
+        "Default repr string construction for Interp."
+        r = "Interp(%s; %s; derivatives=%s)" % (", ".join(repr(arg) for arg in self.argument_slots()),
+                                                repr(self.ufl_function_space()),
+                                                repr(self.derivatives))
         return r
+
+    def __str__(self):
+        "Default str string construction for Interp."
+        s = "Interp(%s; %s; derivatives=%s)" % (", ".join(str(arg) for arg in self.argument_slots()),
+                                                str(self.ufl_function_space()),
+                                                str(self.derivatives))
+        return s
 
     def __eq__(self, other):
         if not isinstance(other, Interp):
@@ -67,9 +76,6 @@ class Interp(BaseFormOperator):
         if self is other:
             return True
         return (type(self) == type(other) and
-                # Operands' output spaces will be taken into account via Interp.__eq__
-                # -> N(Interp(u, V1); v*) and N(Interp(u, V2); v*) will compare different.
-                all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands)) and
                 all(a == b for a, b in zip(self._argument_slots, other._argument_slots)) and
                 self.derivatives == other.derivatives and
                 self.ufl_function_space() == other.ufl_function_space())
