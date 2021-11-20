@@ -218,7 +218,7 @@ class Coargument(BaseForm, BaseArgument):
         if self is other:
             return True
         return (self._ufl_function_space == other._ufl_function_space and
-                self._number == other._number and self.part == other._part)
+                self._number == other._number and self._part == other._part)
 
     def __hash__(self):
         """Hash code for use in dicts."""
