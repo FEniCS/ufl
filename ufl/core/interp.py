@@ -15,6 +15,7 @@ from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.argument import Argument, Coargument
+from ufl.coefficient import Coefficient
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.duals import is_dual
 
@@ -25,6 +26,23 @@ class Interp(BaseFormOperator):
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
     _ufl_noslots_ = True
+
+    def __new__(cls, *args, **kwargs):
+        expr, V = args
+        if isinstance(V, Coargument):
+            # Get the primal space (V** = V)
+            V = V.ufl_function_space().dual()
+
+        # Check trivial cases
+        if expr == 0:
+            # Interp(0, V) = 0
+            return 0
+        elif isinstance(expr, Coefficient) and expr.ufl_function_space() == V:
+            # Should Interp accept Cofunction ?
+            # Interp(f, V) = f <=> f \in V
+            return expr
+
+        return super(Interp, cls).__new__(cls)
 
     def __init__(self, expr, v, derivatives=None, result_coefficient=None, argument_slots=()):
         r"""
@@ -44,6 +62,7 @@ class Interp(BaseFormOperator):
             function_space = FunctionSpace(domain, element)
             v = Argument(function_space.dual(), 0)
         elif isinstance(v, AbstractFunctionSpace):
+            # Should Interp accept Cofunction interpolation ?
             if is_dual(v):
                 raise ValueError('Expecting a primal function space.')
             v = Argument(v.dual(), 0)
@@ -52,8 +71,11 @@ class Interp(BaseFormOperator):
         # If v is a Coargument, should we impose its number to be 0 ?
 
         expr = as_ufl(expr)
-        argument_slots = (expr, v)
-        BaseFormOperator.__init__(self, function_space=v.ufl_function_space(), derivatives=derivatives,
+        # Reversed order convention
+        argument_slots = (v, expr)
+        # Get the primal space (V** = V)
+        function_space = v.ufl_function_space().dual()
+        BaseFormOperator.__init__(self, function_space=function_space, derivatives=derivatives,
                                   result_coefficient=result_coefficient, argument_slots=argument_slots)
 
     def __repr__(self):
