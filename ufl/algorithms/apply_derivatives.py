@@ -1057,13 +1057,20 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         raise NotImplementedError
 
     def cofunction(self, o):
-        raise NotImplementedError
+        return self.coefficient(o)
 
     def coargument(self, o):
-        raise NotImplementedError
+        return self.argument(o)
 
-    def matrix(self, o):
-        raise NotImplementedError
+    def matrix(self, M):
+        # Matrix rule: D_w[v](M) = v if M == w else 0
+
+        # Return corresponding argument if we can find M among w
+        dM = self._w2v.get(M)
+        if dM is not None:
+            return dM
+        # What kind of zero should I return?
+        return Zero(())
 
 
 class DerivativeRuleDispatcher(MultiFunction):
@@ -1079,7 +1086,7 @@ class DerivativeRuleDispatcher(MultiFunction):
     def derivative(self, o):
         error("Missing derivative handler for {0}.".format(type(o).__name__))
 
-    expr = MultiFunction.reuse_if_untouched
+    ufl_type = MultiFunction.reuse_if_untouched
 
     def grad(self, o, f):
         rules = GradRuleset(o.ufl_shape[-1])
