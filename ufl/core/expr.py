@@ -20,61 +20,7 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
-# from ufl.core.ufl_type import UFLType
-from ufl.utils.formatting import camel2underscore
-
-
-class UFLType(type):
-    """Base class for all UFL types.
-
-    Equip UFL types with properties such as:
-
-    - `_ufl_typecode_`: The integer typecode is a contiguous index different for each
-                        type. This is used for fast lookup into e.g. multifunction handler tables.
-
-    - `_ufl_num_typecodes_`: A global counter of the number of typecodes assigned.
-
-    """
-
-    def __init__(cls, name, bases, attrs):
-        # Determine integer typecode by incrementally counting all types
-        cls._ufl_typecode_ = UFLType._ufl_num_typecodes_
-        UFLType._ufl_num_typecodes_ += 1
-
-        UFLType._ufl_all_classes_.append(cls)
-
-        # Determine handler name by a mapping from "TypeName" to "type_name"
-        cls._ufl_handler_name_ = camel2underscore(cls.__name__)
-        UFLType._ufl_all_handler_names_.add(cls._ufl_handler_name_)
-
-        # Append space for counting object creation and destriction of
-        # this this type.
-        UFLType._ufl_obj_init_counts_.append(0)
-        UFLType._ufl_obj_del_counts_.append(0)
-
-    # A global counter of the number of typecodes assigned.
-    _ufl_num_typecodes_ = 0
-
-    # A global array of all Expr subclasses, indexed by typecode
-    _ufl_all_classes_ = []
-
-    # A global set of all handler names added
-    _ufl_all_handler_names_ = set()
-
-    # A global array of the number of initialized objects for each
-    # typecode
-    _ufl_obj_init_counts_ = []
-
-    # A global array of the number of deleted objects for each
-    # typecode
-    _ufl_obj_del_counts_ = []
-
-    # Type trait: If the type is abstract.  An abstract class cannot
-    # be instantiated and does not need all properties specified.
-    _ufl_is_abstract_ = True
-
-    # Type trait: If the type is terminal.
-    _ufl_is_terminal_ = None
+from ufl.core.ufl_type import UFLType
 
 
 # --- The base object for all UFL expression tree nodes ---

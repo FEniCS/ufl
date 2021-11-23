@@ -8,8 +8,10 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.core.expr import Expr
 from ufl.core.compute_expr_hash import compute_expr_hash
+from ufl.utils.formatting import camel2underscore
+# Avoid circular import
+import ufl.core as core
 
 
 # Make UFL type coercion available under the as_ufl name
@@ -97,12 +99,12 @@ def check_is_terminal_consistency(cls):
 def check_abstract_trait_consistency(cls):
     "Check that the first base classes up to ``Expr`` are other UFL types."
     for base in cls.mro():
-        if base is Expr:
+        if base is core.expr.Expr:
             break
-        if not issubclass(base, Expr) and base._ufl_is_abstract_:
+        if not issubclass(base, core.expr.Expr) and base._ufl_is_abstract_:
             msg = ("Base class {0.__name__} of class {1.__name__} "
                    "is not an abstract subclass of {2.__name__}.")
-            raise TypeError(msg.format(base, cls, Expr))
+            raise TypeError(msg.format(base, cls, core.expr.Expr))
 
 
 def check_has_slots(cls):
@@ -128,6 +130,7 @@ def check_type_traits_consistency(cls):
     "Execute a variety of consistency checks on the ufl type traits."
 
     # Check for consistency in global type collection sizes
+    Expr = core.expr.Expr
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_handler_names_)
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_classes_)
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_init_counts_)
@@ -160,7 +163,7 @@ def check_type_traits_consistency(cls):
 def check_implements_required_methods(cls):
     """Check if type implements the required methods."""
     if not cls._ufl_is_abstract_:
-        for attr in Expr._ufl_required_methods_:
+        for attr in core.expr.Expr._ufl_required_methods_:
             if not hasattr(cls, attr):
                 msg = "Class {0.__name__} has no {1} method."
                 raise TypeError(msg.format(cls, attr))
@@ -172,7 +175,7 @@ def check_implements_required_methods(cls):
 def check_implements_required_properties(cls):
     "Check if type implements the required properties."
     if not cls._ufl_is_abstract_:
-        for attr in Expr._ufl_required_properties_:
+        for attr in core.expr.Expr._ufl_required_properties_:
             if not hasattr(cls, attr):
                 msg = "Class {0.__name__} has no {1} property."
                 raise TypeError(msg.format(cls, attr))
@@ -214,7 +217,7 @@ def attach_implementations_of_indexing_interface(cls,
 def update_global_expr_attributes(cls):
     "Update global ``Expr`` attributes, mainly by adding *cls* to global collections of ufl types."
     if cls._ufl_is_terminal_modifier_:
-        Expr._ufl_terminal_modifiers_.append(cls)
+        core.expr.Expr._ufl_terminal_modifiers_.append(cls)
 
     # Add to collection of language operators.  This collection is
     # used later to populate the official language namespace.
@@ -222,7 +225,7 @@ def update_global_expr_attributes(cls):
     # it out later.
     if not cls._ufl_is_abstract_ and hasattr(cls, "_ufl_function_"):
         cls._ufl_function_.__func__.__doc__ = cls.__doc__
-        Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
+        core.expr.Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
 
 
 def ufl_type(is_abstract=False,
@@ -354,3 +357,59 @@ def ufl_type(is_abstract=False,
         return cls
 
     return _ufl_type_decorator_
+
+
+class UFLType(type):
+    """Base class for all UFL types.
+
+    Equip UFL types with properties such as:
+
+    - `_ufl_typecode_`: The integer typecode is a contiguous index different for each
+                        type. This is used for fast lookup into e.g. multifunction handler tables.
+
+    - `_ufl_num_typecodes_`: A global counter of the number of typecodes assigned.
+
+    """
+
+    def __init__(cls, name, bases, attrs):
+        # Determine integer typecode by incrementally counting all types
+        cls._ufl_typecode_ = UFLType._ufl_num_typecodes_
+        UFLType._ufl_num_typecodes_ += 1
+
+        UFLType._ufl_all_classes_.append(cls)
+
+        # Determine handler name by a mapping from "TypeName" to "type_name"
+        cls._ufl_handler_name_ = camel2underscore(cls.__name__)
+        UFLType._ufl_all_handler_names_.add(cls._ufl_handler_name_)
+
+        # Append space for counting object creation and destriction of
+        # this this type.
+        UFLType._ufl_obj_init_counts_.append(0)
+        UFLType._ufl_obj_del_counts_.append(0)
+
+    # A global counter of the number of typecodes assigned.
+    _ufl_num_typecodes_ = 0
+
+    # Set the handler name for UFLType
+    _ufl_handler_name_ = "ufl_type"
+
+    # A global array of all Expr subclasses, indexed by typecode
+    _ufl_all_classes_ = []
+
+    # A global set of all handler names added
+    _ufl_all_handler_names_ = set()
+
+    # A global array of the number of initialized objects for each
+    # typecode
+    _ufl_obj_init_counts_ = []
+
+    # A global array of the number of deleted objects for each
+    # typecode
+    _ufl_obj_del_counts_ = []
+
+    # Type trait: If the type is abstract.  An abstract class cannot
+    # be instantiated and does not need all properties specified.
+    _ufl_is_abstract_ = True
+
+    # Type trait: If the type is terminal.
+    _ufl_is_terminal_ = None

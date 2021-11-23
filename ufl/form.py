@@ -19,8 +19,8 @@ from ufl.domain import sort_domains
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
-from ufl.core.expr import Expr, UFLType
-from ufl.core.expr import ufl_err_str
+from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.ufl_type import UFLType
 from ufl.constantvalue import Zero
 
 # Export list for ufl.classes
