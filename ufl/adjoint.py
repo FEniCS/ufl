@@ -35,7 +35,9 @@ class Adjoint(BaseForm):
         if form == 0:
             return 0
 
-        if isinstance(form, FormSum):
+        if isinstance(form, Adjoint):
+            return form._form
+        elif isinstance(form, FormSum):
             # Adjoint distributes over sums
             return FormSum(*[(Adjoint(component), 1)
                              for component in form.components()])
