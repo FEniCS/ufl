@@ -9,6 +9,7 @@
 
 from ufl.form import BaseForm, FormSum, Form
 from ufl.coefficient import Coefficient, Cofunction
+from ufl.differentiation import CoefficientDerivative
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -60,6 +61,12 @@ class Action(BaseForm):
 
         self._left = left
         self._right = right
+        self.ufl_operands = (self._left, self._right)
+
+        if isinstance(right, CoefficientDerivative):
+            # Action differentiation pushes differentiation through
+            # right as a consequence of Leibniz formula.
+            right, *_ = right.ufl_operands
 
         if isinstance(right, (Form, Action)):
             if (left.arguments()[-1].ufl_function_space().dual()

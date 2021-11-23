@@ -173,7 +173,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        if not all(isinstance(c, Coefficient) for c in coefficients):
+        if not all(isinstance(c, (Coefficient, BaseForm)) for c in coefficients):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one
@@ -226,7 +226,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             error("Coefficient and argument shapes do not match!")
-        if isinstance(c, Coefficient) or isinstance(c, SpatialCoordinate):
+        if isinstance(c, (Coefficient, SpatialCoordinate, BaseForm)):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
@@ -280,9 +280,15 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     ``Coefficient`` instances to their derivatives w.r.t. *coefficient*.
     """
 
+    if isinstance(form, Action):
+        left, right = form.ufl_operands
+        dleft = derivative(left, coefficient, argument, coefficient_derivatives)
+        dright = derivative(right, coefficient, argument, coefficient_derivatives)
+        # Leibniz formula
+        return Action(dleft, right) + Action(left, dright)
+
     coefficients, arguments = _handle_derivative_arguments(form, coefficient,
                                                            argument)
-
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
     else:
