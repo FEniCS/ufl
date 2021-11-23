@@ -4,7 +4,7 @@
 from ufl import FiniteElement, FunctionSpace, MixedFunctionSpace, \
     Coefficient, Matrix, Cofunction, FormSum, Argument, Coargument,\
     TestFunction, TrialFunction, Adjoint, Action, \
-    action, adjoint, tetrahedron, triangle, interval, dx
+    action, adjoint, derivative, tetrahedron, triangle, interval, dx
 
 __authors__ = "India Marsden"
 __date__ = "2020-12-28 -- 2020-12-28"
@@ -13,7 +13,7 @@ import pytest
 
 from ufl.domain import default_domain
 from ufl.duals import is_primal, is_dual
-# from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.ad import expand_derivatives
 
 
 def test_mixed_functionspace(self):
@@ -172,7 +172,7 @@ def test_action():
     u = Coefficient(U)
     u_a = Argument(U, 0)
     v = Coefficient(V)
-    u_star = Cofunction(U.dual())
+    ustar = Cofunction(U.dual())
     u_form = u_a * dx
 
     res = action(a, u)
@@ -196,10 +196,9 @@ def test_action():
         res = action(a, v)
 
     with pytest.raises(TypeError):
-        res = action(a, u_star)
+        res = action(a, ustar)
 
 
-"""
 def test_differentiation():
     domain_2d = default_domain(triangle)
     f_2d = FiniteElement("CG", triangle, 1)
@@ -209,16 +208,35 @@ def test_differentiation():
     U = FunctionSpace(domain_1d, f_1d)
 
     u = Coefficient(U)
-    # Matrix
-    M = Matrix(V, U)
-    # Cofunction
-    u_star = Cofunction(U.dual())
-    # Action
-    Ac = Action(M, u)
-    # Adjoint
-    Ad = Adjoint(M)
-    # Form sum
-    Fs = M + Ad
 
+    # Do we need special Argument for BaseForms?
+
+    # -- Cofunction -- #
+    ustar = Cofunction(U.dual())
+    dustardu = expand_derivatives(derivative(ustar, u))
+    assert dustardu == 0
+
+    # -- Coargument -- #
+    vstar = Argument(U.dual(), 0)
+    dvstardu = expand_derivatives(derivative(vstar, u))
+    assert dvstardu == 0
+
+    # -- Matrix -- #
+    M = Matrix(V, U)
     dMdu = expand_derivatives(derivative(M, u))
-"""
+    assert dMdu == 0
+
+    # Do we need MatrixArgument ?
+    # dMdu = expand_derivatives(derivative(M, M))
+
+    # -- Action -- #
+    # Ac = Action(M, u)
+    # dAcdu = expand_derivatives(derivative(Ac, u))
+
+    # -- Adjoint -- #
+    # Ad = Adjoint(M)
+    # dAddu = expand_derivatives(derivative(Ad, u))
+
+    # -- Form sum -- #
+    # Fs = M + Ad
+    # dFsdu = expand_derivatives(derivative(Fs, u))
