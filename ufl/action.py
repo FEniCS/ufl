@@ -29,6 +29,7 @@ class Action(BaseForm):
     __slots__ = (
         "_left",
         "_right",
+        "ufl_operands",
         "_repr",
         "_arguments",
         "_hash")

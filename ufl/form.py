@@ -204,6 +204,12 @@ class BaseForm(object, metaclass=UFLType):
         else:
             return self
 
+    def _ufl_compute_hash_(self):
+        "Compute the hash"
+        # Ensure compatibility with MultiFunction
+        # `hash(self)` will call the `__hash__` method of the subclass.
+        return hash(self)
+
     # "a @ f" notation in python 3.5
     __matmul__ = __mul__
 

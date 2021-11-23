@@ -23,6 +23,7 @@ class Adjoint(BaseForm):
         "_form",
         "_repr",
         "_arguments",
+        "ufl_operands",
         "_hash")
 
     def __getnewargs__(self):
@@ -48,6 +49,7 @@ class Adjoint(BaseForm):
             raise ValueError("Can only take Adjoint of a 2-form.")
 
         self._form = form
+        self.ufl_operands = (self._form,)
         self._hash = None
         self._repr = "Adjoint(%s)" % repr(self._form)
 

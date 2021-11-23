@@ -23,6 +23,7 @@ class Matrix(BaseForm):
     __slots__ = (
         "_count",
         "_ufl_function_spaces",
+        "ufl_operands",
         "_repr",
         "_hash",
         "_ufl_shape",
@@ -45,6 +46,7 @@ class Matrix(BaseForm):
 
         self._ufl_function_spaces = (row_space, column_space)
 
+        self.ufl_operands = ()
         self._hash = None
         self._repr = "Matrix(%s,%s, %s)" % (
             repr(self._ufl_function_spaces[0]),
