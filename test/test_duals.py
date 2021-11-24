@@ -212,14 +212,20 @@ def test_differentiation():
 
     u = Coefficient(U)
     v = Argument(U, 0)
+    vstar = Argument(U.dual(), 0)
 
     # -- Cofunction -- #
-    ustar = Cofunction(U.dual())
-    dustardu = expand_derivatives(derivative(ustar, u))
-    assert dustardu == 0
+    w = Cofunction(U.dual())
+    dwdu = expand_derivatives(derivative(w, u))
+    assert dwdu == 0
+
+    dwdw = expand_derivatives(derivative(w, w, vstar))
+    assert dwdw == vstar
+
+    dudw = expand_derivatives(derivative(u, w))
+    assert dudw == 0
 
     # -- Coargument -- #
-    vstar = Argument(U.dual(), 0)
     dvstardu = expand_derivatives(derivative(vstar, u))
     assert dvstardu == 0
 
@@ -241,5 +247,7 @@ def test_differentiation():
     # dAddu = expand_derivatives(derivative(Ad, u))
 
     # -- Form sum -- #
-    # Fs = M + Ad
-    # dFsdu = expand_derivatives(derivative(Fs, u))
+    Fs = M + Ac
+    dFsdu = expand_derivatives(derivative(Fs, u))
+    # Distribute differentiation over FormSum components
+    assert dFsdu == 1 * Action(M, v)

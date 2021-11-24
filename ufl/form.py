@@ -683,6 +683,7 @@ class FormSum(BaseForm):
     __slots__ = ("_arguments",
                  "_weights",
                  "_components",
+                 "ufl_operands",
                  "_domains",
                  "_domain_numbering",
                  "_hash")
@@ -709,6 +710,7 @@ class FormSum(BaseForm):
         self._weights = weights
         self._components = full_components
         self._sum_variational_components()
+        self.ufl_operands = self._components
 
     def components(self):
         return self._components
