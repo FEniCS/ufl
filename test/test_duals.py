@@ -211,8 +211,7 @@ def test_differentiation():
     U = FunctionSpace(domain_1d, f_1d)
 
     u = Coefficient(U)
-
-    # Do we need special Argument for BaseForms?
+    v = Argument(U, 0)
 
     # -- Cofunction -- #
     ustar = Cofunction(U.dual())
@@ -229,12 +228,13 @@ def test_differentiation():
     dMdu = expand_derivatives(derivative(M, u))
     assert dMdu == 0
 
-    # Do we need MatrixArgument ?
-    # dMdu = expand_derivatives(derivative(M, M))
-
     # -- Action -- #
-    # Ac = Action(M, u)
-    # dAcdu = expand_derivatives(derivative(Ac, u))
+    Ac = Action(M, u)
+    dAcdu = expand_derivatives(derivative(Ac, u))
+
+    # Action(dM/du, u) + Action(M, du/du) = Action(M, uhat) since dM/du = 0.
+    # Multiply by 1 to get a FormSum (type compatibility).
+    assert dAcdu == 1 * Action(M, v)
 
     # -- Adjoint -- #
     # Ad = Adjoint(M)

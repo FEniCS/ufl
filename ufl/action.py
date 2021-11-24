@@ -8,6 +8,7 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.form import BaseForm, FormSum, Form
+from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
 
@@ -73,13 +74,13 @@ class Action(BaseForm):
                 != right.arguments()[0].ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
-        elif isinstance(right, (Coefficient, Cofunction)):
+        elif isinstance(right, (Coefficient, Cofunction, Argument)):
             if (left.arguments()[-1].ufl_function_space()
                 != right.ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
         else:
-            raise TypeError("Incompatible argument in Action")
+            raise TypeError("Incompatible argument in Action: %s" % type(right))
 
         self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
         self._hash = None

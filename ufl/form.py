@@ -697,7 +697,8 @@ class FormSum(BaseForm):
             if isinstance(component, FormSum):
                 full_components.extend(component.components())
                 weights.extend(w * component.weights())
-            else:
+            # We can get zeros from derivatives expansion (not caught in `__add__`)
+            elif component and w:
                 full_components.append(component)
                 weights.append(w)
 

@@ -280,12 +280,13 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     ``Coefficient`` instances to their derivatives w.r.t. *coefficient*.
     """
 
+    # Push derivative through Action slots
     if isinstance(form, Action):
         left, right = form.ufl_operands
         dleft = derivative(left, coefficient, argument, coefficient_derivatives)
         dright = derivative(right, coefficient, argument, coefficient_derivatives)
         # Leibniz formula
-        return Action(dleft, right) + Action(left, dright)
+        return action(dleft, right) + action(left, dright)
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient,
                                                            argument)
