@@ -1057,20 +1057,19 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         raise NotImplementedError
 
     def cofunction(self, o):
+        # Same rule than for Coefficient except that we use a Coargument.
+        # The coargument is already attached to the class (self._v)
+        # which `self.coefficient` relies on.
         return self.coefficient(o)
 
     def coargument(self, o):
+        # Same rule than for Argument (da/dw == 0).
         return self.argument(o)
 
     def matrix(self, M):
         # Matrix rule: D_w[v](M) = v if M == w else 0
-
-        # Return corresponding argument if we can find M among w
-        dM = self._w2v.get(M)
-        if dM is not None:
-            return dM
-        # What kind of zero should I return?
-        return Zero(())
+        # We can't differentiate wrt a matrix so always return 0
+        return 0
 
 
 class DerivativeRuleDispatcher(MultiFunction):
