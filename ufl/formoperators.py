@@ -19,7 +19,7 @@ from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
-from ufl.coefficient import Coefficient
+from ufl.coefficient import Coefficient, Cofunction
 from ufl.adjoint import Adjoint
 from ufl.action import Action
 from ufl.differentiation import CoefficientDerivative, BaseFormDerivative, CoordinateDerivative
@@ -173,7 +173,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        if not all(isinstance(c, (Coefficient, BaseForm)) for c in coefficients):
+        if not all(isinstance(c, (Coefficient, Cofunction)) for c in coefficients):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one
@@ -226,7 +226,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             error("Coefficient and argument shapes do not match!")
-        if isinstance(c, (Coefficient, SpatialCoordinate, BaseForm)):
+        if isinstance(c, (Coefficient, Cofunction, SpatialCoordinate)):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
