@@ -284,6 +284,9 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         # Distribute derivative over FormSum components
         return FormSum(*[(derivative(component, coefficient, argument, coefficient_derivatives), 1)
                          for component in form.components()])
+    elif isinstance(form, Adjoint):
+        # Push derivative through Adjoint
+        return adjoint(derivative(form._form, coefficient, argument, coefficient_derivatives))
     elif isinstance(form, Action):
         # Push derivative through Action slots
         left, right = form.ufl_operands

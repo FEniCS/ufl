@@ -1047,15 +1047,6 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     # -- Handlers for BaseForm objects -- #
 
-    def form_sum(self, o):
-        raise NotImplementedError
-
-    def adjoint(self, o):
-        raise NotImplementedError
-
-    def action(self, o):
-        raise NotImplementedError
-
     def cofunction(self, o):
         # Same rule than for Coefficient except that we use a Coargument.
         # The coargument is already attached to the class (self._v)

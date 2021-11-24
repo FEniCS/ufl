@@ -243,8 +243,10 @@ def test_differentiation():
     assert dAcdu == 1 * Action(M, v)
 
     # -- Adjoint -- #
-    # Ad = Adjoint(M)
-    # dAddu = expand_derivatives(derivative(Ad, u))
+    Ad = Adjoint(M)
+    dAddu = expand_derivatives(derivative(Ad, u))
+    # Push differentiation through Adjoint
+    assert dAddu == 0
 
     # -- Form sum -- #
     Fs = M + Ac
