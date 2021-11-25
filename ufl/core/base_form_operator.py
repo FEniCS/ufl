@@ -55,15 +55,9 @@ class BaseFormOperator(Operator, BaseForm):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
         # -- Derivatives -- #
-        if derivatives is not None:
-            if not isinstance(derivatives, tuple):
-                raise TypeError("Expecting a tuple for derivatives and not %s" % derivatives)
-            if not len(derivatives) == len(self.ufl_operands):
-                raise ValueError("Expecting a size of %s for %s" % (len(self.ufl_operands), derivatives))
-            if not all(isinstance(d, int) for d in derivatives) or any(d < 0 for d in derivatives):
-                raise ValueError("Expecting a derivative multi-index with nonnegative indices and not %s" % str(derivatives))
-        else:
-            derivatives = (0,) * len(self.ufl_operands)
+        # Some BaseFormOperator does have derivatives (e.g. ExternalOperator)
+        # while other don't since they are fully determined by their
+        # argument slots (e.g. Interp)
         self.derivatives = derivatives
 
         # Produce the resulting Coefficient: Is that really needed?
