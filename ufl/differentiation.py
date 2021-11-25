@@ -13,6 +13,7 @@ from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.operator import Operator
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
 
 from ufl.exprcontainers import ExprList, ExprMapping
@@ -98,6 +99,21 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
     def _analyze_form_arguments(self):
         """Collect the arguments of the corresponding BaseForm"""
         self._arguments = self.base_form.arguments()
+
+
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
+    """Derivative of a base form operator w.r.t the
+    degrees of freedom in a discrete Coefficient."""
+    _ufl_noslots_ = True
+
+    # BaseFormOperatorDerivative is only needed because of a different
+    # differentiation procedure for BaseformOperator objects.
+    def __init__(self, base_form, coefficients, arguments,
+                 coefficient_derivatives):
+        BaseFormDerivative.__init__(self, base_form, coefficients, arguments,
+                                    coefficient_derivatives)
 
 
 @ufl_type(num_ops=2)
