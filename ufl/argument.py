@@ -186,6 +186,7 @@ class Coargument(BaseForm, BaseArgument):
         "_ufl_function_space",
         "_ufl_shape",
         "_arguments",
+        "ufl_operands",
         "_number",
         "_part",
         "_repr",
@@ -204,6 +205,8 @@ class Coargument(BaseForm, BaseArgument):
         BaseArgument.__init__(self, function_space, number, part)
         BaseForm.__init__(self)
 
+        self.ufl_operands = ()
+        self._hash = None
         self._repr = "Coargument(%s, %s, %s)" % (
             repr(self._ufl_function_space), repr(self._number), repr(self._part))
 

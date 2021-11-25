@@ -15,7 +15,7 @@ from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.integral import Integral
-from ufl.form import Form
+from ufl.form import Form, BaseForm
 from ufl.constantvalue import Zero
 
 
@@ -35,7 +35,7 @@ def map_integrands(function, form, only_integral_type=None):
             return itg.reconstruct(function(itg.integrand()))
         else:
             return itg
-    elif isinstance(form, Expr):
+    elif isinstance(form, (Expr, BaseForm)):
         integrand = form
         return function(integrand)
     else:

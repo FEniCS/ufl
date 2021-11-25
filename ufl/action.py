@@ -8,7 +8,9 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.form import BaseForm, FormSum, Form
+from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
+from ufl.differentiation import CoefficientDerivative
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -29,6 +31,7 @@ class Action(BaseForm):
     __slots__ = (
         "_left",
         "_right",
+        "ufl_operands",
         "_repr",
         "_arguments",
         "_hash")
@@ -59,19 +62,25 @@ class Action(BaseForm):
 
         self._left = left
         self._right = right
+        self.ufl_operands = (self._left, self._right)
+
+        if isinstance(right, CoefficientDerivative):
+            # Action differentiation pushes differentiation through
+            # right as a consequence of Leibniz formula.
+            right, *_ = right.ufl_operands
 
         if isinstance(right, (Form, Action)):
             if (left.arguments()[-1].ufl_function_space().dual()
                 != right.arguments()[0].ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
-        elif isinstance(right, (Coefficient, Cofunction)):
+        elif isinstance(right, (Coefficient, Cofunction, Argument)):
             if (left.arguments()[-1].ufl_function_space()
                 != right.ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
         else:
-            raise TypeError("Incompatible argument in Action")
+            raise TypeError("Incompatible argument in Action: %s" % type(right))
 
         self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
         self._hash = None

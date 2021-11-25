@@ -119,6 +119,7 @@ class Cofunction(BaseCoefficient, BaseForm):
         "_count",
         "_arguments",
         "_ufl_function_space",
+        "ufl_operands",
         "_repr",
         "_ufl_shape",
         "_hash"
@@ -136,6 +137,8 @@ class Cofunction(BaseCoefficient, BaseForm):
         BaseCoefficient.__init__(self, function_space, count)
         BaseForm.__init__(self)
 
+        self.ufl_operands = ()
+        self._hash = None
         self._repr = "Cofunction(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))
 

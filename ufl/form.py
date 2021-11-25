@@ -19,8 +19,8 @@ from ufl.domain import sort_domains
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
-from ufl.core.expr import Expr
-from ufl.core.expr import ufl_err_str
+from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.ufl_type import UFLType
 from ufl.constantvalue import Zero
 
 # Export list for ufl.classes
@@ -69,7 +69,7 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
-class BaseForm(object):
+class BaseForm(object, metaclass=UFLType):
     """Description of an object containing arguments"""
 
     # Slots is kept empty to enable multiple inheritance with other classes.
@@ -203,6 +203,12 @@ class BaseForm(object):
             return replace(self, repdict)
         else:
             return self
+
+    def _ufl_compute_hash_(self):
+        "Compute the hash"
+        # Ensure compatibility with MultiFunction
+        # `hash(self)` will call the `__hash__` method of the subclass.
+        return hash(self)
 
     # "a @ f" notation in python 3.5
     __matmul__ = __mul__
@@ -677,6 +683,7 @@ class FormSum(BaseForm):
     __slots__ = ("_arguments",
                  "_weights",
                  "_components",
+                 "ufl_operands",
                  "_domains",
                  "_domain_numbering",
                  "_hash")
@@ -691,7 +698,8 @@ class FormSum(BaseForm):
             if isinstance(component, FormSum):
                 full_components.extend(component.components())
                 weights.extend(w * component.weights())
-            else:
+            # We can get zeros from derivatives expansion (not caught in `__add__`)
+            elif component and w:
                 full_components.append(component)
                 weights.append(w)
 
@@ -702,6 +710,7 @@ class FormSum(BaseForm):
         self._weights = weights
         self._components = full_components
         self._sum_variational_components()
+        self.ufl_operands = self._components
 
     def components(self):
         return self._components
@@ -732,8 +741,9 @@ class FormSum(BaseForm):
         "Return all ``Argument`` objects found in form."
         arguments = []
         for component in self._components:
-            arguments.append(component.arguments())
-        self._arguments = arguments
+            arguments.extend(component.arguments())
+        # Remove duplicates
+        self._arguments = tuple(set(arguments))
 
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"

@@ -35,7 +35,11 @@ def expand_derivatives(form, **kwargs):
     if isinstance(form, Action):
         return Action(expand_derivatives(form._left), expand_derivatives(form._right))
     if isinstance(form, Adjoint):
-        return Adjoint(expand_derivatives(form._form))
+        dform = expand_derivatives(form._form)
+        if not dform:
+            # If dform == 0
+            return dform
+        raise NotImplementedError('Adjoint derivative is not supported.')
 
     # Lower abstractions for tensor-algebra types into index notation
     form = apply_algebra_lowering(form)

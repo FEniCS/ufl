@@ -23,6 +23,7 @@ class Adjoint(BaseForm):
         "_form",
         "_repr",
         "_arguments",
+        "ufl_operands",
         "_hash")
 
     def __getnewargs__(self):
@@ -34,7 +35,9 @@ class Adjoint(BaseForm):
         if form == 0:
             return 0
 
-        if isinstance(form, FormSum):
+        if isinstance(form, Adjoint):
+            return form._form
+        elif isinstance(form, FormSum):
             # Adjoint distributes over sums
             return FormSum(*[(Adjoint(component), 1)
                              for component in form.components()])
@@ -48,6 +51,7 @@ class Adjoint(BaseForm):
             raise ValueError("Can only take Adjoint of a 2-form.")
 
         self._form = form
+        self.ufl_operands = (self._form,)
         self._hash = None
         self._repr = "Adjoint(%s)" % repr(self._form)
 

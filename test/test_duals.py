@@ -4,7 +4,7 @@
 from ufl import FiniteElement, FunctionSpace, MixedFunctionSpace, \
     Coefficient, Matrix, Cofunction, FormSum, Argument, Coargument,\
     TestFunction, TrialFunction, Adjoint, Action, \
-    action, adjoint, tetrahedron, triangle, interval, dx
+    action, adjoint, derivative, tetrahedron, triangle, interval, dx
 
 __authors__ = "India Marsden"
 __date__ = "2020-12-28 -- 2020-12-28"
@@ -13,7 +13,7 @@ import pytest
 
 from ufl.domain import default_domain
 from ufl.duals import is_primal, is_dual
-# from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.ad import expand_derivatives
 
 
 def test_mixed_functionspace(self):
@@ -158,6 +158,9 @@ def test_adjoint():
     assert isinstance(res, FormSum)
     assert isinstance(res.components()[0], Adjoint)
 
+    # Adjoint(Adjoint(.)) = Id
+    assert adjoint(adj) == a
+
 
 def test_action():
     domain_2d = default_domain(triangle)
@@ -172,7 +175,7 @@ def test_action():
     u = Coefficient(U)
     u_a = Argument(U, 0)
     v = Coefficient(V)
-    u_star = Cofunction(U.dual())
+    ustar = Cofunction(U.dual())
     u_form = u_a * dx
 
     res = action(a, u)
@@ -196,10 +199,9 @@ def test_action():
         res = action(a, v)
 
     with pytest.raises(TypeError):
-        res = action(a, u_star)
+        res = action(a, ustar)
 
 
-"""
 def test_differentiation():
     domain_2d = default_domain(triangle)
     f_2d = FiniteElement("CG", triangle, 1)
@@ -209,16 +211,45 @@ def test_differentiation():
     U = FunctionSpace(domain_1d, f_1d)
 
     u = Coefficient(U)
-    # Matrix
-    M = Matrix(V, U)
-    # Cofunction
-    u_star = Cofunction(U.dual())
-    # Action
-    Ac = Action(M, u)
-    # Adjoint
-    Ad = Adjoint(M)
-    # Form sum
-    Fs = M + Ad
+    v = Argument(U, 0)
+    vstar = Argument(U.dual(), 0)
 
+    # -- Cofunction -- #
+    w = Cofunction(U.dual())
+    dwdu = expand_derivatives(derivative(w, u))
+    assert dwdu == 0
+
+    dwdw = expand_derivatives(derivative(w, w, vstar))
+    assert dwdw == vstar
+
+    dudw = expand_derivatives(derivative(u, w))
+    assert dudw == 0
+
+    # -- Coargument -- #
+    dvstardu = expand_derivatives(derivative(vstar, u))
+    assert dvstardu == 0
+
+    # -- Matrix -- #
+    M = Matrix(V, U)
     dMdu = expand_derivatives(derivative(M, u))
-"""
+    assert dMdu == 0
+
+    # -- Action -- #
+    Ac = Action(M, u)
+    dAcdu = expand_derivatives(derivative(Ac, u))
+
+    # Action(dM/du, u) + Action(M, du/du) = Action(M, uhat) since dM/du = 0.
+    # Multiply by 1 to get a FormSum (type compatibility).
+    assert dAcdu == 1 * Action(M, v)
+
+    # -- Adjoint -- #
+    Ad = Adjoint(M)
+    dAddu = expand_derivatives(derivative(Ad, u))
+    # Push differentiation through Adjoint
+    assert dAddu == 0
+
+    # -- Form sum -- #
+    Fs = M + Ac
+    dFsdu = expand_derivatives(derivative(Fs, u))
+    # Distribute differentiation over FormSum components
+    assert dFsdu == 1 * Action(M, v)

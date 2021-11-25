@@ -12,14 +12,14 @@
 # Modified by Cecile Daversin-Catty, 2018
 
 from ufl.log import error
-from ufl.form import Form, BaseForm, as_form
+from ufl.form import Form, FormSum, BaseForm, as_form
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
-from ufl.coefficient import Coefficient
+from ufl.coefficient import Coefficient, Cofunction
 from ufl.adjoint import Adjoint
 from ufl.action import Action
 from ufl.differentiation import CoefficientDerivative, BaseFormDerivative, CoordinateDerivative
@@ -173,7 +173,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        if not all(isinstance(c, Coefficient) for c in coefficients):
+        if not all(isinstance(c, (Coefficient, Cofunction)) for c in coefficients):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one
@@ -226,7 +226,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             error("Coefficient and argument shapes do not match!")
-        if isinstance(c, Coefficient) or isinstance(c, SpatialCoordinate):
+        if isinstance(c, (Coefficient, Cofunction, SpatialCoordinate)):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
@@ -280,9 +280,23 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     ``Coefficient`` instances to their derivatives w.r.t. *coefficient*.
     """
 
+    if isinstance(form, FormSum):
+        # Distribute derivative over FormSum components
+        return FormSum(*[(derivative(component, coefficient, argument, coefficient_derivatives), 1)
+                         for component in form.components()])
+    elif isinstance(form, Adjoint):
+        # Push derivative through Adjoint
+        return adjoint(derivative(form._form, coefficient, argument, coefficient_derivatives))
+    elif isinstance(form, Action):
+        # Push derivative through Action slots
+        left, right = form.ufl_operands
+        dleft = derivative(left, coefficient, argument, coefficient_derivatives)
+        dright = derivative(right, coefficient, argument, coefficient_derivatives)
+        # Leibniz formula
+        return action(dleft, right) + action(left, dright)
+
     coefficients, arguments = _handle_derivative_arguments(form, coefficient,
                                                            argument)
-
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
     else:
