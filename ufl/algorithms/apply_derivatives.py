@@ -13,6 +13,7 @@ from ufl.log import error, warning
 
 from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
+from ufl.core.interp import Interp
 from ufl.core.multiindex import MultiIndex, FixedIndex, indices
 
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
@@ -1062,6 +1063,16 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # We can't differentiate wrt a matrix so always return 0
         return 0
 
+    def interp(self, I, dw):
+        # Interp rule: D_w[v](I(w, v*)) = I(v, v*), by linearity of Interp!
+        if not dw:
+            # I doesn't depend on w:
+            #  -> It also covers the Hessian case since Interp is linear,
+            #     e.g. D_w[v](D_w[v](I(w, v*))) = D_w[v](I(v, v*)) = 0 (since w not found).
+            return 0
+        vstar, _ = I.argument_slots()
+        return I._ufl_expr_reconstruct_(dw, vstar)
+
 
 class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
@@ -1107,6 +1118,25 @@ class DerivativeRuleDispatcher(MultiFunction):
         return map_expr_dag(rules, f,
                             vcache=self.vcaches[key],
                             rcache=self.rcaches[key])
+
+    def base_form_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
+        dummy, w, v, cd = o.ufl_operands
+        rules = GateauxDerivativeRuleset(w, v, cd)
+        key = (GateauxDerivativeRuleset, w, v, cd)
+        mapped_f = rules.coefficient(f)
+        if mapped_f != 0:
+            # If dN/dN needs to return an Argument in N space
+            # with N a BaseFormOperator.
+            return mapped_f
+        # That doesn't seem the right of way doing it
+        slots = f.ufl_operands if not isinstance(f, Interp) else f.argument_slots()[-1:]
+        dfs = tuple(map_expr_dag(rules, op,
+                                 vcache=self.vcaches[key],
+                                 rcache=self.rcaches[key])
+                    for op in slots)
+        # Look for the handler of f, where f is a BaseFormOperator.
+        handler = getattr(GateauxDerivativeRuleset, f._ufl_handler_name_)
+        return handler(rules, f, *dfs)
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         o_ = o.ufl_operands

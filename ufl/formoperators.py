@@ -14,6 +14,7 @@
 from ufl.log import error
 from ufl.form import Form, FormSum, BaseForm, as_form
 from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
@@ -22,7 +23,8 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.adjoint import Adjoint
 from ufl.action import Action
-from ufl.differentiation import CoefficientDerivative, BaseFormDerivative, CoordinateDerivative
+from ufl.differentiation import (CoefficientDerivative, BaseFormDerivative,
+                                 BaseFormOperatorDerivative, CoordinateDerivative)
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
@@ -317,6 +319,10 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                                           arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
+
+    elif isinstance(form, BaseFormOperator):
+        if not isinstance(coefficient, SpatialCoordinate):
+            return BaseFormOperatorDerivative(form, coefficients, arguments, coefficient_derivatives)
 
     elif isinstance(form, BaseForm):
         if not isinstance(coefficient, SpatialCoordinate):

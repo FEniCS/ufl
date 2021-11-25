@@ -11,6 +11,7 @@ from ufl.form import BaseForm, FormSum, Form
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
+from ufl.core.interp import Interp
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -74,7 +75,7 @@ class Action(BaseForm):
                 != right.arguments()[0].ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
-        elif isinstance(right, (Coefficient, Cofunction, Argument)):
+        elif isinstance(right, (Coefficient, Cofunction, Argument, Interp)):
             if (left.arguments()[-1].ufl_function_space()
                 != right.ufl_function_space()):
 
