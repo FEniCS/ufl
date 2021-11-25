@@ -15,7 +15,6 @@ from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.argument import Argument, Coargument
-from ufl.coefficient import Coefficient
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.duals import is_dual
 
@@ -27,24 +26,7 @@ class Interp(BaseFormOperator):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    def __new__(cls, *args, **kwargs):
-        expr, V = args
-        if isinstance(V, Coargument):
-            # Get the primal space (V** = V)
-            V = V.ufl_function_space().dual()
-
-        # Check trivial cases
-        if expr == 0:
-            # Interp(0, V) = 0
-            return 0
-        elif isinstance(expr, Coefficient) and expr.ufl_function_space() == V:
-            # Should Interp accept Cofunction ?
-            # Interp(f, V) = f <=> f \in V
-            return expr
-
-        return super(Interp, cls).__new__(cls)
-
-    def __init__(self, expr, v, derivatives=None, result_coefficient=None, argument_slots=()):
+    def __init__(self, expr, v, result_coefficient=None):
         r"""
         :arg expr: a UFL expression to interpolate.
         :arg function_space: the :class:`.FunctionSpace` to interpolate into (or else
@@ -62,7 +44,6 @@ class Interp(BaseFormOperator):
             function_space = FunctionSpace(domain, element)
             v = Argument(function_space.dual(), 0)
         elif isinstance(v, AbstractFunctionSpace):
-            # Should Interp accept Cofunction interpolation ?
             if is_dual(v):
                 raise ValueError('Expecting a primal function space.')
             v = Argument(v.dual(), 0)
@@ -75,21 +56,28 @@ class Interp(BaseFormOperator):
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
         function_space = v.ufl_function_space().dual()
-        BaseFormOperator.__init__(self, function_space=function_space, derivatives=derivatives,
-                                  result_coefficient=result_coefficient, argument_slots=argument_slots)
+        BaseFormOperator.__init__(self, function_space=function_space,
+                                  result_coefficient=result_coefficient,
+                                  argument_slots=argument_slots)
+
+    def _ufl_expr_reconstruct_(self, expr, v, result_coefficient=None):
+        "Return a new object of the same type with new operands."
+        # This should check if we need a new coefficient, i.e. if we need
+        # to pass `self._result_coefficient` when `result_coefficient` is None.
+        # -> `result_coefficient` is deprecated so it shouldn't be a problem!
+        result_coefficient = result_coefficient or self._result_coefficient
+        return type(self)(expr, v, result_coefficient=result_coefficient)
 
     def __repr__(self):
         "Default repr string construction for Interp."
-        r = "Interp(%s; %s; derivatives=%s)" % (", ".join(repr(arg) for arg in self.argument_slots()),
-                                                repr(self.ufl_function_space()),
-                                                repr(self.derivatives))
+        r = "Interp(%s; %s)" % (", ".join(repr(arg) for arg in reversed(self.argument_slots())),
+                                repr(self.ufl_function_space()))
         return r
 
     def __str__(self):
         "Default str string construction for Interp."
-        s = "Interp(%s; %s; derivatives=%s)" % (", ".join(str(arg) for arg in self.argument_slots()),
-                                                str(self.ufl_function_space()),
-                                                str(self.derivatives))
+        s = "Interp(%s; %s)" % (", ".join(str(arg) for arg in reversed(self.argument_slots())),
+                                str(self.ufl_function_space()))
         return s
 
     def __eq__(self, other):
