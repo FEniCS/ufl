@@ -19,7 +19,7 @@ from ufl.core.base_form_operator import BaseFormOperator
 from ufl.duals import is_dual
 
 
-@ufl_type(num_ops="varying", inherit_indices_from_operand=0, is_differential=True)
+@ufl_type(num_ops="varying", is_differential=True)
 class Interp(BaseFormOperator):
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
@@ -59,6 +59,18 @@ class Interp(BaseFormOperator):
         BaseFormOperator.__init__(self, function_space=function_space,
                                   result_coefficient=result_coefficient,
                                   argument_slots=argument_slots)
+
+    @property
+    def ufl_free_indices(self):
+        # Interp(expr, v*) is an operator without ufl_operands
+        #  ->  It inherits its ufl_free_indices from expr
+        return self._argument_slots[1].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        # Interp(expr, v*) is an operator without ufl_operands
+        #  ->  It inherits its ufl_index_dimensions from expr
+        return self._argument_slots[1].ufl_index_dimensions
 
     def _ufl_expr_reconstruct_(self, expr, v, result_coefficient=None):
         "Return a new object of the same type with new operands."
