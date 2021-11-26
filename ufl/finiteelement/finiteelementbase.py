@@ -87,6 +87,10 @@ class FiniteElementBase(object):
         "Return finite element family."
         return self._family
 
+    def variant(self):
+        """Return the variant used to initialise the element."""
+        return None
+
     def degree(self, component=None):
         "Return polynomial degree of finite element."
         # FIXME: Consider embedded_degree concept for more accurate
