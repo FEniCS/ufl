@@ -56,7 +56,9 @@ class Interp(BaseFormOperator):
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
         function_space = v.ufl_function_space().dual()
-        BaseFormOperator.__init__(self, function_space=function_space,
+        # Set the operand as `expr` for DAG traversal purpose.
+        operand = expr
+        BaseFormOperator.__init__(self, operand, function_space=function_space,
                                   result_coefficient=result_coefficient,
                                   argument_slots=argument_slots)
 
