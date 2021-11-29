@@ -112,9 +112,12 @@ def action(form, coefficient=None):
     For formbase objects,coefficient can be any object of the correct type,
     and this function returns an Action object."""
     form = as_form(form)
+    # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
     if isinstance(form, Form) and not (isinstance(coefficient, BaseForm) and len(coefficient.arguments()) > 1):
+        # For external operators differentiation may turn a Form into a FormSum
         form = expand_derivatives(form)
-        return compute_form_action(form, coefficient)
+        if isinstance(form, Form):
+            return compute_form_action(form, coefficient)
     return Action(form, coefficient)
 
 
@@ -142,9 +145,12 @@ def adjoint(form, reordered_arguments=None):
     object instructing the adjoint to be computed at a later point.
     """
     form = as_form(form)
+    # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
     if isinstance(form, Form):
+        # For external operators differentiation may turn a Form into a FormSum
         form = expand_derivatives(form)
-        return compute_form_adjoint(form, reordered_arguments)
+        if isinstance(form, Form):
+            return compute_form_adjoint(form, reordered_arguments)
     return Adjoint(form)
 
 
@@ -175,7 +181,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        if not all(isinstance(c, (Coefficient, Cofunction)) for c in coefficients):
+        if not all(isinstance(c, (Coefficient, Cofunction, BaseFormOperator)) for c in coefficients):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one
@@ -228,7 +234,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             error("Coefficient and argument shapes do not match!")
-        if isinstance(c, (Coefficient, Cofunction, SpatialCoordinate)):
+        if isinstance(c, (Coefficient, Cofunction, BaseFormOperator, SpatialCoordinate)):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
