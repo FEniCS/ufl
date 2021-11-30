@@ -142,7 +142,7 @@ class Cofunction(BaseCoefficient, BaseForm):
         self._repr = "Cofunction(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))
 
-    def __eq__(self, other):
+    def equals(self, other):
         if not isinstance(other, Cofunction):
             return False
         if self is other:

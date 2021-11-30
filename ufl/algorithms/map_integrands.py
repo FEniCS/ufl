@@ -42,8 +42,7 @@ def map_integrands(function, form, only_integral_type=None):
                              for component in form.components()]
         nonzero_components = [(component, 1) for component in mapped_components
                               # Catch ufl.Zero and zeros of dual objects
-                              # Workaround while the role of `__eq__`/`equals` for BaseForms is clarified ?
-                              if not component == 0]
+                              if component != 0]
         return FormSum(*nonzero_components)
     elif isinstance(form, Adjoint):
         # Zeros are caught inside `Adjoint.__new__`
