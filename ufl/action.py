@@ -115,7 +115,7 @@ class Action(BaseForm):
         else:
             raise TypeError
 
-    def __eq__(self, other):
+    def equals(self, other):
         if not isinstance(other, Action):
             return False
         if self is other:

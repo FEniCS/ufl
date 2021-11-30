@@ -69,11 +69,8 @@ def test_dual_coefficients():
     assert is_dual(w)
     assert not is_primal(w)
 
-    try:
+    with pytest.raises(ValueError):
         x = Cofunction(V)
-        assert False
-    except ValueError:
-        pass
 
 
 def test_dual_arguments():
@@ -95,11 +92,8 @@ def test_dual_arguments():
     assert is_dual(w)
     assert not is_primal(w)
 
-    try:
+    with pytest.raises(ValueError):
         x = Coargument(V, 4)
-        assert False
-    except ValueError:
-        pass
 
 
 def test_addition():

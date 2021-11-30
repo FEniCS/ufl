@@ -87,7 +87,7 @@ class Matrix(BaseForm):
             self._hash = hash(self._repr)
         return self._hash
 
-    def __eq__(self, other):
+    def equals(self, other):
         if not isinstance(other, Matrix):
             return False
         if self is other:

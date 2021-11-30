@@ -210,6 +210,10 @@ class BaseForm(object, metaclass=UFLType):
         # `hash(self)` will call the `__hash__` method of the subclass.
         return hash(self)
 
+    def _ufl_expr_reconstruct_(self, *operands):
+        "Return a new object of the same type with new operands."
+        return type(self)(*operands)
+
     # "a @ f" notation in python 3.5
     __matmul__ = __mul__
 
@@ -698,8 +702,7 @@ class FormSum(BaseForm):
             if isinstance(component, FormSum):
                 full_components.extend(component.components())
                 weights.extend(w * component.weights())
-            # We can get zeros from derivatives expansion (not caught in `__add__`)
-            elif component and w:
+            else:
                 full_components.append(component)
                 weights.append(w)
 
@@ -741,9 +744,8 @@ class FormSum(BaseForm):
         "Return all ``Argument`` objects found in form."
         arguments = []
         for component in self._components:
-            arguments.extend(component.arguments())
-        # Remove duplicates
-        self._arguments = tuple(set(arguments))
+            arguments.append(component.arguments())
+        self._arguments = arguments
 
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"

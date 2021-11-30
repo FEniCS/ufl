@@ -215,7 +215,7 @@ class Coargument(BaseForm, BaseArgument):
         # Define canonical numbering of arguments and coefficients
         self._arguments = (Argument(self._ufl_function_space, 0),)
 
-    def __eq__(self, other):
+    def equals(self, other):
         if not isinstance(other, Coargument):
             return False
         if self is other:
