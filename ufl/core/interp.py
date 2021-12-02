@@ -74,8 +74,9 @@ class Interp(BaseFormOperator):
         #  ->  It inherits its ufl_index_dimensions from expr
         return self._argument_slots[1].ufl_index_dimensions
 
-    def _ufl_expr_reconstruct_(self, expr, v, result_coefficient=None):
+    def _ufl_expr_reconstruct_(self, expr, v=None, result_coefficient=None):
         "Return a new object of the same type with new operands."
+        v = v or self.argument_slots()[0]
         # This should check if we need a new coefficient, i.e. if we need
         # to pass `self._result_coefficient` when `result_coefficient` is None.
         # -> `result_coefficient` is deprecated so it shouldn't be a problem!
