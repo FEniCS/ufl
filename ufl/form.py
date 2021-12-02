@@ -230,6 +230,7 @@ class Form(BaseForm):
         "_domain_numbering",
         "_subdomain_data",
         "_arguments",
+        "_base_form_operators",
         "_coefficients",
         "_coefficient_numbering",
         "_constants",
@@ -262,6 +263,9 @@ class Form(BaseForm):
         # Internal variables for caching form argument data
         self._coefficients = None
         self._coefficient_numbering = None
+
+        # Internal variables for caching base form operator data
+        self._base_form_operators = None
 
         from ufl.algorithms.analysis import extract_constants
         self._constants = extract_constants(self)
@@ -377,6 +381,12 @@ class Form(BaseForm):
         if self._coefficients is None:
             self._analyze_form_arguments()
         return self._coefficients
+
+    def base_form_operators(self):
+        "Return all ``BaseFormOperator`` objects found in form."
+        if self._base_form_operators is None:
+            self._analyze_base_form_operators()
+        return self._base_form_operators
 
     def coefficient_numbering(self):
         """Return a contiguous numbering of coefficients in a mapping
@@ -599,6 +609,12 @@ class Form(BaseForm):
             sorted(set(coefficients), key=lambda x: x.count()))
         self._coefficient_numbering = dict(
             (c, i) for i, c in enumerate(self._coefficients))
+
+    def _analyze_base_form_operators(self):
+        "Analyze which BaseFormOperator objects can be found in the form."
+        from ufl.algorithms.analysis import extract_base_form_operators
+        base_form_ops = extract_base_form_operators(self)
+        self._base_form_operators = tuple(sorted(base_form_ops, key=lambda x: x.count()))
 
     def _compute_renumbering(self):
         # Include integration domains and coefficients in renumbering
