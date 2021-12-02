@@ -16,6 +16,7 @@ from ufl.log import error
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.terminal import Terminal
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.argument import BaseArgument
 from ufl.coefficient import BaseCoefficient
 from ufl.constant import Constant
@@ -59,8 +60,8 @@ def extract_type(a, ufl_types):
     if not isinstance(ufl_types, (list, tuple)):
         ufl_types = (ufl_types,)
 
-    # BaseForms that aren't forms only have arguments
-    if isinstance(a, BaseForm) and not isinstance(a, Form):
+    # BaseForms that aren't forms or base form operators only have arguments
+    if isinstance(a, BaseForm) and not isinstance(a, (Form, BaseFormOperator)):
         if any(issubclass(t, BaseArgument) for t in ufl_types):
             return set(a.arguments())
         else:
@@ -68,13 +69,40 @@ def extract_type(a, ufl_types):
 
     if all(issubclass(t, Terminal) for t in ufl_types):
         # Optimization
-        return set(o for e in iter_expressions(a)
-                   for o in traverse_unique_terminals(e)
-                   if any(isinstance(o, t) for t in ufl_types))
+        objects = set(o for e in iter_expressions(a)
+                      for o in traverse_unique_terminals(e)
+                      if any(isinstance(o, t) for t in ufl_types))
     else:
-        return set(o for e in iter_expressions(a)
-                   for o in unique_pre_traversal(e)
-                   if any(isinstance(o, t) for t in ufl_types))
+        objects = set(o for e in iter_expressions(a)
+                      for o in unique_pre_traversal(e)
+                      if any(isinstance(o, t) for t in ufl_types))
+
+    # Need to extract objects contained in base form operators whose type is in ufl_types
+    if all(t is not BaseFormOperator for t in ufl_types):
+        # For the case where there are no base form operators in `a`, this effectively doubles the time
+        # since we traverse the DAG twice.
+        # -> A solution would be to have a mechanism to collect these operators as we traverse
+        #    the DAG for the first time and use that information.
+        base_form_ops = extract_type(a, BaseFormOperator)
+    else:
+        base_form_ops = set(e for e in objects if isinstance(e, BaseFormOperator))
+
+    ufl_types_no_args = tuple(t for t in ufl_types if not issubclass(t, BaseArgument))
+    base_form_objects = ()
+    for o in base_form_ops:
+        # This accounts for having BaseFormOperator in Forms: if N is a BaseFormOperator
+        #  N(u; v*) * v * dx <=> action(v1 * v * dx, N(...; v*))
+        # where v, v1 are Arguments and v* a Coargument.
+        for ai in tuple(arg for arg in o.argument_slots(isinstance(a, Form))):
+            base_form_objects += tuple(extract_type(ai, ufl_types))
+        # Look for BaseArguments in BaseFormOperator's argument slots only since that's where they are by definition.
+        # Don't look into operands, which is convenient for external operator composition, e.g. N1(N2; v*)
+        # where N2 is seen as an operator and not a form.
+        slots = o.ufl_operands + (o.result_coefficient(),)
+        for ai in slots:
+            base_form_objects += tuple(extract_type(ai, ufl_types_no_args))
+    objects.update(base_form_objects)
+    return objects
 
 
 def has_type(a, ufl_type):
@@ -115,6 +143,12 @@ def extract_coefficients(a):
 def extract_constants(a):
     """Build a sorted list of all constants in a"""
     return sorted_by_count(extract_type(a, Constant))
+
+
+def extract_base_form_operators(a):
+    """Build a sorted list of all base form operators (e.g. Interp or ExternalOperator)in a,
+    which can be a Form, Integral or Expr."""
+    return sorted_by_count(extract_type(a, BaseFormOperator))
 
 
 def extract_arguments_and_coefficients(a):
