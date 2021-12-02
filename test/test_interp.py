@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from ufl import (FiniteElement, FunctionSpace, Coefficient, Argument, triangle, derivative,
-                 TestFunction, TrialFunction, action, adjoint, Action, Adjoint, dx)
+from ufl import *
 
 
 __authors__ = "Nacime Bouziani"
@@ -13,8 +12,13 @@ __date__ = "2021-11-19"
 Test Interp object
 """
 
-from ufl.algorithms.ad import expand_derivatives
 from ufl.core.interp import Interp
+from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.analysis import (extract_coefficients, extract_arguments,
+                                     extract_arguments_and_coefficients,
+                                     extract_base_form_operators)
+
+from ufl.algorithms.expand_indices import expand_indices
 from ufl.domain import default_domain
 
 
@@ -102,7 +106,8 @@ def test_differentiation(V1, V2):
     dFdu = expand_derivatives(derivative(F, u, uhat))
     # Compute dFdu = \partial F/\partial u + Action(dFdIu, dIu/du)
     #              = Action(dFdIu, Iu(uhat, v*))
-    dFdIu = Ihat * v * dx
+    dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
+    assert dFdIu == Ihat * v * dx
     assert dFdu == Action(dFdIu, dIu)
 
     # -- Differentiate: u * I(u, V2) * v * dx -- #
@@ -113,3 +118,51 @@ def test_differentiation(V1, V2):
     dFdu_partial = uhat * Iu * v * dx
     dFdIu = Ihat * u * v * dx
     assert dFdu == dFdu_partial + Action(dFdIu, dIu)
+
+    # -- Differentiate (wrt Iu): <Iu, v> + <grad(Iu), grad(v)> - <f, v>
+    f = Coefficient(V1)
+    F = inner(Iu, v) * dx + inner(grad(Iu), grad(v)) * dx - inner(f, v) * dx
+    dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
+
+    # BaseFormOperators are treated as coefficients when a form is differentiated wrt them.
+    # -> dFdIu <=> dFdw
+    w = Coefficient(V2)
+    F = replace(F, {Iu: w})
+    dFdw = expand_derivatives(derivative(F, w, Ihat))
+
+    # Need to expand indices to be able to match equal (different MultiIndex used for both).
+    assert expand_indices(dFdIu) == expand_indices(dFdw)
+
+
+def test_extract_base_form_operators(V1, V2):
+
+    u = Coefficient(V1)
+    uhat = TrialFunction(V1)
+    vstar = Argument(V2.dual(), 0)
+
+    # -- Interp(u, V2) -- #
+    Iu = Interp(u, V2)
+    assert extract_arguments(Iu) == [vstar]
+    assert extract_arguments_and_coefficients(Iu) == ([vstar], [u, Iu.result_coefficient()])
+
+    F = Iu * dx
+    # Form composition: Iu * dx <=> Action(v * dx, Iu(u; v*))
+    assert extract_arguments(F) == []
+    assert extract_arguments_and_coefficients(F) == ([], [u, Iu.result_coefficient()])
+
+    for e in [Iu, F]:
+        assert extract_coefficients(e) == [u, Iu.result_coefficient()]
+        assert extract_base_form_operators(e) == [Iu]
+
+    # -- Interp(u, V2) -- #
+    Iv = Interp(uhat, V2)
+    assert extract_arguments(Iv) == [vstar, uhat]
+    assert extract_arguments_and_coefficients(Iv) == ([vstar, uhat], [Iv.result_coefficient()])
+    assert extract_coefficients(Iv) == [Iv.result_coefficient()]
+    assert extract_base_form_operators(Iv) == [Iv]
+
+    # -- Action(v * v2 * dx, Iv) -- #
+    v2 = TrialFunction(V2)
+    v = TestFunction(V1)
+    F = Action(v * v2 * dx, Iv)
+    assert extract_arguments(F) == [v, uhat]
