@@ -13,7 +13,7 @@ from ufl.log import error, warning
 
 from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
-from ufl.core.interp import Interp
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.multiindex import MultiIndex, FixedIndex, indices
 
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
@@ -322,8 +322,7 @@ class GenericDerivativeRuleset(MultiFunction):
             #  -> It also covers the Hessian case since Interp is linear,
             #     e.g. D_w[v](D_w[v](I(w, v*))) = D_w[v](I(v, v*)) = 0 (since w not found).
             return 0
-        vstar, _ = I.argument_slots()
-        return I._ufl_expr_reconstruct_(dw, vstar)
+        return I._ufl_expr_reconstruct_(expr=dw)
 
     # --- Mathfunctions
 
@@ -541,6 +540,12 @@ class GradRuleset(GenericDerivativeRuleset):
         return JacobianInverse(o.ufl_domain())
 
     # --- Specialized rules for form arguments
+
+    def interp(self, o):
+        # Push the grad through the operator is not legal in most cases:
+        #    -> Not enouth regularity for chain rule to hold!
+        # By the time we evaluate `grad(o)`, `o` (Interp) will have been assembled and substituted by its output.
+        return Grad(o)
 
     def coefficient(self, o):
         if is_cellwise_constant(o):
@@ -915,7 +920,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     def grad(self, g):
         # If we hit this type, it has already been propagated to a
-        # coefficient (or grad of a coefficient), # FIXME: Assert
+        # coefficient (or grad of a coefficient) or a base form operator, # FIXME: Assert
         # this!  so we need to take the gradient of the variation or
         # return zero.  Complications occur when dealing with
         # derivatives w.r.t. single components...
@@ -926,8 +931,9 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         while isinstance(o, Grad):
             o, = o.ufl_operands
             ngrads += 1
-        if not isinstance(o, FormArgument):
-            error("Expecting gradient of a FormArgument, not %s" % ufl_err_str(o))
+        # `grad(N)` where N is a BaseFormOperator is treated as if `N` was a Coefficient.
+        if not isinstance(o, (FormArgument, BaseFormOperator)):
+            error("Expecting gradient of a FormArgument/BaseFormOperator, not %s" % ufl_err_str(o))
 
         def apply_grads(f):
             for i in range(ngrads):
@@ -978,8 +984,10 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # components
         for (w, v) in zip(self._w, self._v):
 
-            # Analyse differentiation variable coefficient
-            if isinstance(w, FormArgument):
+            # -- Analyse differentiation variable coefficient -- #
+
+            # Can differentiate a Form wrt a BaseFormOperator
+            if isinstance(w, (FormArgument, BaseFormOperator)):
                 if not w == o:
                     continue
                 wshape = w.ufl_shape
@@ -1104,6 +1112,12 @@ class DerivativeRuleDispatcher(MultiFunction):
         # Example: dN(u)/du where `N` is a BaseFormOperator and `u` a Coefficient
         self.pending_operations = ()
 
+    def base_form_operator(self, o):
+        # TODO: Is that indispensable?
+        rules = DerivativeRuleDispatcher()
+        o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op) for op in o.ufl_operands))
+        return o_new
+
     def terminal(self, o):
         return o
 
@@ -1157,20 +1171,27 @@ class DerivativeRuleDispatcher(MultiFunction):
             # If dN/dN needs to return an Argument in N space
             # with N a BaseFormOperator.
             return mapped_f
-        # That doesn't seem the right of way doing it
-        slots = f.ufl_operands if not isinstance(f, Interp) else f.argument_slots()[-1:]
         dfs = tuple(map_expr_dag(rules, op,
                                  vcache=self.vcaches[key],
                                  rcache=self.rcaches[key])
-                    for op in slots)
+                    for op in f.ufl_operands)
         # We need to go through the dag first to record the pending operations
         var, der_kwargs, *base_form_ops = rules.pending_operations
         # Need to account for pending operations that have been stored in other integrands
         base_form_ops = self.pending_operations[2:] + tuple(base_form_ops)
         self.pending_operations = (var, der_kwargs, *base_form_ops)
         # Look for the handler of f, where f is a BaseFormOperator.
-        handler = getattr(GenericDerivativeRuleset, '_' + f._ufl_handler_name_)
-        return handler(rules, f, *dfs)
+        for c in type(f).mro():
+            # We manually call the handler instead of using `map_expr_dag` here
+            # because of the 2 stages differentiation mechanism for BaseFormOperator:
+            # -> `map_expr_dag` will result in 0 and record the operation
+            #     while the actual computation is done here, i.e. when
+            #     `map_expr_dag` is applied on a BaseFormOperatorDerivative.
+            handler_name = '_' + c._ufl_handler_name_
+            handler = getattr(GenericDerivativeRuleset, handler_name, None)
+            if handler:
+                # Apply the handler of the first encountered superclass
+                return handler(rules, f, *dfs)
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         o_ = o.ufl_operands
