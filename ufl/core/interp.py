@@ -62,18 +62,6 @@ class Interp(BaseFormOperator):
                                   result_coefficient=result_coefficient,
                                   argument_slots=argument_slots)
 
-    @property
-    def ufl_free_indices(self):
-        # Interp(expr, v*) is an operator without ufl_operands
-        #  ->  It inherits its ufl_free_indices from expr
-        return self._argument_slots[1].ufl_free_indices
-
-    @property
-    def ufl_index_dimensions(self):
-        # Interp(expr, v*) is an operator without ufl_operands
-        #  ->  It inherits its ufl_index_dimensions from expr
-        return self._argument_slots[1].ufl_index_dimensions
-
     def _ufl_expr_reconstruct_(self, expr, v=None, result_coefficient=None):
         "Return a new object of the same type with new operands."
         v = v or self.argument_slots()[0]

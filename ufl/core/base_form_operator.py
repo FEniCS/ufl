@@ -22,7 +22,7 @@ from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.referencevalue import ReferenceValue
 
 
-@ufl_type(num_ops="varying", inherit_indices_from_operand=0, is_differential=True)
+@ufl_type(num_ops="varying", is_differential=True)
 class BaseFormOperator(Operator, BaseForm):
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
@@ -73,6 +73,10 @@ class BaseFormOperator(Operator, BaseForm):
             v_star = Argument(function_space.dual(), 0)
             argument_slots = (v_star,)
         self._argument_slots = argument_slots
+
+    # BaseFormOperators don't have free indices.
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
 
     def result_coefficient(self, unpack_reference=True):
         "Returns the coefficient produced by the external operator"
