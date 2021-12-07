@@ -1112,12 +1112,6 @@ class DerivativeRuleDispatcher(MultiFunction):
         # Example: dN(u)/du where `N` is a BaseFormOperator and `u` a Coefficient
         self.pending_operations = ()
 
-    def base_form_operator(self, o):
-        # TODO: Is that indispensable?
-        rules = DerivativeRuleDispatcher()
-        o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op) for op in o.ufl_operands))
-        return o_new
-
     def terminal(self, o):
         return o
 
@@ -1270,6 +1264,7 @@ def apply_derivatives(expression):
         # Sum the Action: dF/du = \partial F/\partial u + \sum_{i=1,...} Action(dF/dNi, dNi/du)
         if not (isinstance(dexpr_dN, Form) and len(dexpr_dN.integrals()) == 0):
             # In this case: Action <=> ufl.action since `dN_var` has 2 arguments.
+            # We use Action to handle the trivial case dN_dvar = 0.
             dexpression_dvar += (Action(dexpr_dN, dN_dvar),)
     return sum(dexpression_dvar)
 
