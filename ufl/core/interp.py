@@ -27,13 +27,12 @@ class Interp(BaseFormOperator):
     _ufl_noslots_ = True
 
     def __init__(self, expr, v, result_coefficient=None):
-        r"""
+        r""" Symbolic representation of the interpolation operator.
+
         :arg expr: a UFL expression to interpolate.
-        :arg function_space: the :class:`.FunctionSpace` to interpolate into (or else
-        an existing :class:`.Coefficient`).
-        :param derivatives: tuple specifiying the derivative multiindex.
-        :param result_coefficient: ufl.Coefficient associated to Interp representing what is produced by the operator
-        :param argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
+        :arg v: the :class:`.FunctionSpace` to interpolate into or the :class:`.Coargument`
+                defined on the dual of the :class:`.FunctionSpace` to interpolate into.
+        :param result_coefficient: the :class:`.Coefficient` representing what is produced by the operator
         """
 
         if isinstance(v, FiniteElementBase):
