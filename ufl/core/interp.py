@@ -14,9 +14,11 @@ from ufl.constantvalue import as_ufl
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
-from ufl.argument import Argument, Coargument
+from ufl.argument import Coargument
+from ufl.coefficient import Cofunction
+from ufl.form import Form
 from ufl.core.base_form_operator import BaseFormOperator
-from ufl.duals import is_dual
+from ufl.duals import is_dual, is_primal
 
 
 @ufl_type(num_ops="varying", is_differential=True)
@@ -35,6 +37,9 @@ class Interp(BaseFormOperator):
         :param result_coefficient: the :class:`.Coefficient` representing what is produced by the operator
         """
 
+        # This check could be more rigorous.
+        is_dual_arg = lambda x: isinstance(x, (Coargument, Cofunction, Form)) 
+
         if isinstance(v, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
             # the cell to The Default Mesh
@@ -46,15 +51,18 @@ class Interp(BaseFormOperator):
             if is_dual(v):
                 raise ValueError('Expecting a primal function space.')
             v = Argument(v.dual(), 0)
-        elif not isinstance(v, Coargument):
-            raise ValueError("Expecting a Coargument, FunctionSpace or FiniteElement.")
-        # If v is a Coargument, should we impose its number to be 0 ?
+        elif not is_dual_arg(v):
+            raise ValueError("Expecting the second argument to be FunctionSpace, FiniteElement or dual.")
 
         expr = as_ufl(expr)
+        if is_dual_arg(expr):
+            raise ValueError("Expecting the first argument to be primal.")
+
         # Reversed order convention
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
-        function_space = v.ufl_function_space().dual()
+        vv = v if not isinstance(v, Form) else v.arguments()[0]
+        function_space = vv.ufl_function_space().dual()
         # Set the operand as `expr` for DAG traversal purpose.
         operand = expr
         BaseFormOperator.__init__(self, operand, function_space=function_space,
