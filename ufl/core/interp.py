@@ -14,11 +14,11 @@ from ufl.constantvalue import as_ufl
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
-from ufl.argument import Coargument
+from ufl.argument import Coargument, Argument
 from ufl.coefficient import Cofunction
 from ufl.form import Form
 from ufl.core.base_form_operator import BaseFormOperator
-from ufl.duals import is_dual, is_primal
+from ufl.duals import is_dual
 
 
 @ufl_type(num_ops="varying", is_differential=True)
@@ -38,7 +38,7 @@ class Interp(BaseFormOperator):
         """
 
         # This check could be more rigorous.
-        is_dual_arg = lambda x: isinstance(x, (Coargument, Cofunction, Form)) 
+        is_dual_arg = lambda x: isinstance(x, (Coargument, Cofunction, Form))
 
         if isinstance(v, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
