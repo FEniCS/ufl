@@ -19,7 +19,6 @@ from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 from ufl.form import BaseForm
-from ufl.argument import Argument
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
 from ufl.duals import is_primal, is_dual

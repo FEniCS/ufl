@@ -38,7 +38,7 @@ class Interp(BaseFormOperator):
         """
 
         # This check could be more rigorous.
-        is_dual_arg = lambda x: isinstance(x, (Coargument, Cofunction, Form))
+        dual_args = (Coargument, Cofunction, Form)
 
         if isinstance(v, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
@@ -51,11 +51,11 @@ class Interp(BaseFormOperator):
             if is_dual(v):
                 raise ValueError('Expecting a primal function space.')
             v = Argument(v.dual(), 0)
-        elif not is_dual_arg(v):
+        elif not isinstance(v, dual_args):
             raise ValueError("Expecting the second argument to be FunctionSpace, FiniteElement or dual.")
 
         expr = as_ufl(expr)
-        if is_dual_arg(expr):
+        if isinstance(expr, dual_args):
             raise ValueError("Expecting the first argument to be primal.")
 
         # Reversed order convention
@@ -97,5 +97,4 @@ class Interp(BaseFormOperator):
             return True
         return (type(self) == type(other) and
                 all(a == b for a, b in zip(self._argument_slots, other._argument_slots)) and
-                self.derivatives == other.derivatives and
                 self.ufl_function_space() == other.ufl_function_space())
