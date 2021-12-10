@@ -103,8 +103,10 @@ class TensorProductElement(FiniteElementBase):
         "Return subelements (factors)."
         return self._sub_elements
 
-    def reconstruct(self, cell=None):
-        return TensorProductElement(*self.sub_elements(), cell=cell)
+    def reconstruct(self, **kwargs):
+        kwargs = dict(kwargs)
+        cell = kwargs.pop("cell", self.cell())
+        return TensorProductElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()], cell=cell)
 
     def __str__(self):
         "Pretty-print."
