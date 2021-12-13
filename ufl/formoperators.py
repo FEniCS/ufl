@@ -112,8 +112,10 @@ def action(form, coefficient=None):
     For formbase objects,coefficient can be any object of the correct type,
     and this function returns an Action object."""
     form = as_form(form)
+    is_coefficient_valid = (not isinstance(coefficient, BaseForm) or
+                            (isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1))
     # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
-    if isinstance(form, Form) and not (isinstance(coefficient, BaseForm) and len(coefficient.arguments()) > 1):
+    if isinstance(form, Form) and is_coefficient_valid:
         # For external operators differentiation may turn a Form into a FormSum
         form = expand_derivatives(form)
         if isinstance(form, Form):

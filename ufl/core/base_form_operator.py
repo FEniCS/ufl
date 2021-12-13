@@ -108,11 +108,13 @@ class BaseFormOperator(Operator, BaseForm):
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         from collections import OrderedDict
-        # Need concept of order since we may have arguments with the same number
-        # because of `argument_slots(outer_form=True)`:
-        #  Example: Let u \in V1 and N \in V2 and F = N(u; v*) * dx, then
-        #  `derivative(F, u)` will contain dNdu(u; uhat, v*) with v* = Argument(0, V2)
-        #  and uhat = Argument(0, V1) (since F.arguments() = ())
+        # 1) Need concept of order since we may have arguments with the same number
+        #    because of form composition (`argument_slots(outer_form=True)`):
+        #    Example: Let u \in V1 and N \in V2 and F = N(u; v*) * dx, then
+        #    `derivative(F, u)` will contain dNdu(u; uhat, v*) with v* = Argument(0, V2)
+        #    and uhat = Argument(0, V1) (since F.arguments() = ())
+        # 2) Having sorted arguments also makes BaseFormOperator compatible with other
+        #    BaseForm objects for which the highest-numbered argument always comes last.
         self._arguments = tuple(sorted(OrderedDict.fromkeys(arguments), key=lambda x: x.number()))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
