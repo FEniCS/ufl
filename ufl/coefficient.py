@@ -112,6 +112,7 @@ class BaseCoefficient(object):
                 self._ufl_function_space == other._ufl_function_space)
 
 
+@ufl_type()
 class Cofunction(BaseCoefficient, BaseForm):
     """UFL form argument type: Representation of a form coefficient from a dual space."""
 

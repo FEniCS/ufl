@@ -20,7 +20,7 @@ from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
 from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.ufl_type import UFLType
+from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.constantvalue import Zero
 
 # Export list for ufl.classes
@@ -69,6 +69,7 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
+@ufl_type()
 class BaseForm(object, metaclass=UFLType):
     """Description of an object containing arguments"""
 
@@ -220,6 +221,7 @@ class BaseForm(object, metaclass=UFLType):
     # --- String conversion functions, for UI purposes only ---
 
 
+@ufl_type()
 class Form(BaseForm):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = (
@@ -679,6 +681,7 @@ def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     return form
 
 
+@ufl_type()
 class FormSum(BaseForm):
     """Description of a weighted sum of variational forms and form-like objects
     components is the list of Forms to be summed

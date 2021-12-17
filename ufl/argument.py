@@ -180,6 +180,7 @@ class Argument(FormArgument, BaseArgument):
         return self._repr
 
 
+@ufl_type()
 class Coargument(BaseForm, BaseArgument):
     """UFL value: Representation of an argument to a form in a dual space."""
     __slots__ = (
