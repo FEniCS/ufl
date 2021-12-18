@@ -228,6 +228,23 @@ def update_global_expr_attributes(cls):
         core.expr.Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
 
 
+def update_ufl_type_attributes(cls):
+    # Determine integer typecode by incrementally counting all types
+    cls._ufl_typecode_ = UFLType._ufl_num_typecodes_
+    UFLType._ufl_num_typecodes_ += 1
+
+    UFLType._ufl_all_classes_.append(cls)
+
+    # Determine handler name by a mapping from "TypeName" to "type_name"
+    cls._ufl_handler_name_ = camel2underscore(cls.__name__)
+    UFLType._ufl_all_handler_names_.add(cls._ufl_handler_name_)
+
+    # Append space for counting object creation and destriction of
+    # this this type.
+    UFLType._ufl_obj_init_counts_.append(0)
+    UFLType._ufl_obj_del_counts_.append(0)
+
+
 def ufl_type(is_abstract=False,
              is_terminal=None,
              is_scalar=False,
@@ -247,7 +264,7 @@ def ufl_type(is_abstract=False,
              unop=None,
              binop=None,
              rbinop=None):
-    """This decorator is to be applied to every subclass in the UFL ``Expr`` hierarchy.
+    """This decorator is to be applied to every subclass in the UFL ``Expr`` and ``BaseForm`` hierarchy.
 
     This decorator contains a number of checks that are
     intended to enforce uniform behaviour across UFL types.
@@ -258,7 +275,14 @@ def ufl_type(is_abstract=False,
     """
 
     def _ufl_type_decorator_(cls):
-        # is_scalar implies is_index_free
+
+        # Update attributes for UFLType instances (BaseForm and Expr objects)
+        update_ufl_type_attributes(cls)
+        if not issubclass(cls, core.expr.Expr):
+            # Don't need anything else for non Expr subclasses
+            return cls
+
+        # is_scalar implies is_index_freeg
         if is_scalar:
             _is_index_free = True
         else:
@@ -362,30 +386,8 @@ def ufl_type(is_abstract=False,
 class UFLType(type):
     """Base class for all UFL types.
 
-    Equip UFL types with properties such as:
-
-    - `_ufl_typecode_`: The integer typecode is a contiguous index different for each
-                        type. This is used for fast lookup into e.g. multifunction handler tables.
-
-    - `_ufl_num_typecodes_`: A global counter of the number of typecodes assigned.
-
+    Equip UFL types with some ufl specific properties.
     """
-
-    def __init__(cls, name, bases, attrs):
-        # Determine integer typecode by incrementally counting all types
-        cls._ufl_typecode_ = UFLType._ufl_num_typecodes_
-        UFLType._ufl_num_typecodes_ += 1
-
-        UFLType._ufl_all_classes_.append(cls)
-
-        # Determine handler name by a mapping from "TypeName" to "type_name"
-        cls._ufl_handler_name_ = camel2underscore(cls.__name__)
-        UFLType._ufl_all_handler_names_.add(cls._ufl_handler_name_)
-
-        # Append space for counting object creation and destriction of
-        # this this type.
-        UFLType._ufl_obj_init_counts_.append(0)
-        UFLType._ufl_obj_del_counts_.append(0)
 
     # A global counter of the number of typecodes assigned.
     _ufl_num_typecodes_ = 0
@@ -393,7 +395,7 @@ class UFLType(type):
     # Set the handler name for UFLType
     _ufl_handler_name_ = "ufl_type"
 
-    # A global array of all Expr subclasses, indexed by typecode
+    # A global array of all Expr and BaseForm subclasses, indexed by typecode
     _ufl_all_classes_ = []
 
     # A global set of all handler names added

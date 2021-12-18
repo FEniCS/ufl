@@ -8,6 +8,7 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.form import BaseForm, FormSum, Form
+from ufl.core.ufl_type import ufl_type
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
@@ -17,6 +18,7 @@ from ufl.core.interp import Interp
 #     to be computed at assembly time ---
 
 
+@ufl_type()
 class Action(BaseForm):
     """UFL base form type: respresents the action of an object on another.
     For example:

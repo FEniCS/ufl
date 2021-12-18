@@ -20,7 +20,7 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.log import error
-from ufl.core.ufl_type import UFLType
+from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
 
 
 # --- The base object for all UFL expression tree nodes ---
@@ -397,6 +397,10 @@ class Expr(object, metaclass=UFLType):
 # Initializing traits here because Expr is not defined in the class
 # declaration
 Expr._ufl_class_ = Expr
+
+# Update Expr with metaclass properties (e.g. typecode or handler name)
+# Explicitly done here instead of using `@ufl_type` to avoid circular imports.
+update_ufl_type_attributes(Expr)
 
 
 def ufl_err_str(expr):

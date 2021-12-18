@@ -7,10 +7,12 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 from ufl.form import BaseForm, FormSum
+from ufl.core.ufl_type import ufl_type
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
 
 
+@ufl_type()
 class Adjoint(BaseForm):
     """UFL base form type: represents the adjoint of an object.
 
