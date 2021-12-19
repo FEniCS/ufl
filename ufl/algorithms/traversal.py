@@ -35,7 +35,7 @@ def iter_expressions(a):
     elif isinstance(a, Integral):
         return (a.integrand(),)
     elif isinstance(a, (FormSum, Adjoint, Action)):
-        return (e for op in a.ufl_operands for e in iter_expressions(op))
+        return tuple(e for op in a.ufl_operands for e in iter_expressions(op))
     elif isinstance(a, (Expr, BaseForm)):
         return (a,)
     error("Not an UFL type: %s" % str(type(a)))

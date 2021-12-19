@@ -90,14 +90,14 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
 
     def __init__(self, base_form, coefficients, arguments,
                  coefficient_derivatives):
-        self.base_form = base_form
         CoefficientDerivative.__init__(self, base_form, coefficients, arguments,
                                        coefficient_derivatives)
         BaseForm.__init__(self)
 
     def _analyze_form_arguments(self):
         """Collect the arguments of the corresponding BaseForm"""
-        self._arguments = self.base_form.arguments()
+        base_form = self.ufl_operands[0]
+        self._arguments = base_form.arguments()
 
 
 @ufl_type(num_ops=2)

@@ -90,7 +90,7 @@ class Matrix(BaseForm):
         return self._hash
 
     def equals(self, other):
-        if not isinstance(other, Matrix):
+        if type(other) is not Matrix:
             return False
         if self is other:
             return True

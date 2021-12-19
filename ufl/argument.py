@@ -217,7 +217,7 @@ class Coargument(BaseForm, BaseArgument):
         self._arguments = (Argument(self._ufl_function_space, 0),)
 
     def equals(self, other):
-        if not isinstance(other, Coargument):
+        if type(other) is not Coargument:
             return False
         if self is other:
             return True
@@ -226,10 +226,10 @@ class Coargument(BaseForm, BaseArgument):
 
     def __hash__(self):
         """Hash code for use in dicts."""
-        return hash(tuple(["Coargument",
-                           hash(self._ufl_function_space),
-                           self._number,
-                           self._part]))
+        return hash(("Coargument",
+                     hash(self._ufl_function_space),
+                     self._number,
+                     self._part))
 
 # --- Helper functions for pretty syntax ---
 
