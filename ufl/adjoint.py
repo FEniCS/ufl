@@ -35,6 +35,7 @@ class Adjoint(BaseForm):
         form = args[0]
         # Check trivial case
         if form == 0:
+            # Not a ufl.Zero
             return 0
 
         if isinstance(form, Adjoint):
@@ -69,7 +70,7 @@ class Adjoint(BaseForm):
         self._arguments = self._form.arguments()[::-1]
 
     def equals(self, other):
-        if not isinstance(other, Adjoint):
+        if type(other) is not Adjoint:
             return False
         if self is other:
             return True
@@ -84,5 +85,5 @@ class Adjoint(BaseForm):
     def __hash__(self):
         """Hash code for use in dicts."""
         if self._hash is None:
-            self._hash = hash(tuple(["Adjoint", hash(self._form)]))
+            self._hash = hash(("Adjoint", hash(self._form)))
         return self._hash

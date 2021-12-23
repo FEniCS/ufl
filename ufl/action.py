@@ -47,6 +47,7 @@ class Action(BaseForm):
 
         # Check trivial case
         if left == 0 or right == 0:
+            # Not a ufl.Zero
             return 0
 
         if isinstance(left, FormSum):
@@ -118,7 +119,7 @@ class Action(BaseForm):
             raise TypeError
 
     def equals(self, other):
-        if not isinstance(other, Action):
+        if type(other) is not Action:
             return False
         if self is other:
             return True
@@ -133,7 +134,7 @@ class Action(BaseForm):
     def __hash__(self):
         "Hash code for use in dicts "
         if self._hash is None:
-            self._hash = hash(tuple(["Action",
-                                     hash(self._right),
-                                     hash(self._left)]))
+            self._hash = hash(("Action",
+                               hash(self._right),
+                               hash(self._left)))
         return self._hash
