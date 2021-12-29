@@ -104,7 +104,6 @@ class TensorProductElement(FiniteElementBase):
         return self._sub_elements
 
     def reconstruct(self, **kwargs):
-        kwargs = dict(kwargs)
         cell = kwargs.pop("cell", self.cell())
         return TensorProductElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()], cell=cell)
 
