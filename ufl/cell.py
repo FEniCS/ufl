@@ -166,12 +166,6 @@ class Cell(AbstractCell):
 
     # --- Facet properties ---
 
-    def num_facet_edges(self):
-        "The number of facet edges."
-        # This is used in geometry.py
-        fn = cellname2facetname[self.cellname()]
-        return num_cell_entities[fn][1]
-
     def facet_cells(self):
         "A list of ufl.Cell representing the facets of self."
         # TODO Replace if with match-case from Python 3.10

@@ -398,7 +398,13 @@ class ReferenceFacetEdgeVectors(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         cell = self.ufl_domain().ufl_cell()
-        nfe = cell.num_facet_edges()
+        facet_cells = cell.facet_cells()
+
+        # Raise exception for cells with more than one facet type e.g. prisms
+        if len(facet_cells) > 1:
+            raise Exception(f"Cell type {cell} not supported.")
+
+        nfe = facet_cells[0].num_edges()
         t = cell.topological_dimension()
         return (nfe, t)
 
@@ -470,7 +476,13 @@ class FacetEdgeVectors(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         cell = self.ufl_domain().ufl_cell()
-        nfe = cell.num_facet_edges()
+        facet_cells = cell.facet_cells()
+
+        # Raise exception for cells with more than one facet type e.g. prisms
+        if len(facet_cells) > 1:
+            raise Exception(f"Cell type {cell} not supported.")
+
+        nfe = facet_cells[0].num_edges()
         g = cell.geometric_dimension()
         return (nfe, g)
 
