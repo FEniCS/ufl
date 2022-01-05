@@ -96,6 +96,7 @@ cellname2dim = dict((k, len(v) - 1) for k, v in num_cell_entities.items())
 # Mapping from cell name to facet name
 # Note: This is not generalizable to product elements but it's still
 # in use a couple of places.
+# TODO Remove
 cellname2facetname = {"interval": "vertex",
                       "triangle": "interval",
                       "quadrilateral": "interval",
@@ -171,10 +172,27 @@ class Cell(AbstractCell):
         fn = cellname2facetname[self.cellname()]
         return num_cell_entities[fn][1]
 
-    def facet_cell(self):
-        "The ufl.Cell representing the facets of self."
-        return ufl.Cell(cellname2facetname[self.cellname()],
-                        self.geometric_dimension())
+    def facet_cells(self):
+        "A list of ufl.Cell representing the facets of self."
+        # TODO Replace if with match-case from Python 3.10
+        cell_name = self.cellname()
+        if cell_name == "interval":
+            facet_names = ["vertex"]
+        elif cell_name == "triangle":
+            facet_names = ["interval"]
+        elif cell_name == "quadrilateral":
+            facet_names = ["interval"]
+        elif cell_name == "tetrahedron":
+            facet_names = ["triangle"]
+        elif cell_name == "hexahedron":
+            facet_names = ["quadrilateral"]
+        elif cell_name == "prism":
+            facet_names = ["triangle", "quadrilateral"]
+        else:
+            raise Exception(f"Unknown cell name: {cell_name}")
+
+        return [ufl.Cell(facet_name, self.geometric_dimension())
+                for facet_name in facet_names]
 
     # --- Special functions for proper object behaviour ---
 
