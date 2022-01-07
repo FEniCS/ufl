@@ -166,27 +166,17 @@ class Cell(AbstractCell):
 
     # --- Facet properties ---
 
-    def facet_cells(self):
-        "A list of ufl.Cell representing the facets of self."
-        # TODO Replace if with match-case from Python 3.10
-        cell_name = self.cellname()
-        if cell_name == "interval":
-            facet_names = ["vertex"]
-        elif cell_name == "triangle":
-            facet_names = ["interval"]
-        elif cell_name == "quadrilateral":
-            facet_names = ["interval"]
-        elif cell_name == "tetrahedron":
-            facet_names = ["triangle"]
-        elif cell_name == "hexahedron":
-            facet_names = ["quadrilateral"]
-        elif cell_name == "prism":
-            facet_names = ["triangle", "quadrilateral"]
-        else:
-            raise Exception(f"Unknown cell name: {cell_name}")
-
-        return [ufl.Cell(facet_name, self.geometric_dimension())
-                for facet_name in facet_names]
+    def facet_types(self):
+        "A tuple of ufl.Cell representing the facets of self."
+        # TODO Move outside method?
+        facet_type_names = {"interval": ("vertex",),
+                            "triangle": ("interval",),
+                            "quadrilateral": ("interval",),
+                            "tetrahedron": ("triangle",),
+                            "hexahedron": ("quadrilateral",),
+                            "prism": ("triangle", "quadrilateral")}
+        return tuple(ufl.Cell(facet_name, self.geometric_dimension())
+                     for facet_name in facet_type_names[self.cellname()])
 
     # --- Special functions for proper object behaviour ---
 
