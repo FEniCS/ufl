@@ -93,16 +93,6 @@ num_cell_entities = {"vertex": (1,),
 # Mapping from cell name to topological dimension
 cellname2dim = dict((k, len(v) - 1) for k, v in num_cell_entities.items())
 
-# Mapping from cell name to facet name
-# Note: This is not generalizable to product elements but it's still
-# in use a couple of places.
-# TODO Remove
-cellname2facetname = {"interval": "vertex",
-                      "triangle": "interval",
-                      "quadrilateral": "interval",
-                      "tetrahedron": "triangle",
-                      "hexahedron": "quadrilateral"}
-
 
 # --- Basic cell representation classes
 
