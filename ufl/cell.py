@@ -16,6 +16,7 @@
 import numbers
 import functools
 
+import ufl.cell
 from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
@@ -95,6 +96,7 @@ cellname2dim = dict((k, len(v) - 1) for k, v in num_cell_entities.items())
 # Mapping from cell name to facet name
 # Note: This is not generalizable to product elements but it's still
 # in use a couple of places.
+# TODO Remove
 cellname2facetname = {"interval": "vertex",
                       "triangle": "interval",
                       "quadrilateral": "interval",
@@ -164,11 +166,17 @@ class Cell(AbstractCell):
 
     # --- Facet properties ---
 
-    def num_facet_edges(self):
-        "The number of facet edges."
-        # This is used in geometry.py
-        fn = cellname2facetname[self.cellname()]
-        return num_cell_entities[fn][1]
+    def facet_types(self):
+        "A tuple of ufl.Cell representing the facets of self."
+        # TODO Move outside method?
+        facet_type_names = {"interval": ("vertex",),
+                            "triangle": ("interval",),
+                            "quadrilateral": ("interval",),
+                            "tetrahedron": ("triangle",),
+                            "hexahedron": ("quadrilateral",),
+                            "prism": ("triangle", "quadrilateral")}
+        return tuple(ufl.Cell(facet_name, self.geometric_dimension())
+                     for facet_name in facet_type_names[self.cellname()])
 
     # --- Special functions for proper object behaviour ---
 
