@@ -93,6 +93,7 @@ num_cell_entities = {"vertex": (1,),
 # Mapping from cell name to topological dimension
 cellname2dim = dict((k, len(v) - 1) for k, v in num_cell_entities.items())
 
+
 # --- Basic cell representation classes
 
 @attach_operators_from_hash_data
