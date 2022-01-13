@@ -7,7 +7,7 @@ if sys.version_info < (3, 6):
     print("Python 3.6 or higher required, please upgrade.")
     sys.exit(1)
 
-version = "2021.1.0"
+version = "2022.1.0"
 
 url = "https://github.com/FEniCS/ufl"
 
