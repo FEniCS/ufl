@@ -58,7 +58,7 @@ def split(v):
         # Split ComponentTensor(Product(ConstantValue(...), Indexed(form_argument, ii)), ii)
         comp = v.ufl_operands[0]
         indices = v.ufl_operands[1]
-        ops =comp.ufl_operands
+        ops = comp.ufl_operands
         if isinstance(comp, Indexed):
             assert indices == comp.ufl_operands[1]
             return split(comp.ufl_operands[0])

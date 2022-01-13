@@ -276,4 +276,3 @@ class Subspace(AbstractSubspace):
             return True
         return (self._count == other._count and
                 self._ufl_function_space == other._ufl_function_space)
-

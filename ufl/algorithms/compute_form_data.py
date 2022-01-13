@@ -373,7 +373,7 @@ def compute_form_data(form,
         itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
                                          for coeff in self.reduced_coefficients]
         itg_data.enabled_subspaces = [bool(topo_coeff in itg_data.integral_subspaces)
-                                                     for topo_coeff in self.reduced_subspaces]
+                                      for topo_coeff in self.reduced_subspaces]
 
     # --- Collect some trivial data
 
