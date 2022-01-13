@@ -139,7 +139,7 @@ todo_include_todos = False
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -284,22 +284,3 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-
-
-def run_apidoc(_):
-    modules = ['ufl']
-
-    # Get location of Sphinx files
-    sphinx_source_dir = os.path.abspath(os.path.dirname(__file__))
-    repo_dir = os.path.abspath(os.path.join(sphinx_source_dir, os.path.pardir,
-                                            os.path.pardir, os.path.pardir))
-    apidoc_dir = os.path.join(sphinx_source_dir, "api-doc")
-
-    from sphinx.apidoc import main
-    for module in modules:
-        # Generate .rst files ready for autodoc
-        module_dir = os.path.join(repo_dir, module)
-        main(["-f", "-d", "1", "-o", apidoc_dir, module_dir])
-
-def setup(app):
-    app.connect('builder-inited', run_apidoc)
