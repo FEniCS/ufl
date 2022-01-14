@@ -2,16 +2,13 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.7
     working_directory: ~/ufl-test
     steps:
       - checkout
       - run:
-          name: Install dependencies  # Install with sudo as tests not run as superuser in circleci/python
-          command: sudo pip install flake8 numpy pytest pydocstyle coverage coveralls --upgrade
-      - run:
-          name: Install UFL
-          command: pip install --user .
+          name: Install UFL with CI optional extras
+          command: pip install --user .[ci]
       - run:
           name: Run flake8 and pydocstyle tests
           command: |
