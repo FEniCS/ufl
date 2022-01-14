@@ -19,7 +19,6 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 
 from ufl.classes import (ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant)
-
 from ufl.tensors import as_tensor, as_vector
 from ufl.utils.sequences import product
 import numpy
@@ -184,7 +183,11 @@ class FunctionPullbackApplier(MultiFunction):
     def form_argument(self, o):
         # Represent 0-derivatives of form arguments on reference
         # element
-        f = apply_single_function_pullbacks(ReferenceValue(o), o.ufl_element())
+        if hasattr(o, "ufl_function_space"):
+            el = o.ufl_function_space().ufl_element()
+        else:
+            el = o.ufl_element()
+        f = apply_single_function_pullbacks(ReferenceValue(o), el)
         assert f.ufl_shape == o.ufl_shape
         return f
 
