@@ -94,7 +94,6 @@ def test_contains_h1():
         FiniteElement("CG", triangle, 1),
         FiniteElement("CG", triangle, 2),
         # Some special elements:
-        FiniteElement("AW", triangle),
         FiniteElement("HER", triangle),
         FiniteElement("MTW", triangle),
         # Tensor product elements:

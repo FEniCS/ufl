@@ -122,6 +122,11 @@ class CheckComparisons(MultiFunction):
             self.nodetype[term] = 'complex'
         return term
 
+    def indexed(self, o, expr, multiindex):
+        o = self.reuse_if_untouched(o, expr, multiindex)
+        self.nodetype[o] = self.nodetype[expr]
+        return o
+
 
 def do_comparison_check(form):
     """Raises an error if invalid comparison nodes exist"""

@@ -56,9 +56,12 @@ class MixedElement(FiniteElementBase):
 
         # Check that all elements use the same quadrature scheme TODO:
         # We can allow the scheme not to be defined.
-        quad_scheme = elements[0].quadrature_scheme()
-        if not all(e.quadrature_scheme() == quad_scheme for e in elements):
-            error("Quadrature scheme mismatch for sub elements of mixed element.")
+        if len(elements) == 0:
+            quad_scheme = None
+        else:
+            quad_scheme = elements[0].quadrature_scheme()
+            if not all(e.quadrature_scheme() == quad_scheme for e in elements):
+                error("Quadrature scheme mismatch for sub elements of mixed element.")
 
         # Compute value sizes in global and reference configurations
         value_size_sum = sum(product(s.value_shape()) for s in self._sub_elements)
@@ -245,7 +248,7 @@ class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal."
 
     def __init__(self, family, cell=None, degree=None, dim=None,
-                 form_degree=None, quad_scheme=None):
+                 form_degree=None, quad_scheme=None, variant=None):
         """
         Create vector element (repeated mixed element)
 
@@ -263,18 +266,22 @@ class VectorElement(MixedElement):
                viewed as k-form), ignored if family is a FiniteElement
             quad_scheme
                The quadrature scheme (optional), ignored if family is a FiniteElement
+            variant
+               Hint for the local basis function variant (optional)
         """
 
         if isinstance(family, FiniteElementBase):
             sub_element = family
             cell = sub_element.cell()
+            variant = sub_element.variant()
         else:
             if cell is not None:
                 cell = as_cell(cell)
             # Create sub element
             sub_element = FiniteElement(family, cell, degree,
                                         form_degree=form_degree,
-                                        quad_scheme=quad_scheme)
+                                        quad_scheme=quad_scheme,
+                                        variant=variant)
 
         # Set default size if not specified
         if dim is None:
@@ -282,6 +289,7 @@ class VectorElement(MixedElement):
                 error("Cannot infer vector dimension without a cell.")
             dim = cell.geometric_dimension()
 
+        self._mapping = sub_element.mapping()
         # Create list of sub elements for mixed element constructor
         sub_elements = [sub_element] * dim
 
@@ -292,19 +300,29 @@ class VectorElement(MixedElement):
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape,
                               reference_value_shape=reference_value_shape)
-        # FIXME: Storing this here is strange, isn't that handled by
-        # subclass?
-        self._family = sub_element.family()
-        self._degree = sub_element.degree()
+        FiniteElementBase.__init__(self, sub_element.family(), cell, sub_element.degree(), quad_scheme,
+                                   value_shape, reference_value_shape)
         self._sub_element = sub_element
 
+        if variant is None:
+            var_str = ""
+        else:
+            var_str = ", variant='" + variant + "'"
+
         # Cache repr string
-        self._repr = "VectorElement(%s, dim=%d)" % (
-            repr(sub_element), len(self._sub_elements))
+        self._repr = "VectorElement(%s, dim=%d%s)" % (
+            repr(sub_element), len(self._sub_elements), var_str)
 
     def reconstruct(self, **kwargs):
         sub_element = self._sub_element.reconstruct(**kwargs)
         return VectorElement(sub_element, dim=len(self.sub_elements()))
+
+    def variant(self):
+        """Return the variant used to initialise the element."""
+        return self._sub_element.variant()
+
+    def mapping(self):
+        return self._mapping
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -328,7 +346,7 @@ class TensorElement(MixedElement):
                  "_mapping")
 
     def __init__(self, family, cell=None, degree=None, shape=None,
-                 symmetry=None, quad_scheme=None):
+                 symmetry=None, quad_scheme=None, variant=None):
         """Create tensor element (repeated mixed element with optional symmetries).
 
         :arg family: The family string, or an existing FiniteElement.
@@ -338,16 +356,19 @@ class TensorElement(MixedElement):
              tensor given by the geometric dimension of the cell).
         :arg symmetry: Optional symmetries.
         :arg quad_scheme: Optional quadrature scheme (ignored if
-             family is a FiniteElement)."""
+             family is a FiniteElement).
+        :arg variant:  Hint for the local basis function variant (optional)"""
 
         if isinstance(family, FiniteElementBase):
             sub_element = family
             cell = sub_element.cell()
+            variant = sub_element.variant()
         else:
             if cell is not None:
                 cell = as_cell(cell)
             # Create scalar sub element
-            sub_element = FiniteElement(family, cell, degree, quad_scheme=quad_scheme)
+            sub_element = FiniteElement(family, cell, degree, quad_scheme=quad_scheme,
+                                        variant=variant)
 
         # Set default shape if not specified
         if shape is None:
@@ -401,13 +422,11 @@ class TensorElement(MixedElement):
 
         # Compute reference value shape based on symmetries
         if symmetry:
-            # Flatten and subtract symmetries
             reference_value_shape = (product(shape) - len(symmetry),)
             self._mapping = "symmetries"
         else:
-            # Do not flatten if there are no symmetries
             reference_value_shape = shape
-            self._mapping = "identity"
+            self._mapping = sub_element.mapping()
 
         value_shape = value_shape + sub_element.value_shape()
         reference_value_shape = reference_value_shape + sub_element.reference_value_shape()
@@ -422,15 +441,21 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
         self._flattened_sub_element_mapping = flattened_sub_element_mapping
 
+        if variant is None:
+            var_str = ""
+        else:
+            var_str = ", variant='" + variant + "'"
+
         # Cache repr string
-        self._repr = "TensorElement(%s, shape=%s, symmetry=%s)" % (
-            repr(sub_element), repr(self._shape), repr(self._symmetry))
+        self._repr = "TensorElement(%s, shape=%s, symmetry=%s%s)" % (
+            repr(sub_element), repr(self._shape), repr(self._symmetry), var_str)
+
+    def variant(self):
+        """Return the variant used to initialise the element."""
+        return self._sub_element.variant()
 
     def mapping(self):
-        if self._symmetry:
-            return "symmetries"
-        else:
-            return "identity"
+        return self._mapping
 
     def flattened_sub_element_mapping(self):
         return self._flattened_sub_element_mapping
