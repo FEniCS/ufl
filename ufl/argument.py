@@ -44,7 +44,13 @@ class Argument(FormArgument):
                  number: numbers.Integral, part: numbers.Integral = None):
         FormArgument.__init__(self)
 
-        if not isinstance(function_space, AbstractFunctionSpace):
+        if isinstance(function_space, FiniteElementBase):
+            # For legacy support for .ufl files using cells, we map the cell to
+            # the default Mesh
+            element = function_space
+            domain = default_domain(element.cell())
+            function_space = FunctionSpace(domain, element)
+        elif not isinstance(function_space, AbstractFunctionSpace):
             error("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
