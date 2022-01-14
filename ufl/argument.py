@@ -13,13 +13,17 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
-from ufl.log import error
-from ufl.core.ufl_type import ufl_type
+import typing
+import warnings
+
 from ufl.core.terminal import FormArgument
-from ufl.split_functions import split
-from ufl.finiteelement import FiniteElementBase
+from ufl.core.ufl_type import ufl_type
 from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.finiteelement import FiniteElementBase
+from ufl.functionspace import (AbstractFunctionSpace, FunctionSpace,
+                               MixedFunctionSpace)
+from ufl.log import error
+from ufl.split_functions import split
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
@@ -38,7 +42,8 @@ class Argument(FormArgument):
         "_repr",
     )
 
-    def __init__(self, function_space, number, part=None):
+    def __init__(self, function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace],
+                 number: numbers.Integral, part: numbers.Integral = None):
         FormArgument.__init__(self)
 
         if isinstance(function_space, FiniteElementBase):
@@ -54,45 +59,44 @@ class Argument(FormArgument):
         self._ufl_shape = function_space.ufl_element().value_shape()
 
         if not isinstance(number, numbers.Integral):
-            error("Expecting an int for number, not %s" % (number,))
+            error(f"Expecting an int for number, not {number}")
         if part is not None and not isinstance(part, numbers.Integral):
-            error("Expecting None or an int for part, not %s" % (part,))
+            error(f"Expecting None or an int for part, not {part}")
         self._number = number
         self._part = part
 
-        self._repr = "Argument(%s, %s, %s)" % (
+        self._repr = "Argument({0:s}, {1:s}, {2:s})".format(
             repr(self._ufl_function_space), repr(self._number), repr(self._part))
 
     @property
     def ufl_shape(self):
-        "Return the associated UFL shape."
+        """Return the associated UFL shape."""
         return self._ufl_shape
 
     def ufl_function_space(self):
-        "Get the function space of this Argument."
+        """Get the function space of this Argument."""
         return self._ufl_function_space
 
     def ufl_domain(self):
-        "Deprecated, please use .ufl_function_space().ufl_domain() instead."
-        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
-        # use .ufl_function_space().ufl_domain() instead.")
+        warnings.warn("Deprecated, please use .ufl_function_space().ufl_domain() instead.",
+                      DeprecationWarning)
         return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
-        "Deprecated, please use .ufl_function_space().ufl_element() instead."
-        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
-        # use .ufl_function_space().ufl_element() instead.")
+        """Return the ufl element of the function space"""
+        warnings.warn("Deprecated, please use .ufl_function_space().ufl_element() instead.",
+                      DeprecationWarning)
         return self._ufl_function_space.ufl_element()
 
     def number(self):
-        "Return the Argument number."
+        """Return the Argument number."""
         return self._number
 
     def part(self):
         return self._part
 
     def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
+        """Return whether this expression is spatially constant over each cell."""
         # TODO: Should in principle do like with Coefficient,
         # but that may currently simplify away some arguments
         # we want to keep, or? See issue#13.
@@ -100,28 +104,27 @@ class Argument(FormArgument):
         return False
 
     def ufl_domains(self):
-        "Deprecated, please use .ufl_function_space().ufl_domains() instead."
-        # TODO: deprecate("Argument.ufl_domains() is deprecated,
-        # please use .ufl_function_space().ufl_domains() instead.")
+        """Return the ufl domain"""
+        warnings.warn("Deprecated, please use .ufl_function_space().ufl_domains() instead.",
+                      DeprecationWarning)
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
-        "Signature data for form arguments depend on the global numbering of the form arguments and domains."
+        """Signature data for form arguments depend on the global numbering of the form arguments and domains."""
         fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
         return ("Argument", self._number, self._part, fsdata)
 
     def __str__(self):
         number = str(self._number)
-        if len(number) == 1:
-            s = "v_%s" % number
-        else:
-            s = "v_{%s}" % number
+        s = ""
+        # Add curly brackets around sub-indices if bigger than 9
+        number = number if len(number) == 1 else f"{{{number}}}"
+        s += f"v_{number}"
         if self._part is not None:
             part = str(self._part)
-            if len(part) == 1:
-                s = "%s^%s" % (s, part)
-            else:
-                s = "%s^{%s}" % (s, part)
+            # Add curly brackets around sup-indices if bigger than 9
+            part = part if len(part) == 1 else f"{{{part}}}"
+            s += f"^{part}"
         return s
 
     def __repr__(self):
@@ -147,19 +150,22 @@ class Argument(FormArgument):
 # --- Helper functions for pretty syntax ---
 
 
-def TestFunction(function_space, part=None):
+def TestFunction(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace],
+                 part: numbers.Integral = None):
     """UFL value: Create a test function argument to a form."""
     return Argument(function_space, 0, part)
 
 
-def TrialFunction(function_space, part=None):
+def TrialFunction(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace],
+                  part: numbers.Integral = None):
     """UFL value: Create a trial function argument to a form."""
     return Argument(function_space, 1, part)
 
 
 # --- Helper functions for creating subfunctions on mixed elements ---
 
-def Arguments(function_space, number):
+def Arguments(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace],
+              number: numbers.Integral):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     if isinstance(function_space, MixedFunctionSpace):
@@ -169,13 +175,13 @@ def Arguments(function_space, number):
         return split(Argument(function_space, number))
 
 
-def TestFunctions(function_space):
+def TestFunctions(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace]):
     """UFL value: Create a TestFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     return Arguments(function_space, 0)
 
 
-def TrialFunctions(function_space):
+def TrialFunctions(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace]):
     """UFL value: Create a TrialFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     return Arguments(function_space, 1)

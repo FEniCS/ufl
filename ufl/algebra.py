@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-"Basic algebra operations."
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -8,6 +5,8 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2008
+
+"Basic algebra operations."
 
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
@@ -89,24 +88,6 @@ class Sum(Operator):
 
     def __str__(self):
         ops = [parstr(o, self) for o in self.ufl_operands]
-        if False:
-            # Implementation with line splitting:
-            limit = 70
-            delimop = " + \\\n    + "
-            op = " + "
-            s = ops[0]
-            n = len(s)
-            for o in ops[1:]:
-                m = len(o)
-                if n + m > limit:
-                    s += delimop
-                    n = m
-                else:
-                    s += op
-                    n += m
-                s += o
-            return s
-        # Implementation with no line splitting:
         return "%s" % " + ".join(ops)
 
 
@@ -125,7 +106,7 @@ class Product(Operator):
         # Make sure everything is scalar
         if a.ufl_shape or b.ufl_shape:
             error("Product can only represent products of scalars, "
-                  "got\n\t%s\nand\n\t%s" % (ufl_err_str(a), ufl_err_str(b)))
+                  f"got\n\t {ufl_err_str(a)}\nand\n\t {ufl_err_str(b)}")
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -141,13 +122,14 @@ class Product(Operator):
             # FIXME: Handle free indices like with zero? I think
             # IntValue may be index annotated now?
             return as_ufl(a._value * b._value)
-        elif sa:  # 1 * b = b
+        elif sa:
             if a._value == 1:
                 return b
-            # a, b = a, b
-        elif sb:  # a * 1 = a
+        elif sb:
             if b._value == 1:
                 return a
+            # Place scalar first
+            # operands = (a, b)
             a, b = b, a
         # elif a == b: # a * a = a**2 # TODO: Why? Maybe just remove this?
         #    if not a.ufl_free_indices:
@@ -220,7 +202,6 @@ class Division(Operator):
         if isinstance(b, Zero):
             error("Division by zero!")
 
-        # Simplification
         # Simplification a/b -> a
         if isinstance(a, Zero) or (isinstance(b, ScalarValue) and b._value == 1):
             return a
@@ -260,8 +241,8 @@ class Division(Operator):
         return e
 
     def __str__(self):
-        return "%s / %s" % (parstr(self.ufl_operands[0], self),
-                            parstr(self.ufl_operands[1], self))
+        return " / ".join([parstr(self.ufl_operands[0], self),
+                           parstr(self.ufl_operands[1], self)])
 
 
 @ufl_type(num_ops=2,
@@ -277,9 +258,9 @@ class Power(Operator):
 
         # Type checking
         if not is_true_ufl_scalar(a):
-            error("Cannot take the power of a non-scalar expression %s." % ufl_err_str(a))
+            error(f"Cannot take the power of a non-scalar expression {ufl_err_str(a)}.")
         if not is_true_ufl_scalar(b):
-            error("Cannot raise an expression to a non-scalar power %s." % ufl_err_str(b))
+            error(f"Cannot raise an expression to a non-scalar power {ufl_err_str(b)}.")
 
         # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
@@ -318,7 +299,7 @@ class Power(Operator):
 
     def __str__(self):
         a, b = self.ufl_operands
-        return "%s ** %s" % (parstr(a, self), parstr(b, self))
+        return " ** ".join([parstr(a, self), parstr(b, self)])
 
 
 @ufl_type(num_ops=1,
@@ -349,7 +330,7 @@ class Abs(Operator):
 
     def __str__(self):
         a, = self.ufl_operands
-        return "|%s|" % (parstr(a, self),)
+        return f"|{parstr(a, self)}|"
 
 
 @ufl_type(num_ops=1,
@@ -379,7 +360,7 @@ class Conj(Operator):
 
     def __str__(self):
         a, = self.ufl_operands
-        return "conj(%s)" % (parstr(a, self),)
+        return f"conj({parstr(a, self)})"
 
 
 @ufl_type(num_ops=1,
@@ -411,7 +392,7 @@ class Real(Operator):
 
     def __str__(self):
         a, = self.ufl_operands
-        return "Re[%s]" % (parstr(a, self),)
+        return f"Re[{parstr(a, self)}]"
 
 
 @ufl_type(num_ops=1,

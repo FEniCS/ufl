@@ -153,7 +153,7 @@ def _mult(a, b):
         ti = ai + bi
 
     else:
-        error("Invalid ranks {0} and {1} in product.".format(r1, r2))
+        error(f"Invalid ranks {r0} and {r1} in product.")
 
     # TODO: I think applying as_tensor after index sums results in
     # cleaner expression graphs.
