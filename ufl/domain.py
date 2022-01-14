@@ -277,7 +277,6 @@ def as_domain(domain):
         # subclass ufl.Mesh.
         return domain.ufl_domain()
     else:
-        from IPython import embed
         # Legacy .ufl files
         # TODO: Make this conversion in the relevant constructors
         # closer to the user interface?
