@@ -40,7 +40,7 @@ class Argument(FormArgument):
         "_repr",
     )
 
-    def __init__(self, function_space: AbstractFunctionSpace,
+    def __init__(self, function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace],
                  number: numbers.Integral, part: numbers.Integral = None):
         FormArgument.__init__(self)
 
@@ -132,14 +132,14 @@ def TestFunction(function_space: typing.Union[FiniteElementBase, AbstractFunctio
     return Argument(function_space, 0, part)
 
 
-def TrialFunction(function_space: AbstractFunctionSpace, part: numbers.Integral = None):
+def TrialFunction(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace], part: numbers.Integral = None):
     """UFL value: Create a trial function argument to a form."""
     return Argument(function_space, 1, part)
 
 
 # --- Helper functions for creating subfunctions on mixed elements ---
 
-def Arguments(function_space: AbstractFunctionSpace, number: numbers.Integral):
+def Arguments(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace], number: numbers.Integral):
     """
     UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements.
@@ -151,7 +151,7 @@ def Arguments(function_space: AbstractFunctionSpace, number: numbers.Integral):
         return split(Argument(function_space, number))
 
 
-def TestFunctions(function_space: AbstractFunctionSpace):
+def TestFunctions(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace]):
     """
     UFL value: Create a TestFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements.
@@ -159,7 +159,7 @@ def TestFunctions(function_space: AbstractFunctionSpace):
     return Arguments(function_space, 0)
 
 
-def TrialFunctions(function_space: AbstractFunctionSpace):
+def TrialFunctions(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace]):
     """
     UFL value: Create a TrialFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements.
