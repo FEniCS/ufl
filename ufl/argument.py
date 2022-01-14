@@ -11,17 +11,15 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
+# Modified by Jørgen S. Dokken, 2022.
 
 import numbers
 import typing
-import warnings
 
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
-from ufl.domain import default_domain
 from ufl.finiteelement import FiniteElementBase
-from ufl.functionspace import (AbstractFunctionSpace, FunctionSpace,
-                               MixedFunctionSpace)
+from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.log import error
 from ufl.split_functions import split
 
@@ -42,17 +40,11 @@ class Argument(FormArgument):
         "_repr",
     )
 
-    def __init__(self, function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace],
+    def __init__(self, function_space: AbstractFunctionSpace,
                  number: numbers.Integral, part: numbers.Integral = None):
         FormArgument.__init__(self)
 
-        if isinstance(function_space, FiniteElementBase):
-            # For legacy support for .ufl files using cells, we map the cell to
-            # the default Mesh
-            element = function_space
-            domain = default_domain(element.cell())
-            function_space = FunctionSpace(domain, element)
-        elif not isinstance(function_space, AbstractFunctionSpace):
+        if not isinstance(function_space, AbstractFunctionSpace):
             error("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
@@ -77,17 +69,6 @@ class Argument(FormArgument):
         """Get the function space of this Argument."""
         return self._ufl_function_space
 
-    def ufl_domain(self):
-        warnings.warn("Deprecated, please use .ufl_function_space().ufl_domain() instead.",
-                      DeprecationWarning)
-        return self._ufl_function_space.ufl_domain()
-
-    def ufl_element(self):
-        """Return the ufl element of the function space"""
-        warnings.warn("Deprecated, please use .ufl_function_space().ufl_element() instead.",
-                      DeprecationWarning)
-        return self._ufl_function_space.ufl_element()
-
     def number(self):
         """Return the Argument number."""
         return self._number
@@ -102,12 +83,6 @@ class Argument(FormArgument):
         # we want to keep, or? See issue#13.
         # When we can annotate zero with arguments, we can change this.
         return False
-
-    def ufl_domains(self):
-        """Return the ufl domain"""
-        warnings.warn("Deprecated, please use .ufl_function_space().ufl_domains() instead.",
-                      DeprecationWarning)
-        return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
         """Signature data for form arguments depend on the global numbering of the form arguments and domains."""
@@ -131,7 +106,8 @@ class Argument(FormArgument):
         return self._repr
 
     def __eq__(self, other):
-        """Deliberately comparing exact type and not using isinstance here,
+        """
+        Deliberately comparing exact type and not using isinstance here,
         meaning eventual subclasses must reimplement this function to work
         correctly, and instances of this class will compare not equal to
         instances of eventual subclasses. The overloading allows
@@ -156,18 +132,18 @@ def TestFunction(function_space: typing.Union[FiniteElementBase, AbstractFunctio
     return Argument(function_space, 0, part)
 
 
-def TrialFunction(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace],
-                  part: numbers.Integral = None):
+def TrialFunction(function_space: AbstractFunctionSpace, part: numbers.Integral = None):
     """UFL value: Create a trial function argument to a form."""
     return Argument(function_space, 1, part)
 
 
 # --- Helper functions for creating subfunctions on mixed elements ---
 
-def Arguments(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace],
-              number: numbers.Integral):
-    """UFL value: Create an Argument in a mixed space, and return a
-    tuple with the function components corresponding to the subelements."""
+def Arguments(function_space: AbstractFunctionSpace, number: numbers.Integral):
+    """
+    UFL value: Create an Argument in a mixed space, and return a
+    tuple with the function components corresponding to the subelements.
+    """
     if isinstance(function_space, MixedFunctionSpace):
         return [Argument(function_space.ufl_sub_space(i), number, i)
                 for i in range(function_space.num_sub_spaces())]
@@ -175,13 +151,17 @@ def Arguments(function_space: typing.Union[FiniteElementBase, AbstractFunctionSp
         return split(Argument(function_space, number))
 
 
-def TestFunctions(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace]):
-    """UFL value: Create a TestFunction in a mixed space, and return a
-    tuple with the function components corresponding to the subelements."""
+def TestFunctions(function_space: AbstractFunctionSpace):
+    """
+    UFL value: Create a TestFunction in a mixed space, and return a
+    tuple with the function components corresponding to the subelements.
+    """
     return Arguments(function_space, 0)
 
 
-def TrialFunctions(function_space: typing.Union[FiniteElementBase, AbstractFunctionSpace]):
-    """UFL value: Create a TrialFunction in a mixed space, and return a
-    tuple with the function components corresponding to the subelements."""
+def TrialFunctions(function_space: AbstractFunctionSpace):
+    """
+    UFL value: Create a TrialFunction in a mixed space, and return a
+    tuple with the function components corresponding to the subelements.
+    """
     return Arguments(function_space, 1)
