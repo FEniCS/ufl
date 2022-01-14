@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-"""Various sequence manipulation utilities."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+
+"""Various sequence manipulation utilities."""
 
 from functools import reduce
 import numpy
@@ -20,9 +19,11 @@ def product(sequence):
 
 
 def unzip(seq):
-    """Inverse operation of zip:
+    """
+    Inverse operation of zip:
 
-    unzip(zip(a, b)) == (a, b)."""
+    unzip(zip(a, b)) == (a, b).
+    """
     return [s[0] for s in seq], [s[1] for s in seq]
 
 
@@ -41,8 +42,7 @@ def and_tuples(seqa, seqb):
 
 
 def iter_tree(tree):
-    """Iterate over all nodes in a tree represented
-    by lists of lists of leaves."""
+    """Iterate over all nodes in a tree represented by lists of lists of leaves."""
     if isinstance(tree, list):
         for node in tree:
             for i in iter_tree(node):
@@ -63,10 +63,10 @@ def recursive_chain(lists):
 def max_degree(degrees):
     """Maximum degree for mixture of scalar and tuple degrees."""
     # numpy.maximum broadcasts scalar degrees to tuple degrees if
-    # necessary.  reduce applies numpy.maximum pairwise.
+    # necessary. reduce applies numpy.maximum pairwise.
     degree = reduce(numpy.maximum, map(numpy.asarray, degrees))
     if degree.ndim:
         degree = tuple(map(int, degree))  # tuple degree
     else:
-        degree = int(degree)              # scalar degree
+        degree = int(degree)  # scalar degree
     return degree

@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
-"""Defines the Variable and Label classes, used to label
-expressions as variables for differentiation."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+
+"""Defines the Variable and Label classes, used to label
+expressions as variables for differentiation."""
 
 from ufl.utils.counted import counted_init
 from ufl.log import error
@@ -31,11 +30,10 @@ class Label(Terminal):
         return self._count
 
     def __str__(self):
-        return "Label(%d)" % self._count
+        return f"Label({self._count})"
 
     def __repr__(self):
-        r = "Label(%d)" % self._count
-        return r
+        return self.__str__()
 
     @property
     def ufl_shape(self):
@@ -92,8 +90,7 @@ class Variable(Operator):
         return self.ufl_operands[0].ufl_domains()
 
     def evaluate(self, x, mapping, component, index_values):
-        a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
-        return a
+        return self.ufl_operands[0].evaluate(x, mapping, component, index_values)
 
     def expression(self):
         return self.ufl_operands[0]
@@ -107,5 +104,4 @@ class Variable(Operator):
                 self.ufl_operands[0] == other.ufl_operands[0])
 
     def __str__(self):
-        return "var%d(%s)" % (self.ufl_operands[1].count(),
-                              self.ufl_operands[0])
+        return f"var{self.ufl_operands[1].count()}({self.ufl_operands[0]})"

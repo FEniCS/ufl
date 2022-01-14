@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-"""This module contains a collection of utilities for mapping between multiindices and a flattened index space."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+
+"""This module contains a collection of utilities for mapping between multiindices and a flattened index space."""
 
 
 def shape_to_strides(sh):

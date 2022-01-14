@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-"""Various utility data structures."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+
+"""Various utility data structures."""
 
 
 class UFLTypeDict(dict):

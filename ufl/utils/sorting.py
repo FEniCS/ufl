@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-"Utilites for sorting."
-
 # Copyright (C) 2008-2016 Johan Hake
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+
+"""Utilites for sorting."""
 
 from ufl.log import warning
 
@@ -14,13 +13,12 @@ def topological_sorting(nodes, edges):
     """
     Return a topologically sorted list of the nodes
 
-    Implemented algorithm from Wikipedia :P
+    Implemented algorithm from Wikipedia
 
     <http://en.wikipedia.org/wiki/Topological_sorting>
 
     No error for cyclic edges...
     """
-
     L = []
     S = nodes[:]
     for node in nodes:
@@ -47,17 +45,17 @@ def topological_sorting(nodes, edges):
 
 
 def sorted_by_count(seq):
-    "Sort a sequence by the item.count()."
+    """Sort a sequence by the item.count()."""
     return sorted(seq, key=lambda x: x.count())
 
 
 def sorted_by_ufl_id(seq):
-    "Sort a sequence by the item.ufl_id()."
+    """Sort a sequence by the item.ufl_id()."""
     return sorted(seq, key=lambda x: x.ufl_id())
 
 
 def sorted_by_key(mapping):
-    "Sort dict items by key, allowing different key types."
+    """Sort dict items by key, allowing different key types."""
     # Python3 doesn't allow comparing builtins of different type,
     # therefore the typename trick here
     def _key(x):
@@ -66,7 +64,8 @@ def sorted_by_key(mapping):
 
 
 def canonicalize_metadata(metadata):
-    """Assuming metadata to be a dict with string keys and builtin python types as values.
+    """
+    Assuming metadata to be a dict with string keys and builtin python types as values.
 
     Transform dict to a tuple of (key, value) item tuples ordered by key,
     with dict, list and tuple values converted the same way recursively.
@@ -91,7 +90,8 @@ def canonicalize_metadata(metadata):
         elif isinstance(value, (int, float, str)) or value is None:
             value = str(value)
         else:
-            warning("Applying str() to a metadata value of type {0}, don't know if this is safe.".format(type(value).__name__))
+            warning(f"Applying str() to a metadata value of type {type(value).name},"
+                    " don't know if this is safe.")
             value = str(value)
         newvalues.append(value)
 

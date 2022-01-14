@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
-"Utilites for types with a global unique counter attached to each object."
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+"""Utilites for types with a global unique counter attached to each object."""
+
 
 def counted_init(self, count=None, countedclass=None):
-    "Initialize a counted object, see ExampleCounted below for how to use."
+    """Initialize a counted object, see ExampleCounted below for how to use."""
 
     if countedclass is None:
         countedclass = type(self)
@@ -24,10 +23,12 @@ def counted_init(self, count=None, countedclass=None):
 
 
 class ExampleCounted(object):
-    """An example class for classes of objects identified by a global counter.
+    """
+    An example class for classes of objects identified by a global counter.
 
     Mimic this class to create globally counted objects within a single type.
     """
+
     # Store the count for each object
     __slots__ = ("_count",)
 

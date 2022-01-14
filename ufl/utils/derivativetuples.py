@@ -1,17 +1,17 @@
-# -*- coding: utf-8 -*-
-"This module contains a collection of utilities for representing partial derivatives as integer tuples."
-
 # Copyright (C) 2013-2016 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+"""This module contains a collection of utilities for representing partial derivatives as integer tuples."""
+
 import itertools
 
 
 def derivative_counts_to_listing(derivative_counts):
-    """Convert a derivative count tuple to a derivative listing tuple.
+    """
+    Convert a derivative count tuple to a derivative listing tuple.
 
     The derivative d^3 / dy^2 dz is represented
     in counting form as (0, 2, 1) meaning (dx^0, dy^2, dz^1)
@@ -24,20 +24,20 @@ def derivative_counts_to_listing(derivative_counts):
 
 
 def derivative_listing_to_counts(derivatives, gdim):
-    """Convert a derivative listing tuple to a derivative count tuple.
+    """
+    Convert a derivative listing tuple to a derivative count tuple.
 
     The derivative d^3 / dy^2 dz is represented
     in counting form as (0, 2, 1) meaning (dx^0, dy^2, dz^1)
     and in listing form as (1, 1, 2) meaning (dy, dy, dz).
     """
-    derivative_counts = [0] * gdim
-    for d in derivatives:
-        derivative_counts[d] += 1
-    return tuple(derivative_counts)
+
+    return tuple(derivatives.count(i) for i in range(gdim))
 
 
 def compute_derivative_tuples(n, gdim):
-    """Compute the list of all derivative tuples for derivatives of
+    """
+    Compute the list of all derivative tuples for derivatives of
     given total order n and given geometric dimension gdim. This
     function returns two lists. The first is a list of tuples, where
     each tuple of length n specifies the coordinate directions of the

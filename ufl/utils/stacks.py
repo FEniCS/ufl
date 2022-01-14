@@ -1,18 +1,17 @@
-# -*- coding: utf-8 -*-
-"Various utility data structures."
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+"""Various utility data structures."""
+
 
 class Stack(list):
     """A stack datastructure."""
 
     def __init__(self, *args):
-        list.__init__(self, *args)
+        super().__init__(self, *args)
 
     def push(self, v):
         list.append(self, v)
@@ -25,7 +24,7 @@ class StackDict(dict):
     """A dict that can be changed incrementally with 'd.push(k,v)' and have changes rolled back with 'k,v = d.pop()'."""
 
     def __init__(self, *args, **kwargs):
-        dict.__init__(self, *args, **kwargs)
+        super().__init__(self, *args, **kwargs)
         self._l = []
 
     def push(self, k, v):

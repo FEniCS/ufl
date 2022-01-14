@@ -1,22 +1,16 @@
-# -*- coding: utf-8 -*-
-"""Various dict manipulation utilities."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+"""Various dict manipulation utilities."""
+
 
 def split_dict(d, criteria):
     """Split a dict d into two dicts based on a criteria on the keys."""
-    a = {}
-    b = {}
-    for (k, v) in d.items():
-        if criteria(k):
-            a[k] = v
-        else:
-            b[k] = v
+    a = {k: v for k, v in d.items() if criteria(k)}
+    b = {k: v for k, v in d.items() if not criteria(k)}
     return a, b
 
 

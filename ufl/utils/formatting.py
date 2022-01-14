@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-"""Various string formatting utilities."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+
+"""Various string formatting utilities."""
 
 
 def camel2underscore(name):
