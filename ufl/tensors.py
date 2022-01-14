@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-"""Classes used to group scalar expressions into expressions with rank > 0."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -8,6 +5,9 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Massimiliano Leoni, 2016.
+
+"""Classes used to group scalar expressions into expressions with rank > 0."""
+
 
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
@@ -27,8 +27,7 @@ class ListTensor(Operator):
     __slots__ = ()
 
     def __new__(cls, *expressions):
-        # All lists and tuples should already be unwrapped in
-        # as_tensor
+        # All lists and tuples should already be unwrapped in as_tensor
         if any(not isinstance(e, Expr) for e in expressions):
             error("Expecting only UFL expressions in ListTensor constructor.")
 
@@ -68,7 +67,7 @@ class ListTensor(Operator):
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         if len(component) != len(self.ufl_shape):
             error("Can only evaluate scalars, expecting a component "
-                  "tuple of length %d, not %s." % (len(self.ufl_shape), component))
+                  f"tuple of length {len(self.ufl_shape)}, not {component}.")
         a = self.ufl_operands[component[0]]
         component = component[1:]
         if derivatives:
@@ -101,10 +100,10 @@ class ListTensor(Operator):
                     else:
                         substrings.append(str(e))
                 s = (",\n" + ind).join(substrings)
-                return "%s[\n%s%s\n%s]" % (ind, ind, s, ind)
+                return f"{ind}[\n{ind}{s}\n{ind}]"
             else:
                 s = ", ".join(str(e) for e in expressions)
-                return "%s[%s]" % (ind, s)
+                return f"{ind}[{s}]"
         return substring(self.ufl_operands, 0)
 
 
@@ -133,7 +132,7 @@ class ComponentTensor(Operator):
         if not isinstance(indices, MultiIndex):
             error("Expecting a MultiIndex.")
         if not all(isinstance(i, Index) for i in indices):
-            error("Expecting sequence of Index objects, not %s." % indices._ufl_err_str_())
+            error(f"Expecting sequence of Index objects, not {indices._ufl_err_str_()}")
 
         Operator.__init__(self, (expression, indices))
 
@@ -174,7 +173,7 @@ class ComponentTensor(Operator):
         return a
 
     def __str__(self):
-        return "{ A | A_{%s} = %s }" % (self.ufl_operands[1], self.ufl_operands[0])
+        return f"{{ A | A_{{{self.ufl_operands[1]}}} = {self.ufl_operands[0]} }}"
 
 
 # --- User-level functions to wrap expressions in the correct way ---
@@ -209,7 +208,8 @@ def from_numpy_to_lists(expressions):
 
 
 def as_tensor(expressions, indices=None):
-    """UFL operator: Make a tensor valued expression.
+    """
+    UFL operator: Make a tensor valued expression.
 
     This works in two different ways, by using indices or lists.
 
@@ -265,7 +265,7 @@ def as_tensor(expressions, indices=None):
 
 
 def as_matrix(expressions, indices=None):
-    "UFL operator: As *as_tensor()*, but limited to rank 2 tensors."
+    """UFL operator: As *as_tensor()*, but limited to rank 2 tensors."""
     if indices is None:
         # Allow as_matrix(as_matrix(A)) in user code
         if isinstance(expressions, Expr):
@@ -290,7 +290,7 @@ def as_matrix(expressions, indices=None):
 
 
 def as_vector(expressions, index=None):
-    "UFL operator: As ``as_tensor()``, but limited to rank 1 tensors."
+    """UFL operator: As ``as_tensor()``, but limited to rank 1 tensors."""
     if index is None:
         # Allow as_vector(as_vector(v)) in user code
         if isinstance(expressions, Expr):
@@ -340,7 +340,7 @@ def as_scalars(*expressions):
 
 
 def relabel(A, indexmap):
-    "UFL operator: Relabel free indices of :math:`A` with new indices, using the given mapping."
+    """UFL operator: Relabel free indices of :math:`A` with new indices, using the given mapping."""
     ii = tuple(sorted(indexmap.keys()))
     jj = tuple(indexmap[i] for i in ii)
     if not all(isinstance(i, Index) for i in ii):
@@ -361,7 +361,7 @@ def unit_list2(i, j, n):
 
 
 def unit_vector(i, d):
-    "UFL value: A constant unit vector in direction *i* with dimension *d*."
+    """UFL value: A constant unit vector in direction *i* with dimension *d*."""
     return as_vector(unit_list(i, d))
 
 
@@ -372,7 +372,7 @@ def unit_vectors(d):
 
 
 def unit_matrix(i, j, d):
-    "UFL value: A constant unit matrix in direction *i*,*j* with dimension *d*."
+    """UFL value: A constant unit matrix in direction *i*,*j* with dimension *d*."""
     return as_matrix(unit_list2(i, j, d))
 
 
@@ -383,7 +383,7 @@ def unit_matrices(d):
 
 
 def dyad(d, *iota):
-    "TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose."
+    # TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose.
     from ufl.constantvalue import Identity
     from ufl.operators import outer  # a bit of circular dependency issue here
     Id = Identity(d)
