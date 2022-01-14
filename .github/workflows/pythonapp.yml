@@ -32,7 +32,7 @@ jobs:
         run: pip install .[ci]
       - name: Run unit tests
         run: |
-          pytest -n auto --cov=ufl/ --junitxml=junit/test-results-${{ matrix.os }}-${{ matrix.python-version }}.xml test/
+          python -m pytest -n auto --cov=ufl/ --junitxml=junit/test-results-${{ matrix.os }}-${{ matrix.python-version }}.xml test/
       - name: Upload to Coveralls
         if: ${{ github.repository == 'FEniCS/ufl' && github.head_ref == '' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8' }}
         env:
