@@ -18,8 +18,10 @@ import typing
 
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
+from ufl.domain import default_domain
 from ufl.finiteelement import FiniteElementBase
-from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
+from ufl.functionspace import (AbstractFunctionSpace, FunctionSpace,
+                               MixedFunctionSpace)
 from ufl.log import error
 from ufl.split_functions import split
 

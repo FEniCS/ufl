@@ -277,6 +277,7 @@ def as_domain(domain):
         # subclass ufl.Mesh.
         return domain.ufl_domain()
     else:
+        from IPython import embed
         # Legacy .ufl files
         # TODO: Make this conversion in the relevant constructors
         # closer to the user interface?
@@ -339,7 +340,11 @@ def extract_domains(expr):
     "Return all domains expression is defined on."
     domainlist = []
     for t in traverse_unique_terminals(expr):
-        domainlist.extend(t.ufl_domains())
+        if hasattr(t, "ufl_function_space"):
+            domains = t.ufl_function_space().ufl_domains()
+        else:
+            domains = t.ufl_domains()
+        domainlist.extend(domains)
     return sorted(join_domains(domainlist))
 
 
@@ -358,10 +363,15 @@ def find_geometric_dimension(expr):
     "Find the geometric dimension of an expression."
     gdims = set()
     for t in traverse_unique_terminals(expr):
-        if hasattr(t, "ufl_domain"):
+        domain = None
+        if hasattr(t, "ufl_function_space"):
+            domain = t.ufl_function_space().ufl_domain()
+        elif hasattr(t, "ufl_domain"):
             domain = t.ufl_domain()
-            if domain is not None:
-                gdims.add(domain.geometric_dimension())
+
+        if domain is not None:
+            gdims.add(domain.geometric_dimension())
+
         if hasattr(t, "ufl_element"):
             element = t.ufl_element()
             if element is not None:

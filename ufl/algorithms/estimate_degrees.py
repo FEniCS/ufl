@@ -61,7 +61,7 @@ class SumDegreeEstimator(MultiFunction):
     def argument(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
-        return v.ufl_element().degree()  # FIXME: Use component to improve accuracy for mixed elements
+        return v.ufl_function_space().ufl_element().degree()  # FIXME: Use component to improve accuracy for mixed elements
 
     def coefficient(self, v):
         """A form argument provides a degree depending on the element,

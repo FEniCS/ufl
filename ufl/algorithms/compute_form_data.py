@@ -60,8 +60,9 @@ def _compute_element_mapping(form):
     #   worked around to drop this requirement
 
     # Extract all elements and include subelements of mixed elements
-    elements = [obj.ufl_element() for obj in chain(form.arguments(),
-                                                   form.coefficients())]
+    elements_a = tuple(a.ufl_function_space().ufl_element() for a in form.arguments())
+    elements_c = tuple(c.ufl_element() for c in form.coefficients())
+    elements = elements_a + elements_c
     elements = extract_sub_elements(elements)
 
     # Try to find a common degree for elements
@@ -116,7 +117,7 @@ def _compute_max_subdomain_ids(integral_data):
 
 
 def _compute_form_data_elements(self, arguments, coefficients, domains):
-    self.argument_elements = tuple(f.ufl_element() for f in arguments)
+    self.argument_elements = tuple(f.ufl_function_space().ufl_element() for f in arguments)
     self.coefficient_elements = tuple(f.ufl_element() for f in coefficients)
     self.coordinate_elements = tuple(domain.ufl_coordinate_element() for domain in domains)
 

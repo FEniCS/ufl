@@ -143,8 +143,10 @@ The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
 
 def extract_elements(form):
     "Build sorted tuple of all elements used in form."
-    args = chain(*extract_arguments_and_coefficients(form))
-    return tuple(f.ufl_element() for f in args)
+    arguments, coefficients = extract_arguments_and_coefficients(form)
+    elements_a = tuple(a.ufl_function_space().ufl_element() for a in arguments)
+    elements_c = tuple(c.ufl_element() for c in coefficients)
+    return elements_a + elements_c
 
 
 def extract_unique_elements(form):

@@ -50,7 +50,11 @@ def split(v):
             error("Don't know how to split %s." % (v,))
 
     # Special case: simple element, just return function in a tuple
-    element = v.ufl_element()
+    if hasattr(v, "ufl_function_space"):
+        element = v.ufl_function_space().ufl_element()
+    else:
+        element = v.ufl_element()
+
     if not isinstance(element, MixedElement):
         assert end is None
         return (v,)
