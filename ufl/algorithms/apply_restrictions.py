@@ -132,7 +132,8 @@ class RestrictionPropagator(MultiFunction):
         d = e.degree()
         f = e.family()
         # TODO: Move this choice to the element class?
-        if (f == "Lagrange" and d > 0) or f == "Real":
+        continuous_families = ["Lagrange", "Q", "S"]
+        if (f in continuous_families and d > 0) or f == "Real":
             # If the coefficient _value_ is _fully_ continuous
             return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which
         else:
