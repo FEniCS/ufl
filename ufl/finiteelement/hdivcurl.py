@@ -96,6 +96,8 @@ class WithMapping(FiniteElementBase):
     """
     def __init__(self, wrapee, mapping):
         self._repr = "WithMapping(%s, %s)" % (repr(wrapee), mapping)
+        if mapping == "symmetries":
+            raise ValueError("Can't change mapping to 'symmetries'")
         self._mapping = mapping
         self.wrapee = wrapee
 
@@ -105,6 +107,26 @@ class WithMapping(FiniteElementBase):
         except AttributeError:
             raise AttributeError("'%s' object has no attribute '%s'" %
                                  (type(self).__name__, attr))
+
+    def value_shape(self):
+        gdim = self.cell().geometric_dimension()
+        mapping = self.mapping()
+        if mapping in {"covariant Piola", "contravariant Piola"}:
+            return (gdim,)
+        elif mapping in {"double covariant Piola", "double contravariant Piola"}:
+            return (gdim, gdim)
+        else:
+            return self.wrapee.value_shape()
+
+    def reference_value_shape(self):
+        tdim = self.cell().topological_dimension()
+        mapping = self.mapping()
+        if mapping in {"covariant Piola", "contravariant Piola"}:
+            return (tdim,)
+        elif mapping in {"double covariant Piola", "double contravariant Piola"}:
+            return (tdim, tdim)
+        else:
+            return self.wrapee.reference_value_shape()
 
     def mapping(self):
         return self._mapping
