@@ -183,10 +183,7 @@ class FunctionPullbackApplier(MultiFunction):
     def form_argument(self, o):
         # Represent 0-derivatives of form arguments on reference
         # element
-        if hasattr(o, "ufl_function_space"):
-            el = o.ufl_function_space().ufl_element()
-        else:
-            el = o.ufl_element()
+        el = o.ufl_function_space().ufl_element()
         f = apply_single_function_pullbacks(ReferenceValue(o), el)
         assert f.ufl_shape == o.ufl_shape
         return f

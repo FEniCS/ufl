@@ -337,13 +337,10 @@ def join_domains(domains):
 
 def extract_domains(expr):
     "Return all domains expression is defined on."
-    domainlist = []
+    domainlist = ()
     for t in traverse_unique_terminals(expr):
-        if hasattr(t, "ufl_function_space"):
-            domains = t.ufl_function_space().ufl_domains()
-        else:
-            domains = t.ufl_domains()
-        domainlist.extend(domains)
+        domains = t.ufl_domains()
+        domainlist += (domains)
     return sorted(join_domains(domainlist))
 
 
@@ -362,14 +359,9 @@ def find_geometric_dimension(expr):
     "Find the geometric dimension of an expression."
     gdims = set()
     for t in traverse_unique_terminals(expr):
-        domain = None
-        if hasattr(t, "ufl_function_space"):
-            domain = t.ufl_function_space().ufl_domain()
-        elif hasattr(t, "ufl_domain"):
-            domain = t.ufl_domain()
-
-        if domain is not None:
-            gdims.add(domain.geometric_dimension())
+        domain = t.ufl_domains()
+        if len(domain) > 0:
+            gdims.add(domain[0].geometric_dimension())
 
         if hasattr(t, "ufl_element"):
             element = t.ufl_element()

@@ -92,6 +92,10 @@ class Argument(FormArgument):
         # When we can annotate zero with arguments, we can change this.
         return False
 
+    def ufl_domains(self):
+        "Return ufl domains"
+        return self._ufl_function_space.ufl_domains()
+
     def _ufl_signature_data_(self, renumbering):
         """Signature data for form arguments depend on the global numbering of the form arguments and domains."""
         fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)

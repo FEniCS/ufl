@@ -714,11 +714,7 @@ def exterior_derivative(f):
         if len(indices) > 1:
             raise NotImplementedError
         index = int(indices[0])
-        if hasattr(expression, "ufl_function_space"):
-            element = expression.ufl_function_space().ufl_element()
-        else:
-            element = expression.ufl_element()
-
+        element = expression.ufl_function_space().ufl_element()
         element = element.extract_component(index)[1]
     elif isinstance(f, ListTensor):
         f0 = f.ufl_operands[0]
@@ -726,19 +722,13 @@ def exterior_derivative(f):
         if len(f0indices) > 1:
             raise NotImplementedError
         index = int(f0indices[0])
-        if hasattr(f0expr, "ufl_function_space"):
-            element = f0expr.ufl_function_space().ufl_element()
-        else:
-            element = f0expr.ufl_element()
+        element = f0expr.ufl_function_space().ufl_element()
         element = element.extract_component(index)[1]
     else:
         try:
-            if hasattr(f, "ufl_function_space"):
-                element = f.ufl_function_space().ufl_element()
-            else:
-                element = f.ufl_element()
+            element = f.ufl_function_space().ufl_element()
         except Exception:
-            error("Unable to determine element from %s" % f)
+            error(f"Unable to determine element from {f}")
 
     # Extract the family and the geometric dimension
     family = element.family()
@@ -762,4 +752,4 @@ def exterior_derivative(f):
     if "Brezzi" in family or "Raviart" in family:
         return div(f)
 
-    error("Unable to determine exterior_derivative. Family is '%s'" % family)
+    error(f"Unable to determine exterior_derivative. Family is '{family}'.")
