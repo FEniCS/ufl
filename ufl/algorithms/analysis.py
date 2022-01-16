@@ -146,7 +146,6 @@ def extract_elements(form):
     arguments, coefficients = extract_arguments_and_coefficients(form)
     args = chain(*extract_arguments_and_coefficients(form))
     return tuple(f.ufl_function_space().ufl_element() for f in args)
-    return elements_a + elements_c
 
 
 def extract_unique_elements(form):
