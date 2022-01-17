@@ -177,7 +177,7 @@ class Product(Operator):
 
     def __str__(self):
         a, b = self.ufl_operands
-        return " * ".join((parstr(a, self), parstr(b, self)))
+        return f"{parstr(a, self)} * {parstr(b, self)}"
 
 
 @ufl_type(num_ops=2,
@@ -241,8 +241,7 @@ class Division(Operator):
         return e
 
     def __str__(self):
-        return " / ".join([parstr(self.ufl_operands[0], self),
-                           parstr(self.ufl_operands[1], self)])
+        return f"{parstr(self.ufl_operands[0], self)} / {parstr(self.ufl_operands[1], self)}"
 
 
 @ufl_type(num_ops=2,
@@ -299,7 +298,7 @@ class Power(Operator):
 
     def __str__(self):
         a, b = self.ufl_operands
-        return " ** ".join([parstr(a, self), parstr(b, self)])
+        return f"{parstr(a, self)} ** {parstr(b, self)}"
 
 
 @ufl_type(num_ops=1,
@@ -422,4 +421,4 @@ class Imag(Operator):
 
     def __str__(self):
         a, = self.ufl_operands
-        return "Im[%s]" % (parstr(a, self),)
+        return f"Im[{parstr(a, self)}]"
