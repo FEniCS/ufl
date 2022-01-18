@@ -19,9 +19,6 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install dependencies (Python)
-        run: |
-          python3 -m pip install --upgrade pip
       - name: Install dependencies (non-Python)
         run: |
           sudo apt-get install -y graphviz libgraphviz-dev ninja-build pkg-config
@@ -45,7 +42,7 @@ jobs:
           cd ffcx
           pip install .
       - name: Run FFCx unit tests
-        run: python3 -m pytest -n auto ffcx/test
+        run: python3 -m pytest ffcx/test
 
   dolfinx-tests:
     name: Run DOLFINx tests
