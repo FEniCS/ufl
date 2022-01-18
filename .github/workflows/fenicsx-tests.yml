@@ -22,7 +22,6 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get install -y graphviz libgraphviz-dev ninja-build pkg-config
-          pip3 install pytest-xdist pygraphviz sympy
 
       - name: Install UFL
         run: |
@@ -41,7 +40,7 @@ jobs:
       - name: Install FFCx
         run: |
           cd ffcx
-          pip install .
+          pip install .[ci]
       - name: Run FFCx unit tests
         run: python3 -m pytest -n auto ffcx/test
 
