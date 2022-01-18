@@ -19,11 +19,9 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install dependencies (non-Python)
+      - name: Install test dependencies
         run: |
           sudo apt-get install -y graphviz libgraphviz-dev ninja-build pkg-config
-      - name: Install dependencies (non-Python)
-        run: |
           pip3 install pytest-xdist
 
       - name: Install UFL
