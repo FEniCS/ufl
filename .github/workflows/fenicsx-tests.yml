@@ -22,6 +22,9 @@ jobs:
       - name: Install dependencies (non-Python)
         run: |
           sudo apt-get install -y graphviz libgraphviz-dev ninja-build pkg-config
+      - name: Install dependencies (non-Python)
+        run: |
+          pip3 install pytest-xdist
 
       - name: Install UFL
         run: |
@@ -42,7 +45,7 @@ jobs:
           cd ffcx
           pip install .
       - name: Run FFCx unit tests
-        run: python3 -m pytest ffcx/test
+        run: python3 -m pytest -n auto ffcx/test
 
   dolfinx-tests:
     name: Run DOLFINx tests
