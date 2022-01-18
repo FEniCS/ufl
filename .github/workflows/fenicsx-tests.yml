@@ -22,10 +22,9 @@ jobs:
       - name: Install dependencies (Python)
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install pytest
       - name: Install dependencies (non-Python)
         run: |
-          sudo apt-get install -y graphviz libgraphviz-dev
+          sudo apt-get install -y graphviz libgraphviz-dev ninja-build pkg-config
 
       - name: Install UFL
         run: |
