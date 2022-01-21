@@ -101,6 +101,12 @@ class BaseFormOperator(Operator, BaseForm):
         from ufl.algorithms.analysis import extract_arguments
         return tuple(a for a in self._argument_slots[1:] if len(extract_arguments(a)) != 0)
 
+    def coefficients(self):
+        "Return all ``BaseCoefficient`` objects found in base form operator."
+        if self._coefficients is None:
+            self._analyze_form_arguments()
+        return self._coefficients
+
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the base form."
         from ufl.algorithms.analysis import extract_arguments, extract_coefficients
