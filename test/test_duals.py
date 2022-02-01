@@ -4,7 +4,7 @@
 from ufl import FiniteElement, FunctionSpace, MixedFunctionSpace, \
     Coefficient, Matrix, Cofunction, FormSum, Argument, Coargument,\
     TestFunction, TrialFunction, Adjoint, Action, \
-    action, adjoint, tetrahedron, triangle, interval, dx
+    action, adjoint, derivative, tetrahedron, triangle, interval, dx
 
 __authors__ = "India Marsden"
 __date__ = "2020-12-28 -- 2020-12-28"
@@ -13,6 +13,7 @@ import pytest
 
 from ufl.domain import default_domain
 from ufl.duals import is_primal, is_dual
+from ufl.algorithms.ad import expand_derivatives
 
 
 def test_mixed_functionspace(self):
@@ -58,7 +59,6 @@ def test_dual_coefficients():
     v = Coefficient(V, count=1)
     u = Coefficient(V_dual, count=1)
     w = Cofunction(V_dual)
-    x = Cofunction(V)
 
     assert is_primal(v)
     assert not is_dual(v)
@@ -69,8 +69,8 @@ def test_dual_coefficients():
     assert is_dual(w)
     assert not is_primal(w)
 
-    assert is_primal(x)
-    assert not is_dual(x)
+    with pytest.raises(ValueError):
+        x = Cofunction(V)
 
 
 def test_dual_arguments():
@@ -82,7 +82,6 @@ def test_dual_arguments():
     v = Argument(V, 1)
     u = Argument(V_dual, 2)
     w = Coargument(V_dual, 3)
-    x = Coargument(V, 4)
 
     assert is_primal(v)
     assert not is_dual(v)
@@ -93,8 +92,8 @@ def test_dual_arguments():
     assert is_dual(w)
     assert not is_primal(w)
 
-    assert is_primal(x)
-    assert not is_dual(x)
+    with pytest.raises(ValueError):
+        x = Coargument(V, 4)
 
 
 def test_addition():
@@ -153,6 +152,9 @@ def test_adjoint():
     assert isinstance(res, FormSum)
     assert isinstance(res.components()[0], Adjoint)
 
+    # Adjoint(Adjoint(.)) = Id
+    assert adjoint(adj) == a
+
 
 def test_action():
     domain_2d = default_domain(triangle)
@@ -167,7 +169,7 @@ def test_action():
     u = Coefficient(U)
     u_a = Argument(U, 0)
     v = Coefficient(V)
-    u_star = Cofunction(U.dual())
+    ustar = Cofunction(U.dual())
     u_form = u_a * dx
 
     res = action(a, u)
@@ -191,4 +193,57 @@ def test_action():
         res = action(a, v)
 
     with pytest.raises(TypeError):
-        res = action(a, u_star)
+        res = action(a, ustar)
+
+
+def test_differentiation():
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+    domain_1d = default_domain(interval)
+    f_1d = FiniteElement("CG", interval, 1)
+    U = FunctionSpace(domain_1d, f_1d)
+
+    u = Coefficient(U)
+    v = Argument(U, 0)
+    vstar = Argument(U.dual(), 0)
+
+    # -- Cofunction -- #
+    w = Cofunction(U.dual())
+    dwdu = expand_derivatives(derivative(w, u))
+    assert dwdu == 0
+
+    dwdw = expand_derivatives(derivative(w, w, vstar))
+    assert dwdw == vstar
+
+    dudw = expand_derivatives(derivative(u, w))
+    assert dudw == 0
+
+    # -- Coargument -- #
+    dvstardu = expand_derivatives(derivative(vstar, u))
+    assert dvstardu == 0
+
+    # -- Matrix -- #
+    M = Matrix(V, U)
+    dMdu = expand_derivatives(derivative(M, u))
+    assert dMdu == 0
+
+    # -- Action -- #
+    Ac = Action(M, u)
+    dAcdu = expand_derivatives(derivative(Ac, u))
+
+    # Action(dM/du, u) + Action(M, du/du) = Action(M, uhat) since dM/du = 0.
+    # Multiply by 1 to get a FormSum (type compatibility).
+    assert dAcdu == 1 * Action(M, v)
+
+    # -- Adjoint -- #
+    Ad = Adjoint(M)
+    dAddu = expand_derivatives(derivative(Ad, u))
+    # Push differentiation through Adjoint
+    assert dAddu == 0
+
+    # -- Form sum -- #
+    Fs = M + Ac
+    dFsdu = expand_derivatives(derivative(Fs, u))
+    # Distribute differentiation over FormSum components
+    assert dFsdu == 1 * Action(M, v)

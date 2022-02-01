@@ -1045,6 +1045,23 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         o = o.ufl_operands
         return CoordinateDerivative(map_expr_dag(self, o[0]), o[1], o[2], o[3])
 
+    # -- Handlers for BaseForm objects -- #
+
+    def cofunction(self, o):
+        # Same rule than for Coefficient except that we use a Coargument.
+        # The coargument is already attached to the class (self._v)
+        # which `self.coefficient` relies on.
+        return self.coefficient(o)
+
+    def coargument(self, o):
+        # Same rule than for Argument (da/dw == 0).
+        return self.argument(o)
+
+    def matrix(self, M):
+        # Matrix rule: D_w[v](M) = v if M == w else 0
+        # We can't differentiate wrt a matrix so always return 0
+        return 0
+
 
 class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
@@ -1059,7 +1076,7 @@ class DerivativeRuleDispatcher(MultiFunction):
     def derivative(self, o):
         error("Missing derivative handler for {0}.".format(type(o).__name__))
 
-    expr = MultiFunction.reuse_if_untouched
+    ufl_type = MultiFunction.reuse_if_untouched
 
     def grad(self, o, f):
         rules = GradRuleset(o.ufl_shape[-1])

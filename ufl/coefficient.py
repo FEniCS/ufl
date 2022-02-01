@@ -56,7 +56,7 @@ class BaseCoefficient(object):
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
-        self._repr = "Coefficient(%s, %s)" % (
+        self._repr = "BaseCoefficient(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))
 
     def count(self):
@@ -112,6 +112,7 @@ class BaseCoefficient(object):
                 self._ufl_function_space == other._ufl_function_space)
 
 
+@ufl_type()
 class Cofunction(BaseCoefficient, BaseForm):
     """UFL form argument type: Representation of a form coefficient from a dual space."""
 
@@ -119,6 +120,7 @@ class Cofunction(BaseCoefficient, BaseForm):
         "_count",
         "_arguments",
         "_ufl_function_space",
+        "ufl_operands",
         "_repr",
         "_ufl_shape",
         "_hash"
@@ -129,15 +131,20 @@ class Cofunction(BaseCoefficient, BaseForm):
 
     def __new__(cls, *args, **kw):
         if args[0] and is_primal(args[0]):
-            return Coefficient(*args, **kw)
+            raise ValueError('ufl.Cofunction takes in a dual space! If you want to define a coefficient in the primal space you should use ufl.Coefficient.')
         return super().__new__(cls)
 
     def __init__(self, function_space, count=None):
         BaseCoefficient.__init__(self, function_space, count)
         BaseForm.__init__(self)
 
-    def __eq__(self, other):
-        if not isinstance(other, Cofunction):
+        self.ufl_operands = ()
+        self._hash = None
+        self._repr = "Cofunction(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count))
+
+    def equals(self, other):
+        if type(other) is not Cofunction:
             return False
         if self is other:
             return True
@@ -145,7 +152,10 @@ class Cofunction(BaseCoefficient, BaseForm):
                 self._ufl_function_space == other._ufl_function_space)
 
     def __hash__(self):
-        return hash(repr(self))
+        """Hash code for use in dicts."""
+        return hash(("Cofunction",
+                     hash(self._ufl_function_space),
+                     self._count))
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
@@ -174,6 +184,9 @@ class Coefficient(FormArgument, BaseCoefficient):
     def __init__(self, function_space, count=None):
         FormArgument.__init__(self)
         BaseCoefficient.__init__(self, function_space, count)
+
+        self._repr = "Coefficient(%s, %s)" % (
+            repr(self._ufl_function_space), repr(self._count))
 
     def ufl_domains(self):
         return BaseCoefficient.ufl_domains(self)

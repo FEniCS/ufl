@@ -58,7 +58,7 @@ class BaseArgument(object):
         self._number = number
         self._part = part
 
-        self._repr = "Argument(%s, %s, %s)" % (
+        self._repr = "BaseArgument(%s, %s, %s)" % (
             repr(self._ufl_function_space), repr(self._number), repr(self._part))
 
     @property
@@ -170,6 +170,9 @@ class Argument(FormArgument, BaseArgument):
         FormArgument.__init__(self)
         BaseArgument.__init__(self, function_space, number, part)
 
+        self._repr = "Argument(%s, %s, %s)" % (
+            repr(self._ufl_function_space), repr(self._number), repr(self._part))
+
     def ufl_domains(self):
         return BaseArgument.ufl_domains(self)
 
@@ -177,12 +180,14 @@ class Argument(FormArgument, BaseArgument):
         return self._repr
 
 
+@ufl_type()
 class Coargument(BaseForm, BaseArgument):
     """UFL value: Representation of an argument to a form in a dual space."""
     __slots__ = (
         "_ufl_function_space",
         "_ufl_shape",
         "_arguments",
+        "ufl_operands",
         "_number",
         "_part",
         "_repr",
@@ -194,17 +199,37 @@ class Coargument(BaseForm, BaseArgument):
 
     def __new__(cls, *args, **kw):
         if args[0] and is_primal(args[0]):
-            return Argument(*args, **kw)
+            raise ValueError('ufl.Coargument takes in a dual space! If you want to define an argument in the primal space you should use ufl.Argument.')
         return super().__new__(cls)
 
     def __init__(self, function_space, number, part=None):
         BaseArgument.__init__(self, function_space, number, part)
         BaseForm.__init__(self)
 
+        self.ufl_operands = ()
+        self._hash = None
+        self._repr = "Coargument(%s, %s, %s)" % (
+            repr(self._ufl_function_space), repr(self._number), repr(self._part))
+
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
         self._arguments = (Argument(self._ufl_function_space, 0),)
+
+    def equals(self, other):
+        if type(other) is not Coargument:
+            return False
+        if self is other:
+            return True
+        return (self._ufl_function_space == other._ufl_function_space and
+                self._number == other._number and self._part == other._part)
+
+    def __hash__(self):
+        """Hash code for use in dicts."""
+        return hash(("Coargument",
+                     hash(self._ufl_function_space),
+                     self._number,
+                     self._part))
 
 # --- Helper functions for pretty syntax ---
 

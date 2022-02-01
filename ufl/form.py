@@ -19,12 +19,12 @@ from ufl.domain import sort_domains
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
-from ufl.core.expr import Expr
-from ufl.core.expr import ufl_err_str
+from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.constantvalue import Zero
 
 # Export list for ufl.classes
-__all_classes__ = ["Form"]
+__all_classes__ = ["Form", "BaseForm"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -69,7 +69,8 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
-class BaseForm(object):
+@ufl_type()
+class BaseForm(object, metaclass=UFLType):
     """Description of an object containing arguments"""
 
     # Slots is kept empty to enable multiple inheritance with other classes.
@@ -204,12 +205,23 @@ class BaseForm(object):
         else:
             return self
 
+    def _ufl_compute_hash_(self):
+        "Compute the hash"
+        # Ensure compatibility with MultiFunction
+        # `hash(self)` will call the `__hash__` method of the subclass.
+        return hash(self)
+
+    def _ufl_expr_reconstruct_(self, *operands):
+        "Return a new object of the same type with new operands."
+        return type(self)(*operands)
+
     # "a @ f" notation in python 3.5
     __matmul__ = __mul__
 
     # --- String conversion functions, for UI purposes only ---
 
 
+@ufl_type()
 class Form(BaseForm):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = (
@@ -669,6 +681,7 @@ def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     return form
 
 
+@ufl_type()
 class FormSum(BaseForm):
     """Description of a weighted sum of variational forms and form-like objects
     components is the list of Forms to be summed
@@ -677,6 +690,7 @@ class FormSum(BaseForm):
     __slots__ = ("_arguments",
                  "_weights",
                  "_components",
+                 "ufl_operands",
                  "_domains",
                  "_domain_numbering",
                  "_hash")
@@ -702,6 +716,7 @@ class FormSum(BaseForm):
         self._weights = weights
         self._components = full_components
         self._sum_variational_components()
+        self.ufl_operands = self._components
 
     def components(self):
         return self._components
@@ -740,6 +755,15 @@ class FormSum(BaseForm):
         if self._hash is None:
             self._hash = hash(tuple(hash(component) for component in self.components()))
         return self._hash
+
+    def equals(self, other):
+        "Evaluate ``bool(lhs_form == rhs_form)``."
+        if type(other) != FormSum:
+            return False
+        if self is other:
+            return True
+        return (len(self.components()) == len(other.components()) and
+                all(a == b for a, b in zip(self.components(), other.components())))
 
     def __str__(self):
         "Compute shorter string representation of form. This can be huge for complicated forms."

@@ -7,10 +7,12 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 from ufl.form import BaseForm, FormSum
+from ufl.core.ufl_type import ufl_type
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
 
 
+@ufl_type()
 class Adjoint(BaseForm):
     """UFL base form type: represents the adjoint of an object.
 
@@ -23,6 +25,7 @@ class Adjoint(BaseForm):
         "_form",
         "_repr",
         "_arguments",
+        "ufl_operands",
         "_hash")
 
     def __getnewargs__(self):
@@ -30,7 +33,14 @@ class Adjoint(BaseForm):
 
     def __new__(cls, *args, **kw):
         form = args[0]
-        if isinstance(form, FormSum):
+        # Check trivial case
+        if form == 0:
+            # Not a ufl.Zero
+            return 0
+
+        if isinstance(form, Adjoint):
+            return form._form
+        elif isinstance(form, FormSum):
             # Adjoint distributes over sums
             return FormSum(*[(Adjoint(component), 1)
                              for component in form.components()])
@@ -44,6 +54,7 @@ class Adjoint(BaseForm):
             raise ValueError("Can only take Adjoint of a 2-form.")
 
         self._form = form
+        self.ufl_operands = (self._form,)
         self._hash = None
         self._repr = "Adjoint(%s)" % repr(self._form)
 
@@ -58,6 +69,13 @@ class Adjoint(BaseForm):
         """The arguments of adjoint are the reverse of the form arguments."""
         self._arguments = self._form.arguments()[::-1]
 
+    def equals(self, other):
+        if type(other) is not Adjoint:
+            return False
+        if self is other:
+            return True
+        return (self._form == other._form)
+
     def __str__(self):
         return "Adjoint(%s)" % self._form
 
@@ -67,5 +85,5 @@ class Adjoint(BaseForm):
     def __hash__(self):
         """Hash code for use in dicts."""
         if self._hash is None:
-            self._hash = hash(tuple(["Adjoint", hash(self._form)]))
+            self._hash = hash(("Adjoint", hash(self._form)))
         return self._hash

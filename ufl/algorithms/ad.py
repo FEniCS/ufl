@@ -10,6 +10,7 @@
 # Modified by Anders Logg, 2009.
 
 from ufl.log import warning
+from ufl.adjoint import Adjoint
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 
@@ -26,6 +27,13 @@ def expand_derivatives(form, **kwargs):
     # args here)
     if kwargs:
         warning("Deprecation: expand_derivatives no longer takes any keyword arguments")
+
+    if isinstance(form, Adjoint):
+        dform = expand_derivatives(form._form)
+        if not dform:
+            # If dform == 0
+            return dform
+        raise NotImplementedError('Adjoint derivative is not supported.')
 
     # Lower abstractions for tensor-algebra types into index notation
     form = apply_algebra_lowering(form)

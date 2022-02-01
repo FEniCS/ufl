@@ -10,6 +10,7 @@
 
 from ufl.log import error
 from ufl.form import BaseForm
+from ufl.core.ufl_type import ufl_type
 from ufl.argument import Argument
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import counted_init
@@ -17,12 +18,14 @@ from ufl.utils.counted import counted_init
 
 # --- The Matrix class represents a matrix, an assembled two form ---
 
+@ufl_type()
 class Matrix(BaseForm):
     """An assemble linear operator between two function spaces."""
 
     __slots__ = (
         "_count",
         "_ufl_function_spaces",
+        "ufl_operands",
         "_repr",
         "_hash",
         "_ufl_shape",
@@ -45,6 +48,7 @@ class Matrix(BaseForm):
 
         self._ufl_function_spaces = (row_space, column_space)
 
+        self.ufl_operands = ()
         self._hash = None
         self._repr = "Matrix(%s,%s, %s)" % (
             repr(self._ufl_function_spaces[0]),
@@ -85,8 +89,8 @@ class Matrix(BaseForm):
             self._hash = hash(self._repr)
         return self._hash
 
-    def __eq__(self, other):
-        if not isinstance(other, Matrix):
+    def equals(self, other):
+        if type(other) is not Matrix:
             return False
         if self is other:
             return True

@@ -16,6 +16,7 @@ from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 
 from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.form import BaseForm
 from ufl.constantvalue import Zero
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
@@ -78,6 +79,25 @@ class CoordinateDerivative(CoefficientDerivative):
         return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s"\
             % (self.ufl_operands[0], self.ufl_operands[1],
                self.ufl_operands[2], self.ufl_operands[3])
+
+
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class BaseFormDerivative(CoefficientDerivative, BaseForm):
+    """Derivative of a base form w.r.t the
+    degrees of freedom in a discrete Coefficient."""
+    _ufl_noslots_ = True
+
+    def __init__(self, base_form, coefficients, arguments,
+                 coefficient_derivatives):
+        CoefficientDerivative.__init__(self, base_form, coefficients, arguments,
+                                       coefficient_derivatives)
+        BaseForm.__init__(self)
+
+    def _analyze_form_arguments(self):
+        """Collect the arguments of the corresponding BaseForm"""
+        base_form = self.ufl_operands[0]
+        self._arguments = base_form.arguments()
 
 
 @ufl_type(num_ops=2)

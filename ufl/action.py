@@ -8,12 +8,16 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.form import BaseForm, FormSum, Form
-from ufl.coefficient import Coefficient
+from ufl.core.ufl_type import ufl_type
+from ufl.argument import Argument
+from ufl.coefficient import Coefficient, Cofunction
+from ufl.differentiation import CoefficientDerivative
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
 
 
+@ufl_type()
 class Action(BaseForm):
     """UFL base form type: respresents the action of an object on another.
     For example:
@@ -29,6 +33,7 @@ class Action(BaseForm):
     __slots__ = (
         "_left",
         "_right",
+        "ufl_operands",
         "_repr",
         "_arguments",
         "_hash")
@@ -38,6 +43,11 @@ class Action(BaseForm):
 
     def __new__(cls, *args, **kw):
         left, right = args
+
+        # Check trivial case
+        if left == 0 or right == 0:
+            # Not a ufl.Zero
+            return 0
 
         if isinstance(left, FormSum):
             # Action distributes over sums on the LHS
@@ -55,19 +65,25 @@ class Action(BaseForm):
 
         self._left = left
         self._right = right
+        self.ufl_operands = (self._left, self._right)
 
-        if isinstance(right, Form):
+        if isinstance(right, CoefficientDerivative):
+            # Action differentiation pushes differentiation through
+            # right as a consequence of Leibniz formula.
+            right, *_ = right.ufl_operands
+
+        if isinstance(right, (Form, Action)):
             if (left.arguments()[-1].ufl_function_space().dual()
                 != right.arguments()[0].ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
-        elif isinstance(right, Coefficient):
+        elif isinstance(right, (Coefficient, Cofunction, Argument)):
             if (left.arguments()[-1].ufl_function_space()
                 != right.ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
         else:
-            raise TypeError("Incompatible argument in Action")
+            raise TypeError("Incompatible argument in Action: %s" % type(right))
 
         self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
         self._hash = None
@@ -101,6 +117,13 @@ class Action(BaseForm):
         else:
             raise TypeError
 
+    def equals(self, other):
+        if type(other) is not Action:
+            return False
+        if self is other:
+            return True
+        return (self._left == other._left and self._right == other._right)
+
     def __str__(self):
         return "Action(%s, %s)" % (repr(self._left), repr(self._right))
 
@@ -110,7 +133,7 @@ class Action(BaseForm):
     def __hash__(self):
         "Hash code for use in dicts "
         if self._hash is None:
-            self._hash = hash(tuple(["Action",
-                                     hash(self._right),
-                                     hash(self._left)]))
+            self._hash = hash(("Action",
+                               hash(self._right),
+                               hash(self._left)))
         return self._hash
