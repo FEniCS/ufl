@@ -553,8 +553,7 @@ class GradRuleset(GenericDerivativeRuleset):
         if not f._ufl_is_terminal_:
             error("ReferenceValue can only wrap a terminal")
 
-        domains = f.ufl_function_space().ufl_domains()
-        domain = None if len(domains) == 0 else domains[0]
+        domain,  = f.ufl_function_space().ufl_domains()
         K = JacobianInverse(domain)
         Do = grad_to_reference_grad(o, K)
         return Do
