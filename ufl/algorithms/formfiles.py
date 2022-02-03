@@ -204,7 +204,7 @@ def interpret_ufl_namespace(namespace):
     # Validate types
     if not isinstance(ufd.expressions, (list, tuple)):
         error("Expecting 'expressions' to be a list or tuple, not '%s'." % type(ufd.expressions))
-    if not all(isinstance(e, Expr) for e in ufd.expressions):
+    if not all(isinstance(e[0], Expr) for e in ufd.expressions):
         error("Expecting 'expressions' to be a list of Expr instances.")
 
     # Return file data
