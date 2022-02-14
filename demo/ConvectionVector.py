@@ -2,7 +2,8 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-03
 #
-from ufl import *
+from ufl import (Coefficient, TestFunction, VectorElement, dot, dx, grad,
+                 triangle)
 
 element = VectorElement("Lagrange", triangle, 1)
 

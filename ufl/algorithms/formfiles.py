@@ -13,7 +13,6 @@
 import io
 import os
 import re
-import ufl
 from ufl.log import error, warning
 from ufl.utils.sorting import sorted_by_key
 from ufl.form import Form

@@ -3,7 +3,8 @@
 # Modified by: Martin Sandve Alnes
 # Date: 2009-01-12
 #
-from ufl import *
+from ufl import (TestFunction, TrialFunction, VectorElement, dx, grad, inner,
+                 tetrahedron)
 
 element = VectorElement("Lagrange", tetrahedron, 1)
 

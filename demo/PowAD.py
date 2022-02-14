@@ -2,7 +2,8 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-03
 #
-from ufl import *
+from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction,
+                 derivative, dx, triangle)
 
 element = FiniteElement("Lagrange", triangle, 1)
 

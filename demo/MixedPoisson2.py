@@ -3,7 +3,8 @@
 # Modified by: Martin Sandve Alnes
 # Date: 2009-02-12
 #
-from ufl import *
+from ufl import (FacetNormal, FiniteElement, TestFunctions, TrialFunctions,
+                 div, dot, ds, dx, tetrahedron)
 
 cell = tetrahedron
 RT = FiniteElement("Raviart-Thomas", cell, 1)

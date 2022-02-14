@@ -1,4 +1,5 @@
-from ufl import *
+from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction, dx,
+                 triangle)
 
 element = FiniteElement("Lagrange", triangle, 1)
 v = TestFunction(element)

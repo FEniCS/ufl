@@ -16,7 +16,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # A mixed element of mixed elements
-from ufl import *
+from ufl import FiniteElement, triangle
 
 P3 = FiniteElement("Lagrange", triangle, 3)
 

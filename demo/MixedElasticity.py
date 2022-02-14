@@ -17,7 +17,8 @@
 #
 # First added:  2008-10-03
 # Last changed: 2011-07-22
-from ufl import *
+from ufl import (MixedElement, TestFunctions, TrialFunctions, VectorElement,
+                 as_vector, div, dot, dx, inner, skew, tetrahedron, tr)
 
 
 def skw(tau):

@@ -21,7 +21,8 @@
 #
 # The bilinear form for the nonlinear term in the
 # Navier-Stokes equations with fixed convective velocity.
-from ufl import *
+from ufl import (Coefficient, TestFunction, TrialFunction, VectorElement, dot,
+                 dx, grad, tetrahedron)
 
 cell = tetrahedron
 element = VectorElement("Lagrange", cell, 1)

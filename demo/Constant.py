@@ -18,7 +18,8 @@
 # Modified by Martin Sandve Alnes, 2009
 #
 # Test form for scalar and vector constants.
-from ufl import *
+from ufl import (Coefficient, Constant, FiniteElement, TestFunction,
+                 TrialFunction, VectorConstant, dot, dx, grad, inner, triangle)
 
 cell = triangle
 element = FiniteElement("Lagrange", cell, 1)

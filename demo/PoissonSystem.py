@@ -21,7 +21,8 @@
 #
 # The bilinear form a(v, u) and linear form L(v) for
 # Poisson's equation in system form (vector-valued).
-from ufl import *
+from ufl import (Coefficient, TestFunction, TrialFunction, VectorElement, dot,
+                 dx, grad, inner, triangle)
 
 cell = triangle
 element = VectorElement("Lagrange", cell, 1)
