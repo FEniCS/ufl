@@ -25,8 +25,8 @@ from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction,
 
 element = FiniteElement("Lagrange", triangle, 2)
 
-QE = FiniteElement("Quadrature", triangle, 3)
-sig = VectorElement("Quadrature", triangle, 3)
+QE = FiniteElement("Quadrature", triangle, 2, quad_scheme="default")
+sig = VectorElement("Quadrature", triangle, 1, quad_scheme="default")
 
 v = TestFunction(element)
 u = TrialFunction(element)
@@ -35,5 +35,5 @@ C = Coefficient(QE)
 sig0 = Coefficient(sig)
 f = Coefficient(element)
 
-a = v.dx(i) * C * u.dx(i) * dx + v.dx(i) * 2 * u0 * u * u0.dx(i) * dx
-L = v * f * dx - dot(grad(v), sig0) * dx
+a = v.dx(i) * C * u.dx(i) * dx(metadata={"quadrature_degree": 2}) + v.dx(i) * 2 * u0 * u * u0.dx(i) * dx
+L = v * f * dx - dot(grad(v), sig0) * dx(metadata={"quadrature_degree": 1})
