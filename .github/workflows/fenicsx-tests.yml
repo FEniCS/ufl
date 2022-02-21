@@ -36,7 +36,7 @@ jobs:
         with:
           path: ./ffcx
           repository: FEniCS/ffcx
-          ref: michal/py-form-files
+          ref: main
       - name: Install FFCx
         run: |
           cd ffcx
