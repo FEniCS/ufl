@@ -13,7 +13,6 @@
 import io
 import os
 import re
-import ufl
 from ufl.log import error, warning
 from ufl.utils.sorting import sorted_by_key
 from ufl.form import Form
@@ -68,55 +67,19 @@ def read_lines_decoded(fn):
     return lines
 
 
-def replace_include_statements(lines):
-    "Replace '#include foo.ufl' statements with contents of foo.ufl."
-    r = re.compile(r"^#include (.*)$")
-    newlines = []
-    for l in lines:
-        m = r.search(l)
-        if m:
-            fn = m.groups()[0]
-            newlines.append("# --- begin %s\n" % fn)
-            newlines.extend(read_lines_decoded(fn))
-            newlines.append("# --- end %s\n" % fn)
-        else:
-            newlines.append(l)
-    return newlines
-
-
 def read_ufl_file(filename):
-    "Read a .ufl file, handling file extension, file existance, and #include replacement."
-    if not os.path.exists(filename) and filename[-4:] != ".ufl":
-        filename = filename + ".ufl"
+    "Read a UFL file."
     if not os.path.exists(filename):
         error("File '%s' doesn't exist." % filename)
     lines = read_lines_decoded(filename)
-    lines = replace_include_statements(lines)
     code = "".join(lines)
     return code
 
 
-infostring = """\
-An exception occured during evaluation of .ufl file.
-If you need to debug it as a python script, rename it to .py
-and add the lines
-
-    from ufl import *
-    set_level(DEBUG)
-
-at the top then run with python.
-"""
-
-
-def execute_ufl_code(uflcode, filename):
+def execute_ufl_code(uflcode):
     # Execute code
     namespace = {}
-    namespace.update(vars(ufl))
-    try:
-        exec(uflcode, namespace)
-    except Exception as e:
-        warning(infostring)
-        raise e
+    exec(uflcode, namespace)
     return namespace
 
 
@@ -212,10 +175,10 @@ def interpret_ufl_namespace(namespace):
 
 
 def load_ufl_file(filename):
-    "Load a .ufl file with elements, coefficients and forms."
+    "Load a UFL file with elements, coefficients, expressions and forms."
     # Read code from file and execute it
     uflcode = read_ufl_file(filename)
-    namespace = execute_ufl_code(uflcode, filename)
+    namespace = execute_ufl_code(uflcode)
     return interpret_ufl_namespace(namespace)
 
 
