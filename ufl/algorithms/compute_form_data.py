@@ -105,13 +105,14 @@ def _compute_max_subdomain_ids(integral_data):
     max_subdomain_ids = {}
     for itg_data in integral_data:
         it = itg_data.integral_type
-        si = itg_data.subdomain_id
-        if isinstance(si, int):
-            newmax = si + 1
-        else:
-            newmax = 0
-        prevmax = max_subdomain_ids.get(it, 0)
-        max_subdomain_ids[it] = max(prevmax, newmax)
+        for integral in itg_data.integrals:
+            si = max(integral.subdomain_id())
+            if isinstance(si, int):
+                newmax = si + 1
+            else:
+                newmax = 0
+            prevmax = max_subdomain_ids.get(it, 0)
+            max_subdomain_ids[it] = max(prevmax, newmax)
     return max_subdomain_ids
 
 
@@ -327,7 +328,6 @@ def compute_form_data(form,
     # --- Group integrals into IntegralData objects
     # Most of the heavy lifting is done above in group_form_integrals.
     self.integral_data = build_integral_data(form.integrals())
-
     # --- Create replacements for arguments and coefficients
 
     # Figure out which form coefficients each integral should enable
