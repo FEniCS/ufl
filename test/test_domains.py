@@ -4,6 +4,7 @@
 Tests of domain language and attaching domains to forms.
 """
 
+from mockobjects import MockMesh, MockMeshFunction
 import pytest
 
 from ufl import *
@@ -12,8 +13,6 @@ from ufl.algorithms import compute_form_data
 
 all_cells = (interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
-
-from mockobjects import MockMesh, MockMeshFunction
 
 
 def test_construct_domains_from_cells():
@@ -198,7 +197,8 @@ def test_everywhere_integrals_with_backwards_compatibility():
 
     # Check some integral data
     assert ida.integral_type == "cell"
-    assert ida.subdomain_id == "otherwise"
+    assert(len(ida.subdomain_id) == 1)
+    assert ida.subdomain_id[0] == "otherwise"
     assert ida.metadata == {}
 
     # Integrands are not equal because of renumbering
@@ -366,10 +366,10 @@ def xtest_form_domain_model():  # Old sketch, not working
     # domains and regions to be part of their integrands
     dxb = dx('DB')   # Get Mesh by name
     dxbl = dx(Region(DB, (1, 4), 'DBL2'))
-              # Provide a region with different name but same subdomain ids as
-              # DBL
+    # Provide a region with different name but same subdomain ids as
+    # DBL
     dxbr = dx((1, 4))
-              # Assume unique Mesh and provide subdomain ids explicitly
+    # Assume unique Mesh and provide subdomain ids explicitly
 
     # Not checking measure objects in detail, as long as
     # they carry information to construct integrals below
@@ -466,8 +466,8 @@ def xtest_subdomain_stuff():  # Old sketch, not working
 
     # Disjunctified by UFL:
     alonly = dot(ul, vl) * dx(D1)
-                 # integral_1 knows that only subelement VL is active
+    # integral_1 knows that only subelement VL is active
     am = (dot(ul, vl) + ur * vr) * dx(D2)
-          # integral_2 knows that both subelements are active
+    # integral_2 knows that both subelements are active
     aronly = ur * vr * \
         dx(D3)  # integral_3 knows that only subelement VR is active
