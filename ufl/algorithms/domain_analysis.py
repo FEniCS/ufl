@@ -157,7 +157,7 @@ def rearrange_integrals_by_single_subdomains(integrals: typing.List[Integral],
 
     Input:
         integrals: List of integrals
-        do_append_everywhere_integrals: Boolean indicating if integrals defined on the whole domain should 
+        do_append_everywhere_integrals: Boolean indicating if integrals defined on the whole domain should
                                         just be restricted to the set of input subdomain ids.
 
     Output:
