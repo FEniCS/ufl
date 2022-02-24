@@ -49,12 +49,19 @@ def _sorted_integrals(integrals):
 
     all_integrals = []
 
+    def keyfunc(item):
+        if isinstance(item, int):
+            sid_int = item
+        else:
+            # As subdomain ids can be either int or tuples, we need to compare them
+            sid_int = tuple(-1 if i == "otherwise" else i for i in item)
+        return (type(item).__name__, sid_int)
+
     # Order integrals canonically to increase signature stability
     for d in sort_domains(integrals_dict):
         for it in sorted(integrals_dict[d]):  # str is sortable
             for si in sorted(
-                    integrals_dict[d][it], key=lambda x: (type(x).__name__, x)
-            ):  # int/str are sortable
+                    integrals_dict[d][it], key=keyfunc):
                 unsorted_integrals = integrals_dict[d][it][si]
                 # TODO: At this point we could order integrals by
                 #       metadata and integrand, or even add the

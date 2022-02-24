@@ -279,8 +279,8 @@ def build_integral_data(integrals):
     # is not deterministic across python versions
     def keyfunc(item):
         (d, itype, sid), integrals = item
-        return (d._ufl_sort_key_(), itype, (type(sid).__name__, sid))
-
+        sid_int = tuple(-1 if i == "otherwise" else i for i in sid)
+        return (d._ufl_sort_key_(), itype, (type(sid).__name__, ), sid_int)
     integral_datas = []
     for (d, itype, sid), integrals in sorted(itgs.items(), key=keyfunc):
         integral_datas.append(IntegralData(d, itype, sid, integrals, {}))

@@ -208,6 +208,47 @@ def test_everywhere_integrals_with_backwards_compatibility():
     assert itg1.ufl_element() == itg2.ufl_element()
 
 
+def test_merge_sort_integral_data():
+    D = Mesh(triangle)
+
+    V = FunctionSpace(D, FiniteElement("CG", triangle, 1))
+
+    u = Coefficient(V)
+    c = Constant(D)
+    a = c * dS((2, 4)) + u * dx + u * ds + 2 * u * dx(3) + 2 * c * dS + 2 * u * dx((1, 4))
+    form_data = compute_form_data(a, do_append_everywhere_integrals=False).integral_data
+    assert(len(form_data) == 5)
+
+    # Check some integral data
+    assert form_data[0].integral_type == "cell"
+    assert(len(form_data[0].subdomain_id) == 1)
+    assert form_data[0].subdomain_id[0] == "otherwise"
+    assert form_data[0].metadata == {}
+
+    assert form_data[1].integral_type == "cell"
+    assert(len(form_data[1].subdomain_id) == 3)
+    assert form_data[1].subdomain_id[0] == 1
+    assert form_data[1].subdomain_id[1] == 3
+    assert form_data[1].subdomain_id[2] == 4
+    assert form_data[1].metadata == {}
+
+    assert form_data[2].integral_type == "exterior_facet"
+    assert(len(form_data[2].subdomain_id) == 1)
+    assert form_data[2].subdomain_id[0] == "otherwise"
+    assert form_data[2].metadata == {}
+
+    assert form_data[3].integral_type == "interior_facet"
+    assert(len(form_data[3].subdomain_id) == 1)
+    assert form_data[3].subdomain_id[0] == "otherwise"
+    assert form_data[3].metadata == {}
+
+    assert form_data[4].integral_type == "interior_facet"
+    assert(len(form_data[4].subdomain_id) == 2)
+    assert form_data[4].subdomain_id[0] == 2
+    assert form_data[4].subdomain_id[1] == 4
+    assert form_data[4].metadata == {}
+
+
 def xtest_mixed_elements_on_overlapping_regions():  # Old sketch, not working
 
     # Create domain and both disjoint and overlapping regions
