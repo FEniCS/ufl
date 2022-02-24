@@ -18,6 +18,7 @@ from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
 from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
 import numbers
+import typing
 
 
 class IntegralData(object):
@@ -150,14 +151,17 @@ def integral_subdomain_ids(integral):
         error("Invalid domain id %s." % did)
 
 
-def rearrange_integrals_by_single_subdomains(integrals, do_append_everywhere_integrals):
+def rearrange_integrals_by_single_subdomains(integrals: typing.List[Integral],
+                                             do_append_everywhere_integrals: bool) -> typing.Dict[int, typing.List[Integral]]:
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
     Input:
-        integrals: list(Integral)
+        integrals: List of integrals
+        do_append_everywhere_integrals: Boolean indicating if integrals defined on the whole domain should 
+                                        just be restricted to the set of input subdomain ids.
 
     Output:
-        integrals: dict: subdomain_id -> list(Integral) (reconstructed with single subdomain_id)
+        integrals: The integrals reconstructed with single subdomain_id
     """
     # Split integrals into lists of everywhere and subdomain integrals
     everywhere_integrals = []
