@@ -94,8 +94,8 @@ simplices = ("interval", "triangle", "tetrahedron")
 cubes = ("interval", "quadrilateral", "hexahedron")
 any_cell = (None,
             "vertex", "interval",
-            "triangle", "tetrahedron",
-            "quadrilateral", "hexahedron")
+            "triangle", "tetrahedron", "prism",
+            "pyramid", "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around

@@ -42,6 +42,8 @@ class Indexed(Operator):
             else:
                 fi, fid = (), ()
             return Zero(shape=(), free_indices=fi, index_dimensions=fid)
+        elif expression.ufl_shape == () and multiindex == ():
+            return expression
         else:
             return Operator.__new__(cls)
 
@@ -62,7 +64,7 @@ class Indexed(Operator):
             error("Invalid number of indices (%d) for tensor "
                   "expression of rank %d:\n\t%s\n"
                   % (len(multiindex), len(expression.ufl_shape), ufl_err_str(expression)))
-        if any(int(di) >= int(si)
+        if any(int(di) >= int(si) or int(di) < 0
                for si, di in zip(shape, multiindex)
                if isinstance(di, FixedIndex)):
             error("Fixed index out of range!")
@@ -109,4 +111,8 @@ class Indexed(Operator):
                            self.ufl_operands[1])
 
     def __getitem__(self, key):
+        if key == ():
+            # So that one doesn't have to special case indexing of
+            # expressions without shape.
+            return self
         error("Attempting to index with %s, but object is already indexed: %s" % (ufl_err_str(key), ufl_err_str(self)))

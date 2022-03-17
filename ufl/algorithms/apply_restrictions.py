@@ -21,6 +21,9 @@ class RestrictionPropagator(MultiFunction):
         MultiFunction.__init__(self)
         self.current_restriction = side
         self.default_restriction = "+"
+        # Caches for propagating the restriction with map_expr_dag
+        self.vcaches = {"+": {}, "-": {}}
+        self.rcaches = {"+": {}, "-": {}}
         if self.current_restriction is None:
             self._rp = {"+": RestrictionPropagator("+"),
                         "-": RestrictionPropagator("-")}
@@ -32,8 +35,10 @@ class RestrictionPropagator(MultiFunction):
         if self.current_restriction is not None:
             error("Cannot restrict an expression twice.")
         # Configure a propagator for this side and apply to subtree
-        # FIXME: Reuse cache between these calls!
-        return map_expr_dag(self._rp[o.side()], o.ufl_operands[0])
+        side = o.side()
+        return map_expr_dag(self._rp[side], o.ufl_operands[0],
+                            vcache=self.vcaches[side],
+                            rcache=self.rcaches[side])
 
     # --- Reusable rules
 
@@ -127,7 +132,8 @@ class RestrictionPropagator(MultiFunction):
         d = e.degree()
         f = e.family()
         # TODO: Move this choice to the element class?
-        if (f == "Lagrange" and d > 0) or f == "Real":
+        continuous_families = ["Lagrange", "Q", "S"]
+        if (f in continuous_families and d > 0) or f == "Real":
             # If the coefficient _value_ is _fully_ continuous
             return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which
         else:

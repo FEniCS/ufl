@@ -53,6 +53,8 @@ A very brief overview of the language contents follows:
     - tetrahedron
     - quadrilateral
     - hexahedron
+    - prism
+    - pyramid
 
 * Domains::
 
@@ -277,7 +279,7 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     NodalEnrichedElement, RestrictedElement, TensorProductElement, \
     HDivElement, HCurlElement, BrokenElement, \
-    FacetElement, InteriorElement
+    FacetElement, InteriorElement, WithMapping
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
@@ -349,7 +351,7 @@ system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functi
 # Predefined convenience objects
 from ufl.objects import (
     vertex, interval, triangle, tetrahedron,
-    quadrilateral, hexahedron, facet,
+    quadrilateral, hexahedron, prism, pyramid, facet,
     i, j, k, l, p, q, r, s,
     dx, ds, dS, dP,
     dc, dC, dO, dI, dX,
@@ -378,7 +380,7 @@ __all__ = [
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'NodalEnrichedElement', 'RestrictedElement', 'TensorProductElement',
     'HDivElement', 'HCurlElement',
-    'BrokenElement', 'FacetElement', 'InteriorElement',
+    'BrokenElement', 'FacetElement', 'InteriorElement', "WithMapping",
     'register_element', 'show_elements',
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
@@ -413,6 +415,7 @@ __all__ = [
     'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
+    'prism', 'pyramid',
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
