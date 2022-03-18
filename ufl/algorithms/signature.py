@@ -14,7 +14,7 @@ from ufl.classes import (Label,
                          GeometricQuantity, ConstantValue, Constant,
                          ExprList, ExprMapping)
 from ufl.log import error
-from ufl.corealg.traversal import traverse_unique_terminals, pre_traversal
+from ufl.corealg.traversal import traverse_unique_terminals, unique_pre_traversal
 from ufl.algorithms.domain_analysis import canonicalize_metadata
 
 
@@ -98,7 +98,7 @@ def compute_expression_hashdata(expression, terminal_hashdata):
     # notation, i.e. we store the equivalent of '+ * a b * c d' for
     # the expression (a*b)+(c*d)
     expression_hashdata = []
-    for expr in pre_traversal(expression):
+    for expr in unique_pre_traversal(expression):
         if expr._ufl_is_terminal_:
             data = terminal_hashdata[expr]
         else:
