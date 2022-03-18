@@ -104,9 +104,7 @@ def compute_expression_hashdata(expression, terminal_hashdata):
         else:
             data = expr._ufl_typecode_  # TODO: Use expr._ufl_signature_data_()? More extensible, but more overhead.
         expression_hashdata.append(data)
-    # Oneliner: TODO: Benchmark, maybe use a generator?
-    # expression_hashdata = [(terminal_hashdata[expr] if expr._ufl_is_terminal_ else expr._ufl_typecode_)
-    #                       for expr in pre_traversal(expression)]
+
     return expression_hashdata
 
 
