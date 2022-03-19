@@ -94,16 +94,19 @@ def compute_terminal_hashdata(expressions, renumbering):
 
 
 def compute_expression_hashdata(expression, terminal_hashdata):
-    # The hashdata computed here can be interpreted as prefix operator
-    # notation, i.e. we store the equivalent of '+ * a b * c d' for
-    # the expression (a*b)+(c*d)
     expression_hashdata = []
+
     for expr in unique_pre_traversal(expression):
+        # Visit each node only once, but store all its operands
         if expr._ufl_is_terminal_:
-            data = terminal_hashdata[expr]
+            expression_hashdata.append(terminal_hashdata[expr])
         else:
-            data = expr._ufl_typecode_  # TODO: Use expr._ufl_signature_data_()? More extensible, but more overhead.
-        expression_hashdata.append(data)
+            expression_hashdata.append(expr._ufl_typecode_)
+            for op in expr.ufl_operands:
+                if op._ufl_is_terminal_:
+                    expression_hashdata.append(terminal_hashdata[op])
+                else:
+                    expression_hashdata.append(op._ufl_typecode_)
 
     return expression_hashdata
 
