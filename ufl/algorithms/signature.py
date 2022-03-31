@@ -14,7 +14,7 @@ from ufl.classes import (Label,
                          GeometricQuantity, ConstantValue, Constant,
                          ExprList, ExprMapping)
 from ufl.log import error
-from ufl.corealg.traversal import traverse_unique_terminals, unique_pre_traversal
+from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
 from ufl.algorithms.domain_analysis import canonicalize_metadata
 
 
@@ -94,21 +94,18 @@ def compute_terminal_hashdata(expressions, renumbering):
 
 
 def compute_expression_hashdata(expression, terminal_hashdata):
-    expression_hashdata = []
+    cache = {}
 
-    for expr in unique_pre_traversal(expression):
-        # Visit each node only once, but store all its operands
+    for expr in unique_post_traversal(expression):
         if expr._ufl_is_terminal_:
-            expression_hashdata.append(terminal_hashdata[expr])
+            data = [terminal_hashdata[expr]]
         else:
-            expression_hashdata.append(expr._ufl_typecode_)
-            for op in expr.ufl_operands:
-                if op._ufl_is_terminal_:
-                    expression_hashdata.append(terminal_hashdata[op])
-                else:
-                    expression_hashdata.append(op._ufl_typecode_)
+            data = [expr._ufl_typecode_]
 
-    return expression_hashdata
+            for op in expr.ufl_operands:
+                data += cache[op]
+        cache[expr] = data
+    return cache[expression]
 
 
 def compute_expression_signature(expr, renumbering):  # FIXME: Fix callers
