@@ -12,6 +12,7 @@
 # Modified by Marie E. Rognes 2012
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Massimiliano Leoni, 2016
+# Modified by Robert Kloefkorn, 2022
 
 import numbers
 import functools
@@ -88,7 +89,9 @@ num_cell_entities = {"vertex": (1,),
                      "tetrahedron": (4, 6, 4, 1),
                      "prism": (6, 9, 5, 1),
                      "pyramid": (5, 8, 5, 1),
-                     "hexahedron": (8, 12, 6, 1)}
+                     "hexahedron": (8, 12, 6, 1),
+                     "pentatope": (5, 10, 10, 5, 1),
+                     "tesseract": (16, 32, 24, 8, 1)}
 
 # Mapping from cell name to topological dimension
 cellname2dim = dict((k, len(v) - 1) for k, v in num_cell_entities.items())
@@ -164,7 +167,9 @@ class Cell(AbstractCell):
                             "quadrilateral": ("interval",),
                             "tetrahedron": ("triangle",),
                             "hexahedron": ("quadrilateral",),
-                            "prism": ("triangle", "quadrilateral")}
+                            "prism": ("triangle", "quadrilateral"),
+                            "pentatope": ("tetrahedron",),
+                            "tesseract": ("hexahedron",)}
         return tuple(ufl.Cell(facet_name, self.geometric_dimension())
                      for facet_name in facet_type_names[self.cellname()])
 
@@ -279,14 +284,16 @@ class TensorProductCell(AbstractCell):
 _simplex_dim2cellname = {0: "vertex",
                          1: "interval",
                          2: "triangle",
-                         3: "tetrahedron"}
+                         3: "tetrahedron",
+                         4: "pentatope"}
 
 # Mapping from topological dimension to reference cell name for
 # hypercubes
 _hypercube_dim2cellname = {0: "vertex",
                            1: "interval",
                            2: "quadrilateral",
-                           3: "hexahedron"}
+                           3: "hexahedron",
+                           4: "tesseract"}
 
 
 def simplex(topological_dimension, geometric_dimension=None):

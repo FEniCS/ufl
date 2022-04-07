@@ -12,6 +12,7 @@ elements by calling the function register_element."""
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
 # Modified by Lizao Li <lzlarryli@gmail.com>, 2015, 2016
 # Modified by Massimiliano Leoni, 2016
+# Modified by Robert Kloefkorn, 2022
 
 from numpy import asarray
 
@@ -90,12 +91,12 @@ def show_elements():
 #       the future, add mapping name as another element property.
 
 # Cell groups
-simplices = ("interval", "triangle", "tetrahedron")
-cubes = ("interval", "quadrilateral", "hexahedron")
+simplices = ("interval", "triangle", "tetrahedron", "pentatope")
+cubes = ("interval", "quadrilateral", "hexahedron", "tesseract")
 any_cell = (None,
             "vertex", "interval",
             "triangle", "tetrahedron", "prism",
-            "pyramid", "quadrilateral", "hexahedron")
+            "pyramid", "quadrilateral", "hexahedron", "pentatope", "tesseract")
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around
