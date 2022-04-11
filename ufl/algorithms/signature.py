@@ -93,18 +93,21 @@ def compute_terminal_hashdata(expressions, renumbering):
     return terminal_hashdata
 
 
-def compute_expression_hashdata(expression, terminal_hashdata):
+def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
     cache = {}
 
     for expr in unique_post_traversal(expression):
+        # Uniquely traverse tree and hash each node
+        # E.g. (a + b*c) is hashed as hash([+, hash(a), hash([*, hash(b), hash(c)])])
+        # Traversal uses post pattern, so children hashes are cached
         if expr._ufl_is_terminal_:
             data = [terminal_hashdata[expr]]
         else:
             data = [expr._ufl_typecode_]
 
             for op in expr.ufl_operands:
-                data += cache[op]
-        cache[expr] = data
+                data += [cache[op]]
+        cache[expr] = hashlib.sha512(str(data).encode("utf-8")).digest()
     return cache[expression]
 
 
@@ -119,8 +122,7 @@ def compute_expression_signature(expr, renumbering):  # FIXME: Fix callers
 
     # Pass it through a seriously overkill hashing algorithm
     # (should we use sha1 instead?)
-    data = str(expression_hashdata).encode("utf-8")
-    return hashlib.sha512(data).hexdigest()
+    return hashlib.sha512(expression_hashdata).hexdigest()
 
 
 def compute_form_signature(form, renumbering):  # FIXME: Fix callers
