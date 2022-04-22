@@ -122,7 +122,7 @@ def compute_expression_signature(expr, renumbering):  # FIXME: Fix callers
 
     # Pass it through a seriously overkill hashing algorithm
     # (should we use sha1 instead?)
-    return hashlib.sha512(expression_hashdata).hexdigest()
+    return expression_hashdata.hex()
 
 
 def compute_form_signature(form, renumbering):  # FIXME: Fix callers
