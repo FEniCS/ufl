@@ -1,8 +1,12 @@
-# -*- coding: utf-8 -*-
+import setuptools
 
-from setuptools import setup
+# Can be removed when pip editable user installs are fixed
+# https://github.com/pypa/pip/issues/7953
+import site
 import sys
+site.ENABLE_USER_SITE = "--user" in sys.argv[1:]
 
+<<<<<<< HEAD
 if sys.version_info < (3, 6):
     print("Python 3.6 or higher required, please upgrade.")
     sys.exit(1)
@@ -49,3 +53,6 @@ setup(
     ],
     package_dir={"ufl": "ufl"},
     install_requires=["numpy"])
+=======
+setuptools.setup()
+>>>>>>> main
