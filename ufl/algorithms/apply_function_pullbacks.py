@@ -167,6 +167,12 @@ def apply_single_function_pullbacks(r, element):
         if f.ufl_shape != element.value_shape():
             error("Expecting pulled back expression with shape '%s', got '%s'" % (element.value_shape(), f.ufl_shape))
         return f
+    elif mapping == "custom":
+        from IPython import embed; embed()
+        domain = r.ufl_domain()
+        J = Jacobian(domain)
+        detJ = JacobianDeterminant(J)
+        return r * detJ
     else:
         error("Unhandled mapping type '%s'" % mapping)
 
