@@ -45,7 +45,7 @@ jobs:
           repository: "FEniCS/docs"
           path: "docs"
           ssh-key: "${{ secrets.SSH_GITHUB_DOCS_PRIVATE_KEY }}"
-       - name: Copy documentation into repository and push
+      - name: Copy documentation into repository and push
         if: ${{ github.repository == 'FEniCS/ufl' && github.ref == 'refs/heads/doctest' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10' }}
         run: |
           cd docs
