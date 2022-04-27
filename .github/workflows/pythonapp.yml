@@ -38,3 +38,25 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: coveralls
+      - name: Checkout FEniCS/docs
+        if: ${{ github.repository == 'FEniCS/ufl' && github.ref == 'refs/heads/doctest' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10' }}
+        uses: actions/checkout@v2
+        with:
+          repository: "FEniCS/docs"
+          path: "docs"
+          ssh-key: "${{ secrets.SSH_GITHUB_DOCS_PRIVATE_KEY }}"
+       - name: Copy documentation into repository and push
+        if: ${{ github.repository == 'FEniCS/ufl' && github.ref == 'refs/heads/doctest' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10' }}
+        run: |
+          cd docs
+          git rm -r --ignore-unmatch ufl/main
+          mkdir -p ufl/main
+          cd ../doc/sphinx
+          make html
+          cd ../../docs
+          cp -r ../doc/sphinx/build/html/* ufl/main
+          git config --global user.email "fenics@github.com"
+          git config --global user.name "FEniCS GitHub Actions"
+          git add --all
+          git commit --allow-empty -m "Python FEniCS/ufl@${{ github.sha }}"
+          git push
