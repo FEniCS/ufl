@@ -47,11 +47,16 @@ jobs:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: coveralls
  
+      - name: Build documentation
+        run: |
+          cd doc/sphinx
+          make html
+
       - name: Upload documentation artifact
         uses: actions/upload-artifact@v2
         with:
           name: doc-${{ matrix.os }}-${{ matrix.python-version }}
-          path: doc/build/html/
+          path: doc/sphinx/build/html/
           retention-days: 2
           if-no-files-found: error
 
@@ -72,7 +77,7 @@ jobs:
           cd docs
           git rm -r --ignore-unmatch ufl/${{ env.VERSION_NAME }}
           mkdir -p ufl/${{ env.VERSION_NAME }}
-          cp -r ../doc/build/html/* ufl/${{ env.VERSION_NAME }}
+          cp -r ../doc/sphinx/build/html/* ufl/${{ env.VERSION_NAME }}
       - name: Commit and push documentation to FEniCS/docs
         if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.8 }}
         run: |
