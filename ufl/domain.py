@@ -209,6 +209,9 @@ class TensorProductMesh(AbstractDomain):
     def ufl_cell(self):
         return self._ufl_cell
 
+    def ufl_meshes(self):
+        return self._ufl_meshes
+
     def is_piecewise_linear_simplex_domain(self):
         return False  # TODO: Any cases this is True
 
@@ -269,7 +272,7 @@ def default_domain(cell):
 def as_domain(domain):
     """Convert any valid object to an AbstractDomain type."""
     if isinstance(domain, AbstractDomain):
-        # Modern .ufl files and dolfin behaviour
+        # Modern UFL files and dolfin behaviour
         return domain
     elif hasattr(domain, "ufl_domain"):
         # If we get a dolfin.Mesh, it can provide us a corresponding
@@ -277,7 +280,7 @@ def as_domain(domain):
         # subclass ufl.Mesh.
         return domain.ufl_domain()
     else:
-        # Legacy .ufl files
+        # Legacy UFL files
         # TODO: Make this conversion in the relevant constructors
         # closer to the user interface?
         # TODO: Make this configurable to be an error from the dolfin side?

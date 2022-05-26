@@ -20,8 +20,7 @@ The entire form language can be imported in Python with the line
 
    from ufl import *
 
-which is assumed in all examples below and can be omitted in ``.ufl``
-files.  This can be useful for experimenting with the language in an
+This can be useful for experimenting with the language in an
 interactive Python interpreter.
 
 
@@ -1765,8 +1764,9 @@ a form, because ``derivative`` changes the arity of the form::
 Form files
 ==========
 
-UFL forms and elements can be collected in a *form file* with the
-extension *.ufl*. Form compilers will typically execute this file with
+UFL forms and elements can be collected in a *form file*. Form files
+are standard Python files which usually import entire UFL namespace.
+Form compilers will typically execute this file with
 the global UFL namespace available, and extract forms and elements
 that are defined after execution.  The compilers do not compile all
 forms and elements that are defined in file, but only those that

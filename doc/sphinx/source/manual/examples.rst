@@ -31,7 +31,7 @@ which can be implemented in UFL as follows::
 
   a = v*u*dx
 
-This example is implemented in the file ``Mass.ufl`` in the collection
+This example is implemented in the file ``Mass.py`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 Poisson equation
@@ -64,7 +64,7 @@ or like this::
 
   a = v.dx(i)*u.dx(i)*dx
 
-This example is implemented in the file ``Poisson.ufl`` in the collection
+This example is implemented in the file ``Poisson.py`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 
@@ -101,7 +101,7 @@ or like this::
   a = v[i].dx(j)*u[i].dx(j)*dx
   L = v[i]*f[i]*dx
 
-This example is implemented in the file ``PoissonSystem.ufl`` in
+This example is implemented in the file ``PoissonSystem.py`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -144,7 +144,7 @@ or like this::
   a = 0.25*(v[j].dx(i) + v[i].dx(j))* \
            (u[j].dx(i) + u[i].dx(j))*dx
 
-This example is implemented in the file ``Elasticity.ufl`` in the
+This example is implemented in the file ``Elasticity.py`` in the
 collection of demonstration forms included with the UFL source
 distribution.
 
@@ -178,7 +178,7 @@ or like this::
 
   a = v[i]*w[j]*u[i].dx(j)*dx
 
-This example is implemented in the file ``NavierStokes.ufl`` in
+This example is implemented in the file ``NavierStokes.py`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -231,7 +231,7 @@ which can be implemented as follows::
   a = v*u1*dx + k*c*dot(grad(v), grad(u1))*dx
   L = v*u0*dx + k*v*f*dx
 
-This example is implemented in the file ``Heat.ufl`` in the collection
+This example is implemented in the file ``Heat.py`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 
@@ -271,7 +271,7 @@ implemented as follows::
   a = (inner(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
   L = dot(v, f)*dx
 
-This example is implemented in the file ``Stokes.ufl`` in the collection
+This example is implemented in the file ``Stokes.py`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 Mixed formulation of Poisson
@@ -321,7 +321,7 @@ first order BDM H(div)-conforming elements for
   a = (dot(tau, sigma) - div(tau)*u + w*div(sigma))*dx
   L = w*f*dx
 
-This example is implemented in the file ``MixedPoisson.ufl`` in
+This example is implemented in the file ``MixedPoisson.py`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -376,7 +376,7 @@ first order elements may be implemented as follows::
 ..
     TODO: set alpha and gamma to proper values
 
-This example is implemented in the file ``PoissonDG.ufl`` in
+This example is implemented in the file ``PoissonDG.py`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -448,7 +448,9 @@ other problems where certain quantities need to be computed elsewhere
 
 ::
 
-  # NonlinearPoisson.ufl
+  # NonlinearPoisson.py
+  from ufl import *
+
   element = FiniteElement("Lagrange", triangle, 1)
   DG = FiniteElement("Discontinuous Lagrange", triangle, 0)
   sig = VectorElement("Discontinuous Lagrange", triangle, 0)
@@ -467,7 +469,9 @@ and
 
 ::
 
-  # Tangent.ufl
+  # Tangent.py
+  from ufl import *
+
   element = FiniteElement("Lagrange", triangle, 1)
   DG = FiniteElement("Discontinuous Lagrange", triangle, 0)
 
@@ -482,7 +486,9 @@ and
 
 ::
 
-  # Gradient.ufl
+  # Gradient.py
+  from ufl import *
+
   element = FiniteElement("Lagrange", triangle, 1)
   DG = VectorElement("Discontinuous Lagrange", triangle, 0)
 
@@ -496,7 +502,9 @@ and
 The three forms can be implemented using the ``QuadratureElement``
 in a similar fashion in which only the element declaration is different::
 
-  # QE1NonlinearPoisson.ufl
+  # QE1NonlinearPoisson.py
+  from ufl import *
+
   element = FiniteElement("Lagrange", triangle, 1)
   QE = FiniteElement("Quadrature", triangle, 2)
   sig = VectorElement("Quadrature", triangle, 2)
@@ -505,7 +513,9 @@ and
 
 ::
 
-  # QE1Tangent.ufl
+  # QE1Tangent.py
+  from ufl import *
+
   element = FiniteElement("Lagrange", triangle, 1)
   QE = FiniteElement("Quadrature", triangle, 2)
 
@@ -513,7 +523,9 @@ and
 
 ::
 
-  # QE1Gradient.ufl
+  # QE1Gradient.py
+  from ufl import *
+
   element = FiniteElement("Lagrange", triangle, 1)
   QE = VectorElement("Quadrature", triangle, 2)
 
