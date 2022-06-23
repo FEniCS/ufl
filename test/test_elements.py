@@ -121,6 +121,14 @@ def test_vector_bdm():
         assert element == eval(repr(element))
 
 
+def test_mtw():
+    cell = triangle
+    element = FiniteElement("MTW", cell, 3)
+    assert element.value_shape() == (cell.geometric_dimension(), )
+    assert element == eval(repr(element))
+    assert element.mapping() == "contravariant Piola"
+
+
 def test_mixed():
     for cell in (triangle, tetrahedron):
         dim = cell.geometric_dimension()

@@ -94,8 +94,8 @@ simplices = ("interval", "triangle", "tetrahedron")
 cubes = ("interval", "quadrilateral", "hexahedron")
 any_cell = (None,
             "vertex", "interval",
-            "triangle", "tetrahedron",
-            "quadrilateral", "hexahedron")
+            "triangle", "tetrahedron", "prism",
+            "pyramid", "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around
@@ -124,6 +124,8 @@ register_element("Crouzeix-Raviart", "CR", 0, L2, "identity", (1, 1),
 register_element("Discontinuous Raviart-Thomas", "DRT", 1, L2,
                  "contravariant Piola", (1, None), simplices[1:])
 register_element("Hermite", "HER", 0, H1, "identity", (3, 3), simplices)
+register_element("Kong-Mulder-Veldhuizen", "KMV", 0, H1, "identity", (1, None),
+                 simplices[1:])
 register_element("Mardal-Tai-Winther", "MTW", 1, H1, "contravariant Piola", (3, 3),
                  ("triangle",))
 register_element("Morley", "MOR", 0, H2, "identity", (2, 2), ("triangle",))
