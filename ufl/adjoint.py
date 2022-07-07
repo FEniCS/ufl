@@ -25,6 +25,7 @@ class Adjoint(BaseForm):
         "_form",
         "_repr",
         "_arguments",
+        "_coefficients",
         "ufl_operands",
         "_hash")
 
@@ -35,7 +36,8 @@ class Adjoint(BaseForm):
         form = args[0]
         # Check trivial case
         if form == 0:
-            # Not a ufl.Zero
+            # Not a ufl.Zero!
+            # Strictly speaking this is a zero in the dual space which doesn't currently exist in UFL.
             return 0
 
         if isinstance(form, Adjoint):
@@ -68,6 +70,7 @@ class Adjoint(BaseForm):
     def _analyze_form_arguments(self):
         """The arguments of adjoint are the reverse of the form arguments."""
         self._arguments = self._form.arguments()[::-1]
+        self._coefficients = self._form.coefficients()
 
     def equals(self, other):
         if type(other) is not Adjoint:

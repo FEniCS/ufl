@@ -79,8 +79,9 @@ class BaseForm(object, metaclass=UFLType):
     _ufl_required_methods_ = ('_analyze_form_arguments', "ufl_domains")
 
     def __init__(self):
-        # Internal variables for caching form argument data
+        # Internal variables for caching form argument/coefficient data
         self._arguments = None
+        self._coefficients = None
 
     # --- Accessor interface ---
     def arguments(self):
@@ -88,6 +89,17 @@ class BaseForm(object, metaclass=UFLType):
         if self._arguments is None:
             self._analyze_form_arguments()
         return self._arguments
+
+    def coefficients(self):
+        "Return all ``Coefficient`` objects found in form."
+        # TODO: 1) Implement consequecnes of that for subclasses (Form/BaseFormOperator)
+        #       but also Action/Matrix/Adjoint...
+        # Reason to have this is for assemble block -> facilitates getting dependency
+        # Could we not just extract_coefficients?
+        # 2) Fix Analysis which was buildt on the assumption that BaseForm only have arguments
+        if self._coefficients is None:
+            self._analyze_form_arguments()
+        return self._coefficients
 
     # --- Operator implementations ---
 
@@ -660,7 +672,7 @@ def sub_forms_by_domain(form):
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
-    if not isinstance(form, BaseForm):
+    if not isinstance(form, BaseForm) and form != 0:
         error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
     return form
 
@@ -704,6 +716,7 @@ class FormSum(BaseForm):
     arg_weights is a list of tuples of component index and weight"""
 
     __slots__ = ("_arguments",
+                 "_coefficients",
                  "_weights",
                  "_components",
                  "ufl_operands",
@@ -726,6 +739,7 @@ class FormSum(BaseForm):
                 weights.append(w)
 
         self._arguments = None
+        self._coefficients = None
         self._domains = None
         self._domain_numbering = None
         self._hash = None
@@ -762,9 +776,12 @@ class FormSum(BaseForm):
     def _analyze_form_arguments(self):
         "Return all ``Argument`` objects found in form."
         arguments = []
+        coefficients = []
         for component in self._components:
             arguments.append(component.arguments())
+            coefficients.append(component.coefficients())
         self._arguments = arguments
+        self._coefficients = coefficients
 
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"

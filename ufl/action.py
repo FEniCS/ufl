@@ -10,7 +10,7 @@
 from ufl.form import BaseForm, FormSum, Form
 from ufl.core.ufl_type import ufl_type
 from ufl.argument import Argument
-from ufl.coefficient import Coefficient, Cofunction
+from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
 from ufl.core.interp import Interp
 
@@ -37,6 +37,7 @@ class Action(BaseForm):
         "ufl_operands",
         "_repr",
         "_arguments",
+        "_coefficients",
         "_hash")
 
     def __getnewargs__(self):
@@ -78,6 +79,7 @@ class Action(BaseForm):
                 != right.arguments()[0].ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
+        # Add BaseFormOperator underneath instead of Interp ? Check Extop branch
         elif isinstance(right, (Coefficient, Cofunction, Argument, Interp)):
             if (left.arguments()[-1].ufl_function_space()
                 != right.ufl_function_space()):
@@ -110,13 +112,22 @@ class Action(BaseForm):
         Argument of the right operand are consumed by the action.
         """
 
+        coefficients = ()
         if isinstance(self._right, BaseForm):
             self._arguments = self._left.arguments()[:-1] \
                 + self._right.arguments()[1:]
-        elif isinstance(self._right, Coefficient):
+            coefficients += self._right.coefficients()
+        elif isinstance(self._right, BaseCoefficient):
             self._arguments = self._left.arguments()[:-1]
+            coefficients += (self._right,)
+        elif isinstance(self._right, Argument):
+            self._arguments = self._left.arguments()[:-1] \
+                + (self._right,)
         else:
             raise TypeError
+        if isinstance(self._left, BaseForm):
+            coefficients += self._left.coefficients()
+        self._coefficients = coefficients
 
     def equals(self, other):
         if type(other) is not Action:

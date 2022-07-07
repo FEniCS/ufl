@@ -115,6 +115,21 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
         BaseFormDerivative.__init__(self, base_form, coefficients, arguments,
                                     coefficient_derivatives)
 
+    # Enforce Operator reconstruction as Operator is a parent class of both: BaseFormDerivative and BaseFormOperator.
+    # Therfore the latter overwrites Operator reconstruction and we would have:
+    #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ = BaseFormOperator._ufl_expr_reconstruct_
+    _ufl_expr_reconstruct_= Operator._ufl_expr_reconstruct_
+
+
+class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):
+    """Derivative of a base form operator w.r.t. the SpatialCoordinates."""
+    _ufl_noslots_ = True
+
+    def __init__(self, base_form, coefficients, arguments,
+                 coefficient_derivatives):
+        BaseFormOperatorDerivative.__init__(self, base_form, coefficients, arguments,
+                                            coefficient_derivatives)
+
 
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):

@@ -74,6 +74,9 @@ class BaseFormOperator(Operator, BaseForm):
             argument_slots = (v_star,)
         self._argument_slots = argument_slots
 
+        # Internal variables for caching coefficient data
+        self._coefficients = None
+
     # BaseFormOperators don't have free indices.
     ufl_free_indices = ()
     ufl_index_dimensions = ()

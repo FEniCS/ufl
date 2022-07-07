@@ -118,6 +118,7 @@ class Cofunction(BaseCoefficient, BaseForm):
     __slots__ = (
         "_count",
         "_arguments",
+        "_coefficients",
         "_ufl_function_space",
         "ufl_operands",
         "_repr",
@@ -160,6 +161,7 @@ class Cofunction(BaseCoefficient, BaseForm):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
         self._arguments = ()
+        self._coefficients = (self,)
 
 
 @ufl_type()

@@ -187,6 +187,7 @@ class Coargument(BaseForm, BaseArgument):
         "_ufl_function_space",
         "_ufl_shape",
         "_arguments",
+        "_coefficients",
         "ufl_operands",
         "_number",
         "_part",
@@ -215,6 +216,7 @@ class Coargument(BaseForm, BaseArgument):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
         self._arguments = (self,)
+        self._coefficients = ()
 
     def equals(self, other):
         if type(other) is not Coargument:
