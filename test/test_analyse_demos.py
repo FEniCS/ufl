@@ -14,8 +14,8 @@ demodir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "demo"))
 
 def get_demo_filenames():
     filenames = sorted(
-        set(glob(os.path.join(demodir, "*.ufl")))
-        - set(glob(os.path.join(demodir, "_*.ufl")))
+        set(glob(os.path.join(demodir, "*.py")))
+        - set(glob(os.path.join(demodir, "_*.py")))
         )
     return filenames
 
@@ -25,5 +25,4 @@ def test_demo_files(filename):
     "Check each form in each file with validate_form."
     data = load_ufl_file(filename)
     for form in data.forms:
-        #fd = compute_form_data(form)  # TODO: Skip failure examples
         validate_form(form)
