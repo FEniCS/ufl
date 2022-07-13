@@ -130,16 +130,12 @@ def compute_form_signature(form, renumbering):  # FIXME: Fix callers
     integrals = form.integrals()
     integrands = [integral.integrand() for integral in integrals]
 
-    # Extract external operators
-    #extops = form.external_operators()
-    #extops_hashdata = [e._ufl_signature_data_(renumbering) for e in extops]
-
     # Build hashdata for all terminals first, with on-the-fly
     # replacement of functions and index labels.
     terminal_hashdata = compute_terminal_hashdata(integrands, renumbering)
 
     # Build hashdata for each integral
-    hashdata = [] # [extops_hashdata]
+    hashdata = []
     for integral in integrals:
         # Compute hash data for expression, this is the expensive part
         integrand_hashdata = compute_expression_hashdata(integral.integrand(),
