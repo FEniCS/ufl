@@ -1,5 +1,0 @@
-To run these demos from within the source tree without needing to
-install UFL system-wide, update your paths according to
-
-  export PATH="../scripts:$PATH"
-  export PYTHONPATH="..:$PYTHONPATH"
