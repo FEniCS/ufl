@@ -40,7 +40,7 @@ class BaseArgument(object):
     def __init__(self, function_space, number, part=None):
 
         if isinstance(function_space, FiniteElementBase):
-            # For legacy support for .ufl files using cells, we map the cell to
+            # For legacy support for UFL files using cells, we map the cell to
             # the default Mesh
             element = function_space
             domain = default_domain(element.cell())
