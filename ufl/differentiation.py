@@ -118,7 +118,7 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     # Enforce Operator reconstruction as Operator is a parent class of both: BaseFormDerivative and BaseFormOperator.
     # Therfore the latter overwrites Operator reconstruction and we would have:
     #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ = BaseFormOperator._ufl_expr_reconstruct_
-    _ufl_expr_reconstruct_= Operator._ufl_expr_reconstruct_
+    _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
 
 
 class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):

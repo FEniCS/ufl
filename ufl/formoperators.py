@@ -166,7 +166,7 @@ def adjoint(form, reordered_arguments=None):
             # we get 0.
             pass
     # Adjoint(Action(2-form, derivative(u,u)))
-    #if isinstance(for)
+    # if isinstance(for)
     return Adjoint(form)
 
 
