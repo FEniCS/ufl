@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """This module defines the Interp class."""
 
-# Copyright (C) 2019 Nacime Bouziani
+# Copyright (C) 2021 Nacime Bouziani
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
-# Modified by Nacime Bouziani, 2021
+# Modified by Nacime Bouziani, 2022
 
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import as_ufl
