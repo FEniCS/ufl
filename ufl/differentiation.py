@@ -121,6 +121,8 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
 
 
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
 class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):
     """Derivative of a base form operator w.r.t. the SpatialCoordinates."""
     _ufl_noslots_ = True
