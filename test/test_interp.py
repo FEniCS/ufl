@@ -143,22 +143,27 @@ def test_extract_base_form_operators(V1, V2):
     # -- Interp(u, V2) -- #
     Iu = Interp(u, V2)
     assert extract_arguments(Iu) == [vstar]
-    assert extract_arguments_and_coefficients(Iu) == ([vstar], [u, Iu.result_coefficient()])
+    # assert extract_arguments_and_coefficients(Iu) == ([vstar], [u, Iu.result_coefficient()])
+    assert extract_arguments_and_coefficients(Iu) == ([vstar], [u])
 
     F = Iu * dx
     # Form composition: Iu * dx <=> Action(v * dx, Iu(u; v*))
     assert extract_arguments(F) == []
-    assert extract_arguments_and_coefficients(F) == ([], [u, Iu.result_coefficient()])
+    assert extract_arguments_and_coefficients(F) == ([], [u])
+    # assert extract_arguments_and_coefficients(F) == ([], [u, Iu.result_coefficient()])
 
     for e in [Iu, F]:
-        assert extract_coefficients(e) == [u, Iu.result_coefficient()]
+        # assert extract_coefficients(e) == [u, Iu.result_coefficient()]
+        assert extract_coefficients(e) == [u]
         assert extract_base_form_operators(e) == [Iu]
 
     # -- Interp(u, V2) -- #
     Iv = Interp(uhat, V2)
     assert extract_arguments(Iv) == [vstar, uhat]
-    assert extract_arguments_and_coefficients(Iv) == ([vstar, uhat], [Iv.result_coefficient()])
-    assert extract_coefficients(Iv) == [Iv.result_coefficient()]
+    assert extract_arguments_and_coefficients(Iv) == ([vstar, uhat], [])
+    # assert extract_arguments_and_coefficients(Iv) == ([vstar, uhat], [Iv.result_coefficient()])
+    assert extract_coefficients(Iv) == []
+    # assert extract_coefficients(Iv) == [Iv.result_coefficient()]
     assert extract_base_form_operators(Iv) == [Iv]
 
     # -- Action(v * v2 * dx, Iv) -- #
