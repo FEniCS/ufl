@@ -30,7 +30,6 @@ class Matrix(BaseForm):
         "_hash",
         "_ufl_shape",
         "_arguments",
-        "_external_operators",
         "_coefficients")
     _globalcount = 0
 

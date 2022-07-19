@@ -48,16 +48,6 @@ class ExternalOperator(BaseFormOperator):
                                   result_coefficient=result_coefficient,
                                   argument_slots=argument_slots)
 
-    def _analyze_external_operators(self):
-        r"""Analyze which ExternalOperator objects can be found in a given ExternalOperator.
-            Example: Let N1, N2 be ExternalOperators and u, w be Coefficients:
-                self = N1(u, N2(w); vstar)
-                -> self._external_operators = (N2, N1)
-        """
-        from ufl.algorithms.analysis import extract_external_operators
-        extops = (self,) + tuple(e for op in self.ufl_operands for e in extract_external_operators(op))
-        self._external_operators = tuple(sorted(set(extops), key=lambda x: x.count()))
-
     """
     def ufl_element(self):
         "Shortcut to get the finite element of the function space of the external operator"

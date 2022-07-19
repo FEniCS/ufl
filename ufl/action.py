@@ -38,7 +38,6 @@ class Action(BaseForm):
         "ufl_operands",
         "_repr",
         "_arguments",
-        "_external_operators",
         "_coefficients",
         "_hash")
 
@@ -140,15 +139,6 @@ class Action(BaseForm):
         if self is other:
             return True
         return (self._left == other._left and self._right == other._right)
-
-    def _analyze_external_operators(self):
-        "Define external_operators of Action"
-        if isinstance(self._right, (Form, ExternalOperator)):
-            self._external_operators = tuple(set(self._left.external_operators() + self._right.external_operators()))
-        elif isinstance(self._right, Coefficient):
-            self._external_operators = self._left.external_operators()
-        else:
-            raise TypeError
 
     def __eq__(self, other):
         if not isinstance(other, Action):

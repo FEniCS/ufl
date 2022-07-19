@@ -123,7 +123,6 @@ class Cofunction(BaseCoefficient, BaseForm):
         "ufl_operands",
         "_repr",
         "_ufl_shape",
-        "_external_operators",
         "_hash"
     )
     # _globalcount = 0

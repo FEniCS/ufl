@@ -25,7 +25,6 @@ class Adjoint(BaseForm):
         "_form",
         "_repr",
         "_arguments",
-        "_external_operators",
         "_coefficients",
         "ufl_operands",
         "_hash")
@@ -79,10 +78,6 @@ class Adjoint(BaseForm):
         if self is other:
             return True
         return (self._form == other._form)
-
-    def _analyze_external_operators(self):
-        "Define external_operators of Adjoint"
-        self._external_operators = self._form.external_operators()
 
     def __str__(self):
         return "Adjoint(%s)" % self._form

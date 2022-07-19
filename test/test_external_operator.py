@@ -370,14 +370,13 @@ def test_differentiation_procedure_action():
     Ja2 = derivative(a2, s, s_hat)
     Ja2 = expand_derivatives(Ja2)
 
-    assert len(Ja1.external_operators()) == 1
-    assert len(Ja2.external_operators()) == 1
-
     # Get external operators
-    dN1du, = Ja1.external_operators()
+    assert isinstance(Ja1, Action)
+    dN1du = Ja1.right()
     dN1du_action = Action(dN1du, w)
 
-    dN2du, = Ja2.external_operators()
+    assert isinstance(Ja2, Action)
+    dN2du = Ja2.right()
     dN2du_action = Action(dN2du, r)
 
     # Check shape
@@ -409,7 +408,8 @@ def test_differentiation_procedure_action():
 def test_extractions():
     from ufl.algorithms.analysis import (extract_coefficients, extract_arguments,
                                          extract_arguments_and_coefficients,
-                                         extract_external_operators, extract_constants)
+                                         extract_external_operators, extract_base_form_operators,
+                                         extract_constants)
 
     V = FiniteElement("CG", triangle, 1)
     u = Coefficient(V)
@@ -423,6 +423,7 @@ def test_extractions():
     assert extract_arguments_and_coefficients(e) == ([vstar_e], [u])
     assert extract_constants(e) == [c]
     assert extract_external_operators(e) == [e]
+    assert extract_base_form_operators(e) == [e]
 
     F = e * dx
 
@@ -430,7 +431,7 @@ def test_extractions():
     assert extract_arguments(e) == [vstar_e]
     assert extract_arguments_and_coefficients(e) == ([vstar_e], [u])
     assert extract_constants(F) == [c]
-    assert F.external_operators() == (e,)
+    assert F.base_form_operators() == (e,)
 
     # The external operators have an argument vstar with number 1
     u_hat = Argument(V, 2)
@@ -440,13 +441,14 @@ def test_extractions():
     assert extract_arguments(e) == [vstar_e, u_hat]
     assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u])
     assert extract_external_operators(e) == [e]
+    assert extract_base_form_operators(e) == [e]
 
     F = e * dx
 
     assert extract_coefficients(F) == [u]
     assert extract_arguments(e) == [vstar_e, u_hat]
     assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u])
-    assert F.external_operators() == (e,)
+    assert F.base_form_operators() == (e,)
 
     w = Coefficient(V)
     e2 = ExternalOperator(w, e, function_space=V)
@@ -456,20 +458,21 @@ def test_extractions():
     assert extract_arguments(e2) == [vstar_e2, u_hat]
     assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, w])
     assert extract_external_operators(e2) == [e, e2]
+    assert extract_base_form_operators(e2) == [e, e2]
 
     F = e2 * dx
 
     assert extract_coefficients(e2) == [u, w]
     assert extract_arguments(e2) == [vstar_e2, u_hat]
     assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, w])
-    assert F.external_operators() == (e, e2)
+    assert F.base_form_operators() == (e, e2)
 
 
 def get_external_operators(form_base):
     if isinstance(form_base, ExternalOperator):
         return (form_base,)
     elif isinstance(form_base, BaseForm):
-        return form_base.external_operators()
+        return form_base.base_form_operators()
     else:
         raise ValueError('Expecting FormBase argument!')
 
@@ -515,10 +518,12 @@ def test_adjoint_action_jacobian(V1, V2, V3):
         assert dFdu.arguments() == v_F + (u_hat(n_arg + 1),)
         assert dFdm.arguments() == v_F + (m_hat(n_arg + 1),)
 
+        assert isinstance(dFdu, Action)
+
         # dNdu(u, m; u_hat, v*)
-        dNdu, = dFdu.external_operators()
+        dNdu = dFdu.right()
         # dNdm(u, m; m_hat, v*)
-        dNdm, = dFdm.external_operators()
+        dNdm = dFdm.right()
 
         assert dNdu.derivatives == (1, 0)
         assert dNdm.derivatives == (0, 1)
