@@ -9,10 +9,10 @@
 #
 # Modified by Anders Logg, 2009-2010
 
+from ufl.core.external_operator import ExternalOperator
 from ufl.log import error
 from ufl.classes import CoefficientDerivative, Interp
 from ufl.constantvalue import as_ufl
-from ufl.argument import Coargument
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.analysis import has_exact_type
@@ -31,6 +31,7 @@ class Replacer(MultiFunction):
         except KeyError:
             return self.reuse_if_untouched(o, *args)
 
+    """
     def external_operator(self, o):
         try:
             o = self.mapping[o]
@@ -51,6 +52,15 @@ class Replacer(MultiFunction):
         new_args = tuple(replace(arg, self.mapping) if not isinstance(arg, Coargument) else self.mapping.get(arg, arg)
                          for arg in o.argument_slots())
         return o._ufl_expr_reconstruct_(*new_ops, result_coefficient=coeff, argument_slots=new_args)
+    """
+
+    def external_operator(self, o):
+        o = self.mapping.get(o) or o
+        if isinstance(o, ExternalOperator):
+            new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
+            new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+            return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_args)
+        return o
 
     def interp(self, o):
         o = self.mapping.get(o) or o
