@@ -106,7 +106,7 @@ def extract_type(a, ufl_types):
         # Look for BaseArguments in BaseFormOperator's argument slots only since that's where they are by definition.
         # Don't look into operands, which is convenient for external operator composition, e.g. N1(N2; v*)
         # where N2 is seen as an operator and not a form.
-        slots = o.ufl_operands # + (o.result_coefficient(),)
+        slots = o.ufl_operands  # + (o.result_coefficient(),)
         for ai in slots:
             base_form_objects += tuple(extract_type(ai, ufl_types_no_args))
     objects.update(base_form_objects)
