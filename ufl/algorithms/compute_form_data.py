@@ -353,14 +353,7 @@ def compute_form_data(form,
     self.reduced_coefficients = sorted(reduced_coefficients_set,
                                        key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
-
-    new_external_operators = sorted((e.result_coefficient() for e in form.external_operators()
-                                     if e in self.reduced_coefficients),
-                                    key=lambda e: e.count())
-    new_coefficients = tuple(e for e in self.original_form.coefficients() if e not in new_external_operators)
-    new_coefficients += tuple(new_external_operators)
-
-    self.original_coefficient_positions = [i for i, c in enumerate(new_coefficients)
+    self.original_coefficient_positions = [i for i, c in enumerate(self.original_form.coefficients())
                                            if c in self.reduced_coefficients]
 
     # Store back into integral data which form coefficients are used
