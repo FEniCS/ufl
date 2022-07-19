@@ -51,6 +51,7 @@ class Replacer(MultiFunction):
         new_args = tuple(replace(arg, self.mapping) if not isinstance(arg, Coargument) else self.mapping.get(arg, arg)
                          for arg in o.argument_slots())
         return o._ufl_expr_reconstruct_(*new_ops, result_coefficient=coeff, argument_slots=new_args)
+
     def interp(self, o):
         o = self.mapping.get(o) or o
         if isinstance(o, Interp):

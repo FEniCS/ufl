@@ -10,19 +10,10 @@
 #
 # Modified by Nacime Bouziani, 2021
 
-from ufl.coefficient import Coefficient
-from ufl.argument import Argument
-from ufl.core.operator import Operator
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import as_ufl
-from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
-from ufl.referencevalue import ReferenceValue
 
 
-# @ufl_type(num_ops="varying", inherit_indices_from_operand=0, is_differential=True)
 @ufl_type(num_ops="varying", is_differential=True)
 class ExternalOperator(BaseFormOperator):
 
