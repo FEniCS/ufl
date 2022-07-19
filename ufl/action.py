@@ -13,7 +13,6 @@ from ufl.argument import Argument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
 from ufl.core.base_form_operator import BaseFormOperator
-from ufl.core.external_operator import ExternalOperator
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
