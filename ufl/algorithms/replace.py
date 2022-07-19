@@ -10,7 +10,7 @@
 # Modified by Anders Logg, 2009-2010
 
 from ufl.log import error
-from ufl.classes import CoefficientDerivative
+from ufl.classes import CoefficientDerivative, Interp
 from ufl.constantvalue import as_ufl
 from ufl.argument import Coargument
 from ufl.corealg.multifunction import MultiFunction
@@ -25,7 +25,7 @@ class Replacer(MultiFunction):
         if not all(k.ufl_shape == v.ufl_shape for k, v in mapping.items()):
             error("Replacement expressions must have the same shape as what they replace.")
 
-    def expr(self, o, *args):
+    def ufl_type(self, o, *args):
         try:
             return self.mapping[o]
         except KeyError:
@@ -51,6 +51,12 @@ class Replacer(MultiFunction):
         new_args = tuple(replace(arg, self.mapping) if not isinstance(arg, Coargument) else self.mapping.get(arg, arg)
                          for arg in o.argument_slots())
         return o._ufl_expr_reconstruct_(*new_ops, result_coefficient=coeff, argument_slots=new_args)
+    def interp(self, o):
+        o = self.mapping.get(o) or o
+        if isinstance(o, Interp):
+            new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+            return o._ufl_expr_reconstruct_(*reversed(new_args))
+        return o
 
     def coefficient_derivative(self, o):
         error("Derivatives should be applied before executing replace.")

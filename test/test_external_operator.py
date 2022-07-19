@@ -418,17 +418,17 @@ def test_extractions():
     e = ExternalOperator(u, c, function_space=V)
     vstar_e, = e.arguments()
 
-    assert extract_coefficients(e) == [u, e.result_coefficient()]
+    assert extract_coefficients(e) == [u]
     assert extract_arguments(e) == [vstar_e]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e], [u, e.result_coefficient()])
+    assert extract_arguments_and_coefficients(e) == ([vstar_e], [u])
     assert extract_constants(e) == [c]
     assert extract_external_operators(e) == [e]
 
     F = e * dx
 
-    assert extract_coefficients(F) == [u, e.result_coefficient()]
+    assert extract_coefficients(F) == [u]
     assert extract_arguments(e) == [vstar_e]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e], [u, e.result_coefficient()])
+    assert extract_arguments_and_coefficients(e) == ([vstar_e], [u])
     assert extract_constants(F) == [c]
     assert F.external_operators() == (e,)
 
@@ -436,32 +436,32 @@ def test_extractions():
     u_hat = Argument(V, 2)
     e = ExternalOperator(u, function_space=V, derivatives=(1,), argument_slots=(vstar_e, u_hat))
 
-    assert extract_coefficients(e) == [u, e.result_coefficient()]
+    assert extract_coefficients(e) == [u]
     assert extract_arguments(e) == [vstar_e, u_hat]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u, e.result_coefficient()])
+    assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u])
     assert extract_external_operators(e) == [e]
 
     F = e * dx
 
-    assert extract_coefficients(F) == [u, e.result_coefficient()]
+    assert extract_coefficients(F) == [u]
     assert extract_arguments(e) == [vstar_e, u_hat]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u, e.result_coefficient()])
+    assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u])
     assert F.external_operators() == (e,)
 
     w = Coefficient(V)
     e2 = ExternalOperator(w, e, function_space=V)
     vstar_e2, = e2.arguments()
 
-    assert extract_coefficients(e2) == [u, e.result_coefficient(), w, e2.result_coefficient()]
+    assert extract_coefficients(e2) == [u, w]
     assert extract_arguments(e2) == [vstar_e2, u_hat]
-    assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, e.result_coefficient(), w, e2.result_coefficient()])
+    assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, w])
     assert extract_external_operators(e2) == [e, e2]
 
     F = e2 * dx
 
-    assert extract_coefficients(e2) == [u, e.result_coefficient(), w, e2.result_coefficient()]
+    assert extract_coefficients(e2) == [u, w]
     assert extract_arguments(e2) == [vstar_e2, u_hat]
-    assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, e.result_coefficient(), w, e2.result_coefficient()])
+    assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, w])
     assert F.external_operators() == (e, e2)
 
 
@@ -476,6 +476,11 @@ def get_external_operators(form_base):
 
 def test_adjoint_action_jacobian(V1, V2, V3):
 
+    domain = default_domain(triangle)
+    V1 = FunctionSpace(domain, V1)
+    V2 = FunctionSpace(domain, V2)
+    V3 = FunctionSpace(domain, V3)
+
     u = Coefficient(V1)
     m = Coefficient(V2)
 
@@ -486,7 +491,7 @@ def test_adjoint_action_jacobian(V1, V2, V3):
     # Arguments for the Gateaux-derivative
     u_hat = lambda number: Argument(V1, number)   # V1: degree 1 # dFdu.arguments()[-1]
     m_hat = lambda number: Argument(V2, number)   # V2: degree 2 # dFdm.arguments()[-1]
-    vstar_N = lambda number: Coargument(V3, number)  # V3: degree 3
+    vstar_N = lambda number: Argument(V3.dual(), number)  # V3: degree 3
 
     # Coefficients for the action
     w = Coefficient(V1)  # for u
@@ -660,6 +665,9 @@ def test_grad():
     # External operator with no specific gradient implementation provided
     #  -> Differentiation rules will turn grad(e) into grad(e.result_coefficient())
     # where e.result_coefficient() is the Coefficient produced by e
+
+    # TODO: Rewrite grad tests and lift them to firedrake repo as that's where assembly will replace the external operator when grad is applied
+    """
     e = ExternalOperator(u, function_space=V)
     expr = grad(e)
     assert expr != grad(e.result_coefficient())
@@ -675,6 +683,7 @@ def test_grad():
 
     expr = expand_derivatives(expr)
     assert expr == grad(u_test)
+    """
 
 
 def test_multiple_external_operators():

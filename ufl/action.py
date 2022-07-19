@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module defines the Matrix class."""
+"""This module defines the Action class."""
 
 # Copyright (C) 2021 India Marsden
 #
@@ -8,45 +8,63 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.form import BaseForm, FormSum, Form
-from ufl.coefficient import Coefficient, Cofunction
+from ufl.core.ufl_type import ufl_type
+from ufl.argument import Argument
+from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
+from ufl.differentiation import CoefficientDerivative
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.external_operator import ExternalOperator
 
-# --- The Action class represents the adjoint of a numerical object that needs to be computed at compile time ---
+# --- The Action class represents the action of a numerical object that needs
+#     to be computed at assembly time ---
 
 
+@ufl_type()
 class Action(BaseForm):
     """UFL base form type: respresents the action of an object on another.
     For example:
         res = Ax
-    A would be the first argument, left and x would be the second argument, right."""
+    A would be the first argument, left and x would be the second argument,
+    right.
+
+    Action objects will result when the action of an assembled object
+    (e.g. a Matrix) is taken. This delays the evaluation of the action until
+    assembly occurs.
+    """
 
     __slots__ = (
         "_left",
         "_right",
+        "ufl_operands",
         "_repr",
         "_arguments",
         "_external_operators",
+        "_coefficients",
         "_hash")
-    _globalcount = 0
 
     def __getnewargs__(self):
         return (self._left, self._right)
 
     def __new__(cls, *args, **kw):
-        assert(len(args) == 2)
-        left = args[0]
-        right = args[1]
+        left, right = args
+
+        # Check trivial case
+        if left == 0 or right == 0:
+            # Not a ufl.Zero
+            return 0
 
         # Check trivial case
         if left == 0 or right == 0:
             return 0
 
         if isinstance(left, FormSum):
-            # Adjoint distributes over sums on the LHS
-            return FormSum(*[(Action(component, right), 1) for component in left.components()])
+            # Action distributes over sums on the LHS
+            return FormSum(*[(Action(component, right), 1)
+                             for component in left.components()])
         if isinstance(right, FormSum):
-            # Adjoint also distributes over sums on the RHS
-            return FormSum(*[(Action(left, component), 1) for component in right.components()])
+            # Action also distributes over sums on the RHS
+            return FormSum(*[(Action(left, component), 1)
+                             for component in right.components()])
 
         return super(Action, cls).__new__(cls)
 
@@ -55,15 +73,25 @@ class Action(BaseForm):
 
         self._left = left
         self._right = right
+        self.ufl_operands = (self._left, self._right)
+
+        if isinstance(right, CoefficientDerivative):
+            # Action differentiation pushes differentiation through
+            # right as a consequence of Leibniz formula.
+            right, *_ = right.ufl_operands
 
         if isinstance(right, (Form, Action)):
-            if self._left.arguments()[-1].ufl_function_space().dual() != self._right.arguments()[0].ufl_function_space():
+            if (left.arguments()[-1].ufl_function_space().dual()
+                != right.arguments()[0].ufl_function_space()):
+
                 raise TypeError("Incompatible function spaces in Action")
-        elif isinstance(right, (Coefficient, Cofunction, ExternalOperator)):
-            if self._left.arguments()[-1].ufl_function_space() != self._right.ufl_function_space():
+        elif isinstance(right, (Coefficient, Cofunction, Argument, BaseFormOperator)):
+            if (left.arguments()[-1].ufl_function_space()
+                != right.ufl_function_space()):
+
                 raise TypeError("Incompatible function spaces in Action")
         else:
-            raise TypeError("Incompatible argument in Action")
+            raise TypeError("Incompatible argument in Action: %s" % type(right))
 
         self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
         self._hash = None
@@ -71,7 +99,8 @@ class Action(BaseForm):
     def ufl_function_spaces(self):
         "Get the tuple of function spaces of the underlying form"
         if isinstance(self._right, Form):
-            return self._left.ufl_function_spaces()[:-1] + self._right.ufl_function_spaces()[1:]
+            return self._left.ufl_function_spaces()[:-1] \
+                + self._right.ufl_function_spaces()[1:]
         elif isinstance(self._right, Coefficient):
             return self._left.ufl_function_spaces()[:-1]
 
@@ -82,13 +111,35 @@ class Action(BaseForm):
         return self._right
 
     def _analyze_form_arguments(self):
-        "Define arguments of a adjoint of a form as the reverse of the form arguments"
+        """Compute the Arguments of this Action.
+
+        The highest number Argument of the left operand and the lowest number
+        Argument of the right operand are consumed by the action.
+        """
+
+        coefficients = ()
         if isinstance(self._right, BaseForm):
-            self._arguments = self._left.arguments()[:-1] + self._right.arguments()[1:]
-        elif isinstance(self._right, Coefficient):
+            self._arguments = self._left.arguments()[:-1] \
+                + self._right.arguments()[1:]
+            coefficients += self._right.coefficients()
+        elif isinstance(self._right, BaseCoefficient):
             self._arguments = self._left.arguments()[:-1]
+            coefficients += (self._right,)
+        elif isinstance(self._right, Argument):
+            self._arguments = self._left.arguments()[:-1] \
+                + (self._right,)
         else:
             raise TypeError
+        if isinstance(self._left, BaseForm):
+            coefficients += self._left.coefficients()
+        self._coefficients = coefficients
+
+    def equals(self, other):
+        if type(other) is not Action:
+            return False
+        if self is other:
+            return True
+        return (self._left == other._left and self._right == other._right)
 
     def _analyze_external_operators(self):
         "Define external_operators of Action"
@@ -115,5 +166,7 @@ class Action(BaseForm):
     def __hash__(self):
         "Hash code for use in dicts "
         if self._hash is None:
-            self._hash = hash(tuple(["Action", hash(self._right), hash(self._left)]))
+            self._hash = hash(("Action",
+                               hash(self._right),
+                               hash(self._left)))
         return self._hash

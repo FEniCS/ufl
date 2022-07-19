@@ -12,18 +12,19 @@
 # Modified by Cecile Daversin-Catty, 2018
 
 from ufl.log import error
-from ufl.form import Form, BaseForm, as_form
+from ufl.form import Form, FormSum, BaseForm, as_form
 from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
-from ufl.coefficient import Coefficient
-from ufl.core.external_operator import ExternalOperator
+from ufl.coefficient import Coefficient, Cofunction
 from ufl.adjoint import Adjoint
 from ufl.action import Action
-from ufl.differentiation import CoefficientDerivative, ExternalOperatorDerivative, CoordinateDerivative
+from ufl.differentiation import (BaseFormOperatorCoordinateDerivative, CoefficientDerivative, BaseFormDerivative,
+                                 BaseFormOperatorDerivative, CoordinateDerivative)
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
@@ -111,8 +112,10 @@ def action(form, coefficient=None):
     For formbase objects,coefficient can be any object of the correct type,
     and this function returns an Action object."""
     form = as_form(form)
+    is_coefficient_valid = (not isinstance(coefficient, BaseForm) or
+                            (isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1))
     # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
-    if isinstance(form, Form) and not (isinstance(coefficient, BaseForm) and len(coefficient.arguments()) > 1):
+    if isinstance(form, (Form, BaseFormOperator)) and is_coefficient_valid:
         # For external operators differentiation may turn a Form into a FormSum
         form = expand_derivatives(form)
         if isinstance(form, Form):
@@ -144,12 +147,26 @@ def adjoint(form, reordered_arguments=None):
     object instructing the adjoint to be computed at a later point.
     """
     form = as_form(form)
-    # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
-    if isinstance(form, Form):
-        # For external operators differentiation may turn a Form into a FormSum
-        form = expand_derivatives(form)
-        if isinstance(form, Form):
-            return compute_form_adjoint(form, reordered_arguments)
+    # if isinstance(form, (Form, BaseFormOperator)):
+    # if isinstance(form, BaseForm) and not isinstance(form, BaseFormDerivative):
+    if isinstance(form, BaseForm):
+        # Allow BaseForm objects that are not BaseForm such as Adjoint since there are cases
+        # where we need to expand derivatives: e.g. to get the number of arguments
+        #   => For example: Adjoint(Action(2-form, derivative(u,u)))
+        try:
+            # For external operators differentiation may turn a Form into a FormSum
+            form = expand_derivatives(form)
+            if isinstance(form, Form):
+                return compute_form_adjoint(form, reordered_arguments)
+        except NotImplementedError:
+            # Catch cases where expand derivatives is not implemented
+            # e.g. `adjoint(Adjoint(M))` where M is a ufl.Matrix,
+            # expand_derivatives(M) will be M (no derivatives taken)
+            # and expand derivatives of Adjoint only works if when we push it through the Adjoint
+            # we get 0.
+            pass
+    # Adjoint(Action(2-form, derivative(u,u)))
+    # if isinstance(for)
     return Adjoint(form)
 
 
@@ -180,7 +197,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        if not all(isinstance(c, (Coefficient, ExternalOperator)) for c in coefficients):
+        if not all(isinstance(c, (Coefficient, Cofunction, BaseFormOperator)) for c in coefficients):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one
@@ -233,7 +250,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             error("Coefficient and argument shapes do not match!")
-        if isinstance(c, (Coefficient, ExternalOperator, SpatialCoordinate)):
+        if isinstance(c, (Coefficient, Cofunction, BaseFormOperator, SpatialCoordinate)):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
@@ -287,9 +304,23 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     ``Coefficient`` instances to their derivatives w.r.t. *coefficient*.
     """
 
+    if isinstance(form, FormSum):
+        # Distribute derivative over FormSum components
+        return FormSum(*[(derivative(component, coefficient, argument, coefficient_derivatives), 1)
+                         for component in form.components()])
+    elif isinstance(form, Adjoint):
+        # Push derivative through Adjoint
+        return adjoint(derivative(form._form, coefficient, argument, coefficient_derivatives))
+    elif isinstance(form, Action):
+        # Push derivative through Action slots
+        left, right = form.ufl_operands
+        dleft = derivative(left, coefficient, argument, coefficient_derivatives)
+        dright = derivative(right, coefficient, argument, coefficient_derivatives)
+        # Leibniz formula
+        return action(dleft, right) + action(left, dright)
+
     coefficients, arguments = _handle_derivative_arguments(form, coefficient,
                                                            argument)
-
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
     else:
@@ -311,9 +342,15 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
-    elif isinstance(form, ExternalOperator):
+    elif isinstance(form, BaseFormOperator):
         if not isinstance(coefficient, SpatialCoordinate):
-            return ExternalOperatorDerivative(form, coefficients, arguments, coefficient_derivatives)
+            return BaseFormOperatorDerivative(form, coefficients, arguments, coefficient_derivatives)
+        else:
+            return BaseFormOperatorCoordinateDerivative(form, coefficients, arguments, coefficient_derivatives)
+
+    elif isinstance(form, BaseForm):
+        if not isinstance(coefficient, SpatialCoordinate):
+            return BaseFormDerivative(form, coefficients, arguments, coefficient_derivatives)
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand

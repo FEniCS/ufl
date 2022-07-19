@@ -305,6 +305,9 @@ from ufl.adjoint import Adjoint
 # Actions
 from ufl.action import Action
 
+# Interps
+from ufl.core.interp import Interp
+
 # Split function
 from ufl.split_functions import split
 
@@ -398,7 +401,9 @@ __all__ = [
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument','Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
-    'Coefficient', 'Cofunction', 'Coefficients', 'ExternalOperator', 'Matrix','Adjoint', 'Action',
+    'Coefficient', 'Cofunction', 'Coefficients',
+    'Matrix','Adjoint', 'Action',
+    'Interp', 'ExternalOperator',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
