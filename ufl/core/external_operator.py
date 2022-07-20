@@ -48,11 +48,10 @@ class ExternalOperator(BaseFormOperator):
                                   result_coefficient=result_coefficient,
                                   argument_slots=argument_slots)
 
-    """
     def ufl_element(self):
         "Shortcut to get the finite element of the function space of the external operator"
+        # Useful when applying split on an ExternalOperator
         return self.result_coefficient().ufl_element()
-    """
 
     def grad(self):
         """Returns the symbolic grad of the external operator"""
