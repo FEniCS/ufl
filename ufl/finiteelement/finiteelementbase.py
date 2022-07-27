@@ -213,3 +213,7 @@ class FiniteElementBase(object):
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
         return NotImplemented
+
+    def is_fully_continuous(self):
+        """Return true if the values of this element's basis functions are continuous between elements."""
+        return self.family() in ["Lagrange", "Q", "S"]
