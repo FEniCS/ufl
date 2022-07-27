@@ -216,8 +216,4 @@ class FiniteElementBase(object):
 
     def is_fully_continuous(self):
         """Return true if the values of this element's basis functions are continuous between elements."""
-        if self.family() in ["Lagrange", "Q", "S"] and self.degree() > 0:
-            return True
-        if self.family() == "Real":
-            return True
-        return False
+        return (self.family() in ["Lagrange", "Q", "S"] and self.degree() > 0) or self.family() == "Real"
