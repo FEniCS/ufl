@@ -47,7 +47,7 @@ jobs:
   dolfinx-tests:
     name: Run DOLFINx tests
     runs-on: ubuntu-latest
-    container: fenicsproject/test-env:latest-openmpi
+    container: fenicsproject/test-env:nightly-openmpi
 
     env:
       CC: clang
