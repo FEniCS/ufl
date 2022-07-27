@@ -11,6 +11,9 @@ jobs:
   ffcx-tests:
     name: Run FFCx tests
     runs-on: ubuntu-latest
+    env:
+      CC: gcc-10
+      CXX: g++-10
 
     steps:
       - uses: actions/checkout@v2
