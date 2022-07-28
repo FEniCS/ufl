@@ -242,4 +242,4 @@ class FiniteElement(FiniteElementBase):
         """Return true if the values of this element's basis functions are continuous between elements."""
         if self.family() == "Real":
             return True
-        return self._sobolev_space in H1
+        return self in H1
