@@ -88,6 +88,13 @@ class EnrichedElementBase(FiniteElementBase):
     def reconstruct(self, **kwargs):
         return type(self)(*[e.reconstruct(**kwargs) for e in self._elements])
 
+    def is_fully_continuous(self):
+        """Return true if the values of this element's basis functions are continuous between elements."""
+        for e in self._elements:
+            if not e.is_fully_continuous():
+                return False
+        return True
+
 
 class EnrichedElement(EnrichedElementBase):
     """The vector sum of several finite element spaces:

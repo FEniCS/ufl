@@ -37,3 +37,7 @@ class BrokenElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "BrokenElement(%s)" % str(self._element.shortstr())
+
+    def is_fully_continuous(self):
+        """Return true if the values of this element's basis functions are continuous between elements."""
+        return False

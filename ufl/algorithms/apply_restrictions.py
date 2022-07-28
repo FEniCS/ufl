@@ -129,6 +129,8 @@ class RestrictionPropagator(MultiFunction):
     def coefficient(self, o):
         "Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous across the facet."
         e = o.ufl_element()
+        print(e)
+        print(e.is_fully_continuous())
         if e.is_fully_continuous():
             # If the coefficient _value_ is _fully_ continuous
             return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which

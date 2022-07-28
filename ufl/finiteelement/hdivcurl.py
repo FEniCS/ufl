@@ -48,6 +48,10 @@ class HDivElement(FiniteElementBase):
         "Format as string for pretty printing."
         return "HDivElement(%s)" % str(self._element.shortstr())
 
+    def is_fully_continuous(self):
+        """Return true if the values of this element's basis functions are continuous between elements."""
+        return False
+
 
 class HCurlElement(FiniteElementBase):
     """A curl-conforming version of an outer product element, assuming
@@ -141,3 +145,7 @@ class WithMapping(FiniteElementBase):
 
     def shortstr(self):
         return "WithMapping(%s, %s)" % (self.wrapee.shortstr(), self._mapping)
+
+    def is_fully_continuous(self):
+        """Return true if the values of this element's basis functions are continuous between elements."""
+        return False

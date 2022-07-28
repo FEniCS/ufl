@@ -19,6 +19,7 @@ from ufl.cell import as_cell
 from ufl.cell import TensorProductCell
 from ufl.finiteelement.elementlist import canonical_element_description, simplices
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.sobolevspace import H1, H2
 
 
 class FiniteElement(FiniteElementBase):
@@ -236,3 +237,7 @@ class FiniteElement(FiniteElementBase):
                 None,
                 self.quadrature_scheme(),
                 self.variant())
+
+    def is_fully_continuous(self):
+        """Return true if the values of this element's basis functions are continuous between elements."""
+        return self._sobolev_space in [H1, H2]
