@@ -240,4 +240,6 @@ class FiniteElement(FiniteElementBase):
 
     def is_fully_continuous(self):
         """Return true if the values of this element's basis functions are continuous between elements."""
+        if self.family() == "Real":
+            return True
         return self._sobolev_space in [H1, H2]
