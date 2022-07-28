@@ -15,7 +15,7 @@ from itertools import chain
 
 from ufl.log import error
 from ufl.cell import TensorProductCell, as_cell
-from ufl.sobolevspace import DirectionalSobolevSpace, H1, H2
+from ufl.sobolevspace import DirectionalSobolevSpace, H1
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
@@ -119,4 +119,4 @@ class TensorProductElement(FiniteElementBase):
 
     def is_fully_continuous(self):
         """Return true if the values of this element's basis functions are continuous between elements."""
-        return self.sobolev_space() in [H1, H2]
+        return self.sobolev_space() in H1
