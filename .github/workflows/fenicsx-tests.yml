@@ -54,8 +54,8 @@ jobs:
     container: fenicsproject/test-env:nightly-openmpi
 
     env:
-      CC: gcc-10
-      CXX: g++-10
+      CC: gcc-11
+      CXX: g++-11
 
       PETSC_ARCH: linux-gnu-complex-32
       OMPI_ALLOW_RUN_AS_ROOT: 1
