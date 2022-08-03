@@ -9,6 +9,7 @@
 
 from ufl.form import BaseForm, FormSum, Form
 from ufl.core.ufl_type import ufl_type
+from ufl.algebra import Sum
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
@@ -49,14 +50,14 @@ class Action(BaseForm):
             # Not a ufl.Zero
             return 0
 
-        if isinstance(left, FormSum):
+        if isinstance(left, (FormSum, Sum)):
             # Action distributes over sums on the LHS
             return FormSum(*[(Action(component, right), 1)
-                             for component in left.components()])
-        if isinstance(right, FormSum):
+                             for component in left.ufl_operands])
+        if isinstance(right, (FormSum, Sum)):
             # Action also distributes over sums on the RHS
             return FormSum(*[(Action(left, component), 1)
-                             for component in right.components()])
+                             for component in right.ufl_operands])
 
         return super(Action, cls).__new__(cls)
 
