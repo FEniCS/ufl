@@ -778,10 +778,10 @@ class FormSum(BaseForm):
         arguments = []
         coefficients = []
         for component in self._components:
-            arguments.append(component.arguments())
-            coefficients.append(component.coefficients())
-        self._arguments = arguments
-        self._coefficients = coefficients
+            arguments.extend(component.arguments())
+            coefficients.extend(component.coefficients())
+        self._arguments = tuple(set(arguments))
+        self._coefficients = tuple(set(coefficients))
 
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"
