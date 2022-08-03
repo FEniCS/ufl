@@ -195,6 +195,26 @@ def test_action():
     with pytest.raises(TypeError):
         res = action(a, ustar)
 
+    b2 = Matrix(V, U.dual())
+    ustar2 = Cofunction(U.dual())
+    # Check Action left-distributivity with FormSum
+    res = action(b, ustar + ustar2)
+    assert res == Action(b, ustar) + Action(b, ustar2)
+    # Check Action right-distributivity with FormSum
+    res = action(b + b2, ustar)
+    assert res == Action(b, ustar) + Action(b2, ustar)
+
+    a2 = Matrix(V, U)
+    u2 = Coefficient(U)
+    u3 = Coefficient(U)
+    # Check Action left-distributivity with Sum
+    # Add 3 Coefficients to check composition of Sum works fine since u + u2 + u3 => Sum(u, Sum(u2, u3))
+    res = action(a, u + u2 + u3)
+    assert res == Action(a, u3) + Action(a, u) + Action(a, u2)
+    # Check Action right-distributivity with Sum
+    res = action(a + a2, u)
+    assert res == Action(a, u) + Action(a2, u)
+
 
 def test_differentiation():
     domain_2d = default_domain(triangle)
