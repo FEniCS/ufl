@@ -747,8 +747,8 @@ class FormSum(BaseForm):
         "Return all ``Argument`` objects found in form."
         arguments = []
         for component in self._components:
-            arguments.append(component.arguments())
-        self._arguments = arguments
+            arguments.extend(component.arguments())
+        self._arguments = tuple(set(arguments))
 
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"
