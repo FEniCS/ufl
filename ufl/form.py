@@ -494,8 +494,8 @@ class Form(object):
         # among integration domains
         for c in self._constants:
             d = c.ufl_domain()
-            if c is not None and c not in renumbering:
-                renumbering[c] = k
+            if d is not None and d not in renumbering:
+                renumbering[d] = k
                 k += 1
 
         return renumbering
