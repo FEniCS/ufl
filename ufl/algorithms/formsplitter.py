@@ -92,13 +92,13 @@ def extract_blocks(form, i=None, j=None):
         if arity > 1:
             for pj in parts:
                 f = fs.split(form, pi, pj)
-                if(f.empty()):
+                if f.empty():
                     forms.append(None)
                 else:
                     forms.append(f)
         else:
             f = fs.split(form, pi)
-            if(f.empty()):
+            if f.empty():
                 forms.append(None)
             else:
                 forms.append(f)
