@@ -245,10 +245,7 @@ class MixedElement(FiniteElementBase):
 
     def is_fully_continuous(self):
         """Return true if the values of this element's basis functions are continuous between elements."""
-        for e in self._sub_elements:
-            if not e.is_fully_continuous():
-                return False
-        return True
+        return all(e.is_fully_continuous() for e in self._sub_elements)
 
 
 class VectorElement(MixedElement):
