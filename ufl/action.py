@@ -13,6 +13,7 @@ from ufl.algebra import Sum
 from ufl.argument import Argument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
+from ufl.matrix import Matrix
 from ufl.core.interp import Interp
 
 # --- The Action class represents the action of a numerical object that needs
@@ -75,7 +76,7 @@ class Action(BaseForm):
             # right as a consequence of Leibniz formula.
             right, *_ = right.ufl_operands
 
-        if isinstance(right, (Form, Action)):
+        if isinstance(right, (Form, Action, Matrix)):
             if (left.arguments()[-1].ufl_function_space().dual()
                 != right.arguments()[0].ufl_function_space()):
 
