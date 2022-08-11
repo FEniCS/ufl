@@ -13,6 +13,7 @@ from ufl.algebra import Sum
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
+from ufl.matrix import Matrix
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -73,7 +74,7 @@ class Action(BaseForm):
             # right as a consequence of Leibniz formula.
             right, *_ = right.ufl_operands
 
-        if isinstance(right, (Form, Action)):
+        if isinstance(right, (Form, Action, Matrix)):
             if (left.arguments()[-1].ufl_function_space().dual()
                 != right.arguments()[0].ufl_function_space()):
 
