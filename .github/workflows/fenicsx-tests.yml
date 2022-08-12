@@ -6,7 +6,6 @@ on:
   pull_request:
     branches:
       - main
-      - h_inf_sobolev_space
 
 jobs:
   ffcx-tests:
