@@ -35,8 +35,8 @@ class RestrictedElement(FiniteElementBase):
 
         self._restriction_domain = restriction_domain
 
-        self._repr = "RestrictedElement(%s, %s)" % (
-            repr(self._element), repr(self._restriction_domain))
+    def __repr__(self):
+        return f"RestrictedElement({repr(self._element)}, {repr(self._restriction_domain)})"
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this element is spatially

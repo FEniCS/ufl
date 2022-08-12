@@ -61,14 +61,11 @@ class EnrichedElementBase(FiniteElementBase):
                                    quad_scheme, value_shape,
                                    reference_value_shape)
 
-        # Cache repr string
-        self._repr = "%s(%s)" % (class_name, ", ".join(repr(e) for e in self._elements))
-
     def mapping(self):
         return self._elements[0].mapping()
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space."
+        """Return the underlying Sobolev space."""
         elements = [e for e in self._elements]
         if all(e.sobolev_space() == elements[0].sobolev_space()
                for e in elements):
@@ -104,6 +101,9 @@ class EnrichedElement(EnrichedElementBase):
         element is spatially constant over each cell."""
         return all(e.is_cellwise_constant() for e in self._elements)
 
+    def __repr__(self):
+        return "EnrichedElement(" + ", ".join(repr(e) for e in self._elements) + ")"
+
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(str(e) for e in self._elements)
@@ -126,6 +126,9 @@ class NodalEnrichedElement(EnrichedElementBase):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
         return False
+
+    def __repr__(self):
+        return "NodalEnrichedElement(" + ", ".join(repr(e) for e in self._elements) + ")"
 
     def __str__(self):
         "Format as string for pretty printing."
