@@ -41,7 +41,7 @@ jobs:
         with:
           path: ./ffcx
           repository: FEniCS/ffcx
-          ref: main
+          ref: mscroggs/ufl-update
       - name: Install FFCx
         run: |
           cd ffcx
@@ -79,8 +79,8 @@ jobs:
 
       - name: Install Basix and FFCx
         run: |
-          python3 -m pip install git+https://github.com/FEniCS/basix.git
-          python3 -m pip install git+https://github.com/FEniCS/ffcx.git
+          python3 -m pip install git+https://github.com/FEniCS/basix.git@mscroggs/ufl-update
+          python3 -m pip install git+https://github.com/FEniCS/ffcx.git@mscroggs/ufl-update
 
       - name: Clone DOLFINx
         uses: actions/checkout@v2
