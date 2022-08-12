@@ -243,7 +243,7 @@ class MixedElement(FiniteElementBase):
         tmp = ", ".join(element.shortstr() for element in self._sub_elements)
         return "Mixed<" + tmp + ">"
 
-    def is_fully_continuous(self):
+    def is_continuous(self):
         """Return true if the values of this element's basis functions are continuous between elements."""
         return all(e.is_fully_continuous() for e in self._sub_elements)
 

@@ -97,6 +97,6 @@ class RestrictedElement(FiniteElementBase):
         "Return list of restricted sub elements."
         return (self._element,)
 
-    def is_fully_continuous(self):
+    def is_continuous(self):
         """Return true if the values of this element's basis functions are continuous between elements."""
         return False

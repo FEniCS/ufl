@@ -117,6 +117,6 @@ class TensorProductElement(FiniteElementBase):
         return "TensorProductElement(%s, cell=%s)" \
             % (', '.join([e.shortstr() for e in self._sub_elements]), str(self._cell))
 
-    def is_fully_continuous(self):
+    def is_continuous(self):
         """Return true if the values of this element's basis functions are continuous between elements."""
         return self in H1

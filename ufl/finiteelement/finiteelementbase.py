@@ -214,6 +214,6 @@ class FiniteElementBase(object):
             return RestrictedElement(self, index)
         return NotImplemented
 
-    def is_fully_continuous(self):
+    def is_continuous(self):
         """Return true if the values of this element's basis functions are continuous between elements."""
         raise NotImplementedError()

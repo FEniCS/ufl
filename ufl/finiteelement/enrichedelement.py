@@ -88,7 +88,7 @@ class EnrichedElementBase(FiniteElementBase):
     def reconstruct(self, **kwargs):
         return type(self)(*[e.reconstruct(**kwargs) for e in self._elements])
 
-    def is_fully_continuous(self):
+    def is_continuous(self):
         """Return true if the values of this element's basis functions are continuous between elements."""
         return all(e.is_fully_continuous() for e in self._sub_elements)
 
