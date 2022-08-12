@@ -13,7 +13,7 @@
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.log import error
-from ufl.sobolevspaces import L2
+from ufl.sobolevspace import L2
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 
