@@ -71,7 +71,7 @@ class TensorProductElement(FiniteElementBase):
 
     def __repr__(self):
         return "TensorProductElement(" + ", ".join(
-            repr(e) for e in self._subelements
+            repr(e) for e in self._sub_elements
         ) + f", {repr(self._cell)})"
 
     def mapping(self):
