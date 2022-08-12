@@ -13,6 +13,7 @@
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.log import error
+from ufl.sobolevspaces import L2
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 
@@ -37,6 +38,9 @@ class RestrictedElement(FiniteElementBase):
 
     def __repr__(self):
         return f"RestrictedElement({repr(self._element)}, {repr(self._restriction_domain)})"
+
+    def sobolev_space(self):
+        return L2
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this element is spatially
