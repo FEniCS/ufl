@@ -6,7 +6,8 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-
+#
+# Modified by Nacime Bouziani, 2021-2022.
 
 from ufl.log import error
 from ufl.form import BaseForm
