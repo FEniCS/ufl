@@ -36,9 +36,8 @@ class Adjoint(BaseForm):
         form = args[0]
         # Check trivial case
         if form == 0:
-            # Not a ufl.Zero!
-            # Strictly speaking this is a zero in the dual space which doesn't currently exist in UFL.
-            return 0
+            # This is not a ufl.Zero but a ZeroBaseForm!
+            return form
 
         if isinstance(form, Adjoint):
             return form._form

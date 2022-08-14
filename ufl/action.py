@@ -7,7 +7,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.form import BaseForm, FormSum, Form
+from ufl.form import BaseForm, FormSum, Form, ZeroBaseForm
 from ufl.core.ufl_type import ufl_type
 from ufl.algebra import Sum
 from ufl.argument import Argument
@@ -50,8 +50,17 @@ class Action(BaseForm):
 
         # Check trivial case
         if left == 0 or right == 0:
-            # Not a ufl.Zero
-            return 0
+            # Not ufl.Zero but ZeroBaseForm!
+            if ((left == 0 and not isinstance(left, ZeroBaseForm)) or
+                (right == 0 and not isinstance(right, ZeroBaseForm))):
+                raise ValueError('Expecting 0 to be a ZeroBaseForm object.')
+            # Still need to work out the ZeroBaseForm arguments.
+            new_arguments = left.arguments()[:-1]
+            if isinstance(right, BaseForm):
+                new_arguments += right.arguments()[1:]
+            elif isinstance(right, Argument):
+                new_arguments += (right,)
+            return ZeroBaseForm(new_arguments)
 
         if isinstance(left, (FormSum, Sum)):
             # Action distributes over sums on the LHS
