@@ -6,6 +6,9 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+#
+# Modified by Nacime Bouziani, 2021-2022.
+
 from ufl.form import BaseForm, FormSum
 from ufl.core.ufl_type import ufl_type
 # --- The Adjoint class represents the adjoint of a numerical object that
