@@ -35,8 +35,8 @@ class Adjoint(BaseForm):
         form = args[0]
         # Check trivial case
         if form == 0:
-            # Not a ufl.Zero
-            return 0
+            # This is not a ufl.Zero but a ZeroBaseForm!
+            return form
 
         if isinstance(form, Adjoint):
             return form._form

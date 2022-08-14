@@ -41,6 +41,7 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 
 from ufl.checks import is_cellwise_constant
 from ufl.differentiation import CoordinateDerivative
+from ufl.form import ZeroBaseForm
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset
@@ -1051,16 +1052,24 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Same rule than for Coefficient except that we use a Coargument.
         # The coargument is already attached to the class (self._v)
         # which `self.coefficient` relies on.
-        return self.coefficient(o)
+        dc = self.coefficient(o)
+        if dc == 0:
+            # Convert ufl.Zero into ZeroBaseForm
+            return ZeroBaseForm(self._v)
+        return dc
 
     def coargument(self, o):
         # Same rule than for Argument (da/dw == 0).
-        return self.argument(o)
+        dc = self.argument(o)
+        if dc == 0:
+            # Convert ufl.Zero into ZeroBaseForm
+            return ZeroBaseForm(o.arguments() + self._v)
+        return dc
 
     def matrix(self, M):
         # Matrix rule: D_w[v](M) = v if M == w else 0
-        # We can't differentiate wrt a matrix so always return 0
-        return 0
+        # We can't differentiate wrt a matrix so always return zero in the appropriate space
+        return ZeroBaseForm(M.arguments() + self._v)
 
 
 class DerivativeRuleDispatcher(MultiFunction):
