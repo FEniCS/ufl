@@ -649,6 +649,11 @@ class CellNormal(GeometricCellQuantity):
         # return (g-t,g) # TODO: Should it be CellNormals? For interval in 3D we have two!
         return (g,)
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
 
 @ufl_type()
 class ReferenceNormal(GeometricFacetQuantity):
