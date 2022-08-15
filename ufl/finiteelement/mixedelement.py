@@ -124,7 +124,7 @@ class MixedElement(FiniteElementBase):
         return sm or EmptyDict
 
     def sobolev_space(self):
-        return min(e.sobolev_space() for e in self._sub_elements)
+        return max(e.sobolev_space() for e in self._sub_elements)
 
     def mapping(self):
         if all(e.mapping() == "identity" for e in self._sub_elements):
