@@ -19,7 +19,6 @@ from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 from ufl.form import BaseForm
-from ufl.argument import Argument
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
 from ufl.duals import is_primal, is_dual
@@ -160,7 +159,7 @@ class Cofunction(BaseCoefficient, BaseForm):
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
-        self._arguments = (Argument(self._ufl_function_space, 0),)
+        self._arguments = ()
 
 
 @ufl_type()
