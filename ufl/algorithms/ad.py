@@ -30,8 +30,7 @@ def expand_derivatives(form, **kwargs):
 
     if isinstance(form, Adjoint):
         dform = expand_derivatives(form._form)
-        if not dform:
-            # If dform == 0
+        if dform == 0:
             return dform
         raise NotImplementedError('Adjoint derivative is not supported.')
 
