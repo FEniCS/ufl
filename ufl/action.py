@@ -15,8 +15,8 @@ from ufl.algebra import Sum
 from ufl.argument import Argument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.matrix import Matrix
-from ufl.core.interp import Interp
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -92,8 +92,7 @@ class Action(BaseForm):
                 != right.arguments()[0].ufl_function_space()):
 
                 raise TypeError("Incompatible function spaces in Action")
-        # Add BaseFormOperator underneath instead of Interp ? Check Extop branch
-        elif isinstance(right, (Coefficient, Cofunction, Argument, Interp)):
+        elif isinstance(right, (Coefficient, Cofunction, Argument, BaseFormOperator)):
             if (left.arguments()[-1].ufl_function_space()
                 != right.ufl_function_space()):
 
