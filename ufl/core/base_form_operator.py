@@ -8,7 +8,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
-# Modified by Nacime Bouziani, 2021
+# Modified by Nacime Bouziani, 2021-2022
 
 from ufl.coefficient import Coefficient
 from ufl.argument import Argument

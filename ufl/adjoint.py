@@ -6,6 +6,9 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+#
+# Modified by Nacime Bouziani, 2021-2022.
+
 from ufl.form import BaseForm, FormSum
 from ufl.core.ufl_type import ufl_type
 # --- The Adjoint class represents the adjoint of a numerical object that
@@ -36,9 +39,8 @@ class Adjoint(BaseForm):
         form = args[0]
         # Check trivial case
         if form == 0:
-            # Not a ufl.Zero!
-            # Strictly speaking this is a zero in the dual space which doesn't currently exist in UFL.
-            return 0
+            # This is not a ufl.Zero but a ZeroBaseForm!
+            return form
 
         if isinstance(form, Adjoint):
             return form._form

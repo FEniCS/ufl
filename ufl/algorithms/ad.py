@@ -28,13 +28,9 @@ def expand_derivatives(form, **kwargs):
     if kwargs:
         warning("Deprecation: expand_derivatives no longer takes any keyword arguments")
 
-    if form == 0:
-        return form
-
     if isinstance(form, Adjoint):
         dform = expand_derivatives(form._form)
-        if not dform:
-            # If dform == 0
+        if dform == 0:
             return dform
         raise NotImplementedError('Adjoint derivative is not supported.')
 

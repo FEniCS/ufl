@@ -7,7 +7,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
-# Modified by Nacime Bouziani, 2022
+# Modified by Nacime Bouziani, 2021-2022
 
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import as_ufl

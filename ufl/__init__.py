@@ -351,7 +351,7 @@ from ufl.core.external_operator import ExternalOperator
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
 
 # Form class
-from ufl.form import Form, BaseForm, FormSum, replace_integral_domains
+from ufl.form import Form, BaseForm, FormSum, ZeroBaseForm, replace_integral_domains
 
 # Integral classes
 from ufl.integral import Integral
@@ -425,7 +425,7 @@ __all__ = [
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg', 'cell_avg', 'facet_avg',
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
-    'Form','FormSum',
+    'Form','FormSum', 'ZeroBaseForm',
     'Integral', 'Measure', 'register_integral_type', 'integral_types', 'custom_integral_types',
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'extract_blocks',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',

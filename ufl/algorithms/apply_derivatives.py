@@ -44,8 +44,9 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.checks import is_cellwise_constant
 from ufl.differentiation import CoordinateDerivative, BaseFormOperatorDerivative
+from ufl.argument import BaseArgument
 from ufl.action import Action
-from ufl.form import Form
+from ufl.form import Form, ZeroBaseForm
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset
@@ -345,7 +346,7 @@ class GenericDerivativeRuleset(MultiFunction):
             # I doesn't depend on w:
             #  -> It also covers the Hessian case since Interp is linear,
             #     e.g. D_w[v](D_w[v](I(w, v*))) = D_w[v](I(v, v*)) = 0 (since w not found).
-            return 0
+            return ZeroBaseForm(I.arguments() + self._v)
         return I._ufl_expr_reconstruct_(expr=dw)
 
     # --- Mathfunctions
@@ -1156,16 +1157,24 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Same rule than for Coefficient except that we use a Coargument.
         # The coargument is already attached to the class (self._v)
         # which `self.coefficient` relies on.
-        return self.coefficient(o)
+        dc = self.coefficient(o)
+        if dc == 0:
+            # Convert ufl.Zero into ZeroBaseForm
+            return ZeroBaseForm(self._v)
+        return dc
 
     def coargument(self, o):
         # Same rule than for Argument (da/dw == 0).
-        return self.argument(o)
+        dc = self.argument(o)
+        if dc == 0:
+            # Convert ufl.Zero into ZeroBaseForm
+            return ZeroBaseForm(o.arguments() + self._v)
+        return dc
 
     def matrix(self, M):
         # Matrix rule: D_w[v](M) = v if M == w else 0
-        # We can't differentiate wrt a matrix so always return 0
-        return 0
+        # We can't differentiate wrt a matrix so always return zero in the appropriate space
+        return ZeroBaseForm(M.arguments() + self._v)
 
 
 class DerivativeRuleDispatcher(MultiFunction):
@@ -1234,6 +1243,15 @@ class DerivativeRuleDispatcher(MultiFunction):
         dummy, w, v, cd = o.ufl_operands
         rules = GateauxDerivativeRuleset(w, v, cd)
         key = (GateauxDerivativeRuleset, w, v, cd)
+        if isinstance(f, ZeroBaseForm):
+            arg, = v.ufl_operands
+            arguments = f.arguments()
+            # derivative(F, u, du) with `du` a Coefficient
+            # is equivalent to taking the action of the derivative.
+            # In that case, we don't add arguments to `ZeroBaseForm`.
+            if isinstance(arg, BaseArgument):
+                arguments += (arg,)
+            return ZeroBaseForm(arguments)
         mapped_f = rules.coefficient(f)
         if mapped_f != 0:
             # If dN/dN needs to return an Argument in N space

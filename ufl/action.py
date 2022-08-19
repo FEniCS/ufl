@@ -6,14 +6,17 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+#
+# Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.form import BaseForm, FormSum, Form
+from ufl.form import BaseForm, FormSum, Form, ZeroBaseForm
 from ufl.core.ufl_type import ufl_type
 from ufl.algebra import Sum
 from ufl.argument import Argument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
 from ufl.core.base_form_operator import BaseFormOperator
+from ufl.matrix import Matrix
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -49,8 +52,17 @@ class Action(BaseForm):
 
         # Check trivial case
         if left == 0 or right == 0:
-            # Not a ufl.Zero
-            return 0
+            # Not ufl.Zero but ZeroBaseForm!
+            if ((left == 0 and not isinstance(left, ZeroBaseForm)) or
+                (right == 0 and not isinstance(right, ZeroBaseForm))):
+                raise ValueError('Expecting 0 to be a ZeroBaseForm object.')
+            # Still need to work out the ZeroBaseForm arguments.
+            new_arguments = left.arguments()[:-1]
+            if isinstance(right, BaseForm):
+                new_arguments += right.arguments()[1:]
+            elif isinstance(right, Argument):
+                new_arguments += (right,)
+            return ZeroBaseForm(new_arguments)
 
         # Check trivial case
         if left == 0 or right == 0:
@@ -79,7 +91,7 @@ class Action(BaseForm):
             # right as a consequence of Leibniz formula.
             right, *_ = right.ufl_operands
 
-        if isinstance(right, (Form, Action)):
+        if isinstance(right, (Form, Action, Matrix)):
             if (left.arguments()[-1].ufl_function_space().dual()
                 != right.arguments()[0].ufl_function_space()):
 

@@ -25,7 +25,7 @@ from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.constantvalue import Zero
 
 # Export list for ufl.classes
-__all_classes__ = ["Form", "BaseForm"]
+__all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -118,7 +118,11 @@ class BaseForm(object, metaclass=UFLType):
         return self.__add__(other)
 
     def __add__(self, other):
-        if isinstance(other, BaseForm):
+        if isinstance(other, ZeroBaseForm):
+            # Simplify addition with ZeroBaseForm
+            return self
+
+        elif isinstance(other, BaseForm):
             # Add integrals from both forms
             return FormSum((self, 1), (other, 1))
 
@@ -449,7 +453,11 @@ class Form(BaseForm):
             # Add integrals from both forms
             return Form(list(chain(self.integrals(), other.integrals())))
 
-        if isinstance(other, BaseForm):
+        if isinstance(other, ZeroBaseForm):
+            # Simplify addition with ZeroBaseForm
+            return self
+
+        elif isinstance(other, BaseForm):
             # Create form sum if form is of other type
             return FormSum((self, 1), (other, 1))
 
@@ -814,3 +822,53 @@ class FormSum(BaseForm):
         itgs = ", ".join(repr(component) for component in self.components())
         r = "FormSum([" + itgs + "])"
         return r
+
+
+@ufl_type()
+class ZeroBaseForm(BaseForm):
+    """UFL base form type: respresents a zero base form
+    ZeroBaseForm is idempotent with respect to assembly and is mostly used for sake of simplifying base-form expressions.
+    """
+
+    __slots__ = ("_arguments",
+                 "_coefficients",
+                 "ufl_operands",
+                 "_hash",
+                 # Pyadjoint compatibility
+                 "form")
+
+    def __init__(self, arguments):
+        BaseForm.__init__(self)
+        self._arguments = arguments
+        self.ufl_operands = arguments
+        self._hash = None
+        self.form = None
+
+    def _analyze_form_arguments(self):
+        return self._arguments
+
+    def __ne__(self, other):
+        # Overwrite BaseForm.__neq__ which relies on `equals`
+        return not self == other
+
+    def __eq__(self, other):
+        if type(other) is ZeroBaseForm:
+            if self is other:
+                return True
+            return (self._arguments == other._arguments)
+        elif isinstance(other, (int, float)):
+            return other == 0
+        else:
+            return False
+
+    def __str__(self):
+        return "ZeroBaseForm(%s)" % (", ".join(str(arg) for arg in self._arguments))
+
+    def __repr__(self):
+        return "ZeroBaseForm(%s)" % (", ".join(repr(arg) for arg in self._arguments))
+
+    def __hash__(self):
+        """Hash code for use in dicts."""
+        if self._hash is None:
+            self._hash = hash(("ZeroBaseForm", hash(self._arguments)))
+        return self._hash

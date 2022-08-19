@@ -5,6 +5,8 @@ from ufl import FiniteElement, FunctionSpace, MixedFunctionSpace, \
     Coefficient, Matrix, Cofunction, FormSum, Argument, Coargument,\
     TestFunction, TrialFunction, Adjoint, Action, \
     action, adjoint, derivative, tetrahedron, triangle, interval, dx
+from ufl.constantvalue import Zero
+from ufl.form import ZeroBaseForm
 
 __authors__ = "India Marsden"
 __date__ = "2020-12-28 -- 2020-12-28"
@@ -117,6 +119,13 @@ def test_addition():
     res = L + a
     assert isinstance(res, FormSum)
     assert res
+
+    # Check FormSum._add__ simplification
+    res += ZeroBaseForm((v, v))
+    assert res == a + L
+    # Check Form._add__ simplification
+    L += ZeroBaseForm((v,))
+    assert L == u * v * dx
 
 
 def test_scalar_mult():
@@ -231,21 +240,33 @@ def test_differentiation():
     # -- Cofunction -- #
     w = Cofunction(U.dual())
     dwdu = expand_derivatives(derivative(w, u))
+    assert isinstance(dwdu, ZeroBaseForm)
+    assert dwdu.arguments() == (Argument(u.ufl_function_space(), 0),)
+    # Check compatibility with int/float
     assert dwdu == 0
 
     dwdw = expand_derivatives(derivative(w, w, vstar))
     assert dwdw == vstar
 
     dudw = expand_derivatives(derivative(u, w))
+    # du/dw is a ufl.Zero and not a ZeroBaseForm
+    # as we are not differentiating a BaseForm
+    assert isinstance(dudw, Zero)
     assert dudw == 0
 
     # -- Coargument -- #
     dvstardu = expand_derivatives(derivative(vstar, u))
+    assert isinstance(dvstardu, ZeroBaseForm)
+    assert dvstardu.arguments() == vstar.arguments() + (Argument(u.ufl_function_space(), 1),)
+    # Check compatibility with int/float
     assert dvstardu == 0
 
     # -- Matrix -- #
     M = Matrix(V, U)
     dMdu = expand_derivatives(derivative(M, u))
+    assert isinstance(dMdu, ZeroBaseForm)
+    assert dMdu.arguments() == M.arguments() + (Argument(u.ufl_function_space(), 2),)
+    # Check compatibility with int/float
     assert dMdu == 0
 
     # -- Action -- #
@@ -267,3 +288,17 @@ def test_differentiation():
     dFsdu = expand_derivatives(derivative(Fs, u))
     # Distribute differentiation over FormSum components
     assert dFsdu == 1 * Action(M, v)
+
+
+def test_zero_base_form_mult():
+    domain_2d = default_domain(triangle)
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+    v = Argument(V, 0)
+    Z = ZeroBaseForm((v, v))
+
+    u = Coefficient(V)
+
+    Zu = Z * u
+    assert Zu == action(Z, u)
+    assert action(Zu, u) == ZeroBaseForm(())
