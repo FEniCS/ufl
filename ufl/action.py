@@ -53,7 +53,7 @@ class Action(BaseForm):
             # Check compatibility of function spaces
             _check_function_spaces(left, right)
             # Still need to work out the ZeroBaseForm arguments.
-            new_arguments = _get_action_arguments(left, right)
+            new_arguments = _get_action_form_arguments(left, right)
             return ZeroBaseForm(new_arguments)
 
         if isinstance(left, (FormSum, Sum)):
@@ -100,7 +100,7 @@ class Action(BaseForm):
         The highest number Argument of the left operand and the lowest number
         Argument of the right operand are consumed by the action.
         """
-        self._arguments = _get_action_arguments(self._left, self._right)
+        self._arguments = _get_action_form_arguments(self._left, self._right)
 
     def equals(self, other):
         if type(other) is not Action:
@@ -146,7 +146,7 @@ def _check_function_spaces(left, right):
         raise TypeError("Incompatible argument in Action: %s" % type(right))
 
 
-def _get_action_arguments(left, right):
+def _get_action_form_arguments(left, right):
     "Perform argument contraction to work out the arguments of Action"
     if isinstance(right, BaseForm):
         return left.arguments()[:-1] + right.arguments()[1:]
