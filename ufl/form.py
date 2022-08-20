@@ -845,7 +845,8 @@ class ZeroBaseForm(BaseForm):
         self.form = None
 
     def _analyze_form_arguments(self):
-        return self._arguments
+        # `self._arguments` is already set in `__init__`
+        self._coefficients = ()
 
     def __ne__(self, other):
         # Overwrite BaseForm.__neq__ which relies on `equals`
