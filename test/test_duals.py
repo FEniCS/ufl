@@ -120,12 +120,20 @@ def test_addition():
     assert isinstance(res, FormSum)
     assert res
 
-    # Check FormSum._add__ simplification
+    # Check BaseForm._add__ simplification
     res += ZeroBaseForm((v, v))
     assert res == a + L
     # Check Form._add__ simplification
     L += ZeroBaseForm((v,))
     assert L == u * v * dx
+    # Check BaseForm._add__ simplification
+    res = ZeroBaseForm((v, v))
+    res += a
+    assert res == a
+    # Check __neg__
+    res = L
+    res -= ZeroBaseForm((v,))
+    assert res == L
 
 
 def test_scalar_mult():
