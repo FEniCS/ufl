@@ -109,6 +109,10 @@ class BaseForm(object, metaclass=UFLType):
             # Simplify addition with ZeroBaseForm
             return self
 
+        elif isinstance(self, ZeroBaseForm):
+            # Simplify addition with ZeroBaseForm
+            return other
+
         elif isinstance(other, BaseForm):
             # Add integrals from both forms
             return FormSum((self, 1), (other, 1))
@@ -140,6 +144,10 @@ class BaseForm(object, metaclass=UFLType):
 
         This enables the handy "-form" syntax for e.g. the
         linearized system (J, -F) from a nonlinear form F."""
+        if isinstance(self, ZeroBaseForm):
+            # `-` doesn't change anything for ZeroBaseForm.
+            # This also facilitates simplifying FormSum containing ZeroBaseForm objects.
+            return self
         return FormSum((self, -1))
 
     def __rmul__(self, scalar):
