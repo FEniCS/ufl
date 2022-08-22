@@ -146,10 +146,10 @@ def _check_function_spaces(left, right):
 
             raise TypeError("Incompatible function spaces in Action")
     # `Zero` doesn't contain any information about the function space.
-    # -> Not a problem since Action will get simplified with a `ZeroBaseForm`W
+    # -> Not a problem since Action will get simplified with a `ZeroBaseForm`
     #    which won't take into account the arguments on the right because of argument contraction.
     # This occurs for:
-    # `Action(A, derivative(B, u))` where B is a `BaseFormOperator` (with 1 argument) and dB/du == 0
+    # `Action(A, derivative(B, u))` where B is a `BaseFormOperator` (with 1 argument) such that dB/du == 0
     # -> `derivative(B, u)` becomes `Zero` when expanding derivatives since B is an Expr as well.
     elif not isinstance(right, Zero):
         raise TypeError("Incompatible argument in Action: %s" % type(right))
