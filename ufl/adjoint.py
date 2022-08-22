@@ -9,7 +9,7 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.form import BaseForm, FormSum
+from ufl.form import BaseForm, FormSum, ZeroBaseForm
 from ufl.core.ufl_type import ufl_type
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
@@ -36,10 +36,10 @@ class Adjoint(BaseForm):
 
     def __new__(cls, *args, **kw):
         form = args[0]
-        # Check trivial case
+        # Check trivial case: This is not a ufl.Zero but a ZeroBaseForm!
         if form == 0:
-            # This is not a ufl.Zero but a ZeroBaseForm!
-            return form
+            # Swap the arguments
+            return ZeroBaseForm(form.arguments()[::-1])
 
         if isinstance(form, Adjoint):
             return form._form
