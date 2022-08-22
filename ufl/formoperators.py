@@ -103,21 +103,26 @@ def functional(form):  # TODO: Does this make sense for anything other than test
     return compute_form_functional(form)
 
 
-def action(form, coefficient=None):
+def action(form, coefficient=None, derivatives_expanded=None):
     """UFL form operator:
     Given a bilinear form, return a linear form
     with an additional coefficient, representing the
     action of the form on the coefficient. This can be
     used for matrix-free methods.
     For formbase objects,coefficient can be any object of the correct type,
-    and this function returns an Action object."""
+    and this function returns an Action object.
+
+    When `action` is being called multiple times on the same form, expanding derivatives
+    become expensive -> `derivatives_expanded` enables to use caching mechanisms to avoid that.
+    """
     form = as_form(form)
     is_coefficient_valid = (not isinstance(coefficient, BaseForm) or
                             (isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1))
     # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
     if isinstance(form, (Form, BaseFormOperator)) and is_coefficient_valid:
-        # For external operators differentiation may turn a Form into a FormSum
-        form = expand_derivatives(form)
+        if not derivatives_expanded:
+            # For external operators differentiation may turn a Form into a FormSum
+            form = expand_derivatives(form)
         if isinstance(form, Form):
             return compute_form_action(form, coefficient)
     return Action(form, coefficient)
@@ -132,7 +137,7 @@ def energy_norm(form, coefficient=None):
     return compute_energy_norm(form, coefficient)
 
 
-def adjoint(form, reordered_arguments=None):
+def adjoint(form, reordered_arguments=None, derivatives_expanded=None):
     """UFL form operator:
     Given a combined bilinear form, compute the adjoint form by
     changing the ordering (count) of the test and trial functions, and
@@ -145,17 +150,19 @@ def adjoint(form, reordered_arguments=None):
 
     If the form is a baseform instance instead of a Form object, we return an Adjoint
     object instructing the adjoint to be computed at a later point.
+
+    When `adjoint` is being called multiple times on the same form, expanding derivatives
+    become expensive -> `derivatives_expanded` enables to use caching mechanisms to avoid that.
     """
     form = as_form(form)
-    # if isinstance(form, (Form, BaseFormOperator)):
-    # if isinstance(form, BaseForm) and not isinstance(form, BaseFormDerivative):
     if isinstance(form, BaseForm):
         # Allow BaseForm objects that are not BaseForm such as Adjoint since there are cases
         # where we need to expand derivatives: e.g. to get the number of arguments
         #   => For example: Adjoint(Action(2-form, derivative(u,u)))
         try:
-            # For external operators differentiation may turn a Form into a FormSum
-            form = expand_derivatives(form)
+            if not derivatives_expanded:
+                # For external operators differentiation may turn a Form into a FormSum
+                form = expand_derivatives(form)
             if isinstance(form, Form):
                 return compute_form_adjoint(form, reordered_arguments)
         except NotImplementedError:
@@ -165,8 +172,6 @@ def adjoint(form, reordered_arguments=None):
             # and expand derivatives of Adjoint only works if when we push it through the Adjoint
             # we get 0.
             pass
-    # Adjoint(Action(2-form, derivative(u,u)))
-    # if isinstance(for)
     return Adjoint(form)
 
 
