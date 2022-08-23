@@ -148,6 +148,12 @@ def _check_function_spaces(left, right):
 
 def _get_action_form_arguments(left, right):
     "Perform argument contraction to work out the arguments of Action"
+
+    if isinstance(right, CoefficientDerivative):
+        # Action differentiation pushes differentiation through
+        # right as a consequence of Leibniz formula.
+        right, *_ = right.ufl_operands
+
     if isinstance(right, BaseForm):
         return left.arguments()[:-1] + right.arguments()[1:]
     elif isinstance(right, BaseCoefficient):
