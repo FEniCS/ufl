@@ -118,10 +118,12 @@ class BaseForm(object, metaclass=UFLType):
 
     def __add__(self, other):
         if isinstance(other, ZeroBaseForm):
+            self._check_arguments_sum(other)
             # Simplify addition with ZeroBaseForm
             return self
 
         elif isinstance(self, ZeroBaseForm):
+            self._check_arguments_sum(other)
             # Simplify addition with ZeroBaseForm
             return other
 
@@ -142,6 +144,18 @@ class BaseForm(object, metaclass=UFLType):
         else:
             # Let python protocols do their job if we don't handle it
             return NotImplemented
+
+    def _check_arguments_sum(self, other):
+        # Get component with the highest number of arguments
+        a = max((self, other), key=lambda x: len(x.arguments()))
+        b = self if a is other else other
+        # Components don't necessarily have the exact same arguments
+        # but the first argument(s) need to match as for `a + L`
+        # where a and L are a bilinear and linear form respectively.
+        a_args = sorted(a.arguments(), key=lambda x: x.number())
+        b_args = sorted(b.arguments(), key=lambda x: x.number())
+        if b_args != a_args[:len(b_args)]:
+            raise ValueError('Mismatching arguments when summing:\n %s\n and\n %s' % (self, other))
 
     def __sub__(self, other):
         "Subtract other form from this one."
@@ -462,6 +476,7 @@ class Form(BaseForm):
             return Form(list(chain(self.integrals(), other.integrals())))
 
         if isinstance(other, ZeroBaseForm):
+            self._check_arguments_sum(other)
             # Simplify addition with ZeroBaseForm
             return self
 
