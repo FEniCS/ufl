@@ -102,6 +102,8 @@ def test_addition():
     domain_2d = default_domain(triangle)
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
+    f_2d_2 = FiniteElement("CG", triangle, 2)
+    V2 = FunctionSpace(domain_2d, f_2d_2)
     V_dual = V.dual()
 
     u = TrialFunction(V)
@@ -121,19 +123,24 @@ def test_addition():
     assert res
 
     # Check BaseForm._add__ simplification
-    res += ZeroBaseForm((v, v))
+    res += ZeroBaseForm((v, u))
     assert res == a + L
     # Check Form._add__ simplification
     L += ZeroBaseForm((v,))
     assert L == u * v * dx
     # Check BaseForm._add__ simplification
-    res = ZeroBaseForm((v, v))
+    res = ZeroBaseForm((v, u))
     res += a
     assert res == a
     # Check __neg__
     res = L
     res -= ZeroBaseForm((v,))
     assert res == L
+
+    with pytest.raises(ValueError):
+        # Raise error for incompatible arguments
+        v2 = TestFunction(V2)
+        res = L + ZeroBaseForm((v2, u))
 
 
 def test_scalar_mult():
