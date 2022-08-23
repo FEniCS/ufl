@@ -117,21 +117,7 @@ class BaseForm(object, metaclass=UFLType):
         return self.__add__(other)
 
     def __add__(self, other):
-        if isinstance(other, ZeroBaseForm):
-            self._check_arguments_sum(other)
-            # Simplify addition with ZeroBaseForm
-            return self
-
-        elif isinstance(self, ZeroBaseForm):
-            self._check_arguments_sum(other)
-            # Simplify addition with ZeroBaseForm
-            return other
-
-        elif isinstance(other, BaseForm):
-            # Add integrals from both forms
-            return FormSum((self, 1), (other, 1))
-
-        elif isinstance(other, (int, float)) and other == 0:
+        if isinstance(other, (int, float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
 
@@ -140,6 +126,23 @@ class BaseForm(object, metaclass=UFLType):
                 Zero) and not (other.ufl_shape or other.ufl_free_indices):
             # Allow adding ufl Zero as a no-op, needed for sum([a,b])
             return self
+
+        elif isinstance(other, ZeroBaseForm):
+            self._check_arguments_sum(other)
+            # Simplify addition with ZeroBaseForm
+            return self
+
+        # For `ZeroBaseForm(...) + B` with B a BaseForm.
+        # We could overwrite ZeroBaseForm.__add__ but that implies
+        # duplicating cases with `0` and `ufl.Zero`.
+        elif isinstance(self, ZeroBaseForm):
+            self._check_arguments_sum(other)
+            # Simplify addition with ZeroBaseForm
+            return other
+
+        elif isinstance(other, BaseForm):
+            # Add integrals from both forms
+            return FormSum((self, 1), (other, 1))
 
         else:
             # Let python protocols do their job if we don't handle it
