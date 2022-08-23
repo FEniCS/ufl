@@ -15,6 +15,7 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Modified by Thomas Gibson 2017
 
 from functools import total_ordering
+from math import inf, isinf
 
 
 @total_ordering
@@ -39,6 +40,7 @@ class SobolevSpace(object):
             "L2": 0,
             "H1": 1,
             "H2": 2,
+            "HInf": inf,
             # Order for the elements below is taken from
             # its parent Sobolev space
             "HDiv": 0,
@@ -114,11 +116,8 @@ class DirectionalSobolevSpace(SobolevSpace):
                      the position denotes in what spatial variable the
                      smoothness requirement is enforced.
         """
-        assert all(
-            isinstance(x, int) for x in orders), ("Order must be an integer.")
-        assert all(
-            x < 3
-            for x in orders), ("Not implemented for orders greater than 2")
+        assert all(isinstance(x, int) or isinf(x) for x in orders), \
+            ("Order must be an integer or infinity.")
         name = "DirectionalH"
         parents = [L2]
         super(DirectionalSobolevSpace, self).__init__(name, parents)
@@ -131,7 +130,7 @@ class DirectionalSobolevSpace(SobolevSpace):
         """
         if spatial_index not in range(len(self._orders)):
             raise IndexError("Spatial index out of range.")
-        spaces = {0: L2, 1: H1, 2: H2}
+        spaces = {0: L2, 1: H1, 2: H2, inf: HInf}
         return spaces[self._orders[spatial_index]]
 
     def __contains__(self, other):
@@ -179,5 +178,6 @@ HDiv = SobolevSpace("HDiv", [L2])
 HCurl = SobolevSpace("HCurl", [L2])
 H1 = SobolevSpace("H1", [HDiv, HCurl, L2])
 H2 = SobolevSpace("H2", [H1, HDiv, HCurl, L2])
+HInf = SobolevSpace("HInf", [H2, H1, HDiv, HCurl, L2])
 HEin = SobolevSpace("HEin", [L2])
 HDivDiv = SobolevSpace("HDivDiv", [L2])
