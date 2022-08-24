@@ -14,6 +14,7 @@ from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.measure import integral_type_to_measure_name
+from ufl.sobolevspace import H1
 
 
 class RestrictionPropagator(MultiFunction):
@@ -128,12 +129,7 @@ class RestrictionPropagator(MultiFunction):
 
     def coefficient(self, o):
         "Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous across the facet."
-        e = o.ufl_element()
-        d = e.degree()
-        f = e.family()
-        # TODO: Move this choice to the element class?
-        continuous_families = ["Lagrange", "Q", "S"]
-        if (f in continuous_families and d > 0) or f == "Real":
+        if o.ufl_element() in H1:
             # If the coefficient _value_ is _fully_ continuous
             return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which
         else:
