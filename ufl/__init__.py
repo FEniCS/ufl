@@ -53,6 +53,8 @@ A very brief overview of the language contents follows:
     - tetrahedron
     - quadrilateral
     - hexahedron
+    - prism
+    - pyramid
 
 * Domains::
 
@@ -66,8 +68,11 @@ A very brief overview of the language contents follows:
     - L2
     - H1
     - H2
+    - HInf
     - HDiv
     - HCurl
+    - HEin
+    - HDivDiv
 
 * Elements::
 
@@ -270,14 +275,14 @@ from ufl.geometry import (
 )
 
 # Sobolev spaces
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     NodalEnrichedElement, RestrictedElement, TensorProductElement, \
     HDivElement, HCurlElement, BrokenElement, \
-    FacetElement, InteriorElement
+    FacetElement, InteriorElement, WithMapping
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
@@ -349,7 +354,7 @@ system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functi
 # Predefined convenience objects
 from ufl.objects import (
     vertex, interval, triangle, tetrahedron,
-    quadrilateral, hexahedron, facet,
+    quadrilateral, hexahedron, prism, pyramid, facet,
     i, j, k, l, p, q, r, s,
     dx, ds, dS, dP, dl,
     dc, dC, dO, dI, dX,
@@ -367,7 +372,7 @@ __all__ = [
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
-    'L2', 'H1', 'H2', 'HCurl', 'HDiv',
+    'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',
     'SpatialCoordinate',
     'CellVolume', 'CellDiameter', 'Circumradius',
     'MinCellEdgeLength', 'MaxCellEdgeLength',
@@ -378,7 +383,7 @@ __all__ = [
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'NodalEnrichedElement', 'RestrictedElement', 'TensorProductElement',
     'HDivElement', 'HCurlElement',
-    'BrokenElement', 'FacetElement', 'InteriorElement',
+    'BrokenElement', 'FacetElement', 'InteriorElement', "WithMapping",
     'register_element', 'show_elements',
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
@@ -413,6 +418,7 @@ __all__ = [
     'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
+    'prism', 'pyramid',
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',

@@ -573,7 +573,13 @@ class ReferenceFacetEdgeVectors(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         cell = self.ufl_domain().ufl_cell()
-        nfe = cell.num_facet_edges()
+        facet_types = cell.facet_types()
+
+        # Raise exception for cells with more than one facet type e.g. prisms
+        if len(facet_types) > 1:
+            raise Exception(f"Cell type {cell} not supported.")
+
+        nfe = facet_types[0].num_edges()
         t = cell.topological_dimension()
         return (nfe, t)
 
@@ -645,7 +651,13 @@ class FacetEdgeVectors(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         cell = self.ufl_domain().ufl_cell()
-        nfe = cell.num_facet_edges()
+        facet_types = cell.facet_types()
+
+        # Raise exception for cells with more than one facet type e.g. prisms
+        if len(facet_types) > 1:
+            raise Exception(f"Cell type {cell} not supported.")
+
+        nfe = facet_types[0].num_edges()
         g = cell.geometric_dimension()
         return (nfe, g)
 
@@ -884,6 +896,11 @@ class CellNormal(GeometricCellQuantity):
         # t = self._domain.topological_dimension()
         # return (g-t,g) # TODO: Should it be CellNormals? For interval in 3D we have two!
         return (g,)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
 
 
 @ufl_type()

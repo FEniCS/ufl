@@ -12,6 +12,8 @@
 
 import numbers
 
+from itertools import chain
+
 from ufl.log import error, deprecate
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
@@ -411,11 +413,12 @@ class Measure(object):
                   "tensor expression with value shape %s and free indices with labels %s." %
                   (integrand.ufl_shape, integrand.ufl_free_indices))
 
-        # If we have a tuple of domain ids, delegate composition to
-        # Integral.__add__:
+        # If we have a tuple of domain ids build the integrals one by
+        # one and construct as a Form in one go.
         subdomain_id = self.subdomain_id()
         if isinstance(subdomain_id, tuple):
-            return sum(integrand * self.reconstruct(subdomain_id=d) for d in subdomain_id)
+            return Form(list(chain(*((integrand * self.reconstruct(subdomain_id=d)).integrals()
+                                     for d in subdomain_id))))
 
         # Check that we have an integer subdomain or a string
         # ("everywhere" or "otherwise", any more?)

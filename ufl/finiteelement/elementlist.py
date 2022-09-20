@@ -16,7 +16,7 @@ elements by calling the function register_element."""
 from numpy import asarray
 
 from ufl.log import warning, error
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 from ufl.utils.formatting import istr
 from ufl.cell import Cell, TensorProductCell
 
@@ -94,8 +94,8 @@ simplices = ("interval", "triangle", "tetrahedron")
 cubes = ("interval", "quadrilateral", "hexahedron")
 any_cell = (None,
             "vertex", "interval",
-            "triangle", "tetrahedron",
-            "quadrilateral", "hexahedron")
+            "triangle", "tetrahedron", "prism",
+            "pyramid", "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around
@@ -115,7 +115,6 @@ register_element("Raviart-Thomas", "RT", 1, HDiv, "contravariant Piola",
 
 # Elements not in the periodic table
 register_element("Argyris", "ARG", 0, H2, "identity", (5, 5), ("triangle",))
-register_element("Arnold-Winther", "AW", 0, H1, "identity", None, ("triangle",))
 register_element("Bell", "BELL", 0, H2, "identity", (5, 5), ("triangle",))
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, HDiv,
                  "contravariant Piola", (1, None), simplices[1:])
@@ -125,7 +124,9 @@ register_element("Crouzeix-Raviart", "CR", 0, L2, "identity", (1, 1),
 register_element("Discontinuous Raviart-Thomas", "DRT", 1, L2,
                  "contravariant Piola", (1, None), simplices[1:])
 register_element("Hermite", "HER", 0, H1, "identity", (3, 3), simplices)
-register_element("Mardal-Tai-Winther", "MTW", 0, H1, "identity", None,
+register_element("Kong-Mulder-Veldhuizen", "KMV", 0, H1, "identity", (1, None),
+                 simplices[1:])
+register_element("Mardal-Tai-Winther", "MTW", 1, H1, "contravariant Piola", (3, 3),
                  ("triangle",))
 register_element("Morley", "MOR", 0, H2, "identity", (2, 2), ("triangle",))
 
@@ -136,7 +137,7 @@ register_element("Bubble", "B", 0, H1, "identity", (2, None), simplices)
 register_element("FacetBubble", "FB", 0, H1, "identity", (2, None), simplices)
 register_element("Quadrature", "Quadrature", 0, L2, "identity", (0, None),
                  any_cell)
-register_element("Real", "R", 0, L2, "identity", (0, 0),
+register_element("Real", "R", 0, HInf, "identity", (0, 0),
                  any_cell + ("TensorProductCell",))
 register_element("Undefined", "U", 0, L2, "identity", (0, None), any_cell)
 register_element("Radau", "Rad", 0, L2, "identity", (0, None), ("interval",))
@@ -145,6 +146,10 @@ register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
 register_element("HDiv Trace", "HDivT", 0, L2, "identity", (0, None), any_cell)
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
+register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDivDiv,
+                 "double contravariant Piola", (2, 2), ("triangle", "tetrahedron"))
+register_element("Conforming Arnold-Winther", "AWc", 2, HDivDiv,
+                 "double contravariant Piola", (3, None), ("triangle", "tetrahedron"))
 # Spectral elements.
 register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
                  ("interval",))
@@ -258,6 +263,15 @@ register_element("Gauss-Lobatto-Legendre Edge", "GLL-Edge", 0, L2, "identity", (
                  ("interval",))
 register_element("Gauss-Lobatto-Legendre Edge L2", "GLL-Edge L2", 0, L2, "L2 Piola", (0, None),
                  ("interval",))
+
+# directly-defined serendipity elements ala Arbogast
+# currently the theory is only really worked out for quads.
+register_element("Direct Serendipity", "Sdirect", 0, H1, "physical", (1, None),
+                 ("quadrilateral",))
+register_element("Direct Serendipity Full H(div)", "Sdirect H(div)", 1, HDiv, "physical", (1, None),
+                 ("quadrilateral",))
+register_element("Direct Serendipity Reduced H(div)", "Sdirect H(div) red", 1, HDiv, "physical", (1, None),
+                 ("quadrilateral",))
 
 
 # NOTE- the edge elements for primal mimetic spectral elements are accessed by using variant='mse' in the appropriate places
@@ -446,9 +460,6 @@ def canonical_element_description(family, cell, order, form_degree):
             error('Order "%s" invalid for "%s" finite element.' %
                   (istr(order), family))
 
-    # Override sobolev_space for piecewise constants (TODO: necessary?)
-    if order == 0:
-        sobolev_space = L2
     if value_rank == 2:
         # Tensor valued fundamental elements in HEin have this shape
         if gdim is None or tdim is None:

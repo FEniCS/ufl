@@ -9,7 +9,8 @@ from ufl import (EnrichedElement, TensorProductElement,
                  FiniteElement, triangle, interval,
                  quadrilateral, HDiv, HCurl)
 from ufl.sobolevspace import SobolevSpace, DirectionalSobolevSpace
-from ufl import H2, H1, HDiv, HCurl, L2
+from ufl import H2, H1, HDiv, HCurl, L2, HInf
+from math import inf
 
 
 # Construct directional Sobolev spaces, with varying smoothness in
@@ -17,6 +18,7 @@ from ufl import H2, H1, HDiv, HCurl, L2
 H0dx0dy = DirectionalSobolevSpace((0, 0))
 H1dx1dy = DirectionalSobolevSpace((1, 1))
 H2dx2dy = DirectionalSobolevSpace((2, 2))
+Hinfdxinfdy = DirectionalSobolevSpace((inf, inf))
 H1dx = DirectionalSobolevSpace((1, 0))
 H1dy = DirectionalSobolevSpace((0, 1))
 H000 = DirectionalSobolevSpace((0, 0, 0))
@@ -44,6 +46,8 @@ def test_directional_space_relations():
     assert H1dx1dy <= HCurl
     assert H2dx2dy <= H1dx1dy
     assert H2dhH1dz < H1
+    assert Hinfdxinfdy <= HInf
+    assert Hinfdxinfdy < H2dx2dy
     assert H1dz > H2dhH1dz
     assert H1dh < L2
     assert H1dz < L2
@@ -63,7 +67,6 @@ def xtest_contains_mixed():
 
 def test_contains_l2():
     l2_elements = [
-        FiniteElement("Real", triangle, 0),
         FiniteElement("DG", triangle, 0),
         FiniteElement("DG", triangle, 1),
         FiniteElement("DG", triangle, 2),
@@ -94,7 +97,6 @@ def test_contains_h1():
         FiniteElement("CG", triangle, 1),
         FiniteElement("CG", triangle, 2),
         # Some special elements:
-        FiniteElement("AW", triangle),
         FiniteElement("HER", triangle),
         FiniteElement("MTW", triangle),
         # Tensor product elements:
@@ -131,6 +133,22 @@ def test_contains_h2():
         assert h2_element in HCurl
         assert h2_element in L2
         assert h2_element in H0dx0dy
+
+
+def test_contains_hinf():
+    hinf_elements = [
+        FiniteElement("R", triangle, 0)
+    ]
+    for hinf_element in hinf_elements:
+        assert hinf_element in HInf
+        assert hinf_element in H2
+        assert hinf_element in H2dx2dy
+        assert hinf_element in H1
+        assert hinf_element in H1dx1dy
+        assert hinf_element in HDiv
+        assert hinf_element in HCurl
+        assert hinf_element in L2
+        assert hinf_element in H0dx0dy
 
 
 def test_contains_hdiv():

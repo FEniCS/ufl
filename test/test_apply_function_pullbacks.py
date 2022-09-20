@@ -1,32 +1,34 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-from pytest import raises
+import numpy
 from ufl import *
-from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks, apply_single_function_pullbacks
+from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianInverse, JacobianDeterminant, ReferenceValue, CellOrientation
 
 
 def check_single_function_pullback(g, mappings):
     expected = mappings[g]
-    actual = apply_single_function_pullbacks(g)
-    rexp = renumber_indices(expected)
-    ract = renumber_indices(actual)
-    if not rexp == ract:
-        print()
-        print("In check_single_function_pullback:")
-        print("input:")
-        print(repr(g))
-        print("expected:")
-        print(str(rexp))
-        print("actual:")
-        print(str(ract))
-        print("signatures:")
-        print((expected**2*dx).signature())
-        print((actual**2*dx).signature())
-        print()
-    assert ract == rexp
+    actual = apply_single_function_pullbacks(ReferenceValue(g), g.ufl_element())
+    assert expected.ufl_shape == actual.ufl_shape
+    for idx in numpy.ndindex(actual.ufl_shape):
+        rexp = renumber_indices(expected[idx])
+        ract = renumber_indices(actual[idx])
+        if not rexp == ract:
+            print()
+            print("In check_single_function_pullback:")
+            print("input:")
+            print(repr(g))
+            print("expected:")
+            print(str(rexp))
+            print("actual:")
+            print(str(ract))
+            print("signatures:")
+            print((expected**2*dx).signature())
+            print((actual**2*dx).signature())
+            print()
+        assert ract == rexp
 
 
 def test_apply_single_function_pullbacks_triangle3d():
@@ -131,7 +133,7 @@ def test_apply_single_function_pullbacks_triangle3d():
                       [rs[1], rs[3], rs[4]],
                       [rs[2], rs[4], rs[5]]]),
         cov2t: as_tensor(Jinv[k, i] * rcov2t[k, l] * Jinv[l, j], (i, j)),
-        contra2t: as_tensor((1.0 / detJ) * (1.0 / detJ)
+        contra2t: as_tensor((1.0 / detJ)**2
                             * J[i, k] * rcontra2t[k, l] * J[j, l], (i, j)),
         # Mixed elements become a bit more complicated
         uml2: as_vector([ruml2[0] / detJ, ruml2[1] / detJ]),
@@ -143,25 +145,21 @@ def test_apply_single_function_pullbacks_triangle3d():
             rvdm[1],
             rvdm[2],
             # Vd
-            M_hdiv[0, j]*as_vector([rvdm[3], rvdm[4]])[j],
-            M_hdiv[1, j]*as_vector([rvdm[3], rvdm[4]])[j],
-            M_hdiv[2, j]*as_vector([rvdm[3], rvdm[4]])[j],
+            *(as_tensor(M_hdiv[i, j]*as_vector([rvdm[3], rvdm[4]])[j], (i,))[n]
+              for n in range(3))
     ]),
         vcm: as_vector([
             # Vd
-            M_hdiv[0, j]*as_vector([rvcm[0], rvcm[1]])[j],
-            M_hdiv[1, j]*as_vector([rvcm[0], rvcm[1]])[j],
-            M_hdiv[2, j]*as_vector([rvcm[0], rvcm[1]])[j],
+            *(as_tensor(M_hdiv[i, j]*as_vector([rvcm[0], rvcm[1]])[j], (i,))[n]
+              for n in range(3)),
             # Vc
-            Jinv[i, 0]*as_vector([rvcm[2], rvcm[3]])[i],
-            Jinv[i, 1]*as_vector([rvcm[2], rvcm[3]])[i],
-            Jinv[i, 2]*as_vector([rvcm[2], rvcm[3]])[i],
+            *(as_tensor(Jinv[i, j]*as_vector([rvcm[2], rvcm[3]])[i], (j,))[n]
+              for n in range(3))
     ]),
         tm: as_vector([
             # Vc
-            Jinv[i, 0]*as_vector([rtm[0], rtm[1]])[i],
-            Jinv[i, 1]*as_vector([rtm[0], rtm[1]])[i],
-            Jinv[i, 2]*as_vector([rtm[0], rtm[1]])[i],
+            *(as_tensor(Jinv[i, j]*as_vector([rtm[0], rtm[1]])[i], (j,))[n]
+              for n in range(3)),
             # T
             rtm[2], rtm[3], rtm[4],
             rtm[5], rtm[6], rtm[7],
@@ -195,13 +193,11 @@ def test_apply_single_function_pullbacks_triangle3d():
             rw[9], rw[10], rw[11],
             rw[12], rw[13], rw[14],
             # Vc
-            Jinv[i, 0]*as_vector([rw[15], rw[16]])[i],
-            Jinv[i, 1]*as_vector([rw[15], rw[16]])[i],
-            Jinv[i, 2]*as_vector([rw[15], rw[16]])[i],
+            *(as_tensor(Jinv[i, j]*as_vector([rw[15], rw[16]])[i], (j,))[n]
+              for n in range(3)),
             # Vd
-            M_hdiv[0, j]*as_vector([rw[17], rw[18]])[j],
-            M_hdiv[1, j]*as_vector([rw[17], rw[18]])[j],
-            M_hdiv[2, j]*as_vector([rw[17], rw[18]])[j],
+            *(as_tensor(M_hdiv[i, j]*as_vector([rw[17], rw[18]])[j], (i,))[n]
+              for n in range(3)),
             # V
             rw[19],
             rw[20],
@@ -326,21 +322,21 @@ def test_apply_single_function_pullbacks_triangle():
             rvdm[0],
             rvdm[1],
             # Vd
-            M_hdiv[0, j]*as_vector([rvdm[2], rvdm[3]])[j],
-            M_hdiv[1, j]*as_vector([rvdm[2], rvdm[3]])[j],
+            *(as_tensor(M_hdiv[i, j]*as_vector([rvdm[2], rvdm[3]])[j], (i,))[n]
+              for n in range(2)),
     ]),
         vcm: as_vector([
             # Vd
-            M_hdiv[0, j]*as_vector([rvcm[0], rvcm[1]])[j],
-            M_hdiv[1, j]*as_vector([rvcm[0], rvcm[1]])[j],
+            *(as_tensor(M_hdiv[i, j]*as_vector([rvcm[0], rvcm[1]])[j], (i,))[n]
+              for n in range(2)),
             # Vc
-            Jinv[i, 0]*as_vector([rvcm[2], rvcm[3]])[i],
-            Jinv[i, 1]*as_vector([rvcm[2], rvcm[3]])[i],
+            *(as_tensor(Jinv[i, j]*as_vector([rvcm[2], rvcm[3]])[i], (j,))[n]
+              for n in range(2)),
     ]),
         tm: as_vector([
             # Vc
-            Jinv[i, 0]*as_vector([rtm[0], rtm[1]])[i],
-            Jinv[i, 1]*as_vector([rtm[0], rtm[1]])[i],
+            *(as_tensor(Jinv[i, j]*as_vector([rtm[0], rtm[1]])[i], (j,))[n]
+              for n in range(2)),
             # T
             rtm[2], rtm[3],
             rtm[4], rtm[5],
@@ -362,11 +358,11 @@ def test_apply_single_function_pullbacks_triangle():
             rw[3], rw[4],
             rw[5], rw[6],
             # Vc
-            Jinv[i, 0]*as_vector([rw[7], rw[8]])[i],
-            Jinv[i, 1]*as_vector([rw[7], rw[8]])[i],
+            *(as_tensor(Jinv[i, j]*as_vector([rw[7], rw[8]])[i], (j,))[n]
+              for n in range(2)),
             # Vd
-            M_hdiv[0, j]*as_vector([rw[9], rw[10]])[j],
-            M_hdiv[1, j]*as_vector([rw[9], rw[10]])[j],
+            *(as_tensor(M_hdiv[i, j]*as_vector([rw[9], rw[10]])[j], (i,))[n]
+              for n in range(2)),
             # V
             rw[11],
             rw[12],

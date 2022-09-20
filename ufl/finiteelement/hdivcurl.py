@@ -14,11 +14,10 @@ from ufl.sobolevspace import HDiv, HCurl
 class HDivElement(FiniteElementBase):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = ("_element",)
+    __slots__ = ("_element", )
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HDivElement(%s)" % repr(element)
 
         family = "TensorProductElement"
         cell = element.cell()
@@ -31,22 +30,25 @@ class HDivElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
+    def __repr__(self):
+        return f"HDivElement({repr(self._element)})"
+
     def mapping(self):
         return "contravariant Piola"
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space."
+        """Return the underlying Sobolev space."""
         return HDiv
 
     def reconstruct(self, **kwargs):
         return HDivElement(self._element.reconstruct(**kwargs))
 
     def __str__(self):
-        return "HDivElement(%s)" % str(self._element)
+        return f"HDivElement({repr(self._element)})"
 
     def shortstr(self):
-        "Format as string for pretty printing."
-        return "HDivElement(%s)" % str(self._element.shortstr())
+        """Format as string for pretty printing."""
+        return f"HDivElement({self._element.shortstr()})"
 
 
 class HCurlElement(FiniteElementBase):
@@ -56,7 +58,6 @@ class HCurlElement(FiniteElementBase):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HCurlElement(%s)" % repr(element)
 
         family = "TensorProductElement"
         cell = element.cell()
@@ -70,6 +71,9 @@ class HCurlElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, cell, degree, quad_scheme,
                                    value_shape, reference_value_shape)
 
+    def __repr__(self):
+        return f"HCurlElement({repr(self._element)})"
+
     def mapping(self):
         return "covariant Piola"
 
@@ -81,8 +85,65 @@ class HCurlElement(FiniteElementBase):
         return HCurlElement(self._element.reconstruct(**kwargs))
 
     def __str__(self):
-        return "HCurlElement(%s)" % str(self._element)
+        return f"HCurlElement({repr(self._element)})"
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "HCurlElement(%s)" % str(self._element.shortstr())
+        return f"HCurlElement({self._element.shortstr()})"
+
+
+class WithMapping(FiniteElementBase):
+    """Specify an alternative mapping for the wrappee. For example,
+    to use identity mapping instead of Piola map with an element E,
+    write
+    remapped = WithMapping(E, "identity")
+    """
+    def __init__(self, wrapee, mapping):
+        if mapping == "symmetries":
+            raise ValueError("Can't change mapping to 'symmetries'")
+        self._mapping = mapping
+        self.wrapee = wrapee
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self.wrapee, attr)
+        except AttributeError:
+            raise AttributeError("'%s' object has no attribute '%s'" %
+                                 (type(self).__name__, attr))
+
+    def __repr__(self):
+        return f"WithMapping({repr(self.wrapee)}, {self._mapping})"
+
+    def value_shape(self):
+        gdim = self.cell().geometric_dimension()
+        mapping = self.mapping()
+        if mapping in {"covariant Piola", "contravariant Piola"}:
+            return (gdim,)
+        elif mapping in {"double covariant Piola", "double contravariant Piola"}:
+            return (gdim, gdim)
+        else:
+            return self.wrapee.value_shape()
+
+    def reference_value_shape(self):
+        tdim = self.cell().topological_dimension()
+        mapping = self.mapping()
+        if mapping in {"covariant Piola", "contravariant Piola"}:
+            return (tdim,)
+        elif mapping in {"double covariant Piola", "double contravariant Piola"}:
+            return (tdim, tdim)
+        else:
+            return self.wrapee.reference_value_shape()
+
+    def mapping(self):
+        return self._mapping
+
+    def reconstruct(self, **kwargs):
+        mapping = kwargs.pop("mapping", self._mapping)
+        wrapee = self.wrapee.reconstruct(**kwargs)
+        return type(self)(wrapee, mapping)
+
+    def __str__(self):
+        return f"WithMapping({repr(self.wrapee)}, {self._mapping})"
+
+    def shortstr(self):
+        return f"WithMapping({self.wrapee.shortstr()}, {self._mapping})"

@@ -14,6 +14,7 @@ from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.measure import integral_type_to_measure_name
+from ufl.sobolevspace import H1
 
 
 class RestrictionPropagator(MultiFunction):
@@ -21,6 +22,9 @@ class RestrictionPropagator(MultiFunction):
         MultiFunction.__init__(self)
         self.current_restriction = side
         self.default_restriction = "+"
+        # Caches for propagating the restriction with map_expr_dag
+        self.vcaches = {"+": {}, "-": {}}
+        self.rcaches = {"+": {}, "-": {}}
         if self.current_restriction is None:
             self._rp = {"+": RestrictionPropagator("+"),
                         "-": RestrictionPropagator("-")}
@@ -32,8 +36,10 @@ class RestrictionPropagator(MultiFunction):
         if self.current_restriction is not None:
             error("Cannot restrict an expression twice.")
         # Configure a propagator for this side and apply to subtree
-        # FIXME: Reuse cache between these calls!
-        return map_expr_dag(self._rp[o.side()], o.ufl_operands[0])
+        side = o.side()
+        return map_expr_dag(self._rp[side], o.ufl_operands[0],
+                            vcache=self.vcaches[side],
+                            rcache=self.rcaches[side])
 
     # --- Reusable rules
 
@@ -123,11 +129,7 @@ class RestrictionPropagator(MultiFunction):
 
     def coefficient(self, o):
         "Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous across the facet."
-        e = o.ufl_element()
-        d = e.degree()
-        f = e.family()
-        # TODO: Move this choice to the element class?
-        if (f == "Lagrange" and d > 0) or f == "Real":
+        if o.ufl_element() in H1:
             # If the coefficient _value_ is _fully_ continuous
             return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which
         else:
