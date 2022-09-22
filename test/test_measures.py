@@ -189,23 +189,33 @@ def test_foo():
     domain, = Mx.ufl_domains()
     assert domain.ufl_id() == mydomain.ufl_id()
     assert domain.ufl_cargo() == mymesh
-    assert Mx.subdomain_data()[mydomain]["cell"] == cell_domains
+    assert(len(Mx.subdomain_data()[mydomain]["cell"]) == 1)
+    assert(Mx.subdomain_data()[mydomain]["cell"][0]) == cell_domains
 
     domain, = Ms.ufl_domains()
     assert domain.ufl_cargo() == mymesh
-    assert Ms.subdomain_data()[mydomain][
-        "exterior_facet"] == exterior_facet_domains
+    assert(len(Ms.subdomain_data()[mydomain][
+        "exterior_facet"]) == 1)
+    assert(Ms.subdomain_data()[mydomain][
+        "exterior_facet"][0]) == exterior_facet_domains
 
     domain, = MS.ufl_domains()
     assert domain.ufl_cargo() == mymesh
-    assert MS.subdomain_data()[mydomain][
-        "interior_facet"] == interior_facet_domains
+    assert(len(MS.subdomain_data()[mydomain][
+        "interior_facet"]) == 1)
+    assert(MS.subdomain_data()[mydomain][
+        "interior_facet"][0] == interior_facet_domains)
 
     # Test joining of these domains in a single form
     domain, = M.ufl_domains()
     assert domain.ufl_cargo() == mymesh
-    assert M.subdomain_data()[mydomain]["cell"] == cell_domains
-    assert M.subdomain_data()[mydomain][
-        "exterior_facet"] == exterior_facet_domains
-    assert M.subdomain_data()[mydomain][
-        "interior_facet"] == interior_facet_domains
+    assert(len(M.subdomain_data()[mydomain]["cell"]) == 1)
+    assert(M.subdomain_data()[mydomain]["cell"][0] == cell_domains)
+    assert(len(M.subdomain_data()[mydomain][
+        "exterior_facet"]) == 1)
+    assert(M.subdomain_data()[mydomain][
+        "exterior_facet"][0] == exterior_facet_domains)
+    assert(len(M.subdomain_data()[mydomain][
+        "interior_facet"]) == 1)
+    assert(M.subdomain_data()[mydomain][
+        "interior_facet"][0] == interior_facet_domains)
