@@ -11,7 +11,7 @@
 
 from ufl.log import error
 from ufl.utils.sequences import product
-from ufl.finiteelement import MixedElement, TensorElement
+from ufl.finiteelement import TensorElement
 from ufl.tensors import as_vector, as_matrix, ListTensor
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
