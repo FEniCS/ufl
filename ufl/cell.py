@@ -169,6 +169,21 @@ class Cell(AbstractCell):
         return tuple(ufl.Cell(facet_name, self.geometric_dimension())
                      for facet_name in facet_type_names[self.cellname()])
 
+    # --- Edge properties ---
+
+    def edge_types(self):
+        # TODO Move outside method?
+        "A tuple of ufl.Cell representing the edged of self."
+        edge_type_names = {"tetrahedron": ("interval",),
+                           "hexahedron": ("interval",),
+                           "prism": ("interval",)}
+
+        if self.cellname() in ["interval", "triangle", "quadrilateral"]:
+            error("edge_types cannot be used with dimension < 3")
+
+        return tuple(ufl.Cell(edge_name, self.geometric_dimension())
+                     for edge_name in edge_type_names[self.cellname()])
+
     # --- Special functions for proper object behaviour ---
 
     def __str__(self):
