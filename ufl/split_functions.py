@@ -51,7 +51,7 @@ def split(v):
 
     # Special case: simple element, just return function in a tuple
     element = v.ufl_element()
-    if not isinstance(element, MixedElement):
+    if element.num_sub_elements == 0:
         assert end is None
         return (v,)
 
