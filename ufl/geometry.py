@@ -999,11 +999,13 @@ class ReferenceFacetVolume(GeometricFacetQuantity):
     __slots__ = ()
     name = "reference_facet_volume"
 
+
 @ufl_type()
 class ReferenceEdgeVolume(GeometricEdgeQuantity):
     """UFL geometry representation: The volume of the reference cell of the current edge."""
     __slots__ = ()
     name = "reference_edge_volume"
+
 
 @ufl_type()
 class CellVolume(GeometricCellQuantity):
