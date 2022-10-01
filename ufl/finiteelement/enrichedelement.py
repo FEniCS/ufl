@@ -83,11 +83,11 @@ class EnrichedElementBase(FiniteElementBase):
             return sobolev_space
 
     def variant(self):
-        elements = [e for e in self._elements]
-        if all(e.variant() == elements[0].variant()
-               for e in elements):
-            return elements[0].variant()
-        return None
+        try:
+            variant, = {e.variant() for e in self._elements}
+            return variant
+        except ValueError:
+            return None
 
     def reconstruct(self, **kwargs):
         return type(self)(*[e.reconstruct(**kwargs) for e in self._elements])

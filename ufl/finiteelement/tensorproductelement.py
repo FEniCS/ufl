@@ -111,11 +111,11 @@ class TensorProductElement(FiniteElementBase):
         return TensorProductElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()], cell=cell)
 
     def variant(self):
-        elements = self._sub_elements
-        if all(e.variant() == elements[0].variant()
-               for e in elements):
-            return elements[0].variant()
-        return None
+        try:
+            variant, = {e.variant() for e in self.sub_elements()}
+            return variant
+        except ValueError:
+            return None
 
     def __str__(self):
         "Pretty-print."
