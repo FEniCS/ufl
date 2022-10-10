@@ -100,3 +100,6 @@ class RestrictedElement(FiniteElementBase):
         #        w.r.t. different sub_elements meanings.
         "Return list of restricted sub elements."
         return (self._element,)
+
+    def variant(self):
+        return self._element.variant()

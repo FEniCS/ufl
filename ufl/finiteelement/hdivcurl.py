@@ -43,6 +43,9 @@ class HDivElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         return HDivElement(self._element.reconstruct(**kwargs))
 
+    def variant(self):
+        return self._element.variant()
+
     def __str__(self):
         return f"HDivElement({repr(self._element)})"
 
@@ -83,6 +86,9 @@ class HCurlElement(FiniteElementBase):
 
     def reconstruct(self, **kwargs):
         return HCurlElement(self._element.reconstruct(**kwargs))
+
+    def variant(self):
+        return self._element.variant()
 
     def __str__(self):
         return f"HCurlElement({repr(self._element)})"
@@ -141,6 +147,9 @@ class WithMapping(FiniteElementBase):
         mapping = kwargs.pop("mapping", self._mapping)
         wrapee = self.wrapee.reconstruct(**kwargs)
         return type(self)(wrapee, mapping)
+
+    def variant(self):
+        return self.wrapee.variant()
 
     def __str__(self):
         return f"WithMapping({repr(self.wrapee)}, {self._mapping})"
