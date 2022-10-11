@@ -81,7 +81,7 @@ class HCurlElement(FiniteElementBase):
         return "covariant Piola"
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space."
+        """Return the underlying Sobolev space."""
         return HCurl
 
     def reconstruct(self, **kwargs):
@@ -94,7 +94,7 @@ class HCurlElement(FiniteElementBase):
         return f"HCurlElement({repr(self._element)})"
 
     def shortstr(self):
-        "Format as string for pretty printing."
+        """Format as string for pretty printing."""
         return f"HCurlElement({self._element.shortstr()})"
 
 
@@ -142,6 +142,10 @@ class WithMapping(FiniteElementBase):
 
     def mapping(self):
         return self._mapping
+
+    def sobolev_space(self):
+        """Return the underlying Sobolev space."""
+        return self.wrapee.sobolev_space()
 
     def reconstruct(self, **kwargs):
         mapping = kwargs.pop("mapping", self._mapping)
