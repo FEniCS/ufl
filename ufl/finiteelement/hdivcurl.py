@@ -8,7 +8,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.sobolevspace import HDiv, HCurl
+from ufl.sobolevspace import HDiv, HCurl, L2
 
 
 class HDivElement(FiniteElementBase):
@@ -145,7 +145,10 @@ class WithMapping(FiniteElementBase):
 
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
-        return self.wrapee.sobolev_space()
+        if self.wrapee.mapping() == self.mapping():
+            return self.wrapee.sobolev_space()
+        else:
+            return L2
 
     def reconstruct(self, **kwargs):
         mapping = kwargs.pop("mapping", self._mapping)
