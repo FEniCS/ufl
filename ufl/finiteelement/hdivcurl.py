@@ -8,7 +8,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.sobolevspace import HDiv, HCurl
+from ufl.sobolevspace import HDiv, HCurl, L2
 
 
 class HDivElement(FiniteElementBase):
@@ -42,6 +42,9 @@ class HDivElement(FiniteElementBase):
 
     def reconstruct(self, **kwargs):
         return HDivElement(self._element.reconstruct(**kwargs))
+
+    def variant(self):
+        return self._element.variant()
 
     def __str__(self):
         return f"HDivElement({repr(self._element)})"
@@ -78,17 +81,20 @@ class HCurlElement(FiniteElementBase):
         return "covariant Piola"
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space."
+        """Return the underlying Sobolev space."""
         return HCurl
 
     def reconstruct(self, **kwargs):
         return HCurlElement(self._element.reconstruct(**kwargs))
 
+    def variant(self):
+        return self._element.variant()
+
     def __str__(self):
         return f"HCurlElement({repr(self._element)})"
 
     def shortstr(self):
-        "Format as string for pretty printing."
+        """Format as string for pretty printing."""
         return f"HCurlElement({self._element.shortstr()})"
 
 
@@ -137,10 +143,20 @@ class WithMapping(FiniteElementBase):
     def mapping(self):
         return self._mapping
 
+    def sobolev_space(self):
+        """Return the underlying Sobolev space."""
+        if self.wrapee.mapping() == self.mapping():
+            return self.wrapee.sobolev_space()
+        else:
+            return L2
+
     def reconstruct(self, **kwargs):
         mapping = kwargs.pop("mapping", self._mapping)
         wrapee = self.wrapee.reconstruct(**kwargs)
         return type(self)(wrapee, mapping)
+
+    def variant(self):
+        return self.wrapee.variant()
 
     def __str__(self):
         return f"WithMapping({repr(self.wrapee)}, {self._mapping})"

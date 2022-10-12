@@ -110,6 +110,13 @@ class TensorProductElement(FiniteElementBase):
         cell = kwargs.pop("cell", self.cell())
         return TensorProductElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()], cell=cell)
 
+    def variant(self):
+        try:
+            variant, = {e.variant() for e in self.sub_elements()}
+            return variant
+        except ValueError:
+            return None
+
     def __str__(self):
         "Pretty-print."
         return "TensorProductElement(%s, cell=%s)" \
