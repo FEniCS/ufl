@@ -858,13 +858,9 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             dosum = Zero(o.ufl_shape)
             for do, v in zip(dos, self._v):
                 so, oi = as_scalar(do)
-                rv = len(v.ufl_shape)
-                if rv == 0:
-                    oi1 = oi[:]
-                    oi2 = ()
-                else:
-                    oi1 = oi[:-rv]
-                    oi2 = oi[-rv:]
+                rv = len(oi) - len(v.ufl_shape)
+                oi1 = oi[:rv]
+                oi2 = oi[rv:]
                 prod = so * v[oi2]
                 if oi1:
                     dosum += as_tensor(prod, oi1)
