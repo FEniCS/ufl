@@ -8,6 +8,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.sobolevspace import L2
 
 
 class BrokenElement(FiniteElementBase):
@@ -29,6 +30,10 @@ class BrokenElement(FiniteElementBase):
 
     def mapping(self):
         return self._element.mapping()
+
+    def sobolev_space(self):
+        """Return the underlying Sobolev space."""
+        return L2
 
     def reconstruct(self, **kwargs):
         return BrokenElement(self._element.reconstruct(**kwargs))

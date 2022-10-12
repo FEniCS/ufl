@@ -8,7 +8,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.sobolevspace import HDiv, HCurl
+from ufl.sobolevspace import HDiv, HCurl, L2
 
 
 class HDivElement(FiniteElementBase):
@@ -81,7 +81,7 @@ class HCurlElement(FiniteElementBase):
         return "covariant Piola"
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space."
+        """Return the underlying Sobolev space."""
         return HCurl
 
     def reconstruct(self, **kwargs):
@@ -94,7 +94,7 @@ class HCurlElement(FiniteElementBase):
         return f"HCurlElement({repr(self._element)})"
 
     def shortstr(self):
-        "Format as string for pretty printing."
+        """Format as string for pretty printing."""
         return f"HCurlElement({self._element.shortstr()})"
 
 
@@ -142,6 +142,13 @@ class WithMapping(FiniteElementBase):
 
     def mapping(self):
         return self._mapping
+
+    def sobolev_space(self):
+        """Return the underlying Sobolev space."""
+        if self.wrapee.mapping() == self.mapping():
+            return self.wrapee.sobolev_space()
+        else:
+            return L2
 
     def reconstruct(self, **kwargs):
         mapping = kwargs.pop("mapping", self._mapping)
