@@ -121,6 +121,8 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     # Therfore the latter overwrites Operator reconstruction and we would have:
     #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ = BaseFormOperator._ufl_expr_reconstruct_
     _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
+    # Set __repr__
+    __repr__ = Operator.__repr__
 
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0,

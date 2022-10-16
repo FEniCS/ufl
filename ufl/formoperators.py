@@ -12,7 +12,7 @@
 # Modified by Cecile Daversin-Catty, 2018
 
 from ufl.log import error
-from ufl.form import Form, FormSum, BaseForm, as_form
+from ufl.form import Form, FormSum, BaseForm, ZeroBaseForm, as_form
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.split_functions import split
@@ -162,7 +162,16 @@ def adjoint(form, reordered_arguments=None, derivatives_expanded=None):
         try:
             if not derivatives_expanded:
                 # For external operators differentiation may turn a Form into a FormSum
-                form = expand_derivatives(form)
+                form_expanded = expand_derivatives(form)
+                if isinstance(form_expanded, Form) and form_expanded.empty():
+                    # For cases such as `derivative(Adjoint(F), u)` when derivative(F, u) = 0.
+                    # ufl.Adjoint can be applied onto F because of distributivity:
+                    #   e.g. adjoint(u * v * dx + N * v * dx)
+                    #       => Adjoint(u * v * dx) + Adjoint(N * v * dx)
+                    #   with N a BaseFormOperator
+                    return Adjoint(ZeroBaseForm(form.arguments()))
+                form = form_expanded
+
             if isinstance(form, Form):
                 return compute_form_adjoint(form, reordered_arguments)
         except NotImplementedError:
