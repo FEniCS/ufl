@@ -40,10 +40,10 @@ class RestrictedElement(FiniteElementBase):
         return f"RestrictedElement({repr(self._element)}, {repr(self._restriction_domain)})"
 
     def sobolev_space(self):
-        if self._restriction_domain == "facet":
-            return self._element.sobolev_space()
-        else:
+        if self._restriction_domain == "interior":
             return L2
+        else:
+            return self._element.sobolev_space()
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this element is spatially
