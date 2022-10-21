@@ -80,7 +80,7 @@ class Adjoint(BaseForm):
         return (self._form == other._form)
 
     def __str__(self):
-        return "Adjoint(%s)" % self._form
+        return "Adjoint(%s)" % str(self._form)
 
     def __repr__(self):
         return self._repr
