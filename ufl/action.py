@@ -124,7 +124,7 @@ class Action(BaseForm):
         return (self._left == other._left and self._right == other._right)
 
     def __str__(self):
-        return "Action(%s, %s)" % (repr(self._left), repr(self._right))
+        return "Action(%s, %s)" % (str(self._left), str(self._right))
 
     def __repr__(self):
         return self._repr
