@@ -324,7 +324,7 @@ def ufl2unicode(expression):
         preprocessed_form = form_data.preprocessed_form
         return form2unicode(preprocessed_form, form_data)
     else:
-        return expression2unicode(expression)
+        return expression2unicode(ufl.as_ufl(expression))
 
 
 def expression2unicode(expression, argument_names=None, coefficient_names=None):

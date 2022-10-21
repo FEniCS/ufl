@@ -69,14 +69,14 @@ class Interp(BaseFormOperator):
                                   result_coefficient=result_coefficient,
                                   argument_slots=argument_slots)
 
-    def _ufl_expr_reconstruct_(self, expr, v=None, result_coefficient=None):
+    def _ufl_expr_reconstruct_(self, expr, v=None, result_coefficient=None, **add_kwargs):
         "Return a new object of the same type with new operands."
         v = v or self.argument_slots()[0]
         # This should check if we need a new coefficient, i.e. if we need
         # to pass `self._result_coefficient` when `result_coefficient` is None.
         # -> `result_coefficient` is deprecated so it shouldn't be a problem!
         result_coefficient = result_coefficient or self._result_coefficient
-        return type(self)(expr, v, result_coefficient=result_coefficient)
+        return type(self)(expr, v, result_coefficient=result_coefficient, **add_kwargs)
 
     def __repr__(self):
         "Default repr string construction for Interp."

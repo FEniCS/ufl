@@ -24,10 +24,8 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements."
     # TODO: Move these to base?
-    __slots__ = ("_short_name",
-                 "_sobolev_space",
-                 "_mapping",
-                 "_variant")
+    __slots__ = ("_short_name", "_sobolev_space",
+                 "_mapping", "_variant", "_repr")
 
     def __new__(cls,
                 family,
@@ -188,11 +186,16 @@ class FiniteElement(FiniteElementBase):
             repr(self.family()), repr(self.cell()), repr(self.degree()), quad_str, var_str)
         assert '"' not in self._repr
 
+    def __repr__(self):
+        """Format as string for evaluation as Python object."""
+        return self._repr
+
     def mapping(self):
+        """Return the mapping type for this element ."""
         return self._mapping
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space."
+        """Return the underlying Sobolev space."""
         return self._sobolev_space
 
     def variant(self):

@@ -276,6 +276,7 @@ class Form(BaseForm):
         "_base_form_operators",
         "_coefficients",
         "_coefficient_numbering",
+        "_constant_numbering",
         "_constants",
         "_hash",
         "_signature",
@@ -306,12 +307,15 @@ class Form(BaseForm):
         # Internal variables for caching form argument data
         self._coefficients = None
         self._coefficient_numbering = None
+        self._constant_numbering = None
 
         # Internal variables for caching base form operator data
         self._base_form_operators = None
 
         from ufl.algorithms.analysis import extract_constants
         self._constants = extract_constants(self)
+        self._constant_numbering = dict(
+            (c, i) for i, c in enumerate(self._constants))
 
         # Internal variables for caching of hash and signature after
         # first request
@@ -440,6 +444,11 @@ class Form(BaseForm):
 
     def constants(self):
         return self._constants
+
+    def constant_numbering(self):
+        """Return a contiguous numbering of constants in a mapping
+        ``{constant:number}``."""
+        return self._constant_numbering
 
     def signature(self):
         "Signature for use with jit cache (independent of incidental numbering of indices etc.)"
@@ -668,9 +677,11 @@ class Form(BaseForm):
         # Include integration domains and coefficients in renumbering
         dn = self.domain_numbering()
         cn = self.coefficient_numbering()
+        cnstn = self.constant_numbering()
         renumbering = {}
         renumbering.update(dn)
         renumbering.update(cn)
+        renumbering.update(cnstn)
 
         # Add domains of coefficients, these may include domains not
         # among integration domains
@@ -685,6 +696,14 @@ class Form(BaseForm):
         # among integration domains
         for a in self._arguments:
             d = a.ufl_function_space().ufl_domain()
+            if d is not None and d not in renumbering:
+                renumbering[d] = k
+                k += 1
+
+        # Add domains of constants, these may include domains not
+        # among integration domains
+        for c in self._constants:
+            d = c.ufl_domain()
             if d is not None and d not in renumbering:
                 renumbering[d] = k
                 k += 1
