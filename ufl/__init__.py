@@ -68,8 +68,11 @@ A very brief overview of the language contents follows:
     - L2
     - H1
     - H2
+    - HInf
     - HDiv
     - HCurl
+    - HEin
+    - HDivDiv
 
 * Elements::
 
@@ -272,7 +275,7 @@ from ufl.geometry import (
 )
 
 # Sobolev spaces
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -381,7 +384,7 @@ __all__ = [
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
-    'L2', 'H1', 'H2', 'HCurl', 'HDiv',
+    'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',
     'SpatialCoordinate',
     'CellVolume', 'CellDiameter', 'Circumradius',
     'MinCellEdgeLength', 'MaxCellEdgeLength',
