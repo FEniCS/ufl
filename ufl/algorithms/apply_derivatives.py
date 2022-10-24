@@ -1347,13 +1347,25 @@ def apply_derivatives(expression):
     # Retrieve the base form operators, var, and the argument and coefficient_derivatives for `derivative`
     var, der_kwargs, *base_form_ops = pending_operations
     for N in sorted(set(base_form_ops), key=lambda x: x.count()):
-        # Replace dexpr/dvar by dexpr/dN. We don't use `apply_derivatives` since
-        # the differentiation is done via `\partial` and not `d`.
+        # -- Replace dexpr/dvar by dexpr/dN -- #
+        # We don't use `apply_derivatives` since the differentiation is done via `\partial` and not `d`.
         dexpr_dN = map_integrand_dags(rules, replace_derivative_nodes(expression, {var.ufl_operands[0]: N}))
-        # Add the BaseFormOperatorDerivative node
-        # TODO: Should we use `derivative` here to take into account Extop/Interp node?
-        dN_dvar = apply_derivatives(BaseFormOperatorDerivative(N, var, **der_kwargs))
-        # Sum the Action: dF/du = \partial F/\partial u + \sum_{i=1,...} Action(dF/dNi, dNi/du)
+        # -- Add the BaseFormOperatorDerivative node -- #
+        var_arg, = der_kwargs['arguments'].ufl_operands
+        cd = der_kwargs['coefficient_derivatives']
+        # Not always the case since `derivative`'s syntax enables one to use a Coefficient as the Gateaux direction
+        if isinstance(var_arg, BaseArgument):
+            # Construct the argument number based on the BaseFormOperator arguments instead of naively
+            # using `var_arg`. This is critical when BaseFormOperators are used inside 0-forms.
+            #
+            # Example: F = 0.5 * u** 2 * dx + 0.5 * N(u; v*)** 2 * dx
+            #    -> dFdu[vhat] = <u, vhat> + Action(<N(u; v*), v0>, dNdu(u; v1, v*))
+            # with vhat a 0-numbered argument, and where v1 and vhat have the same function space but a different number.
+            # Here, applying vhat (`var_arg`) naively would result in dNdu(u; vhat, v*), i.e. the 2-forms dNdu
+            # would have two 0-numbered arguments. Instead we increment the argument number of `vhat` to form `v1`.
+            var_arg = type(var_arg)(var_arg.ufl_function_space(), number=len(N.arguments()), part=var_arg.part())
+        dN_dvar = apply_derivatives(BaseFormOperatorDerivative(N, var, ExprList(var_arg), cd))
+        # -- Sum the Action: dF/du = \partial F/\partial u + \sum_{i=1,...} Action(\partial F/\partial Ni, dNi/du) -- #
         if not (isinstance(dexpr_dN, Form) and len(dexpr_dN.integrals()) == 0):
             # In this case: Action <=> ufl.action since `dN_var` has 2 arguments.
             # We use Action to handle the trivial case dN_dvar = 0.

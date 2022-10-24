@@ -355,9 +355,8 @@ def test_differentiation_procedure_action():
     assert vstar_N1.ufl_function_space().ufl_element() == V
     assert vstar_N2.ufl_function_space().ufl_element() == V
 
-    # The external operators have an argument vstar with number 1
-    u_hat = Argument(V, 2)
-    s_hat = Argument(S, 2)
+    u_hat = Argument(V, 1)
+    s_hat = Argument(S, 1)
     w = Coefficient(V)
     r = Coefficient(S)
 
@@ -433,8 +432,7 @@ def test_extractions():
     assert extract_constants(F) == [c]
     assert F.base_form_operators() == (e,)
 
-    # The external operators have an argument vstar with number 1
-    u_hat = Argument(V, 2)
+    u_hat = Argument(V, 1)
     e = ExternalOperator(u, function_space=V, derivatives=(1,), argument_slots=(vstar_e, u_hat))
 
     assert extract_coefficients(e) == [u]
@@ -508,15 +506,20 @@ def test_adjoint_action_jacobian(V1, V2, V3):
 
         # Get test function
         v_F = F.arguments() if isinstance(F, Form) else ()
-        n_arg = len(v_F)
+        # If we have a 0-form with an ExternalOperator: e.g. F = N * dx
+        # => F.arguments() = (), because of form composition.
+        # But we still need to make arguments with number 1 (i.e. n_arg = 1)
+        # since at the external operator level, argument numbering is based on
+        # the external operator arguments and not on the outer form arguments.
+        n_arg = len(v_F) if len(v_F) else 1
         assert n_arg < 2
 
         # Differentiate
-        dFdu = expand_derivatives(derivative(F, u, u_hat(n_arg + 1)))
-        dFdm = expand_derivatives(derivative(F, m, m_hat(n_arg + 1)))
+        dFdu = expand_derivatives(derivative(F, u, u_hat(n_arg)))
+        dFdm = expand_derivatives(derivative(F, m, m_hat(n_arg)))
 
-        assert dFdu.arguments() == v_F + (u_hat(n_arg + 1),)
-        assert dFdm.arguments() == v_F + (m_hat(n_arg + 1),)
+        assert dFdu.arguments() == v_F + (u_hat(n_arg),)
+        assert dFdm.arguments() == v_F + (m_hat(n_arg),)
 
         assert isinstance(dFdu, Action)
 
@@ -527,8 +530,8 @@ def test_adjoint_action_jacobian(V1, V2, V3):
 
         assert dNdu.derivatives == (1, 0)
         assert dNdm.derivatives == (0, 1)
-        assert dNdu.arguments() == (vstar_N(0), u_hat(n_arg + 1))
-        assert dNdm.arguments() == (vstar_N(0), m_hat(n_arg + 1))
+        assert dNdu.arguments() == (vstar_N(0), u_hat(n_arg))
+        assert dNdm.arguments() == (vstar_N(0), m_hat(n_arg))
         assert dNdu.argument_slots() == dNdu.arguments()
         assert dNdm.argument_slots() == dNdm.arguments()
 
@@ -540,21 +543,21 @@ def test_adjoint_action_jacobian(V1, V2, V3):
         assert action_dFdm.arguments() == v_F + ()
 
         # If we have 2 arguments
-        if n_arg > 0:
+        if len(v_F):
             # Adjoint
             dFdu_adj = adjoint(dFdu)
             dFdm_adj = adjoint(dFdm)
 
-            assert dFdu_adj.arguments() == (u_hat(n_arg + 1),) + v_F
-            assert dFdm_adj.arguments() == (m_hat(n_arg + 1),) + v_F
+            assert dFdu_adj.arguments() == (u_hat(n_arg),) + v_F
+            assert dFdm_adj.arguments() == (m_hat(n_arg),) + v_F
 
             # Action of the adjoint
             q = Coefficient(v_F[0].ufl_function_space())
             action_dFdu_adj = action(dFdu_adj, q)
             action_dFdm_adj = action(dFdm_adj, q)
 
-            assert action_dFdu_adj.arguments() == (u_hat(n_arg + 1),)
-            assert action_dFdm_adj.arguments() == (m_hat(n_arg + 1),)
+            assert action_dFdu_adj.arguments() == (u_hat(n_arg),)
+            assert action_dFdm_adj.arguments() == (m_hat(n_arg),)
 
 
 """
