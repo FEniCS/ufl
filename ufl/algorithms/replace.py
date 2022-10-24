@@ -22,8 +22,13 @@ class Replacer(MultiFunction):
     def __init__(self, mapping):
         super().__init__()
         self.mapping = mapping
+
         # One can replace Coarguments by 1-Forms
-        get_shape = lambda x: x.ufl_shape if not isinstance(x, Form) else x.arguments()[0].ufl_shape
+        def get_shape(x):
+            if isinstance(x, Form):
+                return x.arguments()[0].ufl_shape
+            return x.ufl_shape
+
         if not all(get_shape(k) == get_shape(v) for k, v in mapping.items()):
             error("Replacement expressions must have the same shape as what they replace.")
 
