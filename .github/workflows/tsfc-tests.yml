@@ -46,4 +46,4 @@ jobs:
           pip install git+https://github.com/firedrakeproject/loopy.git#egg=loopy
           pip install .[ci]
       - name: Run tsfc unit tests
-        run: python3 -m pytest -n auto tsfc/tests
+        run: python3 -m pytest tsfc/tests
