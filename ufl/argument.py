@@ -74,14 +74,14 @@ class Argument(FormArgument):
 
     def ufl_domain(self):
         "Deprecated, please use .ufl_function_space().ufl_domain() instead."
-        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
-        # use .ufl_function_space().ufl_domain() instead.")
+        deprecate("Argument.ufl_domain() is deprecated, please "
+                  "use .ufl_function_space().ufl_domain() instead.")
         return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
         "Deprecated, please use .ufl_function_space().ufl_element() instead."
-        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
-        # use .ufl_function_space().ufl_element() instead.")
+        deprecate("Argument.ufl_domain() is deprecated, please "
+                  "use .ufl_function_space().ufl_element() instead.")
         return self._ufl_function_space.ufl_element()
 
     def number(self):
@@ -101,8 +101,8 @@ class Argument(FormArgument):
 
     def ufl_domains(self):
         "Deprecated, please use .ufl_function_space().ufl_domains() instead."
-        # TODO: deprecate("Argument.ufl_domains() is deprecated,
-        # please use .ufl_function_space().ufl_domains() instead.")
+        deprecate("Argument.ufl_domains() is deprecated, "
+                  " please use .ufl_function_space().ufl_domains() instead.")
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
