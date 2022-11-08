@@ -325,7 +325,7 @@ from ufl.operators import rank, shape, \
     cosh, sinh, tanh, \
     bessel_J, bessel_Y, bessel_I, bessel_K, \
     eq, ne, le, ge, lt, gt, And, Or, Not, \
-    conditional, sign, max_value, min_value, Max, Min, \
+    conditional, sign, max_value, min_value, \
     variable, diff, \
     Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
     jump, avg, cell_avg, facet_avg, \
@@ -402,7 +402,7 @@ __all__ = [
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
-    'conditional', 'sign', 'max_value', 'min_value', 'Max', 'Min',
+    'conditional', 'sign', 'max_value', 'min_value',
     'variable', 'diff',
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg', 'cell_avg', 'facet_avg',
