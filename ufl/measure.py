@@ -241,14 +241,8 @@ class Measure(object):
     # (subdomain_id, metadata) for backwards compatibility, because
     # some tutorials write e.g. dx(0, {...}) to set metadata.
     def __call__(self, subdomain_id=None, metadata=None, domain=None,
-                 subdomain_data=None, degree=None, scheme=None, rule=None):
+                 subdomain_data=None, degree=None, scheme=None):
         """Reconfigure measure with new domain specification or metadata."""
-
-        # Deprecation of 'rule' in favour of 'scheme'
-        if rule is not None:
-            deprecate("Measure argument 'rule' has been renamed to 'scheme'.")
-            assert scheme is None or scheme == rule
-            scheme = rule
 
         # Let syntax dx() mean integral over everywhere
         all_args = (subdomain_id, metadata, domain, subdomain_data,
