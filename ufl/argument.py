@@ -13,7 +13,7 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
-from ufl.log import error
+from ufl.log import error, deprecate
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
