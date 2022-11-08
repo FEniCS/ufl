@@ -158,14 +158,6 @@ def test_foo():
     exterior_facet_domains = MockMeshFunction(2, mesh)
     interior_facet_domains = MockMeshFunction(3, mesh)
 
-    assert dx[cell_domains] == dx(subdomain_data=cell_domains)
-    assert dx[cell_domains] != dx
-    assert dx[cell_domains] != dx[exterior_facet_domains]
-
-    # Test definition of a custom measure with legacy bracket syntax
-    dxd = dx[cell_domains]
-    dsd = ds[exterior_facet_domains]
-    dSd = dS[interior_facet_domains]
     # Current behaviour: no domain created, measure domain data is a single
     # object not a full dict
     assert dxd.ufl_domain() is None
