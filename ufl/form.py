@@ -447,14 +447,10 @@ class Form(object):
             sd = integral.subdomain_data()
 
             # Collect subdomain data
-            data = subdomain_data[domain].get(it)
-            if data is None:
-                subdomain_data[domain][it] = sd
-            elif sd is not None:
-                if data.ufl_id() != sd.ufl_id():
-                    error(
-                        "Integrals in form have different subdomain_data objects."
-                    )
+            if subdomain_data[domain].get(it) is None:
+                subdomain_data[domain][it] = [sd]
+            else:
+                subdomain_data[domain][it].append(sd)
         self._subdomain_data = subdomain_data
 
     def _analyze_form_arguments(self):
