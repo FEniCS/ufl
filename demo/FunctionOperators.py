@@ -17,7 +17,7 @@
 #
 # Test form for operators on Coefficients.
 from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction,
-                 dot, dx, grad, sqrt, triangle)
+                 dot, dx, grad, sqrt, triangle, max_value)
 
 element = FiniteElement("Lagrange", triangle, 1)
 
