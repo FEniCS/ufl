@@ -96,9 +96,7 @@ class Argument(FormArgument):
         return False
 
     def ufl_domains(self):
-        "Deprecated, please use .ufl_function_space().ufl_domains() instead."
-        deprecate("Argument.ufl_domains() is deprecated, "
-                  " please use .ufl_function_space().ufl_domains() instead.")
+        """Return UFL domains."""
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
