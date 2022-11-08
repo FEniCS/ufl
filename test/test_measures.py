@@ -158,6 +158,9 @@ def test_foo():
     exterior_facet_domains = MockMeshFunction(2, mesh)
     interior_facet_domains = MockMeshFunction(3, mesh)
 
+    dxd = dx(subdomain_data=cell_domains)
+    dsd = ds(subdomain_data=exterior_facet_domains)
+    dSd = dS(subdomain_data=interior_facet_domains)
     # Current behaviour: no domain created, measure domain data is a single
     # object not a full dict
     assert dxd.ufl_domain() is None
