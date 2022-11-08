@@ -13,7 +13,7 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
-from ufl.log import error, deprecate
+from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
@@ -73,15 +73,11 @@ class Argument(FormArgument):
         return self._ufl_function_space
 
     def ufl_domain(self):
-        "Deprecated, please use .ufl_function_space().ufl_domain() instead."
-        deprecate("Argument.ufl_domain() is deprecated, please "
-                  "use .ufl_function_space().ufl_domain() instead.")
+        """Return the UFL domain."""
         return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
-        "Deprecated, please use .ufl_function_space().ufl_element() instead."
-        deprecate("Argument.ufl_domain() is deprecated, please "
-                  "use .ufl_function_space().ufl_element() instead.")
+        """Return The UFL element."""
         return self._ufl_function_space.ufl_element()
 
     def number(self):
