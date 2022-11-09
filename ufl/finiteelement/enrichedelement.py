@@ -82,6 +82,13 @@ class EnrichedElementBase(FiniteElementBase):
             sobolev_space, = intersect
             return sobolev_space
 
+    def variant(self):
+        try:
+            variant, = {e.variant() for e in self._elements}
+            return variant
+        except ValueError:
+            return None
+
     def reconstruct(self, **kwargs):
         return type(self)(*[e.reconstruct(**kwargs) for e in self._elements])
 
