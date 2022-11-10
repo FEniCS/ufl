@@ -9,7 +9,6 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
@@ -38,11 +37,11 @@ class Sum(Operator):
         fi = a.ufl_free_indices
         fid = a.ufl_index_dimensions
         if b.ufl_shape != sh:
-            error("Can't add expressions with different shapes.")
+            raise ValueError("Can't add expressions with different shapes.")
         if b.ufl_free_indices != fi:
-            error("Can't add expressions with different free indices.")
+            raise ValueError("Can't add expressions with different free indices.")
         if b.ufl_index_dimensions != fid:
-            error("Can't add expressions with different index dimensions.")
+            raise ValueError("Can't add expressions with different index dimensions.")
 
         # Skip adding zero
         if isinstance(a, Zero):
@@ -107,7 +106,7 @@ class Sum(Operator):
                 s += o
             return s
         # Implementation with no line splitting:
-        return "%s" % " + ".join(ops)
+        return " + ".join(ops)
 
 
 @ufl_type(num_ops=2,
@@ -124,8 +123,8 @@ class Product(Operator):
         # Type checking
         # Make sure everything is scalar
         if a.ufl_shape or b.ufl_shape:
-            error("Product can only represent products of scalars, "
-                  "got\n\t%s\nand\n\t%s" % (ufl_err_str(a), ufl_err_str(b)))
+            raise ValueError("Product can only represent products of scalars, "
+                             f"got\n{ufl_err_str(a)}\nand\n{ufl_err_str(b)}")
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -184,7 +183,7 @@ class Product(Operator):
         sh = self.ufl_shape
         if sh:
             if sh != ops[-1].ufl_shape:
-                error("Expecting nonscalar product operand to be the last by convention.")
+                raise ValueError("Expecting nonscalar product operand to be the last by convention.")
             tmp = ops[-1].evaluate(x, mapping, component, index_values)
             ops = ops[:-1]
         else:
@@ -214,11 +213,11 @@ class Division(Operator):
         # so maybe we can keep this assertion. Some algorithms may
         # need updating.
         if not is_ufl_scalar(a):
-            error("Expecting scalar nominator in Division.")
+            raise ValueError("Expecting scalar nominator in Division.")
         if not is_true_ufl_scalar(b):
-            error("Division by non-scalar is undefined.")
+            raise ValueError("Division by non-scalar is undefined.")
         if isinstance(b, Zero):
-            error("Division by zero!")
+            raise ValueError("Division by zero!")
 
         # Simplification
         # Simplification a/b -> a
@@ -260,8 +259,7 @@ class Division(Operator):
         return e
 
     def __str__(self):
-        return "%s / %s" % (parstr(self.ufl_operands[0], self),
-                            parstr(self.ufl_operands[1], self))
+        return f"{parstr(self.ufl_operands[0], self)} / {parstr(self.ufl_operands[1], self)}"
 
 
 @ufl_type(num_ops=2,
@@ -277,9 +275,9 @@ class Power(Operator):
 
         # Type checking
         if not is_true_ufl_scalar(a):
-            error("Cannot take the power of a non-scalar expression %s." % ufl_err_str(a))
+            raise ValueError(f"Cannot take the power of a non-scalar expression {ufl_err_str(a)}.")
         if not is_true_ufl_scalar(b):
-            error("Cannot raise an expression to a non-scalar power %s." % ufl_err_str(b))
+            raise ValueError(f"Cannot raise an expression to a non-scalar power {ufl_err_str(b)}.")
 
         # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
@@ -288,10 +286,10 @@ class Power(Operator):
             return IntValue(1)
         if isinstance(a, Zero) and isinstance(b, ScalarValue):
             if isinstance(b, ComplexValue):
-                error("Cannot raise zero to a complex power.")
+                raise ValueError("Cannot raise zero to a complex power.")
             bf = float(b)
             if bf < 0:
-                error("Division by zero, cannot raise 0 to a negative power.")
+                raise ValueError("Division by zero, cannot raise 0 to a negative power.")
             else:
                 return zero()
         if isinstance(b, ScalarValue) and b._value == 1:
@@ -318,7 +316,7 @@ class Power(Operator):
 
     def __str__(self):
         a, b = self.ufl_operands
-        return "%s ** %s" % (parstr(a, self), parstr(b, self))
+        return f"{parstr(a, self)} ** {parstr(b, self)}"
 
 
 @ufl_type(num_ops=1,
@@ -349,7 +347,7 @@ class Abs(Operator):
 
     def __str__(self):
         a, = self.ufl_operands
-        return "|%s|" % (parstr(a, self),)
+        return f"|{parstr(a, self)}|"
 
 
 @ufl_type(num_ops=1,
@@ -379,7 +377,7 @@ class Conj(Operator):
 
     def __str__(self):
         a, = self.ufl_operands
-        return "conj(%s)" % (parstr(a, self),)
+        return f"conj({parstr(a, self)})"
 
 
 @ufl_type(num_ops=1,
@@ -411,7 +409,7 @@ class Real(Operator):
 
     def __str__(self):
         a, = self.ufl_operands
-        return "Re[%s]" % (parstr(a, self),)
+        return f"Re[{parstr(a, self)}]"
 
 
 @ufl_type(num_ops=1,
@@ -441,4 +439,4 @@ class Imag(Operator):
 
     def __str__(self):
         a, = self.ufl_operands
-        return "Im[%s]" % (parstr(a, self),)
+        return f"Im[{parstr(a, self)}]"

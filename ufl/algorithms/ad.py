@@ -9,7 +9,7 @@
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.log import warning
+from warnings import warn
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 
@@ -25,7 +25,7 @@ def expand_derivatives(form, **kwargs):
     # For a deprecation period (I see that dolfin-adjoint passes some
     # args here)
     if kwargs:
-        warning("Deprecation: expand_derivatives no longer takes any keyword arguments")
+        warn("Deprecation: expand_derivatives no longer takes any keyword arguments", DeprecationWarning)
 
     # Lower abstractions for tensor-algebra types into index notation
     form = apply_algebra_lowering(form)
