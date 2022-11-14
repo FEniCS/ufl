@@ -567,16 +567,6 @@ def min_value(x, y):
     return MinValue(x, y)
 
 
-def Max(x, y):  # TODO: Deprecate this notation?
-    "UFL operator: Take the maximum of *x* and *y*."
-    return max_value(x, y)
-
-
-def Min(x, y):  # TODO: Deprecate this notation?
-    "UFL operator: Take the minimum of *x* and *y*."
-    return min_value(x, y)
-
-
 # --- Math functions ---
 
 def _mathfunction(f, cls):
