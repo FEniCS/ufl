@@ -19,7 +19,7 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
+from ufl.log import error, deprecate
 
 
 # --- The base object for all UFL expression tree nodes ---
@@ -291,13 +291,17 @@ class Expr(object):
 
     # --- Functions for geometric properties of expression ---
 
-    def ufl_domains(self):  # TODO: Deprecate this and use extract_domains(expr)
+    def ufl_domains(self):
         "Return all domains this expression is defined on."
+        deprecate("Expr.ufl_domains() is deprecated, please "
+                  "use extract_domains(expr) instead.")
         from ufl.domain import extract_domains
         return extract_domains(self)
 
-    def ufl_domain(self):  # TODO: Deprecate this and use extract_unique_domain(expr)
+    def ufl_domain(self):
         "Return the single unique domain this expression is defined on, or throw an error."
+        deprecate("Expr.ufl_domain() is deprecated, please "
+                  "use extract_unique_domain(expr) instead.")
         from ufl.domain import extract_unique_domain
         return extract_unique_domain(self)
 
@@ -413,13 +417,6 @@ class Expr(object):
         except TypeError:
             val = NotImplemented
         return val
-
-    # --- Deprecated functions
-
-    def geometric_dimension(self):
-        "Return the geometric dimension this expression lives in."
-        from ufl.domain import find_geometric_dimension
-        return find_geometric_dimension(self)
 
 
 # Initializing traits here because Expr is not defined in the class

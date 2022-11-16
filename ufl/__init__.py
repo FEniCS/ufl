@@ -87,8 +87,6 @@ A very brief overview of the language contents follows:
     - HDivElement
     - HCurlElement
     - BrokenElement
-    - FacetElement
-    - InteriorElement
 
 * Function spaces::
 
@@ -281,8 +279,7 @@ from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     NodalEnrichedElement, RestrictedElement, TensorProductElement, \
-    HDivElement, HCurlElement, BrokenElement, \
-    FacetElement, InteriorElement, WithMapping
+    HDivElement, HCurlElement, BrokenElement, WithMapping
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
@@ -328,7 +325,7 @@ from ufl.operators import rank, shape, \
     cosh, sinh, tanh, \
     bessel_J, bessel_Y, bessel_I, bessel_K, \
     eq, ne, le, ge, lt, gt, And, Or, Not, \
-    conditional, sign, max_value, min_value, Max, Min, \
+    conditional, sign, max_value, min_value, \
     variable, diff, \
     Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
     jump, avg, cell_avg, facet_avg, \
@@ -383,7 +380,7 @@ __all__ = [
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'NodalEnrichedElement', 'RestrictedElement', 'TensorProductElement',
     'HDivElement', 'HCurlElement',
-    'BrokenElement', 'FacetElement', 'InteriorElement', "WithMapping",
+    'BrokenElement', "WithMapping",
     'register_element', 'show_elements',
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
@@ -405,7 +402,7 @@ __all__ = [
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
-    'conditional', 'sign', 'max_value', 'min_value', 'Max', 'Min',
+    'conditional', 'sign', 'max_value', 'min_value',
     'variable', 'diff',
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg', 'cell_avg', 'facet_avg',

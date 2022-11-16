@@ -13,7 +13,7 @@
 import io
 import os
 import re
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.utils.sorting import sorted_by_key
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
@@ -148,11 +148,7 @@ def interpret_ufl_namespace(namespace):
         error("Expecting 'elements' to be a list of FiniteElementBase instances.")
 
     # Get list of exported coefficients
-    # TODO: Temporarily letting 'coefficients' override 'functions',
-    # but allow 'functions' for compatibility
-    functions = namespace.get("functions", [])
-    if functions:
-        warning("Deprecation warning: Rename 'functions' to 'coefficients' to export coefficients.")
+    functions = []
     ufd.coefficients = namespace.get("coefficients", functions)
 
     # Validate types
