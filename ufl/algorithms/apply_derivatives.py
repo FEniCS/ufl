@@ -7,9 +7,10 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import warnings
 from collections import defaultdict
 
-from ufl.log import error, warning
+from ufl.log import error
 
 from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
@@ -1013,7 +1014,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                     # TODO: Make it possible to silence this message
                     #       in particular?  It may be good to have for
                     #       debugging...
-                    warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
+                    warnings.warn("Assuming d{%s}/d{%s} = 0." % (o, self._w))
             else:
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):

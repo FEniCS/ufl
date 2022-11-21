@@ -13,9 +13,10 @@ objects."""
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Massimiliano Leoni, 2016.
 
+import warnings
 import operator
 
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.form import Form
 from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
@@ -450,7 +451,7 @@ def jump(v, n=None):
         else:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
-        warning("Returning zero from jump of expression without a domain. This may be erroneous if a dolfin.Expression is involved.")
+        warnings.warn("Returning zero from jump of expression without a domain. This may be erroneous if a dolfin.Expression is involved.")
         # FIXME: Is this right? If v has no domain, it doesn't depend
         # on anything spatially variable or any form arguments, and
         # thus the jump is zero. In other words, I'm assuming that "v
