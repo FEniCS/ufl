@@ -11,10 +11,11 @@
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 
+import warnings
 from itertools import chain
 from collections import defaultdict
 
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.domain import sort_domains
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
@@ -378,7 +379,7 @@ class Form(object):
                 if f in coeffs:
                     repdict[f] = coefficients[f]
                 else:
-                    warning("Coefficient %s is not in form." % ufl_err_str(f))
+                    warnings.warn("Coefficient %s is not in form." % ufl_err_str(f))
         if repdict:
             from ufl.formoperators import replace
             return replace(self, repdict)
