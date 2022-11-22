@@ -19,8 +19,9 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error, deprecate
+import warnings
 
+from ufl.log import error
 
 # --- The base object for all UFL expression tree nodes ---
 
@@ -293,15 +294,15 @@ class Expr(object):
 
     def ufl_domains(self):
         "Return all domains this expression is defined on."
-        deprecate("Expr.ufl_domains() is deprecated, please "
-                  "use extract_domains(expr) instead.")
+        warnings.warn("Expr.ufl_domains() is deprecated, please "
+                      "use extract_domains(expr) instead.", DeprecationWarning)
         from ufl.domain import extract_domains
         return extract_domains(self)
 
     def ufl_domain(self):
         "Return the single unique domain this expression is defined on, or throw an error."
-        deprecate("Expr.ufl_domain() is deprecated, please "
-                  "use extract_unique_domain(expr) instead.")
+        warnings.warn("Expr.ufl_domain() is deprecated, please "
+                      "use extract_unique_domain(expr) instead.", DeprecationWarning)
         from ufl.domain import extract_unique_domain
         return extract_unique_domain(self)
 

@@ -15,9 +15,9 @@ import sys
 import types
 import logging
 import warnings
-from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL  # noqa: F401
+from logging import DEBUG, INFO, ERROR, CRITICAL  # noqa: F401
 
-log_functions = ["log", "debug", "info", "deprecate", "error",
+log_functions = ["log", "debug", "info", "error",
                  "begin", "end",
                  "set_level", "push_level", "pop_level", "set_indent",
                  "add_indent",
@@ -26,10 +26,8 @@ log_functions = ["log", "debug", "info", "deprecate", "error",
                  "info_red", "info_green", "info_blue"]
 
 __all__ = log_functions + ["Logger", "log_functions"] +\
-    ["DEBUG", "INFO", "DEPRECATE", "WARNING", "ERROR", "CRITICAL"]
+    ["DEBUG", "INFO", "ERROR", "CRITICAL"]
 
-
-DEPRECATE = (INFO + WARNING) // 2
 
 
 # This is used to override emit() in StreamHandler for printing
@@ -63,7 +61,7 @@ class Logger:
 
         # Set up handler
         h = logging.StreamHandler(sys.stdout)
-        h.setLevel(WARNING)
+        h.setLevel(ERROR)
         # Override emit() in handler for indentation
         h.emit = types.MethodType(emit, h)
         self._handler = h
@@ -131,10 +129,6 @@ class Logger:
     def info_blue(self, *message):
         "Write info message in blue."
         self.log(INFO, BLUE % self._format_raw(*message))
-
-    def deprecate(self, *message):
-        "Write deprecation message."
-        self.log(DEPRECATE, RED % self._format_raw(*message))
 
     def error(self, *message):
         "Write error message and raise an exception."
@@ -226,4 +220,4 @@ ufl_logger = Logger("UFL", UFLException)
 for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))
 
-set_level(DEPRECATE)  # noqa
+set_level(ERROR)  # noqa
