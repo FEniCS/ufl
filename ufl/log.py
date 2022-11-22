@@ -29,7 +29,6 @@ __all__ = log_functions + ["Logger", "log_functions"] +\
     ["DEBUG", "INFO", "ERROR", "CRITICAL"]
 
 
-
 # This is used to override emit() in StreamHandler for printing
 # without newline
 def emit(self, record):

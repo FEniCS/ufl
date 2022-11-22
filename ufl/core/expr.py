@@ -25,6 +25,7 @@ from ufl.log import error
 
 # --- The base object for all UFL expression tree nodes ---
 
+
 class Expr(object):
     """Base class for all UFL expression types.
 
