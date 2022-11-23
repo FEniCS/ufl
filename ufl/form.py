@@ -838,7 +838,7 @@ class FormSum(BaseForm):
 
 @ufl_type()
 class ZeroBaseForm(BaseForm):
-    """UFL base form type: respresents a zero base form
+    """Description of a zero base form.
     ZeroBaseForm is idempotent with respect to assembly and is mostly used for sake of simplifying base-form expressions.
     """
 

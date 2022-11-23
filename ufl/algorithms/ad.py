@@ -32,6 +32,7 @@ def expand_derivatives(form, **kwargs):
         dform = expand_derivatives(form._form)
         if dform == 0:
             return dform
+        # Adjoint is taken on a 3-form which can't happen
         raise NotImplementedError('Adjoint derivative is not supported.')
 
     # Lower abstractions for tensor-algebra types into index notation
