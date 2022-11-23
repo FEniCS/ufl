@@ -228,7 +228,7 @@ class BaseForm(object, metaclass=UFLType):
                 if f in coeffs:
                     repdict[f] = coefficients[f]
                 else:
-                    warning("Coefficient %s is not in form." % ufl_err_str(f))
+                    warnings("Coefficient %s is not in form." % ufl_err_str(f))
         if repdict:
             from ufl.formoperators import replace
             return replace(self, repdict)
