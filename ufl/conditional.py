@@ -7,7 +7,9 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import warning, error
+import warnings
+
+from ufl.log import error
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
@@ -265,7 +267,7 @@ class MinValue(Operator):
         try:
             res = min(a, b)
         except ValueError:
-            warning('Value error in evaluation of min() of %s and %s.' % self.ufl_operands)
+            warnings.warn('Value error in evaluation of min() of %s and %s.' % self.ufl_operands)
             raise
         return res
 
@@ -290,7 +292,7 @@ class MaxValue(Operator):
         try:
             res = max(a, b)
         except ValueError:
-            warning('Value error in evaluation of max() of %s and %s.' % self.ufl_operands)
+            warnings.warn('Value error in evaluation of max() of %s and %s.' % self.ufl_operands)
             raise
         return res
 

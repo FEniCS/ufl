@@ -1,0 +1,46 @@
+# This workflow will install tsfc and run its unit tests
+
+name: tsfc integration
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tsfc-tests:
+    name: Run TSFC tests
+    runs-on: ubuntu-latest
+
+    env:
+      CC: gcc-10
+      CXX: g++-10
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Install UFL
+        run: |
+          pip3 install .
+
+      - name: Clone tsfc
+        uses: actions/checkout@v3
+        with:
+          path: ./tsfc
+          repository: firedrakeproject/tsfc
+          ref: master
+      - name: Install tsfc
+        run: |
+          cd tsfc
+          pip install -r requirements-ext.txt
+          pip install git+https://github.com/coneoproject/COFFEE.git#egg=coffee
+          pip install git+https://github.com/firedrakeproject/fiat.git#egg=fenics-fiat
+          pip install git+https://github.com/FInAT/FInAT.git#egg=finat
+          pip install git+https://github.com/firedrakeproject/loopy.git#egg=loopy
+          pip install .[ci]
+      - name: Run tsfc unit tests
+        run: python3 -m pytest tsfc/tests

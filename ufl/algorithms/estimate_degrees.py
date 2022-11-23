@@ -10,7 +10,9 @@
 # Modified by Anders Logg, 2009-2010
 # Modified by Jan Blechta, 2012
 
-from ufl.log import warning, error
+import warnings
+
+from ufl.log import error
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.algorithms.multifunction import MultiFunction
@@ -117,7 +119,7 @@ class SumDegreeEstimator(MultiFunction):
 
     def expr(self, v, *ops):
         "For most operators we take the max degree of its operands."
-        warning("Missing degree estimation handler for type %s" % v._ufl_class_.__name__)
+        warnings.warn("Missing degree estimation handler for type %s" % v._ufl_class_.__name__)
         return self._add_degrees(v, *ops)
 
     # Utility types with no degree concept

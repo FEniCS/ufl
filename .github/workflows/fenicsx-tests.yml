@@ -11,15 +11,15 @@ jobs:
   ffcx-tests:
     name: Run FFCx tests
     runs-on: ubuntu-latest
-    
+
     env:
       CC: gcc-10
       CXX: g++-10
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.9
 
@@ -36,7 +36,7 @@ jobs:
           python3 -m pip install git+https://github.com/FEniCS/basix.git
 
       - name: Clone FFCx
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ./ffcx
           repository: FEniCS/ffcx
@@ -67,7 +67,7 @@ jobs:
       OMPI_MCA_hwloc_base_binding_policy: none
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies (Python)
         run: |
           python3 -m pip install --upgrade pip
@@ -82,7 +82,7 @@ jobs:
           python3 -m pip install git+https://github.com/FEniCS/ffcx.git
 
       - name: Clone DOLFINx
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ./dolfinx
           repository: FEniCS/dolfinx
