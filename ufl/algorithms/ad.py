@@ -9,7 +9,8 @@
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.log import warning
+import warnings
+
 from ufl.adjoint import Adjoint
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
@@ -26,7 +27,7 @@ def expand_derivatives(form, **kwargs):
     # For a deprecation period (I see that dolfin-adjoint passes some
     # args here)
     if kwargs:
-        warning("Deprecation: expand_derivatives no longer takes any keyword arguments")
+        warnings("Deprecation: expand_derivatives no longer takes any keyword arguments")
 
     if isinstance(form, Adjoint):
         dform = expand_derivatives(form._form)
