@@ -10,15 +10,17 @@
 # Modified by Anders Logg, 2008
 # Modified by Kristian B. Oelgaard, 2011
 
-import math
 import cmath
+import math
 import numbers
 import warnings
 
-from ufl.log import error
+from ufl.constantvalue import (ComplexValue, ConstantValue, FloatValue,
+                               IntValue, RealValue, Zero, as_ufl,
+                               is_true_ufl_scalar)
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
+from ufl.log import error
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -64,7 +66,8 @@ class MathFunction(Operator):
             else:
                 res = getattr(cmath, self._name)(a)
         except ValueError:
-            warnings.warn('Value error in evaluation of function %s with argument %s.' % (self._name, a))
+            warnings.warn(
+                'Value error in evaluation of function %s with argument %s.' % (self._name, a))
             raise
         return res
 
@@ -290,7 +293,8 @@ class Atan2(Operator):
         except TypeError:
             error('Atan2 does not support complex numbers.')
         except ValueError:
-            warnings.warn('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
+            warnings.warn(
+                'Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
             raise
         return res
 
@@ -346,7 +350,13 @@ class BesselFunction(Operator):
             error("Expecting scalar argument.")
 
         # Use integer representation if suitable
-        fnu = float(nu)
+        print(type(nu))
+        try:
+            fnu = float(nu)
+            inu = int(nu)
+        except:
+            fnu = float(complex(nu).real)
+            nu = int(complex(nu).real)
         inu = int(nu)
         if fnu == inu:
             nu = as_ufl(inu)
