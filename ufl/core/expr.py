@@ -213,7 +213,8 @@ class Expr(object):
 
         # To reconstruct an object of the same type with operands or
         # properties changed.
-        "_ufl_expr_reconstruct_",  # Implemented in Operator and Terminal so this should never fail
+        # Implemented in Operator and Terminal so this should never fail
+        "_ufl_expr_reconstruct_",
 
         "ufl_domains",
         # "ufl_cell",
@@ -311,17 +312,27 @@ class Expr(object):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
+        error("Symbolic evaluation of %s not available." %
+              self._ufl_class_.__name__)
 
     def _ufl_evaluate_scalar_(self):
         if self.ufl_shape or self.ufl_free_indices:
-            raise TypeError("Cannot evaluate a nonscalar expression to a scalar value.")
+            raise TypeError(
+                "Cannot evaluate a nonscalar expression to a scalar value.")
         return self(())  # No known x
 
     def __float__(self):
         "Try to evaluate as scalar and cast to float."
         try:
             v = float(self._ufl_evaluate_scalar_())
+        except Exception:
+            v = NotImplemented
+        return v
+
+    def __int__(self):
+        "Try to evaluate as scalar and cast to int."
+        try:
+            v = int(self._ufl_evaluate_scalar_())
         except Exception:
             v = NotImplemented
         return v
@@ -393,7 +404,8 @@ class Expr(object):
         s = self.ufl_shape
         if len(s) == 1:
             return s[0]
-        raise NotImplementedError("Cannot take length of non-vector expression.")
+        raise NotImplementedError(
+            "Cannot take length of non-vector expression.")
 
     def __iter__(self):
         "Iteration over vector expressions."
