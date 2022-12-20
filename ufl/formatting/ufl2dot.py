@@ -9,7 +9,6 @@ mostly intended for debugging purposers."""
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.form import Form
 from ufl.variable import Variable
@@ -284,6 +283,6 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True,
         nodeoffset += len(nodes)
 
     else:
-        error("Invalid object type %s" % type(expression))
+        raise ValueError(f"Invalid object type {type(expression)}")
 
     return s, nodeoffset
