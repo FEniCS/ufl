@@ -256,10 +256,6 @@ __version__ = pkg_resources.get_distribution("fenics-ufl").version
 # python function sum, can be useful for users as well?)
 from ufl.utils.sequences import product
 
-# Output control
-from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
-    DEBUG, INFO, ERROR, CRITICAL
-
 # Types for geometric quantities
 
 from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell
@@ -357,12 +353,8 @@ from ufl.objects import (
 # Useful constants
 from math import e, pi
 
-
-# Define ufl.* namespace
 __all__ = [
     'product',
-    'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
-    'DEBUG', 'INFO', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',
