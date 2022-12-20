@@ -15,7 +15,6 @@ import warnings
 from itertools import chain
 from collections import defaultdict
 
-from ufl.log import error
 from ufl.domain import sort_domains
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
@@ -41,9 +40,8 @@ def _sorted_integrals(integrals):
     for integral in integrals:
         d = integral.ufl_domain()
         if d is None:
-            error(
-                "Each integral in a form must have a uniquely defined integration domain."
-            )
+            raise ValueError(
+                "Each integral in a form must have a uniquely defined integration domain.")
         it = integral.integral_type()
         si = integral.subdomain_id()
         integrals_dict[d][it][si] += [integral]
@@ -96,7 +94,7 @@ class Form(object):
         # Basic input checking (further compatibilty analysis happens
         # later)
         if not all(isinstance(itg, Integral) for itg in integrals):
-            error("Expecting list of integrals.")
+            raise ValueError("Expecting list of integrals.")
 
         # Store integrals sorted canonically to increase signature
         # stability
@@ -182,9 +180,8 @@ class Form(object):
         # Check that all are equal TODO: don't return more than one if
         # all are equal?
         if not all(domain == domains[0] for domain in domains):
-            error(
-                "Calling Form.ufl_domain() is only valid if all integrals share domain."
-            )
+            raise ValueError(
+                "Calling Form.ufl_domain() is only valid if all integrals share domain.")
 
         # Return the one and only domain
         return domains[0]
@@ -194,9 +191,8 @@ class Form(object):
         gdims = tuple(
             set(domain.geometric_dimension() for domain in self.ufl_domains()))
         if len(gdims) != 1:
-            error("Expecting all domains and functions in a form "
-                  "to share geometric dimension, got %s." % str(
-                      tuple(sorted(gdims))))
+            raise ValueError("Expecting all domains and functions in a form "
+                  f"to share geometric dimension, got {tuple(sorted(gdims))}")
         return gdims[0]
 
     def domain_numbering(self):
@@ -365,13 +361,12 @@ class Form(object):
         if args:
             arguments = self.arguments()
             if len(arguments) != len(args):
-                error("Need %d arguments to form(), got %d." % (len(arguments),
-                                                                len(args)))
+                raise ValueError(f"Need {len(arguments)} arguments to form(), got {len(args)}.")
             repdict.update(zip(arguments, args))
 
         coefficients = kwargs.pop("coefficients")
         if kwargs:
-            error("Unknown kwargs %s." % str(list(kwargs)))
+            raise ValueError(f"Unknown kwargs {list(kwargs)}")
 
         if coefficients is not None:
             coeffs = self.coefficients()
@@ -506,14 +501,14 @@ class Form(object):
 def sub_forms_by_domain(form):
     "Return a list of forms each with an integration domain"
     if not isinstance(form, Form):
-        error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
+        raise ValueError(f"Unable to convert object to a UFL form: {ufl_err_str(form)}")
     return [Form(form.integrals_by_domain(domain)) for domain in form.ufl_domains()]
 
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
     if not isinstance(form, Form):
-        error("Unable to convert object to a UFL form: %s" % ufl_err_str(form))
+        raise ValueError(f"Unable to convert object to a UFL form: {ufl_err_str(form)}")
     return form
 
 
@@ -534,7 +529,7 @@ def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
         if not all((gdim == domain.geometric_dimension() and
                     tdim == domain.topological_dimension())
                    for domain in domains):
-            error("Common domain does not share dimensions with form domains.")
+            raise ValueError("Common domain does not share dimensions with form domains.")
 
     reconstruct = False
     integrals = []

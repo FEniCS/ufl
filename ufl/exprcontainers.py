@@ -7,7 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -23,7 +22,7 @@ class ExprList(Operator):
     def __init__(self, *operands):
         Operator.__init__(self, operands)
         if not all(isinstance(i, Expr) for i in operands):
-            error("Expecting Expr in ExprList.")
+            raise ValueError("Expecting Expr in ExprList.")
 
     def __getitem__(self, i):
         return self.ufl_operands[i]
@@ -43,21 +42,21 @@ class ExprList(Operator):
 
     @property
     def ufl_shape(self):
-        error("A non-tensor type has no ufl_shape.")
+        raise ValueError("A non-tensor type has no ufl_shape.")
 
     @property
     def ufl_free_indices(self):
-        error("A non-tensor type has no ufl_free_indices.")
+        raise ValueError("A non-tensor type has no ufl_free_indices.")
 
     def free_indices(self):
-        error("A non-tensor type has no free_indices.")
+        raise ValueError("A non-tensor type has no free_indices.")
 
     @property
     def ufl_index_dimensions(self):
-        error("A non-tensor type has no ufl_index_dimensions.")
+        raise ValueError("A non-tensor type has no ufl_index_dimensions.")
 
     def index_dimensions(self):
-        error("A non-tensor type has no index_dimensions.")
+        raise ValueError("A non-tensor type has no index_dimensions.")
 
 
 @ufl_type(num_ops="varying")
@@ -68,7 +67,7 @@ class ExprMapping(Operator):
     def __init__(self, *operands):
         Operator.__init__(self, operands)
         if not all(isinstance(e, Expr) for e in operands):
-            error("Expecting Expr in ExprMapping.")
+            raise ValueError("Expecting Expr in ExprMapping.")
 
     def ufl_domains(self):
         # Because this type can act like a terminal if it has no
@@ -96,18 +95,18 @@ class ExprMapping(Operator):
 
     @property
     def ufl_shape(self):
-        error("A non-tensor type has no ufl_shape.")
+        raise ValueError("A non-tensor type has no ufl_shape.")
 
     @property
     def ufl_free_indices(self):
-        error("A non-tensor type has no ufl_free_indices.")
+        raise ValueError("A non-tensor type has no ufl_free_indices.")
 
     def free_indices(self):
-        error("A non-tensor type has no free_indices.")
+        raise ValueError("A non-tensor type has no free_indices.")
 
     @property
     def ufl_index_dimensions(self):
-        error("A non-tensor type has no ufl_index_dimensions.")
+        raise ValueError("A non-tensor type has no ufl_index_dimensions.")
 
     def index_dimensions(self):
-        error("A non-tensor type has no index_dimensions.")
+        raise ValueError("A non-tensor type has no index_dimensions.")

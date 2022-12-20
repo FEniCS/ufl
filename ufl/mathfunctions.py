@@ -15,7 +15,6 @@ import cmath
 import numbers
 import warnings
 
-from ufl.log import error
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
@@ -53,7 +52,7 @@ class MathFunction(Operator):
     def __init__(self, name, argument):
         Operator.__init__(self, (argument,))
         if not is_true_ufl_scalar(argument):
-            error("Expecting scalar argument.")
+            raise ValueError("Expecting scalar argument.")
         self._name = name
 
     def evaluate(self, x, mapping, component, index_values):
@@ -278,9 +277,9 @@ class Atan2(Operator):
         if isinstance(arg1, (ComplexValue, complex)) or isinstance(arg2, (ComplexValue, complex)):
             raise TypeError("Atan2 does not support complex numbers.")
         if not is_true_ufl_scalar(arg1):
-            error("Expecting scalar argument 1.")
+            raise ValueError("Expecting scalar argument 1.")
         if not is_true_ufl_scalar(arg2):
-            error("Expecting scalar argument 2.")
+            raise ValueError("Expecting scalar argument 2.")
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -288,7 +287,7 @@ class Atan2(Operator):
         try:
             res = math.atan2(a, b)
         except TypeError:
-            error('Atan2 does not support complex numbers.')
+            raise ValueError('Atan2 does not support complex numbers.')
         except ValueError:
             warnings.warn('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
             raise
@@ -330,7 +329,7 @@ class Erf(MathFunction):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         erf = _find_erf()
         if erf is None:
-            error("No python implementation of erf available on this system, cannot evaluate. Upgrade python or install scipy.")
+            raise ValueError("No python implementation of erf available on this system, cannot evaluate. Upgrade python or install scipy.")
         return erf(a)
 
 
@@ -341,9 +340,9 @@ class BesselFunction(Operator):
 
     def __init__(self, name, classname, nu, argument):
         if not is_true_ufl_scalar(nu):
-            error("Expecting scalar nu.")
+            raise ValueError("Expecting scalar nu.")
         if not is_true_ufl_scalar(argument):
-            error("Expecting scalar argument.")
+            raise ValueError("Expecting scalar argument.")
 
         # Use integer representation if suitable
         fnu = float(nu)
@@ -363,7 +362,7 @@ class BesselFunction(Operator):
         try:
             import scipy.special
         except ImportError:
-            error("You must have scipy installed to evaluate bessel functions in python.")
+            raise ValueError("You must have scipy installed to evaluate bessel functions in python.")
         name = self._name[-1]
         if isinstance(self.ufl_operands[0], IntValue):
             nu = int(self.ufl_operands[0])

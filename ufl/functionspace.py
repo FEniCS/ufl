@@ -10,7 +10,6 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.domain import join_domains
 
@@ -39,10 +38,10 @@ class FunctionSpace(AbstractFunctionSpace):
             try:
                 domain_cell = domain.ufl_cell()
             except AttributeError:
-                error("Expected non-abstract domain for initalization of function space.")
+                raise ValueError("Expected non-abstract domain for initalization of function space.")
             else:
                 if element.cell() != domain_cell:
-                    error("Non-matching cell of finite element and domain.")
+                    raise ValueError("Non-matching cell of finite element and domain.")
 
         AbstractFunctionSpace.__init__(self)
         self._ufl_domain = domain
@@ -129,7 +128,7 @@ class MixedFunctionSpace(AbstractFunctionSpace):
             if isinstance(fs, FunctionSpace):
                 self._ufl_elements.append(fs.ufl_element())
             else:
-                error("Expecting FunctionSpace objects")
+                raise ValueError("Expecting FunctionSpace objects")
 
     def ufl_sub_spaces(self):
         "Return ufl sub spaces."
@@ -147,9 +146,10 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         if len(self._ufl_elements) == 1:
             return self._ufl_elements[0]
         else:
-            error("""Found multiple elements. Cannot return only one.
-            Consider building a FunctionSpace from a MixedElement
-            in case of homogeneous dimension.""")
+            raise ValueError(
+                "Found multiple elements. Cannot return only one. "
+                "Consider building a FunctionSpace from a MixedElement "
+                "in case of homogeneous dimension.")
 
     def ufl_domains(self):
         "Return ufl domains."
@@ -164,7 +164,7 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         if len(domains) == 1:
             return domains[0]
         elif domains:
-            error("Found multiple domains, cannot return just one.")
+            raise ValueError("Found multiple domains, cannot return just one.")
         else:
             return None
 
@@ -178,5 +178,4 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         return ("MixedFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
 
     def __repr__(self):
-        r = "MixedFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
-        return r
+        return f"MixedFunctionSpace(*{self._ufl_function_spaces})"

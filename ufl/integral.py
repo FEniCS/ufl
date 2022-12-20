@@ -11,7 +11,6 @@
 # Modified by Massimiliano Leoni, 2016.
 
 import ufl
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.measure import Measure  # noqa
@@ -33,7 +32,7 @@ class Integral(object):
     def __init__(self, integrand, integral_type, domain, subdomain_id,
                  metadata, subdomain_data):
         if not isinstance(integrand, Expr):
-            error("Expecting integrand to be an Expr instance.")
+            raise ValueError("Expecting integrand to be an Expr instance.")
         self._integrand = integrand
         self._integral_type = integral_type
         self._ufl_domain = domain
@@ -97,13 +96,13 @@ class Integral(object):
 
     def __mul__(self, scalar):
         if not is_python_scalar(scalar):
-            error("Cannot multiply an integral with non-constant values.")
+            raise ValueError("Cannot multiply an integral with non-constant values.")
         return self.reconstruct(scalar * self._integrand)
 
     def __rmul__(self, scalar):
         if not is_scalar_constant_expression(scalar):
-            error("An integral can only be multiplied by a "
-                  "globally constant scalar expression.")
+            raise ValueError("An integral can only be multiplied by a "
+                             "globally constant scalar expression.")
         return self.reconstruct(scalar * self._integrand)
 
     def __str__(self):

@@ -12,7 +12,6 @@
 # Modified by Marie E. Rognes 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 from ufl.domain import as_domain
@@ -217,7 +216,7 @@ class FacetCoordinate(GeometricFacetQuantity):
         GeometricFacetQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 2:
-            error("FacetCoordinate is only defined for topological dimensions >= 2.")
+            raise ValueError("FacetCoordinate is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -316,7 +315,7 @@ class FacetJacobian(GeometricFacetQuantity):
         GeometricFacetQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 2:
-            error("FacetJacobian is only defined for topological dimensions >= 2.")
+            raise ValueError("FacetJacobian is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -344,7 +343,7 @@ class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
         GeometricFacetQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 2:
-            error("CellFacetJacobian is only defined for topological dimensions >= 2.")
+            raise ValueError("CellFacetJacobian is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -368,7 +367,7 @@ class ReferenceCellEdgeVectors(GeometricCellQuantity):
         GeometricCellQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 2:
-            error("CellEdgeVectors is only defined for topological dimensions >= 2.")
+            raise ValueError("CellEdgeVectors is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -393,7 +392,7 @@ class ReferenceFacetEdgeVectors(GeometricFacetQuantity):
         GeometricFacetQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 3:
-            error("FacetEdgeVectors is only defined for topological dimensions >= 3.")
+            raise ValueError("FacetEdgeVectors is only defined for topological dimensions >= 3.")
 
     @property
     def ufl_shape(self):
@@ -446,7 +445,7 @@ class CellEdgeVectors(GeometricCellQuantity):
         GeometricCellQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 2:
-            error("CellEdgeVectors is only defined for topological dimensions >= 2.")
+            raise ValueError("CellEdgeVectors is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -471,7 +470,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
         GeometricFacetQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 3:
-            error("FacetEdgeVectors is only defined for topological dimensions >= 3.")
+            raise ValueError("FacetEdgeVectors is only defined for topological dimensions >= 3.")
 
     @property
     def ufl_shape(self):
@@ -571,7 +570,7 @@ class FacetJacobianInverse(GeometricFacetQuantity):
         GeometricFacetQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 2:
-            error("FacetJacobianInverse is only defined for topological dimensions >= 2.")
+            raise ValueError("FacetJacobianInverse is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -596,7 +595,7 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
         GeometricFacetQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 2:
-            error("CellFacetJacobianInverse is only defined for topological dimensions >= 2.")
+            raise ValueError("CellFacetJacobianInverse is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -677,7 +676,7 @@ class ReferenceNormal(GeometricFacetQuantity):
 #         GeometricFacetQuantity.__init__(self, domain)
 #         t = self._domain.topological_dimension()
 #         if t < 2:
-#             error("FacetTangents is only defined for topological dimensions >= 2.")
+#             raise ValueError("FacetTangents is only defined for topological dimensions >= 2.")
 #
 #    @property
 #    def ufl_shape(self):

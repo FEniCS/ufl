@@ -17,7 +17,6 @@ import numbers
 import functools
 
 import ufl.cell
-from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
 
@@ -38,11 +37,11 @@ class AbstractCell(object):
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
-            error("Expecting integer geometric_dimension.")
+            raise ValueError("Expecting integer geometric_dimension.")
         if not isinstance(topological_dimension, numbers.Integral):
-            error("Expecting integer topological_dimension.")
+            raise ValueError("Expecting integer topological_dimension.")
         if topological_dimension > geometric_dimension:
-            error("Topological dimension cannot be larger than geometric dimension.")
+            raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
         # Store validated dimensions
         self._topological_dimension = topological_dimension
@@ -244,7 +243,7 @@ class TensorProductCell(AbstractCell):
 
     def num_edges(self):
         "The number of cell edges."
-        error("Not defined for TensorProductCell.")
+        raise ValueError("Not defined for TensorProductCell.")
 
     def num_facets(self):
         "The number of cell facets."
@@ -313,4 +312,4 @@ def as_cell(cell):
     elif isinstance(cell, tuple):
         return TensorProductCell(cell)
     else:
-        error("Invalid cell %s." % cell)
+        raise ValueError(f"Invalid cell {cell}.")

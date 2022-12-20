@@ -340,10 +340,6 @@ from ufl.form import Form, replace_integral_domains
 # Integral classes
 from ufl.integral import Integral
 
-# Special functions for Measure class
-# (ensure this is imported, since it attaches operators to Measure)
-import ufl.measureoperators as __measureoperators
-
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
 system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functional

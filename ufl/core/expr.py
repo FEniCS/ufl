@@ -21,8 +21,6 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 
 import warnings
 
-from ufl.log import error
-
 # --- The base object for all UFL expression tree nodes ---
 
 
@@ -311,7 +309,7 @@ class Expr(object):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
+        raise ValueError(f"Symbolic evaluation of {self._ufl_class_.__name__} not available.")
 
     def _ufl_evaluate_scalar_(self):
         if self.ufl_shape or self.ufl_free_indices:

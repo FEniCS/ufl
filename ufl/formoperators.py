@@ -11,7 +11,6 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.log import error
 from ufl.form import Form, as_form
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.split_functions import split
@@ -137,7 +136,7 @@ def adjoint(form, reordered_arguments=None):
 
 def zero_lists(shape):
     if len(shape) == 0:
-        error("Invalid shape.")
+        raise ValueError("Invalid shape.")
     elif len(shape) == 1:
         return [0] * shape[0]
     else:
@@ -163,7 +162,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     if argument is None:
         # Try to create argument if not provided
         if not all(isinstance(c, Coefficient) for c in coefficients):
-            error("Can only create arguments automatically for non-indexed coefficients.")
+            raise ValueError("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one
         # with the next argument number
@@ -181,7 +180,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
         # in that case
         parts = set(arg.part() for arg in form_arguments)
         if len(parts - {None}) != 0:
-            error("Not expecting parts here, provide your own arguments.")
+            raise ValueError("Not expecting parts here, provide your own arguments.")
         part = None
 
         # Create argument and split it if in a mixed space
@@ -214,17 +213,17 @@ def _handle_derivative_arguments(form, coefficient, argument):
     m = {}
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
-            error("Coefficient and argument shapes do not match!")
+            raise ValueError("Coefficient and argument shapes do not match!")
         if isinstance(c, Coefficient) or isinstance(c, SpatialCoordinate):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
-                error("Invalid coefficient type for %s" % ufl_err_str(c))
+                raise ValueError(f"Invalid coefficient type for {ufl_err_str(c)}")
             f, i = c.ufl_operands
             if not isinstance(f, Coefficient):
-                error("Expecting an indexed coefficient, not %s" % ufl_err_str(f))
+                raise ValueError(f"Expecting an indexed coefficient, not {ufl_err_str(f)}")
             if not (isinstance(i, MultiIndex) and all(isinstance(j, FixedIndex) for j in i)):
-                error("Expecting one or more fixed indices, not %s" % ufl_err_str(i))
+                raise ValueError(f"Expecting one or more fixed indices, not {ufl_err_str(i)}")
             i = tuple(int(j) for j in i)
             if f not in m:
                 m[f] = {}
@@ -302,7 +301,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             return CoordinateDerivative(form, coefficients,
                                         arguments, coefficient_derivatives)
 
-    error("Invalid argument type %s." % str(type(form)))
+    raise ValueError(f"Invalid argument type {type(form)}.")
 
 
 def sensitivity_rhs(a, u, L, v):
@@ -365,8 +364,8 @@ def sensitivity_rhs(a, u, L, v):
             isinstance(u, Coefficient) and
             isinstance(L, Form) and
             isinstance(v, Variable)):
-        error("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
+        raise ValueError("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
     if not is_true_ufl_scalar(v):
-        error("Expecting scalar variable.")
+        raise ValueError("Expecting scalar variable.")
     from ufl.operators import diff
     return diff(L, v) - action(diff(a, v), u)
