@@ -15,7 +15,6 @@
 from ufl.log import error
 from ufl.permutation import compute_indices
 from ufl.utils.sequences import product, max_degree
-from ufl.utils.dicts import EmptyDict
 from ufl.utils.indexflattening import flatten_multiindex, unflatten_index, shape_to_strides
 from ufl.cell import as_cell
 
@@ -121,7 +120,7 @@ class MixedElement(FiniteElementBase):
             j += product(sh)
         if j != product(self.value_shape()):
             error("Size mismatch in symmetry algorithm.")
-        return sm or EmptyDict
+        return sm or {}
 
     def sobolev_space(self):
         return max(e.sobolev_space() for e in self._sub_elements)
@@ -383,7 +382,7 @@ class TensorElement(MixedElement):
             shape = (dim, dim)
 
         if symmetry is None:
-            symmetry = EmptyDict
+            symmetry = {}
         elif symmetry is True:
             # Construct default symmetry dict for matrix elements
             if not (len(shape) == 2 and shape[0] == shape[1]):

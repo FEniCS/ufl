@@ -17,7 +17,6 @@ from itertools import chain
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
-from ufl.utils.dicts import EmptyDict
 from ufl.domain import as_domain, AbstractDomain, extract_domains
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 
@@ -168,7 +167,7 @@ class Measure(object):
         # Validate compiler options are None or dict
         if metadata is not None and not isinstance(metadata, dict):
             raise ValueError("Invalid metadata.")
-        self._metadata = metadata or EmptyDict
+        self._metadata = metadata or {}
 
     def integral_type(self):
         """Return the domain type.
@@ -285,7 +284,7 @@ class Measure(object):
             args.append("subdomain_id=%s" % (self._subdomain_id,))
         if self._domain is not None:
             args.append("domain=%s" % (self._domain,))
-        if self._metadata:  # Stored as EmptyDict if None
+        if self._metadata:  # Stored as {} if None
             args.append("metadata=%s" % (self._metadata,))
         if self._subdomain_data is not None:
             args.append("subdomain_data=%s" % (self._subdomain_data,))
@@ -303,7 +302,7 @@ class Measure(object):
             args.append("subdomain_id=%s" % repr(self._subdomain_id))
         if self._domain is not None:
             args.append("domain=%s" % repr(self._domain))
-        if self._metadata:  # Stored as EmptyDict if None
+        if self._metadata:  # Stored as {} if None
             args.append("metadata=%s" % repr(self._metadata))
         if self._subdomain_data is not None:
             args.append("subdomain_data=%s" % repr(self._subdomain_data))

@@ -12,7 +12,6 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.utils.sequences import product
-from ufl.utils.dicts import EmptyDict
 from ufl.log import error
 from ufl.cell import AbstractCell, as_cell
 from abc import ABC, abstractmethod
@@ -134,7 +133,7 @@ class FiniteElementBase(ABC):
         meaning that component :math:`c_0` is represented by component
         :math:`c_1`.
         A component is a tuple of one or more ints."""
-        return EmptyDict
+        return {}
 
     def _check_component(self, i):
         "Check that component index i is valid"
