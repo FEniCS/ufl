@@ -129,7 +129,7 @@ def extract_arguments_and_coefficients(a):
     if len(fcounts) != len(set(fcounts.values())):
         raise ValueError(
             "Found different coefficients with same counts.\n"
-            "The arguments found are:\n" + "\n".join(f"  {c}" for c in coefficients)
+            "The arguments found are:\n" + "\n".join(f"  {c}" for c in coefficients))
 
     # Passed checks, so we can safely sort the instances by count
     arguments = _sorted_by_number_and_part(arguments)

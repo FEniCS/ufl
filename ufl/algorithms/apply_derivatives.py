@@ -1235,7 +1235,7 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
         return o
 
     def derivative(self, o):
-        raise NotImplementedError(f"Missing derivative handler for {type(o).__name__)}.")
+        raise NotImplementedError(f"Missing derivative handler for {type(o).__name__}.")
 
     expr = MultiFunction.reuse_if_untouched
 

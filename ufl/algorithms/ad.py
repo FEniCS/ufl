@@ -9,7 +9,6 @@
 #
 # Modified by Anders Logg, 2009.
 
-from warnings import warn
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 
