@@ -14,7 +14,7 @@ import numbers
 
 from itertools import chain
 
-from ufl.log import error, deprecate
+from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
@@ -241,14 +241,8 @@ class Measure(object):
     # (subdomain_id, metadata) for backwards compatibility, because
     # some tutorials write e.g. dx(0, {...}) to set metadata.
     def __call__(self, subdomain_id=None, metadata=None, domain=None,
-                 subdomain_data=None, degree=None, scheme=None, rule=None):
+                 subdomain_data=None, degree=None, scheme=None):
         """Reconfigure measure with new domain specification or metadata."""
-
-        # Deprecation of 'rule' in favour of 'scheme'
-        if rule is not None:
-            deprecate("Measure argument 'rule' has been renamed to 'scheme'.")
-            assert scheme is None or scheme == rule
-            scheme = rule
 
         # Let syntax dx() mean integral over everywhere
         all_args = (subdomain_id, metadata, domain, subdomain_data,
@@ -282,19 +276,6 @@ class Measure(object):
         return self.reconstruct(subdomain_id=subdomain_id, domain=domain,
                                 metadata=metadata,
                                 subdomain_data=subdomain_data)
-
-    def __getitem__(self, data):
-        """This operator supports legacy syntax in python dolfin programs.
-
-        The old documentation reads: Return a new Measure for same
-        integration type with an attached context for interpreting
-        domain ids. By default this new Measure integrates over
-        everywhere, but it can be restricted with a domain id as
-        usual. Example: dx = dx[boundaries]; L = f*v*dx + g*v+dx(1).
-
-        """
-        deprecate("Notation dx[meshfunction] is deprecated. Please use dx(subdomain_data=meshfunction) instead.")
-        return self(subdomain_data=data)
 
     def __str__(self):
         global integral_type_to_measure_name
