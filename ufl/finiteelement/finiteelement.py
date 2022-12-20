@@ -227,7 +227,7 @@ class FiniteElement(FiniteElementBase):
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return f"{self._short_name}{istr(self.degree())}({self.quadrature_scheme())},{istr(self.variant())})"
+        return f"{self._short_name}{istr(self.degree())}({self.quadrature_scheme()},{istr(self.variant())})"
 
     def __getnewargs__(self):
         """Return the arguments which pickle needs to recreate the object."""

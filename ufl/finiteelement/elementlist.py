@@ -184,7 +184,7 @@ register_element("RTCF", None, 1, HDiv, "contravariant Piola", (1, None),
 register_element("NCE", None, 1, HCurl, "covariant Piola", (1, None),
                  ("hexahedron",))
 register_element("NCF", None, 1, HDiv, "contravariant Piola", (1, None),
-                  ("hexahedron",))
+                 ("hexahedron",))
 
 register_element("S", None, 0, H1, "identity", (1, None), cubes)
 register_element("DPC", None, 0, L2, "identity", (0, None), cubes)

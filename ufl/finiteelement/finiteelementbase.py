@@ -165,7 +165,7 @@ class FiniteElementBase(ABC):
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
             raise ValueError(
-                f"Illegal component index {i} (value rank {}len(i)) "
+                f"Illegal component index {i} (value rank {len(i)}) "
                 f"for element (value rank {r}).")
 
     def extract_subelement_reference_component(self, i):
