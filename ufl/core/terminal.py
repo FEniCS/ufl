@@ -11,7 +11,9 @@ for all types that are terminal nodes in an expression tree."""
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error, warning
+import warnings
+
+from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -59,7 +61,7 @@ class Terminal(Expr):
             if hasattr(self, 'ufl_evaluate'):
                 return self.ufl_evaluate(x, component, derivatives)
             # Take component if any
-            warning("Couldn't map '%s' to a float, returning ufl object without evaluation." % str(self))
+            warnings.warn("Couldn't map '%s' to a float, returning ufl object without evaluation." % str(self))
             f = self
             if component:
                 f = f[component]

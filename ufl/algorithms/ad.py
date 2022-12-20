@@ -14,7 +14,7 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 
 
-def expand_derivatives(form, **kwargs):
+def expand_derivatives(form):
     """Expand all derivatives of expr.
 
     In the returned expression g which is mathematically
@@ -22,11 +22,6 @@ def expand_derivatives(form, **kwargs):
     or CoefficientDerivative objects left, and Grad
     objects have been propagated to Terminal nodes.
     """
-    # For a deprecation period (I see that dolfin-adjoint passes some
-    # args here)
-    if kwargs:
-        warn("Deprecation: expand_derivatives no longer takes any keyword arguments", DeprecationWarning)
-
     # Lower abstractions for tensor-algebra types into index notation
     form = apply_algebra_lowering(form)
 
