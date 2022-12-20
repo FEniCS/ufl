@@ -258,7 +258,7 @@ from ufl.utils.sequences import product
 
 # Output control
 from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
-    UFLException, DEBUG, INFO, ERROR, CRITICAL
+    DEBUG, INFO, ERROR, CRITICAL
 
 # Types for geometric quantities
 
@@ -366,7 +366,7 @@ from math import e, pi
 __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
-    'UFLException', 'DEBUG', 'INFO', 'ERROR', 'CRITICAL',
+    'DEBUG', 'INFO', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',

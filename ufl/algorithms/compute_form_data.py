@@ -10,8 +10,8 @@ raw input form given by a user."""
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from itertools import chain
+from logging import info
 
-from ufl.log import error, info
 from ufl.utils.sequences import max_degree
 
 from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
@@ -80,15 +80,15 @@ def _compute_element_mapping(form):
             domains = form.ufl_domains()
             if not all(domains[0].ufl_cell() == d.ufl_cell()
                        for d in domains):
-                error("Cannot replace unknown element cell without unique common cell in form.")
+                raise ValueError("Cannot replace unknown element cell without unique common cell in form.")
             cell = domains[0].ufl_cell()
-            info("Adjusting missing element cell to %s." % (cell,))
+            info(f"Adjusting missing element cell to {cell}.")
             reconstruct = True
 
         # Set degree
         degree = element.degree()
         if degree is None:
-            info("Adjusting missing element degree to %d" % (common_degree,))
+            info(f"Adjusting missing element degree to {common_degree}.")
             degree = common_degree
             reconstruct = True
 
@@ -140,9 +140,9 @@ def _check_elements(form_data):
     for element in chain(form_data.unique_elements,
                          form_data.unique_sub_elements):
         if element.family() is None:
-            error("Found element with undefined familty: %s" % repr(element))
+            raise ValueError(f"Found element with undefined family: {element}")
         if element.cell() is None:
-            error("Found element with undefined cell: %s" % repr(element))
+            raise ValueError(f"Found element with undefined cell: {element}")
 
 
 def _check_facet_geometry(integral_data):
@@ -157,7 +157,7 @@ def _check_facet_geometry(integral_data):
                 for expr in traverse_unique_terminals(itg.integrand()):
                     cls = expr._ufl_class_
                     if issubclass(cls, GeometricFacetQuantity):
-                        error("Integral of type %s cannot contain a %s." % (it, cls.__name__))
+                        raise ValueError(f"Integral of type {it} cannot contain a {cls.__name__}.")
 
 
 def _check_form_arity(preprocessed_form):
@@ -166,7 +166,7 @@ def _check_form_arity(preprocessed_form):
     # FIXME: This is slooow and should be moved to form compiler
     # and/or replaced with something faster
     if 1 != len(compute_form_arities(preprocessed_form)):
-        error("All terms in form must have same rank.")
+        raise ValueError("All terms in form must have same rank.")
 
 
 def _build_coefficient_replace_map(coefficients, element_mapping=None):

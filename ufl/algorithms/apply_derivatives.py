@@ -72,9 +72,6 @@ class GenericDerivativeRuleset(MultiFunction):
     def derivative(self, o):
         raise ValueError(f"Unhandled derivative type {o._ufl_class_.__name__}, nested differentiation has failed.")
 
-    def fixme(self, o):
-        raise ValueError(f"FIXME: Unimplemented differentiation handler for type {o._ufl_class_.__name__}.")
-
     # --- Some types just don't have any derivative, this is just to
     # --- make algorithm structure generic
 
@@ -877,7 +874,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         #       derivative(...ReferenceValue...,...).
         # f, = o.ufl_operands
         # if not f._ufl_is_terminal_:
-        #     error("ReferenceValue can only wrap terminals directly.")
+        #     raise ValueError("ReferenceValue can only wrap terminals directly.")
         # FIXME: check all cases like in coefficient
         # if f is w:
         #     # FIXME: requires that v is an Argument with the same element mapping!
@@ -907,7 +904,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             o, = o.ufl_operands
             ngrads += 1
         if not isinstance(o, FormArgument):
-            raise ValueError("Expecting gradient of a FormArgument, not %s" % ufl_err_str(o))
+            raise ValueError(f"Expecting gradient of a FormArgument, not {ufl_err_str(o)}.")
 
         def apply_grads(f):
             for i in range(ngrads):

@@ -9,7 +9,6 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.integral import Integral
 from ufl.form import Form
@@ -31,4 +30,4 @@ def iter_expressions(a):
         return (a.integrand(),)
     elif isinstance(a, Expr):
         return (a,)
-    error("Not an UFL type: %s" % str(type(a)))
+    raise ValueError(f"Not an UFL type: {type(a)}")

@@ -109,7 +109,7 @@ def apply_known_single_pullback(r, element):
         f = as_tensor(K[m, i] * r[kmn] * K[n, j], (*k, i, j))
         return f
     else:
-        raise RuntimeError("Should never be reached!")
+        raise ValueError(f"Unsupported mapping: {mapping}.")
 
 
 def apply_single_function_pullbacks(r, element):
@@ -167,7 +167,7 @@ def apply_single_function_pullbacks(r, element):
             raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', got '{f.ufl_shape}'")
         return f
     else:
-        raise NotImplementedError("Unhandled mapping type '%s'" % mapping)
+        raise ValueError(f"Unsupported mapping type: {mapping}")
 
 
 class FunctionPullbackApplier(MultiFunction):

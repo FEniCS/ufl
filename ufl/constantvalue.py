@@ -12,7 +12,7 @@
 
 from math import atan2
 
-from ufl.log import error, UFLValueError
+from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import Index, FixedIndex
@@ -434,5 +434,5 @@ def as_ufl(expression):
     elif isinstance(expression, int):
         return IntValue(expression)
     else:
-        raise UFLValueError("Invalid type conversion: %s can not be converted"
-                            " to any UFL type." % str(expression))
+        raise ValueError("Invalid type conversion: %s can not be converted"
+                         " to any UFL type." % str(expression))

@@ -124,7 +124,7 @@ class Product(Operator):
         # Make sure everything is scalar
         if a.ufl_shape or b.ufl_shape:
             raise ValueError("Product can only represent products of scalars, "
-                             f"got\n{ufl_err_str(a)}\nand\n{ufl_err_str(b)}")
+                             f"got\n    {ufl_err_str(a)}\nand\n    {ufl_err_str(b)}")
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):

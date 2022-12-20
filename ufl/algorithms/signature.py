@@ -13,7 +13,6 @@ from ufl.classes import (Label,
                          Coefficient, Argument,
                          GeometricQuantity, ConstantValue, Constant,
                          ExprList, ExprMapping)
-from ufl.log import error
 from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
 from ufl.algorithms.domain_analysis import canonicalize_metadata
 
@@ -86,7 +85,7 @@ def compute_terminal_hashdata(expressions, renumbering):
                 data = "{}"
 
             else:
-                error("Unknown terminal type %s" % type(expr))
+                raise ValueError(f"Unknown terminal type {type(expr)}")
 
             terminal_hashdata[expr] = data
 

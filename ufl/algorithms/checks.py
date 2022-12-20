@@ -10,8 +10,6 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Mehdi Nikbakht, 2010.
 
-from ufl.log import error
-
 # UFL classes
 from ufl.core.expr import ufl_err_str
 from ufl.form import Form
@@ -30,10 +28,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     errors = []
 
     if not isinstance(form, Form):
-        msg = "Validation failed, not a Form:\n%s" % ufl_err_str(form)
-        error(msg)
-        # errors.append(msg)
-        # return errors
+        raise ValueError(f"Validation failed, not a Form:\n{ufl_err_str(form)}")
 
     # FIXME: There's a bunch of other checks we should do here.
 
@@ -54,7 +49,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:
-        errors.append("Multiple cell definitions in form: %s" % str(cells))
+        errors.append(f"Multiple cell definitions in form: {cells}")
 
     # Check that no Coefficient or Argument instance have the same
     # count unless they are the same
@@ -68,8 +63,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
                     g = coefficients[c]
                     if f is not g:
                         errors.append("Found different Coefficients with " +
-                                      "same count: %s and %s." % (repr(f),
-                                                                  repr(g)))
+                                      f"same count: {f} and {g}.")
                 else:
                     coefficients[c] = f
 
@@ -109,5 +103,4 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     # TODO: Return errors list instead, need to collect messages from
     # all validations above first.
     if errors:
-        final_msg = 'Found errors in validation of form:\n%s' % '\n\n'.join(errors)
-        error(final_msg)
+        raise ValueError("Found errors in validation of form:\n" + '\n\n'.join(errors))
