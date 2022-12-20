@@ -59,7 +59,7 @@ class Argument(FormArgument):
         self._number = number
         self._part = part
 
-        self._repr = f"Argument({self._ufl_function_space}, {self._number}, {self._part}"
+        self._repr = f"Argument({self._ufl_function_space}, {self._number}, {self._part})"
 
     @property
     def ufl_shape(self):
