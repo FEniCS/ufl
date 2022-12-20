@@ -10,7 +10,6 @@
 from collections import defaultdict
 
 import ufl
-from ufl.log import error
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
@@ -35,11 +34,11 @@ class IntegralData(object):
     def __init__(self, domain, integral_type, subdomain_id, integrals,
                  metadata):
         if 1 != len(set(itg.ufl_domain() for itg in integrals)):
-            error("Multiple domains mismatch in integral data.")
+            raise ValueError("Multiple domains mismatch in integral data.")
         if not all(integral_type == itg.integral_type() for itg in integrals):
-            error("Integral type mismatch in integral data.")
+            raise ValueError("Integral type mismatch in integral data.")
         if not all(subdomain_id == itg.subdomain_id() for itg in integrals):
-            error("Subdomain id mismatch in integral data.")
+            raise ValueError("Subdomain id mismatch in integral data.")
 
         self.domain = domain
         self.integral_type = integral_type
@@ -124,7 +123,7 @@ def group_integrals_by_domain_and_type(integrals, domains):
     integrals_by_domain_and_type = defaultdict(list)
     for itg in integrals:
         if itg.ufl_domain() is None:
-            error("Integral has no domain.")
+            raise ValueError("Integral has no domain.")
         key = (itg.ufl_domain(), itg.integral_type())
 
         # Append integral to list of integrals with shared key
@@ -140,13 +139,13 @@ def integral_subdomain_ids(integral):
         return (did,)
     elif isinstance(did, tuple):
         if not all(isinstance(d, numbers.Integral) for d in did):
-            error("Expecting only integer subdomains in tuple.")
+            raise ValueError("Expecting only integer subdomains in tuple.")
         return did
     elif did in ("everywhere", "otherwise"):
         # TODO: Define list of valid strings somewhere more central
         return did
     else:
-        error("Invalid domain id %s." % did)
+        raise ValueError(f"Invalid domain id {did}.")
 
 
 def rearrange_integrals_by_single_subdomains(integrals, do_append_everywhere_integrals):
@@ -164,7 +163,7 @@ def rearrange_integrals_by_single_subdomains(integrals, do_append_everywhere_int
     for itg in integrals:
         dids = integral_subdomain_ids(itg)
         if dids == "otherwise":
-            error("'otherwise' integrals should never occur before preprocessing.")
+            raise ValueError("'otherwise' integrals should never occur before preprocessing.")
         elif dids == "everywhere":
             everywhere_integrals.append(itg)
         else:

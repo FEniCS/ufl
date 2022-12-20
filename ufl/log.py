@@ -204,17 +204,7 @@ class Logger:
 
 # --- Set up global log functions ---
 
-class UFLException(Exception):
-    "Base class for UFL exceptions."
-    pass
-
-
-class UFLValueError(UFLException):
-    "Value type error."
-    pass
-
-
-ufl_logger = Logger("UFL", UFLException)
+ufl_logger = Logger("UFL", BaseException)
 
 for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))

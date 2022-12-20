@@ -7,7 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.variable import Label, Variable
@@ -70,5 +69,5 @@ def renumber_indices(expr):
 
     if isinstance(expr, Expr):
         if num_free_indices != len(result.ufl_free_indices):
-            error("The number of free indices left in expression should be invariant w.r.t. renumbering.")
+            raise ValueError("The number of free indices left in expression should be invariant w.r.t. renumbering.")
     return result
