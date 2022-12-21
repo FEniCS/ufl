@@ -8,13 +8,13 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.sobolevspace import L2
 
 
 class BrokenElement(FiniteElementBase):
     """The discontinuous version of an existing Finite Element space."""
     def __init__(self, element):
         self._element = element
-        self._repr = "BrokenElement(%s)" % repr(element)
 
         family = "BrokenElement"
         cell = element.cell()
@@ -25,15 +25,22 @@ class BrokenElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
+    def __repr__(self):
+        return f"BrokenElement({repr(self._element)})"
+
     def mapping(self):
         return self._element.mapping()
+
+    def sobolev_space(self):
+        """Return the underlying Sobolev space."""
+        return L2
 
     def reconstruct(self, **kwargs):
         return BrokenElement(self._element.reconstruct(**kwargs))
 
     def __str__(self):
-        return "BrokenElement(%s)" % str(self._element)
+        return f"BrokenElement({repr(self._element)})"
 
     def shortstr(self):
-        "Format as string for pretty printing."
-        return "BrokenElement(%s)" % str(self._element.shortstr())
+        """Format as string for pretty printing."""
+        return f"BrokenElement({repr(self._element)})"

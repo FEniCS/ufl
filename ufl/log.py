@@ -14,22 +14,19 @@ output messages. These may be redirected by the user of UFL."""
 import sys
 import types
 import logging
-from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL  # noqa: F401
+import warnings
+from logging import DEBUG, INFO, ERROR, CRITICAL  # noqa: F401
 
-log_functions = ["log", "debug", "info", "deprecate", "warning", "error",
+log_functions = ["log", "debug", "info", "error",
                  "begin", "end",
                  "set_level", "push_level", "pop_level", "set_indent",
                  "add_indent",
                  "set_handler", "get_handler", "get_logger", "add_logfile",
                  "set_prefix",
-                 "info_red", "info_green", "info_blue",
-                 "warning_red", "warning_green", "warning_blue"]
+                 "info_red", "info_green", "info_blue"]
 
 __all__ = log_functions + ["Logger", "log_functions"] +\
-    ["DEBUG", "INFO", "DEPRECATE", "WARNING", "ERROR", "CRITICAL"]
-
-
-DEPRECATE = (INFO + WARNING) // 2
+    ["DEBUG", "INFO", "ERROR", "CRITICAL"]
 
 
 # This is used to override emit() in StreamHandler for printing
@@ -63,7 +60,7 @@ class Logger:
 
         # Set up handler
         h = logging.StreamHandler(sys.stdout)
-        h.setLevel(WARNING)
+        h.setLevel(ERROR)
         # Override emit() in handler for indentation
         h.emit = types.MethodType(emit, h)
         self._handler = h
@@ -90,7 +87,7 @@ class Logger:
         if filename is None:
             filename = "%s.log" % self._name
         if filename in self._logfiles:
-            self.warning("Adding logfile %s multiple times." % filename)
+            warnings.warn("Adding logfile %s multiple times." % filename)
             return
         h = logging.FileHandler(filename, mode)
         h.emit = types.MethodType(emit, h)
@@ -131,26 +128,6 @@ class Logger:
     def info_blue(self, *message):
         "Write info message in blue."
         self.log(INFO, BLUE % self._format_raw(*message))
-
-    def deprecate(self, *message):
-        "Write deprecation message."
-        self.log(DEPRECATE, RED % self._format_raw(*message))
-
-    def warning(self, *message):
-        "Write warning message."
-        self._log.warning(self._format(*message))
-
-    def warning_red(self, *message):
-        "Write warning message in red."
-        self._log.warning(RED % self._format(*message))
-
-    def warning_green(self, *message):
-        "Write warning message in green."
-        self._log.warning(GREEN % self._format(*message))
-
-    def warning_blue(self, *message):
-        "Write warning message in blue."
-        self._log.warning(BLUE % self._format(*message))
 
     def error(self, *message):
         "Write error message and raise an exception."
@@ -242,4 +219,4 @@ ufl_logger = Logger("UFL", UFLException)
 for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))
 
-set_level(DEPRECATE)  # noqa
+set_level(ERROR)  # noqa

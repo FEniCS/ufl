@@ -15,24 +15,19 @@ from ufl.utils.sequences import product
 from ufl.utils.dicts import EmptyDict
 from ufl.log import error
 from ufl.cell import AbstractCell, as_cell
+from abc import ABC, abstractmethod
 
 
-class FiniteElementBase(object):
+class FiniteElementBase(ABC):
     "Base class for all finite elements."
-    __slots__ = ("_family",
-                 "_cell",
-                 "_degree",
-                 "_quad_scheme",
-                 "_value_shape",
-                 "_reference_value_shape",
-                 "_repr",
-                 "__weakref__")
+    __slots__ = ("_family", "_cell", "_degree", "_quad_scheme",
+                 "_value_shape", "_reference_value_shape", "__weakref__")
 
     # TODO: Not all these should be in the base class! In particular
     # family, degree, and quad_scheme do not belong here.
     def __init__(self, family, cell, degree, quad_scheme, value_shape,
                  reference_value_shape):
-        "Initialize basic finite element data."
+        """Initialize basic finite element data."""
         if not isinstance(family, str):
             error("Invalid family type.")
         if not (degree is None or isinstance(degree, (int, tuple))):
@@ -54,12 +49,20 @@ class FiniteElementBase(object):
         self._reference_value_shape = reference_value_shape
         self._quad_scheme = quad_scheme
 
+    @abstractmethod
     def __repr__(self):
-        """Format as string for evaluation as Python object.
+        """Format as string for evaluation as Python object."""
+        pass
 
-        NB! Assumes subclass has assigned its repr string to self._repr.
-        """
-        return self._repr
+    @abstractmethod
+    def sobolev_space(self):
+        """Return the underlying Sobolev space."""
+        pass
+
+    @abstractmethod
+    def mapping(self):
+        """Return the mapping type for this element."""
+        pass
 
     def _ufl_hash_data_(self):
         return repr(self)
@@ -100,10 +103,6 @@ class FiniteElementBase(object):
     def quadrature_scheme(self):
         "Return quadrature scheme of finite element."
         return self._quad_scheme
-
-    def mapping(self):
-        "Not implemented."
-        error("Missing implementation of mapping().")
 
     def cell(self):
         "Return cell of finite element."
