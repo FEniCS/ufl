@@ -40,14 +40,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ./ffcx
-          repository: FEniCS/ffcx
+          repository: FEniCS/ffcx@dokken/remove-deprecations-from-source
           ref: main
       - name: Install FFCx
         run: |
           cd ffcx
           pip install .[ci]
       - name: Run FFCx unit tests
-        run: python3 -m pytest -n auto ffcx/test -W error::DeprecationWarning
+        run: python3 -m pytest -n auto ffcx/test
 
   dolfinx-tests:
     name: Run DOLFINx tests
@@ -95,4 +95,4 @@ jobs:
           cmake --install build
           pip3 -v install --global-option build --global-option --debug dolfinx/python/
       - name: Run DOLFINx unit tests
-        run: python3 -m pytest -n auto dolfinx/python/test/unit -W error::DeprecationWarning
+        run: python3 -m pytest -n auto dolfinx/python/test/unit
