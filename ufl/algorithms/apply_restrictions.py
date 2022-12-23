@@ -15,6 +15,7 @@ from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
+from ufl.domain import extract_unique_domain
 
 
 class RestrictionPropagator(MultiFunction):
@@ -136,7 +137,7 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
     def facet_normal(self, o):
-        D = o.ufl_domain()
+        D = extract_unique_domain(o)
         e = D.ufl_coordinate_element()
         f = e.family()
         d = e.degree()

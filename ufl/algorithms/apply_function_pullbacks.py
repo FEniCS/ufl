@@ -12,7 +12,7 @@
 from itertools import chain, accumulate, repeat
 
 from ufl.log import error
-
+from ufl.domain import extract_unique_domain
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -70,7 +70,7 @@ def apply_known_single_pullback(r, element):
     # Coefficient/Argument (in the case of mixed elements, see below
     # in apply_single_function_pullbacks), to which we cannot apply ReferenceValue
     mapping = element.mapping()
-    domain = r.ufl_domain()
+    domain = extract_unique_domain(r)
     if mapping == "physical":
         return r
     elif mapping == "identity":

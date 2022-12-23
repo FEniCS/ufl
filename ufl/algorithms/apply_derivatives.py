@@ -16,6 +16,8 @@ from ufl.core.expr import ufl_err_str
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import MultiIndex, FixedIndex, indices
 
+from ufl.domain import extract_unique_domain
+
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
 
 from ufl.classes import ConstantValue, Identity, Zero, FloatValue
@@ -564,7 +566,7 @@ class GradRuleset(GenericDerivativeRuleset):
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(f, (JacobianInverse, SpatialCoordinate))
         if not valid_operand:
             error("ReferenceGrad can only wrap a reference frame type!")
-        domain = f.ufl_domain()
+        domain = extract_unique_domain(f)
         K = JacobianInverse(domain)
         Do = grad_to_reference_grad(o, K)
         return Do

@@ -36,7 +36,7 @@ from ufl.classes import (Expr, Form, Integral,
                          FloatValue)
 # FacetJacobianInverse,
 # FacetOrientation, QuadratureWeight,
-
+from ufl.domain import extract_unique_domain
 from ufl.tensors import as_tensor, as_vector
 from ufl.operators import sqrt, max_value, min_value, conj, real
 
@@ -60,7 +60,7 @@ class GeometryLoweringApplier(MultiFunction):
     def jacobian(self, o):
         if self._preserve_types[o._ufl_typecode_]:
             return o
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         if domain.ufl_coordinate_element().mapping() != "identity":
             error("Piola mapped coordinates are not implemented.")
         # Note: No longer supporting domain.coordinates(), always
@@ -83,7 +83,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         J = self.jacobian(Jacobian(domain))
         # TODO: This could in principle use
         # preserve_types[JacobianDeterminant] with minor refactoring:
@@ -95,7 +95,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         J = self.jacobian(Jacobian(domain))
         detJ = determinant_expr(J)
 
@@ -113,7 +113,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         J = self.jacobian(Jacobian(domain))
         RFJ = CellFacetJacobian(domain)
         i, j, k = indices(3)
@@ -135,7 +135,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         FJ = self.facet_jacobian(FacetJacobian(domain))
         detFJ = determinant_expr(FJ)
 
@@ -153,7 +153,7 @@ class GeometryLoweringApplier(MultiFunction):
         "Fall through to coordinate field of domain if it exists."
         if self._preserve_types[o._ufl_typecode_]:
             return o
-        if o.ufl_domain().ufl_coordinate_element().mapping() != "identity":
+        if extract_unique_domain(o).ufl_coordinate_element().mapping() != "identity":
             error("Piola mapped coordinates are not implemented.")
         # No longer supporting domain.coordinates(), always preserving
         # SpatialCoordinate object.
@@ -380,7 +380,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         tdim = domain.topological_dimension()
 
         if tdim == 1:

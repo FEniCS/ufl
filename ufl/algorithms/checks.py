@@ -23,6 +23,7 @@ from ufl.constantvalue import is_true_ufl_scalar
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.check_restrictions import check_restrictions
+from ufl.domain import extract_unique_domain
 
 
 def validate_form(form):  # TODO: Can we make this return a list of errors instead of raising exception?
@@ -43,7 +44,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     #     errors.append("Form is not multilinear in arguments.")
 
     # FIXME DOMAIN: Add check for consistency between domains somehow
-    domains = set(t.ufl_domain()
+    domains = set(extract_unique_domain(t)
                   for e in iter_expressions(form)
                   for t in traverse_unique_terminals(e)) - {None}
     if not domains:

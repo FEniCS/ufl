@@ -15,6 +15,7 @@ from ufl.algorithms import expand_indices, strip_variables, post_traversal, comp
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.domain import extract_unique_domain
 
 def assertEqualBySampling(actual, expected):
     ad = compute_form_data(actual*dx)
@@ -43,9 +44,8 @@ def assertEqualBySampling(actual, expected):
 
     amapping = dict((c, make_value(c)) for c in chain(ad.original_form.coefficients(), ad.original_form.arguments()))
     bmapping = dict((c, make_value(c)) for c in chain(bd.original_form.coefficients(), bd.original_form.arguments()))
-
-    acell = actual.ufl_domain().ufl_cell()
-    bcell = expected.ufl_domain().ufl_cell()
+    acell = extract_unique_domain(actual).ufl_cell()
+    bcell = extract_unique_domain(expected).ufl_cell()
     assert acell == bcell
     if acell.geometric_dimension() == 1:
         x = (0.3,)

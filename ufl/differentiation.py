@@ -9,22 +9,21 @@
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.log import error
-from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
-from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
-
-from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.constantvalue import Zero
-from ufl.coefficient import Coefficient
-from ufl.variable import Variable
-from ufl.precedence import parstr
-from ufl.domain import find_geometric_dimension
 from ufl.checks import is_cellwise_constant
-
+from ufl.coefficient import Coefficient
+from ufl.constantvalue import Zero
+from ufl.core.expr import Expr
+from ufl.core.operator import Operator
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
+from ufl.domain import extract_unique_domain, find_geometric_dimension
+from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.log import error
+from ufl.precedence import parstr
+from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
+
 
 @ufl_type(is_abstract=True,
           is_differential=True)
@@ -182,14 +181,14 @@ class ReferenceGrad(CompoundDerivative):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
-            dim = f.ufl_domain().topological_dimension()
+            dim = extract_unique_domain(f).topological_dimension()
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices,
                         f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self, (f,))
-        self._dim = f.ufl_domain().topological_dimension()
+        self._dim = extract_unique_domain(f).topological_dimension()
 
     def _ufl_expr_reconstruct_(self, op):
         "Return a new object of the same type with new operands."

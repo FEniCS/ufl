@@ -313,4 +313,4 @@ def as_cell(cell):
     elif isinstance(cell, tuple):
         return TensorProductCell(cell)
     else:
-        error("Invalid cell %s." % cell)
+        raise ValueError(f"Invalid cell {cell}.")

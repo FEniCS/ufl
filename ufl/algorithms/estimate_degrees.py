@@ -19,6 +19,7 @@ from ufl.algorithms.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dags
 from ufl.checks import is_cellwise_constant
 from ufl.constantvalue import IntValue
+from ufl.domain import extract_unique_domain
 
 
 class IrreducibleInt(int):
@@ -50,11 +51,11 @@ class SumDegreeEstimator(MultiFunction):
             return 0
         else:
             # As a heuristic, just returning domain degree to bump up degree somewhat
-            return v.ufl_domain().ufl_coordinate_element().degree()
+            return extract_unique_domain(v).ufl_coordinate_element().degree()
 
     def spatial_coordinate(self, v):
         "A coordinate provides additional degrees depending on coordinate field of domain."
-        return v.ufl_domain().ufl_coordinate_element().degree()
+        return extract_unique_domain(v).ufl_coordinate_element().degree()
 
     def cell_coordinate(self, v):
         "A coordinate provides one additional degree."
