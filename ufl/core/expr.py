@@ -298,6 +298,7 @@ class Expr(object):
         warnings.warn("Expr.ufl_domains() is deprecated, please "
                       "use extract_domains(expr) instead.", DeprecationWarning)
         from ufl.domain import extract_domains
+        assert False
         return extract_domains(self)
 
     def ufl_domain(self):
@@ -305,6 +306,7 @@ class Expr(object):
         warnings.warn("Expr.ufl_domain() is deprecated, please "
                       "use extract_unique_domain(expr) instead.", DeprecationWarning)
         from ufl.domain import extract_unique_domain
+        assert False
         return extract_unique_domain(self)
 
     # --- Functions for float evaluation ---

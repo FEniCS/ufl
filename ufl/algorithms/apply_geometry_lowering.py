@@ -124,7 +124,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         FJ = self.facet_jacobian(FacetJacobian(domain))
         # This could in principle use
         # preserve_types[JacobianDeterminant] with minor refactoring:
@@ -165,7 +165,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         K = self.jacobian_inverse(JacobianInverse(domain))
         x = self.spatial_coordinate(SpatialCoordinate(domain))
         x0 = CellOrigin(domain)
@@ -186,7 +186,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         if not domain.is_piecewise_linear_simplex_domain():
             # Don't lower for non-affine cells, instead leave it to
             # form compiler
@@ -202,7 +202,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         tdim = domain.topological_dimension()
         if not domain.is_piecewise_linear_simplex_domain():
             # Don't lower for non-affine cells, instead leave it to
@@ -223,7 +223,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
 
         if not domain.is_piecewise_linear_simplex_domain():
             error("Circumradius only makes sense for affine simplex cells")
@@ -270,7 +270,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
 
         if not domain.ufl_coordinate_element().degree() == 1:
             # Don't lower bendy cells, instead leave it to form compiler
@@ -294,7 +294,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
 
         if not domain.ufl_coordinate_element().degree() in {1, (1, 1)}:
             # Don't lower bendy cells, instead leave it to form compiler
@@ -325,7 +325,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
 
         if domain.ufl_cell().topological_dimension() < 3:
             error("Facet edge lengths only make sense for topological dimension >= 3.")
@@ -348,7 +348,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         gdim = domain.geometric_dimension()
         tdim = domain.topological_dimension()
 

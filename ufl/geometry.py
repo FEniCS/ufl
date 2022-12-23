@@ -15,7 +15,7 @@
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
-from ufl.domain import as_domain
+from ufl.domain import as_domain, extract_unique_domain
 
 """
 
@@ -372,7 +372,7 @@ class ReferenceCellEdgeVectors(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         ne = cell.num_edges()
         t = cell.topological_dimension()
         return (ne, t)
@@ -397,7 +397,7 @@ class ReferenceFacetEdgeVectors(GeometricFacetQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         facet_types = cell.facet_types()
 
         # Raise exception for cells with more than one facet type e.g. prisms
@@ -425,7 +425,7 @@ class CellVertices(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         nv = cell.num_vertices()
         g = cell.geometric_dimension()
         return (nv, g)
@@ -450,7 +450,7 @@ class CellEdgeVectors(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         ne = cell.num_edges()
         g = cell.geometric_dimension()
         return (ne, g)
@@ -475,7 +475,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         facet_types = cell.facet_types()
 
         # Raise exception for cells with more than one facet type e.g. prisms

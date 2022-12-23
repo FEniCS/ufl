@@ -95,4 +95,4 @@ jobs:
           cmake --install build
           pip3 -v install --global-option build --global-option --debug dolfinx/python/
       - name: Run DOLFINx unit tests
-        run: python3 -m pytest -n auto dolfinx/python/test/unit
+        run: python3 -m pytest -n auto dolfinx/python/test/unit -W error::DeprecationWarning
