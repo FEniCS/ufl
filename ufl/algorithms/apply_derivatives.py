@@ -501,7 +501,7 @@ class GradRuleset(GenericDerivativeRuleset):
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
         else:
-            domain = o.ufl_domain()
+            domain = extract_unique_domain(o)
             K = JacobianInverse(domain)
             Do = grad_to_reference_grad(o, K)
             return Do
@@ -525,7 +525,7 @@ class GradRuleset(GenericDerivativeRuleset):
     def cell_coordinate(self, o):
         "dX/dx = inv(dx/dX) = inv(J) = K"
         # FIXME: Is this true for manifolds? What about orientation?
-        return JacobianInverse(o.ufl_domain())
+        return JacobianInverse(extract_unique_domain(o))
 
     # --- Specialized rules for form arguments
 
@@ -554,7 +554,7 @@ class GradRuleset(GenericDerivativeRuleset):
 
         if not f._ufl_is_terminal_:
             error("ReferenceValue can only wrap a terminal")
-        domain = f.ufl_domain()
+        domain = extract_unique_domain(f)
         K = JacobianInverse(domain)
         Do = grad_to_reference_grad(o, K)
         return Do
@@ -1225,7 +1225,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     def jacobian(self, o):
         # d (grad_X(x))/d x => grad_X(Argument(x.function_space())
         for (w, v) in zip(self._w, self._v):
-            if o.ufl_domain() == w.ufl_domain() and isinstance(v.ufl_operands[0], FormArgument):
+            if extract_unique_domain(o) == extract_unique_domain(w) and isinstance(v.ufl_operands[0], FormArgument):
                 return ReferenceGrad(v)
         return self.independent_terminal(o)
 
