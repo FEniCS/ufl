@@ -130,7 +130,7 @@ class Cofunction(BaseCoefficient, BaseForm):
 
     def __new__(cls, *args, **kw):
         if args[0] and is_primal(args[0]):
-            raise ValueError('ufl.Cofunction takes in a dual space! If you want to define a coefficient in the primal space you should use ufl.Coefficient.')
+            raise ValueError('ufl.Cofunction takes in a dual space. If you want to define a coefficient in the primal space you should use ufl.Coefficient.')
         return super().__new__(cls)
 
     def __init__(self, function_space, count=None):
@@ -208,8 +208,6 @@ def Coefficients(function_space):
     """UFL value: Create a Coefficient in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     if isinstance(function_space, MixedFunctionSpace):
-        # return [Coefficient(function_space.ufl_sub_space(i))
-        #         for i in range(function_space.num_sub_spaces())]
         return [Coefficient(fs) if is_primal(fs) else Cofunction(fs)
                 for fs in function_space.num_sub_spaces()]
     else:

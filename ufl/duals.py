@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-"Predicates for recognising duals"
+"""Predicates for recognising duals"""
 
-# Copyright (C) 2015-2016 Martin Sandve Alnæs
+# Copyright (C) 2021 India Marsden
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
-# Modified by India Marsden, 2021
 
 
 def is_primal(object):
