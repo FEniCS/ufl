@@ -40,8 +40,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ./ffcx
-          repository: FEniCS/ffcx@dokken/remove-deprecations-from-source
-          ref: main
+          repository: FEniCS/ffcx
+          ref: dokken/remove-deprecations-from-source
       - name: Install FFCx
         run: |
           cd ffcx
