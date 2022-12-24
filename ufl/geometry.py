@@ -1,21 +1,15 @@
-# -*- coding: utf-8 -*-
-"Types for representing symbolic expressions for geometric quantities."
+"""Types for representing symbolic expressions for geometric quantities."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-#
-# Modified by Anders Logg, 2009.
-# Modified by Kristian B. Oelgaard, 2009
-# Modified by Marie E. Rognes 2012
-# Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
-from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain, extract_unique_domain
+from ufl.log import error
 
 """
 

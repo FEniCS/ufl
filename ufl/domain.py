@@ -1,26 +1,19 @@
-# -*- coding: utf-8 -*-
-"Types for representing a geometric domain."
+"""Types for representing a geometric domain."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-#
-# Modified by Anders Logg, 2009.
-# Modified by Kristian B. Oelgaard, 2009
-# Modified by Marie E. Rognes 2012
-# Modified by Cecile Daversin-Catty, 2018
 
 import numbers
 
-from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.cell import AbstractCell, TensorProductCell, as_cell
 from ufl.core.ufl_id import attach_ufl_id
+from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.log import error
-from ufl.cell import as_cell, AbstractCell, TensorProductCell
 from ufl.finiteelement.tensorproductelement import TensorProductElement
-
+from ufl.log import error
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]

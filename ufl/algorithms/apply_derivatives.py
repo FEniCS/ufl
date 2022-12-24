@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module contains the apply_derivatives algorithm which computes the derivatives of a form of expression."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -9,41 +8,31 @@
 
 import warnings
 from collections import defaultdict
-
-from ufl.log import error
-
-from ufl.core.expr import ufl_err_str
-from ufl.core.terminal import Terminal
-from ufl.core.multiindex import MultiIndex, FixedIndex, indices
-
-from ufl.domain import extract_unique_domain
-
-from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
-
-from ufl.classes import ConstantValue, Identity, Zero, FloatValue
-from ufl.classes import Coefficient, FormArgument, ReferenceValue
-from ufl.classes import Grad, ReferenceGrad, Variable
-from ufl.classes import Indexed, ListTensor, ComponentTensor
-from ufl.classes import ExprList, ExprMapping
-from ufl.classes import Product, Sum, IndexSum
-from ufl.classes import Conj, Real, Imag
-from ufl.classes import JacobianInverse
-from ufl.classes import SpatialCoordinate
-
-from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
-from ufl.operators import (conditional, sign,
-                           sqrt, exp, ln, cos, sin, cosh, sinh,
-                           bessel_J, bessel_Y, bessel_I, bessel_K,
-                           cell_avg, facet_avg)
-
 from math import pi
 
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
-
 from ufl.checks import is_cellwise_constant
+from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue,
+                         ExprList, ExprMapping, FloatValue, FormArgument, Grad,
+                         Identity, Imag, Indexed, IndexSum, JacobianInverse,
+                         ListTensor, Product, Real, ReferenceGrad,
+                         ReferenceValue, SpatialCoordinate, Sum, Variable,
+                         Zero)
+from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
+from ufl.core.expr import ufl_err_str
+from ufl.core.multiindex import FixedIndex, MultiIndex, indices
+from ufl.core.terminal import Terminal
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import CoordinateDerivative
+from ufl.domain import extract_unique_domain
+from ufl.log import error
+from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg,
+                           conditional, cos, cosh, exp, facet_avg, ln, sign,
+                           sin, sinh, sqrt)
+from ufl.tensors import (as_scalar, as_scalars, as_tensor, unit_indexed_tensor,
+                         unwrap_list_tensor)
+
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset

@@ -1,21 +1,20 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2009-02-17"
 
-import pytest
-import math
 from itertools import chain
 
+import pytest
+
 from ufl import *
-from ufl.classes import Indexed, MultiIndex, ReferenceGrad
-from ufl.constantvalue import as_ufl
-from ufl.algorithms import expand_indices, strip_variables, post_traversal, compute_form_data
+from ufl.algorithms import (compute_form_data, expand_indices, post_traversal,
+                            strip_variables)
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
-from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.classes import Indexed, MultiIndex, ReferenceGrad
+from ufl.constantvalue import as_ufl
 from ufl.domain import extract_unique_domain
+
 
 def assertEqualBySampling(actual, expected):
     ad = compute_form_data(actual*dx)

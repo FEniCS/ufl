@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Algorithms for estimating polynomial degrees of expressions."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
@@ -12,14 +11,14 @@
 
 import warnings
 
-from ufl.log import error
-from ufl.form import Form
-from ufl.integral import Integral
 from ufl.algorithms.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dags
 from ufl.checks import is_cellwise_constant
 from ufl.constantvalue import IntValue
+from ufl.corealg.map_dag import map_expr_dags
 from ufl.domain import extract_unique_domain
+from ufl.form import Form
+from ufl.integral import Integral
+from ufl.log import error
 
 
 class IrreducibleInt(int):

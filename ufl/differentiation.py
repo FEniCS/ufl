@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
-"Differential operators."
+"""Differential operators."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-#
-# Modified by Anders Logg, 2009.
 
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
