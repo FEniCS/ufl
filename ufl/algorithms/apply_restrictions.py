@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module contains the apply_restrictions algorithm which propagates restrictions in a form towards the terminals."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -8,11 +7,12 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
-from ufl.log import error
-from ufl.classes import Restricted
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.classes import Restricted
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.multifunction import MultiFunction
+from ufl.domain import extract_unique_domain
+from ufl.log import error
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
 
@@ -136,7 +136,7 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
     def facet_normal(self, o):
-        D = o.ufl_domain()
+        D = extract_unique_domain(o)
         e = D.ufl_coordinate_element()
         f = e.family()
         d = e.degree()
