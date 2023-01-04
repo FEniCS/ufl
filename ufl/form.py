@@ -11,10 +11,11 @@
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 
+import warnings
 from itertools import chain
 from collections import defaultdict
 
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.domain import sort_domains
 from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
@@ -378,7 +379,7 @@ class Form(object):
                 if f in coeffs:
                     repdict[f] = coefficients[f]
                 else:
-                    warning("Coefficient %s is not in form." % ufl_err_str(f))
+                    warnings.warn("Coefficient %s is not in form." % ufl_err_str(f))
         if repdict:
             from ufl.formoperators import replace
             return replace(self, repdict)
@@ -440,14 +441,10 @@ class Form(object):
             sd = integral.subdomain_data()
 
             # Collect subdomain data
-            data = subdomain_data[domain].get(it)
-            if data is None:
-                subdomain_data[domain][it] = sd
-            elif sd is not None:
-                if data.ufl_id() != sd.ufl_id():
-                    error(
-                        "Integrals in form have different subdomain_data objects."
-                    )
+            if subdomain_data[domain].get(it) is None:
+                subdomain_data[domain][it] = [sd]
+            else:
+                subdomain_data[domain][it].append(sd)
         self._subdomain_data = subdomain_data
 
     def _analyze_form_arguments(self):

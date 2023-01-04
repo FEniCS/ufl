@@ -13,10 +13,11 @@ elements by calling the function register_element."""
 # Modified by Lizao Li <lzlarryli@gmail.com>, 2015, 2016
 # Modified by Massimiliano Leoni, 2016
 
+import warnings
 from numpy import asarray
 
-from ufl.log import warning, error
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv
+from ufl.log import error
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 from ufl.utils.formatting import istr
 from ufl.cell import Cell, TensorProductCell
 
@@ -137,7 +138,7 @@ register_element("Bubble", "B", 0, H1, "identity", (2, None), simplices)
 register_element("FacetBubble", "FB", 0, H1, "identity", (2, None), simplices)
 register_element("Quadrature", "Quadrature", 0, L2, "identity", (0, None),
                  any_cell)
-register_element("Real", "R", 0, L2, "identity", (0, 0),
+register_element("Real", "R", 0, HInf, "identity", (0, 0),
                  any_cell + ("TensorProductCell",))
 register_element("Undefined", "U", 0, L2, "identity", (0, None), any_cell)
 register_element("Radau", "Rad", 0, L2, "identity", (0, None), ("interval",))
@@ -436,11 +437,11 @@ def canonical_element_description(family, cell, order, form_degree):
             family = "Q"
         elif family == "Discontinuous Lagrange":
             if order >= 1:
-                warning("Discontinuous Lagrange element requested on %s, creating DQ element." % cell.cellname())
+                warnings.warn("Discontinuous Lagrange element requested on %s, creating DQ element." % cell.cellname())
             family = "DQ"
         elif family == "Discontinuous Lagrange L2":
             if order >= 1:
-                warning("Discontinuous Lagrange L2 element requested on %s, creating DQ L2 element." % cell.cellname())
+                warnings.warn("Discontinuous Lagrange L2 element requested on %s, creating DQ L2 element." % cell.cellname())
             family = "DQ L2"
 
     # Validate cellname if a valid cell is specified
@@ -460,9 +461,6 @@ def canonical_element_description(family, cell, order, form_degree):
             error('Order "%s" invalid for "%s" finite element.' %
                   (istr(order), family))
 
-    # Override sobolev_space for piecewise constants (TODO: necessary?)
-    if order == 0:
-        sobolev_space = L2
     if value_rank == 2:
         # Tensor valued fundamental elements in HEin have this shape
         if gdim is None or tdim is None:

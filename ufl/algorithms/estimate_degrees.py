@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Algorithms for estimating polynomial degrees of expressions."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
@@ -10,13 +9,16 @@
 # Modified by Anders Logg, 2009-2010
 # Modified by Jan Blechta, 2012
 
-from ufl.log import warning, error
-from ufl.form import Form
-from ufl.integral import Integral
+import warnings
+
 from ufl.algorithms.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dags
 from ufl.checks import is_cellwise_constant
 from ufl.constantvalue import IntValue
+from ufl.corealg.map_dag import map_expr_dags
+from ufl.domain import extract_unique_domain
+from ufl.form import Form
+from ufl.integral import Integral
+from ufl.log import error
 
 
 class IrreducibleInt(int):
@@ -48,11 +50,11 @@ class SumDegreeEstimator(MultiFunction):
             return 0
         else:
             # As a heuristic, just returning domain degree to bump up degree somewhat
-            return v.ufl_domain().ufl_coordinate_element().degree()
+            return extract_unique_domain(v).ufl_coordinate_element().degree()
 
     def spatial_coordinate(self, v):
         "A coordinate provides additional degrees depending on coordinate field of domain."
-        return v.ufl_domain().ufl_coordinate_element().degree()
+        return extract_unique_domain(v).ufl_coordinate_element().degree()
 
     def cell_coordinate(self, v):
         "A coordinate provides one additional degree."
@@ -117,7 +119,7 @@ class SumDegreeEstimator(MultiFunction):
 
     def expr(self, v, *ops):
         "For most operators we take the max degree of its operands."
-        warning("Missing degree estimation handler for type %s" % v._ufl_class_.__name__)
+        warnings.warn("Missing degree estimation handler for type %s" % v._ufl_class_.__name__)
         return self._add_degrees(v, *ops)
 
     # Utility types with no degree concept

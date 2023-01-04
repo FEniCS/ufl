@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module contains the apply_restrictions algorithm which propagates restrictions in a form towards the terminals."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -8,12 +7,14 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
-from ufl.log import error
-from ufl.classes import Restricted
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.classes import Restricted
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.multifunction import MultiFunction
+from ufl.domain import extract_unique_domain
+from ufl.log import error
 from ufl.measure import integral_type_to_measure_name
+from ufl.sobolevspace import H1
 
 
 class RestrictionPropagator(MultiFunction):
@@ -128,19 +129,14 @@ class RestrictionPropagator(MultiFunction):
 
     def coefficient(self, o):
         "Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous across the facet."
-        e = o.ufl_element()
-        d = e.degree()
-        f = e.family()
-        # TODO: Move this choice to the element class?
-        continuous_families = ["Lagrange", "Q", "S"]
-        if (f in continuous_families and d > 0) or f == "Real":
+        if o.ufl_element() in H1:
             # If the coefficient _value_ is _fully_ continuous
             return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which
         else:
             return self._require_restriction(o)
 
     def facet_normal(self, o):
-        D = o.ufl_domain()
+        D = extract_unique_domain(o)
         e = D.ufl_coordinate_element()
         f = e.family()
         d = e.degree()

@@ -13,8 +13,9 @@
 import math
 import cmath
 import numbers
+import warnings
 
-from ufl.log import warning, error
+from ufl.log import error
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
@@ -63,7 +64,7 @@ class MathFunction(Operator):
             else:
                 res = getattr(cmath, self._name)(a)
         except ValueError:
-            warning('Value error in evaluation of function %s with argument %s.' % (self._name, a))
+            warnings.warn('Value error in evaluation of function %s with argument %s.' % (self._name, a))
             raise
         return res
 
@@ -289,7 +290,7 @@ class Atan2(Operator):
         except TypeError:
             error('Atan2 does not support complex numbers.')
         except ValueError:
-            warning('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
+            warnings.warn('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
             raise
         return res
 

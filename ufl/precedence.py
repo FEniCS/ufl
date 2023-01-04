@@ -7,7 +7,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import warning
+import warnings
 
 
 # FIXME: This code is crap...
@@ -102,7 +102,7 @@ def assign_precedences(precedence_list):
     if missing:
         msg = "Missing precedence levels for classes:\n" +\
             "\n".join('  %s' % c for c in sorted(missing))
-        warning(msg)
+        warnings.warn(msg)
 
 
 """

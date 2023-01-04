@@ -90,10 +90,8 @@ class MixedElement(FiniteElementBase):
         FiniteElementBase.__init__(self, "Mixed", cell, degree, quad_scheme,
                                    value_shape, reference_value_shape)
 
-        # Cache repr string
-        if type(self) is MixedElement:
-            self._repr = "MixedElement(%s)" % (
-                ", ".join(repr(e) for e in self._sub_elements),)
+    def __repr__(self):
+        return "MixedElement(" + ", ".join(repr(e) for e in self._sub_elements) + ")"
 
     def reconstruct_from_elements(self, *elements):
         "Reconstruct a mixed element from new subelements."
@@ -124,6 +122,9 @@ class MixedElement(FiniteElementBase):
         if j != product(self.value_shape()):
             error("Size mismatch in symmetry algorithm.")
         return sm or EmptyDict
+
+    def sobolev_space(self):
+        return max(e.sobolev_space() for e in self._sub_elements)
 
     def mapping(self):
         if all(e.mapping() == "identity" for e in self._sub_elements):
@@ -247,6 +248,8 @@ class MixedElement(FiniteElementBase):
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal."
 
+    __slots__ = ("_repr", "_mapping", "_sub_element")
+
     def __init__(self, family, cell=None, degree=None, dim=None,
                  form_degree=None, quad_scheme=None, variant=None):
         """
@@ -310,8 +313,10 @@ class VectorElement(MixedElement):
             var_str = ", variant='" + variant + "'"
 
         # Cache repr string
-        self._repr = "VectorElement(%s, dim=%d%s)" % (
-            repr(sub_element), len(self._sub_elements), var_str)
+        self._repr = f"VectorElement({repr(sub_element)}, dim={dim}{var_str})"
+
+    def __repr__(self):
+        return self._repr
 
     def reconstruct(self, **kwargs):
         sub_element = self._sub_element.reconstruct(**kwargs)
@@ -343,7 +348,7 @@ class TensorElement(MixedElement):
     __slots__ = ("_sub_element", "_shape", "_symmetry",
                  "_sub_element_mapping",
                  "_flattened_sub_element_mapping",
-                 "_mapping")
+                 "_mapping", "_repr")
 
     def __init__(self, family, cell=None, degree=None, shape=None,
                  symmetry=None, quad_scheme=None, variant=None):
@@ -447,8 +452,11 @@ class TensorElement(MixedElement):
             var_str = ", variant='" + variant + "'"
 
         # Cache repr string
-        self._repr = "TensorElement(%s, shape=%s, symmetry=%s%s)" % (
-            repr(sub_element), repr(self._shape), repr(self._symmetry), var_str)
+        self._repr = (f"TensorElement({repr(sub_element)}, shape={shape}, "
+                      f"symmetry={symmetry}{var_str})")
+
+    def __repr__(self):
+        return self._repr
 
     def variant(self):
         """Return the variant used to initialise the element."""

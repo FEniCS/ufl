@@ -68,8 +68,11 @@ A very brief overview of the language contents follows:
     - L2
     - H1
     - H2
+    - HInf
     - HDiv
     - HCurl
+    - HEin
+    - HDivDiv
 
 * Elements::
 
@@ -84,8 +87,6 @@ A very brief overview of the language contents follows:
     - HDivElement
     - HCurlElement
     - BrokenElement
-    - FacetElement
-    - InteriorElement
 
 * Function spaces::
 
@@ -257,7 +258,7 @@ from ufl.utils.sequences import product
 
 # Output control
 from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
-    UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
+    UFLException, DEBUG, INFO, ERROR, CRITICAL
 
 # Types for geometric quantities
 
@@ -272,14 +273,13 @@ from ufl.geometry import (
 )
 
 # Sobolev spaces
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     NodalEnrichedElement, RestrictedElement, TensorProductElement, \
-    HDivElement, HCurlElement, BrokenElement, \
-    FacetElement, InteriorElement, WithMapping
+    HDivElement, HCurlElement, BrokenElement, WithMapping
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
@@ -325,7 +325,7 @@ from ufl.operators import rank, shape, \
     cosh, sinh, tanh, \
     bessel_J, bessel_Y, bessel_I, bessel_K, \
     eq, ne, le, ge, lt, gt, And, Or, Not, \
-    conditional, sign, max_value, min_value, Max, Min, \
+    conditional, sign, max_value, min_value, \
     variable, diff, \
     Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
     jump, avg, cell_avg, facet_avg, \
@@ -366,10 +366,10 @@ from math import e, pi
 __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
-    'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
+    'UFLException', 'DEBUG', 'INFO', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
-    'L2', 'H1', 'H2', 'HCurl', 'HDiv',
+    'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',
     'SpatialCoordinate',
     'CellVolume', 'CellDiameter', 'Circumradius',
     'MinCellEdgeLength', 'MaxCellEdgeLength',
@@ -380,7 +380,7 @@ __all__ = [
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'NodalEnrichedElement', 'RestrictedElement', 'TensorProductElement',
     'HDivElement', 'HCurlElement',
-    'BrokenElement', 'FacetElement', 'InteriorElement', "WithMapping",
+    'BrokenElement', "WithMapping",
     'register_element', 'show_elements',
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
@@ -402,7 +402,7 @@ __all__ = [
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
-    'conditional', 'sign', 'max_value', 'min_value', 'Max', 'Min',
+    'conditional', 'sign', 'max_value', 'min_value',
     'variable', 'diff',
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg', 'cell_avg', 'facet_avg',
