@@ -88,11 +88,7 @@ class Coefficient(FormArgument):
         return ("Coefficient", count, fsdata)
 
     def __str__(self):
-        count = str(self._count)
-        if len(count) == 1:
-            return "w_%s" % count
-        else:
-            return "w_{%s}" % count
+        return f"w_{self._count}"
 
     def __repr__(self):
         return self._repr
