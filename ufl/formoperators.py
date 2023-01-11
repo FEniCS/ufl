@@ -11,15 +11,17 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.form import Form, as_form
+from ufl.form import Form, FormSum, BaseForm, as_form
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
-from ufl.coefficient import Coefficient
-from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
+from ufl.coefficient import Coefficient, Cofunction
+from ufl.adjoint import Adjoint
+from ufl.action import Action
+from ufl.differentiation import CoefficientDerivative, BaseFormDerivative, CoordinateDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
@@ -103,10 +105,14 @@ def action(form, coefficient=None):
     Given a bilinear form, return a linear form
     with an additional coefficient, representing the
     action of the form on the coefficient. This can be
-    used for matrix-free methods."""
+    used for matrix-free methods.
+    For formbase objects,coefficient can be any object of the correct type,
+    and this function returns an Action object."""
     form = as_form(form)
-    form = expand_derivatives(form)
-    return compute_form_action(form, coefficient)
+    if isinstance(form, Form) and not (isinstance(coefficient, BaseForm) and len(coefficient.arguments()) > 1):
+        form = expand_derivatives(form)
+        return compute_form_action(form, coefficient)
+    return Action(form, coefficient)
 
 
 def energy_norm(form, coefficient=None):
@@ -128,10 +134,15 @@ def adjoint(form, reordered_arguments=None):
     opposite ordering. However, if the adjoint form is to
     be added to other forms later, their arguments must match.
     In that case, the user must provide a tuple *reordered_arguments*=(u2,v2).
+
+    If the form is a baseform instance instead of a Form object, we return an Adjoint
+    object instructing the adjoint to be computed at a later point.
     """
     form = as_form(form)
-    form = expand_derivatives(form)
-    return compute_form_adjoint(form, reordered_arguments)
+    if isinstance(form, Form):
+        form = expand_derivatives(form)
+        return compute_form_adjoint(form, reordered_arguments)
+    return Adjoint(form)
 
 
 def zero_lists(shape):
@@ -161,7 +172,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        if not all(isinstance(c, Coefficient) for c in coefficients):
+        if not all(isinstance(c, (Coefficient, Cofunction)) for c in coefficients):
             raise ValueError("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one
@@ -214,7 +225,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             raise ValueError("Coefficient and argument shapes do not match!")
-        if isinstance(c, Coefficient) or isinstance(c, SpatialCoordinate):
+        if isinstance(c, (Coefficient, Cofunction, SpatialCoordinate)):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
@@ -268,9 +279,23 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     ``Coefficient`` instances to their derivatives w.r.t. *coefficient*.
     """
 
+    if isinstance(form, FormSum):
+        # Distribute derivative over FormSum components
+        return FormSum(*[(derivative(component, coefficient, argument, coefficient_derivatives), 1)
+                         for component in form.components()])
+    elif isinstance(form, Adjoint):
+        # Push derivative through Adjoint
+        return adjoint(derivative(form._form, coefficient, argument, coefficient_derivatives))
+    elif isinstance(form, Action):
+        # Push derivative through Action slots
+        left, right = form.ufl_operands
+        dleft = derivative(left, coefficient, argument, coefficient_derivatives)
+        dright = derivative(right, coefficient, argument, coefficient_derivatives)
+        # Leibniz formula
+        return action(dleft, right) + action(left, dright)
+
     coefficients, arguments = _handle_derivative_arguments(form, coefficient,
                                                            argument)
-
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
     else:
@@ -291,6 +316,10 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                                           arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
+
+    elif isinstance(form, BaseForm):
+        if not isinstance(coefficient, SpatialCoordinate):
+            return BaseFormDerivative(form, coefficients, arguments, coefficient_derivatives)
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand

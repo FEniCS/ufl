@@ -14,7 +14,9 @@
 from ufl.core.expr import Expr
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.integral import Integral
-from ufl.form import Form
+from ufl.form import Form, BaseForm, FormSum, ZeroBaseForm
+from ufl.action import Action
+from ufl.adjoint import Adjoint
 from ufl.constantvalue import Zero
 
 
@@ -34,7 +36,25 @@ def map_integrands(function, form, only_integral_type=None):
             return itg.reconstruct(function(itg.integrand()))
         else:
             return itg
-    elif isinstance(form, Expr):
+    elif isinstance(form, FormSum):
+        mapped_components = [map_integrands(function, component, only_integral_type)
+                             for component in form.components()]
+        nonzero_components = [(component, 1) for component in mapped_components
+                              # Catch ufl.Zero and ZeroBaseForm
+                              if component != 0]
+        return FormSum(*nonzero_components)
+    elif isinstance(form, Adjoint):
+        # Zeros are caught inside `Adjoint.__new__`
+        return Adjoint(map_integrands(function, form._form, only_integral_type))
+    elif isinstance(form, Action):
+        left = map_integrands(function, form._left, only_integral_type)
+        right = map_integrands(function, form._right, only_integral_type)
+        # Zeros are caught inside `Action.__new__`
+        return Action(left, right)
+    elif isinstance(form, ZeroBaseForm):
+        arguments = tuple(map_integrands(function, arg, only_integral_type) for arg in form._arguments)
+        return ZeroBaseForm(arguments)
+    elif isinstance(form, (Expr, BaseForm)):
         integrand = form
         return function(integrand)
     else:

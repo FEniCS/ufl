@@ -1,20 +1,14 @@
-# -*- coding: utf-8 -*-
-"Types for representing symbolic expressions for geometric quantities."
+"""Types for representing symbolic expressions for geometric quantities."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-#
-# Modified by Anders Logg, 2009.
-# Modified by Kristian B. Oelgaard, 2009
-# Modified by Marie E. Rognes 2012
-# Modified by Massimiliano Leoni, 2016
 
-from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
-from ufl.domain import as_domain
+from ufl.core.ufl_type import ufl_type
+from ufl.domain import as_domain, extract_unique_domain
 
 """
 
@@ -371,7 +365,7 @@ class ReferenceCellEdgeVectors(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         ne = cell.num_edges()
         t = cell.topological_dimension()
         return (ne, t)
@@ -396,7 +390,7 @@ class ReferenceFacetEdgeVectors(GeometricFacetQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         facet_types = cell.facet_types()
 
         # Raise exception for cells with more than one facet type e.g. prisms
@@ -424,7 +418,7 @@ class CellVertices(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         nv = cell.num_vertices()
         g = cell.geometric_dimension()
         return (nv, g)
@@ -449,7 +443,7 @@ class CellEdgeVectors(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         ne = cell.num_edges()
         g = cell.geometric_dimension()
         return (ne, g)
@@ -474,7 +468,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.ufl_domain().ufl_cell()
+        cell = extract_unique_domain(self).ufl_cell()
         facet_types = cell.facet_types()
 
         # Raise exception for cells with more than one facet type e.g. prisms

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -6,21 +5,19 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-#
-# Modified by Lizao Li <lzlarryli@gmail.com>, 2016
 
-from itertools import chain, accumulate, repeat
+from itertools import accumulate, chain, repeat
 
+import numpy
+
+from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.classes import (Jacobian, JacobianDeterminant, JacobianInverse,
+                         ReferenceValue)
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
-from ufl.algorithms.map_integrands import map_integrand_dags
-
-from ufl.classes import (ReferenceValue,
-                         Jacobian, JacobianInverse, JacobianDeterminant)
-
+from ufl.domain import extract_unique_domain
 from ufl.tensors import as_tensor, as_vector
 from ufl.utils.sequences import product
-import numpy
 
 
 def sub_elements_with_mappings(element):
@@ -68,7 +65,7 @@ def apply_known_single_pullback(r, element):
     # Coefficient/Argument (in the case of mixed elements, see below
     # in apply_single_function_pullbacks), to which we cannot apply ReferenceValue
     mapping = element.mapping()
-    domain = r.ufl_domain()
+    domain = extract_unique_domain(r)
     if mapping == "physical":
         return r
     elif mapping == "identity":

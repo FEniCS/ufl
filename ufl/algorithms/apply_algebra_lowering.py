@@ -27,7 +27,7 @@ class LowerCompoundAlgebra(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
 
-    expr = MultiFunction.reuse_if_untouched
+    ufl_type = MultiFunction.reuse_if_untouched
 
     # ------------ Compound tensor operators
 

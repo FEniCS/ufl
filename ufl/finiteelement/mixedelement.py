@@ -232,6 +232,13 @@ class MixedElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         return MixedElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()])
 
+    def variant(self):
+        try:
+            variant, = {e.variant() for e in self.sub_elements()}
+            return variant
+        except ValueError:
+            return None
+
     def __str__(self):
         "Format as string for pretty printing."
         tmp = ", ".join(str(element) for element in self._sub_elements)

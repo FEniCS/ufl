@@ -1,29 +1,26 @@
-# -*- coding: utf-8 -*-
-"Differential operators."
+"""Differential operators."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-#
-# Modified by Anders Logg, 2009.
 
-from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
-from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
-
-from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.constantvalue import Zero
-from ufl.coefficient import Coefficient
-from ufl.variable import Variable
-from ufl.precedence import parstr
-from ufl.domain import find_geometric_dimension
 from ufl.checks import is_cellwise_constant
-
+from ufl.coefficient import Coefficient
+from ufl.constantvalue import Zero
+from ufl.core.expr import Expr
+from ufl.core.operator import Operator
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
+from ufl.domain import extract_unique_domain, find_geometric_dimension
+from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.form import BaseForm
+from ufl.precedence import parstr
+from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
+
 
 @ufl_type(is_abstract=True,
           is_differential=True)
@@ -77,6 +74,25 @@ class CoordinateDerivative(CoefficientDerivative):
         return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s"\
             % (self.ufl_operands[0], self.ufl_operands[1],
                self.ufl_operands[2], self.ufl_operands[3])
+
+
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class BaseFormDerivative(CoefficientDerivative, BaseForm):
+    """Derivative of a base form w.r.t the
+    degrees of freedom in a discrete Coefficient."""
+    _ufl_noslots_ = True
+
+    def __init__(self, base_form, coefficients, arguments,
+                 coefficient_derivatives):
+        CoefficientDerivative.__init__(self, base_form, coefficients, arguments,
+                                       coefficient_derivatives)
+        BaseForm.__init__(self)
+
+    def _analyze_form_arguments(self):
+        """Collect the arguments of the corresponding BaseForm"""
+        base_form = self.ufl_operands[0]
+        self._arguments = base_form.arguments()
 
 
 @ufl_type(num_ops=2)
@@ -181,14 +197,14 @@ class ReferenceGrad(CompoundDerivative):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
-            dim = f.ufl_domain().topological_dimension()
+            dim = extract_unique_domain(f).topological_dimension()
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices,
                         f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self, (f,))
-        self._dim = f.ufl_domain().topological_dimension()
+        self._dim = extract_unique_domain(f).topological_dimension()
 
     def _ufl_expr_reconstruct_(self, op):
         "Return a new object of the same type with new operands."

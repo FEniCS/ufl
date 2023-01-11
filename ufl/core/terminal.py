@@ -98,7 +98,7 @@ class Terminal(Expr):
 
 @ufl_type(is_abstract=True)
 class FormArgument(Terminal):
-    "An abstract class for a form argument."
+    "An abstract class for a form argument (a thing in a primal finite element space)."
     __slots__ = ()
 
     def __init__(self):
