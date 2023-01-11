@@ -48,11 +48,7 @@ class Constant(Terminal):
         return True
 
     def __str__(self):
-        count = str(self._count)
-        if len(count) == 1:
-            return "c_%s" % count
-        else:
-            return "c_{%s}" % count
+        return f"c_{self._count}"
 
     def __repr__(self):
         return self._repr

@@ -78,3 +78,17 @@ def test_mixed_functionspace(self):
     assert ( extract_blocks(f,0) == f_3 )
     assert ( extract_blocks(f,1) == f_2 )
     assert ( extract_blocks(f,2) == f_1 )
+
+    # Test dual space method
+    V_dual = V.dual()
+    assert( V_dual.num_sub_spaces() == 3 )
+    assert( V_dual.ufl_sub_space(0) == V_3d.dual() )
+    assert( V_dual.ufl_sub_space(1) == V_2d.dual() )
+    assert( V_dual.ufl_sub_space(2) == V_1d.dual() )
+
+    V_dual = V.dual(*[0,2])
+    assert( V_dual.num_sub_spaces() == 3 )
+    assert( V_dual.ufl_sub_space(0) == V_3d.dual() )
+    assert( V_dual.ufl_sub_space(1) == V_2d )
+    assert( V_dual.ufl_sub_space(2) == V_1d.dual() )
+
