@@ -11,10 +11,11 @@ of mostly the Jacobian and reference cell data.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import warnings
 from functools import reduce
 from itertools import combinations
 
-from ufl.log import error, warning
+from ufl.log import error
 
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
@@ -189,7 +190,7 @@ class GeometryLoweringApplier(MultiFunction):
         if not domain.is_piecewise_linear_simplex_domain():
             # Don't lower for non-affine cells, instead leave it to
             # form compiler
-            warning("Only know how to compute the cell volume of an affine cell.")
+            warnings.warn("Only know how to compute the cell volume of an affine cell.")
             return o
 
         r = self.jacobian_determinant(JacobianDeterminant(domain))
@@ -206,7 +207,7 @@ class GeometryLoweringApplier(MultiFunction):
         if not domain.is_piecewise_linear_simplex_domain():
             # Don't lower for non-affine cells, instead leave it to
             # form compiler
-            warning("Only know how to compute the facet area of an affine cell.")
+            warnings.warn("Only know how to compute the facet area of an affine cell.")
             return o
 
         # Area of "facet" of interval (i.e. "area" of a vertex) is defined as 1.0
@@ -273,7 +274,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         if not domain.ufl_coordinate_element().degree() == 1:
             # Don't lower bendy cells, instead leave it to form compiler
-            warning("Only know how to compute cell edge lengths of P1 or Q1 cell.")
+            warnings.warn("Only know how to compute cell edge lengths of P1 or Q1 cell.")
             return o
 
         elif domain.ufl_cell().cellname() == "interval":
@@ -297,7 +298,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         if not domain.ufl_coordinate_element().degree() in {1, (1, 1)}:
             # Don't lower bendy cells, instead leave it to form compiler
-            warning("Only know how to compute cell diameter of P1 or Q1 cell.")
+            warnings.warn("Only know how to compute cell diameter of P1 or Q1 cell.")
             return o
 
         elif domain.is_piecewise_linear_simplex_domain():
@@ -331,7 +332,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         elif not domain.ufl_coordinate_element().degree() == 1:
             # Don't lower bendy cells, instead leave it to form compiler
-            warning("Only know how to compute facet edge lengths of P1 or Q1 cell.")
+            warnings.warn("Only know how to compute facet edge lengths of P1 or Q1 cell.")
             return o
 
         else:

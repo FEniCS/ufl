@@ -23,9 +23,9 @@ jobs:
         python-version: ['3.7', '3.8', '3.9', '3.10']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Lint with flake8
@@ -46,14 +46,14 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: coveralls
- 
+
       - name: Build documentation
         run: |
           cd doc/sphinx
           make html
 
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: doc-${{ matrix.os }}-${{ matrix.python-version }}
           path: doc/sphinx/build/html/
@@ -62,7 +62,7 @@ jobs:
 
       - name: Checkout FEniCS/docs
         if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.8 }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: "FEniCS/docs"
           path: "docs"

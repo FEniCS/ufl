@@ -12,8 +12,9 @@ complete Forms into new related Forms."""
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
+import warnings
 
-from ufl.log import error, warning, debug
+from ufl.log import error, debug
 
 # All classes:
 from ufl.core.expr import ufl_err_str
@@ -316,7 +317,7 @@ def compute_form_with_arity(form, arity, arguments=None):
         error("compute_form_with_arity cannot handle parts.")
 
     if len(arguments) < arity:
-        warning("Form has no parts with arity %d." % arity)
+        warnings.warn("Form has no parts with arity %d." % arity)
         return 0 * form
 
     # Assuming that the form is not a sum of terms

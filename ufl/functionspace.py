@@ -110,7 +110,7 @@ class BaseFunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class FunctionSpace(BaseFunctionSpace):
-    """ Representation of a Function space"""
+    """Representation of a Function space."""
     _primal = True
     _dual = False
 
@@ -131,7 +131,7 @@ class FunctionSpace(BaseFunctionSpace):
 
 @attach_operators_from_hash_data
 class DualSpace(BaseFunctionSpace):
-    """ Representation of a Dual space"""
+    """Representation of a Dual space."""
     _primal = False
     _dual = True
 
