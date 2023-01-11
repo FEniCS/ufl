@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utility functions for checking properties of expressions."""
 
 # Copyright (C) 2013-2016 Martin Sandve Alnæs
@@ -45,8 +44,8 @@ def is_globally_constant(expr):
     # negatives are possible.
     # from ufl.argument import Argument
     # from ufl.coefficient import Coefficient
-    from ufl.geometry import GeometricQuantity
     from ufl.core.terminal import FormArgument
+    from ufl.geometry import GeometricQuantity
     for e in traverse_unique_terminals(expr):
         # Return False if any single terminal is not constant
         if e._ufl_is_literal_:

@@ -11,7 +11,7 @@
 
 from ufl.log import error
 from ufl.utils.sequences import product
-from ufl.finiteelement import MixedElement, TensorElement
+from ufl.finiteelement import TensorElement
 from ufl.tensors import as_vector, as_matrix, ListTensor
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
@@ -51,7 +51,7 @@ def split(v):
 
     # Special case: simple element, just return function in a tuple
     element = v.ufl_element()
-    if not isinstance(element, MixedElement):
+    if element.num_sub_elements == 0:
         assert end is None
         return (v,)
 
