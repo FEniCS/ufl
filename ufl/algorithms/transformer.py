@@ -16,6 +16,7 @@ import inspect
 
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.classes import Variable, all_ufl_classes
+from ufl.core.ufl_type import UFLType
 from ufl.log import error
 
 
@@ -50,7 +51,13 @@ class Transformer(object):
                 for c in classobject.mro():
                     # Register classobject with handler for the first
                     # encountered superclass
-                    handler_name = c._ufl_handler_name_
+                    try:
+                        handler_name = c._ufl_handler_name_
+                    except AttributeError as attribute_error:
+                        if type(classobject) is not UFLType:
+                            raise attribute_error
+                        # Default handler name for UFL types
+                        handler_name = UFLType._ufl_handler_name_
                     function = getattr(self, handler_name, None)
                     if function:
                         cache_data[
@@ -135,8 +142,8 @@ class Transformer(object):
         "Always reconstruct expr."
         return o._ufl_expr_reconstruct_(*operands)
 
-    # Set default behaviour for any Expr
-    expr = undefined
+    # Set default behaviour for any UFLType
+    ufl_type = undefined
 
     # Set default behaviour for any Terminal
     terminal = reuse

@@ -12,6 +12,7 @@
 
 from math import atan2
 
+import ufl
 from ufl.log import error, UFLValueError
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
@@ -425,7 +426,7 @@ class PermutationSymbol(ConstantValue):
 
 def as_ufl(expression):
     "Converts expression to an Expr if possible."
-    if isinstance(expression, Expr):
+    if isinstance(expression, (Expr, ufl.BaseForm)):
         return expression
     elif isinstance(expression, complex):
         return ComplexValue(expression)
