@@ -12,7 +12,6 @@
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import as_ufl
 from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.argument import Coargument, Argument
 from ufl.coefficient import Cofunction
@@ -41,10 +40,8 @@ class Interp(BaseFormOperator):
         dual_args = (Coargument, Cofunction, Form)
 
         if isinstance(v, FiniteElementBase):
-            # For legacy support for .ufl files using cells, we map
-            # the cell to The Default Mesh
             element = v
-            domain = default_domain(element.cell())
+            domain = element.cell()
             function_space = FunctionSpace(domain, element)
             v = Argument(function_space.dual(), 0)
         elif isinstance(v, AbstractFunctionSpace):
@@ -91,10 +88,11 @@ class Interp(BaseFormOperator):
         return s
 
     def __eq__(self, other):
-        if not isinstance(other, Interp):
+        if type(other) is not Interp:
             return False
         if self is other:
             return True
         return (type(self) == type(other) and
-                all(a == b for a, b in zip(self._argument_slots, other._argument_slots)) and
+                self._argument_slots[0] == other._argument_slots[0] and
+                self._argument_slots[1] == other._argument_slots[1] and
                 self.ufl_function_space() == other.ufl_function_space())
