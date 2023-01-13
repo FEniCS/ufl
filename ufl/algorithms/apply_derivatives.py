@@ -315,17 +315,6 @@ class GenericDerivativeRuleset(MultiFunction):
     def imag(self, o, df):
         return Imag(df)
 
-    # --- BaseFormOperator handlers
-
-    def _interp(self, I, dw):
-        # Interp rule: D_w[v](I(w, v*)) = I(v, v*), by linearity of Interp!
-        if not dw:
-            # I doesn't depend on w:
-            #  -> It also covers the Hessian case since Interp is linear,
-            #     e.g. D_w[v](D_w[v](I(w, v*))) = D_w[v](I(v, v*)) = 0 (since w not found).
-            return ZeroBaseForm(I.arguments() + self._v)
-        return I._ufl_expr_reconstruct_(expr=dw)
-
     # --- Mathfunctions
 
     def math_function(self, o, df):
@@ -1111,6 +1100,31 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return ZeroBaseForm(M.arguments() + self._v)
 
 
+class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
+    """Apply AFD (Automatic Functional Differentiation) to BaseFormOperator.
+
+    Implements rules for the Gateaux derivative D_w[v](...) defined as
+
+        D_w[v](B) = d/dtau B(w+tau v)|tau=0
+
+    where B is a ufl.BaseFormOperator
+    """
+
+    def __init__(self, coefficients, arguments, coefficient_derivatives):
+        GateauxDerivativeRuleset.__init__(self, coefficients, arguments, coefficient_derivatives)
+
+    # --- BaseFormOperator handlers
+
+    def interp(self, I, dw):
+        # Interp rule: D_w[v](I(w, v*)) = I(v, v*), by linearity of Interp!
+        if not dw:
+            # I doesn't depend on w:
+            #  -> It also covers the Hessian case since Interp is linear,
+            #     e.g. D_w[v](D_w[v](I(w, v*))) = D_w[v](I(v, v*)) = 0 (since w not found).
+            return ZeroBaseForm(I.arguments() + self._v)
+        return I._ufl_expr_reconstruct_(expr=dw)
+
+
 class DerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
@@ -1168,9 +1182,10 @@ class DerivativeRuleDispatcher(MultiFunction):
 
     def base_form_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         dummy, w, v, cd = o.ufl_operands
-        rules = GateauxDerivativeRuleset(w, v, cd)
-        key = (GateauxDerivativeRuleset, w, v, cd)
+        rules = BaseFormOperatorDerivativeRuleset(w, v, cd)
+        key = (BaseFormOperatorDerivativeRuleset, w, v, cd)
         if isinstance(f, ZeroBaseForm):
+            import ipdb; ipdb.set_trace()
             arg, = v.ufl_operands
             arguments = f.arguments()
             # derivative(F, u, du) with `du` a Coefficient
@@ -1179,32 +1194,20 @@ class DerivativeRuleDispatcher(MultiFunction):
             if isinstance(arg, BaseArgument):
                 arguments += (arg,)
             return ZeroBaseForm(arguments)
+        mapped_expr = map_expr_dag(rules, f,
+                                   vcache=self.vcaches[key],
+                                   rcache=self.rcaches[key])
         mapped_f = rules.coefficient(f)
         if mapped_f != 0:
             # If dN/dN needs to return an Argument in N space
             # with N a BaseFormOperator.
             return mapped_f
-        dfs = tuple(map_expr_dag(rules, op,
-                                 vcache=self.vcaches[key],
-                                 rcache=self.rcaches[key])
-                    for op in f.ufl_operands)
         # We need to go through the dag first to record the pending operations
         var, der_kwargs, *base_form_ops = rules.pending_operations
         # Need to account for pending operations that have been stored in other integrands
         base_form_ops = self.pending_operations[2:] + tuple(base_form_ops)
         self.pending_operations = (var, der_kwargs, *base_form_ops)
-        # Look for the handler of f, where f is a BaseFormOperator.
-        for c in type(f).mro():
-            # We manually call the handler instead of using `map_expr_dag` here
-            # because of the 2 stages differentiation mechanism for BaseFormOperator:
-            # -> `map_expr_dag` will result in 0 and record the operation
-            #     while the actual computation is done here, i.e. when
-            #     `map_expr_dag` is applied on a BaseFormOperatorDerivative.
-            handler_name = '_' + c._ufl_handler_name_
-            handler = getattr(GenericDerivativeRuleset, handler_name, None)
-            if handler:
-                # Apply the handler of the first encountered superclass
-                return handler(rules, f, *dfs)
+        return mapped_expr
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         o_ = o.ufl_operands
