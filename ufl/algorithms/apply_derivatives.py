@@ -1185,7 +1185,6 @@ class DerivativeRuleDispatcher(MultiFunction):
         rules = BaseFormOperatorDerivativeRuleset(w, v, cd)
         key = (BaseFormOperatorDerivativeRuleset, w, v, cd)
         if isinstance(f, ZeroBaseForm):
-            import ipdb; ipdb.set_trace()
             arg, = v.ufl_operands
             arguments = f.arguments()
             # derivative(F, u, du) with `du` a Coefficient
