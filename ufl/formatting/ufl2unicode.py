@@ -3,7 +3,6 @@
 import numbers
 
 import ufl
-from ufl.log import error
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.core.multiindex import Index, FixedIndex
@@ -313,7 +312,7 @@ def format_index(ii):
     elif isinstance(ii, Index):
         s = "i%s" % subscript_number(ii._count)
     else:
-        error("Invalid index type %s." % type(ii))
+        raise ValueError(f"Invalid index type {type(ii)}.")
     return s
 
 

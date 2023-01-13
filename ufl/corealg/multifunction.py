@@ -11,7 +11,6 @@
 
 import inspect
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import UFLType
 
@@ -98,7 +97,7 @@ class MultiFunction(object):
 
     def undefined(self, o, *args):
         "Trigger error for types with missing handlers."
-        error("No handler defined for %s." % o._ufl_class_.__name__)
+        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
 
     def reuse_if_untouched(self, o, *ops):
         """Reuse object if operands are the same objects.

@@ -13,8 +13,7 @@ complete Forms into new related Forms."""
 # Modified by Marie E. Rognes, 2010.
 
 import warnings
-
-from ufl.log import error, debug
+from logging import debug
 
 # All classes:
 from ufl.core.expr import ufl_err_str
@@ -60,7 +59,7 @@ class PartExtracter(Transformer):
         """The default is a nonlinear operator not accepting any
         Arguments among its children."""
         if _expr_has_terminal_types(x, Argument):
-            error("Found Argument in %s, this is an invalid expression." % ufl_err_str(x))
+            raise ValueError(f"Found Argument in {ufl_err_str(x)}, this is an invalid expression.")
         return (x, set())
 
     # Terminals that are not Variables or Arguments behave as default
@@ -156,7 +155,7 @@ class PartExtracter(Transformer):
 
             # Throw error if size of sets are equal (and not zero)
             if len(provideds) == len(most_provided) and len(most_provided):
-                error("Don't know what to do with sums with different Arguments.")
+                raise ValueError("Don't know what to do with sums with different Arguments.")
 
             if provideds > most_provided:
                 most_provided = provideds
@@ -208,7 +207,7 @@ class PartExtracter(Transformer):
 
         # Check for Arguments in the denominator
         if _expr_has_terminal_types(denominator, Argument):
-            error("Found Argument in denominator of %s , this is an invalid expression." % ufl_err_str(x))
+            raise ValueError(f"Found Argument in denominator of {ufl_err_str(x)}, this is an invalid expression.")
 
         # Visit numerator
         numerator_parts, provides = self.visit(numerator)
@@ -296,7 +295,7 @@ class PartExtracter(Transformer):
         # least with the current transformer design.)
         for (component, provides) in ops:
             if (provides != most_provides and not isinstance(component, Zero)):
-                error("PartExtracter does not know how to handle list_tensors with non-zero components providing fewer arguments")
+                raise ValueError("PartExtracter does not know how to handle list_tensors with non-zero components providing fewer arguments")
 
         # Return components
         components = [op[0] for op in ops]
@@ -314,7 +313,7 @@ def compute_form_with_arity(form, arity, arguments=None):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        error("compute_form_with_arity cannot handle parts.")
+        raise ValueError("compute_form_with_arity cannot handle parts.")
 
     if len(arguments) < arity:
         warnings.warn("Form has no parts with arity %d." % arity)
@@ -343,7 +342,7 @@ def compute_form_arities(form):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        error("compute_form_arities cannot handle parts.")
+        raise ValueError("compute_form_arities cannot handle parts.")
 
     arities = set()
     for arity in range(len(arguments) + 1):
@@ -406,7 +405,7 @@ def compute_form_action(form, coefficient):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        error("compute_form_action cannot handle parts.")
+        raise ValueError("compute_form_action cannot handle parts.")
 
     # Pick last argument (will be replaced)
     u = arguments[-1]
@@ -434,20 +433,20 @@ def compute_energy_norm(form, coefficient):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        error("compute_energy_norm cannot handle parts.")
+        raise ValueError("compute_energy_norm cannot handle parts.")
 
     if len(arguments) != 2:
-        error("Expecting bilinear form.")
+        raise ValueError("Expecting bilinear form.")
     v, u = arguments
     U = u.ufl_function_space()
     V = v.ufl_function_space()
     if U != V:
-        error("Expecting equal finite elements for test and trial functions, got '%s' and '%s'." % (U, V))
+        raise ValueError(f"Expecting equal finite elements for test and trial functions, got '{U}' and '{V}'.")
     if coefficient is None:
         coefficient = Coefficient(V)
     else:
         if coefficient.ufl_function_space() != U:
-            error("Trying to compute action of form on a "
+            raise ValueError("Trying to compute action of form on a "
                   "coefficient in an incompatible element space.")
     return action(action(form, coefficient), coefficient)
 
@@ -462,14 +461,14 @@ def compute_form_adjoint(form, reordered_arguments=None):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        error("compute_form_adjoint cannot handle parts.")
+        raise ValueError("compute_form_adjoint cannot handle parts.")
 
     if len(arguments) != 2:
-        error("Expecting bilinear form.")
+        raise ValueError("Expecting bilinear form.")
 
     v, u = arguments
     if v.number() >= u.number():
-        error("Mistaken assumption in code!")
+        raise ValueError("Mistaken assumption in code!")
 
     if reordered_arguments is None:
         reordered_u = Argument(u.ufl_function_space(), number=v.number(),
@@ -480,16 +479,16 @@ def compute_form_adjoint(form, reordered_arguments=None):
         reordered_u, reordered_v = reordered_arguments
 
     if reordered_u.number() >= reordered_v.number():
-        error("Ordering of new arguments is the same as the old arguments!")
+        raise ValueError("Ordering of new arguments is the same as the old arguments!")
 
     if reordered_u.part() != v.part():
-        error("Ordering of new arguments is the same as the old arguments!")
+        raise ValueError("Ordering of new arguments is the same as the old arguments!")
     if reordered_v.part() != u.part():
-        error("Ordering of new arguments is the same as the old arguments!")
+        raise ValueError("Ordering of new arguments is the same as the old arguments!")
 
     if reordered_u.ufl_function_space() != u.ufl_function_space():
-        error("Element mismatch between new and old arguments (trial functions).")
+        raise ValueError("Element mismatch between new and old arguments (trial functions).")
     if reordered_v.ufl_function_space() != v.ufl_function_space():
-        error("Element mismatch between new and old arguments (test functions).")
+        raise ValueError("Element mismatch between new and old arguments (test functions).")
 
     return map_integrands(Conj, replace(form, {v: reordered_v, u: reordered_u}))

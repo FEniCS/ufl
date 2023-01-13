@@ -16,7 +16,6 @@ from ufl.classes import (Jacobian, JacobianDeterminant, JacobianInverse,
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.domain import extract_unique_domain
-from ufl.log import error
 from ufl.tensors import as_tensor, as_vector
 from ufl.utils.sequences import product
 
@@ -107,7 +106,7 @@ def apply_known_single_pullback(r, element):
         f = as_tensor(K[m, i] * r[kmn] * K[n, j], (*k, i, j))
         return f
     else:
-        error("Should never be reached!")
+        raise ValueError(f"Unsupported mapping: {mapping}.")
 
 
 def apply_single_function_pullbacks(r, element):
@@ -118,7 +117,8 @@ def apply_single_function_pullbacks(r, element):
     :returns: a pulled back expression."""
     mapping = element.mapping()
     if r.ufl_shape != element.reference_value_shape():
-        error("Expecting reference space expression with shape '%s', got '%s'" % (element.reference_value_shape(), r.ufl_shape))
+        raise ValueError(
+            f"Expecting reference space expression with shape '{element.reference_value_shape()}', got '{r.ufl_shape}'")
     if mapping in {"physical", "identity",
                    "contravariant Piola", "covariant Piola",
                    "double contravariant Piola", "double covariant Piola",
@@ -128,7 +128,7 @@ def apply_single_function_pullbacks(r, element):
         # directly.
         f = apply_known_single_pullback(r, element)
         if f.ufl_shape != element.value_shape():
-            error("Expecting pulled back expression with shape '%s', got '%s'" % (element.value_shape(), f.ufl_shape))
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', got '{f.ufl_shape}'")
         return f
     elif mapping in {"symmetries", "undefined"}:
         # Need to pull back each unique piece of the reference space thing
@@ -161,10 +161,10 @@ def apply_single_function_pullbacks(r, element):
         # And reshape appropriately
         f = as_tensor(numpy.asarray(g_components).reshape(gsh))
         if f.ufl_shape != element.value_shape():
-            error("Expecting pulled back expression with shape '%s', got '%s'" % (element.value_shape(), f.ufl_shape))
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', got '{f.ufl_shape}'")
         return f
     else:
-        error("Unhandled mapping type '%s'" % mapping)
+        raise ValueError(f"Unsupported mapping type: {mapping}")
 
 
 class FunctionPullbackApplier(MultiFunction):

@@ -12,7 +12,6 @@ from ufl.classes import Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import extract_unique_domain
-from ufl.log import error
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
 
@@ -34,7 +33,7 @@ class RestrictionPropagator(MultiFunction):
         # Assure that we have only two levels here, inside or outside
         # the Restricted node
         if self.current_restriction is not None:
-            error("Cannot restrict an expression twice.")
+            raise ValueError("Cannot restrict an expression twice.")
         # Configure a propagator for this side and apply to subtree
         side = o.side()
         return map_expr_dag(self._rp[side], o.ufl_operands[0],
@@ -50,7 +49,7 @@ class RestrictionPropagator(MultiFunction):
     def _require_restriction(self, o):
         "Restrict a discontinuous quantity to current side, require a side to be set."
         if self.current_restriction is None:
-            error("Discontinuous type %s must be restricted." % o._ufl_class_.__name__)
+            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
         return o(self.current_restriction)
 
     def _default_restricted(self, o):
@@ -63,14 +62,14 @@ class RestrictionPropagator(MultiFunction):
     def _opposite(self, o):
         "Restrict a quantity to default side, if the current restriction is different swap the sign, require a side to be set."
         if self.current_restriction is None:
-            error("Discontinuous type %s must be restricted." % o._ufl_class_.__name__)
+            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
         elif self.current_restriction == self.default_restriction:
             return o(self.default_restriction)
         else:
             return -o(self.default_restriction)
 
     def _missing_rule(self, o):
-        error("Missing rule for %s" % o._ufl_class_.__name__)
+        raise ValueError(f"Missing rule for {o._ufl_class_.__name__}")
 
     # --- Rules for operators
 
