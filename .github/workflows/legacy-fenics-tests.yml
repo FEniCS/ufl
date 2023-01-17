@@ -60,6 +60,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: mpi4py/setup-mpi@v1
       - name: Install dependencies (Python)
         run: |
           python3 -m pip install --upgrade pip
