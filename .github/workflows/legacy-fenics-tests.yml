@@ -71,7 +71,7 @@ jobs:
         with:
           python-version: 3.9
       - name: Install Boost, Eigen3
-        run: sudo apt-get install -y libboost-all-dev, libeigen3-dev
+        run: sudo apt-get install -y libboost-all-dev libeigen3-dev
       - name: Install UFL
         run: |
           python3 -m pip install .
