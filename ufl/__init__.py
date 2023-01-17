@@ -363,7 +363,7 @@ from ufl.objects import (
 from math import e, pi
 
 # Deprecated
-from ufl.log import WARNING
+from ufl.log import WARNING, UFLException
 
 __all__ = [
     'product',
@@ -421,5 +421,5 @@ __all__ = [
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
     # Deprecated
-    'WARNING'
+    'WARNING', 'UFLException'
 ]
