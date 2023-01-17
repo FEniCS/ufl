@@ -36,6 +36,10 @@ jobs:
         run: |
           python3 -m pip install git+https://github.com/FEniCS/fiat.git
 
+      - name: Install Dijitso
+        run: |
+          python3 -m pip install git+https://bitbucket.org/fenics-project/dijitso.git
+
       - name: Clone FFC
         run: git clone https://bitbucket.org/fenics-project/ffc.git ffc
       - name: Install FFC
@@ -45,51 +49,48 @@ jobs:
       - name: Run FFC unit tests
         run: python3 -m pytest -n auto ffc/test
 
-  #dolfinx-tests:
-  #  name: Run DOLFINx tests
-  #  runs-on: ubuntu-latest
-  #  container: fenicsproject/test-env:nightly-openmpi
+  dolfin-tests:
+    name: Run DOLFIN tests
+    runs-on: ubuntu-latest
+    container: fenicsproject/test-env:nightly-openmpi
 
-  #  env:
-  #    CC: clang
-  #    CXX: clang++
-#
-#      PETSC_ARCH: linux-gnu-complex-32
-#      OMPI_ALLOW_RUN_AS_ROOT: 1
-#      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
-#      OMPI_MCA_rmaps_base_oversubscribe: 1
-#      OMPI_MCA_plm: isolated
-#      OMPI_MCA_btl_vader_single_copy_mechanism: none
-#      OMPI_MCA_mpi_yield_when_idle: 1
-#      OMPI_MCA_hwloc_base_binding_policy: none
+    env:
+      CC: clang
+      CXX: clang++
 
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Install dependencies (Python)
-#        run: |
-#          python3 -m pip install --upgrade pip
-#
-#      - name: Install UFL
-#        run: |
-#          pip3 install .
-#
-#      - name: Install Basix and FFCx
-#        run: |
-#          python3 -m pip install git+https://github.com/FEniCS/basix.git
-#          python3 -m pip install git+https://github.com/FEniCS/ffcx.git
-#
-#      - name: Clone DOLFINx
-#        uses: actions/checkout@v3
-#        with:
-#          path: ./dolfinx
-#          repository: FEniCS/dolfinx
-#          ref: main
-#      - name: Install DOLFINx
-#        run: |
-#          cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
-#          cmake --build build
-#          cmake --install build
-#          pip3 -v install --global-option build --global-option --debug dolfinx/python/
-#      - name: Run DOLFINx unit tests
-#        run: python3 -m pytest -n auto dolfinx/python/test/unit
+      PETSC_ARCH: linux-gnu-complex-32
+      OMPI_ALLOW_RUN_AS_ROOT: 1
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+      OMPI_MCA_rmaps_base_oversubscribe: 1
+      OMPI_MCA_plm: isolated
+      OMPI_MCA_btl_vader_single_copy_mechanism: none
+      OMPI_MCA_mpi_yield_when_idle: 1
+      OMPI_MCA_hwloc_base_binding_policy: none
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies (Python)
+        run: |
+          python3 -m pip install --upgrade pip
+
+      - name: Install UFL
+        run: |
+          pip3 install .
+
+      - name: Install FIAT, Dijitso and FFC
+        run: |
+          python3 -m pip install git+https://github.com/FEniCS/fiat.git
+          python3 -m pip install git+https://bitbucket.org/fenics-project/dijitso.git
+          python3 -m pip install git+https://bitbucket.org/fenics-project/ffc.git
+
+      - name: Clone DOLFIN
+        run: git clone https://bitbucket.org/fenics-project/dolfin.git dolfin
+      - name: Install DOLFIN
+        run: |
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfin/cpp/
+          cmake --build build
+          cmake --install build
+          pip3 -v install --global-option build --global-option --debug dolfin/python/
+      - name: Run DOLFIN unit tests
+        run: python3 -m pytest -n auto dolfin/python/test/unit
 
