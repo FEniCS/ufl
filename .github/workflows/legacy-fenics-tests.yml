@@ -71,7 +71,7 @@ jobs:
         with:
           python-version: 3.9
       - name: Install boost
-        run: apt-get install -y libboost-all-dev
+        run: sudo apt-get install -y libboost-all-dev
       - name: Install UFL
         run: |
           python3 -m pip install .
