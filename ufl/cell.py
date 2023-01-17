@@ -91,6 +91,7 @@ cellname2facetname = {"interval": "vertex",
                       "tetrahedron": "triangle",
                       "hexahedron": "quadrilateral"}
 
+
 # --- Basic cell representation classes
 
 @attach_operators_from_hash_data
