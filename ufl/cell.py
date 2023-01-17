@@ -84,6 +84,12 @@ num_cell_entities = {"vertex": (1,),
 # Mapping from cell name to topological dimension
 cellname2dim = dict((k, len(v) - 1) for k, v in num_cell_entities.items())
 
+# TODO: Remove this dict
+cellname2facetname = {"interval": "vertex",
+                      "triangle": "interval",
+                      "quadrilateral": "interval",
+                      "tetrahedron": "triangle",
+                      "hexahedron": "quadrilateral"}
 
 # --- Basic cell representation classes
 
