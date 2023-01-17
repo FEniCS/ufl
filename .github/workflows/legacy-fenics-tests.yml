@@ -1,0 +1,100 @@
+# This workflow will install FIAT, FFC, DOLFIN and run the DOLFIN and FFC unit tests.
+
+name: FEniCS integration
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ffc-tests:
+    name: Run FFC tests
+    runs-on: ubuntu-latest
+
+    env:
+      CC: gcc-10
+      CXX: g++-10
+      PETSC_ARCH: linux-gnu-real-64
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Install test dependencies
+        run: |
+          sudo apt-get install -y graphviz libgraphviz-dev ninja-build pkg-config
+
+      - name: Install UFL
+        run: |
+          pip3 install .
+
+      - name: Install FIAT
+        run: |
+          python3 -m pip install git+https://github.com/FEniCS/fiat.git
+
+      - name: Clone FFC
+        uses: actions/checkout@v3
+        with:
+          path: ./ffc
+          repository: fenics-project/ffc
+          ref: master
+          github-server-ufl: https://bitbucket.org
+      - name: Install FFC
+        run: |
+          cd ffc
+          pip install .
+      - name: Run FFC unit tests
+        run: python3 -m pytest -n auto ffc/test
+
+  #dolfinx-tests:
+  #  name: Run DOLFINx tests
+  #  runs-on: ubuntu-latest
+  #  container: fenicsproject/test-env:nightly-openmpi
+
+  #  env:
+  #    CC: clang
+  #    CXX: clang++
+#
+#      PETSC_ARCH: linux-gnu-complex-32
+#      OMPI_ALLOW_RUN_AS_ROOT: 1
+#      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+#      OMPI_MCA_rmaps_base_oversubscribe: 1
+#      OMPI_MCA_plm: isolated
+#      OMPI_MCA_btl_vader_single_copy_mechanism: none
+#      OMPI_MCA_mpi_yield_when_idle: 1
+#      OMPI_MCA_hwloc_base_binding_policy: none
+
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Install dependencies (Python)
+#        run: |
+#          python3 -m pip install --upgrade pip
+#
+#      - name: Install UFL
+#        run: |
+#          pip3 install .
+#
+#      - name: Install Basix and FFCx
+#        run: |
+#          python3 -m pip install git+https://github.com/FEniCS/basix.git
+#          python3 -m pip install git+https://github.com/FEniCS/ffcx.git
+#
+#      - name: Clone DOLFINx
+#        uses: actions/checkout@v3
+#        with:
+#          path: ./dolfinx
+#          repository: FEniCS/dolfinx
+#          ref: main
+#      - name: Install DOLFINx
+#        run: |
+#          cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
+#          cmake --build build
+#          cmake --install build
+#          pip3 -v install --global-option build --global-option --debug dolfinx/python/
+#      - name: Run DOLFINx unit tests
+#        run: python3 -m pytest -n auto dolfinx/python/test/unit
+
