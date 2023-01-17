@@ -129,6 +129,22 @@ class Logger:
         "Write info message in blue."
         self.log(INFO, BLUE % self._format_raw(*message))
 
+    def warning(self, *message):
+        "Write warning message."
+        self._log.warning(self._format(*message))
+
+    def warning_red(self, *message):
+        "Write warning message in red."
+        self._log.warning(RED % self._format(*message))
+
+    def warning_green(self, *message):
+        "Write warning message in green."
+        self._log.warning(GREEN % self._format(*message))
+
+    def warning_blue(self, *message):
+        "Write warning message in blue."
+        self._log.warning(BLUE % self._format(*message))
+
     def error(self, *message):
         "Write error message and raise an exception."
         self._log.error(*message)
