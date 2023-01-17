@@ -15,7 +15,6 @@ jobs:
     env:
       CC: gcc-10
       CXX: g++-10
-      PETSC_ARCH: linux-gnu-real-64
 
     steps:
       - uses: actions/checkout@v3
@@ -54,20 +53,10 @@ jobs:
   dolfin-tests:
     name: Run DOLFIN tests
     runs-on: ubuntu-latest
-    container: fenicsproject/test-env:nightly-openmpi
 
     env:
-      CC: clang
-      CXX: clang++
-
-      PETSC_ARCH: linux-gnu-complex-32
-      OMPI_ALLOW_RUN_AS_ROOT: 1
-      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
-      OMPI_MCA_rmaps_base_oversubscribe: 1
-      OMPI_MCA_plm: isolated
-      OMPI_MCA_btl_vader_single_copy_mechanism: none
-      OMPI_MCA_mpi_yield_when_idle: 1
-      OMPI_MCA_hwloc_base_binding_policy: none
+      CC: gcc-10
+      CXX: g++-10
 
     steps:
       - uses: actions/checkout@v3
@@ -89,10 +78,11 @@ jobs:
         run: git clone https://bitbucket.org/fenics-project/dolfin.git dolfin
       - name: Install DOLFIN
         run: |
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfin/cpp/
-          cmake --build build
-          cmake --install build
-          pip3 -v install --global-option build --global-option --debug dolfin/python/
+          cd dolfin
+          mkdir build
+          cd build
+          cmake ..
+          make install
       - name: Install pytest
         run: python3 -m pip install pytest pytest-xdist
       - name: Run DOLFIN unit tests
