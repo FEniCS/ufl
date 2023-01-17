@@ -391,6 +391,11 @@ class Expr(object, metaclass=UFLType):
             val = NotImplemented
         return val
 
+    def geometric_dimension(self):
+        """This function is deprecated and will be removed after June 2023."""
+        from ufl.domain import find_geometric_dimension
+        return find_geometric_dimension(self)
+
 
 # Initializing traits here because Expr is not defined in the class
 # declaration
