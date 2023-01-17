@@ -29,7 +29,7 @@ jobs:
 
       - name: Install UFL
         run: |
-          pip3 install .
+          python3 -m pip install .
 
       - name: Install FIAT
         run: |
@@ -44,8 +44,8 @@ jobs:
       - name: Install FFC
         run: |
           cd ffc
-          pip install .
-          pip install libs/ffc-factory
+          python3 -m pip install .
+          python3 -m pip install libs/ffc-factory
       - name: Install pytest
         run: python3 -m pip install pytest pytest-xdist
       - name: Run FFC unit tests
@@ -68,7 +68,7 @@ jobs:
 
       - name: Install UFL
         run: |
-          pip3 install .
+          python3 -m pip install .
 
       - name: Install FIAT, Dijitso and FFC
         run: |
