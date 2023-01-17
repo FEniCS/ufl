@@ -45,6 +45,7 @@ jobs:
         run: |
           cd ffc
           pip install .
+          pip install libs/ffc-factory
       - name: Install pytest
         run: python3 -m pip install pytest pytest-xdist
       - name: Run FFC unit tests
