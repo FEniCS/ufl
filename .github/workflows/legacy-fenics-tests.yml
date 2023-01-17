@@ -69,9 +69,9 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: 3.9
-      - name: Install Boost, Eigen3, PETSc, SLEPc
+      - name: Install Boost, Eigen3, PETSc, SLEPc, etc
         run: |
-          sudo apt-get install -y libboost-all-dev libeigen3-dev
+          sudo apt-get install -y clang cmake g++ git gfortran libboost-dev libboost-filesystem-dev libboost-iostreams-dev libboost-math-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-timer-dev libeigen3-dev libhdf5-mpich-dev liblapack-dev libmpich-dev libopenblas-dev ninja-build pkg-config python3-numpy python3-matplotlib python3-scipy wget
           python3 -m pip install petsc4py slepc4py
       - name: Install UFL
         run: |
