@@ -42,7 +42,7 @@ jobs:
           path: ./ffc
           repository: fenics-project/ffc
           ref: master
-          github-server-ufl: https://bitbucket.org
+          github-server-url: https://bitbucket.org
       - name: Install FFC
         run: |
           cd ffc
