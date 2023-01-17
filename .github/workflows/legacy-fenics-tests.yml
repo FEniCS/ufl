@@ -37,12 +37,7 @@ jobs:
           python3 -m pip install git+https://github.com/FEniCS/fiat.git
 
       - name: Clone FFC
-        uses: actions/checkout@v3
-        with:
-          path: ./ffc
-          repository: fenics-project/ffc
-          ref: master
-          github-server-url: https://bitbucket.org
+        run: git clone https://bitbucket.org/fenics-project/ffc.git ffc
       - name: Install FFC
         run: |
           cd ffc
