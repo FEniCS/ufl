@@ -46,6 +46,8 @@ jobs:
         run: |
           cd ffc
           pip install .
+      - name: Install pytest
+        run: python3 -m pip install pytest pytest-xdist
       - name: Run FFC unit tests
         run: python3 -m pytest -n auto ffc/test
 
@@ -91,6 +93,8 @@ jobs:
           cmake --build build
           cmake --install build
           pip3 -v install --global-option build --global-option --debug dolfin/python/
+      - name: Install pytest
+        run: python3 -m pip install pytest pytest-xdist
       - name: Run DOLFIN unit tests
         run: python3 -m pytest -n auto dolfin/python/test/unit
 
