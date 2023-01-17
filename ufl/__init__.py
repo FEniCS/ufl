@@ -362,6 +362,9 @@ from ufl.objects import (
 # Useful constants
 from math import e, pi
 
+# Deprecated
+from ufl.log import WARNING
+
 __all__ = [
     'product',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
@@ -417,4 +420,6 @@ __all__ = [
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
+    # Deprecated
+    'WARNING'
 ]
