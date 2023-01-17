@@ -15,7 +15,7 @@ import sys
 import types
 import logging
 import warnings
-from logging import DEBUG, INFO, ERROR, CRITICAL  # noqa: F401
+from logging import DEBUG, INFO, ERROR, CRITICAL, WARNING  # noqa: F401
 
 log_functions = ["log", "debug", "info", "error",
                  "begin", "end",
