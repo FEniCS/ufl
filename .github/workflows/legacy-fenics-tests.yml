@@ -92,6 +92,28 @@ jobs:
           cd build
           cmake ..
           make install
+          python3 -m pip install --no-dependencies python
+      - name: Install pytest
+        run: python3 -m pip install pytest pytest-xdist
+      - name: Run DOLFIN unit tests
+        run: python3 -m pytest -n auto dolfin/python/test/unit
+
+
+
+  dolfin-tests-alternative:
+    name: Run DOLFIN tests (using Jorgen's container)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/scientificcomputing/fenics:2023-01-16
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install UFL
+        run: |
+          python3 -m pip install .
+
+      - name: Clone DOLFIN
+        run: git clone https://bitbucket.org/fenics-project/dolfin.git dolfin
       - name: Install pytest
         run: python3 -m pip install pytest pytest-xdist
       - name: Run DOLFIN unit tests
