@@ -16,7 +16,7 @@ import inspect
 
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.classes import Variable, all_ufl_classes
-from ufl.log import error
+from ufl.core.ufl_type import UFLType
 
 
 def is_post_handler(function):
@@ -50,7 +50,13 @@ class Transformer(object):
                 for c in classobject.mro():
                     # Register classobject with handler for the first
                     # encountered superclass
-                    handler_name = c._ufl_handler_name_
+                    try:
+                        handler_name = c._ufl_handler_name_
+                    except AttributeError as attribute_error:
+                        if type(classobject) is not UFLType:
+                            raise attribute_error
+                        # Default handler name for UFL types
+                        handler_name = UFLType._ufl_handler_name_
                     function = getattr(self, handler_name, None)
                     if function:
                         cache_data[
@@ -90,7 +96,7 @@ class Transformer(object):
 
         # if not h:
         #    # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
-        #    error("Can't handle objects of type %s" % str(type(o)))
+        #    raise ValueError("Can't handle objects of type %s" % str(type(o)))
 
         # Is this a handler that expects transformed children as
         # input?
@@ -108,7 +114,7 @@ class Transformer(object):
 
     def undefined(self, o):
         "Trigger error."
-        error("No handler defined for %s." % o._ufl_class_.__name__)
+        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
 
     def reuse(self, o):
         "Always reuse Expr (ignore children)"
@@ -135,8 +141,8 @@ class Transformer(object):
         "Always reconstruct expr."
         return o._ufl_expr_reconstruct_(*operands)
 
-    # Set default behaviour for any Expr
-    expr = undefined
+    # Set default behaviour for any UFLType
+    ufl_type = undefined
 
     # Set default behaviour for any Terminal
     terminal = reuse

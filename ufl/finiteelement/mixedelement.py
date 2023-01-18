@@ -12,10 +12,8 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
 from ufl.permutation import compute_indices
 from ufl.utils.sequences import product, max_degree
-from ufl.utils.dicts import EmptyDict
 from ufl.utils.indexflattening import flatten_multiindex, unflatten_index, shape_to_strides
 from ufl.cell import as_cell
 
@@ -33,7 +31,7 @@ class MixedElement(FiniteElementBase):
 
         if type(self) is MixedElement:
             if kwargs:
-                error("Not expecting keyword arguments to MixedElement constructor.")
+                raise ValueError("Not expecting keyword arguments to MixedElement constructor.")
 
         # Un-nest arguments if we get a single argument with a list of elements
         if len(elements) == 1 and isinstance(elements[0], (tuple, list)):
@@ -50,7 +48,7 @@ class MixedElement(FiniteElementBase):
             cell = cells[0]
             # Require that all elements are defined on the same cell
             if not all(c == cell for c in cells[1:]):
-                error("Sub elements must live on the same cell.")
+                raise ValueError("Sub elements must live on the same cell.")
         else:
             cell = None
 
@@ -61,7 +59,7 @@ class MixedElement(FiniteElementBase):
         else:
             quad_scheme = elements[0].quadrature_scheme()
             if not all(e.quadrature_scheme() == quad_scheme for e in elements):
-                error("Quadrature scheme mismatch for sub elements of mixed element.")
+                raise ValueError("Quadrature scheme mismatch for sub elements of mixed element.")
 
         # Compute value sizes in global and reference configurations
         value_size_sum = sum(product(s.value_shape()) for s in self._sub_elements)
@@ -81,8 +79,8 @@ class MixedElement(FiniteElementBase):
             # This is not valid for tensor elements with symmetries,
             # assume subclasses deal with their own validation
             if product(value_shape) != value_size_sum:
-                error("Provided value_shape doesn't match the "
-                      "total value size of all subelements.")
+                raise ValueError("Provided value_shape doesn't match the "
+                                 "total value size of all subelements.")
 
         # Initialize element data
         degrees = {e.degree() for e in self._sub_elements} - {None}
@@ -120,8 +118,8 @@ class MixedElement(FiniteElementBase):
             # Update base index for next element
             j += product(sh)
         if j != product(self.value_shape()):
-            error("Size mismatch in symmetry algorithm.")
-        return sm or EmptyDict
+            raise ValueError("Size mismatch in symmetry algorithm.")
+        return sm or {}
 
     def sobolev_space(self):
         return max(e.sobolev_space() for e in self._sub_elements)
@@ -161,7 +159,7 @@ class MixedElement(FiniteElementBase):
                     break
                 j -= si
             if j < 0:
-                error("Moved past last value component!")
+                raise ValueError("Moved past last value component!")
 
             # Convert index into a shape tuple
             st = shape_to_strides(sh)
@@ -171,7 +169,7 @@ class MixedElement(FiniteElementBase):
             # index is first axis
             sub_element_index = i[0]
             if sub_element_index >= len(self._sub_elements):
-                error("Illegal component index (dimension %d)." % sub_element_index)
+                raise ValueError(f"Illegal component index (dimension {sub_element_index}).")
             component = i[1:]
         return (sub_element_index, component)
 
@@ -201,7 +199,7 @@ class MixedElement(FiniteElementBase):
                 break
             j -= si
         if j < 0:
-            error("Moved past last value reference_component!")
+            raise ValueError("Moved past last value reference_component!")
 
         # Convert index into a shape tuple
         st = shape_to_strides(sh)
@@ -233,6 +231,13 @@ class MixedElement(FiniteElementBase):
 
     def reconstruct(self, **kwargs):
         return MixedElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()])
+
+    def variant(self):
+        try:
+            variant, = {e.variant() for e in self.sub_elements()}
+            return variant
+        except ValueError:
+            return None
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -289,7 +294,7 @@ class VectorElement(MixedElement):
         # Set default size if not specified
         if dim is None:
             if cell is None:
-                error("Cannot infer vector dimension without a cell.")
+                raise ValueError("Cannot infer vector dimension without a cell.")
             dim = cell.geometric_dimension()
 
         self._mapping = sub_element.mapping()
@@ -378,29 +383,29 @@ class TensorElement(MixedElement):
         # Set default shape if not specified
         if shape is None:
             if cell is None:
-                error("Cannot infer tensor shape without a cell.")
+                raise ValueError("Cannot infer tensor shape without a cell.")
             dim = cell.geometric_dimension()
             shape = (dim, dim)
 
         if symmetry is None:
-            symmetry = EmptyDict
+            symmetry = {}
         elif symmetry is True:
             # Construct default symmetry dict for matrix elements
             if not (len(shape) == 2 and shape[0] == shape[1]):
-                error("Cannot set automatic symmetry for non-square tensor.")
+                raise ValueError("Cannot set automatic symmetry for non-square tensor.")
             symmetry = dict(((i, j), (j, i)) for i in range(shape[0])
                             for j in range(shape[1]) if i > j)
         else:
             if not isinstance(symmetry, dict):
-                error("Expecting symmetry to be None (unset), True, or dict.")
+                raise ValueError("Expecting symmetry to be None (unset), True, or dict.")
 
         # Validate indices in symmetry dict
         for i, j in symmetry.items():
             if len(i) != len(j):
-                error("Non-matching length of symmetry index tuples.")
+                raise ValueError("Non-matching length of symmetry index tuples.")
             for k in range(len(i)):
                 if not (i[k] >= 0 and j[k] >= 0 and i[k] < shape[k] and j[k] < shape[k]):
-                    error("Symmetry dimensions out of bounds.")
+                    raise ValueError("Symmetry dimensions out of bounds.")
 
         # Compute all index combinations for given shape
         indices = compute_indices(shape)
@@ -480,7 +485,7 @@ class TensorElement(MixedElement):
         ii = i[:l]
         jj = i[l:]
         if ii not in self._sub_element_mapping:
-            error("Illegal component index %s." % (i,))
+            raise ValueError(f"Illegal component index {i}.")
         k = self._sub_element_mapping[ii]
         return (k, jj)
 

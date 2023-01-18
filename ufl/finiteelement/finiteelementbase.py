@@ -12,8 +12,6 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.utils.sequences import product
-from ufl.utils.dicts import EmptyDict
-from ufl.log import error
 from ufl.cell import AbstractCell, as_cell
 from abc import ABC, abstractmethod
 
@@ -29,18 +27,18 @@ class FiniteElementBase(ABC):
                  reference_value_shape):
         """Initialize basic finite element data."""
         if not isinstance(family, str):
-            error("Invalid family type.")
+            raise ValueError("Invalid family type.")
         if not (degree is None or isinstance(degree, (int, tuple))):
-            error("Invalid degree type.")
+            raise ValueError("Invalid degree type.")
         if not isinstance(value_shape, tuple):
-            error("Invalid value_shape type.")
+            raise ValueError("Invalid value_shape type.")
         if not isinstance(reference_value_shape, tuple):
-            error("Invalid reference_value_shape type.")
+            raise ValueError("Invalid reference_value_shape type.")
 
         if cell is not None:
             cell = as_cell(cell)
             if not isinstance(cell, AbstractCell):
-                error("Invalid cell type.")
+                raise ValueError("Invalid cell type.")
 
         self._family = family
         self._cell = cell
@@ -134,15 +132,16 @@ class FiniteElementBase(ABC):
         meaning that component :math:`c_0` is represented by component
         :math:`c_1`.
         A component is a tuple of one or more ints."""
-        return EmptyDict
+        return {}
 
     def _check_component(self, i):
         "Check that component index i is valid"
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%s' (value rank %d)" +
-                   "for element (value rank %d).") % (i, len(i), r))
+            raise ValueError(
+                f"Illegal component index {i} (value rank {len(i)}) "
+                f"for element (value rank {r}).")
 
     def extract_subelement_component(self, i):
         """Extract direct subelement index and subelement relative
@@ -165,8 +164,9 @@ class FiniteElementBase(ABC):
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%s' (value rank %d)" +
-                   "for element (value rank %d).") % (i, len(i), r))
+            raise ValueError(
+                f"Illegal component index {i} (value rank {len(i)}) "
+                f"for element (value rank {r}).")
 
     def extract_subelement_reference_component(self, i):
         """Extract direct subelement index and subelement relative
@@ -195,14 +195,14 @@ class FiniteElementBase(ABC):
     def __add__(self, other):
         "Add two elements, creating an enriched element"
         if not isinstance(other, FiniteElementBase):
-            error("Can't add element and %s." % other.__class__)
+            raise ValueError(f"Can't add element and {other.__class__}.")
         from ufl.finiteelement import EnrichedElement
         return EnrichedElement(self, other)
 
     def __mul__(self, other):
         "Multiply two elements, creating a mixed element"
         if not isinstance(other, FiniteElementBase):
-            error("Can't multiply element and %s." % other.__class__)
+            raise ValueError("Can't multiply element and {other.__class__}.")
         from ufl.finiteelement import MixedElement
         return MixedElement(self, other)
 

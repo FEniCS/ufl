@@ -110,9 +110,9 @@ def test_mathfunctions(self):
         assert math.exp(i) == exp(i)
         assert math.log(i) == ln(i)
         # TODO: Implement automatic simplification of conditionals?
-        assert i == float(Max(i, i-1))
+        assert i == float(max_value(i, i-1))
         # TODO: Implement automatic simplification of conditionals?
-        assert i == float(Min(i, i+1))
+        assert i == float(min_value(i, i+1))
 
 
 def test_indexing(self):
