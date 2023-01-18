@@ -68,7 +68,18 @@ jobs:
           python3 -m pip install .
 
       - name: Clone DOLFIN
-        run: git clone https://bitbucket.org/fenics-project/dolfin.git dolfin
+        # run: git clone https://bitbucket.org/fenics-project/dolfin.git dolfin
+        run: git clone -b Matthew-Scroggs/readmerst-edited-online-with-bitbucket-1674041780358 https://bitbucket.org/mscroggs/dolfin-1.git dolfin
+        # TODO: remove this install step once back on main DOLFIN branch
+      - name: Install DOFLFIN
+        run: |
+          cd dolfin
+          mkdir build
+          cd build
+          cmake ..
+          make install
+          python3 -m pip install python/
+        #
       - name: Install pytest
         run: python3 -m pip install pytest pytest-xdist
       - name: Run DOLFIN unit tests
