@@ -545,7 +545,7 @@ class Form(BaseForm):
                 raise ValueError(f"Need {len(arguments)} arguments to form(), got {len(args)}.")
             repdict.update(zip(arguments, args))
 
-        coefficients = kwargs.pop("coefficients")
+        coefficients = kwargs.pop("coefficients", None)
         if kwargs:
             raise ValueError(f"Unknown kwargs {list(kwargs)}")
 
