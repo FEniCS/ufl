@@ -78,6 +78,7 @@ jobs:
           cd build
           cmake ..
           make install
+          cd ../
           python3 -m pip install python/
         #
       - name: Install pytest
