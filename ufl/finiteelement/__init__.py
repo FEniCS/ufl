@@ -24,8 +24,6 @@ from ufl.finiteelement.restrictedelement import RestrictedElement
 from ufl.finiteelement.tensorproductelement import TensorProductElement
 from ufl.finiteelement.hdivcurl import HDivElement, HCurlElement, WithMapping
 from ufl.finiteelement.brokenelement import BrokenElement
-from ufl.finiteelement.facetelement import FacetElement
-from ufl.finiteelement.interiorelement import InteriorElement
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -41,7 +39,5 @@ __all_classes__ = [
     "HDivElement",
     "HCurlElement",
     "BrokenElement",
-    "FacetElement",
-    "InteriorElement",
     "WithMapping"
     ]

@@ -8,10 +8,11 @@ Next look at the TODO markers below for places to edit.
 """
 
 import pytest
+import warnings
 
 # This imports everything external code will see from ufl
 from ufl import *
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 
 # TODO: Import only what you need from classes and algorithms:
@@ -149,7 +150,7 @@ class MockForwardAD:
                 if self._cd._data:
                     # TODO: Make it possible to silence this message in particular?
                     #       It may be good to have for debugging...
-                    warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
+                    warnings.warn("Assuming d{%s}/d{%s} = 0." % (o, self._w))
             else:
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):

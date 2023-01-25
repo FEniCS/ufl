@@ -84,8 +84,7 @@ def merge_unique_indices(afi, afid, bfi, bfid):
 
 
 def remove_indices(fi, fid, rfi):
-    """
-    """
+    """Remove indices."""
     if not rfi:
         return fi, fid
 
