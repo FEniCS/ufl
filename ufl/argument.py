@@ -152,6 +152,7 @@ class Argument(FormArgument, BaseArgument):
     __getnewargs__ = BaseArgument.__getnewargs__
     __str__ = BaseArgument.__str__
     _ufl_signature_data_ = BaseArgument._ufl_signature_data_
+    __eq__ = BaseArgument.__eq__
 
     def __new__(cls, *args, **kw):
         if args[0] and is_dual(args[0]):
