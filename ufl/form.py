@@ -316,8 +316,7 @@ class Form(BaseForm):
 
     def integrals_by_domain(self, domain):
         "Return a sequence of all integrals with a particular integration domain."
-        return tuple(integral for integral in self.integrals()
-                     if extract_unique_domain(integral) == domain)
+        return tuple(integral for integral in self.integrals() if integral.ufl_domain() == domain)
 
     def empty(self):
         "Returns whether the form has no integrals."
