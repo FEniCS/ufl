@@ -51,17 +51,14 @@ def _sorted_integrals(integrals):
     # Order integrals canonically to increase signature stability
     for d in sort_domains(integrals_dict):
         for it in sorted(integrals_dict[d]):  # str is sortable
-            for si in sorted(
-                    integrals_dict[d][it], key=lambda x: (type(x).__name__, x)
-            ):  # int/str are sortable
+            for si in sorted(integrals_dict[d][it], key=lambda x: (type(x).__name__, x)):  # int/str are sortable
                 unsorted_integrals = integrals_dict[d][it][si]
                 # TODO: At this point we could order integrals by
                 #       metadata and integrand, or even add the
-                #       integrands with the same metadata. This is
-                #       done in
-                #       accumulate_integrands_with_same_metadata in
-                #       algorithms/domain_analysis.py and would
-                #       further increase the signature stability.
+                #       integrands with the same metadata. This is done
+                #       in accumulate_integrands_with_same_metadata in
+                #       algorithms/domain_analysis.py and would further
+                #       increase the signature stability.
                 all_integrals.extend(unsorted_integrals)
                 # integrals_dict[d][it][si] = unsorted_integrals
 
@@ -72,7 +69,8 @@ def _sorted_integrals(integrals):
 class BaseForm(object, metaclass=UFLType):
     """Description of an object containing arguments"""
 
-    # Slots is kept empty to enable multiple inheritance with other classes.
+    # Slots is kept empty to enable multiple inheritance with other
+    # classes
     __slots__ = ()
     _ufl_is_abstract_ = True
     _ufl_required_methods_ = ('_analyze_form_arguments', "ufl_domains")
@@ -107,10 +105,7 @@ class BaseForm(object, metaclass=UFLType):
         if isinstance(other, (int, float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
-
-        elif isinstance(
-                other,
-                Zero) and not (other.ufl_shape or other.ufl_free_indices):
+        elif isinstance(other, Zero) and not (other.ufl_shape or other.ufl_free_indices):
             # Allow adding ufl Zero as a no-op, needed for sum([a,b])
             return self
 
@@ -226,6 +221,7 @@ class BaseForm(object, metaclass=UFLType):
                     repdict[f] = coefficients[f]
                 else:
                     warnings("Coefficient %s is not in form." % ufl_err_str(f))
+
         if repdict:
             from ufl.formoperators import replace
             return replace(self, repdict)
@@ -703,15 +699,13 @@ def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     if common_domain is not None:
         gdim = common_domain.geometric_dimension()
         tdim = common_domain.topological_dimension()
-        if not all((gdim == domain.geometric_dimension() and
-                    tdim == domain.topological_dimension())
-                   for domain in domains):
+        if not all((gdim == domain.geometric_dimension() and tdim == domain.topological_dimension()) for domain in domains):
             raise ValueError("Common domain does not share dimensions with form domains.")
 
     reconstruct = False
     integrals = []
     for itg in form.integrals():
-        domain = extract_unique_domain(itg)
+        domain = itg.ufl_domain()
         if domain != common_domain:
             itg = itg.reconstruct(domain=common_domain)
             reconstruct = True
@@ -826,7 +820,10 @@ class FormSum(BaseForm):
 @ufl_type()
 class ZeroBaseForm(BaseForm):
     """Description of a zero base form.
-    ZeroBaseForm is idempotent with respect to assembly and is mostly used for sake of simplifying base-form expressions.
+
+    ZeroBaseForm is idempotent with respect to assembly and is mostly
+    used for sake of simplifying base-form expressions.
+
     """
 
     __slots__ = ("_arguments",
