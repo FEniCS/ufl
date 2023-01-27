@@ -12,16 +12,16 @@
 # Modified by Cecile Daversin-Catty, 2018.
 
 import warnings
-from itertools import chain
 from collections import defaultdict
+from itertools import chain
 
-from ufl.domain import sort_domains
-from ufl.integral import Integral
 from ufl.checks import is_scalar_constant_expression
-from ufl.equation import Equation
+from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.ufl_type import UFLType, ufl_type
-from ufl.constantvalue import Zero
+from ufl.domain import extract_unique_domain, sort_domains
+from ufl.equation import Equation
+from ufl.integral import Integral
 
 # Export list for ufl.classes
 __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
@@ -321,7 +321,7 @@ class Form(BaseForm):
     def integrals_by_domain(self, domain):
         "Return a sequence of all integrals with a particular integration domain."
         return tuple(integral for integral in self.integrals()
-                     if integral.ufl_domain() == domain)
+                     if extract_unique_domain(integral) == domain)
 
     def empty(self):
         "Returns whether the form has no integrals."
@@ -361,19 +361,18 @@ class Form(BaseForm):
         # Check that all are equal TODO: don't return more than one if
         # all are equal?
         if not all(domain == domains[0] for domain in domains):
-            raise ValueError(
-                "Calling Form.ufl_domain() is only valid if all integrals share domain.")
+            raise ValueError("Calling Form.ufl_domain() is only valid if all integrals share domain.")
 
         # Return the one and only domain
         return domains[0]
 
     def geometric_dimension(self):
-        "Return the geometric dimension shared by all domains and functions in this form."
+        """Return the geometric dimension shared by all domains and functions in this form."""
         gdims = tuple(
             set(domain.geometric_dimension() for domain in self.ufl_domains()))
         if len(gdims) != 1:
             raise ValueError("Expecting all domains and functions in a form "
-                  f"to share geometric dimension, got {tuple(sorted(gdims))}")
+                             f"to share geometric dimension, got {tuple(sorted(gdims))}")
         return gdims[0]
 
     def domain_numbering(self):
@@ -590,16 +589,14 @@ class Form(BaseForm):
         from ufl.domain import join_domains, sort_domains
 
         # Collect unique integration domains
-        integration_domains = join_domains(
-            [itg.ufl_domain() for itg in self._integrals])
+        integration_domains = join_domains([itg.ufl_domain() for itg in self._integrals])
 
         # Make canonically ordered list of the domains
         self._integration_domains = sort_domains(integration_domains)
 
         # TODO: Not including domains from coefficients and arguments
         # here, may need that later
-        self._domain_numbering = dict(
-            (d, i) for i, d in enumerate(self._integration_domains))
+        self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
 
     def _analyze_subdomain_data(self):
         integration_domains = self.ufl_domains()
@@ -650,7 +647,7 @@ class Form(BaseForm):
         # among integration domains
         k = len(dn)
         for c in cn:
-            d = c.ufl_domain()
+            d = extract_unique_domain(c)
             if d is not None and d not in renumbering:
                 renumbering[d] = k
                 k += 1
@@ -666,7 +663,7 @@ class Form(BaseForm):
         # Add domains of constants, these may include domains not
         # among integration domains
         for c in self._constants:
-            d = c.ufl_domain()
+            d = extract_unique_domain(c)
             if d is not None and d not in renumbering:
                 renumbering[d] = k
                 k += 1
@@ -675,8 +672,7 @@ class Form(BaseForm):
 
     def _compute_signature(self):
         from ufl.algorithms.signature import compute_form_signature
-        self._signature = compute_form_signature(self,
-                                                 self._compute_renumbering())
+        self._signature = compute_form_signature(self, self._compute_renumbering())
 
 
 def sub_forms_by_domain(form):
@@ -715,7 +711,7 @@ def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     reconstruct = False
     integrals = []
     for itg in form.integrals():
-        domain = itg.ufl_domain()
+        domain = extract_unique_domain(itg)
         if domain != common_domain:
             itg = itg.reconstruct(domain=common_domain)
             reconstruct = True
