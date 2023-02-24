@@ -124,9 +124,9 @@ def test_remove_complex_nodes(self):
 
     assert remove_complex_nodes(a) == v
     assert remove_complex_nodes(b) == u
-    with pytest.raises(ufl.log.UFLException):
+    with pytest.raises(BaseException):
         remove_complex_nodes(c)
-    with pytest.raises(ufl.log.UFLException):
+    with pytest.raises(BaseException):
         remove_complex_nodes(d)
 
 

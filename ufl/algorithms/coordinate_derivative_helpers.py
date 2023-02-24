@@ -8,7 +8,6 @@ coordinate derivatives at the right time point in compute_form_data."""
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.differentiation import CoordinateDerivative
 from ufl.algorithms.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dags
@@ -31,7 +30,7 @@ class CoordinateDerivativeIsOutermostChecker(MultiFunction):
         expressions apart from more CoordinateDerivatives are allowed to wrap
         around it. """
         if any(operands):
-            error("CoordinateDerivative(s) must be outermost")
+            raise ValueError("CoordinateDerivative(s) must be outermost")
         return False
 
     def coordinate_derivative(self, o, expr, *_):
@@ -70,7 +69,7 @@ def strip_coordinate_derivatives(integrals):
         return (integral.reconstruct(integrand=newintegrand), coordinate_derivatives)
 
     else:
-        error("Invalid type %s" % (integrals.__class__.__name__,))
+        raise ValueError(f"Invalid type {integrals.__class__.__name__}")
 
 
 def attach_coordinate_derivatives(integral, coordinate_derivatives):
@@ -84,4 +83,4 @@ def attach_coordinate_derivatives(integral, coordinate_derivatives):
             integrand = CoordinateDerivative(integrand, tup[0], tup[1], tup[2])
         return integral.reconstruct(integrand=integrand)
     else:
-        error("Invalid type %s" % (integral.__class__.__name__,))
+        raise ValueError(f"Invalid type {integral.__class__.__name__}")

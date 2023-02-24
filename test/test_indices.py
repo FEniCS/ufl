@@ -43,7 +43,7 @@ def test_tensor_indices(self):
     a = u[i, j]*f[i, j]*dx
     b = u[j, i]*f[i, j]*dx
     c = u[j, i]*f[j, i]*dx
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         d = (u[i, i]+f[j, i])*dx
 
 
@@ -52,7 +52,7 @@ def test_indexed_sum1(self):
     u = Argument(element, 2)
     f = Coefficient(element)
     a = u[i]+f[i]
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         a*dx
 
 
@@ -62,7 +62,7 @@ def test_indexed_sum2(self):
     u = Argument(element, 3)
     f = Coefficient(element)
     a = u[j]+f[j]+v[j]+2*v[j]+exp(u[i]*u[i])/2*f[j]
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         a*dx
 
 
@@ -70,7 +70,7 @@ def test_indexed_sum3(self):
     element = VectorElement("CG", "triangle", 1)
     u = Argument(element, 2)
     f = Coefficient(element)
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         a = u[i]+f[j]
 
 
@@ -103,7 +103,7 @@ def test_indexed_function3(self):
     v = Argument(element, 2)
     u = Argument(element, 3)
     f = Coefficient(element)
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         c = sin(u[i] + f[i])*dx
 
 
@@ -200,11 +200,11 @@ def test_tensor(self):
     ww = f[i]*vv # this is well defined: ww = sum_i <f_i*u_i, f_i*v_i>
 
     # illegal
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         vv = as_vector([u[i], v[j]])
 
     # illegal
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         A = as_matrix([[u[0], u[1]], [v[0],]])
 
     # ...

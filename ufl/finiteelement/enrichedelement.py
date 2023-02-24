@@ -11,7 +11,6 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
@@ -25,7 +24,7 @@ class EnrichedElementBase(FiniteElementBase):
 
         cell = elements[0].cell()
         if not all(e.cell() == cell for e in elements[1:]):
-            error("Cell mismatch for sub elements of enriched element.")
+            raise ValueError("Cell mismatch for sub elements of enriched element.")
 
         if isinstance(elements[0].degree(), int):
             degrees = {e.degree() for e in elements} - {None}
@@ -39,19 +38,19 @@ class EnrichedElementBase(FiniteElementBase):
         quad_schemes = [qs for qs in quad_schemes if qs is not None]
         quad_scheme = quad_schemes[0] if quad_schemes else None
         if not all(qs == quad_scheme for qs in quad_schemes):
-            error("Quadrature scheme mismatch.")
+            raise ValueError("Quadrature scheme mismatch.")
 
         value_shape = elements[0].value_shape()
         if not all(e.value_shape() == value_shape for e in elements[1:]):
-            error("Element value shape mismatch.")
+            raise ValueError("Element value shape mismatch.")
 
         reference_value_shape = elements[0].reference_value_shape()
         if not all(e.reference_value_shape() == reference_value_shape for e in elements[1:]):
-            error("Element reference value shape mismatch.")
+            raise ValueError("Element reference value shape mismatch.")
 
         # mapping = elements[0].mapping() # FIXME: This fails for a mixed subelement here.
         # if not all(e.mapping() == mapping for e in elements[1:]):
-        #    error("Element mapping mismatch.")
+        #    raise ValueError("Element mapping mismatch.")
 
         # Get name of subclass: EnrichedElement or NodalEnrichedElement
         class_name = self.__class__.__name__

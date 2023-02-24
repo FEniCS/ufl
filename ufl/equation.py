@@ -7,8 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
-
 # Export list for ufl.classes
 __all_classes__ = ["Equation"]
 
@@ -41,7 +39,7 @@ class Equation(object):
         elif hasattr(self.rhs, "equals"):
             return self.rhs.equals(self.lhs)
         else:
-            error("Either lhs or rhs of Equation must implement self.equals(other).")
+            raise ValueError("Either lhs or rhs of Equation must implement self.equals(other).")
     __nonzero__ = __bool__
 
     def __eq__(self, other):

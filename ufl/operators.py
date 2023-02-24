@@ -16,7 +16,6 @@ objects."""
 import warnings
 import operator
 
-from ufl.log import error
 from ufl.form import Form
 from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
@@ -98,7 +97,7 @@ def elem_op(op, *args):
     args = [as_ufl(arg) for arg in args]
     sh = args[0].ufl_shape
     if not all(sh == x.ufl_shape for x in args):
-        error("Cannot take elementwise operation with different shapes.")
+        raise ValueError("Cannot take elementwise operation with different shapes.")
 
     if sh == ():
         return op(*args)
@@ -181,7 +180,7 @@ def contraction(a, a_axes, b, b_axes):
     "UFL operator: Take the contraction of a and b over given axes."
     ai, bi = a_axes, b_axes
     if len(ai) != len(bi):
-        error("Contraction must be over the same number of axes.")
+        raise ValueError("Contraction must be over the same number of axes.")
     ash = a.ufl_shape
     bsh = b.ufl_shape
     aii = indices(len(a.ufl_shape))
@@ -194,7 +193,7 @@ def contraction(a, a_axes, b, b_axes):
     for i, j in enumerate(bi):
         bii[j] = cii[i]
         if shape[i] != bsh[j]:
-            error("Shape mismatch in contraction.")
+            raise ValueError("Shape mismatch in contraction.")
     s = a[aii] * b[bii]
     cii = set(cii)
     ii = tuple(i for i in (aii + bii) if i not in cii)
@@ -205,7 +204,7 @@ def perp(v):
     "UFL operator: Take the perp of *v*, i.e. :math:`(-v_1, +v_0)`."
     v = as_ufl(v)
     if v.ufl_shape != (2,):
-        error("Expecting a 2D vector expression.")
+        raise ValueError("Expecting a 2D vector expression.")
     return as_vector((-v[1], v[0]))
 
 
@@ -259,9 +258,9 @@ def diag(A):
     elif r == 2:
         m, n = A.ufl_shape
         if m != n:
-            error("Can only take diagonal of square tensors.")
+            raise ValueError("Can only take diagonal of square tensors.")
     else:
-        error("Expecting rank 1 or 2 tensor.")
+        raise ValueError("Expecting rank 1 or 2 tensor.")
 
     # Build matrix row by row
     rows = []
@@ -281,10 +280,10 @@ def diag_vector(A):
 
     # Get and check dimensions
     if len(A.ufl_shape) != 2:
-        error("Expecting rank 2 tensor.")
+        raise ValueError("Expecting rank 2 tensor.")
     m, n = A.ufl_shape
     if m != n:
-        error("Can only take diagonal of square tensors.")
+        raise ValueError("Can only take diagonal of square tensors.")
 
     # Return diagonal vector
     return as_vector([A[i, i] for i in range(n)])
@@ -348,7 +347,7 @@ def diff(f, v):
     elif isinstance(v, (Variable, Coefficient)):
         return VariableDerivative(f, v)
     else:
-        error("Expecting a Variable or SpatialCoordinate in diff.")
+        raise ValueError("Expecting a Variable or SpatialCoordinate in diff.")
 
 
 def grad(f):
@@ -719,7 +718,7 @@ def exterior_derivative(f):
         try:
             element = f.ufl_element()
         except Exception:
-            error("Unable to determine element from %s" % f)
+            raise ValueError(f"Unable to determine element from {f}")
 
     # Extract the family and the geometric dimension
     family = element.family()
@@ -743,4 +742,4 @@ def exterior_derivative(f):
     if "Brezzi" in family or "Raviart" in family:
         return div(f)
 
-    error("Unable to determine exterior_derivative. Family is '%s'" % family)
+    raise ValueError(f"Unable to determine exterior_derivative. Family is '{family}'")

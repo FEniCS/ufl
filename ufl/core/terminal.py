@@ -13,7 +13,6 @@ for all types that are terminal nodes in an expression tree."""
 
 import warnings
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -31,7 +30,7 @@ class Terminal(Expr):
     def _ufl_expr_reconstruct_(self, *operands):
         "Return self."
         if operands:
-            error("Terminal has no operands.")
+            raise ValueError("Terminal has no operands.")
         return self
 
     ufl_operands = ()
@@ -99,7 +98,7 @@ class Terminal(Expr):
 
 @ufl_type(is_abstract=True)
 class FormArgument(Terminal):
-    "An abstract class for a form argument."
+    "An abstract class for a form argument (a thing in a primal finite element space)."
     __slots__ = ()
 
     def __init__(self):
