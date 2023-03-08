@@ -75,7 +75,7 @@ class SobolevSpace(object):
 
     def __contains__(self, other):
         """Implement `fe in s` where `fe` is a
-        :class:`~finiteelement.FiniteElement` and `s` is a
+        :class:`~finiteelement.FiniteElementBase` and `s` is a
         :class:`SobolevSpace`"""
         if isinstance(other, SobolevSpace):
             raise TypeError("Unable to test for inclusion of a " +
@@ -88,18 +88,6 @@ class SobolevSpace(object):
         """In common with intrinsic Python sets, < indicates "is a proper
         subset of"."""
         return other in self.parents
-
-    def __call__(self, element):
-        """Syntax shortcut to create a HDivElement or HCurlElement."""
-        if self.name == "HDiv":
-            from ufl.finiteelement import HDivElement
-            return HDivElement(element)
-        elif self.name == "HCurl":
-            from ufl.finiteelement import HCurlElement
-            return HCurlElement(element)
-        raise NotImplementedError(
-            "SobolevSpace has no call operator (only the specific HDiv and HCurl instances)."
-        )
 
 
 @total_ordering
@@ -135,7 +123,7 @@ class DirectionalSobolevSpace(SobolevSpace):
 
     def __contains__(self, other):
         """Implement `fe in s` where `fe` is a
-        :class:`~finiteelement.FiniteElement` and `s` is a
+        :class:`~finiteelement.FiniteElementBase` and `s` is a
         :class:`DirectionalSobolevSpace`"""
         if isinstance(other, SobolevSpace):
             raise TypeError("Unable to test for inclusion of a " +

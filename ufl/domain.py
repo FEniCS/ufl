@@ -8,14 +8,13 @@
 
 import numbers
 
-from ufl.cell import AbstractCell, TensorProductCell, as_cell
+from ufl.cell import AbstractCell, as_cell
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.finiteelement.tensorproductelement import TensorProductElement
 
 # Export list for ufl.classes
-__all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
+__all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
 
 
 class AbstractDomain(object):
@@ -168,65 +167,6 @@ class MeshView(AbstractDomain):
         typespecific = (self._ufl_id, self._ufl_mesh)
         return (self.geometric_dimension(), self.topological_dimension(),
                 "MeshView", typespecific)
-
-
-@attach_operators_from_hash_data
-@attach_ufl_id
-class TensorProductMesh(AbstractDomain):
-    """Symbolic representation of a mesh."""
-
-    def __init__(self, meshes, ufl_id=None):
-        self._ufl_id = self._init_ufl_id(ufl_id)
-
-        # TODO: Error checking of meshes
-        self._ufl_meshes = meshes
-
-        # TODO: Is this what we want to do?
-        # Build cell from mesh cells
-        self._ufl_cell = TensorProductCell(*[mesh.ufl_cell() for mesh in meshes])
-
-        # TODO: Is this what we want to do?
-        # Build coordinate element from mesh coordinate elements
-        self._ufl_coordinate_element = TensorProductElement([mesh.ufl_coordinate_element() for mesh in meshes])
-
-        # Derive dimensions from meshes
-        gdim = sum(mesh.geometric_dimension() for mesh in meshes)
-        tdim = sum(mesh.topological_dimension() for mesh in meshes)
-
-        AbstractDomain.__init__(self, tdim, gdim)
-
-    def ufl_coordinate_element(self):
-        return self._ufl_coordinate_element
-
-    def ufl_cell(self):
-        return self._ufl_cell
-
-    def ufl_meshes(self):
-        return self._ufl_meshes
-
-    def is_piecewise_linear_simplex_domain(self):
-        return False  # TODO: Any cases this is True
-
-    def __repr__(self):
-        r = "TensorProductMesh(%s, %s)" % (repr(self._ufl_meshes), repr(self._ufl_id))
-        return r
-
-    def __str__(self):
-        return "<TensorProductMesh #%s with meshes %s>" % (
-            self._ufl_id, self._ufl_meshes)
-
-    def _ufl_hash_data_(self):
-        return (self._ufl_id,) + tuple(mesh._ufl_hash_data_() for mesh in self._ufl_meshes)
-
-    def _ufl_signature_data_(self, renumbering):
-        return ("TensorProductMesh",) + tuple(mesh._ufl_signature_data_(renumbering) for mesh in self._ufl_meshes)
-
-    # NB! Dropped __lt__ here, don't want users to write 'mesh1 <
-    # mesh2'.
-    def _ufl_sort_key_(self):
-        typespecific = (self._ufl_id, tuple(mesh._ufl_sort_key_() for mesh in self._ufl_meshes))
-        return (self.geometric_dimension(), self.topological_dimension(),
-                "TensorProductMesh", typespecific)
 
 
 # --- Utility conversion functions

@@ -16,7 +16,6 @@ from ufl.core.expr import Expr, ufl_err_str
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
-from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.adjoint import Adjoint
@@ -201,11 +200,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
         if len(function_spaces) == 1:
             arguments = (Argument(function_spaces[0], number, part),)
         else:
-            # Create in mixed space over assumed (for now) same domain
-            assert all(fs.ufl_domain() == domains[0] for fs in function_spaces)
-            elm = MixedElement(*elements)
-            fs = FunctionSpace(domains[0], elm)
-            arguments = split(Argument(fs, number, part))
+            raise NotImplementedError()
     else:
         # Wrap single argument in tuple for uniform treatment below
         if isinstance(argument, (list, tuple)):

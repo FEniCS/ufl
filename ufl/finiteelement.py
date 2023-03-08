@@ -191,24 +191,3 @@ class FiniteElementBase(ABC):
     def sub_elements(self):
         "Return list of sub-elements."
         return []
-
-    def __add__(self, other):
-        "Add two elements, creating an enriched element"
-        if not isinstance(other, FiniteElementBase):
-            raise ValueError(f"Can't add element and {other.__class__}.")
-        from ufl.finiteelement import EnrichedElement
-        return EnrichedElement(self, other)
-
-    def __mul__(self, other):
-        "Multiply two elements, creating a mixed element"
-        if not isinstance(other, FiniteElementBase):
-            raise ValueError("Can't multiply element and {other.__class__}.")
-        from ufl.finiteelement import MixedElement
-        return MixedElement(self, other)
-
-    def __getitem__(self, index):
-        "Restrict finite element to a subdomain, subcomponent or topology (cell)."
-        if index in ("facet", "interior"):
-            from ufl.finiteelement import RestrictedElement
-            return RestrictedElement(self, index)
-        return NotImplemented

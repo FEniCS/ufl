@@ -61,7 +61,6 @@ A very brief overview of the language contents follows:
     - AbstractDomain
     - Mesh
     - MeshView
-    - TensorProductMesh
 
 * Sobolev spaces::
 
@@ -73,20 +72,6 @@ A very brief overview of the language contents follows:
     - HCurl
     - HEin
     - HDivDiv
-
-* Elements::
-
-    - FiniteElement
-    - MixedElement
-    - VectorElement
-    - TensorElement
-    - EnrichedElement
-    - NodalEnrichedElement
-    - RestrictedElement
-    - TensorProductElement
-    - HDivElement
-    - HCurlElement
-    - BrokenElement
 
 * Function spaces::
 
@@ -259,7 +244,7 @@ from ufl.utils.sequences import product
 # Types for geometric quantities
 
 from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell
-from ufl.domain import as_domain, AbstractDomain, Mesh, MeshView, TensorProductMesh
+from ufl.domain import as_domain, AbstractDomain, Mesh, MeshView
 from ufl.geometry import (
     SpatialCoordinate,
     FacetNormal, CellNormal,
@@ -272,13 +257,7 @@ from ufl.geometry import (
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 
 # Finite elements classes
-from ufl.finiteelement import FiniteElementBase, FiniteElement, \
-    MixedElement, VectorElement, TensorElement, EnrichedElement, \
-    NodalEnrichedElement, RestrictedElement, TensorProductElement, \
-    HDivElement, HCurlElement, BrokenElement, WithMapping
-
-# Hook to extend predefined element families
-from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
+from ufl.finiteelement import FiniteElementBase
 
 # Function spaces
 from ufl.functionspace import FunctionSpace, MixedFunctionSpace
@@ -365,7 +344,7 @@ from math import e, pi
 __all__ = [
     'product',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
-    'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
+    'as_domain', 'AbstractDomain', 'Mesh', 'MeshView',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',
     'SpatialCoordinate',
     'CellVolume', 'CellDiameter', 'Circumradius',
@@ -373,12 +352,7 @@ __all__ = [
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'FacetNormal', 'CellNormal',
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
-    'FiniteElementBase', 'FiniteElement',
-    'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
-    'NodalEnrichedElement', 'RestrictedElement', 'TensorProductElement',
-    'HDivElement', 'HCurlElement',
-    'BrokenElement', "WithMapping",
-    'register_element', 'show_elements',
+    'FiniteElementBase',
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument','Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
