@@ -13,7 +13,6 @@ from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.finiteelement.tensorproductelement import TensorProductElement
-from ufl.log import error
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
@@ -28,11 +27,11 @@ class AbstractDomain(object):
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
-            error("Expecting integer geometric dimension, not %s" % (geometric_dimension.__class__,))
+            raise ValueError(f"Expecting integer geometric dimension, not {geometric_dimension.__class__}")
         if not isinstance(topological_dimension, numbers.Integral):
-            error("Expecting integer topological dimension, not %s" % (topological_dimension.__class__,))
+            raise ValueError(f"Expecting integer topological dimension, not {topological_dimension.__class__}")
         if topological_dimension > geometric_dimension:
-            error("Topological dimension cannot be larger than geometric dimension.")
+            raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
         # Store validated dimensions
         self._topological_dimension = topological_dimension
@@ -65,12 +64,12 @@ class Mesh(AbstractDomain):
         # Store reference to object that will not be used by UFL
         self._ufl_cargo = cargo
         if cargo is not None and cargo.ufl_id() != self._ufl_id:
-            error("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
+            raise ValueError("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
 
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
         if isinstance(coordinate_element, Coefficient):
-            error("Expecting a coordinate element in the ufl.Mesh construct.")
+            raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
 
         # Accept a cell in place of an element for brevity Mesh(triangle)
         if isinstance(coordinate_element, AbstractCell):
@@ -304,7 +303,7 @@ def join_domains(domains):
     for domain in domains:
         gdims.add(domain.geometric_dimension())
     if len(gdims) != 1:
-        error("Found domains with different geometric dimensions.")
+        raise ValueError("Found domains with different geometric dimensions.")
     gdim, = gdims
 
     # Split into legacy and modern style domains
@@ -320,10 +319,11 @@ def join_domains(domains):
     # Handle legacy domains checking
     if legacy_domains:
         if modern_domains:
-            error("Found both a new-style domain and a legacy default domain.\n"
-                  "These should not be used interchangeably. To find the legacy\n"
-                  "domain, note that it is automatically created from a cell so\n"
-                  "look for constructors taking a cell.")
+            raise ValueError(
+                "Found both a new-style domain and a legacy default domain. "
+                "These should not be used interchangeably. To find the legacy "
+                "domain, note that it is automatically created from a cell so "
+                "look for constructors taking a cell.")
         return tuple(legacy_domains)
 
     # Handle modern domains checking (assuming correct by construction)
@@ -346,7 +346,7 @@ def extract_unique_domain(expr):
     if len(domains) == 1:
         return domains[0]
     elif domains:
-        error("Found multiple domains, cannot return just one.")
+        raise ValueError("Found multiple domains, cannot return just one.")
     else:
         return None
 
@@ -366,6 +366,6 @@ def find_geometric_dimension(expr):
                     gdims.add(cell.geometric_dimension())
 
     if len(gdims) != 1:
-        error("Cannot determine geometric dimension from expression.")
+        raise ValueError("Cannot determine geometric dimension from expression.")
     gdim, = gdims
     return gdim

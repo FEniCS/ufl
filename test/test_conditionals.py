@@ -26,7 +26,7 @@ def g():
 def test_conditional_does_not_allow_bool_condition(f, g):
     # The reason for this test is that it protects from the case
     # conditional(a == b, t, f) in which a == b means comparing representations
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         conditional(True, 1, 0)
 
 
@@ -123,7 +123,7 @@ def test_lt_produces_ufl_expr(f, g):
     # Representations are the same:
     assert bool(expr1 == expr2)
     # Protection from misuse in boolean python expression context:
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         bool(expr1)
 
 
@@ -136,7 +136,7 @@ def test_gt_produces_ufl_expr(f, g):
     # Representations are the same:
     assert bool(expr1 == expr2)
     # Protection from misuse in boolean python expression context:
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         bool(expr1)
 
 
@@ -149,7 +149,7 @@ def test_le_produces_ufl_expr(f, g):
     # Representations are the same:
     assert bool(expr1 == expr2)
     # Protection from misuse in boolean python expression context:
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         bool(expr1)
 
 
@@ -162,5 +162,5 @@ def test_ge_produces_ufl_expr(f, g):
     # Representations are the same:
     assert bool(expr1 == expr2)
     # Protection from misuse in boolean python expression context:
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         bool(expr1)

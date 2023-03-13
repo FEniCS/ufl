@@ -29,7 +29,6 @@ from ufl.corealg.multifunction import MultiFunction, memoized_handler
 # FacetJacobianInverse,
 # FacetOrientation, QuadratureWeight,
 from ufl.domain import extract_unique_domain
-from ufl.log import error
 from ufl.measure import custom_integral_types, point_integral_types
 from ufl.operators import conj, max_value, min_value, real, sqrt
 from ufl.tensors import as_tensor, as_vector
@@ -54,7 +53,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
         domain = extract_unique_domain(o)
         if domain.ufl_coordinate_element().mapping() != "identity":
-            error("Piola mapped coordinates are not implemented.")
+            raise ValueError("Piola mapped coordinates are not implemented.")
         # Note: No longer supporting domain.coordinates(), always
         # preserving SpatialCoordinate object.  However if Jacobians
         # are not preserved, using
@@ -146,7 +145,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
         if extract_unique_domain(o).ufl_coordinate_element().mapping() != "identity":
-            error("Piola mapped coordinates are not implemented.")
+            raise ValueError("Piola mapped coordinates are not implemented.")
         # No longer supporting domain.coordinates(), always preserving
         # SpatialCoordinate object.
         return o
@@ -170,8 +169,8 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        error("Missing computation of facet reference coordinates "
-              "from physical coordinates via mappings.")
+        raise ValueError("Missing computation of facet reference coordinates "
+                         "from physical coordinates via mappings.")
 
     @memoized_handler
     def cell_volume(self, o):
@@ -218,7 +217,7 @@ class GeometryLoweringApplier(MultiFunction):
         domain = extract_unique_domain(o)
 
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Circumradius only makes sense for affine simplex cells")
+            raise ValueError("Circumradius only makes sense for affine simplex cells")
 
         cellname = domain.ufl_cell().cellname()
         cellvolume = self.cell_volume(CellVolume(domain))
@@ -320,7 +319,7 @@ class GeometryLoweringApplier(MultiFunction):
         domain = extract_unique_domain(o)
 
         if domain.ufl_cell().topological_dimension() < 3:
-            error("Facet edge lengths only make sense for topological dimension >= 3.")
+            raise ValueError("Facet edge lengths only make sense for topological dimension >= 3.")
 
         elif not domain.ufl_coordinate_element().degree() == 1:
             # Don't lower bendy cells, instead leave it to form compiler
@@ -358,14 +357,14 @@ class GeometryLoweringApplier(MultiFunction):
                 # to the 'right')
                 cell_normal = as_vector((-J[1, 0], J[0, 0]))
             else:
-                error("Cell normal not implemented for tdim %d, gdim %d" % (tdim, gdim))
+                raise ValueError(f"Cell normal not implemented for tdim {tdim}, gdim {gdim}")
 
             # Return normalized vector, sign corrected by cell
             # orientation
             co = CellOrientation(domain)
             return co * cell_normal / sqrt(cell_normal[i] * cell_normal[i])
         else:
-            error("What do you want cell normal in gdim={0}, tdim={1} to be?".format(gdim, tdim))
+            raise ValueError(f"Cell normal undefined for tdim {tdim}, gdim {gdim}")
 
     @memoized_handler
     def facet_normal(self, o):
@@ -409,7 +408,7 @@ class GeometryLoweringApplier(MultiFunction):
             r = n
 
         if r.ufl_shape != o.ufl_shape:
-            error("Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))
+            raise ValueError(f"Inconsistent dimensions (in={o.ufl_shape[0]}, out={r.ufl_shape[0]}).")
         return r
 
 
@@ -444,4 +443,4 @@ def apply_geometry_lowering(form, preserve_types=()):
         return map_expr_dag(mf, expr)
 
     else:
-        error("Invalid type %s" % (form.__class__.__name__,))
+        raise ValueError(f"Invalid type {form.__class__.__name__}")

@@ -12,7 +12,6 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
 
@@ -51,9 +50,9 @@ class FiniteElement(FiniteElementBase):
             if family in ["RTCF", "RTCE"]:
                 cell_h, cell_v = cell.sub_cells()
                 if cell_h.cellname() != "interval":
-                    error("%s is available on TensorProductCell(interval, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(interval, interval) only.")
                 if cell_v.cellname() != "interval":
-                    error("%s is available on TensorProductCell(interval, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(interval, interval) only.")
 
                 C_elt = FiniteElement("CG", "interval", degree, variant=variant)
                 D_elt = FiniteElement("DG", "interval", degree - 1, variant=variant)
@@ -69,9 +68,9 @@ class FiniteElement(FiniteElementBase):
             elif family == "NCF":
                 cell_h, cell_v = cell.sub_cells()
                 if cell_h.cellname() != "quadrilateral":
-                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(quadrilateral, interval) only.")
                 if cell_v.cellname() != "interval":
-                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(quadrilateral, interval) only.")
 
                 Qc_elt = FiniteElement("RTCF", "quadrilateral", degree, variant=variant)
                 Qd_elt = FiniteElement("DQ", "quadrilateral", degree - 1, variant=variant)
@@ -85,9 +84,9 @@ class FiniteElement(FiniteElementBase):
             elif family == "NCE":
                 cell_h, cell_v = cell.sub_cells()
                 if cell_h.cellname() != "quadrilateral":
-                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(quadrilateral, interval) only.")
                 if cell_v.cellname() != "interval":
-                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(quadrilateral, interval) only.")
 
                 Qc_elt = FiniteElement("Q", "quadrilateral", degree, variant=variant)
                 Qd_elt = FiniteElement("RTCE", "quadrilateral", degree, variant=variant)
@@ -228,8 +227,7 @@ class FiniteElement(FiniteElementBase):
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "%s%s(%s,%s)" % (self._short_name, istr(self.degree()),
-                                istr(self.quadrature_scheme()), istr(self.variant()))
+        return f"{self._short_name}{istr(self.degree())}({self.quadrature_scheme()},{istr(self.variant())})"
 
     def __getnewargs__(self):
         """Return the arguments which pickle needs to recreate the object."""
