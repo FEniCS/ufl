@@ -20,8 +20,6 @@ from ufl.constantvalue import as_ufl
 from ufl.tensors import as_tensor
 from ufl.permutation import compute_indices
 
-from ufl.finiteelement import MixedElement
-
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.checks import is_cellwise_constant
@@ -265,8 +263,6 @@ class NEWChangeToReferenceGrad(MultiFunction):
 
                 # Select mapping M from element, pick row emapping =
                 # M[ec,:], or emapping = [] if no mapping
-                if isinstance(element, MixedElement):
-                    raise ValueError("Expecting a basic element here.")
                 mapping = element.mapping()
                 if mapping == "contravariant Piola":  # S == HDiv:
                     # Handle HDiv elements with contravariant piola
