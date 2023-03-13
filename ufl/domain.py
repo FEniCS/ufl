@@ -72,10 +72,7 @@ class Mesh(AbstractDomain):
 
         # Accept a cell in place of an element for brevity Mesh(triangle)
         if isinstance(coordinate_element, AbstractCell):
-            from ufl.finiteelement import VectorElement
-            cell = coordinate_element
-            coordinate_element = VectorElement("Lagrange", cell, 1,
-                                               dim=cell.geometric_dimension())
+            raise NotImplementedError()
 
         # Store coordinate element
         self._ufl_coordinate_element = coordinate_element
@@ -173,13 +170,8 @@ class MeshView(AbstractDomain):
 
 def affine_mesh(cell, ufl_id=None):
     "Create a Mesh over a given cell type with an affine geometric parameterization."
-    from ufl.finiteelement import VectorElement
-    cell = as_cell(cell)
-    gdim = cell.geometric_dimension()
-    degree = 1
-    coordinate_element = VectorElement("Lagrange", cell, degree, dim=gdim)
-    return Mesh(coordinate_element, ufl_id=ufl_id)
-
+    print(1)
+    raise NotImplementedError()
 
 _default_domains = {}
 
