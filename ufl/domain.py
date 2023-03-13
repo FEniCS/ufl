@@ -170,7 +170,6 @@ class MeshView(AbstractDomain):
 
 def affine_mesh(cell, ufl_id=None):
     "Create a Mesh over a given cell type with an affine geometric parameterization."
-    print(1)
     raise NotImplementedError()
 
 _default_domains = {}
