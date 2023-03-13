@@ -15,6 +15,8 @@ from ufl.utils.sequences import product
 from ufl.cell import AbstractCell, as_cell
 from abc import ABC, abstractmethod
 
+__all_classes__ = ["FiniteElementBase"]
+
 
 class FiniteElementBase(ABC):
     "Base class for all finite elements."
