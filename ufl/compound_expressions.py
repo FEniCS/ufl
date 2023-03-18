@@ -9,7 +9,6 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.log import error
 from ufl.core.multiindex import indices, Index
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.operators import sqrt
@@ -98,7 +97,7 @@ def determinant_expr(A):
         return pseudo_determinant_expr(A)
 
     # TODO: Implement generally for all dimensions?
-    error("determinant_expr not implemented for shape %s." % (sh,))
+    raise ValueError(f"determinant_expr not implemented for shape {sh}.")
 
 
 def _det_2x2(B, i, j, k, l):
@@ -148,7 +147,7 @@ def inverse_expr(A):
 def adj_expr(A):
     sh = A.ufl_shape
     if sh[0] != sh[1]:
-        error("Expecting square matrix.")
+        raise ValueError("Expecting square matrix.")
 
     if sh[0] == 2:
         return adj_expr_2x2(A)
@@ -157,7 +156,7 @@ def adj_expr(A):
     elif sh[0] == 4:
         return adj_expr_4x4(A)
 
-    error("adj_expr not implemented for dimension %s." % sh[0])
+    raise ValueError(f"adj_expr not implemented for dimension {sh[0]}.")
 
 
 def adj_expr_2x2(A):
@@ -197,7 +196,7 @@ def adj_expr_4x4(A):
 def cofactor_expr(A):
     sh = A.ufl_shape
     if sh[0] != sh[1]:
-        error("Expecting square matrix.")
+        raise ValueError("Expecting square matrix.")
 
     if sh[0] == 2:
         return cofactor_expr_2x2(A)
@@ -206,7 +205,7 @@ def cofactor_expr(A):
     elif sh[0] == 4:
         return cofactor_expr_4x4(A)
 
-    error("cofactor_expr not implemented for dimension %s." % sh[0])
+    raise ValueError(f"cofactor_expr not implemented for dimension {sh[0]}.")
 
 
 def cofactor_expr_2x2(A):
@@ -246,14 +245,14 @@ def cofactor_expr_4x4(A):
 def deviatoric_expr(A):
     sh = A.ufl_shape
     if sh[0] != sh[1]:
-        error("Expecting square matrix.")
+        raise ValueError("Expecting square matrix.")
 
     if sh[0] == 2:
         return deviatoric_expr_2x2(A)
     elif sh[0] == 3:
         return deviatoric_expr_3x3(A)
 
-    error("deviatoric_expr not implemented for dimension %s." % sh[0])
+    raise ValueError(f"deviatoric_expr not implemented for dimension {sh[0]}.")
 
 
 def deviatoric_expr_2x2(A):

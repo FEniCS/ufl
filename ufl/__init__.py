@@ -256,10 +256,6 @@ __version__ = pkg_resources.get_distribution("fenics-ufl").version
 # python function sum, can be useful for users as well?)
 from ufl.utils.sequences import product
 
-# Output control
-from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
-    UFLException, DEBUG, INFO, ERROR, CRITICAL
-
 # Types for geometric quantities
 
 from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell
@@ -352,10 +348,6 @@ from ufl.form import Form, BaseForm, FormSum, ZeroBaseForm, replace_integral_dom
 # Integral classes
 from ufl.integral import Integral
 
-# Special functions for Measure class
-# (ensure this is imported, since it attaches operators to Measure)
-import ufl.measureoperators as __measureoperators
-
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
 system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functional
@@ -373,12 +365,8 @@ from ufl.objects import (
 # Useful constants
 from math import e, pi
 
-
-# Define ufl.* namespace
 __all__ = [
     'product',
-    'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
-    'UFLException', 'DEBUG', 'INFO', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',

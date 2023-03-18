@@ -17,7 +17,6 @@ import inspect
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.classes import Variable, all_ufl_classes
 from ufl.core.ufl_type import UFLType
-from ufl.log import error
 
 
 def is_post_handler(function):
@@ -97,7 +96,7 @@ class Transformer(object):
 
         # if not h:
         #    # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
-        #    error("Can't handle objects of type %s" % str(type(o)))
+        #    raise ValueError("Can't handle objects of type %s" % str(type(o)))
 
         # Is this a handler that expects transformed children as
         # input?
@@ -115,7 +114,7 @@ class Transformer(object):
 
     def undefined(self, o):
         "Trigger error."
-        error("No handler defined for %s." % o._ufl_class_.__name__)
+        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
 
     def reuse(self, o):
         "Always reuse Expr (ignore children)"

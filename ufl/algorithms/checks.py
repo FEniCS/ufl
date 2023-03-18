@@ -10,8 +10,6 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Mehdi Nikbakht, 2010.
 
-from ufl.log import error
-
 # UFL classes
 from ufl.core.expr import ufl_err_str
 from ufl.form import Form
@@ -23,6 +21,7 @@ from ufl.constantvalue import is_true_ufl_scalar
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.check_restrictions import check_restrictions
+from ufl.domain import extract_unique_domain
 
 
 def validate_form(form):  # TODO: Can we make this return a list of errors instead of raising exception?
@@ -30,10 +29,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     errors = []
 
     if not isinstance(form, Form):
-        msg = "Validation failed, not a Form:\n%s" % ufl_err_str(form)
-        error(msg)
-        # errors.append(msg)
-        # return errors
+        raise ValueError(f"Validation failed, not a Form:\n{ufl_err_str(form)}")
 
     # FIXME: There's a bunch of other checks we should do here.
 
@@ -43,7 +39,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     #     errors.append("Form is not multilinear in arguments.")
 
     # FIXME DOMAIN: Add check for consistency between domains somehow
-    domains = set(t.ufl_domain()
+    domains = set(extract_unique_domain(t)
                   for e in iter_expressions(form)
                   for t in traverse_unique_terminals(e)) - {None}
     if not domains:
@@ -54,7 +50,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:
-        errors.append("Multiple cell definitions in form: %s" % str(cells))
+        errors.append(f"Multiple cell definitions in form: {cells}")
 
     # Check that no Coefficient or Argument instance have the same
     # count unless they are the same
@@ -68,8 +64,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
                     g = coefficients[c]
                     if f is not g:
                         errors.append("Found different Coefficients with " +
-                                      "same count: %s and %s." % (repr(f),
-                                                                  repr(g)))
+                                      f"same count: {f} and {g}.")
                 else:
                     coefficients[c] = f
 
@@ -109,5 +104,4 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     # TODO: Return errors list instead, need to collect messages from
     # all validations above first.
     if errors:
-        final_msg = 'Found errors in validation of form:\n%s' % '\n\n'.join(errors)
-        error(final_msg)
+        raise ValueError("Found errors in validation of form:\n" + '\n\n'.join(errors))

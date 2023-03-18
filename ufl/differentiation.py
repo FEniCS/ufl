@@ -1,32 +1,27 @@
-# -*- coding: utf-8 -*-
-"Differential operators."
+"""Differential operators."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-#
-# Modified by Anders Logg, 2009.
 
-from ufl.log import error
+from ufl.checks import is_cellwise_constant
+from ufl.coefficient import Coefficient
+from ufl.constantvalue import Zero
 from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
 from ufl.core.operator import Operator
 from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-
+from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import BaseForm
-from ufl.constantvalue import Zero
-from ufl.coefficient import Coefficient
-from ufl.variable import Variable
 from ufl.precedence import parstr
-from ufl.domain import find_geometric_dimension
-from ufl.checks import is_cellwise_constant
-
+from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
+
 
 @ufl_type(is_abstract=True,
           is_differential=True)
@@ -48,11 +43,11 @@ class CoefficientDerivative(Derivative):
     def __new__(cls, integrand, coefficients, arguments,
                 coefficient_derivatives):
         if not isinstance(coefficients, ExprList):
-            error("Expecting ExprList instance with Coefficients.")
+            raise ValueError("Expecting ExprList instance with Coefficients.")
         if not isinstance(arguments, ExprList):
-            error("Expecting ExprList instance with Arguments.")
+            raise ValueError("Expecting ExprList instance with Arguments.")
         if not isinstance(coefficient_derivatives, ExprMapping):
-            error("Expecting ExprMapping for coefficient derivatives.")
+            raise ValueError("Expecting ExprMapping for coefficient derivatives.")
         if isinstance(integrand, Zero):
             return integrand
         return Derivative.__new__(cls)
@@ -144,11 +139,11 @@ class VariableDerivative(Derivative):
     def __new__(cls, f, v):
         # Checks
         if not isinstance(f, Expr):
-            error("Expecting an Expr in VariableDerivative.")
+            raise ValueError("Expecting an Expr in VariableDerivative.")
         if not isinstance(v, (Variable, Coefficient)):
-            error("Expecting a Variable in VariableDerivative.")
+            raise ValueError("Expecting a Variable in VariableDerivative.")
         if v.ufl_free_indices:
-            error("Differentiation variable cannot have free indices.")
+            raise ValueError("Differentiation variable cannot have free indices.")
 
         # Simplification
         # Return zero if expression is trivially independent of variable
@@ -203,9 +198,9 @@ class Grad(CompoundDerivative):
         "Return a new object of the same type with new operands."
         if is_cellwise_constant(op):
             if op.ufl_shape != self.ufl_operands[0].ufl_shape:
-                error("Operand shape mismatch in Grad reconstruct.")
+                raise ValueError("Operand shape mismatch in Grad reconstruct.")
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
-                error("Free index mismatch in Grad reconstruct.")
+                raise ValueError("Free index mismatch in Grad reconstruct.")
             return Zero(self.ufl_shape, self.ufl_free_indices,
                         self.ufl_index_dimensions)
         return self._ufl_class_(op)
@@ -235,22 +230,22 @@ class ReferenceGrad(CompoundDerivative):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
-            dim = f.ufl_domain().topological_dimension()
+            dim = extract_unique_domain(f).topological_dimension()
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices,
                         f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self, (f,))
-        self._dim = f.ufl_domain().topological_dimension()
+        self._dim = extract_unique_domain(f).topological_dimension()
 
     def _ufl_expr_reconstruct_(self, op):
         "Return a new object of the same type with new operands."
         if is_cellwise_constant(op):
             if op.ufl_shape != self.ufl_operands[0].ufl_shape:
-                error("Operand shape mismatch in ReferenceGrad reconstruct.")
+                raise ValueError("Operand shape mismatch in ReferenceGrad reconstruct.")
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
-                error("Free index mismatch in ReferenceGrad reconstruct.")
+                raise ValueError("Free index mismatch in ReferenceGrad reconstruct.")
             return Zero(self.ufl_shape, self.ufl_free_indices,
                         self.ufl_index_dimensions)
         return self._ufl_class_(op)
@@ -278,7 +273,7 @@ class Div(CompoundDerivative):
 
     def __new__(cls, f):
         if f.ufl_free_indices:
-            error("Free indices in the divergence argument is not allowed.")
+            raise ValueError("Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
@@ -304,7 +299,7 @@ class ReferenceDiv(CompoundDerivative):
 
     def __new__(cls, f):
         if f.ufl_free_indices:
-            error("Free indices in the divergence argument is not allowed.")
+            raise ValueError("Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
@@ -343,9 +338,9 @@ class NablaGrad(CompoundDerivative):
         "Return a new object of the same type with new operands."
         if is_cellwise_constant(op):
             if op.ufl_shape != self.ufl_operands[0].ufl_shape:
-                error("Operand shape mismatch in NablaGrad reconstruct.")
+                raise ValueError("Operand shape mismatch in NablaGrad reconstruct.")
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
-                error("Free index mismatch in NablaGrad reconstruct.")
+                raise ValueError("Free index mismatch in NablaGrad reconstruct.")
             return Zero(self.ufl_shape, self.ufl_free_indices,
                         self.ufl_index_dimensions)
         return self._ufl_class_(op)
@@ -364,7 +359,7 @@ class NablaDiv(CompoundDerivative):
 
     def __new__(cls, f):
         if f.ufl_free_indices:
-            error("Free indices in the divergence argument is not allowed.")
+            raise ValueError("Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
@@ -394,9 +389,9 @@ class Curl(CompoundDerivative):
         # Validate input
         sh = f.ufl_shape
         if f.ufl_shape not in ((), (2,), (3,)):
-            error("Expecting a scalar, 2D vector or 3D vector.")
+            raise ValueError("Expecting a scalar, 2D vector or 3D vector.")
         if f.ufl_free_indices:
-            error("Free indices in the curl argument is not allowed.")
+            raise ValueError("Free indices in the curl argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
@@ -422,9 +417,9 @@ class ReferenceCurl(CompoundDerivative):
         # Validate input
         sh = f.ufl_shape
         if f.ufl_shape not in ((), (2,), (3,)):
-            error("Expecting a scalar, 2D vector or 3D vector.")
+            raise ValueError("Expecting a scalar, 2D vector or 3D vector.")
         if f.ufl_free_indices:
-            error("Free indices in the curl argument is not allowed.")
+            raise ValueError("Free indices in the curl argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):

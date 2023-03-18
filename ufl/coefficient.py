@@ -12,7 +12,6 @@ of related classes, including Constant."""
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 
-from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase
@@ -50,7 +49,7 @@ class BaseCoefficient(object):
             domain = default_domain(element.cell())
             function_space = FunctionSpace(domain, element)
         elif not isinstance(function_space, AbstractFunctionSpace):
-            error("Expecting a FunctionSpace or FiniteElement.")
+            raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
@@ -93,11 +92,7 @@ class BaseCoefficient(object):
         return ("Coefficient", count, fsdata)
 
     def __str__(self):
-        count = str(self._count)
-        if len(count) == 1:
-            return "w_%s" % count
-        else:
-            return "w_{%s}" % count
+        return f"w_{self._count}"
 
     def __repr__(self):
         return self._repr

@@ -11,7 +11,6 @@
 # as part of a careful refactoring process, and this file depends on ufl.form
 # which drags in a lot of stuff.
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.integral import Integral
@@ -59,7 +58,7 @@ def map_integrands(function, form, only_integral_type=None):
         integrand = form
         return function(integrand)
     else:
-        error("Expecting Form, Integral or Expr.")
+        raise ValueError("Expecting Form, Integral or Expr.")
 
 
 def map_integrand_dags(function, form, only_integral_type=None, compress=True):

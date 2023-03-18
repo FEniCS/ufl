@@ -9,7 +9,6 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.integral import Integral
 from ufl.action import Action
@@ -38,4 +37,4 @@ def iter_expressions(a):
         return tuple(e for op in a.ufl_operands for e in iter_expressions(op))
     elif isinstance(a, (Expr, BaseForm)):
         return (a,)
-    error("Not an UFL type: %s" % str(type(a)))
+    raise ValueError(f"Not an UFL type: {type(a)}")

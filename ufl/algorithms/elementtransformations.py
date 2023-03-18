@@ -9,7 +9,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.finiteelement import FiniteElement, VectorElement, TensorElement, \
     MixedElement, EnrichedElement, NodalEnrichedElement
 
@@ -50,5 +49,5 @@ def _increase_degree(element, degree_rise):
         return NodalEnrichedElement([_increase_degree(e, degree_rise)
                                      for e in element.sub_elements()])
     else:
-        error("Element reconstruction is only done to stay compatible"
-              " with hacks in DOLFIN. Not expecting a %s" % repr(element))
+        raise ValueError("Element reconstruction is only done to stay compatible"
+                         f" with hacks in DOLFIN. Not expecting a {element}")

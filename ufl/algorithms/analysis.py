@@ -12,7 +12,6 @@
 
 from itertools import chain
 
-from ufl.log import error
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.terminal import Terminal
@@ -174,19 +173,17 @@ def extract_arguments_and_coefficients(a):
     # Build number,part: instance mappings, should be one to one
     bfnp = dict((f, (f.number(), f.part())) for f in arguments)
     if len(bfnp) != len(set(bfnp.values())):
-        msg = """\
-Found different Arguments with same number and part.
-Did you combine test or trial functions from different spaces?
-The Arguments found are:\n%s""" % "\n".join("  %s" % f for f in arguments)
-        error(msg)
+        raise ValueError(
+            "Found different Arguments with same number and part.\n"
+            "Did you combine test or trial functions from different spaces?\n"
+            "The Arguments found are:\n" + "\n".join(f"  {a}" for a in arguments))
 
     # Build count: instance mappings, should be one to one
     fcounts = dict((f, f.count()) for f in coefficients)
     if len(fcounts) != len(set(fcounts.values())):
-        msg = """\
-Found different coefficients with same counts.
-The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
-        error(msg)
+        raise ValueError(
+            "Found different coefficients with same counts.\n"
+            "The arguments found are:\n" + "\n".join(f"  {c}" for c in coefficients))
 
     # Passed checks, so we can safely sort the instances by count
     arguments = _sorted_by_number_and_part(arguments)

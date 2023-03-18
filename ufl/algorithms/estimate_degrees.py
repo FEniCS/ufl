@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Algorithms for estimating polynomial degrees of expressions."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
@@ -12,13 +11,13 @@
 
 import warnings
 
-from ufl.log import error
-from ufl.form import Form
-from ufl.integral import Integral
 from ufl.algorithms.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dags
 from ufl.checks import is_cellwise_constant
 from ufl.constantvalue import IntValue
+from ufl.corealg.map_dag import map_expr_dags
+from ufl.domain import extract_unique_domain
+from ufl.form import Form
+from ufl.integral import Integral
 
 
 class IrreducibleInt(int):
@@ -50,11 +49,11 @@ class SumDegreeEstimator(MultiFunction):
             return 0
         else:
             # As a heuristic, just returning domain degree to bump up degree somewhat
-            return v.ufl_domain().ufl_coordinate_element().degree()
+            return extract_unique_domain(v).ufl_coordinate_element().degree()
 
     def spatial_coordinate(self, v):
         "A coordinate provides additional degrees depending on coordinate field of domain."
-        return v.ufl_domain().ufl_coordinate_element().degree()
+        return extract_unique_domain(v).ufl_coordinate_element().degree()
 
     def cell_coordinate(self, v):
         "A coordinate provides one additional degree."
@@ -115,11 +114,11 @@ class SumDegreeEstimator(MultiFunction):
             return max_single(ops + (0,))
 
     def _not_handled(self, v, *args):
-        error("Missing degree handler for type %s" % v._ufl_class_.__name__)
+        raise ValueError(f"Missing degree handler for type {v._ufl_class_.__name__}")
 
     def expr(self, v, *ops):
         "For most operators we take the max degree of its operands."
-        warnings.warn("Missing degree estimation handler for type %s" % v._ufl_class_.__name__)
+        warnings.warn(f"Missing degree estimation handler for type {v._ufl_class_.__name__}")
         return self._add_degrees(v, *ops)
 
     # Utility types with no degree concept
@@ -327,7 +326,7 @@ def estimate_total_polynomial_degree(e, default_degree=1,
     de = SumDegreeEstimator(default_degree, element_replace_map)
     if isinstance(e, Form):
         if not e.integrals():
-            error("Got form with no integrals!")
+            raise ValueError("Form has no integrals.")
         degrees = map_expr_dags(de, [it.integrand() for it in e.integrals()])
     elif isinstance(e, Integral):
         degrees = map_expr_dags(de, [e.integrand()])

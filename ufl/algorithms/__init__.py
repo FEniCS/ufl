@@ -32,7 +32,6 @@ __all__ = [
     "extract_type",
     "extract_elements",
     "extract_sub_elements",
-    "preprocess_expression",
     "expand_indices",
     "replace",
     "expand_derivatives",

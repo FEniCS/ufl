@@ -10,8 +10,6 @@ equivalent representations using basic operators."""
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.log import error
-
 from ufl.classes import Product, Grad, Conj
 from ufl.core.multiindex import indices, Index, FixedIndex
 from ufl.tensors import as_tensor, as_matrix, as_vector
@@ -44,9 +42,9 @@ class LowerCompoundAlgebra(MultiFunction):
     def _square_matrix_shape(self, A):
         sh = A.ufl_shape
         if sh[0] != sh[1]:
-            error("Expecting square matrix.")
+            raise ValueError("Expecting square matrix.")
         if sh[0] is None:
-            error("Unknown dimension.")
+            raise ValueError("Unknown dimension.")
         return sh
 
     def deviatoric(self, o, A):
@@ -92,7 +90,7 @@ class LowerCompoundAlgebra(MultiFunction):
         ash = a.ufl_shape
         bsh = b.ufl_shape
         if ash != bsh:
-            error("Nonmatching shapes.")
+            raise ValueError("Nonmatching shapes.")
         # Simplification for tensors with one or more dimensions of
         # length 1
         ii = []
@@ -112,7 +110,7 @@ class LowerCompoundAlgebra(MultiFunction):
         ash = a.ufl_shape
         bsh = b.ufl_shape
         if ash != bsh:
-            error("Nonmatching shapes.")
+            raise ValueError("Nonmatching shapes.")
         ii = indices(len(ash))
         # Creates multiple IndexSums over a Product
         s = a[ii] * Conj(b[ii])
@@ -166,7 +164,7 @@ class LowerCompoundAlgebra(MultiFunction):
             return c(0, 1)
         if sh == (3,):
             return as_vector((c(1, 2), c(2, 0), c(0, 1)))
-        error("Invalid shape %s of curl argument." % (sh,))
+        raise ValueError(f"Invalid shape {sh} of curl argument.")
 
 
 def apply_algebra_lowering(expr):
