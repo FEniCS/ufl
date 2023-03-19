@@ -87,8 +87,6 @@ A very brief overview of the language contents follows:
     - HDivElement
     - HCurlElement
     - BrokenElement
-    - FacetElement
-    - InteriorElement
 
 * Function spaces::
 
@@ -259,10 +257,6 @@ __version__ = pkg_resources.get_distribution("fenics-ufl").version
 # python function sum, can be useful for users as well?)
 from ufl.utils.sequences import product
 
-# Output control
-from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
-    UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
-
 # Types for geometric quantities
 
 from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell
@@ -282,8 +276,7 @@ from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     NodalEnrichedElement, RestrictedElement, TensorProductElement, \
-    HDivElement, HCurlElement, BrokenElement, \
-    FacetElement, InteriorElement, WithMapping
+    HDivElement, HCurlElement, BrokenElement, WithMapping
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
@@ -341,7 +334,7 @@ from ufl.operators import rank, shape, \
     cosh, sinh, tanh, \
     bessel_J, bessel_Y, bessel_I, bessel_K, \
     eq, ne, le, ge, lt, gt, And, Or, Not, \
-    conditional, sign, max_value, min_value, Max, Min, \
+    conditional, sign, max_value, min_value, \
     variable, diff, \
     Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
     jump, avg, cell_avg, facet_avg, \
@@ -358,10 +351,6 @@ from ufl.form import Form, BaseForm, FormSum, ZeroBaseForm, replace_integral_dom
 
 # Integral classes
 from ufl.integral import Integral
-
-# Special functions for Measure class
-# (ensure this is imported, since it attaches operators to Measure)
-import ufl.measureoperators as __measureoperators
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
@@ -380,12 +369,8 @@ from ufl.objects import (
 # Useful constants
 from math import e, pi
 
-
-# Define ufl.* namespace
 __all__ = [
     'product',
-    'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
-    'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',
@@ -399,7 +384,7 @@ __all__ = [
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'NodalEnrichedElement', 'RestrictedElement', 'TensorProductElement',
     'HDivElement', 'HCurlElement',
-    'BrokenElement', 'FacetElement', 'InteriorElement', "WithMapping",
+    'BrokenElement', "WithMapping",
     'register_element', 'show_elements',
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument','Coargument', 'TestFunction', 'TrialFunction',
@@ -423,7 +408,7 @@ __all__ = [
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
-    'conditional', 'sign', 'max_value', 'min_value', 'Max', 'Min',
+    'conditional', 'sign', 'max_value', 'min_value',
     'variable', 'diff',
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg', 'cell_avg', 'facet_avg',

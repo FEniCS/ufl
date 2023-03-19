@@ -7,7 +7,8 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import warning, error
+import warnings
+
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
@@ -31,7 +32,7 @@ class Condition(Operator):
 
     def __bool__(self):
         # Showing explicit error here to protect against misuse
-        error("UFL conditions cannot be evaluated as bool in a Python context.")
+        raise ValueError("UFL conditions cannot be evaluated as bool in a Python context.")
     __nonzero__ = __bool__
 
 
@@ -58,14 +59,14 @@ class BinaryCondition(Condition):
             # only conditions
             for arg in (left, right):
                 if not isinstance(arg, Condition):
-                    error("Expecting a Condition, not %s." % ufl_err_str(arg))
+                    raise ValueError(f"Expecting a Condition, not {ufl_err_str(arg)}.")
         else:
             # Binary operators acting on non-boolean expressions allow
             # only scalars
             if left.ufl_shape != () or right.ufl_shape != ():
-                error("Expecting scalar arguments.")
+                raise ValueError("Expecting scalar arguments.")
             if left.ufl_free_indices != () or right.ufl_free_indices != ():
-                error("Expecting scalar arguments.")
+                raise ValueError("Expecting scalar arguments.")
 
     def __str__(self):
         return "%s %s %s" % (parstr(self.ufl_operands[0], self),
@@ -195,7 +196,7 @@ class NotCondition(Condition):
     def __init__(self, condition):
         Condition.__init__(self, (condition,))
         if not isinstance(condition, Condition):
-            error("Expecting a condition.")
+            raise ValueError("Expecting a condition.")
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -214,23 +215,23 @@ class Conditional(Operator):
 
     def __init__(self, condition, true_value, false_value):
         if not isinstance(condition, Condition):
-            error("Expectiong condition as first argument.")
+            raise ValueError("Expectiong condition as first argument.")
         true_value = as_ufl(true_value)
         false_value = as_ufl(false_value)
         tsh = true_value.ufl_shape
         fsh = false_value.ufl_shape
         if tsh != fsh:
-            error("Shape mismatch between conditional branches.")
+            raise ValueError("Shape mismatch between conditional branches.")
         tfi = true_value.ufl_free_indices
         ffi = false_value.ufl_free_indices
         if tfi != ffi:
-            error("Free index mismatch between conditional branches.")
+            raise ValueError("Free index mismatch between conditional branches.")
         if isinstance(condition, (EQ, NE)):
             if not all((condition.ufl_operands[0].ufl_shape == (),
                         condition.ufl_operands[0].ufl_free_indices == (),
                         condition.ufl_operands[1].ufl_shape == (),
                         condition.ufl_operands[1].ufl_free_indices == ())):
-                error("Non-scalar == or != is not allowed.")
+                raise ValueError("Non-scalar == or != is not allowed.")
 
         Operator.__init__(self, (condition, true_value, false_value))
 
@@ -256,7 +257,7 @@ class MinValue(Operator):
     def __init__(self, left, right):
         Operator.__init__(self, (left, right))
         if not (is_true_ufl_scalar(left) and is_true_ufl_scalar(right)):
-            error("Expecting scalar arguments.")
+            raise ValueError("Expecting scalar arguments.")
 
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands
@@ -265,7 +266,7 @@ class MinValue(Operator):
         try:
             res = min(a, b)
         except ValueError:
-            warning('Value error in evaluation of min() of %s and %s.' % self.ufl_operands)
+            warnings.warn('Value error in evaluation of min() of %s and %s.' % self.ufl_operands)
             raise
         return res
 
@@ -281,7 +282,7 @@ class MaxValue(Operator):
     def __init__(self, left, right):
         Operator.__init__(self, (left, right))
         if not (is_true_ufl_scalar(left) and is_true_ufl_scalar(right)):
-            error("Expecting scalar arguments.")
+            raise ValueError("Expecting scalar arguments.")
 
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands
@@ -290,7 +291,7 @@ class MaxValue(Operator):
         try:
             res = max(a, b)
         except ValueError:
-            warning('Value error in evaluation of max() of %s and %s.' % self.ufl_operands)
+            warnings.warn('Value error in evaluation of max() of %s and %s.' % self.ufl_operands)
             raise
         return res
 

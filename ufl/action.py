@@ -139,7 +139,7 @@ class Action(BaseForm):
 
 
 def _check_function_spaces(left, right):
-    "Check if the function spaces of left and right match."
+    """Check if the function spaces of left and right match."""
 
     if isinstance(right, CoefficientDerivative):
         # Action differentiation pushes differentiation through
@@ -167,7 +167,7 @@ def _check_function_spaces(left, right):
 
 
 def _get_action_form_arguments(left, right):
-    "Perform argument contraction to work out the arguments of Action"
+    """Perform argument contraction to work out the arguments of Action"""
 
     if isinstance(right, CoefficientDerivative):
         # Action differentiation pushes differentiation through

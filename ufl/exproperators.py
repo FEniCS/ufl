@@ -14,7 +14,6 @@ Sum and its superclass Expr."""
 from itertools import chain
 import numbers
 
-from ufl.log import error
 from ufl.utils.stacks import StackDict
 from ufl.core.expr import Expr
 from ufl.constantvalue import Zero, as_ufl
@@ -88,9 +87,9 @@ Expr.__ge__ = _ge
 def _as_tensor(self, indices):
     "UFL operator: A^indices := as_tensor(A, indices)."
     if not isinstance(indices, tuple):
-        error("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
+        raise ValueError("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
     if not all(isinstance(i, Index) for i in indices):
-        error("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
+        raise ValueError("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
     return as_tensor(self, indices)
 
 
@@ -137,7 +136,7 @@ def _mult(a, b):
 
     elif r1 == 2 and r2 in (1, 2):  # Matrix-matrix or matrix-vector
         if ri:
-            error("Not expecting repeated indices in non-scalar product.")
+            raise ValueError("Not expecting repeated indices in non-scalar product.")
 
         # Check for zero, simplifying early if possible
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -153,7 +152,7 @@ def _mult(a, b):
         ti = ai + bi
 
     else:
-        error("Invalid ranks {0} and {1} in product.".format(r1, r2))
+        raise ValueError(f"Invalid ranks {r1} and {r2} in product.")
 
     # TODO: I think applying as_tensor after index sums results in
     # cleaner expression graphs.
@@ -302,7 +301,7 @@ def _restrict(self, side):
         return PositiveRestricted(self)
     if side == "-":
         return NegativeRestricted(self)
-    error("Invalid side '%s' in restriction operator." % (side,))
+    raise ValueError(f"Invalid side '{side}' in restriction operator.")
 
 
 def _eval(self, coord, mapping=None, component=()):
@@ -324,7 +323,7 @@ def _call(self, arg, mapping=None, component=()):
     # Taking the restriction or evaluating depending on argument
     if arg in ("+", "-"):
         if mapping is not None:
-            error("Not expecting a mapping when taking restriction.")
+            raise ValueError("Not expecting a mapping when taking restriction.")
         return _restrict(self, arg)
     else:
         return _eval(self, arg, mapping, component)
@@ -390,7 +389,7 @@ def analyse_key(ii, rank):
             # Switch from pre to post list when an ellipsis is
             # encountered
             if indexlist is not pre:
-                error("Found duplicate ellipsis.")
+                raise ValueError("Found duplicate ellipsis.")
             indexlist = post
         else:
             # Convert index to a proper type
@@ -404,9 +403,9 @@ def analyse_key(ii, rank):
                     axis_indices.add(idx)
                 else:
                     # TODO: Use ListTensor to support partial slices?
-                    error("Partial slices not implemented, only complete slices like [:]")
+                    raise ValueError("Partial slices not implemented, only complete slices like [:]")
             else:
-                error("Can't convert this object to index: %s" % (i,))
+                raise ValueError(f"Can't convert this object to index: {i}")
 
             # Store index in pre or post list
             indexlist.append(idx)
@@ -440,7 +439,7 @@ def _getitem(self, component):
     # Check that we have the right number of indices for a tensor with
     # this shape
     if len(shape) != len(all_indices):
-        error("Invalid number of indices {0} for expression of rank {1}.".format(len(all_indices), len(shape)))
+        raise ValueError(f"Invalid number of indices {len(all_indices)} for expression of rank {len(shape)}.")
 
     # Special case for simplifying foo[...] => foo, foo[:] => foo or
     # similar

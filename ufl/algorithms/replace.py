@@ -10,7 +10,6 @@
 # Modified by Anders Logg, 2009-2010
 
 from ufl.core.external_operator import ExternalOperator
-from ufl.log import error
 from ufl.classes import CoefficientDerivative, Interp, Form
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
@@ -30,7 +29,7 @@ class Replacer(MultiFunction):
             return x.ufl_shape
 
         if not all(get_shape(k) == get_shape(v) for k, v in mapping.items()):
-            error("Replacement expressions must have the same shape as what they replace.")
+            raise ValueError("Replacement expressions must have the same shape as what they replace.")
 
     def ufl_type(self, o, *args):
         try:
@@ -77,7 +76,7 @@ class Replacer(MultiFunction):
         return o
 
     def coefficient_derivative(self, o):
-        error("Derivatives should be applied before executing replace.")
+        raise ValueError("Derivatives should be applied before executing replace.")
 
 
 def replace(e, mapping):

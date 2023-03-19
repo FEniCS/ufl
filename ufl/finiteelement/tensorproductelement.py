@@ -13,7 +13,6 @@
 
 from itertools import chain
 
-from ufl.log import error
 from ufl.cell import TensorProductCell, as_cell
 from ufl.sobolevspace import DirectionalSobolevSpace
 
@@ -34,7 +33,7 @@ class TensorProductElement(FiniteElementBase):
     def __init__(self, *elements, **kwargs):
         "Create TensorProductElement from a given list of elements."
         if not elements:
-            error("Cannot create TensorProductElement from empty list.")
+            raise ValueError("Cannot create TensorProductElement from empty list.")
 
         keywords = list(kwargs.keys())
         if keywords and keywords != ["cell"]:
@@ -59,9 +58,9 @@ class TensorProductElement(FiniteElementBase):
         value_shape = tuple(chain(*[e.value_shape() for e in elements]))
         reference_value_shape = tuple(chain(*[e.reference_value_shape() for e in elements]))
         if len(value_shape) > 1:
-            error("Product of vector-valued elements not supported")
+            raise ValueError("Product of vector-valued elements not supported")
         if len(reference_value_shape) > 1:
-            error("Product of vector-valued elements not supported")
+            raise ValueError("Product of vector-valued elements not supported")
 
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape,
@@ -70,9 +69,7 @@ class TensorProductElement(FiniteElementBase):
         self._cell = cell
 
     def __repr__(self):
-        return "TensorProductElement(" + ", ".join(
-            repr(e) for e in self._sub_elements
-        ) + f", {repr(self._cell)})"
+        return "TensorProductElement(" + ", ".join(repr(e) for e in self._sub_elements) + f", cell={repr(self._cell)})"
 
     def mapping(self):
         if all(e.mapping() == "identity" for e in self._sub_elements):

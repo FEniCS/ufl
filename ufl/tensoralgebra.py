@@ -7,7 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import Zero
@@ -97,7 +96,7 @@ class Transposed(CompoundTensorOperator):
     def __init__(self, A):
         CompoundTensorOperator.__init__(self, (A,))
         if len(A.ufl_shape) != 2:
-            error("Transposed is only defined for rank 2 tensors.")
+            raise ValueError("Transposed is only defined for rank 2 tensors.")
 
     @property
     def ufl_shape(self):
@@ -144,7 +143,7 @@ class Inner(CompoundTensorOperator):
         # Checks
         ash, bsh = a.ufl_shape, b.ufl_shape
         if ash != bsh:
-            error("Shapes do not match: %s and %s." % (ufl_err_str(a), ufl_err_str(b)))
+            raise ValueError(f"Shapes do not match: {ufl_err_str(a)} and {ufl_err_str(b)}")
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -187,10 +186,11 @@ class Dot(CompoundTensorOperator):
 
         # Checks
         if not ((ar >= 1 and br >= 1) or scalar):
-            error("Dot product requires non-scalar arguments, "
-                  "got arguments with ranks %d and %d." % (ar, br))
+            raise ValueError(
+                "Dot product requires non-scalar arguments, "
+                f"got arguments with ranks {ar} and {br}.")
         if not (scalar or ash[-1] == bsh[0]):
-            error("Dimension mismatch in dot product.")
+            raise ValueError("Dimension mismatch in dot product.")
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -227,8 +227,9 @@ class Cross(CompoundTensorOperator):
 
         # Checks
         if not (len(ash) == 1 and ash == bsh):
-            error("Cross product requires arguments of rank 1, got %s and %s." % (
-                ufl_err_str(a), ufl_err_str(b)))
+            raise ValueError(
+                f"Cross product requires arguments of rank 1, got {ufl_err_str(a)} "
+                f"and {ufl_err_str(b)}.")
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -257,7 +258,7 @@ class Trace(CompoundTensorOperator):
     def __new__(cls, A):
         # Checks
         if len(A.ufl_shape) != 2:
-            error("Trace of tensor with rank != 2 is undefined.")
+            raise ValueError("Trace of tensor with rank != 2 is undefined.")
 
         # Simplification
         if isinstance(A, Zero):
@@ -285,11 +286,11 @@ class Determinant(CompoundTensorOperator):
 
         # Checks
         if r not in (0, 2):
-            error("Determinant of tensor with rank != 2 is undefined.")
+            raise ValueError("Determinant of tensor with rank != 2 is undefined.")
         if r == 2 and sh[0] != sh[1]:
-            error("Cannot take determinant of rectangular rank 2 tensor.")
+            raise ValueError("Cannot take determinant of rectangular rank 2 tensor.")
         if Afi:
-            error("Not expecting free indices in determinant.")
+            raise ValueError("Not expecting free indices in determinant.")
 
         # Simplification
         if isinstance(A, Zero):
@@ -318,9 +319,9 @@ class Inverse(CompoundTensorOperator):
 
         # Checks
         if A.ufl_free_indices:
-            error("Not expecting free indices in Inverse.")
+            raise ValueError("Not expecting free indices in Inverse.")
         if isinstance(A, Zero):
-            error("Division by zero!")
+            raise ValueError("Division by zero!")
 
         # Simplification
         if r == 0:
@@ -328,9 +329,9 @@ class Inverse(CompoundTensorOperator):
 
         # More checks
         if r != 2:
-            error("Inverse of tensor with rank != 2 is undefined.")
+            raise ValueError("Inverse of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
-            error("Cannot take inverse of rectangular matrix with dimensions %s." % (sh,))
+            raise ValueError(f"Cannot take inverse of rectangular matrix with dimensions {sh}.")
 
         return CompoundTensorOperator.__new__(cls)
 
@@ -355,13 +356,13 @@ class Cofactor(CompoundTensorOperator):
         # Checks
         sh = A.ufl_shape
         if len(sh) != 2:
-            error("Cofactor of tensor with rank != 2 is undefined.")
+            raise ValueError("Cofactor of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
-            error("Cannot take cofactor of rectangular matrix with dimensions %s." % (sh,))
+            raise ValueError(f"Cannot take cofactor of rectangular matrix with dimensions {sh}.")
         if A.ufl_free_indices:
-            error("Not expecting free indices in Cofactor.")
+            raise ValueError("Not expecting free indices in Cofactor.")
         if isinstance(A, Zero):
-            error("Cannot take cofactor of zero matrix.")
+            raise ValueError("Cannot take cofactor of zero matrix.")
 
     @property
     def ufl_shape(self):
@@ -380,11 +381,11 @@ class Deviatoric(CompoundTensorOperator):
 
         # Checks
         if len(sh) != 2:
-            error("Deviatoric part of tensor with rank != 2 is undefined.")
+            raise ValueError("Deviatoric part of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
-            error("Cannot take deviatoric part of rectangular matrix with dimensions %s." % (sh,))
+            raise ValueError(f"Cannot take deviatoric part of rectangular matrix with dimensions {sh}.")
         if A.ufl_free_indices:
-            error("Not expecting free indices in Deviatoric.")
+            raise ValueError("Not expecting free indices in Deviatoric.")
 
         # Simplification
         if isinstance(A, Zero):
@@ -409,11 +410,11 @@ class Skew(CompoundTensorOperator):
 
         # Checks
         if len(sh) != 2:
-            error("Skew symmetric part of tensor with rank != 2 is undefined.")
+            raise ValueError("Skew symmetric part of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
-            error("Cannot take skew part of rectangular matrix with dimensions %s." % (sh,))
+            raise ValueError(f"Cannot take skew part of rectangular matrix with dimensions {sh}.")
         if Afi:
-            error("Not expecting free indices in Skew.")
+            raise ValueError("Not expecting free indices in Skew.")
 
         # Simplification
         if isinstance(A, Zero):
@@ -438,11 +439,11 @@ class Sym(CompoundTensorOperator):
 
         # Checks
         if len(sh) != 2:
-            error("Symmetric part of tensor with rank != 2 is undefined.")
+            raise ValueError("Symmetric part of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
-            error("Cannot take symmetric part of rectangular matrix with dimensions %s." % (sh,))
+            raise ValueError(f"Cannot take symmetric part of rectangular matrix with dimensions {sh}.")
         if Afi:
-            error("Not expecting free indices in Sym.")
+            raise ValueError("Not expecting free indices in Sym.")
 
         # Simplification
         if isinstance(A, Zero):
@@ -454,4 +455,4 @@ class Sym(CompoundTensorOperator):
         CompoundTensorOperator.__init__(self, (A,))
 
     def __str__(self):
-        return "sym(%s)" % self.ufl_operands[0]
+        return f"sym({self.ufl_operands[0]})"

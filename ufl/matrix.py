@@ -9,7 +9,6 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.log import error
 from ufl.form import BaseForm
 from ufl.core.ufl_type import ufl_type
 from ufl.argument import Argument
@@ -43,10 +42,10 @@ class Matrix(BaseForm):
         counted_init(self, count, Matrix)
 
         if not isinstance(row_space, AbstractFunctionSpace):
-            error("Expecting a FunctionSpace as the row space.")
+            raise ValueError("Expecting a FunctionSpace as the row space.")
 
         if not isinstance(column_space, AbstractFunctionSpace):
-            error("Expecting a FunctionSpace as the column space.")
+            raise ValueError("Expecting a FunctionSpace as the column space.")
 
         self._ufl_function_spaces = (row_space, column_space)
 

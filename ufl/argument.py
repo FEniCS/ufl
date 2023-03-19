@@ -13,7 +13,6 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
-from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
@@ -46,20 +45,19 @@ class BaseArgument(object):
             domain = default_domain(element.cell())
             function_space = FunctionSpace(domain, element)
         elif not isinstance(function_space, AbstractFunctionSpace):
-            error("Expecting a FunctionSpace or FiniteElement.")
+            raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
         if not isinstance(number, numbers.Integral):
-            error("Expecting an int for number, not %s" % (number,))
+            raise ValueError(f"Expecting an int for number, not {number}")
         if part is not None and not isinstance(part, numbers.Integral):
-            error("Expecting None or an int for part, not %s" % (part,))
+            raise ValueError(f"Expecting None or an int for part, not {part}")
         self._number = number
         self._part = part
 
-        self._repr = "BaseArgument(%s, %s, %s)" % (
-            repr(self._ufl_function_space), repr(self._number), repr(self._part))
+        self._repr = f"BaseArgument({self._ufl_function_space}, {self._number}, {self._part})"
 
     @property
     def ufl_shape(self):
@@ -71,15 +69,11 @@ class BaseArgument(object):
         return self._ufl_function_space
 
     def ufl_domain(self):
-        "Deprecated, please use .ufl_function_space().ufl_domain() instead."
-        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
-        # use .ufl_function_space().ufl_domain() instead.")
+        """Return the UFL domain."""
         return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
-        "Deprecated, please use .ufl_function_space().ufl_element() instead."
-        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
-        # use .ufl_function_space().ufl_element() instead.")
+        """Return The UFL element."""
         return self._ufl_function_space.ufl_element()
 
     def number(self):
@@ -98,9 +92,7 @@ class BaseArgument(object):
         return False
 
     def ufl_domains(self):
-        "Deprecated, please use .ufl_function_space().ufl_domains() instead."
-        # TODO: deprecate("Argument.ufl_domains() is deprecated,
-        # please use .ufl_function_space().ufl_domains() instead.")
+        """Return UFL domains."""
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
@@ -160,6 +152,7 @@ class Argument(FormArgument, BaseArgument):
     __getnewargs__ = BaseArgument.__getnewargs__
     __str__ = BaseArgument.__str__
     _ufl_signature_data_ = BaseArgument._ufl_signature_data_
+    __eq__ = BaseArgument.__eq__
 
     def __new__(cls, *args, **kw):
         if args[0] and is_dual(args[0]):

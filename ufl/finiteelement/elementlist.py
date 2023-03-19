@@ -13,9 +13,9 @@ elements by calling the function register_element."""
 # Modified by Lizao Li <lzlarryli@gmail.com>, 2015, 2016
 # Modified by Massimiliano Leoni, 2016
 
+import warnings
 from numpy import asarray
 
-from ufl.log import warning, error
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 from ufl.utils.formatting import istr
 from ufl.cell import Cell, TensorProductCell
@@ -33,20 +33,12 @@ def register_element(family, short_name, value_rank, sobolev_space, mapping,
                      degree_range, cellnames):
     "Register new finite element family."
     if family in ufl_elements:
-        error('Finite element \"%s\" has already been registered.' % family)
+        raise ValueError(f"Finite element '{family}%s' has already been registered.")
     ufl_elements[family] = (family, short_name, value_rank, sobolev_space,
                             mapping, degree_range, cellnames)
-    ufl_elements[short_name] = (family, short_name, value_rank, sobolev_space,
-                                mapping, degree_range, cellnames)
-
-
-def register_element2(family, value_rank, sobolev_space, mapping,
-                      degree_range, cellnames):
-    "Register new finite element family."
-    if family in ufl_elements:
-        error('Finite element \"%s\" has already been registered.' % family)
-    ufl_elements[family] = (family, family, value_rank, sobolev_space,
-                            mapping, degree_range, cellnames)
+    if short_name is not None:
+        ufl_elements[short_name] = (family, short_name, value_rank, sobolev_space,
+                                    mapping, degree_range, cellnames)
 
 
 def register_alias(alias, to):
@@ -160,7 +152,7 @@ register_alias("Lobatto",
 register_alias("Lob",
                lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
 
-register_element2("Bernstein", 0, H1, "identity", (1, None), simplices)
+register_element("Bernstein", "Bernstein", 0, H1, "identity", (1, None), simplices)
 
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
@@ -183,31 +175,31 @@ register_alias("DGT",
                lambda family, dim, order, degree: ("HDiv Trace", order))
 
 # New elements introduced for the periodic table 2014
-register_element2("Q", 0, H1, "identity", (1, None), cubes)
-register_element2("DQ", 0, L2, "identity", (0, None), cubes)
-register_element2("RTCE", 1, HCurl, "covariant Piola", (1, None),
-                  ("quadrilateral",))
-register_element2("RTCF", 1, HDiv, "contravariant Piola", (1, None),
-                  ("quadrilateral",))
-register_element2("NCE", 1, HCurl, "covariant Piola", (1, None),
-                  ("hexahedron",))
-register_element2("NCF", 1, HDiv, "contravariant Piola", (1, None),
-                  ("hexahedron",))
+register_element("Q", "Q", 0, H1, "identity", (1, None), cubes)
+register_element("DQ", "DQ", 0, L2, "identity", (0, None), cubes)
+register_element("RTCE", "RTCE", 1, HCurl, "covariant Piola", (1, None),
+                 ("quadrilateral",))
+register_element("RTCF", "RTCF", 1, HDiv, "contravariant Piola", (1, None),
+                 ("quadrilateral",))
+register_element("NCE", "NCE", 1, HCurl, "covariant Piola", (1, None),
+                 ("hexahedron",))
+register_element("NCF", "NCF", 1, HDiv, "contravariant Piola", (1, None),
+                 ("hexahedron",))
 
-register_element2("S", 0, H1, "identity", (1, None), cubes)
-register_element2("DPC", 0, L2, "identity", (0, None), cubes)
-register_element2("BDMCE", 1, HCurl, "covariant Piola", (1, None),
-                  ("quadrilateral",))
-register_element2("BDMCF", 1, HDiv, "contravariant Piola", (1, None),
-                  ("quadrilateral",))
-register_element2("SminusE", 1, HCurl, "covariant Piola", (1, None), cubes[1:3])
-register_element2("SminusF", 1, HDiv, "contravariant Piola", (1, None), cubes[1:2])
-register_element2("SminusDiv", 1, HDiv, "contravariant Piola", (1, None), cubes[1:3])
-register_element2("SminusCurl", 1, HCurl, "covariant Piola", (1, None), cubes[1:3])
-register_element2("AAE", 1, HCurl, "covariant Piola", (1, None),
-                  ("hexahedron",))
-register_element2("AAF", 1, HDiv, "contravariant Piola", (1, None),
-                  ("hexahedron",))
+register_element("S", "S", 0, H1, "identity", (1, None), cubes)
+register_element("DPC", "DPC", 0, L2, "identity", (0, None), cubes)
+register_element("BDMCE", "BDMCE", 1, HCurl, "covariant Piola", (1, None),
+                 ("quadrilateral",))
+register_element("BDMCF", "BDMCF", 1, HDiv, "contravariant Piola", (1, None),
+                 ("quadrilateral",))
+register_element("SminusE", "SminusE", 1, HCurl, "covariant Piola", (1, None), cubes[1:3])
+register_element("SminusF", "SminusF", 1, HDiv, "contravariant Piola", (1, None), cubes[1:2])
+register_element("SminusDiv", "SminusDiv", 1, HDiv, "contravariant Piola", (1, None), cubes[1:3])
+register_element("SminusCurl", "SminusCurl", 1, HCurl, "covariant Piola", (1, None), cubes[1:3])
+register_element("AAE", "AAE", 1, HCurl, "covariant Piola", (1, None),
+                 ("hexahedron",))
+register_element("AAF", "AAF", 1, HDiv, "contravariant Piola", (1, None),
+                 ("hexahedron",))
 
 # New aliases introduced for the periodic table 2014
 register_alias("P", lambda family, dim, order, degree: ("Lagrange", order))
@@ -232,8 +224,8 @@ register_alias("N2F", lambda family, dim, order,
                degree: ("Brezzi-Douglas-Marini", order))
 
 # discontinuous elements using l2 pullbacks
-register_element2("DPC L2", 0, L2, "L2 Piola", (1, None), cubes)
-register_element2("DQ L2", 0, L2, "L2 Piola", (0, None), cubes)
+register_element("DPC L2", "DPC L2", 0, L2, "L2 Piola", (1, None), cubes)
+register_element("DQ L2", "DQ L2", 0, L2, "L2 Piola", (0, None), cubes)
 register_element("Gauss-Legendre L2", "GL L2", 0, L2, "L2 Piola", (0, None),
                  ("interval",))
 register_element("Discontinuous Lagrange L2", "DG L2", 0, L2, "L2 Piola", (0, None),
@@ -423,12 +415,12 @@ def canonical_element_description(family, cell, order, form_degree):
     # Check whether this family is an alias for something else
     while family in aliases:
         if tdim is None:
-            error("Need dimension to handle element aliases.")
+            raise ValueError("Need dimension to handle element aliases.")
         (family, order) = aliases[family](family, tdim, order, form_degree)
 
     # Check that the element family exists
     if family not in ufl_elements:
-        error('Unknown finite element "%s".' % family)
+        raise ValueError(f"Unknown finite element '{family}'.")
 
     # Check that element data is valid (and also get common family
     # name)
@@ -440,40 +432,37 @@ def canonical_element_description(family, cell, order, form_degree):
             family = "Q"
         elif family == "Discontinuous Lagrange":
             if order >= 1:
-                warning("Discontinuous Lagrange element requested on %s, creating DQ element." % cell.cellname())
+                warnings.warn("Discontinuous Lagrange element requested on %s, creating DQ element." % cell.cellname())
             family = "DQ"
         elif family == "Discontinuous Lagrange L2":
             if order >= 1:
-                warning("Discontinuous Lagrange L2 element requested on %s, creating DQ L2 element." % cell.cellname())
+                warnings.warn("Discontinuous Lagrange L2 element requested on %s, creating DQ L2 element." % cell.cellname())
             family = "DQ L2"
 
     # Validate cellname if a valid cell is specified
     if not (cellname is None or cellname in cellnames):
-        error('Cellname "%s" invalid for "%s" finite element.' % (cellname, family))
+        raise ValueError(f"Cellname '{cellname}' invalid for '{family}' finite element.")
 
     # Validate order if specified
     if order is not None:
         if krange is None:
-            error('Order "%s" invalid for "%s" finite element, '
-                  'should be None.' % (order, family))
+            raise ValueError(f"Order {order} invalid for '{family}' finite element, should be None.")
         kmin, kmax = krange
         if not (kmin is None or (asarray(order) >= kmin).all()):
-            error('Order "%s" invalid for "%s" finite element.' %
-                  (order, family))
+            raise ValueError(f"Order {order} invalid for '{family}' finite element.")
         if not (kmax is None or (asarray(order) <= kmax).all()):
-            error('Order "%s" invalid for "%s" finite element.' %
-                  (istr(order), family))
+            raise ValueError(f"Order {istr(order)} invalid for '{family}' finite element.")
 
     if value_rank == 2:
         # Tensor valued fundamental elements in HEin have this shape
         if gdim is None or tdim is None:
-            error("Cannot infer shape of element without topological and geometric dimensions.")
+            raise ValueError("Cannot infer shape of element without topological and geometric dimensions.")
         reference_value_shape = (tdim, tdim)
         value_shape = (gdim, gdim)
     elif value_rank == 1:
         # Vector valued fundamental elements in HDiv and HCurl have a shape
         if gdim is None or tdim is None:
-            error("Cannot infer shape of element without topological and geometric dimensions.")
+            raise ValueError("Cannot infer shape of element without topological and geometric dimensions.")
         reference_value_shape = (tdim,)
         value_shape = (gdim,)
     elif value_rank == 0:
@@ -481,6 +470,6 @@ def canonical_element_description(family, cell, order, form_degree):
         reference_value_shape = ()
         value_shape = ()
     else:
-        error("Invalid value rank %d." % value_rank)
+        raise ValueError(f"Invalid value rank {value_rank}.")
 
     return family, short_name, order, value_shape, reference_value_shape, sobolev_space, mapping

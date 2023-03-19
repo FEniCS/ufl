@@ -8,7 +8,6 @@ import pytest
 
 from ufl import *
 
-from ufl.utils.dicts import EmptyDictType
 from ufl.classes import MultiIndex, FixedIndex
 from ufl.algorithms.signature import compute_multiindex_hashdata, \
     compute_terminal_hashdata

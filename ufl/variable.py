@@ -9,7 +9,6 @@ expressions as variables for differentiation."""
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.utils.counted import counted_init
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
@@ -39,15 +38,15 @@ class Label(Terminal):
 
     @property
     def ufl_shape(self):
-        error("Label has no shape (it is not a tensor expression).")
+        raise ValueError("Label has no shape (it is not a tensor expression).")
 
     @property
     def ufl_free_indices(self):
-        error("Label has no free indices (it is not a tensor expression).")
+        raise ValueError("Label has no free indices (it is not a tensor expression).")
 
     @property
     def ufl_index_dimensions(self):
-        error("Label has no free indices (it is not a tensor expression).")
+        raise ValueError("Label has no free indices (it is not a tensor expression).")
 
     def is_cellwise_constant(self):
         return True
@@ -80,11 +79,11 @@ class Variable(Operator):
 
         # Checks
         if not isinstance(expression, Expr):
-            error("Expecting Expr.")
+            raise ValueError("Expecting Expr.")
         if not isinstance(label, Label):
-            error("Expecting a Label.")
+            raise ValueError("Expecting a Label.")
         if expression.ufl_free_indices:
-            error("Variable cannot wrap an expression with free indices.")
+            raise ValueError("Variable cannot wrap an expression with free indices.")
 
         Operator.__init__(self, (expression, label))
 
