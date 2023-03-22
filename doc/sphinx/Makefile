@@ -49,7 +49,7 @@ help:
 	@echo "  coverage   to run coverage check of the documentation (if enabled)"
 
 apidoc:
-	sphinx-apidoc -f -T -o source/api-doc/ ../../ufl
+	sphinx-apidoc -f -T -o source/api-doc/ ../../ufl_legacy
 clean:
 	rm -rf $(BUILDDIR)/*
 

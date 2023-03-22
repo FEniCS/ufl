@@ -449,7 +449,7 @@ other problems where certain quantities need to be computed elsewhere
 ::
 
   # NonlinearPoisson.py
-  from ufl import *
+  from ufl_legacy import *
 
   element = FiniteElement("Lagrange", triangle, 1)
   DG = FiniteElement("Discontinuous Lagrange", triangle, 0)
@@ -470,7 +470,7 @@ and
 ::
 
   # Tangent.py
-  from ufl import *
+  from ufl_legacy import *
 
   element = FiniteElement("Lagrange", triangle, 1)
   DG = FiniteElement("Discontinuous Lagrange", triangle, 0)
@@ -487,7 +487,7 @@ and
 ::
 
   # Gradient.py
-  from ufl import *
+  from ufl_legacy import *
 
   element = FiniteElement("Lagrange", triangle, 1)
   DG = VectorElement("Discontinuous Lagrange", triangle, 0)
@@ -503,7 +503,7 @@ The three forms can be implemented using the ``QuadratureElement``
 in a similar fashion in which only the element declaration is different::
 
   # QE1NonlinearPoisson.py
-  from ufl import *
+  from ufl_legacy import *
 
   element = FiniteElement("Lagrange", triangle, 1)
   QE = FiniteElement("Quadrature", triangle, 2)
@@ -514,7 +514,7 @@ and
 ::
 
   # QE1Tangent.py
-  from ufl import *
+  from ufl_legacy import *
 
   element = FiniteElement("Lagrange", triangle, 1)
   QE = FiniteElement("Quadrature", triangle, 2)
@@ -524,7 +524,7 @@ and
 ::
 
   # QE1Gradient.py
-  from ufl import *
+  from ufl_legacy import *
 
   element = FiniteElement("Lagrange", triangle, 1)
   QE = VectorElement("Quadrature", triangle, 2)

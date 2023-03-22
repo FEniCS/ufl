@@ -12,11 +12,11 @@ This chapter explains how UFL forms and expressions are represented
 in detail. Most operations are mirrored by a representation class,
 e.g., ``Sum`` and ``Product``, which are subclasses
 of ``Expr``.  You can import all of them from the submodule
-``ufl.classes`` by
+``ufl_legacy.classes`` by
 
 ::
 
-  from ufl.classes import *
+  from ufl_legacy.classes import *
 
 Structure of a form
 ===================
