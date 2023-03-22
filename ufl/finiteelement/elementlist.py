@@ -15,10 +15,10 @@ elements by calling the function register_element."""
 
 from numpy import asarray
 
-from ufl.log import warning, error
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv
-from ufl.utils.formatting import istr
-from ufl.cell import Cell, TensorProductCell
+from ufl_legacy.log import warning, error
+from ufl_legacy.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv
+from ufl_legacy.utils.formatting import istr
+from ufl_legacy.cell import Cell, TensorProductCell
 
 
 # List of valid elements

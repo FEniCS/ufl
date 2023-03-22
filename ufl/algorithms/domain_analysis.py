@@ -9,13 +9,13 @@
 
 from collections import defaultdict
 
-import ufl
-from ufl.log import error
-from ufl.integral import Integral
-from ufl.form import Form
-from ufl.sorting import cmp_expr, sorted_expr
-from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
-from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
+import ufl_legacy as ufl
+from ufl_legacy.log import error
+from ufl_legacy.integral import Integral
+from ufl_legacy.form import Form
+from ufl_legacy.sorting import cmp_expr, sorted_expr
+from ufl_legacy.utils.sorting import canonicalize_metadata, sorted_by_key
+from ufl_legacy.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
 import numbers
 
 

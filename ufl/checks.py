@@ -9,8 +9,8 @@
 #
 # Modified by Anders Logg, 2008-2009
 
-from ufl.core.expr import Expr
-from ufl.corealg.traversal import traverse_unique_terminals
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.corealg.traversal import traverse_unique_terminals
 
 
 def is_python_scalar(expression):
@@ -43,10 +43,10 @@ def is_globally_constant(expr):
     are not known before assembly time."""
     # TODO: This does not consider gradients of coefficients, so false
     # negatives are possible.
-    # from ufl.argument import Argument
-    # from ufl.coefficient import Coefficient
-    from ufl.geometry import GeometricQuantity
-    from ufl.core.terminal import FormArgument
+    # from ufl_legacy.argument import Argument
+    # from ufl_legacy.coefficient import Coefficient
+    from ufl_legacy.geometry import GeometricQuantity
+    from ufl_legacy.core.terminal import FormArgument
     for e in traverse_unique_terminals(expr):
         # Return False if any single terminal is not constant
         if e._ufl_is_literal_:

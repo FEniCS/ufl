@@ -14,16 +14,16 @@
 from itertools import chain
 from collections import defaultdict
 
-from ufl.log import error, warning
-from ufl.domain import sort_domains
-from ufl.integral import Integral
-from ufl.checks import is_scalar_constant_expression
-from ufl.equation import Equation
-from ufl.core.expr import Expr
-from ufl.core.expr import ufl_err_str
-from ufl.constantvalue import Zero
+from ufl_legacy.log import error, warning
+from ufl_legacy.domain import sort_domains
+from ufl_legacy.integral import Integral
+from ufl_legacy.checks import is_scalar_constant_expression
+from ufl_legacy.equation import Equation
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.core.expr import ufl_err_str
+from ufl_legacy.constantvalue import Zero
 
-# Export list for ufl.classes
+# Export list for ufl_legacy.classes
 __all_classes__ = ["Form"]
 
 # --- The Form class, representing a complete variational form or functional ---
@@ -114,7 +114,7 @@ class Form(object):
         self._coefficient_numbering = None
         self._constant_numbering = None
 
-        from ufl.algorithms.analysis import extract_constants
+        from ufl_legacy.algorithms.analysis import extract_constants
         self._constants = extract_constants(self)
         self._constant_numbering = dict(
             (c, i) for i, c in enumerate(self._constants))
@@ -331,7 +331,7 @@ class Form(object):
     def __mul__(self, coefficient):
         "UFL form operator: Take the action of this form on the given coefficient."
         if isinstance(coefficient, Expr):
-            from ufl.formoperators import action
+            from ufl_legacy.formoperators import action
             return action(self, coefficient)
         return NotImplemented
 
@@ -380,7 +380,7 @@ class Form(object):
                 else:
                     warning("Coefficient %s is not in form." % ufl_err_str(f))
         if repdict:
-            from ufl.formoperators import replace
+            from ufl_legacy.formoperators import replace
             return replace(self, repdict)
         else:
             return self
@@ -410,7 +410,7 @@ class Form(object):
     # --- Analysis functions, precomputation and caching of various quantities
 
     def _analyze_domains(self):
-        from ufl.domain import join_domains, sort_domains
+        from ufl_legacy.domain import join_domains, sort_domains
 
         # Collect unique integration domains
         integration_domains = join_domains(
@@ -452,7 +452,7 @@ class Form(object):
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
-        from ufl.algorithms.analysis import extract_arguments_and_coefficients
+        from ufl_legacy.algorithms.analysis import extract_arguments_and_coefficients
         arguments, coefficients = extract_arguments_and_coefficients(self)
 
         # Define canonical numbering of arguments and coefficients
@@ -501,7 +501,7 @@ class Form(object):
         return renumbering
 
     def _compute_signature(self):
-        from ufl.algorithms.signature import compute_form_signature
+        from ufl_legacy.algorithms.signature import compute_form_signature
         self._signature = compute_form_signature(self,
                                                  self._compute_renumbering())
 

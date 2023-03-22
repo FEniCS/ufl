@@ -7,14 +7,14 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
-from ufl.constantvalue import Zero
-from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.ufl_type import ufl_type
-from ufl.core.operator import Operator
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex
-from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
-from ufl.precedence import parstr
+from ufl_legacy.log import error
+from ufl_legacy.constantvalue import Zero
+from ufl_legacy.core.expr import Expr, ufl_err_str
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.operator import Operator
+from ufl_legacy.core.multiindex import Index, FixedIndex, MultiIndex
+from ufl_legacy.index_combination_utils import unique_sorted_indices, merge_unique_indices
+from ufl_legacy.precedence import parstr
 
 
 # --- Indexed expression ---

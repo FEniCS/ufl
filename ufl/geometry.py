@@ -12,10 +12,10 @@
 # Modified by Marie E. Rognes 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal
-from ufl.domain import as_domain
+from ufl_legacy.log import error
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.terminal import Terminal
+from ufl_legacy.domain import as_domain
 
 """
 

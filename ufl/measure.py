@@ -14,16 +14,16 @@ import numbers
 
 from itertools import chain
 
-from ufl.log import error, deprecate
-from ufl.core.expr import Expr
-from ufl.checks import is_true_ufl_scalar
-from ufl.constantvalue import as_ufl
-from ufl.utils.dicts import EmptyDict
-from ufl.domain import as_domain, AbstractDomain, extract_domains
-from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
+from ufl_legacy.log import error, deprecate
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.checks import is_true_ufl_scalar
+from ufl_legacy.constantvalue import as_ufl
+from ufl_legacy.utils.dicts import EmptyDict
+from ufl_legacy.domain import as_domain, AbstractDomain, extract_domains
+from ufl_legacy.protocols import id_or_none, metadata_equal, metadata_hashdata
 
 
-# Export list for ufl.classes
+# Export list for ufl_legacy.classes
 __all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
 
 
@@ -391,8 +391,8 @@ class Measure(object):
 
         """
         # Avoid circular imports
-        from ufl.integral import Integral
-        from ufl.form import Form
+        from ufl_legacy.integral import Integral
+        from ufl_legacy.form import Form
 
         # Allow python literals: 1*dx and 1.0*dx
         if isinstance(integrand, (int, float)):

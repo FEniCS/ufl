@@ -10,8 +10,8 @@
 from collections import defaultdict
 from heapq import heapify, heappop
 
-from ufl.corealg.traversal import unique_pre_traversal
-from ufl.corealg.multifunction import MultiFunction
+from ufl_legacy.corealg.traversal import unique_pre_traversal
+from ufl_legacy.corealg.multifunction import MultiFunction
 
 # O(n) = O(|V|) = O(|E|), since |E| < c|V| for a fairly small c.
 

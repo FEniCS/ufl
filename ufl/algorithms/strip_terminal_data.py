@@ -2,13 +2,13 @@
 """Algorithm for replacing form arguments with 'stripped' versions where any
 data-carrying objects have been extracted to a mapping."""
 
-from ufl.classes import Form, Integral
-from ufl.classes import Argument, Coefficient, Constant
-from ufl.classes import FunctionSpace, TensorProductFunctionSpace, MixedFunctionSpace
-from ufl.classes import Mesh, MeshView, TensorProductMesh
-from ufl.algorithms.replace import replace
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl_legacy.classes import Form, Integral
+from ufl_legacy.classes import Argument, Coefficient, Constant
+from ufl_legacy.classes import FunctionSpace, TensorProductFunctionSpace, MixedFunctionSpace
+from ufl_legacy.classes import Mesh, MeshView, TensorProductMesh
+from ufl_legacy.algorithms.replace import replace
+from ufl_legacy.corealg.map_dag import map_expr_dag
+from ufl_legacy.corealg.multifunction import MultiFunction
 
 
 class TerminalStripper(MultiFunction):

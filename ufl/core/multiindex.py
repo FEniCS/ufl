@@ -10,12 +10,12 @@
 # Modified by Massimiliano Leoni, 2016.
 
 
-from ufl.log import error
-from ufl.utils.counted import counted_init
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal
+from ufl_legacy.log import error
+from ufl_legacy.utils.counted import counted_init
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.terminal import Terminal
 
-# Export list for ufl.classes
+# Export list for ufl_legacy.classes
 __all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
 

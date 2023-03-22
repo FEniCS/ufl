@@ -5,8 +5,8 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.finiteelement.restrictedelement import RestrictedElement
-from ufl.log import deprecate
+from ufl_legacy.finiteelement.restrictedelement import RestrictedElement
+from ufl_legacy.log import deprecate
 
 
 def InteriorElement(element):

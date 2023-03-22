@@ -13,21 +13,21 @@
 # Modified by Andrew T. T. McRae 2014
 # Modified by Lawrence Mitchell 2014
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.finiteelement.finiteelement import FiniteElement
-from ufl.finiteelement.mixedelement import MixedElement
-from ufl.finiteelement.mixedelement import VectorElement
-from ufl.finiteelement.mixedelement import TensorElement
-from ufl.finiteelement.enrichedelement import EnrichedElement
-from ufl.finiteelement.enrichedelement import NodalEnrichedElement
-from ufl.finiteelement.restrictedelement import RestrictedElement
-from ufl.finiteelement.tensorproductelement import TensorProductElement
-from ufl.finiteelement.hdivcurl import HDivElement, HCurlElement, WithMapping
-from ufl.finiteelement.brokenelement import BrokenElement
-from ufl.finiteelement.facetelement import FacetElement
-from ufl.finiteelement.interiorelement import InteriorElement
+from ufl_legacy.finiteelement.finiteelementbase import FiniteElementBase
+from ufl_legacy.finiteelement.finiteelement import FiniteElement
+from ufl_legacy.finiteelement.mixedelement import MixedElement
+from ufl_legacy.finiteelement.mixedelement import VectorElement
+from ufl_legacy.finiteelement.mixedelement import TensorElement
+from ufl_legacy.finiteelement.enrichedelement import EnrichedElement
+from ufl_legacy.finiteelement.enrichedelement import NodalEnrichedElement
+from ufl_legacy.finiteelement.restrictedelement import RestrictedElement
+from ufl_legacy.finiteelement.tensorproductelement import TensorProductElement
+from ufl_legacy.finiteelement.hdivcurl import HDivElement, HCurlElement, WithMapping
+from ufl_legacy.finiteelement.brokenelement import BrokenElement
+from ufl_legacy.finiteelement.facetelement import FacetElement
+from ufl_legacy.finiteelement.interiorelement import InteriorElement
 
-# Export list for ufl.classes
+# Export list for ufl_legacy.classes
 __all_classes__ = [
     "FiniteElementBase",
     "FiniteElement",

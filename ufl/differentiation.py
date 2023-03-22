@@ -9,19 +9,19 @@
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.log import error
-from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
-from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
+from ufl_legacy.log import error
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.core.terminal import Terminal
+from ufl_legacy.core.operator import Operator
+from ufl_legacy.core.ufl_type import ufl_type
 
-from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.constantvalue import Zero
-from ufl.coefficient import Coefficient
-from ufl.variable import Variable
-from ufl.precedence import parstr
-from ufl.domain import find_geometric_dimension
-from ufl.checks import is_cellwise_constant
+from ufl_legacy.exprcontainers import ExprList, ExprMapping
+from ufl_legacy.constantvalue import Zero
+from ufl_legacy.coefficient import Coefficient
+from ufl_legacy.variable import Variable
+from ufl_legacy.precedence import parstr
+from ufl_legacy.domain import find_geometric_dimension
+from ufl_legacy.checks import is_cellwise_constant
 
 
 # --- Basic differentiation objects ---

@@ -10,10 +10,10 @@ of UFL objects, mostly intended for debugging purposes."""
 #
 # Modified by Anders Logg 2009, 2014
 
-from ufl.log import error
-from ufl.core.expr import Expr
-from ufl.form import Form
-from ufl.integral import Integral
+from ufl_legacy.log import error
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.form import Form
+from ufl_legacy.integral import Integral
 
 
 # --- Utilities for constructing informative strings from UFL objects

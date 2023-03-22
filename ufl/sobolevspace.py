@@ -90,10 +90,10 @@ class SobolevSpace(object):
     def __call__(self, element):
         """Syntax shortcut to create a HDivElement or HCurlElement."""
         if self.name == "HDiv":
-            from ufl.finiteelement import HDivElement
+            from ufl_legacy.finiteelement import HDivElement
             return HDivElement(element)
         elif self.name == "HCurl":
-            from ufl.finiteelement import HCurlElement
+            from ufl_legacy.finiteelement import HCurlElement
             return HCurlElement(element)
         raise NotImplementedError(
             "SobolevSpace has no call operator (only the specific HDiv and HCurl instances)."

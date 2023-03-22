@@ -7,9 +7,9 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
+from ufl_legacy.log import error
 
-# Export list for ufl.classes
+# Export list for ufl_legacy.classes
 __all_classes__ = ["Equation"]
 
 

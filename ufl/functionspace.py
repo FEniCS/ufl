@@ -10,11 +10,11 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.log import error
-from ufl.core.ufl_type import attach_operators_from_hash_data
-from ufl.domain import join_domains
+from ufl_legacy.log import error
+from ufl_legacy.core.ufl_type import attach_operators_from_hash_data
+from ufl_legacy.domain import join_domains
 
-# Export list for ufl.classes
+# Export list for ufl_legacy.classes
 __all_classes__ = [
     "AbstractFunctionSpace",
     "FunctionSpace",

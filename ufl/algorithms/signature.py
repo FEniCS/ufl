@@ -8,14 +8,14 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import hashlib
-from ufl.classes import (Label,
+from ufl_legacy.classes import (Label,
                          Index, MultiIndex,
                          Coefficient, Argument,
                          GeometricQuantity, ConstantValue, Constant,
                          ExprList, ExprMapping)
-from ufl.log import error
-from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
-from ufl.algorithms.domain_analysis import canonicalize_metadata
+from ufl_legacy.log import error
+from ufl_legacy.corealg.traversal import traverse_unique_terminals, unique_post_traversal
+from ufl_legacy.algorithms.domain_analysis import canonicalize_metadata
 
 
 def compute_multiindex_hashdata(expr, index_numbering):

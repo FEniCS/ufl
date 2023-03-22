@@ -9,12 +9,12 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.log import error
-from ufl.classes import CoefficientDerivative
-from ufl.constantvalue import as_ufl
-from ufl.corealg.multifunction import MultiFunction
-from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.algorithms.analysis import has_exact_type
+from ufl_legacy.log import error
+from ufl_legacy.classes import CoefficientDerivative
+from ufl_legacy.constantvalue import as_ufl
+from ufl_legacy.corealg.multifunction import MultiFunction
+from ufl_legacy.algorithms.map_integrands import map_integrand_dags
+from ufl_legacy.algorithms.analysis import has_exact_type
 
 
 class Replacer(MultiFunction):
@@ -55,7 +55,7 @@ def replace(e, mapping):
     # is not attractive), or make replace lazy too.
     if has_exact_type(e, CoefficientDerivative):
         # Hack to avoid circular dependencies
-        from ufl.algorithms.ad import expand_derivatives
+        from ufl_legacy.algorithms.ad import expand_derivatives
         e = expand_derivatives(e)
 
     return map_integrand_dags(Replacer(mapping2), e)

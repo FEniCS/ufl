@@ -9,15 +9,15 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.log import error
-from ufl.core.ufl_type import ufl_type
-from ufl.core.expr import ufl_err_str
-from ufl.core.operator import Operator
-from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, ComplexValue, as_ufl
-from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
-from ufl.index_combination_utils import merge_unique_indices
-from ufl.sorting import sorted_expr
-from ufl.precedence import parstr
+from ufl_legacy.log import error
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.expr import ufl_err_str
+from ufl_legacy.core.operator import Operator
+from ufl_legacy.constantvalue import Zero, zero, ScalarValue, IntValue, ComplexValue, as_ufl
+from ufl_legacy.checks import is_ufl_scalar, is_true_ufl_scalar
+from ufl_legacy.index_combination_utils import merge_unique_indices
+from ufl_legacy.sorting import sorted_expr
+from ufl_legacy.precedence import parstr
 
 # --- Algebraic operators ---
 

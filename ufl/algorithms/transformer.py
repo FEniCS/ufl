@@ -14,9 +14,9 @@ algorithms."""
 
 import inspect
 
-from ufl.algorithms.map_integrands import map_integrands
-from ufl.classes import Variable, all_ufl_classes
-from ufl.log import error
+from ufl_legacy.algorithms.map_integrands import map_integrands
+from ufl_legacy.classes import Variable, all_ufl_classes
+from ufl_legacy.log import error
 
 
 def is_post_handler(function):

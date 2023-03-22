@@ -13,13 +13,13 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
-from ufl.log import error
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import FormArgument
-from ufl.split_functions import split
-from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl_legacy.log import error
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.terminal import FormArgument
+from ufl_legacy.split_functions import split
+from ufl_legacy.finiteelement import FiniteElementBase
+from ufl_legacy.domain import default_domain
+from ufl_legacy.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]

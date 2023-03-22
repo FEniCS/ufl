@@ -19,7 +19,7 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
+from ufl_legacy.log import error
 
 
 # --- The base object for all UFL expression tree nodes ---
@@ -293,12 +293,12 @@ class Expr(object):
 
     def ufl_domains(self):  # TODO: Deprecate this and use extract_domains(expr)
         "Return all domains this expression is defined on."
-        from ufl.domain import extract_domains
+        from ufl_legacy.domain import extract_domains
         return extract_domains(self)
 
     def ufl_domain(self):  # TODO: Deprecate this and use extract_unique_domain(expr)
         "Return the single unique domain this expression is defined on, or throw an error."
-        from ufl.domain import extract_unique_domain
+        from ufl_legacy.domain import extract_unique_domain
         return extract_unique_domain(self)
 
     # --- Functions for float evaluation ---
@@ -418,7 +418,7 @@ class Expr(object):
 
     def geometric_dimension(self):
         "Return the geometric dimension this expression lives in."
-        from ufl.domain import find_geometric_dimension
+        from ufl_legacy.domain import find_geometric_dimension
         return find_geometric_dimension(self)
 
 

@@ -10,19 +10,19 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Mehdi Nikbakht, 2010.
 
-from ufl.log import error
+from ufl_legacy.log import error
 
 # UFL classes
-from ufl.core.expr import ufl_err_str
-from ufl.form import Form
-from ufl.argument import Argument
-from ufl.coefficient import Coefficient
-from ufl.constantvalue import is_true_ufl_scalar
+from ufl_legacy.core.expr import ufl_err_str
+from ufl_legacy.form import Form
+from ufl_legacy.argument import Argument
+from ufl_legacy.coefficient import Coefficient
+from ufl_legacy.constantvalue import is_true_ufl_scalar
 
 # UFL algorithms
-from ufl.algorithms.traversal import iter_expressions
-from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.algorithms.check_restrictions import check_restrictions
+from ufl_legacy.algorithms.traversal import iter_expressions
+from ufl_legacy.corealg.traversal import traverse_unique_terminals
+from ufl_legacy.algorithms.check_restrictions import check_restrictions
 
 
 def validate_form(form):  # TODO: Can we make this return a list of errors instead of raising exception?

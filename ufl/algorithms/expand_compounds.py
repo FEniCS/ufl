@@ -10,7 +10,7 @@ equivalent representations using basic operators."""
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl_legacy.algorithms.apply_algebra_lowering import apply_algebra_lowering
 
 
 def expand_compounds(e):

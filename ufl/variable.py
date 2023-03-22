@@ -8,13 +8,13 @@ expressions as variables for differentiation."""
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.utils.counted import counted_init
-from ufl.log import error
-from ufl.core.expr import Expr
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal
-from ufl.core.operator import Operator
-from ufl.constantvalue import as_ufl
+from ufl_legacy.utils.counted import counted_init
+from ufl_legacy.log import error
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.terminal import Terminal
+from ufl_legacy.core.operator import Operator
+from ufl_legacy.constantvalue import as_ufl
 
 
 @ufl_type()

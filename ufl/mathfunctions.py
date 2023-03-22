@@ -14,10 +14,10 @@ import math
 import cmath
 import numbers
 
-from ufl.log import warning, error
-from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
+from ufl_legacy.log import warning, error
+from ufl_legacy.core.operator import Operator
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):

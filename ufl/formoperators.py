@@ -11,32 +11,32 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.log import error
-from ufl.form import Form, as_form
-from ufl.core.expr import Expr, ufl_err_str
-from ufl.split_functions import split
-from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.variable import Variable
-from ufl.finiteelement import MixedElement
-from ufl.argument import Argument
-from ufl.coefficient import Coefficient
-from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
-from ufl.constantvalue import is_true_ufl_scalar, as_ufl
-from ufl.indexed import Indexed
-from ufl.core.multiindex import FixedIndex, MultiIndex
-from ufl.tensors import as_tensor, ListTensor
-from ufl.sorting import sorted_expr
-from ufl.functionspace import FunctionSpace
-from ufl.geometry import SpatialCoordinate
+from ufl_legacy.log import error
+from ufl_legacy.form import Form, as_form
+from ufl_legacy.core.expr import Expr, ufl_err_str
+from ufl_legacy.split_functions import split
+from ufl_legacy.exprcontainers import ExprList, ExprMapping
+from ufl_legacy.variable import Variable
+from ufl_legacy.finiteelement import MixedElement
+from ufl_legacy.argument import Argument
+from ufl_legacy.coefficient import Coefficient
+from ufl_legacy.differentiation import CoefficientDerivative, CoordinateDerivative
+from ufl_legacy.constantvalue import is_true_ufl_scalar, as_ufl
+from ufl_legacy.indexed import Indexed
+from ufl_legacy.core.multiindex import FixedIndex, MultiIndex
+from ufl_legacy.tensors import as_tensor, ListTensor
+from ufl_legacy.sorting import sorted_expr
+from ufl_legacy.functionspace import FunctionSpace
+from ufl_legacy.geometry import SpatialCoordinate
 
-# An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import compute_form_adjoint, compute_form_action
-from ufl.algorithms import compute_energy_norm
-from ufl.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
-from ufl.algorithms import expand_derivatives, extract_arguments
+# An exception to the rule that ufl_legacy.* does not depend on ufl_legacy.algorithms.* ...
+from ufl_legacy.algorithms import compute_form_adjoint, compute_form_action
+from ufl_legacy.algorithms import compute_energy_norm
+from ufl_legacy.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
+from ufl_legacy.algorithms import expand_derivatives, extract_arguments
 
 # Part of the external interface
-from ufl.algorithms import replace  # noqa
+from ufl_legacy.algorithms import replace  # noqa
 
 
 def extract_blocks(form, i=None, j=None):
@@ -51,7 +51,7 @@ def extract_blocks(form, i=None, j=None):
        extract_blocks(a) -> [inner(grad(u), grad(v))*dx, div(v)*p*dx, div(u)*q*dx, 0]
 
     """
-    return ufl.algorithms.formsplitter.extract_blocks(form, i, j)
+    return ufl_legacy.algorithms.formsplitter.extract_blocks(form, i, j)
 
 
 def lhs(form):
@@ -368,5 +368,5 @@ def sensitivity_rhs(a, u, L, v):
         error("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
     if not is_true_ufl_scalar(v):
         error("Expecting scalar variable.")
-    from ufl.operators import diff
+    from ufl_legacy.operators import diff
     return diff(L, v) - action(diff(a, v), u)

@@ -3,11 +3,11 @@
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
-# This file is part of UFL (https://www.fenicsproject.org)
+# This file is part of ufl_legacy (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import warning
+from ufl_legacy.log import warning
 
 
 # FIXME: This code is crap...
@@ -40,7 +40,7 @@ def parstr(child, parent, pre="(", post=")", format=str):
 
 
 def build_precedence_list():
-    from ufl.classes import Operator, Terminal, Sum, IndexSum, Product, Division, Power, MathFunction, BesselFunction, Abs, Indexed
+    from ufl_legacy.classes import Operator, Terminal, Sum, IndexSum, Product, Division, Power, MathFunction, BesselFunction, Abs, Indexed
 
     # TODO: Fill in other types...
     # Power <= Transposed
@@ -71,7 +71,7 @@ def build_precedence_mapping(precedence_list):
     """Given a precedence list, build a dict with class->int mappings.
     Utility function used by some external code.
     """
-    from ufl.classes import Expr, all_ufl_classes, abstract_classes
+    from ufl_legacy.classes import Expr, all_ufl_classes, abstract_classes
     pm = {}
     missing = set()
     # Assign integer values for each precedence level
@@ -107,7 +107,7 @@ def assign_precedences(precedence_list):
 
 """
 # Code from uflacs:
-import ufl
+import ufl_legacy as ufl
 
 def build_precedence_list():
     "Builds a list of operator types by precedence order in the C language."

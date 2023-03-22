@@ -12,13 +12,13 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
-from ufl.utils.formatting import istr
-from ufl.cell import as_cell
+from ufl_legacy.log import error
+from ufl_legacy.utils.formatting import istr
+from ufl_legacy.cell import as_cell
 
-from ufl.cell import TensorProductCell
-from ufl.finiteelement.elementlist import canonical_element_description, simplices
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl_legacy.cell import TensorProductCell
+from ufl_legacy.finiteelement.elementlist import canonical_element_description, simplices
+from ufl_legacy.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class FiniteElement(FiniteElementBase):
@@ -43,9 +43,9 @@ class FiniteElement(FiniteElementBase):
 
         if isinstance(cell, TensorProductCell):
             # Delay import to avoid circular dependency at module load time
-            from ufl.finiteelement.tensorproductelement import TensorProductElement
-            from ufl.finiteelement.enrichedelement import EnrichedElement
-            from ufl.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
+            from ufl_legacy.finiteelement.tensorproductelement import TensorProductElement
+            from ufl_legacy.finiteelement.enrichedelement import EnrichedElement
+            from ufl_legacy.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
 
             family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
                 canonical_element_description(family, cell, degree, form_degree)
@@ -162,7 +162,7 @@ class FiniteElement(FiniteElementBase):
         # Finite elements on quadrilaterals and hexahedrons have an IrreducibleInt as degree
         if cell is not None:
             if cell.cellname() in ["quadrilateral", "hexahedron"]:
-                from ufl.algorithms.estimate_degrees import IrreducibleInt
+                from ufl_legacy.algorithms.estimate_degrees import IrreducibleInt
                 degree = IrreducibleInt(degree)
 
         # Type check variant

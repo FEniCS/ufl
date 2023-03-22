@@ -8,13 +8,13 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
-from ufl.log import error
-from ufl.core.ufl_type import ufl_type
-from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.operator import Operator
-from ufl.core.multiindex import MultiIndex
-from ufl.precedence import parstr
-from ufl.constantvalue import Zero
+from ufl_legacy.log import error
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.expr import Expr, ufl_err_str
+from ufl_legacy.core.operator import Operator
+from ufl_legacy.core.multiindex import MultiIndex
+from ufl_legacy.precedence import parstr
+from ufl_legacy.constantvalue import Zero
 
 
 # --- Sum over an index ---

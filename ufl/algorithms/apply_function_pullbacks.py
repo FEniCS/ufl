@@ -11,17 +11,17 @@
 
 from itertools import chain, accumulate, repeat
 
-from ufl.log import error
+from ufl_legacy.log import error
 
-from ufl.core.multiindex import indices
-from ufl.corealg.multifunction import MultiFunction, memoized_handler
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl_legacy.core.multiindex import indices
+from ufl_legacy.corealg.multifunction import MultiFunction, memoized_handler
+from ufl_legacy.algorithms.map_integrands import map_integrand_dags
 
-from ufl.classes import (ReferenceValue,
+from ufl_legacy.classes import (ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant)
 
-from ufl.tensors import as_tensor, as_vector
-from ufl.utils.sequences import product
+from ufl_legacy.tensors import as_tensor, as_vector
+from ufl_legacy.utils.sequences import product
 import numpy
 
 

@@ -16,12 +16,12 @@
 import numbers
 import functools
 
-import ufl.cell
-from ufl.log import error
-from ufl.core.ufl_type import attach_operators_from_hash_data
+import ufl_legacy.cell
+from ufl_legacy.log import error
+from ufl_legacy.core.ufl_type import attach_operators_from_hash_data
 
 
-# Export list for ufl.classes
+# Export list for ufl_legacy.classes
 __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 
@@ -157,7 +157,7 @@ class Cell(AbstractCell):
     # --- Facet properties ---
 
     def facet_types(self):
-        "A tuple of ufl.Cell representing the facets of self."
+        "A tuple of ufl_legacy.Cell representing the facets of self."
         # TODO Move outside method?
         facet_type_names = {"interval": ("vertex",),
                             "triangle": ("interval",),
@@ -165,7 +165,7 @@ class Cell(AbstractCell):
                             "tetrahedron": ("triangle",),
                             "hexahedron": ("quadrilateral",),
                             "prism": ("triangle", "quadrilateral")}
-        return tuple(ufl.Cell(facet_name, self.geometric_dimension())
+        return tuple(ufl_legacy.Cell(facet_name, self.geometric_dimension())
                      for facet_name in facet_type_names[self.cellname()])
 
     # --- Special functions for proper object behaviour ---

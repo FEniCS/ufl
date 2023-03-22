@@ -14,11 +14,11 @@ is more robust w.r.t. argument numbering than using repr."""
 
 from functools import cmp_to_key
 
-from ufl.core.expr import Expr
-from ufl.argument import Argument
-from ufl.coefficient import Coefficient
-from ufl.core.multiindex import FixedIndex, MultiIndex
-from ufl.variable import Label
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.argument import Argument
+from ufl_legacy.coefficient import Coefficient
+from ufl_legacy.core.multiindex import FixedIndex, MultiIndex
+from ufl_legacy.variable import Label
 
 
 def _cmp_multi_index(a, b):

@@ -10,14 +10,14 @@
 # Modified by Anders Logg, 2008-2009
 # Modified by Massimiliano Leoni, 2016.
 
-import ufl
-from ufl.log import error
-from ufl.core.expr import Expr
-from ufl.checks import is_python_scalar, is_scalar_constant_expression
-from ufl.measure import Measure  # noqa
-from ufl.protocols import id_or_none
+import ufl_legacy as ufl
+from ufl_legacy.log import error
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.checks import is_python_scalar, is_scalar_constant_expression
+from ufl_legacy.measure import Measure  # noqa
+from ufl_legacy.protocols import id_or_none
 
-# Export list for ufl.classes
+# Export list for ufl_legacy.classes
 __all_classes__ = ["Integral"]
 
 

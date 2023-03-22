@@ -12,14 +12,14 @@ of related classes, including Constant."""
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 
-from ufl.log import error
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import FormArgument
-from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
-from ufl.split_functions import split
-from ufl.utils.counted import counted_init
+from ufl_legacy.log import error
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.terminal import FormArgument
+from ufl_legacy.finiteelement import FiniteElementBase
+from ufl_legacy.domain import default_domain
+from ufl_legacy.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl_legacy.split_functions import split
+from ufl_legacy.utils.counted import counted_init
 
 # --- The Coefficient class represents a coefficient in a form ---
 

@@ -59,11 +59,11 @@ def dict_sum(items):
 
 class EmptyDictType(dict):
     def __setitem__(self, key, value):
-        from ufl.log import error
+        from ufl_legacy.log import error
         error("This is a frozen unique empty dictionary object, inserting values is an error.")
 
     def update(self, *args, **kwargs):
-        from ufl.log import error
+        from ufl_legacy.log import error
         error("This is a frozen unique empty dictionary object, inserting values is an error.")
 
 

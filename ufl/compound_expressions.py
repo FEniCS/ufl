@@ -9,11 +9,11 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.log import error
-from ufl.core.multiindex import indices, Index
-from ufl.tensors import as_tensor, as_matrix, as_vector
-from ufl.operators import sqrt
-from ufl.constantvalue import Zero, zero
+from ufl_legacy.log import error
+from ufl_legacy.core.multiindex import indices, Index
+from ufl_legacy.tensors import as_tensor, as_matrix, as_vector
+from ufl_legacy.operators import sqrt
+from ufl_legacy.constantvalue import Zero, zero
 
 
 # Note: To avoid typing errors, the expressions for cofactor and

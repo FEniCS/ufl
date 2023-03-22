@@ -7,7 +7,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import warning
+from ufl_legacy.log import warning
 
 
 def topological_sorting(nodes, edges):

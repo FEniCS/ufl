@@ -9,38 +9,38 @@
 
 from collections import defaultdict
 
-from ufl.log import error, warning
+from ufl_legacy.log import error, warning
 
-from ufl.core.expr import ufl_err_str
-from ufl.core.terminal import Terminal
-from ufl.core.multiindex import MultiIndex, FixedIndex, indices
+from ufl_legacy.core.expr import ufl_err_str
+from ufl_legacy.core.terminal import Terminal
+from ufl_legacy.core.multiindex import MultiIndex, FixedIndex, indices
 
-from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
+from ufl_legacy.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
 
-from ufl.classes import ConstantValue, Identity, Zero, FloatValue
-from ufl.classes import Coefficient, FormArgument, ReferenceValue
-from ufl.classes import Grad, ReferenceGrad, Variable
-from ufl.classes import Indexed, ListTensor, ComponentTensor
-from ufl.classes import ExprList, ExprMapping
-from ufl.classes import Product, Sum, IndexSum
-from ufl.classes import Conj, Real, Imag
-from ufl.classes import JacobianInverse
-from ufl.classes import SpatialCoordinate
+from ufl_legacy.classes import ConstantValue, Identity, Zero, FloatValue
+from ufl_legacy.classes import Coefficient, FormArgument, ReferenceValue
+from ufl_legacy.classes import Grad, ReferenceGrad, Variable
+from ufl_legacy.classes import Indexed, ListTensor, ComponentTensor
+from ufl_legacy.classes import ExprList, ExprMapping
+from ufl_legacy.classes import Product, Sum, IndexSum
+from ufl_legacy.classes import Conj, Real, Imag
+from ufl_legacy.classes import JacobianInverse
+from ufl_legacy.classes import SpatialCoordinate
 
-from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
-from ufl.operators import (conditional, sign,
+from ufl_legacy.constantvalue import is_true_ufl_scalar, is_ufl_scalar
+from ufl_legacy.operators import (conditional, sign,
                            sqrt, exp, ln, cos, sin, cosh, sinh,
                            bessel_J, bessel_Y, bessel_I, bessel_K,
                            cell_avg, facet_avg)
 
 from math import pi
 
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl_legacy.corealg.multifunction import MultiFunction
+from ufl_legacy.corealg.map_dag import map_expr_dag
+from ufl_legacy.algorithms.map_integrands import map_integrand_dags
 
-from ufl.checks import is_cellwise_constant
-from ufl.differentiation import CoordinateDerivative
+from ufl_legacy.checks import is_cellwise_constant
+from ufl_legacy.differentiation import CoordinateDerivative
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset
@@ -1251,7 +1251,7 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
         return o
 
     def coordinate_derivative(self, o, f, w, v, cd):
-        from ufl.algorithms import extract_unique_elements
+        from ufl_legacy.algorithms import extract_unique_elements
         spaces = set(c.family() for c in extract_unique_elements(o))
         unsupported_spaces = {"Argyris", "Bell", "Hermite", "Morley"}
         if spaces & unsupported_spaces:

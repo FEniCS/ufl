@@ -13,14 +13,14 @@
 import io
 import os
 import re
-from ufl.log import error, warning
-from ufl.utils.sorting import sorted_by_key
-from ufl.form import Form
-from ufl.finiteelement import FiniteElementBase
-from ufl.core.expr import Expr
-from ufl.constant import Constant
-from ufl.argument import Argument
-from ufl.coefficient import Coefficient
+from ufl_legacy.log import error, warning
+from ufl_legacy.utils.sorting import sorted_by_key
+from ufl_legacy.form import Form
+from ufl_legacy.finiteelement import FiniteElementBase
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.constant import Constant
+from ufl_legacy.argument import Argument
+from ufl_legacy.coefficient import Coefficient
 
 
 class FileData(object):

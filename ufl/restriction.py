@@ -7,9 +7,9 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.core.operator import Operator
-from ufl.precedence import parstr
-from ufl.core.ufl_type import ufl_type
+from ufl_legacy.core.operator import Operator
+from ufl_legacy.precedence import parstr
+from ufl_legacy.core.ufl_type import ufl_type
 
 
 # --- Restriction operators ---

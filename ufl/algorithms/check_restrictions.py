@@ -7,9 +7,9 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
+from ufl_legacy.log import error
+from ufl_legacy.corealg.multifunction import MultiFunction
+from ufl_legacy.corealg.map_dag import map_expr_dag
 
 
 class RestrictionChecker(MultiFunction):

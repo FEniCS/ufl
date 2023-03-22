@@ -9,10 +9,10 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.log import error
-from ufl.core.expr import Expr
-from ufl.integral import Integral
-from ufl.form import Form
+from ufl_legacy.log import error
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.integral import Integral
+from ufl_legacy.form import Form
 
 
 # --- Traversal utilities ---

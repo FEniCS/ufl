@@ -8,11 +8,11 @@ coordinate derivatives at the right time point in compute_form_data."""
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
-from ufl.differentiation import CoordinateDerivative
-from ufl.algorithms.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dags
-from ufl.classes import Integral
+from ufl_legacy.log import error
+from ufl_legacy.differentiation import CoordinateDerivative
+from ufl_legacy.algorithms.multifunction import MultiFunction
+from ufl_legacy.corealg.map_dag import map_expr_dags
+from ufl_legacy.classes import Integral
 
 
 class CoordinateDerivativeIsOutermostChecker(MultiFunction):

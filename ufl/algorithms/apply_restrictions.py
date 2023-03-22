@@ -8,12 +8,12 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
-from ufl.log import error
-from ufl.classes import Restricted
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.measure import integral_type_to_measure_name
+from ufl_legacy.log import error
+from ufl_legacy.classes import Restricted
+from ufl_legacy.corealg.multifunction import MultiFunction
+from ufl_legacy.corealg.map_dag import map_expr_dag
+from ufl_legacy.algorithms.map_integrands import map_integrand_dags
+from ufl_legacy.measure import integral_type_to_measure_name
 
 
 class RestrictionPropagator(MultiFunction):

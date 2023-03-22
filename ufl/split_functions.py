@@ -9,13 +9,13 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.log import error
-from ufl.utils.sequences import product
-from ufl.finiteelement import MixedElement, TensorElement
-from ufl.tensors import as_vector, as_matrix, ListTensor
-from ufl.indexed import Indexed
-from ufl.permutation import compute_indices
-from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides
+from ufl_legacy.log import error
+from ufl_legacy.utils.sequences import product
+from ufl_legacy.finiteelement import MixedElement, TensorElement
+from ufl_legacy.tensors import as_vector, as_matrix, ListTensor
+from ufl_legacy.indexed import Indexed
+from ufl_legacy.permutation import compute_indices
+from ufl_legacy.utils.indexflattening import flatten_multiindex, shape_to_strides
 
 
 def split(v):

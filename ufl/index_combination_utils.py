@@ -8,8 +8,8 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
-from ufl.log import error
-from ufl.core.multiindex import FixedIndex, Index, indices
+from ufl_legacy.log import error
+from ufl_legacy.core.multiindex import FixedIndex, Index, indices
 
 
 # FIXME: Some of these might be merged into one function, some might

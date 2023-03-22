@@ -11,19 +11,19 @@ with it.
 
 * To import the language, type::
 
-    from ufl import *
+    from ufl_legacy import *
 
 * To import the underlying classes an UFL expression tree is built
   from, type
   ::
 
-    from ufl.classes import *
+    from ufl_legacy.classes import *
 
 * Various algorithms for working with UFL expression trees can be
   accessed by
   ::
 
-    from ufl.algorithms import *
+    from ufl_legacy.algorithms import *
 
 Classes and algorithms are considered implementation details and
 should not be used in form definitions.
@@ -245,7 +245,7 @@ import pkg_resources
 __version__ = pkg_resources.get_distribution("fenics-ufl").version
 
 # README
-# Imports here should be what the user sees when doing "from ufl import *",
+# Imports here should be what the user sees when doing "from ufl_legacy import *",
 # which means we should _not_ import f.ex. "Grad", but "grad".
 # This way we expose the language, the operation "grad", but less
 # of the implementation, the particular class "Grad".
@@ -253,17 +253,17 @@ __version__ = pkg_resources.get_distribution("fenics-ufl").version
 
 # Utility functions (product is the counterpart of the built-in
 # python function sum, can be useful for users as well?)
-from ufl.utils.sequences import product
+from ufl_legacy.utils.sequences import product
 
 # Output control
-from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
+from ufl_legacy.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
 
-from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell
-from ufl.domain import as_domain, AbstractDomain, Mesh, MeshView, TensorProductMesh
-from ufl.geometry import (
+from ufl_legacy.cell import as_cell, AbstractCell, Cell, TensorProductCell
+from ufl_legacy.domain import as_domain, AbstractDomain, Mesh, MeshView, TensorProductMesh
+from ufl_legacy.geometry import (
     SpatialCoordinate,
     FacetNormal, CellNormal,
     CellVolume, CellDiameter, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
@@ -272,48 +272,48 @@ from ufl.geometry import (
 )
 
 # Sobolev spaces
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
+from ufl_legacy.sobolevspace import L2, H1, H2, HDiv, HCurl
 
 # Finite elements classes
-from ufl.finiteelement import FiniteElementBase, FiniteElement, \
+from ufl_legacy.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     NodalEnrichedElement, RestrictedElement, TensorProductElement, \
     HDivElement, HCurlElement, BrokenElement, \
     FacetElement, InteriorElement, WithMapping
 
 # Hook to extend predefined element families
-from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
+from ufl_legacy.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
 
 # Function spaces
-from ufl.functionspace import FunctionSpace, MixedFunctionSpace
+from ufl_legacy.functionspace import FunctionSpace, MixedFunctionSpace
 
 # Arguments
-from ufl.argument import Argument, TestFunction, TrialFunction, \
+from ufl_legacy.argument import Argument, TestFunction, TrialFunction, \
     Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
-from ufl.coefficient import Coefficient, Coefficients
-from ufl.constant import Constant, VectorConstant, TensorConstant
+from ufl_legacy.coefficient import Coefficient, Coefficients
+from ufl_legacy.constant import Constant, VectorConstant, TensorConstant
 
 # Split function
-from ufl.split_functions import split
+from ufl_legacy.split_functions import split
 
 # Literal constants
-from ufl.constantvalue import PermutationSymbol, Identity, zero, as_ufl
+from ufl_legacy.constantvalue import PermutationSymbol, Identity, zero, as_ufl
 
 # Indexing of tensor expressions
-from ufl.core.multiindex import Index, indices
+from ufl_legacy.core.multiindex import Index, indices
 
 # Special functions for expression base classes
 # (ensure this is imported, since it attaches operators to Expr)
-import ufl.exproperators as __exproperators
+import ufl_legacy.exproperators as __exproperators
 
 # Containers for expressions with value rank > 0
-from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
-from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
+from ufl_legacy.tensors import as_tensor, as_vector, as_matrix, relabel
+from ufl_legacy.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
-from ufl.operators import rank, shape, \
+from ufl_legacy.operators import rank, shape, \
     conj, real, imag, \
     outer, inner, dot, cross, perp, \
     det, inv, cofac, \
@@ -332,24 +332,24 @@ from ufl.operators import rank, shape, \
     elem_mult, elem_div, elem_pow, elem_op
 
 # Measure classes
-from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
+from ufl_legacy.measure import Measure, register_integral_type, integral_types, custom_integral_types
 
 # Form class
-from ufl.form import Form, replace_integral_domains
+from ufl_legacy.form import Form, replace_integral_domains
 
 # Integral classes
-from ufl.integral import Integral
+from ufl_legacy.integral import Integral
 
 # Special functions for Measure class
 # (ensure this is imported, since it attaches operators to Measure)
-import ufl.measureoperators as __measureoperators
+import ufl_legacy.measureoperators as __measureoperators
 
 # Representations of transformed forms
-from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
+from ufl_legacy.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
 system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functional
 
 # Predefined convenience objects
-from ufl.objects import (
+from ufl_legacy.objects import (
     vertex, interval, triangle, tetrahedron,
     quadrilateral, hexahedron, prism, pyramid, facet,
     i, j, k, l, p, q, r, s,
@@ -362,7 +362,7 @@ from ufl.objects import (
 from math import e, pi
 
 
-# Define ufl.* namespace
+# Define ufl_legacy.* namespace
 __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',

@@ -11,8 +11,8 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.log import error
+from ufl_legacy.finiteelement.finiteelementbase import FiniteElementBase
+from ufl_legacy.log import error
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 

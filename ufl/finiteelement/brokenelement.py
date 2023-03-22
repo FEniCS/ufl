@@ -7,7 +7,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl_legacy.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class BrokenElement(FiniteElementBase):

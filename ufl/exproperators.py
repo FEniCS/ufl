@@ -14,25 +14,25 @@ Sum and its superclass Expr."""
 from itertools import chain
 import numbers
 
-from ufl.log import error
-from ufl.utils.stacks import StackDict
-from ufl.core.expr import Expr
-from ufl.constantvalue import Zero, as_ufl
-from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Transposed, Inner
-from ufl.core.multiindex import MultiIndex, Index, FixedIndex, IndexBase, indices
-from ufl.indexed import Indexed
-from ufl.indexsum import IndexSum
-from ufl.tensors import as_tensor, ComponentTensor
-from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import Grad
-from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
+from ufl_legacy.log import error
+from ufl_legacy.utils.stacks import StackDict
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.constantvalue import Zero, as_ufl
+from ufl_legacy.algebra import Sum, Product, Division, Power, Abs
+from ufl_legacy.tensoralgebra import Transposed, Inner
+from ufl_legacy.core.multiindex import MultiIndex, Index, FixedIndex, IndexBase, indices
+from ufl_legacy.indexed import Indexed
+from ufl_legacy.indexsum import IndexSum
+from ufl_legacy.tensors import as_tensor, ComponentTensor
+from ufl_legacy.restriction import PositiveRestricted, NegativeRestricted
+from ufl_legacy.differentiation import Grad
+from ufl_legacy.index_combination_utils import create_slice_indices, merge_overlapping_indices
 
-from ufl.exprequals import expr_equals
+from ufl_legacy.exprequals import expr_equals
 
 # --- Boolean operators ---
 
-from ufl.conditional import LE, GE, LT, GT
+from ufl_legacy.conditional import LE, GE, LT, GT
 
 
 def _le(left, right):
@@ -310,7 +310,7 @@ def _eval(self, coord, mapping=None, component=()):
     # values for other terminals in mapping
 
     # Evaluate derivatives first
-    from ufl.algorithms import expand_derivatives
+    from ufl_legacy.algorithms import expand_derivatives
     f = expand_derivatives(self)
 
     # Evaluate recursively

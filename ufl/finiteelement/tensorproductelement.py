@@ -13,11 +13,11 @@
 
 from itertools import chain
 
-from ufl.log import error
-from ufl.cell import TensorProductCell, as_cell
-from ufl.sobolevspace import DirectionalSobolevSpace
+from ufl_legacy.log import error
+from ufl_legacy.cell import TensorProductCell, as_cell
+from ufl_legacy.sobolevspace import DirectionalSobolevSpace
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl_legacy.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class TensorProductElement(FiniteElementBase):

@@ -2,8 +2,8 @@
 
 from collections import defaultdict
 
-from ufl.core.expr import Expr
-from ufl.log import error
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.log import error
 
 hash_total = defaultdict(int)
 hash_collisions = defaultdict(int)

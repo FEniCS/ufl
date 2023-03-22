@@ -12,14 +12,14 @@
 
 from math import atan2
 
-from ufl.log import error, UFLValueError
-from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
-from ufl.core.multiindex import Index, FixedIndex
-from ufl.core.ufl_type import ufl_type
+from ufl_legacy.log import error, UFLValueError
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.core.terminal import Terminal
+from ufl_legacy.core.multiindex import Index, FixedIndex
+from ufl_legacy.core.ufl_type import ufl_type
 
 # --- Helper functions imported here for compatibility---
-from ufl.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar  # noqa: F401
+from ufl_legacy.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar  # noqa: F401
 
 
 # Precision for float formatting

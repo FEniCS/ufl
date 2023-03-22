@@ -8,15 +8,15 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 # NOTE: Placing this under algorithms/ because I want corealg/ to stay clean
-# as part of a careful refactoring process, and this file depends on ufl.form
+# as part of a careful refactoring process, and this file depends on ufl_legacy.form
 # which drags in a lot of stuff.
 
-from ufl.log import error
-from ufl.core.expr import Expr
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.integral import Integral
-from ufl.form import Form
-from ufl.constantvalue import Zero
+from ufl_legacy.log import error
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.corealg.map_dag import map_expr_dag
+from ufl_legacy.integral import Integral
+from ufl_legacy.form import Form
+from ufl_legacy.constantvalue import Zero
 
 
 def map_integrands(function, form, only_integral_type=None):

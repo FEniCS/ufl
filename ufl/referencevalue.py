@@ -7,10 +7,10 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.core.ufl_type import ufl_type
-from ufl.core.operator import Operator
-from ufl.core.terminal import FormArgument
-from ufl.log import error
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.operator import Operator
+from ufl_legacy.core.terminal import FormArgument
+from ufl_legacy.log import error
 
 
 @ufl_type(num_ops=1,

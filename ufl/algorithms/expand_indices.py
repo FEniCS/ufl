@@ -11,14 +11,14 @@ indices only."""
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.log import error
-from ufl.utils.stacks import Stack, StackDict
-from ufl.classes import Terminal, ListTensor
-from ufl.constantvalue import Zero
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex
-from ufl.differentiation import Grad
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.corealg.traversal import unique_pre_traversal
+from ufl_legacy.log import error
+from ufl_legacy.utils.stacks import Stack, StackDict
+from ufl_legacy.classes import Terminal, ListTensor
+from ufl_legacy.constantvalue import Zero
+from ufl_legacy.core.multiindex import Index, FixedIndex, MultiIndex
+from ufl_legacy.differentiation import Grad
+from ufl_legacy.algorithms.transformer import ReuseTransformer, apply_transformer
+from ufl_legacy.corealg.traversal import unique_pre_traversal
 
 
 class IndexExpander(ReuseTransformer):

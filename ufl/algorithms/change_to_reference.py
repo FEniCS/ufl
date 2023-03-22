@@ -7,26 +7,26 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
+from ufl_legacy.log import error
 
-from ufl.core.multiindex import indices
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
+from ufl_legacy.core.multiindex import indices
+from ufl_legacy.corealg.multifunction import MultiFunction
+from ufl_legacy.corealg.map_dag import map_expr_dag
 
-from ufl.classes import (FormArgument, GeometricQuantity,
+from ufl_legacy.classes import (FormArgument, GeometricQuantity,
                          Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          Indexed, MultiIndex, FixedIndex)
 
-from ufl.constantvalue import as_ufl
-from ufl.tensors import as_tensor
-from ufl.permutation import compute_indices
+from ufl_legacy.constantvalue import as_ufl
+from ufl_legacy.tensors import as_tensor
+from ufl_legacy.permutation import compute_indices
 
-from ufl.finiteelement import MixedElement
+from ufl_legacy.finiteelement import MixedElement
 
-from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
-from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
-from ufl.checks import is_cellwise_constant
+from ufl_legacy.algorithms.apply_function_pullbacks import apply_function_pullbacks
+from ufl_legacy.algorithms.apply_geometry_lowering import apply_geometry_lowering
+from ufl_legacy.checks import is_cellwise_constant
 
 
 """

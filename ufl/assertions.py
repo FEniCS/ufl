@@ -7,11 +7,11 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
+from ufl_legacy.log import error
 
 
 # TODO: Move to this file and make other files import from here
-from ufl.core.expr import ufl_err_str
+from ufl_legacy.core.expr import ufl_err_str
 
 
 # TODO: Use these and add more

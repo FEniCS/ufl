@@ -9,14 +9,14 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-from ufl.log import error
-from ufl.core.ufl_type import ufl_type
-from ufl.core.expr import Expr
-from ufl.core.operator import Operator
-from ufl.constantvalue import as_ufl, Zero
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex, indices
-from ufl.indexed import Indexed
-from ufl.index_combination_utils import remove_indices
+from ufl_legacy.log import error
+from ufl_legacy.core.ufl_type import ufl_type
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.core.operator import Operator
+from ufl_legacy.constantvalue import as_ufl, Zero
+from ufl_legacy.core.multiindex import Index, FixedIndex, MultiIndex, indices
+from ufl_legacy.indexed import Indexed
+from ufl_legacy.index_combination_utils import remove_indices
 
 
 # --- Classes representing tensors of UFL expressions ---
@@ -384,8 +384,8 @@ def unit_matrices(d):
 
 def dyad(d, *iota):
     "TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose."
-    from ufl.constantvalue import Identity
-    from ufl.operators import outer  # a bit of circular dependency issue here
+    from ufl_legacy.constantvalue import Identity
+    from ufl_legacy.operators import outer  # a bit of circular dependency issue here
     Id = Identity(d)
     i = iota[0]
     e = as_vector(Id[i, :], i)
@@ -395,8 +395,8 @@ def dyad(d, *iota):
 
 
 def unit_indexed_tensor(shape, component):
-    from ufl.constantvalue import Identity
-    from ufl.operators import outer  # a bit of circular dependency issue here
+    from ufl_legacy.constantvalue import Identity
+    from ufl_legacy.operators import outer  # a bit of circular dependency issue here
     r = len(shape)
     if r == 0:
         return 0, ()

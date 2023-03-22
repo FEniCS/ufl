@@ -12,15 +12,15 @@
 
 from itertools import chain
 
-from ufl.log import error
-from ufl.utils.sorting import sorted_by_count, topological_sorting
+from ufl_legacy.log import error
+from ufl_legacy.utils.sorting import sorted_by_count, topological_sorting
 
-from ufl.core.terminal import Terminal, FormArgument
-from ufl.argument import Argument
-from ufl.coefficient import Coefficient
-from ufl.constant import Constant
-from ufl.algorithms.traversal import iter_expressions
-from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
+from ufl_legacy.core.terminal import Terminal, FormArgument
+from ufl_legacy.argument import Argument
+from ufl_legacy.coefficient import Coefficient
+from ufl_legacy.constant import Constant
+from ufl_legacy.algorithms.traversal import iter_expressions
+from ufl_legacy.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
 
 
 # TODO: Some of these can possibly be optimised by implementing

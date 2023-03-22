@@ -9,8 +9,8 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.core.expr import Expr
-from ufl.core.ufl_type import ufl_type
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.core.ufl_type import ufl_type
 
 
 # --- Base class for operator objects ---

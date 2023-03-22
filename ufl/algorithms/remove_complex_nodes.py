@@ -2,10 +2,10 @@
 """Algorithm for removing conj, real, and imag nodes
 from a form for when the user is in 'real mode'"""
 
-from ufl.corealg.multifunction import MultiFunction
-from ufl.constantvalue import ComplexValue
-from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.log import error
+from ufl_legacy.corealg.multifunction import MultiFunction
+from ufl_legacy.constantvalue import ComplexValue
+from ufl_legacy.algorithms.map_integrands import map_integrand_dags
+from ufl_legacy.log import error
 
 
 class ComplexNodeRemoval(MultiFunction):

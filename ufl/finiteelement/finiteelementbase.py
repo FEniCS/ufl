@@ -11,10 +11,10 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.sequences import product
-from ufl.utils.dicts import EmptyDict
-from ufl.log import error
-from ufl.cell import AbstractCell, as_cell
+from ufl_legacy.utils.sequences import product
+from ufl_legacy.utils.dicts import EmptyDict
+from ufl_legacy.log import error
+from ufl_legacy.cell import AbstractCell, as_cell
 
 
 class FiniteElementBase(object):
@@ -197,19 +197,19 @@ class FiniteElementBase(object):
         "Add two elements, creating an enriched element"
         if not isinstance(other, FiniteElementBase):
             error("Can't add element and %s." % other.__class__)
-        from ufl.finiteelement import EnrichedElement
+        from ufl_legacy.finiteelement import EnrichedElement
         return EnrichedElement(self, other)
 
     def __mul__(self, other):
         "Multiply two elements, creating a mixed element"
         if not isinstance(other, FiniteElementBase):
             error("Can't multiply element and %s." % other.__class__)
-        from ufl.finiteelement import MixedElement
+        from ufl_legacy.finiteelement import MixedElement
         return MixedElement(self, other)
 
     def __getitem__(self, index):
         "Restrict finite element to a subdomain, subcomponent or topology (cell)."
         if index in ("facet", "interior"):
-            from ufl.finiteelement import RestrictedElement
+            from ufl_legacy.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
         return NotImplemented

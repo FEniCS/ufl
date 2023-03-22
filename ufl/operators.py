@@ -15,27 +15,27 @@ objects."""
 
 import operator
 
-from ufl.log import error, warning
-from ufl.form import Form
-from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
-from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
-from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
+from ufl_legacy.log import error, warning
+from ufl_legacy.form import Form
+from ufl_legacy.constantvalue import Zero, RealValue, ComplexValue, as_ufl
+from ufl_legacy.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
+from ufl_legacy.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
     Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
-from ufl.coefficient import Coefficient
-from ufl.variable import Variable
-from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
-from ufl.conditional import EQ, NE, \
+from ufl_legacy.coefficient import Coefficient
+from ufl_legacy.variable import Variable
+from ufl_legacy.tensors import as_tensor, as_matrix, as_vector, ListTensor
+from ufl_legacy.conditional import EQ, NE, \
     AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue
-from ufl.algebra import Conj, Real, Imag
-from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
+from ufl_legacy.algebra import Conj, Real, Imag
+from ufl_legacy.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
     BesselJ, BesselY, BesselI, BesselK
-from ufl.averaging import CellAvg, FacetAvg
-from ufl.core.multiindex import indices
-from ufl.indexed import Indexed
-from ufl.geometry import SpatialCoordinate, FacetNormal
-from ufl.checks import is_cellwise_constant
-from ufl.domain import extract_domains
+from ufl_legacy.averaging import CellAvg, FacetAvg
+from ufl_legacy.core.multiindex import indices
+from ufl_legacy.indexed import Indexed
+from ufl_legacy.geometry import SpatialCoordinate, FacetNormal
+from ufl_legacy.checks import is_cellwise_constant
+from ufl_legacy.domain import extract_domains
 
 # --- Basic operators ---
 
@@ -337,7 +337,7 @@ def diff(f, v):
     """
     # Apply to integrands
     if isinstance(f, Form):
-        from ufl.algorithms.map_integrands import map_integrands
+        from ufl_legacy.algorithms.map_integrands import map_integrands
         return map_integrands(lambda e: diff(e, v), f)
 
     # Apply to expression

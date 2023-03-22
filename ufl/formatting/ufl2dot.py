@@ -9,11 +9,11 @@ mostly intended for debugging purposers."""
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
-from ufl.core.expr import Expr
-from ufl.form import Form
-from ufl.variable import Variable
-from ufl.algorithms.multifunction import MultiFunction
+from ufl_legacy.log import error
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.form import Form
+from ufl_legacy.variable import Variable
+from ufl_legacy.algorithms.multifunction import MultiFunction
 
 
 class ReprLabeller(MultiFunction):

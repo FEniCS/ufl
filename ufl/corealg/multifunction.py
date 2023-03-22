@@ -11,8 +11,8 @@
 
 import inspect
 
-from ufl.log import error
-from ufl.core.expr import Expr
+from ufl_legacy.log import error
+from ufl_legacy.core.expr import Expr
 
 
 def get_num_args(function):

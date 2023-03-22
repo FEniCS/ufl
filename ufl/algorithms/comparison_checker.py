@@ -2,12 +2,12 @@
 """Algorithm to check for 'comparison' nodes
 in a form when the user is in 'complex mode'"""
 
-from ufl.corealg.multifunction import MultiFunction
-from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.algebra import Real
-from ufl.constantvalue import RealValue, Zero
-from ufl.argument import Argument
-from ufl.geometry import GeometricQuantity
+from ufl_legacy.corealg.multifunction import MultiFunction
+from ufl_legacy.algorithms.map_integrands import map_integrand_dags
+from ufl_legacy.algebra import Real
+from ufl_legacy.constantvalue import RealValue, Zero
+from ufl_legacy.argument import Argument
+from ufl_legacy.geometry import GeometricQuantity
 
 
 class CheckComparisons(MultiFunction):

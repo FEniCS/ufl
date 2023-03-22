@@ -9,8 +9,8 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
-from ufl.finiteelement import FiniteElement, VectorElement, TensorElement, \
+from ufl_legacy.log import error
+from ufl_legacy.finiteelement import FiniteElement, VectorElement, TensorElement, \
     MixedElement, EnrichedElement, NodalEnrichedElement
 
 __all__ = ['increase_order', 'tear']

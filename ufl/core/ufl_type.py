@@ -8,9 +8,9 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.core.expr import Expr
-from ufl.core.compute_expr_hash import compute_expr_hash
-from ufl.utils.formatting import camel2underscore
+from ufl_legacy.core.expr import Expr
+from ufl_legacy.core.compute_expr_hash import compute_expr_hash
+from ufl_legacy.utils.formatting import camel2underscore
 
 
 # Make UFL type coercion available under the as_ufl name

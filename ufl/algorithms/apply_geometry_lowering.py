@@ -14,14 +14,14 @@ of mostly the Jacobian and reference cell data.
 from functools import reduce
 from itertools import combinations
 
-from ufl.log import error, warning
+from ufl_legacy.log import error, warning
 
-from ufl.core.multiindex import Index, indices
-from ufl.corealg.multifunction import MultiFunction, memoized_handler
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.measure import custom_integral_types, point_integral_types
+from ufl_legacy.core.multiindex import Index, indices
+from ufl_legacy.corealg.multifunction import MultiFunction, memoized_handler
+from ufl_legacy.corealg.map_dag import map_expr_dag
+from ufl_legacy.measure import custom_integral_types, point_integral_types
 
-from ufl.classes import (Expr, Form, Integral,
+from ufl_legacy.classes import (Expr, Form, Integral,
                          ReferenceGrad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          CellOrientation, CellOrigin, CellCoordinate,
@@ -36,10 +36,10 @@ from ufl.classes import (Expr, Form, Integral,
 # FacetJacobianInverse,
 # FacetOrientation, QuadratureWeight,
 
-from ufl.tensors import as_tensor, as_vector
-from ufl.operators import sqrt, max_value, min_value, conj, real
+from ufl_legacy.tensors import as_tensor, as_vector
+from ufl_legacy.operators import sqrt, max_value, min_value, conj, real
 
-from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
+from ufl_legacy.compound_expressions import determinant_expr, cross_expr, inverse_expr
 
 
 class GeometryLoweringApplier(MultiFunction):

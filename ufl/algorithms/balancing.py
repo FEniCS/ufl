@@ -5,10 +5,10 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.classes import (CellAvg, FacetAvg, Grad, Indexed, NegativeRestricted,
+from ufl_legacy.classes import (CellAvg, FacetAvg, Grad, Indexed, NegativeRestricted,
                          PositiveRestricted, ReferenceGrad, ReferenceValue)
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl_legacy.corealg.map_dag import map_expr_dag
+from ufl_legacy.corealg.multifunction import MultiFunction
 
 modifier_precedence = [
     ReferenceValue, ReferenceGrad, Grad, CellAvg, FacetAvg, PositiveRestricted,

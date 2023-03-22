@@ -14,15 +14,15 @@
 
 import numbers
 
-from ufl.core.ufl_type import attach_operators_from_hash_data
-from ufl.core.ufl_id import attach_ufl_id
-from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.log import error
-from ufl.cell import as_cell, AbstractCell, TensorProductCell
-from ufl.finiteelement.tensorproductelement import TensorProductElement
+from ufl_legacy.core.ufl_type import attach_operators_from_hash_data
+from ufl_legacy.core.ufl_id import attach_ufl_id
+from ufl_legacy.corealg.traversal import traverse_unique_terminals
+from ufl_legacy.log import error
+from ufl_legacy.cell import as_cell, AbstractCell, TensorProductCell
+from ufl_legacy.finiteelement.tensorproductelement import TensorProductElement
 
 
-# Export list for ufl.classes
+# Export list for ufl_legacy.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
 
 
@@ -75,13 +75,13 @@ class Mesh(AbstractDomain):
             error("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
 
         # No longer accepting coordinates provided as a Coefficient
-        from ufl.coefficient import Coefficient
+        from ufl_legacy.coefficient import Coefficient
         if isinstance(coordinate_element, Coefficient):
-            error("Expecting a coordinate element in the ufl.Mesh construct.")
+            error("Expecting a coordinate element in the ufl_legacy.Mesh construct.")
 
         # Accept a cell in place of an element for brevity Mesh(triangle)
         if isinstance(coordinate_element, AbstractCell):
-            from ufl.finiteelement import VectorElement
+            from ufl_legacy.finiteelement import VectorElement
             cell = coordinate_element
             coordinate_element = VectorElement("Lagrange", cell, 1,
                                                dim=cell.geometric_dimension())
@@ -241,7 +241,7 @@ class TensorProductMesh(AbstractDomain):
 
 def affine_mesh(cell, ufl_id=None):
     "Create a Mesh over a given cell type with an affine geometric parameterization."
-    from ufl.finiteelement import VectorElement
+    from ufl_legacy.finiteelement import VectorElement
     cell = as_cell(cell)
     gdim = cell.geometric_dimension()
     degree = 1
@@ -276,8 +276,8 @@ def as_domain(domain):
         return domain
     elif hasattr(domain, "ufl_domain"):
         # If we get a dolfin.Mesh, it can provide us a corresponding
-        # ufl.Mesh.  This would be unnecessary if dolfin.Mesh could
-        # subclass ufl.Mesh.
+        # ufl_legacy.Mesh.  This would be unnecessary if dolfin.Mesh could
+        # subclass ufl_legacy.Mesh.
         return domain.ufl_domain()
     else:
         # Legacy UFL files

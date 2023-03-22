@@ -10,13 +10,13 @@
 # Modified by Anders Logg, 2009-2010
 # Modified by Jan Blechta, 2012
 
-from ufl.log import warning, error
-from ufl.form import Form
-from ufl.integral import Integral
-from ufl.algorithms.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dags
-from ufl.checks import is_cellwise_constant
-from ufl.constantvalue import IntValue
+from ufl_legacy.log import warning, error
+from ufl_legacy.form import Form
+from ufl_legacy.integral import Integral
+from ufl_legacy.algorithms.multifunction import MultiFunction
+from ufl_legacy.corealg.map_dag import map_expr_dags
+from ufl_legacy.checks import is_cellwise_constant
+from ufl_legacy.constantvalue import IntValue
 
 
 class IrreducibleInt(int):
