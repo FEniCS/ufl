@@ -9,10 +9,10 @@
 
 import hashlib
 from ufl_legacy.classes import (Label,
-                         Index, MultiIndex,
-                         Coefficient, Argument,
-                         GeometricQuantity, ConstantValue, Constant,
-                         ExprList, ExprMapping)
+                                Index, MultiIndex,
+                                Coefficient, Argument,
+                                GeometricQuantity, ConstantValue, Constant,
+                                ExprList, ExprMapping)
 from ufl_legacy.log import error
 from ufl_legacy.corealg.traversal import traverse_unique_terminals, unique_post_traversal
 from ufl_legacy.algorithms.domain_analysis import canonicalize_metadata

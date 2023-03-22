@@ -14,9 +14,9 @@ from ufl_legacy.corealg.multifunction import MultiFunction
 from ufl_legacy.corealg.map_dag import map_expr_dag
 
 from ufl_legacy.classes import (FormArgument, GeometricQuantity,
-                         Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
-                         Jacobian, JacobianInverse, JacobianDeterminant,
-                         Indexed, MultiIndex, FixedIndex)
+                                Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
+                                Jacobian, JacobianInverse, JacobianDeterminant,
+                                Indexed, MultiIndex, FixedIndex)
 
 from ufl_legacy.constantvalue import as_ufl
 from ufl_legacy.tensors import as_tensor

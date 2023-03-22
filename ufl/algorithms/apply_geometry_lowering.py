@@ -22,17 +22,17 @@ from ufl_legacy.corealg.map_dag import map_expr_dag
 from ufl_legacy.measure import custom_integral_types, point_integral_types
 
 from ufl_legacy.classes import (Expr, Form, Integral,
-                         ReferenceGrad,
-                         Jacobian, JacobianInverse, JacobianDeterminant,
-                         CellOrientation, CellOrigin, CellCoordinate,
-                         FacetJacobian, FacetJacobianDeterminant,
-                         CellFacetJacobian,
-                         MaxCellEdgeLength,
-                         CellEdgeVectors, FacetEdgeVectors, CellVertices,
-                         ReferenceNormal,
-                         ReferenceCellVolume, ReferenceFacetVolume, CellVolume,
-                         SpatialCoordinate,
-                         FloatValue)
+                                ReferenceGrad,
+                                Jacobian, JacobianInverse, JacobianDeterminant,
+                                CellOrientation, CellOrigin, CellCoordinate,
+                                FacetJacobian, FacetJacobianDeterminant,
+                                CellFacetJacobian,
+                                MaxCellEdgeLength,
+                                CellEdgeVectors, FacetEdgeVectors, CellVertices,
+                                ReferenceNormal,
+                                ReferenceCellVolume, ReferenceFacetVolume, CellVolume,
+                                SpatialCoordinate,
+                                FloatValue)
 # FacetJacobianInverse,
 # FacetOrientation, QuadratureWeight,
 

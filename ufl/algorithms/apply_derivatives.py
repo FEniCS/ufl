@@ -29,9 +29,9 @@ from ufl_legacy.classes import SpatialCoordinate
 
 from ufl_legacy.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl_legacy.operators import (conditional, sign,
-                           sqrt, exp, ln, cos, sin, cosh, sinh,
-                           bessel_J, bessel_Y, bessel_I, bessel_K,
-                           cell_avg, facet_avg)
+                                  sqrt, exp, ln, cos, sin, cosh, sinh,
+                                  bessel_J, bessel_Y, bessel_I, bessel_K,
+                                  cell_avg, facet_avg)
 
 from math import pi
 
