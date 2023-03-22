@@ -3,8 +3,8 @@
 # Author: Martin Alnes
 # Date: 2009-04-09
 #
-from ufl import (Coefficient, FiniteElement, VectorElement, derivative, dot,
-                 dx, grad, inner, split, triangle)
+from ufl_legacy import (Coefficient, FiniteElement, VectorElement, derivative, dot,
+                        dx, grad, inner, split, triangle)
 
 cell = triangle
 X = VectorElement("Lagrange", cell, 1)

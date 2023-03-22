@@ -23,8 +23,8 @@
 # a mixed formulation of Poisson's equation with BDM
 # (Brezzi-Douglas-Marini) elements.
 #
-from ufl import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
-                 div, dot, dx, triangle)
+from ufl_legacy import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
+                        div, dot, dx, triangle)
 
 cell = triangle
 BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1)

@@ -2,8 +2,8 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-03
 #
-from ufl import (Coefficient, Constant, FiniteElement, derivative, dx, exp,
-                 interval, variable)
+from ufl_legacy import (Coefficient, Constant, FiniteElement, derivative, dx, exp,
+                        interval, variable)
 
 cell = interval
 element = FiniteElement("CG", cell, 2)

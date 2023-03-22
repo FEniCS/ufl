@@ -16,8 +16,8 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Test form for operators on Coefficients.
-from ufl import (Coefficient, FiniteElement, Max, TestFunction, TrialFunction,
-                 dot, dx, grad, sqrt, triangle)
+from ufl_legacy import (Coefficient, FiniteElement, Max, TestFunction, TrialFunction,
+                        dot, dx, grad, sqrt, triangle)
 
 element = FiniteElement("Lagrange", triangle, 1)
 

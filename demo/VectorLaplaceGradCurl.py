@@ -18,8 +18,8 @@
 # The bilinear form a(v, u) and linear form L(v) for the Hodge Laplace
 # problem using 0- and 1-forms. Intended to demonstrate use of Nedelec
 # elements.
-from ufl import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
-                 VectorElement, curl, dx, grad, inner, tetrahedron)
+from ufl_legacy import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
+                        VectorElement, curl, dx, grad, inner, tetrahedron)
 
 
 def HodgeLaplaceGradCurl(element, felement):

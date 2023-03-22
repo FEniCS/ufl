@@ -2,7 +2,7 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-03
 #
-from ufl import Coefficient, FiniteElement, dx, triangle
+from ufl_legacy import Coefficient, FiniteElement, dx, triangle
 
 element = FiniteElement("Lagrange", triangle, 1)
 

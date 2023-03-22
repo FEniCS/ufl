@@ -20,7 +20,7 @@
 # Last changed: 2009-03-02
 #
 # The bilinear form for a mass matrix.
-from ufl import FiniteElement, TestFunction, TrialFunction, dx, triangle
+from ufl_legacy import FiniteElement, TestFunction, TrialFunction, dx, triangle
 
 element = FiniteElement("Lagrange", triangle, 1)
 
