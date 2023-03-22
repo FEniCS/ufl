@@ -17,13 +17,14 @@ from ufl.algorithms import (extract_arguments, expand_derivatives,
                             extract_unique_elements, extract_coefficients)
 from ufl.corealg.traversal import (pre_traversal, post_traversal,
                                    unique_pre_traversal, unique_post_traversal)
+from ufl.sobolevspace import H1
 
 # TODO: add more tests, covering all utility algorithms
 
 
 @pytest.fixture(scope='module')
 def element():
-    return FiniteElement("CG", triangle, 1)
+    return FiniteElement("CG", triangle, 1, None, (), (), "identity", H1)
 
 
 @pytest.fixture(scope='module')
@@ -66,8 +67,8 @@ def test_extract_elements_and_extract_unique_elements(forms):
     integrals = b.integrals_by_type("cell")
     integrand = integrals[0].integrand()
 
-    element1 = FiniteElement("CG", triangle, 1)
-    element2 = FiniteElement("CG", triangle, 1)
+    element1 = element()
+    element2 = element()
 
     v = TestFunction(element1)
     u = TrialFunction(element2)

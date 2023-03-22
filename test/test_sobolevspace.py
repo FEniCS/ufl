@@ -5,9 +5,7 @@ __authors__ = "David Ham"
 __date__ = "2014-03-04"
 
 import pytest
-from ufl import (EnrichedElement, TensorProductElement,
-                 FiniteElement, triangle, interval,
-                 quadrilateral, HDiv, HCurl)
+from ufl import FiniteElement, triangle, interval, quadrilateral, HDiv, HCurl
 from ufl.sobolevspace import SobolevSpace, DirectionalSobolevSpace
 from ufl import H2, H1, HDiv, HCurl, L2, HInf
 from math import inf

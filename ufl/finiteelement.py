@@ -15,7 +15,7 @@ from ufl.utils.sequences import product
 from ufl.cell import AbstractCell, as_cell
 from abc import ABC, abstractmethod
 
-__all_classes__ = ["FiniteElementBase"]
+__all_classes__ = ["FiniteElementBase", "FiniteElement"]
 
 
 class FiniteElementBase(ABC):
@@ -193,3 +193,30 @@ class FiniteElementBase(ABC):
     def sub_elements(self):
         "Return list of sub-elements."
         return []
+
+
+class FiniteElement(FiniteElementBase):
+    """A directly defined finite element."""
+    __slots__ = ("_mapping", "_sobolev_space", "_repr")
+
+    def __init__(self, family, cell, degree, quad_scheme, value_shape,
+                 reference_value_shape, mapping, sobolev_space):
+        """Initialize basic finite element data."""
+        super().__init__(family, cell, degree, quad_scheme, value_shape,
+                         reference_value_shape)
+        self._mapping = mapping
+        self._sobolev_space = sobolev_space
+        self._repr = (f"ufl.FiniteElement({family}, {cell}, {degree}, {quad_scheme}, "
+                      f"{value_shape}, {reference_value_shape}, {mapping}, {sobolev_space})")
+
+    def __repr__(self):
+        """Format as string for evaluation as Python object."""
+        return self._repr
+
+    def sobolev_space(self):
+        """Return the underlying Sobolev space."""
+        return self._sobolev_space
+
+    def mapping(self):
+        """Return the mapping type for this element."""
+        return self._mapping
