@@ -4,21 +4,21 @@
 
 import pytest
 
-from ufl import *
+from ufl_legacy import *
 
-from ufl.classes import Form, Integral, Expr, ReferenceGrad, ReferenceValue
+from ufl_legacy.classes import Form, Integral, Expr, ReferenceGrad, ReferenceValue
 
 '''
-from ufl.classes import ReferenceGrad, JacobianInverse
-from ufl.algorithms import tree_format, change_to_reference_grad
+from ufl_legacy.classes import ReferenceGrad, JacobianInverse
+from ufl_legacy.algorithms import tree_format, change_to_reference_grad
 
-from ufl.log import error, warning
+from ufl_legacy.log import error, warning
 
-from ufl.core.multiindex import Index, indices
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
+from ufl_legacy.core.multiindex import Index, indices
+from ufl_legacy.corealg.multifunction import MultiFunction
+from ufl_legacy.corealg.map_dag import map_expr_dag
 
-from ufl.classes import (Expr, FormArgument, GeometricQuantity,
+from ufl_legacy.classes import (Expr, FormArgument, GeometricQuantity,
                          Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
@@ -29,15 +29,15 @@ from ufl.classes import (Expr, FormArgument, GeometricQuantity,
                          CellOrientation, FacetOrientation, QuadratureWeight,
                          SpatialCoordinate, Indexed, MultiIndex, FixedIndex)
 
-from ufl.constantvalue import as_ufl, Identity
-from ufl.tensoralgebra import Transposed
-from ufl.tensors import as_tensor, as_vector, as_scalar, ComponentTensor
-from ufl.operators import sqrt, max_value, min_value, sign
-from ufl.permutation import compute_indices
+from ufl_legacy.constantvalue import as_ufl, Identity
+from ufl_legacy.tensoralgebra import Transposed
+from ufl_legacy.tensors import as_tensor, as_vector, as_scalar, ComponentTensor
+from ufl_legacy.operators import sqrt, max_value, min_value, sign
+from ufl_legacy.permutation import compute_indices
 
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
-from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, TensorProductElement, TensorElement, FacetElement, InteriorElement, BrokenElement.
+from ufl_legacy.algorithms.transformer import ReuseTransformer, apply_transformer
+from ufl_legacy.compound_expressions import determinant_expr, cross_expr, inverse_expr
+from ufl_legacy.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, TensorProductElement, TensorElement, FacetElement, InteriorElement, BrokenElement.
 '''
 
 

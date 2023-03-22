@@ -8,13 +8,13 @@ import pytest
 import math
 from itertools import chain
 
-from ufl import *
-from ufl.classes import Indexed, MultiIndex, ReferenceGrad
-from ufl.constantvalue import as_ufl
-from ufl.algorithms import expand_indices, strip_variables, post_traversal, compute_form_data
-from ufl.algorithms.apply_derivatives import apply_derivatives
-from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
-from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl_legacy import *
+from ufl_legacy.classes import Indexed, MultiIndex, ReferenceGrad
+from ufl_legacy.constantvalue import as_ufl
+from ufl_legacy.algorithms import expand_indices, strip_variables, post_traversal, compute_form_data
+from ufl_legacy.algorithms.apply_derivatives import apply_derivatives
+from ufl_legacy.algorithms.apply_geometry_lowering import apply_geometry_lowering
+from ufl_legacy.algorithms.apply_algebra_lowering import apply_algebra_lowering
 
 def assertEqualBySampling(actual, expected):
     ad = compute_form_data(actual*dx)

@@ -4,8 +4,8 @@ Test tensor algebra operators.
 """
 
 import pytest
-from ufl import *
-from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl_legacy import *
+from ufl_legacy.algorithms.remove_complex_nodes import remove_complex_nodes
 
 
 @pytest.fixture(scope="module")

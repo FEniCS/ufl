@@ -6,11 +6,11 @@ __date__ = "2008-09-06 -- 2009-02-10"
 
 import pytest
 
-import ufl
-from ufl import *
-from ufl.constantvalue import as_ufl
-from ufl.classes import *
-from ufl.algorithms import *
+import ufl_legacy as ufl
+from ufl_legacy import *
+from ufl_legacy.constantvalue import as_ufl
+from ufl_legacy.classes import *
+from ufl_legacy.algorithms import *
 
 has_repr = set()
 has_dict = set()
@@ -78,7 +78,7 @@ def _test_form(a):
 
 
 def testExports(self):
-    "Verify that ufl.classes exports all Expr subclasses."
+    "Verify that ufl_legacy.classes exports all Expr subclasses."
     all_expr_classes = []
     for m in list(vars(ufl).values()):
         if isinstance(m, type(ufl)):
@@ -88,7 +88,7 @@ def testExports(self):
     missing_classes = set(c.__name__ for c in all_expr_classes)\
         - set(c.__name__ for c in all_ufl_classes)
     if missing_classes:
-        print("The following subclasses of Expr were not exported from ufl.classes:")
+        print("The following subclasses of Expr were not exported from ufl_legacy.classes:")
         print(("\n".join(sorted(missing_classes))))
     assert missing_classes == set()
 

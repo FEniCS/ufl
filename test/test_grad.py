@@ -8,10 +8,10 @@ Test use of grad in various situations.
 import pytest
 
 # This imports everything external code will see from ufl
-from ufl import *
+from ufl_legacy import *
 
-# from ufl.classes import ...
-from ufl.algorithms import compute_form_data
+# from ufl_legacy.classes import ...
+from ufl_legacy.algorithms import compute_form_data
 
 
 def xtest_grad_div_curl_properties_in_1D(self):

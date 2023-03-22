@@ -13,7 +13,7 @@ __license__ = "GNU GPL version 3 or any later version"
 # by Johan Jansson, Kristian Oelgaard, Marie Rognes, and Garth Wells.
 
 import pytest
-from ufl import *
+from ufl_legacy import *
 
 
 def testConstant():

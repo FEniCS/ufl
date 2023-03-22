@@ -1,16 +1,16 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-from ufl import *
+from ufl_legacy import *
 
 __authors__ = "Cecile Daversin Catty"
 __date__ = "2019-03-26 -- 2019-03-26"
 
 import pytest
 
-from ufl import *
-from ufl.domain import default_domain
-from ufl.algorithms.formsplitter import extract_blocks 
+from ufl_legacy import *
+from ufl_legacy.domain import default_domain
+from ufl_legacy.algorithms.formsplitter import extract_blocks
 
 
 

@@ -8,8 +8,8 @@ Tests of the various ways Measure objects can be created and used.
 import pytest
 
 # This imports everything external code will see from ufl
-from ufl import *
-from ufl.algorithms import compute_form_data
+from ufl_legacy import *
+from ufl_legacy.algorithms import compute_form_data
 
 # all_cells = (interval, triangle, tetrahedron,
 #             quadrilateral, hexahedron)

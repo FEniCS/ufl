@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-from ufl import *
-from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
-from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import Jacobian, JacobianInverse, JacobianDeterminant, ReferenceValue, CellOrientation
+from ufl_legacy import *
+from ufl_legacy.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
+from ufl_legacy.algorithms.renumbering import renumber_indices
+from ufl_legacy.classes import Jacobian, JacobianInverse, JacobianDeterminant, ReferenceValue, CellOrientation
 
 
 def check_single_function_pullback(g, mappings):

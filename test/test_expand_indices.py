@@ -11,10 +11,10 @@ import pytest
 import math
 from pprint import *
 
-from ufl import *
-from ufl.algorithms import *
-from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import Sum, Product
+from ufl_legacy import *
+from ufl_legacy.algorithms import *
+from ufl_legacy.algorithms.renumbering import renumber_indices
+from ufl_legacy.classes import Sum, Product
 
 # TODO: Test expand_indices2 throuroughly for correctness, then efficiency:
 # expand_indices, expand_indices2 = expand_indices2, expand_indices

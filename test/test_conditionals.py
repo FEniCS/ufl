@@ -6,9 +6,9 @@ __date__ = "2008-08-20 -- 2012-11-30"
 
 import pytest
 
-from ufl import *
-# from ufl.algorithms import *
-from ufl.classes import *
+from ufl_legacy import *
+# from ufl_legacy.algorithms import *
+from ufl_legacy.classes import *
 
 
 @pytest.fixture

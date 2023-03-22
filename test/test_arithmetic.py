@@ -3,8 +3,8 @@
 
 import pytest
 
-from ufl import *
-from ufl.classes import Division, FloatValue, IntValue, ComplexValue
+from ufl_legacy import *
+from ufl_legacy.classes import Division, FloatValue, IntValue, ComplexValue
 
 
 def test_scalar_casting(self):

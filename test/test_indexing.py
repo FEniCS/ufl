@@ -1,8 +1,8 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 import pytest
-from ufl import *
-from ufl.classes import *
+from ufl_legacy import *
+from ufl_legacy.classes import *
 
 
 @pytest.fixture

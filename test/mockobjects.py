@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ufl import *
+from ufl_legacy import *
 
 
 class MockMesh:

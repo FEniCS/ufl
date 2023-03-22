@@ -3,8 +3,8 @@
 
 import pytest
 
-from ufl import *
-from ufl.algorithms import *
+from ufl_legacy import *
+from ufl_legacy.algorithms import *
 
 # TODO: Add more illegal expressions to check!
 

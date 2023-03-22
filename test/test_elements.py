@@ -5,7 +5,7 @@
 
 import pytest
 
-from ufl import *
+from ufl_legacy import *
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
@@ -80,7 +80,7 @@ def test_tensor_symmetry():
 
 
 def test_mixed_tensor_symmetries():
-    from ufl.algorithms import expand_indices, expand_compounds
+    from ufl_legacy.algorithms import expand_indices, expand_compounds
 
     S = FiniteElement('CG', triangle, 1)
     V = VectorElement('CG', triangle, 1)

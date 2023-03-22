@@ -7,9 +7,9 @@ __date__ = "2009-02-17 -- 2014-10-14"
 import pytest
 import math
 
-from ufl import *
-from ufl.constantvalue import as_ufl
-from ufl.algorithms import expand_derivatives
+from ufl_legacy import *
+from ufl_legacy.constantvalue import as_ufl
+from ufl_legacy.algorithms import expand_derivatives
 
 
 def get_variables():
