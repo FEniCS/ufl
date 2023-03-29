@@ -646,8 +646,8 @@ def test_adjoint_action_hessian():
 def test_grad():
 
     V = FiniteElement("CG", triangle, 1)
-    u_test = Coefficient(V)
-    u = Coefficient(V)
+    # u_test = Coefficient(V)
+    # u = Coefficient(V)
 
     # Define an external operator equipped with a _grad method
     class ExternalOperatorCustomGrad(ExternalOperator):
@@ -718,6 +718,9 @@ def test_multiple_external_operators():
     # N4(N1, u; v*)
     N4 = ExternalOperator(N1, u, function_space=V)
 
+    # N5(N4(N1, u); v*)
+    N5 = ExternalOperator(N4, u, function_space=V)
+
     # --- F = < N1(u, m; v*), v > + <N2(w; v*), v> + <N3(u; v*), v> --- #
 
     F = (inner(N1, v) + inner(N2, v) + inner(N3, v)) * dx
@@ -748,16 +751,16 @@ def test_multiple_external_operators():
 
     F = inner(N4, v) * dx
 
-    # dFdu = \partial F/\partial u + Action(\partial F/\partial N1, dN1/du) + Action(\partial F/\partial N4, dN4/du)
-    #      = Action(\partial F/\partial N4, dN4/du), since \partial F/\partial u = 0 and \partial F/\partial N1 = 0
+    # dFdu = ∂F/∂u + Action(∂F/∂N1, dN1/du) + Action(∂F/∂N4, dN4/du)
+    #      = Action(∂F/∂N4, dN4/du), since ∂F/∂u = 0 and ∂F/∂N1 = 0
     #
     # In addition, we have:
-    # dN4/du = \partial N4/\partial u + Action(\partial N4/\partial N1, dN1/du)
+    # dN4/du = ∂N4/∂u + Action(∂N4/∂N1, dN1/du)
     #
     # Using the fact that Action is distributive, we have:
     #
-    # dFdu = Action(\partial F/\partial N4, \partial N4/\partial u) +
-    #         Action(\partial F/\partial N4, Action(\partial N4/\partial N1, dN1/du))
+    # dFdu = Action(∂F/∂N4, ∂N4/∂u) +
+    #         Action(∂F/∂N4, Action(∂N4/∂N1, dN1/du))
     dFdu = expand_derivatives(derivative(F, u))
     dFdN4_partial = inner(v_hat, v) * dx
     dN4dN1_partial = N4._ufl_expr_reconstruct_(N1, u, derivatives=(1, 0), argument_slots=N4.arguments() + (v_hat,))
@@ -765,7 +768,7 @@ def test_multiple_external_operators():
 
     assert dFdu == Action(dFdN4_partial, Action(dN4dN1_partial, dN1du)) + Action(dFdN4_partial, dN4du_partial)
 
-    # dFdm = Action(\partial F/\partial N4, Action(\partial N4/\partial N1, dN1/dm))
+    # dFdm = Action(∂F/∂N4, Action(∂N4/∂N1, dN1/dm))
     dFdm = expand_derivatives(derivative(F, m))
 
     assert dFdm == Action(dFdN4_partial, Action(dN4dN1_partial, dN1dm))
@@ -784,3 +787,29 @@ def test_multiple_external_operators():
 
     dFdw = expand_derivatives(derivative(F, w))
     assert dFdw == Action(dFdN2, dN2dw)
+
+    # --- F = < N5(N4(N1(u, m), u), u; v*), v > + < N1(u, m; v*), v > + < u * N5(N4(N1(u, m), u), u; v*), v >--- #
+
+    F = (inner(N5, v) + inner(N1, v) + inner(u * N5, v)) * dx
+
+    # dFdu = ∂F/∂u + Action(∂F/∂N1, dN1/du) + Action(∂F/∂N4, dN4/du) + Action(∂F/∂N5, dN5/du)
+    #
+    # where:
+    #  - ∂F/∂u = inner(w * N5, v) * dx
+    #  - ∂F/∂N1 = inner(w, v) * dx
+    #  - ∂F/∂N5 = inner(w, v) * dx + inner(u * w, v) * dx
+    #  - ∂F/∂N4 = 0
+    #  - dN5/du = ∂N5/∂u + Action(∂N5/∂N4, dN4/du)
+    #           = ∂N5/∂u + Action(∂N5/∂N4, ∂N4/∂u) + Action(∂N5/∂N4, Action(∂N4/∂N1, dN1/du))
+    # with w = TrialFunction(V)
+    w = TrialFunction(V)
+    dFdu_partial = inner(w * N5, v) * dx
+    dFdN1_partial = inner(w, v) * dx
+    dFdN5_partial = inner(w, v) * dx + inner(u * w, v) * dx
+    dN5dN4_partial = N5._ufl_expr_reconstruct_(N4, u, derivatives=(1, 0), argument_slots=N4.arguments() + (w,))
+    dN5du_partial = N5._ufl_expr_reconstruct_(N4, u, derivatives=(0, 1), argument_slots=N4.arguments() + (w,))
+    dN5du = dN5du_partial + Action(dN5dN4_partial, dN4du_partial) + Action(dN5dN4_partial, Action(dN4dN1_partial, dN1du))
+
+    dFdu = expand_derivatives(derivative(F, u))
+
+    assert dFdu == dFdu_partial + Action(dFdN1_partial, dN1du) + Action(dFdN5_partial, dN5du)

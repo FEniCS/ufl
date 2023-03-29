@@ -520,22 +520,6 @@ class GradRuleset(GenericDerivativeRuleset):
 
     # --- Specialized rules for form arguments
 
-    """
-    def external_operator(self, o):
-        try:
-            # Symbolic gradient of the external operator
-            return o.grad()
-        except NotImplementedError:
-            # Push the grad through the operator is not legal in most cases:
-            #    -> Not enouth regularity for chain rule to hold!
-            return Grad(o.result_coefficient())
-    def interp(self, o):
-        # Push the grad through the operator is not legal in most cases:
-        #    -> Not enouth regularity for chain rule to hold!
-        # By the time we evaluate `grad(o)`, `o` (Interp) will have been assembled and substituted by its output.
-        return Grad(o)
-    """
-
     def base_form_operator(self, o):
         # Push the grad through the operator is not legal in most cases:
         #    -> Not enouth regularity for chain rule to hold!
@@ -748,19 +732,6 @@ class VariableRuleset(GenericDerivativeRuleset):
             # df/v = 0
             return self.independent_terminal(o)
 
-    """
-    def external_operator(self, o, *dfs):
-        ""If d_coeff = 0 => ExternalOperator's derivative is taken wrt a variable => we call the appropriate handler
-        Otherwise => differentiation done wrt the ExternalOperator => we treat o as a Coefficient
-        ""
-
-        d_coeff = self.coefficient(o)
-        if d_coeff == 0:  # It also handles the non-scalar case
-            return GenericDerivativeRuleset.external_operator(self, o, *dfs)
-        else:
-            return d_coeff
-    """
-
     def variable(self, o, df, l):
         v = self._variable
         if isinstance(v, Variable) and v.label() == l:
@@ -816,7 +787,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     """
 
-    def __init__(self, coefficients, arguments, coefficient_derivatives):
+    def __init__(self, coefficients, arguments, coefficient_derivatives, recorder):
         GenericDerivativeRuleset.__init__(self, var_shape=())
 
         # Type checking
@@ -840,7 +811,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
         # Record the operations delayed to the derivative expansion phase:
         # Example: dN(u)/du where `N` is an ExternalOperator and `u` a Coefficient
-        self.pending_operations = (coefficients, {'arguments': arguments, 'coefficient_derivatives': coefficient_derivatives})
+        self.recorder = recorder
 
     # Explicitly defining dg/dw == 0
     geometric_quantity = GenericDerivativeRuleset.independent_terminal
@@ -900,21 +871,6 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                 else:
                     dosum += prod
             return dosum
-
-    """
-    def external_operator(self, o, *dfs):
-        ""If d_coeff = 0 => ExternalOperator's derivative is taken wrt a variable => we call the appropriate handler
-        Otherwise => differentiation done wrt the ExternalOperator => we treat o as a Coefficient
-        ""
-        d_coeff = self.coefficient(o)
-        if d_coeff == 0:  # It also handles the non-scalar case
-            self.pending_operations += (o,)
-            return d_coeff
-        else:
-            # TODO:
-            #  ->We are in Gateaux-derivative so if we are here it means we want dF/dN[Nhat]
-            return d_coeff
-    """
 
     def reference_value(self, o):
         raise NotImplementedError("Currently no support for ReferenceValue in CoefficientDerivative.")
@@ -1104,7 +1060,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         d_coeff = self.coefficient(o)
         # It also handles the non-scalar case
         if d_coeff == 0:
-            self.pending_operations += (o,)
+            self.recorder += (o,)
         return d_coeff
 
     # -- Handlers for BaseForm objects -- #
@@ -1143,12 +1099,16 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     where B is a ufl.BaseFormOperator
     """
 
-    def __init__(self, coefficients, arguments, coefficient_derivatives):
-        GateauxDerivativeRuleset.__init__(self, coefficients, arguments, coefficient_derivatives)
-
-    # --- BaseFormOperator handlers
+    def __init__(self, coefficients, arguments, coefficient_derivatives, recorder):
+        GateauxDerivativeRuleset.__init__(self, coefficients, arguments, coefficient_derivatives, recorder)
 
     def interp(self, I, dw):
+
+        if self.recorder.need_recording(I):
+            # Record the BaseFormOperator `I`
+            self.recorder += (I,)
+            return self.coefficient(I)
+
         # Interp rule: D_w[v](I(w, v*)) = I(v, v*), by linearity of Interp!
         if not dw:
             # I doesn't depend on w:
@@ -1157,10 +1117,15 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
             return ZeroBaseForm(I.arguments() + self._v)
         return I._ufl_expr_reconstruct_(expr=dw)
 
-    def external_operator(self, o, *dfs):
+    def external_operator(self, N, *dfs):
+        if self.recorder.need_recording(N):
+            # Record the BaseFormOperator `N`
+            self.recorder += (N,)
+            return self.coefficient(N)
+
         result = ()
         for i, df in enumerate(dfs):
-            derivatives = tuple(dj + int(i == j) for j, dj in enumerate(o.derivatives))
+            derivatives = tuple(dj + int(i == j) for j, dj in enumerate(N.derivatives))
             if len(extract_arguments(df)) != 0:
                 # Handle the symbolic differentiation of external operators.
                 # This bit returns:
@@ -1171,10 +1136,10 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
                 # and v the direction (Argument). dNdOi(..., Oi, ...; DOi(u)[v]) is an ExternalOperator
                 # representing the Gateaux-derivative of N. For example:
                 #  -> From N(u) = u**2, we get `dNdu(u; uhat, v*) = 2 * u * uhat`.
-                new_args = o.argument_slots() + (df,)
-                extop = o._ufl_expr_reconstruct_(*o.ufl_operands, derivatives=derivatives, argument_slots=new_args)
+                new_args = N.argument_slots() + (df,)
+                extop = N._ufl_expr_reconstruct_(*N.ufl_operands, derivatives=derivatives, argument_slots=new_args)
             elif df == 0:
-                extop = Zero(o.ufl_shape)
+                extop = Zero(N.ufl_shape)
             else:
                 raise NotImplementedError('Frechet derivative of external operators need to be provided!')
             result += (extop,)
@@ -1190,14 +1155,7 @@ class DerivativeRuleDispatcher(MultiFunction):
 
         # Record the operations delayed to the derivative expansion phase:
         # Example: dN(u)/du where `N` is an ExternalOperator and `u` a Coefficient
-        self.pending_operations = ()
-
-    """
-    def external_operator(self, o):
-        rules = DerivativeRuleDispatcher()
-        o_new = o._ufl_expr_reconstruct_(*(map_expr_dag(rules, op) for op in o.ufl_operands))
-        return o_new
-    """
+        self.recorder = ()
 
     def terminal(self, o):
         return o
@@ -1231,21 +1189,21 @@ class DerivativeRuleDispatcher(MultiFunction):
 
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         dummy, w, v, cd = o.ufl_operands
-        rules = GateauxDerivativeRuleset(w, v, cd)
+        recorder = BaseFormOperatorDerivativeRecorder(f, w, arguments=v, coefficient_derivatives=cd)
+        rules = GateauxDerivativeRuleset(w, v, cd, recorder)
         key = (GateauxDerivativeRuleset, w, v, cd)
+        # We need to go through the dag first to record the pending operations
         mapped_expr = map_expr_dag(rules, f,
                                    vcache=self.vcaches[key],
                                    rcache=self.rcaches[key])
-        # We need to go through the dag first to record the pending operations
-        var, der_kwargs, *base_form_ops = rules.pending_operations
         # Need to account for pending operations that have been stored in other integrands
-        base_form_ops = self.pending_operations[2:] + tuple(base_form_ops)
-        self.pending_operations = (var, der_kwargs, *base_form_ops)
+        self.recorder += recorder
         return mapped_expr
 
     def base_form_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         dummy, w, v, cd = o.ufl_operands
-        rules = BaseFormOperatorDerivativeRuleset(w, v, cd)
+        recorder = BaseFormOperatorDerivativeRecorder(f, w, arguments=v, coefficient_derivatives=cd)
+        rules = BaseFormOperatorDerivativeRuleset(w, v, cd, recorder=recorder)
         key = (BaseFormOperatorDerivativeRuleset, w, v, cd)
         if isinstance(f, ZeroBaseForm):
             arg, = v.ufl_operands
@@ -1256,6 +1214,7 @@ class DerivativeRuleDispatcher(MultiFunction):
             if isinstance(arg, BaseArgument):
                 arguments += (arg,)
             return ZeroBaseForm(arguments)
+        # We need to go through the dag first to record the pending operations
         mapped_expr = map_expr_dag(rules, f,
                                    vcache=self.vcaches[key],
                                    rcache=self.rcaches[key])
@@ -1264,11 +1223,8 @@ class DerivativeRuleDispatcher(MultiFunction):
             # If dN/dN needs to return an Argument in N space
             # with N a BaseFormOperator.
             return mapped_f
-        # We need to go through the dag first to record the pending operations
-        var, der_kwargs, *base_form_ops = rules.pending_operations
         # Need to account for pending operations that have been stored in other integrands
-        base_form_ops = self.pending_operations[2:] + tuple(base_form_ops)
-        self.pending_operations = (var, der_kwargs, *base_form_ops)
+        self.recorder += recorder
         return mapped_expr
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
@@ -1311,6 +1267,54 @@ class DerivativeRuleDispatcher(MultiFunction):
         return op
 
 
+class BaseFormOperatorDerivativeRecorder():
+    def __init__(self, expression, var, **kwargs):
+
+        base_form_ops = kwargs.pop("base_form_ops", ())
+
+        if kwargs.keys() != {'arguments', 'coefficient_derivatives'}:
+            raise ValueError("Only `arguments` and `coefficient_derivatives` are allowed as derivative keyword arguments.")
+
+        self.expression = expression
+        self.var = var
+        self.der_kwargs = kwargs
+        self.base_form_ops = base_form_ops
+
+    def __len__(self):
+        return len(self.base_form_ops)
+
+    def __bool__(self):
+        return bool(self.base_form_ops)
+
+    def need_recording(self, B):
+        return not self and self.expression != B
+
+    def __add__(self, other):
+        if isinstance(other, (list, tuple)):
+            base_form_ops = self.base_form_ops + other
+        elif isinstance(other, BaseFormOperatorDerivativeRecorder):
+            if self.der_kwargs != other.der_kwargs:
+                raise ValueError("Derivative arguments must match when summing BaseFormOperatorDerivativeRecorder objects.")
+            base_form_ops = self.base_form_ops + other.base_form_ops
+        else:
+            raise NotImplementedError(f"Sum of {type(self)} and {type(other)} objects is not supported.")
+
+        return BaseFormOperatorDerivativeRecorder(self.expression, self.var, base_form_ops=base_form_ops, **self.der_kwargs)
+
+    def __radd__(self, other):
+        # Recording order doesn't matter
+        return self.__add__(other)
+
+    def __iadd__(self, other):
+        if isinstance(other, (list, tuple)):
+            self.base_form_ops += other
+        elif isinstance(other, BaseFormOperatorDerivativeRecorder):
+            self.base_form_ops += other.base_form_ops
+        else:
+            raise NotImplementedError
+        return self
+
+
 def apply_derivatives(expression):
     # Note that `expression` can be a Form, an Expr or a BaseFormOperator.
     # Notation: Let `var` be the thing we are differentating with respect to.
@@ -1325,9 +1329,8 @@ def apply_derivatives(expression):
     dexpression_dvar = map_integrand_dags(rules, expression)
 
     # Get the recorded delayed operations
-    pending_operations = rules.pending_operations
-
-    if len(pending_operations) <= 2:
+    pending_operations = rules.recorder
+    if not pending_operations:
         return dexpression_dvar
 
     # Don't take into account empty Forms
@@ -1337,7 +1340,9 @@ def apply_derivatives(expression):
         dexpression_dvar = ()
 
     # Retrieve the base form operators, var, and the argument and coefficient_derivatives for `derivative`
-    var, der_kwargs, *base_form_ops = pending_operations
+    var = pending_operations.var
+    base_form_ops = pending_operations.base_form_ops
+    der_kwargs = pending_operations.der_kwargs
     for N in sorted(set(base_form_ops), key=lambda x: x.count()):
         # -- Replace dexpr/dvar by dexpr/dN -- #
         # We don't use `apply_derivatives` since the differentiation is done via `\partial` and not `d`.
