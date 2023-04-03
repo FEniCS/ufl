@@ -242,7 +242,7 @@ A very brief overview of the language contents follows:
 
 import pkg_resources
 
-__version__ = pkg_resources.get_distribution("fenics-ufl").version
+__version__ = pkg_resources.get_distribution("fenics-ufl-legacy").version
 
 # README
 # Imports here should be what the user sees when doing "from ufl_legacy import *",
