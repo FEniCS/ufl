@@ -3,7 +3,6 @@
 import numbers
 
 import ufl
-from ufl.log import error
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.core.multiindex import Index, FixedIndex
@@ -313,7 +312,7 @@ def format_index(ii):
     elif isinstance(ii, Index):
         s = "i%s" % subscript_number(ii._count)
     else:
-        error("Invalid index type %s." % type(ii))
+        raise ValueError(f"Invalid index type {type(ii)}.")
     return s
 
 
@@ -324,7 +323,7 @@ def ufl2unicode(expression):
         preprocessed_form = form_data.preprocessed_form
         return form2unicode(preprocessed_form, form_data)
     else:
-        return expression2unicode(expression)
+        return expression2unicode(ufl.as_ufl(expression))
 
 
 def expression2unicode(expression, argument_names=None, coefficient_names=None):
@@ -440,7 +439,7 @@ class Expression2UnicodeHandler(MultiFunction):
                 var += UC.combining_right_arrow_above
             elif len(o.ufl_shape) > 1 and self.colorama_bold:
                 var = "%s%s%s" % (colorama.Style.BRIGHT, var, colorama.Style.RESET_ALL)
-            return "%s%s" % (var, superscript_number(i))
+            return "%s%s" % (var, subscript_number(i))
         return self.coefficient_names[o.count()]
 
     def constant(self, o):
@@ -544,7 +543,7 @@ class Expression2UnicodeHandler(MultiFunction):
         return "%s%s%s%s%s" % (UC.nabla, UC.thin_space, UC.cross_product, UC.thin_space, f)
 
     def math_function(self, o, f):
-        op = opfont(self._name)
+        op = opfont(o._name)
         f = par(f)
         return "%s%s" % (op, f)
 

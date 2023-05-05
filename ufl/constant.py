@@ -48,11 +48,7 @@ class Constant(Terminal):
         return True
 
     def __str__(self):
-        count = str(self._count)
-        if len(count) == 1:
-            return "c_%s" % count
-        else:
-            return "c_{%s}" % count
+        return f"c_{self._count}"
 
     def __repr__(self):
         return self._repr
@@ -65,6 +61,12 @@ class Constant(Terminal):
         return (self._count == other._count and
                 self._ufl_domain == other._ufl_domain and
                 self._ufl_shape == self._ufl_shape)
+
+    def _ufl_signature_data_(self, renumbering):
+        "Signature data for constant depends on renumbering"
+        return "Constant({}, {}, {})".format(
+            self._ufl_domain._ufl_signature_data_(renumbering), repr(self._ufl_shape),
+            repr(renumbering[self]))
 
 
 def VectorConstant(domain, count=None):

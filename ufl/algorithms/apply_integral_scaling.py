@@ -7,7 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
 from ufl.measure import custom_integral_types, point_integral_types
 from ufl.differentiation import CoordinateDerivative
@@ -70,7 +69,7 @@ def compute_integrand_scaling_factor(integral):
         scale = 1
 
     else:
-        error("Unknown integral type {}, don't know how to scale.".format(integral_type))
+        raise ValueError(f"Unknown integral type {integral_type}, don't know how to scale.")
 
     return scale, degree
 
@@ -116,4 +115,4 @@ def apply_integral_scaling(form):
         return integral.reconstruct(integrand=newintegrand, metadata=md)
 
     else:
-        error("Invalid type %s" % (form.__class__.__name__,))
+        raise ValueError(f"Invalid type {form.__class__.__name__}")

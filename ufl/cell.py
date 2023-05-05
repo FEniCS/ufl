@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 "Types for representing a cell."
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -6,21 +5,12 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-#
-# Modified by Anders Logg, 2009.
-# Modified by Kristian B. Oelgaard, 2009
-# Modified by Marie E. Rognes 2012
-# Modified by Andrew T. T. McRae, 2014
-# Modified by Massimiliano Leoni, 2016
-# Modified by Robert Kloefkorn, 2022
 
-import numbers
 import functools
+import numbers
 
 import ufl.cell
-from ufl.log import error
 from ufl.core.ufl_type import attach_operators_from_hash_data
-
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
@@ -39,11 +29,11 @@ class AbstractCell(object):
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
-            error("Expecting integer geometric_dimension.")
+            raise ValueError("Expecting integer geometric_dimension.")
         if not isinstance(topological_dimension, numbers.Integral):
-            error("Expecting integer topological_dimension.")
+            raise ValueError("Expecting integer topological_dimension.")
         if topological_dimension > geometric_dimension:
-            error("Topological dimension cannot be larger than geometric dimension.")
+            raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
         # Store validated dimensions
         self._topological_dimension = topological_dimension
@@ -249,7 +239,7 @@ class TensorProductCell(AbstractCell):
 
     def num_edges(self):
         "The number of cell edges."
-        error("Not defined for TensorProductCell.")
+        raise ValueError("Not defined for TensorProductCell.")
 
     def num_facets(self):
         "The number of cell facets."
@@ -320,4 +310,4 @@ def as_cell(cell):
     elif isinstance(cell, tuple):
         return TensorProductCell(cell)
     else:
-        error("Invalid cell %s." % cell)
+        raise ValueError(f"Invalid cell {cell}.")

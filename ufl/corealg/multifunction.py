@@ -11,8 +11,8 @@
 
 import inspect
 
-from ufl.log import error
 from ufl.core.expr import Expr
+from ufl.core.ufl_type import UFLType
 
 
 def get_num_args(function):
@@ -66,7 +66,14 @@ class MultiFunction(object):
                 for c in classobject.mro():
                     # Register classobject with handler for the first
                     # encountered superclass
-                    handler_name = c._ufl_handler_name_
+                    try:
+                        handler_name = c._ufl_handler_name_
+                    except AttributeError as attribute_error:
+                        if type(classobject) is not UFLType:
+                            raise attribute_error
+                        # Default handler name for UFL types
+                        handler_name = UFLType._ufl_handler_name_
+
                     if hasattr(self, handler_name):
                         handler_names[classobject._ufl_typecode_] = handler_name
                         break
@@ -90,7 +97,7 @@ class MultiFunction(object):
 
     def undefined(self, o, *args):
         "Trigger error for types with missing handlers."
-        error("No handler defined for %s." % o._ufl_class_.__name__)
+        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
 
     def reuse_if_untouched(self, o, *ops):
         """Reuse object if operands are the same objects.
@@ -107,5 +114,5 @@ class MultiFunction(object):
         else:
             return o._ufl_expr_reconstruct_(*ops)
 
-    # Set default behaviour for any Expr as undefined
-    expr = undefined
+    # Set default behaviour for any UFLType as undefined
+    ufl_type = undefined

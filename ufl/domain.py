@@ -1,26 +1,18 @@
-# -*- coding: utf-8 -*-
-"Types for representing a geometric domain."
+"""Types for representing a geometric domain."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-#
-# Modified by Anders Logg, 2009.
-# Modified by Kristian B. Oelgaard, 2009
-# Modified by Marie E. Rognes 2012
-# Modified by Cecile Daversin-Catty, 2018
 
 import numbers
 
-from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.cell import AbstractCell, TensorProductCell, as_cell
 from ufl.core.ufl_id import attach_ufl_id
+from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.log import error
-from ufl.cell import as_cell, AbstractCell, TensorProductCell
 from ufl.finiteelement.tensorproductelement import TensorProductElement
-
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
@@ -35,11 +27,11 @@ class AbstractDomain(object):
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
-            error("Expecting integer geometric dimension, not %s" % (geometric_dimension.__class__,))
+            raise ValueError(f"Expecting integer geometric dimension, not {geometric_dimension.__class__}")
         if not isinstance(topological_dimension, numbers.Integral):
-            error("Expecting integer topological dimension, not %s" % (topological_dimension.__class__,))
+            raise ValueError(f"Expecting integer topological dimension, not {topological_dimension.__class__}")
         if topological_dimension > geometric_dimension:
-            error("Topological dimension cannot be larger than geometric dimension.")
+            raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
         # Store validated dimensions
         self._topological_dimension = topological_dimension
@@ -72,12 +64,12 @@ class Mesh(AbstractDomain):
         # Store reference to object that will not be used by UFL
         self._ufl_cargo = cargo
         if cargo is not None and cargo.ufl_id() != self._ufl_id:
-            error("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
+            raise ValueError("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
 
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
         if isinstance(coordinate_element, Coefficient):
-            error("Expecting a coordinate element in the ufl.Mesh construct.")
+            raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
 
         # Accept a cell in place of an element for brevity Mesh(triangle)
         if isinstance(coordinate_element, AbstractCell):
@@ -274,18 +266,19 @@ def as_domain(domain):
     if isinstance(domain, AbstractDomain):
         # Modern UFL files and dolfin behaviour
         return domain
-    elif hasattr(domain, "ufl_domain"):
-        # If we get a dolfin.Mesh, it can provide us a corresponding
-        # ufl.Mesh.  This would be unnecessary if dolfin.Mesh could
-        # subclass ufl.Mesh.
-        return domain.ufl_domain()
-    else:
-        # Legacy UFL files
-        # TODO: Make this conversion in the relevant constructors
-        # closer to the user interface?
-        # TODO: Make this configurable to be an error from the dolfin side?
-        cell = as_cell(domain)
-        return default_domain(cell)
+
+    try:
+        return extract_unique_domain(domain)
+    except AttributeError:
+        try:
+            # Legacy UFL files
+            # TODO: Make this conversion in the relevant constructors
+            # closer to the user interface?
+            # TODO: Make this configurable to be an error from the dolfin side?
+            cell = as_cell(domain)
+            return default_domain(cell)
+        except ValueError:
+            return domain.ufl_domain()
 
 
 def sort_domains(domains):
@@ -310,7 +303,7 @@ def join_domains(domains):
     for domain in domains:
         gdims.add(domain.geometric_dimension())
     if len(gdims) != 1:
-        error("Found domains with different geometric dimensions.")
+        raise ValueError("Found domains with different geometric dimensions.")
     gdim, = gdims
 
     # Split into legacy and modern style domains
@@ -326,10 +319,11 @@ def join_domains(domains):
     # Handle legacy domains checking
     if legacy_domains:
         if modern_domains:
-            error("Found both a new-style domain and a legacy default domain.\n"
-                  "These should not be used interchangeably. To find the legacy\n"
-                  "domain, note that it is automatically created from a cell so\n"
-                  "look for constructors taking a cell.")
+            raise ValueError(
+                "Found both a new-style domain and a legacy default domain. "
+                "These should not be used interchangeably. To find the legacy "
+                "domain, note that it is automatically created from a cell so "
+                "look for constructors taking a cell.")
         return tuple(legacy_domains)
 
     # Handle modern domains checking (assuming correct by construction)
@@ -352,7 +346,7 @@ def extract_unique_domain(expr):
     if len(domains) == 1:
         return domains[0]
     elif domains:
-        error("Found multiple domains, cannot return just one.")
+        raise ValueError("Found multiple domains, cannot return just one.")
     else:
         return None
 
@@ -361,10 +355,9 @@ def find_geometric_dimension(expr):
     "Find the geometric dimension of an expression."
     gdims = set()
     for t in traverse_unique_terminals(expr):
-        if hasattr(t, "ufl_domain"):
-            domain = t.ufl_domain()
-            if domain is not None:
-                gdims.add(domain.geometric_dimension())
+        domain = extract_unique_domain(t)
+        if domain is not None:
+            gdims.add(domain.geometric_dimension())
         if hasattr(t, "ufl_element"):
             element = t.ufl_element()
             if element is not None:
@@ -373,6 +366,6 @@ def find_geometric_dimension(expr):
                     gdims.add(cell.geometric_dimension())
 
     if len(gdims) != 1:
-        error("Cannot determine geometric dimension from expression.")
+        raise ValueError("Cannot determine geometric dimension from expression.")
     gdim, = gdims
     return gdim
