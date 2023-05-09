@@ -26,8 +26,6 @@ class FiniteElementBase(ABC):
     def __init__(self, family, cell, degree, quad_scheme, value_shape,
                  reference_value_shape):
         """Initialize basic finite element data."""
-        if not isinstance(family, str):
-            raise ValueError("Invalid family type.")
         if not (degree is None or isinstance(degree, (int, tuple))):
             raise ValueError("Invalid degree type.")
         if not isinstance(value_shape, tuple):
