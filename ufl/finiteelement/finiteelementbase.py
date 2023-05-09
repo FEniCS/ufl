@@ -62,6 +62,17 @@ class FiniteElementBase(ABC):
         """Return the mapping type for this element."""
         pass
 
+    def _is_globally_constant(self):
+        """Check if the element is a global constant.
+
+        For Real elements, this should return True.
+        """
+        return False
+
+    def _is_linear(self):
+        """Check if the element is Lagrange degree 1."""
+        return False
+
     def _ufl_hash_data_(self):
         return repr(self)
 
@@ -109,7 +120,7 @@ class FiniteElementBase(ABC):
     def is_cellwise_constant(self, component=None):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
-        return self.family() == "Real" or self.degree() == 0
+        return self._is_gobally_constant() or self.degree() == 0
 
     def value_shape(self):
         "Return the shape of the value space on the global domain."
