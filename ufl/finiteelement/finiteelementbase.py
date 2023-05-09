@@ -120,7 +120,7 @@ class FiniteElementBase(ABC):
     def is_cellwise_constant(self, component=None):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
-        return self._is_gobally_constant() or self.degree() == 0
+        return self._is_globally_constant() or self.degree() == 0
 
     def value_shape(self):
         "Return the shape of the value space on the global domain."
