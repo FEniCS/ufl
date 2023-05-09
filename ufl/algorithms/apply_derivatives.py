@@ -1269,7 +1269,7 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
     def coordinate_derivative(self, o, f, w, v, cd):
         from ufl.algorithms import extract_unique_elements
         for space in extract_unique_elements(o):
-            if space.mapping() == "custom"):
+            if space.mapping() == "custom":
                 raise NotImplementedError(
                     "CoordinateDerivative is not supported for elements with custom pull back.")
 
