@@ -18,8 +18,8 @@
 # Restriction of a finite element.
 # The below syntax show how one can restrict a higher order Lagrange element
 # to only take into account those DOFs that live on the facets.
-from ufl import (FiniteElement, TestFunction, TrialFunction, avg, dS, ds,
-                 triangle)
+from ufl_legacy import (FiniteElement, TestFunction, TrialFunction, avg, dS, ds,
+                        triangle)
 
 # Restricted element
 CG_R = FiniteElement("Lagrange", triangle, 4)["facet"]

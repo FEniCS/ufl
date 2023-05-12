@@ -5,11 +5,11 @@ __authors__ = "David Ham"
 __date__ = "2014-03-04"
 
 import pytest
-from ufl import (EnrichedElement, TensorProductElement,
+from ufl_legacy import (EnrichedElement, TensorProductElement,
                  FiniteElement, triangle, interval,
                  quadrilateral, HDiv, HCurl)
-from ufl.sobolevspace import SobolevSpace, DirectionalSobolevSpace
-from ufl import H2, H1, HDiv, HCurl, L2
+from ufl_legacy.sobolevspace import SobolevSpace, DirectionalSobolevSpace
+from ufl_legacy import H2, H1, HDiv, HCurl, L2
 
 
 # Construct directional Sobolev spaces, with varying smoothness in

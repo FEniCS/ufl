@@ -19,8 +19,8 @@
 # equations using a mixed formulation (Taylor-Hood elements) in
 # combination with the lhs() and rhs() operators to extract the
 # bilinear and linear forms from an expression F = 0.
-from ufl import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
-                 VectorElement, div, dot, dx, grad, inner, lhs, rhs, triangle)
+from ufl_legacy import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
+                        VectorElement, div, dot, dx, grad, inner, lhs, rhs, triangle)
 
 cell = triangle
 P2 = VectorElement("Lagrange", cell, 2)

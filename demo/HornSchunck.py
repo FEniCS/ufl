@@ -3,8 +3,8 @@
 #  http://code.google.com/p/debiosee/wiki/DemosOptiocFlowHornSchunck
 # but not tested so this could contain errors!
 #
-from ufl import (Coefficient, Constant, FiniteElement, VectorElement,
-                 derivative, dot, dx, grad, inner, triangle)
+from ufl_legacy import (Coefficient, Constant, FiniteElement, VectorElement,
+                        derivative, dot, dx, grad, inner, triangle)
 
 # Finite element spaces for scalar and vector fields
 cell = triangle

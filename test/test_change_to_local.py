@@ -6,10 +6,10 @@ Tests of the change to local representaiton algorithms.
 
 import pytest
 
-from ufl import *
-from ufl.classes import ReferenceGrad, JacobianInverse
-from ufl.algorithms import tree_format, change_to_reference_grad
-from ufl.algorithms.renumbering import renumber_indices
+from ufl_legacy import *
+from ufl_legacy.classes import ReferenceGrad, JacobianInverse
+from ufl_legacy.algorithms import tree_format, change_to_reference_grad
+from ufl_legacy.algorithms.renumbering import renumber_indices
 
 
 def test_change_to_reference_grad():

@@ -4,9 +4,9 @@ import pytest
 
 import os
 
-import ufl
-from ufl import as_ufl, inner, dx
-from ufl.algorithms import compute_form_data
+import ufl_legacy as ufl
+from ufl_legacy import as_ufl, inner, dx
+from ufl_legacy.algorithms import compute_form_data
 
 
 class Tester:

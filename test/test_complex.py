@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 import pytest
 import cmath
-import ufl
-from ufl.constantvalue import Zero, ComplexValue
-from ufl.algebra import Conj, Real, Imag
-from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
-from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
-from ufl.algorithms import estimate_total_polynomial_degree
-from ufl.algorithms.comparison_checker import do_comparison_check, ComplexComparisonError
-from ufl.algorithms.formtransformations import compute_form_adjoint
-from ufl import TestFunction, TrialFunction, triangle, FiniteElement, \
+import ufl_legacy as ufl
+from ufl_legacy.constantvalue import Zero, ComplexValue
+from ufl_legacy.algebra import Conj, Real, Imag
+from ufl_legacy.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl_legacy.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl_legacy.algorithms import estimate_total_polynomial_degree
+from ufl_legacy.algorithms.comparison_checker import do_comparison_check, ComplexComparisonError
+from ufl_legacy.algorithms.formtransformations import compute_form_adjoint
+from ufl_legacy import TestFunction, TrialFunction, triangle, FiniteElement, \
         as_ufl, inner, grad, dx, dot, outer, conj, sqrt, sin, cosh, \
         atan, ln, exp, as_tensor, real, imag, conditional, \
         min_value, max_value, gt, lt, cos, ge, le, Coefficient

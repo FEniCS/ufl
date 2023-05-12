@@ -3,10 +3,10 @@ import sys
 
 import pytest
 
-from ufl import *
-from ufl.algorithms import strip_terminal_data, replace_terminal_data
-from ufl.core.ufl_id import attach_ufl_id
-from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl_legacy import *
+from ufl_legacy.algorithms import strip_terminal_data, replace_terminal_data
+from ufl_legacy.core.ufl_id import attach_ufl_id
+from ufl_legacy.core.ufl_type import attach_operators_from_hash_data
 
 
 MIN_REF_COUNT = 2

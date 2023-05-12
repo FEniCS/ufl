@@ -6,9 +6,9 @@ Test the is_cellwise_constant function on all relevant terminal types.
 """
 
 import pytest
-from ufl import *
-from ufl.classes import *
-from ufl.checks import is_cellwise_constant
+from ufl_legacy import *
+from ufl_legacy.classes import *
+from ufl_legacy.checks import is_cellwise_constant
 
 
 def get_domains():

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from ufl import *
+from ufl_legacy import *
 
 
 @pytest.fixture

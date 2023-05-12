@@ -3,10 +3,10 @@
 
 import pytest
 
-from ufl import *
-# from ufl.indexutils import *
-from ufl.algorithms import *
-from ufl.classes import IndexSum
+from ufl_legacy import *
+# from ufl_legacy.indexutils import *
+from ufl_legacy.algorithms import *
+from ufl_legacy.classes import IndexSum
 
 # TODO: add more expressions to test as many possible combinations of index notation as feasible...
 

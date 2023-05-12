@@ -10,8 +10,8 @@ snippets as long as possible.
 
 import pytest
 
-from ufl import *
-from ufl.algorithms import *
+from ufl_legacy import *
+from ufl_legacy.algorithms import *
 
 
 def test_uflcode_269(self):
@@ -305,7 +305,7 @@ def test_uflcode_1365(self):
 def test_python_1426(self):
     # Covered by the below test
     pass
-    # from ufl.algorithms import Graph
+    # from ufl_legacy.algorithms import Graph
     # G = Graph(expression)
     # V, E = G
 
@@ -320,7 +320,7 @@ def test_python_1446(self):
     e = c*f**2*u*v
 
     # The linearized Graph functionality has been removed from UFL:
-    # from ufl.algorithms import Graph, partition
+    # from ufl_legacy.algorithms import Graph, partition
     # G = Graph(e)
     # V, E, = G
 
@@ -339,7 +339,7 @@ def test_python_1512(self):
     e = c*f**2*u*v
 
     # The linearized Graph functionality has been removed from UFL:
-    # from ufl.algorithms import Graph, partition
+    # from ufl_legacy.algorithms import Graph, partition
     # G = Graph(e)
     # V, E, = G
     # ...
@@ -357,7 +357,7 @@ def test_python_1557(self):
     e = c*f**2*u*v
 
     # The linearized Graph functionality has been removed from UFL:
-    # from ufl.algorithms import Graph, partition
+    # from ufl_legacy.algorithms import Graph, partition
     # G = Graph(e)
     # V, E, = G
     # ...
@@ -422,7 +422,7 @@ def test_python_1963(self):
 
 
 def test_python_1990(self):
-    from ufl.classes import IntValue, Sum
+    from ufl_legacy.classes import IntValue, Sum
     expression = as_ufl(3)
 
     def int_operation(x):

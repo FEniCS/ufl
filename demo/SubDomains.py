@@ -17,8 +17,8 @@
 #
 # This simple example illustrates how forms can be defined on different sub domains.
 # It is supported for all three integral types.
-from ufl import (FiniteElement, TestFunction, TrialFunction, ds, dS, dx,
-                 tetrahedron)
+from ufl_legacy import (FiniteElement, TestFunction, TrialFunction, ds, dS, dx,
+                        tetrahedron)
 
 element = FiniteElement("CG", tetrahedron, 1)
 

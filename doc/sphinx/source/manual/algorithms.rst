@@ -3,12 +3,12 @@ Algorithms
 **********
 
 Algorithms to work with UFL forms and expressions can be found in the
-submodule ``ufl.algorithms``.  You can import all of them with
+submodule ``ufl_legacy.algorithms``.  You can import all of them with
 the line
 
 ::
 
-  from ufl.algorithms import *
+  from ufl_legacy.algorithms import *
 
 This chapter gives an overview of (most of) the implemented algorithms.
 The intended audience is primarily developers, but advanced users may
@@ -199,7 +199,7 @@ from type to handler function automatically.
 
 Here is a simple example to show how to override default behaviour::
 
-  from ufl.classes import *
+  from ufl_legacy.classes import *
   class CoefficientReplacer(Transformer):
       def __init__(self):
           Transformer.__init__(self)

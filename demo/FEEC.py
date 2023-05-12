@@ -23,10 +23,10 @@ This demo illustrates the FEEC notation
 
 and their aliases.
 """
-from ufl import (FiniteElement, TestFunction, TestFunctions, TrialFunction,
-                 TrialFunctions, dx)
-from ufl import exterior_derivative as d
-from ufl import inner, interval, tetrahedron, triangle
+from ufl_legacy import (FiniteElement, TestFunction, TestFunctions, TrialFunction,
+                        TrialFunctions, dx)
+from ufl_legacy import exterior_derivative as d
+from ufl_legacy import inner, interval, tetrahedron, triangle
 
 cells = [interval, triangle, tetrahedron]
 r = 1

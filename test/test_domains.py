@@ -6,9 +6,9 @@ Tests of domain language and attaching domains to forms.
 
 import pytest
 
-from ufl import *
-from ufl.domain import as_domain, default_domain
-from ufl.algorithms import compute_form_data
+from ufl_legacy import *
+from ufl_legacy.domain import as_domain, default_domain
+from ufl_legacy.algorithms import compute_form_data
 
 all_cells = (interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
@@ -127,7 +127,7 @@ def test_creating_domains_with_coordinate_fields():  # FIXME: Rewrite for new ap
 
 
 def test_join_domains():
-    from ufl.domain import join_domains
+    from ufl_legacy.domain import join_domains
     mesh7 = MockMesh(7)
     mesh8 = MockMesh(8)
     triangle3 = Cell("triangle", geometric_dimension=3)

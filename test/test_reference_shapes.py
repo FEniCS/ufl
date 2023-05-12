@@ -3,7 +3,7 @@
 
 import pytest
 
-from ufl import *
+from ufl_legacy import *
 
 
 def test_reference_shapes():

@@ -7,8 +7,8 @@ __date__ = "2008-03-12 -- 2009-01-28"
 import pytest
 from pprint import *
 
-from ufl import *
-from ufl.algorithms import *
+from ufl_legacy import *
+from ufl_legacy.algorithms import *
 
 
 def test_total_degree_estimation():

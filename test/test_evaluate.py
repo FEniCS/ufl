@@ -7,8 +7,8 @@ __date__ = "2009-02-13 -- 2009-02-13"
 import pytest
 import math
 
-from ufl import *
-from ufl.constantvalue import as_ufl
+from ufl_legacy import *
+from ufl_legacy.constantvalue import as_ufl
 
 
 def testScalars():

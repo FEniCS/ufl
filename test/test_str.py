@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from ufl import *
-from ufl.classes import *
+from ufl_legacy import *
+from ufl_legacy.classes import *
 
 
 def test_str_int_value(self):

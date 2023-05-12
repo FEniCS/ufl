@@ -5,7 +5,7 @@ __date__ = "2008-09-28 -- 2008-09-28"
 
 import os
 import pytest
-from ufl.algorithms import load_ufl_file, compute_form_data, validate_form
+from ufl_legacy.algorithms import load_ufl_file, compute_form_data, validate_form
 from glob import glob
 
 

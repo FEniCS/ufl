@@ -9,13 +9,13 @@ __date__ = "2008-03-12 -- 2009-01-28"
 import pytest
 from pprint import *
 
-from ufl import (FiniteElement, TestFunction, TrialFunction, triangle,
+from ufl_legacy import (FiniteElement, TestFunction, TrialFunction, triangle,
                  div, grad, Argument, dx, adjoint, Coefficient,
                  FacetNormal, inner, dot, ds)
-from ufl.algorithms import (extract_arguments, expand_derivatives,
+from ufl_legacy.algorithms import (extract_arguments, expand_derivatives,
                             expand_indices, extract_elements,
                             extract_unique_elements, extract_coefficients)
-from ufl.corealg.traversal import (pre_traversal, post_traversal,
+from ufl_legacy.corealg.traversal import (pre_traversal, post_traversal,
                                    unique_pre_traversal, unique_post_traversal)
 
 # TODO: add more tests, covering all utility algorithms

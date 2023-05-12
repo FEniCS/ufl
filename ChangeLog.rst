@@ -1,6 +1,14 @@
 Changelog
 =========
 
+2022.3.0
+-------------
+
+- Rename the ufl 2022.2.0 module as ufl_legacy 2022.3.0
+  (distribution name fenics-ufl-legacy)
+  in order to continue supporting old dolfin installations
+  alongside ufl 2023.1 and new dolfinx releases.
+
 2021.1.0
 -------------
 

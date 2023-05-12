@@ -2,8 +2,8 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-30
 #
-from ufl import (Coefficient, FiniteElement, action, adjoint, derivative, dx,
-                 grad, inner, triangle)
+from ufl_legacy import (Coefficient, FiniteElement, action, adjoint, derivative, dx,
+                        grad, inner, triangle)
 
 element = FiniteElement("Lagrange", triangle, 1)
 

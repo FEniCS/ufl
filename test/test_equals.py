@@ -8,7 +8,7 @@ Test of expression comparison.
 import pytest
 
 # This imports everything external code will see from ufl
-from ufl import *
+from ufl_legacy import *
 
 
 def test_comparison_of_coefficients():

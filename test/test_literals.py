@@ -6,9 +6,9 @@ __date__ = "2011-04-14 -- 2011-04-14"
 
 import pytest
 
-from ufl import *
-from ufl.classes import Indexed
-from ufl.constantvalue import Zero, FloatValue, IntValue, ComplexValue, as_ufl
+from ufl_legacy import *
+from ufl_legacy.classes import Indexed
+from ufl_legacy.constantvalue import Zero, FloatValue, IntValue, ComplexValue, as_ufl
 
 
 def test_zero(self):
@@ -150,7 +150,7 @@ def test_permutation_symbol_n(self):
 
 
 def test_unit_dyads(self):
-    from ufl.tensors import unit_vectors, unit_matrices
+    from ufl_legacy.tensors import unit_vectors, unit_matrices
     ei, ej = unit_vectors(2)
     self.assertEqual(as_vector((1, 0)), ei)
     self.assertEqual(as_vector((0, 1)), ej)

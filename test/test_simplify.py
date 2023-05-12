@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from ufl.classes import Sum, Product
+from ufl_legacy.classes import Sum, Product
 import math
-from ufl import *
+from ufl_legacy import *
 
 
 def xtest_zero_times_argument(self):

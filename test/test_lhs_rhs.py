@@ -7,7 +7,7 @@ __authors__ = "Marie E. Rognes"
 # Last changed: 2011-11-09
 
 import pytest
-from ufl import *
+from ufl_legacy import *
 
 
 def test_lhs_rhs_simple():
@@ -60,7 +60,7 @@ def test_lhs_rhs_slightly_obscure():
     f = Constant(interval)
 
     # FIXME:
-    # ufl.algorithsm.formtransformations.compute_form_with_arity
+    # ufl_legacy.algorithsm.formtransformations.compute_form_with_arity
     # is not perfect, e.g. try
     # F = f*u*w*dx + f*w*dx
     F = f * u * w * dx

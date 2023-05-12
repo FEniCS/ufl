@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from ufl import *
-from ufl.compound_expressions import *
-from ufl.algorithms.renumbering import renumber_indices
+from ufl_legacy import *
+from ufl_legacy.compound_expressions import *
+from ufl_legacy.algorithms.renumbering import renumber_indices
 
 
 @pytest.fixture

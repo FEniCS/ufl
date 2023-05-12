@@ -18,7 +18,7 @@ The entire form language can be imported in Python with the line
 
 .. code-block:: python
 
-   from ufl import *
+   from ufl_legacy import *
 
 This can be useful for experimenting with the language in an
 interactive Python interpreter.

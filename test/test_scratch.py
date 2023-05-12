@@ -10,12 +10,12 @@ Next look at the TODO markers below for places to edit.
 import pytest
 
 # This imports everything external code will see from ufl
-from ufl import *
-from ufl.log import error, warning
-from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
+from ufl_legacy import *
+from ufl_legacy.log import error, warning
+from ufl_legacy.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 
 # TODO: Import only what you need from classes and algorithms:
-from ufl.classes import Grad, FormArgument, Zero, Indexed, FixedIndex, ListTensor
+from ufl_legacy.classes import Grad, FormArgument, Zero, Indexed, FixedIndex, ListTensor
 
 
 class MockForwardAD:

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from pytest import raises
-from ufl import *
-from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
-from ufl.algorithms.renumbering import renumber_indices
+from ufl_legacy import *
+from ufl_legacy.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
+from ufl_legacy.algorithms.renumbering import renumber_indices
 
 
 def test_apply_restrictions():

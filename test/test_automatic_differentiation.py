@@ -10,15 +10,15 @@ Other tests check for mathematical correctness of diff and derivative.
 import pytest
 from itertools import chain
 
-import ufl
+import ufl_legacy as ufl
 
 # This imports everything external code will see from ufl
-from ufl import *
+from ufl_legacy import *
 
-import ufl.algorithms
-from ufl.corealg.traversal import unique_post_traversal
-from ufl.conditional import Conditional
-from ufl.algorithms import expand_derivatives
+import ufl_legacy.algorithms
+from ufl_legacy.corealg.traversal import unique_post_traversal
+from ufl_legacy.conditional import Conditional
+from ufl_legacy.algorithms import expand_derivatives
 
 
 class ExpressionCollection(object):
