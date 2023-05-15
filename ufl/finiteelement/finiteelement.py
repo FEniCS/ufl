@@ -153,7 +153,7 @@ class FiniteElement(FiniteElementBase):
         # simplify base though.
         self._sobolev_space = sobolev_space
         self._mapping = mapping
-        self._short_name = short_name
+        self._short_name = short_name or family
         self._variant = variant
 
         # Finite elements on quadrilaterals and hexahedrons have an IrreducibleInt as degree
