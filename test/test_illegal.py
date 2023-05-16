@@ -5,16 +5,18 @@ import pytest
 
 from ufl import *
 from ufl.algorithms import *
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 # TODO: Add more illegal expressions to check!
 
 
 def selement():
-    return FiniteElement("Lagrange", "triangle", 1)
+    return FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
 
 def velement():
-    return VectorElement("Lagrange", "triangle", 1)
+    return FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
 
 
 @pytest.fixture

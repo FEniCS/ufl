@@ -7,14 +7,17 @@ __date__ = "2009-03-19 -- 2012-03-20"
 # Modified by Anders Logg, 2008
 # Modified by Garth N. Wells, 2009
 
-import pytest
 import math
 from pprint import *
+
+import pytest
 
 from ufl import *
 from ufl.algorithms import *
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import Sum, Product
+from ufl.classes import Product, Sum
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 # TODO: Test expand_indices2 throuroughly for correctness, then efficiency:
 # expand_indices, expand_indices2 = expand_indices2, expand_indices
@@ -24,9 +27,9 @@ class Fixture:
 
     def __init__(self):
         cell = triangle
-        element = FiniteElement("Lagrange", cell, 1)
-        velement = VectorElement("Lagrange", cell, 1)
-        telement = TensorElement("Lagrange", cell, 1)
+        element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+        velement = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
+        telement = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)
         self.sf = Coefficient(element)
         self.sf2 = Coefficient(element)
         self.vf = Coefficient(velement)
@@ -330,7 +333,7 @@ def xtest_expand_indices_list_tensor_problem(self, fixt):
     print(('='*40))
     # TODO: This is the case marked in the expand_indices2 implementation
     # as not working. Fix and then try expand_indices2 on other tests!
-    V = VectorElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     w = Coefficient(V)
     v = as_vector([w[0], 0])
     a = v[i]*w[i]

@@ -10,10 +10,9 @@
 # Modified by Anders Logg, 2008
 # Modified by Kristian Oelgaard, 2009
 
-from ufl.core.multiindex import indices
 from ufl.cell import Cell
-from ufl.measure import Measure
-from ufl.measure import integral_type_to_measure_name
+from ufl.core.multiindex import indices
+from ufl.measure import Measure, integral_type_to_measure_name
 
 # Default indices
 i, j, k, l = indices(4)  # noqa: E741

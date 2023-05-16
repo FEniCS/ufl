@@ -49,11 +49,11 @@ class SumDegreeEstimator(MultiFunction):
             return 0
         else:
             # As a heuristic, just returning domain degree to bump up degree somewhat
-            return extract_unique_domain(v).ufl_coordinate_element().degree()
+            return extract_unique_domain(v).ufl_coordinate_element().embedded_degree
 
     def spatial_coordinate(self, v):
         "A coordinate provides additional degrees depending on coordinate field of domain."
-        return extract_unique_domain(v).ufl_coordinate_element().degree()
+        return extract_unique_domain(v).ufl_coordinate_element().embedded_degree
 
     def cell_coordinate(self, v):
         "A coordinate provides one additional degree."
@@ -62,14 +62,14 @@ class SumDegreeEstimator(MultiFunction):
     def argument(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
-        return v.ufl_element().degree()  # FIXME: Use component to improve accuracy for mixed elements
+        return v.ufl_element().embedded_degree  # FIXME: Use component to improve accuracy for mixed elements
 
     def coefficient(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
         e = v.ufl_element()
         e = self.element_replace_map.get(e, e)
-        d = e.degree()  # FIXME: Use component to improve accuracy for mixed elements
+        d = e.embedded_degree  # FIXME: Use component to improve accuracy for mixed elements
         if d is None:
             d = self.default_degree
         return d

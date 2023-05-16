@@ -12,13 +12,14 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Matthew Scroggs, 2023
 
-from ufl.utils.sequences import product
-from ufl.cell import AbstractCell, as_cell
 import abc as _abc
-from ufl.sobolevspace import SobolevSpace as _SobolevSpace
 import typing as _typing
 
+from ufl.sobolevspace import SobolevSpace as _SobolevSpace
+from ufl.utils.sequences import product
+
 __all_classes__ = ["FiniteElementBase", "FiniteElement", "MixedElement"]
+
 
 class FiniteElementBase(_abc.ABC):
     """Base class for all finite elements.
@@ -28,7 +29,15 @@ class FiniteElementBase(_abc.ABC):
 
     @_abc.abstractmethod
     def __repr__(self) -> str:
-        """Format as string for evaluation as Python object."""
+        """Format as string for evaluation as Python object.
+
+        This representation must include all the input arguments of the element
+        as it will be used to check for element equality.
+        """
+
+    @_abc.abstractmethod
+    def __str__(self) -> str:
+        """Format as string for nice printing."""
 
     @_abc.abstractproperty
     def sobolev_space(self) -> _SobolevSpace:
@@ -170,13 +179,18 @@ class FiniteElementBase(_abc.ABC):
 
 class FiniteElement(FiniteElementBase):
     """A directly defined finite element."""
-    __slots__ = ("_family", "_cell", "_degree", "_value_shape", "_reference_value_shape", "_mapping", "_sobolev_space", "_component_map")
+    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape", "_reference_value_shape", "_mapping", "_sobolev_space", "_component_map")
 
     def __init__(self, family, cell, degree, value_shape,
                  reference_value_shape, mapping, sobolev_space, component_map=None):
         """Initialize basic finite element data."""
-        self._repr = (f"ufl.FiniteElement({family}, {cell}, {degree}, {value_shape}, "
-                      f"{reference_value_shape}, {mapping}, {sobolev_space})")
+        if component_map is None:
+            self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
+                          f"{reference_value_shape}, \"{mapping}\", {sobolev_space})")
+        else:
+            self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
+                          f"{reference_value_shape}, \"{mapping}\", {sobolev_space}, component_map={component_map})")
+        self._str = f"<{family}{degree} on a {cell}>"
         self._family = family
         self._cell = cell
         self._degree = degree
@@ -189,6 +203,10 @@ class FiniteElement(FiniteElementBase):
     def __repr__(self):
         """Format as string for evaluation as Python object."""
         return self._repr
+
+    def __str__(self) -> str:
+        """Format as string for nice printing."""
+        return self._str
 
     @property
     def sobolev_space(self):
@@ -246,10 +264,11 @@ class FiniteElement(FiniteElementBase):
 
 class MixedElement(FiniteElementBase):
     """A mixed element."""
-    __slots__ = ["_subelements", "_cell"]
+    __slots__ = ["_repr", "_str", "_subelements", "_cell"]
 
     def __init__(self, subelements):
-        self._repr = f"MixedElement({subelements!r})"
+        self._repr = f"ufl.finiteelement.MixedElement({subelements!r})"
+        self._str = f"<MixedElement with {len(subelements)} subelement(s)>"
         self._subelements = [MixedElement(e) if isinstance(e, list) else e for e in subelements]
         self._cell = self._subelements[0].cell
         for e in self._subelements:
@@ -258,6 +277,10 @@ class MixedElement(FiniteElementBase):
     def __repr__(self):
         """Format as string for evaluation as Python object."""
         return self._repr
+
+    def __str__(self) -> str:
+        """Format as string for nice printing."""
+        return self._str
 
     @property
     def sobolev_space(self):
@@ -275,7 +298,7 @@ class MixedElement(FiniteElementBase):
     @property
     def embedded_degree(self) -> int:
         """The maximum degree of a polynomial included in the basis for this element."""
-        return max(e.degree() for e in self._subelements)
+        return max(e.embedded_degree for e in self._subelements)
 
     @property
     def cell(self) -> str:
@@ -285,12 +308,12 @@ class MixedElement(FiniteElementBase):
     @property
     def value_shape(self) -> _typing.Tuple[int]:
         """Return the shape of the value space on the global domain."""
-        return tuple(e.value_size for e in self._subelements)
+        return (sum(e.value_size for e in self._subelements), )
 
     @property
     def reference_value_shape(self) -> _typing.Tuple[int]:
         """Return the shape of the value space on the reference cell."""
-        return tuple(e.reference_value_size for e in self._subelements)
+        return (sum(e.reference_value_size for e in self._subelements), )
 
     @property
     def _is_globally_constant(self) -> bool:

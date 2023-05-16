@@ -16,7 +16,6 @@ import warnings
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
-
 # --- Base class for terminal objects ---
 
 @ufl_type(is_abstract=True, is_terminal=True)

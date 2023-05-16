@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import pytest
-
 import os
 
+import pytest
+
 import ufl
-from ufl import as_ufl, inner, dx
+from ufl import as_ufl, dx, inner
 from ufl.algorithms import compute_form_data
 
 

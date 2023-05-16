@@ -3,8 +3,7 @@
 # Author: Martin Alnes
 # Date: 2009-04-09
 #
-from ufl import (Coefficient, derivative, dot,
-                 dx, grad, inner, split, triangle)
+from ufl import Coefficient, derivative, dot, dx, grad, inner, split, triangle
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1
 

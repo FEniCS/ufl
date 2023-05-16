@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from ufl import Coefficient, Index
-from ufl import sqrt, as_tensor
-from ufl import interval, triangle, tetrahedron
-from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
+
+from ufl import Coefficient, Index, as_tensor, interval, sqrt, tetrahedron, triangle
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.sobolevspace import H1
+from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture

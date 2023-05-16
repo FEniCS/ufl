@@ -2,8 +2,7 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-03
 #
-from ufl import (Coefficient, TestFunction, TrialFunction, dx,
-                 i, j, triangle)
+from ufl import Coefficient, TestFunction, TrialFunction, dx, i, j, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

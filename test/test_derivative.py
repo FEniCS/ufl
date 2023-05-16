@@ -6,14 +6,15 @@ from itertools import chain
 import pytest
 
 from ufl import *
-from ufl.algorithms import (compute_form_data, expand_indices, post_traversal,
-                            strip_variables)
+from ufl.algorithms import compute_form_data, expand_indices, post_traversal, strip_variables
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.classes import Indexed, MultiIndex, ReferenceGrad
 from ufl.constantvalue import as_ufl
 from ufl.domain import extract_unique_domain
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.sobolevspace import H1
 
 
 def assertEqualBySampling(actual, expected):
@@ -70,7 +71,7 @@ def assertEqualBySampling(actual, expected):
 
 def _test(self, f, df):
     cell = triangle
-    element = FiniteElement("CG", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     v = TestFunction(element)
     u = TrialFunction(element)
     w = Coefficient(element)
@@ -121,7 +122,7 @@ def testCoefficient(self):
 
 
 def testArgument(self):
-    def f(w): return TestFunction(FiniteElement("CG", triangle, 1))
+    def f(w): return TestFunction(FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1))
 
     def df(w, v): return zero()
     _test(self, f, df)
@@ -346,7 +347,7 @@ def testListTensor(self):
 
 def test_single_scalar_coefficient_derivative(self):
     cell = triangle
-    V = FiniteElement("CG", cell, 1)
+    V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     u = Coefficient(V)
     v = TestFunction(V)
     a = 3*u**2
@@ -356,7 +357,7 @@ def test_single_scalar_coefficient_derivative(self):
 
 def test_single_vector_coefficient_derivative(self):
     cell = triangle
-    V = VectorElement("CG", cell, 1)
+    V = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
     u = Coefficient(V)
     v = TestFunction(V)
     a = 3*dot(u, u)
@@ -367,9 +368,9 @@ def test_single_vector_coefficient_derivative(self):
 
 def test_multiple_coefficient_derivative(self):
     cell = triangle
-    V = FiniteElement("CG", cell, 1)
-    W = VectorElement("CG", cell, 1)
-    M = V*W
+    V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+    W = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
+    M = MixedElement([V, W])
     uv = Coefficient(V)
     uw = Coefficient(W)
     v = TestFunction(M)
@@ -389,8 +390,8 @@ def test_multiple_coefficient_derivative(self):
 def test_indexed_coefficient_derivative(self):
     cell = triangle
     I = Identity(cell.geometric_dimension())
-    V = FiniteElement("CG", cell, 1)
-    W = VectorElement("CG", cell, 1)
+    V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+    W = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
     u = Coefficient(W)
     v = TestFunction(V)
 
@@ -409,9 +410,9 @@ def test_indexed_coefficient_derivative(self):
 def test_multiple_indexed_coefficient_derivative(self):
     cell = tetrahedron
     I = Identity(cell.geometric_dimension())
-    V = FiniteElement("CG", cell, 1)
-    V2 = V*V
-    W = VectorElement("CG", cell, 1)
+    V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+    V2 = MixedElement([V, V])
+    W = FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1)
     u = Coefficient(W)
     w = Coefficient(W)
     v = TestFunction(V2)
@@ -425,8 +426,8 @@ def test_multiple_indexed_coefficient_derivative(self):
 
 def test_segregated_derivative_of_convection(self):
     cell = tetrahedron
-    V = FiniteElement("CG", cell, 1)
-    W = VectorElement("CG", cell, 1)
+    V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+    W = FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1)
 
     u = Coefficient(W)
     v = Coefficient(W)
@@ -461,7 +462,7 @@ def test_segregated_derivative_of_convection(self):
 
 
 def test_coefficient_derivatives(self):
-    V = FiniteElement("Lagrange", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
     dv = TestFunction(V)
 
@@ -484,8 +485,8 @@ def test_coefficient_derivatives(self):
 
 
 def test_vector_coefficient_derivatives(self):
-    V = VectorElement("Lagrange", triangle, 1)
-    VV = TensorElement("Lagrange", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
+    VV = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)
 
     dv = TestFunction(V)
 
@@ -509,8 +510,8 @@ def test_vector_coefficient_derivatives(self):
 
 
 def test_vector_coefficient_derivatives_of_product(self):
-    V = VectorElement("Lagrange", triangle, 1)
-    VV = TensorElement("Lagrange", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
+    VV = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)
 
     dv = TestFunction(V)
 
@@ -546,7 +547,7 @@ def test_vector_coefficient_derivatives_of_product(self):
 
 def testHyperElasticity(self):
     cell = interval
-    element = FiniteElement("CG", cell, 2)
+    element = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
     w = Coefficient(element)
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -622,7 +623,7 @@ def testHyperElasticity(self):
 
 def test_mass_derived_from_functional(self):
     cell = triangle
-    V = FiniteElement("CG", cell, 1)
+    V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
     v = TestFunction(V)
     u = TrialFunction(V)
@@ -641,7 +642,7 @@ def test_mass_derived_from_functional(self):
 
 def test_derivative_replace_works_together(self):
     cell = triangle
-    V = FiniteElement("CG", cell, 1)
+    V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
     v = TestFunction(V)
     u = TrialFunction(V)
@@ -663,8 +664,8 @@ def test_derivative_replace_works_together(self):
 
 
 def test_index_simplification_handles_repeated_indices(self):
-    mesh = Mesh(VectorElement("P", quadrilateral, 1))
-    V = FunctionSpace(mesh, TensorElement("DQ", quadrilateral, 0))
+    mesh = Mesh(FiniteElement("Lagrange", quadrilateral, 1, (2, ), (2, ), "identity", H1))
+    V = FunctionSpace(mesh, FiniteElement("DQ", quadrilateral, 0, (2, 2), (2, 2), "identity", L2))
     K = JacobianInverse(mesh)
     G = outer(Identity(2), Identity(2))
     i, j, k, l, m, n = indices(6)
@@ -682,7 +683,7 @@ def test_index_simplification_handles_repeated_indices(self):
 
 
 def test_index_simplification_reference_grad(self):
-    mesh = Mesh(VectorElement("P", quadrilateral, 1))
+    mesh = Mesh(FiniteElement("Lagrange", quadrilateral, 1, (2, ), (2, ), "identity", H1))
     i, = indices(1)
     A = as_tensor(Indexed(Jacobian(mesh), MultiIndex((i, i))), (i,))
     expr = apply_derivatives(apply_geometry_lowering(
@@ -694,7 +695,7 @@ def test_index_simplification_reference_grad(self):
 # --- Scratch space
 
 def test_foobar(self):
-    element = VectorElement("Lagrange", triangle, 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v = TestFunction(element)
 
     du = TrialFunction(element)

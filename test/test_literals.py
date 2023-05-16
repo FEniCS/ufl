@@ -8,7 +8,8 @@ import pytest
 
 from ufl import *
 from ufl.classes import Indexed
-from ufl.constantvalue import Zero, FloatValue, IntValue, ComplexValue, as_ufl
+from ufl.constantvalue import ComplexValue, FloatValue, IntValue, Zero, as_ufl
+from ufl.finiteelement import FiniteElement
 
 
 def test_zero(self):
@@ -150,7 +151,7 @@ def test_permutation_symbol_n(self):
 
 
 def test_unit_dyads(self):
-    from ufl.tensors import unit_vectors, unit_matrices
+    from ufl.tensors import unit_matrices, unit_vectors
     ei, ej = unit_vectors(2)
     self.assertEqual(as_vector((1, 0)), ei)
     self.assertEqual(as_vector((0, 1)), ej)

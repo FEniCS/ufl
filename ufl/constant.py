@@ -8,8 +8,8 @@ which are constant with respect to a domain."""
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain
 from ufl.utils.counted import counted_init
 

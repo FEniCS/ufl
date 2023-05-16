@@ -9,12 +9,11 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.core.expr import Expr
-from ufl.integral import Integral
 from ufl.action import Action
 from ufl.adjoint import Adjoint
-from ufl.form import Form, FormSum, BaseForm
-
+from ufl.core.expr import Expr
+from ufl.form import BaseForm, Form, FormSum
+from ufl.integral import Integral
 
 # --- Traversal utilities ---
 

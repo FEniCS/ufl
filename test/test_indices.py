@@ -7,6 +7,8 @@ from ufl import *
 # from ufl.indexutils import *
 from ufl.algorithms import *
 from ufl.classes import IndexSum
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 # TODO: add more expressions to test as many possible combinations of index notation as feasible...
 
@@ -29,7 +31,7 @@ def xtest_index_utils(self):
 
 
 def test_vector_indices(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     u = Argument(element, 2)
     f = Coefficient(element)
     a = u[i]*f[i]*dx
@@ -37,7 +39,7 @@ def test_vector_indices(self):
 
 
 def test_tensor_indices(self):
-    element = TensorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)
     u = Argument(element, 2)
     f = Coefficient(element)
     a = u[i, j]*f[i, j]*dx
@@ -48,7 +50,7 @@ def test_tensor_indices(self):
 
 
 def test_indexed_sum1(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     u = Argument(element, 2)
     f = Coefficient(element)
     a = u[i]+f[i]
@@ -57,7 +59,7 @@ def test_indexed_sum1(self):
 
 
 def test_indexed_sum2(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v = Argument(element, 2)
     u = Argument(element, 3)
     f = Coefficient(element)
@@ -67,7 +69,7 @@ def test_indexed_sum2(self):
 
 
 def test_indexed_sum3(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     u = Argument(element, 2)
     f = Coefficient(element)
     with pytest.raises(BaseException):
@@ -75,7 +77,7 @@ def test_indexed_sum3(self):
 
 
 def test_indexed_function1(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v = Argument(element, 2)
     u = Argument(element, 3)
     f = Coefficient(element)
@@ -84,7 +86,7 @@ def test_indexed_function1(self):
 
 
 def test_indexed_function2(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v = Argument(element, 2)
     u = Argument(element, 3)
     f = Coefficient(element)
@@ -99,7 +101,7 @@ def test_indexed_function2(self):
 
 
 def test_indexed_function3(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v = Argument(element, 2)
     u = Argument(element, 3)
     f = Coefficient(element)
@@ -108,7 +110,7 @@ def test_indexed_function3(self):
 
 
 def test_vector_from_indices(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v  = TestFunction(element)
     u  = TrialFunction(element)
 
@@ -124,7 +126,7 @@ def test_vector_from_indices(self):
 
 
 def test_matrix_from_indices(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v  = TestFunction(element)
     u  = TrialFunction(element)
 
@@ -140,7 +142,7 @@ def test_matrix_from_indices(self):
 
 
 def test_vector_from_list(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v  = TestFunction(element)
     u  = TrialFunction(element)
 
@@ -152,7 +154,7 @@ def test_vector_from_list(self):
 
 
 def test_matrix_from_list(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v  = TestFunction(element)
     u  = TrialFunction(element)
 
@@ -171,7 +173,7 @@ def test_matrix_from_list(self):
 
 
 def test_tensor(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v  = TestFunction(element)
     u  = TrialFunction(element)
     f  = Coefficient(element)
@@ -211,7 +213,7 @@ def test_tensor(self):
 
 
 def test_indexed(self):
-    element = VectorElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v  = TestFunction(element)
     u  = TrialFunction(element)
     f  = Coefficient(element)
@@ -230,7 +232,7 @@ def test_indexed(self):
 
 def test_spatial_derivative(self):
     cell = triangle
-    element = VectorElement("CG", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
     v  = TestFunction(element)
     u  = TrialFunction(element)
     i, j, k, l = indices(4)

@@ -9,12 +9,11 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.form import BaseForm
-from ufl.core.ufl_type import ufl_type
 from ufl.argument import Argument
+from ufl.core.ufl_type import ufl_type
+from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import counted_init
-
 
 # --- The Matrix class represents a matrix, an assembled two form ---
 

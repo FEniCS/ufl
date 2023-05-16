@@ -3,8 +3,9 @@
 
 import pytest
 
-from ufl import *
-from ufl.classes import Division, FloatValue, IntValue, ComplexValue
+from ufl import (Identity, SpatialCoordinate, as_matrix, as_ufl, as_vector, elem_div, elem_mult, elem_op, sin,
+                 tetrahedron, triangle)
+from ufl.classes import ComplexValue, Division, FloatValue, IntValue
 
 
 def test_scalar_casting(self):

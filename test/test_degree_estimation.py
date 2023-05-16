@@ -4,25 +4,24 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
-import pytest
 from pprint import *
+
+import pytest
 
 from ufl import *
 from ufl.algorithms import *
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.sobolevspace import H1
 
 
 def test_total_degree_estimation():
-    V1 = FiniteElement("CG", triangle, 1)
-    V2 = FiniteElement("CG", triangle, 2)
-    VV = VectorElement("CG", triangle, 3)
-    VM = V1 * V2
-    O1 = TensorProductElement(V1, V1)
-    O2 = TensorProductElement(V2, V1)
+    V1 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    V2 = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
+    VV = FiniteElement("Lagrange", triangle, 3, (2, ), (2, ), "identity", H1)
+    VM = MixedElement([V1, V2])
     v1 = Argument(V1, 2)
     v2 = Argument(V2, 3)
     f1, f2 = Coefficients(VM)
-    u1 = Coefficient(O1)
-    u2 = Coefficient(O2)
     vv = Argument(VV, 4)
     vu = Argument(VV, 5)
 
@@ -73,18 +72,6 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(f2 ** 3 * v1) == 7
     assert estimate_total_polynomial_degree(f2 ** 3 * v1 + f1 * v1) == 7
 
-    # outer product tuple-degree tests
-    assert estimate_total_polynomial_degree(u1) == (1, 1)
-    assert estimate_total_polynomial_degree(u2) == (2, 1)
-    # derivatives should do nothing (don't know in which direction they act)
-    assert estimate_total_polynomial_degree(grad(u2)) == (2, 1)
-    assert estimate_total_polynomial_degree(u1 * u1) == (2, 2)
-    assert estimate_total_polynomial_degree(u2 * u1) == (3, 2)
-    assert estimate_total_polynomial_degree(u2 * u2) == (4, 2)
-    assert estimate_total_polynomial_degree(u1 ** 3) == (3, 3)
-    assert estimate_total_polynomial_degree(u1 ** 3 + u2 * u2) == (4, 3)
-    assert estimate_total_polynomial_degree(u2 ** 2 * u1) == (5, 3)
-
     # Math functions of constant values are constant values
     nx, ny = FacetNormal(triangle)
     e = nx ** 2
@@ -107,8 +94,8 @@ def test_some_compound_types():
 
     etpd = estimate_total_polynomial_degree
 
-    P2 = FiniteElement("CG", triangle, 2)
-    V2 = VectorElement("CG", triangle, 2)
+    P2 = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
+    V2 = FiniteElement("Lagrange", triangle, 2, (2, ), (2, ), "identity", H1)
 
     u = Coefficient(P2)
     v = Coefficient(V2)

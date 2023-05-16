@@ -11,8 +11,7 @@ from itertools import accumulate, chain, repeat
 import numpy
 
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import (Jacobian, JacobianDeterminant, JacobianInverse,
-                         ReferenceValue)
+from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.domain import extract_unique_domain

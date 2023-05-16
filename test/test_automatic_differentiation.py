@@ -7,18 +7,23 @@ algorithm at a technical level, and are thus implementation specific.
 Other tests check for mathematical correctness of diff and derivative.
 """
 
-import pytest
 from itertools import chain
 
+import pytest
+
 import ufl
-
-# This imports everything external code will see from ufl
-from ufl import *
-
 import ufl.algorithms
-from ufl.corealg.traversal import unique_post_traversal
-from ufl.conditional import Conditional
+from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
+                 Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength, MaxFacetEdgeLength,
+                 MinCellEdgeLength, MinFacetEdgeLength, Not, Or, PermutationSymbol, SpatialCoordinate, acos, as_matrix,
+                 as_tensor, as_ufl, as_vector, asin, atan, bessel_I, bessel_J, bessel_K, bessel_Y, cofac, conditional,
+                 cos, cross, derivative, det, dev, diff, dot, eq, erf, exp, ge, grad, gt, indices, inner, interval, inv,
+                 le, ln, lt, ne, outer, replace, sin, skew, sqrt, sym, tan, tetrahedron, tr, triangle, variable)
 from ufl.algorithms import expand_derivatives
+from ufl.conditional import Conditional
+from ufl.corealg.traversal import unique_post_traversal
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import L2
 
 
 class ExpressionCollection(object):
@@ -46,9 +51,9 @@ class ExpressionCollection(object):
         I = Identity(d)
         eps = PermutationSymbol(d)
 
-        U = FiniteElement("U", cell, None)
-        V = VectorElement("U", cell, None)
-        W = TensorElement("U", cell, None)
+        U = FiniteElement("Undefined", cell, None, (), (), "identity", L2)
+        V = FiniteElement("Undefined", cell, None, (d, ), (d, ), "identity", L2)
+        W = FiniteElement("Undefined", cell, None, (d, d), (d, d), "identity", L2)
 
         u = Coefficient(U)
         v = Coefficient(V)

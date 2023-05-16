@@ -3,20 +3,22 @@
 import pytest
 
 from ufl import *
+from ufl.finiteelement import FiniteElement
 from ufl.form import BaseForm
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def element():
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     return element
 
 
 @pytest.fixture
 def mass():
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     v = TestFunction(element)
     u = TrialFunction(element)
     return u * v * dx
@@ -25,7 +27,7 @@ def mass():
 @pytest.fixture
 def stiffness():
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     v = TestFunction(element)
     u = TrialFunction(element)
     return inner(grad(u), grad(v)) * dx
@@ -34,7 +36,7 @@ def stiffness():
 @pytest.fixture
 def convection():
     cell = triangle
-    element = VectorElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
     v = TestFunction(element)
     u = TrialFunction(element)
     w = Coefficient(element)
@@ -44,7 +46,7 @@ def convection():
 @pytest.fixture
 def load():
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     f = Coefficient(element)
     v = TestFunction(element)
     return f * v * dx
@@ -53,7 +55,7 @@ def load():
 @pytest.fixture
 def boundary_load():
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     f = Coefficient(element)
     v = TestFunction(element)
     return f * v * ds
@@ -90,7 +92,7 @@ def test_form_coefficients(element):
 def test_form_domains():
     cell = triangle
     domain = Mesh(cell)
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V = FunctionSpace(domain, element)
 
     v = TestFunction(V)
@@ -121,7 +123,7 @@ def test_form_integrals(mass, boundary_load):
 
 
 def test_form_call():
-    V = FiniteElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     v = TestFunction(V)
     u = TrialFunction(V)
     f = Coefficient(V)
@@ -137,7 +139,7 @@ def test_form_call():
         assert M == g*f*dx
 
 def test_formsum(mass):
-    V = FiniteElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     v = Cofunction(V)
 
     assert(v + mass)

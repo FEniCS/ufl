@@ -9,14 +9,13 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-from ufl.core.ufl_type import ufl_type
+from ufl.constantvalue import Zero, as_ufl
 from ufl.core.expr import Expr
+from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
 from ufl.core.operator import Operator
-from ufl.constantvalue import as_ufl, Zero
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex, indices
-from ufl.indexed import Indexed
+from ufl.core.ufl_type import ufl_type
 from ufl.index_combination_utils import remove_indices
-
+from ufl.indexed import Indexed
 
 # --- Classes representing tensors of UFL expressions ---
 

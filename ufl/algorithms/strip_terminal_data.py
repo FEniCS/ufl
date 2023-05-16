@@ -2,11 +2,9 @@
 """Algorithm for replacing form arguments with 'stripped' versions where any
 data-carrying objects have been extracted to a mapping."""
 
-from ufl.classes import Form, Integral
-from ufl.classes import Argument, Coefficient, Constant
-from ufl.classes import FunctionSpace, TensorProductFunctionSpace, MixedFunctionSpace
-from ufl.classes import Mesh, MeshView
 from ufl.algorithms.replace import replace
+from ufl.classes import (Argument, Coefficient, Constant, Form, FunctionSpace, Integral, Mesh, MeshView,
+                         MixedFunctionSpace, TensorProductFunctionSpace)
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 

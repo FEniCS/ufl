@@ -5,8 +5,8 @@
 Test internal utility functions.
 """
 
-from ufl.utils.indexflattening import (shape_to_strides, flatten_multiindex,
-                                       unflatten_index)
+from ufl.finiteelement import FiniteElement
+from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
 
 
 def test_shape_to_strides():
@@ -57,9 +57,8 @@ def test_component_numbering():
 
 
 def test_index_flattening():
-    from ufl.utils.indexflattening import (shape_to_strides,
-                                           flatten_multiindex,
-                                           unflatten_index)
+    from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
+
     # Scalar shape
     s = ()
     st = shape_to_strides(s)

@@ -10,7 +10,6 @@
 
 from ufl.core.multiindex import FixedIndex, Index, indices
 
-
 # FIXME: Some of these might be merged into one function, some might
 # be optimized
 

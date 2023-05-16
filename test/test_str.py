@@ -2,6 +2,8 @@
 
 from ufl import *
 from ufl.classes import *
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def test_str_int_value(self):
@@ -55,8 +57,8 @@ def test_str_volume(self):
 
 
 def test_str_scalar_argument(self):
-    v = TestFunction(FiniteElement("CG", triangle, 1))
-    u = TrialFunction(FiniteElement("CG", triangle, 1))
+    v = TestFunction(FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1))
+    u = TrialFunction(FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1))
     assert str(v) == "v_0"
     assert str(u) == "v_1"
 
@@ -106,5 +108,6 @@ def test_str_list_matrix_with_zero():
 
 
 def test_str_element():
-    elem = FiniteElement("Q", quadrilateral, 1)
+    elem = FiniteElement("Q", quadrilateral, 1, (), (), "identity", H1)
+    assert repr(elem) == "ufl.finiteelement.FiniteElement(\"Q\", quadrilateral, 1, (), (), \"identity\", H1)"
     assert str(elem) == "<Q1 on a quadrilateral>"

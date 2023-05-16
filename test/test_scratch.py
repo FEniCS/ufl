@@ -7,15 +7,17 @@ The tests in the file will then automatically be run by ./test.py.
 Next look at the TODO markers below for places to edit.
 """
 
-import pytest
 import warnings
+
+import pytest
 
 # This imports everything external code will see from ufl
 from ufl import *
-from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
-
 # TODO: Import only what you need from classes and algorithms:
-from ufl.classes import Grad, FormArgument, Zero, Indexed, FixedIndex, ListTensor
+from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
+from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 
 
 class MockForwardAD:
@@ -214,7 +216,7 @@ def test_unwrap_list_tensor(self):
 
 
 def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
-    U = FiniteElement("CG", triangle, 1)
+    U = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     u = Coefficient(U)
     du = TestFunction(U)
 
@@ -238,7 +240,7 @@ def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
 
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
-    V = VectorElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v = Coefficient(V)
     dv = TestFunction(V)
 
@@ -262,7 +264,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
 
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation(self):
-    V = VectorElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v = Coefficient(V)
     dv = TestFunction(V)
 
@@ -317,7 +319,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
 
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation_in_list(self):
-    V = VectorElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
     v = Coefficient(V)
     dv = TestFunction(V)
 
@@ -372,7 +374,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
 
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
-    W = TensorElement("CG", triangle, 1)
+    W = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)
     w = Coefficient(W)
     dw = TestFunction(W)
 
@@ -396,7 +398,7 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
 
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_variation(self):
-    W = TensorElement("CG", triangle, 1)
+    W = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)
     w = Coefficient(W)
     dw = TestFunction(W)
 

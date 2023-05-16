@@ -4,11 +4,14 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-13 -- 2009-02-13"
 
-import pytest
 import math
+
+import pytest
 
 from ufl import *
 from ufl.constantvalue import as_ufl
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def testScalars():
@@ -51,7 +54,7 @@ def testCoords():
 
 def testFunction1():
     cell = triangle
-    element = FiniteElement("CG", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     f = Coefficient(element)
     s = 3 * f
     e = s((5, 7), {f: 123})
@@ -61,7 +64,7 @@ def testFunction1():
 
 def testFunction2():
     cell = triangle
-    element = FiniteElement("CG", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     f = Coefficient(element)
 
     def g(x):
@@ -74,7 +77,7 @@ def testFunction2():
 
 def testArgument2():
     cell = triangle
-    element = FiniteElement("CG", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     f = Argument(element, 2)
 
     def g(x):
@@ -201,7 +204,7 @@ def testComponentTensor3():
 
 
 def testCoefficient():
-    V = FiniteElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     f = Coefficient(V)
     e = f ** 2
 
@@ -211,7 +214,7 @@ def testCoefficient():
 
 
 def testCoefficientDerivative():
-    V = FiniteElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     f = Coefficient(V)
     e = f.dx(0) ** 2 + f.dx(1) ** 2
 

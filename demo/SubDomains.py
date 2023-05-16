@@ -17,8 +17,7 @@
 #
 # This simple example illustrates how forms can be defined on different sub domains.
 # It is supported for all three integral types.
-from ufl import (TestFunction, TrialFunction, ds, dS, dx,
-                 tetrahedron)
+from ufl import TestFunction, TrialFunction, ds, dS, dx, tetrahedron
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

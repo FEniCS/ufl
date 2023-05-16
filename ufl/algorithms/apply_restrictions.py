@@ -140,7 +140,7 @@ class RestrictionPropagator(MultiFunction):
         gd = D.geometric_dimension()
         td = D.topological_dimension()
 
-        if e._is_linear() and gd == td:
+        if e._is_linear and gd == td:
             # For meshes with a continuous linear non-manifold
             # coordinate field, the facet normal from side - points in
             # the opposite direction of the one from side +.  We must

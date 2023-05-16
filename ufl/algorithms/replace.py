@@ -9,11 +9,11 @@
 #
 # Modified by Anders Logg, 2009-2010
 
+from ufl.algorithms.analysis import has_exact_type
+from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import CoefficientDerivative
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
-from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.algorithms.analysis import has_exact_type
 
 
 class Replacer(MultiFunction):

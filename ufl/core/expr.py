@@ -361,8 +361,10 @@ class Expr(object, metaclass=UFLType):
 
     def __len__(self):
         "Length of expression. Used for iteration over vector expressions."
-        print(self.ufl_shape)
-        return sum(self.ufl_shape)
+        s = self.ufl_shape
+        if len(s) == 1:
+            return s[0]
+        raise NotImplementedError("Cannot take length of non-vector expression.")
 
     def __iter__(self):
         "Iteration over vector expressions."

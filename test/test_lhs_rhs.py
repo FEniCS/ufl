@@ -7,11 +7,14 @@ __authors__ = "Marie E. Rognes"
 # Last changed: 2011-11-09
 
 import pytest
+
 from ufl import *
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def test_lhs_rhs_simple():
-    V = FiniteElement("CG", interval, 1)
+    V = FiniteElement("Lagrange", interval, 1, (), (), "identity", H1)
     v = TestFunction(V)
     u = TrialFunction(V)
     w = Argument(V, 2)  # This was 0, not sure why
@@ -38,7 +41,7 @@ def test_lhs_rhs_simple():
 
 
 def test_lhs_rhs_derivatives():
-    V = FiniteElement("CG", interval, 1)
+    V = FiniteElement("Lagrange", interval, 1, (), (), "identity", H1)
     v = TestFunction(V)
     u = TrialFunction(V)
     f = Coefficient(V)
@@ -54,7 +57,7 @@ def test_lhs_rhs_derivatives():
 
 def test_lhs_rhs_slightly_obscure():
 
-    V = FiniteElement("CG", interval, 1)
+    V = FiniteElement("Lagrange", interval, 1, (), (), "identity", H1)
     u = TrialFunction(V)
     w = Argument(V, 2)
     f = Constant(interval)

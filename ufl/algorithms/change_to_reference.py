@@ -7,23 +7,17 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.core.multiindex import indices
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
-
-from ufl.classes import (FormArgument, GeometricQuantity,
-                         Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
-                         Jacobian, JacobianInverse, JacobianDeterminant,
-                         Indexed, MultiIndex, FixedIndex)
-
-from ufl.constantvalue import as_ufl
-from ufl.tensors import as_tensor
-from ufl.permutation import compute_indices
-
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.checks import is_cellwise_constant
-
+from ufl.classes import (FixedIndex, FormArgument, GeometricQuantity, Grad, Indexed, Jacobian, JacobianDeterminant,
+                         JacobianInverse, MultiIndex, ReferenceGrad, ReferenceValue, Restricted, Terminal)
+from ufl.constantvalue import as_ufl
+from ufl.core.multiindex import indices
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.multifunction import MultiFunction
+from ufl.permutation import compute_indices
+from ufl.tensors import as_tensor
 
 """
 # Some notes:

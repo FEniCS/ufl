@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
@@ -7,17 +7,13 @@ __date__ = "2008-03-12 -- 2009-01-28"
 # Modified by Garth N. Wells, 2009
 
 import pytest
-from pprint import *
 
-from ufl import (TestFunction, TrialFunction, Matrix, triangle,
-                 div, grad, Argument, dx, adjoint, Coefficient,
-                 FacetNormal, inner, dot, ds)
+from ufl import (Argument, Coefficient, FacetNormal, Matrix, TestFunction, TrialFunction, adjoint, div, dot, ds, dx,
+                 grad, inner, triangle)
+from ufl.algorithms import (expand_derivatives, expand_indices, extract_arguments, extract_coefficients,
+                            extract_elements, extract_unique_elements)
+from ufl.corealg.traversal import post_traversal, pre_traversal, unique_post_traversal, unique_pre_traversal
 from ufl.finiteelement import FiniteElement
-from ufl.algorithms import (extract_arguments, expand_derivatives,
-                            expand_indices, extract_elements,
-                            extract_unique_elements, extract_coefficients)
-from ufl.corealg.traversal import (pre_traversal, post_traversal,
-                                   unique_pre_traversal, unique_post_traversal)
 from ufl.sobolevspace import H1
 
 # TODO: add more tests, covering all utility algorithms

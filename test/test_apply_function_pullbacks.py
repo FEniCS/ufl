@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-from ufl import Cell, Coefficient
-from ufl import as_domain, indices, as_vector, as_tensor
-from ufl import triangle
+
+from ufl import Cell, Coefficient, as_domain, as_tensor, as_vector, indices, triangle
 from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import Jacobian, JacobianInverse, JacobianDeterminant, ReferenceValue, CellOrientation
-from ufl.sobolevspace import L2, H1, HDiv, HCurl, HEin, HDivDiv
+from ufl.classes import CellOrientation, Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
 from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
 
 
 def check_single_function_pullback(g, mappings):
@@ -45,7 +44,7 @@ def xtest_apply_single_function_pullbacks_triangle3d():
     U0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", L2)
     U = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V = FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1)
-    Vd = FiniteElement("RT", cell, 1, (3, ), (2, ), "contravariant Piola", HDiv)
+    Vd = FiniteElement("Raviart-Thomas", cell, 1, (3, ), (2, ), "contravariant Piola", HDiv)
     Vc = FiniteElement("N1curl", cell, 1, (3, ), (2, ), "covariant Piola", HCurl)
     T = FiniteElement("Lagrange", cell, 1, (3, 3), (3, 3), "identity", H1)
     S = FiniteElement("Lagrange", cell, 1, (3, 3), (6, ), "identity", H1, component_map={
@@ -245,7 +244,7 @@ def xtest_apply_single_function_pullbacks_triangle():
     Ul2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), "L2 Piola", L2)
     U = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
-    Vd = FiniteElement("RT", cell, 1, (2, ), (2, ), "contravariant Piola", HDiv)
+    Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), (2, ), "contravariant Piola", HDiv)
     Vc = FiniteElement("N1curl", cell, 1, (2, ), (2, ), "covariant Piola", HCurl)
     T = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)
     S = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)  ##TODO: symmetry

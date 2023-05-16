@@ -10,17 +10,21 @@ __license__ = "GNU GPL version 3 or any later version"
 # Examples copied from the FFC demo directory, examples contributed
 # by Johan Jansson, Kristian Oelgaard, Marie Rognes, and Garth Wells.
 
+import pickle
+
 import pytest
+
 from ufl import *
 from ufl.algorithms import compute_form_data
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.sobolevspace import H1, L2, HCurl, HDiv
 
-import pickle
 p = pickle.HIGHEST_PROTOCOL
 
 
 def testConstant():
 
-    element = FiniteElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -45,7 +49,7 @@ def testConstant():
 
 def testElasticity():
 
-    element = VectorElement("Lagrange", "tetrahedron", 1)
+    element = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -65,7 +69,7 @@ def testElasticity():
 
 def testEnergyNorm():
 
-    element = FiniteElement("Lagrange", "tetrahedron", 1)
+    element = FiniteElement("Lagrange", tetrahedron, 1, (), (), "identity", H1)
 
     v = Coefficient(element)
     a = (v * v + dot(grad(v), grad(v))) * dx
@@ -78,7 +82,7 @@ def testEnergyNorm():
 
 def testEquation():
 
-    element = FiniteElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
     k = 0.1
 
@@ -102,7 +106,7 @@ def testEquation():
 
 def testFunctionOperators():
 
-    element = FiniteElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -122,7 +126,7 @@ def testFunctionOperators():
 
 def testHeat():
 
-    element = FiniteElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
     v = TestFunction(element)
     u1 = TrialFunction(element)
@@ -145,7 +149,7 @@ def testHeat():
 
 def testMass():
 
-    element = FiniteElement("Lagrange", "tetrahedron", 3)
+    element = FiniteElement("Lagrange", tetrahedron, 3, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -160,9 +164,9 @@ def testMass():
 
 def testMixedMixedElement():
 
-    P3 = FiniteElement("Lagrange", "triangle", 3)
+    P3 = FiniteElement("Lagrange", triangle, 3, (), (), "identity", H1)
 
-    element = (P3 * P3) * (P3 * P3)
+    element = MixedElement([[P3, P3], [P3, P3]])
 
     element_pickle = pickle.dumps(element, p)
     element_restore = pickle.loads(element_pickle)
@@ -174,10 +178,10 @@ def testMixedPoisson():
 
     q = 1
 
-    BDM = FiniteElement("Brezzi-Douglas-Marini", "triangle", q)
-    DG = FiniteElement("Discontinuous Lagrange", "triangle", q - 1)
+    BDM = FiniteElement("Brezzi-Douglas-Marini", triangle, q, (2, ), (2, ), "contravariant Piola", HDiv)
+    DG = FiniteElement("Discontinuous Lagrange", triangle, q - 1, (), (), "identity", L2)
 
-    mixed_element = BDM * DG
+    mixed_element = MixedElement([BDM, DG])
 
     (tau, w) = TestFunctions(mixed_element)
     (sigma, u) = TrialFunctions(mixed_element)
@@ -198,7 +202,7 @@ def testMixedPoisson():
 
 def testNavierStokes():
 
-    element = VectorElement("Lagrange", "tetrahedron", 1)
+    element = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -216,7 +220,7 @@ def testNavierStokes():
 
 def testNeumannProblem():
 
-    element = VectorElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -240,7 +244,7 @@ def testNeumannProblem():
 
 def testOptimization():
 
-    element = FiniteElement("Lagrange", "triangle", 3)
+    element = FiniteElement("Lagrange", triangle, 3, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -260,7 +264,7 @@ def testOptimization():
 
 def testP5tet():
 
-    element = FiniteElement("Lagrange", tetrahedron, 5)
+    element = FiniteElement("Lagrange", tetrahedron, 5, (), (), "identity", H1)
 
     element_pickle = pickle.dumps(element, p)
     element_restore = pickle.loads(element_pickle)
@@ -270,7 +274,7 @@ def testP5tet():
 
 def testP5tri():
 
-    element = FiniteElement("Lagrange", triangle, 5)
+    element = FiniteElement("Lagrange", triangle, 5, (), (), "identity", H1)
 
     element_pickle = pickle.dumps(element, p)
     element_restore = pickle.loads(element_pickle)
@@ -278,7 +282,7 @@ def testP5tri():
 
 def testPoissonDG():
 
-    element = FiniteElement("Discontinuous Lagrange", triangle, 1)
+    element = FiniteElement("Discontinuous Lagrange", triangle, 1, (), (), "identity", L2)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -324,7 +328,7 @@ def testPoissonDG():
 
 def testPoisson():
 
-    element = FiniteElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -345,7 +349,7 @@ def testPoisson():
 
 def testPoissonSystem():
 
-    element = VectorElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -368,14 +372,14 @@ def testPoissonSystem():
 
 def testQuadratureElement():
 
-    element = FiniteElement("Lagrange", "triangle", 2)
+    element = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
 
     # FFC notation:
     # QE = QuadratureElement("triangle", 3)
     # sig = VectorQuadratureElement("triangle", 3)
 
-    QE = FiniteElement("Quadrature", "triangle", 3)
-    sig = VectorElement("Quadrature", "triangle", 3)
+    QE = FiniteElement("Quadrature", triangle, 3, (), (), "identity", L2)
+    sig = FiniteElement("Quadrature", triangle, 3, (2, ), (2, ), "identity", L2)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -400,9 +404,9 @@ def testStokes():
 
     # UFLException: Shape mismatch in sum.
 
-    P2 = VectorElement("Lagrange", "triangle", 2)
-    P1 = FiniteElement("Lagrange", "triangle", 1)
-    TH = P2 * P1
+    P2 = FiniteElement("Lagrange", triangle, 2, (2, ), (2, ), "identity", H1)
+    P1 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    TH = MixedElement([P2, P1])
 
     (v, q) = TestFunctions(TH)
     (u, r) = TrialFunctions(TH)
@@ -426,7 +430,7 @@ def testStokes():
 
 def testSubDomain():
 
-    element = FiniteElement("CG", "tetrahedron", 1)
+    element = FiniteElement("Lagrange", tetrahedron, 1, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -442,7 +446,7 @@ def testSubDomain():
 
 def testSubDomains():
 
-    element = FiniteElement("CG", "tetrahedron", 1)
+    element = FiniteElement("Lagrange", tetrahedron, 1, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -475,8 +479,8 @@ def testTensorWeightedPoisson():
     #
     # a = dot(grad(v), mult(C, grad(u)))*dx
 
-    P1 = FiniteElement("Lagrange", "triangle", 1)
-    P0 = TensorElement("Discontinuous Lagrange", "triangle", 0, shape=(2, 2))
+    P1 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    P0 = FiniteElement("Discontinuous Lagrange", triangle, 0, (2, 2), (2, 2), "identity", L2)
 
     v = TestFunction(P1)
     u = TrialFunction(P1)
@@ -507,17 +511,17 @@ def testVectorLaplaceGradCurl():
 
         return [a, L]
 
-    shape = "tetrahedron"
+    shape = tetrahedron
     order = 1
 
-    GRAD = FiniteElement("Lagrange", shape, order)
+    GRAD = FiniteElement("Lagrange", shape, order, (), (), "identity", H1)
 
     # FFC notation: CURL = FiniteElement("Nedelec", shape, order-1)
-    CURL = FiniteElement("N1curl", shape, order)
+    CURL = FiniteElement("N1curl", shape, order, (3, ), (3, ), "covariant Piola", HCurl)
 
-    VectorLagrange = VectorElement("Lagrange", shape, order + 1)
+    VectorLagrange = FiniteElement("Lagrange", shape, order + 1, (3, ), (3, ), "identity", H1)
 
-    [a, L] = HodgeLaplaceGradCurl(GRAD * CURL, VectorLagrange)
+    [a, L] = HodgeLaplaceGradCurl(MixedElement([GRAD, CURL]), VectorLagrange)
 
     a_pickle = pickle.dumps(a, p)
     a_restore = pickle.loads(a_pickle)
@@ -538,7 +542,7 @@ def testIdentity():
 
 def testFormData():
 
-    element = FiniteElement("Lagrange", "tetrahedron", 3)
+    element = FiniteElement("Lagrange", tetrahedron, 3, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)

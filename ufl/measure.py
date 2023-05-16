@@ -11,15 +11,13 @@
 # Modified by Massimiliano Leoni, 2016.
 
 import numbers
-
 from itertools import chain
 
-from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
-from ufl.domain import as_domain, AbstractDomain, extract_domains
+from ufl.core.expr import Expr
+from ufl.domain import AbstractDomain, as_domain, extract_domains
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
-
 
 # Export list for ufl.classes
 __all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
@@ -370,8 +368,8 @@ class Measure(object):
 
         """
         # Avoid circular imports
-        from ufl.integral import Integral
         from ufl.form import Form
+        from ufl.integral import Integral
 
         # Allow python literals: 1*dx and 1.0*dx
         if isinstance(integrand, (int, float)):

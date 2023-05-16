@@ -9,11 +9,11 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.utils.sequences import product
-from ufl.tensors import as_vector, as_matrix, ListTensor
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
+from ufl.tensors import ListTensor, as_matrix, as_vector
 from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides
+from ufl.utils.sequences import product
 
 
 def split(v):
@@ -49,7 +49,7 @@ def split(v):
 
     # Special case: simple element, just return function in a tuple
     element = v.ufl_element()
-    if element.num_sub_elements() == 0:
+    if element.num_sub_elements == 0:
         assert end is None
         return (v,)
 
@@ -57,7 +57,7 @@ def split(v):
         raise ValueError("Don't know how to split tensor valued mixed functions without flattened index space.")
 
     # Compute value size and set default range end
-    value_size = product(element.value_shape())
+    value_size = element.value_size
     if end is None:
         end = value_size
     else:
@@ -66,18 +66,18 @@ def split(v):
         j = begin
         while True:
             sub_i, j = element.extract_subelement_component(j)
-            element = element.sub_elements()[sub_i]
+            element = element.sub_elements[sub_i]
             # Then break when we find the subelement that covers the whole range
-            if product(element.value_shape()) == (end - begin):
+            if element.value_size == (end - begin):
                 break
 
     # Build expressions representing the subfunction of v for each subelement
     offset = begin
     sub_functions = []
-    for i, e in enumerate(element.sub_elements()):
+    for i, e in enumerate(element.sub_elements):
         # Get shape, size, indices, and v components
         # corresponding to subelement value
-        shape = e.value_shape()
+        shape = e.value_shape
         strides = shape_to_strides(shape)
         rank = len(shape)
         sub_size = product(shape)

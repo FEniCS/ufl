@@ -12,12 +12,9 @@ from math import pi
 
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.checks import is_cellwise_constant
-from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue,
-                         ExprList, ExprMapping, FloatValue, FormArgument, Grad,
-                         Identity, Imag, Indexed, IndexSum, JacobianInverse,
-                         ListTensor, Product, Real, ReferenceGrad,
-                         ReferenceValue, SpatialCoordinate, Sum, Variable,
-                         Zero)
+from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue, ExprList, ExprMapping, FloatValue,
+                         FormArgument, Grad, Identity, Imag, Indexed, IndexSum, JacobianInverse, ListTensor, Product,
+                         Real, ReferenceGrad, ReferenceValue, SpatialCoordinate, Sum, Variable, Zero)
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.expr import ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
@@ -26,13 +23,11 @@ from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import CoordinateDerivative
 from ufl.domain import extract_unique_domain
-from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg,
-                           conditional, cos, cosh, exp, facet_avg, ln, sign,
-                           sin, sinh, sqrt)
-from ufl.tensors import (as_scalar, as_scalars, as_tensor, unit_indexed_tensor,
-                         unwrap_list_tensor)
-
 from ufl.form import ZeroBaseForm
+from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
+                           sign, sin, sinh, sqrt)
+from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, unwrap_list_tensor
+
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset

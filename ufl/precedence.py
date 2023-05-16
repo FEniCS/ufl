@@ -9,7 +9,6 @@
 
 import warnings
 
-
 # FIXME: This code is crap...
 
 def parstr(child, parent, pre="(", post=")", format=str):
@@ -40,7 +39,8 @@ def parstr(child, parent, pre="(", post=")", format=str):
 
 
 def build_precedence_list():
-    from ufl.classes import Operator, Terminal, Sum, IndexSum, Product, Division, Power, MathFunction, BesselFunction, Abs, Indexed
+    from ufl.classes import (Abs, BesselFunction, Division, Indexed, IndexSum, MathFunction, Operator, Power, Product,
+                             Sum, Terminal)
 
     # TODO: Fill in other types...
     # Power <= Transposed
@@ -71,7 +71,7 @@ def build_precedence_mapping(precedence_list):
     """Given a precedence list, build a dict with class->int mappings.
     Utility function used by some external code.
     """
-    from ufl.classes import Expr, all_ufl_classes, abstract_classes
+    from ufl.classes import Expr, abstract_classes, all_ufl_classes
     pm = {}
     missing = set()
     # Assign integer values for each precedence level

@@ -1,26 +1,26 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-from ufl import *
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-03-14 -- 2009-03-14"
 
 import pytest
 
 from ufl import *
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.sobolevspace import H1
 
 
 def test_split(self):
     cell = triangle
     d = cell.geometric_dimension()
-    f = FiniteElement("CG", cell, 1)
-    v = VectorElement("CG", cell, 1)
-    w = VectorElement("CG", cell, 1, dim=d+1)
-    t = TensorElement("CG", cell, 1)
-    s = TensorElement("CG", cell, 1, symmetry=True)
-    r = TensorElement("CG", cell, 1, symmetry={(1, 0): (0, 1)}, shape=(d, d))
-    m = MixedElement(f, v, w, t, s, r)
+    f = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+    v = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1)
+    w = FiniteElement("Lagrange", cell, 1, (d+1, ), (d+1, ), "identity", H1)
+    t = FiniteElement("Lagrange", cell, 1, (d, d), (d, d), "identity", H1)
+    s = FiniteElement("Lagrange", cell, 1, (2, 2), (3, ), "identity", H1, component_map={
+        (0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2})
+    m = MixedElement([f, v, w, t, s, s])
 
     # Check that shapes of all these functions are correct:
     assert () == Coefficient(f).ufl_shape
@@ -28,7 +28,6 @@ def test_split(self):
     assert (d+1,) == Coefficient(w).ufl_shape
     assert (d, d) == Coefficient(t).ufl_shape
     assert (d, d) == Coefficient(s).ufl_shape
-    assert (d, d) == Coefficient(r).ufl_shape
     # sum of value sizes, not accounting for symmetries:
     assert (3*d*d + 2*d + 2,) == Coefficient(m).ufl_shape
 
@@ -40,8 +39,8 @@ def test_split(self):
     assert s == 0
 
     # Mixed elements of non-scalar subelements are flattened
-    v2 = MixedElement(v, v)
-    m2 = MixedElement(t, t)
+    v2 = MixedElement([v, v])
+    m2 = MixedElement([t, t])
     # assert d == 2
     # assert (2,2) == Coefficient(v2).ufl_shape
     assert (d+d,) == Coefficient(v2).ufl_shape

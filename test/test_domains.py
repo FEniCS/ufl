@@ -6,14 +6,18 @@ Tests of domain language and attaching domains to forms.
 
 import pytest
 
+import ufl
 from ufl import *
-from ufl.domain import as_domain, default_domain
 from ufl.algorithms import compute_form_data
+from ufl.domain import as_domain, default_domain
 
 all_cells = (interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
 
 from mockobjects import MockMesh, MockMeshFunction
+
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1, L2
 
 
 def test_construct_domains_from_cells():
@@ -80,7 +84,7 @@ def test_cell_legacy_case():
     # Passing cell like old code does
     D = as_domain(triangle)
 
-    V = FiniteElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     f = Coefficient(V)
     assert f.ufl_domains() == (D, )
 
@@ -92,7 +96,7 @@ def test_simple_domain_case():
     # Creating domain from just cell with label like new dolfin will do
     D = Mesh(triangle, ufl_id=3)
 
-    V = FunctionSpace(D, FiniteElement("CG", D.ufl_cell(), 1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", D.ufl_cell(), 1, (), (), "identity", "H1"))
     f = Coefficient(V)
     assert f.ufl_domains() == (D, )
 
@@ -105,11 +109,11 @@ def test_creating_domains_with_coordinate_fields():  # FIXME: Rewrite for new ap
 
     # Mesh with P2 representation of coordinates
     cell = triangle
-    P2 = VectorElement("CG", cell, 2)
+    P2 = FiniteElement("Lagrange", cell, 2, (2, ), (2, ), "identity", H1)
     domain = Mesh(P2)
 
     # Piecewise linear function space over quadratic mesh
-    element = FiniteElement("CG", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V = FunctionSpace(domain, element)
 
     f = Coefficient(V)
@@ -131,8 +135,8 @@ def test_join_domains():
     mesh7 = MockMesh(7)
     mesh8 = MockMesh(8)
     triangle3 = Cell("triangle", geometric_dimension=3)
-    xa = VectorElement("CG", triangle, 1)
-    xb = VectorElement("CG", triangle, 1)
+    xa = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
+    xb = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
 
     # Equal domains are joined
     assert 1 == len(join_domains([Mesh(triangle, ufl_id=7),
@@ -156,8 +160,8 @@ def test_join_domains():
     # Mesh(quadrilateral)])) # FIXME: Figure out
 
     # Incompatible coordinates require labeling
-    xc = Coefficient(FunctionSpace(Mesh(triangle), VectorElement("CG", triangle, 1)))
-    xd = Coefficient(FunctionSpace(Mesh(triangle), VectorElement("CG", triangle, 1)))
+    xc = Coefficient(FunctionSpace(Mesh(triangle), FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)))
+    xd = Coefficient(FunctionSpace(Mesh(triangle), FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)))
     with pytest.raises(BaseException):
         join_domains([Mesh(xc), Mesh(xd)])
 
@@ -190,7 +194,7 @@ def test_join_domains():
 def test_everywhere_integrals_with_backwards_compatibility():
     D = Mesh(triangle)
 
-    V = FunctionSpace(D, FiniteElement("CG", triangle, 1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1))
     f = Coefficient(V)
 
     a = f * dx
@@ -218,11 +222,11 @@ def xtest_mixed_elements_on_overlapping_regions():  # Old sketch, not working
     DR = Region(D, (2, 3), "DR")
 
     # Create function spaces on D
-    V = FiniteElement("CG", D, 1)
-    VD = FiniteElement("DG", DD, 1)
+    V = FiniteElement("Lagrange", D, 1)
+    VD = FiniteElement("Discontinuous Lagrange", DD, 1)
     VC = FiniteElement("R", DD, 0)
-    VL = VectorElement("DG", DL, 2)
-    VR = FiniteElement("CG", DR, 3)
+    VL = VectorElement("Discontinuous Lagrange", DL, 2)
+    VR = FiniteElement("Lagrange", DR, 3)
 
     # Create mixed space over all these spaces
     M = MixedElement(V, VD, VC, VL, VR)
@@ -331,14 +335,14 @@ def xtest_form_domain_model():  # Old sketch, not working
     # assert DA["DAL"] == DAL
 
     # Create function spaces on DA
-    VA = FiniteElement("CG", DA, 1)
-    VAL = FiniteElement("CG", DAL, 1)
-    VAR = FiniteElement("CG", DAR, 1)
+    VA = FiniteElement("Lagrange", DA, 1)
+    VAL = FiniteElement("Lagrange", DAL, 1)
+    VAR = FiniteElement("Lagrange", DAR, 1)
 
     # Create function spaces on DB
-    VB = FiniteElement("CG", DB, 1)
-    VBL = FiniteElement("CG", DBL, 1)
-    VBR = FiniteElement("CG", DBR, 1)
+    VB = FiniteElement("Lagrange", DB, 1)
+    VBL = FiniteElement("Lagrange", DBL, 1)
+    VBR = FiniteElement("Lagrange", DBR, 1)
 
     # Check that regions are available through elements
     assert VA.ufl_domain() == DA
@@ -419,8 +423,8 @@ def xtest_subdomain_stuff():  # Old sketch, not working
 
     assert DM == D2
 
-    VL = VectorElement(DL, "CG", 1)
-    VR = FiniteElement(DR, "CG", 2)
+    VL = VectorElement(DL, "Lagrange", 1)
+    VR = FiniteElement(DR, "Lagrange", 2)
     V = VL * VR
 
     def sub_elements_on_subdomains(W):
@@ -441,13 +445,13 @@ def xtest_subdomain_stuff():  # Old sketch, not working
 
     # An element restricted to a domain union becomes a switch
     # of elements restricted to each disjoint subdomain
-    VL_D1 = VectorElement(D1, "CG", 1)
-    VL_D2 = VectorElement(D2, "CG", 1)
+    VL_D1 = VectorElement(D1, "Lagrange", 1)
+    VL_D2 = VectorElement(D2, "Lagrange", 1)
     VLalt = ElementSwitch({D1: VL_D1,
                            D2: VL_D2})
     # Ditto
-    VR_D2 = FiniteElement(D2, "CG", 2)
-    VR_D3 = FiniteElement(D3, "CG", 2)
+    VR_D2 = FiniteElement(D2, "Lagrange", 2)
+    VR_D3 = FiniteElement(D3, "Lagrange", 2)
     VRalt = ElementSwitch({D2: VR_D2,
                            D3: VR_D3})
     # A mixed element of ElementSwitches is mixed only on the overlapping

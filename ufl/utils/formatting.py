@@ -84,4 +84,4 @@ def istr(o):
 
 def estr(elements):
     """Format list of elements for printing."""
-    return ", ".join(e.shortstr() for e in elements)
+    return ", ".join(f"{e!r}" for e in elements)

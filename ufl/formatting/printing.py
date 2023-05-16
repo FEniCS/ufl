@@ -14,7 +14,6 @@ from ufl.core.expr import Expr
 from ufl.form import Form
 from ufl.integral import Integral
 
-
 # --- Utilities for constructing informative strings from UFL objects
 
 def integral_info(integral):

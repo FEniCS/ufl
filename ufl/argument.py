@@ -13,14 +13,15 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
-from ufl.core.ufl_type import ufl_type
+
 from ufl.core.terminal import FormArgument
-from ufl.split_functions import split
-from ufl.finiteelement import FiniteElementBase
+from ufl.core.ufl_type import ufl_type
 from ufl.domain import default_domain
+from ufl.duals import is_dual, is_primal
+from ufl.finiteelement import FiniteElementBase
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
-from ufl.duals import is_primal, is_dual
+from ufl.split_functions import split
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]

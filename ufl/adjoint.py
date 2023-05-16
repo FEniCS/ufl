@@ -9,8 +9,9 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.form import BaseForm, FormSum, ZeroBaseForm
 from ufl.core.ufl_type import ufl_type
+from ufl.form import BaseForm, FormSum, ZeroBaseForm
+
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
 

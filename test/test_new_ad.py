@@ -3,14 +3,14 @@
 import pytest
 
 from ufl import *
-
-from ufl.tensors import as_tensor
-from ufl.classes import Grad
 from ufl.algorithms import tree_format
+from ufl.algorithms.apply_derivatives import (GateauxDerivativeRuleset, GenericDerivativeRuleset, GradRuleset,
+                                              VariableRuleset, apply_derivatives)
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.algorithms.apply_derivatives import apply_derivatives, GenericDerivativeRuleset, \
-    GradRuleset, VariableRuleset, GateauxDerivativeRuleset
-
+from ufl.classes import Grad
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1, L2
+from ufl.tensors import as_tensor
 
 # Note: the old tests in test_automatic_differentiation.py are a bit messy
 #       but still cover many things that are not in here yet.
@@ -23,8 +23,8 @@ from ufl.algorithms.apply_derivatives import apply_derivatives, GenericDerivativ
 def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     cell = triangle
     d = cell.geometric_dimension()
-    V0 = FiniteElement("DG", cell, 0)
-    V1 = FiniteElement("Lagrange", cell, 1)
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
     # Literals
     z = zero((3, 2))
@@ -89,8 +89,8 @@ def test_literal_derivatives_are_zero():
         for v in variables:
             assert apply_derivatives(diff(l, v)) == zero(l.ufl_shape + v.ufl_shape)
 
-    V0 = FiniteElement("DG", cell, 0)
-    V1 = FiniteElement("Lagrange", cell, 1)
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     u0 = Coefficient(V0)
     u1 = Coefficient(V1)
     v0 = TestFunction(V0)
@@ -111,12 +111,12 @@ def test_grad_ruleset():
     cell = triangle
     d = cell.geometric_dimension()
 
-    V0 = FiniteElement("DG", cell, 0)
-    V1 = FiniteElement("Lagrange", cell, 1)
-    V2 = FiniteElement("Lagrange", cell, 2)
-    W0 = VectorElement("DG", cell, 0)
-    W1 = VectorElement("Lagrange", cell, 1)
-    W2 = VectorElement("Lagrange", cell, 2)
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+    V2 = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
+    W0 = FiniteElement("Discontinuous Lagrange", cell, 0, (2, ), (2, ), "identity", L2)
+    W1 = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1)
+    W2 = FiniteElement("Lagrange", cell, 2, (d, ), (d, ), "identity", H1)
 
     # Literals
     one = as_ufl(1)

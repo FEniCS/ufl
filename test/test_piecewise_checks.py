@@ -6,9 +6,12 @@ Test the is_cellwise_constant function on all relevant terminal types.
 """
 
 import pytest
+
 from ufl import *
-from ufl.classes import *
 from ufl.checks import is_cellwise_constant
+from ufl.classes import *
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1, L2, HInf
 
 
 def get_domains():
@@ -26,7 +29,7 @@ def get_domains():
 def get_nonlinear():
     domains_with_quadratic_coordinates = []
     for D in get_domains():
-        V = VectorElement("CG", D.ufl_cell(), 2)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 2, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         domains_with_quadratic_coordinates.append(E)
 
@@ -49,7 +52,7 @@ def domains(request):
     domains = get_domains()
     domains_with_linear_coordinates = []
     for D in domains:
-        V = VectorElement("CG", D.ufl_cell(), 1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         domains_with_linear_coordinates.append(E)
 
@@ -68,7 +71,7 @@ def affine_domains(request):
 
     affine_domains_with_linear_coordinates = []
     for D in affine_domains:
-        V = VectorElement("CG", D.ufl_cell(), 1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         affine_domains_with_linear_coordinates.append(E)
 
@@ -88,7 +91,7 @@ def affine_facet_domains(request):
     affine_facet_domains = [Mesh(cell) for cell in affine_facet_cells]
     affine_facet_domains_with_linear_coordinates = []
     for D in affine_facet_domains:
-        V = VectorElement("CG", D.ufl_cell(), 1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         affine_facet_domains_with_linear_coordinates.append(E)
 
@@ -107,7 +110,7 @@ def nonaffine_domains(request):
     nonaffine_domains = [Mesh(cell) for cell in nonaffine_cells]
     nonaffine_domains_with_linear_coordinates = []
     for D in nonaffine_domains:
-        V = VectorElement("CG", D.ufl_cell(), 1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         nonaffine_domains_with_linear_coordinates.append(E)
 
@@ -125,7 +128,7 @@ def nonaffine_facet_domains(request):
     nonaffine_facet_domains = [Mesh(cell) for cell in nonaffine_facet_cells]
     nonaffine_facet_domains_with_linear_coordinates = []
     for D in nonaffine_facet_domains:
-        V = VectorElement("CG", D.ufl_cell(), 1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         nonaffine_facet_domains_with_linear_coordinates.append(E)
 
@@ -217,10 +220,10 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
     e = Constant(domains_not_linear)
     assert is_cellwise_constant(e)
 
-    V = FiniteElement("DG", domains_not_linear.ufl_cell(), 0)
+    V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 0, (), (), "identity", L2)
     e = Coefficient(V)
     assert is_cellwise_constant(e)
-    V = FiniteElement("R", domains_not_linear.ufl_cell(), 0)
+    V = FiniteElement("Real", domains_not_linear.ufl_cell(), 0, (), (), "identity", HInf)
     e = Coefficient(V)
     assert is_cellwise_constant(e)
 
@@ -233,7 +236,7 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
 
 
 def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
-    V = FiniteElement("DG", domains_not_linear.ufl_cell(), 1)
+    V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 1, (), (), "identity", L2)
     e = Coefficient(V)
     assert not is_cellwise_constant(e)
     e = TestFunction(V)

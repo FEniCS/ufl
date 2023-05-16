@@ -1,15 +1,19 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-import pytest
-from ufl.classes import Sum, Product
 import math
+
+import pytest
+
 from ufl import *
+from ufl.classes import Product, Sum
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def xtest_zero_times_argument(self):
     # FIXME: Allow zero forms
-    element = FiniteElement("CG", triangle, 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     v = TestFunction(element)
     u = TrialFunction(element)
     L = 0*v*dx
@@ -21,7 +25,7 @@ def xtest_zero_times_argument(self):
 
 
 def test_divisions(self):
-    element = FiniteElement("CG", triangle, 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     f = Coefficient(element)
     g = Coefficient(element)
 
@@ -47,7 +51,7 @@ def test_divisions(self):
 
 
 def test_products(self):
-    element = FiniteElement("CG", triangle, 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     f = Coefficient(element)
     g = Coefficient(element)
 
@@ -67,7 +71,7 @@ def test_products(self):
 
 
 def test_sums(self):
-    element = FiniteElement("CG", triangle, 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     f = Coefficient(element)
     g = Coefficient(element)
 

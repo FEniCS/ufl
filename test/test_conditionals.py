@@ -9,17 +9,19 @@ import pytest
 from ufl import *
 # from ufl.algorithms import *
 from ufl.classes import *
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def f():
-    element = FiniteElement("Lagrange", triangle, 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     return Coefficient(element)
 
 
 @pytest.fixture
 def g():
-    element = FiniteElement("Lagrange", triangle, 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     return Coefficient(element)
 
 

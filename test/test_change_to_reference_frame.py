@@ -5,8 +5,9 @@
 import pytest
 
 from ufl import *
-
-from ufl.classes import Form, Integral, Expr, ReferenceGrad, ReferenceValue
+from ufl.classes import Expr, Form, Integral, ReferenceGrad, ReferenceValue
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 '''
 from ufl.classes import ReferenceGrad, JacobianInverse
@@ -74,9 +75,9 @@ def change_to_reference_frame(expr):
 
 
 def test_change_unmapped_form_arguments_to_reference_frame():
-    U = FiniteElement("CG", triangle, 1)
-    V = VectorElement("CG", triangle, 1)
-    T = TensorElement("CG", triangle, 1)
+    U = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
+    T = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)
 
     expr = Coefficient(U)
     assert change_to_reference_frame(expr) == ReferenceValue(expr)
@@ -87,14 +88,14 @@ def test_change_unmapped_form_arguments_to_reference_frame():
 
 
 def test_change_hdiv_form_arguments_to_reference_frame():
-    V = FiniteElement("RT", triangle, 1)
+    V = FiniteElement("Raviart-Thomas", triangle, 1, (2, ), (2, ), "contravariant Piola", HDiv)
 
     expr = Coefficient(V)
     assert change_to_reference_frame(expr) == ReferenceValue(expr)
 
 
 def test_change_hcurl_form_arguments_to_reference_frame():
-    V = FiniteElement("RT", triangle, 1)
+    V = FiniteElement("Raviart-Thomas", triangle, 1, (2, ), (2, ), "contravariant Piola", HDiv)
 
     expr = Coefficient(V)
     assert change_to_reference_frame(expr) == ReferenceValue(expr)

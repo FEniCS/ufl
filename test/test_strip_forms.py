@@ -4,10 +4,11 @@ import sys
 import pytest
 
 from ufl import *
-from ufl.algorithms import strip_terminal_data, replace_terminal_data
+from ufl.algorithms import replace_terminal_data, strip_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import attach_operators_from_hash_data
-
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 MIN_REF_COUNT = 2
 """The minimum value returned by sys.getrefcount."""
@@ -54,7 +55,7 @@ def test_strip_form_arguments_strips_data_refs():
 
     cell = triangle
     domain = AugmentedMesh(cell, data=mesh_data)
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)
@@ -91,7 +92,7 @@ def test_strip_form_arguments_does_not_change_form():
 
     cell = triangle
     domain = AugmentedMesh(cell, data=mesh_data)
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)

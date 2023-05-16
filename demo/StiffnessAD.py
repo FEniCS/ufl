@@ -2,8 +2,7 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-30
 #
-from ufl import (Coefficient, action, adjoint, derivative, dx,
-                 grad, inner, triangle)
+from ufl import Coefficient, action, adjoint, derivative, dx, grad, inner, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

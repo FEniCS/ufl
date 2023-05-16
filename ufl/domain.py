@@ -97,7 +97,7 @@ class Mesh(AbstractDomain):
         return self._ufl_coordinate_element.cell
 
     def is_piecewise_linear_simplex_domain(self):
-        return (self._ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
+        return self._ufl_coordinate_element._is_linear and self.ufl_cell().is_simplex()
 
     def __repr__(self):
         r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_element), repr(self._ufl_id))
@@ -180,6 +180,7 @@ def affine_mesh(cell, ufl_id=None):
         "Lagrange", as_cell(cell), 1, (as_cell(cell).geometric_dimension(), ),
         (as_cell(cell).geometric_dimension(), ), "identity", H1)
     return Mesh(coordinate_element, ufl_id=ufl_id)
+
 
 _default_domains = {}
 

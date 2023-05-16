@@ -1,16 +1,19 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 import pytest
+
 from ufl import *
-from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.algorithms.check_arities import ArityMismatch
+from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def test_check_arities():
     # Code from bitbucket issue #49
     cell = tetrahedron
     D = Mesh(cell)
-    V = FunctionSpace(D, VectorElement("P", cell, 2))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3, ), (3, ), "identity", H1))
     dv = TestFunction(V)
     du = TrialFunction(V)
 
@@ -36,7 +39,7 @@ def test_check_arities():
 def test_complex_arities():
     cell = tetrahedron
     D = Mesh(cell)
-    V = FunctionSpace(D, VectorElement("P", cell, 2))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3, ), (3, ), "identity", H1))
     v = TestFunction(V)
     u = TrialFunction(V)
 

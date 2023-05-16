@@ -9,9 +9,10 @@ __date__ = "2019-03-26 -- 2019-03-26"
 import pytest
 
 from ufl import *
+from ufl.algorithms.formsplitter import extract_blocks
 from ufl.domain import default_domain
-from ufl.algorithms.formsplitter import extract_blocks 
-
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def test_mixed_functionspace(self):
@@ -20,9 +21,9 @@ def test_mixed_functionspace(self):
     domain_2d = default_domain(triangle)
     domain_1d = default_domain(interval)
     # Finite elements
-    f_1d = FiniteElement("CG", interval, 1)
-    f_2d = FiniteElement("CG", triangle, 1)
-    f_3d = FiniteElement("CG", tetrahedron, 1)
+    f_1d = FiniteElement("Lagrange", interval, 1, (), (), "identity", H1)
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    f_3d = FiniteElement("Lagrange", tetrahedron, 1, (), (), "identity", H1)
     # Function spaces
     V_3d = FunctionSpace(domain_3d, f_3d)
     V_2d = FunctionSpace(domain_2d, f_2d)
@@ -39,12 +40,12 @@ def test_mixed_functionspace(self):
     # Arguments from MixedFunctionSpace
     (u_3d, u_2d, u_1d) = TrialFunctions(V)
     (v_3d, v_2d, v_1d) = TestFunctions(V)
-    
+
     # Measures
     dx3 = Measure("dx", domain=V_3d)
     dx2 = Measure("dx", domain=V_2d)
     dx1 = Measure("dx", domain=V_1d)
-    
+
     # Mixed variational form
     # LHS
     a_11 = u_1d*v_1d*dx1

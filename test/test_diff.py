@@ -4,12 +4,15 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2014-10-14"
 
-import pytest
 import math
 
+import pytest
+
 from ufl import *
-from ufl.constantvalue import as_ufl
 from ufl.algorithms import expand_derivatives
+from ufl.constantvalue import as_ufl
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def get_variables():
@@ -173,9 +176,9 @@ def testIndexSum(v):
 
 
 def testCoefficient():
-    coord_elem = VectorElement("P", triangle, 1, dim=3)
+    coord_elem = FiniteElement("Lagrange", triangle, 1, (3, ), (3, ), "identity", H1)
     mesh = Mesh(coord_elem)
-    V = FunctionSpace(mesh, FiniteElement("P", triangle, 1))
+    V = FunctionSpace(mesh, FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1))
     v = Coefficient(V)
     assert round(expand_derivatives(diff(v, v))-1.0, 7) == 0
 

@@ -6,15 +6,17 @@ Tests of the various ways Measure objects can be created and used.
 """
 
 import pytest
+from mockobjects import MockMesh, MockMeshFunction
 
 # This imports everything external code will see from ufl
 from ufl import *
 from ufl.algorithms import compute_form_data
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 # all_cells = (interval, triangle, tetrahedron,
 #             quadrilateral, hexahedron)
 
-from mockobjects import MockMesh, MockMeshFunction
 
 
 def test_construct_forms_from_default_measures():
@@ -91,7 +93,7 @@ def test_foo():
     assert mydomain.ufl_cargo() == mymesh
 
     # Define a coefficient for use in tests below
-    V = FunctionSpace(mydomain, FiniteElement("CG", cell, 1))
+    V = FunctionSpace(mydomain, FiniteElement("Lagrange", cell, 1, (), (), "identity", H1))
     f = Coefficient(V)
 
     # Test definition of a custom measure with explicit parameters

@@ -6,17 +6,19 @@ Tests of the change to local representaiton algorithms.
 
 import pytest
 
-from ufl import *
-from ufl.classes import ReferenceGrad, JacobianInverse
-from ufl.algorithms import tree_format, change_to_reference_grad
+from ufl import Coefficient, FunctionSpace, JacobianInverse, Mesh, as_tensor, grad, indices, triangle
+from ufl.algorithms import change_to_reference_grad, tree_format
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.classes import JacobianInverse, ReferenceGrad
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def test_change_to_reference_grad():
     cell = triangle
     domain = Mesh(cell)
-    U = FunctionSpace(domain, FiniteElement("CG", cell, 1))
-    V = FunctionSpace(domain, VectorElement("CG", cell, 1))
+    U = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (), (), "identity", H1))
+    V = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     u = Coefficient(U)
     v = Coefficient(V)
     Jinv = JacobianInverse(domain)

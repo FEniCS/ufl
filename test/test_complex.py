@@ -1,20 +1,21 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
-import pytest
 import cmath
+
+import pytest
+
 import ufl
-from ufl.constantvalue import Zero, ComplexValue
-from ufl.algebra import Conj, Real, Imag
-from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
-from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl import (Coefficient, TestFunction, TrialFunction, as_tensor, as_ufl, atan, conditional, conj, cos, cosh, dot,
+                 dx, exp, ge, grad, gt, imag, inner, le, ln, lt, max_value, min_value, outer, real, sin, sqrt, triangle)
+from ufl.algebra import Conj, Imag, Real
 from ufl.algorithms import estimate_total_polynomial_degree
-from ufl.algorithms.comparison_checker import do_comparison_check, ComplexComparisonError
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.algorithms.comparison_checker import ComplexComparisonError, do_comparison_check
 from ufl.algorithms.formtransformations import compute_form_adjoint
-from ufl import TestFunction, TrialFunction, triangle, \
-        as_ufl, inner, grad, dx, dot, outer, conj, sqrt, sin, cosh, \
-        atan, ln, exp, as_tensor, real, imag, conditional, \
-        min_value, max_value, gt, lt, cos, ge, le, Coefficient
+from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.constantvalue import ComplexValue, Zero
 from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def test_conj(self):
@@ -48,7 +49,7 @@ def test_imag(self):
 
 def test_compute_form_adjoint(self):
     cell = triangle
-    element = FiniteElement('Lagrange', cell, 1)
+    element = FiniteElement('Lagrange', cell, 1, (), (), "identity", H1)
 
     u = TrialFunction(element)
     v = TestFunction(element)
@@ -74,7 +75,7 @@ def test_complex_algebra(self):
 
 def test_automatic_simplification(self):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -86,7 +87,7 @@ def test_automatic_simplification(self):
 
 def test_apply_algebra_lowering_complex(self):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
     v = TestFunction(element)
     u = TrialFunction(element)
@@ -112,7 +113,7 @@ def test_apply_algebra_lowering_complex(self):
 
 def test_remove_complex_nodes(self):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
     u = TrialFunction(element)
     v = TestFunction(element)
@@ -133,7 +134,7 @@ def test_remove_complex_nodes(self):
 
 def test_comparison_checker(self):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
     u = TrialFunction(element)
     v = TestFunction(element)
@@ -159,7 +160,7 @@ def test_comparison_checker(self):
 
 def test_complex_degree_handling(self):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 3)
+    element = FiniteElement("Lagrange", cell, 3, (), (), "identity", H1)
 
     v = TestFunction(element)
 

@@ -9,12 +9,14 @@ import pytest
 
 # This imports everything external code will see from ufl
 from ufl import *
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def test_comparison_of_coefficients():
-    V = FiniteElement("CG", triangle, 1)
-    U = FiniteElement("CG", triangle, 2)
-    Ub = FiniteElement("CG", triangle, 2)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    U = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
+    Ub = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
     v1 = Coefficient(V, count=1)
     v1b = Coefficient(V, count=1)
     v2 = Coefficient(V, count=2)
@@ -37,9 +39,9 @@ def test_comparison_of_coefficients():
     assert not v2 == u2
 
 def test_comparison_of_cofunctions():
-    V = FiniteElement("CG", triangle, 1)
-    U = FiniteElement("CG", triangle, 2)
-    Ub = FiniteElement("CG", triangle, 2)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    U = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
+    Ub = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
     v1 = Cofunction(V, count=1)
     v1b = Cofunction(V, count=1)
     v2 = Cofunction(V, count=2)
@@ -64,7 +66,7 @@ def test_comparison_of_cofunctions():
 
 
 def test_comparison_of_products():
-    V = FiniteElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     v = Coefficient(V)
     u = Coefficient(V)
     a = (v * 2) * u
@@ -76,7 +78,7 @@ def test_comparison_of_products():
 
 
 def test_comparison_of_sums():
-    V = FiniteElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     v = Coefficient(V)
     u = Coefficient(V)
     a = (v + 2) + u
@@ -88,7 +90,7 @@ def test_comparison_of_sums():
 
 
 def test_comparison_of_deeply_nested_expression():
-    V = FiniteElement("CG", triangle, 1)
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     v = Coefficient(V, count=1)
     u = Coefficient(V, count=1)
     w = Coefficient(V, count=2)

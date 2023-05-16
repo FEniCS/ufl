@@ -18,8 +18,7 @@
 # Restriction of a finite element.
 # The below syntax show how one can restrict a higher order Lagrange element
 # to only take into account those DOFs that live on the facets.
-from ufl import (TestFunction, TrialFunction, avg, dS, ds,
-                 triangle)
+from ufl import TestFunction, TrialFunction, avg, dS, ds, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

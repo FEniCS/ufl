@@ -14,14 +14,10 @@ import warnings
 from functools import reduce
 from itertools import combinations
 
-from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian,
-                         CellOrientation, CellOrigin, CellVertices, CellVolume,
-                         Expr, FacetEdgeVectors, FacetJacobian,
-                         FacetJacobianDeterminant, FloatValue, Form, Integral,
-                         Jacobian, JacobianDeterminant, JacobianInverse,
-                         MaxCellEdgeLength, ReferenceCellVolume,
-                         ReferenceFacetVolume, ReferenceGrad, ReferenceNormal,
-                         SpatialCoordinate)
+from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian, CellOrientation, CellOrigin, CellVertices,
+                         CellVolume, Expr, FacetEdgeVectors, FacetJacobian, FacetJacobianDeterminant, FloatValue, Form,
+                         Integral, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength,
+                         ReferenceCellVolume, ReferenceFacetVolume, ReferenceGrad, ReferenceNormal, SpatialCoordinate)
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.map_dag import map_expr_dag
@@ -52,7 +48,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
         domain = extract_unique_domain(o)
-        if domain.ufl_coordinate_element().mapping() != "identity":
+        if domain.ufl_coordinate_element().mapping != "identity":
             raise ValueError("Piola mapped coordinates are not implemented.")
         # Note: No longer supporting domain.coordinates(), always
         # preserving SpatialCoordinate object.  However if Jacobians
@@ -144,7 +140,7 @@ class GeometryLoweringApplier(MultiFunction):
         "Fall through to coordinate field of domain if it exists."
         if self._preserve_types[o._ufl_typecode_]:
             return o
-        if extract_unique_domain(o).ufl_coordinate_element().mapping() != "identity":
+        if extract_unique_domain(o).ufl_coordinate_element().mapping != "identity":
             raise ValueError("Piola mapped coordinates are not implemented.")
         # No longer supporting domain.coordinates(), always preserving
         # SpatialCoordinate object.

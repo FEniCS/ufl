@@ -17,9 +17,8 @@
 #
 # First added:  2008-10-03
 # Last changed: 2011-07-22
-from ufl import (TestFunctions, TrialFunctions,
-                 as_vector, div, dot, dx, inner, skew, tetrahedron, tr)
-from ufl.finiteelement import MixedElement, FiniteElement
+from ufl import TestFunctions, TrialFunctions, as_vector, div, dot, dx, inner, skew, tetrahedron, tr
+from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import L2, HDiv
 
 
@@ -35,8 +34,8 @@ n = 3
 # Finite element exterior calculus syntax
 r = 1
 S = FiniteElement("BDM", cell, r, (3, ), (3, ), "contravariant Piola", HDiv)
-V = FiniteElement("Discontinuous Lagrange", cell, r-1, (3, ), (3, ), "identity", L2)
-Q = FiniteElement("Discontinuous Lagrange", cell, r-1, (3, ), (3, ), "identity", L2)
+V = FiniteElement("Discontinuous Lagrange", cell, r - 1, (3, ), (3, ), "identity", L2)
+Q = FiniteElement("Discontinuous Lagrange", cell, r - 1, (3, ), (3, ), "identity", L2)
 
 W = MixedElement([S, V, Q])
 

@@ -4,15 +4,15 @@
 Test the computation of form signatures.
 """
 
+from itertools import chain
+
 import pytest
 
 from ufl import *
-
-from ufl.classes import MultiIndex, FixedIndex
-from ufl.algorithms.signature import compute_multiindex_hashdata, \
-    compute_terminal_hashdata
-
-from itertools import chain
+from ufl.algorithms.signature import compute_multiindex_hashdata, compute_terminal_hashdata
+from ufl.classes import FixedIndex, MultiIndex
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 # TODO: Test compute_terminal_hashdata
 #   TODO: Check that form argument counts only affect the sig by their relative ordering
@@ -139,27 +139,32 @@ def test_terminal_hashdata_depends_on_geometry(self):
 def test_terminal_hashdata_depends_on_form_argument_properties(self):
     reprs = set()
     hashes = set()
-    nelm = 6
+    nelm = 5
     nreps = 2
 
     # Data
     cells = (triangle, tetrahedron)
     degrees = (1, 2)
-    families = ("CG", "Lagrange", "DG")
+    families = (("Lagrange", H1), ("Lagrange", H1), ("Discontinuous Lagrange", L2))
 
     def forms():
         for rep in range(nreps):
             for cell in cells:
                 d = cell.geometric_dimension()
                 for degree in degrees:
-                    for family in families:
-                        V = FiniteElement(family, cell, degree)
-                        W = VectorElement(family, cell, degree)
-                        W2 = VectorElement(family, cell, degree, dim=d+1)
-                        T = TensorElement(family, cell, degree)
-                        S = TensorElement(family, cell, degree, symmetry=True)
-                        S2 = TensorElement(family, cell, degree, shape=(d, d), symmetry={(0, 0): (1, 1)})
-                        elements = [V, W, W2, T, S, S2]
+                    for family, sobolev in families:
+                        V = FiniteElement(family, cell, degree, (), (), "identity", sobolev)
+                        W = FiniteElement(family, cell, degree, (d, ), (d, ), "identity", sobolev)
+                        W2 = FiniteElement(family, cell, degree, (d+1, ), (d+1, ), "identity", sobolev)
+                        T = FiniteElement(family, cell, degree, (d, d), (d, d), "identity", sobolev)
+                        if d == 2:
+                            S = FiniteElement(family, cell, degree, (2, 2), (3, ), "identity", sobolev, component_map={
+                                (0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2})
+                        else:
+                            assert d == 3
+                            S = FiniteElement(family, cell, degree, (3, 3), (6, ), "identity", sobolev, component_map={
+                                (0, 0): 0, (0, 1): 1, (0, 2): 2, (1, 0): 1, (1, 1): 3, (1, 2): 4, (2, 0): 2, (2, 1): 4, (2, 2): 5})
+                        elements = [V, W, W2, T, S]
                         assert len(elements) == nelm
 
                         for H in elements[:nelm]:
@@ -176,11 +181,10 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
                                 yield compute_terminal_hashdata(expr, renumbering)
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    c1 = nreps * len(cells) * len(degrees) * len(families) * nelm * 2  # Number of cases with repetitions
+    c1 = nreps * len(cells) * len(degrees) * len(families) * nelm * 2
     assert c == c1
 
-    c0 = len(cells) * len(degrees) * (len(families)-1) * nelm * 2  # Number of unique cases, "CG" == "Lagrange"
-    # c0 = len(cells) * len(degrees) * (len(families)) * nelm * 2 # Number of unique cases, "CG" != "Lagrange"
+    c0 = len(cells) * len(degrees) * (len(families)-1) * nelm * 2
     assert d == c0
     assert r == c0
     assert h == c0
@@ -200,7 +204,7 @@ def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_orde
         for rep in range(nreps):
             for cell in cells:
                 for k in counts:
-                    V = FiniteElement("CG", cell, 2)
+                    V = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
                     f = Coefficient(V, count=k)
                     g = Coefficient(V, count=k+2)
                     expr = inner(f, g)
@@ -236,7 +240,7 @@ def test_terminal_hashdata_does_depend_on_argument_number_values(self):
         for rep in range(nreps):
             for cell in cells:
                 for k in counts:
-                    V = FiniteElement("CG", cell, 2)
+                    V = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
                     f = Argument(V, k)
                     g = Argument(V, k+2)
                     expr = inner(f, g)
@@ -290,7 +294,7 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     def forms():
         for rep in range(nreps):
             for domain in domains:
-                V = FunctionSpace(domain, FiniteElement("CG", domain.ufl_cell(), 2))
+                V = FunctionSpace(domain, FiniteElement("Lagrange", domain.ufl_cell(), 2, (), (), "identity", H1))
                 f = Coefficient(V, count=0)
                 v = TestFunction(V)
                 x = SpatialCoordinate(domain)
@@ -429,10 +433,10 @@ def check_unique_signatures(forms):
 
 def test_signature_is_affected_by_element_properties(self):
     def forms():
-        for family in ("CG", "DG"):
+        for family, sobolev in (("Lagrange", H1), ("Discontinuous Lagrange", L2)):
             for cell in (triangle, tetrahedron, quadrilateral):
                 for degree in (1, 2):
-                    V = FiniteElement(family, cell, degree)
+                    V = FiniteElement(family, cell, degree, (), (), "identity", sobolev)
                     u = Coefficient(V)
                     v = TestFunction(V)
                     x = SpatialCoordinate(cell)
@@ -449,7 +453,7 @@ def test_signature_is_affected_by_domains(self):
             for di in (1, 2):
                 for dj in (1, 2):
                     for dk in (1, 2):
-                        V = FiniteElement("CG", cell, 1)
+                        V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
                         u = Coefficient(V)
                         a = u*dx(di) + 2*u*dx(dj) + 3*u*ds(dk)
                         yield a
@@ -460,8 +464,9 @@ def test_signature_of_forms_with_diff(self):
     def forms():
         for cell in (triangle, tetrahedron):
             for k in (1, 2, 3):
-                V = FiniteElement("CG", cell, 1)
-                W = VectorElement("CG", cell, 1)
+                d = cell.geometric_dimension()
+                V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+                W = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1)
                 u = Coefficient(V)
                 w = Coefficient(W)
                 vu = variable(u)
@@ -476,7 +481,7 @@ def test_signature_of_forms_with_diff(self):
 
 def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self):
     cell = triangle
-    V = FiniteElement("CG", cell, 1)
+    V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     f = Coefficient(V)
     g = Coefficient(V)
     M1 = f*dx(0) + g*dx(1)
@@ -490,15 +495,15 @@ def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self
 def test_signature_of_forms_change_with_operators(self):
     def forms():
         for cell in (triangle, tetrahedron):
-            V = FiniteElement("CG", cell, 1)
+            V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
             u = Coefficient(V)
             v = Coefficient(V)
             fs = [(u*v)+(u/v),
                   (u+v)+(u/v),
                   (u+v)*(u/v),
                   (u*v)*(u*v),
-                  (u+v)*(u*v),  # (!) same
-                  # (u*v)*(u+v), # (!) same
+                  (u+v)*(u*v),  # H1 same
+                  # (u*v)*(u+v), # H1 same
                   (u*v)+(u+v),
                   ]
             for f in fs:

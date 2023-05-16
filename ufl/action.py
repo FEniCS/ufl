@@ -9,12 +9,12 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.form import BaseForm, FormSum, Form, ZeroBaseForm
-from ufl.core.ufl_type import ufl_type
 from ufl.algebra import Sum
 from ufl.argument import Argument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
+from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
+from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.matrix import Matrix
 
 # --- The Action class represents the action of a numerical object that needs

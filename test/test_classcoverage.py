@@ -8,9 +8,11 @@ import pytest
 
 import ufl
 from ufl import *
-from ufl.constantvalue import as_ufl
-from ufl.classes import *
 from ufl.algorithms import *
+from ufl.classes import *
+from ufl.constantvalue import as_ufl
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 has_repr = set()
 has_dict = set()
@@ -101,12 +103,12 @@ def testAll(self):
     cell = triangle
     dim = cell.geometric_dimension()
 
-    e0 = FiniteElement("CG", cell, 1)
-    e1 = VectorElement("CG", cell, 1)
-    e2 = TensorElement("CG", cell, 1)
-    e3 = MixedElement(e0, e1, e2)
+    e0 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+    e1 = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
+    e2 = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)
+    e3 = MixedElement([e0, e1, e2])
 
-    e13D = VectorElement("CG", tetrahedron, 1)
+    e13D = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1)
 
     # --- Terminals:
 
@@ -121,7 +123,7 @@ def testAll(self):
     _test_object(v0, (), ())
     _test_object(v1, (dim,), ())
     _test_object(v2, (dim, dim), ())
-    _test_object(v3, (dim*dim+dim+1,), ())
+    _test_object(v3, (1 + dim + dim ** 2, ), ())
 
     f0 = Coefficient(e0)
     f1 = Coefficient(e1)
@@ -131,7 +133,7 @@ def testAll(self):
     _test_object(f0, (), ())
     _test_object(f1, (dim,), ())
     _test_object(f2, (dim, dim), ())
-    _test_object(f3, (dim*dim+dim+1,), ())
+    _test_object(f3, (1 + dim + dim ** 2, ), ())
 
     c = Constant(cell)
     _test_object(c, (), ())
@@ -214,7 +216,7 @@ def testAll(self):
     a = variable(v2)
     _test_object(a, (dim, dim), ())
     a = variable(v3)
-    _test_object(a, (dim*dim+dim+1,), ())
+    _test_object(a, (1 + dim + dim ** 2, ), ())
     a = variable(f0)
     _test_object(a, (), ())
     a = variable(f1)
@@ -222,7 +224,7 @@ def testAll(self):
     a = variable(f2)
     _test_object(a, (dim, dim), ())
     a = variable(f3)
-    _test_object(a, (dim*dim+dim+1,), ())
+    _test_object(a, (1 + dim + dim ** 2, ), ())
 
     # a = MultiIndex()
 

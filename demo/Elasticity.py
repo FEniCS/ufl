@@ -3,8 +3,7 @@
 # Modified by: Martin Sandve Alnes
 # Date: 2009-01-12
 #
-from ufl import (TestFunction, TrialFunction, dx, grad, inner,
-                 tetrahedron)
+from ufl import TestFunction, TrialFunction, dx, grad, inner, tetrahedron
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
