@@ -275,7 +275,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
                     # covariant_hcurl_mapping = JinvT * PullbackOf(o)
                     ec, = ec
                     emapping = K[:, ec]  # Column of K is row of K.T
-                elif mapping == "identity":
+                elif mapping == "identity" or mapping == "custom":
                     emapping = None
                 else:
                     raise ValueError(f"Unknown mapping: {mapping}")
