@@ -34,8 +34,7 @@ def check_single_function_pullback(g, mappings):
         assert ract == rexp
 
 
-#TODO: reenable this test
-def xtest_apply_single_function_pullbacks_triangle3d():
+def test_apply_single_function_pullbacks_triangle3d():
     triangle3d = Cell("triangle", geometric_dimension=3)
     cell = triangle3d
     domain = as_domain(cell)
@@ -236,8 +235,7 @@ def xtest_apply_single_function_pullbacks_triangle3d():
     check_single_function_pullback(w, mappings)
 
 
-#TODO: reenable this test
-def xtest_apply_single_function_pullbacks_triangle():
+def test_apply_single_function_pullbacks_triangle():
     cell = triangle
     domain = as_domain(cell)
 
@@ -247,7 +245,8 @@ def xtest_apply_single_function_pullbacks_triangle():
     Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), (2, ), "contravariant Piola", HDiv)
     Vc = FiniteElement("N1curl", cell, 1, (2, ), (2, ), "covariant Piola", HCurl)
     T = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)
-    S = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)  ##TODO: symmetry
+    S = FiniteElement("Lagrange", cell, 1, (2, 2), (3, ), "identity", H1, component_map={
+        (0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2})
 
     Uml2 = MixedElement([Ul2, Ul2])
     Um = MixedElement([U, U])

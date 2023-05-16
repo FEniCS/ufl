@@ -21,11 +21,11 @@ from ufl.utils.sequences import product
 
 def sub_elements_with_mappings(element):
     "Return an ordered list of the largest subelements that have a defined mapping."
-    if element.mapping() != "undefined":
+    if element.mapping != "undefined":
         return [element]
     elements = []
     for subelm in element.sub_elements():
-        if subelm.mapping() != "undefined":
+        if subelm.mapping != "undefined":
             elements.append(subelm)
         else:
             elements.extend(sub_elements_with_mappings(subelm))
@@ -63,7 +63,7 @@ def apply_known_single_pullback(r, element):
     # the latter may be a ListTensor or similar, rather than a
     # Coefficient/Argument (in the case of mixed elements, see below
     # in apply_single_function_pullbacks), to which we cannot apply ReferenceValue
-    mapping = element.mapping()
+    mapping = element.mapping
     domain = extract_unique_domain(r)
     if mapping == "physical":
         return r
@@ -114,10 +114,10 @@ def apply_single_function_pullbacks(r, element):
     :arg r: An expression wrapped in ReferenceValue.
     :arg element: The element this expression lives in.
     :returns: a pulled back expression."""
-    mapping = element.mapping()
-    if r.ufl_shape != element.reference_value_shape():
+    mapping = element.mapping
+    if r.ufl_shape != element.reference_value_shape:
         raise ValueError(
-            f"Expecting reference space expression with shape '{element.reference_value_shape()}', got '{r.ufl_shape}'")
+            f"Expecting reference space expression with shape '{element.reference_value_shape}', got '{r.ufl_shape}'")
     if mapping in {"physical", "identity",
                    "contravariant Piola", "covariant Piola",
                    "double contravariant Piola", "double covariant Piola",
@@ -126,30 +126,30 @@ def apply_single_function_pullbacks(r, element):
         # advertises a mapping we know how to handle, do that
         # directly.
         f = apply_known_single_pullback(r, element)
-        if f.ufl_shape != element.value_shape():
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', got '{f.ufl_shape}'")
+        if f.ufl_shape != element.value_shape:
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', got '{f.ufl_shape}'")
         return f
     elif mapping in {"symmetries", "undefined"}:
         # Need to pull back each unique piece of the reference space thing
-        gsh = element.value_shape()
+        gsh = element.value_shape
         rsh = r.ufl_shape
         if mapping == "symmetries":
             subelem = element.sub_elements()[0]
-            fcm = element.flattened_sub_element_mapping()
-            offsets = (product(subelem.reference_value_shape()) * i for i in fcm)
+            fcm = element.flattened_sub_element_mapping
+            offsets = (product(subelem.reference_value_shape) * i for i in fcm)
             elements = repeat(subelem)
         else:
             elements = sub_elements_with_mappings(element)
             # Python >= 3.8 has an initial keyword argument to
             # accumulate, but 3.7 does not.
             offsets = chain([0],
-                            accumulate(product(e.reference_value_shape())
+                            accumulate(product(e.reference_value_shape)
                                        for e in elements))
         rflat = as_vector([r[idx] for idx in numpy.ndindex(rsh)])
         g_components = []
         # For each unique piece in reference space, apply the appropriate pullback
         for offset, subelem in zip(offsets, elements):
-            sub_rsh = subelem.reference_value_shape()
+            sub_rsh = subelem.reference_value_shape
             rm = product(sub_rsh)
             rsub = [rflat[offset + i] for i in range(rm)]
             rsub = as_tensor(numpy.asarray(rsub).reshape(sub_rsh))
@@ -159,8 +159,8 @@ def apply_single_function_pullbacks(r, element):
                                  for idx in numpy.ndindex(rmapped.ufl_shape)])
         # And reshape appropriately
         f = as_tensor(numpy.asarray(g_components).reshape(gsh))
-        if f.ufl_shape != element.value_shape():
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', got '{f.ufl_shape}'")
+        if f.ufl_shape != element.value_shape:
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', got '{f.ufl_shape}'")
         return f
     else:
         raise ValueError(f"Unsupported mapping type: {mapping}")
