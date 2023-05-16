@@ -17,10 +17,12 @@
 #
 # This example illustrates how to define a form over a
 # given subdomain of a mesh, in this case a functional.
-from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction, ds,
+from ufl import (Coefficient, TestFunction, TrialFunction, ds,
                  dx, tetrahedron)
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
-element = FiniteElement("CG", tetrahedron, 1)
+element = FiniteElement("Lagrange", tetrahedron, 1, (), (), "identity", H1)
 
 v = TestFunction(element)
 u = TrialFunction(element)

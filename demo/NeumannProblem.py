@@ -17,10 +17,12 @@
 #
 # The bilinear form a(v, u) and linear form L(v) for
 # Poisson's equation with Neumann boundary conditions.
-from ufl import (Coefficient, TestFunction, TrialFunction, VectorElement, ds,
+from ufl import (Coefficient, TestFunction, TrialFunction, ds,
                  dx, grad, inner, triangle)
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
-element = VectorElement("Lagrange", triangle, 1)
+element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
 
 v = TestFunction(element)
 u = TrialFunction(element)

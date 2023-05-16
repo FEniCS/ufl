@@ -9,9 +9,10 @@ __date__ = "2008-03-12 -- 2009-01-28"
 import pytest
 from pprint import *
 
-from ufl import (FiniteElement, TestFunction, TrialFunction, Matrix, triangle,
+from ufl import (TestFunction, TrialFunction, Matrix, triangle,
                  div, grad, Argument, dx, adjoint, Coefficient,
                  FacetNormal, inner, dot, ds)
+from ufl.finiteelement import FiniteElement
 from ufl.algorithms import (extract_arguments, expand_derivatives,
                             expand_indices, extract_elements,
                             extract_unique_elements, extract_coefficients)
@@ -24,7 +25,7 @@ from ufl.sobolevspace import H1
 
 @pytest.fixture(scope='module')
 def element():
-    return FiniteElement("CG", triangle, 1, None, (), (), "identity", H1)
+    return FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
 
 @pytest.fixture(scope='module')
@@ -62,13 +63,13 @@ def test_extract_coefficients_vs_fixture(coefficients, forms):
     assert coefficients == tuple(extract_coefficients(forms[2]))
 
 
-def test_extract_elements_and_extract_unique_elements(forms):
+def test_extract_elements_and_extract_unique_elements(element, forms):
     b = forms[2]
     integrals = b.integrals_by_type("cell")
     integrand = integrals[0].integrand()
 
-    element1 = element()
-    element2 = element()
+    element1 = element
+    element2 = element
 
     v = TestFunction(element1)
     u = TrialFunction(element2)
@@ -79,7 +80,7 @@ def test_extract_elements_and_extract_unique_elements(forms):
 
 
 def test_pre_and_post_traversal():
-    element = FiniteElement("CG", "triangle", 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     v = TestFunction(element)
     f = Coefficient(element)
     g = Coefficient(element)
@@ -97,7 +98,7 @@ def test_pre_and_post_traversal():
 
 
 def test_expand_indices():
-    element = FiniteElement("Lagrange", triangle, 2)
+    element = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
     v = TestFunction(element)
     u = TrialFunction(element)
 
@@ -117,8 +118,8 @@ def test_expand_indices():
 def test_adjoint():
     cell = triangle
 
-    V1 = FiniteElement("CG", cell, 1)
-    V2 = FiniteElement("CG", cell, 2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+    V2 = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
 
     u = TrialFunction(V1)
     v = TestFunction(V2)
@@ -129,17 +130,17 @@ def test_adjoint():
     assert u2.number() < v2.number()
 
     a = u * v * dx
-    a_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(a)]
+    a_arg_degrees = [arg.ufl_element().embedded_degree for arg in extract_arguments(a)]
     assert a_arg_degrees == [2, 1]
 
     b = adjoint(a)
-    b_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(b)]
+    b_arg_degrees = [arg.ufl_element().embedded_degree for arg in extract_arguments(b)]
     assert b_arg_degrees == [1, 2]
 
     c = adjoint(a, (u2, v2))
-    c_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(c)]
+    c_arg_degrees = [arg.ufl_element().embedded_degree for arg in extract_arguments(c)]
     assert c_arg_degrees == [1, 2]
 
     d = adjoint(b)
-    d_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(d)]
+    d_arg_degrees = [arg.ufl_element().embedded_degree for arg in extract_arguments(d)]
     assert d_arg_degrees == [2, 1]

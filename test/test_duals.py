@@ -1,10 +1,11 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-from ufl import FiniteElement, FunctionSpace, MixedFunctionSpace, \
+from ufl import FunctionSpace, MixedFunctionSpace, \
     Coefficient, Matrix, Cofunction, FormSum, Argument, Coargument,\
     TestFunction, TrialFunction, Adjoint, Action, \
     action, adjoint, derivative, tetrahedron, triangle, interval, dx
+from ufl.finiteelement import FiniteElement
 from ufl.constantvalue import Zero
 from ufl.form import ZeroBaseForm
 

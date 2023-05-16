@@ -42,13 +42,13 @@ class BaseArgument(object):
             # For legacy support for UFL files using cells, we map the cell to
             # the default Mesh
             element = function_space
-            domain = default_domain(element.cell())
+            domain = default_domain(element.cell)
             function_space = FunctionSpace(domain, element)
         elif not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
-        self._ufl_shape = function_space.ufl_element().value_shape()
+        self._ufl_shape = function_space.ufl_element().value_shape
 
         if not isinstance(number, numbers.Integral):
             raise ValueError(f"Expecting an int for number, not {number}")

@@ -1,44 +1,48 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from ufl import *
-from ufl.compound_expressions import *
+from ufl import Coefficient, Index
+from ufl import sqrt, as_tensor
+from ufl import interval, triangle, tetrahedron
+from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.sobolevspace import H1
+from ufl.finiteelement import FiniteElement
 
 
 @pytest.fixture
 def A0(request):
-    return Coefficient(FiniteElement("CG", interval, 1))
+    return Coefficient(FiniteElement("Lagrange", interval, 1, (), (), "identity", H1))
 
 
 @pytest.fixture
 def A1(request):
-    return Coefficient(TensorElement("CG", interval, 1))
+    return Coefficient(FiniteElement("Lagrange", interval, 1, (1, 1), (1, 1), "identity", H1))
 
 
 @pytest.fixture
 def A2(request):
-    return Coefficient(TensorElement("CG", triangle, 1))
+    return Coefficient(FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1))
 
 
 @pytest.fixture
 def A3(request):
-    return Coefficient(TensorElement("CG", tetrahedron, 1))
+    return Coefficient(FiniteElement("Lagrange", tetrahedron, 1, (3, 3), (3, 3), "identity", H1))
 
 
 @pytest.fixture
 def A21(request):
-    return Coefficient(TensorElement("CG", triangle, 1, shape=(2, 1)))
+    return Coefficient(FiniteElement("Lagrange", triangle, 1, (2, 1), (2, 1), "identity", H1))
 
 
 @pytest.fixture
 def A31(request):
-    return Coefficient(TensorElement("CG", triangle, 1, shape=(3, 1)))
+    return Coefficient(FiniteElement("Lagrange", triangle, 1, (3, 1), (3, 1), "identity", H1))
 
 
 @pytest.fixture
 def A32(request):
-    return Coefficient(TensorElement("CG", triangle, 1, shape=(3, 2)))
+    return Coefficient(FiniteElement("Lagrange", triangle, 1, (3, 2), (3, 2), "identity", H1))
 
 
 def test_determinant0(A0):

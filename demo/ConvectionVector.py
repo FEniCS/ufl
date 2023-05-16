@@ -2,10 +2,12 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-03
 #
-from ufl import (Coefficient, TestFunction, VectorElement, dot, dx, grad,
+from ufl import (Coefficient, TestFunction, dot, dx, grad,
                  triangle)
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
-element = VectorElement("Lagrange", triangle, 1)
+element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
 
 v = TestFunction(element)
 w = Coefficient(element)

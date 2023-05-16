@@ -16,10 +16,12 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Test form for operators on Coefficients.
-from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction,
+from ufl import (Coefficient, TestFunction, TrialFunction,
                  dot, dx, grad, sqrt, triangle, max_value)
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
-element = FiniteElement("Lagrange", triangle, 1)
+element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
 v = TestFunction(element)
 u = TrialFunction(element)

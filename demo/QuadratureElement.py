@@ -20,13 +20,15 @@
 #
 # The linearised bilinear form a(u,v) and linear form L(v) for
 # the nonlinear equation - div (1+u) grad u = f (non-linear Poisson)
-from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction,
-                 VectorElement, dot, dx, grad, i, triangle)
+from ufl import (Coefficient, TestFunction, TrialFunction,
+                 dot, dx, grad, i, triangle)
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
-element = FiniteElement("Lagrange", triangle, 2)
+element = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
 
-QE = FiniteElement("Quadrature", triangle, 2, quad_scheme="default")
-sig = VectorElement("Quadrature", triangle, 1, quad_scheme="default")
+QE = FiniteElement("Quadrature", triangle, 2, (), (), "identity", H1)
+sig = FiniteElement("Quadrature", triangle, 1, (2, ), (2, ), "identity", H1)
 
 v = TestFunction(element)
 u = TrialFunction(element)

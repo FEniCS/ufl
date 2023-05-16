@@ -20,9 +20,11 @@
 # Last changed: 2009-03-02
 #
 # The bilinear form for a mass matrix.
-from ufl import FiniteElement, TestFunction, TrialFunction, dx, triangle
+from ufl import TestFunction, TrialFunction, dx, triangle
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
-element = FiniteElement("Lagrange", triangle, 1)
+element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
 
 u = TrialFunction(element)
 v = TestFunction(element)

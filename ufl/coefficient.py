@@ -46,13 +46,13 @@ class BaseCoefficient(object):
             # For legacy support for .ufl files using cells, we map
             # the cell to The Default Mesh
             element = function_space
-            domain = default_domain(element.cell())
+            domain = default_domain(element.cell)
             function_space = FunctionSpace(domain, element)
         elif not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
-        self._ufl_shape = function_space.ufl_element().value_shape()
+        self._ufl_shape = function_space.ufl_element().value_shape
 
         self._repr = "BaseCoefficient(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))
@@ -79,7 +79,7 @@ class BaseCoefficient(object):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return self.ufl_element().is_cellwise_constant()
+        return self.ufl_element()._is_cellwise_constant
 
     def ufl_domains(self):
         "Return tuple of domains related to this terminal object."

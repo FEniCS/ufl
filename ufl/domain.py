@@ -75,15 +75,15 @@ class Mesh(AbstractDomain):
             from ufl.finiteelement import FiniteElement
             from ufl.sobolevspace import H1
             coordinate_element = FiniteElement(
-                "Lagrange", coordinate_element, 1, None, (coordinate_element.geometric_dimension(), ),
+                "Lagrange", coordinate_element, 1, (coordinate_element.geometric_dimension(), ),
                 (coordinate_element.geometric_dimension(), ), "identity", H1)
 
         # Store coordinate element
         self._ufl_coordinate_element = coordinate_element
 
         # Derive dimensions from element
-        gdim, = coordinate_element.value_shape()
-        tdim = coordinate_element.cell().topological_dimension()
+        gdim, = coordinate_element.value_shape
+        tdim = coordinate_element.cell.topological_dimension()
         AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_cargo(self):
@@ -94,7 +94,7 @@ class Mesh(AbstractDomain):
         return self._ufl_coordinate_element
 
     def ufl_cell(self):
-        return self._ufl_coordinate_element.cell()
+        return self._ufl_coordinate_element.cell
 
     def is_piecewise_linear_simplex_domain(self):
         return (self._ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
@@ -133,8 +133,8 @@ class MeshView(AbstractDomain):
 
         # Derive dimensions from element
         coordinate_element = mesh.ufl_coordinate_element()
-        gdim, = coordinate_element.value_shape()
-        tdim = coordinate_element.cell().topological_dimension()
+        gdim, = coordinate_element.value_shape
+        tdim = coordinate_element.cell.topological_dimension()
         AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_mesh(self):
@@ -177,7 +177,7 @@ def affine_mesh(cell, ufl_id=None):
     from ufl.finiteelement import FiniteElement
     from ufl.sobolevspace import H1
     coordinate_element = FiniteElement(
-        "Lagrange", as_cell(cell), 1, None, (as_cell(cell).geometric_dimension(), ),
+        "Lagrange", as_cell(cell), 1, (as_cell(cell).geometric_dimension(), ),
         (as_cell(cell).geometric_dimension(), ), "identity", H1)
     return Mesh(coordinate_element, ufl_id=ufl_id)
 
@@ -301,7 +301,7 @@ def find_geometric_dimension(expr):
         if hasattr(t, "ufl_element"):
             element = t.ufl_element()
             if element is not None:
-                cell = element.cell()
+                cell = element.cell
                 if cell is not None:
                     gdims.add(cell.geometric_dimension())
 

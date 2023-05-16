@@ -257,7 +257,7 @@ from ufl.geometry import (
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 
 # Finite elements classes
-from ufl.finiteelement import FiniteElementBase, FiniteElement
+from ufl.finiteelement import FiniteElementBase
 
 # Function spaces
 from ufl.functionspace import FunctionSpace, MixedFunctionSpace
@@ -352,7 +352,7 @@ __all__ = [
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'FacetNormal', 'CellNormal',
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
-    'FiniteElementBase', 'FiniteElement',
+    'FiniteElementBase',
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument','Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',

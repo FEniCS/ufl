@@ -2,16 +2,20 @@
 # -*- coding: utf-8 -*-
 
 from pytest import raises
-from ufl import *
+from ufl import Coefficient, FacetNormal, SpatialCoordinate
+from ufl import grad
+from ufl import triangle
 from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import L2, H1
 
 
 def test_apply_restrictions():
     cell = triangle
-    V0 = FiniteElement("DG", cell, 0)
-    V1 = FiniteElement("Lagrange", cell, 1)
-    V2 = FiniteElement("Lagrange", cell, 2)
+    V0 = FiniteElement("DG", cell, 0, (), (), "identity", L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+    V2 = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
     f0 = Coefficient(V0)
     f = Coefficient(V1)
     g = Coefficient(V2)

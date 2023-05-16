@@ -20,11 +20,13 @@
 # The bilinear form a(v, u1) and linear form L(v) for
 # one backward Euler step with the heat equation.
 #
-from ufl import (Coefficient, Constant, FiniteElement, TestFunction,
+from ufl import (Coefficient, Constant, TestFunction,
                  TrialFunction, dot, dx, grad, triangle)
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 cell = triangle
-element = FiniteElement("Lagrange", cell, 1)
+element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
 v = TestFunction(element)  # Test function
 u1 = TrialFunction(element)  # Value at t_n

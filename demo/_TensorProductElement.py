@@ -19,10 +19,11 @@
 # Last changed: 2012-08-16
 from ufl import (FiniteElement, TensorProductElement, TestFunction,
                  TrialFunction, dx, interval, tetrahedron, triangle)
+from ufl.sobolevspace import H1, L2
 
-V0 = FiniteElement("CG", triangle, 1)
-V1 = FiniteElement("DG", interval, 0)
-V2 = FiniteElement("DG", tetrahedron, 0)
+V0 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+V1 = FiniteElement("DG", interval, 0, (), (), "identity", L2)
+V2 = FiniteElement("DG", tetrahedron, 0, (), (), "identity", L2)
 
 V = TensorProductElement(V0, V1, V2)
 
