@@ -88,6 +88,7 @@ def test_contains_h1():
         FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1),
         # Some special elements:
         FiniteElement("MTW", triangle, 3, (2, ), (2, ), "contravariant Piola", H1),
+        FiniteElement("Hermite", triangle, 3, (), (), "custom", H1),
     ]
     for h1_element in h1_elements:
         assert h1_element in H1
@@ -104,7 +105,6 @@ def test_contains_h2():
     h2_elements = [
         FiniteElement("ARG", triangle, 5, (), (), "custom", H2),
         FiniteElement("MOR", triangle, 2, (), (), "custom", H2),
-        FiniteElement("Hermite", triangle, 3, (), (), "custom", H2),
     ]
     for h2_element in h2_elements:
         assert h2_element in H2
