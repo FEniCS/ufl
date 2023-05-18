@@ -19,6 +19,7 @@ from ufl.indexed import Indexed
 
 # --- Classes representing tensors of UFL expressions ---
 
+
 @ufl_type(is_shaping=True, num_ops="varying", inherit_indices_from_operand=0)
 class ListTensor(Operator):
     """UFL operator type: Wraps a list of expressions into a tensor valued expression of one higher rank."""

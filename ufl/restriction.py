@@ -13,6 +13,7 @@ from ufl.precedence import parstr
 
 # --- Restriction operators ---
 
+
 @ufl_type(is_abstract=True,
           num_ops=1,
           inherit_shape_from_operand=0,

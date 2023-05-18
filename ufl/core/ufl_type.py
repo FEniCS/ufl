@@ -13,6 +13,7 @@ import ufl.core as core
 from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.utils.formatting import camel2underscore
 
+
 # Make UFL type coercion available under the as_ufl name
 # as_ufl = Expr._ufl_coerce_
 

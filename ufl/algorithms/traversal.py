@@ -15,6 +15,7 @@ from ufl.core.expr import Expr
 from ufl.form import BaseForm, Form, FormSum
 from ufl.integral import Integral
 
+
 # --- Traversal utilities ---
 
 def iter_expressions(a):

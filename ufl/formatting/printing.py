@@ -16,6 +16,7 @@ from ufl.integral import Integral
 
 # --- Utilities for constructing informative strings from UFL objects
 
+
 def integral_info(integral):
     if not isinstance(integral, Integral):
         raise ValueError("Expecting an Integral.")

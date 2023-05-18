@@ -17,6 +17,7 @@ from ufl.utils.counted import counted_init
 
 # --- The Matrix class represents a matrix, an assembled two form ---
 
+
 @ufl_type()
 class Matrix(BaseForm):
     """An assemble linear operator between two function spaces."""

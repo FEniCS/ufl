@@ -17,6 +17,7 @@ from ufl.precedence import parstr
 
 # --- Sum over an index ---
 
+
 @ufl_type(num_ops=2)
 class IndexSum(Operator):
     __slots__ = ("_dimension",

@@ -17,6 +17,7 @@ from ufl.precedence import parstr
 
 # --- Indexed expression ---
 
+
 @ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
     __slots__ = (
