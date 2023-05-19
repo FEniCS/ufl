@@ -16,6 +16,7 @@ import abc as _abc
 import typing as _typing
 
 from ufl.sobolevspace import SobolevSpace as _SobolevSpace
+from ufl.utils.indexflattening import unflatten_index, shape_to_strides
 from ufl.utils.sequences import product
 
 __all_classes__ = ["FiniteElementBase", "FiniteElement", "MixedElement"]
@@ -92,6 +93,7 @@ class FiniteElementBase(_abc.ABC):
     def sub_elements(self):
         """Return list of sub-elements."""
 
+    @property
     def num_sub_elements(self):
         """Return number of sub-elements."""
         return len(self.sub_elements)
@@ -128,7 +130,7 @@ class FiniteElementBase(_abc.ABC):
 
     def _check_component(self, i):
         """Check that component index i is valid"""
-        sh = self.value_shape()
+        sh = self.value_shape
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
             raise ValueError(
@@ -153,7 +155,7 @@ class FiniteElementBase(_abc.ABC):
 
     def _check_reference_component(self, i):
         "Check that reference component index i is valid."
-        sh = self.value_shape()
+        sh = self.value_shape
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
             raise ValueError(
@@ -175,6 +177,10 @@ class FiniteElementBase(_abc.ABC):
             i = (i,)
         self._check_reference_component(i)
         return (i, self)
+
+    @property
+    def flattened_sub_element_mapping(self):
+        return None
 
 
 class FiniteElement(FiniteElementBase):
@@ -359,3 +365,39 @@ class MixedElement(FiniteElementBase):
     def sub_elements(self):
         """Return list of sub-elements."""
         return self._subelements
+
+    # FIXME: functions below this comment are hacks
+    def extract_subelement_component(self, i):
+        """Extract direct subelement index and subelement relative
+        component index for a given component index."""
+        if isinstance(i, int):
+            i = (i,)
+        self._check_component(i)
+
+        # Select between indexing modes
+        if len(self.value_shape) == 1:
+            # Indexing into a long vector of flattened subelement
+            # shapes
+            j, = i
+
+            # Find subelement for this index
+            for sub_element_index, e in enumerate(self.sub_elements):
+                sh = e.value_shape
+                si = product(sh)
+                if j < si:
+                    break
+                j -= si
+            if j < 0:
+                raise ValueError("Moved past last value component!")
+
+            # Convert index into a shape tuple
+            st = shape_to_strides(sh)
+            component = unflatten_index(j, st)
+        else:
+            # Indexing into a multidimensional tensor where subelement
+            # index is first axis
+            sub_element_index = i[0]
+            if sub_element_index >= len(self.sub_elements):
+                raise ValueError(f"Illegal component index (dimension {sub_element_index}).")
+            component = i[1:]
+        return (sub_element_index, component)

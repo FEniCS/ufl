@@ -15,11 +15,15 @@ def test_split(self):
     cell = triangle
     d = cell.geometric_dimension()
     f = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    v = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1)
-    w = FiniteElement("Lagrange", cell, 1, (d+1, ), (d+1, ), "identity", H1)
-    t = FiniteElement("Lagrange", cell, 1, (d, d), (d, d), "identity", H1)
-    s = FiniteElement("Lagrange", cell, 1, (2, 2), (3, ), "identity", H1, component_map={
-        (0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2})
+    v = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1,
+                      sub_elements=[f for _ in range(d)])
+    w = FiniteElement("Lagrange", cell, 1, (d+1, ), (d+1, ), "identity", H1,
+                      sub_elements=[f for _ in range(d + 1)])
+    t = FiniteElement("Lagrange", cell, 1, (d, d), (d, d), "identity", H1,
+                      sub_elements=[f for _ in range(d ** 2)])
+    s = FiniteElement("Lagrange", cell, 1, (2, 2), (3, ), "identity", H1,
+                      component_map={(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2},
+                      sub_elements=[f for _ in range(3)])
     m = MixedElement([f, v, w, t, s, s])
 
     # Check that shapes of all these functions are correct:
@@ -52,13 +56,13 @@ def test_split(self):
 
     # Split twice on nested mixed elements gets
     # the innermost scalar subcomponents
-    t = TestFunction(f*v)
+    t = TestFunction(MixedElement([f, v]))
     assert split(t) == (t[0], as_vector((t[1], t[2])))
     assert split(split(t)[1]) == (t[1], t[2])
-    t = TestFunction(f*(f*v))
+    t = TestFunction(MixedElement([f, [f, v]]))
     assert split(t) == (t[0], as_vector((t[1], t[2], t[3])))
     assert split(split(t)[1]) == (t[1], as_vector((t[2], t[3])))
-    t = TestFunction((v*f)*(f*v))
+    t = TestFunction(MixedElement([[v, f], [f, v]]))
     assert split(t) == (as_vector((t[0], t[1], t[2])),
                         as_vector((t[3], t[4], t[5])))
     assert split(split(t)[0]) == (as_vector((t[0], t[1])), t[2])

@@ -127,7 +127,6 @@ def apply_single_function_pullbacks(r, element):
         # directly.
         f = apply_known_single_pullback(r, element)
         if f.ufl_shape != element.value_shape:
-            from IPython import embed; embed()
             raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', got '{f.ufl_shape}'")
         return f
     elif mapping in {"symmetries", "undefined"}:
