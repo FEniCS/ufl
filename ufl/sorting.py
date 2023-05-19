@@ -16,7 +16,6 @@ from functools import cmp_to_key
 
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.variable import Label
 
@@ -93,7 +92,7 @@ def _cmp_terminal_by_repr(a, b):
 
 
 # Hack up a MultiFunction-like type dispatch for terminal comparisons
-_terminal_cmps = [_cmp_terminal_by_repr] * Expr._ufl_num_typecodes_
+_terminal_cmps = {}
 _terminal_cmps[MultiIndex._ufl_typecode_] = _cmp_multi_index
 _terminal_cmps[Argument._ufl_typecode_] = _cmp_argument
 _terminal_cmps[Coefficient._ufl_typecode_] = _cmp_coefficient
@@ -116,7 +115,11 @@ def cmp_expr(a, b):
         # Now we know that the type is the same, check further based
         # on type specific properties.
         if a._ufl_is_terminal_:
-            c = _terminal_cmps[x](a, b)
+            if x in _terminal_cmps:
+                c = _terminal_cmps[x](a, b)
+            else:
+                c = _cmp_terminal_by_repr(a, b)
+
             if c:
                 return c
         else:
