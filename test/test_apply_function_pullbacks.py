@@ -46,8 +46,11 @@ def test_apply_single_function_pullbacks_triangle3d():
     Vd = FiniteElement("Raviart-Thomas", cell, 1, (3, ), (2, ), "contravariant Piola", HDiv)
     Vc = FiniteElement("N1curl", cell, 1, (3, ), (2, ), "covariant Piola", HCurl)
     T = FiniteElement("Lagrange", cell, 1, (3, 3), (3, 3), "identity", H1)
-    S = FiniteElement("Lagrange", cell, 1, (3, 3), (6, ), "identity", H1, component_map={
-        (0, 0): 0, (1, 0): 1, (2, 0): 2, (0, 1): 1, (1, 1): 3, (2, 1): 4, (0, 2): 2, (1, 2): 4, (2, 2): 5})
+    S = FiniteElement("Lagrange", cell, 1, (3, 3), (6, ), "symmetries", H1, component_map={
+        (0, 0): 0, (1, 0): 1, (2, 0): 2, (0, 1): 1, (1, 1): 3, (2, 1): 4, (0, 2): 2, (1, 2): 4, (2, 2): 5
+    }, sub_elements=[
+        FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+        for _ in range(6)])
     COV2T = FiniteElement("Regge", cell, 0, (3, 3), (2, 2), "double covariant Piola", HEin)   # (0, 2)-symmetric tensors
     CONTRA2T = FiniteElement("HHJ", cell, 0, (3, 3), (2, 2), "double contravariant Piola", HDivDiv)  # (2, 0)-symmetric tensors
 
@@ -245,8 +248,11 @@ def test_apply_single_function_pullbacks_triangle():
     Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), (2, ), "contravariant Piola", HDiv)
     Vc = FiniteElement("N1curl", cell, 1, (2, ), (2, ), "covariant Piola", HCurl)
     T = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)
-    S = FiniteElement("Lagrange", cell, 1, (2, 2), (3, ), "identity", H1, component_map={
-        (0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2})
+    S = FiniteElement("Lagrange", cell, 1, (2, 2), (3, ), "symmetries", H1, component_map={
+        (0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2
+    }, sub_elements=[
+        FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+        for i in range(3)])
 
     Uml2 = MixedElement([Ul2, Ul2])
     Um = MixedElement([U, U])

@@ -179,10 +179,11 @@ class FiniteElementBase(_abc.ABC):
 
 class FiniteElement(FiniteElementBase):
     """A directly defined finite element."""
-    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape", "_reference_value_shape", "_mapping", "_sobolev_space", "_component_map")
+    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape", "_reference_value_shape", "_mapping", "_sobolev_space", "_component_map",
+                 "_sub_elements")
 
     def __init__(self, family, cell, degree, value_shape,
-                 reference_value_shape, mapping, sobolev_space, component_map=None):
+                 reference_value_shape, mapping, sobolev_space, component_map=None, sub_elements=[]):
         """Initialize basic finite element data."""
         if component_map is None:
             self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
@@ -199,6 +200,7 @@ class FiniteElement(FiniteElementBase):
         self._mapping = mapping
         self._sobolev_space = sobolev_space
         self._component_map = component_map
+        self._sub_elements = sub_elements
 
     def __repr__(self):
         """Format as string for evaluation as Python object."""
@@ -259,7 +261,27 @@ class FiniteElement(FiniteElementBase):
     @property
     def sub_elements(self):
         """Return list of sub-elements."""
-        return []
+        return self._sub_elements
+
+    # FIXME: functions below this comment are hacks
+    def symmetry(self):
+        if self._component_map is None:
+            return {}
+        s = {}
+        out = {}
+        for i, j in self._component_map.items():
+            if j in s:
+                out[i] = s[j]
+            else:
+                s[j] = i
+        return out
+
+    @property
+    def flattened_sub_element_mapping(self):
+        if self._component_map is None:
+            return None
+        else:
+            return list(self._component_map.values())
 
 
 class MixedElement(FiniteElementBase):
@@ -285,12 +307,12 @@ class MixedElement(FiniteElementBase):
     @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
-        return max(e.sobolev_space() for e in self._subelements)
+        return max(e.sobolev_space for e in self._subelements)
 
     @property
     def mapping(self):
         """Return the mapping type for this element."""
-        if all(e.mapping() == "identity" for e in self._subelements):
+        if all(e.mapping == "identity" for e in self._subelements):
             return "identity"
         else:
             return "undefined"
