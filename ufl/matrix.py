@@ -62,12 +62,6 @@ class Matrix(BaseForm):
         "Get the tuple of function spaces of this coefficient."
         return self._ufl_function_spaces
 
-    def ufl_row_space(self):
-        return self._ufl_function_spaces[0]
-
-    def ufl_column_space(self):
-        return self._ufl_function_spaces[1]
-
     def _analyze_form_arguments(self):
         "Define arguments of a matrix when considered as a form."
         self._arguments = (Argument(self._ufl_function_spaces[0], 0),

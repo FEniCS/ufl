@@ -123,6 +123,4 @@ from ufl.algorithms.formfiles import read_ufl_file
 from ufl.algorithms.formfiles import load_ufl_file
 from ufl.algorithms.formfiles import load_forms
 
-# Utilities for UFL object printing
-# from ufl.formatting.printing import integral_info, form_info
-from ufl.formatting.printing import tree_format
+from ufl.utils.formatting import tree_format

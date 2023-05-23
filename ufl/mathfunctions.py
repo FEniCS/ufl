@@ -336,9 +336,9 @@ class Erf(MathFunction):
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
 class BesselFunction(Operator):
     "Base class for all bessel functions"
-    __slots__ = ("_name", "_classname")
+    __slots__ = ("_name")
 
-    def __init__(self, name, classname, nu, argument):
+    def __init__(self, name, nu, argument):
         if not is_true_ufl_scalar(nu):
             raise ValueError("Expecting scalar nu.")
         if not is_true_ufl_scalar(argument):
@@ -354,7 +354,6 @@ class BesselFunction(Operator):
 
         Operator.__init__(self, (nu, argument))
 
-        self._classname = classname
         self._name = name
 
     def evaluate(self, x, mapping, component, index_values):
@@ -384,7 +383,7 @@ class BesselJ(BesselFunction):
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_j", "BesselJ", nu, argument)
+        BesselFunction.__init__(self, "cyl_bessel_j", nu, argument)
 
 
 @ufl_type()
@@ -392,7 +391,7 @@ class BesselY(BesselFunction):
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_y", "BesselY", nu, argument)
+        BesselFunction.__init__(self, "cyl_bessel_y", nu, argument)
 
 
 @ufl_type()
@@ -400,7 +399,7 @@ class BesselI(BesselFunction):
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_i", "BesselI", nu, argument)
+        BesselFunction.__init__(self, "cyl_bessel_i", nu, argument)
 
 
 @ufl_type()
@@ -408,4 +407,4 @@ class BesselK(BesselFunction):
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_k", "BesselK", nu, argument)
+        BesselFunction.__init__(self, "cyl_bessel_k", nu, argument)

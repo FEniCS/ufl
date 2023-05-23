@@ -77,35 +77,6 @@ def compute_permutations(k, n, skip=None):
     return permutations
 
 
-def compute_permutation_pairs(j, k):
-    """Compute all permutations of j + k elements from (0, j + k) in
-    rising order within (0, j) and (j, j + k) respectively.
-
-    """
-    permutations = []
-    pp0 = compute_permutations(j, j + k)
-    for p0 in pp0:
-        pp1 = compute_permutations(k, j + k, p0)
-        for p1 in pp1:
-            permutations.append((p0, p1))
-    return permutations
-
-
-def compute_sign(permutation):
-    "Compute sign by sorting."
-    sign = 1
-    n = len(permutation)
-    p = [p for p in permutation]
-    for i in range(n - 1):
-        for j in range(n - 1):
-            if p[j] > p[j + 1]:
-                (p[j], p[j + 1]) = (p[j + 1], p[j])
-                sign = -sign
-            elif p[j] == p[j + 1]:
-                return 0
-    return sign
-
-
 def compute_order_tuples(k, n):
     "Compute all tuples of n integers such that the sum is k"
     if n == 1:

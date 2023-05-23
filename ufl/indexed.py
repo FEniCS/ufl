@@ -69,27 +69,17 @@ class Indexed(Operator):
             raise ValueError("Fixed index out of range!")
 
         # Build tuples of free index ids and dimensions
-        if 1:
-            efi = expression.ufl_free_indices
-            efid = expression.ufl_index_dimensions
-            fi = list(zip(efi, efid))
-            for pos, ind in enumerate(multiindex._indices):
-                if isinstance(ind, Index):
-                    fi.append((ind.count(), shape[pos]))
-            fi = unique_sorted_indices(sorted(fi))
-            if fi:
-                fi, fid = zip(*fi)
-            else:
-                fi, fid = (), ()
-
+        efi = expression.ufl_free_indices
+        efid = expression.ufl_index_dimensions
+        fi = list(zip(efi, efid))
+        for pos, ind in enumerate(multiindex._indices):
+            if isinstance(ind, Index):
+                fi.append((ind.count(), shape[pos]))
+        fi = unique_sorted_indices(sorted(fi))
+        if fi:
+            fi, fid = zip(*fi)
         else:
-            mfiid = [(ind.count(), shape[pos])
-                     for pos, ind in enumerate(multiindex._indices)
-                     if isinstance(ind, Index)]
-            mfi, mfid = zip(*mfiid) if mfiid else ((), ())
-            fi, fid = merge_unique_indices(expression.ufl_free_indices,
-                                           expression.ufl_index_dimensions,
-                                           mfi, mfid)
+            fi, fid = (), ()
 
         # Cache free index and dimensions
         self.ufl_free_indices = fi

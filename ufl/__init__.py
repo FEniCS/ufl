@@ -11,19 +11,19 @@ with it.
 
 * To import the language, type::
 
-    from ufl import *
+    import ufl
 
 * To import the underlying classes an UFL expression tree is built
   from, type
   ::
 
-    from ufl.classes import *
+    import ufl.classes
 
 * Various algorithms for working with UFL expression trees can be
   accessed by
   ::
 
-    from ufl.algorithms import *
+    import ufl.algorithms
 
 Classes and algorithms are considered implementation details and
 should not be used in form definitions.
@@ -246,7 +246,7 @@ import importlib.metadata
 __version__ = importlib.metadata.version("fenics-ufl")
 
 # README
-# Imports here should be what the user sees when doing "from ufl import *",
+# Imports here should be what the user sees
 # which means we should _not_ import f.ex. "Grad", but "grad".
 # This way we expose the language, the operation "grad", but less
 # of the implementation, the particular class "Grad".

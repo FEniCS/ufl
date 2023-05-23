@@ -79,3 +79,59 @@ def istr(o):
 def estr(elements):
     """Format list of elements for printing."""
     return ", ".join(e.shortstr() for e in elements)
+
+
+def _indent_string(n):
+    return "    " * n
+
+
+def _tree_format_expression(expression, indentation, parentheses):
+    ind = _indent_string(indentation)
+    if expression._ufl_is_terminal_:
+        s = "%s%s" % (ind, repr(expression))
+    else:
+        sops = [_tree_format_expression(o, indentation + 1, parentheses) for o in expression.ufl_operands]
+        s = "%s%s\n" % (ind, expression._ufl_class_.__name__)
+        if parentheses and len(sops) > 1:
+            s += "%s(\n" % (ind,)
+        s += "\n".join(sops)
+        if parentheses and len(sops) > 1:
+            s += "\n%s)" % (ind,)
+    return s
+
+
+def tree_format(expression, indentation=0, parentheses=True):
+    from ufl.core.expr import Expr
+    from ufl.form import Form
+    from ufl.integral import Integral
+
+    s = ""
+
+    if isinstance(expression, Form):
+        form = expression
+        integrals = form.integrals()
+        integral_types = sorted(set(itg.integral_type() for itg in integrals))
+        itgs = []
+        for integral_type in integral_types:
+            itgs += list(form.integrals_by_type(integral_type))
+
+        ind = _indent_string(indentation)
+        s += ind + "Form:\n"
+        s += "\n".join(tree_format(itg, indentation + 1, parentheses) for itg in itgs)
+
+    elif isinstance(expression, Integral):
+        ind = _indent_string(indentation)
+        s += ind + "Integral:\n"
+        ind = _indent_string(indentation + 1)
+        s += ind + "integral type: %s\n" % expression.integral_type()
+        s += ind + "subdomain id: %s\n" % expression.subdomain_id()
+        s += ind + "integrand:\n"
+        s += tree_format(expression._integrand, indentation + 2, parentheses)
+
+    elif isinstance(expression, Expr):
+        s += _tree_format_expression(expression, indentation, parentheses)
+
+    else:
+        raise ValueError(f"Invalid object type {type(expression)}")
+
+    return s

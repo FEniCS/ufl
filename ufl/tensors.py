@@ -350,8 +350,6 @@ def relabel(A, indexmap):
     return as_tensor(A, ii)[jj]
 
 
-# --- Experimental support for dyadic notation:
-
 def unit_list(i, n):
     return [(1 if i == j else 0) for j in range(n)]
 
@@ -380,18 +378,6 @@ def unit_matrices(d):
     """UFL value: A tuple of constant unit matrices in all directions with
     dimension *d*."""
     return tuple(unit_matrix(i, j, d) for i in range(d) for j in range(d))
-
-
-def dyad(d, *iota):
-    "TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose."
-    from ufl.constantvalue import Identity
-    from ufl.operators import outer  # a bit of circular dependency issue here
-    Id = Identity(d)
-    i = iota[0]
-    e = as_vector(Id[i, :], i)
-    for i in iota[1:]:
-        e = outer(e, as_vector(Id[i, :], i))
-    return e
 
 
 def unit_indexed_tensor(shape, component):
