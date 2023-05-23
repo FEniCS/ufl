@@ -424,6 +424,14 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # --- Conditionals
 
+    def binary_condition(self, o, dl, dr):
+        # Should not be used anywhere...
+        return None
+
+    def not_condition(self, o, c):
+        # Should not be used anywhere...
+        return None
+
     def conditional(self, o, unused_dc, dt, df):
         global CONDITIONAL_WORKAROUND
         if isinstance(dt, Zero) and isinstance(df, Zero):
