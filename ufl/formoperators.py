@@ -25,6 +25,8 @@ from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.differentiation import BaseFormDerivative, CoefficientDerivative, CoordinateDerivative
 from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.finiteelement import MixedElement
+from ufl.functionspace import FunctionSpace
 from ufl.form import BaseForm, Form, FormSum, as_form
 from ufl.geometry import SpatialCoordinate
 from ufl.indexed import Indexed
@@ -193,7 +195,13 @@ def _handle_derivative_arguments(form, coefficient, argument):
         if len(function_spaces) == 1:
             arguments = (Argument(function_spaces[0], number, part),)
         else:
-            raise NotImplementedError()
+            # Create in mixed space over assumed (for now) same domain
+            domains = [fs.ufl_domain() for fs in function_spaces]
+            elements = [fs.ufl_element() for fs in function_spaces]
+            assert all(fs.ufl_domain() == domains[0] for fs in function_spaces)
+            elm = MixedElement(elements)
+            fs = FunctionSpace(domains[0], elm)
+            arguments = split(Argument(fs, number, part))
     else:
         # Wrap single argument in tuple for uniform treatment below
         if isinstance(argument, (list, tuple)):
