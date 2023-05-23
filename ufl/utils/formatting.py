@@ -33,12 +33,6 @@ def lstr(l):
     return str(l)
 
 
-def dstr(d, colsize=80):
-    """Pretty-print dictionary of key-value pairs."""
-    sorted_keys = sorted(d.keys())
-    return tstr([(key, d[key]) for key in sorted_keys], colsize)
-
-
 def tstr(t, colsize=80):
     """Pretty-print list of tuples of key-value pairs."""
     if not t:
