@@ -229,20 +229,6 @@ def apply_transformer(e, transformer, integral_type=None):
                           integral_type)
 
 
-def ufl2ufl(e):
-    """Convert an UFL expression to a new UFL expression, with no changes.
-    This is used for testing that objects in the expression behave as expected."""
-    return apply_transformer(e, ReuseTransformer())
-
-
-def ufl2uflcopy(e):
-    """Convert an UFL expression to a new UFL expression.
-    All nonterminal object instances are replaced with identical
-    copies, while terminal objects are kept. This is used for
-    testing that objects in the expression behave as expected."""
-    return apply_transformer(e, CopyTransformer())
-
-
 def strip_variables(e):
     "Replace all Variable instances with the expression they represent."
     return apply_transformer(e, VariableStripper())
