@@ -241,9 +241,9 @@ A very brief overview of the language contents follows:
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-import pkg_resources
+import importlib.metadata
 
-__version__ = pkg_resources.get_distribution("fenics-ufl").version
+__version__ = importlib.metadata.version("fenics-ufl")
 
 # README
 # Imports here should be what the user sees when doing "from ufl import *",
