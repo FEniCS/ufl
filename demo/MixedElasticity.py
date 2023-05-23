@@ -33,7 +33,7 @@ n = 3
 
 # Finite element exterior calculus syntax
 r = 1
-S = FiniteElement("BDM", cell, r, (3, ), (3, ), "contravariant Piola", HDiv)
+S = FiniteElement("vector BDM", cell, r, (3, 3), (3, 3), "contravariant Piola", HDiv)
 V = FiniteElement("Discontinuous Lagrange", cell, r - 1, (3, ), (3, ), "identity", L2)
 Q = FiniteElement("Discontinuous Lagrange", cell, r - 1, (3, ), (3, ), "identity", L2)
 
