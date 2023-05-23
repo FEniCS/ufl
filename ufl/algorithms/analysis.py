@@ -68,6 +68,17 @@ def extract_type(a, ufl_types):
                    if any(isinstance(o, t) for t in ufl_types))
 
 
+def has_type(a, ufl_type):
+    """Return if an object of class ufl_type can be found in a.
+    The argument a can be a BaseForm, Integral or Expr."""
+    if issubclass(ufl_type, Terminal):
+        # Optimization
+        traversal = traverse_unique_terminals
+    else:
+        traversal = unique_pre_traversal
+    return any(isinstance(o, ufl_type) for e in iter_expressions(a) for o in traversal(e))
+
+
 def has_exact_type(a, ufl_type):
     """Return if an object of class ufl_type can be found in a.
     The argument a can be a BaseForm, Integral or Expr."""
