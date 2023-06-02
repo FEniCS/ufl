@@ -48,6 +48,9 @@ class RestrictedElement(FiniteElementBase):
         """
         return self._element.is_cellwise_constant()
 
+    def _is_linear(self):
+        return self._element._is_linear()
+
     def sub_element(self):
         "Return the element which is restricted."
         return self._element

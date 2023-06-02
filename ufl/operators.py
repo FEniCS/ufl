@@ -36,6 +36,7 @@ from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.checks import is_cellwise_constant
 from ufl.domain import extract_domains
+from ufl import sobolevspace
 
 # --- Basic operators ---
 
@@ -691,7 +692,7 @@ def bessel_K(nu, f):
 def exterior_derivative(f):
     """UFL operator: Take the exterior derivative of *f*.
 
-    The exterior derivative uses the element family to
+    The exterior derivative uses the element Sobolev space to
     determine whether ``id``, ``grad``, ``curl`` or ``div`` should be used.
 
     Note that this uses the ``grad`` and ``div`` operators,
@@ -720,26 +721,18 @@ def exterior_derivative(f):
         except Exception:
             raise ValueError(f"Unable to determine element from {f}")
 
-    # Extract the family and the geometric dimension
-    family = element.family()
     gdim = element.cell().geometric_dimension()
+    space = element.sobolev_space()
 
-    # L^2 elements:
-    if "Disc" in family:
+    if space == sobolevspace.L2:
         return f
-
-    # H^1 elements:
-    if "Lagrange" in family:
+    elif space == sobolevspace.H1:
         if gdim == 1:
             return grad(f)[0]  # Special-case 1D vectors as scalars
         return grad(f)
-
-    # H(curl) elements:
-    if "curl" in family:
+    elif space == sobolevspace.HCurl:
         return curl(f)
-
-    # H(div) elements:
-    if "Brezzi" in family or "Raviart" in family:
+    elif space == sobolevspace.HDiv:
         return div(f)
-
-    raise ValueError(f"Unable to determine exterior_derivative. Family is '{family}'")
+    else:
+        raise ValueError(f"Unable to determine exterior_derivative for element '{element!r}'")

@@ -68,7 +68,7 @@ def apply_known_single_pullback(r, element):
     domain = extract_unique_domain(r)
     if mapping == "physical":
         return r
-    elif mapping == "identity":
+    elif mapping == "identity" or mapping == "custom":
         return r
     elif mapping == "contravariant Piola":
         J = Jacobian(domain)
@@ -122,7 +122,7 @@ def apply_single_function_pullbacks(r, element):
     if mapping in {"physical", "identity",
                    "contravariant Piola", "covariant Piola",
                    "double contravariant Piola", "double covariant Piola",
-                   "L2 Piola"}:
+                   "L2 Piola", "custom"}:
         # Base case in recursion through elements. If the element
         # advertises a mapping we know how to handle, do that
         # directly.
