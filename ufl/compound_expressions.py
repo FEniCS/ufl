@@ -100,7 +100,7 @@ def determinant_expr(A):
     raise ValueError(f"determinant_expr not implemented for shape {sh}.")
 
 
-def _det_2x2(B, i, j, k, l):
+def _det_2x2(B, i, j, k, l):  # noqa: E741
     return B[i, k] * B[j, l] - B[i, l] * B[j, k]
 
 

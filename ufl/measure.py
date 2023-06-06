@@ -56,8 +56,8 @@ _integral_types = [
     ("interior_facet_vert", "dS_v"),  # Over vertical facets of an extruded mesh
 ]
 
-integral_type_to_measure_name = dict((l, s) for l, s in _integral_types)
-measure_name_to_integral_type = dict((s, l) for l, s in _integral_types)
+integral_type_to_measure_name = {i: s for i, s in _integral_types}
+measure_name_to_integral_type = {s: i for i, s in _integral_types}
 
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
 point_integral_types = ("vertex",)  # "point")

@@ -12,25 +12,25 @@ def camel2underscore(name):
     """Convert a CamelCaps string to underscore_syntax."""
     letters = []
     lastlower = False
-    for l in name:
-        thislower = l.islower()
+    for i in name:
+        thislower = i.islower()
         if not thislower:
             # Don't insert _ between multiple upper case letters
             if lastlower:
                 letters.append("_")
-            l = l.lower()  # noqa: E741
+            i = i.lower()  # noqa: E741
         lastlower = thislower
-        letters.append(l)
+        letters.append(i)
     return "".join(letters)
 
 
-def lstr(l):
+def lstr(a):
     """Pretty-print list or tuple, invoking str() on items instead of repr() like str() does."""
-    if isinstance(l, list):
-        return "[" + ", ".join(lstr(item) for item in l) + "]"
-    elif isinstance(l, tuple):
-        return "(" + ", ".join(lstr(item) for item in l) + ")"
-    return str(l)
+    if isinstance(a, list):
+        return "[" + ", ".join(lstr(item) for item in a) + "]"
+    elif isinstance(a, tuple):
+        return "(" + ", ".join(lstr(item) for item in a) + ")"
+    return str(a)
 
 
 def tstr(t, colsize=80):

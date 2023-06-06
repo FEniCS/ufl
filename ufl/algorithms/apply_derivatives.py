@@ -722,9 +722,9 @@ class VariableRuleset(GenericDerivativeRuleset):
             # df/v = 0
             return self.independent_terminal(o)
 
-    def variable(self, o, df, l):
+    def variable(self, o, df, a):
         v = self._variable
-        if isinstance(v, Variable) and v.label() == l:
+        if isinstance(v, Variable) and v.label() == a:
             # dv/dv = identity of rank 2*rank(v)
             return self._Id
         else:

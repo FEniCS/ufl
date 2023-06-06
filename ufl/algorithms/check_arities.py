@@ -107,7 +107,7 @@ class ArityChecker(MultiFunction):
 
     # Does it make sense to have a Variable(Argument)? I see no
     # problem.
-    def variable(self, o, f, l):
+    def variable(self, o, f, a):
         return f
 
     # Conditional is linear on each side of the condition
