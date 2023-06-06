@@ -112,13 +112,8 @@ class Integral(object):
         return s
 
     def __repr__(self):
-        r = "Integral(%s, %s, %s, %s, %s, %s)" % (repr(self._integrand),
-                                                  repr(self._integral_type),
-                                                  repr(self._ufl_domain),
-                                                  repr(self._subdomain_id),
-                                                  repr(self._metadata),
-                                                  repr(self._subdomain_data))
-        return r
+        return (f"Integral({self._integrand!r}, {self._integral_type!r}, {self._ufl_domain!r}, "
+                f"{self._subdomain_id!r}, {self._metadata!r}, {self._subdomain_data!r})")
 
     def __eq__(self, other):
         return (isinstance(other, Integral) and self._integral_type == other._integral_type and  # noqa: W504

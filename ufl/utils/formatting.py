@@ -63,11 +63,6 @@ def tstr(t, colsize=80):
     return s
 
 
-def sstr(s):
-    """Pretty-print set."""
-    return ", ".join(str(x) for x in s)
-
-
 def istr(o):
     """Format object as string, inserting ? for None."""
     if o is None:

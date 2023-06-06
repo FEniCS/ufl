@@ -33,27 +33,6 @@ def sub_elements_with_mappings(element):
     return elements
 
 
-def create_nested_lists(shape):
-    if len(shape) == 0:
-        return [None]
-    elif len(shape) == 1:
-        return [None] * shape[0]
-    else:
-        return [create_nested_lists(shape[1:]) for i in range(shape[0])]
-
-
-def reshape_to_nested_list(components, shape):
-    if len(shape) == 0:
-        assert len(components) == 1
-        return [components[0]]
-    elif len(shape) == 1:
-        assert len(components) == shape[0]
-        return components
-    else:
-        n = product(shape[1:])
-        return [reshape_to_nested_list(components[n * i:n * (i + 1)], shape[1:]) for i in range(shape[0])]
-
-
 def apply_known_single_pullback(r, element):
     """Apply pullback with given mapping.
 

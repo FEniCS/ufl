@@ -76,22 +76,6 @@ class IntegralData(object):
         return s
 
 
-def dicts_lt(a, b):
-    na = 0 if a is None else len(a)
-    nb = 0 if b is None else len(b)
-    if na != nb:
-        return len(a) < len(b)
-    for ia, ib in zip(sorted_by_key(a), sorted_by_key(b)):
-        # Assuming keys are sortable (usually str)
-        if ia[0] != ib[0]:
-            # Hack to preserve type sorting in py3
-            return (ia[0].__class__.__name__, ia[0]) < (ib[0].__class__.__name__, ib[0])
-        # Assuming values are sortable
-        if ia[1] != ib[1]:
-            # Hack to preserve type sorting in py3
-            return (ia[1].__class__.__name__, ia[1]) < (ib[1].__class__.__name__, ib[1])
-
-
 # Tuple comparison helper
 class ExprTupleKey(object):
     __slots__ = ('x',)

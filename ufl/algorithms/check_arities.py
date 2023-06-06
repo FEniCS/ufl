@@ -15,8 +15,7 @@ class ArityMismatch(BaseException):
 
 # String representation of an arity tuple:
 def _afmt(atuple):
-    return tuple("conj({0})".format(arg) if conj else str(arg)
-                 for arg, conj in atuple)
+    return tuple(f"conj({arg})" if conj else str(arg) for arg, conj in atuple)
 
 
 class ArityChecker(MultiFunction):
@@ -50,7 +49,7 @@ class ArityChecker(MultiFunction):
 
     def division(self, o, a, b):
         if b:
-            raise ArityMismatch("Cannot divide by form argument {0}.".format(b))
+            raise ArityMismatch(f"Cannot divide by form argument {b}.")
         return a
 
     def product(self, o, a, b):
@@ -113,7 +112,7 @@ class ArityChecker(MultiFunction):
     # Conditional is linear on each side of the condition
     def conditional(self, o, c, a, b):
         if c:
-            raise ArityMismatch("Condition cannot depend on form arguments ({0}).".format(_afmt(a)))
+            raise ArityMismatch(f"Condition cannot depend on form arguments ({_afmt(a)}).")
         if a and isinstance(o.ufl_operands[2], Zero):
             # Allow conditional(c, arg, 0)
             return a
@@ -163,7 +162,7 @@ def check_integrand_arity(expr, arguments, complex_mode=False):
     arg_tuples = map_expr_dag(rules, expr, compress=False)
     args = tuple(a[0] for a in arg_tuples)
     if args != arguments:
-        raise ArityMismatch("Integrand arguments {0} differ from form arguments {1}.".format(args, arguments))
+        raise ArityMismatch(f"Integrand arguments {args} differ from form arguments {arguments}.")
     if complex_mode:
         # Check that the test function is conjugated and that any
         # trial function is not conjugated. Further arguments are
@@ -173,7 +172,7 @@ def check_integrand_arity(expr, arguments, complex_mode=False):
             if arg.number() == 0 and not conj:
                 raise ArityMismatch("Failure to conjugate test function in complex Form")
             elif arg.number() > 0 and conj:
-                raise ArityMismatch("Argument {0} is spuriously conjugated in complex Form".format(arg))
+                raise ArityMismatch(f"Argument {arg} is spuriously conjugated in complex Form")
 
 
 def check_form_arity(form, arguments, complex_mode=False):

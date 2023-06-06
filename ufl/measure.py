@@ -18,7 +18,7 @@ from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.domain import as_domain, AbstractDomain, extract_domains
-from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
+from ufl.protocols import id_or_none
 
 
 # Export list for ufl.classes
@@ -273,7 +273,6 @@ class Measure(object):
                                 subdomain_data=subdomain_data)
 
     def __str__(self):
-        global integral_type_to_measure_name
         name = integral_type_to_measure_name[self._integral_type]
         args = []
 
@@ -290,8 +289,6 @@ class Measure(object):
 
     def __repr__(self):
         "Return a repr string for this Measure."
-        global integral_type_to_measure_name
-
         args = []
         args.append(repr(self._integral_type))
 
@@ -309,19 +306,23 @@ class Measure(object):
 
     def __hash__(self):
         "Return a hash value for this Measure."
+        metadata_hashdata = tuple(sorted((k, id(v)) for k, v in list(self._metadata.items())))
         hashdata = (self._integral_type,
                     self._subdomain_id,
                     hash(self._domain),
-                    metadata_hashdata(self._metadata),
+                    metadata_hashdata,
                     id_or_none(self._subdomain_data))
         return hash(hashdata)
 
     def __eq__(self, other):
         "Checks if two Measures are equal."
+        sorted_metadata = sorted((k, id(v)) for k, v in list(self._metadata.items()))
+        sorted_other_metadata = sorted((k, id(v)) for k, v in list(other._metadata.items()))
+
         return (isinstance(other, Measure) and self._integral_type == other._integral_type and  # noqa: W504
                 self._subdomain_id == other._subdomain_id and self._domain == other._domain and  # noqa: W504
                 id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data) and  # noqa: W504
-                metadata_equal(self._metadata, other._metadata))
+                sorted_metadata == sorted_other_metadata)
 
     def __add__(self, other):
         """Add two measures (self+other).

@@ -21,7 +21,6 @@ __all__ = [
     "estimate_total_polynomial_degree",
     "sort_elements",
     "compute_form_data",
-    "purge_list_tensors",
     "apply_transformer",
     "ReuseTransformer",
     "load_ufl_file",
@@ -102,7 +101,7 @@ from ufl.algorithms.change_to_reference import change_to_reference_grad
 from ufl.algorithms.expand_compounds import expand_compounds
 # from ufl.algorithms.estimate_degrees import SumDegreeEstimator
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
-from ufl.algorithms.expand_indices import expand_indices, purge_list_tensors
+from ufl.algorithms.expand_indices import expand_indices
 
 # Utilities for transforming complete Forms into other Forms
 from ufl.algorithms.formtransformations import compute_form_adjoint

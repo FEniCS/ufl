@@ -339,17 +339,6 @@ def as_scalars(*expressions):
     return expressions, ii
 
 
-def relabel(A, indexmap):
-    "UFL operator: Relabel free indices of :math:`A` with new indices, using the given mapping."
-    ii = tuple(sorted(indexmap.keys()))
-    jj = tuple(indexmap[i] for i in ii)
-    if not all(isinstance(i, Index) for i in ii):
-        raise ValueError("Expecting Index objects.")
-    if not all(isinstance(j, Index) for j in jj):
-        raise ValueError("Expecting Index objects.")
-    return as_tensor(A, ii)[jj]
-
-
 def unit_list(i, n):
     return [(1 if i == j else 0) for j in range(n)]
 
