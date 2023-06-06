@@ -36,7 +36,7 @@ and
 
 The development version can be found in the repository at
 
-  https://www.bitbucket.org/fenics-project/ufl
+  https://github.com/FEniCS/ufl
 
 A very brief overview of the language contents follows:
 
