@@ -14,7 +14,8 @@ from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
-from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
+from ufl.algorithms.coordinate_derivative_helpers import (
+    attach_coordinate_derivatives, strip_coordinate_derivatives)
 import numbers
 
 
@@ -84,10 +85,12 @@ def dicts_lt(a, b):
     for ia, ib in zip(sorted_by_key(a), sorted_by_key(b)):
         # Assuming keys are sortable (usually str)
         if ia[0] != ib[0]:
-            return (ia[0].__class__.__name__, ia[0]) < (ib[0].__class__.__name__, ib[0])  # Hack to preserve type sorting in py3
+            # Hack to preserve type sorting in py3
+            return (ia[0].__class__.__name__, ia[0]) < (ib[0].__class__.__name__, ib[0])
         # Assuming values are sortable
         if ia[1] != ib[1]:
-            return (ia[1].__class__.__name__, ia[1]) < (ib[1].__class__.__name__, ib[1])  # Hack to preserve type sorting in py3
+            # Hack to preserve type sorting in py3
+            return (ia[1].__class__.__name__, ia[1]) < (ib[1].__class__.__name__, ib[1])
 
 
 # Tuple comparison helper

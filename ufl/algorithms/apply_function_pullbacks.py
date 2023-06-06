@@ -118,7 +118,8 @@ def apply_single_function_pullbacks(r, element):
     mapping = element.mapping()
     if r.ufl_shape != element.reference_value_shape():
         raise ValueError(
-            f"Expecting reference space expression with shape '{element.reference_value_shape()}', got '{r.ufl_shape}'")
+            f"Expecting reference space expression with shape '{element.reference_value_shape()}', "
+            f"got '{r.ufl_shape}'")
     if mapping in {"physical", "identity",
                    "contravariant Piola", "covariant Piola",
                    "double contravariant Piola", "double covariant Piola",
@@ -128,7 +129,8 @@ def apply_single_function_pullbacks(r, element):
         # directly.
         f = apply_known_single_pullback(r, element)
         if f.ufl_shape != element.value_shape():
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', got '{f.ufl_shape}'")
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', "
+                             f"got '{f.ufl_shape}'")
         return f
     elif mapping in {"symmetries", "undefined"}:
         # Need to pull back each unique piece of the reference space thing
@@ -161,7 +163,8 @@ def apply_single_function_pullbacks(r, element):
         # And reshape appropriately
         f = as_tensor(numpy.asarray(g_components).reshape(gsh))
         if f.ufl_shape != element.value_shape():
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', got '{f.ufl_shape}'")
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', "
+                             f"got '{f.ufl_shape}'")
         return f
     else:
         raise ValueError(f"Unsupported mapping type: {mapping}")

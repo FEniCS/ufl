@@ -98,7 +98,8 @@ class Zero(ConstantValue):
                     all(isinstance(i, Index) for i in index_dimensions.keys())):
                 raise ValueError(f"Expecting tuple of index dimensions, not {index_dimensions}")
             self.ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
-            self.ufl_index_dimensions = tuple(d for i, d in sorted(index_dimensions.items(), key=lambda x: x[0].count()))
+            self.ufl_index_dimensions = tuple(
+                d for i, d in sorted(index_dimensions.items(), key=lambda x: x[0].count()))
         else:  # Handle new input format
             if not all(isinstance(i, int) for i in free_indices):
                 raise ValueError(f"Expecting tuple of integer free index ids, not {free_indices}")

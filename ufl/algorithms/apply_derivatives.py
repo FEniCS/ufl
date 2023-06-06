@@ -54,7 +54,8 @@ class GenericDerivativeRuleset(MultiFunction):
     # --- Error checking for missing handlers and unexpected types
 
     def expr(self, o):
-        raise ValueError(f"Missing differentiation handler for type {o._ufl_class_.__name__}. Have you added a new type?")
+        raise ValueError(f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
+                         "Have you added a new type?")
 
     def unexpected(self, o):
         raise ValueError(f"Unexpected type {o._ufl_class_.__name__} in AD rules.")
@@ -1203,7 +1204,8 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         if do is not None:
             return do
         else:
-            raise NotImplementedError("CoordinateDerivative found a SpatialCoordinate that is different from the one being differentiated.")
+            raise NotImplementedError("CoordinateDerivative found a SpatialCoordinate that is different "
+                                      "from the one being differentiated.")
 
     def reference_value(self, o):
         do = self._cd.get(o)

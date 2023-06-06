@@ -26,7 +26,8 @@ def compute_indices(shape):
 # functional version:
 def compute_indices2(shape):
     "Compute all index combinations for given shape"
-    return ((),) if len(shape) == 0 else tuple((i,) + sub_index for i in range(shape[0]) for sub_index in compute_indices2(shape[1:]))
+    return ((),) if len(shape) == 0 else tuple(
+        (i,) + sub_index for i in range(shape[0]) for sub_index in compute_indices2(shape[1:]))
 
 
 def build_component_numbering(shape, symmetry):

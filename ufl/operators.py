@@ -93,7 +93,7 @@ def elem_op_items(op_ind, indices, *args):
 
 
 def elem_op(op, *args):
-    "UFL operator: Take the elementwise application of operator *op* on scalar values from one or more tensor arguments."
+    "UFL operator: Take the elementwise application of operator op on scalar values from one or more tensor arguments."
     args = [as_ufl(arg) for arg in args]
     sh = args[0].ufl_shape
     if not all(sh == x.ufl_shape for x in args):
@@ -133,7 +133,9 @@ def transpose(A):
 
 
 def outer(*operands):
-    "UFL operator: Take the outer product of two or more operands. The complex conjugate of the first argument is taken."
+    """UFL operator: Take the outer product of two or more operands.
+    The complex conjugate of the first argument is taken.
+    """
     n = len(operands)
     if n == 1:
         return operands[0]
@@ -412,7 +414,8 @@ def jump(v, n=None):
         else:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
-        warnings.warn("Returning zero from jump of expression without a domain. This may be erroneous if a dolfin.Expression is involved.")
+        warnings.warn("Returning zero from jump of expression without a domain. "
+                      "This may be erroneous if a dolfin.Expression is involved.")
         # FIXME: Is this right? If v has no domain, it doesn't depend
         # on anything spatially variable or any form arguments, and
         # thus the jump is zero. In other words, I'm assuming that "v

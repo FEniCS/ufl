@@ -698,7 +698,10 @@ def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
     if common_domain is not None:
         gdim = common_domain.geometric_dimension()
         tdim = common_domain.topological_dimension()
-        if not all((gdim == domain.geometric_dimension() and tdim == domain.topological_dimension()) for domain in domains):
+        if not all(
+            gdim == domain.geometric_dimension() and tdim == domain.topological_dimension()
+            for domain in domains
+        ):
             raise ValueError("Common domain does not share dimensions with form domains.")
 
     reconstruct = False

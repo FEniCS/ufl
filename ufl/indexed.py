@@ -104,4 +104,5 @@ class Indexed(Operator):
             # So that one doesn't have to special case indexing of
             # expressions without shape.
             return self
-        raise ValueError(f"Attempting to index with {ufl_err_str(key)}, but object is already indexed: {ufl_err_str(self)}")
+        raise ValueError(f"Attempting to index with {ufl_err_str(key)}, "
+                         f"but object is already indexed: {ufl_err_str(self)}")

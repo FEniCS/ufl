@@ -40,7 +40,8 @@ def parstr(child, parent, pre="(", post=")", format=str):
 
 
 def build_precedence_list():
-    from ufl.classes import Operator, Terminal, Sum, IndexSum, Product, Division, Power, MathFunction, BesselFunction, Abs, Indexed
+    from ufl.classes import (Operator, Terminal, Sum, IndexSum, Product, Division, Power,
+                             MathFunction, BesselFunction, Abs, Indexed)
 
     # TODO: Fill in other types...
     # Power <= Transposed

@@ -31,31 +31,28 @@ __all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
 # Enumeration of valid domain types
 _integral_types = [
     # === Integration over full topological dimension:
-    ("cell", "dx"),                     # Over cells of a mesh
-    # ("macro_cell", "dE"),              # Over a group of adjacent cells (TODO: Arbitrary cell group? Not currently used.)
+    ("cell", "dx"),  # Over cells of a mesh
 
     # === Integration over topological dimension - 1:
-    ("exterior_facet", "ds"),           # Over one-sided exterior facets of a mesh
-    ("interior_facet", "dS"),           # Over two-sided facets between pairs of adjacent cells of a mesh
+    ("exterior_facet", "ds"),  # Over one-sided exterior facets of a mesh
+    ("interior_facet", "dS"),  # Over two-sided facets between pairs of adjacent cells of a mesh
 
     # === Integration over topological dimension 0
-    ("vertex", "dP"),                    # Over vertices of a mesh
-    # ("vertex", "dV"),                  # TODO: Use this over vertices?
-    # ("point", "dP"),                   # TODO: Use this over arbitrary points inside cells?
+    ("vertex", "dP"),  # Over vertices of a mesh
 
     # === Integration over custom domains
-    ("custom", "dc"),                 # Over custom user-defined domains (run-time quadrature points)
-    ("cutcell", "dC"),                # Over a cell with some part cut away (run-time quadrature points)
-    ("interface", "dI"),              # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
-    ("overlap", "dO"),                # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
+    ("custom", "dc"),  # Over custom user-defined domains (run-time quadrature points)
+    ("cutcell", "dC"),  # Over a cell with some part cut away (run-time quadrature points)
+    ("interface", "dI"),  # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
+    ("overlap", "dO"),  # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
 
     # === Firedrake specific hacks on the way out:
     # TODO: Remove these, firedrake can use metadata instead
     # and create the measure objects in firedrake:
     ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
-    ("exterior_facet_top", "ds_t"),     # Over top facets on extruded mesh
-    ("exterior_facet_vert", "ds_v"),    # Over side facets of an extruded mesh
-    ("interior_facet_horiz", "dS_h"),   # Over horizontal facets of an extruded mesh
+    ("exterior_facet_top", "ds_t"),  # Over top facets on extruded mesh
+    ("exterior_facet_vert", "ds_v"),  # Over side facets of an extruded mesh
+    ("interior_facet_horiz", "dS_h"),  # Over horizontal facets of an extruded mesh
     ("interior_facet_vert", "dS_v"),  # Over vertical facets of an extruded mesh
 ]
 

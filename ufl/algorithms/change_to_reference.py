@@ -51,7 +51,8 @@ edge_length_i = || dot(J, reference_edge_vector_i) ||
 
 e2 = || J[:,0] . < 1, 0> || = || J[:,0] || = || dx/dX0 || = edge length of edge 2 (v0-v1)
 e1 = || J[:,1] . < 0, 1> || = || J[:,1] || = || dx/dX1 || = edge length of edge 1 (v0-v2)
-e0 = || J[:,:] . <-1, 1> || = || < J[0,1]-J[0,0], J[1,1]-J[1,0] > || = || dx/dX <-1,1> || = edge length of edge 0 (v1-v2)
+e0 = || J[:,:] . <-1, 1> || = || < J[0,1]-J[0,0], J[1,1]-J[1,0] > || = || dx/dX <-1,1> ||
+    = edge length of edge 0 (v1-v2)
 
 trev = triangle_reference_edge_vector
 evec0 = J00 * trev[edge][0] + J01 * trev[edge][1]  =  J*trev[edge]
