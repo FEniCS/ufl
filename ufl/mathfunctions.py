@@ -17,7 +17,8 @@ import warnings
 
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
+from ufl.constantvalue import (is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue,
+                               ConstantValue, as_ufl)
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -297,29 +298,15 @@ class Atan2(Operator):
         return "atan_2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
 
 
-def _find_erf():
-    import math
-    if hasattr(math, 'erf'):
-        return math.erf
-    import scipy.special
-    if hasattr(scipy.special, 'erf'):
-        return scipy.special.erf
-    return None
-
-
 @ufl_type()
 class Erf(MathFunction):
     __slots__ = ()
 
     def __new__(cls, argument):
         if isinstance(argument, (RealValue, Zero)):
-            erf = _find_erf()
-            if erf is not None:
-                return FloatValue(erf(float(argument)))
+            return FloatValue(math.erf(float(argument)))
         if isinstance(argument, (ConstantValue)):
-            erf = _find_erf()
-            if erf is not None:
-                return ComplexValue(erf(complex(argument)))
+            return ComplexValue(math.erf(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -327,10 +314,7 @@ class Erf(MathFunction):
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
-        erf = _find_erf()
-        if erf is None:
-            raise ValueError("No python implementation of erf available on this system, cannot evaluate. Upgrade python or install scipy.")
-        return erf(a)
+        return math.erf(a)
 
 
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
