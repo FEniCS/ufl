@@ -798,7 +798,7 @@ class FormSum(BaseForm):
             return False
         if self is other:
             return True
-        return (len(self.components()) == len(other.components()) and
+        return (len(self.components()) == len(other.components()) and  # noqa: W504
                 all(a == b for a, b in zip(self.components(), other.components())))
 
     def __str__(self):

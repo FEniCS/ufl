@@ -58,17 +58,16 @@ class IntegralData(object):
 
     def __lt__(self, other):
         # To preserve behaviour of extract_integral_data:
-        return ((self.integral_type, self.subdomain_id,
-                 self.integrals, self.metadata) <
-                (other.integral_type, other.subdomain_id, other.integrals,
-                 other.metadata))
+        return (
+            self.integral_type, self.subdomain_id, self.integrals, self.metadata
+        ) < (
+            other.integral_type, other.subdomain_id, other.integrals, other.metadata
+        )
 
     def __eq__(self, other):
         # Currently only used for tests:
-        return (self.integral_type == other.integral_type and
-                self.subdomain_id == other.subdomain_id and
-                self.integrals == other.integrals and
-                self.metadata == other.metadata)
+        return (self.integral_type == other.integral_type and self.subdomain_id == other.subdomain_id and  # noqa: W504
+                self.integrals == other.integrals and self.metadata == other.metadata)
 
     def __str__(self):
         s = "IntegralData over domain(%s, %s), with integrals:\n%s\nand metadata:\n%s" % (

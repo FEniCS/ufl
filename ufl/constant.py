@@ -58,8 +58,7 @@ class Constant(Terminal):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_domain == other._ufl_domain and
+        return (self._count == other._count and self._ufl_domain == other._ufl_domain and   # noqa: W504
                 self._ufl_shape == self._ufl_shape)
 
     def _ufl_signature_data_(self, renumbering):

@@ -85,15 +85,15 @@ def determine_num_ops(cls, num_ops, unop, binop, rbinop):
 def check_is_terminal_consistency(cls):
     "Check for consistency in ``is_terminal`` trait among superclasses."
     if cls._ufl_is_terminal_ is None:
-        msg = ("Class {0.__name__} has not specified the is_terminal trait." +
+        msg = (f"Class {cls.__name__} has not specified the is_terminal trait."
                " Did you forget to inherit from Terminal or Operator?")
-        raise TypeError(msg.format(cls))
+        raise TypeError(msg)
 
     base_is_terminal = get_base_attr(cls, "_ufl_is_terminal_")
     if base_is_terminal is not None and cls._ufl_is_terminal_ != base_is_terminal:
-        msg = ("Conflicting given and automatic 'is_terminal' trait for class {0.__name__}." +
+        msg = (f"Conflicting given and automatic 'is_terminal' trait for class {cls.__name__}."
                " Check if you meant to inherit from Terminal or Operator.")
-        raise TypeError(msg.format(cls))
+        raise TypeError(msg)
 
 
 def check_abstract_trait_consistency(cls):

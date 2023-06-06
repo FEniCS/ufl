@@ -248,9 +248,9 @@ class Measure(object):
         # Let syntax dx(domain) or dx(domain, metadata) mean integral
         # over entire domain.  To do this we need to hijack the first
         # argument:
-        if subdomain_id is not None and (isinstance(subdomain_id,
-                                                    AbstractDomain) or
-                                         hasattr(subdomain_id, 'ufl_domain')):
+        if subdomain_id is not None and (
+            isinstance(subdomain_id, AbstractDomain) or hasattr(subdomain_id, 'ufl_domain')
+        ):
             if domain is not None:
                 raise ValueError("Ambiguous: setting domain both as keyword argument and first argument.")
             subdomain_id, domain = "everywhere", as_domain(subdomain_id)
@@ -318,11 +318,9 @@ class Measure(object):
 
     def __eq__(self, other):
         "Checks if two Measures are equal."
-        return (isinstance(other, Measure) and
-                self._integral_type == other._integral_type and
-                self._subdomain_id == other._subdomain_id and
-                self._domain == other._domain and
-                id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data) and
+        return (isinstance(other, Measure) and self._integral_type == other._integral_type and  # noqa: W504
+                self._subdomain_id == other._subdomain_id and self._domain == other._domain and  # noqa: W504
+                id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data) and  # noqa: W504
                 metadata_equal(self._metadata, other._metadata))
 
     def __add__(self, other):

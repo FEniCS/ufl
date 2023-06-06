@@ -88,5 +88,4 @@ class Matrix(BaseForm):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_spaces == other._ufl_function_spaces)
+        return self._count == other._count and self._ufl_function_spaces == other._ufl_function_spaces

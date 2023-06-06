@@ -109,9 +109,7 @@ def determinant_expr_2x2(B):
 
 
 def old_determinant_expr_3x3(A):
-    return (A[0, 0] * _det_2x2(A, 1, 2, 1, 2) +
-            A[0, 1] * _det_2x2(A, 1, 2, 2, 0) +
-            A[0, 2] * _det_2x2(A, 1, 2, 0, 1))
+    return A[0, 0] * _det_2x2(A, 1, 2, 1, 2) + A[0, 1] * _det_2x2(A, 1, 2, 2, 0) + A[0, 2] * _det_2x2(A, 1, 2, 0, 1)
 
 
 def determinant_expr_3x3(A):

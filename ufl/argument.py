@@ -129,10 +129,10 @@ class BaseArgument(object):
         point of view, e.g. TestFunction(V1) == TestFunction(V2) if V1 and V2
         are the same ufl element but different dolfin function spaces.
         """
-        return (type(self) == type(other) and
-                self._number == other._number and
-                self._part == other._part and
-                self._ufl_function_space == other._ufl_function_space)
+        return (
+            type(self) == type(other) and self._number == other._number and  # noqa: W504
+            self._part == other._part and self._ufl_function_space == other._ufl_function_space
+        )
 
 
 @ufl_type()
@@ -215,7 +215,7 @@ class Coargument(BaseForm, BaseArgument):
             return False
         if self is other:
             return True
-        return (self._ufl_function_space == other._ufl_function_space and
+        return (self._ufl_function_space == other._ufl_function_space and  # noqa: W504
                 self._number == other._number and self._part == other._part)
 
     def __hash__(self):

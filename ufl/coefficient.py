@@ -102,8 +102,7 @@ class BaseCoefficient(object):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
+        return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
 
 @ufl_type()
@@ -143,8 +142,7 @@ class Cofunction(BaseCoefficient, BaseForm):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
+        return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
     def __hash__(self):
         """Hash code for use in dicts."""
@@ -191,8 +189,7 @@ class Coefficient(FormArgument, BaseCoefficient):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
+        return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
     def __repr__(self):
         return self._repr
