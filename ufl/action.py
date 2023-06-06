@@ -133,13 +133,17 @@ def _check_function_spaces(left, right):
         right, *_ = right.ufl_operands
 
     if isinstance(right, (Form, Action, Matrix, ZeroBaseForm)):
-        if (left.arguments()[-1].ufl_function_space().dual()
-            != right.arguments()[0].ufl_function_space()):
+        if (
+            left.arguments()[-1].ufl_function_space().dual()
+            != right.arguments()[0].ufl_function_space()
+        ):
 
             raise TypeError("Incompatible function spaces in Action")
     elif isinstance(right, (Coefficient, Cofunction, Argument)):
-        if (left.arguments()[-1].ufl_function_space()
-            != right.ufl_function_space()):
+        if (
+            left.arguments()[-1].ufl_function_space()
+            != right.ufl_function_space()
+        ):
 
             raise TypeError("Incompatible function spaces in Action")
     else:
