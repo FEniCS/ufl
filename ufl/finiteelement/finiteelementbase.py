@@ -12,7 +12,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.utils.sequences import product
-from ufl.cell import AbstractCellBase, as_cell
+from ufl.cell import AbstractCell, as_cell
 from abc import ABC, abstractmethod
 
 
@@ -35,7 +35,7 @@ class FiniteElementBase(ABC):
 
         if cell is not None:
             cell = as_cell(cell)
-            if not isinstance(cell, AbstractCellBase):
+            if not isinstance(cell, AbstractCell):
                 raise ValueError("Invalid cell type.")
 
         self._family = family
