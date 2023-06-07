@@ -26,7 +26,6 @@ except ImportError:
 __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 
-# TODO: rename this to CellBase (this will break other libraries)
 class AbstractCell(UFLObject):
     """A base class for all cells."""
     @abstractmethod
