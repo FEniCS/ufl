@@ -65,6 +65,10 @@ class AbstractCell(UFLObject):
     def cellname(self) -> str:
         """Return the cellname of the cell."""
 
+    @abstractmethod
+    def reconstruct(self, **kwargs: typing.Any) -> Cell:
+        """Reconstruct this cell, overwriting properties by those in kwargs."""
+
     def __lt__(self, other: AbstractCell) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all cells."""
         if type(self) == type(other):
@@ -77,9 +81,6 @@ class AbstractCell(UFLObject):
             if type(self).__name__ == type(other).__name__:
                 raise ValueError("Cannot order cell types with the same name")
             return type(self).__name__ < type(other).__name__
-
-    def reconstruct(self, geometric_dimension: typing.Optional[int] = None) -> Cell:
-        """Reconstruct this cell with changes to its properties"""
 
     def num_vertices(self) -> int:
         """Get the number of vertices."""
@@ -305,16 +306,21 @@ class Cell(AbstractCell):
     def _ufl_hash_data_(self) -> typing.Hashable:
         return (self._cellname, self._gdim)
 
-    # TODO: put this in the base class?
-    def reconstruct(self, geometric_dimension: typing.Optional[int] = None) -> Cell:
-        """Reconstruct this cell."""
-        return Cell(self._cellname, geometric_dimension=self._gdim if geometric_dimension is None else geometric_dimension)
+    def reconstruct(self, **kwargs: typing.Any) -> Cell:
+        """Reconstruct this cell, overwriting properties by those in kwargs."""
+        gdim = self._gdim
+        for key, value in kwargs.items():
+            if key == "geometric_dimension":
+                gdim = value
+            else:
+                raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
+        return Cell(self._cellname, geometric_dimension=gdim)
 
 
 class TensorProductCell(AbstractCell):
     __slots__ = ("_cells", "_tdim", "_gdim")
 
-    def __init__(self, *cells, geometric_dimension: typing.Optional[int] = None):
+    def __init__(self, *cells: Cell, geometric_dimension: typing.Optional[int] = None):
         self._cells = tuple(as_cell(cell) for cell in cells)
 
         self._tdim = sum([cell.topological_dimension() for cell in self._cells])
@@ -408,9 +414,15 @@ class TensorProductCell(AbstractCell):
     def _ufl_hash_data_(self) -> typing.Hashable:
         return tuple(c._ufl_hash_data_() for c in self._cells) + (self._gdim,)
 
-    def reconstruct(self, geometric_dimension: typing.Optional[int] = None) -> Cell:
-        """Reconstruct this cell."""
-        return TensorProductCell(self._cellname, geometric_dimension=self._gdim if geometric_dimension is None else geometric_dimension)
+    def reconstruct(self, **kwargs: typing.Any) -> Cell:
+        """Reconstruct this cell, overwriting properties by those in kwargs."""
+        gdim = self._gdim
+        for key, value in kwargs.items():
+            if key == "geometric_dimension":
+                gdim = value
+            else:
+                raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
+        return TensorProductCell(self._cellname, geometric_dimension=gdim)
 
 
 def simplex(topological_dimension: int, geometric_dimension: typing.Optional[int] = None):
