@@ -273,14 +273,14 @@ class Cell(AbstractCell):
     def sub_entities(self, dim: int) -> typing.List[AbstractCell]:
         """Get the sub-entities of the given dimension."""
         try:
-            return [Cell(t, self._gdim) for t in self._subentity_types[dim]]
+            return [Cell(t, self._gdim) for t in self._sub_entity_types[dim]]
         except IndexError:
             return 0
 
     def sub_entity_types(self, dim: int) -> typing.List[AbstractCell]:
         """Get the unique sub-entity types of the given dimension."""
         try:
-            return [Cell(t, self._gdim) for t in set(self._subentity_types[dim])]
+            return [Cell(t, self._gdim) for t in set(self._sub_entity_types[dim])]
         except IndexError:
             return 0
 
