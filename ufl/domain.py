@@ -8,7 +8,7 @@
 
 import numbers
 
-from ufl.cell import AbstractCell, TensorProductCell, as_cell
+from ufl.cell import AbstractCellBase, TensorProductCell, as_cell
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -72,7 +72,7 @@ class Mesh(AbstractDomain):
             raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
 
         # Accept a cell in place of an element for brevity Mesh(triangle)
-        if isinstance(coordinate_element, AbstractCell):
+        if isinstance(coordinate_element, AbstractCellBase):
             from ufl.finiteelement import VectorElement
             cell = coordinate_element
             coordinate_element = VectorElement("Lagrange", cell, 1,
@@ -250,7 +250,7 @@ def default_domain(cell):
 
     """
     global _default_domains
-    assert isinstance(cell, AbstractCell)
+    assert isinstance(cell, AbstractCellBase)
     domain = _default_domains.get(cell)
     if domain is None:
         # Create one and only one affine Mesh with a negative ufl_id
