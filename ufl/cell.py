@@ -21,13 +21,14 @@ except ImportError:
     # Delete this after 04 Oct 2026 (Python 3.10 end of life)
     # After this date, can also replace "self: Self," with "self,
     from typing import TypeVar
-    Self = TypeVar("Self", bound="AbstractCellBase")
+    Self = TypeVar("Self", bound="AbstractCell")
 
-__all_classes__ = ["AbstractCellBase", "AbstractCell", "CellBase", "Cell", "TensorProductCell"]
+__all_classes__ = ["AbstractCell", "CellBase", "TensorProductCell"]
 
 
-class AbstractCellBase(UFLObject):
-    """A base class for all cells that allows for abstract cells where only the dimensions are known."""
+# TODO: rename this to CellBase (this will break other libraries)
+class AbstractCell(UFLObject):
+    """A base class for all cells."""
     @abstractmethod
     def topological_dimension(self) -> int:
         """Return the dimension of the topology of this cell."""
@@ -48,23 +49,6 @@ class AbstractCellBase(UFLObject):
     def _lt(self: Self, other: Self) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all instances of this type with the same dimensions."""
 
-    def __lt__(self, other: AbstractCellBase) -> bool:
-        """Define an arbitrarily chosen but fixed sort order for all cells."""
-        if type(self) == type(other):
-            s = (self.geometric_dimension(), self.topological_dimension())
-            o = (other.geometric_dimension(), other.topological_dimension())
-            if s != o:
-                return s < o
-            return self._lt(other)
-        else:
-            if type(self).__name__ == type(other).__name__:
-                raise ValueError("Cannot order cell types with the same name")
-            return type(self).__name__ < type(other).__name__
-
-
-class CellBase(AbstractCellBase):
-    """A base class for all cells."""
-
     @abstractmethod
     def num_sub_entities(self, dim: int) -> int:
         """Get the number of sub-entities of the given dimension."""
@@ -80,6 +64,22 @@ class CellBase(AbstractCellBase):
     @abstractmethod
     def cellname(self) -> str:
         """Return the cellname of the cell."""
+
+    def __lt__(self, other: AbstractCellBase) -> bool:
+        """Define an arbitrarily chosen but fixed sort order for all cells."""
+        if type(self) == type(other):
+            s = (self.geometric_dimension(), self.topological_dimension())
+            o = (other.geometric_dimension(), other.topological_dimension())
+            if s != o:
+                return s < o
+            return self._lt(other)
+        else:
+            if type(self).__name__ == type(other).__name__:
+                raise ValueError("Cannot order cell types with the same name")
+            return type(self).__name__ < type(other).__name__
+
+    def reconstruct(self, geometric_dimension: typing.Optional[int] = None) -> Cell:
+        """Reconstruct this cell with changes to its properties"""
 
     def num_vertices(self) -> int:
         """Get the number of vertices."""
@@ -202,54 +202,7 @@ class CellBase(AbstractCellBase):
         return self.sub_entity_types(tdim - 3)
 
 
-class AbstractCell(AbstractCellBase):
-    """Representation of an abstract finite element cell with only the dimensions known."""
-    __slots__ = ("_tdim", "_gdim")
-
-    def __init__(self, topological_dimension: int, geometric_dimension: int):
-        # Validate dimensions
-        if not isinstance(geometric_dimension, numbers.Integral):
-            raise ValueError("Expecting integer geometric_dimension.")
-        if not isinstance(topological_dimension, numbers.Integral):
-            raise ValueError("Expecting integer topological_dimension.")
-        if topological_dimension > geometric_dimension:
-            raise ValueError("Topological dimension cannot be larger than geometric dimension.")
-
-        # Store validated dimensions
-        self._tdim = topological_dimension
-        self._gdim = geometric_dimension
-
-    def topological_dimension(self) -> int:
-        """Return the dimension of the topology of this cell."""
-        return self._tdim
-
-    def geometric_dimension(self) -> int:
-        """Return the dimension of the geometry of this cell."""
-        return self._gdim
-
-    def is_simplex(self) -> bool:
-        """Return True if this is a simplex cell."""
-        raise NotImplementedError("Implement this to allow important checks and optimizations.")
-
-    def has_simplex_facets(self) -> bool:
-        """Return True if all the facets of this cell are simplex cells."""
-        raise NotImplementedError("Implement this to allow important checks and optimizations.")
-
-    def _lt(self: Self, other: Self) -> bool:
-        # Sort by gdim first, tdim next, then whatever's left depending on the subclass
-        return False
-
-    def _ufl_has_data_(self):
-        return (self._tdim, self._gdim)
-
-    def __str__(self):
-        return f"AbstractCell({self._tdim}, {self._gdim})"
-
-    def __repr__(self):
-        return f"AbstractCell({self._tdim}, {self._gdim})"
-
-
-class Cell(CellBase):
+class Cell(AbstractCell):
     """Representation of a named finite element cell with known structure."""
     __slots__ = ("_cellname", "_tdim", "_gdim", "_num_cell_entities", "_sub_entity_types")
 
@@ -316,14 +269,14 @@ class Cell(CellBase):
         except IndexError:
             return 0
 
-    def sub_entities(self, dim: int) -> typing.List[CellBase]:
+    def sub_entities(self, dim: int) -> typing.List[AbstractCell]:
         """Get the sub-entities of the given dimension."""
         try:
             return [Cell(t, self._gdim) for t in self._subentity_types[dim]]
         except IndexError:
             return 0
 
-    def sub_entity_types(self, dim: int) -> typing.List[CellBase]:
+    def sub_entity_types(self, dim: int) -> typing.List[AbstractCell]:
         """Get the unique sub-entity types of the given dimension."""
         try:
             return [Cell(t, self._gdim) for t in set(self._subentity_types[dim])]
@@ -358,7 +311,7 @@ class Cell(CellBase):
         return Cell(self._cellname, geometric_dimension=self._gdim if geometric_dimension is None else geometric_dimension)
 
 
-class TensorProductCell(CellBase):
+class TensorProductCell(AbstractCell):
     __slots__ = ("_cells", "_tdim", "_gdim")
 
     def __init__(self, *cells, geometric_dimension: typing.Optional[int] = None):
@@ -374,8 +327,7 @@ class TensorProductCell(CellBase):
         if self._tdim > self._gdim:
             raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
-    # TODO: put this in the base class?
-    def sub_cells(self) -> typing.List[CellBase]:
+    def sub_cells(self) -> typing.List[AbstractCell]:
         """Return list of cell factors."""
         return self._cells
 
@@ -415,7 +367,7 @@ class TensorProductCell(CellBase):
             return 1
         raise NotImplementedError(f"TensorProductCell.num_sub_entities({dim}) is not implemented.")
 
-    def sub_entities(self, dim: int) -> typing.List[CellBase]:
+    def sub_entities(self, dim: int) -> typing.List[AbstractCell]:
         """Get the sub-entities of the given dimension."""
         if dim < 0 or dim > self._tdim:
             return []
@@ -425,7 +377,7 @@ class TensorProductCell(CellBase):
             return [self]
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
-    def sub_entity_types(self, dim: int) -> typing.List[CellBase]:
+    def sub_entity_types(self, dim: int) -> typing.List[AbstractCell]:
         """Get the unique sub-entity types of the given dimension."""
         if dim < 0 or dim > self._tdim:
             return []
@@ -487,12 +439,12 @@ def hypercube(topological_dimension, geometric_dimension=None):
     raise ValueError(f"Unsupported topological dimension for hypercube: {topological_dimension}")
 
 
-def as_cell(cell: typing.Union[AbstractCellBase, str, typing.Tuple[AbstractCellBase, ...]]) -> AbstractCellBase:
+def as_cell(cell: typing.Union[AbstractCell, str, typing.Tuple[AbstractCell, ...]]) -> AbstractCell:
     """Convert any valid object to a Cell or return cell if it is already a Cell.
 
     Allows an already valid cell, a known cellname string, or a tuple of cells for a product cell.
     """
-    if isinstance(cell, AbstractCellBase):
+    if isinstance(cell, AbstractCell):
         return cell
     elif isinstance(cell, str):
         return Cell(cell)
