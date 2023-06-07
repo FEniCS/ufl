@@ -46,9 +46,7 @@ _integral_types = [
     ("interface", "dI"),  # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
     ("overlap", "dO"),  # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
 
-    # === Firedrake specific hacks on the way out:
-    # TODO: Remove these, firedrake can use metadata instead
-    # and create the measure objects in firedrake:
+    # === Firedrake specifics:
     ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
     ("exterior_facet_top", "ds_t"),  # Over top facets on extruded mesh
     ("exterior_facet_vert", "ds_v"),  # Over side facets of an extruded mesh
