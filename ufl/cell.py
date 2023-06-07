@@ -46,11 +46,15 @@ class AbstractCellBase(UFLObject):
 
     @abstractmethod
     def _lt(self: Self, other: Self) -> bool:
-        """Define an arbitrarily chosen but fixed sort order for all instances of this type."""
+        """Define an arbitrarily chosen but fixed sort order for all instances of this type with the same dimensions."""
 
     def __lt__(self, other: AbstractCellBase) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all cells."""
         if type(self) == type(other):
+            s = (self.geometric_dimension(), self.topological_dimension())
+            o = (other.geometric_dimension(), other.topological_dimension())
+            if s != o:
+                return s < o
             return self._lt(other)
         else:
             if type(self).__name__ == type(other).__name__:
@@ -233,9 +237,7 @@ class AbstractCell(AbstractCellBase):
 
     def _lt(self: Self, other: Self) -> bool:
         # Sort by gdim first, tdim next, then whatever's left depending on the subclass
-        s = (self.geometric_dimension(), self.topological_dimension())
-        o = (other.geometric_dimension(), other.topological_dimension())
-        return s < o
+        return False
 
     def _ufl_has_data_(self):
         return (self._tdim, self._gdim)
@@ -300,11 +302,12 @@ class Cell(CellBase):
 
     def is_simplex(self) -> bool:
         """Return True if this is a simplex cell."""
+        print(self._cellname)
         return self._cellname in ["vertex", "interval", "triangle", "tetrahedron"]
 
     def has_simplex_facets(self) -> bool:
         """Return True if all the facets of this cell are simplex cells."""
-        return self._cellname in ["interval", "triangle", "tetrahedron"]
+        return self._cellname in ["interval", "triangle", "quadrilateral", "tetrahedron"]
 
     def num_sub_entities(self, dim: int) -> int:
         """Get the number of sub-entities of the given dimension."""
@@ -394,6 +397,8 @@ class TensorProductCell(CellBase):
         """Return True if all the facets of this cell are simplex cells."""
         if len(self._cells) == 1:
             return self._cells[0].has_simplex_facets()
+        if self._tdim == 1:
+            return True
         return False
 
     def num_sub_entities(self, dim: int) -> int:
@@ -431,10 +436,6 @@ class TensorProductCell(CellBase):
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
     def _lt(self: Self, other: Self) -> bool:
-        s = (self.geometric_dimension(), self.topological_dimension())
-        o = (other.geometric_dimension(), other.topological_dimension())
-        if s != o:
-            return s < o
         return self._ufl_hash_data_() < other._ufl_hash_data_()
 
     def cellname(self) -> str:
