@@ -23,7 +23,7 @@ except ImportError:
     from typing import TypeVar
     Self = TypeVar("Self", bound="AbstractCell")
 
-__all_classes__ = ["AbstractCell", "CellBase", "TensorProductCell"]
+__all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 
 # TODO: rename this to CellBase (this will break other libraries)
@@ -54,18 +54,18 @@ class AbstractCell(UFLObject):
         """Get the number of sub-entities of the given dimension."""
 
     @abstractmethod
-    def sub_entities(self, dim: int) -> typing.List[CellBase]:
+    def sub_entities(self, dim: int) -> typing.List[AbstractCell]:
         """Get the sub-entities of the given dimension."""
 
     @abstractmethod
-    def sub_entity_types(self, dim: int) -> typing.List[CellBase]:
+    def sub_entity_types(self, dim: int) -> typing.List[AbstractCell]:
         """Get the unique sub-entity types of the given dimension."""
 
     @abstractmethod
     def cellname(self) -> str:
         """Return the cellname of the cell."""
 
-    def __lt__(self, other: AbstractCellBase) -> bool:
+    def __lt__(self, other: AbstractCell) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all cells."""
         if type(self) == type(other):
             s = (self.geometric_dimension(), self.topological_dimension())
@@ -121,23 +121,23 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.num_sub_entities(tdim - 3)
 
-    def vertices(self) -> typing.List[CellBase]:
+    def vertices(self) -> typing.List[AbstractCell]:
         """Get the vertices."""
         return self.sub_entities(0)
 
-    def edges(self) -> typing.List[CellBase]:
+    def edges(self) -> typing.List[AbstractCell]:
         """Get the edges."""
         return self.sub_entities(1)
 
-    def faces(self) -> typing.List[CellBase]:
+    def faces(self) -> typing.List[AbstractCell]:
         """Get the faces."""
         return self.sub_entities(2)
 
-    def volumes(self) -> typing.List[CellBase]:
+    def volumes(self) -> typing.List[AbstractCell]:
         """Get the faces."""
         return self.sub_entities(3)
 
-    def facets(self) -> typing.List[CellBase]:
+    def facets(self) -> typing.List[AbstractCell]:
         """Get the facets.
 
         Facets are entities of dimension tdim-1.
@@ -145,7 +145,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entities(tdim - 1)
 
-    def ridges(self) -> typing.List[CellBase]:
+    def ridges(self) -> typing.List[AbstractCell]:
         """Get the ridges.
 
         Facets are entities of dimension tdim-2.
@@ -153,7 +153,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entities(tdim - 2)
 
-    def peaks(self) -> typing.List[CellBase]:
+    def peaks(self) -> typing.List[AbstractCell]:
         """Get the peaks.
 
         Facets are entities of dimension tdim-3.
@@ -161,23 +161,23 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entities(tdim - 3)
 
-    def vertex_types(self) -> typing.List[CellBase]:
+    def vertex_types(self) -> typing.List[AbstractCell]:
         """Get the unique vertices types."""
         return self.sub_entity_types(0)
 
-    def edge_types(self) -> typing.List[CellBase]:
+    def edge_types(self) -> typing.List[AbstractCell]:
         """Get the unique edge types."""
         return self.sub_entity_types(1)
 
-    def face_types(self) -> typing.List[CellBase]:
+    def face_types(self) -> typing.List[AbstractCell]:
         """Get the unique face types."""
         return self.sub_entity_types(2)
 
-    def volume_types(self) -> typing.List[CellBase]:
+    def volume_types(self) -> typing.List[AbstractCell]:
         """Get the unique face types."""
         return self.sub_entity_types(3)
 
-    def facet_types(self) -> typing.List[CellBase]:
+    def facet_types(self) -> typing.List[AbstractCell]:
         """Get the unique facet types.
 
         Facets are entities of dimension tdim-1.
@@ -185,7 +185,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entity_types(tdim - 1)
 
-    def ridge_types(self) -> typing.List[CellBase]:
+    def ridge_types(self) -> typing.List[AbstractCell]:
         """Get the unique ridge types.
 
         Facets are entities of dimension tdim-2.
@@ -193,7 +193,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entity_types(tdim - 2)
 
-    def peak_types(self) -> typing.List[CellBase]:
+    def peak_types(self) -> typing.List[AbstractCell]:
         """Get the unique peak types.
 
         Facets are entities of dimension tdim-3.
