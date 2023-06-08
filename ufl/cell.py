@@ -17,11 +17,9 @@ from abc import abstractmethod
 try:
     from typing import Self
 except ImportError:
-    # Hack to get this to work pre Python 3.11
+    # This alternative is needed pre Python 3.11
     # Delete this after 04 Oct 2026 (Python 3.10 end of life)
-    # After this date, can also replace "self: Self," with "self,
-    from typing import TypeVar
-    Self = TypeVar("Self", bound="AbstractCell")
+    from typing_extensions import Self
 
 __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
@@ -45,7 +43,7 @@ class AbstractCell(UFLObject):
         """Return True if all the facets of this cell are simplex cells."""
 
     @abstractmethod
-    def _lt(self: Self, other: Self) -> bool:
+    def _lt(self, other: Self) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all instances of this type with the same dimensions."""
 
     @abstractmethod
@@ -283,7 +281,7 @@ class Cell(AbstractCell):
         except IndexError:
             return 0
 
-    def _lt(self: Self, other: Self) -> bool:
+    def _lt(self, other: Self) -> bool:
         return self._cellname < other._cellname
 
     def cellname(self) -> str:
@@ -392,7 +390,7 @@ class TensorProductCell(AbstractCell):
             return [self]
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
-    def _lt(self: Self, other: Self) -> bool:
+    def _lt(self, other: Self) -> bool:
         return self._ufl_hash_data_() < other._ufl_hash_data_()
 
     def cellname(self) -> str:
