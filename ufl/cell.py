@@ -221,12 +221,10 @@ class Cell(AbstractCell):
         else:
             raise ValueError(f"Unsupported cell type: {cellname}")
 
-        try:
-            self._sub_entities = [Cell(t, self._gdim) for t in self._sub_entity_types[dim]]
-            self._sub_entity_types = [Cell(t, self._gdim) for t in set(self._sub_entity_types[dim])]
-        except IndexError:
-            self._sub_entities = []
-            self._sub_entity_types = []
+        self._sub_entities = [[Cell(t, self._gdim) for t in se_types]
+                              for se_types in self._sub_entity_types]
+        self._sub_entity_types = [[Cell(t, self._gdim) for t in set(se_types)]
+                                  for se_types in self._sub_entity_types]
 
         self._cellname = cellname
         self._tdim = len(self._num_cell_entities) - 1
@@ -264,11 +262,17 @@ class Cell(AbstractCell):
 
     def sub_entities(self, dim: int) -> typing.List[AbstractCell]:
         """Get the sub-entities of the given dimension."""
-        return self._sub_entities
+        try:
+            return self._sub_entities[dim]
+        except IndexError:
+            return []
 
     def sub_entity_types(self, dim: int) -> typing.List[AbstractCell]:
         """Get the unique sub-entity types of the given dimension."""
-        return self._sub_entity_types
+        try:
+            return self._sub_entity_types[dim]
+        except IndexError:
+            return []
 
     def _lt(self, other: Self) -> bool:
         return self._cellname < other._cellname
