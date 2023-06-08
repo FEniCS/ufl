@@ -225,8 +225,8 @@ class Cell(AbstractCell):
             self._sub_entities = [Cell(t, self._gdim) for t in self._sub_entity_types[dim]]
             self._sub_entity_types = [Cell(t, self._gdim) for t in set(self._sub_entity_types[dim])]
         except IndexError:
-            self._sub_entities []
-            self._sub_entity_types []
+            self._sub_entities = []
+            self._sub_entity_types = []
 
         self._cellname = cellname
         self._tdim = len(self._num_cell_entities) - 1
