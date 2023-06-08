@@ -190,7 +190,8 @@ class AbstractCell(UFLObject):
 
 class Cell(AbstractCell):
     """Representation of a named finite element cell with known structure."""
-    __slots__ = ("_cellname", "_tdim", "_gdim", "_num_cell_entities", "_sub_entity_types")
+    __slots__ = ("_cellname", "_tdim", "_gdim", "_num_cell_entities", "_sub_entity_types",
+                 "_sub_entities", "_sub_entity_types")
 
     def __init__(self, cellname: str, geometric_dimension: typing.Optional[int] = None):
         if cellname == "vertex":
@@ -220,6 +221,13 @@ class Cell(AbstractCell):
         else:
             raise ValueError(f"Unsupported cell type: {cellname}")
 
+        try:
+            self._sub_entities = [Cell(t, self._gdim) for t in self._sub_entity_types[dim]]
+            self._sub_entity_types = [Cell(t, self._gdim) for t in set(self._sub_entity_types[dim])]
+        except IndexError:
+            self._sub_entities []
+            self._sub_entity_types []
+
         self._cellname = cellname
         self._tdim = len(self._num_cell_entities) - 1
         self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
@@ -241,7 +249,6 @@ class Cell(AbstractCell):
 
     def is_simplex(self) -> bool:
         """Return True if this is a simplex cell."""
-        print(self._cellname)
         return self._cellname in ["vertex", "interval", "triangle", "tetrahedron"]
 
     def has_simplex_facets(self) -> bool:
@@ -257,17 +264,11 @@ class Cell(AbstractCell):
 
     def sub_entities(self, dim: int) -> typing.List[AbstractCell]:
         """Get the sub-entities of the given dimension."""
-        try:
-            return [Cell(t, self._gdim) for t in self._sub_entity_types[dim]]
-        except IndexError:
-            return 0
+        return self._sub_entities
 
     def sub_entity_types(self, dim: int) -> typing.List[AbstractCell]:
         """Get the unique sub-entity types of the given dimension."""
-        try:
-            return [Cell(t, self._gdim) for t in set(self._sub_entity_types[dim])]
-        except IndexError:
-            return 0
+        return self._sub_entity_types
 
     def _lt(self, other: Self) -> bool:
         return self._cellname < other._cellname
