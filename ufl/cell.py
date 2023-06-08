@@ -226,9 +226,11 @@ class Cell(AbstractCell):
         self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
 
         self._sub_entities = [[Cell(t, self._gdim) for t in se_types]
-                              for se_types in self._sub_entity_types]
+                              for se_types in self._sub_entity_types[:-1]]
         self._sub_entity_types = [[Cell(t, self._gdim) for t in set(se_types)]
-                                  for se_types in self._sub_entity_types]
+                                  for se_types in self._sub_entity_types[:-1]]
+        self._sub_entities.append([self])
+        self._sub_entity_types.append([self])
 
         if not isinstance(self._gdim, numbers.Integral):
             raise ValueError("Expecting integer geometric_dimension.")
