@@ -221,14 +221,14 @@ class Cell(AbstractCell):
         else:
             raise ValueError(f"Unsupported cell type: {cellname}")
 
+        self._cellname = cellname
+        self._tdim = len(self._num_cell_entities) - 1
+        self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
+
         self._sub_entities = [[Cell(t, self._gdim) for t in se_types]
                               for se_types in self._sub_entity_types]
         self._sub_entity_types = [[Cell(t, self._gdim) for t in set(se_types)]
                                   for se_types in self._sub_entity_types]
-
-        self._cellname = cellname
-        self._tdim = len(self._num_cell_entities) - 1
-        self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
 
         if not isinstance(self._gdim, numbers.Integral):
             raise ValueError("Expecting integer geometric_dimension.")
