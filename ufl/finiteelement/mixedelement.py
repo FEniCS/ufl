@@ -91,6 +91,9 @@ class MixedElement(FiniteElementBase):
     def __repr__(self):
         return "MixedElement(" + ", ".join(repr(e) for e in self._sub_elements) + ")"
 
+    def _is_linear(self):
+        return all(i._is_linear() for i in self._sub_elements)
+
     def reconstruct_from_elements(self, *elements):
         "Reconstruct a mixed element from new subelements."
         if all(a == b for (a, b) in zip(elements, self._sub_elements)):
