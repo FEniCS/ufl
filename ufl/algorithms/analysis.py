@@ -59,7 +59,8 @@ def extract_type(a, ufl_types):
     if not isinstance(ufl_types, (list, tuple)):
         ufl_types = (ufl_types,)
 
-    # BaseForms that aren't forms or base form operators only have arguments/coefficients
+    # BaseForms that aren't forms or base form operators
+    # only contain arguments & coefficients
     if isinstance(a, BaseForm) and not isinstance(a, (Form, BaseFormOperator)):
         objects = set()
         if any(issubclass(t, BaseArgument) for t in ufl_types):
@@ -67,12 +68,6 @@ def extract_type(a, ufl_types):
         if any(issubclass(t, BaseCoefficient) for t in ufl_types):
             objects.update(a.coefficients())
         return objects
-        """
-        if any(issubclass(t, BaseArgument) for t in ufl_types):
-            return set(a.arguments())
-        else:
-            return set()
-        """
 
     if all(issubclass(t, Terminal) for t in ufl_types):
         # Optimization
