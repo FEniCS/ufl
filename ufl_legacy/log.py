@@ -237,7 +237,7 @@ class UFLValueError(UFLException):
     pass
 
 
-ufl_logger = Logger("UFL", UFLException)
+ufl_logger = Logger("UFL_LEGACY", UFLException)
 
 for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))
