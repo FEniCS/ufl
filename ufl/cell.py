@@ -188,47 +188,40 @@ class AbstractCell(UFLObject):
         return self.sub_entity_types(tdim - 3)
 
 
+_sub_entity_types = {
+    "vertex": [("vertex", )],
+    "interval": [tuple("vertex" for i in range(2)), ("interval", )],
+    "triangle": [tuple("vertex" for i in range(3)), tuple("interval" for i in range(3)), ("triangle", )],
+    "quadrilateral": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(4)), ("quadrilateral", )],
+    "tetrahedron": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(4)),
+                    tuple("triangle" for i in range(4)), ("tetrahedron", )],
+    "hexahedron": [tuple("vertex" for i in range(8)), tuple("interval" for i in range(12)),
+                   tuple("quadrilateral" for i in range(6)), ("hexahedron", )],
+    "prism": [tuple("vertex" for i in range(6)), tuple("interval" for i in range(9)),
+              ("triangle", "quadrilateral", "quadrilateral", "quadrilateral", "triangle"), ("prism", )],
+    "pyramid": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(8)),
+                ("quadrilateral", "triangle", "triangle", "triangle", "triangle"), ("pyramid", )],
+}
+
+
 class Cell(AbstractCell):
     """Representation of a named finite element cell with known structure."""
     __slots__ = ("_cellname", "_tdim", "_gdim", "_num_cell_entities", "_sub_entity_types",
                  "_sub_entities", "_sub_entity_types")
 
     def __init__(self, cellname: str, geometric_dimension: typing.Optional[int] = None):
-        if cellname == "vertex":
-            self._num_cell_entities = (1, )
-            self._sub_entity_types = [["vertex"]]
-        elif cellname == "interval":
-            self._num_cell_entities = (2, 1)
-            self._sub_entity_types = [["vertex" for i in range(2)], ["interval"]]
-        elif cellname == "triangle":
-            self._num_cell_entities = (3, 3, 1)
-            self._sub_entity_types = [["vertex" for i in range(3)], ["interval" for i in range(3)], ["triangle"]]
-        elif cellname == "quadrilateral":
-            self._num_cell_entities = (4, 4, 1)
-            self._sub_entity_types = [["vertex" for i in range(4)], ["interval" for i in range(4)], ["quadrilateral"]]
-        elif cellname == "tetrahedron":
-            self._num_cell_entities = (4, 6, 4, 1)
-            self._sub_entity_types = [["vertex" for i in range(4)], ["interval" for i in range(4)], ["triangle" for i in range(4)], ["tetrahedron"]]
-        elif cellname == "prism":
-            self._num_cell_entities = (6, 9, 5, 1)
-            self._sub_entity_types = [["vertex" for i in range(6)], ["interval" for i in range(9)], ["triangle", "quadrilateral", "quadrilateral", "quadrilateral", "triangle"], ["prism"]]
-        elif cellname == "pyramid":
-            self._num_cell_entities = (5, 8, 5, 1)
-            self._sub_entity_types = [["vertex" for i in range(5)], ["interval" for i in range(8)], ["quadrilateral", "triangle", "triangle", "triangle", "triangle"], ["pyramid"]]
-        elif cellname == "hexahedron":
-            self._num_cell_entities = (8, 12, 6, 1)
-            self._sub_entity_types = [["vertex" for i in range(8)], ["interval" for i in range(12)], ["quadrilateral" for i in range(6)], ["hexahedron"]]
-        else:
+        if cellname not in _sub_entity_types:
             raise ValueError(f"Unsupported cell type: {cellname}")
+
+        self._sub_entity_types = _sub_entity_types[cellname]
+        self._num_cell_entities = [len(i) for i in self._sub_entity_types]
 
         self._cellname = cellname
         self._tdim = len(self._num_cell_entities) - 1
         self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
 
-        self._sub_entities = [[Cell(t, self._gdim) for t in se_types]
-                              for se_types in self._sub_entity_types[:-1]]
-        self._sub_entity_types = [[Cell(t, self._gdim) for t in set(se_types)]
-                                  for se_types in self._sub_entity_types[:-1]]
+        self._sub_entities = [[Cell(t, self._gdim) for t in se_types] for se_types in self._sub_entity_types[:-1]]
+        self._sub_entity_types = [[Cell(t, self._gdim) for t in set(se_types)] for se_types in self._sub_entity_types[:-1]]
         self._sub_entities.append([self])
         self._sub_entity_types.append([self])
 
