@@ -17,6 +17,7 @@ from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData
+from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
 
 # These are the main symbolic processing steps:
@@ -61,7 +62,40 @@ def _compute_element_mapping(form):
     elements = [obj.ufl_element() for obj in chain(form.arguments(),
                                                    form.coefficients())]
     elements = extract_sub_elements(elements)
-    return {e: e for e in elements}
+
+    # Try to find a common degree for elements
+    common_degree = _auto_select_degree(elements)
+
+    # Compute element map
+    element_mapping = {}
+    for element in elements:
+
+        # Flag for whether element needs to be reconstructed
+        reconstruct = False
+
+        # Set cell
+        cell = element.cell()
+        if cell is None:
+            domains = form.ufl_domains()
+            if not all(domains[0].ufl_cell() == d.ufl_cell()
+                       for d in domains):
+                raise ValueError("Cannot replace unknown element cell without unique common cell in form.")
+            cell = domains[0].ufl_cell()
+            reconstruct = True
+
+        # Set degree
+        degree = element.degree()
+        if degree is None:
+            degree = common_degree
+            reconstruct = True
+
+        # Reconstruct element and add to map
+        if reconstruct:
+            element_mapping[element] = element.reconstruct(cell=cell, degree=degree)
+        else:
+            element_mapping[element] = element
+
+    return element_mapping
 
 
 def _compute_max_subdomain_ids(integral_data):
@@ -121,21 +155,34 @@ def _check_facet_geometry(integral_data):
                         raise ValueError(f"Integral of type {it} cannot contain a {cls.__name__}.")
 
 
-def _build_coefficient_replace_map(coefficients):
+def _check_form_arity(preprocessed_form):
+    # Check that we don't have a mixed linear/bilinear form or
+    # anything like that
+    # FIXME: This is slooow and should be moved to form compiler
+    # and/or replaced with something faster
+    if 1 != len(compute_form_arities(preprocessed_form)):
+        raise ValueError("All terms in form must have same rank.")
+
+
+def _build_coefficient_replace_map(coefficients, element_mapping=None):
     """Create new Coefficient objects
     with count starting at 0. Return mapping from old
     to new objects, and lists of the new objects."""
+    if element_mapping is None:
+        element_mapping = {}
+
     new_coefficients = []
     replace_map = {}
     for i, f in enumerate(coefficients):
-        e = f.ufl_element()
+        old_e = f.ufl_element()
+        new_e = element_mapping.get(old_e, old_e)
         # XXX: This is a hack to ensure that if the original
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
         if f.ufl_domain() is not None:
-            e = FunctionSpace(f.ufl_domain(), e)
-        new_f = Coefficient(e, count=i)
+            new_e = FunctionSpace(f.ufl_domain(), new_e)
+        new_f = Coefficient(new_e, count=i)
         new_coefficients.append(new_f)
         replace_map[f] = new_f
 
@@ -313,11 +360,23 @@ def compute_form_data(form,
     # Extract common geometric dimension (topological is not common!)
     self.geometric_dimension = self.original_form.integrals()[0].ufl_domain().geometric_dimension()
 
-    # Mappings from coefficients that reside in form to
+    # --- Build mapping from old incomplete element objects to new
+    # well defined elements.  This is to support the Expression
+    # construct in dolfin which subclasses Coefficient but doesn't
+    # provide an element, and the Constant construct that doesn't
+    # provide the domain that a Coefficient is supposed to have. A
+    # future design iteration in UFL/UFC/FFC/DOLFIN may allow removal
+    # of this mapping with the introduction of UFL types for
+    # Expression-like functions that can be evaluated in quadrature
+    # points.
+    self.element_replace_map = _compute_element_mapping(self.original_form)
+
+    # Mappings from elements and coefficients that reside in form to
     # objects with canonical numbering as well as completed cells and
     # elements
-    renumbered_coefficients, function_replace_map = _build_coefficient_replace_map(
-        self.reduced_coefficients)
+    renumbered_coefficients, function_replace_map = \
+        _build_coefficient_replace_map(self.reduced_coefficients,
+                                       self.element_replace_map)
     self.function_replace_map = function_replace_map
 
     # --- Store various lists of elements and sub elements (adds
