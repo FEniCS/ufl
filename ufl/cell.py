@@ -55,7 +55,7 @@ class AbstractCell(UFLObject):
         """Get the sub-entities of the given dimension."""
 
     @abstractmethod
-    def sub_entity_types(self, dim: int) -> typing.List[AbstractCell]:
+    def sub_entity_types(self, dim: int) -> typing.Tuple[str, ...]:
         """Get the unique sub-entity types of the given dimension."""
 
     @abstractmethod
@@ -155,7 +155,7 @@ class AbstractCell(UFLObject):
         """Get the unique vertices types."""
         return self.sub_entity_types(0)
 
-    def edge_types(self) -> typing.List[AbstractCell]:
+    def edge_types(self) -> typing.Tuple[str, ...]:
         """Get the unique edge types."""
         return self.sub_entity_types(1)
 
@@ -269,7 +269,7 @@ class Cell(AbstractCell):
         except IndexError:
             return []
 
-    def sub_entity_types(self, dim: int) -> typing.List[AbstractCell]:
+    def sub_entity_types(self, dim: int) -> typing.Tuple[str, ...]:
         """Get the unique sub-entity types of the given dimension."""
         try:
             return self._sub_entity_types[dim]
@@ -375,7 +375,7 @@ class TensorProductCell(AbstractCell):
             return [self]
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
-    def sub_entity_types(self, dim: int) -> typing.List[AbstractCell]:
+    def sub_entity_types(self, dim: int) -> typing.Tuple[str, ...]:
         """Get the unique sub-entity types of the given dimension."""
         if dim < 0 or dim > self._tdim:
             return []
