@@ -10,6 +10,7 @@ from __future__ import annotations
 import functools
 import numbers
 import typing
+import weakref
 
 from ufl.core.ufl_type import UFLObject
 from abc import abstractmethod
@@ -51,11 +52,11 @@ class AbstractCell(UFLObject):
         """Get the number of sub-entities of the given dimension."""
 
     @abstractmethod
-    def sub_entities(self, dim: int) -> typing.List[AbstractCell]:
+    def sub_entities(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the sub-entities of the given dimension."""
 
     @abstractmethod
-    def sub_entity_types(self, dim: int) -> typing.Tuple[str, ...]:
+    def sub_entity_types(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique sub-entity types of the given dimension."""
 
     @abstractmethod
@@ -115,19 +116,19 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.num_sub_entities(tdim - 3)
 
-    def vertices(self) -> typing.List[AbstractCell]:
+    def vertices(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the vertices."""
         return self.sub_entities(0)
 
-    def edges(self) -> typing.List[AbstractCell]:
+    def edges(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the edges."""
         return self.sub_entities(1)
 
-    def faces(self) -> typing.List[AbstractCell]:
+    def faces(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the faces."""
         return self.sub_entities(2)
 
-    def facets(self) -> typing.List[AbstractCell]:
+    def facets(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the facets.
 
         Facets are entities of dimension tdim-1.
@@ -135,7 +136,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entities(tdim - 1)
 
-    def ridges(self) -> typing.List[AbstractCell]:
+    def ridges(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the ridges.
 
         Ridges are entities of dimension tdim-2.
@@ -143,7 +144,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entities(tdim - 2)
 
-    def peaks(self) -> typing.List[AbstractCell]:
+    def peaks(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the peaks.
 
         Peaks are entities of dimension tdim-3.
@@ -151,19 +152,19 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entities(tdim - 3)
 
-    def vertex_types(self) -> typing.List[AbstractCell]:
+    def vertex_types(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique vertices types."""
         return self.sub_entity_types(0)
 
-    def edge_types(self) -> typing.Tuple[str, ...]:
+    def edge_types(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique edge types."""
         return self.sub_entity_types(1)
 
-    def face_types(self) -> typing.List[AbstractCell]:
+    def face_types(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique face types."""
         return self.sub_entity_types(2)
 
-    def facet_types(self) -> typing.List[AbstractCell]:
+    def facet_types(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique facet types.
 
         Facets are entities of dimension tdim-1.
@@ -171,7 +172,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entity_types(tdim - 1)
 
-    def ridge_types(self) -> typing.List[AbstractCell]:
+    def ridge_types(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique ridge types.
 
         Ridges are entities of dimension tdim-2.
@@ -179,7 +180,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entity_types(tdim - 2)
 
-    def peak_types(self) -> typing.List[AbstractCell]:
+    def peak_types(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique peak types.
 
         Peaks are entities of dimension tdim-3.
@@ -188,7 +189,7 @@ class AbstractCell(UFLObject):
         return self.sub_entity_types(tdim - 3)
 
 
-_sub_entity_types = {
+_sub_entity_celltypes = {
     "vertex": [("vertex", )],
     "interval": [tuple("vertex" for i in range(2)), ("interval", )],
     "triangle": [tuple("vertex" for i in range(3)), tuple("interval" for i in range(3)), ("triangle", )],
@@ -210,20 +211,20 @@ class Cell(AbstractCell):
                  "_sub_entities", "_sub_entity_types")
 
     def __init__(self, cellname: str, geometric_dimension: typing.Optional[int] = None):
-        if cellname not in _sub_entity_types:
+        if cellname not in _sub_entity_celltypes:
             raise ValueError(f"Unsupported cell type: {cellname}")
 
-        self._sub_entity_types = _sub_entity_types[cellname]
-        self._num_cell_entities = [len(i) for i in self._sub_entity_types]
+        self._sub_entity_celltypes = _sub_entity_celltypes[cellname]
 
         self._cellname = cellname
-        self._tdim = len(self._num_cell_entities) - 1
+        self._tdim = len(self._sub_entity_celltypes) - 1
         self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
 
-        self._sub_entities = [[Cell(t, self._gdim) for t in se_types] for se_types in self._sub_entity_types[:-1]]
-        self._sub_entity_types = [[Cell(t, self._gdim) for t in set(se_types)] for se_types in self._sub_entity_types[:-1]]
-        self._sub_entities.append([self])
-        self._sub_entity_types.append([self])
+        self._num_cell_entities = [len(i) for i in self._sub_entity_celltypes]
+        self._sub_entities = [tuple(Cell(t, self._gdim) for t in se_types) for se_types in self._sub_entity_celltypes[:-1]]
+        self._sub_entity_types = [tuple(Cell(t, self._gdim) for t in set(se_types)) for se_types in self._sub_entity_celltypes[:-1]]
+        self._sub_entities.append((weakref.proxy(self), ))
+        self._sub_entity_types.append((weakref.proxy(self), ))
 
         if not isinstance(self._gdim, numbers.Integral):
             raise ValueError("Expecting integer geometric_dimension.")
@@ -255,19 +256,19 @@ class Cell(AbstractCell):
         except IndexError:
             return 0
 
-    def sub_entities(self, dim: int) -> typing.List[AbstractCell]:
+    def sub_entities(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the sub-entities of the given dimension."""
         try:
             return self._sub_entities[dim]
         except IndexError:
-            return []
+            return ()
 
-    def sub_entity_types(self, dim: int) -> typing.Tuple[str, ...]:
+    def sub_entity_types(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique sub-entity types of the given dimension."""
         try:
             return self._sub_entity_types[dim]
         except IndexError:
-            return []
+            return ()
 
     def _lt(self, other: Self) -> bool:
         return self._cellname < other._cellname
@@ -358,7 +359,7 @@ class TensorProductCell(AbstractCell):
             return 1
         raise NotImplementedError(f"TensorProductCell.num_sub_entities({dim}) is not implemented.")
 
-    def sub_entities(self, dim: int) -> typing.List[AbstractCell]:
+    def sub_entities(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the sub-entities of the given dimension."""
         if dim < 0 or dim > self._tdim:
             return []
@@ -368,7 +369,7 @@ class TensorProductCell(AbstractCell):
             return [self]
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
-    def sub_entity_types(self, dim: int) -> typing.Tuple[str, ...]:
+    def sub_entity_types(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique sub-entity types of the given dimension."""
         if dim < 0 or dim > self._tdim:
             return []
