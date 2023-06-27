@@ -7,15 +7,43 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Massimiliano Leoni, 2016
+# Modified by Matthew Scroggs, 2023
+
+from __future__ import annotations
+import typing
+import warnings
 
 from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.utils.formatting import camel2underscore
+from abc import ABC, abstractmethod
 # Avoid circular import
 import ufl.core as core
 
 
-# Make UFL type coercion available under the as_ufl name
-# as_ufl = Expr._ufl_coerce_
+class UFLObject(ABC):
+    """A UFL Object."""
+
+    @abstractmethod
+    def _ufl_hash_data_(self) -> typing.Hashable:
+        """Return hashable data that uniquely defines this object."""
+
+    @abstractmethod
+    def __str__(self) -> str:
+        """Return a human-readable string representation of the object."""
+
+    @abstractmethod
+    def __repr__(self) -> str:
+        """Return a string representation of the object."""
+
+    def __hash__(self) -> int:
+        return hash(self._ufl_hash_data_())
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 def attach_operators_from_hash_data(cls):
     """Class decorator to attach ``__hash__``, ``__eq__`` and ``__ne__`` implementations.
@@ -23,6 +51,7 @@ def attach_operators_from_hash_data(cls):
     These are implemented in terms of a ``._ufl_hash_data()`` method on the class,
     which should return a tuple or hashable and comparable data.
     """
+    warnings.warn("attach_operators_from_hash_data deprecated, please use UFLObject instead.", DeprecationWarning)
     assert hasattr(cls, "_ufl_hash_data_")
 
     def __hash__(self):
@@ -37,7 +66,7 @@ def attach_operators_from_hash_data(cls):
 
     def __ne__(self, other):
         "__ne__ implementation attached in attach_operators_from_hash_data"
-        return type(self) != type(other) or self._ufl_hash_data_() != other._ufl_hash_data_()
+        return not self.__eq__(other)
     cls.__ne__ = __ne__
 
     return cls
