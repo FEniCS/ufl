@@ -251,6 +251,8 @@ class Cell(AbstractCell):
 
     def num_sub_entities(self, dim: int) -> int:
         """Get the number of sub-entities of the given dimension."""
+        if dim < 0:
+            return 0
         try:
             return self._num_cell_entities[dim]
         except IndexError:
@@ -258,6 +260,8 @@ class Cell(AbstractCell):
 
     def sub_entities(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the sub-entities of the given dimension."""
+        if dim < 0:
+            return ()
         try:
             return self._sub_entities[dim]
         except IndexError:
@@ -265,6 +269,8 @@ class Cell(AbstractCell):
 
     def sub_entity_types(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique sub-entity types of the given dimension."""
+        if dim < 0:
+            return ()
         try:
             return self._sub_entity_types[dim]
         except IndexError:
