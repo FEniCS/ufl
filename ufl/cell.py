@@ -194,7 +194,7 @@ _sub_entity_celltypes = {
     "interval": [tuple("vertex" for i in range(2)), ("interval", )],
     "triangle": [tuple("vertex" for i in range(3)), tuple("interval" for i in range(3)), ("triangle", )],
     "quadrilateral": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(4)), ("quadrilateral", )],
-    "tetrahedron": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(4)),
+    "tetrahedron": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(6)),
                     tuple("triangle" for i in range(4)), ("tetrahedron", )],
     "hexahedron": [tuple("vertex" for i in range(8)), tuple("interval" for i in range(12)),
                    tuple("quadrilateral" for i in range(6)), ("hexahedron", )],
