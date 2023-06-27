@@ -194,7 +194,7 @@ _sub_entity_celltypes = {
     "interval": [tuple("vertex" for i in range(2)), ("interval", )],
     "triangle": [tuple("vertex" for i in range(3)), tuple("interval" for i in range(3)), ("triangle", )],
     "quadrilateral": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(4)), ("quadrilateral", )],
-    "tetrahedron": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(4)),
+    "tetrahedron": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(6)),
                     tuple("triangle" for i in range(4)), ("tetrahedron", )],
     "hexahedron": [tuple("vertex" for i in range(8)), tuple("interval" for i in range(12)),
                    tuple("quadrilateral" for i in range(6)), ("hexahedron", )],
@@ -251,6 +251,8 @@ class Cell(AbstractCell):
 
     def num_sub_entities(self, dim: int) -> int:
         """Get the number of sub-entities of the given dimension."""
+        if dim < 0:
+            return 0
         try:
             return self._num_cell_entities[dim]
         except IndexError:
@@ -258,6 +260,8 @@ class Cell(AbstractCell):
 
     def sub_entities(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the sub-entities of the given dimension."""
+        if dim < 0:
+            return ()
         try:
             return self._sub_entities[dim]
         except IndexError:
@@ -265,6 +269,8 @@ class Cell(AbstractCell):
 
     def sub_entity_types(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique sub-entity types of the given dimension."""
+        if dim < 0:
+            return ()
         try:
             return self._sub_entity_types[dim]
         except IndexError:
