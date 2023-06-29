@@ -91,8 +91,12 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
 
     def _analyze_form_arguments(self):
         """Collect the arguments of the corresponding BaseForm"""
-        base_form = self.ufl_operands[0]
-        self._arguments = base_form.arguments()
+        from ufl.algorithms.analysis import extract_arguments
+        base_form, _, arguments, _ = self.ufl_operands
+        # BaseFormDerivative's arguments don't necessarily contain BaseArgument objects only
+        # -> e.g. `derivative(u ** 2, u, u)` with `u` a Coefficient.
+        arguments = tuple(arg for a in arguments for arg in extract_arguments(a))
+        self._arguments = base_form.arguments() + arguments
 
 
 @ufl_type(num_ops=2)
