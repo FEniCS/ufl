@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"Utilites for types with a global unique counter attached to each object."
+"Mixin class for types with a global unique counter attached to each object."
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -7,37 +7,25 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-
-def counted_init(self, count=None, countedclass=None):
-    "Initialize a counted object, see ExampleCounted below for how to use."
-
-    if countedclass is None:
-        countedclass = type(self)
-
-    if count is None:
-        count = countedclass._globalcount
-
-    self._count = count
-
-    if self._count >= countedclass._globalcount:
-        countedclass._globalcount = self._count + 1
+import itertools
 
 
-class ExampleCounted(object):
-    """An example class for classes of objects identified by a global counter.
+class Counted:
+    """Mixin class for globally counted objects."""
 
-    Mimic this class to create globally counted objects within a single type.
-    """
-    # Store the count for each object
-    __slots__ = ("_count",)
+    # Mixin classes do not work well with __slots__ so _count must be
+    # added to the __slots__ of the inheriting class
+    __slots__ = ()
 
-    # Store a global counter with the class
-    _globalcount = 0
+    _counter = None
 
-    # Call counted_init with an optional constructor argument and the class
     def __init__(self, count=None):
-        counted_init(self, count, ExampleCounted)
+        # create a new counter for each subclass
+        cls = type(self)
+        if cls._counter is None:
+            cls._counter = itertools.count()
 
-    # Make the count accessible
+        self._count = count if count is not None else next(cls._counter)
+
     def count(self):
         return self._count
