@@ -1045,7 +1045,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         dc = self.coefficient(o)
         if dc == 0:
             # Convert ufl.Zero into ZeroBaseForm
-            return ZeroBaseForm(self._v)
+            return ZeroBaseForm(o.arguments() + self._v)
         return dc
 
     def coargument(self, o):

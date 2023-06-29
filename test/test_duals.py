@@ -256,7 +256,7 @@ def test_differentiation():
     w = Cofunction(U.dual())
     dwdu = expand_derivatives(derivative(w, u))
     assert isinstance(dwdu, ZeroBaseForm)
-    assert dwdu.arguments() == (Argument(u.ufl_function_space(), 0),)
+    assert dwdu.arguments() == (Argument(w.ufl_function_space().dual(), 0), Argument(u.ufl_function_space(), 1))
     # Check compatibility with int/float
     assert dwdu == 0
 
