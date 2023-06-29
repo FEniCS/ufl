@@ -15,8 +15,6 @@ import weakref
 from ufl.core.ufl_type import UFLObject
 from abc import abstractmethod
 
-from typing import Self
-
 __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 
@@ -39,7 +37,7 @@ class AbstractCell(UFLObject):
         """Return True if all the facets of this cell are simplex cells."""
 
     @abstractmethod
-    def _lt(self, other: Self) -> bool:
+    def _lt(self, other) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all instances of this type with the same dimensions."""
 
     @abstractmethod
@@ -271,7 +269,7 @@ class Cell(AbstractCell):
         except IndexError:
             return ()
 
-    def _lt(self, other: Self) -> bool:
+    def _lt(self, other) -> bool:
         return self._cellname < other._cellname
 
     def cellname(self) -> str:
@@ -380,7 +378,7 @@ class TensorProductCell(AbstractCell):
             return [self]
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
-    def _lt(self, other: Self) -> bool:
+    def _lt(self, other) -> bool:
         return self._ufl_hash_data_() < other._ufl_hash_data_()
 
     def cellname(self) -> str:
