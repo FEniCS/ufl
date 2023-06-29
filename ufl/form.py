@@ -76,8 +76,9 @@ class BaseForm(object, metaclass=UFLType):
     _ufl_required_methods_ = ('_analyze_form_arguments', "ufl_domains")
 
     def __init__(self):
-        # Internal variables for caching form argument data
+        # Internal variables for caching form argument/coefficient data
         self._arguments = None
+        self._coefficients = None
 
     # --- Accessor interface ---
     def arguments(self):
@@ -85,6 +86,12 @@ class BaseForm(object, metaclass=UFLType):
         if self._arguments is None:
             self._analyze_form_arguments()
         return self._arguments
+
+    def coefficients(self):
+        "Return all ``Coefficient`` objects found in form."
+        if self._coefficients is None:
+            self._analyze_form_arguments()
+        return self._coefficients
 
     # --- Operator implementations ---
 
@@ -721,6 +728,7 @@ class FormSum(BaseForm):
     arg_weights is a list of tuples of component index and weight"""
 
     __slots__ = ("_arguments",
+                 "_coefficients",
                  "_weights",
                  "_components",
                  "ufl_operands",
@@ -743,6 +751,7 @@ class FormSum(BaseForm):
                 weights.append(w)
 
         self._arguments = None
+        self._coefficients = None
         self._domains = None
         self._domain_numbering = None
         self._hash = None
@@ -779,9 +788,12 @@ class FormSum(BaseForm):
     def _analyze_form_arguments(self):
         "Return all ``Argument`` objects found in form."
         arguments = []
+        coefficients = []
         for component in self._components:
             arguments.extend(component.arguments())
+            coefficients.extend(component.coefficients())
         self._arguments = tuple(set(arguments))
+        self._coefficients = tuple(set(coefficients))
 
     def _analyze_domains(self):
         from ufl.domain import join_domains
@@ -859,7 +871,8 @@ class ZeroBaseForm(BaseForm):
         self.form = None
 
     def _analyze_form_arguments(self):
-        return self._arguments
+        # `self._arguments` is already set in `BaseForm.__init__`
+        self._coefficients = ()
 
     def __ne__(self, other):
         # Overwrite BaseForm.__neq__ which relies on `equals`

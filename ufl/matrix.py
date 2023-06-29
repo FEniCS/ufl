@@ -29,7 +29,8 @@ class Matrix(BaseForm):
         "_repr",
         "_hash",
         "_ufl_shape",
-        "_arguments")
+        "_arguments",
+        "_coefficients")
     _globalcount = 0
 
     def __getnewargs__(self):
@@ -72,6 +73,7 @@ class Matrix(BaseForm):
         "Define arguments of a matrix when considered as a form."
         self._arguments = (Argument(self._ufl_function_spaces[0], 0),
                            Argument(self._ufl_function_spaces[1], 1))
+        self._coefficients = ()
 
     def __str__(self):
         count = str(self._count)

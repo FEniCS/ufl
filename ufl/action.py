@@ -40,6 +40,7 @@ class Action(BaseForm):
         "ufl_operands",
         "_repr",
         "_arguments",
+        "_coefficients",
         "_hash")
 
     def __getnewargs__(self):
@@ -53,7 +54,7 @@ class Action(BaseForm):
             # Check compatibility of function spaces
             _check_function_spaces(left, right)
             # Still need to work out the ZeroBaseForm arguments.
-            new_arguments = _get_action_form_arguments(left, right)
+            new_arguments, _ = _get_action_form_arguments(left, right)
             return ZeroBaseForm(new_arguments)
 
         if isinstance(left, (FormSum, Sum)):
@@ -100,7 +101,7 @@ class Action(BaseForm):
         The highest number Argument of the left operand and the lowest number
         Argument of the right operand are consumed by the action.
         """
-        self._arguments = _get_action_form_arguments(self._left, self._right)
+        self._arguments, self._coefficients = _get_action_form_arguments(self._left, self._right)
 
     def equals(self, other):
         if type(other) is not Action:
@@ -154,11 +155,19 @@ def _get_action_form_arguments(left, right):
         # right as a consequence of Leibniz formula.
         right, *_ = right.ufl_operands
 
+    coefficients = ()
     if isinstance(right, BaseForm):
-        return left.arguments()[:-1] + right.arguments()[1:]
+        arguments = left.arguments()[:-1] + right.arguments()[1:]
+        coefficients += right.coefficients()
     elif isinstance(right, BaseCoefficient):
-        return left.arguments()[:-1]
+        arguments = left.arguments()[:-1]
+        coefficients += (right,)
     elif isinstance(right, Argument):
-        return left.arguments()[:-1] + (right,)
+        arguments = left.arguments()[:-1] + (right,)
     else:
         raise TypeError
+
+    if isinstance(left, BaseForm):
+        coefficients += left.coefficients()
+
+    return arguments, coefficients

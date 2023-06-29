@@ -114,6 +114,7 @@ class Cofunction(BaseCoefficient, BaseForm):
     __slots__ = (
         "_count",
         "_arguments",
+        "_coefficients",
         "_ufl_function_space",
         "ufl_operands",
         "_repr",
@@ -157,6 +158,7 @@ class Cofunction(BaseCoefficient, BaseForm):
         # Define canonical numbering of arguments and coefficients
         # Cofunctions have one argument in primal space as they map from V to R.
         self._arguments = (Argument(self._ufl_function_space.dual(), 0),)
+        self._coefficients = (self,)
 
 
 @ufl_type()
