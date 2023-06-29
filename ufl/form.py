@@ -783,6 +783,25 @@ class FormSum(BaseForm):
             arguments.extend(component.arguments())
         self._arguments = tuple(set(arguments))
 
+    def _analyze_domains(self):
+        from ufl.domain import join_domains
+
+        # Collect unique domains
+        domains = join_domains([component.ufl_domain() for component in self._components])
+        # FormSum only makes sense if the components are in the same domain
+        if len(domains) != 1:
+            raise ValueError("FormSum must have exactly one domain.")
+        self._domains, = domains
+
+    def ufl_domain(self):
+        """Return the single geometric domain occuring in FormSum.
+
+        Fails if multiple domains are found.
+        """
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
+
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"
         if self._hash is None:
