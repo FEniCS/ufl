@@ -15,12 +15,7 @@ import weakref
 from ufl.core.ufl_type import UFLObject
 from abc import abstractmethod
 
-try:
-    from typing import Self
-except ImportError:
-    # This alternative is needed pre Python 3.11
-    # Delete this after 04 Oct 2026 (Python 3.10 end of life)
-    from typing_extensions import Self
+from typing import Self
 
 __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
