@@ -20,7 +20,7 @@ class Constant(Terminal, Counted):
 
     def __init__(self, domain, shape=(), count=None):
         Terminal.__init__(self)
-        Counted.__init__(self, count)
+        Counted.__init__(self, count, Constant)
 
         self._ufl_domain = as_domain(domain)
         self._ufl_shape = shape

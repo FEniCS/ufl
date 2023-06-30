@@ -22,7 +22,7 @@ class Label(Terminal, Counted):
 
     def __init__(self, count=None):
         Terminal.__init__(self)
-        Counted.__init__(self, count)
+        Counted.__init__(self, count, Label)
 
     def __str__(self):
         return "Label(%d)" % self._count

@@ -37,7 +37,7 @@ class Matrix(BaseForm, Counted):
 
     def __init__(self, row_space, column_space, count=None):
         BaseForm.__init__(self)
-        Counted.__init__(self, count)
+        Counted.__init__(self, count, Matrix)
 
         if not isinstance(row_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace as the row space.")

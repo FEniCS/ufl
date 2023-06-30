@@ -78,7 +78,7 @@ class Index(IndexBase, Counted):
 
     def __init__(self, count=None):
         IndexBase.__init__(self)
-        Counted.__init__(self, count)
+        Counted.__init__(self, count, Index)
 
     def __hash__(self):
         return hash(("Index", self._count))

@@ -39,7 +39,7 @@ class BaseCoefficient(Counted):
         return (self._ufl_function_space, self._count)
 
     def __init__(self, function_space, count=None):
-        Counted.__init__(self, count)
+        Counted.__init__(self, count, BaseCoefficient)
 
         if isinstance(function_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
