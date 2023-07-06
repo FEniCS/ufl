@@ -29,6 +29,7 @@ class Adjoint(BaseForm):
         "_repr",
         "_arguments",
         "_coefficients",
+        "_domains",
         "ufl_operands",
         "_hash")
 
@@ -59,6 +60,7 @@ class Adjoint(BaseForm):
 
         self._form = form
         self.ufl_operands = (self._form,)
+        self._domains = None
         self._hash = None
         self._repr = "Adjoint(%s)" % repr(self._form)
 
@@ -73,6 +75,12 @@ class Adjoint(BaseForm):
         """The arguments of adjoint are the reverse of the form arguments."""
         self._arguments = self._form.arguments()[::-1]
         self._coefficients = self._form.coefficients()
+
+    def _analyze_domains(self):
+        """Analyze which domains can be found in Adjoint."""
+        from ufl.domain import join_domains
+        # Collect unique domains
+        self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
 
     def equals(self, other):
         if type(other) is not Adjoint:

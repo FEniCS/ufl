@@ -41,6 +41,7 @@ class Action(BaseForm):
         "_repr",
         "_arguments",
         "_coefficients",
+        "_domains",
         "_hash")
 
     def __getnewargs__(self):
@@ -74,6 +75,7 @@ class Action(BaseForm):
         self._left = left
         self._right = right
         self.ufl_operands = (self._left, self._right)
+        self._domains = None
 
         # Check compatibility of function spaces
         _check_function_spaces(left, right)
@@ -102,6 +104,12 @@ class Action(BaseForm):
         Argument of the right operand are consumed by the action.
         """
         self._arguments, self._coefficients = _get_action_form_arguments(self._left, self._right)
+
+    def _analyze_domains(self):
+        """Analyze which domains can be found in Action."""
+        from ufl.domain import join_domains
+        # Collect unique domains
+        self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
 
     def equals(self, other):
         if type(other) is not Action:

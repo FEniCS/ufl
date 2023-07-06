@@ -30,7 +30,8 @@ class Matrix(BaseForm):
         "_hash",
         "_ufl_shape",
         "_arguments",
-        "_coefficients")
+        "_coefficients",
+        "_domains")
     _globalcount = 0
 
     def __getnewargs__(self):
@@ -50,6 +51,7 @@ class Matrix(BaseForm):
         self._ufl_function_spaces = (row_space, column_space)
 
         self.ufl_operands = ()
+        self._domains = None
         self._hash = None
         self._repr = "Matrix(%s,%s, %s)" % (
             repr(self._ufl_function_spaces[0]),
@@ -74,6 +76,12 @@ class Matrix(BaseForm):
         self._arguments = (Argument(self._ufl_function_spaces[0], 0),
                            Argument(self._ufl_function_spaces[1], 1))
         self._coefficients = ()
+
+    def _analyze_domains(self):
+        """Analyze which domains can be found in a Matrix."""
+        from ufl.domain import join_domains
+        # Collect unique domains
+        self._domains = join_domains([fs.ufl_domain() for fs in self._ufl_function_spaces])
 
     def __str__(self):
         count = str(self._count)

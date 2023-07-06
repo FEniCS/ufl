@@ -211,6 +211,9 @@ class Coargument(BaseForm, BaseArgument):
         self._arguments = (self,)
         self._coefficients = ()
 
+    def ufl_domain(self):
+        return BaseArgument.ufl_domain(self)
+
     def equals(self, other):
         if type(other) is not Coargument:
             return False

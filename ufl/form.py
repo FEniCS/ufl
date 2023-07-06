@@ -73,7 +73,7 @@ class BaseForm(object, metaclass=UFLType):
     # classes
     __slots__ = ()
     _ufl_is_abstract_ = True
-    _ufl_required_methods_ = ('_analyze_form_arguments', "ufl_domains")
+    _ufl_required_methods_ = ('_analyze_form_arguments', '_analyze_domains', "ufl_domains")
 
     def __init__(self):
         # Internal variables for caching form argument/coefficient data
@@ -92,6 +92,18 @@ class BaseForm(object, metaclass=UFLType):
         if self._coefficients is None:
             self._analyze_form_arguments()
         return self._coefficients
+
+    def ufl_domain(self):
+        """Return the single geometric integration domain occuring in the
+        base form. Fails if multiple domains are found.
+        """
+        if self._domains is None:
+            self._analyze_domains()
+
+        if len(self._domains) > 1:
+            raise ValueError("%s must have exactly one domain." % type(self).__name__)
+        # Return the single geometric domain
+        return self._domains[0]
 
     # --- Operator implementations ---
 
@@ -796,23 +808,10 @@ class FormSum(BaseForm):
         self._coefficients = tuple(set(coefficients))
 
     def _analyze_domains(self):
+        """Analyze which domains can be found in FormSum."""
         from ufl.domain import join_domains
-
         # Collect unique domains
-        domains = join_domains([component.ufl_domain() for component in self._components])
-        # FormSum only makes sense if the components are in the same domain
-        if len(domains) != 1:
-            raise ValueError("FormSum must have exactly one domain.")
-        self._domains, = domains
-
-    def ufl_domain(self):
-        """Return the single geometric domain occuring in FormSum.
-
-        Fails if multiple domains are found.
-        """
-        if self._domains is None:
-            self._analyze_domains()
-        return self._domains
+        self._domains = join_domains([component.ufl_domain() for component in self._components])
 
     def __hash__(self):
         "Hash code for use in dicts (includes incidental numbering of indices etc.)"
