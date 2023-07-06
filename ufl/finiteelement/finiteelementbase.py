@@ -222,3 +222,6 @@ class FiniteElementBase(ABC):
             return RestrictedElement(self, index)
         else:
             raise KeyError(f"Invalid index for restriction: {repr(index)}")
+
+    def __iter__(self):
+        raise TypeError(f"'{type(self).__name__}' object is not iterable")
