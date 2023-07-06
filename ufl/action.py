@@ -12,6 +12,7 @@
 from ufl.form import BaseForm, FormSum, Form, ZeroBaseForm
 from ufl.core.ufl_type import ufl_type
 from ufl.algebra import Sum
+from ufl.constantvalue import Zero
 from ufl.argument import Argument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
@@ -151,7 +152,13 @@ def _check_function_spaces(left, right):
             != right.ufl_function_space()):
 
             raise TypeError("Incompatible function spaces in Action")
-    else:
+    # `Zero` doesn't contain any information about the function space.
+    # -> Not a problem since Action will get simplified with a `ZeroBaseForm`
+    #    which won't take into account the arguments on the right because of argument contraction.
+    # This occurs for:
+    # `derivative(Action(A, B), u)` with B is an `Expr` such that dB/du == 0
+    # -> `derivative(B, u)` becomes `Zero` when expanding derivatives since B is an Expr.
+    elif not isinstance(right, Zero):
         raise TypeError("Incompatible argument in Action: %s" % type(right))
 
 
@@ -167,8 +174,10 @@ def _get_action_form_arguments(left, right):
     if isinstance(right, BaseForm):
         arguments = left.arguments()[:-1] + right.arguments()[1:]
         coefficients += right.coefficients()
-    elif isinstance(right, BaseCoefficient):
+    elif isinstance(right, (BaseCoefficient, Zero)):
         arguments = left.arguments()[:-1]
+        # When right is ufl.Zero, Action gets simplified so updating
+        # coefficients here doesn't matter
         coefficients += (right,)
     elif isinstance(right, Argument):
         arguments = left.arguments()[:-1] + (right,)
