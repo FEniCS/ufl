@@ -220,4 +220,5 @@ class FiniteElementBase(ABC):
         if index in ("facet", "interior"):
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
-        return NotImplemented
+        else:
+            raise KeyError(f"Invalid index for restriction: {repr(index)}")
