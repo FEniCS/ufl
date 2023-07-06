@@ -757,7 +757,7 @@ class FormSum(BaseForm):
         for (component, w) in components:
             if isinstance(component, FormSum):
                 full_components.extend(component.components())
-                weights.extend(w * component.weights())
+                weights.extend([w * wc for wc in component.weights()])
             else:
                 full_components.append(component)
                 weights.append(w)
