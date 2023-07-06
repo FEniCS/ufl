@@ -99,6 +99,18 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
         self._arguments = base_form.arguments() + arguments
 
 
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
+    """Derivative of a base form w.r.t. the SpatialCoordinates."""
+    _ufl_noslots_ = True
+
+    def __init__(self, base_form, coefficients, arguments,
+                 coefficient_derivatives):
+        BaseFormDerivative.__init__(self, base_form, coefficients, arguments,
+                                    coefficient_derivatives)
+
+
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
     __slots__ = (
