@@ -11,6 +11,7 @@
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
 from ufl.core.ufl_type import ufl_type
 
+
 @ufl_type()
 class Adjoint(BaseForm):
     """UFL base form type: represents the adjoint of an object.

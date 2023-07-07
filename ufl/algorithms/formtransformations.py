@@ -447,7 +447,7 @@ def compute_energy_norm(form, coefficient):
     else:
         if coefficient.ufl_function_space() != U:
             raise ValueError("Trying to compute action of form on a "
-                  "coefficient in an incompatible element space.")
+                             "coefficient in an incompatible element space.")
     return action(action(form, coefficient), coefficient)
 
 

@@ -60,7 +60,7 @@ class ExternalOperator(Operator):
             if not isinstance(derivatives, tuple):
                 raise TypeError("Expecting a tuple for derivatives and not %s" % derivatives)
             if not len(derivatives) == len(self.ufl_operands):
-                error("Expecting a size of %s for %s" % (len(self.ufl_operands), derivatives))
+                raise TypeError("Expecting a size of %s for %s" % (len(self.ufl_operands), derivatives))
 
             self.derivatives = derivatives
             # If we have arguments, the appropriate function space has already been set up upstream
@@ -206,7 +206,7 @@ class ExternalOperator(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
+        raise TypeError("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
     def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None, local_operands=None, add_kwargs={}):
         "Return a new object of the same type with new operands."

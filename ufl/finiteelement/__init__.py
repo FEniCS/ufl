@@ -40,4 +40,4 @@ __all_classes__ = [
     "HCurlElement",
     "BrokenElement",
     "WithMapping"
-    ]
+]

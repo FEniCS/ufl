@@ -13,6 +13,7 @@ from ufl.sobolevspace import L2
 
 class BrokenElement(FiniteElementBase):
     """The discontinuous version of an existing Finite Element space."""
+
     def __init__(self, element):
         self._element = element
 

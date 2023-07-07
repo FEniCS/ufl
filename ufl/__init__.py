@@ -350,7 +350,7 @@ from ufl.integral import Integral
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
-system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functional
+    system, functional, adjoint, sensitivity_rhs, extract_blocks  # , dirichlet_functional
 
 # Predefined convenience objects
 from ufl.objects import (
@@ -383,7 +383,7 @@ __all__ = [
     'BrokenElement', "WithMapping",
     'register_element', 'show_elements',
     'FunctionSpace', 'MixedFunctionSpace',
-    'Argument','Coargument', 'TestFunction', 'TrialFunction',
+    'Argument', 'Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Cofunction', 'Coefficients', 'ExternalOperator',
     'Matrix', 'Adjoint', 'Action',
@@ -408,7 +408,7 @@ __all__ = [
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg', 'cell_avg', 'facet_avg',
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
-    'Form','FormSum', 'ZeroBaseForm',
+    'Form', 'FormSum', 'ZeroBaseForm',
     'Integral', 'Measure', 'register_integral_type', 'integral_types', 'custom_integral_types',
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'extract_blocks',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',

@@ -19,6 +19,7 @@ class EnrichedElementBase(FiniteElementBase):
 
         .. math:: \\textrm{EnrichedElement}(V, Q) = \\{v + q | v \\in V, q \\in Q\\}.
     """
+
     def __init__(self, *elements):
         self._elements = elements
 
@@ -102,6 +103,7 @@ class EnrichedElement(EnrichedElementBase):
         resulting element is not nodal even when subelements are.
         Structured basis may be exploited in form compilers.
     """
+
     def is_cellwise_constant(self):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
@@ -128,6 +130,7 @@ class NodalEnrichedElement(EnrichedElementBase):
         a concatenation of subelements dual bases; resulting
         element is nodal.
     """
+
     def is_cellwise_constant(self):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""

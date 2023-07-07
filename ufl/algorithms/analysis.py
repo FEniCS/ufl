@@ -69,10 +69,10 @@ def extract_type(a, ufl_types):
     if all(issubclass(t, Terminal) for t in ufl_types):
         # Optimization
         objects = set(o for e in iter_expressions(a)
-                  for o in traverse_unique_terminals(e)
-                  if any(isinstance(o, t) for t in ufl_types))
-	 
-	    # Need to extract objects of type ufl_type contained in external operators
+                      for o in traverse_unique_terminals(e)
+                      if any(isinstance(o, t) for t in ufl_types))
+
+        # Need to extract objects of type ufl_type contained in external operators
         extops = extract_type(a, ExternalOperator)
         extop_objects = tuple(cj for o in extops
                               for opi in (o.ufl_operands + (o.get_coefficient(),) + tuple(arg for arg, _ in o._arguments))
@@ -142,7 +142,7 @@ def extract_arguments_and_coefficients(a):
     base_coeff_and_args = extract_type(a, (BaseArgument, BaseCoefficient))
     external_operators = extract_type(a, ExternalOperator)
     arguments = [f for f in base_coeff_and_args if isinstance(f, BaseArgument)]
-    arguments += [e for f in external_operators for e, _ in f.arguments() if extract_type(e, Argument).pop() not in arguments]
+    arguments += [e for f in external_operators for e, _ in f.arguments() if extract_type(e, BaseArgument).pop() not in arguments]
     coefficients = [f for f in base_coeff_and_args if isinstance(f, BaseCoefficient)]
     coefficients += [f.coefficient() for f in external_operators if f.get_coefficient() not in coefficients]
 

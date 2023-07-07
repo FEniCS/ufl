@@ -19,6 +19,7 @@ valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 
 class RestrictedElement(FiniteElementBase):
     "Represents the restriction of a finite element to a type of cell entity."
+
     def __init__(self, element, restriction_domain):
         if not isinstance(element, FiniteElementBase):
             raise ValueError("Expecting a finite element instance.")

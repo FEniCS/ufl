@@ -104,6 +104,7 @@ class WithMapping(FiniteElementBase):
     write
     remapped = WithMapping(E, "identity")
     """
+
     def __init__(self, wrapee, mapping):
         if mapping == "symmetries":
             raise ValueError("Can't change mapping to 'symmetries'")
