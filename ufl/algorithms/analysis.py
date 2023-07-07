@@ -72,9 +72,9 @@ def extract_type(a, ufl_types):
                   for o in traverse_unique_terminals(e)
                   if any(isinstance(o, t) for t in ufl_types))
 	 
-	# Need to extract objects of type ufl_type contained in external operators
+	    # Need to extract objects of type ufl_type contained in external operators
         extops = extract_type(a, ExternalOperator)
-        extop_objects = tupl:e(cj for o in extops
+        extop_objects = tuple(cj for o in extops
                               for opi in (o.ufl_operands + (o.get_coefficient(),) + tuple(arg for arg, _ in o._arguments))
                               for cj in extract_type(opi, ufl_types))
         objects.update(extop_objects)
