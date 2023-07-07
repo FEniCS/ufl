@@ -1,40 +1,59 @@
 # -*- coding: utf-8 -*-
-"""This module defines the Matrix class."""
+"""This module defines the Adjoint class."""
 
-# Copyright (C) 2021 India Marsden
+# Copyright (C) 2021-2022 India Marsden, Nacime Bouziani
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-from ufl.form import BaseForm, FormSum
-# --- The Adjoint class represents the adjoint of a numerical object that needs to be computed at compile time ---
+#
 
+from ufl.form import BaseForm, FormSum, ZeroBaseForm
+from ufl.core.ufl_type import ufl_type
 
+@ufl_type()
 class Adjoint(BaseForm):
-    """UFL base form type: respresents the adjoint of an object"""
+    """UFL base form type: represents the adjoint of an object.
+
+    Adjoint objects will result when the adjoint of an assembled object
+    (e.g. a Matrix) is taken. This delays the evaluation of the adjoint until
+    assembly occurs.
+    """
 
     __slots__ = (
         "_form",
         "_repr",
         "_arguments",
+        "ufl_operands",
         "_hash")
-    _globalcount = 0
 
     def __getnewargs__(self):
         return (self._form)
 
     def __new__(cls, *args, **kw):
         form = args[0]
-        if isinstance(form, FormSum):
+        # Check trivial case: This is not a ufl.Zero but a ZeroBaseForm!
+        if form == 0:
+            # Swap the arguments
+            return ZeroBaseForm(form.arguments()[::-1])
+
+        if isinstance(form, Adjoint):
+            return form._form
+        elif isinstance(form, FormSum):
             # Adjoint distributes over sums
-            return FormSum(*[(Adjoint(component), 1) for component in form.components()])
+            return FormSum(*[(Adjoint(component), 1)
+                             for component in form.components()])
 
         return super(Adjoint, cls).__new__(cls)
 
     def __init__(self, form):
         BaseForm.__init__(self)
 
+        if len(form.arguments()) != 2:
+            raise ValueError("Can only take Adjoint of a 2-form.")
+
         self._form = form
+        self.ufl_operands = (self._form,)
         self._hash = None
         self._repr = "Adjoint(%s)" % repr(self._form)
 
@@ -46,17 +65,24 @@ class Adjoint(BaseForm):
         return self._form
 
     def _analyze_form_arguments(self):
-        "Define arguments of a adjoint of a form as the reverse of the form arguments"
-        self._arguments = self._form.arguments[::-1]
+        """The arguments of adjoint are the reverse of the form arguments."""
+        self._arguments = self._form.arguments()[::-1]
+
+    def equals(self, other):
+        if type(other) is not Adjoint:
+            return False
+        if self is other:
+            return True
+        return (self._form == other._form)
 
     def __str__(self):
-        return "Adjoint(%s)" % self._form
+        return "Adjoint(%s)" % str(self._form)
 
     def __repr__(self):
         return self._repr
 
     def __hash__(self):
-        "Hash code for use in dicts (includes incidental numbering of indices etc.)"
+        """Hash code for use in dicts."""
         if self._hash is None:
-            self._hash = hash(tuple(["Adjoint", hash(self._form)]))
+            self._hash = hash(("Adjoint", hash(self._form)))
         return self._hash

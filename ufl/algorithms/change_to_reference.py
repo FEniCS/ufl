@@ -7,8 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
-
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
@@ -130,15 +128,15 @@ class NEWChangeToReferenceGrad(MultiFunction):
         return o
 
     def coefficient_derivative(self, o, *dummy_ops):
-        error("Coefficient derivatives should be expanded before applying change to reference grad.")
+        raise ValueError("Coefficient derivatives should be expanded before applying change to reference grad.")
 
     def reference_grad(self, o, *dummy_ops):
-        error("Not expecting reference grad while applying change to reference grad.")
+        raise ValueError("Not expecting reference grad while applying change to reference grad.")
 
     def restricted(self, o, *dummy_ops):
         "Store modifier state."
         if self._restricted != '':
-            error("Not expecting nested restrictions.")
+            raise ValueError("Not expecting nested restrictions.")
         self._restricted = o.side()
         f, = o.ufl_operands
         r = self(f)
@@ -155,7 +153,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
 
     def facet_avg(self, o, *dummy_ops):
         if self._avg != '':
-            error("Not expecting nested averages.")
+            raise ValueError("Not expecting nested averages.")
         self._avg = "facet"
         f, = o.ufl_operands
         r = self(f)
@@ -164,7 +162,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
 
     def cell_avg(self, o, *dummy_ops):
         if self._avg != '':
-            error("Not expecting nested averages.")
+            raise ValueError("Not expecting nested averages.")
         self._avg = "cell"
         f, = o.ufl_operands
         r = self(f)
@@ -183,14 +181,14 @@ class NEWChangeToReferenceGrad(MultiFunction):
     def _mapped(self, t):
         # Check that we have a valid input object
         if not isinstance(t, Terminal):
-            error("Expecting a Terminal.")
+            raise ValueError("Expecting a Terminal.")
 
         # Get modifiers accumulated by previous handler calls
         ngrads = self._ngrads
         restricted = self._restricted
         avg = self._avg
         if avg != "":
-            error("Averaging not implemented.")  # FIXME
+            raise ValueError("Averaging not implemented.")  # FIXME
 
         # These are the global (g) and reference (r) values
         if isinstance(t, FormArgument):
@@ -200,7 +198,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
             g = t
             r = g
         else:
-            error("Unexpected type {0}.".format(type(t).__name__))
+            raise ValueError(f"Unexpected type {type(t).__name__}.")
 
         # Some geometry mapping objects we may need multiple times below
         domain = t.ufl_domain()
@@ -268,7 +266,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
                 # Select mapping M from element, pick row emapping =
                 # M[ec,:], or emapping = [] if no mapping
                 if isinstance(element, MixedElement):
-                    error("Expecting a basic element here.")
+                    raise ValueError("Expecting a basic element here.")
                 mapping = element.mapping()
                 if mapping == "contravariant Piola":  # S == HDiv:
                     # Handle HDiv elements with contravariant piola
@@ -281,23 +279,23 @@ class NEWChangeToReferenceGrad(MultiFunction):
                     # covariant_hcurl_mapping = JinvT * PullbackOf(o)
                     ec, = ec
                     emapping = K[:, ec]  # Column of K is row of K.T
-                elif mapping == "identity":
+                elif mapping == "identity" or mapping == "custom":
                     emapping = None
                 else:
-                    error("Unknown mapping {0}".format(mapping))
+                    raise ValueError(f"Unknown mapping: {mapping}")
 
             elif isinstance(t, GeometricQuantity):
                 eoffset = 0
                 emapping = None
 
             else:
-                error("Unexpected type {0}.".format(type(t).__name__))
+                raise ValueError(f"Unexpected type {type(t).__name__}.")
 
             # Create indices
             # if rtsh:
             #     i = Index()
             if len(dsh) != ngrads:
-                error("Mismatch between derivative shape and ngrads.")
+                raise ValueError("Mismatch between derivative shape and ngrads.")
             if ngrads:
                 ii = indices(ngrads)
             else:
@@ -379,7 +377,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
                 rv = True
                 o, = o.ufl_operands
             else:
-                error("Invalid type %s" % o._ufl_class_.__name__)
+                raise ValueError(f"Invalid type {o._ufl_class_.__name__}")
         f = o
         if rv:
             f = ReferenceValue(f)
@@ -439,10 +437,10 @@ class OLDChangeToReferenceGrad(MultiFunction):
         return jinv_lgrad_f
 
     def reference_grad(self, o):
-        error("Not expecting reference grad while applying change to reference grad.")
+        raise ValueError("Not expecting reference grad while applying change to reference grad.")
 
     def coefficient_derivative(self, o):
-        error("Coefficient derivatives should be expanded before applying change to reference grad.")
+        raise ValueError("Coefficient derivatives should be expanded before applying change to reference grad.")
 
 
 def change_to_reference_grad(e):

@@ -47,6 +47,10 @@ def test_split(self):
     assert (d+d,) == Coefficient(v2).ufl_shape
     assert (2*d*d,) == Coefficient(m2).ufl_shape
 
+    # Split simple element
+    t = TestFunction(f)
+    assert split(t) == (t,)
+
     # Split twice on nested mixed elements gets
     # the innermost scalar subcomponents
     t = TestFunction(f*v)

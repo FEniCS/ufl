@@ -31,13 +31,14 @@ __all__ = [
     "extract_type",
     "extract_elements",
     "extract_sub_elements",
-    "preprocess_expression",
     "expand_indices",
     "replace",
     "expand_derivatives",
     "extract_coefficients",
     "extract_external_operators",
     "strip_variables",
+    "strip_terminal_data",
+    "replace_terminal_data",
     "post_traversal",
     "change_to_reference_grad",
     "expand_compounds",
@@ -95,6 +96,8 @@ from ufl.algorithms.transformer import Transformer, ReuseTransformer
 # from ufl.algorithms.transformer import is_post_handler
 from ufl.algorithms.transformer import apply_transformer
 from ufl.algorithms.transformer import strip_variables
+from ufl.algorithms.strip_terminal_data import strip_terminal_data
+from ufl.algorithms.strip_terminal_data import replace_terminal_data
 # from ufl.algorithms.replace import Replacer
 from ufl.algorithms.replace import replace
 from ufl.algorithms.change_to_reference import change_to_reference_grad

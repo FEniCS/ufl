@@ -13,7 +13,6 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Cecile Daversin-Catty, 2018.
 
 import numbers
-from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
@@ -40,26 +39,25 @@ class BaseArgument(object):
     def __init__(self, function_space, number, part=None):
 
         if isinstance(function_space, FiniteElementBase):
-            # For legacy support for .ufl files using cells, we map the cell to
+            # For legacy support for UFL files using cells, we map the cell to
             # the default Mesh
             element = function_space
             domain = default_domain(element.cell())
             function_space = FunctionSpace(domain, element)
         elif not isinstance(function_space, AbstractFunctionSpace):
-            error("Expecting a FunctionSpace or FiniteElement.")
+            raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
 
         if not isinstance(number, numbers.Integral):
-            error("Expecting an int for number, not %s" % (number,))
+            raise ValueError(f"Expecting an int for number, not {number}")
         if part is not None and not isinstance(part, numbers.Integral):
-            error("Expecting None or an int for part, not %s" % (part,))
+            raise ValueError(f"Expecting None or an int for part, not {part}")
         self._number = number
         self._part = part
 
-        self._repr = "Argument(%s, %s, %s)" % (
-            repr(self._ufl_function_space), repr(self._number), repr(self._part))
+        self._repr = f"BaseArgument({self._ufl_function_space}, {self._number}, {self._part})"
 
     @property
     def ufl_shape(self):
@@ -71,15 +69,11 @@ class BaseArgument(object):
         return self._ufl_function_space
 
     def ufl_domain(self):
-        "Deprecated, please use .ufl_function_space().ufl_domain() instead."
-        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
-        # use .ufl_function_space().ufl_domain() instead.")
+        """Return the UFL domain."""
         return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
-        "Deprecated, please use .ufl_function_space().ufl_element() instead."
-        # TODO: deprecate("Argument.ufl_domain() is deprecated, please
-        # use .ufl_function_space().ufl_element() instead.")
+        """Return The UFL element."""
         return self._ufl_function_space.ufl_element()
 
     def number(self):
@@ -98,9 +92,7 @@ class BaseArgument(object):
         return False
 
     def ufl_domains(self):
-        "Deprecated, please use .ufl_function_space().ufl_domains() instead."
-        # TODO: deprecate("Argument.ufl_domains() is deprecated,
-        # please use .ufl_function_space().ufl_domains() instead.")
+        """Return UFL domains."""
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
@@ -160,6 +152,7 @@ class Argument(FormArgument, BaseArgument):
     __getnewargs__ = BaseArgument.__getnewargs__
     __str__ = BaseArgument.__str__
     _ufl_signature_data_ = BaseArgument._ufl_signature_data_
+    __eq__ = BaseArgument.__eq__
 
     def __new__(cls, *args, **kw):
         if args[0] and is_dual(args[0]):
@@ -170,6 +163,9 @@ class Argument(FormArgument, BaseArgument):
         FormArgument.__init__(self)
         BaseArgument.__init__(self, function_space, number, part)
 
+        self._repr = "Argument(%s, %s, %s)" % (
+            repr(self._ufl_function_space), repr(self._number), repr(self._part))
+
     def ufl_domains(self):
         return BaseArgument.ufl_domains(self)
 
@@ -177,12 +173,14 @@ class Argument(FormArgument, BaseArgument):
         return self._repr
 
 
+@ufl_type()
 class Coargument(BaseForm, BaseArgument):
     """UFL value: Representation of an argument to a form in a dual space."""
     __slots__ = (
         "_ufl_function_space",
         "_ufl_shape",
         "_arguments",
+        "ufl_operands",
         "_number",
         "_part",
         "_repr",
@@ -194,17 +192,37 @@ class Coargument(BaseForm, BaseArgument):
 
     def __new__(cls, *args, **kw):
         if args[0] and is_primal(args[0]):
-            return Argument(*args, **kw)
+            raise ValueError('ufl.Coargument takes in a dual space! If you want to define an argument in the primal space you should use ufl.Argument.')
         return super().__new__(cls)
 
     def __init__(self, function_space, number, part=None):
         BaseArgument.__init__(self, function_space, number, part)
         BaseForm.__init__(self)
 
+        self.ufl_operands = ()
+        self._hash = None
+        self._repr = "Coargument(%s, %s, %s)" % (
+            repr(self._ufl_function_space), repr(self._number), repr(self._part))
+
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
         self._arguments = (Argument(self._ufl_function_space, 0),)
+
+    def equals(self, other):
+        if type(other) is not Coargument:
+            return False
+        if self is other:
+            return True
+        return (self._ufl_function_space == other._ufl_function_space and
+                self._number == other._number and self._part == other._part)
+
+    def __hash__(self):
+        """Hash code for use in dicts."""
+        return hash(("Coargument",
+                     hash(self._ufl_function_space),
+                     self._number,
+                     self._part))
 
 # --- Helper functions for pretty syntax ---
 
@@ -225,11 +243,7 @@ def Arguments(function_space, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
     if isinstance(function_space, MixedFunctionSpace):
-        # return [Argument(function_space.ufl_sub_space(i), number, i)
-        #         for i in range(function_space.num_sub_spaces())]
-        return [Argument(function_space.ufl_sub_spaces()[i], number, i)
-                if is_primal(function_space.ufl_sub_spaces()[i])
-                else Coargument(function_space.ufl_sub_spaces()[i], number, i)
+        return [Argument(function_space.ufl_sub_space(i), number, i)
                 for i in range(function_space.num_sub_spaces())]
     else:
         return split(Argument(function_space, number))

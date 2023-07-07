@@ -12,13 +12,13 @@
 
 from itertools import chain
 
-from ufl.log import error
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
-from ufl.core.terminal import Terminal, FormArgument
-from ufl.argument import Argument
-from ufl.coefficient import Coefficient
+from ufl.core.terminal import Terminal
+from ufl.argument import BaseArgument
+from ufl.coefficient import BaseCoefficient
 from ufl.constant import Constant
+from ufl.form import BaseForm, Form
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
 from ufl.core.external_operator import ExternalOperator
@@ -46,37 +46,48 @@ def unique_tuple(objects):
 
 def __unused__extract_classes(a):
     """Build a set of all unique Expr subclasses used in a.
-    The argument a can be a Form, Integral or Expr."""
+    The argument a can be a BaseForm, Integral or Expr."""
     return set(o._ufl_class_
                for e in iter_expressions(a)
                for o in unique_pre_traversal(e))
 
 
-def extract_type(a, ufl_type):
-    """Build a set of all objects of class ufl_type found in a.
-    The argument a can be a Form, Integral or Expr."""
-    if issubclass(ufl_type, Terminal):
+def extract_type(a, ufl_types):
+    """Build a set of all objects found in a whose class is in ufl_types.
+    The argument a can be a BaseForm, Integral or Expr."""
+
+    if not isinstance(ufl_types, (list, tuple)):
+        ufl_types = (ufl_types,)
+
+    # BaseForms that aren't forms only have arguments
+    if isinstance(a, BaseForm) and not isinstance(a, Form):
+        if any(issubclass(t, BaseArgument) for t in ufl_types):
+            return set(a.arguments())
+        else:
+            return set()
+
+    if all(issubclass(t, Terminal) for t in ufl_types):
         # Optimization
         objects = set(o for e in iter_expressions(a)
-                      for o in traverse_unique_terminals(e)
-                      if isinstance(o, ufl_type))
-
-        # Need to extract objects of type ufl_type contained in external operators
+                  for o in traverse_unique_terminals(e)
+                  if any(isinstance(o, t) for t in ufl_types))
+	 
+	# Need to extract objects of type ufl_type contained in external operators
         extops = extract_type(a, ExternalOperator)
-        extop_objects = tuple(cj for o in extops
+        extop_objects = tupl:e(cj for o in extops
                               for opi in (o.ufl_operands + (o.get_coefficient(),) + tuple(arg for arg, _ in o._arguments))
-                              for cj in extract_type(opi, ufl_type))
+                              for cj in extract_type(opi, ufl_types))
         objects.update(extop_objects)
         return objects
     else:
         return set(o for e in iter_expressions(a)
                    for o in unique_pre_traversal(e)
-                   if isinstance(o, ufl_type))
+                   if any(isinstance(o, t) for t in ufl_types))
 
 
 def has_type(a, ufl_type):
     """Return if an object of class ufl_type can be found in a.
-    The argument a can be a Form, Integral or Expr."""
+    The argument a can be a BaseForm, Integral or Expr."""
     if issubclass(ufl_type, Terminal):
         # Optimization
         traversal = traverse_unique_terminals
@@ -87,7 +98,7 @@ def has_type(a, ufl_type):
 
 def has_exact_type(a, ufl_type):
     """Return if an object of class ufl_type can be found in a.
-    The argument a can be a Form, Integral or Expr."""
+    The argument a can be a BaseForm, Integral or Expr."""
     tc = ufl_type._ufl_typecode_
     if issubclass(ufl_type, Terminal):
         # Optimization
@@ -99,14 +110,14 @@ def has_exact_type(a, ufl_type):
 
 def extract_arguments(a):
     """Build a sorted list of all arguments in a,
-    which can be a Form, Integral or Expr."""
-    return _sorted_by_number_and_part(extract_type(a, Argument))
+    which can be a BaseForm, Integral or Expr."""
+    return _sorted_by_number_and_part(extract_type(a, BaseArgument))
 
 
 def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
-    which can be a Form, Integral or Expr."""
-    return sorted_by_count(extract_type(a, Coefficient))
+    which can be a BaseForm, Integral or Expr."""
+    return sorted_by_count(extract_type(a, BaseCoefficient))
 
 
 def extract_external_operators(a):
@@ -122,35 +133,33 @@ def extract_constants(a):
 
 def extract_arguments_and_coefficients(a):
     """Build two sorted lists of all arguments and coefficients
-    in a, which can be a Form, Integral or Expr."""
+    in a, which can be BaseForm, Integral or Expr."""
 
     # This function is faster than extract_arguments + extract_coefficients
     # for large forms, and has more validation built in.
 
-    # Extract lists of all form argument instances
-    terminals = extract_type(a, FormArgument)
+    # Extract lists of all BaseArgument and BaseCoefficient instances
+    base_coeff_and_args = extract_type(a, (BaseArgument, BaseCoefficient))
     external_operators = extract_type(a, ExternalOperator)
-    arguments = [f for f in terminals if isinstance(f, Argument)]
+    arguments = [f for f in base_coeff_and_args if isinstance(f, BaseArgument)]
     arguments += [e for f in external_operators for e, _ in f.arguments() if extract_type(e, Argument).pop() not in arguments]
-    coefficients = [f for f in terminals if isinstance(f, Coefficient)]
+    coefficients = [f for f in base_coeff_and_args if isinstance(f, BaseCoefficient)]
     coefficients += [f.coefficient() for f in external_operators if f.get_coefficient() not in coefficients]
 
     # Build number,part: instance mappings, should be one to one
     bfnp = dict((f, (f.number(), f.part())) for f in arguments)
     if len(bfnp) != len(set(bfnp.values())):
-        msg = """\
-Found different Arguments with same number and part.
-Did you combine test or trial functions from different spaces?
-The Arguments found are:\n%s""" % "\n".join("  %s" % f for f in arguments)
-        error(msg)
+        raise ValueError(
+            "Found different Arguments with same number and part.\n"
+            "Did you combine test or trial functions from different spaces?\n"
+            "The Arguments found are:\n" + "\n".join(f"  {a}" for a in arguments))
 
     # Build count: instance mappings, should be one to one
     fcounts = dict((f, f.count()) for f in coefficients)
     if len(fcounts) != len(set(fcounts.values())):
-        msg = """\
-Found different coefficients with same counts.
-The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
-        error(msg)
+        raise ValueError(
+            "Found different coefficients with same counts.\n"
+            "The arguments found are:\n" + "\n".join(f"  {c}" for c in coefficients))
 
     # Passed checks, so we can safely sort the instances by count
     arguments = _sorted_by_number_and_part(arguments)

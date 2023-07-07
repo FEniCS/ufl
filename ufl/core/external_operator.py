@@ -14,7 +14,6 @@ from ufl.coefficient import Coefficient
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import as_ufl
-from ufl.log import error
 from ufl.finiteelement.finiteelement import FiniteElement
 from ufl.finiteelement.mixedelement import VectorElement, TensorElement
 from ufl.functionspace import FunctionSpace

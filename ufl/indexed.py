@@ -7,7 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.ufl_type import ufl_type
@@ -42,6 +41,8 @@ class Indexed(Operator):
             else:
                 fi, fid = (), ()
             return Zero(shape=(), free_indices=fi, index_dimensions=fid)
+        elif expression.ufl_shape == () and multiindex == ():
+            return expression
         else:
             return Operator.__new__(cls)
 
@@ -51,21 +52,21 @@ class Indexed(Operator):
 
         # Error checking
         if not isinstance(expression, Expr):
-            error("Expecting Expr instance, not %s." % ufl_err_str(expression))
+            raise ValueError(f"Expecting Expr instance, not {ufl_err_str(expression)}.")
         if not isinstance(multiindex, MultiIndex):
-            error("Expecting MultiIndex instance, not %s." % ufl_err_str(multiindex))
+            raise ValueError(f"Expecting MultiIndex instance, not {ufl_err_str(multiindex)}.")
 
         shape = expression.ufl_shape
 
         # Error checking
         if len(shape) != len(multiindex):
-            error("Invalid number of indices (%d) for tensor "
-                  "expression of rank %d:\n\t%s\n"
-                  % (len(multiindex), len(expression.ufl_shape), ufl_err_str(expression)))
-        if any(int(di) >= int(si)
+            raise ValueError(
+                f"Invalid number of indices ({len(multiindex)}) for tensor "
+                f"expression of rank {len(expression.ufl_shape)}:\n    {ufl_err_str(expression)}")
+        if any(int(di) >= int(si) or int(di) < 0
                for si, di in zip(shape, multiindex)
                if isinstance(di, FixedIndex)):
-            error("Fixed index out of range!")
+            raise ValueError("Fixed index out of range!")
 
         # Build tuples of free index ids and dimensions
         if 1:
@@ -109,4 +110,8 @@ class Indexed(Operator):
                            self.ufl_operands[1])
 
     def __getitem__(self, key):
-        error("Attempting to index with %s, but object is already indexed: %s" % (ufl_err_str(key), ufl_err_str(self)))
+        if key == ():
+            # So that one doesn't have to special case indexing of
+            # expressions without shape.
+            return self
+        raise ValueError(f"Attempting to index with {ufl_err_str(key)}, but object is already indexed: {ufl_err_str(self)}")

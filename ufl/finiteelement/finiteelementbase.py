@@ -12,40 +12,31 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.utils.sequences import product
-from ufl.utils.dicts import EmptyDict
-from ufl.log import error
 from ufl.cell import AbstractCell, as_cell
+from abc import ABC, abstractmethod
 
 
-class FiniteElementBase(object):
+class FiniteElementBase(ABC):
     "Base class for all finite elements."
-    __slots__ = ("_family",
-                 "_cell",
-                 "_degree",
-                 "_quad_scheme",
-                 "_value_shape",
-                 "_reference_value_shape",
-                 "_repr",
-                 "__weakref__")
+    __slots__ = ("_family", "_cell", "_degree", "_quad_scheme",
+                 "_value_shape", "_reference_value_shape", "__weakref__")
 
     # TODO: Not all these should be in the base class! In particular
     # family, degree, and quad_scheme do not belong here.
     def __init__(self, family, cell, degree, quad_scheme, value_shape,
                  reference_value_shape):
-        "Initialize basic finite element data."
-        if not isinstance(family, str):
-            error("Invalid family type.")
+        """Initialize basic finite element data."""
         if not (degree is None or isinstance(degree, (int, tuple))):
-            error("Invalid degree type.")
+            raise ValueError("Invalid degree type.")
         if not isinstance(value_shape, tuple):
-            error("Invalid value_shape type.")
+            raise ValueError("Invalid value_shape type.")
         if not isinstance(reference_value_shape, tuple):
-            error("Invalid reference_value_shape type.")
+            raise ValueError("Invalid reference_value_shape type.")
 
         if cell is not None:
             cell = as_cell(cell)
             if not isinstance(cell, AbstractCell):
-                error("Invalid cell type.")
+                raise ValueError("Invalid cell type.")
 
         self._family = family
         self._cell = cell
@@ -54,12 +45,31 @@ class FiniteElementBase(object):
         self._reference_value_shape = reference_value_shape
         self._quad_scheme = quad_scheme
 
+    @abstractmethod
     def __repr__(self):
-        """Format as string for evaluation as Python object.
+        """Format as string for evaluation as Python object."""
+        pass
 
-        NB! Assumes subclass has assigned its repr string to self._repr.
+    @abstractmethod
+    def sobolev_space(self):
+        """Return the underlying Sobolev space."""
+        pass
+
+    @abstractmethod
+    def mapping(self):
+        """Return the mapping type for this element."""
+        pass
+
+    def _is_globally_constant(self):
+        """Check if the element is a global constant.
+
+        For Real elements, this should return True.
         """
-        return self._repr
+        return False
+
+    def _is_linear(self):
+        """Check if the element is Lagrange degree 1."""
+        return False
 
     def _ufl_hash_data_(self):
         return repr(self)
@@ -87,6 +97,10 @@ class FiniteElementBase(object):
         "Return finite element family."
         return self._family
 
+    def variant(self):
+        """Return the variant used to initialise the element."""
+        return None
+
     def degree(self, component=None):
         "Return polynomial degree of finite element."
         # FIXME: Consider embedded_degree concept for more accurate
@@ -97,10 +111,6 @@ class FiniteElementBase(object):
         "Return quadrature scheme of finite element."
         return self._quad_scheme
 
-    def mapping(self):
-        "Not implemented."
-        error("Missing implementation of mapping().")
-
     def cell(self):
         "Return cell of finite element."
         return self._cell
@@ -108,7 +118,7 @@ class FiniteElementBase(object):
     def is_cellwise_constant(self, component=None):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
-        return self.family() == "Real" or self.degree() == 0
+        return self._is_globally_constant() or self.degree() == 0
 
     def value_shape(self):
         "Return the shape of the value space on the global domain."
@@ -131,15 +141,16 @@ class FiniteElementBase(object):
         meaning that component :math:`c_0` is represented by component
         :math:`c_1`.
         A component is a tuple of one or more ints."""
-        return EmptyDict
+        return {}
 
     def _check_component(self, i):
         "Check that component index i is valid"
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%s' (value rank %d)" +
-                   "for element (value rank %d).") % (i, len(i), r))
+            raise ValueError(
+                f"Illegal component index {i} (value rank {len(i)}) "
+                f"for element (value rank {r}).")
 
     def extract_subelement_component(self, i):
         """Extract direct subelement index and subelement relative
@@ -162,8 +173,9 @@ class FiniteElementBase(object):
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%s' (value rank %d)" +
-                   "for element (value rank %d).") % (i, len(i), r))
+            raise ValueError(
+                f"Illegal component index {i} (value rank {len(i)}) "
+                f"for element (value rank {r}).")
 
     def extract_subelement_reference_component(self, i):
         """Extract direct subelement index and subelement relative
@@ -192,14 +204,14 @@ class FiniteElementBase(object):
     def __add__(self, other):
         "Add two elements, creating an enriched element"
         if not isinstance(other, FiniteElementBase):
-            error("Can't add element and %s." % other.__class__)
+            raise ValueError(f"Can't add element and {other.__class__}.")
         from ufl.finiteelement import EnrichedElement
         return EnrichedElement(self, other)
 
     def __mul__(self, other):
         "Multiply two elements, creating a mixed element"
         if not isinstance(other, FiniteElementBase):
-            error("Can't multiply element and %s." % other.__class__)
+            raise ValueError("Can't multiply element and {other.__class__}.")
         from ufl.finiteelement import MixedElement
         return MixedElement(self, other)
 

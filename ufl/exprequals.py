@@ -3,7 +3,6 @@
 from collections import defaultdict
 
 from ufl.core.expr import Expr
-from ufl.log import error
 
 hash_total = defaultdict(int)
 hash_collisions = defaultdict(int)
@@ -54,7 +53,7 @@ def measure_collisions(equals_func):
         if sh == oh and not equal:
             hash_collisions[key] += 1
         elif sh != oh and equal:
-            error("Equal objects must always have the same hash! Objects are:\n{0}\n{1}".format(self, other))
+            raise ValueError(f"Equal objects must always have the same hash! Objects are:\n{self}\n{other}")
         elif sh == oh and equal:
             hash_equals[key] += 1
         elif sh != oh and not equal:
@@ -145,6 +144,8 @@ def nonrecursive_expr_equals(self, other):
                 left.append((s, o))
 
     # Equal if we get out of the above loop!
+    # Eagerly DAGify to reduce the size of the tree.
+    self.ufl_operands = other.ufl_operands
     return True
 
 

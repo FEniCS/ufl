@@ -38,7 +38,7 @@ and
 
 The development version can be found in the repository at
 
-  https://www.bitbucket.org/fenics-project/ufl
+  https://github.com/FEniCS/ufl
 
 A very brief overview of the language contents follows:
 
@@ -53,6 +53,8 @@ A very brief overview of the language contents follows:
     - tetrahedron
     - quadrilateral
     - hexahedron
+    - prism
+    - pyramid
 
 * Domains::
 
@@ -66,8 +68,11 @@ A very brief overview of the language contents follows:
     - L2
     - H1
     - H2
+    - HInf
     - HDiv
     - HCurl
+    - HEin
+    - HDivDiv
 
 * Elements::
 
@@ -82,8 +87,6 @@ A very brief overview of the language contents follows:
     - HDivElement
     - HCurlElement
     - BrokenElement
-    - FacetElement
-    - InteriorElement
 
 * Function spaces::
 
@@ -238,9 +241,9 @@ A very brief overview of the language contents follows:
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-import pkg_resources
+import importlib.metadata
 
-__version__ = pkg_resources.get_distribution("fenics-ufl").version
+__version__ = importlib.metadata.version("fenics-ufl")
 
 # README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -252,10 +255,6 @@ __version__ = pkg_resources.get_distribution("fenics-ufl").version
 # Utility functions (product is the counterpart of the built-in
 # python function sum, can be useful for users as well?)
 from ufl.utils.sequences import product
-
-# Output control
-from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
-    UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
 
@@ -270,14 +269,13 @@ from ufl.geometry import (
 )
 
 # Sobolev spaces
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     NodalEnrichedElement, RestrictedElement, TensorProductElement, \
-    HDivElement, HCurlElement, BrokenElement, \
-    FacetElement, InteriorElement, WithMapping
+    HDivElement, HCurlElement, BrokenElement, WithMapping
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
@@ -332,7 +330,7 @@ from ufl.operators import rank, shape, \
     cosh, sinh, tanh, \
     bessel_J, bessel_Y, bessel_I, bessel_K, \
     eq, ne, le, ge, lt, gt, And, Or, Not, \
-    conditional, sign, max_value, min_value, Max, Min, \
+    conditional, sign, max_value, min_value, \
     variable, diff, \
     Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
     jump, avg, cell_avg, facet_avg, \
@@ -345,14 +343,10 @@ from ufl.core.external_operator import ExternalOperator
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
 
 # Form class
-from ufl.form import Form, FormSum, replace_integral_domains
+from ufl.form import Form, BaseForm, FormSum, ZeroBaseForm, replace_integral_domains
 
 # Integral classes
 from ufl.integral import Integral
-
-# Special functions for Measure class
-# (ensure this is imported, since it attaches operators to Measure)
-import ufl.measureoperators as __measureoperators
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
@@ -361,7 +355,7 @@ system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functi
 # Predefined convenience objects
 from ufl.objects import (
     vertex, interval, triangle, tetrahedron,
-    quadrilateral, hexahedron, facet,
+    quadrilateral, hexahedron, prism, pyramid, facet,
     i, j, k, l, p, q, r, s,
     dx, ds, dS, dP,
     dc, dC, dO, dI, dX,
@@ -371,15 +365,11 @@ from ufl.objects import (
 # Useful constants
 from math import e, pi
 
-
-# Define ufl.* namespace
 __all__ = [
     'product',
-    'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
-    'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
-    'L2', 'H1', 'H2', 'HCurl', 'HDiv',
+    'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',
     'SpatialCoordinate',
     'CellVolume', 'CellDiameter', 'Circumradius',
     'MinCellEdgeLength', 'MaxCellEdgeLength',
@@ -390,12 +380,13 @@ __all__ = [
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'NodalEnrichedElement', 'RestrictedElement', 'TensorProductElement',
     'HDivElement', 'HCurlElement',
-    'BrokenElement', 'FacetElement', 'InteriorElement', "WithMapping",
+    'BrokenElement', "WithMapping",
     'register_element', 'show_elements',
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument','Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
-    'Coefficient', 'Cofunction', 'Coefficients', 'ExternalOperator', 'Matrix','Adjoint', 'Action',
+    'Coefficient', 'Cofunction', 'Coefficients', 'ExternalOperator',
+    'Matrix', 'Adjoint', 'Action',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
@@ -412,12 +403,12 @@ __all__ = [
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
-    'conditional', 'sign', 'max_value', 'min_value', 'Max', 'Min',
+    'conditional', 'sign', 'max_value', 'min_value',
     'variable', 'diff',
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg', 'cell_avg', 'facet_avg',
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
-    'Form','FormSum',
+    'Form','FormSum', 'ZeroBaseForm',
     'Integral', 'Measure', 'register_integral_type', 'integral_types', 'custom_integral_types',
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'extract_blocks',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
@@ -425,6 +416,7 @@ __all__ = [
     'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
+    'prism', 'pyramid',
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',

@@ -13,9 +13,9 @@ objects."""
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Massimiliano Leoni, 2016.
 
+import warnings
 import operator
 
-from ufl.log import error, warning
 from ufl.form import Form
 from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
@@ -36,7 +36,7 @@ from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.checks import is_cellwise_constant
 from ufl.domain import extract_domains
-from ufl.core.external_operator import ExternalOperator
+from ufl import sobolevspace
 
 # --- Basic operators ---
 
@@ -98,7 +98,7 @@ def elem_op(op, *args):
     args = [as_ufl(arg) for arg in args]
     sh = args[0].ufl_shape
     if not all(sh == x.ufl_shape for x in args):
-        error("Cannot take elementwise operation with different shapes.")
+        raise ValueError("Cannot take elementwise operation with different shapes.")
 
     if sh == ():
         return op(*args)
@@ -169,7 +169,7 @@ def _partial_inner(a, b):
 
 
 def dot(a, b):
-    "UFL operator: Take the dot product of *a* and *b*. The complex conjugate of the second argument is taken."
+    "UFL operator: Take the dot product of *a* and *b*. This won't take the complex conjugate of the second argument."
     a = as_ufl(a)
     b = as_ufl(b)
     if a.ufl_shape == () and b.ufl_shape == ():
@@ -181,7 +181,7 @@ def contraction(a, a_axes, b, b_axes):
     "UFL operator: Take the contraction of a and b over given axes."
     ai, bi = a_axes, b_axes
     if len(ai) != len(bi):
-        error("Contraction must be over the same number of axes.")
+        raise ValueError("Contraction must be over the same number of axes.")
     ash = a.ufl_shape
     bsh = b.ufl_shape
     aii = indices(len(a.ufl_shape))
@@ -194,7 +194,7 @@ def contraction(a, a_axes, b, b_axes):
     for i, j in enumerate(bi):
         bii[j] = cii[i]
         if shape[i] != bsh[j]:
-            error("Shape mismatch in contraction.")
+            raise ValueError("Shape mismatch in contraction.")
     s = a[aii] * b[bii]
     cii = set(cii)
     ii = tuple(i for i in (aii + bii) if i not in cii)
@@ -205,7 +205,7 @@ def perp(v):
     "UFL operator: Take the perp of *v*, i.e. :math:`(-v_1, +v_0)`."
     v = as_ufl(v)
     if v.ufl_shape != (2,):
-        error("Expecting a 2D vector expression.")
+        raise ValueError("Expecting a 2D vector expression.")
     return as_vector((-v[1], v[0]))
 
 
@@ -259,9 +259,9 @@ def diag(A):
     elif r == 2:
         m, n = A.ufl_shape
         if m != n:
-            error("Can only take diagonal of square tensors.")
+            raise ValueError("Can only take diagonal of square tensors.")
     else:
-        error("Expecting rank 1 or 2 tensor.")
+        raise ValueError("Expecting rank 1 or 2 tensor.")
 
     # Build matrix row by row
     rows = []
@@ -281,10 +281,10 @@ def diag_vector(A):
 
     # Get and check dimensions
     if len(A.ufl_shape) != 2:
-        error("Expecting rank 2 tensor.")
+        raise ValueError("Expecting rank 2 tensor.")
     m, n = A.ufl_shape
     if m != n:
-        error("Can only take diagonal of square tensors.")
+        raise ValueError("Can only take diagonal of square tensors.")
 
     # Return diagonal vector
     return as_vector([A[i, i] for i in range(n)])
@@ -345,10 +345,10 @@ def diff(f, v):
     f = as_ufl(f)
     if isinstance(v, SpatialCoordinate):
         return grad(f)
-    elif isinstance(v, (Variable, Coefficient, ExternalOperator)):
+    elif isinstance(v, (Variable, Coefficient)):
         return VariableDerivative(f, v)
     else:
-        error("Expecting a Variable or SpatialCoordinate in diff.")
+        raise ValueError("Expecting a Variable or SpatialCoordinate in diff.")
 
 
 def grad(f):
@@ -451,7 +451,7 @@ def jump(v, n=None):
         else:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
-        warning("Returning zero from jump of expression without a domain. This may be erroneous if a dolfin.Expression is involved.")
+        warnings.warn("Returning zero from jump of expression without a domain. This may be erroneous if a dolfin.Expression is involved.")
         # FIXME: Is this right? If v has no domain, it doesn't depend
         # on anything spatially variable or any form arguments, and
         # thus the jump is zero. In other words, I'm assuming that "v
@@ -566,16 +566,6 @@ def min_value(x, y):
     x = as_ufl(x)
     y = as_ufl(y)
     return MinValue(x, y)
-
-
-def Max(x, y):  # TODO: Deprecate this notation?
-    "UFL operator: Take the maximum of *x* and *y*."
-    return max_value(x, y)
-
-
-def Min(x, y):  # TODO: Deprecate this notation?
-    "UFL operator: Take the minimum of *x* and *y*."
-    return min_value(x, y)
 
 
 # --- Math functions ---
@@ -702,7 +692,7 @@ def bessel_K(nu, f):
 def exterior_derivative(f):
     """UFL operator: Take the exterior derivative of *f*.
 
-    The exterior derivative uses the element family to
+    The exterior derivative uses the element Sobolev space to
     determine whether ``id``, ``grad``, ``curl`` or ``div`` should be used.
 
     Note that this uses the ``grad`` and ``div`` operators,
@@ -729,28 +719,20 @@ def exterior_derivative(f):
         try:
             element = f.ufl_element()
         except Exception:
-            error("Unable to determine element from %s" % f)
+            raise ValueError(f"Unable to determine element from {f}")
 
-    # Extract the family and the geometric dimension
-    family = element.family()
     gdim = element.cell().geometric_dimension()
+    space = element.sobolev_space()
 
-    # L^2 elements:
-    if "Disc" in family:
+    if space == sobolevspace.L2:
         return f
-
-    # H^1 elements:
-    if "Lagrange" in family:
+    elif space == sobolevspace.H1:
         if gdim == 1:
             return grad(f)[0]  # Special-case 1D vectors as scalars
         return grad(f)
-
-    # H(curl) elements:
-    if "curl" in family:
+    elif space == sobolevspace.HCurl:
         return curl(f)
-
-    # H(div) elements:
-    if "Brezzi" in family or "Raviart" in family:
+    elif space == sobolevspace.HDiv:
         return div(f)
-
-    error("Unable to determine exterior_derivative. Family is '%s'" % family)
+    else:
+        raise ValueError(f"Unable to determine exterior_derivative for element '{element!r}'")

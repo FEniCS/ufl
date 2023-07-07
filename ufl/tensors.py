@@ -9,7 +9,6 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
@@ -30,7 +29,7 @@ class ListTensor(Operator):
         # All lists and tuples should already be unwrapped in
         # as_tensor
         if any(not isinstance(e, Expr) for e in expressions):
-            error("Expecting only UFL expressions in ListTensor constructor.")
+            raise ValueError("Expecting only UFL expressions in ListTensor constructor.")
 
         # Get properties of the first expression
         e0 = expressions[0]
@@ -40,11 +39,11 @@ class ListTensor(Operator):
 
         # Obviously, each subexpression must have the same shape
         if any(sh != e.ufl_shape for e in expressions[1:]):
-            error("Cannot create a tensor by joining subexpressions with different shapes.")
+            raise ValueError("Cannot create a tensor by joining subexpressions with different shapes.")
         if any(fi != e.ufl_free_indices for e in expressions[1:]):
-            error("Cannot create a tensor where the components have different free indices.")
+            raise ValueError("Cannot create a tensor where the components have different free indices.")
         if any(fid != e.ufl_index_dimensions for e in expressions[1:]):
-            error("Cannot create a tensor where the components have different free index dimensions.")
+            raise ValueError("Cannot create a tensor where the components have different free index dimensions.")
 
         # Simplify to Zero if possible
         if all(isinstance(e, Zero) for e in expressions):
@@ -59,7 +58,7 @@ class ListTensor(Operator):
         # Checks
         indexset = set(self.ufl_operands[0].ufl_free_indices)
         if not all(not (indexset ^ set(e.ufl_free_indices)) for e in self.ufl_operands):
-            error("Can't combine subtensor expressions with different sets of free indices.")
+            raise ValueError("Can't combine subtensor expressions with different sets of free indices.")
 
     @property
     def ufl_shape(self):
@@ -67,8 +66,9 @@ class ListTensor(Operator):
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         if len(component) != len(self.ufl_shape):
-            error("Can only evaluate scalars, expecting a component "
-                  "tuple of length %d, not %s." % (len(self.ufl_shape), component))
+            raise ValueError(
+                "Can only evaluate scalars, expecting a component "
+                "tuple of length {len(self.ufl_shape)}, not {component}.")
         a = self.ufl_operands[component[0]]
         component = component[1:]
         if derivatives:
@@ -127,13 +127,13 @@ class ComponentTensor(Operator):
 
     def __init__(self, expression, indices):
         if not isinstance(expression, Expr):
-            error("Expecting ufl expression.")
+            raise ValueError("Expecting ufl expression.")
         if expression.ufl_shape != ():
-            error("Expecting scalar valued expression.")
+            raise ValueError("Expecting scalar valued expression.")
         if not isinstance(indices, MultiIndex):
-            error("Expecting a MultiIndex.")
+            raise ValueError("Expecting a MultiIndex.")
         if not all(isinstance(i, Index) for i in indices):
-            error("Expecting sequence of Index objects, not %s." % indices._ufl_err_str_())
+            raise ValueError(f"Expecting sequence of Index objects, not {indices._ufl_err_str_()}.")
 
         Operator.__init__(self, (expression, indices))
 
@@ -160,7 +160,7 @@ class ComponentTensor(Operator):
         a = self.ufl_operands[0]
 
         if len(indices) != len(component):
-            error("Expecting a component matching the indices tuple.")
+            raise ValueError("Expecting a component matching the indices tuple.")
 
         # Map component to indices
         for i, c in zip(indices, component):
@@ -198,7 +198,11 @@ def from_numpy_to_lists(expressions):
     try:
         import numpy
         if isinstance(expressions, numpy.ndarray):
-            expressions = numpy2nestedlists(expressions)
+            if expressions.shape == ():
+                # Unwrap scalar ndarray
+                return expressions.item()
+            else:
+                expressions = numpy2nestedlists(expressions)
     except Exception:
         pass
     return expressions
@@ -231,8 +235,8 @@ def as_tensor(expressions, indices=None):
             expressions = from_numpy_to_lists(expressions)
 
         # Sanity check
-        if not isinstance(expressions, (list, tuple)):
-            error("Expecting nested list or tuple.")
+        if not isinstance(expressions, (list, tuple, Expr)):
+            raise ValueError("Expecting nested list or tuple.")
 
         # Recursive conversion from nested lists to nested ListTensor
         # objects
@@ -266,7 +270,7 @@ def as_matrix(expressions, indices=None):
         # Allow as_matrix(as_matrix(A)) in user code
         if isinstance(expressions, Expr):
             if len(expressions.ufl_shape) != 2:
-                error("Expecting rank 2 tensor.")
+                raise ValueError("Expecting rank 2 tensor.")
             return expressions
 
         # To avoid importing numpy unneeded, it's quite slow...
@@ -275,12 +279,12 @@ def as_matrix(expressions, indices=None):
 
         # Check for expected list structure
         if not isinstance(expressions, (list, tuple)):
-            error("Expecting nested list or tuple of Exprs.")
+            raise ValueError("Expecting nested list or tuple of Exprs.")
         if not isinstance(expressions[0], (list, tuple)):
-            error("Expecting nested list or tuple of Exprs.")
+            raise ValueError("Expecting nested list or tuple of Exprs.")
     else:
         if len(indices) != 2:
-            error("Expecting exactly two indices.")
+            raise ValueError("Expecting exactly two indices.")
 
     return as_tensor(expressions, indices)
 
@@ -291,7 +295,7 @@ def as_vector(expressions, index=None):
         # Allow as_vector(as_vector(v)) in user code
         if isinstance(expressions, Expr):
             if len(expressions.ufl_shape) != 1:
-                error("Expecting rank 1 tensor.")
+                raise ValueError("Expecting rank 1 tensor.")
             return expressions
 
         # To avoid importing numpy unneeded, it's quite slow...
@@ -300,10 +304,10 @@ def as_vector(expressions, index=None):
 
         # Check for expected list structure
         if not isinstance(expressions, (list, tuple)):
-            error("Expecting nested list or tuple of Exprs.")
+            raise ValueError("Expecting nested list or tuple of Exprs.")
     else:
         if not isinstance(index, Index):
-            error("Expecting a single Index object.")
+            raise ValueError("Expecting a single Index object.")
         index = (index,)
 
     return as_tensor(expressions, index)
@@ -340,9 +344,9 @@ def relabel(A, indexmap):
     ii = tuple(sorted(indexmap.keys()))
     jj = tuple(indexmap[i] for i in ii)
     if not all(isinstance(i, Index) for i in ii):
-        error("Expecting Index objects.")
+        raise ValueError("Expecting Index objects.")
     if not all(isinstance(j, Index) for j in jj):
-        error("Expecting Index objects.")
+        raise ValueError("Expecting Index objects.")
     return as_tensor(A, ii)[jj]
 
 

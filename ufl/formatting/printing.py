@@ -10,7 +10,6 @@ of UFL objects, mostly intended for debugging purposes."""
 #
 # Modified by Anders Logg 2009, 2014
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.form import Form
 from ufl.integral import Integral
@@ -20,7 +19,7 @@ from ufl.integral import Integral
 
 def integral_info(integral):
     if not isinstance(integral, Integral):
-        error("Expecting an Integral.")
+        raise ValueError("Expecting an Integral.")
     s = "  Integral:\n"
     s += "    Type:\n"
     s += "      %s\n" % integral.integral_type()
@@ -37,7 +36,7 @@ def integral_info(integral):
 
 def form_info(form):
     if not isinstance(form, Form):
-        error("Expecting a Form.")
+        raise ValueError("Expecting a Form.")
 
     bf = form.arguments()
     cf = form.coefficients()
@@ -116,6 +115,6 @@ def tree_format(expression, indentation=0, parentheses=True):
         s += _tree_format_expression(expression, indentation, parentheses)
 
     else:
-        error("Invalid object type %s" % type(expression))
+        raise ValueError(f"Invalid object type {type(expression)}")
 
     return s

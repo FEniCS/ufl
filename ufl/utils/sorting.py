@@ -7,7 +7,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import warning
+import warnings
 
 
 def topological_sorting(nodes, edges):
@@ -91,7 +91,7 @@ def canonicalize_metadata(metadata):
         elif isinstance(value, (int, float, str)) or value is None:
             value = str(value)
         else:
-            warning("Applying str() to a metadata value of type {0}, don't know if this is safe.".format(type(value).__name__))
+            warnings.warn("Applying str() to a metadata value of type {0}, don't know if this is safe.".format(type(value).__name__))
             value = str(value)
         newvalues.append(value)
 

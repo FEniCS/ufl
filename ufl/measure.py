@@ -14,11 +14,9 @@ import numbers
 
 from itertools import chain
 
-from ufl.log import error, deprecate
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
-from ufl.utils.dicts import EmptyDict
 from ufl.domain import as_domain, AbstractDomain, extract_domains
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 
@@ -72,9 +70,9 @@ facet_integral_types = ("exterior_facet", "interior_facet")
 def register_integral_type(integral_type, measure_name):
     global integral_type_to_measure_name, measure_name_to_integral_type
     if measure_name != integral_type_to_measure_name.get(integral_type, measure_name):
-        error("Integral type already added with different measure name!")
+        raise ValueError("Integral type already added with different measure name!")
     if integral_type != measure_name_to_integral_type.get(measure_name, integral_type):
-        error("Measure name already used for another domain type!")
+        raise ValueError("Measure name already used for another domain type!")
     integral_type_to_measure_name[integral_type] = measure_name
     measure_name_to_integral_type[measure_name] = integral_type
 
@@ -85,7 +83,7 @@ def as_integral_type(integral_type):
     integral_type = measure_name_to_integral_type.get(integral_type,
                                                       integral_type)
     if integral_type not in integral_type_to_measure_name:
-        error("Invalid integral_type.")
+        raise ValueError("Invalid integral_type.")
     return integral_type
 
 
@@ -146,30 +144,30 @@ class Measure(object):
         # Check that we either have a proper AbstractDomain or none
         self._domain = None if domain is None else as_domain(domain)
         if not (self._domain is None or isinstance(self._domain, AbstractDomain)):
-            error("Invalid domain.")
+            raise ValueError("Invalid domain.")
 
         # Store subdomain data
         self._subdomain_data = subdomain_data
         # FIXME: Cannot require this (yet) because we currently have
         # no way to implement ufl_id for dolfin SubDomain
         # if not (self._subdomain_data is None or hasattr(self._subdomain_data, "ufl_id")):
-        #     error("Invalid domain data, missing ufl_id() implementation.")
+        #     raise ValueError("Invalid domain data, missing ufl_id() implementation.")
 
         # Accept "everywhere", single subdomain, or multiple
         # subdomains
         if isinstance(subdomain_id, tuple):
             for did in subdomain_id:
                 if not isinstance(did, numbers.Integral):
-                    error("Invalid subdomain_id %s." % (did,))
+                    raise ValueError(f"Invalid subdomain_id {did}.")
         else:
             if not (subdomain_id in ("everywhere",) or isinstance(subdomain_id, numbers.Integral)):
-                error("Invalid subdomain_id %s." % (subdomain_id,))
+                raise ValueError(f"Invalid subdomain_id {subdomain_id}.")
         self._subdomain_id = subdomain_id
 
         # Validate compiler options are None or dict
         if metadata is not None and not isinstance(metadata, dict):
-            error("Invalid metadata.")
-        self._metadata = metadata or EmptyDict
+            raise ValueError("Invalid metadata.")
+        self._metadata = metadata or {}
 
     def integral_type(self):
         """Return the domain type.
@@ -241,14 +239,8 @@ class Measure(object):
     # (subdomain_id, metadata) for backwards compatibility, because
     # some tutorials write e.g. dx(0, {...}) to set metadata.
     def __call__(self, subdomain_id=None, metadata=None, domain=None,
-                 subdomain_data=None, degree=None, scheme=None, rule=None):
+                 subdomain_data=None, degree=None, scheme=None):
         """Reconfigure measure with new domain specification or metadata."""
-
-        # Deprecation of 'rule' in favour of 'scheme'
-        if rule is not None:
-            deprecate("Measure argument 'rule' has been renamed to 'scheme'.")
-            assert scheme is None or scheme == rule
-            scheme = rule
 
         # Let syntax dx() mean integral over everywhere
         all_args = (subdomain_id, metadata, domain, subdomain_data,
@@ -263,7 +255,7 @@ class Measure(object):
                                                     AbstractDomain) or
                                          hasattr(subdomain_id, 'ufl_domain')):
             if domain is not None:
-                error("Ambiguous: setting domain both as keyword argument and first argument.")
+                raise ValueError("Ambiguous: setting domain both as keyword argument and first argument.")
             subdomain_id, domain = "everywhere", as_domain(subdomain_id)
 
         # If degree or scheme is set, inject into metadata. This is a
@@ -283,19 +275,6 @@ class Measure(object):
                                 metadata=metadata,
                                 subdomain_data=subdomain_data)
 
-    def __getitem__(self, data):
-        """This operator supports legacy syntax in python dolfin programs.
-
-        The old documentation reads: Return a new Measure for same
-        integration type with an attached context for interpreting
-        domain ids. By default this new Measure integrates over
-        everywhere, but it can be restricted with a domain id as
-        usual. Example: dx = dx[boundaries]; L = f*v*dx + g*v+dx(1).
-
-        """
-        deprecate("Notation dx[meshfunction] is deprecated. Please use dx(subdomain_data=meshfunction) instead.")
-        return self(subdomain_data=data)
-
     def __str__(self):
         global integral_type_to_measure_name
         name = integral_type_to_measure_name[self._integral_type]
@@ -305,7 +284,7 @@ class Measure(object):
             args.append("subdomain_id=%s" % (self._subdomain_id,))
         if self._domain is not None:
             args.append("domain=%s" % (self._domain,))
-        if self._metadata:  # Stored as EmptyDict if None
+        if self._metadata:  # Stored as {} if None
             args.append("metadata=%s" % (self._metadata,))
         if self._subdomain_data is not None:
             args.append("subdomain_data=%s" % (self._subdomain_data,))
@@ -323,7 +302,7 @@ class Measure(object):
             args.append("subdomain_id=%s" % repr(self._subdomain_id))
         if self._domain is not None:
             args.append("domain=%s" % repr(self._domain))
-        if self._metadata:  # Stored as EmptyDict if None
+        if self._metadata:  # Stored as {} if None
             args.append("metadata=%s" % repr(self._metadata))
         if self._subdomain_data is not None:
             args.append("subdomain_data=%s" % repr(self._subdomain_data))
@@ -405,9 +384,10 @@ class Measure(object):
 
         # Allow only scalar integrands
         if not is_true_ufl_scalar(integrand):
-            error("Can only integrate scalar expressions. The integrand is a "
-                  "tensor expression with value shape %s and free indices with labels %s." %
-                  (integrand.ufl_shape, integrand.ufl_free_indices))
+            raise ValueError(
+                "Can only integrate scalar expressions. The integrand is a "
+                f"tensor expression with value shape {integrand.ufl_shape} and "
+                f"free indices with labels {integrand.ufl_free_indices}.")
 
         # If we have a tuple of domain ids build the integrals one by
         # one and construct as a Form in one go.
@@ -419,7 +399,7 @@ class Measure(object):
         # Check that we have an integer subdomain or a string
         # ("everywhere" or "otherwise", any more?)
         if not isinstance(subdomain_id, (str, numbers.Integral,)):
-            error("Expecting integer or string domain id.")
+            raise ValueError("Expecting integer or string domain id.")
 
         # If we don't have an integration domain, try to find one in
         # integrand
@@ -429,9 +409,9 @@ class Measure(object):
             if len(domains) == 1:
                 domain, = domains
             elif len(domains) == 0:
-                error("This integral is missing an integration domain.")
+                raise ValueError("This integral is missing an integration domain.")
             else:
-                error("Multiple domains found, making the choice of integration domain ambiguous.")
+                raise ValueError("Multiple domains found, making the choice of integration domain ambiguous.")
 
         # Otherwise create and return a one-integral form
         integral = Integral(integrand=integrand,
@@ -491,7 +471,7 @@ class MeasureProduct(object):
         "Create MeasureProduct from given list of measures."
         self._measures = measures
         if len(self._measures) < 2:
-            error("Expecting at least two measures.")
+            raise ValueError("Expecting at least two measures.")
 
     def __mul__(self, other):
         """Flatten multiplication of product measures.
@@ -507,7 +487,8 @@ class MeasureProduct(object):
             return NotImplemented
 
     def __rmul__(self, integrand):
-        error("TODO: Implement MeasureProduct.__rmul__ to construct integral and form somehow.")
+        # TODO: Implement MeasureProduct.__rmul__ to construct integral and form somehow.
+        raise NotImplementedError()
 
     def sub_measures(self):
         "Return submeasures."
