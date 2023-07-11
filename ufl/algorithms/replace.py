@@ -31,15 +31,19 @@ class Replacer(MultiFunction):
 
     def external_operator(self, o):
         try:
-            o = self.mapping[o]
-            coeff = o.coefficient()
+            return self.mapping[o]
         except KeyError:
-            coeff = replace(o.coefficient(), self.mapping)
-        new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
-        if type(new_ops[0]).__name__ == 'Coefficient' and type(o.ufl_operands[0]).__name__ == 'Function':
-            new_ops = o.ufl_operands
-        new_args = tuple((replace(arg, self.mapping), is_adjoint) for arg, is_adjoint in o.arguments())
-        return o._ufl_expr_reconstruct_(*new_ops, coefficient=coeff, arguments=new_args)
+            self.reuse_if_untouched(o, *args)
+        #try:
+        #    o = self.mapping[o]
+        #    coeff = o.coefficient()
+        #except KeyError:
+        #   coeff = replace(o.coefficient(), self.mapping)
+        #new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
+        #if type(new_ops[0]).__name__ == 'Coefficient' and type(o.ufl_operands[0]).__name__ == 'Function':
+        #    new_ops = o.ufl_operands
+        #new_args = tuple((replace(arg, self.mapping), is_adjoint) for arg, is_adjoint in o.arguments())
+        #return o._ufl_expr_reconstruct_(*new_ops, coefficient=coeff, arguments=new_args)
 
     def coefficient_derivative(self, o):
         raise ValueError("Derivatives should be applied before executing replace.")

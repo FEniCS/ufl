@@ -27,7 +27,7 @@ class ExternalOperator(Operator):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=(), local_operands=()):
+    def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=(), local_operands=(), f=None):
         r"""
         :param operands: operands on which acts the :class:`ExternalOperator`.
         :param function_space: the :class:`.FunctionSpace`,
@@ -39,11 +39,13 @@ class ExternalOperator(Operator):
         :param arguments: tuple composed of tuples whose first argument is a ufl.Argument or ufl.Expr
             containing several ufl.Argument objects and whose second arguments is a boolean indicating
             whether we take the action of the adjoint. We have arguments when the operator is a GlobalExternalOperator.
-        :param local_operands: tuple specyfing the operands on which the operator acts locally
+        :param local_operands: tuple specyfing the operands on which the operator acts locally.
+        :param f: Concrete callable for evaluating ExternalOperator.
         """
 
         ufl_operands = tuple(map(as_ufl, operands))
         Operator.__init__(self, ufl_operands)
+        self.f = f
 
         # Process arguments and action arguments
         arguments = tuple((as_ufl(args), is_adjoint) for args, is_adjoint in arguments)
@@ -92,8 +94,8 @@ class ExternalOperator(Operator):
             raise TypeError('Expecting a Coefficient and not %s', type(coefficient))
         self._coefficient = coefficient
 
-        if not self.coefficient().ufl_function_space() == new_function_space:
-            raise ValueError('The function spaces do not match!')
+        #if not self.coefficient().ufl_function_space() == new_function_space:
+        #    raise ValueError('The function spaces do not match!')
 
         if self.derivatives == (0,) * len(self.ufl_operands):
             self._extop_master = self
@@ -174,6 +176,7 @@ class ExternalOperator(Operator):
         if domain is None:
             domain = self.ufl_function_space().ufl_domain()
         if not isinstance(sub_element, (FiniteElement, VectorElement, TensorElement)):
+            pass
             # While TensorElement (resp. VectorElement) allows to build a tensor element of a given shape
             # where all the elements in the tensor (resp. vector) are equal, there is no mechanism to construct
             # an element of a given shape with hybrid elements in it.
@@ -183,7 +186,7 @@ class ExternalOperator(Operator):
             # MixedElement (F1, F1)
             #              (F2, F2) of shape (2, 2)
             # TODO: subclass MixedElement to be able to do that !
-            raise NotImplementedError("MixedFunctionSpaces not handled yet")
+            #raise NotImplementedError("MixedFunctionSpaces not handled yet")
 
         if len(sub_element.sub_elements()) != 0:
             sub_element = sub_element.sub_elements()[0]
@@ -208,7 +211,7 @@ class ExternalOperator(Operator):
         """Evaluate expression at given coordinate with given values for terminals."""
         raise TypeError("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None, local_operands=None, add_kwargs={}):
+    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None, local_operands=None, f=None, add_kwargs={}):
         "Return a new object of the same type with new operands."
         deriv_multiindex = derivatives or self.derivatives
 
@@ -232,6 +235,7 @@ class ExternalOperator(Operator):
                                     coefficient=corresponding_coefficient,
                                     arguments=arguments or (self.arguments() + self.action_coefficients()),
                                     local_operands=local_operands or self.local_operands,
+                                    f=f or self.f,
                                     **add_kwargs)
 
         if deriv_multiindex != self.derivatives:

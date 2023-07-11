@@ -380,7 +380,7 @@ def test_extractions():
                                          extract_arguments_and_coefficients,
                                          extract_external_operators, extract_constants)
 
-    V = FiniteElement("CG", triangle, 1)
+    V = FiniteElement("CG", triangle, 2)
     u = Coefficient(V)
     c = Constant(triangle)
 
