@@ -220,4 +220,8 @@ class FiniteElementBase(ABC):
         if index in ("facet", "interior"):
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
-        return NotImplemented
+        else:
+            raise KeyError(f"Invalid index for restriction: {repr(index)}")
+
+    def __iter__(self):
+        raise TypeError(f"'{type(self).__name__}' object is not iterable")
