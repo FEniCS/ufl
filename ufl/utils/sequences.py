@@ -19,47 +19,6 @@ def product(sequence):
     return p
 
 
-def unzip(seq):
-    """Inverse operation of zip:
-
-    unzip(zip(a, b)) == (a, b)."""
-    return [s[0] for s in seq], [s[1] for s in seq]
-
-
-def xor(a, b):
-    return bool(a) if b else not a
-
-
-def or_tuples(seqa, seqb):
-    """Return 'or' of all pairs in two sequences of same length."""
-    return tuple(a or b for (a, b) in zip(seqa, seqb))
-
-
-def and_tuples(seqa, seqb):
-    """Return 'and' of all pairs in two sequences of same length."""
-    return tuple(a and b for (a, b) in zip(seqa, seqb))
-
-
-def iter_tree(tree):
-    """Iterate over all nodes in a tree represented
-    by lists of lists of leaves."""
-    if isinstance(tree, list):
-        for node in tree:
-            for i in iter_tree(node):
-                yield i
-    else:
-        yield tree
-
-
-def recursive_chain(lists):
-    for l in lists:
-        if isinstance(l, str):
-            yield l
-        else:
-            for s in recursive_chain(l):
-                yield s
-
-
 def max_degree(degrees):
     """Maximum degree for mixture of scalar and tuple degrees."""
     # numpy.maximum broadcasts scalar degrees to tuple degrees if

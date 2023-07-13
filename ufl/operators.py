@@ -31,7 +31,6 @@ from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
     BesselJ, BesselY, BesselI, BesselK
 from ufl.averaging import CellAvg, FacetAvg
-from ufl.core.multiindex import indices
 from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.checks import is_cellwise_constant
@@ -94,7 +93,7 @@ def elem_op_items(op_ind, indices, *args):
 
 
 def elem_op(op, *args):
-    "UFL operator: Take the elementwise application of operator *op* on scalar values from one or more tensor arguments."
+    "UFL operator: Take the elementwise application of operator op on scalar values from one or more tensor arguments."
     args = [as_ufl(arg) for arg in args]
     sh = args[0].ufl_shape
     if not all(sh == x.ufl_shape for x in args):
@@ -134,7 +133,9 @@ def transpose(A):
 
 
 def outer(*operands):
-    "UFL operator: Take the outer product of two or more operands. The complex conjugate of the first argument is taken."
+    """UFL operator: Take the outer product of two or more operands.
+    The complex conjugate of the first argument is taken.
+    """
     n = len(operands)
     if n == 1:
         return operands[0]
@@ -159,15 +160,6 @@ def inner(a, b):
     return Inner(a, b)
 
 
-# TODO: Something like this would be useful in some cases, but should
-# inner just support len(a.ufl_shape) != len(b.ufl_shape) instead?
-def _partial_inner(a, b):
-    "UFL operator: Take the partial inner product of a and b."
-    ar, br = len(a.ufl_shape), len(b.ufl_shape)
-    n = min(ar, br)
-    return contraction(a, list(range(n - ar, n - ar + n)), b, list(range(n)))
-
-
 def dot(a, b):
     "UFL operator: Take the dot product of *a* and *b*. This won't take the complex conjugate of the second argument."
     a = as_ufl(a)
@@ -175,30 +167,6 @@ def dot(a, b):
     if a.ufl_shape == () and b.ufl_shape == ():
         return a * b
     return Dot(a, b)
-
-
-def contraction(a, a_axes, b, b_axes):
-    "UFL operator: Take the contraction of a and b over given axes."
-    ai, bi = a_axes, b_axes
-    if len(ai) != len(bi):
-        raise ValueError("Contraction must be over the same number of axes.")
-    ash = a.ufl_shape
-    bsh = b.ufl_shape
-    aii = indices(len(a.ufl_shape))
-    bii = indices(len(b.ufl_shape))
-    cii = indices(len(ai))
-    shape = [None] * len(ai)
-    for i, j in enumerate(ai):
-        aii[j] = cii[i]
-        shape[i] = ash[j]
-    for i, j in enumerate(bi):
-        bii[j] = cii[i]
-        if shape[i] != bsh[j]:
-            raise ValueError("Shape mismatch in contraction.")
-    s = a[aii] * b[bii]
-    cii = set(cii)
-    ii = tuple(i for i in (aii + bii) if i not in cii)
-    return as_tensor(s, ii)
 
 
 def perp(v):
@@ -315,11 +283,6 @@ def Dx(f, *i):
     to spatial variable number *i*. Equivalent to ``f.dx(*i)``."""
     f = as_ufl(f)
     return f.dx(*i)
-
-
-def Dt(f):
-    "UFL operator: <Not implemented yet!> The partial derivative of *f* with respect to time."
-    raise NotImplementedError
 
 
 def Dn(f):
@@ -451,7 +414,8 @@ def jump(v, n=None):
         else:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
-        warnings.warn("Returning zero from jump of expression without a domain. This may be erroneous if a dolfin.Expression is involved.")
+        warnings.warn("Returning zero from jump of expression without a domain. "
+                      "This may be erroneous if a dolfin.Expression is involved.")
         # FIXME: Is this right? If v has no domain, it doesn't depend
         # on anything spatially variable or any form arguments, and
         # thus the jump is zero. In other words, I'm assuming that "v

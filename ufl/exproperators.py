@@ -11,7 +11,6 @@ Sum and its superclass Expr."""
 #
 # Modified by Massimiliano Leoni, 2016.
 
-from itertools import chain
 import numbers
 
 from ufl.utils.stacks import StackDict
@@ -19,7 +18,7 @@ from ufl.core.expr import Expr
 from ufl.constantvalue import Zero, as_ufl
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Inner
-from ufl.core.multiindex import MultiIndex, Index, FixedIndex, IndexBase, indices
+from ufl.core.multiindex import MultiIndex, Index, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.tensors import as_tensor, ComponentTensor
@@ -344,86 +343,6 @@ Expr.T = property(_transpose)
 
 
 # --- Extend Expr with indexing operator a[i] ---
-
-def analyse_key(ii, rank):
-    """Takes something the user might input as an index tuple
-    inside [], which could include complete slices (:) and
-    ellipsis (...), and returns tuples of actual UFL index objects.
-
-    The return value is a tuple (indices, axis_indices),
-    each being a tuple of IndexBase instances.
-
-    The return value 'indices' corresponds to all
-    input objects of these types:
-    - Index
-    - FixedIndex
-    - int => Wrapped in FixedIndex
-
-    The return value 'axis_indices' corresponds to all
-    input objects of these types:
-    - Complete slice (:) => Replaced by a single new index
-    - Ellipsis (...) => Replaced by multiple new indices
-    """
-    # Wrap in tuple
-    if not isinstance(ii, (tuple, MultiIndex)):
-        ii = (ii,)
-    else:
-        # Flatten nested tuples, happens with f[...,ii] where ii is a
-        # tuple of indices
-        jj = []
-        for j in ii:
-            if isinstance(j, (tuple, MultiIndex)):
-                jj.extend(j)
-            else:
-                jj.append(j)
-        ii = tuple(jj)
-
-    # Convert all indices to Index or FixedIndex objects.  If there is
-    # an ellipsis, split the indices into before and after.
-    axis_indices = set()
-    pre = []
-    post = []
-    indexlist = pre
-    for i in ii:
-        if i == Ellipsis:
-            # Switch from pre to post list when an ellipsis is
-            # encountered
-            if indexlist is not pre:
-                raise ValueError("Found duplicate ellipsis.")
-            indexlist = post
-        else:
-            # Convert index to a proper type
-            if isinstance(i, numbers.Integral):
-                idx = FixedIndex(i)
-            elif isinstance(i, IndexBase):
-                idx = i
-            elif isinstance(i, slice):
-                if i == slice(None):
-                    idx = Index()
-                    axis_indices.add(idx)
-                else:
-                    # TODO: Use ListTensor to support partial slices?
-                    raise ValueError("Partial slices not implemented, only complete slices like [:]")
-            else:
-                raise ValueError(f"Can't convert this object to index: {i}")
-
-            # Store index in pre or post list
-            indexlist.append(idx)
-
-    # Handle ellipsis as a number of complete slices, that is create a
-    # number of new axis indices
-    num_axis = rank - len(pre) - len(post)
-    if indexlist is post:
-        ellipsis_indices = indices(num_axis)
-        axis_indices.update(ellipsis_indices)
-    else:
-        ellipsis_indices = ()
-
-    # Construct final tuples to return
-    all_indices = tuple(chain(pre, ellipsis_indices, post))
-    axis_indices = tuple(i for i in all_indices if i in axis_indices)
-    return all_indices, axis_indices
-
 
 def _getitem(self, component):
 

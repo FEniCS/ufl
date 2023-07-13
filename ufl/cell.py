@@ -215,8 +215,9 @@ class Cell(AbstractCell):
         self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
 
         self._num_cell_entities = [len(i) for i in self._sub_entity_celltypes]
-        self._sub_entities = [tuple(Cell(t, self._gdim) for t in se_types) for se_types in self._sub_entity_celltypes[:-1]]
-        self._sub_entity_types = [tuple(Cell(t, self._gdim) for t in set(se_types)) for se_types in self._sub_entity_celltypes[:-1]]
+        self._sub_entities = [tuple(Cell(t, self._gdim) for t in se_types)
+                              for se_types in self._sub_entity_celltypes[:-1]]
+        self._sub_entity_types = [tuple(set(i)) for i in self._sub_entities]
         self._sub_entities.append((weakref.proxy(self), ))
         self._sub_entity_types.append((weakref.proxy(self), ))
 
