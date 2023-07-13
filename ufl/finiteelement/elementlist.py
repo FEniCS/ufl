@@ -56,12 +56,12 @@ def show_elements():
             continue
         shown.add(data)
         (family, short_name, value_rank, sobolev_space, mapping, degree_range, cellnames) = data
-        print("Finite element family: '%s', '%s'" % (family, short_name))
-        print("Sobolev space: %s" % (sobolev_space,))
-        print("Mapping: %s" % (mapping,))
-        print("Degree range: %s" % (degree_range,))
-        print("Value rank: %s" % (value_rank,))
-        print("Defined on cellnames: %s" % (cellnames,))
+        print(f"Finite element family: '{family}', '{short_name}'")
+        print(f"Sobolev space: {sobolev_space}%s")
+        print(f"Mapping: {mapping}")
+        print(f"Degree range: {degree_range}")
+        print(f"Value rank: {value_rank}")
+        print(f"Defined on cellnames: {cellnames}")
         print()
 
 
@@ -266,7 +266,8 @@ register_element("Direct Serendipity Reduced H(div)", "Sdirect H(div) red", 1, H
                  ("quadrilateral",))
 
 
-# NOTE- the edge elements for primal mimetic spectral elements are accessed by using variant='mse' in the appropriate places
+# NOTE- the edge elements for primal mimetic spectral elements are accessed by using
+# variant='mse' in the appropriate places
 
 def feec_element(family, n, r, k):
     """Finite element exterior calculus notation
@@ -432,7 +433,8 @@ def canonical_element_description(family, cell, order, form_degree):
             family = "DQ"
         elif family == "Discontinuous Lagrange L2":
             if order >= 1:
-                warnings.warn("Discontinuous Lagrange L2 element requested on %s, creating DQ L2 element." % cell.cellname())
+                warnings.warn(f"Discontinuous Lagrange L2 element requested on {cell.cellname()}, "
+                              "creating DQ L2 element.")
             family = "DQ L2"
 
     # Validate cellname if a valid cell is specified

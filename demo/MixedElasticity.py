@@ -46,6 +46,8 @@ W = MixedElement(S, V, Q)
 (sigma, u, gamma) = TrialFunctions(W)
 (tau, v, eta) = TestFunctions(W)
 
-a = (inner(sigma, tau) - tr(sigma) * tr(tau) +
-     dot(div(tau), u) - dot(div(sigma), v) +
-     inner(skw(tau), gamma) + inner(skw(sigma), eta)) * dx
+a = (
+    inner(sigma, tau) - tr(sigma) * tr(tau) + dot(
+        div(tau), u
+    ) - dot(div(sigma), v) + inner(skw(tau), gamma) + inner(skw(sigma), eta)
+) * dx
