@@ -449,10 +449,10 @@ class Form(BaseForm):
         if self._terminal_numbering is None:
             exprs_by_type = defaultdict(set)
             for counted_expr in extract_type(self, Counted):
-                exprs_by_type[type(counted_expr)].add(counted_expr)
+                exprs_by_type[counted_expr._counted_class].add(counted_expr)
 
             numbering = {}
-            for type_, exprs in exprs_by_type.items():
+            for exprs in exprs_by_type.values():
                 for i, expr in enumerate(sorted_by_count(exprs)):
                     numbering[expr] = i
             self._terminal_numbering = numbering

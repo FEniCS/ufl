@@ -19,21 +19,22 @@ class Counted:
 
     _counter = None
 
-    def __init__(self, count=None, cls=None):
+    def __init__(self, count=None, counted_class=None):
         """Initialize the Counted instance.
 
         :arg count: The object count, if ``None`` defaults to the next value
                     according to the global counter (per type).
-        :arg cls: Class to attach the global counter too. If ``None`` then
-                  ``type(self)`` will be used.
+        :arg counted_class: Class to attach the global counter too. If ``None``
+                            then ``type(self)`` will be used.
 
         """
         # create a new counter for each subclass
-        cls = cls or type(self)
-        if cls._counter is None:
-            cls._counter = itertools.count()
+        counted_class = counted_class or type(self)
+        if counted_class._counter is None:
+            counted_class._counter = itertools.count()
 
-        self._count = count if count is not None else next(cls._counter)
+        self._count = count if count is not None else next(counted_class._counter)
+        self._counted_class = counted_class
 
     def count(self):
         return self._count

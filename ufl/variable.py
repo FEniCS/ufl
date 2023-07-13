@@ -18,7 +18,7 @@ from ufl.constantvalue import as_ufl
 
 @ufl_type()
 class Label(Terminal, Counted):
-    __slots__ = ("_count",)
+    __slots__ = ("_count", "_counted_class")
 
     def __init__(self, count=None):
         Terminal.__init__(self)

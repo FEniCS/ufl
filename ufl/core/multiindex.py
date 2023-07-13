@@ -74,7 +74,7 @@ class Index(IndexBase, Counted):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
-    __slots__ = ("_count",)
+    __slots__ = ("_count", "_counted_class")
 
     def __init__(self, count=None):
         IndexBase.__init__(self)

@@ -24,6 +24,7 @@ class Matrix(BaseForm, Counted):
 
     __slots__ = (
         "_count",
+        "_counted_class",
         "_ufl_function_spaces",
         "ufl_operands",
         "_repr",
