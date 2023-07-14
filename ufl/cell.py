@@ -409,7 +409,7 @@ class TensorProductCell(AbstractCell):
                 gdim = value
             else:
                 raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
-        return TensorProductCell(self._cellname, geometric_dimension=gdim)
+        return TensorProductCell(*self._cells, geometric_dimension=gdim)
 
 
 def simplex(topological_dimension: int, geometric_dimension: typing.Optional[int] = None):
