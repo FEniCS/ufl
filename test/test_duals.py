@@ -4,7 +4,7 @@
 from ufl import FiniteElement, FunctionSpace, MixedFunctionSpace, \
     Coefficient, Matrix, Cofunction, FormSum, Argument, Coargument,\
     TestFunction, TrialFunction, Adjoint, Action, \
-    action, adjoint, derivative, tetrahedron, triangle, interval, dx
+    action, adjoint, derivative, inner, tetrahedron, triangle, interval, dx
 from ufl.constantvalue import Zero
 from ufl.form import ZeroBaseForm
 
@@ -285,18 +285,20 @@ def test_differentiation():
     assert dMdu == 0
 
     # -- Action -- #
-    Ac = Action(M, u)
-    dAcdu = expand_derivatives(derivative(Ac, u))
+    # Ac = Action(M, u)
+    # dAcdu = expand_derivatives(derivative(Ac, u))
 
     # Action(dM/du, u) + Action(M, du/du) = Action(M, uhat) since dM/du = 0.
     # Multiply by 1 to get a FormSum (type compatibility).
-    assert dAcdu == 1 * Action(M, v)
+    # assert dAcdu == 1 * Action(M, v)
 
     # -- Form sum -- #
-    Fs = M + Ac
+    uhat = Argument(U, 1)
+    what = Argument(U, 2)
+    Fs = M + inner(u * uhat, v) * dx
     dFsdu = expand_derivatives(derivative(Fs, u))
     # Distribute differentiation over FormSum components
-    assert dFsdu == 1 * Action(M, v)
+    assert dFsdu == FormSum([inner(what * uhat, v) * dx, 1])
 
 
 def test_zero_base_form_mult():

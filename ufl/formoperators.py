@@ -291,10 +291,13 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     elif isinstance(form, Action):
         # Push derivative through Action slots
         left, right = form.ufl_operands
-        dleft = derivative(left, coefficient, argument, coefficient_derivatives)
-        dright = derivative(right, coefficient, argument, coefficient_derivatives)
-        # Leibniz formula
-        return action(dleft, right) + action(left, dright)
+        if len(left.arguments()) == 1:
+            dleft = derivative(left, coefficient, argument, coefficient_derivatives)
+            dright = derivative(right, coefficient, argument, coefficient_derivatives)
+            # Leibniz formula
+            return action(adjoint(dleft), right) + action(left, dright)
+        else:
+            raise NotImplementedError('Action derivative not supported when the left argument is not a 1-form.')
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient,
                                                            argument)
