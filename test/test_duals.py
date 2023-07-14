@@ -292,12 +292,6 @@ def test_differentiation():
     # Multiply by 1 to get a FormSum (type compatibility).
     assert dAcdu == 1 * Action(M, v)
 
-    # -- Adjoint -- #
-    Ad = Adjoint(M)
-    dAddu = expand_derivatives(derivative(Ad, u))
-    # Push differentiation through Adjoint
-    assert dAddu == 0
-
     # -- Form sum -- #
     Fs = M + Ac
     dFsdu = expand_derivatives(derivative(Fs, u))

@@ -285,8 +285,9 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         return FormSum(*[(derivative(component, coefficient, argument, coefficient_derivatives), 1)
                          for component in form.components()])
     elif isinstance(form, Adjoint):
-        # Push derivative through Adjoint
-        return adjoint(derivative(form._form, coefficient, argument, coefficient_derivatives))
+        # Is `derivative(Adjoint(A), ...)` with A a 2-form even legal ?
+        # -> If yes, what's the right thing to do here ?
+        raise NotImplementedError('Adjoint derivative is not supported.')
     elif isinstance(form, Action):
         # Push derivative through Action slots
         left, right = form.ufl_operands
