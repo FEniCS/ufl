@@ -139,6 +139,8 @@ def _compute_form_data_elements(self, arguments, coefficients, domains):
 def _check_elements(form_data):
     for element in chain(form_data.unique_elements,
                          form_data.unique_sub_elements):
+        if element.family() is None:
+            raise ValueError(f"Found element with undefined family: {element}")
         if element.cell() is None:
             raise ValueError(f"Found element with undefined cell: {element}")
 

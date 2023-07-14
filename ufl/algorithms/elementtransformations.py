@@ -36,7 +36,7 @@ def tear(element):
 def _increase_degree(element, degree_rise):
     if isinstance(element, (FiniteElement, VectorElement, TensorElement)):
         # Can't increase degree for reals
-        if element._is_globally_constant():
+        if element.family() == "Real":
             return element
         return element.reconstruct(degree=(element.degree() + degree_rise))
     elif isinstance(element, MixedElement):

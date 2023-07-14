@@ -42,6 +42,5 @@ jobs:
           pip install git+https://github.com/FInAT/FInAT.git#egg=finat
           pip install git+https://github.com/firedrakeproject/loopy.git#egg=loopy
           pip install .[ci]
-          pip install pytest
       - name: Run tsfc unit tests
         run: python3 -m pytest tsfc/tests

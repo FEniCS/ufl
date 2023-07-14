@@ -54,7 +54,7 @@ def is_globally_constant(expr):
             continue
         elif isinstance(e, FormArgument):
             # Accept only Real valued Arguments and Coefficients
-            if e.ufl_element()._is_globally_constant():
+            if e.ufl_element().family() == "Real":
                 continue
             else:
                 return False

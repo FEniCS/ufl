@@ -225,7 +225,6 @@ integral_by_dim = {
     3: UC.integral_triple,
     2: UC.integral_double,
     1: UC.integral,
-    0: UC.integral
 }
 
 integral_type_to_codim = {

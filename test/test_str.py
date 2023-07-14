@@ -103,8 +103,3 @@ def test_str_list_matrix_with_zero():
 
 # FIXME: Add more tests for tensors collapsing
 #        partly or completely into Zero!
-
-
-def test_str_element():
-    elem = FiniteElement("Q", quadrilateral, 1)
-    assert str(elem) == "<Q1 on a quadrilateral>"
