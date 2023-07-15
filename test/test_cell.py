@@ -59,3 +59,9 @@ def test_cells_2d(cell):
     assert cell.num_peaks() == cell.num_vertices()
 
 
+def test_tensorproductcell():
+    orig = ufl.TensorProductCell(ufl.interval, ufl.interval)
+    cell = orig.reconstruct()
+    assert cell.sub_cells() == orig.sub_cells()
+    assert cell.topological_dimension() == orig.topological_dimension()
+    assert cell.geometric_dimension() == orig.geometric_dimension()
