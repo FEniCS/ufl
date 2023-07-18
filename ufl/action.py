@@ -165,15 +165,17 @@ def _check_function_spaces(left, right):
 def _get_action_form_arguments(left, right):
     """Perform argument contraction to work out the arguments of Action"""
 
-    if isinstance(right, CoefficientDerivative):
-        # Action differentiation pushes differentiation through
-        # right as a consequence of Leibniz formula.
-        right, *_ = right.ufl_operands
-
     coefficients = ()
     if isinstance(right, BaseForm):
         arguments = left.arguments()[:-1] + right.arguments()[1:]
         coefficients += right.coefficients()
+    elif isinstance(right, CoefficientDerivative):
+        # Action differentiation pushes differentiation through
+        # right as a consequence of Leibniz formula.
+        from ufl.algorithms.analysis import extract_arguments_and_coefficients
+        right_args, right_coeffs = extract_arguments_and_coefficients(right)
+        arguments = left.arguments()[:-1] + tuple(right_args)
+        coefficients += tuple(right_coeffs)
     elif isinstance(right, (BaseCoefficient, Zero)):
         arguments = left.arguments()[:-1]
         # When right is ufl.Zero, Action gets simplified so updating
