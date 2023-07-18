@@ -24,7 +24,7 @@ from ufl.core.multiindex import FixedIndex, MultiIndex, indices
 from ufl.core.terminal import Terminal
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.differentiation import CoordinateDerivative
+from ufl.differentiation import CoordinateDerivative, BaseFormCoordinateDerivative
 from ufl.domain import extract_unique_domain
 from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg,
                            conditional, cos, cosh, exp, facet_avg, ln, sign,
@@ -1114,6 +1114,14 @@ class DerivativeRuleDispatcher(MultiFunction):
                                                  vcache=self.vcaches[key],
                                                  rcache=self.rcaches[key]),
                                     o_[1], o_[2], o_[3])
+
+    def base_form_coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
+        o_ = o.ufl_operands
+        key = (BaseFormCoordinateDerivative, o_[0])
+        return BaseFormCoordinateDerivative(map_expr_dag(self, o_[0],
+                                                         vcache=self.vcaches[key],
+                                                         rcache=self.rcaches[key]),
+                                            o_[1], o_[2], o_[3])
 
     def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
         # Reuse if untouched
