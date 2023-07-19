@@ -278,12 +278,13 @@ def test_differentiation():
     assert dMdu == 0
 
     # -- Action -- #
-    # Ac = Action(M, u)
-    # dAcdu = expand_derivatives(derivative(Ac, u))
+    Ac = Action(w, u)
+    dAcdu = derivative(Ac, u)
+    assert dAcdu == Action(Adjoint(derivative(w, u)), u) + Action(w, derivative(u, u))
 
-    # Action(dM/du, u) + Action(M, du/du) = Action(M, uhat) since dM/du = 0.
-    # Multiply by 1 to get a FormSum (type compatibility).
-    # assert dAcdu == 1 * Action(M, v)
+    dAcdu = expand_derivatives(dAcdu)
+    # Since dw/du = 0
+    assert dAcdu == 1 * Action(w, v)
 
     # -- Form sum -- #
     uhat = Argument(U, 1)
