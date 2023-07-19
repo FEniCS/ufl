@@ -53,14 +53,12 @@ class Action(BaseForm):
 
         # Check trivial case
         if left == 0 or right == 0:
-            # Check compatibility of function spaces
-            _check_function_spaces(left, right)
             # Still need to work out the ZeroBaseForm arguments.
             new_arguments, _ = _get_action_form_arguments(left, right)
             return ZeroBaseForm(new_arguments)
 
         # Coarguments from V* to V* are identity matrices (V* x V -> R)
-        if isinstance(left, Coargument):    
+        if isinstance(left, Coargument):
             return right
         if isinstance(right, Coargument):
             return left
