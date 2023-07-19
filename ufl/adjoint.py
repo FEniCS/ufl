@@ -10,6 +10,7 @@
 # Modified by Nacime Bouziani, 2021-2022.
 
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
+from ufl.argument import Coargument
 from ufl.core.ufl_type import ufl_type
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
@@ -49,6 +50,9 @@ class Adjoint(BaseForm):
             # Adjoint distributes over sums
             return FormSum(*[(Adjoint(component), 1)
                              for component in form.components()])
+        elif isinstance(form, Coargument):
+            # Coarguments from V* to V* are identity matrices (V* x V -> R)
+            return form
 
         return super(Adjoint, cls).__new__(cls)
 

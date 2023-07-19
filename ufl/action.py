@@ -13,7 +13,7 @@ from ufl.form import BaseForm, FormSum, Form, ZeroBaseForm
 from ufl.core.ufl_type import ufl_type
 from ufl.algebra import Sum
 from ufl.constantvalue import Zero
-from ufl.argument import Argument
+from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
 from ufl.matrix import Matrix
@@ -58,6 +58,12 @@ class Action(BaseForm):
             # Still need to work out the ZeroBaseForm arguments.
             new_arguments, _ = _get_action_form_arguments(left, right)
             return ZeroBaseForm(new_arguments)
+
+        # Coarguments from V* to V* are identity matrices (V* x V -> R)
+        if isinstance(left, Coargument):    
+            return right
+        if isinstance(right, Coargument):
+            return left
 
         if isinstance(left, (FormSum, Sum)):
             # Action distributes over sums on the LHS
