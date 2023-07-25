@@ -105,6 +105,13 @@ def test_cross(self):
     self.assertEqualValues(C, D)
 
 
+def test_perp(self):
+    u = as_vector([3, 1])
+    v = perp(u)
+    w = as_vector([-1, 3])
+    self.assertEqualValues(v, w)
+
+
 def xtest_dev(self, A):
     C = dev(A)
     D = 0*C  # FIXME: Add expected value here

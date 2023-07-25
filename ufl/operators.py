@@ -19,7 +19,7 @@ import operator
 from ufl.form import Form
 from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
-from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
+from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Perp, \
     Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
@@ -174,7 +174,7 @@ def perp(v):
     v = as_ufl(v)
     if v.ufl_shape != (2,):
         raise ValueError("Expecting a 2D vector expression.")
-    return as_vector((-v[1], v[0]))
+    return Perp(v)
 
 
 def cross(a, b):
