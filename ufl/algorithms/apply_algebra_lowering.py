@@ -63,6 +63,9 @@ class LowerCompoundAlgebra(MultiFunction):
             return Product(a[i], b[j]) - Product(a[j], b[i])
         return as_vector((c(1, 2), c(2, 0), c(0, 1)))
 
+    def perp(self, o, a):
+        return as_vector([-a[1], a[0]])
+
     def altenative_dot(self, o, a, b):  # TODO: Test this
         ash = a.ufl_shape
         bsh = b.ufl_shape
