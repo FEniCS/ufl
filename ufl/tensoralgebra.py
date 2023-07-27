@@ -232,7 +232,7 @@ class Perp(CompoundTensorOperator):
 
         # Simplification
         if isinstance(A, Zero):
-            return Zero((), A.ufl_free_indices, A.ufl_index_dimensions)
+            return Zero(sh, A.ufl_free_indices, A.ufl_index_dimensions)
 
         return CompoundTensorOperator.__new__(cls)
 
