@@ -208,8 +208,13 @@ class Coargument(BaseForm, BaseArgument):
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
-        self._arguments = (self,)
+        # Coarguments map from V* to V*, i.e. V* -> V*, or equivalently V* x V -> R.
+        # So they have one argument in the primal space and one in the dual space.
+        self._arguments = (Argument(self.ufl_function_space().dual(), 0), self)
         self._coefficients = ()
+
+    def ufl_domain(self):
+        return BaseArgument.ufl_domain(self)
 
     def equals(self, other):
         if type(other) is not Coargument:
