@@ -35,6 +35,7 @@ from ufl.algorithms import compute_form_adjoint, compute_form_action
 from ufl.algorithms import compute_energy_norm
 from ufl.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
 from ufl.algorithms import expand_derivatives, extract_arguments
+from ufl.algorithms import formsplitter
 
 # Part of the external interface
 from ufl.algorithms import replace  # noqa
@@ -52,7 +53,7 @@ def extract_blocks(form, i=None, j=None):
        extract_blocks(a) -> [inner(grad(u), grad(v))*dx, div(v)*p*dx, div(u)*q*dx, 0]
 
     """
-    return ufl.algorithms.formsplitter.extract_blocks(form, i, j)
+    return formsplitter.extract_blocks(form, i, j)
 
 
 def lhs(form):
@@ -389,10 +390,7 @@ def sensitivity_rhs(a, u, L, v):
 
         dL = sensitivity_rhs(a, u, L, v)
     """
-    if not (isinstance(a, Form) and
-            isinstance(u, Coefficient) and
-            isinstance(L, Form) and
-            isinstance(v, Variable)):
+    if not (isinstance(a, Form) and isinstance(u, Coefficient) and isinstance(L, Form) and isinstance(v, Variable)):
         raise ValueError("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
     if not is_true_ufl_scalar(v):
         raise ValueError("Expecting scalar variable.")

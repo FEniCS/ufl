@@ -10,7 +10,6 @@ raw input form given by a user."""
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from itertools import chain
-from logging import info
 
 from ufl.utils.sequences import max_degree
 
@@ -82,13 +81,11 @@ def _compute_element_mapping(form):
                        for d in domains):
                 raise ValueError("Cannot replace unknown element cell without unique common cell in form.")
             cell = domains[0].ufl_cell()
-            info(f"Adjusting missing element cell to {cell}.")
             reconstruct = True
 
         # Set degree
         degree = element.degree()
         if degree is None:
-            info(f"Adjusting missing element degree to {common_degree}.")
             degree = common_degree
             reconstruct = True
 
@@ -402,7 +399,8 @@ def compute_form_data(form,
     # faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
 
-    check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)  # Currently testing how fast this is
+    # TODO: Test how fast this is
+    check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)
 
     # TODO: This member is used by unit tests, change the tests to
     # remove this!

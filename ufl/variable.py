@@ -99,8 +99,7 @@ class Variable(Operator):
         return self.ufl_operands[1]
 
     def __eq__(self, other):
-        return (isinstance(other, Variable) and
-                self.ufl_operands[1] == other.ufl_operands[1] and
+        return (isinstance(other, Variable) and self.ufl_operands[1] == other.ufl_operands[1] and  # noqa: W504
                 self.ufl_operands[0] == other.ufl_operands[0])
 
     def __str__(self):

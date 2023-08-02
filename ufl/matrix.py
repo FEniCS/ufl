@@ -50,20 +50,11 @@ class Matrix(BaseForm, Counted):
 
         self.ufl_operands = ()
         self._hash = None
-        self._repr = "Matrix(%s,%s, %s)" % (
-            repr(self._ufl_function_spaces[0]),
-            repr(self._ufl_function_spaces[1]), repr(self._count)
-        )
+        self._repr = f"Matrix({self._ufl_function_spaces[0]!r}, {self._ufl_function_spaces[1]!r}, {self._count!r})"
 
     def ufl_function_spaces(self):
         "Get the tuple of function spaces of this coefficient."
         return self._ufl_function_spaces
-
-    def ufl_row_space(self):
-        return self._ufl_function_spaces[0]
-
-    def ufl_column_space(self):
-        return self._ufl_function_spaces[1]
 
     def _analyze_form_arguments(self):
         "Define arguments of a matrix when considered as a form."
@@ -73,9 +64,9 @@ class Matrix(BaseForm, Counted):
     def __str__(self):
         count = str(self._count)
         if len(count) == 1:
-            return "A_%s" % count
+            return f"A_{count}"
         else:
-            return "A_{%s}" % count
+            return f"A_{{{count}}}"
 
     def __repr__(self):
         return self._repr
@@ -91,5 +82,4 @@ class Matrix(BaseForm, Counted):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_spaces == other._ufl_function_spaces)
+        return self._count == other._count and self._ufl_function_spaces == other._ufl_function_spaces

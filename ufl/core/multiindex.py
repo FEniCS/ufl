@@ -221,15 +221,6 @@ class MultiIndex(Terminal):
         return iter(self._indices)
 
 
-def as_multi_index(ii, shape=None):
-    "Return a ``MultiIndex`` version of *ii*."
-    if isinstance(ii, MultiIndex):
-        return ii
-    elif not isinstance(ii, tuple):
-        ii = (ii,)
-    return MultiIndex(ii)
-
-
 def indices(n):
     "UFL value: Return a tuple of :math:`n` new Index objects."
     return tuple(Index() for i in range(n))

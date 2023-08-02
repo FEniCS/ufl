@@ -706,47 +706,10 @@ class Form(BaseForm):
         self._signature = compute_form_signature(self, self._compute_renumbering())
 
 
-def sub_forms_by_domain(form):
-    "Return a list of forms each with an integration domain"
-    if not isinstance(form, Form):
-        raise ValueError(f"Unable to convert object to a UFL form: {ufl_err_str(form)}")
-    return [Form(form.integrals_by_domain(domain)) for domain in form.ufl_domains()]
-
-
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
     if not isinstance(form, BaseForm):
         raise ValueError(f"Unable to convert object to a UFL form: {ufl_err_str(form)}")
-    return form
-
-
-def replace_integral_domains(form, common_domain):  # TODO: Move elsewhere
-    """Given a form and a domain, assign a common integration domain to
-    all integrals.
-
-    Does not modify the input form (``Form`` should always be
-    immutable).  This is to support ill formed forms with no domain
-    specified, sometimes occurring in pydolfin, e.g. assemble(1*dx,
-    mesh=mesh).
-
-    """
-    domains = form.ufl_domains()
-    if common_domain is not None:
-        gdim = common_domain.geometric_dimension()
-        tdim = common_domain.topological_dimension()
-        if not all((gdim == domain.geometric_dimension() and tdim == domain.topological_dimension()) for domain in domains):
-            raise ValueError("Common domain does not share dimensions with form domains.")
-
-    reconstruct = False
-    integrals = []
-    for itg in form.integrals():
-        domain = itg.ufl_domain()
-        if domain != common_domain:
-            itg = itg.reconstruct(domain=common_domain)
-            reconstruct = True
-        integrals.append(itg)
-    if reconstruct:
-        form = Form(integrals)
     return form
 
 
@@ -831,7 +794,7 @@ class FormSum(BaseForm):
             return False
         if self is other:
             return True
-        return (len(self.components()) == len(other.components()) and
+        return (len(self.components()) == len(other.components()) and  # noqa: W504
                 all(a == b for a, b in zip(self.components(), other.components())))
 
     def __str__(self):

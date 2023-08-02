@@ -98,8 +98,7 @@ class BaseCoefficient(Counted):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
+        return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
 
 @ufl_type()
@@ -121,7 +120,8 @@ class Cofunction(BaseCoefficient, BaseForm):
 
     def __new__(cls, *args, **kw):
         if args[0] and is_primal(args[0]):
-            raise ValueError('ufl.Cofunction takes in a dual space. If you want to define a coefficient in the primal space you should use ufl.Coefficient.')
+            raise ValueError("ufl.Cofunction takes in a dual space. If you want to define a coefficient "
+                             "in the primal space you should use ufl.Coefficient.")
         return super().__new__(cls)
 
     def __init__(self, function_space, count=None):
@@ -138,8 +138,7 @@ class Cofunction(BaseCoefficient, BaseForm):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
+        return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
     def __hash__(self):
         """Hash code for use in dicts."""
@@ -185,8 +184,7 @@ class Coefficient(FormArgument, BaseCoefficient):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
+        return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
     def __repr__(self):
         return self._repr

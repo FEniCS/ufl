@@ -31,9 +31,6 @@ class Adjoint(BaseForm):
         "ufl_operands",
         "_hash")
 
-    def __getnewargs__(self):
-        return (self._form)
-
     def __new__(cls, *args, **kw):
         form = args[0]
         # Check trivial case: This is not a ufl.Zero but a ZeroBaseForm!
@@ -77,10 +74,10 @@ class Adjoint(BaseForm):
             return False
         if self is other:
             return True
-        return (self._form == other._form)
+        return self._form == other._form
 
     def __str__(self):
-        return "Adjoint(%s)" % str(self._form)
+        return f"Adjoint({self._form})"
 
     def __repr__(self):
         return self._repr
