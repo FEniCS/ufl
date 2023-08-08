@@ -83,7 +83,7 @@ class FiniteElementBase(ABC):
 
     def __eq__(self, other):
         "Compute element equality for insertion in hashmaps."
-        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
 
     def __ne__(self, other):
         "Compute element inequality for insertion in hashmaps."

@@ -63,7 +63,7 @@ class AbstractCell(UFLObject):
 
     def __lt__(self, other: AbstractCell) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all cells."""
-        if type(self) == type(other):
+        if type(self) is type(other):
             s = (self.geometric_dimension(), self.topological_dimension())
             o = (other.geometric_dimension(), other.topological_dimension())
             if s != o:

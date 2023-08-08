@@ -10,10 +10,10 @@ from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms import estimate_total_polynomial_degree
 from ufl.algorithms.comparison_checker import do_comparison_check, ComplexComparisonError
 from ufl.algorithms.formtransformations import compute_form_adjoint
-from ufl import TestFunction, TrialFunction, triangle, FiniteElement, \
-        as_ufl, inner, grad, dx, dot, outer, conj, sqrt, sin, cosh, \
-        atan, ln, exp, as_tensor, real, imag, conditional, \
-        min_value, max_value, gt, lt, cos, ge, le, Coefficient
+from ufl import (TestFunction, TrialFunction, triangle, FiniteElement,
+                 as_ufl, inner, grad, dx, dot, outer, conj, sqrt, sin, cosh,
+                 atan, ln, exp, as_tensor, real, imag, conditional,
+                 min_value, max_value, gt, lt, cos, ge, le, Coefficient)
 
 
 def test_conj(self):

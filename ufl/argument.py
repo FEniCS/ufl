@@ -130,7 +130,7 @@ class BaseArgument(object):
         are the same ufl element but different dolfin function spaces.
         """
         return (
-            type(self) == type(other) and self._number == other._number and  # noqa: W504
+            type(self) is type(other) and self._number == other._number and  # noqa: W504
             self._part == other._part and self._ufl_function_space == other._ufl_function_space
         )
 
