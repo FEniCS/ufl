@@ -16,12 +16,15 @@ from collections import defaultdict
 from itertools import chain
 
 from ufl.checks import is_scalar_constant_expression
+from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.domain import extract_unique_domain, sort_domains
 from ufl.equation import Equation
 from ufl.integral import Integral
+from ufl.utils.counted import Counted
+from ufl.utils.sorting import sorted_by_count
 
 # Export list for ufl.classes
 __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
@@ -257,8 +260,9 @@ class Form(BaseForm):
         "_arguments",
         "_coefficients",
         "_coefficient_numbering",
-        "_constant_numbering",
         "_constants",
+        "_constant_numbering",
+        "_terminal_numbering",
         "_hash",
         "_signature",
         # --- Dict that external frameworks can place framework-specific
@@ -289,11 +293,10 @@ class Form(BaseForm):
         self._coefficients = None
         self._coefficient_numbering = None
         self._constant_numbering = None
+        self._terminal_numbering = None
 
         from ufl.algorithms.analysis import extract_constants
         self._constants = extract_constants(self)
-        self._constant_numbering = dict(
-            (c, i) for i, c in enumerate(self._constants))
 
         # Internal variables for caching of hash and signature after
         # first request
@@ -406,8 +409,15 @@ class Form(BaseForm):
     def coefficient_numbering(self):
         """Return a contiguous numbering of coefficients in a mapping
         ``{coefficient:number}``."""
+        # cyclic import
+        from ufl.coefficient import Coefficient
+
         if self._coefficient_numbering is None:
-            self._analyze_form_arguments()
+            self._coefficient_numbering = {
+                expr: num
+                for expr, num in self.terminal_numbering().items()
+                if isinstance(expr, Coefficient)
+            }
         return self._coefficient_numbering
 
     def constants(self):
@@ -416,7 +426,37 @@ class Form(BaseForm):
     def constant_numbering(self):
         """Return a contiguous numbering of constants in a mapping
         ``{constant:number}``."""
+        if self._constant_numbering is None:
+            self._constant_numbering = {
+                expr: num
+                for expr, num in self.terminal_numbering().items()
+                if isinstance(expr, Constant)
+            }
         return self._constant_numbering
+
+    def terminal_numbering(self):
+        """Return a contiguous numbering for all counted objects in the form.
+
+        The returned object is mapping from terminal to its number (an integer).
+
+        The numbering is computed per type so :class:`Coefficient`s,
+        :class:`Constant`s, etc will each be numbered from zero.
+
+        """
+        # cyclic import
+        from ufl.algorithms.analysis import extract_type
+
+        if self._terminal_numbering is None:
+            exprs_by_type = defaultdict(set)
+            for counted_expr in extract_type(self, Counted):
+                exprs_by_type[counted_expr._counted_class].add(counted_expr)
+
+            numbering = {}
+            for exprs in exprs_by_type.values():
+                for i, expr in enumerate(sorted_by_count(exprs)):
+                    numbering[expr] = i
+            self._terminal_numbering = numbering
+        return self._terminal_numbering
 
     def signature(self):
         "Signature for use with jit cache (independent of incidental numbering of indices etc.)"
@@ -625,23 +665,19 @@ class Form(BaseForm):
             sorted(set(arguments), key=lambda x: x.number()))
         self._coefficients = tuple(
             sorted(set(coefficients), key=lambda x: x.count()))
-        self._coefficient_numbering = dict(
-            (c, i) for i, c in enumerate(self._coefficients))
 
     def _compute_renumbering(self):
         # Include integration domains and coefficients in renumbering
         dn = self.domain_numbering()
-        cn = self.coefficient_numbering()
-        cnstn = self.constant_numbering()
+        tn = self.terminal_numbering()
         renumbering = {}
         renumbering.update(dn)
-        renumbering.update(cn)
-        renumbering.update(cnstn)
+        renumbering.update(tn)
 
         # Add domains of coefficients, these may include domains not
         # among integration domains
         k = len(dn)
-        for c in cn:
+        for c in self.coefficients():
             d = extract_unique_domain(c)
             if d is not None and d not in renumbering:
                 renumbering[d] = k

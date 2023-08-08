@@ -10,7 +10,7 @@
 # Modified by Massimiliano Leoni, 2016.
 
 
-from ufl.utils.counted import counted_init
+from ufl.utils.counted import Counted
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 
@@ -70,20 +70,15 @@ class FixedIndex(IndexBase):
         return r
 
 
-class Index(IndexBase):
+class Index(IndexBase, Counted):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
-    __slots__ = ("_count",)
-
-    _globalcount = 0
+    __slots__ = ("_count", "_counted_class")
 
     def __init__(self, count=None):
         IndexBase.__init__(self)
-        counted_init(self, count, Index)
-
-    def count(self):
-        return self._count
+        Counted.__init__(self, count, Index)
 
     def __hash__(self):
         return hash(("Index", self._count))
