@@ -8,8 +8,9 @@ from ufl.tensors import as_tensor
 from ufl.classes import Grad
 from ufl.algorithms import tree_format
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.algorithms.apply_derivatives import apply_derivatives, GenericDerivativeRuleset, \
-    GradRuleset, VariableRuleset, GateauxDerivativeRuleset
+from ufl.algorithms.apply_derivatives import (
+    apply_derivatives, GenericDerivativeRuleset,
+    GradRuleset, VariableRuleset, GateauxDerivativeRuleset)
 
 
 # Note: the old tests in test_automatic_differentiation.py are a bit messy

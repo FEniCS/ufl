@@ -19,17 +19,18 @@ import operator
 from ufl.form import Form
 from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
-from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
-    Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
+from ufl.tensoralgebra import (
+    Transposed, Inner, Outer, Dot, Cross,
+    Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym)
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
-from ufl.conditional import EQ, NE, \
-    AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue
+from ufl.conditional import (
+    EQ, NE, AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue)
 from ufl.algebra import Conj, Real, Imag
-from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
-    Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
-    BesselJ, BesselY, BesselI, BesselK
+from ufl.mathfunctions import (
+    Sqrt, Exp, Ln, Erf, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,
+    BesselJ, BesselY, BesselI, BesselK)
 from ufl.averaging import CellAvg, FacetAvg
 from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate, FacetNormal

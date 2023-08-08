@@ -39,7 +39,7 @@ class UFLObject(ABC):
         return hash(self._ufl_hash_data_())
 
     def __eq__(self, other):
-        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -61,7 +61,7 @@ def attach_operators_from_hash_data(cls):
 
     def __eq__(self, other):
         "__eq__ implementation attached in attach_operators_from_hash_data"
-        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
     cls.__eq__ = __eq__
 
     def __ne__(self, other):

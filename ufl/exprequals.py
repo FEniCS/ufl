@@ -15,7 +15,7 @@ def expr_equals(self, other):
 
     # Fast cutoffs for common cases, type difference or hash
     # difference will cutoff more or less all nonequal types
-    if type(self) != type(other) or hash(self) != hash(other):
+    if type(self) is not type(other) or hash(self) != hash(other):
         return False
 
     # Large objects are costly to compare with themselves

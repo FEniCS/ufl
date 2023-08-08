@@ -478,7 +478,7 @@ class Form(BaseForm):
 
     def equals(self, other):
         "Evaluate ``bool(lhs_form == rhs_form)``."
-        if type(other) != Form:
+        if type(other) is not Form:
             return False
         if len(self._integrals) != len(other._integrals):
             return False
@@ -790,7 +790,7 @@ class FormSum(BaseForm):
 
     def equals(self, other):
         "Evaluate ``bool(lhs_form == rhs_form)``."
-        if type(other) != FormSum:
+        if type(other) is not FormSum:
             return False
         if self is other:
             return True
