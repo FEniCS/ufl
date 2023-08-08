@@ -40,12 +40,6 @@ from ufl.form import ZeroBaseForm
 # - ReferenceDivRuleset
 
 
-# Set this to True to enable previously default workaround
-# for bug in FFC handling of conditionals, uflacs does not
-# have this bug.
-CONDITIONAL_WORKAROUND = False
-
-
 class GenericDerivativeRuleset(MultiFunction):
     def __init__(self, var_shape):
         MultiFunction.__init__(self)
@@ -54,7 +48,8 @@ class GenericDerivativeRuleset(MultiFunction):
     # --- Error checking for missing handlers and unexpected types
 
     def expr(self, o):
-        raise ValueError(f"Missing differentiation handler for type {o._ufl_class_.__name__}. Have you added a new type?")
+        raise ValueError(f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
+                         "Have you added a new type?")
 
     def unexpected(self, o):
         raise ValueError(f"Unexpected type {o._ufl_class_.__name__} in AD rules.")
@@ -433,18 +428,10 @@ class GenericDerivativeRuleset(MultiFunction):
         return None
 
     def conditional(self, o, unused_dc, dt, df):
-        global CONDITIONAL_WORKAROUND
         if isinstance(dt, Zero) and isinstance(df, Zero):
             # Assuming dt and df have the same indices here, which
             # should be the case
             return dt
-        elif CONDITIONAL_WORKAROUND:
-            # Placing t[1],f[1] outside here to avoid getting
-            # arguments inside conditionals.  This will fail when dt
-            # or df become NaN or Inf in floating point computations!
-            c = o.ufl_operands[0]
-            dc = conditional(c, 1, 0)
-            return dc * dt + (1.0 - dc) * df
         else:
             # Not placing t[1],f[1] outside, allowing arguments inside
             # conditionals.  This will make legacy ffc fail, but
@@ -721,9 +708,9 @@ class VariableRuleset(GenericDerivativeRuleset):
             # df/v = 0
             return self.independent_terminal(o)
 
-    def variable(self, o, df, l):
+    def variable(self, o, df, a):
         v = self._variable
-        if isinstance(v, Variable) and v.label() == l:
+        if isinstance(v, Variable) and v.label() == a:
             # dv/dv = identity of rank 2*rank(v)
             return self._Id
         else:
@@ -1203,7 +1190,8 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         if do is not None:
             return do
         else:
-            raise NotImplementedError("CoordinateDerivative found a SpatialCoordinate that is different from the one being differentiated.")
+            raise NotImplementedError("CoordinateDerivative found a SpatialCoordinate that is different "
+                                      "from the one being differentiated.")
 
     def reference_value(self, o):
         do = self._cd.get(o)
