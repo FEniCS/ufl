@@ -147,13 +147,15 @@ class FiniteElement(FiniteElementBase):
         if cell is not None:
             cell = as_cell(cell)
 
-        family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = canonical_element_description(family, cell, degree, form_degree)
+        (
+            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping
+        ) = canonical_element_description(family, cell, degree, form_degree)
 
         # TODO: Move these to base? Might be better to instead
         # simplify base though.
         self._sobolev_space = sobolev_space
         self._mapping = mapping
-        self._short_name = short_name
+        self._short_name = short_name or family
         self._variant = variant
 
         # Finite elements on quadrilaterals and hexahedrons have an IrreducibleInt as degree
@@ -188,6 +190,12 @@ class FiniteElement(FiniteElementBase):
     def __repr__(self):
         """Format as string for evaluation as Python object."""
         return self._repr
+
+    def _is_globally_constant(self):
+        return self.family() == "Real"
+
+    def _is_linear(self):
+        return self.family() == "Lagrange" and self.degree() == 1
 
     def mapping(self):
         """Return the mapping type for this element ."""

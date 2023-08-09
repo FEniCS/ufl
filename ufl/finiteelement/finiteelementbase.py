@@ -26,8 +26,6 @@ class FiniteElementBase(ABC):
     def __init__(self, family, cell, degree, quad_scheme, value_shape,
                  reference_value_shape):
         """Initialize basic finite element data."""
-        if not isinstance(family, str):
-            raise ValueError("Invalid family type.")
         if not (degree is None or isinstance(degree, (int, tuple))):
             raise ValueError("Invalid degree type.")
         if not isinstance(value_shape, tuple):
@@ -62,6 +60,17 @@ class FiniteElementBase(ABC):
         """Return the mapping type for this element."""
         pass
 
+    def _is_globally_constant(self):
+        """Check if the element is a global constant.
+
+        For Real elements, this should return True.
+        """
+        return False
+
+    def _is_linear(self):
+        """Check if the element is Lagrange degree 1."""
+        return False
+
     def _ufl_hash_data_(self):
         return repr(self)
 
@@ -74,7 +83,7 @@ class FiniteElementBase(ABC):
 
     def __eq__(self, other):
         "Compute element equality for insertion in hashmaps."
-        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
 
     def __ne__(self, other):
         "Compute element inequality for insertion in hashmaps."
@@ -109,7 +118,7 @@ class FiniteElementBase(ABC):
     def is_cellwise_constant(self, component=None):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
-        return self.family() == "Real" or self.degree() == 0
+        return self._is_globally_constant() or self.degree() == 0
 
     def value_shape(self):
         "Return the shape of the value space on the global domain."
@@ -211,4 +220,8 @@ class FiniteElementBase(ABC):
         if index in ("facet", "interior"):
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
-        return NotImplemented
+        else:
+            raise KeyError(f"Invalid index for restriction: {repr(index)}")
+
+    def __iter__(self):
+        raise TypeError(f"'{type(self).__name__}' object is not iterable")

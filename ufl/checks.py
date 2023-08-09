@@ -26,8 +26,7 @@ def is_ufl_scalar(expression):
 def is_true_ufl_scalar(expression):
     """Return True iff expression is scalar-valued,
     with no free indices."""
-    return isinstance(expression, Expr) and \
-        not (expression.ufl_shape or expression.ufl_free_indices)
+    return isinstance(expression, Expr) and not (expression.ufl_shape or expression.ufl_free_indices)
 
 
 def is_cellwise_constant(expr):
@@ -54,7 +53,7 @@ def is_globally_constant(expr):
             continue
         elif isinstance(e, FormArgument):
             # Accept only Real valued Arguments and Coefficients
-            if e.ufl_element().family() == "Real":
+            if e.ufl_element()._is_globally_constant():
                 continue
             else:
                 return False

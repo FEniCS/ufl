@@ -33,27 +33,6 @@ def sub_elements_with_mappings(element):
     return elements
 
 
-def create_nested_lists(shape):
-    if len(shape) == 0:
-        return [None]
-    elif len(shape) == 1:
-        return [None] * shape[0]
-    else:
-        return [create_nested_lists(shape[1:]) for i in range(shape[0])]
-
-
-def reshape_to_nested_list(components, shape):
-    if len(shape) == 0:
-        assert len(components) == 1
-        return [components[0]]
-    elif len(shape) == 1:
-        assert len(components) == shape[0]
-        return components
-    else:
-        n = product(shape[1:])
-        return [reshape_to_nested_list(components[n * i:n * (i + 1)], shape[1:]) for i in range(shape[0])]
-
-
 def apply_known_single_pullback(r, element):
     """Apply pullback with given mapping.
 
@@ -68,7 +47,7 @@ def apply_known_single_pullback(r, element):
     domain = extract_unique_domain(r)
     if mapping == "physical":
         return r
-    elif mapping == "identity":
+    elif mapping == "identity" or mapping == "custom":
         return r
     elif mapping == "contravariant Piola":
         J = Jacobian(domain)
@@ -118,17 +97,19 @@ def apply_single_function_pullbacks(r, element):
     mapping = element.mapping()
     if r.ufl_shape != element.reference_value_shape():
         raise ValueError(
-            f"Expecting reference space expression with shape '{element.reference_value_shape()}', got '{r.ufl_shape}'")
+            f"Expecting reference space expression with shape '{element.reference_value_shape()}', "
+            f"got '{r.ufl_shape}'")
     if mapping in {"physical", "identity",
                    "contravariant Piola", "covariant Piola",
                    "double contravariant Piola", "double covariant Piola",
-                   "L2 Piola"}:
+                   "L2 Piola", "custom"}:
         # Base case in recursion through elements. If the element
         # advertises a mapping we know how to handle, do that
         # directly.
         f = apply_known_single_pullback(r, element)
         if f.ufl_shape != element.value_shape():
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', got '{f.ufl_shape}'")
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', "
+                             f"got '{f.ufl_shape}'")
         return f
     elif mapping in {"symmetries", "undefined"}:
         # Need to pull back each unique piece of the reference space thing
@@ -161,7 +142,8 @@ def apply_single_function_pullbacks(r, element):
         # And reshape appropriately
         f = as_tensor(numpy.asarray(g_components).reshape(gsh))
         if f.ufl_shape != element.value_shape():
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', got '{f.ufl_shape}'")
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', "
+                             f"got '{f.ufl_shape}'")
         return f
     else:
         raise ValueError(f"Unsupported mapping type: {mapping}")
