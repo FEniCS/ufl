@@ -96,7 +96,7 @@ class AbstractCell(UFLObject):
 
     def num_ridges(self) -> int:
         """Get the number of ridges.
-        
+
         Ridges are entities of dimension tdim-2.
         """
         tdim = self.topological_dimension()
@@ -197,7 +197,7 @@ _sub_entity_celltypes = {
     "pyramid": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(8)),
                 ("quadrilateral", "triangle", "triangle", "triangle", "triangle"), ("pyramid", )],
     "pentatope": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(10)),
-                  tuple("triangle" for i in range(10)), tuple("tetrahedron" for i in range(5), ("pentatope", ))],
+                  tuple("triangle" for i in range(10)), tuple("tetrahedron" for i in range(5)), ("pentatope", )],
     "tesseract": [tuple("vertex" for i in range(16)), tuple("interval" for i in range(32)),
                   tuple("quadrilateral" for i in range(24)), tuple("hexahedron" for i in range(8)), ("tesseract", )],
 }
