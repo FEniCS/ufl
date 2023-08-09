@@ -96,7 +96,7 @@ class AbstractCell(UFLObject):
 
     def num_ridges(self) -> int:
         """Get the number of ridges.
-
+        
         Ridges are entities of dimension tdim-2.
         """
         tdim = self.topological_dimension()
@@ -196,6 +196,10 @@ _sub_entity_celltypes = {
               ("triangle", "quadrilateral", "quadrilateral", "quadrilateral", "triangle"), ("prism", )],
     "pyramid": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(8)),
                 ("quadrilateral", "triangle", "triangle", "triangle", "triangle"), ("pyramid", )],
+    "pentatope": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(10)),
+                  tuple("triangle" for i in range(10)), tuple("tetrahedron" for i in range(5), ("pentatope", ))],
+    "tesseract": [tuple("vertex" for i in range(16)), tuple("interval" for i in range(32)),
+                  tuple("quadrilateral" for i in range(24)), tuple("hexahedron" for i in range(8)), ("tesseract", )],
 }
 
 
@@ -422,6 +426,8 @@ def simplex(topological_dimension: int, geometric_dimension: typing.Optional[int
         return Cell("triangle", geometric_dimension)
     if topological_dimension == 3:
         return Cell("tetrahedron", geometric_dimension)
+    if topological_dimension == 4:
+        return Cell("pentatope", geometric_dimension)
     raise ValueError(f"Unsupported topological dimension for simplex: {topological_dimension}")
 
 
@@ -435,6 +441,8 @@ def hypercube(topological_dimension, geometric_dimension=None):
         return Cell("quadrilateral", geometric_dimension)
     if topological_dimension == 3:
         return Cell("hexahedron", geometric_dimension)
+    if topological_dimension == 4:
+        return Cell("tesseract", geometric_dimension)
     raise ValueError(f"Unsupported topological dimension for hypercube: {topological_dimension}")
 
 
