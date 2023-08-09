@@ -111,8 +111,9 @@ class DirectionalSobolevSpace(SobolevSpace):
                      the position denotes in what spatial variable the
                      smoothness requirement is enforced.
         """
-        assert all(isinstance(x, int) or isinf(x) for x in orders), \
-            ("Order must be an integer or infinity.")
+        assert all(
+            isinstance(x, int) or isinf(x)
+            for x in orders), "Order must be an integer or infinity."
         name = "DirectionalH"
         parents = [L2]
         super(DirectionalSobolevSpace, self).__init__(name, parents)

@@ -63,7 +63,7 @@ class AbstractCell(UFLObject):
 
     def __lt__(self, other: AbstractCell) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all cells."""
-        if type(self) == type(other):
+        if type(self) is type(other):
             s = (self.geometric_dimension(), self.topological_dimension())
             o = (other.geometric_dimension(), other.topological_dimension())
             if s != o:
@@ -409,7 +409,7 @@ class TensorProductCell(AbstractCell):
                 gdim = value
             else:
                 raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
-        return TensorProductCell(self._cellname, geometric_dimension=gdim)
+        return TensorProductCell(*self._cells, geometric_dimension=gdim)
 
 
 def simplex(topological_dimension: int, geometric_dimension: typing.Optional[int] = None):

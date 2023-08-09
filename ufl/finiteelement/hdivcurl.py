@@ -119,7 +119,7 @@ class WithMapping(FiniteElementBase):
                                  (type(self).__name__, attr))
 
     def __repr__(self):
-        return f"WithMapping({repr(self.wrapee)}, {self._mapping})"
+        return f"WithMapping({repr(self.wrapee)}, '{self._mapping}')"
 
     def value_shape(self):
         gdim = self.cell().geometric_dimension()
