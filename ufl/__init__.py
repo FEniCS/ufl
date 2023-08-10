@@ -53,6 +53,8 @@ A very brief overview of the language contents follows:
     - hexahedron
     - prism
     - pyramid
+    - pentatope
+    - tesseract
 
 * Domains::
 
@@ -342,7 +344,7 @@ from ufl.formoperators import (replace, derivative, action, energy_norm, rhs, lh
 
 # Predefined convenience objects
 from ufl.objects import (
-    vertex, interval, triangle, tetrahedron,
+    vertex, interval, triangle, tetrahedron, pentatope, tesseract,
     quadrilateral, hexahedron, prism, pyramid, facet,
     i, j, k, l, p, q, r, s,
     dx, ds, dS, dP,
@@ -403,7 +405,7 @@ __all__ = [
     'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
-    'prism', 'pyramid',
+    'prism', 'pyramid', 'pentatope', 'tesseract',
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
