@@ -41,7 +41,7 @@ jobs:
         with:
           path: ./ffcx
           repository: FEniCS/ffcx
-          ref: dokken/group_integrals
+          ref: dokken/group_integrals_v2
 
       - name: Install FFCx
         run: |
