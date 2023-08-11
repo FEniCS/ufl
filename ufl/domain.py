@@ -10,7 +10,7 @@ import numbers
 
 from ufl.cell import AbstractCell, TensorProductCell, as_cell
 from ufl.core.ufl_id import attach_ufl_id
-from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.finiteelement.tensorproductelement import TensorProductElement
 
@@ -18,7 +18,7 @@ from ufl.finiteelement.tensorproductelement import TensorProductElement
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
 
 
-class AbstractDomain(object):
+class AbstractDomain(UFLObject):
     """Symbolic representation of a geometric domain with only a geometric
     and topological dimension.
 
@@ -53,7 +53,6 @@ class AbstractDomain(object):
 #         AbstractDomain.__init__(self, geometric_dimension, geometric_dimension)
 
 
-@attach_operators_from_hash_data
 @attach_ufl_id
 class Mesh(AbstractDomain):
     """Symbolic representation of a mesh."""
@@ -120,7 +119,6 @@ class Mesh(AbstractDomain):
                 "Mesh", typespecific)
 
 
-@attach_operators_from_hash_data
 @attach_ufl_id
 class MeshView(AbstractDomain):
     """Symbolic representation of a mesh."""
@@ -170,7 +168,6 @@ class MeshView(AbstractDomain):
                 "MeshView", typespecific)
 
 
-@attach_operators_from_hash_data
 @attach_ufl_id
 class TensorProductMesh(AbstractDomain):
     """Symbolic representation of a mesh."""

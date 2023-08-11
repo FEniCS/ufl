@@ -10,7 +10,7 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.core.ufl_type import UFLObject
 from ufl.domain import join_domains
 from ufl.duals import is_dual, is_primal
 
@@ -24,7 +24,7 @@ __all_classes__ = [
 ]
 
 
-class AbstractFunctionSpace(object):
+class AbstractFunctionSpace(UFLObject):
     def ufl_sub_spaces(self):
         raise NotImplementedError(
             "Missing implementation of IFunctionSpace.ufl_sub_spaces in %s."
@@ -32,7 +32,6 @@ class AbstractFunctionSpace(object):
         )
 
 
-@attach_operators_from_hash_data
 class BaseFunctionSpace(AbstractFunctionSpace):
     def __init__(self, domain, element):
         if domain is None:
@@ -106,7 +105,6 @@ class BaseFunctionSpace(AbstractFunctionSpace):
         return r
 
 
-@attach_operators_from_hash_data
 class FunctionSpace(BaseFunctionSpace):
     """Representation of a Function space."""
     _primal = True
@@ -127,7 +125,6 @@ class FunctionSpace(BaseFunctionSpace):
         return r
 
 
-@attach_operators_from_hash_data
 class DualSpace(BaseFunctionSpace):
     """Representation of a Dual space."""
     _primal = False
@@ -151,7 +148,6 @@ class DualSpace(BaseFunctionSpace):
         return r
 
 
-@attach_operators_from_hash_data
 class TensorProductFunctionSpace(AbstractFunctionSpace):
     def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
@@ -174,7 +170,6 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
         return r
 
 
-@attach_operators_from_hash_data
 class MixedFunctionSpace(AbstractFunctionSpace):
 
     def __init__(self, *args):
