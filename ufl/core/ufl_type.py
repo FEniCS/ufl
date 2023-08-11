@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -8,6 +6,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 # Modified by Matthew Scroggs, 2023
+"""UFL type."""
 
 from __future__ import annotations
 import typing
@@ -36,12 +35,15 @@ class UFLObject(ABC):
         """Return a string representation of the object."""
 
     def __hash__(self) -> int:
+        """Hash the object."""
         return hash(self._ufl_hash_data_())
 
     def __eq__(self, other):
+        """Check if two objects are equal."""
         return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
 
     def __ne__(self, other):
+        """Check inequality."""
         return not self.__eq__(other)
 
 
@@ -55,17 +57,17 @@ def attach_operators_from_hash_data(cls):
     assert hasattr(cls, "_ufl_hash_data_")
 
     def __hash__(self):
-        "__hash__ implementation attached in attach_operators_from_hash_data"
+        """__hash__ implementation attached in attach_operators_from_hash_data"""
         return hash(self._ufl_hash_data_())
     cls.__hash__ = __hash__
 
     def __eq__(self, other):
-        "__eq__ implementation attached in attach_operators_from_hash_data"
+        """__eq__ implementation attached in attach_operators_from_hash_data"""
         return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
     cls.__eq__ = __eq__
 
     def __ne__(self, other):
-        "__ne__ implementation attached in attach_operators_from_hash_data"
+        """__ne__ implementation attached in attach_operators_from_hash_data"""
         return not self.__eq__(other)
     cls.__ne__ = __ne__
 
