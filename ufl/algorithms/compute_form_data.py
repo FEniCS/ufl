@@ -344,7 +344,8 @@ def compute_form_data(form,
 
     # Store all the external operators and their derivative multiindex
     # turning up in the form (Differentiation may have introduced new external operators)
-    extops_pos = {e._extop_master.count(): i for i, e in reversed(list(enumerate(self.original_form.external_operators())))}
+    extops_pos = {e._extop_master.count(): i
+                  for i, e in reversed(list(enumerate(self.original_form.external_operators())))}
     derivatives_dict = {}
     extop_dict = {}
 
@@ -362,7 +363,8 @@ def compute_form_data(form,
             extop_dict[eid] += (e_coeff,)
 
     self.external_operators = derivatives_dict
-    new_external_operators = [e for i in sorted(extop_dict.keys()) for e in sorted(extop_dict[i], key=lambda e: e.count())]
+    new_external_operators = [e for i in sorted(extop_dict.keys())
+                              for e in sorted(extop_dict[i], key=lambda e: e.count())]
     new_coefficients = tuple(e for e in self.original_form.coefficients() if e not in new_external_operators)
     new_coefficients += tuple(new_external_operators)
 

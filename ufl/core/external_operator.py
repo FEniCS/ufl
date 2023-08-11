@@ -1,5 +1,8 @@
-# -*- coding: utf-8 -*-
-"""This module defines the ``ExternalOperator`` class, which symbolically represents operators that are not straightforwardly expressible in UFL. A practical implementation is required at a later stage to define how this operator should be evaluated as well as its derivatives from a given set of operands.
+"""
+This module defines the ``ExternalOperator`` class, which symbolically represents operators that
+are not straightforwardly expressible in UFL. A practical implementation is required at a later
+stage to define how this operator should be evaluated as well as its derivatives from a given set
+of operands.
 """
 
 # Copyright (C) 2019 Nacime Bouziani
@@ -35,7 +38,8 @@ class ExternalOperator(Operator):
             Alternatively, another :class:`Coefficient` may be passed here and its function space
             will be used.
         :param derivatives: tuple specifiying the derivative multiindex.
-        :param coefficient: ufl.Coefficient associated to the ExternalOperator representing what is produced by the operator
+        :param coefficient: ufl.Coefficient associated to the ExternalOperator representing what is
+            produced by the operator
         :param arguments: tuple composed of tuples whose first argument is a ufl.Argument or ufl.Expr
             containing several ufl.Argument objects and whose second arguments is a boolean indicating
             whether we take the action of the adjoint. We have arguments when the operator is a GlobalExternalOperator.
@@ -124,7 +128,8 @@ class ExternalOperator(Operator):
     def action_coefficients(self):
         """Returns a tuple of expressions containing a coefficient. When we take the action of a GlobalExternalOperator,
         the arguments in self.arguments() are replaced by coefficients.
-        self.action_coefficients() is equivalent to `ufl.replace(self.arguments(), dictionary_mapping_arguments_to_coefficients)`"""
+        self.action_coefficients() is equivalent to `ufl.replace(self.arguments(),
+        dictionary_mapping_arguments_to_coefficients)`"""
         return self._action_coefficients
 
     @property
@@ -151,8 +156,9 @@ class ExternalOperator(Operator):
         return self.get_coefficient()._ufl_function_space
 
     def _make_function_space_args(self, k, y, adjoint=False):
-        r"""Make the function space of the Gateaux derivative: dN[x] = \frac{dN}{dOperands[k]} * y(x) if adjoint is False
-        and of \frac{dN}{dOperands[k]}^{*} * y(x) if adjoint is True"""
+        r"""Make the function space of the Gateaux derivative:
+        dN[x] = \\frac{dN}{dOperands[k]} * y(x) if adjoint is False
+        and of \\frac{dN}{dOperands[k]}^{*} * y(x) if adjoint is True"""
         opk_shape = self.ufl_operands[k].ufl_shape
         y_shape = y.ufl_shape
         shape = self.ufl_function_space().ufl_element().reference_value_shape()
@@ -208,7 +214,10 @@ class ExternalOperator(Operator):
         """Evaluate expression at given coordinate with given values for terminals."""
         raise TypeError("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, coefficient=None, arguments=None, local_operands=None, add_kwargs={}):
+    def _ufl_expr_reconstruct_(
+        self, *operands, function_space=None, derivatives=None, coefficient=None,
+        arguments=None, local_operands=None, add_kwargs={}
+    ):
         "Return a new object of the same type with new operands."
         deriv_multiindex = derivatives or self.derivatives
 
@@ -245,7 +254,7 @@ class ExternalOperator(Operator):
     def __repr__(self):
         "Default repr string construction for operators."
         # This should work for most cases
-        r = "ExternalOperator(%s; %s, %s)" % (", ".join(repr(op) for op in self.ufl_operands), self._arguments, self._count)
+        r = f"ExternalOperator({', '.join(repr(op) for op in self.ufl_operands)}; {self._arguments}, {self._count})"
         return r
 
     def __str__(self):
