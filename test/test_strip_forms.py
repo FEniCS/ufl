@@ -6,14 +6,12 @@ import pytest
 from ufl import *
 from ufl.algorithms import strip_terminal_data, replace_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
-from ufl.core.ufl_type import attach_operators_from_hash_data
 
 
 MIN_REF_COUNT = 2
 """The minimum value returned by sys.getrefcount."""
 
 
-@attach_operators_from_hash_data
 @attach_ufl_id
 class AugmentedMesh(Mesh):
     def __init__(self, *args, data):
@@ -21,7 +19,6 @@ class AugmentedMesh(Mesh):
         self.data = data
 
 
-@attach_operators_from_hash_data
 class AugmentedFunctionSpace(FunctionSpace):
     def __init__(self, *args, data):
         super().__init__(*args)
