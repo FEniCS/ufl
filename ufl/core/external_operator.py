@@ -62,9 +62,9 @@ class ExternalOperator(Operator):
         # Checks
         if derivatives is not None:
             if not isinstance(derivatives, tuple):
-                raise TypeError("Expecting a tuple for derivatives and not %s" % derivatives)
+                raise TypeError(f"Expecting a tuple for derivatives and not {derivatives}")
             if not len(derivatives) == len(self.ufl_operands):
-                raise TypeError("Expecting a size of %s for %s" % (len(self.ufl_operands), derivatives))
+                raise TypeError(f"Expecting a size of {len(self.ufl_operands)} for {derivatives}")
 
             self.derivatives = derivatives
             # If we have arguments, the appropriate function space has already been set up upstream
@@ -212,7 +212,7 @@ class ExternalOperator(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        raise TypeError("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
+        raise TypeError(f"Symbolic evaluation of {self._ufl_class_.__name__} not available.")
 
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, coefficient=None,
@@ -260,10 +260,8 @@ class ExternalOperator(Operator):
     def __str__(self):
         "Default repr string construction for ExternalOperator operators."
         # This should work for most cases
-        r = "%s(%s,%s,%s,%s,%s)" % (self._ufl_class_.__name__, ", ".join(repr(op) for op in self.ufl_operands),
-                                    repr(self.ufl_function_space()), repr(self.derivatives), repr(self.ufl_shape),
-                                    repr(self.count()))
-        return r
+        return (f"{self._ufl_class_.__name__}({', '.join(repr(op) for op in self.ufl_operands)}, "
+                f"{self.ufl_function_space()!r}, {self.derivatives!r}, {self.ufl_shape!r}, {self.count()!r})")
 
     def _ufl_compute_hash_(self):
         "Default hash of terminals just hash the repr string."
