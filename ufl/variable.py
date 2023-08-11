@@ -8,8 +8,7 @@ expressions as variables for differentiation."""
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.utils.counted import counted_init
-from ufl.log import error
+from ufl.utils.counted import Counted
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
@@ -18,17 +17,12 @@ from ufl.constantvalue import as_ufl
 
 
 @ufl_type()
-class Label(Terminal):
-    __slots__ = ("_count",)
-
-    _globalcount = 0
+class Label(Terminal, Counted):
+    __slots__ = ("_count", "_counted_class")
 
     def __init__(self, count=None):
         Terminal.__init__(self)
-        counted_init(self, count, Label)
-
-    def count(self):
-        return self._count
+        Counted.__init__(self, count, Label)
 
     def __str__(self):
         return "Label(%d)" % self._count
@@ -39,15 +33,15 @@ class Label(Terminal):
 
     @property
     def ufl_shape(self):
-        error("Label has no shape (it is not a tensor expression).")
+        raise ValueError("Label has no shape (it is not a tensor expression).")
 
     @property
     def ufl_free_indices(self):
-        error("Label has no free indices (it is not a tensor expression).")
+        raise ValueError("Label has no free indices (it is not a tensor expression).")
 
     @property
     def ufl_index_dimensions(self):
-        error("Label has no free indices (it is not a tensor expression).")
+        raise ValueError("Label has no free indices (it is not a tensor expression).")
 
     def is_cellwise_constant(self):
         return True
@@ -55,6 +49,11 @@ class Label(Terminal):
     def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         return ()
+
+    def _ufl_signature_data_(self, renumbering):
+        if self not in renumbering:
+            return ("Label", self._count)
+        return ("Label", renumbering[self])
 
 
 @ufl_type(is_shaping=True, is_index_free=True, num_ops=1, inherit_shape_from_operand=0)
@@ -80,11 +79,11 @@ class Variable(Operator):
 
         # Checks
         if not isinstance(expression, Expr):
-            error("Expecting Expr.")
+            raise ValueError("Expecting Expr.")
         if not isinstance(label, Label):
-            error("Expecting a Label.")
+            raise ValueError("Expecting a Label.")
         if expression.ufl_free_indices:
-            error("Variable cannot wrap an expression with free indices.")
+            raise ValueError("Variable cannot wrap an expression with free indices.")
 
         Operator.__init__(self, (expression, label))
 
@@ -102,8 +101,7 @@ class Variable(Operator):
         return self.ufl_operands[1]
 
     def __eq__(self, other):
-        return (isinstance(other, Variable) and
-                self.ufl_operands[1] == other.ufl_operands[1] and
+        return (isinstance(other, Variable) and self.ufl_operands[1] == other.ufl_operands[1] and  # noqa: W504
                 self.ufl_operands[0] == other.ufl_operands[0])
 
     def __str__(self):

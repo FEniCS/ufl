@@ -7,7 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 
@@ -23,7 +22,7 @@ class RestrictionChecker(MultiFunction):
 
     def restricted(self, o):
         if self.current_restriction is not None:
-            error("Not expecting twice restricted expression.")
+            raise ValueError("Not expecting twice restricted expression.")
         self.current_restriction = o._side
         e, = o.ufl_operands
         self.visit(e)
@@ -32,18 +31,18 @@ class RestrictionChecker(MultiFunction):
     def facet_normal(self, o):
         if self.require_restriction:
             if self.current_restriction is None:
-                error("Facet normal must be restricted in interior facet integrals.")
+                raise ValueError("Facet normal must be restricted in interior facet integrals.")
         else:
             if self.current_restriction is not None:
-                error("Restrictions are only allowed for interior facet integrals.")
+                raise ValueError("Restrictions are only allowed for interior facet integrals.")
 
     def form_argument(self, o):
         if self.require_restriction:
             if self.current_restriction is None:
-                error("Form argument must be restricted in interior facet integrals.")
+                raise ValueError("Form argument must be restricted in interior facet integrals.")
         else:
             if self.current_restriction is not None:
-                error("Restrictions are only allowed for interior facet integrals.")
+                raise ValueError("Restrictions are only allowed for interior facet integrals.")
 
 
 def check_restrictions(expression, require_restriction):

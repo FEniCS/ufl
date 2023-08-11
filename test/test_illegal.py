@@ -58,31 +58,31 @@ def vg():
 
 
 def test_mul_v_u(v, u):
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         v * u
 
 
 def test_mul_vf_u(vf, u):
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         vf * u
 
 
 def test_mul_vf_vg(vf, vg):
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         vf * vg
 
 
 def test_add_a_v(a, v):
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         a + v
 
 
 def test_add_vf_b(vf, b):
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         vf + b
 
 
 def test_add_vectorexpr_b(vg, v, u, vf, b):
     tmp = vg + v + u + vf
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         tmp + b

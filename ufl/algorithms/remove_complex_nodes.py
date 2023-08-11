@@ -5,7 +5,6 @@ from a form for when the user is in 'real mode'"""
 from ufl.corealg.multifunction import MultiFunction
 from ufl.constantvalue import ComplexValue
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.log import error
 
 
 class ComplexNodeRemoval(MultiFunction):
@@ -19,11 +18,11 @@ class ComplexNodeRemoval(MultiFunction):
         return a
 
     def imag(self, o, a):
-        error("Unexpected imag in real expression.")
+        raise ValueError("Unexpected imag in real expression.")
 
     def terminal(self, t, *ops):
         if isinstance(t, ComplexValue):
-            error('Unexpected complex value in real expression.')
+            raise ValueError('Unexpected complex value in real expression.')
         else:
             return t
 

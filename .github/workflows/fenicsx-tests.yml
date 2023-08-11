@@ -15,6 +15,7 @@ jobs:
     env:
       CC: gcc-10
       CXX: g++-10
+      PETSC_ARCH: linux-gnu-real-64
 
     steps:
       - uses: actions/checkout@v3
@@ -41,6 +42,7 @@ jobs:
           path: ./ffcx
           repository: FEniCS/ffcx
           ref: dokken/group_integrals
+
       - name: Install FFCx
         run: |
           cd ffcx
@@ -54,8 +56,6 @@ jobs:
     container: fenicsproject/test-env:nightly-openmpi
 
     env:
-      CC: clang
-      CXX: clang++
 
       PETSC_ARCH: linux-gnu-complex-32
       OMPI_ALLOW_RUN_AS_ROOT: 1

@@ -150,14 +150,14 @@ def test_join_domains():
     assert 2 == len(join_domains([Mesh(xa), Mesh(xb)]))
 
     # Incompatible cells require labeling
-    # self.assertRaises(UFLException, lambda: join_domains([Mesh(triangle), Mesh(triangle3)]))     # FIXME: Figure out
-    # self.assertRaises(UFLException, lambda: join_domains([Mesh(triangle),
+    # self.assertRaises(BaseException, lambda: join_domains([Mesh(triangle), Mesh(triangle3)]))     # FIXME: Figure out
+    # self.assertRaises(BaseException, lambda: join_domains([Mesh(triangle),
     # Mesh(quadrilateral)])) # FIXME: Figure out
 
     # Incompatible coordinates require labeling
     xc = Coefficient(FunctionSpace(Mesh(triangle), VectorElement("CG", triangle, 1)))
     xd = Coefficient(FunctionSpace(Mesh(triangle), VectorElement("CG", triangle, 1)))
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         join_domains([Mesh(xc), Mesh(xd)])
 
     # Incompatible data is checked if and only if the domains are the same
@@ -166,14 +166,14 @@ def test_join_domains():
     assert 2 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh7),
                                   Mesh(quadrilateral, ufl_id=8, cargo=mesh8)]))
     # Geometric dimensions must match
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         join_domains([Mesh(triangle),
                       Mesh(triangle3)])
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         join_domains([Mesh(triangle, ufl_id=7, cargo=mesh7),
                       Mesh(triangle3, ufl_id=8, cargo=mesh8)])
     # Cargo and mesh ids must match
-    with pytest.raises(UFLException):
+    with pytest.raises(BaseException):
         Mesh(triangle, ufl_id=7, cargo=mesh8)
 
     # Nones are removed
@@ -325,8 +325,8 @@ def xtest_mixed_elements_on_overlapping_regions():  # Old sketch, not working
     # data.
 
     # These should fail because the functions are undefined on the integration domains
-    # self.assertRaises(UFLException, lambda: mr**2*dx(DD)) # FIXME: Make this fail
-    # self.assertRaises(UFLException, lambda: mr**2*dx(DD)) # FIXME: Make this
+    # self.assertRaises(BaseException, lambda: mr**2*dx(DD)) # FIXME: Make this fail
+    # self.assertRaises(BaseException, lambda: mr**2*dx(DD)) # FIXME: Make this
     # fail
 
 
