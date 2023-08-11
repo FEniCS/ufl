@@ -52,9 +52,8 @@ class ExternalOperator(Operator):
             whether we take the action of the adjoint. We have arguments when the operator is a
             GlobalExternalOperator.
         local_operands
-            Tuple specyfing the operands on which the operator acts locally
+            Tuple specyfing the operands on which the operator acts locally.
         """
-
         ufl_operands = tuple(map(as_ufl, operands))
         Operator.__init__(self, ufl_operands)
 
