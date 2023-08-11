@@ -136,8 +136,9 @@ def integral_subdomain_ids(integral):
         raise ValueError(f"Invalid domain id {did}.")
 
 
-def rearrange_integrals_by_single_subdomains(integrals: typing.List[Integral],
-                                             do_append_everywhere_integrals: bool) -> typing.Dict[int, typing.List[Integral]]:
+def rearrange_integrals_by_single_subdomains(
+        integrals: typing.List[Integral],
+        do_append_everywhere_integrals: bool) -> typing.Dict[int, typing.List[Integral]]:
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
     Input:
@@ -255,7 +256,8 @@ def build_integral_data(integrals):
     for integral_data, subdomain_ids in unique_integrals.items():
         (integral_type, ufl_domain, metadata, integrand, subdomain_data) = integral_data
 
-        integral = Integral(integrand, integral_type, ufl_domain, subdomain_ids, metadata_table[integral_data], subdomain_data)
+        integral = Integral(integrand, integral_type, ufl_domain, subdomain_ids,
+                            metadata_table[integral_data], subdomain_data)
         # Group for integral data (One integral data object for all
         # integrals with same domain, itype, (but possibly different metadata).
         itgs[(ufl_domain, integral_type, subdomain_ids)].append(integral)
@@ -294,7 +296,8 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
             #   f*dx((1,2)) + g*dx((2,3)) -> f*dx(1) + (f+g)*dx(2) + g*dx(3)
             # (note: before this call, 'everywhere' is a valid subdomain_id,
             # and after this call, 'otherwise' is a valid subdomain_id)
-            single_subdomain_integrals = rearrange_integrals_by_single_subdomains(ddt_integrals, do_append_everywhere_integrals)
+            single_subdomain_integrals = rearrange_integrals_by_single_subdomains(
+                ddt_integrals, do_append_everywhere_integrals)
 
             for subdomain_id, ss_integrals in sorted_by_key(single_subdomain_integrals):
 
