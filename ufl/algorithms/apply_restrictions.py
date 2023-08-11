@@ -1,4 +1,5 @@
-"""This module contains the apply_restrictions algorithm which propagates restrictions in a form towards the terminals."""
+"""This module contains the apply_restrictions algorithm which propagates
+restrictions in a form towards the terminals."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -60,7 +61,8 @@ class RestrictionPropagator(MultiFunction):
         return o(r)
 
     def _opposite(self, o):
-        "Restrict a quantity to default side, if the current restriction is different swap the sign, require a side to be set."
+        """Restrict a quantity to default side, if the current restriction
+        is different swap the sign, require a side to be set."""
         if self.current_restriction is None:
             raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
         elif self.current_restriction == self.default_restriction:
@@ -127,7 +129,8 @@ class RestrictionPropagator(MultiFunction):
     reference_facet_volume = _ignore_restriction
 
     def coefficient(self, o):
-        "Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous across the facet."
+        """Allow coefficients to be unrestricted (apply default if so) if the values are
+        fully continuous across the facet."""
         if o.ufl_element() in H1:
             # If the coefficient _value_ is _fully_ continuous
             return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which

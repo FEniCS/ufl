@@ -295,7 +295,8 @@ class PartExtracter(Transformer):
         # least with the current transformer design.)
         for (component, provides) in ops:
             if (provides != most_provides and not isinstance(component, Zero)):
-                raise ValueError("PartExtracter does not know how to handle list_tensors with non-zero components providing fewer arguments")
+                raise ValueError("PartExtracter does not know how to handle list_tensors with "
+                                 "non-zero components providing fewer arguments")
 
         # Return components
         components = [op[0] for op in ops]

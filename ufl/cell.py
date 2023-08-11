@@ -63,7 +63,7 @@ class AbstractCell(UFLObject):
 
     def __lt__(self, other: AbstractCell) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all cells."""
-        if type(self) == type(other):
+        if type(self) is type(other):
             s = (self.geometric_dimension(), self.topological_dimension())
             o = (other.geometric_dimension(), other.topological_dimension())
             if s != o:
@@ -196,6 +196,10 @@ _sub_entity_celltypes = {
               ("triangle", "quadrilateral", "quadrilateral", "quadrilateral", "triangle"), ("prism", )],
     "pyramid": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(8)),
                 ("quadrilateral", "triangle", "triangle", "triangle", "triangle"), ("pyramid", )],
+    "pentatope": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(10)),
+                  tuple("triangle" for i in range(10)), tuple("tetrahedron" for i in range(5)), ("pentatope", )],
+    "tesseract": [tuple("vertex" for i in range(16)), tuple("interval" for i in range(32)),
+                  tuple("quadrilateral" for i in range(24)), tuple("hexahedron" for i in range(8)), ("tesseract", )],
 }
 
 
@@ -215,8 +219,9 @@ class Cell(AbstractCell):
         self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
 
         self._num_cell_entities = [len(i) for i in self._sub_entity_celltypes]
-        self._sub_entities = [tuple(Cell(t, self._gdim) for t in se_types) for se_types in self._sub_entity_celltypes[:-1]]
-        self._sub_entity_types = [tuple(Cell(t, self._gdim) for t in set(se_types)) for se_types in self._sub_entity_celltypes[:-1]]
+        self._sub_entities = [tuple(Cell(t, self._gdim) for t in se_types)
+                              for se_types in self._sub_entity_celltypes[:-1]]
+        self._sub_entity_types = [tuple(set(i)) for i in self._sub_entities]
         self._sub_entities.append((weakref.proxy(self), ))
         self._sub_entity_types.append((weakref.proxy(self), ))
 
@@ -408,7 +413,7 @@ class TensorProductCell(AbstractCell):
                 gdim = value
             else:
                 raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
-        return TensorProductCell(self._cellname, geometric_dimension=gdim)
+        return TensorProductCell(*self._cells, geometric_dimension=gdim)
 
 
 def simplex(topological_dimension: int, geometric_dimension: typing.Optional[int] = None):
@@ -421,6 +426,8 @@ def simplex(topological_dimension: int, geometric_dimension: typing.Optional[int
         return Cell("triangle", geometric_dimension)
     if topological_dimension == 3:
         return Cell("tetrahedron", geometric_dimension)
+    if topological_dimension == 4:
+        return Cell("pentatope", geometric_dimension)
     raise ValueError(f"Unsupported topological dimension for simplex: {topological_dimension}")
 
 
@@ -434,6 +441,8 @@ def hypercube(topological_dimension, geometric_dimension=None):
         return Cell("quadrilateral", geometric_dimension)
     if topological_dimension == 3:
         return Cell("hexahedron", geometric_dimension)
+    if topological_dimension == 4:
+        return Cell("tesseract", geometric_dimension)
     raise ValueError(f"Unsupported topological dimension for hypercube: {topological_dimension}")
 
 

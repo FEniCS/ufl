@@ -37,6 +37,8 @@ prism = Cell("prism", 3)
 pyramid = Cell("pyramid", 3)
 quadrilateral = Cell("quadrilateral", 2)
 hexahedron = Cell("hexahedron", 3)
+tesseract = Cell("tesseract", 4)
+pentatope = Cell("pentatope", 4)
 
 # Facet is just a dummy declaration for RestrictedElement
 facet = "facet"
