@@ -33,19 +33,26 @@ class ExternalOperator(Operator):
     def __init__(self, *operands, function_space, derivatives=None, coefficient=None, arguments=(), local_operands=()):
         """Initialise the external operator.
 
-        Args:
-            operands: Operands on which the ExternalOperator acts.
-            function_space: The function space on which to build this function.
-                Alternatively, another Coefficient may be passed here and its function space
-                will be used.
-            derivatives: Tuple specifiying the derivative multiindex.
-            coefficient: ufl.Coefficient associated to the ExternalOperator representing what is
-                produced by the operator
-            arguments: Tuple composed of tuples whose first argument is a ufl.Argument or ufl.Expr
-                containing several ufl.Argument objects and whose second arguments is a boolean indicating
-                whether we take the action of the adjoint. We have arguments when the operator is a
-                GlobalExternalOperator.
-            local_operands: Tuple specyfing the operands on which the operator acts locally.
+        Parameters
+        ----------
+        operands
+            Operands on which the ExternalOperator acts.
+        function_space
+            The function space on which to build this function.
+            Alternatively, another Coefficient may be passed here and its function space
+            will be used.
+        derivatives
+            Tuple specifiying the derivative multiindex.
+        coefficient
+            ufl.Coefficient associated to the ExternalOperator representing what is
+            produced by the operator
+        arguments
+            Tuple composed of tuples whose first argument is a ufl.Argument or ufl.Expr
+            containing several ufl.Argument objects and whose second arguments is a boolean indicating
+            whether we take the action of the adjoint. We have arguments when the operator is a
+            GlobalExternalOperator.
+        local_operands
+            Tuple specyfing the operands on which the operator acts locally.
         """
         ufl_operands = tuple(map(as_ufl, operands))
         Operator.__init__(self, ufl_operands)
