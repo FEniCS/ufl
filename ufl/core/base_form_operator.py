@@ -11,7 +11,7 @@
 # Modified by Nacime Bouziani, 2021-2022
 
 from ufl.coefficient import Coefficient
-from ufl.argument import Argument
+from ufl.argument import Argument, Coargument
 from ufl.core.operator import Operator
 from ufl.form import BaseForm
 from ufl.core.ufl_type import ufl_type
@@ -112,8 +112,14 @@ class BaseFormOperator(Operator, BaseForm):
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the base form."
-        from ufl.algorithms.analysis import extract_arguments, extract_coefficients
-        arguments = tuple(a for arg in self.argument_slots() for a in extract_arguments(arg))
+        from ufl.algorithms.analysis import extract_arguments, extract_coefficients, extract_type
+        dual_arg, *arguments = self.argument_slots()
+        # When coarguments are treated as BaseForms, they have two arguments (one primal and one dual)
+        # as they map from V* to V* => V* x V -> R. However, when they are treated as mere "arguments",
+        # the primal space argument is discarded and we only have the dual space argument (Coargument).
+        # This is the exact same situation than BaseFormOperator's arguments which are different depending on
+        # whether the BaseFormOperator is used in an outer form or not.
+        arguments = tuple(extract_type(dual_arg, Coargument)) + tuple(a for arg in arguments for a in extract_arguments(arg))
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         from collections import OrderedDict

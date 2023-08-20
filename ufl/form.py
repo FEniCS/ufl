@@ -399,12 +399,6 @@ class Form(BaseForm):
             self._analyze_subdomain_data()
         return self._max_subdomain_ids
 
-    def arguments(self):
-        "Return all ``Argument`` objects found in form."
-        if self._arguments is None:
-            self._analyze_form_arguments()
-        return self._arguments
-
     def coefficients(self):
         "Return all ``Coefficient`` objects found in form."
         if self._coefficients is None:

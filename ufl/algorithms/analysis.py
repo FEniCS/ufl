@@ -16,7 +16,7 @@ from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.terminal import Terminal
 from ufl.core.base_form_operator import BaseFormOperator
-from ufl.argument import BaseArgument
+from ufl.argument import BaseArgument, Coargument
 from ufl.coefficient import BaseCoefficient
 from ufl.constant import Constant
 from ufl.form import BaseForm, Form
@@ -63,10 +63,12 @@ def extract_type(a, ufl_types):
     # only contain arguments & coefficients
     if isinstance(a, BaseForm) and not isinstance(a, (Form, BaseFormOperator)):
         objects = set()
-        if any(issubclass(t, BaseArgument) for t in ufl_types):
-            objects.update(a.arguments())
-        if any(issubclass(t, BaseCoefficient) for t in ufl_types):
-            objects.update(a.coefficients())
+        arg_types = tuple(t for t in ufl_types if issubclass(t, BaseArgument))
+        if arg_types:
+            objects.update([e for e in a.arguments() if isinstance(e, arg_types)])
+        coeff_types = tuple(t for t in ufl_types if issubclass(t, BaseCoefficient))
+        if coeff_types:
+            objects.update([e for e in a.coefficients() if isinstance(e, coeff_types)])
         return objects
 
     if all(issubclass(t, Terminal) for t in ufl_types):
@@ -94,8 +96,13 @@ def extract_type(a, ufl_types):
     for o in base_form_ops:
         # This accounts for having BaseFormOperator in Forms: if N is a BaseFormOperator
         #  N(u; v*) * v * dx <=> action(v1 * v * dx, N(...; v*))
-        # where v, v1 are Arguments and v* a Coargument.
+        # where v, v1 are `Argument`s and v* a `Coargument`.
         for ai in tuple(arg for arg in o.argument_slots(isinstance(a, Form))):
+            # Extracting BaseArguments of an object of which a Coargument is an argument,
+            # then we just return the dual argument of the Coargument and not its primal argument.
+            # TODO: There might be a cleaner way to handle that case.
+            if isinstance(ai, Coargument):
+                ufl_types = tuple(Coargument if t is BaseArgument else t for t in ufl_types)
             base_form_objects += tuple(extract_type(ai, ufl_types))
         # Look for BaseArguments in BaseFormOperator's argument slots only since that's where they are by definition.
         # Don't look into operands, which is convenient for external operator composition, e.g. N1(N2; v*)
