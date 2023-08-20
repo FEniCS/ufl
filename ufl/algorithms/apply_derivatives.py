@@ -797,7 +797,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
         # Record the operations delayed to the derivative expansion phase:
         # Example: dN(u)/du where `N` is an ExternalOperator and `u` a Coefficient
-        self.pending_operations = (coefficients, {'arguments': arguments, 'coefficient_derivatives': coefficient_derivatives})
+        self.pending_operations = (coefficients, {'arguments': arguments,
+                                                  'coefficient_derivatives': coefficient_derivatives})
 
     # Explicitly defining dg/dw == 0
     geometric_quantity = GenericDerivativeRuleset.independent_terminal
@@ -1091,14 +1092,14 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
 
     # --- BaseFormOperator handlers
 
-    def interp(self, I, dw):
-        # Interp rule: D_w[v](I(w, v*)) = I(v, v*), by linearity of Interp!
+    def interp(self, Iop, dw):
+        # Interp rule: D_w[v](Iop(w, v*)) = Iop(v, v*), by linearity of Interp!
         if not dw:
-            # I doesn't depend on w:
+            # Iop doesn't depend on w:
             #  -> It also covers the Hessian case since Interp is linear,
-            #     e.g. D_w[v](D_w[v](I(w, v*))) = D_w[v](I(v, v*)) = 0 (since w not found).
-            return ZeroBaseForm(I.arguments() + self._v)
-        return I._ufl_expr_reconstruct_(expr=dw)
+            #     e.g. D_w[v](D_w[v](Iop(w, v*))) = D_w[v](Iop(v, v*)) = 0 (since w not found).
+            return ZeroBaseForm(Iop.arguments() + self._v)
+        return Iop._ufl_expr_reconstruct_(expr=dw)
 
 
 class DerivativeRuleDispatcher(MultiFunction):
@@ -1238,9 +1239,9 @@ def apply_derivatives(expression):
 
     rules = DerivativeRuleDispatcher()
 
-    # If we hit an external operator, then if `var` is:
-    #    - an ExternalOperator → Return d(expression)/dw where w is the coefficient produced by the external operator `var`.
-    #    - else → Record the external operator on the MultiFunction object and returns 0.
+    # If we hit a base form operator (bfo), then if `var` is:
+    #    - a BaseFormOperator → Return `d(expression)/dw` where `w` is the coefficient produced by the bfo `var`.
+    #    - else → Record the bfo on the MultiFunction object and returns 0.
     # Example:
     #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `\frac{\partial F}{\partial u}`.
     dexpression_dvar = map_integrand_dags(rules, expression)
