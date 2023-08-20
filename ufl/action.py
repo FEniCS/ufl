@@ -46,9 +46,6 @@ class Action(BaseForm):
         "_domains",
         "_hash")
 
-    def __getnewargs__(self):
-        return (self._left, self._right)
-
     def __new__(cls, *args, **kw):
         left, right = args
 
@@ -122,10 +119,10 @@ class Action(BaseForm):
             return False
         if self is other:
             return True
-        return (self._left == other._left and self._right == other._right)
+        return self._left == other._left and self._right == other._right
 
     def __str__(self):
-        return "Action(%s, %s)" % (str(self._left), str(self._right))
+        return f"Action({self._left}, {self._right})"
 
     def __repr__(self):
         return self._repr
@@ -133,9 +130,7 @@ class Action(BaseForm):
     def __hash__(self):
         "Hash code for use in dicts "
         if self._hash is None:
-            self._hash = hash(("Action",
-                               hash(self._right),
-                               hash(self._left)))
+            self._hash = hash(("Action", hash(self._right), hash(self._left)))
         return self._hash
 
 
@@ -148,13 +143,10 @@ def _check_function_spaces(left, right):
         right, *_ = right.ufl_operands
 
     if isinstance(right, (Form, Action, Matrix, ZeroBaseForm)):
-        if (left.arguments()[-1].ufl_function_space().dual()
-            != right.arguments()[0].ufl_function_space()):
-
+        if left.arguments()[-1].ufl_function_space().dual() != right.arguments()[0].ufl_function_space():
             raise TypeError("Incompatible function spaces in Action")
     elif isinstance(right, (Coefficient, Cofunction, Argument, BaseFormOperator)):
-        if (left.arguments()[-1].ufl_function_space()
-            != right.ufl_function_space()):
+        if left.arguments()[-1].ufl_function_space() != right.ufl_function_space():
 
             raise TypeError("Incompatible function spaces in Action")
     # `Zero` doesn't contain any information about the function space.

@@ -20,13 +20,13 @@ from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
 from ufl.form import BaseForm
 from ufl.split_functions import split
-from ufl.utils.counted import counted_init
+from ufl.utils.counted import Counted
 from ufl.duals import is_primal, is_dual
 
 # --- The Coefficient class represents a coefficient in a form ---
 
 
-class BaseCoefficient(object):
+class BaseCoefficient(Counted):
     """UFL form argument type: Parent Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
@@ -34,14 +34,13 @@ class BaseCoefficient(object):
     # __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
     _ufl_noslots_ = True
     __slots__ = ()
-    _globalcount = 0
     _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         return (self._ufl_function_space, self._count)
 
     def __init__(self, function_space, count=None):
-        counted_init(self, count, Coefficient)
+        Counted.__init__(self, count, Coefficient)
 
         if isinstance(function_space, FiniteElementBase):
             # For legacy support for .ufl files using cells, we map
@@ -57,9 +56,6 @@ class BaseCoefficient(object):
 
         self._repr = "BaseCoefficient(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))
-
-    def count(self):
-        return self._count
 
     @property
     def ufl_shape(self):
@@ -103,8 +99,7 @@ class BaseCoefficient(object):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
+        return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
 
 @ufl_type()
@@ -113,6 +108,7 @@ class Cofunction(BaseCoefficient, BaseForm):
 
     __slots__ = (
         "_count",
+        "_counted_class",
         "_arguments",
         "_coefficients",
         "_ufl_function_space",
@@ -121,13 +117,13 @@ class Cofunction(BaseCoefficient, BaseForm):
         "_ufl_shape",
         "_hash"
     )
-    # _globalcount = 0
     _primal = False
     _dual = True
 
     def __new__(cls, *args, **kw):
         if args[0] and is_primal(args[0]):
-            raise ValueError('ufl.Cofunction takes in a dual space. If you want to define a coefficient in the primal space you should use ufl.Coefficient.')
+            raise ValueError("ufl.Cofunction takes in a dual space. If you want to define a coefficient "
+                             "in the primal space you should use ufl.Coefficient.")
         return super().__new__(cls)
 
     def __init__(self, function_space, count=None):
@@ -144,8 +140,7 @@ class Cofunction(BaseCoefficient, BaseForm):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
+        return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
     def __hash__(self):
         """Hash code for use in dicts."""
@@ -166,7 +161,6 @@ class Coefficient(FormArgument, BaseCoefficient):
     """UFL form argument type: Representation of a form coefficient."""
 
     _ufl_noslots_ = True
-    _globalcount = 0
     _primal = True
     _dual = False
 
@@ -194,8 +188,7 @@ class Coefficient(FormArgument, BaseCoefficient):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_function_space == other._ufl_function_space)
+        return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
     def __repr__(self):
         return self._repr

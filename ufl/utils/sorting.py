@@ -51,11 +51,6 @@ def sorted_by_count(seq):
     return sorted(seq, key=lambda x: x.count())
 
 
-def sorted_by_ufl_id(seq):
-    "Sort a sequence by the item.ufl_id()."
-    return sorted(seq, key=lambda x: x.ufl_id())
-
-
 def sorted_by_key(mapping):
     "Sort dict items by key, allowing different key types."
     # Python3 doesn't allow comparing builtins of different type,
@@ -91,7 +86,8 @@ def canonicalize_metadata(metadata):
         elif isinstance(value, (int, float, str)) or value is None:
             value = str(value)
         else:
-            warnings.warn("Applying str() to a metadata value of type {0}, don't know if this is safe.".format(type(value).__name__))
+            warnings.warn(f"Applying str() to a metadata value of type {type(value).__name__}, "
+                          "don't know if this is safe.")
             value = str(value)
         newvalues.append(value)
 
