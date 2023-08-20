@@ -49,7 +49,8 @@ class Adjoint(BaseForm):
                              for component in form.components()])
         elif isinstance(form, Coargument):
             # The adjoint of a coargument `c: V* -> V*` is the identity matrix mapping from V to V (i.e. V x V* -> R).
-            # Equivalently, the adjoint of `c` is its first argument, which is a ufl.Argument defined on the primal space of `c`.
+            # Equivalently, the adjoint of `c` is its first argument, which is a ufl.Argument defined on the
+            # primal space of `c`.
             primal_arg, _ = form.arguments()
             # Returning the primal argument avoids explicit argument reconstruction, making it
             # a robust strategy for handling subclasses of `ufl.Coargument`.
