@@ -112,21 +112,13 @@ class Integral(object):
         return s
 
     def __repr__(self):
-        r = "Integral(%s, %s, %s, %s, %s, %s)" % (repr(self._integrand),
-                                                  repr(self._integral_type),
-                                                  repr(self._ufl_domain),
-                                                  repr(self._subdomain_id),
-                                                  repr(self._metadata),
-                                                  repr(self._subdomain_data))
-        return r
+        return (f"Integral({self._integrand!r}, {self._integral_type!r}, {self._ufl_domain!r}, "
+                f"{self._subdomain_id!r}, {self._metadata!r}, {self._subdomain_data!r})")
 
     def __eq__(self, other):
-        return (isinstance(other, Integral) and
-                self._integral_type == other._integral_type and
-                self._ufl_domain == other._ufl_domain and
-                self._subdomain_id == other._subdomain_id and
-                self._integrand == other._integrand and
-                self._metadata == other._metadata and
+        return (isinstance(other, Integral) and self._integral_type == other._integral_type and  # noqa: W504
+                self._ufl_domain == other._ufl_domain and self._subdomain_id == other._subdomain_id and  # noqa: W504
+                self._integrand == other._integrand and self._metadata == other._metadata and  # noqa: W504
                 id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data))
 
     def __hash__(self):

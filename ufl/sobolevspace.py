@@ -54,9 +54,7 @@ class SobolevSpace(object):
         return self.name
 
     def __repr__(self):
-        r = "SobolevSpace(%s, %s)" % (repr(self.name), repr(
-            list(self.parents)))
-        return r
+        return f"SobolevSpace({self.name!r}, {list(self.parents)!r})"
 
     def __eq__(self, other):
         return isinstance(other, SobolevSpace) and self.name == other.name
@@ -68,9 +66,7 @@ class SobolevSpace(object):
         return hash(("SobolevSpace", self.name))
 
     def __getitem__(self, spatial_index):
-        """Returns the Sobolev space associated with a particular
-        spatial coordinate.
-        """
+        """Returns the Sobolev space associated with a particular spatial coordinate."""
         return self
 
     def __contains__(self, other):
@@ -78,11 +74,10 @@ class SobolevSpace(object):
         :class:`~finiteelement.FiniteElement` and `s` is a
         :class:`SobolevSpace`"""
         if isinstance(other, SobolevSpace):
-            raise TypeError("Unable to test for inclusion of a " +
-                            "SobolevSpace in another SobolevSpace. " +
+            raise TypeError("Unable to test for inclusion of a "
+                            "SobolevSpace in another SobolevSpace. "
                             "Did you mean to use <= instead?")
-        return (other.sobolev_space() == self or
-                self in other.sobolev_space().parents)
+        return other.sobolev_space() == self or self in other.sobolev_space().parents
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper
@@ -116,8 +111,9 @@ class DirectionalSobolevSpace(SobolevSpace):
                      the position denotes in what spatial variable the
                      smoothness requirement is enforced.
         """
-        assert all(isinstance(x, int) or isinf(x) for x in orders), \
-            ("Order must be an integer or infinity.")
+        assert all(
+            isinstance(x, int) or isinf(x)
+            for x in orders), "Order must be an integer or infinity."
         name = "DirectionalH"
         parents = [L2]
         super(DirectionalSobolevSpace, self).__init__(name, parents)
@@ -138,12 +134,12 @@ class DirectionalSobolevSpace(SobolevSpace):
         :class:`~finiteelement.FiniteElement` and `s` is a
         :class:`DirectionalSobolevSpace`"""
         if isinstance(other, SobolevSpace):
-            raise TypeError("Unable to test for inclusion of a " +
-                            "SobolevSpace in another SobolevSpace. " +
+            raise TypeError("Unable to test for inclusion of a "
+                            "SobolevSpace in another SobolevSpace. "
                             "Did you mean to use <= instead?")
-        return (other.sobolev_space() == self or
-                all(self[i] in other.sobolev_space().parents
-                    for i in self._spatial_indices))
+        return (other.sobolev_space() == self or all(
+            self[i] in other.sobolev_space().parents
+            for i in self._spatial_indices))
 
     def __eq__(self, other):
         if isinstance(other, DirectionalSobolevSpace):
@@ -163,14 +159,13 @@ class DirectionalSobolevSpace(SobolevSpace):
             return all(self._orders[i] >= 1 for i in self._spatial_indices)
         elif other.name in ["HDivDiv", "HEin"]:
             # Don't know how these spaces compare
-            return NotImplementedError(
-                "Don't know how to compare with %s" % other.name)
+            return NotImplementedError(f"Don't know how to compare with {other.name}")
         else:
             return any(
                 self._orders[i] > other._order for i in self._spatial_indices)
 
     def __str__(self):
-        return self.name + "(%s)" % ", ".join(map(str, self._orders))
+        return f"{self.name}({', '.join(map(str, self._orders))})"
 
 
 L2 = SobolevSpace("L2")

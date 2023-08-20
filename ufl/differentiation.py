@@ -386,7 +386,6 @@ class Curl(CompoundDerivative):
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
-        global _curl_shapes
         CompoundDerivative.__init__(self, (f,))
         self.ufl_shape = _curl_shapes[f.ufl_shape]
 
@@ -414,7 +413,6 @@ class ReferenceCurl(CompoundDerivative):
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
-        global _curl_shapes
         CompoundDerivative.__init__(self, (f,))
         self.ufl_shape = _curl_shapes[f.ufl_shape]
 

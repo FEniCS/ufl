@@ -34,7 +34,7 @@ def _cmp_multi_index(a, b):
             if x < y:
                 return -1
             elif x > y:
-                return +1
+                return 1
             else:
                 # Same value, no decision
                 continue
@@ -43,7 +43,7 @@ def _cmp_multi_index(a, b):
             return -1
         elif fix2:
             # Sort fixed before free
-            return +1
+            return 1
         else:
             # Both are Index, no decision, do not depend on count!
             pass
@@ -67,7 +67,7 @@ def _cmp_coefficient(a, b):
     if x < y:
         return -1
     elif x > y:
-        return +1
+        return 1
     else:
         return 0
 
@@ -80,7 +80,7 @@ def _cmp_argument(a, b):
     if x < y:
         return -1
     elif x > y:
-        return +1
+        return 1
     else:
         return 0
 
@@ -89,7 +89,7 @@ def _cmp_terminal_by_repr(a, b):
     # The cost of repr on a terminal is fairly small, and bounded
     x = repr(a)
     y = repr(b)
-    return -1 if x < y else (0 if x == y else +1)
+    return -1 if x < y else (0 if x == y else 1)
 
 
 # Hack up a MultiFunction-like type dispatch for terminal comparisons
@@ -111,7 +111,7 @@ def cmp_expr(a, b):
         # First sort quickly by type code
         x, y = a._ufl_typecode_, b._ufl_typecode_
         if x != y:
-            return -1 if x < y else +1
+            return -1 if x < y else 1
 
         # Now we know that the type is the same, check further based
         # on type specific properties.
@@ -149,7 +149,7 @@ def cmp_expr(a, b):
             # try to avoid the cost of this check for most nodes.
             x, y = len(aops), len(bops)
             if x != y:
-                return -1 if x < y else +1
+                return -1 if x < y else 1
 
     # Equal if we get out of the above loop!
     return 0
