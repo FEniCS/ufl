@@ -229,3 +229,9 @@ def test_mse():
 
         element = FiniteElement('GLL-Edge L2', interval, degree - 1)
         assert element == eval(repr(element))
+
+
+def test_withmapping():
+    base = FiniteElement("CG", interval, 1)
+    element = WithMapping(base, "identity")
+    assert element == eval(repr(element))

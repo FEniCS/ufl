@@ -33,8 +33,9 @@ class FileData(object):
         self.reserved_objects = {}
 
     def __bool__(self):
-        return bool(self.elements or self.coefficients or self.forms or self.expressions or
+        return bool(self.elements or self.coefficients or self.forms or self.expressions or  # noqa: W504
                     self.object_names or self.object_by_name or self.reserved_objects)
+
     __nonzero__ = __bool__
 
 

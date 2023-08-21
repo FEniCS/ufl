@@ -14,7 +14,8 @@ from ufl.integral import Integral
 from ufl.form import Form
 from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
-from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
+from ufl.algorithms.coordinate_derivative_helpers import (
+    attach_coordinate_derivatives, strip_coordinate_derivatives)
 import numbers
 
 
@@ -57,37 +58,22 @@ class IntegralData(object):
 
     def __lt__(self, other):
         # To preserve behaviour of extract_integral_data:
-        return ((self.integral_type, self.subdomain_id,
-                 self.integrals, self.metadata) <
-                (other.integral_type, other.subdomain_id, other.integrals,
-                 other.metadata))
+        return (
+            self.integral_type, self.subdomain_id, self.integrals, self.metadata
+        ) < (
+            other.integral_type, other.subdomain_id, other.integrals, other.metadata
+        )
 
     def __eq__(self, other):
         # Currently only used for tests:
-        return (self.integral_type == other.integral_type and
-                self.subdomain_id == other.subdomain_id and
-                self.integrals == other.integrals and
-                self.metadata == other.metadata)
+        return (self.integral_type == other.integral_type and self.subdomain_id == other.subdomain_id and  # noqa: W504
+                self.integrals == other.integrals and self.metadata == other.metadata)
 
     def __str__(self):
         s = "IntegralData over domain(%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
             self.integral_type, self.subdomain_id,
             '\n\n'.join(map(str, self.integrals)), self.metadata)
         return s
-
-
-def dicts_lt(a, b):
-    na = 0 if a is None else len(a)
-    nb = 0 if b is None else len(b)
-    if na != nb:
-        return len(a) < len(b)
-    for ia, ib in zip(sorted_by_key(a), sorted_by_key(b)):
-        # Assuming keys are sortable (usually str)
-        if ia[0] != ib[0]:
-            return (ia[0].__class__.__name__, ia[0]) < (ib[0].__class__.__name__, ib[0])  # Hack to preserve type sorting in py3
-        # Assuming values are sortable
-        if ia[1] != ib[1]:
-            return (ia[1].__class__.__name__, ia[1]) < (ib[1].__class__.__name__, ib[1])  # Hack to preserve type sorting in py3
 
 
 # Tuple comparison helper

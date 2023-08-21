@@ -74,7 +74,7 @@ class FiniteElementBase(ABC):
 
     def __eq__(self, other):
         "Compute element equality for insertion in hashmaps."
-        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
 
     def __ne__(self, other):
         "Compute element inequality for insertion in hashmaps."
@@ -211,4 +211,8 @@ class FiniteElementBase(ABC):
         if index in ("facet", "interior"):
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
-        return NotImplemented
+        else:
+            raise KeyError(f"Invalid index for restriction: {repr(index)}")
+
+    def __iter__(self):
+        raise TypeError(f"'{type(self).__name__}' object is not iterable")

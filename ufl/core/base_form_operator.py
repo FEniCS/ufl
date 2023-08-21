@@ -1,6 +1,7 @@
 
 # -*- coding: utf-8 -*-
-"""This module defines the BaseFormOperator class, which is the base class for objects that can be seen as forms and as operators such as ExternalOperator or Interp."""
+"""This module defines the BaseFormOperator class, which is the base class for objects that can be seen as forms
+   and as operators such as ExternalOperator or Interp."""
 
 # Copyright (C) 2019 Nacime Bouziani
 #
@@ -11,7 +12,7 @@
 # Modified by Nacime Bouziani, 2021-2022
 
 from ufl.coefficient import Coefficient
-from ufl.argument import Argument
+from ufl.argument import Argument, Coargument
 from ufl.core.operator import Operator
 from ufl.form import BaseForm
 from ufl.core.ufl_type import ufl_type
@@ -35,7 +36,6 @@ class BaseFormOperator(Operator, BaseForm):
         :param function_space: the :class:`.FunctionSpace`,
                or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
         :param derivatives: tuple specifiying the derivative multiindex.
-        :param result_coefficient: ufl.Coefficient associated to the operator representing what is produced by the operator
         :param argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
         """
 
@@ -112,8 +112,15 @@ class BaseFormOperator(Operator, BaseForm):
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the base form."
-        from ufl.algorithms.analysis import extract_arguments, extract_coefficients
-        arguments = tuple(a for arg in self.argument_slots() for a in extract_arguments(arg))
+        from ufl.algorithms.analysis import extract_arguments, extract_coefficients, extract_type
+        dual_arg, *arguments = self.argument_slots()
+        # When coarguments are treated as BaseForms, they have two arguments (one primal and one dual)
+        # as they map from V* to V* => V* x V -> R. However, when they are treated as mere "arguments",
+        # the primal space argument is discarded and we only have the dual space argument (Coargument).
+        # This is the exact same situation than BaseFormOperator's arguments which are different depending on
+        # whether the BaseFormOperator is used in an outer form or not.
+        arguments = (tuple(extract_type(dual_arg, Coargument))
+                     + tuple(a for arg in arguments for a in extract_arguments(arg)))
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         from collections import OrderedDict
@@ -183,7 +190,7 @@ class BaseFormOperator(Operator, BaseForm):
             return False
         if self is other:
             return True
-        return (type(self) == type(other) and
+        return (type(self) is type(other) and
                 # Operands' output spaces will be taken into account via Interp.__eq__
                 # -> N(Interp(u, V1); v*) and N(Interp(u, V2); v*) will compare different.
                 all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands)) and

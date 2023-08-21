@@ -10,6 +10,7 @@
 # Modified by Nacime Bouziani, 2021-2022.
 
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
+from ufl.argument import Coargument
 from ufl.core.ufl_type import ufl_type
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
@@ -29,11 +30,9 @@ class Adjoint(BaseForm):
         "_repr",
         "_arguments",
         "_coefficients",
+        "_domains",
         "ufl_operands",
         "_hash")
-
-    def __getnewargs__(self):
-        return (self._form)
 
     def __new__(cls, *args, **kw):
         form = args[0]
@@ -48,6 +47,14 @@ class Adjoint(BaseForm):
             # Adjoint distributes over sums
             return FormSum(*[(Adjoint(component), 1)
                              for component in form.components()])
+        elif isinstance(form, Coargument):
+            # The adjoint of a coargument `c: V* -> V*` is the identity matrix mapping from V to V (i.e. V x V* -> R).
+            # Equivalently, the adjoint of `c` is its first argument, which is a ufl.Argument defined on the
+            # primal space of `c`.
+            primal_arg, _ = form.arguments()
+            # Returning the primal argument avoids explicit argument reconstruction, making it
+            # a robust strategy for handling subclasses of `ufl.Coargument`.
+            return primal_arg
 
         return super(Adjoint, cls).__new__(cls)
 
@@ -59,6 +66,7 @@ class Adjoint(BaseForm):
 
         self._form = form
         self.ufl_operands = (self._form,)
+        self._domains = None
         self._hash = None
         self._repr = "Adjoint(%s)" % repr(self._form)
 
@@ -74,15 +82,21 @@ class Adjoint(BaseForm):
         self._arguments = self._form.arguments()[::-1]
         self._coefficients = self._form.coefficients()
 
+    def _analyze_domains(self):
+        """Analyze which domains can be found in Adjoint."""
+        from ufl.domain import join_domains
+        # Collect unique domains
+        self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
+
     def equals(self, other):
         if type(other) is not Adjoint:
             return False
         if self is other:
             return True
-        return (self._form == other._form)
+        return self._form == other._form
 
     def __str__(self):
-        return "Adjoint(%s)" % str(self._form)
+        return f"Adjoint({self._form})"
 
     def __repr__(self):
         return self._repr

@@ -39,7 +39,7 @@ def map_integrands(function, form, only_integral_type=None):
     elif isinstance(form, FormSum):
         mapped_components = [map_integrands(function, component, only_integral_type)
                              for component in form.components()]
-        nonzero_components = [(component, 1) for component in mapped_components
+        nonzero_components = [(component, w) for component, w in zip(mapped_components, form.weights())
                               # Catch ufl.Zero and ZeroBaseForm
                               if component != 0]
         return FormSum(*nonzero_components)

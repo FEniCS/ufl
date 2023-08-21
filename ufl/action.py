@@ -13,7 +13,7 @@ from ufl.form import BaseForm, FormSum, Form, ZeroBaseForm
 from ufl.core.ufl_type import ufl_type
 from ufl.algebra import Sum
 from ufl.constantvalue import Zero
-from ufl.argument import Argument
+from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
 from ufl.core.base_form_operator import BaseFormOperator
@@ -43,25 +43,23 @@ class Action(BaseForm):
         "_repr",
         "_arguments",
         "_coefficients",
+        "_domains",
         "_hash")
-
-    def __getnewargs__(self):
-        return (self._left, self._right)
 
     def __new__(cls, *args, **kw):
         left, right = args
 
         # Check trivial case
         if left == 0 or right == 0:
-            # Check compatibility of function spaces
-            _check_function_spaces(left, right)
             # Still need to work out the ZeroBaseForm arguments.
             new_arguments, _ = _get_action_form_arguments(left, right)
             return ZeroBaseForm(new_arguments)
 
-        # Check trivial case
-        if left == 0 or right == 0:
-            return 0
+        # Coarguments from V* to V* are identity matrices (V* x V -> R)
+        if isinstance(left, Coargument):
+            return right
+        if isinstance(right, Coargument):
+            return left
 
         if isinstance(left, (FormSum, Sum)):
             # Action distributes over sums on the LHS
@@ -80,6 +78,7 @@ class Action(BaseForm):
         self._left = left
         self._right = right
         self.ufl_operands = (self._left, self._right)
+        self._domains = None
 
         # Check compatibility of function spaces
         _check_function_spaces(left, right)
@@ -109,12 +108,18 @@ class Action(BaseForm):
         """
         self._arguments, self._coefficients = _get_action_form_arguments(self._left, self._right)
 
+    def _analyze_domains(self):
+        """Analyze which domains can be found in Action."""
+        from ufl.domain import join_domains
+        # Collect unique domains
+        self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
+
     def equals(self, other):
         if type(other) is not Action:
             return False
         if self is other:
             return True
-        return (self._left == other._left and self._right == other._right)
+        return self._left == other._left and self._right == other._right
 
     def __eq__(self, other):
         if not isinstance(other, Action):
@@ -124,7 +129,7 @@ class Action(BaseForm):
         return (self._left == other._left and self._right == other._right)
 
     def __str__(self):
-        return "Action(%s, %s)" % (str(self._left), str(self._right))
+        return f"Action({self._left}, {self._right})"
 
     def __repr__(self):
         return self._repr
@@ -132,9 +137,7 @@ class Action(BaseForm):
     def __hash__(self):
         "Hash code for use in dicts "
         if self._hash is None:
-            self._hash = hash(("Action",
-                               hash(self._right),
-                               hash(self._left)))
+            self._hash = hash(("Action", hash(self._right), hash(self._left)))
         return self._hash
 
 
@@ -147,21 +150,18 @@ def _check_function_spaces(left, right):
         right, *_ = right.ufl_operands
 
     if isinstance(right, (Form, Action, Matrix, ZeroBaseForm)):
-        if (left.arguments()[-1].ufl_function_space().dual()
-            != right.arguments()[0].ufl_function_space()):
-
+        if left.arguments()[-1].ufl_function_space().dual() != right.arguments()[0].ufl_function_space():
             raise TypeError("Incompatible function spaces in Action")
     elif isinstance(right, (Coefficient, Cofunction, Argument, BaseFormOperator)):
-        if (left.arguments()[-1].ufl_function_space()
-            != right.ufl_function_space()):
+        if left.arguments()[-1].ufl_function_space() != right.ufl_function_space():
 
             raise TypeError("Incompatible function spaces in Action")
     # `Zero` doesn't contain any information about the function space.
     # -> Not a problem since Action will get simplified with a `ZeroBaseForm`
     #    which won't take into account the arguments on the right because of argument contraction.
     # This occurs for:
-    # `Action(A, derivative(B, u))` where B is a `BaseFormOperator` (with 1 argument) such that dB/du == 0
-    # -> `derivative(B, u)` becomes `Zero` when expanding derivatives since B is an Expr as well.
+    # `derivative(Action(A, B), u)` with B is an `Expr` such that dB/du == 0
+    # -> `derivative(B, u)` becomes `Zero` when expanding derivatives since B is an Expr.
     elif not isinstance(right, Zero):
         raise TypeError("Incompatible argument in Action: %s" % type(right))
 
@@ -169,18 +169,20 @@ def _check_function_spaces(left, right):
 def _get_action_form_arguments(left, right):
     """Perform argument contraction to work out the arguments of Action"""
 
-    if isinstance(right, CoefficientDerivative):
-        # Action differentiation pushes differentiation through
-        # right as a consequence of Leibniz formula.
-        right, *_ = right.ufl_operands
-
     coefficients = ()
     if isinstance(right, BaseForm):
         arguments = left.arguments()[:-1] + right.arguments()[1:]
         coefficients += right.coefficients()
+    elif isinstance(right, CoefficientDerivative):
+        # Action differentiation pushes differentiation through
+        # right as a consequence of Leibniz formula.
+        from ufl.algorithms.analysis import extract_arguments_and_coefficients
+        right_args, right_coeffs = extract_arguments_and_coefficients(right)
+        arguments = left.arguments()[:-1] + tuple(right_args)
+        coefficients += tuple(right_coeffs)
     elif isinstance(right, (BaseCoefficient, Zero)):
         arguments = left.arguments()[:-1]
-        # For `Zero` case, Action gets simplified so updating
+        # When right is ufl.Zero, Action gets simplified so updating
         # coefficients here doesn't matter
         coefficients += (right,)
     elif isinstance(right, Argument):

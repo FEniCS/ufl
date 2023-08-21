@@ -147,7 +147,9 @@ class FiniteElement(FiniteElementBase):
         if cell is not None:
             cell = as_cell(cell)
 
-        family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = canonical_element_description(family, cell, degree, form_degree)
+        (
+            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping
+        ) = canonical_element_description(family, cell, degree, form_degree)
 
         # TODO: Move these to base? Might be better to instead
         # simplify base though.

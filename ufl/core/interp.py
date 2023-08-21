@@ -88,11 +88,11 @@ class Interp(BaseFormOperator):
         return s
 
     def __eq__(self, other):
-        if not isinstance(other, Interp):
+        if type(other) is not Interp:
             return False
         if self is other:
             return True
-        return (type(self) == type(other) and
+        return (type(self) is type(other) and
                 self._argument_slots[0] == other._argument_slots[0] and
                 self._argument_slots[1] == other._argument_slots[1] and
                 self.ufl_function_space() == other.ufl_function_space())

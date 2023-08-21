@@ -459,8 +459,8 @@ class Expression2UnicodeHandler(MultiFunction):
 
     # --- Non-terminal objects ---
 
-    def variable(self, o, f, l):
-        return "var(%s,%s)" % (f, l)
+    def variable(self, o, f, a):
+        return "var(%s,%s)" % (f, a)
 
     def index_sum(self, o, f, i):
         if 1:  # prec(o.ufl_operands[0]) >? prec(o):

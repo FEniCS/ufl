@@ -50,5 +50,4 @@ for cell in cells:
                 (sigma, u) = TrialFunctions(W)
                 (tau, v) = TestFunctions(W)
 
-                a = (inner(sigma, tau) - inner(d(tau), u) +
-                     inner(d(sigma), v) + inner(d(u), d(v))) * dx
+                a = (inner(sigma, tau) - inner(d(tau), u) + inner(d(sigma), v) + inner(d(u), d(v))) * dx

@@ -129,10 +129,10 @@ class BaseArgument(object):
         point of view, e.g. TestFunction(V1) == TestFunction(V2) if V1 and V2
         are the same ufl element but different dolfin function spaces.
         """
-        return (type(self) == type(other) and
-                self._number == other._number and
-                self._part == other._part and
-                self._ufl_function_space == other._ufl_function_space)
+        return (
+            type(self) is type(other) and self._number == other._number and  # noqa: W504
+            self._part == other._part and self._ufl_function_space == other._ufl_function_space
+        )
 
 
 @ufl_type()
@@ -193,7 +193,8 @@ class Coargument(BaseForm, BaseArgument):
 
     def __new__(cls, *args, **kw):
         if args[0] and is_primal(args[0]):
-            raise ValueError('ufl.Coargument takes in a dual space! If you want to define an argument in the primal space you should use ufl.Argument.')
+            raise ValueError("ufl.Coargument takes in a dual space! If you want to define an argument "
+                             "in the primal space you should use ufl.Argument.")
         return super().__new__(cls)
 
     def __init__(self, function_space, number, part=None):
@@ -205,18 +206,34 @@ class Coargument(BaseForm, BaseArgument):
         self._repr = "Coargument(%s, %s, %s)" % (
             repr(self._ufl_function_space), repr(self._number), repr(self._part))
 
-    def _analyze_form_arguments(self):
+    def arguments(self, outer_form=None):
+        "Return all ``Argument`` objects found in form."
+        if self._arguments is None:
+            self._analyze_form_arguments(outer_form=outer_form)
+        return self._arguments
+
+    def _analyze_form_arguments(self, outer_form=None):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
-        self._arguments = (self,)
         self._coefficients = ()
+        # Coarguments map from V* to V*, i.e. V* -> V*, or equivalently V* x V -> R.
+        # So they have one argument in the primal space and one in the dual space.
+        # However, when they are composed with linear forms with dual arguments, such as BaseFormOperators,
+        # the primal argument is discarded when analysing the argument as Coarguments.
+        if not outer_form:
+            self._arguments = (Argument(self.ufl_function_space().dual(), 0), self)
+        else:
+            self._arguments = (self,)
+
+    def ufl_domain(self):
+        return BaseArgument.ufl_domain(self)
 
     def equals(self, other):
         if type(other) is not Coargument:
             return False
         if self is other:
             return True
-        return (self._ufl_function_space == other._ufl_function_space and
+        return (self._ufl_function_space == other._ufl_function_space and  # noqa: W504
                 self._number == other._number and self._part == other._part)
 
     def __hash__(self):
