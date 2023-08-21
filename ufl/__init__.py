@@ -377,7 +377,7 @@ __all__ = [
     'Argument', 'Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Cofunction', 'Coefficients',
-    'Matrix','Adjoint', 'Action',
+    'Matrix', 'Adjoint', 'Action',
     'Interp', 'ExternalOperator',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',

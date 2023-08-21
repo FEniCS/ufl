@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""This module defines the ``ExternalOperator`` class, which symbolically represents operators that are not straightforwardly expressible in UFL. A practical implementation is required at a later stage to define how this operator should be evaluated as well as its derivatives from a given set of operands.
+"""This module defines the ``ExternalOperator`` class, which symbolically represents operators that are not
+   straightforwardly expressible in UFL. A practical implementation is required at a later stage to define
+   how this operator should be evaluated as well as its derivatives from a given set of operands.
 """
 
 # Copyright (C) 2019 Nacime Bouziani
@@ -27,7 +29,6 @@ class ExternalOperator(BaseFormOperator):
         :param function_space: the :class:`.FunctionSpace`,
                or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
         :param derivatives: tuple specifiying the derivative multiindex.
-        :param result_coefficient: ufl.Coefficient associated to the ExternalOperator representing what is produced by the operator
         :param argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
         """
 
@@ -38,7 +39,8 @@ class ExternalOperator(BaseFormOperator):
             if not len(derivatives) == len(operands):
                 raise ValueError("Expecting a size of %s for %s" % (len(operands), derivatives))
             if not all(isinstance(d, int) for d in derivatives) or any(d < 0 for d in derivatives):
-                raise ValueError("Expecting a derivative multi-index with nonnegative indices and not %s" % str(derivatives))
+                raise ValueError("Expecting a derivative multi-index with nonnegative indices and not %s"
+                                 % str(derivatives))
         else:
             derivatives = (0,) * len(operands)
 
@@ -65,7 +67,8 @@ class ExternalOperator(BaseFormOperator):
         """Assemble the external operator"""
         raise NotImplementedError("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, result_coefficient=None, argument_slots=None, add_kwargs={}):
+    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None,
+                               result_coefficient=None, argument_slots=None, add_kwargs={}):
         "Return a new object of the same type with new operands."
         deriv_multiindex = derivatives or self.derivatives
 
