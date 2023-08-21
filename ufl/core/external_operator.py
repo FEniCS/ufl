@@ -98,7 +98,7 @@ class ExternalOperator(BaseFormOperator):
             return False
         if self is other:
             return True
-        return (type(self) == type(other) and
+        return (type(self) is type(other) and
                 # Operands' output spaces will be taken into account via Interp.__eq__
                 # -> N(Interp(u, V1); v*) and N(Interp(u, V2); v*) will compare different.
                 all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands)) and

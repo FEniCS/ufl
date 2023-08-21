@@ -246,7 +246,7 @@ class Coargument(BaseForm, BaseArgument):
     def __eq__(self, other):
         """Default comparison just compare repr strings and types.
         Comparing the type is needed since ufl.Argument and ufl.Coargument have the same repr string."""
-        return (type(self) == type(other) and repr(self) == repr(other))
+        return (type(self) is type(other) and repr(self) == repr(other))
 
 # --- Helper functions for pretty syntax ---
 
