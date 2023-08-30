@@ -134,6 +134,14 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ = BaseFormOperator._ufl_expr_reconstruct_
     _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
 
+    def argument_slots(self, outer_form=False):
+        """Returns a tuple of expressions containing argument and coefficient based expressions."""
+        from ufl.algorithms.analysis import extract_arguments
+        base_form, _, arguments, _ = self.ufl_operands
+        argument_slots = (base_form.argument_slots(outer_form)
+                          + tuple(arg for a in arguments for arg in extract_arguments(a)))
+        return argument_slots
+
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0,
           inherit_indices_from_operand=0)
