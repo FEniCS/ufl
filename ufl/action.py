@@ -54,10 +54,11 @@ class Action(BaseForm):
             new_arguments, _ = _get_action_form_arguments(left, right)
             return ZeroBaseForm(new_arguments)
 
-        # Coarguments from V* to V* are identity matrices (V* x V -> R)
-        if isinstance(left, Coargument):
+        # Coarguments (resp. Argument) from V* to V* (resp. from V to V) are identity matrices,
+        # i.e. we have: V* x V -> R (resp. V x V* -> R).
+        if isinstance(left, (Coargument, Argument)):
             return right
-        if isinstance(right, Coargument):
+        if isinstance(right, (Coargument, Argument)):
             return left
 
         if isinstance(left, (FormSum, Sum)):
@@ -141,11 +142,13 @@ def _check_function_spaces(left, right):
         # right as a consequence of Leibniz formula.
         right, *_ = right.ufl_operands
 
+    # `left` can also be a Coefficient in V (= V**), e.g. `action(Coefficient(V), Cofunction(V.dual()))`.
+    left_arg = left.arguments()[-1] if not isinstance(left, Coefficient) else left
     if isinstance(right, (Form, Action, Matrix, ZeroBaseForm)):
-        if left.arguments()[-1].ufl_function_space().dual() != right.arguments()[0].ufl_function_space():
+        if left_arg.ufl_function_space().dual() != right.arguments()[0].ufl_function_space():
             raise TypeError("Incompatible function spaces in Action")
     elif isinstance(right, (Coefficient, Cofunction, Argument)):
-        if left.arguments()[-1].ufl_function_space() != right.ufl_function_space():
+        if left_arg.ufl_function_space() != right.ufl_function_space():
             raise TypeError("Incompatible function spaces in Action")
     # `Zero` doesn't contain any information about the function space.
     # -> Not a problem since Action will get simplified with a `ZeroBaseForm`
@@ -161,23 +164,25 @@ def _get_action_form_arguments(left, right):
     """Perform argument contraction to work out the arguments of Action"""
 
     coefficients = ()
+    # `left` can also be a Coefficient in V (= V**), e.g. `action(Coefficient(V), Cofunction(V.dual()))`.
+    left_args = left.arguments()[:-1] if not isinstance(left, Coefficient) else ()
     if isinstance(right, BaseForm):
-        arguments = left.arguments()[:-1] + right.arguments()[1:]
+        arguments = left_args + right.arguments()[1:]
         coefficients += right.coefficients()
     elif isinstance(right, CoefficientDerivative):
         # Action differentiation pushes differentiation through
         # right as a consequence of Leibniz formula.
         from ufl.algorithms.analysis import extract_arguments_and_coefficients
         right_args, right_coeffs = extract_arguments_and_coefficients(right)
-        arguments = left.arguments()[:-1] + tuple(right_args)
+        arguments = left_args + tuple(right_args)
         coefficients += tuple(right_coeffs)
     elif isinstance(right, (BaseCoefficient, Zero)):
-        arguments = left.arguments()[:-1]
+        arguments = left_args
         # When right is ufl.Zero, Action gets simplified so updating
         # coefficients here doesn't matter
         coefficients += (right,)
     elif isinstance(right, Argument):
-        arguments = left.arguments()[:-1] + (right,)
+        arguments = left_args + (right,)
     else:
         raise TypeError
 
