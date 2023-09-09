@@ -359,7 +359,7 @@ class Form(object):
                                                                 len(args)))
             repdict.update(zip(arguments, args))
 
-        coefficients = kwargs.pop("coefficients")
+        coefficients = kwargs.pop("coefficients", None)
         if kwargs:
             error("Unknown kwargs %s." % str(list(kwargs)))
 
