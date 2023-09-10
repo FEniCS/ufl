@@ -121,13 +121,6 @@ class Action(BaseForm):
             return True
         return self._left == other._left and self._right == other._right
 
-    def __eq__(self, other):
-        if not isinstance(other, Action):
-            return False
-        if self is other:
-            return True
-        return (self._left == other._left and self._right == other._right)
-
     def __str__(self):
         return f"Action({self._left}, {self._right})"
 
