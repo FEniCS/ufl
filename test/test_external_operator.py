@@ -406,8 +406,7 @@ def test_differentiation_procedure_action():
 
 def test_extractions():
     from ufl.algorithms.analysis import (extract_coefficients, extract_arguments,
-                                         extract_arguments_and_coefficients,
-                                         extract_external_operators, extract_base_form_operators,
+                                         extract_arguments_and_coefficients, extract_base_form_operators,
                                          extract_constants)
 
     V = FiniteElement("CG", triangle, 1)
@@ -421,7 +420,6 @@ def test_extractions():
     assert extract_arguments(e) == [vstar_e]
     assert extract_arguments_and_coefficients(e) == ([vstar_e], [u])
     assert extract_constants(e) == [c]
-    assert extract_external_operators(e) == [e]
     assert extract_base_form_operators(e) == [e]
 
     F = e * dx
@@ -438,7 +436,6 @@ def test_extractions():
     assert extract_coefficients(e) == [u]
     assert extract_arguments(e) == [vstar_e, u_hat]
     assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u])
-    assert extract_external_operators(e) == [e]
     assert extract_base_form_operators(e) == [e]
 
     F = e * dx
@@ -455,7 +452,6 @@ def test_extractions():
     assert extract_coefficients(e2) == [u, w]
     assert extract_arguments(e2) == [vstar_e2, u_hat]
     assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, w])
-    assert extract_external_operators(e2) == [e, e2]
     assert extract_base_form_operators(e2) == [e, e2]
 
     F = e2 * dx
