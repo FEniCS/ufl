@@ -136,8 +136,6 @@ def _compute_form_data_elements(self, arguments, coefficients, domains):
 def _check_elements(form_data):
     for element in chain(form_data.unique_elements,
                          form_data.unique_sub_elements):
-        if element.family() is None:
-            raise ValueError(f"Found element with undefined family: {element}")
         if element.cell() is None:
             raise ValueError(f"Found element with undefined cell: {element}")
 
@@ -172,6 +170,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
     to new objects, and lists of the new objects."""
     if element_mapping is None:
         element_mapping = {}
+
     new_coefficients = []
     replace_map = {}
     for i, f in enumerate(coefficients):
@@ -186,6 +185,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         new_f = Coefficient(new_e, count=i)
         new_coefficients.append(new_f)
         replace_map[f] = new_f
+
     return new_coefficients, replace_map
 
 

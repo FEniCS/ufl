@@ -140,12 +140,10 @@ class RestrictionPropagator(MultiFunction):
     def facet_normal(self, o):
         D = extract_unique_domain(o)
         e = D.ufl_coordinate_element()
-        f = e.family()
-        d = e.degree()
         gd = D.geometric_dimension()
         td = D.topological_dimension()
 
-        if f == "Lagrange" and d == 1 and gd == td:
+        if e._is_linear() and gd == td:
             # For meshes with a continuous linear non-manifold
             # coordinate field, the facet normal from side - points in
             # the opposite direction of the one from side +.  We must
