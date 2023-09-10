@@ -42,10 +42,6 @@ class ArityChecker(MultiFunction):
 
     expr = nonlinear_operator
 
-    def external_operator(self, o):
-        # FIXME: Uses map_expr_dag instead of self.arguments because of the Conj case
-        return tuple(map_expr_dag(self, arg, compress=False)[0] for arg in o.argument_slots(outer_form=True))
-
     def sum(self, o, a, b):
         if a != b:
             raise ArityMismatch(f"Adding expressions with non-matching form arguments {_afmt(a)} vs {_afmt(b)}.")

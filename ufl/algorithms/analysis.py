@@ -144,12 +144,6 @@ def extract_coefficients(a):
     return sorted_by_count(extract_type(a, BaseCoefficient))
 
 
-def extract_external_operators(a):
-    """Build a sorted list of all external operators in a,
-    which can be a Form, Integral or Expr."""
-    return sorted_by_count(extract_type(a, ExternalOperator))
-
-
 def extract_constants(a):
     """Build a sorted list of all constants in a"""
     return sorted_by_count(extract_type(a, Constant))

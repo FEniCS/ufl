@@ -9,8 +9,7 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.core.external_operator import ExternalOperator
-from ufl.classes import CoefficientDerivative, Interp, Form
+from ufl.classes import CoefficientDerivative, Interp, ExternalOperator, Form
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -36,29 +35,6 @@ class Replacer(MultiFunction):
             return self.mapping[o]
         except KeyError:
             return self.reuse_if_untouched(o, *args)
-
-    """
-    def external_operator(self, o):
-        try:
-            o = self.mapping[o]
-            coeff = o.result_coefficient(unpack_reference=False)
-        except KeyError:
-            coeff = replace(o.result_coefficient(unpack_reference=False), self.mapping)
-        except AttributeError:
-            # ExternalOperator is replaced by something that is not an ExternalOperator
-            return o
-        new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
-        # Fix this
-        if type(new_ops[0]).__name__ == 'Coefficient' and type(o.ufl_operands[0]).__name__ == 'Function':
-            new_ops = o.ufl_operands
-
-        # Does not need to use replace on the 0-slot argument of external operators (v*) since
-        # this can only be a Coargument or a Cofunction, so we directly check into the mapping.
-        # Also, replace is built to apply on Expr, Coargument is not an Expr.
-        new_args = tuple(replace(arg, self.mapping) if not isinstance(arg, Coargument) else self.mapping.get(arg, arg)
-                         for arg in o.argument_slots())
-        return o._ufl_expr_reconstruct_(*new_ops, result_coefficient=coeff, argument_slots=new_args)
-    """
 
     def external_operator(self, o):
         o = self.mapping.get(o) or o

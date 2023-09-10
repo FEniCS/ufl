@@ -10,7 +10,6 @@
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
-# Modified by Nacime Bouziani, 2020.
 
 import warnings
 from collections import defaultdict
@@ -194,6 +193,7 @@ class BaseForm(object, metaclass=UFLType):
         Replaces form.arguments() with given positional arguments in
         same number and ordering. Number of positional arguments must
         be 0 or equal to the number of Arguments in the form.
+
         The optional keyword argument coefficients can be set to a dict
         to replace Coefficients with expressions of matching shapes.
 

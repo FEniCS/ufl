@@ -158,11 +158,6 @@ class FunctionPullbackApplier(MultiFunction):
     def terminal(self, t):
         return t
 
-    def external_operator(self, e):
-        c = e.result_coefficient(unpack_reference=False)
-        result_coefficient = apply_single_function_pullbacks(c, e.ufl_element())
-        return e._ufl_expr_reconstruct_(*e.ufl_operands, result_coefficient=result_coefficient)
-
     @memoized_handler
     def form_argument(self, o):
         # Represent 0-derivatives of form arguments on reference
