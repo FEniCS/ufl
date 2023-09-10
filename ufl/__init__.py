@@ -238,6 +238,7 @@ A very brief overview of the language contents follows:
 # Modified by Lawrence Mitchell, 2014
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
+# Modified by Nacime Bouziani, 2019
 
 import importlib.metadata
 

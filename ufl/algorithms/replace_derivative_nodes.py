@@ -36,14 +36,19 @@ class DerivativeNodeReplacer(MultiFunction):
 def replace_derivative_nodes(expr, mapping, **derivative_kwargs):
     """Replaces derivative nodes, i.e. replaces the variable with respect to which the derivative is taken.
     This is called during apply_derivatives to treat delayed derivatives.
+
     Example: Let u be a Coefficient, N an ExternalOperator independent of u (i.e. N's operands don't depend on u),
              and let uhat and Nhat be Arguments.
+
         F = u ** 2 * N * dx
         dFdu = derivative(F, u, uhat)
         dFdN = replace_derivative_nodes(dFdu, {u: N}, argument=Nhat)
+
         Then, by subsequently expanding the derivatives we have:
+
         dFdu -> 2 * u * uhat * N * dx
         dFdN -> u ** 2 * Nhat * dx
+
     @param e:
         An Expr or BaseForm.
     @param mapping:

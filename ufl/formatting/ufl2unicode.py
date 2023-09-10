@@ -443,6 +443,9 @@ class Expression2UnicodeHandler(MultiFunction):
             return "%s%s" % (var, subscript_number(i))
         return self.coefficient_names[o.count()]
 
+    def base_form_operator(self, o):
+        return "BaseFormOperator"
+
     def constant(self, o):
         i = o.count()
         var = "c"

@@ -128,11 +128,14 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
                  coefficient_derivatives):
         BaseFormDerivative.__init__(self, base_form, coefficients, arguments,
                                     coefficient_derivatives)
+        self._argument_slots = base_form._argument_slots
 
     # Enforce Operator reconstruction as Operator is a parent class of both: BaseFormDerivative and BaseFormOperator.
     # Therfore the latter overwrites Operator reconstruction and we would have:
     #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ = BaseFormOperator._ufl_expr_reconstruct_
     _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
+    # Set __repr__
+    __repr__ = Operator.__repr__
 
     def argument_slots(self, outer_form=False):
         """Returns a tuple of expressions containing argument and coefficient based expressions."""

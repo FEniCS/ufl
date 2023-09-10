@@ -82,7 +82,7 @@ class BaseFormOperator(Operator, BaseForm):
     ufl_index_dimensions = ()
 
     def result_coefficient(self, unpack_reference=True):
-        "Returns the coefficient produced by the external operator"
+        "Returns the coefficient produced by the base form operator"
         result_coefficient = self._result_coefficient
         if unpack_reference and isinstance(result_coefficient, ReferenceValue):
             return result_coefficient.ufl_operands[0]
@@ -97,7 +97,7 @@ class BaseFormOperator(Operator, BaseForm):
         """
         if not outer_form:
             return self._argument_slots
-        # Takes into account argument contraction when an external operator is in an outer form:
+        # Takes into account argument contraction when a base form operator is in an outer form:
         # For example:
         #   F = N(u; v*) * v * dx can be seen as Action(v1 * v * dx, N(u; v*))
         #   => F.arguments() should return (v,)!
@@ -135,7 +135,7 @@ class BaseFormOperator(Operator, BaseForm):
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def count(self):
-        "Returns the count associated to the coefficient produced by the external operator"
+        "Returns the count associated to the coefficient produced by the base form operator"
         return self._count
 
     @property
@@ -168,11 +168,12 @@ class BaseFormOperator(Operator, BaseForm):
                           argument_slots=argument_slots or self.argument_slots())
 
     def __repr__(self):
-        "Default repr string construction for external operators."
-        r = "BaseFormOperator(%s; %s; %s; derivatives=%s)" % (", ".join(repr(op) for op in self.ufl_operands),
-                                                              repr(self.ufl_function_space()),
-                                                              ", ".join(repr(arg) for arg in self.argument_slots()),
-                                                              repr(self.derivatives))
+        "Default repr string construction for base form operators."
+        r = "%s(%s; %s; %s; derivatives=%s)" % (type(self).__name__,
+                                                ", ".join(repr(op) for op in self.ufl_operands),
+                                                repr(self.ufl_function_space()),
+                                                ", ".join(repr(arg) for arg in self.argument_slots()),
+                                                repr(self.derivatives))
         return r
 
     def __hash__(self):
