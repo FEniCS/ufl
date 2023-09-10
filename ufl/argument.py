@@ -243,7 +243,6 @@ class Coargument(BaseForm, BaseArgument):
                      self._number,
                      self._part))
 
-
 # --- Helper functions for pretty syntax ---
 
 
