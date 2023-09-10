@@ -22,7 +22,6 @@ from ufl.constant import Constant
 from ufl.form import BaseForm, Form
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
-from ufl.core.external_operator import ExternalOperator
 
 
 # TODO: Some of these can possibly be optimised by implementing
