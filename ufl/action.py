@@ -119,7 +119,9 @@ class Action(BaseForm):
             return False
         if self is other:
             return True
-        return self._left == other._left and self._right == other._right
+        # Make sure we are returning a boolean as left and right equalities can be `ufl.Equation`s
+        # if the underlying objects are `ufl.BaseForm`.
+        return bool(self._left == other._left) and bool(self._right == other._right)
 
     def __str__(self):
         return f"Action({self._left}, {self._right})"

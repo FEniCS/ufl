@@ -93,7 +93,9 @@ class Adjoint(BaseForm):
             return False
         if self is other:
             return True
-        return self._form == other._form
+        # Make sure we are returning a boolean as the equality can result in a `ufl.Equation`
+        # if the underlying objects are `ufl.BaseForm`.
+        return bool(self._form == other._form)
 
     def __str__(self):
         return f"Adjoint({self._form})"
