@@ -16,6 +16,7 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.analysis import has_exact_type
 from functools import singledispatch
 
+
 @singledispatch
 def _replace(o, self):
     """Single-dispatch function to replace subexpressions in expression
@@ -26,17 +27,19 @@ def _replace(o, self):
     """
     raise AssertionError("UFL node expected, not %s" % type(o))
 
+
 @_replace.register(Expr)
 def _replace_expr(o, self, *args):
     try:
         return self.mapping[o]
     except KeyError:
         return reuse_if_untouched(o, *args)
-    
+
 
 @_replace.register(CoefficientDerivative)
 def _replace_cofficient_derivative(o, self):
     raise ValueError("Derivatives should be applied before executing replace.")
+
 
 class ReplaceWrapper(object):
     """
@@ -44,7 +47,7 @@ class ReplaceWrapper(object):
                    ``rec`` is expected to be a function used for
                    recursive calls.
     :arg mapping: a dict that describes the mapping of subexpressions to be replaced
-    :returns: a function with working recursion and access to the 
+    :returns: a function with working recursion and access to the
     """
     def __init__(self, function, mapping):
         self.cache = {}
@@ -53,7 +56,7 @@ class ReplaceWrapper(object):
 
     def __call__(self, node, *args):
         return self.function(node, self, *args)
-       
+
 
 def replace(e, mapping):
     """Replace subexpressions in expression.
