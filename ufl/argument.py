@@ -211,7 +211,7 @@ class Coargument(BaseForm, BaseArgument):
         # Define canonical numbering of arguments and coefficients
         # Coarguments map from V* to V*, i.e. V* -> V*, or equivalently V* x V -> R.
         # So they have one argument in the primal space and one in the dual space.
-        self._arguments = (Argument(self.ufl_function_space().dual(), 0), self)
+        self._arguments = (type(self)(self.ufl_function_space().dual(), 0), self)
         self._coefficients = ()
 
     def ufl_domain(self):
