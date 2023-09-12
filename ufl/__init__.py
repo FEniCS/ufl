@@ -185,7 +185,7 @@ A very brief overview of the language contents follows:
     - sqrt
     - exp, ln, erf
     - cos, sin, tan
-    - acos, asin, atan, atan_2
+    - acos, asin, atan, atan2
     - cosh, sinh, tanh
     - bessel_J, bessel_Y, bessel_I, bessel_K
 
@@ -320,7 +320,7 @@ from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 from ufl.operators import (
     rank, shape, conj, real, imag, outer, inner, dot, cross, perp,
     det, inv, cofac, transpose, tr, diag, diag_vector, dev, skew, sym,
-    sqrt, exp, ln, erf, cos, sin, tan, acos, asin, atan, atan_2, cosh, sinh, tanh,
+    sqrt, exp, ln, erf, cos, sin, tan, acos, asin, atan, atan2, cosh, sinh, tanh,
     bessel_J, bessel_Y, bessel_I, bessel_K, eq, ne, le, ge, lt, gt, And, Or, Not,
     conditional, sign, max_value, min_value, variable, diff,
     Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative,
@@ -385,7 +385,7 @@ __all__ = [
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',
     'sqrt', 'exp', 'ln', 'erf',
     'cos', 'sin', 'tan',
-    'acos', 'asin', 'atan', 'atan_2',
+    'acos', 'asin', 'atan', 'atan2',
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',

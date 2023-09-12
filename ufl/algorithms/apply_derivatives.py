@@ -354,7 +354,7 @@ class GenericDerivativeRuleset(MultiFunction):
         f, = o.ufl_operands
         return fp / (1.0 + f**2)
 
-    def atan_2(self, o, fp, gp):
+    def atan2(self, o, fp, gp):
         f, g = o.ufl_operands
         return (g * fp - f * gp) / (f**2 + g**2)
 
