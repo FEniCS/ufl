@@ -17,7 +17,7 @@ from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
 from ufl.form import BaseForm
-from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
+from ufl.functionspace import MixedFunctionSpace
 from ufl.duals import is_primal, is_dual
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
@@ -35,9 +35,6 @@ class BaseArgument(object):
         return (self._ufl_function_space, self._number, self._part)
 
     def __init__(self, function_space, number, part=None):
-
-        if not isinstance(function_space, AbstractFunctionSpace):
-            raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()

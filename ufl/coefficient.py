@@ -14,7 +14,7 @@ of related classes, including Constant."""
 
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
-from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
+from ufl.functionspace import MixedFunctionSpace
 from ufl.form import BaseForm
 from ufl.split_functions import split
 from ufl.utils.counted import Counted
@@ -38,9 +38,6 @@ class BaseCoefficient(Counted):
 
     def __init__(self, function_space, count=None):
         Counted.__init__(self, count, Coefficient)
-
-        if not isinstance(function_space, AbstractFunctionSpace):
-            raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape()
