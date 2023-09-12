@@ -3,6 +3,7 @@
 import pytest
 
 from ufl import *
+from ufl.formatting.ufl2unicode import ufl2unicode
 from ufl.form import BaseForm
 
 
@@ -74,6 +75,10 @@ def test_form_arguments(mass, stiffness, convection, load):
     assert (u * v * dx(1) + v * u * dx(2)).arguments() == (v, u)
     assert ((f * v) * u * dx + (u * 3) * (v / 2) * dx(2)).arguments() == (v, u)
 
+    print(ufl2unicode(mass))
+    print(ufl2unicode(stiffness))
+    print(ufl2unicode(convection))
+    print(ufl2unicode(load))
 
 def test_form_coefficients(element):
     v = TestFunction(element)
@@ -85,6 +90,8 @@ def test_form_coefficients(element):
     assert (g * dx + f * ds).coefficients() == (f, g)
     assert (g * dx(1) + f * dx(2)).coefficients() == (f, g)
     assert (g * v * dx + f * v * dx(2)).coefficients() == (f, g)
+
+    ufl2unicode(g*v*dx + f * v * dx(2))
 
 
 def test_form_domains():
