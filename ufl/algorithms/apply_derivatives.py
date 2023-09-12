@@ -1243,7 +1243,7 @@ def apply_derivatives(expression):
     #    - a BaseFormOperator → Return `d(expression)/dw` where `w` is the coefficient produced by the bfo `var`.
     #    - else → Record the bfo on the MultiFunction object and returns 0.
     # Example:
-    #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `\frac{\partial F}{\partial u}`.
+    #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `∂F/∂u`.
     dexpression_dvar = map_integrand_dags(rules, expression)
 
     # Get the recorded delayed operations
@@ -1262,12 +1262,11 @@ def apply_derivatives(expression):
     var, der_kwargs, *base_form_ops = pending_operations
     for N in sorted(set(base_form_ops), key=lambda x: x.count()):
         # Replace dexpr/dvar by dexpr/dN. We don't use `apply_derivatives` since
-        # the differentiation is done via `\partial` and not `d`.
+        # the differentiation is done via `∂` and not `d`.
         dexpr_dN = map_integrand_dags(rules, replace_derivative_nodes(expression, {var.ufl_operands[0]: N}))
         # Add the BaseFormOperatorDerivative node
-        # TODO: Should we use `derivative` here to take into account Extop/Interp node?
         dN_dvar = apply_derivatives(BaseFormOperatorDerivative(N, var, **der_kwargs))
-        # Sum the Action: dF/du = \partial F/\partial u + \sum_{i=1,...} Action(dF/dNi, dNi/du)
+        # Sum the Action: dF/du = ∂F/∂u + \sum_{i=1,...} Action(dF/dNi, dNi/du)
         if not (isinstance(dexpr_dN, Form) and len(dexpr_dN.integrals()) == 0):
             # In this case: Action <=> ufl.action since `dN_var` has 2 arguments.
             # We use Action to handle the trivial case dN_dvar = 0.
