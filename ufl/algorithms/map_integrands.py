@@ -42,6 +42,11 @@ def map_integrands(function, form, only_integral_type=None):
         nonzero_components = [(component, w) for component, w in zip(mapped_components, form.weights())
                               # Catch ufl.Zero and ZeroBaseForm
                               if component != 0]
+        if all(not isinstance(component, BaseForm) for component, _ in nonzero_components):
+            # Simplification of `BaseForm` objects may turn `FormSum` into a sum of `Expr` objects
+            # that are not `BaseForm`, i.e. into a `Sum` object.
+            # Example: `Action(Adjoint(c*), u)` with `c*` a `Coargument` and u a `Coefficient`.
+            return sum([component for component, _ in nonzero_components])
         return FormSum(*nonzero_components)
     elif isinstance(form, Adjoint):
         # Zeros are caught inside `Adjoint.__new__`

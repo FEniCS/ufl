@@ -160,28 +160,11 @@ def adjoint(form, reordered_arguments=None, derivatives_expanded=None):
         # Allow BaseForm objects that are not BaseForm such as Adjoint since there are cases
         # where we need to expand derivatives: e.g. to get the number of arguments
         #   => For example: Adjoint(Action(2-form, derivative(u,u)))
-        try:
-            if not derivatives_expanded:
-                # For external operators differentiation may turn a Form into a FormSum
-                form_expanded = expand_derivatives(form)
-                if isinstance(form_expanded, Form) and form_expanded.empty():
-                    # For cases such as `derivative(Adjoint(F), u)` when derivative(F, u) = 0.
-                    # ufl.Adjoint can be applied onto F because of distributivity:
-                    #   e.g. adjoint(u * v * dx + N * v * dx)
-                    #       => Adjoint(u * v * dx) + Adjoint(N * v * dx)
-                    #   with N a BaseFormOperator
-                    return Adjoint(ZeroBaseForm(form.arguments()))
-                form = form_expanded
-
-            if isinstance(form, Form):
-                return compute_form_adjoint(form, reordered_arguments)
-        except NotImplementedError:
-            # Catch cases where expand derivatives is not implemented
-            # e.g. `adjoint(Adjoint(M))` where M is a ufl.Matrix,
-            # expand_derivatives(M) will be M (no derivatives taken)
-            # and expand derivatives of Adjoint only works if when we push it through the Adjoint
-            # we get 0.
-            pass
+        if not derivatives_expanded:
+            # For external operators differentiation may turn a Form into a FormSum
+            form = expand_derivatives(form)
+        if isinstance(form, Form):
+            return compute_form_adjoint(form, reordered_arguments)
     return Adjoint(form)
 
 
@@ -330,6 +313,10 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     elif isinstance(form, Action):
         # Push derivative through Action slots
         left, right = form.ufl_operands
+        # Eagerly simplify spatial derivatives when Action results in a scalar.
+        if not len(form.arguments()) and isinstance(coefficient, SpatialCoordinate):
+            return ZeroBaseForm(())
+
         if len(left.arguments()) == 1:
             dleft = derivative(left, coefficient, argument, coefficient_derivatives)
             dright = derivative(right, coefficient, argument, coefficient_derivatives)
@@ -352,12 +339,16 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     if isinstance(form, Form):
         integrals = []
         for itg in form.integrals():
-            if not isinstance(coefficient, SpatialCoordinate):
-                fd = CoefficientDerivative(itg.integrand(), coefficients,
-                                           arguments, coefficient_derivatives)
-            else:
+            if isinstance(coefficient, SpatialCoordinate):
                 fd = CoordinateDerivative(itg.integrand(), coefficients,
                                           arguments, coefficient_derivatives)
+            elif isinstance(coefficient, BaseForm) and not isinstance(coefficient, BaseFormOperator):
+                # Make the `ZeroBaseForm` arguments
+                arguments = form.arguments() + coefficient.arguments()
+                return ZeroBaseForm(arguments)
+            else:
+                fd = CoefficientDerivative(itg.integrand(), coefficients,
+                                           arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 

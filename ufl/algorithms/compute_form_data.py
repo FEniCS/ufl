@@ -102,13 +102,12 @@ def _compute_max_subdomain_ids(integral_data):
     max_subdomain_ids = {}
     for itg_data in integral_data:
         it = itg_data.integral_type
-        si = itg_data.subdomain_id
-        if isinstance(si, int):
-            newmax = si + 1
-        else:
-            newmax = 0
-        prevmax = max_subdomain_ids.get(it, 0)
-        max_subdomain_ids[it] = max(prevmax, newmax)
+        for integral in itg_data.integrals:
+            # Convert string for default integral to -1
+            sids = (-1 if isinstance(si, str) else si for si in integral.subdomain_id())
+            newmax = max(sids) + 1
+            prevmax = max_subdomain_ids.get(it, 0)
+            max_subdomain_ids[it] = max(prevmax, newmax)
     return max_subdomain_ids
 
 

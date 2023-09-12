@@ -51,6 +51,8 @@ class Label(Terminal, Counted):
         return ()
 
     def _ufl_signature_data_(self, renumbering):
+        if self not in renumbering:
+            return ("Label", self._count)
         return ("Label", renumbering[self])
 
 

@@ -359,7 +359,7 @@ class GenericDerivativeRuleset(MultiFunction):
         f, = o.ufl_operands
         return fp / (1.0 + f**2)
 
-    def atan_2(self, o, fp, gp):
+    def atan2(self, o, fp, gp):
         f, g = o.ufl_operands
         return (g * fp - f * gp) / (f**2 + g**2)
 
@@ -849,9 +849,9 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             dosum = Zero(o.ufl_shape)
             for do, v in zip(dos, self._v):
                 so, oi = as_scalar(do)
-                rv = len(v.ufl_shape)
-                oi1 = oi[:-rv]
-                oi2 = oi[-rv:]
+                rv = len(oi) - len(v.ufl_shape)
+                oi1 = oi[:rv]
+                oi2 = oi[rv:]
                 prod = so * v[oi2]
                 if oi1:
                     dosum += as_tensor(prod, oi1)
@@ -1322,7 +1322,7 @@ def apply_derivatives(expression):
     #    - a BaseFormOperator → Return `d(expression)/dw` where `w` is the coefficient produced by the bfo `var`.
     #    - else → Record the bfo on the MultiFunction object and returns 0.
     # Example:
-    #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `\frac{\partial F}{\partial u}`.
+    #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `∂F/∂u`.
     dexpression_dvar = map_integrand_dags(rules, expression)
 
     # Get the recorded delayed operations

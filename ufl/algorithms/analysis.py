@@ -51,6 +51,12 @@ def extract_type(a, ufl_types):
     if not isinstance(ufl_types, (list, tuple)):
         ufl_types = (ufl_types,)
 
+    if all(t is not BaseFormOperator for t in ufl_types):
+        remove_base_form_ops = True
+        ufl_types += (BaseFormOperator,)
+    else:
+        remove_base_form_ops = False
+
     # BaseForms that aren't forms or base form operators
     # only contain arguments & coefficients
     if isinstance(a, BaseForm) and not isinstance(a, (Form, BaseFormOperator)):
@@ -74,25 +80,16 @@ def extract_type(a, ufl_types):
                       if any(isinstance(o, t) for t in ufl_types))
 
     # Need to extract objects contained in base form operators whose type is in ufl_types
-    if all(t is not BaseFormOperator for t in ufl_types):
-        # For the case where there are no base form operators in `a`, this effectively doubles the time
-        # since we traverse the DAG twice.
-        # -> A solution would be to have a mechanism to collect these operators as we traverse
-        #    the DAG for the first time and use that information.
-        base_form_ops = extract_type(a, BaseFormOperator)
-    else:
-        base_form_ops = set(e for e in objects if isinstance(e, BaseFormOperator))
-
+    base_form_ops = set(e for e in objects if isinstance(e, BaseFormOperator))
     ufl_types_no_args = tuple(t for t in ufl_types if not issubclass(t, BaseArgument))
     base_form_objects = ()
     for o in base_form_ops:
         # This accounts for having BaseFormOperator in Forms: if N is a BaseFormOperator
-        # N(u; v*) * v * dx <=> action(v1 * v * dx, N(...; v*))
-        # where v, v1 are `Argument`s and v* a `Coargument`.
+        # `N(u; v*) * v * dx` <=> `action(v1 * v * dx, N(...; v*))`
+        # where `v`, `v1` are `Argument`s and `v*` a `Coargument`.
         for ai in tuple(arg for arg in o.argument_slots(isinstance(a, Form))):
             # Extracting BaseArguments of an object of which a Coargument is an argument,
             # then we just return the dual argument of the Coargument and not its primal argument.
-            # TODO: There might be a cleaner way to handle that case.
             if isinstance(ai, Coargument):
                 base_form_objects += tuple(extract_type(ai, tuple(Coargument if t is BaseArgument else t
                                                                   for t in ufl_types)))
@@ -101,10 +98,14 @@ def extract_type(a, ufl_types):
         # Look for BaseArguments in BaseFormOperator's argument slots only since that's where they are by definition.
         # Don't look into operands, which is convenient for external operator composition, e.g. N1(N2; v*)
         # where N2 is seen as an operator and not a form.
-        slots = o.ufl_operands  # + (o.result_coefficient(),)
+        slots = o.ufl_operands
         for ai in slots:
             base_form_objects += tuple(extract_type(ai, ufl_types_no_args))
     objects.update(base_form_objects)
+
+    # `Remove BaseFormOperator` objects if there were initially not in `ufl_types`
+    if remove_base_form_ops:
+        objects -= base_form_ops
     return objects
 
 

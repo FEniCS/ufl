@@ -11,7 +11,9 @@
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 # Modified by Nacime Bouziani, 2020.
+# Modified by Jørgen S. Dokken 2023.
 
+import numbers
 import warnings
 from collections import defaultdict
 from itertools import chain
@@ -52,10 +54,18 @@ def _sorted_integrals(integrals):
 
     all_integrals = []
 
+    def keyfunc(item):
+        if isinstance(item, numbers.Integral):
+            sid_int = item
+        else:
+            # As subdomain ids can be either int or tuples, we need to compare them
+            sid_int = tuple(-1 if i == "otherwise" else i for i in item)
+        return (type(item).__name__, sid_int)
+
     # Order integrals canonically to increase signature stability
     for d in sort_domains(integrals_dict):
         for it in sorted(integrals_dict[d]):  # str is sortable
-            for si in sorted(integrals_dict[d][it], key=lambda x: (type(x).__name__, x)):  # int/str are sortable
+            for si in sorted(integrals_dict[d][it], key=keyfunc):
                 unsorted_integrals = integrals_dict[d][it][si]
                 # TODO: At this point we could order integrals by
                 #       metadata and integrand, or even add the
@@ -743,12 +753,28 @@ class FormSum(BaseForm):
                  "_hash")
     _ufl_required_methods_ = ('_analyze_form_arguments')
 
+    def __new__(cls, *args, **kwargs):
+        # All the components are `ZeroBaseForm`
+        if all(component == 0 for component, _ in args):
+            # Assume that the arguments of all the components have consistent with each other  and select
+            # the first one to define the arguments of `ZeroBaseForm`.
+            # This might not always be true but `ZeroBaseForm`'s arguments are not checked anywhere
+            # because we can't reliably always infer them.
+            ((arg, _), *_) = args
+            arguments = arg.arguments()
+            return ZeroBaseForm(arguments)
+
+        return super(FormSum, cls).__new__(cls)
+
     def __init__(self, *components):
         BaseForm.__init__(self)
 
+        # Remove `ZeroBaseForm` components
+        filtered_components = [(component, w) for component, w in components if component != 0]
+
         weights = []
         full_components = []
-        for (component, w) in components:
+        for (component, w) in filtered_components:
             if isinstance(component, FormSum):
                 full_components.extend(component.components())
                 weights.extend([w * wc for wc in component.weights()])

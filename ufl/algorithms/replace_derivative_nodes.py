@@ -19,8 +19,6 @@ class DerivativeNodeReplacer(MultiFunction):
 
     expr = MultiFunction.reuse_if_untouched
 
-    # TODO: Add other derivative nodes?
-
     def coefficient_derivative(self, cd, o, coefficients, arguments, coefficient_derivatives):
         der_kwargs = self.der_kwargs
         new_coefficients = tuple(self.mapping[c] if c in self.mapping.keys() else c for c in coefficients.ufl_operands)

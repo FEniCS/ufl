@@ -104,7 +104,7 @@ def test_differentiation(V1, V2):
     F = Iu * v * dx
     Ihat = TrialFunction(Iu.ufl_function_space())
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # Compute dFdu = \partial F/\partial u + Action(dFdIu, dIu/du)
+    # Compute dFdu = ∂F/∂u + Action(dFdIu, dIu/du)
     #              = Action(dFdIu, Iu(uhat, v*))
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
     assert dFdIu == Ihat * v * dx
@@ -113,8 +113,8 @@ def test_differentiation(V1, V2):
     # -- Differentiate: u * I(u, V2) * v * dx -- #
     F = u * Iu * v * dx
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # Compute dFdu = \partial F/\partial u + Action(dFdIu, dIu/du)
-    #              = \partial F/\partial u + Action(dFdIu, Iu(uhat, v*))
+    # Compute dFdu = ∂F/∂u + Action(dFdIu, dIu/du)
+    #              = ∂F/∂u + Action(dFdIu, Iu(uhat, v*))
     dFdu_partial = uhat * Iu * v * dx
     dFdIu = Ihat * u * v * dx
     assert dFdu == dFdu_partial + Action(dFdIu, dIu)
@@ -143,17 +143,14 @@ def test_extract_base_form_operators(V1, V2):
     # -- Interp(u, V2) -- #
     Iu = Interp(u, V2)
     assert extract_arguments(Iu) == [vstar]
-    # assert extract_arguments_and_coefficients(Iu) == ([vstar], [u, Iu.result_coefficient()])
     assert extract_arguments_and_coefficients(Iu) == ([vstar], [u])
 
     F = Iu * dx
     # Form composition: Iu * dx <=> Action(v * dx, Iu(u; v*))
     assert extract_arguments(F) == []
     assert extract_arguments_and_coefficients(F) == ([], [u])
-    # assert extract_arguments_and_coefficients(F) == ([], [u, Iu.result_coefficient()])
 
     for e in [Iu, F]:
-        # assert extract_coefficients(e) == [u, Iu.result_coefficient()]
         assert extract_coefficients(e) == [u]
         assert extract_base_form_operators(e) == [Iu]
 
@@ -161,9 +158,7 @@ def test_extract_base_form_operators(V1, V2):
     Iv = Interp(uhat, V2)
     assert extract_arguments(Iv) == [vstar, uhat]
     assert extract_arguments_and_coefficients(Iv) == ([vstar, uhat], [])
-    # assert extract_arguments_and_coefficients(Iv) == ([vstar, uhat], [Iv.result_coefficient()])
     assert extract_coefficients(Iv) == []
-    # assert extract_coefficients(Iv) == [Iv.result_coefficient()]
     assert extract_base_form_operators(Iv) == [Iv]
 
     # -- Action(v * v2 * dx, Iv) -- #
