@@ -217,6 +217,34 @@ class Dot(CompoundTensorOperator):
                             parstr(self.ufl_operands[1], self))
 
 
+@ufl_type(is_index_free=True, num_ops=1)
+class Perp(CompoundTensorOperator):
+    __slots__ = ()
+
+    def __new__(cls, A):
+        sh = A.ufl_shape
+
+        # Checks
+        if not len(sh) == 1:
+            raise ValueError(f"Perp requires arguments of rank 1, got {ufl_err_str(A)}")
+        if not sh[0] == 2:
+            raise ValueError(f"Perp can only work on 2D vectors, got {ufl_err_str(A)}")
+
+        # Simplification
+        if isinstance(A, Zero):
+            return Zero(sh, A.ufl_free_indices, A.ufl_index_dimensions)
+
+        return CompoundTensorOperator.__new__(cls)
+
+    def __init__(self, A):
+        CompoundTensorOperator.__init__(self, (A,))
+
+    ufl_shape = (2,)
+
+    def __str__(self):
+        return "perp(%s)" % self.ufl_operands[0]
+
+
 @ufl_type(num_ops=2)
 class Cross(CompoundTensorOperator):
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions")

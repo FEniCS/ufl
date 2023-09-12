@@ -4,6 +4,7 @@
 Tests of domain language and attaching domains to forms.
 """
 
+from mockobjects import MockMesh, MockMeshFunction
 import pytest
 
 from ufl import *
@@ -12,8 +13,6 @@ from ufl.algorithms import compute_form_data
 
 all_cells = (interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
-
-from mockobjects import MockMesh, MockMeshFunction
 
 
 def test_construct_domains_from_cells():
@@ -198,7 +197,8 @@ def test_everywhere_integrals_with_backwards_compatibility():
 
     # Check some integral data
     assert ida.integral_type == "cell"
-    assert ida.subdomain_id == "otherwise"
+    assert(len(ida.subdomain_id) == 1)
+    assert ida.subdomain_id[0] == "otherwise"
     assert ida.metadata == {}
 
     # Integrands are not equal because of renumbering
@@ -206,6 +206,47 @@ def test_everywhere_integrals_with_backwards_compatibility():
     itg2 = a.integrals()[0].integrand()
     assert type(itg1) == type(itg2)
     assert itg1.ufl_element() == itg2.ufl_element()
+
+
+def test_merge_sort_integral_data():
+    D = Mesh(triangle)
+
+    V = FunctionSpace(D, FiniteElement("CG", triangle, 1))
+
+    u = Coefficient(V)
+    c = Constant(D)
+    a = c * dS((2, 4)) + u * dx + u * ds + 2 * u * dx(3) + 2 * c * dS + 2 * u * dx((1, 4))
+    form_data = compute_form_data(a, do_append_everywhere_integrals=False).integral_data
+    assert(len(form_data) == 5)
+
+    # Check some integral data
+    assert form_data[0].integral_type == "cell"
+    assert(len(form_data[0].subdomain_id) == 1)
+    assert form_data[0].subdomain_id[0] == "otherwise"
+    assert form_data[0].metadata == {}
+
+    assert form_data[1].integral_type == "cell"
+    assert(len(form_data[1].subdomain_id) == 3)
+    assert form_data[1].subdomain_id[0] == 1
+    assert form_data[1].subdomain_id[1] == 3
+    assert form_data[1].subdomain_id[2] == 4
+    assert form_data[1].metadata == {}
+
+    assert form_data[2].integral_type == "exterior_facet"
+    assert(len(form_data[2].subdomain_id) == 1)
+    assert form_data[2].subdomain_id[0] == "otherwise"
+    assert form_data[2].metadata == {}
+
+    assert form_data[3].integral_type == "interior_facet"
+    assert(len(form_data[3].subdomain_id) == 1)
+    assert form_data[3].subdomain_id[0] == "otherwise"
+    assert form_data[3].metadata == {}
+
+    assert form_data[4].integral_type == "interior_facet"
+    assert(len(form_data[4].subdomain_id) == 2)
+    assert form_data[4].subdomain_id[0] == 2
+    assert form_data[4].subdomain_id[1] == 4
+    assert form_data[4].metadata == {}
 
 
 def xtest_mixed_elements_on_overlapping_regions():  # Old sketch, not working
@@ -366,10 +407,10 @@ def xtest_form_domain_model():  # Old sketch, not working
     # domains and regions to be part of their integrands
     dxb = dx('DB')   # Get Mesh by name
     dxbl = dx(Region(DB, (1, 4), 'DBL2'))
-              # Provide a region with different name but same subdomain ids as
-              # DBL
+    # Provide a region with different name but same subdomain ids as
+    # DBL
     dxbr = dx((1, 4))
-              # Assume unique Mesh and provide subdomain ids explicitly
+    # Assume unique Mesh and provide subdomain ids explicitly
 
     # Not checking measure objects in detail, as long as
     # they carry information to construct integrals below
@@ -466,8 +507,8 @@ def xtest_subdomain_stuff():  # Old sketch, not working
 
     # Disjunctified by UFL:
     alonly = dot(ul, vl) * dx(D1)
-                 # integral_1 knows that only subelement VL is active
+    # integral_1 knows that only subelement VL is active
     am = (dot(ul, vl) + ur * vr) * dx(D2)
-          # integral_2 knows that both subelements are active
+    # integral_2 knows that both subelements are active
     aronly = ur * vr * \
         dx(D3)  # integral_3 knows that only subelement VR is active

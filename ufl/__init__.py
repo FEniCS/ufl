@@ -53,6 +53,8 @@ A very brief overview of the language contents follows:
     - hexahedron
     - prism
     - pyramid
+    - pentatope
+    - tesseract
 
 * Domains::
 
@@ -183,7 +185,7 @@ A very brief overview of the language contents follows:
     - sqrt
     - exp, ln, erf
     - cos, sin, tan
-    - acos, asin, atan, atan_2
+    - acos, asin, atan, atan2
     - cosh, sinh, tanh
     - bessel_J, bessel_Y, bessel_I, bessel_K
 
@@ -318,7 +320,7 @@ from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 from ufl.operators import (
     rank, shape, conj, real, imag, outer, inner, dot, cross, perp,
     det, inv, cofac, transpose, tr, diag, diag_vector, dev, skew, sym,
-    sqrt, exp, ln, erf, cos, sin, tan, acos, asin, atan, atan_2, cosh, sinh, tanh,
+    sqrt, exp, ln, erf, cos, sin, tan, acos, asin, atan, atan2, cosh, sinh, tanh,
     bessel_J, bessel_Y, bessel_I, bessel_K, eq, ne, le, ge, lt, gt, And, Or, Not,
     conditional, sign, max_value, min_value, variable, diff,
     Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative,
@@ -339,7 +341,7 @@ from ufl.formoperators import (replace, derivative, action, energy_norm, rhs, lh
 
 # Predefined convenience objects
 from ufl.objects import (
-    vertex, interval, triangle, tetrahedron,
+    vertex, interval, triangle, tetrahedron, pentatope, tesseract,
     quadrilateral, hexahedron, prism, pyramid, facet,
     i, j, k, l, p, q, r, s,
     dx, ds, dS, dP,
@@ -383,7 +385,7 @@ __all__ = [
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',
     'sqrt', 'exp', 'ln', 'erf',
     'cos', 'sin', 'tan',
-    'acos', 'asin', 'atan', 'atan_2',
+    'acos', 'asin', 'atan', 'atan2',
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
@@ -400,7 +402,7 @@ __all__ = [
     'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
-    'prism', 'pyramid',
+    'prism', 'pyramid', 'pentatope', 'tesseract',
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',

@@ -290,12 +290,12 @@ class Atan2(Operator):
         except TypeError:
             raise ValueError('Atan2 does not support complex numbers.')
         except ValueError:
-            warnings.warn('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
+            warnings.warn('Value error in evaluation of function atan2 with arguments %s, %s.' % (a, b))
             raise
         return res
 
     def __str__(self):
-        return "atan_2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
+        return "atan2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
 
 
 @ufl_type()
