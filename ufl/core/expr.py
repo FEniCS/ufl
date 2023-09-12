@@ -19,12 +19,14 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
+import warnings
 
+from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
 
 # --- The base object for all UFL expression tree nodes ---
 
-class Expr(object):
+
+class Expr(object, metaclass=UFLType):
     """Base class for all UFL expression types.
 
     *Instance properties*
@@ -128,21 +130,9 @@ class Expr(object):
     # implement for this type in a multifunction.
     _ufl_handler_name_ = "expr"
 
-    # The integer typecode, a contiguous index different for each
-    # type.  This is used for fast lookup into e.g. multifunction
-    # handler tables.
-    _ufl_typecode_ = 0
-
     # Number of operands, "varying" for some types, or None if not
     # applicable for abstract types.
     _ufl_num_ops_ = None
-
-    # Type trait: If the type is abstract.  An abstract class cannot
-    # be instantiated and does not need all properties specified.
-    _ufl_is_abstract_ = True
-
-    # Type trait: If the type is terminal.
-    _ufl_is_terminal_ = None
 
     # Type trait: If the type is a literal.
     _ufl_is_literal_ = None
@@ -227,15 +217,6 @@ class Expr(object):
 
     # --- Global variables for collecting all types ---
 
-    # A global counter of the number of typecodes assigned
-    _ufl_num_typecodes_ = 1
-
-    # A global set of all handler names added
-    _ufl_all_handler_names_ = set()
-
-    # A global array of all Expr subclasses, indexed by typecode
-    _ufl_all_classes_ = []
-
     # A global dict mapping language_operator_name to the type it
     # produces
     _ufl_language_operators_ = {}
@@ -244,14 +225,6 @@ class Expr(object):
     _ufl_terminal_modifiers_ = []
 
     # --- Mechanism for profiling object creation and deletion ---
-
-    # A global array of the number of initialized objects for each
-    # typecode
-    _ufl_obj_init_counts_ = [0]
-
-    # A global array of the number of deleted objects for each
-    # typecode
-    _ufl_obj_del_counts_ = [0]
 
     # Backup of default init and del
     _ufl_regular__init__ = __init__
@@ -291,13 +264,17 @@ class Expr(object):
 
     # --- Functions for geometric properties of expression ---
 
-    def ufl_domains(self):  # TODO: Deprecate this and use extract_domains(expr)
+    def ufl_domains(self):
         "Return all domains this expression is defined on."
+        warnings.warn("Expr.ufl_domains() is deprecated, please "
+                      "use extract_domains(expr) instead.", DeprecationWarning)
         from ufl.domain import extract_domains
         return extract_domains(self)
 
-    def ufl_domain(self):  # TODO: Deprecate this and use extract_unique_domain(expr)
+    def ufl_domain(self):
         "Return the single unique domain this expression is defined on, or throw an error."
+        warnings.warn("Expr.ufl_domain() is deprecated, please "
+                      "use extract_unique_domain(expr) instead.", DeprecationWarning)
         from ufl.domain import extract_unique_domain
         return extract_unique_domain(self)
 
@@ -305,7 +282,7 @@ class Expr(object):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
+        raise ValueError(f"Symbolic evaluation of {self._ufl_class_.__name__} not available.")
 
     def _ufl_evaluate_scalar_(self):
         if self.ufl_shape or self.ufl_free_indices:
@@ -414,19 +391,14 @@ class Expr(object):
             val = NotImplemented
         return val
 
-    # --- Deprecated functions
-
-    def geometric_dimension(self):
-        "Return the geometric dimension this expression lives in."
-        from ufl.domain import find_geometric_dimension
-        return find_geometric_dimension(self)
-
 
 # Initializing traits here because Expr is not defined in the class
 # declaration
 Expr._ufl_class_ = Expr
-Expr._ufl_all_handler_names_.add(Expr)
-Expr._ufl_all_classes_.append(Expr)
+
+# Update Expr with metaclass properties (e.g. typecode or handler name)
+# Explicitly done here instead of using `@ufl_type` to avoid circular imports.
+update_ufl_type_attributes(Expr)
 
 
 def ufl_err_str(expr):

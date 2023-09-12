@@ -11,17 +11,16 @@ which are constant with respect to a domain."""
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 from ufl.domain import as_domain
-from ufl.utils.counted import counted_init
+from ufl.utils.counted import Counted
 
 
 @ufl_type()
-class Constant(Terminal):
+class Constant(Terminal, Counted):
     _ufl_noslots_ = True
-    _globalcount = 0
 
     def __init__(self, domain, shape=(), count=None):
         Terminal.__init__(self)
-        counted_init(self, count=count, countedclass=Constant)
+        Counted.__init__(self, count, Constant)
 
         self._ufl_domain = as_domain(domain)
         self._ufl_shape = shape
@@ -30,9 +29,6 @@ class Constant(Terminal):
         # with eval() is possible
         self._repr = "Constant({}, {}, {})".format(
             repr(self._ufl_domain), repr(self._ufl_shape), repr(self._count))
-
-    def count(self):
-        return self._count
 
     @property
     def ufl_shape(self):
@@ -48,11 +44,7 @@ class Constant(Terminal):
         return True
 
     def __str__(self):
-        count = str(self._count)
-        if len(count) == 1:
-            return "c_%s" % count
-        else:
-            return "c_{%s}" % count
+        return f"c_{self._count}"
 
     def __repr__(self):
         return self._repr
@@ -62,9 +54,14 @@ class Constant(Terminal):
             return False
         if self is other:
             return True
-        return (self._count == other._count and
-                self._ufl_domain == other._ufl_domain and
+        return (self._count == other._count and self._ufl_domain == other._ufl_domain and   # noqa: W504
                 self._ufl_shape == self._ufl_shape)
+
+    def _ufl_signature_data_(self, renumbering):
+        "Signature data for constant depends on renumbering"
+        return "Constant({}, {}, {})".format(
+            self._ufl_domain._ufl_signature_data_(renumbering), repr(self._ufl_shape),
+            repr(renumbering[self]))
 
 
 def VectorConstant(domain, count=None):
