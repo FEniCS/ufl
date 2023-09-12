@@ -14,6 +14,7 @@ of related classes, including Constant."""
 
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
+from ufl.argument import Argument
 from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
@@ -109,6 +110,7 @@ class Cofunction(BaseCoefficient, BaseForm):
         "_count",
         "_counted_class",
         "_arguments",
+        "_coefficients",
         "_ufl_function_space",
         "ufl_operands",
         "_repr",
@@ -149,7 +151,9 @@ class Cofunction(BaseCoefficient, BaseForm):
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
-        self._arguments = ()
+        # Cofunctions have one argument in primal space as they map from V to R.
+        self._arguments = (Argument(self._ufl_function_space.dual(), 0),)
+        self._coefficients = (self,)
 
 
 @ufl_type()

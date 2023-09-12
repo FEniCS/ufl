@@ -11,7 +11,7 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.form import Form, FormSum, BaseForm, as_form
+from ufl.form import Form, FormSum, BaseForm, ZeroBaseForm, as_form
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
@@ -21,7 +21,8 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.adjoint import Adjoint
 from ufl.action import Action
-from ufl.differentiation import CoefficientDerivative, BaseFormDerivative, CoordinateDerivative
+from ufl.differentiation import (CoefficientDerivative, BaseFormDerivative,
+                                 CoordinateDerivative, BaseFormCoordinateDerivative)
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
@@ -285,15 +286,23 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         return FormSum(*[(derivative(component, coefficient, argument, coefficient_derivatives), 1)
                          for component in form.components()])
     elif isinstance(form, Adjoint):
-        # Push derivative through Adjoint
-        return adjoint(derivative(form._form, coefficient, argument, coefficient_derivatives))
+        # Is `derivative(Adjoint(A), ...)` with A a 2-form even legal ?
+        # -> If yes, what's the right thing to do here ?
+        raise NotImplementedError('Adjoint derivative is not supported.')
     elif isinstance(form, Action):
         # Push derivative through Action slots
         left, right = form.ufl_operands
-        dleft = derivative(left, coefficient, argument, coefficient_derivatives)
-        dright = derivative(right, coefficient, argument, coefficient_derivatives)
-        # Leibniz formula
-        return action(dleft, right) + action(left, dright)
+        # Eagerly simplify spatial derivatives when Action results in a scalar.
+        if not len(form.arguments()) and isinstance(coefficient, SpatialCoordinate):
+            return ZeroBaseForm(())
+
+        if len(left.arguments()) == 1:
+            dleft = derivative(left, coefficient, argument, coefficient_derivatives)
+            dright = derivative(right, coefficient, argument, coefficient_derivatives)
+            # Leibniz formula
+            return action(adjoint(dleft), right) + action(left, dright)
+        else:
+            raise NotImplementedError('Action derivative not supported when the left argument is not a 1-form.')
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient,
                                                            argument)
@@ -309,18 +318,24 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     if isinstance(form, Form):
         integrals = []
         for itg in form.integrals():
-            if not isinstance(coefficient, SpatialCoordinate):
-                fd = CoefficientDerivative(itg.integrand(), coefficients,
-                                           arguments, coefficient_derivatives)
-            else:
+            if isinstance(coefficient, SpatialCoordinate):
                 fd = CoordinateDerivative(itg.integrand(), coefficients,
                                           arguments, coefficient_derivatives)
+            elif isinstance(coefficient, BaseForm):
+                # Make the `ZeroBaseForm` arguments
+                arguments = form.arguments() + coefficient.arguments()
+                return ZeroBaseForm(arguments)
+            else:
+                fd = CoefficientDerivative(itg.integrand(), coefficients,
+                                           arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
     elif isinstance(form, BaseForm):
         if not isinstance(coefficient, SpatialCoordinate):
             return BaseFormDerivative(form, coefficients, arguments, coefficient_derivatives)
+        else:
+            return BaseFormCoordinateDerivative(form, coefficients, arguments, coefficient_derivatives)
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
