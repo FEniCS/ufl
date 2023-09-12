@@ -115,7 +115,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def count(self):
         "Returns the count associated to the base form operator"
-        return self.count
+        return self._count
 
     @property
     def ufl_shape(self):
