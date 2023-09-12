@@ -12,6 +12,7 @@ elements by calling the function register_element."""
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
 # Modified by Lizao Li <lzlarryli@gmail.com>, 2015, 2016
 # Modified by Massimiliano Leoni, 2016
+# Modified by Robert Kloefkorn, 2022
 
 import warnings
 from numpy import asarray
@@ -82,12 +83,12 @@ def show_elements():
 #       the future, add mapping name as another element property.
 
 # Cell groups
-simplices = ("interval", "triangle", "tetrahedron")
-cubes = ("interval", "quadrilateral", "hexahedron")
+simplices = ("interval", "triangle", "tetrahedron", "pentatope")
+cubes = ("interval", "quadrilateral", "hexahedron", "tesseract")
 any_cell = (None,
             "vertex", "interval",
             "triangle", "tetrahedron", "prism",
-            "pyramid", "quadrilateral", "hexahedron")
+            "pyramid", "quadrilateral", "hexahedron", "pentatope", "tesseract")
 
 # Elements in the periodic table # TODO: Register these as aliases of
 # periodic table element description instead of the other way around
@@ -152,7 +153,7 @@ register_alias("Lobatto",
 register_alias("Lob",
                lambda family, dim, order, degree: ("Gauss-Lobatto-Legendre", order))
 
-register_element("Bernstein", "Bernstein", 0, H1, "identity", (1, None), simplices)
+register_element("Bernstein", None, 0, H1, "identity", (1, None), simplices)
 
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
@@ -175,30 +176,30 @@ register_alias("DGT",
                lambda family, dim, order, degree: ("HDiv Trace", order))
 
 # New elements introduced for the periodic table 2014
-register_element("Q", "Q", 0, H1, "identity", (1, None), cubes)
-register_element("DQ", "DQ", 0, L2, "identity", (0, None), cubes)
-register_element("RTCE", "RTCE", 1, HCurl, "covariant Piola", (1, None),
+register_element("Q", None, 0, H1, "identity", (1, None), cubes)
+register_element("DQ", None, 0, L2, "identity", (0, None), cubes)
+register_element("RTCE", None, 1, HCurl, "covariant Piola", (1, None),
                  ("quadrilateral",))
-register_element("RTCF", "RTCF", 1, HDiv, "contravariant Piola", (1, None),
+register_element("RTCF", None, 1, HDiv, "contravariant Piola", (1, None),
                  ("quadrilateral",))
-register_element("NCE", "NCE", 1, HCurl, "covariant Piola", (1, None),
+register_element("NCE", None, 1, HCurl, "covariant Piola", (1, None),
                  ("hexahedron",))
-register_element("NCF", "NCF", 1, HDiv, "contravariant Piola", (1, None),
+register_element("NCF", None, 1, HDiv, "contravariant Piola", (1, None),
                  ("hexahedron",))
 
-register_element("S", "S", 0, H1, "identity", (1, None), cubes)
-register_element("DPC", "DPC", 0, L2, "identity", (0, None), cubes)
-register_element("BDMCE", "BDMCE", 1, HCurl, "covariant Piola", (1, None),
+register_element("S", None, 0, H1, "identity", (1, None), cubes)
+register_element("DPC", None, 0, L2, "identity", (0, None), cubes)
+register_element("BDMCE", None, 1, HCurl, "covariant Piola", (1, None),
                  ("quadrilateral",))
-register_element("BDMCF", "BDMCF", 1, HDiv, "contravariant Piola", (1, None),
+register_element("BDMCF", None, 1, HDiv, "contravariant Piola", (1, None),
                  ("quadrilateral",))
 register_element("SminusE", "SminusE", 1, HCurl, "covariant Piola", (1, None), cubes[1:3])
 register_element("SminusF", "SminusF", 1, HDiv, "contravariant Piola", (1, None), cubes[1:2])
 register_element("SminusDiv", "SminusDiv", 1, HDiv, "contravariant Piola", (1, None), cubes[1:3])
 register_element("SminusCurl", "SminusCurl", 1, HCurl, "covariant Piola", (1, None), cubes[1:3])
-register_element("AAE", "AAE", 1, HCurl, "covariant Piola", (1, None),
+register_element("AAE", None, 1, HCurl, "covariant Piola", (1, None),
                  ("hexahedron",))
-register_element("AAF", "AAF", 1, HDiv, "contravariant Piola", (1, None),
+register_element("AAF", None, 1, HDiv, "contravariant Piola", (1, None),
                  ("hexahedron",))
 
 # New aliases introduced for the periodic table 2014
@@ -224,8 +225,8 @@ register_alias("N2F", lambda family, dim, order,
                degree: ("Brezzi-Douglas-Marini", order))
 
 # discontinuous elements using l2 pullbacks
-register_element("DPC L2", "DPC L2", 0, L2, "L2 Piola", (1, None), cubes)
-register_element("DQ L2", "DQ L2", 0, L2, "L2 Piola", (0, None), cubes)
+register_element("DPC L2", None, 0, L2, "L2 Piola", (1, None), cubes)
+register_element("DQ L2", None, 0, L2, "L2 Piola", (0, None), cubes)
 register_element("Gauss-Legendre L2", "GL L2", 0, L2, "L2 Piola", (0, None),
                  ("interval",))
 register_element("Discontinuous Lagrange L2", "DG L2", 0, L2, "L2 Piola", (0, None),
