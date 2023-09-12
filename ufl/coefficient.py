@@ -14,9 +14,7 @@ of related classes, including Constant."""
 
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
-from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.form import BaseForm
 from ufl.split_functions import split
 from ufl.utils.counted import Counted

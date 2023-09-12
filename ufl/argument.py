@@ -16,10 +16,8 @@ import numbers
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
-from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain
 from ufl.form import BaseForm
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.duals import is_primal, is_dual
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
