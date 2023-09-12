@@ -1,9 +1,10 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-from ufl import (Action, Adjoint, Argument, Coargument, Coefficient, Cofunction, FormSum, FunctionSpace, Matrix,
-                 MixedFunctionSpace, TestFunction, TrialFunction, action, adjoint, derivative, dx, interval,
-                 tetrahedron, triangle)
+from ufl import (Action, Adjoint, Argument, Coargument, Coefficient,
+                 Cofunction, FormSum, FunctionSpace, Matrix,
+                 MixedFunctionSpace, TestFunction, TrialFunction, action,
+                 adjoint, derivative, dx, interval, tetrahedron, triangle)
 from ufl.constantvalue import Zero
 from ufl.finiteelement import FiniteElement
 from ufl.form import ZeroBaseForm

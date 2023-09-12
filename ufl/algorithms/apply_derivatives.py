@@ -12,9 +12,12 @@ from math import pi
 
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.checks import is_cellwise_constant
-from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue, ExprList, ExprMapping, FloatValue,
-                         FormArgument, Grad, Identity, Imag, Indexed, IndexSum, JacobianInverse, ListTensor, Product,
-                         Real, ReferenceGrad, ReferenceValue, SpatialCoordinate, Sum, Variable, Zero)
+from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue,
+                         ExprList, ExprMapping, FloatValue, FormArgument, Grad,
+                         Identity, Imag, Indexed, IndexSum, JacobianInverse,
+                         ListTensor, Product, Real, ReferenceGrad,
+                         ReferenceValue, SpatialCoordinate, Sum, Variable,
+                         Zero)
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.expr import ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
@@ -24,21 +27,17 @@ from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import CoordinateDerivative
 from ufl.domain import extract_unique_domain
 from ufl.form import ZeroBaseForm
-from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
-                           sign, sin, sinh, sqrt)
-from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, unwrap_list_tensor
+from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg,
+                           conditional, cos, cosh, exp, facet_avg, ln, sign,
+                           sin, sinh, sqrt)
+from ufl.tensors import (as_scalar, as_scalars, as_tensor, unit_indexed_tensor,
+                         unwrap_list_tensor)
 
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset
 # - ReferenceGradRuleset
 # - ReferenceDivRuleset
-
-
-# Set this to True to enable previously default workaround
-# for bug in FFC handling of conditionals, uflacs does not
-# have this bug.
-CONDITIONAL_WORKAROUND = False
 
 
 class GenericDerivativeRuleset(MultiFunction):
@@ -49,7 +48,8 @@ class GenericDerivativeRuleset(MultiFunction):
     # --- Error checking for missing handlers and unexpected types
 
     def expr(self, o):
-        raise ValueError(f"Missing differentiation handler for type {o._ufl_class_.__name__}. Have you added a new type?")
+        raise ValueError(f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
+                         "Have you added a new type?")
 
     def unexpected(self, o):
         raise ValueError(f"Unexpected type {o._ufl_class_.__name__} in AD rules.")
@@ -428,18 +428,10 @@ class GenericDerivativeRuleset(MultiFunction):
         return None
 
     def conditional(self, o, unused_dc, dt, df):
-        global CONDITIONAL_WORKAROUND
         if isinstance(dt, Zero) and isinstance(df, Zero):
             # Assuming dt and df have the same indices here, which
             # should be the case
             return dt
-        elif CONDITIONAL_WORKAROUND:
-            # Placing t[1],f[1] outside here to avoid getting
-            # arguments inside conditionals.  This will fail when dt
-            # or df become NaN or Inf in floating point computations!
-            c = o.ufl_operands[0]
-            dc = conditional(c, 1, 0)
-            return dc * dt + (1.0 - dc) * df
         else:
             # Not placing t[1],f[1] outside, allowing arguments inside
             # conditionals.  This will make legacy ffc fail, but
@@ -716,9 +708,9 @@ class VariableRuleset(GenericDerivativeRuleset):
             # df/v = 0
             return self.independent_terminal(o)
 
-    def variable(self, o, df, l):
+    def variable(self, o, df, a):
         v = self._variable
-        if isinstance(v, Variable) and v.label() == l:
+        if isinstance(v, Variable) and v.label() == a:
             # dv/dv = identity of rank 2*rank(v)
             return self._Id
         else:
@@ -843,9 +835,9 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             dosum = Zero(o.ufl_shape)
             for do, v in zip(dos, self._v):
                 so, oi = as_scalar(do)
-                rv = len(v.ufl_shape)
-                oi1 = oi[:-rv]
-                oi2 = oi[-rv:]
+                rv = len(oi) - len(v.ufl_shape)
+                oi1 = oi[:rv]
+                oi2 = oi[rv:]
                 prod = so * v[oi2]
                 if oi1:
                     dosum += as_tensor(prod, oi1)
@@ -1198,7 +1190,8 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         if do is not None:
             return do
         else:
-            raise NotImplementedError("CoordinateDerivative found a SpatialCoordinate that is different from the one being differentiated.")
+            raise NotImplementedError("CoordinateDerivative found a SpatialCoordinate that is different "
+                                      "from the one being differentiated.")
 
     def reference_value(self, o):
         do = self._cd.get(o)

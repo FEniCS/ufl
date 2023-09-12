@@ -35,7 +35,7 @@ class Restricted(Operator):
                                              index_values)
 
     def __str__(self):
-        return "%s('%s')" % (parstr(self.ufl_operands[0], self), self._side)
+        return f"{parstr(self.ufl_operands[0], self)}({self._side})"
 
 
 @ufl_type(is_terminal_modifier=True)

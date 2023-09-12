@@ -17,8 +17,6 @@ from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
 
-# --- Base class for terminal objects ---
-
 @ufl_type(is_abstract=True, is_terminal=True)
 class Terminal(Expr):
     "A terminal node in the UFL expression tree."
@@ -26,12 +24,6 @@ class Terminal(Expr):
 
     def __init__(self):
         Expr.__init__(self)
-
-    def _ufl_expr_reconstruct_(self, *operands):
-        "Return self."
-        if operands:
-            raise ValueError("Terminal has no operands.")
-        return self
 
     ufl_operands = ()
     ufl_free_indices = ()

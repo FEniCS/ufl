@@ -62,7 +62,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
                 if c in coefficients:
                     g = coefficients[c]
                     if f is not g:
-                        errors.append("Found different Coefficients with " +
+                        errors.append("Found different Coefficients with "
                                       f"same count: {f} and {g}.")
                 else:
                     coefficients[c] = f

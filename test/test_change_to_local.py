@@ -6,7 +6,8 @@ Tests of the change to local representaiton algorithms.
 
 import pytest
 
-from ufl import Coefficient, FunctionSpace, JacobianInverse, Mesh, as_tensor, grad, indices, triangle
+from ufl import (Coefficient, FunctionSpace, JacobianInverse, Mesh, as_tensor,
+                 grad, indices, triangle)
 from ufl.algorithms import change_to_reference_grad, tree_format
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import JacobianInverse, ReferenceGrad

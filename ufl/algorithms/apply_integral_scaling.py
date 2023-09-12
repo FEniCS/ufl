@@ -9,7 +9,8 @@
 
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
-from ufl.classes import FacetJacobianDeterminant, Form, Integral, JacobianDeterminant, QuadratureWeight
+from ufl.classes import (FacetJacobianDeterminant, Form, Integral,
+                         JacobianDeterminant, QuadratureWeight)
 from ufl.differentiation import CoordinateDerivative
 from ufl.measure import custom_integral_types, point_integral_types
 

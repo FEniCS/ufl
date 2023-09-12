@@ -12,10 +12,9 @@ indices only."""
 # Modified by Anders Logg, 2009.
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.classes import ListTensor, Terminal
+from ufl.classes import Terminal
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex
-from ufl.corealg.traversal import unique_pre_traversal
 from ufl.differentiation import Grad
 from ufl.utils.stacks import Stack, StackDict
 
@@ -218,12 +217,3 @@ class IndexExpander(ReuseTransformer):
 
 def expand_indices(e):
     return apply_transformer(e, IndexExpander())
-
-
-def purge_list_tensors(expr):
-    """Get rid of all ListTensor instances by expanding
-    expressions to use their components directly.
-    Will usually increase the size of the expression."""
-    if any(isinstance(subexpr, ListTensor) for subexpr in unique_pre_traversal(expr)):
-        return expand_indices(expr)  # TODO: Only expand what's necessary to get rid of list tensors
-    return expr

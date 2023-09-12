@@ -16,8 +16,6 @@ from ufl.form import BaseForm, Form, FormSum
 from ufl.integral import Integral
 
 
-# --- Traversal utilities ---
-
 def iter_expressions(a):
     """Utility function to handle Form, Integral and any Expr
     the same way when inspecting expressions.

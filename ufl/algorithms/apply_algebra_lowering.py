@@ -12,8 +12,9 @@ equivalent representations using basic operators."""
 
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import Conj, Grad, Product
-from ufl.compound_expressions import cofactor_expr, determinant_expr, deviatoric_expr, inverse_expr
-from ufl.core.multiindex import FixedIndex, Index, indices
+from ufl.compound_expressions import (cofactor_expr, determinant_expr,
+                                      deviatoric_expr, inverse_expr)
+from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction
 from ufl.tensors import as_matrix, as_tensor, as_vector
 
@@ -37,14 +38,6 @@ class LowerCompoundAlgebra(MultiFunction):
         i, j = indices(2)
         return as_tensor(A[i, j], (j, i))
 
-    def _square_matrix_shape(self, A):
-        sh = A.ufl_shape
-        if sh[0] != sh[1]:
-            raise ValueError("Expecting square matrix.")
-        if sh[0] is None:
-            raise ValueError("Unknown dimension.")
-        return sh
-
     def deviatoric(self, o, A):
         return deviatoric_expr(A)
 
@@ -61,20 +54,8 @@ class LowerCompoundAlgebra(MultiFunction):
             return Product(a[i], b[j]) - Product(a[j], b[i])
         return as_vector((c(1, 2), c(2, 0), c(0, 1)))
 
-    def altenative_dot(self, o, a, b):  # TODO: Test this
-        ash = a.ufl_shape
-        bsh = b.ufl_shape
-        ai = indices(len(ash) - 1)
-        bi = indices(len(bsh) - 1)
-        # Simplification for tensors where the dot-sum dimension has
-        # length 1
-        if ash[-1] == 1:
-            k = (FixedIndex(0),)
-        else:
-            k = (Index(),)
-        # Potentially creates a single IndexSum over a Product
-        s = a[ai + k] * b[k + bi]
-        return as_tensor(s, ai + bi)
+    def perp(self, o, a):
+        return as_vector([-a[1], a[0]])
 
     def dot(self, o, a, b):
         ai = indices(len(a.ufl_shape) - 1)
@@ -83,26 +64,6 @@ class LowerCompoundAlgebra(MultiFunction):
         # Creates a single IndexSum over a Product
         s = a[ai + k] * b[k + bi]
         return as_tensor(s, ai + bi)
-
-    def alternative_inner(self, o, a, b):  # TODO: Test this
-        ash = a.ufl_shape
-        bsh = b.ufl_shape
-        if ash != bsh:
-            raise ValueError("Nonmatching shapes.")
-        # Simplification for tensors with one or more dimensions of
-        # length 1
-        ii = []
-        zi = FixedIndex(0)
-        for n in ash:
-            if n == 1:
-                ii.append(zi)
-            else:
-                ii.append(Index())
-        ii = tuple(ii)
-        # ii = indices(len(a.ufl_shape))
-        # Potentially creates multiple IndexSums over a Product
-        s = a[ii] * Conj(b[ii])
-        return s
 
     def inner(self, o, a, b):
         ash = a.ufl_shape

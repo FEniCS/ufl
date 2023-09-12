@@ -10,7 +10,8 @@
 # Modified by Anders Logg, 2008
 
 from ufl.checks import is_true_ufl_scalar, is_ufl_scalar
-from ufl.constantvalue import ComplexValue, IntValue, ScalarValue, Zero, as_ufl, zero
+from ufl.constantvalue import (ComplexValue, IntValue, ScalarValue, Zero,
+                               as_ufl, zero)
 from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -87,26 +88,7 @@ class Sum(Operator):
                               index_values) for o in self.ufl_operands)
 
     def __str__(self):
-        ops = [parstr(o, self) for o in self.ufl_operands]
-        if False:
-            # Implementation with line splitting:
-            limit = 70
-            delimop = " + \\\n    + "
-            op = " + "
-            s = ops[0]
-            n = len(s)
-            for o in ops[1:]:
-                m = len(o)
-                if n + m > limit:
-                    s += delimop
-                    n = m
-                else:
-                    s += op
-                    n += m
-                s += o
-            return s
-        # Implementation with no line splitting:
-        return " + ".join(ops)
+        return " + ".join([parstr(o, self) for o in self.ufl_operands])
 
 
 @ufl_type(num_ops=2,

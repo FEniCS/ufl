@@ -2,7 +2,8 @@
 
 import pytest
 
-from ufl import Coefficient, Index, as_tensor, interval, sqrt, tetrahedron, triangle
+from ufl import (Coefficient, Index, as_tensor, interval, sqrt, tetrahedron,
+                 triangle)
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.finiteelement import FiniteElement
@@ -58,7 +59,7 @@ def test_determinant2(A2):
 
 def test_determinant3(A3):
     assert determinant_expr(A3) == (A3[0, 0]*(A3[1, 1]*A3[2, 2] - A3[1, 2]*A3[2, 1])
-                                    + A3[0, 1]*(A3[1, 2]*A3[2, 0] - A3[1, 0]*A3[2, 2])
+                                    + (A3[1, 0]*A3[2, 2] - A3[1, 2]*A3[2, 0])*(-A3[0, 1])
                                     + A3[0, 2]*(A3[1, 0]*A3[2, 1] - A3[1, 1]*A3[2, 0]))
 
 

@@ -10,9 +10,11 @@
 import hashlib
 
 from ufl.algorithms.domain_analysis import canonicalize_metadata
-from ufl.classes import (Argument, Coefficient, Constant, ConstantValue, ExprList, ExprMapping, GeometricQuantity,
-                         Index, Label, MultiIndex)
-from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
+from ufl.classes import (Argument, Coefficient, Constant, ConstantValue,
+                         ExprList, ExprMapping, GeometricQuantity, Index,
+                         Label, MultiIndex)
+from ufl.corealg.traversal import (traverse_unique_terminals,
+                                   unique_post_traversal)
 
 
 def compute_multiindex_hashdata(expr, index_numbering):
@@ -41,7 +43,6 @@ def compute_terminal_hashdata(expressions, renumbering):
     # arguments, and just take repr of the rest of the terminals while
     # we're iterating over them
     terminal_hashdata = {}
-    labels = {}
     index_numbering = {}
     for expression in expressions:
         for expr in traverse_unique_terminals(expression):
@@ -67,12 +68,7 @@ def compute_terminal_hashdata(expressions, renumbering):
                 data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Label):
-                # Numbering labels as we visit them # TODO: Include in
-                # renumbering
-                data = labels.get(expr)
-                if data is None:
-                    data = "L%d" % len(labels)
-                    labels[expr] = data
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, ExprList):
                 # Not really a terminal but can have 0 operands...

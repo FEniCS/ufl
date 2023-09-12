@@ -17,7 +17,8 @@
 #
 # The bilinear form a(v, u) and linear form L(v) for
 # Poisson's equation with Neumann boundary conditions.
-from ufl import Coefficient, TestFunction, TrialFunction, ds, dx, grad, inner, triangle
+from ufl import (Coefficient, TestFunction, TrialFunction, ds, dx, grad, inner,
+                 triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

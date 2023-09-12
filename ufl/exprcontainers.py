@@ -80,15 +80,6 @@ class ExprMapping(Operator):
         else:
             return []
 
-    # def __getitem__(self, key):
-    #     return self.ufl_operands[key]
-
-    # def __len__(self):
-    #     return len(self.ufl_operands) // 2
-
-    # def __iter__(self):
-    #     return iter(self.ufl_operands[::2])
-
     def __str__(self):
         return "ExprMapping(*%s)" % repr(self.ufl_operands)
 

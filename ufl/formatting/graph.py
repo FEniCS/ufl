@@ -200,7 +200,8 @@ class StringDependencyDefiner(MultiFunction):
     """Given an expr, returns a frozenset of its dependencies.
 
     Possible dependency values are:
-        "c"       - depends on runtime information like the cell, local<->global coordinate mappings, facet normals, or coefficients
+        "c"       - depends on runtime information like the cell, local<->global coordinate
+                    mappings, facet normals, or coefficients
         "x"       - depends on local coordinates
         "v%d" % i - depends on argument i, for i in [0,rank)
     """
@@ -218,7 +219,8 @@ class StringDependencyDefiner(MultiFunction):
         return frozenset()
 
     def argument(self, x):
-        default = frozenset(("v%d" % x.number(), "x"))  # TODO: This is missing the part, but this code is ready for deletion anyway?
+        # TODO: This is missing the part, but this code is ready for deletion anyway?
+        default = frozenset(("v%d" % x.number(), "x"))
         return self.argument_deps.get(x, default)
 
     def coefficient(self, x):
@@ -237,7 +239,9 @@ class StringDependencyDefiner(MultiFunction):
         #     deps = deps | frozenset(("x",))
         return deps
 
-    def spatial_derivative(self, o):  # TODO: What about (basis) functions of which derivatives are constant? Should special-case spatial_derivative in partition().
+    def spatial_derivative(self, o):
+        # TODO: What about (basis) functions of which derivatives are constant?
+        # Should special-case spatial_derivative in partition().
         deps = frozenset(("c",))
         # Enabling coordinate dependency for higher order geometries
         # (not handled anywhere else though).

@@ -6,7 +6,8 @@ from itertools import chain
 import pytest
 
 from ufl import *
-from ufl.algorithms import compute_form_data, expand_indices, post_traversal, strip_variables
+from ufl.algorithms import (compute_form_data, expand_indices, post_traversal,
+                            strip_variables)
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
@@ -122,9 +123,11 @@ def testCoefficient(self):
 
 
 def testArgument(self):
-    def f(w): return TestFunction(FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1))
+    def f(w):
+        return TestFunction(FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1))
 
-    def df(w, v): return zero()
+    def df(w, v):
+        return zero()
     _test(self, f, df)
 
 # --- Geometry
@@ -482,6 +485,30 @@ def test_coefficient_derivatives(self):
     actual = fd.preprocessed_form.integrals()[0].integrand()
     assert (actual*dx).signature() == (expected*dx).signature()
     self.assertEqual(replace(actual, fd.function_replace_map), expected)
+
+
+def test_vector_coefficient_scalar_derivatives(self):
+    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    VV = FiniteElement("vector Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
+
+    dv = TestFunction(V)
+
+    df = Coefficient(VV, count=0)
+    g = Coefficient(VV, count=1)
+    f = Coefficient(VV, count=2)
+    u = Coefficient(V, count=3)
+    cd = {f: df}
+
+    integrand = inner(f, g)
+
+    i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
+    expected = as_tensor(df[i1]*dv, (i1,))[i0]*g[i0]
+
+    F = integrand*dx
+    J = derivative(F, u, dv, cd)
+    fd = compute_form_data(J)
+    actual = fd.preprocessed_form.integrals()[0].integrand()
+    assert (actual*dx).signature() == (expected*dx).signature()
 
 
 def test_vector_coefficient_derivatives(self):

@@ -34,7 +34,8 @@
 # the unknown u to the right-hand side, all terms may
 # be listed on one line and left- and right-hand sides
 # extracted by lhs() and rhs().
-from ufl import Coefficient, TestFunction, TrialFunction, dot, dx, grad, lhs, rhs, triangle
+from ufl import (Coefficient, TestFunction, TrialFunction, dot, dx, grad, lhs,
+                 rhs, triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

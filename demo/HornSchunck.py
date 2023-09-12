@@ -3,7 +3,8 @@
 #  http://code.google.com/p/debiosee/wiki/DemosOptiocFlowHornSchunck
 # but not tested so this could contain errors!
 #
-from ufl import Coefficient, Constant, derivative, dot, dx, grad, inner, triangle
+from ufl import (Coefficient, Constant, derivative, dot, dx, grad, inner,
+                 triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

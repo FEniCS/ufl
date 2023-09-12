@@ -13,21 +13,23 @@
 
 from ufl.action import Action
 from ufl.adjoint import Adjoint
-# Part of the external interface
-# An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import replace  # noqa
-from ufl.algorithms import (compute_energy_norm, compute_form_action, compute_form_adjoint, compute_form_functional,
-                            compute_form_lhs, compute_form_rhs, expand_derivatives, extract_arguments)
+from ufl.algorithms import replace  # noqa: F401
+from ufl.algorithms import (compute_energy_norm, compute_form_action,
+                            compute_form_adjoint, compute_form_functional,
+                            compute_form_lhs, compute_form_rhs,
+                            expand_derivatives, extract_arguments,
+                            formsplitter)
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.constantvalue import as_ufl, is_true_ufl_scalar
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex
-from ufl.differentiation import BaseFormDerivative, CoefficientDerivative, CoordinateDerivative
+from ufl.differentiation import (BaseFormDerivative, CoefficientDerivative,
+                                 CoordinateDerivative)
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.finiteelement import MixedElement
-from ufl.functionspace import FunctionSpace
 from ufl.form import BaseForm, Form, FormSum, as_form
+from ufl.functionspace import FunctionSpace
 from ufl.geometry import SpatialCoordinate
 from ufl.indexed import Indexed
 from ufl.sorting import sorted_expr
@@ -48,7 +50,7 @@ def extract_blocks(form, i=None, j=None):
        extract_blocks(a) -> [inner(grad(u), grad(v))*dx, div(v)*p*dx, div(u)*q*dx, 0]
 
     """
-    return ufl.algorithms.formsplitter.extract_blocks(form, i, j)
+    return formsplitter.extract_blocks(form, i, j)
 
 
 def lhs(form):
@@ -385,10 +387,7 @@ def sensitivity_rhs(a, u, L, v):
 
         dL = sensitivity_rhs(a, u, L, v)
     """
-    if not (isinstance(a, Form) and
-            isinstance(u, Coefficient) and
-            isinstance(L, Form) and
-            isinstance(v, Variable)):
+    if not (isinstance(a, Form) and isinstance(u, Coefficient) and isinstance(L, Form) and isinstance(v, Variable)):
         raise ValueError("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
     if not is_true_ufl_scalar(v):
         raise ValueError("Expecting scalar variable.")

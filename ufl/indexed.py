@@ -12,7 +12,7 @@ from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.index_combination_utils import merge_unique_indices, unique_sorted_indices
+from ufl.index_combination_utils import unique_sorted_indices
 from ufl.precedence import parstr
 
 # --- Indexed expression ---
@@ -69,27 +69,17 @@ class Indexed(Operator):
             raise ValueError("Fixed index out of range!")
 
         # Build tuples of free index ids and dimensions
-        if 1:
-            efi = expression.ufl_free_indices
-            efid = expression.ufl_index_dimensions
-            fi = list(zip(efi, efid))
-            for pos, ind in enumerate(multiindex._indices):
-                if isinstance(ind, Index):
-                    fi.append((ind.count(), shape[pos]))
-            fi = unique_sorted_indices(sorted(fi))
-            if fi:
-                fi, fid = zip(*fi)
-            else:
-                fi, fid = (), ()
-
+        efi = expression.ufl_free_indices
+        efid = expression.ufl_index_dimensions
+        fi = list(zip(efi, efid))
+        for pos, ind in enumerate(multiindex._indices):
+            if isinstance(ind, Index):
+                fi.append((ind.count(), shape[pos]))
+        fi = unique_sorted_indices(sorted(fi))
+        if fi:
+            fi, fid = zip(*fi)
         else:
-            mfiid = [(ind.count(), shape[pos])
-                     for pos, ind in enumerate(multiindex._indices)
-                     if isinstance(ind, Index)]
-            mfi, mfid = zip(*mfiid) if mfiid else ((), ())
-            fi, fid = merge_unique_indices(expression.ufl_free_indices,
-                                           expression.ufl_index_dimensions,
-                                           mfi, mfid)
+            fi, fid = (), ()
 
         # Cache free index and dimensions
         self.ufl_free_indices = fi
@@ -114,4 +104,5 @@ class Indexed(Operator):
             # So that one doesn't have to special case indexing of
             # expressions without shape.
             return self
-        raise ValueError(f"Attempting to index with {ufl_err_str(key)}, but object is already indexed: {ufl_err_str(self)}")
+        raise ValueError(f"Attempting to index with {ufl_err_str(key)}, "
+                         f"but object is already indexed: {ufl_err_str(self)}")

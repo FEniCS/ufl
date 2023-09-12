@@ -14,10 +14,14 @@ import warnings
 from functools import reduce
 from itertools import combinations
 
-from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian, CellOrientation, CellOrigin, CellVertices,
-                         CellVolume, Expr, FacetEdgeVectors, FacetJacobian, FacetJacobianDeterminant, FloatValue, Form,
-                         Integral, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength,
-                         ReferenceCellVolume, ReferenceFacetVolume, ReferenceGrad, ReferenceNormal, SpatialCoordinate)
+from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian,
+                         CellOrientation, CellOrigin, CellVertices, CellVolume,
+                         Expr, FacetEdgeVectors, FacetJacobian,
+                         FacetJacobianDeterminant, FloatValue, Form, Integral,
+                         Jacobian, JacobianDeterminant, JacobianInverse,
+                         MaxCellEdgeLength, ReferenceCellVolume,
+                         ReferenceFacetVolume, ReferenceGrad, ReferenceNormal,
+                         SpatialCoordinate)
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.map_dag import map_expr_dag

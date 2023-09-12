@@ -132,7 +132,7 @@ class SumDegreeEstimator(MultiFunction):
     def reference_value(self, rv, f):
         return f
 
-    def variable(self, v, e, l):
+    def variable(self, v, e, a):
         return e
 
     def transposed(self, v, A):
@@ -293,9 +293,9 @@ class SumDegreeEstimator(MultiFunction):
         quadrature order must be adjusted manually."""
         return self._max_degrees(v, t, f)
 
-    def min_value(self, v, l, r):
+    def min_value(self, v, a, r):
         """Same as conditional."""
-        return self._max_degrees(v, l, r)
+        return self._max_degrees(v, a, r)
     max_value = min_value
 
     def coordinate_derivative(self, v, integrand_degree, b, direction_degree, d):

@@ -14,7 +14,8 @@ import pytest
 # This imports everything external code will see from ufl
 from ufl import *
 # TODO: Import only what you need from classes and algorithms:
-from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
+from ufl.classes import (FixedIndex, FormArgument, Grad, Indexed, ListTensor,
+                         Zero)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor

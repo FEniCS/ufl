@@ -8,11 +8,14 @@ __date__ = "2008-03-12 -- 2009-01-28"
 
 import pytest
 
-from ufl import (Argument, Coefficient, FacetNormal, Matrix, TestFunction, TrialFunction, adjoint, div, dot, ds, dx,
-                 grad, inner, triangle)
-from ufl.algorithms import (expand_derivatives, expand_indices, extract_arguments, extract_coefficients,
+from ufl import (Argument, Coefficient, FacetNormal, Matrix, TestFunction,
+                 TrialFunction, adjoint, div, dot, ds, dx, grad, inner,
+                 triangle)
+from ufl.algorithms import (expand_derivatives, expand_indices,
+                            extract_arguments, extract_coefficients,
                             extract_elements, extract_unique_elements)
-from ufl.corealg.traversal import post_traversal, pre_traversal, unique_post_traversal, unique_pre_traversal
+from ufl.corealg.traversal import (post_traversal, pre_traversal,
+                                   unique_post_traversal, unique_pre_traversal)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

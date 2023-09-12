@@ -21,7 +21,8 @@
 # Last changed: 2009-03-02
 #
 # The bilinear form a(v, u) and linear form L(v) for Poisson's equation.
-from ufl import Coefficient, TestFunction, TrialFunction, dx, grad, inner, triangle
+from ufl import (Coefficient, TestFunction, TrialFunction, dx, grad, inner,
+                 triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

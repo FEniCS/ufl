@@ -17,7 +17,8 @@ from ufl.argument import BaseArgument
 from ufl.coefficient import BaseCoefficient
 from ufl.constant import Constant
 from ufl.core.terminal import Terminal
-from ufl.corealg.traversal import traverse_unique_terminals, unique_pre_traversal
+from ufl.corealg.traversal import (traverse_unique_terminals,
+                                   unique_pre_traversal)
 from ufl.form import BaseForm, Form
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
@@ -41,14 +42,6 @@ def unique_tuple(objects):
 
 
 # --- Utilities to extract information from an expression ---
-
-def __unused__extract_classes(a):
-    """Build a set of all unique Expr subclasses used in a.
-    The argument a can be a BaseForm, Integral or Expr."""
-    return set(o._ufl_class_
-               for e in iter_expressions(a)
-               for o in unique_pre_traversal(e))
-
 
 def extract_type(a, ufl_types):
     """Build a set of all objects found in a whose class is in ufl_types.

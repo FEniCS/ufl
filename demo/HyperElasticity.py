@@ -4,8 +4,10 @@
 #
 
 # Modified by Garth N. Wells, 2009
-from ufl import (Coefficient, Constant, FacetNormal, Identity, SpatialCoordinate, TestFunction, TrialFunction,
-                 derivative, det, diff, dot, ds, dx, exp, grad, inner, inv, tetrahedron, tr, variable)
+from ufl import (Coefficient, Constant, FacetNormal, Identity,
+                 SpatialCoordinate, TestFunction, TrialFunction, derivative,
+                 det, diff, dot, ds, dx, exp, grad, inner, inv, tetrahedron,
+                 tr, variable)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
@@ -47,8 +49,8 @@ c11 = Constant(cell)
 c22 = Constant(cell)
 
 # Deformation gradient
-I = Identity(d)
-F = I + grad(u)
+Id = Identity(d)
+F = Id + grad(u)
 F = variable(F)
 Finv = inv(F)
 J = det(F)
@@ -66,7 +68,7 @@ I2_C = (I1_C**2 - tr(C * C)) / 2
 I3_C = J**2
 
 # Green strain tensor
-E = (C - I) / 2
+E = (C - Id) / 2
 
 # Mapping of strain in fiber directions
 Ef = A * E * A.T

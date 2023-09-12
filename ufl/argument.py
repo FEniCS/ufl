@@ -20,7 +20,8 @@ from ufl.domain import default_domain
 from ufl.duals import is_dual, is_primal
 from ufl.finiteelement import FiniteElementBase
 from ufl.form import BaseForm
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.functionspace import (AbstractFunctionSpace, FunctionSpace,
+                               MixedFunctionSpace)
 from ufl.split_functions import split
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
@@ -130,10 +131,10 @@ class BaseArgument(object):
         point of view, e.g. TestFunction(V1) == TestFunction(V2) if V1 and V2
         are the same ufl element but different dolfin function spaces.
         """
-        return (type(self) == type(other) and
-                self._number == other._number and
-                self._part == other._part and
-                self._ufl_function_space == other._ufl_function_space)
+        return (
+            type(self) is type(other) and self._number == other._number and  # noqa: W504
+            self._part == other._part and self._ufl_function_space == other._ufl_function_space
+        )
 
 
 @ufl_type()
@@ -193,7 +194,8 @@ class Coargument(BaseForm, BaseArgument):
 
     def __new__(cls, *args, **kw):
         if args[0] and is_primal(args[0]):
-            raise ValueError('ufl.Coargument takes in a dual space! If you want to define an argument in the primal space you should use ufl.Argument.')
+            raise ValueError("ufl.Coargument takes in a dual space! If you want to define an argument "
+                             "in the primal space you should use ufl.Argument.")
         return super().__new__(cls)
 
     def __init__(self, function_space, number, part=None):
@@ -215,7 +217,7 @@ class Coargument(BaseForm, BaseArgument):
             return False
         if self is other:
             return True
-        return (self._ufl_function_space == other._ufl_function_space and
+        return (self._ufl_function_space == other._ufl_function_space and  # noqa: W504
                 self._number == other._number and self._part == other._part)
 
     def __hash__(self):

@@ -16,7 +16,7 @@ import abc as _abc
 import typing as _typing
 
 from ufl.sobolevspace import SobolevSpace as _SobolevSpace
-from ufl.utils.indexflattening import unflatten_index, shape_to_strides
+from ufl.utils.indexflattening import shape_to_strides, unflatten_index
 from ufl.utils.sequences import product
 
 __all_classes__ = ["FiniteElementBase", "FiniteElement", "MixedElement"]
@@ -111,7 +111,7 @@ class FiniteElementBase(_abc.ABC):
 
     def __eq__(self, other):
         """Compute element equality for insertion in hashmaps."""
-        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
 
     def __ne__(self, other):
         """Compute element inequality for insertion in hashmaps."""
@@ -185,7 +185,8 @@ class FiniteElementBase(_abc.ABC):
 
 class FiniteElement(FiniteElementBase):
     """A directly defined finite element."""
-    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape", "_reference_value_shape", "_mapping", "_sobolev_space", "_component_map",
+    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape",
+                 "_reference_value_shape", "_mapping", "_sobolev_space", "_component_map",
                  "_sub_elements")
 
     def __init__(self, family, cell, degree, value_shape,

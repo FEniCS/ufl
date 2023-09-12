@@ -107,6 +107,27 @@ def test_cross(self):
     self.assertEqualValues(C, D)
 
 
+def test_perp(self):
+    # Test perp is generally doing the correct thing
+    u = as_vector([3, 1])
+    v = perp(u)
+    w = as_vector([-1, 3])
+    self.assertEqualValues(v, w)
+
+    # Test that a perp does the correct thing to Zero
+    u = zero(2)
+    v = perp(u)
+    self.assertEqualValues(u, v)
+
+    # Test that perp throws an error if the wrong thing is provided
+    u = as_vector([3, 1, -1])  # 3D vector instead of 2D
+    with pytest.raises(ValueError):
+        v = perp(u)
+    u = as_matrix([[1, 3], [0, 4]])  # Matrix instead of vector
+    with pytest.raises(ValueError):
+        v = perp(u)
+
+
 def xtest_dev(self, A):
     C = dev(A)
     D = 0*C  # FIXME: Add expected value here

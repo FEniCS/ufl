@@ -16,7 +16,8 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Test form for operators on Coefficients.
-from ufl import Coefficient, TestFunction, TrialFunction, dot, dx, grad, max_value, sqrt, triangle
+from ufl import (Coefficient, TestFunction, TrialFunction, dot, dx, grad,
+                 max_value, sqrt, triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

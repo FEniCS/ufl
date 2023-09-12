@@ -3,8 +3,9 @@
 data-carrying objects have been extracted to a mapping."""
 
 from ufl.algorithms.replace import replace
-from ufl.classes import (Argument, Coefficient, Constant, Form, FunctionSpace, Integral, Mesh, MeshView,
-                         MixedFunctionSpace, TensorProductFunctionSpace)
+from ufl.classes import (Argument, Coefficient, Constant, Form, FunctionSpace,
+                         Integral, Mesh, MeshView, MixedFunctionSpace,
+                         TensorProductFunctionSpace)
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 

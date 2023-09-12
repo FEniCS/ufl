@@ -10,26 +10,30 @@ raw input form given by a user."""
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from itertools import chain
-from logging import info
 
-from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
+from ufl.algorithms.analysis import (extract_coefficients,
+                                     extract_sub_elements, unique_tuple)
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
-from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply_derivatives
+from ufl.algorithms.apply_derivatives import (apply_coordinate_derivatives,
+                                              apply_derivatives)
 # These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
+from ufl.algorithms.apply_restrictions import (apply_default_restrictions,
+                                               apply_restrictions)
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 # See TODOs at the call sites of these below:
-from ufl.algorithms.domain_analysis import (build_integral_data, group_form_integrals,
-                                            reconstruct_form_from_integral_data)
+from ufl.algorithms.domain_analysis import (
+    build_integral_data, group_form_integrals,
+    reconstruct_form_from_integral_data)
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
-from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
+from ufl.classes import (Coefficient, Form, FunctionSpace,
+                         GeometricFacetQuantity)
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.utils.sequences import max_degree
 
@@ -78,13 +82,11 @@ def _compute_element_mapping(form):
                        for d in domains):
                 raise ValueError("Cannot replace unknown element cell without unique common cell in form.")
             cell = domains[0].ufl_cell()
-            info(f"Adjusting missing element cell to {cell}.")
             reconstruct = True
 
         # Set degree
         degree = element.embedded_degree
         if degree is None:
-            info(f"Adjusting missing element degree to {common_degree}.")
             degree = common_degree
             reconstruct = True
 
@@ -398,7 +400,8 @@ def compute_form_data(form,
     # faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
 
-    check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)  # Currently testing how fast this is
+    # TODO: Test how fast this is
+    check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)
 
     # TODO: This member is used by unit tests, change the tests to
     # remove this!

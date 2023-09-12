@@ -17,7 +17,7 @@ from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
 from ufl.domain import AbstractDomain, as_domain, extract_domains
-from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
+from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
 __all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
@@ -29,36 +29,31 @@ __all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
 # Enumeration of valid domain types
 _integral_types = [
     # === Integration over full topological dimension:
-    ("cell", "dx"),                     # Over cells of a mesh
-    # ("macro_cell", "dE"),              # Over a group of adjacent cells (TODO: Arbitrary cell group? Not currently used.)
+    ("cell", "dx"),  # Over cells of a mesh
 
     # === Integration over topological dimension - 1:
-    ("exterior_facet", "ds"),           # Over one-sided exterior facets of a mesh
-    ("interior_facet", "dS"),           # Over two-sided facets between pairs of adjacent cells of a mesh
+    ("exterior_facet", "ds"),  # Over one-sided exterior facets of a mesh
+    ("interior_facet", "dS"),  # Over two-sided facets between pairs of adjacent cells of a mesh
 
     # === Integration over topological dimension 0
-    ("vertex", "dP"),                    # Over vertices of a mesh
-    # ("vertex", "dV"),                  # TODO: Use this over vertices?
-    # ("point", "dP"),                   # TODO: Use this over arbitrary points inside cells?
+    ("vertex", "dP"),  # Over vertices of a mesh
 
     # === Integration over custom domains
-    ("custom", "dc"),                 # Over custom user-defined domains (run-time quadrature points)
-    ("cutcell", "dC"),                # Over a cell with some part cut away (run-time quadrature points)
-    ("interface", "dI"),              # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
-    ("overlap", "dO"),                # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
+    ("custom", "dc"),  # Over custom user-defined domains (run-time quadrature points)
+    ("cutcell", "dC"),  # Over a cell with some part cut away (run-time quadrature points)
+    ("interface", "dI"),  # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
+    ("overlap", "dO"),  # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
 
-    # === Firedrake specific hacks on the way out:
-    # TODO: Remove these, firedrake can use metadata instead
-    # and create the measure objects in firedrake:
+    # === Firedrake specifics:
     ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
-    ("exterior_facet_top", "ds_t"),     # Over top facets on extruded mesh
-    ("exterior_facet_vert", "ds_v"),    # Over side facets of an extruded mesh
-    ("interior_facet_horiz", "dS_h"),   # Over horizontal facets of an extruded mesh
+    ("exterior_facet_top", "ds_t"),  # Over top facets on extruded mesh
+    ("exterior_facet_vert", "ds_v"),  # Over side facets of an extruded mesh
+    ("interior_facet_horiz", "dS_h"),  # Over horizontal facets of an extruded mesh
     ("interior_facet_vert", "dS_v"),  # Over vertical facets of an extruded mesh
 ]
 
-integral_type_to_measure_name = dict((l, s) for l, s in _integral_types)
-measure_name_to_integral_type = dict((s, l) for l, s in _integral_types)
+integral_type_to_measure_name = {i: s for i, s in _integral_types}
+measure_name_to_integral_type = {s: i for i, s in _integral_types}
 
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
 point_integral_types = ("vertex",)  # "point")
@@ -249,9 +244,9 @@ class Measure(object):
         # Let syntax dx(domain) or dx(domain, metadata) mean integral
         # over entire domain.  To do this we need to hijack the first
         # argument:
-        if subdomain_id is not None and (isinstance(subdomain_id,
-                                                    AbstractDomain) or
-                                         hasattr(subdomain_id, 'ufl_domain')):
+        if subdomain_id is not None and (
+            isinstance(subdomain_id, AbstractDomain) or hasattr(subdomain_id, 'ufl_domain')
+        ):
             if domain is not None:
                 raise ValueError("Ambiguous: setting domain both as keyword argument and first argument.")
             subdomain_id, domain = "everywhere", as_domain(subdomain_id)
@@ -274,7 +269,6 @@ class Measure(object):
                                 subdomain_data=subdomain_data)
 
     def __str__(self):
-        global integral_type_to_measure_name
         name = integral_type_to_measure_name[self._integral_type]
         args = []
 
@@ -291,8 +285,6 @@ class Measure(object):
 
     def __repr__(self):
         "Return a repr string for this Measure."
-        global integral_type_to_measure_name
-
         args = []
         args.append(repr(self._integral_type))
 
@@ -310,21 +302,23 @@ class Measure(object):
 
     def __hash__(self):
         "Return a hash value for this Measure."
+        metadata_hashdata = tuple(sorted((k, id(v)) for k, v in list(self._metadata.items())))
         hashdata = (self._integral_type,
                     self._subdomain_id,
                     hash(self._domain),
-                    metadata_hashdata(self._metadata),
+                    metadata_hashdata,
                     id_or_none(self._subdomain_data))
         return hash(hashdata)
 
     def __eq__(self, other):
         "Checks if two Measures are equal."
-        return (isinstance(other, Measure) and
-                self._integral_type == other._integral_type and
-                self._subdomain_id == other._subdomain_id and
-                self._domain == other._domain and
-                id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data) and
-                metadata_equal(self._metadata, other._metadata))
+        sorted_metadata = sorted((k, id(v)) for k, v in list(self._metadata.items()))
+        sorted_other_metadata = sorted((k, id(v)) for k, v in list(other._metadata.items()))
+
+        return (isinstance(other, Measure) and self._integral_type == other._integral_type and  # noqa: W504
+                self._subdomain_id == other._subdomain_id and self._domain == other._domain and  # noqa: W504
+                id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data) and  # noqa: W504
+                sorted_metadata == sorted_other_metadata)
 
     def __add__(self, other):
         """Add two measures (self+other).

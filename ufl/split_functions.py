@@ -100,6 +100,7 @@ def split(v):
         sub_functions.append(subv)
 
     if end != offset:
-        raise ValueError("Function splitting failed to extract components for whole intended range. Something is wrong.")
+        raise ValueError(
+            "Function splitting failed to extract components for whole intended range. Something is wrong.")
 
     return tuple(sub_functions)
