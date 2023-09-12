@@ -73,7 +73,7 @@ def istr(o):
 
 def estr(elements):
     """Format list of elements for printing."""
-    return ", ".join(e.shortstr() for e in elements)
+    return ", ".join(f"{e}" for e in elements)
 
 
 def _indent_string(n):

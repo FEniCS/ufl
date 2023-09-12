@@ -20,7 +20,7 @@ from ufl.form import Form
 from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.tensoralgebra import (
-    Transposed, Inner, Outer, Dot, Cross,
+    Transposed, Inner, Outer, Dot, Cross, Perp,
     Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym)
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
@@ -175,7 +175,7 @@ def perp(v):
     v = as_ufl(v)
     if v.ufl_shape != (2,):
         raise ValueError("Expecting a 2D vector expression.")
-    return as_vector((-v[1], v[0]))
+    return Perp(v)
 
 
 def cross(a, b):
@@ -605,12 +605,12 @@ def atan(f):
     return _mathfunction(f, Atan)
 
 
-def atan_2(f1, f2):
+def atan2(f1, f2):
     "UFL operator: Take the inverse tangent with two the arguments *f1* and *f2*."
     f1 = as_ufl(f1)
     f2 = as_ufl(f2)
     if isinstance(f1, (ComplexValue, complex)) or isinstance(f2, (ComplexValue, complex)):
-        raise TypeError('atan_2 is incompatible with complex numbers.')
+        raise TypeError('atan2 is incompatible with complex numbers.')
     r = Atan2(f1, f2)
     if isinstance(r, (RealValue, Zero, int, float)):
         return float(r)
