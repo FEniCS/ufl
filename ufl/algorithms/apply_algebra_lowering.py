@@ -55,6 +55,9 @@ class LowerCompoundAlgebra(MultiFunction):
             return Product(a[i], b[j]) - Product(a[j], b[i])
         return as_vector((c(1, 2), c(2, 0), c(0, 1)))
 
+    def perp(self, o, a):
+        return as_vector([-a[1], a[0]])
+
     def dot(self, o, a, b):
         ai = indices(len(a.ufl_shape) - 1)
         bi = indices(len(b.ufl_shape) - 1)
