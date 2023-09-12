@@ -63,6 +63,7 @@ class MultiFunction(object):
             # from a single Expr subclass and that the first
             # superclass is always from the UFL Expr hierarchy!)
             for classobject in Expr._ufl_all_classes_:
+		
                 for c in classobject.mro():
                     # Register classobject with handler for the first
                     # encountered superclass
@@ -116,3 +117,18 @@ class MultiFunction(object):
 
     # Set default behaviour for any UFLType as undefined
     ufl_type = undefined
+
+def reuse_if_untouched(o, *ops):
+        """Reuse object if operands are the same objects.
+
+        Use in your own subclass by setting e.g.
+        ::
+
+            expr = MultiFunction.reuse_if_untouched
+
+        as a default rule.
+        """
+        if all(a is b for a, b in zip(o.ufl_operands, ops)):
+            return o
+        else:
+            return o._ufl_expr_reconstruct_(*ops)

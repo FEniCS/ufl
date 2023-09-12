@@ -9,29 +9,51 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.classes import CoefficientDerivative
+from ufl.classes import (CoefficientDerivative, Expr)
 from ufl.constantvalue import as_ufl
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.multifunction import reuse_if_untouched
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.analysis import has_exact_type
+from functools import singledispatch
 
+@singledispatch
+def _replace(o, self):
+    """Single-dispatch function to replace subexpressions in expression
 
-class Replacer(MultiFunction):
-    def __init__(self, mapping):
-        super().__init__()
+    :arg o: UFL expression
+    :arg self: Callback handler that holds the mapping
+
+    """
+    raise AssertionError("UFL node expected, not %s" % type(o))
+
+@_replace.register(Expr)
+def _replace_expr(o, self, *args):
+    try:
+        return self.mapping[o]
+    except KeyError:
+        return reuse_if_untouched(o, *args)
+    
+
+@_replace.register(CoefficientDerivative)
+def _replace_cofficient_derivative(o, self):
+    raise ValueError("Derivatives should be applied before executing replace.")
+
+class ReplaceWrapper(object):
+    """
+    :arg function: a function with parameters (value, rec), where
+                   ``rec`` is expected to be a function used for
+                   recursive calls.
+    :arg mapping: a dict that describes the mapping of subexpressions to be replaced
+    :returns: a function with working recursion and access to the 
+    """
+    def __init__(self, function, mapping):
+        self.cache = {}
+        self.function = function
         self.mapping = mapping
-        if not all(k.ufl_shape == v.ufl_shape for k, v in mapping.items()):
-            raise ValueError("Replacement expressions must have the same shape as what they replace.")
 
-    def ufl_type(self, o, *args):
-        try:
-            return self.mapping[o]
-        except KeyError:
-            return self.reuse_if_untouched(o, *args)
-
-    def coefficient_derivative(self, o):
-        raise ValueError("Derivatives should be applied before executing replace.")
-
+    def __call__(self, node, *args):
+        return self.function(node, self, *args)
+       
 
 def replace(e, mapping):
     """Replace subexpressions in expression.
@@ -57,4 +79,4 @@ def replace(e, mapping):
         from ufl.algorithms.ad import expand_derivatives
         e = expand_derivatives(e)
 
-    return map_integrand_dags(Replacer(mapping2), e)
+    return map_integrand_dags(ReplaceWrapper(_replace,  mapping2), e)
