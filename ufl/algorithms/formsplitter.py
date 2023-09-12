@@ -37,10 +37,10 @@ class FormSplitter(object):
 
 @singledispatch
 def _form_splitter(o, self, *args):
-    """Single-dispatch function to replace subexpressions in expression
+    """Single-dispatch function to split forms
 
     :arg o: UFL expression
-    :arg self: Callback handler that holds the mapping
+    :arg self: wrapper class that managed which block we are extracting
 
     """
     raise AssertionError("UFL node expected, not %s" % type(o))
