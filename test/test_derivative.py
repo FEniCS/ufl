@@ -483,6 +483,30 @@ def test_coefficient_derivatives(self):
     self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
 
+def test_vector_coefficient_scalar_derivatives(self):
+    V = FiniteElement("Lagrange", triangle, 1)
+    VV = VectorElement("Lagrange", triangle, 1)
+
+    dv = TestFunction(V)
+
+    df = Coefficient(VV, count=0)
+    g = Coefficient(VV, count=1)
+    f = Coefficient(VV, count=2)
+    u = Coefficient(V, count=3)
+    cd = {f: df}
+
+    integrand = inner(f, g)
+
+    i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
+    expected = as_tensor(df[i1]*dv, (i1,))[i0]*g[i0]
+
+    F = integrand*dx
+    J = derivative(F, u, dv, cd)
+    fd = compute_form_data(J)
+    actual = fd.preprocessed_form.integrals()[0].integrand()
+    assert (actual*dx).signature() == (expected*dx).signature()
+
+
 def test_vector_coefficient_derivatives(self):
     V = VectorElement("Lagrange", triangle, 1)
     VV = TensorElement("Lagrange", triangle, 1)
