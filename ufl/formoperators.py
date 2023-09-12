@@ -342,7 +342,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             if isinstance(coefficient, SpatialCoordinate):
                 fd = CoordinateDerivative(itg.integrand(), coefficients,
                                           arguments, coefficient_derivatives)
-            elif isinstance(coefficient, BaseForm):
+            elif isinstance(coefficient, BaseForm) and not isinstance(coefficient, BaseFormOperator):
                 # Make the `ZeroBaseForm` arguments
                 arguments = form.arguments() + coefficient.arguments()
                 return ZeroBaseForm(arguments)
