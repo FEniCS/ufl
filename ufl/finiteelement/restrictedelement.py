@@ -12,7 +12,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.log import error
+from ufl.sobolevspace import L2
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
 
@@ -21,9 +21,9 @@ class RestrictedElement(FiniteElementBase):
     "Represents the restriction of a finite element to a type of cell entity."
     def __init__(self, element, restriction_domain):
         if not isinstance(element, FiniteElementBase):
-            error("Expecting a finite element instance.")
+            raise ValueError("Expecting a finite element instance.")
         if restriction_domain not in valid_restriction_domains:
-            error("Expecting one of the strings %s." % (valid_restriction_domains,))
+            raise ValueError(f"Expecting one of the strings: {valid_restriction_domains}")
 
         FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
                                    element.degree(),
@@ -35,8 +35,11 @@ class RestrictedElement(FiniteElementBase):
 
         self._restriction_domain = restriction_domain
 
-        self._repr = "RestrictedElement(%s, %s)" % (
-            repr(self._element), repr(self._restriction_domain))
+    def __repr__(self):
+        return f"RestrictedElement({repr(self._element)}, {repr(self._restriction_domain)})"
+
+    def sobolev_space(self):
+        return L2
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this element is spatially
@@ -44,6 +47,9 @@ class RestrictedElement(FiniteElementBase):
 
         """
         return self._element.is_cellwise_constant()
+
+    def _is_linear(self):
+        return self._element._is_linear()
 
     def sub_element(self):
         "Return the element which is restricted."
@@ -96,3 +102,6 @@ class RestrictedElement(FiniteElementBase):
         #        w.r.t. different sub_elements meanings.
         "Return list of restricted sub elements."
         return (self._element,)
+
+    def variant(self):
+        return self._element.variant()

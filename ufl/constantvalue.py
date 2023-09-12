@@ -12,7 +12,7 @@
 
 from math import atan2
 
-from ufl.log import error, UFLValueError
+import ufl
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import Index, FixedIndex
@@ -85,30 +85,29 @@ class Zero(ConstantValue):
         ConstantValue.__init__(self)
 
         if not all(isinstance(i, int) for i in shape):
-            error("Expecting tuple of int.")
+            raise ValueError("Expecting tuple of int.")
         if not isinstance(free_indices, tuple):
-            error("Expecting tuple for free_indices, not %s" % str(free_indices))
+            raise ValueError(f"Expecting tuple for free_indices, not {free_indices}.")
 
         self.ufl_shape = shape
         if not free_indices:
             self.ufl_free_indices = ()
             self.ufl_index_dimensions = ()
         elif all(isinstance(i, Index) for i in free_indices):  # Handle old input format
-            if not (isinstance(index_dimensions, dict) and
-                    all(isinstance(i, Index) for i in index_dimensions.keys())):
-                error("Expecting tuple of index dimensions, not %s" % str(index_dimensions))
+            if not isinstance(index_dimensions, dict) and all(isinstance(i, Index) for i in index_dimensions.keys()):
+                raise ValueError(f"Expecting tuple of index dimensions, not {index_dimensions}")
             self.ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
-            self.ufl_index_dimensions = tuple(d for i, d in sorted(index_dimensions.items(), key=lambda x: x[0].count()))
+            self.ufl_index_dimensions = tuple(
+                d for i, d in sorted(index_dimensions.items(), key=lambda x: x[0].count()))
         else:  # Handle new input format
             if not all(isinstance(i, int) for i in free_indices):
-                error("Expecting tuple of integer free index ids, not %s" % str(free_indices))
-            if not (isinstance(index_dimensions, tuple) and
-                    all(isinstance(i, int) for i in index_dimensions)):
-                error("Expecting tuple of integer index dimensions, not %s" % str(index_dimensions))
+                raise ValueError(f"Expecting tuple of integer free index ids, not {free_indices}")
+            if not isinstance(index_dimensions, tuple) and all(isinstance(i, int) for i in index_dimensions):
+                raise ValueError(f"Expecting tuple of integer index dimensions, not {index_dimensions}")
 
             # Assuming sorted now to avoid this cost, enable for debugging:
             # if sorted(free_indices) != list(free_indices):
-            #    error("Expecting sorted input. Remove this check later for efficiency.")
+            #    raise ValueError("Expecting sorted input. Remove this check later for efficiency.")
 
             self.ufl_free_indices = free_indices
             self.ufl_index_dimensions = index_dimensions
@@ -136,8 +135,8 @@ class Zero(ConstantValue):
         if isinstance(other, Zero):
             if self is other:
                 return True
-            return (self.ufl_shape == other.ufl_shape and
-                    self.ufl_free_indices == other.ufl_free_indices and
+            return (self.ufl_shape == other.ufl_shape and  # noqa: W504
+                    self.ufl_free_indices == other.ufl_free_indices and  # noqa: W504
                     self.ufl_index_dimensions == other.ufl_index_dimensions)
         elif isinstance(other, (int, float)):
             return other == 0
@@ -355,7 +354,7 @@ class Identity(ConstantValue):
 
     def __getitem__(self, key):
         if len(key) != 2:
-            error("Size mismatch for Identity.")
+            raise ValueError("Size mismatch for Identity.")
         if all(isinstance(k, (int, FixedIndex)) for k in key):
             return IntValue(1) if (int(key[0]) == int(key[1])) else Zero()
         return Expr.__getitem__(self, key)
@@ -392,7 +391,7 @@ class PermutationSymbol(ConstantValue):
 
     def __getitem__(self, key):
         if len(key) != self._dim:
-            error("Size mismatch for PermutationSymbol.")
+            raise ValueError("Size mismatch for PermutationSymbol.")
         if all(isinstance(k, (int, FixedIndex)) for k in key):
             return self.__eps(key)
         return Expr.__getitem__(self, key)
@@ -425,7 +424,7 @@ class PermutationSymbol(ConstantValue):
 
 def as_ufl(expression):
     "Converts expression to an Expr if possible."
-    if isinstance(expression, Expr):
+    if isinstance(expression, (Expr, ufl.BaseForm)):
         return expression
     elif isinstance(expression, complex):
         return ComplexValue(expression)
@@ -434,5 +433,5 @@ def as_ufl(expression):
     elif isinstance(expression, int):
         return IntValue(expression)
     else:
-        raise UFLValueError("Invalid type conversion: %s can not be converted"
-                            " to any UFL type." % str(expression))
+        raise ValueError(
+            f"Invalid type conversion: {expression} can not be converted to any UFL type.")

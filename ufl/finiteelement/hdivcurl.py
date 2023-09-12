@@ -8,17 +8,16 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.sobolevspace import HDiv, HCurl
+from ufl.sobolevspace import HDiv, HCurl, L2
 
 
 class HDivElement(FiniteElementBase):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
-    __slots__ = ("_element",)
+    __slots__ = ("_element", )
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HDivElement(%s)" % repr(element)
 
         family = "TensorProductElement"
         cell = element.cell()
@@ -31,22 +30,28 @@ class HDivElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
+    def __repr__(self):
+        return f"HDivElement({repr(self._element)})"
+
     def mapping(self):
         return "contravariant Piola"
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space."
+        """Return the underlying Sobolev space."""
         return HDiv
 
     def reconstruct(self, **kwargs):
         return HDivElement(self._element.reconstruct(**kwargs))
 
+    def variant(self):
+        return self._element.variant()
+
     def __str__(self):
-        return "HDivElement(%s)" % str(self._element)
+        return f"HDivElement({repr(self._element)})"
 
     def shortstr(self):
-        "Format as string for pretty printing."
-        return "HDivElement(%s)" % str(self._element.shortstr())
+        """Format as string for pretty printing."""
+        return f"HDivElement({self._element.shortstr()})"
 
 
 class HCurlElement(FiniteElementBase):
@@ -56,7 +61,6 @@ class HCurlElement(FiniteElementBase):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HCurlElement(%s)" % repr(element)
 
         family = "TensorProductElement"
         cell = element.cell()
@@ -70,22 +74,28 @@ class HCurlElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, cell, degree, quad_scheme,
                                    value_shape, reference_value_shape)
 
+    def __repr__(self):
+        return f"HCurlElement({repr(self._element)})"
+
     def mapping(self):
         return "covariant Piola"
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space."
+        """Return the underlying Sobolev space."""
         return HCurl
 
     def reconstruct(self, **kwargs):
         return HCurlElement(self._element.reconstruct(**kwargs))
 
+    def variant(self):
+        return self._element.variant()
+
     def __str__(self):
-        return "HCurlElement(%s)" % str(self._element)
+        return f"HCurlElement({repr(self._element)})"
 
     def shortstr(self):
-        "Format as string for pretty printing."
-        return "HCurlElement(%s)" % str(self._element.shortstr())
+        """Format as string for pretty printing."""
+        return f"HCurlElement({self._element.shortstr()})"
 
 
 class WithMapping(FiniteElementBase):
@@ -95,7 +105,6 @@ class WithMapping(FiniteElementBase):
     remapped = WithMapping(E, "identity")
     """
     def __init__(self, wrapee, mapping):
-        self._repr = "WithMapping(%s, %s)" % (repr(wrapee), mapping)
         if mapping == "symmetries":
             raise ValueError("Can't change mapping to 'symmetries'")
         self._mapping = mapping
@@ -107,6 +116,9 @@ class WithMapping(FiniteElementBase):
         except AttributeError:
             raise AttributeError("'%s' object has no attribute '%s'" %
                                  (type(self).__name__, attr))
+
+    def __repr__(self):
+        return f"WithMapping({repr(self.wrapee)}, '{self._mapping}')"
 
     def value_shape(self):
         gdim = self.cell().geometric_dimension()
@@ -131,13 +143,23 @@ class WithMapping(FiniteElementBase):
     def mapping(self):
         return self._mapping
 
+    def sobolev_space(self):
+        """Return the underlying Sobolev space."""
+        if self.wrapee.mapping() == self.mapping():
+            return self.wrapee.sobolev_space()
+        else:
+            return L2
+
     def reconstruct(self, **kwargs):
         mapping = kwargs.pop("mapping", self._mapping)
         wrapee = self.wrapee.reconstruct(**kwargs)
         return type(self)(wrapee, mapping)
 
+    def variant(self):
+        return self.wrapee.variant()
+
     def __str__(self):
-        return "WithMapping(%s, mapping=%s)" % (self.wrapee, self._mapping)
+        return f"WithMapping({repr(self.wrapee)}, {self._mapping})"
 
     def shortstr(self):
-        return "WithMapping(%s, %s)" % (self.wrapee.shortstr(), self._mapping)
+        return f"WithMapping({self.wrapee.shortstr()}, {self._mapping})"

@@ -3,7 +3,6 @@
 import numbers
 
 import ufl
-from ufl.log import error
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.core.multiindex import Index, FixedIndex
@@ -226,6 +225,7 @@ integral_by_dim = {
     3: UC.integral_triple,
     2: UC.integral_double,
     1: UC.integral,
+    0: UC.integral
 }
 
 integral_type_to_codim = {
@@ -313,7 +313,7 @@ def format_index(ii):
     elif isinstance(ii, Index):
         s = "i%s" % subscript_number(ii._count)
     else:
-        error("Invalid index type %s." % type(ii))
+        raise ValueError(f"Invalid index type {type(ii)}.")
     return s
 
 
@@ -324,7 +324,7 @@ def ufl2unicode(expression):
         preprocessed_form = form_data.preprocessed_form
         return form2unicode(preprocessed_form, form_data)
     else:
-        return expression2unicode(expression)
+        return expression2unicode(ufl.as_ufl(expression))
 
 
 def expression2unicode(expression, argument_names=None, coefficient_names=None):
@@ -460,8 +460,8 @@ class Expression2UnicodeHandler(MultiFunction):
 
     # --- Non-terminal objects ---
 
-    def variable(self, o, f, l):
-        return "var(%s,%s)" % (f, l)
+    def variable(self, o, f, a):
+        return "var(%s,%s)" % (f, a)
 
     def index_sum(self, o, f, i):
         if 1:  # prec(o.ufl_operands[0]) >? prec(o):
