@@ -13,11 +13,12 @@
 import math
 import cmath
 import numbers
+import warnings
 
-from ufl.log import warning, error
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
+from ufl.constantvalue import (is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue,
+                               ConstantValue, as_ufl)
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -52,7 +53,7 @@ class MathFunction(Operator):
     def __init__(self, name, argument):
         Operator.__init__(self, (argument,))
         if not is_true_ufl_scalar(argument):
-            error("Expecting scalar argument.")
+            raise ValueError("Expecting scalar argument.")
         self._name = name
 
     def evaluate(self, x, mapping, component, index_values):
@@ -63,7 +64,7 @@ class MathFunction(Operator):
             else:
                 res = getattr(cmath, self._name)(a)
         except ValueError:
-            warning('Value error in evaluation of function %s with argument %s.' % (self._name, a))
+            warnings.warn('Value error in evaluation of function %s with argument %s.' % (self._name, a))
             raise
         return res
 
@@ -277,9 +278,9 @@ class Atan2(Operator):
         if isinstance(arg1, (ComplexValue, complex)) or isinstance(arg2, (ComplexValue, complex)):
             raise TypeError("Atan2 does not support complex numbers.")
         if not is_true_ufl_scalar(arg1):
-            error("Expecting scalar argument 1.")
+            raise ValueError("Expecting scalar argument 1.")
         if not is_true_ufl_scalar(arg2):
-            error("Expecting scalar argument 2.")
+            raise ValueError("Expecting scalar argument 2.")
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -287,24 +288,14 @@ class Atan2(Operator):
         try:
             res = math.atan2(a, b)
         except TypeError:
-            error('Atan2 does not support complex numbers.')
+            raise ValueError('Atan2 does not support complex numbers.')
         except ValueError:
-            warning('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
+            warnings.warn('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
             raise
         return res
 
     def __str__(self):
         return "atan_2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
-
-
-def _find_erf():
-    import math
-    if hasattr(math, 'erf'):
-        return math.erf
-    import scipy.special
-    if hasattr(scipy.special, 'erf'):
-        return scipy.special.erf
-    return None
 
 
 @ufl_type()
@@ -313,13 +304,9 @@ class Erf(MathFunction):
 
     def __new__(cls, argument):
         if isinstance(argument, (RealValue, Zero)):
-            erf = _find_erf()
-            if erf is not None:
-                return FloatValue(erf(float(argument)))
+            return FloatValue(math.erf(float(argument)))
         if isinstance(argument, (ConstantValue)):
-            erf = _find_erf()
-            if erf is not None:
-                return ComplexValue(erf(complex(argument)))
+            return ComplexValue(math.erf(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -327,22 +314,19 @@ class Erf(MathFunction):
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
-        erf = _find_erf()
-        if erf is None:
-            error("No python implementation of erf available on this system, cannot evaluate. Upgrade python or install scipy.")
-        return erf(a)
+        return math.erf(a)
 
 
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
 class BesselFunction(Operator):
     "Base class for all bessel functions"
-    __slots__ = ("_name", "_classname")
+    __slots__ = ("_name")
 
-    def __init__(self, name, classname, nu, argument):
+    def __init__(self, name, nu, argument):
         if not is_true_ufl_scalar(nu):
-            error("Expecting scalar nu.")
+            raise ValueError("Expecting scalar nu.")
         if not is_true_ufl_scalar(argument):
-            error("Expecting scalar argument.")
+            raise ValueError("Expecting scalar argument.")
 
         # Use integer representation if suitable
         fnu = float(nu)
@@ -354,7 +338,6 @@ class BesselFunction(Operator):
 
         Operator.__init__(self, (nu, argument))
 
-        self._classname = classname
         self._name = name
 
     def evaluate(self, x, mapping, component, index_values):
@@ -362,7 +345,7 @@ class BesselFunction(Operator):
         try:
             import scipy.special
         except ImportError:
-            error("You must have scipy installed to evaluate bessel functions in python.")
+            raise ValueError("You must have scipy installed to evaluate bessel functions in python.")
         name = self._name[-1]
         if isinstance(self.ufl_operands[0], IntValue):
             nu = int(self.ufl_operands[0])
@@ -384,7 +367,7 @@ class BesselJ(BesselFunction):
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_j", "BesselJ", nu, argument)
+        BesselFunction.__init__(self, "cyl_bessel_j", nu, argument)
 
 
 @ufl_type()
@@ -392,7 +375,7 @@ class BesselY(BesselFunction):
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_y", "BesselY", nu, argument)
+        BesselFunction.__init__(self, "cyl_bessel_y", nu, argument)
 
 
 @ufl_type()
@@ -400,7 +383,7 @@ class BesselI(BesselFunction):
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_i", "BesselI", nu, argument)
+        BesselFunction.__init__(self, "cyl_bessel_i", nu, argument)
 
 
 @ufl_type()
@@ -408,4 +391,4 @@ class BesselK(BesselFunction):
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_k", "BesselK", nu, argument)
+        BesselFunction.__init__(self, "cyl_bessel_k", nu, argument)

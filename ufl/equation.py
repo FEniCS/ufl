@@ -7,8 +7,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
-
 # Export list for ufl.classes
 __all_classes__ = ["Equation"]
 
@@ -41,18 +39,15 @@ class Equation(object):
         elif hasattr(self.rhs, "equals"):
             return self.rhs.equals(self.lhs)
         else:
-            error("Either lhs or rhs of Equation must implement self.equals(other).")
+            raise ValueError("Either lhs or rhs of Equation must implement self.equals(other).")
     __nonzero__ = __bool__
 
     def __eq__(self, other):
         "Compare two equations by comparing lhs and rhs."
-        return isinstance(other, Equation) and \
-            bool(self.lhs == other.lhs) and \
-            bool(self.rhs == other.rhs)
+        return isinstance(other, Equation) and self.lhs == other.lhs and self.rhs == other.rhs
 
     def __hash__(self):
         return hash((hash(self.lhs), hash(self.rhs)))
 
     def __repr__(self):
-        r = "Equation(%s, %s)" % (repr(self.lhs), repr(self.rhs))
-        return r
+        return f"Equation({self.lhs!r}, {self.rhs!r})"

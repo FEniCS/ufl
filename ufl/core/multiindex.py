@@ -10,8 +10,7 @@
 # Modified by Massimiliano Leoni, 2016.
 
 
-from ufl.log import error
-from ufl.utils.counted import counted_init
+from ufl.utils.counted import Counted
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 
@@ -40,7 +39,7 @@ class FixedIndex(IndexBase):
         self = FixedIndex._cache.get(value)
         if self is None:
             if not isinstance(value, int):
-                error("Expecting integer value for fixed index.")
+                raise ValueError("Expecting integer value for fixed index.")
             self = IndexBase.__new__(cls)
             self._init(value)
             FixedIndex._cache[value] = self
@@ -71,20 +70,15 @@ class FixedIndex(IndexBase):
         return r
 
 
-class Index(IndexBase):
+class Index(IndexBase, Counted):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
-    __slots__ = ("_count",)
-
-    _globalcount = 0
+    __slots__ = ("_count", "_counted_class")
 
     def __init__(self, count=None):
         IndexBase.__init__(self)
-        counted_init(self, count, Index)
-
-    def count(self):
-        return self._count
+        Counted.__init__(self, count, Index)
 
     def __hash__(self):
         return hash(("Index", self._count))
@@ -115,7 +109,7 @@ class MultiIndex(Terminal):
 
     def __new__(cls, indices):
         if not isinstance(indices, tuple):
-            error("Expecting a tuple of indices.")
+            raise ValueError("Expecting a tuple of indices.")
 
         if all(isinstance(ind, FixedIndex) for ind in indices):
             # Cache multiindices consisting of purely fixed indices
@@ -130,7 +124,7 @@ class MultiIndex(Terminal):
             # Create a new object if we have any free indices (too
             # many combinations to cache)
             if not all(isinstance(ind, IndexBase) for ind in indices):
-                error("Expecting only Index and FixedIndex objects.")
+                raise ValueError("Expecting only Index and FixedIndex objects.")
             self = Terminal.__new__(cls)
 
         # Initialize here instead of in __init__ to avoid overwriting
@@ -170,17 +164,17 @@ class MultiIndex(Terminal):
     @property
     def ufl_shape(self):
         "This shall not be used."
-        error("Multiindex has no shape (it is not a tensor expression).")
+        raise ValueError("Multiindex has no shape (it is not a tensor expression).")
 
     @property
     def ufl_free_indices(self):
         "This shall not be used."
-        error("Multiindex has no free indices (it is not a tensor expression).")
+        raise ValueError("Multiindex has no free indices (it is not a tensor expression).")
 
     @property
     def ufl_index_dimensions(self):
         "This shall not be used."
-        error("Multiindex has no free indices (it is not a tensor expression).")
+        raise ValueError("Multiindex has no free indices (it is not a tensor expression).")
 
     def is_cellwise_constant(self):
         "Always True."
@@ -225,15 +219,6 @@ class MultiIndex(Terminal):
 
     def __iter__(self):
         return iter(self._indices)
-
-
-def as_multi_index(ii, shape=None):
-    "Return a ``MultiIndex`` version of *ii*."
-    if isinstance(ii, MultiIndex):
-        return ii
-    elif not isinstance(ii, tuple):
-        ii = (ii,)
-    return MultiIndex(ii)
 
 
 def indices(n):

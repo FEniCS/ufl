@@ -7,13 +7,12 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
-from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
+from ufl.index_combination_utils import unique_sorted_indices
 from ufl.precedence import parstr
 
 
@@ -53,44 +52,34 @@ class Indexed(Operator):
 
         # Error checking
         if not isinstance(expression, Expr):
-            error("Expecting Expr instance, not %s." % ufl_err_str(expression))
+            raise ValueError(f"Expecting Expr instance, not {ufl_err_str(expression)}.")
         if not isinstance(multiindex, MultiIndex):
-            error("Expecting MultiIndex instance, not %s." % ufl_err_str(multiindex))
+            raise ValueError(f"Expecting MultiIndex instance, not {ufl_err_str(multiindex)}.")
 
         shape = expression.ufl_shape
 
         # Error checking
         if len(shape) != len(multiindex):
-            error("Invalid number of indices (%d) for tensor "
-                  "expression of rank %d:\n\t%s\n"
-                  % (len(multiindex), len(expression.ufl_shape), ufl_err_str(expression)))
+            raise ValueError(
+                f"Invalid number of indices ({len(multiindex)}) for tensor "
+                f"expression of rank {len(expression.ufl_shape)}:\n    {ufl_err_str(expression)}")
         if any(int(di) >= int(si) or int(di) < 0
                for si, di in zip(shape, multiindex)
                if isinstance(di, FixedIndex)):
-            error("Fixed index out of range!")
+            raise ValueError("Fixed index out of range!")
 
         # Build tuples of free index ids and dimensions
-        if 1:
-            efi = expression.ufl_free_indices
-            efid = expression.ufl_index_dimensions
-            fi = list(zip(efi, efid))
-            for pos, ind in enumerate(multiindex._indices):
-                if isinstance(ind, Index):
-                    fi.append((ind.count(), shape[pos]))
-            fi = unique_sorted_indices(sorted(fi))
-            if fi:
-                fi, fid = zip(*fi)
-            else:
-                fi, fid = (), ()
-
+        efi = expression.ufl_free_indices
+        efid = expression.ufl_index_dimensions
+        fi = list(zip(efi, efid))
+        for pos, ind in enumerate(multiindex._indices):
+            if isinstance(ind, Index):
+                fi.append((ind.count(), shape[pos]))
+        fi = unique_sorted_indices(sorted(fi))
+        if fi:
+            fi, fid = zip(*fi)
         else:
-            mfiid = [(ind.count(), shape[pos])
-                     for pos, ind in enumerate(multiindex._indices)
-                     if isinstance(ind, Index)]
-            mfi, mfid = zip(*mfiid) if mfiid else ((), ())
-            fi, fid = merge_unique_indices(expression.ufl_free_indices,
-                                           expression.ufl_index_dimensions,
-                                           mfi, mfid)
+            fi, fid = (), ()
 
         # Cache free index and dimensions
         self.ufl_free_indices = fi
@@ -115,4 +104,5 @@ class Indexed(Operator):
             # So that one doesn't have to special case indexing of
             # expressions without shape.
             return self
-        error("Attempting to index with %s, but object is already indexed: %s" % (ufl_err_str(key), ufl_err_str(self)))
+        raise ValueError(f"Attempting to index with {ufl_err_str(key)}, "
+                         f"but object is already indexed: {ufl_err_str(self)}")

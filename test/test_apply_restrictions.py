@@ -18,9 +18,9 @@ def test_apply_restrictions():
     n = FacetNormal(cell)
     x = SpatialCoordinate(cell)
 
-    assert raises(UFLException, lambda: apply_restrictions(f0))
-    assert raises(UFLException, lambda: apply_restrictions(grad(f)))
-    assert raises(UFLException, lambda: apply_restrictions(n))
+    assert raises(BaseException, lambda: apply_restrictions(f0))
+    assert raises(BaseException, lambda: apply_restrictions(grad(f)))
+    assert raises(BaseException, lambda: apply_restrictions(n))
 
     # Continuous function gets default restriction if none
     # provided otherwise the user choice is respected
