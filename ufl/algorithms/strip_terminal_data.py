@@ -3,35 +3,59 @@
 data-carrying objects have been extracted to a mapping."""
 
 from ufl.classes import Form, Integral
-from ufl.classes import Argument, Coefficient, Constant
+from ufl.classes import Argument, Coefficient, Constant, Expr
 from ufl.classes import FunctionSpace, TensorProductFunctionSpace, MixedFunctionSpace
 from ufl.classes import Mesh, MeshView, TensorProductMesh
 from ufl.algorithms.replace import replace
 from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.multifunction import reuse_if_untouched
+from functools import singledispatch
 
 
-class TerminalStripper(MultiFunction):
+@singledispatch
+def _terminalstripper(o, self):
+    """Single-dispatch function to extract all the terminals from an expression
+
+    :arg o: UFL expression
+    :arg self: Wrapper class that holds the mapping
+
+    """
+    raise AssertionError("UFL node expected, not %s" % type(o))
+
+
+@_terminalstripper.register(Argument)
+def _terminalstripper_arg(o, self):
+    o_new = Argument(strip_function_space(o.ufl_function_space()),
+                     o.number(), o.part())
+    return self.mapping.setdefault(o, o_new)
+
+
+@_terminalstripper.register(Coefficient)
+def _terminalstripper_coefficient(o, self):
+    o_new = Coefficient(strip_function_space(o.ufl_function_space()),
+                        o.count())
+    return self.mapping.setdefault(o, o_new)
+
+
+@_terminalstripper.register(Constant)
+def _terminalstripper_constant(o, self):
+    o_new = Constant(strip_domain(o.ufl_domain()), o.ufl_shape,
+                     o.count())
+    return self.mapping.setdefault(o, o_new)
+
+
+@_terminalstripper.register(Expr)
+def _terminalstripper_expr(o, self, *args):
+    return reuse_if_untouched(o, *args)
+
+
+class TerminalStripper(object):
     def __init__(self):
-        super().__init__()
         self.mapping = {}
+        self.function = _terminalstripper
 
-    def argument(self, o):
-        o_new = Argument(strip_function_space(o.ufl_function_space()),
-                         o.number(), o.part())
-        return self.mapping.setdefault(o, o_new)
-
-    def coefficient(self, o):
-        o_new = Coefficient(strip_function_space(o.ufl_function_space()),
-                            o.count())
-        return self.mapping.setdefault(o, o_new)
-
-    def constant(self, o):
-        o_new = Constant(strip_domain(o.ufl_domain()), o.ufl_shape,
-                         o.count())
-        return self.mapping.setdefault(o, o_new)
-
-    expr = MultiFunction.reuse_if_untouched
+    def __call__(self, node, *args):
+        return self.function(node, self, *args)
 
 
 def strip_terminal_data(o):
