@@ -605,12 +605,12 @@ def atan(f):
     return _mathfunction(f, Atan)
 
 
-def atan_2(f1, f2):
+def atan2(f1, f2):
     "UFL operator: Take the inverse tangent with two the arguments *f1* and *f2*."
     f1 = as_ufl(f1)
     f2 = as_ufl(f2)
     if isinstance(f1, (ComplexValue, complex)) or isinstance(f2, (ComplexValue, complex)):
-        raise TypeError('atan_2 is incompatible with complex numbers.')
+        raise TypeError('atan2 is incompatible with complex numbers.')
     r = Atan2(f1, f2)
     if isinstance(r, (RealValue, Zero, int, float)):
         return float(r)
