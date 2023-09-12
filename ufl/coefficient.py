@@ -11,6 +11,8 @@ of related classes, including Constant."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
+# Modified by Ignacia Fierro-Piccardo 2023.
+import warnings
 
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
@@ -22,6 +24,7 @@ from ufl.form import BaseForm
 from ufl.split_functions import split
 from ufl.utils.counted import Counted
 from ufl.duals import is_primal, is_dual
+
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -48,6 +51,8 @@ class BaseCoefficient(Counted):
             element = function_space
             domain = default_domain(element.cell())
             function_space = FunctionSpace(domain, element)
+            warnings.warn("The use of FiniteElement as an input to Coefficient will be deprecated by December 2023. "
+                          "Please, use FunctionSpace instead", FutureWarning)
         elif not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
