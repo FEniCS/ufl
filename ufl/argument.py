@@ -11,8 +11,11 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
+# Modified by Ignacia Fierro-Piccardo 2023.
 
+import warnings
 import numbers
+
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
@@ -44,6 +47,8 @@ class BaseArgument(object):
             element = function_space
             domain = default_domain(element.cell())
             function_space = FunctionSpace(domain, element)
+            warnings.warn("The use of FiniteElement will be deprecated by December 2023. "
+                          "Please, use FunctionSpace instead", DeprecationWarning)
         elif not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
