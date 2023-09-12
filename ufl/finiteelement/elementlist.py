@@ -193,6 +193,10 @@ register_element("BDMCE", None, 1, HCurl, "covariant Piola", (1, None),
                  ("quadrilateral",))
 register_element("BDMCF", None, 1, HDiv, "contravariant Piola", (1, None),
                  ("quadrilateral",))
+register_element("SminusE", "SminusE", 1, HCurl, "covariant Piola", (1, None), cubes[1:3])
+register_element("SminusF", "SminusF", 1, HDiv, "contravariant Piola", (1, None), cubes[1:2])
+register_element("SminusDiv", "SminusDiv", 1, HDiv, "contravariant Piola", (1, None), cubes[1:3])
+register_element("SminusCurl", "SminusCurl", 1, HCurl, "covariant Piola", (1, None), cubes[1:3])
 register_element("AAE", None, 1, HCurl, "covariant Piola", (1, None),
                  ("hexahedron",))
 register_element("AAF", None, 1, HDiv, "contravariant Piola", (1, None),
