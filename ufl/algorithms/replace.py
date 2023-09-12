@@ -9,7 +9,7 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.classes import CoefficientDerivative, Interp, ExternalOperator, Form
+from ufl.classes import CoefficientDerivative, Interpolate, ExternalOperator, Form
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -44,9 +44,9 @@ class Replacer(MultiFunction):
             return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_args)
         return o
 
-    def interp(self, o):
+    def interpolate(self, o):
         o = self.mapping.get(o) or o
-        if isinstance(o, Interp):
+        if isinstance(o, Interpolate):
             new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
             return o._ufl_expr_reconstruct_(*reversed(new_args))
         return o

@@ -1,7 +1,7 @@
 
 # -*- coding: utf-8 -*-
 """This module defines the BaseFormOperator class, which is the base class for objects that can be seen as forms
-   and as operators such as ExternalOperator or Interp."""
+   and as operators such as ExternalOperator or Interpolate."""
 
 # Copyright (C) 2019 Nacime Bouziani
 #
@@ -51,7 +51,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # -- Derivatives -- #
         # Some BaseFormOperator does have derivatives (e.g. ExternalOperator)
         # while other don't since they are fully determined by their
-        # argument slots (e.g. Interp)
+        # argument slots (e.g. Interpolate)
         self.derivatives = derivatives
 
         # -- Argument slots -- #

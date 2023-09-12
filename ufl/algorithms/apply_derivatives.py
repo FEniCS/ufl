@@ -1089,17 +1089,17 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     def __init__(self, coefficients, arguments, coefficient_derivatives, recorder):
         GateauxDerivativeRuleset.__init__(self, coefficients, arguments, coefficient_derivatives, recorder)
 
-    def interp(self, i_op, dw):
+    def interpolate(self, i_op, dw):
 
         if self.recorder.need_recording(i_op):
             # Record the BaseFormOperator `I`
             self.recorder += (i_op,)
             return self.coefficient(i_op)
 
-        # Interp rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interp!
+        # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
         if not dw:
             # i_op doesn't depend on w:
-            #  -> It also covers the Hessian case since Interp is linear,
+            #  -> It also covers the Hessian case since Interpolate is linear,
             #     e.g. D_w[v](D_w[v](i_op(w, v*))) = D_w[v](i_op(v, v*)) = 0 (since w not found).
             return ZeroBaseForm(i_op.arguments() + self._v)
         return i_op._ufl_expr_reconstruct_(expr=dw)
