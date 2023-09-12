@@ -376,7 +376,7 @@ __all__ = [
     'Argument', 'Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Cofunction', 'Coefficients',
-    'Matrix', 'Adjoint', 'Action', 'Interpolate',
+    'Matrix', 'Adjoint', 'Action', 'Interpolate', 'interpolate',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
