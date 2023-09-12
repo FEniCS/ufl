@@ -11,7 +11,7 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.form import Form, FormSum, BaseForm, as_form
+from ufl.form import Form, FormSum, BaseForm, ZeroBaseForm, as_form
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
@@ -292,6 +292,10 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     elif isinstance(form, Action):
         # Push derivative through Action slots
         left, right = form.ufl_operands
+        # Eagerly simplify spatial derivatives when Action results in a scalar.
+        if not len(form.arguments()) and isinstance(coefficient, SpatialCoordinate):
+            return ZeroBaseForm(())
+
         if len(left.arguments()) == 1:
             dleft = derivative(left, coefficient, argument, coefficient_derivatives)
             dright = derivative(right, coefficient, argument, coefficient_derivatives)
@@ -314,12 +318,16 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     if isinstance(form, Form):
         integrals = []
         for itg in form.integrals():
-            if not isinstance(coefficient, SpatialCoordinate):
-                fd = CoefficientDerivative(itg.integrand(), coefficients,
-                                           arguments, coefficient_derivatives)
-            else:
+            if isinstance(coefficient, SpatialCoordinate):
                 fd = CoordinateDerivative(itg.integrand(), coefficients,
                                           arguments, coefficient_derivatives)
+            elif isinstance(coefficient, BaseForm):
+                # Make the `ZeroBaseForm` arguments
+                arguments = form.arguments() + coefficient.arguments()
+                return ZeroBaseForm(arguments)
+            else:
+                fd = CoefficientDerivative(itg.integrand(), coefficients,
+                                           arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 

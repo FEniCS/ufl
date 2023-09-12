@@ -733,12 +733,28 @@ class FormSum(BaseForm):
                  "_hash")
     _ufl_required_methods_ = ('_analyze_form_arguments')
 
+    def __new__(cls, *args, **kwargs):
+        # All the components are `ZeroBaseForm`
+        if all(component == 0 for component, _ in args):
+            # Assume that the arguments of all the components have consistent with each other  and select
+            # the first one to define the arguments of `ZeroBaseForm`.
+            # This might not always be true but `ZeroBaseForm`'s arguments are not checked anywhere
+            # because we can't reliably always infer them.
+            ((arg, _), *_) = args
+            arguments = arg.arguments()
+            return ZeroBaseForm(arguments)
+
+        return super(FormSum, cls).__new__(cls)
+
     def __init__(self, *components):
         BaseForm.__init__(self)
 
+        # Remove `ZeroBaseForm` components
+        filtered_components = [(component, w) for component, w in components if component != 0]
+
         weights = []
         full_components = []
-        for (component, w) in components:
+        for (component, w) in filtered_components:
             if isinstance(component, FormSum):
                 full_components.extend(component.components())
                 weights.extend([w * wc for wc in component.weights()])
