@@ -47,8 +47,8 @@ class BaseArgument(object):
             element = function_space
             domain = default_domain(element.cell())
             function_space = FunctionSpace(domain, element)
-            warnings.warn("The use of FiniteElement will be deprecated by December 2023. "
-                          "Please, use FunctionSpace instead", DeprecationWarning)
+            warnings.warn("The use of FiniteElement as an input to Argument will be deprecated by December 2023. "
+                          "Please, use FunctionSpace instead", FutureWarning)
         elif not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
