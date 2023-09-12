@@ -151,10 +151,4 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         return hash(hashdata)
 
     def __eq__(self, other):
-        if self is other:
-            return True
-        return (type(self) is type(other) and
-                all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands)) and
-                all(a == b for a, b in zip(self._argument_slots, other._argument_slots)) and
-                self.derivatives == other.derivatives and
-                self.ufl_function_space() == other.ufl_function_space())
+        raise NotImplementedError

@@ -83,6 +83,3 @@ class ExternalOperator(BaseFormOperator):
         e = "e(%s; %s)" % (", ".join(str(op) for op in self.ufl_operands),
                            ", ".join(str(arg) for arg in reversed(self.argument_slots())))
         return d + e + "/" + d_ops if sum(derivatives) > 0 else e
-
-    def __eq__(self, other):
-        raise NotImplementedError
