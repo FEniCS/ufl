@@ -29,7 +29,6 @@ class DerivativeNodeReplacer(MultiFunction):
             arguments = arguments.ufl_operands
             new_arguments = ()
             for c, a in zip(new_coefficients, arguments):
-                # FIXME: Is that the right way of handling ListTensor ?
                 if isinstance(a, ListTensor):
                     a, = extract_arguments(a)
                 new_arguments += (type(a)(c.ufl_function_space(), a.number(), a.part()),)
