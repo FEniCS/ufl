@@ -19,10 +19,10 @@ from ufl.sobolevspace import SobolevSpace as _SobolevSpace
 from ufl.utils.indexflattening import shape_to_strides, unflatten_index
 from ufl.utils.sequences import product
 
-__all_classes__ = ["FiniteElementBase", "FiniteElement", "MixedElement"]
+__all_classes__ = ["AbstractFiniteElement", "FiniteElement", "MixedElement"]
 
 
-class FiniteElementBase(_abc.ABC):
+class AbstractFiniteElement(_abc.ABC):
     """Base class for all finite elements.
 
     TODO: instructions for making subclasses of this.
@@ -183,7 +183,7 @@ class FiniteElementBase(_abc.ABC):
         return None
 
 
-class FiniteElement(FiniteElementBase):
+class FiniteElement(AbstractFiniteElement):
     """A directly defined finite element."""
     __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape",
                  "_reference_value_shape", "_mapping", "_sobolev_space", "_component_map",
@@ -291,7 +291,7 @@ class FiniteElement(FiniteElementBase):
             return list(self._component_map.values())
 
 
-class MixedElement(FiniteElementBase):
+class MixedElement(AbstractFiniteElement):
     """A mixed element."""
     __slots__ = ["_repr", "_str", "_subelements", "_cell"]
 

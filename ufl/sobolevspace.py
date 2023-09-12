@@ -71,7 +71,7 @@ class SobolevSpace(object):
 
     def __contains__(self, other):
         """Implement `fe in s` where `fe` is a
-        :class:`~finiteelement.FiniteElementBase` and `s` is a
+        :class:`~finiteelement.AbstractFiniteElement` and `s` is a
         :class:`SobolevSpace`"""
         if isinstance(other, SobolevSpace):
             raise TypeError("Unable to test for inclusion of a "
@@ -120,7 +120,7 @@ class DirectionalSobolevSpace(SobolevSpace):
 
     def __contains__(self, other):
         """Implement `fe in s` where `fe` is a
-        :class:`~finiteelement.FiniteElementBase` and `s` is a
+        :class:`~finiteelement.AbstractFiniteElement` and `s` is a
         :class:`DirectionalSobolevSpace`"""
         if isinstance(other, SobolevSpace):
             raise TypeError("Unable to test for inclusion of a "

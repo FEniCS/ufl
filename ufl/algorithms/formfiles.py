@@ -18,7 +18,7 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constant import Constant
 from ufl.core.expr import Expr
-from ufl.finiteelement import FiniteElementBase
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import Form
 from ufl.utils.sorting import sorted_by_key
 
@@ -89,7 +89,7 @@ def interpret_ufl_namespace(namespace):
     # Object to hold all returned data
     ufd = FileData()
 
-    # Extract object names for Form, Coefficient and FiniteElementBase objects
+    # Extract object names for Form, Coefficient and AbstractFiniteElement objects
     # The use of id(obj) as key in object_names is necessary
     # because we need to distinguish between instances,
     # and not just between objects with different values.
@@ -102,7 +102,7 @@ def interpret_ufl_namespace(namespace):
             # FIXME: Remove after FFC is updated to use reserved_objects:
             ufd.object_names[name] = value
             ufd.object_by_name[name] = value
-        elif isinstance(value, (FiniteElementBase, Coefficient, Constant, Argument, Form, Expr)):
+        elif isinstance(value, (AbstractFiniteElement, Coefficient, Constant, Argument, Form, Expr)):
             # Store instance <-> name mappings for important objects
             # without a reserved name
             ufd.object_names[id(value)] = name
@@ -145,8 +145,8 @@ def interpret_ufl_namespace(namespace):
     # Validate types
     if not isinstance(ufd.elements, (list, tuple)):
         raise ValueError(f"Expecting 'elements' to be a list or tuple, not '{type(ufd.elements)}''.")
-    if not all(isinstance(e, FiniteElementBase) for e in ufd.elements):
-        raise ValueError("Expecting 'elements' to be a list of FiniteElementBase instances.")
+    if not all(isinstance(e, AbstractFiniteElement) for e in ufd.elements):
+        raise ValueError("Expecting 'elements' to be a list of AbstractFiniteElement instances.")
 
     # Get list of exported coefficients
     functions = []

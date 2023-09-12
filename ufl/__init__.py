@@ -243,7 +243,7 @@ from ufl.constant import Constant, TensorConstant, VectorConstant
 from ufl.constantvalue import Identity, PermutationSymbol, as_ufl, zero
 from ufl.core.multiindex import Index, indices
 from ufl.domain import AbstractDomain, Mesh, MeshView, as_domain
-from ufl.finiteelement import FiniteElementBase
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.formoperators import (action, adjoint, derivative, energy_norm,
                                extract_blocks, functional, lhs, replace, rhs,
@@ -290,7 +290,7 @@ __all__ = [
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'FacetNormal', 'CellNormal',
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
-    'FiniteElementBase',
+    'AbstractFiniteElement',
     'FunctionSpace', 'MixedFunctionSpace',
     'Argument', 'Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',

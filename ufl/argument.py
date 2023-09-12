@@ -18,7 +18,7 @@ from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import default_domain
 from ufl.duals import is_dual, is_primal
-from ufl.finiteelement import FiniteElementBase
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm
 from ufl.functionspace import (AbstractFunctionSpace, FunctionSpace,
                                MixedFunctionSpace)
@@ -40,7 +40,7 @@ class BaseArgument(object):
 
     def __init__(self, function_space, number, part=None):
 
-        if isinstance(function_space, FiniteElementBase):
+        if isinstance(function_space, AbstractFiniteElement):
             # For legacy support for UFL files using cells, we map the cell to
             # the default Mesh
             element = function_space
