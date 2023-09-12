@@ -37,7 +37,6 @@ from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.checks import is_cellwise_constant
 from ufl.domain import extract_domains
 from ufl import sobolevspace
-from ufl.core.external_operator import ExternalOperator
 
 # --- Basic operators ---
 
@@ -310,7 +309,7 @@ def diff(f, v):
     f = as_ufl(f)
     if isinstance(v, SpatialCoordinate):
         return grad(f)
-    elif isinstance(v, (Variable, Coefficient, ExternalOperator)):
+    elif isinstance(v, (Variable, Coefficient)):
         return VariableDerivative(f, v)
     else:
         raise ValueError("Expecting a Variable or SpatialCoordinate in diff.")

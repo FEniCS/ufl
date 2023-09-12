@@ -15,7 +15,6 @@ from ufl.core.operator import Operator
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-from ufl.core.external_operator import ExternalOperator
 
 from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
@@ -185,7 +184,7 @@ class VariableDerivative(Derivative):
         # Checks
         if not isinstance(f, Expr):
             raise ValueError("Expecting an Expr in VariableDerivative.")
-        if not isinstance(v, (Variable, Coefficient, ExternalOperator)):
+        if not isinstance(v, (Variable, Coefficient)):
             raise ValueError("Expecting a Variable in VariableDerivative.")
         if v.ufl_free_indices:
             raise ValueError("Differentiation variable cannot have free indices.")

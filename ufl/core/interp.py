@@ -79,6 +79,5 @@ class Interp(BaseFormOperator):
         if self is other:
             return True
         return (type(self) is type(other) and
-                self._argument_slots[0] == other._argument_slots[0] and
-                self._argument_slots[1] == other._argument_slots[1] and
+                all(a == b for a, b in zip(self._argument_slots, other._argument_slots)) and
                 self.ufl_function_space() == other.ufl_function_space())

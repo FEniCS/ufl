@@ -85,14 +85,4 @@ class ExternalOperator(BaseFormOperator):
         return d + e + "/" + d_ops if sum(derivatives) > 0 else e
 
     def __eq__(self, other):
-        if not isinstance(other, ExternalOperator):
-            return False
-        if self is other:
-            return True
-        return (type(self) is type(other) and
-                # Operands' output spaces will be taken into account via Interp.__eq__
-                # -> N(Interp(u, V1); v*) and N(Interp(u, V2); v*) will compare different.
-                all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands)) and
-                all(a == b for a, b in zip(self._argument_slots, other._argument_slots)) and
-                self.derivatives == other.derivatives and
-                self.ufl_function_space() == other.ufl_function_space())
+        raise NotImplementedError

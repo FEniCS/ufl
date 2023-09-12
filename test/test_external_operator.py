@@ -433,8 +433,8 @@ def test_multiple_external_operators(V1, V2):
     #  - ∂F/∂N4 = 0
     #  - dN5/du = ∂N5/∂u + Action(∂N5/∂N4, dN4/du)
     #           = ∂N5/∂u + Action(∂N5/∂N4, ∂N4/∂u) + Action(∂N5/∂N4, Action(∂N4/∂N1, dN1/du))
-    # with w = TrialFunction(V)
-    w = TrialFunction(V)
+    # with w = TrialFunction(V1)
+    w = TrialFunction(V1)
     dFdu_partial = inner(w * N5, v) * dx
     dFdN1_partial = inner(w, v) * dx
     dFdN5_partial = inner(w, v) * dx + inner(u * w, v) * dx
