@@ -9,32 +9,38 @@ coordinate derivatives at the right time point in compute_form_data."""
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.differentiation import CoordinateDerivative
-from ufl.algorithms.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dags
-from ufl.classes import Integral
+from ufl.classes import (Integral, MultiIndex, Terminal, Expr)
+from functools import singledispatch
 
 
-class CoordinateDerivativeIsOutermostChecker(MultiFunction):
+@singledispatch
+def coordinateDerivativeIsOutermost(o, *args):
     """ Traverses the tree to make sure that CoordinateDerivatives are only on
     the outside. The visitor returns False as long as no CoordinateDerivative
     has been seen. """
+    raise AssertionError("UFL node expected, not %s" % type(o))
 
-    def multi_index(self, o):
-        return False
 
-    def terminal(self, o):
-        return False
+@coordinateDerivativeIsOutermost.register(MultiIndex)
+@coordinateDerivativeIsOutermost.register(Terminal)
+def coordinateDerivativeIsOutermost_False(o, *args):
+    return False
 
-    def expr(self, o, *operands):
-        """ If we have already seen a CoordinateDerivative, then no other
+
+@coordinateDerivativeIsOutermost.register(Expr)
+def coordinateDerivativeIsOutermost_Expr(o, *args):
+    """ If we have already seen a CoordinateDerivative, then no other
         expressions apart from more CoordinateDerivatives are allowed to wrap
         around it. """
-        if any(operands):
-            raise ValueError("CoordinateDerivative(s) must be outermost")
-        return False
+    if any(args):
+        raise ValueError("CoordinateDerivative(s) must be outermost")
+    return False
 
-    def coordinate_derivative(self, o, expr, *_):
-        return True
+
+@coordinateDerivativeIsOutermost.register(CoordinateDerivative)
+def coordinateDerivativeIsOutermost_True(o, *args):
+    return True
 
 
 def strip_coordinate_derivatives(integrals):
@@ -51,7 +57,7 @@ def strip_coordinate_derivatives(integrals):
     elif isinstance(integrals, Integral):
         integral = integrals
         integrand = integral.integrand()
-        checker = CoordinateDerivativeIsOutermostChecker()
+        checker = coordinateDerivativeIsOutermost
         map_expr_dags(checker, [integrand])
         coordinate_derivatives = []
 
