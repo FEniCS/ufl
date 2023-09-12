@@ -73,7 +73,7 @@ class AbstractFiniteElement(_abc.ABC):
 
     @_abc.abstractproperty
     def _is_cellwise_constant(self):
-        """Return whether the basis functions of this element are constant over each cell."""
+        """Check if the basis functions of this element are constant over each cell."""
 
     @_abc.abstractproperty
     def _is_linear(self) -> bool:
