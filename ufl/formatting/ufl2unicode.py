@@ -3,13 +3,18 @@
 import numbers
 
 import ufl
-from ufl.classes import *
+from ufl.classes import (Terminal, ListTensor, ComponentTensor, CellAvg, FacetAvg, Indexed,
+                         MinValue, MaxValue, MathFunction, BesselFunction, Power, Derivative,
+                         Trace, Deviatoric, Cofactor, Skew, Sym, NotCondition, Product, Division,
+                         Dot, Inner, Outer, Cross, IndexSum, LT, LE, GE, GT, EQ, NE, AndCondition,
+                         OrCondition, Conditional, Operator)
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.core.multiindex import Index, FixedIndex
 from ufl.form import Form
 from ufl.algorithms import compute_form_data
 from functools import singledispatch
+
 
 @singledispatch
 def _precedence_rules(o, *args):
@@ -18,6 +23,7 @@ def _precedence_rules(o, *args):
 
     """
     raise AssertionError("UFL node expected, not %s" % type(o))
+
 
 @_precedence_rules.register(Terminal)
 @_precedence_rules.register(ListTensor)
@@ -30,15 +36,6 @@ def _precedence_highest(o, *args):
 @_precedence_rules.register(FacetAvg)
 def _precedence_restricted(o, *args):
     return 5
-
-
-@_precedence_rules.register(Indexed)
-@_precedence_rules.register(MinValue)
-@_precedence_rules.register(MaxValue)
-@_precedence_rules.register(MathFunction)
-@_precedence_rules.register(BesselFunction)
-def _precedence_call(o, *args):
-    return 10
 
 
 @_precedence_rules.register(Indexed)
@@ -64,9 +61,11 @@ def _precedence_power(o, *args):
 def _precedence_mathop(o, *args):
     return 15
 
+
 @_precedence_rules.register(NotCondition)
 def _precedence_not_cond(o, *args):
-        return 20
+    return 20
+
 
 @_precedence_rules.register(Product)
 @_precedence_rules.register(Division)
@@ -75,42 +74,48 @@ def _precedence_not_cond(o, *args):
 @_precedence_rules.register(Outer)
 @_precedence_rules.register(Cross)
 def _precedence_product(o, *args):
-        return 30
+    return 30
+
 
 # @_precedence_rules.register(Addition)
 @_precedence_rules.register(IndexSum)
 def _precedence_add(o, *args):
-        print("adding")
-        return 40
+    return 40
+
 
 @_precedence_rules.register(LT)
 @_precedence_rules.register(LE)
 @_precedence_rules.register(GT)
 @_precedence_rules.register(GE)
 def _precedence_compare(o, *args):
-        return 50
+    return 50
+
 
 @_precedence_rules.register(EQ)
 @_precedence_rules.register(NE)
 def _precedence_equals(o, *args):
-        return 60
+    return 60
 
 
 @_precedence_rules.register(AndCondition)
 def _precedence_and_cond(o, *args):
-        return 70
+    return 70
+
 
 @_precedence_rules.register(OrCondition)
 def _precedence_or_cond(o, *args):
-        return 71
+    return 71
+
 
 @_precedence_rules.register(Conditional)
 def _precedence_cond(o, *args):
-        return 72
+    return 72
+
 
 @_precedence_rules.register(Operator)
-def _precedence_or_cond(o, *args):
-        return 80
+def _precedence_lowest(o, *args):
+    return 80
+
 
 class PrecedenceRules(MultiFunction):
     "An enum-like class for C operator precedence levels."
@@ -197,10 +202,6 @@ def precedence(expr):
     print("using precedence")
     old = _precrules(expr)
     new = _precedence_rules(expr)
-    print(expr)
-    print(type(expr))
-    print(old)
-    print(new)
     assert new == old
     return new
 
