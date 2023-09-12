@@ -4,6 +4,8 @@
 import ufl
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.analysis import extract_arguments
+from ufl.tensors import ListTensor
 from ufl.constantvalue import as_ufl
 
 
@@ -24,9 +26,13 @@ class DerivativeNodeReplacer(MultiFunction):
         # Ensure type compatibility for arguments!
         if 'argument' not in der_kwargs.keys():
             # Argument's number/part can be retrieved from the former coefficient derivative.
-            arguments = tuple(type(a)(c.ufl_function_space(), a.number(), a.part())
-                              for c, a in zip(new_coefficients, arguments.ufl_operands))
-            der_kwargs.update({'argument': arguments})
+            arguments = arguments.ufl_operands
+            new_arguments = ()
+            for c, a in zip(new_coefficients, arguments):
+                if isinstance(a, ListTensor):
+                    a, = extract_arguments(a)
+                new_arguments += (type(a)(c.ufl_function_space(), a.number(), a.part()),)
+            der_kwargs.update({'argument': new_arguments})
 
         return ufl.derivative(o, new_coefficients, **der_kwargs)
 
