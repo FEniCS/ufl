@@ -63,7 +63,7 @@ class AbstractCell(UFLObject):
 
     def __lt__(self, other: AbstractCell) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all cells."""
-        if type(self) == type(other):
+        if type(self) is type(other):
             s = (self.geometric_dimension(), self.topological_dimension())
             o = (other.geometric_dimension(), other.topological_dimension())
             if s != o:
@@ -196,6 +196,10 @@ _sub_entity_celltypes = {
               ("triangle", "quadrilateral", "quadrilateral", "quadrilateral", "triangle"), ("prism", )],
     "pyramid": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(8)),
                 ("quadrilateral", "triangle", "triangle", "triangle", "triangle"), ("pyramid", )],
+    "pentatope": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(10)),
+                  tuple("triangle" for i in range(10)), tuple("tetrahedron" for i in range(5)), ("pentatope", )],
+    "tesseract": [tuple("vertex" for i in range(16)), tuple("interval" for i in range(32)),
+                  tuple("quadrilateral" for i in range(24)), tuple("hexahedron" for i in range(8)), ("tesseract", )],
 }
 
 
@@ -422,6 +426,8 @@ def simplex(topological_dimension: int, geometric_dimension: typing.Optional[int
         return Cell("triangle", geometric_dimension)
     if topological_dimension == 3:
         return Cell("tetrahedron", geometric_dimension)
+    if topological_dimension == 4:
+        return Cell("pentatope", geometric_dimension)
     raise ValueError(f"Unsupported topological dimension for simplex: {topological_dimension}")
 
 
@@ -435,6 +441,8 @@ def hypercube(topological_dimension, geometric_dimension=None):
         return Cell("quadrilateral", geometric_dimension)
     if topological_dimension == 3:
         return Cell("hexahedron", geometric_dimension)
+    if topological_dimension == 4:
+        return Cell("tesseract", geometric_dimension)
     raise ValueError(f"Unsupported topological dimension for hypercube: {topological_dimension}")
 
 
