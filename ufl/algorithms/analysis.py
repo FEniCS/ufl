@@ -85,8 +85,8 @@ def extract_type(a, ufl_types):
     base_form_objects = ()
     for o in base_form_ops:
         # This accounts for having BaseFormOperator in Forms: if N is a BaseFormOperator
-        #  N(u; v*) * v * dx <=> action(v1 * v * dx, N(...; v*))
-        # where v, v1 are `Argument`s and v* a `Coargument`.
+        # `N(u; v*) * v * dx` <=> `action(v1 * v * dx, N(...; v*))`
+        # where `v`, `v1` are `Argument`s and `v*` a `Coargument`.
         for ai in tuple(arg for arg in o.argument_slots(isinstance(a, Form))):
             # Extracting BaseArguments of an object of which a Coargument is an argument,
             # then we just return the dual argument of the Coargument and not its primal argument.
