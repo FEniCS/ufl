@@ -506,10 +506,10 @@ class GradRuleset(GenericDerivativeRuleset):
 
     # --- Specialized rules for form arguments
 
-    def interp(self, o):
+    def interpolate(self, o):
         # Push the grad through the operator is not legal in most cases:
         #    -> Not enouth regularity for chain rule to hold!
-        # By the time we evaluate `grad(o)`, `o` (Interp) will have been assembled and substituted by its output.
+        # By the time we evaluate `grad(o)`, `o` (Interpolate) will have been assembled and substituted by its output.
         return Grad(o)
 
     def coefficient(self, o):
@@ -1092,11 +1092,11 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
 
     # --- BaseFormOperator handlers
 
-    def interp(self, Iop, dw):
-        # Interp rule: D_w[v](Iop(w, v*)) = Iop(v, v*), by linearity of Interp!
+    def interpolate(self, Iop, dw):
+        # Interpolate rule: D_w[v](Iop(w, v*)) = Iop(v, v*), by linearity of Interpolate!
         if not dw:
             # Iop doesn't depend on w:
-            #  -> It also covers the Hessian case since Interp is linear,
+            #  -> It also covers the Hessian case since Interpolate is linear,
             #     e.g. D_w[v](D_w[v](Iop(w, v*))) = D_w[v](Iop(v, v*)) = 0 (since w not found).
             return ZeroBaseForm(Iop.arguments() + self._v)
         return Iop._ufl_expr_reconstruct_(expr=dw)

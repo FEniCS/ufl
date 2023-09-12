@@ -150,7 +150,7 @@ def extract_constants(a):
 
 
 def extract_base_form_operators(a):
-    """Build a sorted list of all base form operators (e.g. Interp or ExternalOperator)in a,
+    """Build a sorted list of all base form operators (e.g. Interpolate or ExternalOperator)in a,
     which can be a Form, Integral or Expr."""
     return sorted_by_count(extract_type(a, BaseFormOperator))
 

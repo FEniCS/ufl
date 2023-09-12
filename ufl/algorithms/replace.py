@@ -9,7 +9,7 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.classes import CoefficientDerivative, Interp
+from ufl.classes import CoefficientDerivative, Interpolate
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -29,9 +29,9 @@ class Replacer(MultiFunction):
         except KeyError:
             return self.reuse_if_untouched(o, *args)
 
-    def interp(self, o):
+    def interpolate(self, o):
         o = self.mapping.get(o) or o
-        if isinstance(o, Interp):
+        if isinstance(o, Interpolate):
             new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
             return o._ufl_expr_reconstruct_(*reversed(new_args))
         return o

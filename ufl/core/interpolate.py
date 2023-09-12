@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module defines the Interp class."""
+"""This module defines the Interpolate class."""
 
 # Copyright (C) 2021 Nacime Bouziani
 #
@@ -20,7 +20,7 @@ from ufl.duals import is_dual
 
 
 @ufl_type(num_ops="varying", is_differential=True)
-class Interp(BaseFormOperator):
+class Interpolate(BaseFormOperator):
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
@@ -64,21 +64,31 @@ class Interp(BaseFormOperator):
         return type(self)(expr, v, **add_kwargs)
 
     def __repr__(self):
-        "Default repr string construction for Interp."
-        r = "Interp(%s; %s)" % (", ".join(repr(arg) for arg in reversed(self.argument_slots())),
-                                repr(self.ufl_function_space()))
+        "Default repr string construction for Interpolate."
+        r = "Interpolate(%s; %s)" % (", ".join(repr(arg) for arg in reversed(self.argument_slots())),
+                                     repr(self.ufl_function_space()))
         return r
 
     def __str__(self):
-        "Default str string construction for Interp."
-        s = "Interp(%s; %s)" % (", ".join(str(arg) for arg in reversed(self.argument_slots())),
-                                str(self.ufl_function_space()))
+        "Default str string construction for Interpolate."
+        s = "Interpolate(%s; %s)" % (", ".join(str(arg) for arg in reversed(self.argument_slots())),
+                                     str(self.ufl_function_space()))
         return s
 
     def __eq__(self, other):
         if self is other:
             return True
         return (type(self) is type(other) and
-                self._argument_slots[0] == other._argument_slots[0] and
-                self._argument_slots[1] == other._argument_slots[1] and
+                all(a == b for a, b in zip(self._argument_slots, other._argument_slots)) and
                 self.ufl_function_space() == other.ufl_function_space())
+
+
+# Helper function
+def interpolate(expr, v):
+    r""" Symbolic representation of the interpolation operator.
+
+    :arg expr: a UFL expression to interpolate.
+    :arg v: the :class:`.FunctionSpace` to interpolate into or the :class:`.Coargument`
+            defined on the dual of the :class:`.FunctionSpace` to interpolate into.
+    """
+    return Interpolate(expr, v)
