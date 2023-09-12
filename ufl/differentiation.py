@@ -15,7 +15,6 @@ from ufl.core.operator import Operator
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-
 from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import BaseForm
