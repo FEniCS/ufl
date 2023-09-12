@@ -280,7 +280,7 @@ def test_differentiation():
     # -- Action -- #
     Ac = Action(w, u)
     dAcdu = derivative(Ac, u)
-    assert dAcdu == Action(Adjoint(derivative(w, u)), u) + Action(w, derivative(u, u))
+    assert dAcdu == action(adjoint(derivative(w, u)), u) + action(w, derivative(u, u))
 
     dAcdu = expand_derivatives(dAcdu)
     # Since dw/du = 0
