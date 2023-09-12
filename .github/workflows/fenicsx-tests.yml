@@ -79,7 +79,7 @@ jobs:
       - name: Install Basix and FFCx
         run: |
           python3 -m pip install git+https://github.com/FEniCS/basix.git
-          python3 -m pip install git+https://github.com/FEniCS/ffcx.git@dokken/group_integrals_v2
+          python3 -m pip install git+https://github.com/FEniCS/ffcx.git
 
       - name: Clone DOLFINx
         uses: actions/checkout@v3
