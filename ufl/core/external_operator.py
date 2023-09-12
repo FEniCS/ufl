@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module defines the ``ExternalOperator`` class, which symbolically represents operators that are not
-   straightforwardly expressible in UFL. A practical implementation is required at a later stage to define
+   straightforwardly expressible in UFL. Subclasses of ``ExternalOperator`` must define
    how this operator should be evaluated as well as its derivatives from a given set of operands.
 """
 
