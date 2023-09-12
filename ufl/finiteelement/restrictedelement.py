@@ -12,7 +12,6 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.log import error
 from ufl.sobolevspace import L2
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
@@ -22,9 +21,9 @@ class RestrictedElement(FiniteElementBase):
     "Represents the restriction of a finite element to a type of cell entity."
     def __init__(self, element, restriction_domain):
         if not isinstance(element, FiniteElementBase):
-            error("Expecting a finite element instance.")
+            raise ValueError("Expecting a finite element instance.")
         if restriction_domain not in valid_restriction_domains:
-            error("Expecting one of the strings %s." % (valid_restriction_domains,))
+            raise ValueError(f"Expecting one of the strings: {valid_restriction_domains}")
 
         FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
                                    element.degree(),
@@ -51,6 +50,9 @@ class RestrictedElement(FiniteElementBase):
 
         """
         return self._element.is_cellwise_constant()
+
+    def _is_linear(self):
+        return self._element._is_linear()
 
     def sub_element(self):
         "Return the element which is restricted."

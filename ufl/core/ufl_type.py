@@ -7,14 +7,43 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Massimiliano Leoni, 2016
+# Modified by Matthew Scroggs, 2023
 
-from ufl.core.expr import Expr
+from __future__ import annotations
+import typing
+import warnings
+
 from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.utils.formatting import camel2underscore
+from abc import ABC, abstractmethod
+# Avoid circular import
+import ufl.core as core
 
 
-# Make UFL type coercion available under the as_ufl name
-# as_ufl = Expr._ufl_coerce_
+class UFLObject(ABC):
+    """A UFL Object."""
+
+    @abstractmethod
+    def _ufl_hash_data_(self) -> typing.Hashable:
+        """Return hashable data that uniquely defines this object."""
+
+    @abstractmethod
+    def __str__(self) -> str:
+        """Return a human-readable string representation of the object."""
+
+    @abstractmethod
+    def __repr__(self) -> str:
+        """Return a string representation of the object."""
+
+    def __hash__(self) -> int:
+        return hash(self._ufl_hash_data_())
+
+    def __eq__(self, other):
+        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 def attach_operators_from_hash_data(cls):
     """Class decorator to attach ``__hash__``, ``__eq__`` and ``__ne__`` implementations.
@@ -22,6 +51,7 @@ def attach_operators_from_hash_data(cls):
     These are implemented in terms of a ``._ufl_hash_data()`` method on the class,
     which should return a tuple or hashable and comparable data.
     """
+    warnings.warn("attach_operators_from_hash_data deprecated, please use UFLObject instead.", DeprecationWarning)
     assert hasattr(cls, "_ufl_hash_data_")
 
     def __hash__(self):
@@ -31,12 +61,12 @@ def attach_operators_from_hash_data(cls):
 
     def __eq__(self, other):
         "__eq__ implementation attached in attach_operators_from_hash_data"
-        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
     cls.__eq__ = __eq__
 
     def __ne__(self, other):
         "__ne__ implementation attached in attach_operators_from_hash_data"
-        return type(self) != type(other) or self._ufl_hash_data_() != other._ufl_hash_data_()
+        return not self.__eq__(other)
     cls.__ne__ = __ne__
 
     return cls
@@ -84,26 +114,26 @@ def determine_num_ops(cls, num_ops, unop, binop, rbinop):
 def check_is_terminal_consistency(cls):
     "Check for consistency in ``is_terminal`` trait among superclasses."
     if cls._ufl_is_terminal_ is None:
-        msg = ("Class {0.__name__} has not specified the is_terminal trait." +
+        msg = (f"Class {cls.__name__} has not specified the is_terminal trait."
                " Did you forget to inherit from Terminal or Operator?")
-        raise TypeError(msg.format(cls))
+        raise TypeError(msg)
 
     base_is_terminal = get_base_attr(cls, "_ufl_is_terminal_")
     if base_is_terminal is not None and cls._ufl_is_terminal_ != base_is_terminal:
-        msg = ("Conflicting given and automatic 'is_terminal' trait for class {0.__name__}." +
+        msg = (f"Conflicting given and automatic 'is_terminal' trait for class {cls.__name__}."
                " Check if you meant to inherit from Terminal or Operator.")
-        raise TypeError(msg.format(cls))
+        raise TypeError(msg)
 
 
 def check_abstract_trait_consistency(cls):
     "Check that the first base classes up to ``Expr`` are other UFL types."
     for base in cls.mro():
-        if base is Expr:
+        if base is core.expr.Expr:
             break
-        if not issubclass(base, Expr) and base._ufl_is_abstract_:
+        if not issubclass(base, core.expr.Expr) and base._ufl_is_abstract_:
             msg = ("Base class {0.__name__} of class {1.__name__} "
                    "is not an abstract subclass of {2.__name__}.")
-            raise TypeError(msg.format(base, cls, Expr))
+            raise TypeError(msg.format(base, cls, core.expr.Expr))
 
 
 def check_has_slots(cls):
@@ -129,6 +159,7 @@ def check_type_traits_consistency(cls):
     "Execute a variety of consistency checks on the ufl type traits."
 
     # Check for consistency in global type collection sizes
+    Expr = core.expr.Expr
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_handler_names_)
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_classes_)
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_init_counts_)
@@ -161,7 +192,7 @@ def check_type_traits_consistency(cls):
 def check_implements_required_methods(cls):
     """Check if type implements the required methods."""
     if not cls._ufl_is_abstract_:
-        for attr in Expr._ufl_required_methods_:
+        for attr in core.expr.Expr._ufl_required_methods_:
             if not hasattr(cls, attr):
                 msg = "Class {0.__name__} has no {1} method."
                 raise TypeError(msg.format(cls, attr))
@@ -173,7 +204,7 @@ def check_implements_required_methods(cls):
 def check_implements_required_properties(cls):
     "Check if type implements the required properties."
     if not cls._ufl_is_abstract_:
-        for attr in Expr._ufl_required_properties_:
+        for attr in core.expr.Expr._ufl_required_properties_:
             if not hasattr(cls, attr):
                 msg = "Class {0.__name__} has no {1} property."
                 raise TypeError(msg.format(cls, attr))
@@ -214,11 +245,8 @@ def attach_implementations_of_indexing_interface(cls,
 
 def update_global_expr_attributes(cls):
     "Update global ``Expr`` attributes, mainly by adding *cls* to global collections of ufl types."
-    Expr._ufl_all_classes_.append(cls)
-    Expr._ufl_all_handler_names_.add(cls._ufl_handler_name_)
-
     if cls._ufl_is_terminal_modifier_:
-        Expr._ufl_terminal_modifiers_.append(cls)
+        core.expr.Expr._ufl_terminal_modifiers_.append(cls)
 
     # Add to collection of language operators.  This collection is
     # used later to populate the official language namespace.
@@ -226,12 +254,24 @@ def update_global_expr_attributes(cls):
     # it out later.
     if not cls._ufl_is_abstract_ and hasattr(cls, "_ufl_function_"):
         cls._ufl_function_.__func__.__doc__ = cls.__doc__
-        Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
+        core.expr.Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
+
+
+def update_ufl_type_attributes(cls):
+    # Determine integer typecode by incrementally counting all types
+    cls._ufl_typecode_ = UFLType._ufl_num_typecodes_
+    UFLType._ufl_num_typecodes_ += 1
+
+    UFLType._ufl_all_classes_.append(cls)
+
+    # Determine handler name by a mapping from "TypeName" to "type_name"
+    cls._ufl_handler_name_ = camel2underscore(cls.__name__)
+    UFLType._ufl_all_handler_names_.add(cls._ufl_handler_name_)
 
     # Append space for counting object creation and destriction of
     # this this type.
-    Expr._ufl_obj_init_counts_.append(0)
-    Expr._ufl_obj_del_counts_.append(0)
+    UFLType._ufl_obj_init_counts_.append(0)
+    UFLType._ufl_obj_del_counts_.append(0)
 
 
 def ufl_type(is_abstract=False,
@@ -253,7 +293,7 @@ def ufl_type(is_abstract=False,
              unop=None,
              binop=None,
              rbinop=None):
-    """This decorator is to be applied to every subclass in the UFL ``Expr`` hierarchy.
+    """This decorator is to be applied to every subclass in the UFL ``Expr`` and ``BaseForm`` hierarchy.
 
     This decorator contains a number of checks that are
     intended to enforce uniform behaviour across UFL types.
@@ -264,14 +304,14 @@ def ufl_type(is_abstract=False,
     """
 
     def _ufl_type_decorator_(cls):
-        # Determine integer typecode by oncrementally counting all types
-        typecode = Expr._ufl_num_typecodes_
-        Expr._ufl_num_typecodes_ += 1
 
-        # Determine handler name by a mapping from "TypeName" to "type_name"
-        handler_name = camel2underscore(cls.__name__)
+        # Update attributes for UFLType instances (BaseForm and Expr objects)
+        update_ufl_type_attributes(cls)
+        if not issubclass(cls, core.expr.Expr):
+            # Don't need anything else for non Expr subclasses
+            return cls
 
-        # is_scalar implies is_index_free
+        # is_scalar implies is_index_freeg
         if is_scalar:
             _is_index_free = True
         else:
@@ -279,8 +319,6 @@ def ufl_type(is_abstract=False,
 
         # Store type traits
         cls._ufl_class_ = cls
-        set_trait(cls, "handler_name", handler_name, inherit=False)
-        set_trait(cls, "typecode", typecode, inherit=False)
         set_trait(cls, "is_abstract", is_abstract, inherit=False)
 
         set_trait(cls, "is_terminal", is_terminal, inherit=True)
@@ -372,3 +410,37 @@ def ufl_type(is_abstract=False,
         return cls
 
     return _ufl_type_decorator_
+
+
+class UFLType(type):
+    """Base class for all UFL types.
+
+    Equip UFL types with some ufl specific properties.
+    """
+
+    # A global counter of the number of typecodes assigned.
+    _ufl_num_typecodes_ = 0
+
+    # Set the handler name for UFLType
+    _ufl_handler_name_ = "ufl_type"
+
+    # A global array of all Expr and BaseForm subclasses, indexed by typecode
+    _ufl_all_classes_ = []
+
+    # A global set of all handler names added
+    _ufl_all_handler_names_ = set()
+
+    # A global array of the number of initialized objects for each
+    # typecode
+    _ufl_obj_init_counts_ = []
+
+    # A global array of the number of deleted objects for each
+    # typecode
+    _ufl_obj_del_counts_ = []
+
+    # Type trait: If the type is abstract.  An abstract class cannot
+    # be instantiated and does not need all properties specified.
+    _ufl_is_abstract_ = True
+
+    # Type trait: If the type is terminal.
+    _ufl_is_terminal_ = None

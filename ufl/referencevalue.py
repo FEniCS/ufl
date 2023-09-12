@@ -10,7 +10,6 @@
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument
-from ufl.log import error
 
 
 @ufl_type(num_ops=1,
@@ -23,7 +22,7 @@ class ReferenceValue(Operator):
 
     def __init__(self, f):
         if not isinstance(f, FormArgument):
-            error("Can only take reference value of form arguments.")
+            raise ValueError("Can only take reference value of form arguments.")
         Operator.__init__(self, (f,))
 
     @property
@@ -32,7 +31,7 @@ class ReferenceValue(Operator):
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."
-        error("Evaluate not implemented.")
+        raise NotImplementedError()
 
     def __str__(self):
-        return "reference_value(%s)" % self.ufl_operands[0]
+        return f"reference_value({self.ufl_operands[0]})"

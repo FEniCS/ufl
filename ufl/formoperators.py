@@ -11,16 +11,17 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.log import error
-from ufl.form import Form, as_form
+from ufl.form import Form, FormSum, BaseForm, as_form
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
-from ufl.coefficient import Coefficient
-from ufl.differentiation import CoefficientDerivative, CoordinateDerivative
+from ufl.coefficient import Coefficient, Cofunction
+from ufl.adjoint import Adjoint
+from ufl.action import Action
+from ufl.differentiation import CoefficientDerivative, BaseFormDerivative, CoordinateDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
@@ -34,6 +35,7 @@ from ufl.algorithms import compute_form_adjoint, compute_form_action
 from ufl.algorithms import compute_energy_norm
 from ufl.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
 from ufl.algorithms import expand_derivatives, extract_arguments
+from ufl.algorithms import formsplitter
 
 # Part of the external interface
 from ufl.algorithms import replace  # noqa
@@ -51,7 +53,7 @@ def extract_blocks(form, i=None, j=None):
        extract_blocks(a) -> [inner(grad(u), grad(v))*dx, div(v)*p*dx, div(u)*q*dx, 0]
 
     """
-    return ufl.algorithms.formsplitter.extract_blocks(form, i, j)
+    return formsplitter.extract_blocks(form, i, j)
 
 
 def lhs(form):
@@ -104,10 +106,14 @@ def action(form, coefficient=None):
     Given a bilinear form, return a linear form
     with an additional coefficient, representing the
     action of the form on the coefficient. This can be
-    used for matrix-free methods."""
+    used for matrix-free methods.
+    For formbase objects,coefficient can be any object of the correct type,
+    and this function returns an Action object."""
     form = as_form(form)
-    form = expand_derivatives(form)
-    return compute_form_action(form, coefficient)
+    if isinstance(form, Form) and not (isinstance(coefficient, BaseForm) and len(coefficient.arguments()) > 1):
+        form = expand_derivatives(form)
+        return compute_form_action(form, coefficient)
+    return Action(form, coefficient)
 
 
 def energy_norm(form, coefficient=None):
@@ -129,15 +135,20 @@ def adjoint(form, reordered_arguments=None):
     opposite ordering. However, if the adjoint form is to
     be added to other forms later, their arguments must match.
     In that case, the user must provide a tuple *reordered_arguments*=(u2,v2).
+
+    If the form is a baseform instance instead of a Form object, we return an Adjoint
+    object instructing the adjoint to be computed at a later point.
     """
     form = as_form(form)
-    form = expand_derivatives(form)
-    return compute_form_adjoint(form, reordered_arguments)
+    if isinstance(form, Form):
+        form = expand_derivatives(form)
+        return compute_form_adjoint(form, reordered_arguments)
+    return Adjoint(form)
 
 
 def zero_lists(shape):
     if len(shape) == 0:
-        error("Invalid shape.")
+        raise ValueError("Invalid shape.")
     elif len(shape) == 1:
         return [0] * shape[0]
     else:
@@ -162,8 +173,8 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        if not all(isinstance(c, Coefficient) for c in coefficients):
-            error("Can only create arguments automatically for non-indexed coefficients.")
+        if not all(isinstance(c, (Coefficient, Cofunction)) for c in coefficients):
+            raise ValueError("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one
         # with the next argument number
@@ -181,7 +192,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
         # in that case
         parts = set(arg.part() for arg in form_arguments)
         if len(parts - {None}) != 0:
-            error("Not expecting parts here, provide your own arguments.")
+            raise ValueError("Not expecting parts here, provide your own arguments.")
         part = None
 
         # Create argument and split it if in a mixed space
@@ -214,17 +225,17 @@ def _handle_derivative_arguments(form, coefficient, argument):
     m = {}
     for (c, a) in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
-            error("Coefficient and argument shapes do not match!")
-        if isinstance(c, Coefficient) or isinstance(c, SpatialCoordinate):
+            raise ValueError("Coefficient and argument shapes do not match!")
+        if isinstance(c, (Coefficient, Cofunction, SpatialCoordinate)):
             m[c] = a
         else:
             if not isinstance(c, Indexed):
-                error("Invalid coefficient type for %s" % ufl_err_str(c))
+                raise ValueError(f"Invalid coefficient type for {ufl_err_str(c)}")
             f, i = c.ufl_operands
             if not isinstance(f, Coefficient):
-                error("Expecting an indexed coefficient, not %s" % ufl_err_str(f))
+                raise ValueError(f"Expecting an indexed coefficient, not {ufl_err_str(f)}")
             if not (isinstance(i, MultiIndex) and all(isinstance(j, FixedIndex) for j in i)):
-                error("Expecting one or more fixed indices, not %s" % ufl_err_str(i))
+                raise ValueError(f"Expecting one or more fixed indices, not {ufl_err_str(i)}")
             i = tuple(int(j) for j in i)
             if f not in m:
                 m[f] = {}
@@ -269,9 +280,23 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     ``Coefficient`` instances to their derivatives w.r.t. *coefficient*.
     """
 
+    if isinstance(form, FormSum):
+        # Distribute derivative over FormSum components
+        return FormSum(*[(derivative(component, coefficient, argument, coefficient_derivatives), 1)
+                         for component in form.components()])
+    elif isinstance(form, Adjoint):
+        # Push derivative through Adjoint
+        return adjoint(derivative(form._form, coefficient, argument, coefficient_derivatives))
+    elif isinstance(form, Action):
+        # Push derivative through Action slots
+        left, right = form.ufl_operands
+        dleft = derivative(left, coefficient, argument, coefficient_derivatives)
+        dright = derivative(right, coefficient, argument, coefficient_derivatives)
+        # Leibniz formula
+        return action(dleft, right) + action(left, dright)
+
     coefficients, arguments = _handle_derivative_arguments(form, coefficient,
                                                            argument)
-
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
     else:
@@ -293,6 +318,10 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
+    elif isinstance(form, BaseForm):
+        if not isinstance(coefficient, SpatialCoordinate):
+            return BaseFormDerivative(form, coefficients, arguments, coefficient_derivatives)
+
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
         if not isinstance(coefficient, SpatialCoordinate):
@@ -302,7 +331,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             return CoordinateDerivative(form, coefficients,
                                         arguments, coefficient_derivatives)
 
-    error("Invalid argument type %s." % str(type(form)))
+    raise ValueError(f"Invalid argument type {type(form)}.")
 
 
 def sensitivity_rhs(a, u, L, v):
@@ -361,12 +390,9 @@ def sensitivity_rhs(a, u, L, v):
 
         dL = sensitivity_rhs(a, u, L, v)
     """
-    if not (isinstance(a, Form) and
-            isinstance(u, Coefficient) and
-            isinstance(L, Form) and
-            isinstance(v, Variable)):
-        error("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
+    if not (isinstance(a, Form) and isinstance(u, Coefficient) and isinstance(L, Form) and isinstance(v, Variable)):
+        raise ValueError("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
     if not is_true_ufl_scalar(v):
-        error("Expecting scalar variable.")
+        raise ValueError("Expecting scalar variable.")
     from ufl.operators import diff
     return diff(L, v) - action(diff(a, v), u)
