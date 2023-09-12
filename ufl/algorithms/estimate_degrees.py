@@ -242,7 +242,7 @@ class SumDegreeEstimator(MultiFunction):
         # negative integer, Coefficient, etc.
         return self._add_degrees(v, a, 2)
 
-    def atan_2(self, v, a, b):
+    def atan2(self, v, a, b):
         """Using the heuristic
         degree(atan2(const,const)) == 0
         degree(atan2(a,b)) == max(degree(a),degree(b))+2
