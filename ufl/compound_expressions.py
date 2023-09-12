@@ -93,6 +93,8 @@ def determinant_expr(A):
             return determinant_expr_2x2(A)
         elif sh[0] == 3:
             return determinant_expr_3x3(A)
+        else:
+            return determinant_expr_nxn(A)
     else:
         return pseudo_determinant_expr(A)
 
@@ -116,6 +118,12 @@ def determinant_expr_3x3(A):
     return codeterminant_expr_nxn(A, [0, 1, 2], [0, 1, 2])
 
 
+def determinant_expr_nxn(A):
+    nrow, ncol = A.ufl_shape
+    assert nrow == ncol
+    return codeterminant_expr_nxn(A, list(range(nrow)), list(range(ncol)))
+
+
 def codeterminant_expr_nxn(A, rows, cols):
     if len(rows) == 2:
         return _det_2x2(A, rows[0], rows[1], cols[0], cols[1])
@@ -123,8 +131,8 @@ def codeterminant_expr_nxn(A, rows, cols):
     r = rows[0]
     subrows = rows[1:]
     for i, c in enumerate(cols):
-        subcols = cols[i + 1:] + cols[:i]
-        codet += A[r, c] * codeterminant_expr_nxn(A, subrows, subcols)
+        subcols = cols[:i] + cols[i + 1:]
+        codet += (-1)**i * A[r, c] * codeterminant_expr_nxn(A, subrows, subcols)
     return codet
 
 
