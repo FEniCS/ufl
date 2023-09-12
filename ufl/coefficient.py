@@ -41,13 +41,7 @@ class BaseCoefficient(Counted):
     def __init__(self, function_space, count=None):
         Counted.__init__(self, count, Coefficient)
 
-        if isinstance(function_space, FiniteElementBase):
-            # For legacy support for .ufl files using cells, we map
-            # the cell to The Default Mesh
-            element = function_space
-            domain = default_domain(element.cell())
-            function_space = FunctionSpace(domain, element)
-        elif not isinstance(function_space, AbstractFunctionSpace):
+        if not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
         self._ufl_function_space = function_space
