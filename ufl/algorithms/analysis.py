@@ -91,8 +91,8 @@ def extract_type(a, ufl_types):
             # Extracting BaseArguments of an object of which a Coargument is an argument,
             # then we just return the dual argument of the Coargument and not its primal argument.
             if isinstance(ai, Coargument):
-                base_form_objects += tuple(extract_type(ai, tuple(Coargument if t is BaseArgument else t
-                                                                  for t in ufl_types)))
+                new_types = tuple(Coargument if t is BaseArgument else t for t in ufl_types)
+                base_form_objects += tuple(extract_type(ai, new_types))
             else:
                 base_form_objects += tuple(extract_type(ai, ufl_types))
         # Look for BaseArguments in BaseFormOperator's argument slots only since that's where they are by definition.
