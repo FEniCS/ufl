@@ -18,7 +18,7 @@ from functools import singledispatch
 
 
 @singledispatch
-def _replace(o, self):
+def _replace(o, self, *args):
     """Single-dispatch function to replace subexpressions in expression
 
     :arg o: UFL expression

@@ -9,70 +9,98 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.multifunction import reuse_if_untouched
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.constantvalue import Zero
 from ufl.tensors import as_vector
 from ufl.argument import Argument
+from ufl.classes import Expr
+from ufl.core.multiindex import MultiIndex
 from ufl.functionspace import FunctionSpace
+from functools import singledispatch
 
 
-class FormSplitter(MultiFunction):
+class FormSplitter(object):
+
+    def __init__(self):
+        self.cache = {}
+        self.function = _form_splitter
+
+    def __call__(self, node, *args):
+        return self.function(node, self, *args)
 
     def split(self, form, ix, iy=0):
         # Remember which block to extract
         self.idx = [ix, iy]
         return map_integrand_dags(self, form)
 
-    def argument(self, obj):
-        if (obj.part() is not None):
-            # Mixed element built from MixedFunctionSpace,
-            # whose sub-function spaces are indexed by obj.part()
-            if len(obj.ufl_shape) == 0:
-                if (obj.part() == self.idx[obj.number()]):
-                    return obj
-                else:
-                    return Zero()
-            else:
-                indices = [()]
-                for m in obj.ufl_shape:
-                    indices = [(k + (j,)) for k in indices for j in range(m)]
 
-                if (obj.part() == self.idx[obj.number()]):
-                    return as_vector([obj[j] for j in indices])
-                else:
-                    return as_vector([Zero() for j in indices])
-        else:
-            # Mixed element built from MixedElement,
-            # whose sub-elements need their function space to be created
-            Q = obj.ufl_function_space()
-            dom = Q.ufl_domain()
-            sub_elements = obj.ufl_element().sub_elements()
+@singledispatch
+def _form_splitter(o, self, *args):
+    """Single-dispatch function to replace subexpressions in expression
 
-            # If not a mixed element, do nothing
-            if (len(sub_elements) == 0):
+    :arg o: UFL expression
+    :arg self: Callback handler that holds the mapping
+
+    """
+    raise AssertionError("UFL node expected, not %s" % type(o))
+
+
+@_form_splitter.register(Expr)
+def _form_splitter_expr(obj, self, *args):
+    return reuse_if_untouched(obj, *args)
+
+
+@_form_splitter.register(Argument)
+def _form_splitter_argument(obj, self):
+    if (obj.part() is not None):
+        # Mixed element built from MixedFunctionSpace,
+        # whose sub-function spaces are indexed by obj.part()
+        if len(obj.ufl_shape) == 0:
+            if (obj.part() == self.idx[obj.number()]):
                 return obj
+            else:
+                return Zero()
+        else:
+            indices = [()]
+            for m in obj.ufl_shape:
+                indices = [(k + (j,)) for k in indices for j in range(m)]
 
-            args = []
-            for i, sub_elem in enumerate(sub_elements):
-                Q_i = FunctionSpace(dom, sub_elem)
-                a = Argument(Q_i, obj.number(), part=obj.part())
+            if (obj.part() == self.idx[obj.number()]):
+                return as_vector([obj[j] for j in indices])
+            else:
+                return as_vector([Zero() for j in indices])
+    else:
+        # Mixed element built from MixedElement,
+        # whose sub-elements need their function space to be created
+        Q = obj.ufl_function_space()
+        dom = Q.ufl_domain()
+        sub_elements = obj.ufl_element().sub_elements()
 
-                indices = [()]
-                for m in a.ufl_shape:
-                    indices = [(k + (j,)) for k in indices for j in range(m)]
+        # If not a mixed element, do nothing
+        if (len(sub_elements) == 0):
+            return obj
 
-                if (i == self.idx[obj.number()]):
-                    args += [a[j] for j in indices]
-                else:
-                    args += [Zero() for j in indices]
+        args = []
+        for i, sub_elem in enumerate(sub_elements):
+            Q_i = FunctionSpace(dom, sub_elem)
+            a = Argument(Q_i, obj.number(), part=obj.part())
 
-            return as_vector(args)
+            indices = [()]
+            for m in a.ufl_shape:
+                indices = [(k + (j,)) for k in indices for j in range(m)]
 
-    def multi_index(self, obj):
-        return obj
+            if (i == self.idx[obj.number()]):
+                args += [a[j] for j in indices]
+            else:
+                args += [Zero() for j in indices]
 
-    expr = MultiFunction.reuse_if_untouched
+        return as_vector(args)
+
+
+@_form_splitter.register(MultiIndex)
+def _form_spliter_multi_index(obj, self):
+    return obj
 
 
 def extract_blocks(form, i=None, j=None):
