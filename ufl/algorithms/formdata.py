@@ -41,30 +41,3 @@ class FormData(object):
             ("Unique sub elements", estr(self.unique_sub_elements)),
         )
         return tstr(geometry + subdomains + functions)
-
-
-class ExprData(object):
-    """
-    Class collecting various information extracted from a Expr by
-    calling preprocess.
-    """
-
-    def __init__(self):
-        "Create empty expr data for given expr."
-
-    def __str__(self):
-        "Return formatted summary of expr data"
-        return tstr((("Name", self.name),
-                     ("Cell", self.cell),
-                     ("Topological dimension", self.topological_dimension),
-                     ("Geometric dimension", self.geometric_dimension),
-                     ("Rank", self.rank),
-                     ("Number of coefficients", self.num_coefficients),
-                     ("Arguments", lstr(self.arguments)),
-                     ("Coefficients", lstr(self.coefficients)),
-                     ("Argument names", lstr(self.argument_names)),
-                     ("Coefficient names", lstr(self.coefficient_names)),
-                     ("Unique elements", estr(self.unique_elements)),
-                     ("Unique sub elements", estr(self.unique_sub_elements)),
-                     # FIXME DOMAINS what is "the domain(s)" for an expression?
-                     ("Domains", self.domains), ))

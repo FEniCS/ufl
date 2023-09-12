@@ -11,7 +11,8 @@ for all types that are terminal nodes in an expression tree."""
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error, warning
+import warnings
+
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -25,12 +26,6 @@ class Terminal(Expr):
 
     def __init__(self):
         Expr.__init__(self)
-
-    def _ufl_expr_reconstruct_(self, *operands):
-        "Return self."
-        if operands:
-            error("Terminal has no operands.")
-        return self
 
     ufl_operands = ()
     ufl_free_indices = ()
@@ -59,7 +54,7 @@ class Terminal(Expr):
             if hasattr(self, 'ufl_evaluate'):
                 return self.ufl_evaluate(x, component, derivatives)
             # Take component if any
-            warning("Couldn't map '%s' to a float, returning ufl object without evaluation." % str(self))
+            warnings.warn("Couldn't map '%s' to a float, returning ufl object without evaluation." % str(self))
             f = self
             if component:
                 f = f[component]
@@ -97,7 +92,7 @@ class Terminal(Expr):
 
 @ufl_type(is_abstract=True)
 class FormArgument(Terminal):
-    "An abstract class for a form argument."
+    "An abstract class for a form argument (a thing in a primal finite element space)."
     __slots__ = ()
 
     def __init__(self):

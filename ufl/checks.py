@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utility functions for checking properties of expressions."""
 
 # Copyright (C) 2013-2016 Martin Sandve Alnæs
@@ -27,8 +26,7 @@ def is_ufl_scalar(expression):
 def is_true_ufl_scalar(expression):
     """Return True iff expression is scalar-valued,
     with no free indices."""
-    return isinstance(expression, Expr) and \
-        not (expression.ufl_shape or expression.ufl_free_indices)
+    return isinstance(expression, Expr) and not (expression.ufl_shape or expression.ufl_free_indices)
 
 
 def is_cellwise_constant(expr):
@@ -45,8 +43,8 @@ def is_globally_constant(expr):
     # negatives are possible.
     # from ufl.argument import Argument
     # from ufl.coefficient import Coefficient
-    from ufl.geometry import GeometricQuantity
     from ufl.core.terminal import FormArgument
+    from ufl.geometry import GeometricQuantity
     for e in traverse_unique_terminals(expr):
         # Return False if any single terminal is not constant
         if e._ufl_is_literal_:
@@ -55,7 +53,7 @@ def is_globally_constant(expr):
             continue
         elif isinstance(e, FormArgument):
             # Accept only Real valued Arguments and Coefficients
-            if e.ufl_element().family() == "Real":
+            if e.ufl_element()._is_globally_constant():
                 continue
             else:
                 return False

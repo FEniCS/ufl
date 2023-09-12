@@ -19,12 +19,3 @@ def id_or_none(obj):
         return obj.ufl_id()
     else:
         return id(obj)
-
-
-def metadata_equal(a, b):
-    return (sorted((k, id(v)) for k, v in list(a.items())) ==
-            sorted((k, id(v)) for k, v in list(b.items())))
-
-
-def metadata_hashdata(md):
-    return tuple(sorted((k, id(v)) for k, v in list(md.items())))

@@ -12,7 +12,6 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
 from ufl.utils.formatting import istr
 from ufl.cell import as_cell
 
@@ -51,9 +50,9 @@ class FiniteElement(FiniteElementBase):
             if family in ["RTCF", "RTCE"]:
                 cell_h, cell_v = cell.sub_cells()
                 if cell_h.cellname() != "interval":
-                    error("%s is available on TensorProductCell(interval, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(interval, interval) only.")
                 if cell_v.cellname() != "interval":
-                    error("%s is available on TensorProductCell(interval, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(interval, interval) only.")
 
                 C_elt = FiniteElement("CG", "interval", degree, variant=variant)
                 D_elt = FiniteElement("DG", "interval", degree - 1, variant=variant)
@@ -69,9 +68,9 @@ class FiniteElement(FiniteElementBase):
             elif family == "NCF":
                 cell_h, cell_v = cell.sub_cells()
                 if cell_h.cellname() != "quadrilateral":
-                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(quadrilateral, interval) only.")
                 if cell_v.cellname() != "interval":
-                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(quadrilateral, interval) only.")
 
                 Qc_elt = FiniteElement("RTCF", "quadrilateral", degree, variant=variant)
                 Qd_elt = FiniteElement("DQ", "quadrilateral", degree - 1, variant=variant)
@@ -85,9 +84,9 @@ class FiniteElement(FiniteElementBase):
             elif family == "NCE":
                 cell_h, cell_v = cell.sub_cells()
                 if cell_h.cellname() != "quadrilateral":
-                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(quadrilateral, interval) only.")
                 if cell_v.cellname() != "interval":
-                    error("%s is available on TensorProductCell(quadrilateral, interval) only." % family)
+                    raise ValueError(f"{family} is available on TensorProductCell(quadrilateral, interval) only.")
 
                 Qc_elt = FiniteElement("Q", "quadrilateral", degree, variant=variant)
                 Qd_elt = FiniteElement("RTCE", "quadrilateral", degree, variant=variant)
@@ -148,13 +147,15 @@ class FiniteElement(FiniteElementBase):
         if cell is not None:
             cell = as_cell(cell)
 
-        family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = canonical_element_description(family, cell, degree, form_degree)
+        (
+            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping
+        ) = canonical_element_description(family, cell, degree, form_degree)
 
         # TODO: Move these to base? Might be better to instead
         # simplify base though.
         self._sobolev_space = sobolev_space
         self._mapping = mapping
-        self._short_name = short_name
+        self._short_name = short_name or family
         self._variant = variant
 
         # Finite elements on quadrilaterals and hexahedrons have an IrreducibleInt as degree
@@ -189,6 +190,12 @@ class FiniteElement(FiniteElementBase):
     def __repr__(self):
         """Format as string for evaluation as Python object."""
         return self._repr
+
+    def _is_globally_constant(self):
+        return self.family() == "Real"
+
+    def _is_linear(self):
+        return self.family() == "Lagrange" and self.degree() == 1
 
     def mapping(self):
         """Return the mapping type for this element ."""
@@ -228,8 +235,7 @@ class FiniteElement(FiniteElementBase):
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "%s%s(%s,%s)" % (self._short_name, istr(self.degree()),
-                                istr(self.quadrature_scheme()), istr(self.variant()))
+        return f"{self._short_name}{istr(self.degree())}({self.quadrature_scheme()},{istr(self.variant())})"
 
     def __getnewargs__(self):
         """Return the arguments which pickle needs to recreate the object."""

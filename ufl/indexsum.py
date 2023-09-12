@@ -8,7 +8,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
-from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator
@@ -28,11 +27,11 @@ class IndexSum(Operator):
     def __new__(cls, summand, index):
         # Error checks
         if not isinstance(summand, Expr):
-            error("Expecting Expr instance, got %s" % ufl_err_str(summand))
+            raise ValueError(f"Expecting Expr instance, got {ufl_err_str(summand)}")
         if not isinstance(index, MultiIndex):
-            error("Expecting MultiIndex instance, got %s" % ufl_err_str(index))
+            raise ValueError(f"Expecting MultiIndex instance, got {ufl_err_str(index)}")
         if len(index) != 1:
-            error("Expecting a single Index but got %d." % len(index))
+            raise ValueError(f"Expecting a single Index but got {len(index)}.")
 
         # Simplification to zero
         if isinstance(summand, Zero):
