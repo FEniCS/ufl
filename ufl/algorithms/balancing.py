@@ -6,9 +6,10 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.classes import (CellAvg, FacetAvg, Grad, Indexed, NegativeRestricted,
-                         PositiveRestricted, ReferenceGrad, ReferenceValue)
+                         PositiveRestricted, ReferenceGrad, ReferenceValue, Expr,
+                         Terminal)
 from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from functools import singledispatch
 
 modifier_precedence = [
     ReferenceValue, ReferenceGrad, Grad, CellAvg, FacetAvg, PositiveRestricted,
@@ -52,25 +53,36 @@ def balance_modified_terminal(expr):
     return orig if expr == orig else expr
 
 
-class BalanceModifiers(MultiFunction):
-    def expr(self, expr, *ops):
-        return expr._ufl_expr_reconstruct_(*ops)
+@singledispatch
+def balance_modifiers(o, *ops):
+    """Single-dispatch function to balance modifiers in an expression
+    :arg o: the expression
 
-    def terminal(self, expr):
-        return expr
+    """
+    raise AssertionError("UFL node expected, not %s" % type(o))
 
-    def _modifier(self, expr, *ops):
-        return balance_modified_terminal(expr)
 
-    reference_value = _modifier
-    reference_grad = _modifier
-    grad = _modifier
-    cell_avg = _modifier
-    facet_avg = _modifier
-    positive_restricted = _modifier
-    negative_restricted = _modifier
+@balance_modifiers.register(Expr)
+def balance_modifiers_expr(o, *ops):
+    return o._ufl_expr_reconstruct_(*ops)
+
+
+@balance_modifiers.register(Terminal)
+def balance_modifiers_terminal(o, *ops):
+    return o
+
+
+@balance_modifiers.register(ReferenceValue)
+@balance_modifiers.register(ReferenceGrad)
+@balance_modifiers.register(Grad)
+@balance_modifiers.register(CellAvg)
+@balance_modifiers.register(FacetAvg)
+@balance_modifiers.register(PositiveRestricted)
+@balance_modifiers.register(NegativeRestricted)
+def balance_modifiers_mod(o, *ops):
+    return balance_modified_terminal(o)
 
 
 def balance_modifiers(expr):
-    mf = BalanceModifiers()
+    mf = balance_modifiers
     return map_expr_dag(mf, expr)
