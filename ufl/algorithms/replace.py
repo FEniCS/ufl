@@ -9,7 +9,7 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.classes import CoefficientDerivative, Interpolate
+from ufl.classes import CoefficientDerivative, Interpolate, ExternalOperator, Form
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -20,7 +20,14 @@ class Replacer(MultiFunction):
     def __init__(self, mapping):
         super().__init__()
         self.mapping = mapping
-        if not all(k.ufl_shape == v.ufl_shape for k, v in mapping.items()):
+
+        # One can replace Coarguments by 1-Forms
+        def get_shape(x):
+            if isinstance(x, Form):
+                return x.arguments()[0].ufl_shape
+            return x.ufl_shape
+
+        if not all(get_shape(k) == get_shape(v) for k, v in mapping.items()):
             raise ValueError("Replacement expressions must have the same shape as what they replace.")
 
     def ufl_type(self, o, *args):
@@ -28,6 +35,14 @@ class Replacer(MultiFunction):
             return self.mapping[o]
         except KeyError:
             return self.reuse_if_untouched(o, *args)
+
+    def external_operator(self, o):
+        o = self.mapping.get(o) or o
+        if isinstance(o, ExternalOperator):
+            new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
+            new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+            return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_args)
+        return o
 
     def interpolate(self, o):
         o = self.mapping.get(o) or o

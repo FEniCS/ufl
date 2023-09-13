@@ -10,6 +10,7 @@ import warnings
 from collections import defaultdict
 from math import pi
 
+from ufl.algorithms.analysis import extract_arguments
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.checks import is_cellwise_constant
@@ -1112,6 +1113,30 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
             #     e.g. D_w[v](D_w[v](i_op(w, v*))) = D_w[v](i_op(v, v*)) = 0 (since w not found).
             return ZeroBaseForm(i_op.arguments() + self._v)
         return i_op._ufl_expr_reconstruct_(expr=dw)
+
+    @pending_operations_recording
+    def external_operator(self, N, *dfs):
+        result = ()
+        for i, df in enumerate(dfs):
+            derivatives = tuple(dj + int(i == j) for j, dj in enumerate(N.derivatives))
+            if len(extract_arguments(df)) != 0:
+                # Handle the symbolic differentiation of external operators.
+                # This bit returns:
+                #
+                #   `\sum_{i} dNdOi(..., Oi, ...; DOi(u)[v], ..., v*)`
+                #
+                # where we differentate wrt u, Oi is the i-th operand, N(..., Oi, ...; ..., v*) an ExternalOperator
+                # and v the direction (Argument). dNdOi(..., Oi, ...; DOi(u)[v]) is an ExternalOperator
+                # representing the Gateaux-derivative of N. For example:
+                #  -> From N(u) = u**2, we get `dNdu(u; uhat, v*) = 2 * u * uhat`.
+                new_args = N.argument_slots() + (df,)
+                extop = N._ufl_expr_reconstruct_(*N.ufl_operands, derivatives=derivatives, argument_slots=new_args)
+            elif df == 0:
+                extop = Zero(N.ufl_shape)
+            else:
+                raise NotImplementedError('Frechet derivative of external operators need to be provided!')
+            result += (extop,)
+        return sum(result)
 
 
 class DerivativeRuleDispatcher(MultiFunction):

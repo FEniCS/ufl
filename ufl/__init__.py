@@ -330,6 +330,9 @@ from ufl.operators import (
     Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative,
     jump, avg, cell_avg, facet_avg, elem_mult, elem_div, elem_pow, elem_op)
 
+# External Operator
+from ufl.core.external_operator import ExternalOperator
+
 # Measure classes
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
 
@@ -376,7 +379,9 @@ __all__ = [
     'Argument', 'Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Cofunction', 'Coefficients',
-    'Matrix', 'Adjoint', 'Action', 'Interpolate', 'interpolate',
+    'Matrix', 'Adjoint', 'Action',
+    'Interpolate', 'interpolate',
+    'ExternalOperator',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
