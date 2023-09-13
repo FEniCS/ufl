@@ -437,11 +437,10 @@ def test_multiple_external_operators(V1, V2):
     w = TrialFunction(V1)
     dFdu_partial = inner(w * N5, v) * dx
     dFdN1_partial = inner(w, v) * dx
-    dFdN5_partial = inner(w, v) * dx + inner(u * w, v) * dx
+    dFdN5_partial = (inner(w, v) + inner(u * w, v)) * dx
     dN5dN4_partial = N5._ufl_expr_reconstruct_(N4, u, derivatives=(1, 0), argument_slots=N4.arguments() + (w,))
     dN5du_partial = N5._ufl_expr_reconstruct_(N4, u, derivatives=(0, 1), argument_slots=N4.arguments() + (w,))
-    dN5du = dN5du_partial + Action(dN5dN4_partial, dN4du_partial) + Action(dN5dN4_partial, Action(dN4dN1_partial, dN1du))
+    dN5du = Action(dN5dN4_partial, Action(dN4dN1_partial, dN1du)) + Action(dN5dN4_partial, dN4du_partial) + dN5du_partial
 
     dFdu = expand_derivatives(derivative(F, u))
-
     assert dFdu == dFdu_partial + Action(dFdN1_partial, dN1du) + Action(dFdN5_partial, dN5du)
