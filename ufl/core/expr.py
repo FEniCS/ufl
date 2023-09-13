@@ -23,8 +23,8 @@ import warnings
 
 from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
 
-# --- The base object for all UFL expression tree nodes ---
 
+# --- The base object for all UFL expression tree nodes ---
 
 class Expr(object, metaclass=UFLType):
     """Base class for all UFL expression types.

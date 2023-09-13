@@ -10,6 +10,7 @@
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
+# Modified by Nacime Bouziani, 2020.
 # Modified by Jørgen S. Dokken 2023.
 
 import numbers
@@ -239,7 +240,6 @@ class BaseForm(object, metaclass=UFLType):
                     repdict[f] = coefficients[f]
                 else:
                     warnings("Coefficient %s is not in form." % ufl_err_str(f))
-
         if repdict:
             from ufl.formoperators import replace
             return replace(self, repdict)
@@ -273,6 +273,7 @@ class Form(BaseForm):
         "_domain_numbering",
         "_subdomain_data",
         "_arguments",
+        "_base_form_operators",
         "_coefficients",
         "_coefficient_numbering",
         "_constants",
@@ -309,6 +310,9 @@ class Form(BaseForm):
         self._coefficient_numbering = None
         self._constant_numbering = None
         self._terminal_numbering = None
+
+        # Internal variables for caching base form operator data
+        self._base_form_operators = None
 
         from ufl.algorithms.analysis import extract_constants
         self._constants = extract_constants(self)
@@ -409,17 +413,17 @@ class Form(BaseForm):
             self._analyze_subdomain_data()
         return self._max_subdomain_ids
 
-    def arguments(self):
-        "Return all ``Argument`` objects found in form."
-        if self._arguments is None:
-            self._analyze_form_arguments()
-        return self._arguments
-
     def coefficients(self):
         "Return all ``Coefficient`` objects found in form."
         if self._coefficients is None:
             self._analyze_form_arguments()
         return self._coefficients
+
+    def base_form_operators(self):
+        "Return all ``BaseFormOperator`` objects found in form."
+        if self._base_form_operators is None:
+            self._analyze_base_form_operators()
+        return self._base_form_operators
 
     def coefficient_numbering(self):
         """Return a contiguous numbering of coefficients in a mapping
@@ -680,6 +684,12 @@ class Form(BaseForm):
         self._coefficients = tuple(
             sorted(set(coefficients), key=lambda x: x.count()))
 
+    def _analyze_base_form_operators(self):
+        "Analyze which BaseFormOperator objects can be found in the form."
+        from ufl.algorithms.analysis import extract_base_form_operators
+        base_form_ops = extract_base_form_operators(self)
+        self._base_form_operators = tuple(sorted(base_form_ops, key=lambda x: x.count()))
+
     def _compute_renumbering(self):
         # Include integration domains and coefficients in renumbering
         dn = self.domain_numbering()
@@ -722,7 +732,7 @@ class Form(BaseForm):
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
-    if not isinstance(form, BaseForm):
+    if not isinstance(form, BaseForm) and form != 0:
         raise ValueError(f"Unable to convert object to a UFL form: {ufl_err_str(form)}")
     return form
 

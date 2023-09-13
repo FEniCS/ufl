@@ -284,7 +284,7 @@ def test_differentiation():
 
     dAcdu = expand_derivatives(dAcdu)
     # Since dw/du = 0
-    assert dAcdu == 1 * Action(w, v)
+    assert dAcdu == Action(w, v)
 
     # -- Form sum -- #
     uhat = Argument(U, 1)

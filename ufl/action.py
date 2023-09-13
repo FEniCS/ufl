@@ -16,6 +16,7 @@ from ufl.constantvalue import Zero
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.differentiation import CoefficientDerivative
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.matrix import Matrix
 
 # --- The Action class represents the action of a numerical object that needs
@@ -50,6 +51,11 @@ class Action(BaseForm):
 
         # Check trivial case
         if left == 0 or right == 0:
+            if isinstance(left, Zero):
+                # There is no point in checking the action arguments
+                # if `left` is a `ufl.Zero` as those objects don't have arguments.
+                # We can also not reliably determine the `ZeroBaseForm` arguments.
+                return ZeroBaseForm(())
             # Still need to work out the ZeroBaseForm arguments.
             new_arguments, _ = _get_action_form_arguments(left, right)
             return ZeroBaseForm(new_arguments)
@@ -149,8 +155,9 @@ def _check_function_spaces(left, right):
     if isinstance(right, (Form, Action, Matrix, ZeroBaseForm)):
         if left_arg.ufl_function_space().dual() != right.arguments()[0].ufl_function_space():
             raise TypeError("Incompatible function spaces in Action")
-    elif isinstance(right, (Coefficient, Cofunction, Argument)):
+    elif isinstance(right, (Coefficient, Cofunction, Argument, BaseFormOperator)):
         if left_arg.ufl_function_space() != right.ufl_function_space():
+
             raise TypeError("Incompatible function spaces in Action")
     # `Zero` doesn't contain any information about the function space.
     # -> Not a problem since Action will get simplified with a `ZeroBaseForm`

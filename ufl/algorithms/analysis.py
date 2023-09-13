@@ -15,7 +15,8 @@ from itertools import chain
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.terminal import Terminal
-from ufl.argument import BaseArgument
+from ufl.core.base_form_operator import BaseFormOperator
+from ufl.argument import BaseArgument, Coargument
 from ufl.coefficient import BaseCoefficient
 from ufl.constant import Constant
 from ufl.form import BaseForm, Form
@@ -50,8 +51,15 @@ def extract_type(a, ufl_types):
     if not isinstance(ufl_types, (list, tuple)):
         ufl_types = (ufl_types,)
 
-    # BaseForms that aren't forms only contain arguments & coefficients
-    if isinstance(a, BaseForm) and not isinstance(a, Form):
+    if all(t is not BaseFormOperator for t in ufl_types):
+        remove_base_form_ops = True
+        ufl_types += (BaseFormOperator,)
+    else:
+        remove_base_form_ops = False
+
+    # BaseForms that aren't forms or base form operators
+    # only contain arguments & coefficients
+    if isinstance(a, BaseForm) and not isinstance(a, (Form, BaseFormOperator)):
         objects = set()
         arg_types = tuple(t for t in ufl_types if issubclass(t, BaseArgument))
         if arg_types:
@@ -63,13 +71,42 @@ def extract_type(a, ufl_types):
 
     if all(issubclass(t, Terminal) for t in ufl_types):
         # Optimization
-        return set(o for e in iter_expressions(a)
-                   for o in traverse_unique_terminals(e)
-                   if any(isinstance(o, t) for t in ufl_types))
+        objects = set(o for e in iter_expressions(a)
+                      for o in traverse_unique_terminals(e)
+                      if any(isinstance(o, t) for t in ufl_types))
     else:
-        return set(o for e in iter_expressions(a)
-                   for o in unique_pre_traversal(e)
-                   if any(isinstance(o, t) for t in ufl_types))
+        objects = set(o for e in iter_expressions(a)
+                      for o in unique_pre_traversal(e)
+                      if any(isinstance(o, t) for t in ufl_types))
+
+    # Need to extract objects contained in base form operators whose type is in ufl_types
+    base_form_ops = set(e for e in objects if isinstance(e, BaseFormOperator))
+    ufl_types_no_args = tuple(t for t in ufl_types if not issubclass(t, BaseArgument))
+    base_form_objects = ()
+    for o in base_form_ops:
+        # This accounts for having BaseFormOperator in Forms: if N is a BaseFormOperator
+        # `N(u; v*) * v * dx` <=> `action(v1 * v * dx, N(...; v*))`
+        # where `v`, `v1` are `Argument`s and `v*` a `Coargument`.
+        for ai in tuple(arg for arg in o.argument_slots(isinstance(a, Form))):
+            # Extracting BaseArguments of an object of which a Coargument is an argument,
+            # then we just return the dual argument of the Coargument and not its primal argument.
+            if isinstance(ai, Coargument):
+                new_types = tuple(Coargument if t is BaseArgument else t for t in ufl_types)
+                base_form_objects += tuple(extract_type(ai, new_types))
+            else:
+                base_form_objects += tuple(extract_type(ai, ufl_types))
+        # Look for BaseArguments in BaseFormOperator's argument slots only since that's where they are by definition.
+        # Don't look into operands, which is convenient for external operator composition, e.g. N1(N2; v*)
+        # where N2 is seen as an operator and not a form.
+        slots = o.ufl_operands
+        for ai in slots:
+            base_form_objects += tuple(extract_type(ai, ufl_types_no_args))
+    objects.update(base_form_objects)
+
+    # `Remove BaseFormOperator` objects if there were initially not in `ufl_types`
+    if remove_base_form_ops:
+        objects -= base_form_ops
+    return objects
 
 
 def has_type(a, ufl_type):
@@ -110,6 +147,12 @@ def extract_coefficients(a):
 def extract_constants(a):
     """Build a sorted list of all constants in a"""
     return sorted_by_count(extract_type(a, Constant))
+
+
+def extract_base_form_operators(a):
+    """Build a sorted list of all base form operators (e.g. Interpolate or ExternalOperator)in a,
+    which can be a Form, Integral or Expr."""
+    return sorted_by_count(extract_type(a, BaseFormOperator))
 
 
 def extract_arguments_and_coefficients(a):
