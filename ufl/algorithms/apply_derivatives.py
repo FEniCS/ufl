@@ -818,6 +818,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     def coefficient(self, o):
         # Define dw/dw := d/ds [w + s v] = v
+
         # Return corresponding argument if we can find o among w
         do = self._w2v.get(o)
         if do is not None:
@@ -1146,7 +1147,7 @@ class DerivativeRuleDispatcher(MultiFunction):
         self.rcaches = defaultdict(dict)
 
         # Record the operations delayed to the derivative expansion phase:
-        # Example: dN(u)/du where `N` is an ExternalOperator and `u` a Coefficient
+        # Example: dN(u)/du where `N` is a BaseFormOperator and `u` a Coefficient
         self.pending_operations = ()
 
     def terminal(self, o):
