@@ -51,6 +51,11 @@ class Action(BaseForm):
 
         # Check trivial case
         if left == 0 or right == 0:
+            if isinstance(left, Zero):
+                # There is no point in checking the action arguments
+                # if `left` is a `ufl.Zero` as those objects don't have arguments.
+                # We can also not reliably determine the `ZeroBaseForm` arguments.
+                return ZeroBaseForm(())
             # Still need to work out the ZeroBaseForm arguments.
             new_arguments, _ = _get_action_form_arguments(left, right)
             return ZeroBaseForm(new_arguments)
