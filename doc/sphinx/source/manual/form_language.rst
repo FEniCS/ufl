@@ -442,63 +442,6 @@ on each, illustrated here::
   v1 = Coefficient(DG0v)
   t1 = Coefficient(DG0t)
 
-
-External Operators
----------------------
-The data type ``ExternalOperator`` subclasses ``Operator``,  it is an operator that takes operands and produces a ``Coefficient`` out of it. In addition, it is equipped with a derivative multi-index. The way to correlate the operands to evaluate the ``ExternalOperator`` is defined at a later stage. Its operands are UFL expressions: ``Expr`` and all its subclasses (e.g. ``Coefficient`` or even ``ExternalOperator``). As for ``Operators``, their constructors should take these operands as the position arguments, it has its own implementation of ``reconstruct`` which takes into account the operands as well as the derivative multi-index.
-
-An ``ExternalOperator`` must be declared with a list of operands and a ``ufl.FunctionSpace``::
-
-      V  = FiniteElement("Lagrange", "triangle", 1)
-      DG0 = FiniteElement("Discontinuous Lagrange", cell, 0)
-
-      u = Coefficient(V)
-      g = Coefficient(DG0)
-      c = Constant(Cell)
-      p = ExternalOperator(u, g, c, function_space=V)
-
-``ExternalOperator`` has a symbolic differentiation mechanism, therefore::
-
-    u = variable(Coefficient(V))
-    g = Coefficient(V)
-    p = ExternalOperator(cos(u), g, function_space=V)
-
-    dpdu = diff(p, u)
-
-is equivalent after processing the expression to::
-
-    dpdu = - sin(u) * p2
-
-where::
-
-    p2 = p._ufl_expr_reconstruct_(cos(u), g, derivatives=(1, 0))
-
-The derivatives keyword refers to the derivatives multi-index, in this example p2 is equivalent to
-
-    :math:`\frac{\partial p}{\partial op_1}`, where :math: `op_1 = cos(u)`
-
-Likewise, when using ``derivative``::
-
-    v = TestFunction(V)
-    u_hat = Coefficient(V)
-    a = p * v
-    F = derivative(a, u, u_hat)
-
-is equivalent to::
-
-    F = - sin(u) * u_hat * p2 * v
-
-When the external operator acts globally on its operands, we can end up dealing with a dense matrix. More specifically, if p acts globally on u, then the derivative with respect to the first operand (p2) is a dense matrix. This situation results naturally from the differentiation process. External operators enable to deal conveniently (without assembling the dense matrix) with this situation by engraving in the symbolic the action of the gradient. In this case, the differentiation process would instead result in::
-
-    F = - sin(u) * u_hat * p2Action
-
-where p2Action represents the action of the gradient p2 on v, that is
-
-    :math:`p2Action = p2 * v`
-
-At the external operator level, one can specify that he wants to deal with the action by subclassing the GlobalExternalOperator class.
-
-
 Basic Datatypes
 ===============
 
