@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """This module defines the Action class."""
-
 # Copyright (C) 2021 India Marsden
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -26,6 +24,7 @@ from ufl.matrix import Matrix
 @ufl_type()
 class Action(BaseForm):
     """UFL base form type: respresents the action of an object on another.
+
     For example:
         res = Ax
     A would be the first argument, left and x would be the second argument,
@@ -47,6 +46,7 @@ class Action(BaseForm):
         "_hash")
 
     def __new__(cls, *args, **kw):
+        """Create a new Action."""
         left, right = args
 
         # Check trivial case
@@ -79,6 +79,7 @@ class Action(BaseForm):
         return super(Action, cls).__new__(cls)
 
     def __init__(self, left, right):
+        """Initialise."""
         BaseForm.__init__(self)
 
         self._left = left
@@ -93,7 +94,7 @@ class Action(BaseForm):
         self._hash = None
 
     def ufl_function_spaces(self):
-        "Get the tuple of function spaces of the underlying form"
+        """Get the tuple of function spaces of the underlying form."""
         if isinstance(self._right, Form):
             return self._left.ufl_function_spaces()[:-1] \
                 + self._right.ufl_function_spaces()[1:]
@@ -101,9 +102,11 @@ class Action(BaseForm):
             return self._left.ufl_function_spaces()[:-1]
 
     def left(self):
+        """Get left."""
         return self._left
 
     def right(self):
+        """Get right."""
         return self._right
 
     def _analyze_form_arguments(self):
@@ -121,6 +124,7 @@ class Action(BaseForm):
         self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
 
     def equals(self, other):
+        """Check if two Actions are equal."""
         if type(other) is not Action:
             return False
         if self is other:
@@ -130,13 +134,15 @@ class Action(BaseForm):
         return bool(self._left == other._left) and bool(self._right == other._right)
 
     def __str__(self):
+        """Format as a string."""
         return f"Action({self._left}, {self._right})"
 
     def __repr__(self):
+        """Representation."""
         return self._repr
 
     def __hash__(self):
-        "Hash code for use in dicts "
+        """Hash."""
         if self._hash is None:
             self._hash = hash(("Action", hash(self._right), hash(self._left)))
         return self._hash
@@ -144,7 +150,6 @@ class Action(BaseForm):
 
 def _check_function_spaces(left, right):
     """Check if the function spaces of left and right match."""
-
     if isinstance(right, CoefficientDerivative):
         # Action differentiation pushes differentiation through
         # right as a consequence of Leibniz formula.
@@ -170,8 +175,7 @@ def _check_function_spaces(left, right):
 
 
 def _get_action_form_arguments(left, right):
-    """Perform argument contraction to work out the arguments of Action"""
-
+    """Perform argument contraction to work out the arguments of Action."""
     coefficients = ()
     # `left` can also be a Coefficient in V (= V**), e.g. `action(Coefficient(V), Cofunction(V.dual()))`.
     left_args = left.arguments()[:-1] if not isinstance(left, Coefficient) else ()
