@@ -1,4 +1,8 @@
-"""This module contains the apply_restrictions algorithm which propagates restrictions in a form towards the terminals."""
+"""Apply restrictions.
+
+This module contains the apply_restrictions algorithm which propagates restrictions in a form
+towards the terminals.
+"""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #

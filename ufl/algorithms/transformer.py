@@ -102,10 +102,6 @@ class Transformer(object):
         # external subclass of the actual UFL class)
         h, visit_children_first = self._handlers[o._ufl_typecode_]
 
-        # if not h:
-        #    # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
-        #    raise ValueError("Can't handle objects of type %s" % str(type(o)))
-
         # Is this a handler that expects transformed children as
         # input?
         if visit_children_first:

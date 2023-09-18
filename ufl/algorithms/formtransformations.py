@@ -313,7 +313,7 @@ def compute_form_with_arity(form, arity, arguments=None):
         raise ValueError("compute_form_with_arity cannot handle parts.")
 
     if len(arguments) < arity:
-        warnings.warn("Form has no parts with arity %d." % arity)
+        warnings.warn(f"Form has no parts with arity {arity}.")
         return 0 * form
 
     # Assuming that the form is not a sum of terms

@@ -1110,7 +1110,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                     # TODO: Make it possible to silence this message
                     #       in particular?  It may be good to have for
                     #       debugging...
-                    warnings.warn("Assuming d{%s}/d{%s} = 0." % (o, self._w))
+                    warnings.warn(f"Assuming d{{{0}}}/d{{{self._w}}} = 0.")
             else:
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):
@@ -1421,7 +1421,7 @@ class BaseFormOperatorDerivativeRecorder():
             base_form_ops = self.base_form_ops + other
         elif isinstance(other, BaseFormOperatorDerivativeRecorder):
             if self.der_kwargs != other.der_kwargs:
-                raise ValueError("Derivative arguments must match when summing %s objects." % type(self).__name__)
+                raise ValueError(f"Derivative arguments must match when summing {type(self).__name__} objects.")
             base_form_ops = self.base_form_ops + other.base_form_ops
         else:
             raise NotImplementedError(f"Sum of {type(self)} and {type(other)} objects is not supported.")
