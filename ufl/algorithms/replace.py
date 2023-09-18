@@ -69,7 +69,8 @@ def replace(e, mapping):
         e: An Expr or Form
         mapping: A dict with from:to replacements to perform
 
-    Returns: The expression with replacements performed
+    Returns:
+        The expression with replacements performed
     """
     mapping2 = dict((k, as_ufl(v)) for (k, v) in mapping.items())
 

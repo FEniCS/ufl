@@ -656,7 +656,8 @@ def grad_to_reference_grad(o, K):
     Args:
         o: Operand
         K: Jacobian inverse
-    Returns: grad(o) written in terms of reference_grad(o) and K
+    Returns:
+        grad(o) written in terms of reference_grad(o) and K
     """
     r = indices(len(o.ufl_shape))
     i, j = indices(2)
@@ -1452,7 +1453,8 @@ def apply_derivatives(expression):
     Args:
         expression: A Form, an Expr or a BaseFormOperator to be differentiated
 
-    Returns: A differentiated expression
+    Returns:
+        A differentiated expression
     """
     # Notation: Let `var` be the thing we are differentating with respect to.
 

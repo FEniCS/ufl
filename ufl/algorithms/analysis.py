@@ -51,7 +51,8 @@ def extract_type(a, ufl_types):
         a: A BaseForm, Integral or Expr
         ufl_types: A list of UFL types
 
-    Returns: All objects found in a whose class is in ufl_type
+    Returns:
+        All objects found in a whose class is in ufl_type
     """
     if not isinstance(ufl_types, (list, tuple)):
         ufl_types = (ufl_types,)
@@ -121,7 +122,8 @@ def has_type(a, ufl_type):
         a: A BaseForm, Integral or Expr
         ufl_type: A UFL type
 
-    Returns: Whether an object of class ufl_type can be found in a
+    Returns:
+        Whether an object of class ufl_type can be found in a
     """
     if issubclass(ufl_type, Terminal):
         # Optimization
@@ -138,7 +140,8 @@ def has_exact_type(a, ufl_type):
         a: A BaseForm, Integral or Expr
         ufl_type: A UFL type
 
-    Returns: Whether an object of class ufl_type can be found in a
+    Returns:
+        Whether an object of class ufl_type can be found in a
     """
     tc = ufl_type._ufl_typecode_
     if issubclass(ufl_type, Terminal):

@@ -51,7 +51,8 @@ def strip_terminal_data(o):
     Args:
         o: The object to be stripped. This must either be a Form or Integral
 
-    Returns: A 2-tuple containing an equivalent UFL-only object and a mapping
+    Returns:
+        A 2-tuple containing an equivalent UFL-only object and a mapping
         allowing the original form to be reconstructed using replace_terminal_data
 
     """
@@ -86,7 +87,8 @@ def replace_terminal_data(o, mapping):
         o: The object to have its terminals replaced. This must either be a Form or Integral.
         mapping: A mapping suitable for reconstructing the form such as the one
             returned by strip_terminal_data.
-    Returns: The new form.
+    Returns:
+        The new form.
     """
     if isinstance(o, Form):
         return Form([replace_terminal_data(itg, mapping) for itg in o.integrals()])

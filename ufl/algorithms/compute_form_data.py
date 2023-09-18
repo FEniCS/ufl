@@ -169,7 +169,8 @@ def _check_form_arity(preprocessed_form):
 def _build_coefficient_replace_map(coefficients, element_mapping=None):
     """Create new Coefficient objects with count starting at 0.
 
-    Returns: mapping from old to new objects, and lists of the new objects
+    Returns:
+        mapping from old to new objects, and lists of the new objects
     """
     if element_mapping is None:
         element_mapping = {}
@@ -198,7 +199,8 @@ def attach_estimated_degrees(form):
     Args:
         form: The Form` to inspect.
 
-    Returns: A new Form with estimate degrees attached.
+    Returns:
+        A new Form with estimate degrees attached.
     """
     integrals = form.integrals()
 

@@ -96,7 +96,8 @@ def apply_single_function_pullbacks(r, element):
         r: An expression wrapped in ReferenceValue.
         element: The element this expression lives in.
 
-    Returns: a pulled back expression.
+    Returns:
+        a pulled back expression.
     """
     mapping = element.mapping()
     if r.ufl_shape != element.reference_value_shape():

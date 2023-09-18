@@ -110,7 +110,8 @@ def group_integrals_by_domain_and_type(integrals, domains):
         integrals: list of Integral objects
         domains: list of AbstractDomain objects from the parent Form
 
-    Returns: Dictionary mapping (domain, integral_type) to list(Integral)
+    Returns:
+        Dictionary mapping (domain, integral_type) to list(Integral)
     """
     integrals_by_domain_and_type = defaultdict(list)
     for itg in integrals:
@@ -151,7 +152,8 @@ def rearrange_integrals_by_single_subdomains(
         do_append_everywhere_integrals: Boolean indicating if integrals defined on the whole domain should
             just be restricted to the set of input subdomain ids.
 
-    Returns: The integrals reconstructed with single subdomain_id
+    Returns:
+        The integrals reconstructed with single subdomain_id
     """
     # Split integrals into lists of everywhere and subdomain integrals
     everywhere_integrals = []
@@ -201,7 +203,8 @@ def accumulate_integrands_with_same_metadata(integrals):
     Args:
         integrals: a list of integrals
 
-    Returns: A list of the form [(integrand0, metadata0), (integrand1, metadata1), ...]
+    Returns:
+        A list of the form [(integrand0, metadata0), (integrand1, metadata1), ...]
         where integrand0 < integrand1 by the canonical ufl expression ordering criteria.
     """
     # Group integrals by compiler data hash
@@ -237,7 +240,8 @@ def build_integral_data(integrals):
     Args:
         integrals: An iterable of Integral objects.
 
-    Returns:A tuple of IntegralData objects.
+    Returns:
+        A tuple of IntegralData objects.
     """
     itgs = defaultdict(list)
 
@@ -287,7 +291,8 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
         do_append_everywhere_integrals: Boolean indicating if integrals defined on the whole domain should
             just be restricted to the set of input subdomain ids.
 
-    Returns: A new Form with gathered integrands.
+    Returns:
+        A new Form with gathered integrands.
     """
     # Group integrals by domain and type
     integrals_by_domain_and_type = group_integrals_by_domain_and_type(form.integrals(), domains)
