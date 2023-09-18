@@ -1,4 +1,6 @@
-"""The Unified Form Language is an embedded domain specific language
+"""UFL: The Unified Form Language.
+
+The Unified Form Language is an embedded domain specific language
 for definition of variational forms intended for finite element
 discretization. More precisely, it defines a fixed interface for choosing
 finite element spaces and defining expressions for weak forms in a
