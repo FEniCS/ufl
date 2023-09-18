@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """This module defines the Terminal class.
 
 Terminal the superclass for all types that are terminal nodes in an expression tree.
 """
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -19,11 +17,13 @@ from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
 
-# --- Base class for terminal objects ---
-
 @ufl_type(is_abstract=True, is_terminal=True)
 class Terminal(Expr):
-    """A terminal node in the UFL expression tree."""
+    """Base class for terminal objects.
+
+    A terminal node in the UFL expression tree.
+    """
+
     __slots__ = ()
 
     def __init__(self):

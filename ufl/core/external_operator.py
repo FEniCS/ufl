@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-"""This module defines the ``ExternalOperator`` class, which symbolically represents operators that are not
-   straightforwardly expressible in UFL. Subclasses of ``ExternalOperator`` must define
-   how this operator should be evaluated as well as its derivatives from a given set of operands.
-"""
+"""External operator.
 
+This module defines the ``ExternalOperator`` class, which symbolically represents operators that are not
+straightforwardly expressible in UFL. Subclasses of ``ExternalOperator`` must define
+how this operator should be evaluated as well as its derivatives from a given set of operands.
+"""
 # Copyright (C) 2019 Nacime Bouziani
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -18,20 +18,21 @@ from ufl.core.ufl_type import ufl_type
 
 @ufl_type(num_ops="varying", is_differential=True)
 class ExternalOperator(BaseFormOperator):
+    """External operator."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
     def __init__(self, *operands, function_space, derivatives=None, argument_slots=()):
-        r"""
-        :param operands: operands on which acts the :class:`ExternalOperator`.
-        :param function_space: the :class:`.FunctionSpace`,
-               or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
-        :param derivatives: tuple specifiying the derivative multiindex.
-        :param argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
-        """
+        """Initialise.
 
+        Args:
+            operands: operands on which acts the ExternalOperator.
+            function_space: the FunctionSpace, or MixedFunctionSpace on which to build this Function.
+            derivatives: tuple specifiying the derivative multiindex.
+            argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
+        """
         # -- Derivatives -- #
         if derivatives is not None:
             if not isinstance(derivatives, tuple):
@@ -50,12 +51,12 @@ class ExternalOperator(BaseFormOperator):
                                   argument_slots=argument_slots)
 
     def ufl_element(self):
-        "Shortcut to get the finite element of the function space of the external operator"
+        """Shortcut to get the finite element of the function space of the external operator."""
         # Useful when applying split on an ExternalOperator
         return self.arguments()[0].ufl_element()
 
     def grad(self):
-        """Returns the symbolic grad of the external operator"""
+        """Returns the symbolic grad of the external operator."""
         # By default, differential rules produce `grad(assembled_o)` `where assembled_o`
         # is the `Coefficient` resulting from assembling the external operator since
         # the external operator may not be smooth enough for chain rule to hold.
@@ -64,19 +65,19 @@ class ExternalOperator(BaseFormOperator):
         raise NotImplementedError('Symbolic gradient not defined for the external operator considered!')
 
     def assemble(self, *args, **kwargs):
-        """Assemble the external operator"""
-        raise NotImplementedError("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
+        """Assemble the external operator."""
+        raise NotImplementedError(f"Symbolic evaluation of {self._ufl_class_.__name__} not available.")
 
     def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None,
                                argument_slots=None, add_kwargs={}):
-        "Return a new object of the same type with new operands."
+        """Return a new object of the same type with new operands."""
         return type(self)(*operands, function_space=function_space or self.ufl_function_space(),
                           derivatives=derivatives or self.derivatives,
                           argument_slots=argument_slots or self.argument_slots(),
                           **add_kwargs)
 
     def __str__(self):
-        "Default str string for ExternalOperator operators."
+        """Default str string for ExternalOperator operators."""
         d = '\N{PARTIAL DIFFERENTIAL}'
         derivatives = self.derivatives
         d_ops = "".join(d + "o" + str(i + 1) for i, di in enumerate(derivatives) for j in range(di))
@@ -85,6 +86,7 @@ class ExternalOperator(BaseFormOperator):
         return d + e + "/" + d_ops if sum(derivatives) > 0 else e
 
     def __eq__(self, other):
+        """Check for equality."""
         if self is other:
             return True
         return (type(self) is type(other) and

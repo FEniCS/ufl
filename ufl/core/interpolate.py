@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module defines the Interpolate class."""
 
 # Copyright (C) 2021 Nacime Bouziani
@@ -21,19 +20,20 @@ from ufl.duals import is_dual
 
 @ufl_type(num_ops="varying", is_differential=True)
 class Interpolate(BaseFormOperator):
+    """Symbolic representation of the interpolation operator."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
     def __init__(self, expr, v):
-        r""" Symbolic representation of the interpolation operator.
+        """Initialise.
 
-        :arg expr: a UFL expression to interpolate.
-        :arg v: the :class:`.FunctionSpace` to interpolate into or the :class:`.Coargument`
-                defined on the dual of the :class:`.FunctionSpace` to interpolate into.
+        Args:
+            expr: a UFL expression to interpolate.
+            v: the FunctionSpace to interpolate into or the Coargument
+                defined on the dual of the FunctionSpace to interpolate into.
         """
-
         # This check could be more rigorous.
         dual_args = (Coargument, Cofunction, Form)
 
@@ -59,23 +59,24 @@ class Interpolate(BaseFormOperator):
                                   argument_slots=argument_slots)
 
     def _ufl_expr_reconstruct_(self, expr, v=None, **add_kwargs):
-        "Return a new object of the same type with new operands."
+        """Return a new object of the same type with new operands."""
         v = v or self.argument_slots()[0]
         return type(self)(expr, v, **add_kwargs)
 
     def __repr__(self):
-        "Default repr string construction for Interpolate."
+        """Default repr string construction for Interpolate."""
         r = "Interpolate(%s; %s)" % (", ".join(repr(arg) for arg in reversed(self.argument_slots())),
                                      repr(self.ufl_function_space()))
         return r
 
     def __str__(self):
-        "Default str string construction for Interpolate."
+        """Default str string construction for Interpolate."""
         s = "Interpolate(%s; %s)" % (", ".join(str(arg) for arg in reversed(self.argument_slots())),
                                      str(self.ufl_function_space()))
         return s
 
     def __eq__(self, other):
+        """Check for equality."""
         if self is other:
             return True
         return (type(self) is type(other) and
@@ -85,10 +86,11 @@ class Interpolate(BaseFormOperator):
 
 # Helper function
 def interpolate(expr, v):
-    r""" Symbolic representation of the interpolation operator.
+    """Create symbolic representation of the interpolation operator.
 
-    :arg expr: a UFL expression to interpolate.
-    :arg v: the :class:`.FunctionSpace` to interpolate into or the :class:`.Coargument`
-            defined on the dual of the :class:`.FunctionSpace` to interpolate into.
+    Args:
+        expr: a UFL expression to interpolate.
+        v: the FunctionSpace to interpolate into or the Coargument
+            defined on the dual of the FunctionSpace to interpolate into.
     """
     return Interpolate(expr, v)

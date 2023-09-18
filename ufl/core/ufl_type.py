@@ -1,3 +1,4 @@
+"""UFL type."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -6,7 +7,6 @@
 #
 # Modified by Massimiliano Leoni, 2016
 # Modified by Matthew Scroggs, 2023
-"""UFL type."""
 
 from __future__ import annotations
 import typing
@@ -57,17 +57,17 @@ def attach_operators_from_hash_data(cls):
     assert hasattr(cls, "_ufl_hash_data_")
 
     def __hash__(self):
-        """__hash__ implementation attached in attach_operators_from_hash_data"""
+        """__hash__ implementation attached in attach_operators_from_hash_data."""
         return hash(self._ufl_hash_data_())
     cls.__hash__ = __hash__
 
     def __eq__(self, other):
-        """__eq__ implementation attached in attach_operators_from_hash_data"""
+        """__eq__ implementation attached in attach_operators_from_hash_data."""
         return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
     cls.__eq__ = __eq__
 
     def __ne__(self, other):
-        """__ne__ implementation attached in attach_operators_from_hash_data"""
+        """__ne__ implementation attached in attach_operators_from_hash_data."""
         return not self.__eq__(other)
     cls.__ne__ = __ne__
 
@@ -75,7 +75,7 @@ def attach_operators_from_hash_data(cls):
 
 
 def get_base_attr(cls, name):
-    "Return first non-``None`` attribute of given name among base classes."
+    """Return first non-``None`` attribute of given name among base classes."""
     for base in cls.mro():
         if hasattr(base, name):
             attr = getattr(base, name)
@@ -96,7 +96,7 @@ def set_trait(cls, basename, value, inherit=False):
 
 
 def determine_num_ops(cls, num_ops, unop, binop, rbinop):
-    "Determine number of operands for this type."
+    """Determine number of operands for this type."""
     # Try to determine num_ops from other traits or baseclass, or
     # require num_ops to be set for non-abstract classes if it cannot
     # be determined automatically
@@ -114,7 +114,7 @@ def determine_num_ops(cls, num_ops, unop, binop, rbinop):
 
 
 def check_is_terminal_consistency(cls):
-    "Check for consistency in ``is_terminal`` trait among superclasses."
+    """Check for consistency in ``is_terminal`` trait among superclasses."""
     if cls._ufl_is_terminal_ is None:
         msg = (f"Class {cls.__name__} has not specified the is_terminal trait."
                " Did you forget to inherit from Terminal or Operator?")
@@ -128,7 +128,7 @@ def check_is_terminal_consistency(cls):
 
 
 def check_abstract_trait_consistency(cls):
-    "Check that the first base classes up to ``Expr`` are other UFL types."
+    """Check that the first base classes up to ``Expr`` are other UFL types."""
     for base in cls.mro():
         if base is core.expr.Expr:
             break
@@ -139,8 +139,7 @@ def check_abstract_trait_consistency(cls):
 
 
 def check_has_slots(cls):
-    """Check if type has ``__slots__`` unless it is marked as exception with
-    ``_ufl_noslots_``."""
+    """Check if type has __slots__ unless it is marked as exception with _ufl_noslots_."""
     if "_ufl_noslots_" in cls.__dict__:
         return
 
@@ -158,8 +157,7 @@ def check_has_slots(cls):
 
 
 def check_type_traits_consistency(cls):
-    "Execute a variety of consistency checks on the ufl type traits."
-
+    """Execute a variety of consistency checks on the ufl type traits."""
     # Check for consistency in global type collection sizes
     Expr = core.expr.Expr
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_handler_names_)
@@ -204,7 +202,7 @@ def check_implements_required_methods(cls):
 
 
 def check_implements_required_properties(cls):
-    "Check if type implements the required properties."
+    """Check if type implements the required properties."""
     if not cls._ufl_is_abstract_:
         for attr in core.expr.Expr._ufl_required_properties_:
             if not hasattr(cls, attr):
@@ -215,9 +213,10 @@ def check_implements_required_properties(cls):
                 raise TypeError(msg.format(cls, attr))
 
 
-def attach_implementations_of_indexing_interface(cls,
-                                                 inherit_shape_from_operand,
-                                                 inherit_indices_from_operand):
+def attach_implementations_of_indexing_interface(
+    cls, inherit_shape_from_operand, inherit_indices_from_operand
+):
+    """Attach implementations of indexing interface."""
     # Scalar or index-free? Then we can simplify the implementation of
     # tensor properties by attaching them here.
     if cls._ufl_is_scalar_:
@@ -246,7 +245,7 @@ def attach_implementations_of_indexing_interface(cls,
 
 
 def update_global_expr_attributes(cls):
-    "Update global ``Expr`` attributes, mainly by adding *cls* to global collections of ufl types."
+    """Update global ``Expr`` attributes, mainly by adding *cls* to global collections of ufl types."""
     if cls._ufl_is_terminal_modifier_:
         core.expr.Expr._ufl_terminal_modifiers_.append(cls)
 
@@ -260,6 +259,7 @@ def update_global_expr_attributes(cls):
 
 
 def update_ufl_type_attributes(cls):
+    """Update UFL type attributes."""
     # Determine integer typecode by incrementally counting all types
     cls._ufl_typecode_ = UFLType._ufl_num_typecodes_
     UFLType._ufl_num_typecodes_ += 1
@@ -276,25 +276,13 @@ def update_ufl_type_attributes(cls):
     UFLType._ufl_obj_del_counts_.append(0)
 
 
-def ufl_type(is_abstract=False,
-             is_terminal=None,
-             is_scalar=False,
-             is_index_free=False,
-             is_shaping=False,
-             is_literal=False,
-             is_terminal_modifier=False,
-             is_in_reference_frame=False,
-             is_restriction=False,
-             is_evaluation=False,
-             is_differential=None,
-             use_default_hash=True,
-             num_ops=None,
-             inherit_shape_from_operand=None,
-             inherit_indices_from_operand=None,
-             wraps_type=None,
-             unop=None,
-             binop=None,
-             rbinop=None):
+def ufl_type(
+    is_abstract=False, is_terminal=None,  is_scalar=False, is_index_free=False, is_shaping=False,
+    is_literal=False, is_terminal_modifier=False, is_in_reference_frame=False, is_restriction=False,
+    is_evaluation=False, is_differential=None, use_default_hash=True, num_ops=None,
+    inherit_shape_from_operand=None, inherit_indices_from_operand=None, wraps_type=None, unop=None,
+    binop=None, rbinop=None
+):
     """This decorator is to be applied to every subclass in the UFL ``Expr`` and ``BaseForm`` hierarchy.
 
     This decorator contains a number of checks that are
@@ -306,7 +294,7 @@ def ufl_type(is_abstract=False,
     """
 
     def _ufl_type_decorator_(cls):
-
+        """UFL type decorator."""
         # Update attributes for UFLType instances (BaseForm and Expr objects)
         update_ufl_type_attributes(cls)
         if not issubclass(cls, core.expr.Expr):

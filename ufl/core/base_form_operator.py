@@ -1,7 +1,8 @@
+"""Base form operator.
 
-# -*- coding: utf-8 -*-
-"""This module defines the BaseFormOperator class, which is the base class for objects that can be seen as forms
-   and as operators such as ExternalOperator or Interpolate."""
+This module defines the BaseFormOperator class, which is the base class for objects that can be seen as forms
+and as operators such as ExternalOperator or Interpolate.
+"""
 
 # Copyright (C) 2019 Nacime Bouziani
 #
@@ -24,20 +25,21 @@ from ufl.utils.counted import Counted
 
 @ufl_type(num_ops="varying", is_differential=True)
 class BaseFormOperator(Operator, BaseForm, Counted):
+    """Base form operator."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
     def __init__(self, *operands, function_space, derivatives=None, argument_slots=()):
-        r"""
-        :param operands: operands on which acts the operator.
-        :param function_space: the :class:`.FunctionSpace`,
-               or :class:`.MixedFunctionSpace` on which to build this :class:`Function`.
-        :param derivatives: tuple specifiying the derivative multiindex.
-        :param argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
-        """
+        """Initialise.
 
+        Args:
+            operands: operands on which acts the operator.
+            function_space: the FunctionSpace or MixedFunctionSpace on which to build this Function.
+            derivatives: tuple specifiying the derivative multiindex.
+            argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
+        """
         BaseForm.__init__(self)
         ufl_operands = tuple(map(as_ufl, operands))
         argument_slots = tuple(map(as_ufl, argument_slots))
@@ -69,11 +71,12 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     ufl_index_dimensions = ()
 
     def argument_slots(self, outer_form=False):
-        r"""Returns a tuple of expressions containing argument and coefficient based expressions.
-            We get an argument uhat when we take the Gateaux derivative in the direction uhat:
-                -> d/du N(u; v*) = dNdu(u; uhat, v*) where uhat is a ufl.Argument and v* a ufl.Coargument
-            Applying the action replace the last argument by coefficient:
-                -> action(dNdu(u; uhat, v*), w) = dNdu(u; w, v*) where du is a ufl.Coefficient
+        """Returns a tuple of expressions containing argument and coefficient based expressions.
+
+        We get an argument uhat when we take the Gateaux derivative in the direction uhat:
+        d/du N(u; v*) = dNdu(u; uhat, v*) where uhat is a ufl.Argument and v* a ufl.Coargument
+        Applying the action replace the last argument by coefficient:
+        action(dNdu(u; uhat, v*), w) = dNdu(u; w, v*) where du is a ufl.Coefficient.
         """
         from ufl.algorithms.analysis import extract_arguments
         if not outer_form:
@@ -85,13 +88,13 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         return tuple(a for a in self._argument_slots[1:] if len(extract_arguments(a)) != 0)
 
     def coefficients(self):
-        "Return all ``BaseCoefficient`` objects found in base form operator."
+        """Return all BaseCoefficient objects found in base form operator."""
         if self._coefficients is None:
             self._analyze_form_arguments()
         return self._coefficients
 
     def _analyze_form_arguments(self):
-        "Analyze which Argument and Coefficient objects can be found in the base form."
+        """Analyze which Argument and Coefficient objects can be found in the base form."""
         from ufl.algorithms.analysis import extract_arguments, extract_coefficients, extract_type
         dual_arg, *arguments = self.argument_slots()
         # When coarguments are treated as BaseForms, they have two arguments (one primal and one dual)
@@ -114,35 +117,35 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def count(self):
-        "Returns the count associated to the base form operator"
+        """Return the count associated to the base form operator."""
         return self._count
 
     @property
     def ufl_shape(self):
-        "Returns the UFL shape of the coefficient.produced by the operator"
+        """Return the UFL shape of the coefficient.produced by the operator."""
         return self.arguments()[0]._ufl_shape
 
     def ufl_function_space(self):
-        "Returns the function space associated to the operator, i.e. the dual of the base form operator's `Coargument`"
+        """Return the function space associated to the operator, i.e. the dual of the base form operator's `Coargument`."""
         return self.arguments()[0]._ufl_function_space.dual()
 
     def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, argument_slots=None):
-        "Return a new object of the same type with new operands."
+        """Return a new object of the same type with new operands."""
         return type(self)(*operands, function_space=function_space or self.ufl_function_space(),
                           derivatives=derivatives or self.derivatives,
                           argument_slots=argument_slots or self.argument_slots())
 
     def __repr__(self):
-        "Default repr string construction for base form operators."
-        r = "%s(%s; %s; %s; derivatives=%s)" % (type(self).__name__,
-                                                ", ".join(repr(op) for op in self.ufl_operands),
-                                                repr(self.ufl_function_space()),
-                                                ", ".join(repr(arg) for arg in self.argument_slots()),
-                                                repr(self.derivatives))
+        """Default repr string construction for base form operators."""
+        r = f"{type(self).__name__}("
+        r += ", ".join(repr(op) for op in self.ufl_operands)
+        r += "; {self.ufl_function_space()!r}; "
+        r += ", ".join(repr(arg) for arg in self.argument_slots())
+        r += f"; derivatives={self.derivatives!r})"
         return r
 
     def __hash__(self):
-        "Hash code for use in dicts."
+        """Hash code for use in dicts."""
         hashdata = (type(self),
                     tuple(hash(op) for op in self.ufl_operands),
                     tuple(hash(arg) for arg in self._argument_slots),
@@ -151,4 +154,5 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         return hash(hashdata)
 
     def __eq__(self, other):
-        raise NotImplementedError
+        """Check for equality."""
+        raise NotImplementedError()
