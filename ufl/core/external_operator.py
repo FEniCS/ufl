@@ -36,12 +36,12 @@ class ExternalOperator(BaseFormOperator):
         # -- Derivatives -- #
         if derivatives is not None:
             if not isinstance(derivatives, tuple):
-                raise TypeError("Expecting a tuple for derivatives and not %s" % derivatives)
+                raise TypeError(f"Expecting a tuple for derivatives and not {derivatives}")
             if not len(derivatives) == len(operands):
-                raise ValueError("Expecting a size of %s for %s" % (len(operands), derivatives))
+                raise ValueError(f"Expecting a size of {len(operands)} for {derivatives}")
             if not all(isinstance(d, int) for d in derivatives) or any(d < 0 for d in derivatives):
-                raise ValueError("Expecting a derivative multi-index with nonnegative indices and not %s"
-                                 % str(derivatives))
+                raise ValueError(
+                    f"Expecting a derivative multi-index with nonnegative indices and not {str(derivatives)}")
         else:
             derivatives = (0,) * len(operands)
 
@@ -81,8 +81,11 @@ class ExternalOperator(BaseFormOperator):
         d = '\N{PARTIAL DIFFERENTIAL}'
         derivatives = self.derivatives
         d_ops = "".join(d + "o" + str(i + 1) for i, di in enumerate(derivatives) for j in range(di))
-        e = "e(%s; %s)" % (", ".join(str(op) for op in self.ufl_operands),
-                           ", ".join(str(arg) for arg in reversed(self.argument_slots())))
+        e = "e("
+        e += ", ".join(str(op) for op in self.ufl_operands)
+        e += "; "
+        e += ", ".join(str(arg) for arg in reversed(self.argument_slots()))
+        e += ")"
         return d + e + "/" + d_ops if sum(derivatives) > 0 else e
 
     def __eq__(self, other):

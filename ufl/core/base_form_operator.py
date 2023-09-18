@@ -126,7 +126,9 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         return self.arguments()[0]._ufl_shape
 
     def ufl_function_space(self):
-        """Return the function space associated to the operator, i.e. the dual of the base form operator's `Coargument`."""
+        """Return the function space associated to the operator.
+
+        I.e. return the dual of the base form operator's Coargument."""
         return self.arguments()[0]._ufl_function_space.dual()
 
     def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, argument_slots=None):

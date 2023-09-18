@@ -65,14 +65,16 @@ class Interpolate(BaseFormOperator):
 
     def __repr__(self):
         """Default repr string construction for Interpolate."""
-        r = "Interpolate(%s; %s)" % (", ".join(repr(arg) for arg in reversed(self.argument_slots())),
-                                     repr(self.ufl_function_space()))
+        r = "Interpolate("
+        r += ", ".join(repr(arg) for arg in reversed(self.argument_slots()))
+        r += f"; {self.ufl_function_space()!r})"
         return r
 
     def __str__(self):
         """Default str string construction for Interpolate."""
-        s = "Interpolate(%s; %s)" % (", ".join(str(arg) for arg in reversed(self.argument_slots())),
-                                     str(self.ufl_function_space()))
+        s = "Interpolate("
+        s += ", ".join(str(arg) for arg in reversed(self.argument_slots()))
+        s += f"; {self.ufl_function_space()})"
         return s
 
     def __eq__(self, other):

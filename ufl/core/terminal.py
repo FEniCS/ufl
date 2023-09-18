@@ -57,7 +57,7 @@ class Terminal(Expr):
             if hasattr(self, 'ufl_evaluate'):
                 return self.ufl_evaluate(x, component, derivatives)
             # Take component if any
-            warnings.warn("Couldn't map '%s' to a float, returning ufl object without evaluation." % str(self))
+            warnings.warn(f"Couldn't map '{self}' to a float, returning ufl object without evaluation.")
             f = self
             if component:
                 f = f[component]

@@ -348,7 +348,7 @@ class Expr(object, metaclass=UFLType):
 
     def _ufl_err_str_(self):
         """Return a short string to represent this Expr in an error message."""
-        return "<%s id=%d>" % (self._ufl_class_.__name__, id(self))
+        return f"<{self._ufl_class_.__name__} id={id(self)}>"
 
     # --- Special functions used for processing expressions ---
 
