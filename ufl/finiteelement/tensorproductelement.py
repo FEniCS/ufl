@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"This module defines the UFL finite element classes."
+"""This module defines the UFL finite element classes."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -20,7 +19,7 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class TensorProductElement(FiniteElementBase):
-    r"""The tensor product of :math:`d` element spaces:
+    r"""The tensor product of :math:`d` element spaces.
 
     .. math:: V = V_1 \otimes V_2 \otimes ...  \otimes V_d
 
@@ -31,7 +30,7 @@ class TensorProductElement(FiniteElementBase):
     __slots__ = ("_sub_elements", "_cell")
 
     def __init__(self, *elements, **kwargs):
-        "Create TensorProductElement from a given list of elements."
+        """Create TensorProductElement from a given list of elements."""
         if not elements:
             raise ValueError("Cannot create TensorProductElement from empty list.")
 
@@ -69,9 +68,11 @@ class TensorProductElement(FiniteElementBase):
         self._cell = cell
 
     def __repr__(self):
+        """Doc."""
         return "TensorProductElement(" + ", ".join(repr(e) for e in self._sub_elements) + f", cell={repr(self._cell)})"
 
     def mapping(self):
+        """Doc."""
         if all(e.mapping() == "identity" for e in self._sub_elements):
             return "identity"
         elif all(e.mapping() == "L2 Piola" for e in self._sub_elements):
@@ -80,7 +81,7 @@ class TensorProductElement(FiniteElementBase):
             return "undefined"
 
     def sobolev_space(self):
-        "Return the underlying Sobolev space of the TensorProductElement."
+        """Return the underlying Sobolev space of the TensorProductElement."""
         elements = self._sub_elements
         if all(e.sobolev_space() == elements[0].sobolev_space()
                for e in elements):
@@ -96,18 +97,20 @@ class TensorProductElement(FiniteElementBase):
             return DirectionalSobolevSpace(orders)
 
     def num_sub_elements(self):
-        "Return number of subelements."
+        """Return number of subelements."""
         return len(self._sub_elements)
 
     def sub_elements(self):
-        "Return subelements (factors)."
+        """Return subelements (factors)."""
         return self._sub_elements
 
     def reconstruct(self, **kwargs):
+        """Doc."""
         cell = kwargs.pop("cell", self.cell())
         return TensorProductElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()], cell=cell)
 
     def variant(self):
+        """Doc."""
         try:
             variant, = {e.variant() for e in self.sub_elements()}
             return variant
@@ -115,11 +118,11 @@ class TensorProductElement(FiniteElementBase):
             return None
 
     def __str__(self):
-        "Pretty-print."
+        """Pretty-print."""
         return "TensorProductElement(%s, cell=%s)" \
             % (', '.join([str(e) for e in self._sub_elements]), str(self._cell))
 
     def shortstr(self):
-        "Short pretty-print."
+        """Short pretty-print."""
         return "TensorProductElement(%s, cell=%s)" \
             % (', '.join([e.shortstr() for e in self._sub_elements]), str(self._cell))

@@ -87,6 +87,7 @@ def replace_terminal_data(o, mapping):
         o: The object to have its terminals replaced. This must either be a Form or Integral.
         mapping: A mapping suitable for reconstructing the form such as the one
             returned by strip_terminal_data.
+
     Returns:
         The new form.
     """

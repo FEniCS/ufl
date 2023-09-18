@@ -1,4 +1,4 @@
-"""Broken element."""
+"""Element."""
 # -*- coding: utf-8 -*-
 # Copyright (C) 2014 Andrew T. T. McRae
 #
@@ -15,6 +15,7 @@ from ufl.sobolevspace import L2
 class BrokenElement(FiniteElementBase):
     """The discontinuous version of an existing Finite Element space."""
     def __init__(self, element):
+        """Init."""
         self._element = element
 
         family = "BrokenElement"
@@ -27,9 +28,11 @@ class BrokenElement(FiniteElementBase):
                                    quad_scheme, value_shape, reference_value_shape)
 
     def __repr__(self):
+        """Doc."""
         return f"BrokenElement({repr(self._element)})"
 
     def mapping(self):
+        """Doc."""
         return self._element.mapping()
 
     def sobolev_space(self):
@@ -37,9 +40,11 @@ class BrokenElement(FiniteElementBase):
         return L2
 
     def reconstruct(self, **kwargs):
+        """Doc."""
         return BrokenElement(self._element.reconstruct(**kwargs))
 
     def __str__(self):
+        """Doc."""
         return f"BrokenElement({repr(self._element)})"
 
     def shortstr(self):
