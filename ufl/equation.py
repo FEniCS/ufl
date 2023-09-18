@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"The Equation class, used to express equations like a == L."
-
+"""The Equation class, used to express equations like a == L."""
 # Copyright (C) 2012-2016 Anders Logg and Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -12,12 +10,15 @@ __all_classes__ = ["Equation"]
 
 
 class Equation(object):
-    """This class is used to represent equations expressed by the "=="
+    """Equation.
+
+    This class is used to represent equations expressed by the "=="
     operator. Examples include a == L and F == 0 where a, L and F are
-    Form objects."""
+    Form objects.
+    """
 
     def __init__(self, lhs, rhs):
-        "Create equation lhs == rhs"
+        """Create equation lhs == rhs."""
         self.lhs = lhs
         self.rhs = rhs
 
@@ -43,11 +44,13 @@ class Equation(object):
     __nonzero__ = __bool__
 
     def __eq__(self, other):
-        "Compare two equations by comparing lhs and rhs."
+        """Compare two equations by comparing lhs and rhs."""
         return isinstance(other, Equation) and self.lhs == other.lhs and self.rhs == other.rhs
 
     def __hash__(self):
+        """Hash."""
         return hash((hash(self.lhs), hash(self.rhs)))
 
     def __repr__(self):
+        """Representation."""
         return f"Equation({self.lhs!r}, {self.rhs!r})"
