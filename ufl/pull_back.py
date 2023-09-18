@@ -1,22 +1,38 @@
+"""Pull back and push forward maps."""
+
 from abc import ABC, abstractmethod
 
 
 class NonStandardPullBackException(BaseException):
+    """Exception to raise if a map is non-standard."""
     pass
 
 
 class AbstractPullBack(ABC):
-    # TODO: are inputs the wrong way round?
-    def apply(self, expr: ReferenceValue) -> Expression:
-        """Apply the pull back."""
-        raise NonStandardPullBackException
+    """An abstract pull back."""
+    def apply(self, expr: Expression) -> Expression:
+        """Apply the pull back.
 
-    def apply_inverse(self, expr: Expression) -> ReferenceValue:
-        """Apply the push forward associated with this pull back."""
-        raise NonStandardPullBackException
+        Args:
+            expr: A function on a physical cell
+
+        Returns: The function pulled back to the reference cell
+        """
+        raise NonStandardPullBackException()
+
+    def apply_inverse(self, expr: Expression) -> Expression:
+        """Apply the push forward associated with this pull back.
+
+        Args:
+            expr: A function on a reference cell
+
+        Returns: The function pushed forward to a physical cell
+        """
+        raise NonStandardPullBackException()
 
 
 class IdentityPullBack(AbstractPullBack):
+    """The identity pull back."""
     def apply(self, expr):
         return expr
 
