@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+"""Protocols."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
