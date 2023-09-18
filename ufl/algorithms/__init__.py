@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-# flake8: noqa
-"This module collects algorithms and utility functions operating on UFL objects."
+"""This module collects algorithms and utility functions operating on UFL objects."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -52,7 +50,10 @@ __all__ = [
     "compute_form_rhs",
     "compute_form_functional",
     "compute_form_signature",
+    "compute_form_arities",
     "tree_format",
+    "read_ufl_file",
+    "load_forms",
 ]
 
 # Utilities for traversing over expression trees in different ways

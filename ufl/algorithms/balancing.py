@@ -1,3 +1,4 @@
+"""Balancing."""
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011-2017 Martin Sandve Alnæs
 #
@@ -22,6 +23,7 @@ modifier_precedence = {
 
 
 def balance_modified_terminal(expr):
+    """Balance modified terminal."""
     # NB! Assuming e.g. grad(cell_avg(expr)) does not occur,
     # i.e. it is simplified to 0 immediately.
 
@@ -53,13 +55,18 @@ def balance_modified_terminal(expr):
 
 
 class BalanceModifiers(MultiFunction):
+    """Balance modifiers."""
+
     def expr(self, expr, *ops):
+        """Apply to expr."""
         return expr._ufl_expr_reconstruct_(*ops)
 
     def terminal(self, expr):
+        """Apply to terminal."""
         return expr
 
     def _modifier(self, expr, *ops):
+        """Apply to _modifier."""
         return balance_modified_terminal(expr)
 
     reference_value = _modifier
@@ -72,5 +79,6 @@ class BalanceModifiers(MultiFunction):
 
 
 def balance_modifiers(expr):
+    """Balance modifiers."""
     mf = BalanceModifiers()
     return map_expr_dag(mf, expr)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Algorithms for building canonical data structure for integrals over subdomains."""
 
 # Copyright (C) 2009-2016 Anders Logg and Martin Sandve Alnæs
@@ -22,12 +21,11 @@ import typing
 
 
 class IntegralData(object):
-    """Utility class with the members (domain, integral_type,
-        subdomain_id, integrals, metadata)
+    """Utility class.
 
+    This class has members (domain, integral_type, subdomain_id, integrals, metadata),
     where metadata is an empty dictionary that may be used for
     associating metadata with each object.
-
     """
     __slots__ = ('domain', 'integral_type', 'subdomain_id',
                  'integrals', 'metadata',
@@ -36,6 +34,7 @@ class IntegralData(object):
 
     def __init__(self, domain, integral_type, subdomain_id, integrals,
                  metadata):
+        """Initialise."""
         if 1 != len(set(itg.ufl_domain() for itg in integrals)):
             raise ValueError("Multiple domains mismatch in integral data.")
         if not all(integral_type == itg.integral_type() for itg in integrals):
@@ -59,6 +58,7 @@ class IntegralData(object):
         self.metadata = metadata
 
     def __lt__(self, other):
+        """Check if self is less than other."""
         # To preserve behaviour of extract_integral_data:
         return (
             self.integral_type, self.subdomain_id, self.integrals, self.metadata
@@ -67,25 +67,29 @@ class IntegralData(object):
         )
 
     def __eq__(self, other):
+        """Check for equality."""
         # Currently only used for tests:
         return (self.integral_type == other.integral_type and self.subdomain_id == other.subdomain_id and  # noqa: W504
                 self.integrals == other.integrals and self.metadata == other.metadata)
 
     def __str__(self):
-        s = "IntegralData over domain(%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
-            self.integral_type, self.subdomain_id,
-            '\n\n'.join(map(str, self.integrals)), self.metadata)
+        """Format as a string."""
+        s = f"IntegralData over domain({self.integral_type}, {self.subdomain_id}), with integrals:\n"
+        s += "\n\n".join(map(str, self.integrals))
+        s += "\nand metadata:\n{metadata}"
         return s
 
 
-# Tuple comparison helper
 class ExprTupleKey(object):
+    """Tuple comparison helper."""
     __slots__ = ('x',)
 
     def __init__(self, x):
+        """Initialise."""
         self.x = x
 
     def __lt__(self, other):
+        """Check if self is less than other."""
         # Comparing expression first
         c = cmp_expr(self.x[0], other.x[0])
         if c < 0:
@@ -100,13 +104,13 @@ class ExprTupleKey(object):
 
 
 def group_integrals_by_domain_and_type(integrals, domains):
-    """
-    Input:
+    """Group integrals by domain and type.
+
+    Args:
         integrals: list of Integral objects
         domains: list of AbstractDomain objects from the parent Form
 
-    Output:
-        integrals_by_domain_and_type: dict: (domain, integral_type) -> list(Integral)
+    Returns: Dictionary mapping (domain, integral_type) to list(Integral)
     """
     integrals_by_domain_and_type = defaultdict(list)
     for itg in integrals:
@@ -121,7 +125,7 @@ def group_integrals_by_domain_and_type(integrals, domains):
 
 
 def integral_subdomain_ids(integral):
-    "Get a tuple of integer subdomains or a valid string subdomain from integral."
+    """Get a tuple of integer subdomains or a valid string subdomain from integral."""
     did = integral.subdomain_id()
     if isinstance(did, numbers.Integral):
         return (did,)
@@ -137,17 +141,17 @@ def integral_subdomain_ids(integral):
 
 
 def rearrange_integrals_by_single_subdomains(
-        integrals: typing.List[Integral],
-        do_append_everywhere_integrals: bool) -> typing.Dict[int, typing.List[Integral]]:
+    integrals: typing.List[Integral],
+    do_append_everywhere_integrals: bool
+) -> typing.Dict[int, typing.List[Integral]]:
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
-    Input:
+    Args:
         integrals: List of integrals
         do_append_everywhere_integrals: Boolean indicating if integrals defined on the whole domain should
-                                        just be restricted to the set of input subdomain ids.
+            just be restricted to the set of input subdomain ids.
 
-    Output:
-        integrals: The integrals reconstructed with single subdomain_id
+    Returns: The integrals reconstructed with single subdomain_id
     """
     # Split integrals into lists of everywhere and subdomain integrals
     everywhere_integrals = []
@@ -192,15 +196,13 @@ def rearrange_integrals_by_single_subdomains(
 
 
 def accumulate_integrands_with_same_metadata(integrals):
-    """
-    Taking input on the form:
-        integrals = [integral0, integral1, ...]
+    """Accumulate integrands with the same metedata.
 
-    Return result on the form:
-        integrands_by_id = [(integrand0, metadata0),
-                            (integrand1, metadata1), ...]
+    Args:
+        integrals: a list of integrals
 
-    where integrand0 < integrand1 by the canonical ufl expression ordering criteria.
+    Returns: A list of the form [(integrand0, metadata0), (integrand1, metadata1), ...]
+        where integrand0 < integrand1 by the canonical ufl expression ordering criteria.
     """
     # Group integrals by compiler data hash
     by_cdid = {}
@@ -228,12 +230,14 @@ def accumulate_integrands_with_same_metadata(integrals):
 def build_integral_data(integrals):
     """Build integral data given a list of integrals.
 
-    :arg integrals: An iterable of :class:`~.Integral` objects.
-    :returns: A tuple of :class:`IntegralData` objects.
-
     The integrals you pass in here must have been rearranged and
-    gathered (removing the "everywhere" subdomain_id.  To do this, you
-    should call :func:`group_form_integrals`.
+    gathered (removing the "everywhere" subdomain_id). To do this, you
+    should call group_form_integrals.
+
+    Args:
+        integrals: An iterable of Integral objects.
+
+    Returns:A tuple of IntegralData objects.
     """
     itgs = defaultdict(list)
 
@@ -277,9 +281,13 @@ def build_integral_data(integrals):
 def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
     """Group integrals by domain and type, performing canonical simplification.
 
-    :arg form: the :class:`~.Form` to group the integrals of.
-    :arg domains: an iterable of :class:`~.Domain`s.
-    :returns: A new :class:`~.Form` with gathered integrands.
+    Args:
+        form: the Form to group the integrals of.
+        domains: an iterable of Domains.
+        do_append_everywhere_integrals: Boolean indicating if integrals defined on the whole domain should
+            just be restricted to the set of input subdomain ids.
+
+    Returns: A new Form with gathered integrands.
     """
     # Group integrals by domain and type
     integrals_by_domain_and_type = group_integrals_by_domain_and_type(form.integrals(), domains)
@@ -337,6 +345,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
 
 
 def reconstruct_form_from_integral_data(integral_data):
+    """Reconstruct a form from integral data."""
     integrals = []
     for ida in integral_data:
         integrals.extend(ida.integrals)

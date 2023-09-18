@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Basic algorithms for applying functions to subexpressions."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -21,9 +20,7 @@ from ufl.constantvalue import Zero
 
 
 def map_integrands(function, form, only_integral_type=None):
-    """Apply transform(expression) to each integrand
-    expression in form, or to form if it is an Expr.
-    """
+    """Apply transform(expression) to each integrand expression in form, or to form if it is an Expr."""
     if isinstance(form, Form):
         mapped_integrals = [map_integrands(function, itg, only_integral_type)
                             for itg in form.integrals()]
@@ -67,5 +64,6 @@ def map_integrands(function, form, only_integral_type=None):
 
 
 def map_integrand_dags(function, form, only_integral_type=None, compress=True):
+    """Map integrand dags."""
     return map_integrands(lambda expr: map_expr_dag(function, expr, compress),
                           form, only_integral_type)
