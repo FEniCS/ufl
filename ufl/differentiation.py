@@ -8,9 +8,11 @@
 
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
+from ufl.argument import Argument, Coargument
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import extract_unique_domain, find_geometric_dimension
@@ -91,8 +93,82 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
 
     def _analyze_form_arguments(self):
         """Collect the arguments of the corresponding BaseForm"""
-        base_form = self.ufl_operands[0]
-        self._arguments = base_form.arguments()
+        from ufl.algorithms.analysis import extract_type, extract_coefficients
+        base_form, _, arguments, _ = self.ufl_operands
+
+        def arg_type(x):
+            if isinstance(x, BaseForm):
+                return Coargument
+            return Argument
+        # Each derivative arguments can either be a:
+        # - `ufl.BaseForm`: if it contains a `ufl.Coargument`
+        # - or a `ufl.Expr`: if it contains a `ufl.Argument`
+        # When a `Coargument` is encountered, it is treated as an argument (i.e. as V* -> V* and not V* x V -> R)
+        # and should result in one single argument (in the dual space).
+        base_form_args = base_form.arguments() + tuple(arg for a in arguments.ufl_operands
+                                                       for arg in extract_type(a, arg_type(a)))
+        # BaseFormDerivative's arguments don't necessarily contain BaseArgument objects only
+        # -> e.g. `derivative(u ** 2, u, u)` with `u` a Coefficient.
+        base_form_coeffs = base_form.coefficients() + tuple(arg for a in arguments.ufl_operands
+                                                            for arg in extract_coefficients(a))
+        # Reconstruct arguments for correct numbering
+        self._arguments = tuple(type(arg)(arg.ufl_function_space(), arg.number(), arg.part()) for arg in base_form_args)
+        self._coefficients = base_form_coeffs
+
+
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
+    """Derivative of a base form w.r.t. the SpatialCoordinates."""
+    _ufl_noslots_ = True
+
+    def __init__(self, base_form, coefficients, arguments,
+                 coefficient_derivatives):
+        BaseFormDerivative.__init__(self, base_form, coefficients, arguments,
+                                    coefficient_derivatives)
+
+
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
+    """Derivative of a base form operator w.r.t the
+    degrees of freedom in a discrete Coefficient."""
+    _ufl_noslots_ = True
+
+    # BaseFormOperatorDerivative is only needed because of a different
+    # differentiation procedure for BaseformOperator objects.
+    def __init__(self, base_form, coefficients, arguments,
+                 coefficient_derivatives):
+        BaseFormDerivative.__init__(self, base_form, coefficients, arguments,
+                                    coefficient_derivatives)
+        self._argument_slots = base_form._argument_slots
+
+    # Enforce Operator reconstruction as Operator is a parent class of both: BaseFormDerivative and BaseFormOperator.
+    # Therfore the latter overwrites Operator reconstruction and we would have:
+    #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ = BaseFormOperator._ufl_expr_reconstruct_
+    _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
+    # Set __repr__
+    __repr__ = Operator.__repr__
+
+    def argument_slots(self, outer_form=False):
+        """Returns a tuple of expressions containing argument and coefficient based expressions."""
+        from ufl.algorithms.analysis import extract_arguments
+        base_form, _, arguments, _ = self.ufl_operands
+        argument_slots = (base_form.argument_slots(outer_form)
+                          + tuple(arg for a in arguments for arg in extract_arguments(a)))
+        return argument_slots
+
+
+@ufl_type(num_ops=4, inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0)
+class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):
+    """Derivative of a base form operator w.r.t. the SpatialCoordinates."""
+    _ufl_noslots_ = True
+
+    def __init__(self, base_form, coefficients, arguments,
+                 coefficient_derivatives):
+        BaseFormOperatorDerivative.__init__(self, base_form, coefficients, arguments,
+                                            coefficient_derivatives)
 
 
 @ufl_type(num_ops=2)

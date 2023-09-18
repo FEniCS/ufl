@@ -21,7 +21,7 @@ from ufl.utils.sequences import product
 
 
 def sub_elements_with_mappings(element):
-    "Return an ordered list of the largest subelements that have a defined mapping."
+    """Return an ordered list of the largest subelements that have a defined mapping."""
     if element.mapping() != "undefined":
         return [element]
     elements = []
@@ -36,8 +36,9 @@ def sub_elements_with_mappings(element):
 def apply_known_single_pullback(r, element):
     """Apply pullback with given mapping.
 
-    :arg r: Expression wrapped in ReferenceValue
-    :arg element: The element defining the mapping
+    Args:
+        r: Expression wrapped in ReferenceValue
+        element: The element defining the mapping
     """
     # Need to pass in r rather than the physical space thing, because
     # the latter may be a ListTensor or similar, rather than a
@@ -89,11 +90,14 @@ def apply_known_single_pullback(r, element):
 
 
 def apply_single_function_pullbacks(r, element):
-    """Apply an appropriate pullback to something in physical space
+    """Apply an appropriate pullback to something in physical space.
 
-    :arg r: An expression wrapped in ReferenceValue.
-    :arg element: The element this expression lives in.
-    :returns: a pulled back expression."""
+    Args:
+        r: An expression wrapped in ReferenceValue.
+        element: The element this expression lives in.
+
+    Returns: a pulled back expression.
+    """
     mapping = element.mapping()
     if r.ufl_shape != element.reference_value_shape():
         raise ValueError(
@@ -150,16 +154,21 @@ def apply_single_function_pullbacks(r, element):
 
 
 class FunctionPullbackApplier(MultiFunction):
+    """A pull back applier."""
+
     def __init__(self):
+        """Initalise."""
         MultiFunction.__init__(self)
 
     expr = MultiFunction.reuse_if_untouched
 
     def terminal(self, t):
+        """Apply to a terminal."""
         return t
 
     @memoized_handler
     def form_argument(self, o):
+        """Apply to a form_argument."""
         # Represent 0-derivatives of form arguments on reference
         # element
         f = apply_single_function_pullbacks(ReferenceValue(o), o.ufl_element())
@@ -168,11 +177,12 @@ class FunctionPullbackApplier(MultiFunction):
 
 
 def apply_function_pullbacks(expr):
-    """Change representation of coefficients and arguments in expression
-    by applying Piola mappings where applicable and representing all
+    """Change representation of coefficients and arguments in an expression.
+
+    Applies Piola mappings where applicable and represents all
     form arguments in reference value.
 
-    @param expr:
-        An Expr.
+    Args:
+        expr: An Expression
     """
     return map_integrand_dags(FunctionPullbackApplier(), expr)

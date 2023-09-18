@@ -185,7 +185,7 @@ A very brief overview of the language contents follows:
     - sqrt
     - exp, ln, erf
     - cos, sin, tan
-    - acos, asin, atan, atan_2
+    - acos, asin, atan, atan2
     - cosh, sinh, tanh
     - bessel_J, bessel_Y, bessel_I, bessel_K
 
@@ -240,6 +240,7 @@ A very brief overview of the language contents follows:
 # Modified by Lawrence Mitchell, 2014
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
+# Modified by Nacime Bouziani, 2019
 
 import importlib.metadata
 
@@ -299,6 +300,9 @@ from ufl.adjoint import Adjoint
 # Actions
 from ufl.action import Action
 
+# Interpolates
+from ufl.core.interpolate import Interpolate, interpolate
+
 # Split function
 from ufl.split_functions import split
 
@@ -320,11 +324,14 @@ from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 from ufl.operators import (
     rank, shape, conj, real, imag, outer, inner, dot, cross, perp,
     det, inv, cofac, transpose, tr, diag, diag_vector, dev, skew, sym,
-    sqrt, exp, ln, erf, cos, sin, tan, acos, asin, atan, atan_2, cosh, sinh, tanh,
+    sqrt, exp, ln, erf, cos, sin, tan, acos, asin, atan, atan2, cosh, sinh, tanh,
     bessel_J, bessel_Y, bessel_I, bessel_K, eq, ne, le, ge, lt, gt, And, Or, Not,
     conditional, sign, max_value, min_value, variable, diff,
     Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative,
     jump, avg, cell_avg, facet_avg, elem_mult, elem_div, elem_pow, elem_op)
+
+# External Operator
+from ufl.core.external_operator import ExternalOperator
 
 # Measure classes
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
@@ -373,6 +380,8 @@ __all__ = [
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Cofunction', 'Coefficients',
     'Matrix', 'Adjoint', 'Action',
+    'Interpolate', 'interpolate',
+    'ExternalOperator',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
@@ -385,7 +394,7 @@ __all__ = [
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',
     'sqrt', 'exp', 'ln', 'erf',
     'cos', 'sin', 'tan',
-    'acos', 'asin', 'atan', 'atan_2',
+    'acos', 'asin', 'atan', 'atan2',
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',

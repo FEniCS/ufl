@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-"""This module provides the compute_form_data function which form compilers
-will typically call prior to code generation to preprocess/simplify a
-raw input form given by a user."""
+"""This module provides the compute_form_data function.
 
+Form compilers will typically call compute_form_dataprior to code generation to preprocess/simplify a
+raw input form given by a user.
+"""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -38,10 +38,10 @@ from ufl.algorithms.domain_analysis import group_form_integrals
 
 
 def _auto_select_degree(elements):
-    """
-    Automatically select degree for all elements of the form in cases
-    where this has not been specified by the user. This feature is
-    used by DOLFIN to allow the specification of Expressions with
+    """Automatically select degree for all elements of the form.
+
+    This is be used in cases where the degree has not been specified by the user.
+    This feature is used by DOLFIN to allow the specification of Expressions with
     undefined degrees.
     """
     # Use max degree of all elements, at least 1 (to work with
@@ -50,7 +50,7 @@ def _auto_select_degree(elements):
 
 
 def _compute_element_mapping(form):
-    "Compute element mapping for element replacement"
+    """Compute element mapping for element replacement."""
     # The element mapping is a slightly messy concept with two use
     # cases:
     # - Expression with missing cell or element TODO: Implement proper
@@ -99,20 +99,21 @@ def _compute_element_mapping(form):
 
 
 def _compute_max_subdomain_ids(integral_data):
+    """Compute the maximum subdomain ids."""
     max_subdomain_ids = {}
     for itg_data in integral_data:
         it = itg_data.integral_type
-        si = itg_data.subdomain_id
-        if isinstance(si, int):
-            newmax = si + 1
-        else:
-            newmax = 0
-        prevmax = max_subdomain_ids.get(it, 0)
-        max_subdomain_ids[it] = max(prevmax, newmax)
+        for integral in itg_data.integrals:
+            # Convert string for default integral to -1
+            sids = (-1 if isinstance(si, str) else si for si in integral.subdomain_id())
+            newmax = max(sids) + 1
+            prevmax = max_subdomain_ids.get(it, 0)
+            max_subdomain_ids[it] = max(prevmax, newmax)
     return max_subdomain_ids
 
 
 def _compute_form_data_elements(self, arguments, coefficients, domains):
+    """Compute form data elements."""
     self.argument_elements = tuple(f.ufl_element() for f in arguments)
     self.coefficient_elements = tuple(f.ufl_element() for f in coefficients)
     self.coordinate_elements = tuple(domain.ufl_coordinate_element() for domain in domains)
@@ -134,6 +135,7 @@ def _compute_form_data_elements(self, arguments, coefficients, domains):
 
 
 def _check_elements(form_data):
+    """Check elements."""
     for element in chain(form_data.unique_elements,
                          form_data.unique_sub_elements):
         if element.cell() is None:
@@ -141,6 +143,7 @@ def _check_elements(form_data):
 
 
 def _check_facet_geometry(integral_data):
+    """Check facet geometry."""
     for itg_data in integral_data:
         for itg in itg_data.integrals:
             it = itg_data.integral_type
@@ -156,8 +159,7 @@ def _check_facet_geometry(integral_data):
 
 
 def _check_form_arity(preprocessed_form):
-    # Check that we don't have a mixed linear/bilinear form or
-    # anything like that
+    """Check that we don't have a mixed linear/bilinear form or anything like that."""
     # FIXME: This is slooow and should be moved to form compiler
     # and/or replaced with something faster
     if 1 != len(compute_form_arities(preprocessed_form)):
@@ -165,9 +167,10 @@ def _check_form_arity(preprocessed_form):
 
 
 def _build_coefficient_replace_map(coefficients, element_mapping=None):
-    """Create new Coefficient objects
-    with count starting at 0. Return mapping from old
-    to new objects, and lists of the new objects."""
+    """Create new Coefficient objects with count starting at 0.
+
+    Returns: mapping from old to new objects, and lists of the new objects
+    """
     if element_mapping is None:
         element_mapping = {}
 
@@ -192,8 +195,10 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
 def attach_estimated_degrees(form):
     """Attach estimated polynomial degree to a form's integrals.
 
-    :arg form: The :class:`~.Form` to inspect.
-    :returns: A new Form with estimate degrees attached.
+    Args:
+        form: The Form` to inspect.
+
+    Returns: A new Form with estimate degrees attached.
     """
     integrals = form.integrals()
 
@@ -207,32 +212,8 @@ def attach_estimated_degrees(form):
     return Form(new_integrals)
 
 
-def compute_form_data(form,
-                      # Default arguments configured to behave the way old FFC expects it:
-                      do_apply_function_pullbacks=False,
-                      do_apply_integral_scaling=False,
-                      do_apply_geometry_lowering=False,
-                      preserve_geometry_types=(),
-                      do_apply_default_restrictions=True,
-                      do_apply_restrictions=True,
-                      do_estimate_degrees=True,
-                      do_append_everywhere_integrals=True,
-                      complex_mode=False,
-                      ):
-
-    # TODO: Move this to the constructor instead
-    self = FormData()
-
-    # --- Store untouched form for reference.
-    # The user of FormData may get original arguments,
-    # original coefficients, and form signature from this object.
-    # But be aware that the set of original coefficients are not
-    # the same as the ones used in the final UFC form.
-    # See 'reduced_coefficients' below.
-    self.original_form = form
-
-    # --- Pass form integrands through some symbolic manipulation
-
+def preprocess_form(form, complex_mode):
+    """Preprocess a form."""
     # Note: Default behaviour here will process form the way that is
     # currently expected by vanilla FFC
 
@@ -258,6 +239,35 @@ def compute_form_data(form,
     # after coefficients are rewritten, and in particular for
     # user-defined coefficient relations it just gets too messy
     form = apply_derivatives(form)
+
+    return form
+
+
+def compute_form_data(
+    form, do_apply_function_pullbacks=False, do_apply_integral_scaling=False,
+    do_apply_geometry_lowering=False, preserve_geometry_types=(),
+    do_apply_default_restrictions=True, do_apply_restrictions=True,
+    do_estimate_degrees=True, do_append_everywhere_integrals=True,
+    complex_mode=False,
+):
+    """Compute form data.
+
+    The default arguments configured to behave the way old FFC expects.
+    """
+    # TODO: Move this to the constructor instead
+    self = FormData()
+
+    # --- Store untouched form for reference.
+    # The user of FormData may get original arguments,
+    # original coefficients, and form signature from this object.
+    # But be aware that the set of original coefficients are not
+    # the same as the ones used in the final UFC form.
+    # See 'reduced_coefficients' below.
+    self.original_form = form
+
+    # --- Pass form integrands through some symbolic manipulation
+
+    form = preprocess_form(form, complex_mode)
 
     # --- Group form integrals
     # TODO: Refactor this, it's rather opaque what this does

@@ -7,6 +7,7 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import numbers
+import warnings
 
 from ufl.cell import AbstractCell, TensorProductCell, as_cell
 from ufl.core.ufl_id import attach_ufl_id
@@ -318,6 +319,8 @@ def join_domains(domains):
 
     # Handle legacy domains checking
     if legacy_domains:
+        warnings.warn("The use of Legacy domains will be deprecated by December 2023. "
+                      "Please, use FunctionSpace instead", DeprecationWarning)
         if modern_domains:
             raise ValueError(
                 "Found both a new-style domain and a legacy default domain. "

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-# flake8: noqa
-"This module collects algorithms and utility functions operating on UFL objects."
+"""This module collects algorithms and utility functions operating on UFL objects."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -21,6 +19,7 @@ __all__ = [
     "estimate_total_polynomial_degree",
     "sort_elements",
     "compute_form_data",
+    "preprocess_form",
     "apply_transformer",
     "ReuseTransformer",
     "load_ufl_file",
@@ -34,6 +33,7 @@ __all__ = [
     "replace",
     "expand_derivatives",
     "extract_coefficients",
+    "extract_base_form_operators",
     "strip_variables",
     "strip_terminal_data",
     "replace_terminal_data",
@@ -50,7 +50,10 @@ __all__ = [
     "compute_form_rhs",
     "compute_form_functional",
     "compute_form_signature",
+    "compute_form_arities",
     "tree_format",
+    "read_ufl_file",
+    "load_forms",
 ]
 
 # Utilities for traversing over expression trees in different ways
@@ -70,6 +73,7 @@ from ufl.algorithms.analysis import (
     extract_arguments,
     extract_coefficients,
     # extract_arguments_and_coefficients,
+    extract_base_form_operators,
     extract_elements,
     extract_unique_elements,
     extract_sub_elements,
@@ -79,7 +83,7 @@ from ufl.algorithms.analysis import (
 
 # Preprocessing a form to extract various meta data
 # from ufl.algorithms.formdata import FormData
-from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.algorithms.compute_form_data import compute_form_data, preprocess_form
 
 # Utilities for checking properties of forms
 from ufl.algorithms.signature import compute_form_signature

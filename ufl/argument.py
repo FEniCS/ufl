@@ -11,8 +11,11 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
+# Modified by Ignacia Fierro-Piccardo 2023.
 
+import warnings
 import numbers
+
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
 from ufl.split_functions import split
@@ -44,6 +47,8 @@ class BaseArgument(object):
             element = function_space
             domain = default_domain(element.cell())
             function_space = FunctionSpace(domain, element)
+            warnings.warn("The use of FiniteElement as an input to Argument will be deprecated by December 2023. "
+                          "Please, use FunctionSpace instead", FutureWarning)
         elif not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
 
@@ -180,6 +185,7 @@ class Coargument(BaseForm, BaseArgument):
         "_ufl_function_space",
         "_ufl_shape",
         "_arguments",
+        "_coefficients",
         "ufl_operands",
         "_number",
         "_part",
@@ -205,10 +211,27 @@ class Coargument(BaseForm, BaseArgument):
         self._repr = "Coargument(%s, %s, %s)" % (
             repr(self._ufl_function_space), repr(self._number), repr(self._part))
 
-    def _analyze_form_arguments(self):
+    def arguments(self, outer_form=None):
+        "Return all ``Argument`` objects found in form."
+        if self._arguments is None:
+            self._analyze_form_arguments(outer_form=outer_form)
+        return self._arguments
+
+    def _analyze_form_arguments(self, outer_form=None):
         "Analyze which Argument and Coefficient objects can be found in the form."
         # Define canonical numbering of arguments and coefficients
-        self._arguments = (Argument(self._ufl_function_space, 0),)
+        self._coefficients = ()
+        # Coarguments map from V* to V*, i.e. V* -> V*, or equivalently V* x V -> R.
+        # So they have one argument in the primal space and one in the dual space.
+        # However, when they are composed with linear forms with dual arguments, such as BaseFormOperators,
+        # the primal argument is discarded when analysing the argument as Coarguments.
+        if not outer_form:
+            self._arguments = (Argument(self.ufl_function_space().dual(), 0), self)
+        else:
+            self._arguments = (self,)
+
+    def ufl_domain(self):
+        return BaseArgument.ufl_domain(self)
 
     def equals(self, other):
         if type(other) is not Coargument:

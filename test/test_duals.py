@@ -4,7 +4,7 @@
 from ufl import (FiniteElement, FunctionSpace, MixedFunctionSpace,
                  Coefficient, Matrix, Cofunction, FormSum, Argument, Coargument,
                  TestFunction, TrialFunction, Adjoint, Action,
-                 action, adjoint, derivative, tetrahedron, triangle, interval, dx)
+                 action, adjoint, derivative, inner, tetrahedron, triangle, interval, dx)
 from ufl.constantvalue import Zero
 from ufl.form import ZeroBaseForm
 
@@ -102,8 +102,6 @@ def test_addition():
     domain_2d = default_domain(triangle)
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
-    f_2d_2 = FiniteElement("CG", triangle, 2)
-    V2 = FunctionSpace(domain_2d, f_2d_2)
     V_dual = V.dual()
 
     u = TrialFunction(V)
@@ -136,11 +134,6 @@ def test_addition():
     res = L
     res -= ZeroBaseForm((v,))
     assert res == L
-
-    with pytest.raises(ValueError):
-        # Raise error for incompatible arguments
-        v2 = TestFunction(V2)
-        res = L + ZeroBaseForm((v2, u))
 
 
 def test_scalar_mult():
@@ -256,7 +249,7 @@ def test_differentiation():
     w = Cofunction(U.dual())
     dwdu = expand_derivatives(derivative(w, u))
     assert isinstance(dwdu, ZeroBaseForm)
-    assert dwdu.arguments() == (Argument(u.ufl_function_space(), 0),)
+    assert dwdu.arguments() == (Argument(w.ufl_function_space().dual(), 0), Argument(u.ufl_function_space(), 1))
     # Check compatibility with int/float
     assert dwdu == 0
 
@@ -285,24 +278,21 @@ def test_differentiation():
     assert dMdu == 0
 
     # -- Action -- #
-    Ac = Action(M, u)
-    dAcdu = expand_derivatives(derivative(Ac, u))
+    Ac = Action(w, u)
+    dAcdu = derivative(Ac, u)
+    assert dAcdu == action(adjoint(derivative(w, u)), u) + action(w, derivative(u, u))
 
-    # Action(dM/du, u) + Action(M, du/du) = Action(M, uhat) since dM/du = 0.
-    # Multiply by 1 to get a FormSum (type compatibility).
-    assert dAcdu == 1 * Action(M, v)
-
-    # -- Adjoint -- #
-    Ad = Adjoint(M)
-    dAddu = expand_derivatives(derivative(Ad, u))
-    # Push differentiation through Adjoint
-    assert dAddu == 0
+    dAcdu = expand_derivatives(dAcdu)
+    # Since dw/du = 0
+    assert dAcdu == Action(w, v)
 
     # -- Form sum -- #
-    Fs = M + Ac
+    uhat = Argument(U, 1)
+    what = Argument(U, 2)
+    Fs = M + inner(u * uhat, v) * dx
     dFsdu = expand_derivatives(derivative(Fs, u))
     # Distribute differentiation over FormSum components
-    assert dFsdu == 1 * Action(M, v)
+    assert dFsdu == FormSum([inner(what * uhat, v) * dx, 1])
 
 
 def test_zero_base_form_mult():

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module contains algorithms for traversing expression trees in different ways."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
@@ -19,8 +18,8 @@ from ufl.form import Form, FormSum, BaseForm
 # --- Traversal utilities ---
 
 def iter_expressions(a):
-    """Utility function to handle Form, Integral and any Expr
-    the same way when inspecting expressions.
+    """Utility function to handle Form, Integral and any Expr the same way when inspecting expressions.
+
     Returns an iterable over Expr instances:
     - a is an Expr: (a,)
     - a is an Integral:  the integrand expression of a

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""Algorithm to check for 'comparison' nodes
-in a form when the user is in 'complex mode'"""
+"""Algorithm to check for 'comparison' nodes in a form when the user is in 'complex mode'."""
 
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -23,16 +21,15 @@ class CheckComparisons(MultiFunction):
     """
 
     def __init__(self):
+        """Initialise."""
         MultiFunction.__init__(self)
         self.nodetype = {}
 
     def expr(self, o, *ops):
-        """Defaults expressions to complex unless they only
-        act on real quantities. Overridden for specific operators.
+        """Defaults expressions to complex unless they only act on real quantities.
 
-        Rebuilds objects if necessary.
+        Overridden for specific operators. Rebuilds objects if necessary.
         """
-
         types = {self.nodetype[op] for op in ops}
 
         if types:
@@ -45,6 +42,7 @@ class CheckComparisons(MultiFunction):
         return o
 
     def compare(self, o, *ops):
+        """Compare."""
         types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
@@ -61,6 +59,7 @@ class CheckComparisons(MultiFunction):
     sign = compare
 
     def max_value(self, o, *ops):
+        """Apply to max_value."""
         types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
@@ -71,6 +70,7 @@ class CheckComparisons(MultiFunction):
             return o
 
     def min_value(self, o, *ops):
+        """Apply to min_value."""
         types = {self.nodetype[op] for op in ops}
 
         if "complex" in types:
@@ -81,21 +81,25 @@ class CheckComparisons(MultiFunction):
             return o
 
     def real(self, o, *ops):
+        """Apply to real."""
         o = self.reuse_if_untouched(o, *ops)
         self.nodetype[o] = 'real'
         return o
 
     def imag(self, o, *ops):
+        """Apply to imag."""
         o = self.reuse_if_untouched(o, *ops)
         self.nodetype[o] = 'real'
         return o
 
     def sqrt(self, o, *ops):
+        """Apply to sqrt."""
         o = self.reuse_if_untouched(o, *ops)
         self.nodetype[o] = 'complex'
         return o
 
     def power(self, o, base, exponent):
+        """Apply to power."""
         o = self.reuse_if_untouched(o, base, exponent)
         try:
             # Attempt to diagnose circumstances in which the result must be real.
@@ -110,11 +114,13 @@ class CheckComparisons(MultiFunction):
         return o
 
     def abs(self, o, *ops):
+        """Apply to abs."""
         o = self.reuse_if_untouched(o, *ops)
         self.nodetype[o] = 'real'
         return o
 
     def terminal(self, term, *ops):
+        """Apply to terminal."""
         # default terminals to complex, except the ones we *know* are real
         if isinstance(term, (RealValue, Zero, Argument, GeometricQuantity)):
             self.nodetype[term] = 'real'
@@ -123,15 +129,16 @@ class CheckComparisons(MultiFunction):
         return term
 
     def indexed(self, o, expr, multiindex):
+        """Apply to indexed."""
         o = self.reuse_if_untouched(o, expr, multiindex)
         self.nodetype[o] = self.nodetype[expr]
         return o
 
 
 def do_comparison_check(form):
-    """Raises an error if invalid comparison nodes exist"""
+    """Raises an error if invalid comparison nodes exist."""
     return map_integrand_dags(CheckComparisons(), form)
 
 
-class ComplexComparisonError(Exception):
-    pass
+class ComplexComparisonError(BaseException):
+    """Complex compariseon exception."""
