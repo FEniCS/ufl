@@ -9,17 +9,165 @@ restrictions in a form towards the terminals."""
 
 
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Restricted
+from ufl.classes import (Restricted, Operator, Grad, Variable, ReferenceValue, MultiIndex, Label,
+                        ConstantValue, Constant, Argument, Terminal, GeometricCellQuantity, GeometricFacetQuantity,
+                        FacetCoordinate, QuadratureWeight, ReferenceCellVolume, ReferenceFacetVolume, Coefficient, FacetNormal)
 from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.multifunction import MultiFunction, reuse_if_untouched
 from ufl.domain import extract_unique_domain
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
+from functools import singledispatch
+
+@singledispatch
+def _restriction_propagator(o, self):
+    """Single-dispatch function to propagate restriction through an expression
+
+    :arg o: UFL expression
+    :arg self: wrapper class that manages caches
+
+    """
+    raise AssertionError("UFL node expected, not %s" % type(o))
 
 
-class RestrictionPropagator(MultiFunction):
+@_restriction_propagator.register(Restricted)
+def _restriction_propagator_restricted(o, self, *args):
+    "When hitting a restricted quantity, visit child with a separate restriction algorithm."
+    # Assure that we have only two levels here, inside or outside
+    # the Restricted node
+    if self.current_restriction is not None:
+        raise ValueError("Cannot restrict an expression twice.")
+    # Configure a propagator for this side and apply to subtree
+    side = o.side()
+    return map_expr_dag(self._rp[side], o.ufl_operands[0],
+                        vcache=self.vcaches[side],
+                        rcache=self.rcaches[side])
+
+
+# Default: Operators should reconstruct only if subtrees are not touched
+@_restriction_propagator.register(Operator)
+def _restriction_propagator_default(o, self, *args):
+    print("operator")
+    return reuse_if_untouched(o, *args)
+
+
+@_restriction_propagator.register(Variable)
+def _restriction_propagator_variable(o, self, op, label):
+    "Strip variable."
+    return op
+
+
+@_restriction_propagator.register(ReferenceValue)
+def _restriction_propagator_reference_value(o, self):
+    "Reference value of something follows same restriction rule as the underlying object."
+    f, = o.ufl_operands
+    assert f._ufl_is_terminal_
+    g = self(f)
+    if isinstance(g, Restricted):
+        side = g.side()
+        return o(side)
+    else:
+        return o
+
+
+@_restriction_propagator.register(MultiIndex)
+@_restriction_propagator.register(Label)
+# Default: Literals should ignore restriction
+@_restriction_propagator.register(ConstantValue)
+@_restriction_propagator.register(Constant)
+# Only a few geometric quantities are independent on the restriction:
+@_restriction_propagator.register(FacetCoordinate)
+@_restriction_propagator.register(QuadratureWeight)
+# Assuming homogeoneous mesh
+@_restriction_propagator.register(ReferenceCellVolume)
+@_restriction_propagator.register(ReferenceFacetVolume)
+def _ignore_restriction(o, self):
+    "Ignore current restriction, quantity is independent of side also from a computational point of view."
+    return o
+
+
+# Assuming apply_derivatives has been called,
+# propagating Grad inside the Restricted nodes.
+# Considering all grads to be discontinuous, may
+# want something else for facet functions in future.
+@_restriction_propagator.register(Grad)
+# Even arguments with continuous elements such as Lagrange must be
+# restricted to associate with the right part of the element
+# matrix
+@_restriction_propagator.register(Argument)
+# Defaults for geometric quantities
+@_restriction_propagator.register(GeometricCellQuantity)
+@_restriction_propagator.register(GeometricFacetQuantity)
+def _require_restriction(o, self):
+    "Restrict a discontinuous quantity to current side, require a side to be set."
+    if self.current_restriction is None:
+        raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+    return o(self.current_restriction)
+
+
+def _default_restricted(o, self):
+    "Restrict a continuous quantity to default side if no current restriction is set."
+    r = self.current_restriction
+    if r is None:
+        r = self.default_restriction
+    return o(r)
+
+def _opposite(o, self):
+    """Restrict a quantity to default side, if the current restriction
+    is different swap the sign, require a side to be set."""
+    if self.current_restriction is None:
+        raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+    elif self.current_restriction == self.default_restriction:
+        return o(self.default_restriction)
+    else:
+        return -o(self.default_restriction)
+
+
+@_restriction_propagator.register(Terminal)
+def _missing_rule(o, self):
+    raise ValueError(f"Missing rule for {o._ufl_class_.__name__}")
+
+
+@_restriction_propagator.register(Coefficient)
+def _restriction_propagator_coefficient(o, self):
+        """Allow coefficients to be unrestricted (apply default if so) if the values are
+        fully continuous across the facet."""
+        print("Coefficient")
+        print(o.ufl_element() in H1)
+        print(self.current_restriction)
+        if o.ufl_element() in H1:
+            # If the coefficient _value_ is _fully_ continuous
+            return _default_restricted(o, self)  # Must still be computed from one of the sides, we just don't care which
+        else:
+            return _require_restriction(o, self)
+        
+
+@_restriction_propagator.register(FacetNormal)
+def _restriction_propagator_facet_normal(self, o):
+    D = extract_unique_domain(o)
+    e = D.ufl_coordinate_element()
+    gd = D.geometric_dimension()
+    td = D.topological_dimension()
+
+    if e._is_linear() and gd == td:
+        # For meshes with a continuous linear non-manifold
+        # coordinate field, the facet normal from side - points in
+        # the opposite direction of the one from side +.  We must
+        # still require a side to be chosen by the user but
+        # rewrite n- -> n+.  This is an optimization, possibly
+        # premature, however it's more difficult to do at a later
+        # stage.
+        return self._opposite(o)
+    else:
+        # For other meshes, we require a side to be
+        # chosen by the user and respect that
+        return _require_restriction(o, self)
+
+
+
+class RestrictionPropagator(object):
     def __init__(self, side=None):
-        MultiFunction.__init__(self)
+        self.function = _restriction_propagator
         self.current_restriction = side
         self.default_restriction = "+"
         # Caches for propagating the restriction with map_expr_dag
@@ -28,30 +176,30 @@ class RestrictionPropagator(MultiFunction):
         if self.current_restriction is None:
             self._rp = {"+": RestrictionPropagator("+"),
                         "-": RestrictionPropagator("-")}
+            
+        
+    def __call__(self, node, *args):
+        return self.function(node, self, *args)
 
-    def restricted(self, o):
-        "When hitting a restricted quantity, visit child with a separate restriction algorithm."
-        # Assure that we have only two levels here, inside or outside
-        # the Restricted node
-        if self.current_restriction is not None:
-            raise ValueError("Cannot restrict an expression twice.")
-        # Configure a propagator for this side and apply to subtree
-        side = o.side()
-        return map_expr_dag(self._rp[side], o.ufl_operands[0],
-                            vcache=self.vcaches[side],
-                            rcache=self.rcaches[side])
 
-    # --- Reusable rules
+    # def restricted(self, o):
+    #     "When hitting a restricted quantity, visit child with a separate restriction algorithm."
+    #     # Assure that we have only two levels here, inside or outside
+    #     # the Restricted node
+    #     if self.current_restriction is not None:
+    #         raise ValueError("Cannot restrict an expression twice.")
+    #     # Configure a propagator for this side and apply to subtree
+    #     side = o.side()
+    #     return map_expr_dag(self._rp[side], o.ufl_operands[0],
+    #                         vcache=self.vcaches[side],
+    #                         rcache=self.rcaches[side])
+
+    # # --- Reusable rules
 
     def _ignore_restriction(self, o):
         "Ignore current restriction, quantity is independent of side also from a computational point of view."
         return o
 
-    def _require_restriction(self, o):
-        "Restrict a discontinuous quantity to current side, require a side to be set."
-        if self.current_restriction is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-        return o(self.current_restriction)
 
     def _default_restricted(self, o):
         "Restrict a continuous quantity to default side if no current restriction is set."
@@ -72,90 +220,97 @@ class RestrictionPropagator(MultiFunction):
 
     def _missing_rule(self, o):
         raise ValueError(f"Missing rule for {o._ufl_class_.__name__}")
+    
 
-    # --- Rules for operators
+    def _require_restriction(self, o):
+        "Restrict a discontinuous quantity to current side, require a side to be set."
+        if self.current_restriction is None:
+            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+        return o(self.current_restriction)
 
-    # Default: Operators should reconstruct only if subtrees are not touched
-    operator = MultiFunction.reuse_if_untouched
+    # # --- Rules for operators
 
-    # Assuming apply_derivatives has been called,
-    # propagating Grad inside the Restricted nodes.
-    # Considering all grads to be discontinuous, may
-    # want something else for facet functions in future.
-    grad = _require_restriction
+    # # Default: Operators should reconstruct only if subtrees are not touched
+    # operator = MultiFunction.reuse_if_untouched
 
-    def variable(self, o, op, label):
-        "Strip variable."
-        return op
+    # # Assuming apply_derivatives has been called,
+    # # propagating Grad inside the Restricted nodes.
+    # # Considering all grads to be discontinuous, may
+    # # want something else for facet functions in future.
+    # grad = _require_restriction
 
-    def reference_value(self, o):
-        "Reference value of something follows same restriction rule as the underlying object."
-        f, = o.ufl_operands
-        assert f._ufl_is_terminal_
-        g = self(f)
-        if isinstance(g, Restricted):
-            side = g.side()
-            return o(side)
-        else:
-            return o
+    # def variable(self, o, op, label):
+    #     "Strip variable."
+    #     return op
 
-    # --- Rules for terminals
+    # def reference_value(self, o):
+    #     "Reference value of something follows same restriction rule as the underlying object."
+    #     f, = o.ufl_operands
+    #     assert f._ufl_is_terminal_
+    #     g = self(f)
+    #     if isinstance(g, Restricted):
+    #         side = g.side()
+    #         return o(side)
+    #     else:
+    #         return o
 
-    # Require handlers to be specified for all terminals
-    terminal = _missing_rule
+    # # --- Rules for terminals
 
-    multi_index = _ignore_restriction
-    label = _ignore_restriction
+    # # Require handlers to be specified for all terminals
+    # terminal = _missing_rule
 
-    # Default: Literals should ignore restriction
-    constant_value = _ignore_restriction
-    constant = _ignore_restriction
+    # multi_index = _ignore_restriction
+    # label = _ignore_restriction
 
-    # Even arguments with continuous elements such as Lagrange must be
-    # restricted to associate with the right part of the element
-    # matrix
-    argument = _require_restriction
+    # # Default: Literals should ignore restriction
+    # constant_value = _ignore_restriction
+    # constant = _ignore_restriction
 
-    # Defaults for geometric quantities
-    geometric_cell_quantity = _require_restriction
-    geometric_facet_quantity = _require_restriction
+    # # Even arguments with continuous elements such as Lagrange must be
+    # # restricted to associate with the right part of the element
+    # # matrix
+    # argument = _require_restriction
 
-    # Only a few geometric quantities are independent on the restriction:
-    facet_coordinate = _ignore_restriction
-    quadrature_weight = _ignore_restriction
+    # # Defaults for geometric quantities
+    # geometric_cell_quantity = _require_restriction
+    # geometric_facet_quantity = _require_restriction
 
-    # Assuming homogeoneous mesh
-    reference_cell_volume = _ignore_restriction
-    reference_facet_volume = _ignore_restriction
+    # # Only a few geometric quantities are independent on the restriction:
+    # facet_coordinate = _ignore_restriction
+    # quadrature_weight = _ignore_restriction
 
-    def coefficient(self, o):
-        """Allow coefficients to be unrestricted (apply default if so) if the values are
-        fully continuous across the facet."""
-        if o.ufl_element() in H1:
-            # If the coefficient _value_ is _fully_ continuous
-            return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which
-        else:
-            return self._require_restriction(o)
+    # # Assuming homogeoneous mesh
+    # reference_cell_volume = _ignore_restriction
+    # reference_facet_volume = _ignore_restriction
 
-    def facet_normal(self, o):
-        D = extract_unique_domain(o)
-        e = D.ufl_coordinate_element()
-        gd = D.geometric_dimension()
-        td = D.topological_dimension()
+    # def coefficient(self, o):
+    #     """Allow coefficients to be unrestricted (apply default if so) if the values are
+    #     fully continuous across the facet."""
+    #     if o.ufl_element() in H1:
+    #         # If the coefficient _value_ is _fully_ continuous
+    #         return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which
+    #     else:
+    #         return self._require_restriction(o)
 
-        if e._is_linear() and gd == td:
-            # For meshes with a continuous linear non-manifold
-            # coordinate field, the facet normal from side - points in
-            # the opposite direction of the one from side +.  We must
-            # still require a side to be chosen by the user but
-            # rewrite n- -> n+.  This is an optimization, possibly
-            # premature, however it's more difficult to do at a later
-            # stage.
-            return self._opposite(o)
-        else:
-            # For other meshes, we require a side to be
-            # chosen by the user and respect that
-            return self._require_restriction(o)
+    # def facet_normal(self, o):
+    #     D = extract_unique_domain(o)
+    #     e = D.ufl_coordinate_element()
+    #     gd = D.geometric_dimension()
+    #     td = D.topological_dimension()
+
+    #     if e._is_linear() and gd == td:
+    #         # For meshes with a continuous linear non-manifold
+    #         # coordinate field, the facet normal from side - points in
+    #         # the opposite direction of the one from side +.  We must
+    #         # still require a side to be chosen by the user but
+    #         # rewrite n- -> n+.  This is an optimization, possibly
+    #         # premature, however it's more difficult to do at a later
+    #         # stage.
+    #         return self._opposite(o)
+    #     else:
+    #         # For other meshes, we require a side to be
+    #         # chosen by the user and respect that
+    #         return self._require_restriction(o)
 
 
 def apply_restrictions(expression):
