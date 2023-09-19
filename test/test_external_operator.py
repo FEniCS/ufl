@@ -1,18 +1,12 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
+"""Test ExternalOperator object."""
 
 __authors__ = "Nacime Bouziani"
 __date__ = "2019-03-26"
 
-
-"""
-Test ExternalOperator object
-"""
-
 import pytest
 
-# This imports everything external code will see from ufl
-from ufl import *
+from ufl import (Action, Argument, Coefficient, Constant, Form, FunctionSpace, TestFunction,
+                 TrialFunction, action, adjoint, cos, derivative, dx, inner, sin, triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
@@ -258,9 +252,14 @@ def test_adjoint_action_jacobian(V1, V2, V3):
     vstar_N, = N.arguments()
 
     # Arguments for the Gateaux-derivative
-    u_hat = lambda number: Argument(V1, number)   # V1: degree 1 # dFdu.arguments()[-1]
-    m_hat = lambda number: Argument(V2, number)   # V2: degree 2 # dFdm.arguments()[-1]
-    vstar_N = lambda number: Argument(V3.dual(), number)  # V3: degree 3
+    def u_hat(number):
+        return Argument(V1, number)   # V1: degree 1 # dFdu.arguments()[-1]
+
+    def m_hat(number):
+        return Argument(V2, number)   # V2: degree 2 # dFdm.arguments()[-1]
+
+    def vstar_N(number):
+        return Argument(V3.dual(), number)  # V3: degree 3
 
     # Coefficients for the action
     w = Coefficient(V1)  # for u
@@ -410,9 +409,8 @@ def test_multiple_external_operators(V1, V2):
     F = (inner(N1, v) + inner(N2, v) + inner(N3, v) + inner(N4, v)) * dx
 
     dFdu = expand_derivatives(derivative(F, u))
-    assert dFdu == Action(dFdN1, dN1du) + Action(dFdN3, dN3du) +\
-                   Action(dFdN4_partial, Action(dN4dN1_partial, dN1du)) +\
-                   Action(dFdN4_partial, dN4du_partial)
+    assert dFdu == Action(dFdN1, dN1du) + Action(dFdN3, dN3du) + Action(
+        dFdN4_partial, Action(dN4dN1_partial, dN1du)) + Action(dFdN4_partial, dN4du_partial)
 
     dFdm = expand_derivatives(derivative(F, m))
     assert dFdm == Action(dFdN1, dN1dm) + Action(dFdN4_partial, Action(dN4dN1_partial, dN1dm))
@@ -440,7 +438,8 @@ def test_multiple_external_operators(V1, V2):
     dFdN5_partial = (inner(w, v) + inner(u * w, v)) * dx
     dN5dN4_partial = N5._ufl_expr_reconstruct_(N4, u, derivatives=(1, 0), argument_slots=N4.arguments() + (w,))
     dN5du_partial = N5._ufl_expr_reconstruct_(N4, u, derivatives=(0, 1), argument_slots=N4.arguments() + (w,))
-    dN5du = Action(dN5dN4_partial, Action(dN4dN1_partial, dN1du)) + Action(dN5dN4_partial, dN4du_partial) + dN5du_partial
+    dN5du = Action(dN5dN4_partial, Action(dN4dN1_partial, dN1du)) + Action(
+        dN5dN4_partial, dN4du_partial) + dN5du_partial
 
     dFdu = expand_derivatives(derivative(F, u))
     assert dFdu == dFdu_partial + Action(dFdN1_partial, dN1du) + Action(dFdN5_partial, dN5du)

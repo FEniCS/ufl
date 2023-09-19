@@ -1,6 +1,3 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-03-19 -- 2012-03-20"
 
@@ -8,14 +5,13 @@ __date__ = "2009-03-19 -- 2012-03-20"
 # Modified by Garth N. Wells, 2009
 
 import math
-from pprint import *
 
 import pytest
 
-from ufl import *
-from ufl.algorithms import *
+from ufl import (Coefficient, Identity, as_tensor, cos, det, div, dot, dx,
+                 exp, grad, i, inner, j, k, l, ln, nabla_div, nabla_grad, outer, sin, triangle)
+from ufl.algorithms import compute_form_data, expand_derivatives, expand_indices
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import Product, Sum
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
@@ -194,7 +190,6 @@ def test_basic_expand_indices(self, fixt):
 
 
 def test_expand_indices_index_sum(self, fixt):
-    sf = fixt.sf
     vf = fixt.vf
     tf = fixt.tf
     compare = fixt.compare
@@ -211,7 +206,6 @@ def test_expand_indices_index_sum(self, fixt):
 def test_expand_indices_derivatives(self, fixt):
     sf = fixt.sf
     vf = fixt.vf
-    tf = fixt.tf
     compare = fixt.compare
 
     # Basic derivatives
@@ -222,15 +216,13 @@ def test_expand_indices_derivatives(self, fixt):
 
 
 def test_expand_indices_hyperelasticity(self, fixt):
-    sf = fixt.sf
     vf = fixt.vf
-    tf = fixt.tf
     compare = fixt.compare
 
     # Deformation gradient
-    I = Identity(2)
+    ident = Identity(2)
     u = vf
-    F = I + grad(u)
+    F = ident + grad(u)
     # F = (1 + vf[0].dx(0), vf[0].dx(1), vf[1].dx(0), 1 + vf[1].dx(1))
     # F = (1 + 0.50,        0.51,        0.70,        1 + 0.71)
     F00 = 1 + 0.50
@@ -257,7 +249,7 @@ def test_expand_indices_hyperelasticity(self, fixt):
     compare(C[1, 0], C10)
     compare(C[1, 1], C11)
 
-    E = (C-I)/2
+    E = (C-ident)/2
     E00 = (C00-1)/2
     E01 = (C01)/2
     E10 = (C10)/2
@@ -326,26 +318,3 @@ def test_expand_indices_nabla_div_grad(self, fixt):
 
     a = nabla_div(nabla_grad(tf))
     compare(inner(a, a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
-
-
-def xtest_expand_indices_list_tensor_problem(self, fixt):
-    print()
-    print(('='*40))
-    # TODO: This is the case marked in the expand_indices2 implementation
-    # as not working. Fix and then try expand_indices2 on other tests!
-    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    w = Coefficient(V)
-    v = as_vector([w[0], 0])
-    a = v[i]*w[i]
-    # TODO: Compare
-    print((type(a), str(a)))
-    A, comp = a.ufl_operands
-    print((type(A), str(A)))
-    print((type(comp), str(comp)))
-
-    ei1 = expand_indices(a)
-    ei2 = expand_indices2(a)
-    print((str(ei1)))
-    print((str(ei2)))
-    print(('='*40))
-    print()

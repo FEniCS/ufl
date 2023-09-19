@@ -1,14 +1,10 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-"""
-Tests of domain language and attaching domains to forms.
-"""
+"""Tests of domain language and attaching domains to forms."""
 
 import pytest
-from mockobjects import MockMesh, MockMeshFunction
+from mockobjects import MockMesh
 
-import ufl
-from ufl import *
+from ufl import (Cell, Coefficient, Constant, FunctionSpace, Mesh, ds, dS, dx, hexahedron,
+                 interval, quadrilateral, tetrahedron, triangle)
 from ufl.algorithms import compute_form_data
 from ufl.domain import as_domain, default_domain
 
@@ -203,14 +199,14 @@ def test_everywhere_integrals_with_backwards_compatibility():
 
     # Check some integral data
     assert ida.integral_type == "cell"
-    assert(len(ida.subdomain_id) == 1)
+    assert len(ida.subdomain_id) == 1
     assert ida.subdomain_id[0] == "otherwise"
     assert ida.metadata == {}
 
     # Integrands are not equal because of renumbering
     itg1 = ida.integrals[0].integrand()
     itg2 = a.integrals()[0].integrand()
-    assert type(itg1) == type(itg2)
+    assert type(itg1) is type(itg2)
     assert itg1.ufl_element() == itg2.ufl_element()
 
 
@@ -223,298 +219,33 @@ def test_merge_sort_integral_data():
     c = Constant(D)
     a = c * dS((2, 4)) + u * dx + u * ds + 2 * u * dx(3) + 2 * c * dS + 2 * u * dx((1, 4))
     form_data = compute_form_data(a, do_append_everywhere_integrals=False).integral_data
-    assert(len(form_data) == 5)
+    assert len(form_data) == 5
 
     # Check some integral data
     assert form_data[0].integral_type == "cell"
-    assert(len(form_data[0].subdomain_id) == 1)
+    assert len(form_data[0].subdomain_id) == 1
     assert form_data[0].subdomain_id[0] == "otherwise"
     assert form_data[0].metadata == {}
 
     assert form_data[1].integral_type == "cell"
-    assert(len(form_data[1].subdomain_id) == 3)
+    assert len(form_data[1].subdomain_id) == 3
     assert form_data[1].subdomain_id[0] == 1
     assert form_data[1].subdomain_id[1] == 3
     assert form_data[1].subdomain_id[2] == 4
     assert form_data[1].metadata == {}
 
     assert form_data[2].integral_type == "exterior_facet"
-    assert(len(form_data[2].subdomain_id) == 1)
+    assert len(form_data[2].subdomain_id) == 1
     assert form_data[2].subdomain_id[0] == "otherwise"
     assert form_data[2].metadata == {}
 
     assert form_data[3].integral_type == "interior_facet"
-    assert(len(form_data[3].subdomain_id) == 1)
+    assert len(form_data[3].subdomain_id) == 1
     assert form_data[3].subdomain_id[0] == "otherwise"
     assert form_data[3].metadata == {}
 
     assert form_data[4].integral_type == "interior_facet"
-    assert(len(form_data[4].subdomain_id) == 2)
+    assert len(form_data[4].subdomain_id) == 2
     assert form_data[4].subdomain_id[0] == 2
     assert form_data[4].subdomain_id[1] == 4
     assert form_data[4].metadata == {}
-
-
-def xtest_mixed_elements_on_overlapping_regions():  # Old sketch, not working
-
-    # Create domain and both disjoint and overlapping regions
-    cell = tetrahedron
-    D = Mesh(cell, label='D')
-    DD = Region(D, (0, 4), "DD")
-    DL = Region(D, (1, 2), "DL")
-    DR = Region(D, (2, 3), "DR")
-
-    # Create function spaces on D
-    V = FiniteElement("Lagrange", D, 1)
-    VD = FiniteElement("Discontinuous Lagrange", DD, 1)
-    VC = FiniteElement("R", DD, 0)
-    VL = VectorElement("Discontinuous Lagrange", DL, 2)
-    VR = FiniteElement("Lagrange", DR, 3)
-
-    # Create mixed space over all these spaces
-    M = MixedElement(V, VD, VC, VL, VR)
-
-    # Check that we can get the degree for each value component of the mixed
-    # space
-    assert M.degree(0) == 1
-    assert M.degree(1) == 1
-    assert M.degree(2) == 0
-
-    assert M.degree(3) == 2  # Vector element
-    assert M.degree(4) == 2
-    assert M.degree(5) == 2
-
-    assert M.degree(6) == 3
-    assert M.degree() == 3
-
-    # Check that we can get the domain for each value component of the mixed
-    # space
-    assert M.ufl_domain(0) == D
-    assert M.ufl_domain(1) == DD
-    assert M.ufl_domain(2) == DD
-
-    assert M.ufl_domain(3) == DL  # Vector element
-    assert M.ufl_domain(4) == DL
-    assert M.ufl_domain(5) == DL
-
-    assert M.ufl_domain(6) == DR
-    # assert M.ufl_domain() == None # FIXME: What?
-
-    # Create a mixed function and fetch components with names for more
-    # readable test code below
-    m = Coefficient(M)
-    md = m[1]
-    mc = m[2]
-    ml = as_vector((m[3], m[4], m[5]))
-    mr = m[6]
-
-    # These should all work out fine with function and integration domains
-    # perfectly matching
-    a = m[0] ** 2 * dx(D)
-    ad = (md ** 2 + mc ** 2) * dx(DD)
-    al = ml ** 2 * dx(DL)
-    ar = mr ** 2 * dx(DR)
-
-    # TODO: Check properties of forms, maybe by computing and inspecting form
-    # data.
-
-    # These should all work out fine with because integration domains are
-    # contained in the function domains
-    ad = m[0] ** 2 * dx(DD)
-    al = m[0] ** 2 * dx(DL)
-    ar = m[0] ** 2 * dx("DR")
-    a0 = m[0] ** 2 * dx(0)
-    a12 = m[0] ** 2 * dx((1, 2))
-    a3 = m[0] ** 2 * dx(3)
-
-    # TODO: Check properties of forms, maybe by computing and inspecting form
-    # data.
-
-    # These should fail because the functions are undefined on the integration domains
-    # self.assertRaises(BaseException, lambda: mr**2*dx(DD)) # FIXME: Make this fail
-    # self.assertRaises(BaseException, lambda: mr**2*dx(DD)) # FIXME: Make this
-    # fail
-
-
-def xtest_form_domain_model():  # Old sketch, not working
-    # Create domains with different celltypes
-    # TODO: Figure out PyDOLFIN integration with Mesh
-    DA = Mesh(tetrahedron, label='DA')
-    DB = Mesh(hexahedron, label='DB')
-
-    # Check python protocol behaviour
-    assert DA != DB
-    assert {DA, DA} == {DA}
-    assert {DB, DB} == {DB}
-    assert {DA, DB} == {DB, DA}
-    assert sorted((DA, DB, DA, DB)) == sorted((DB, DA, DA, DB))
-
-    # Check basic properties
-    assert DA.name() == 'DA'
-    assert DA.geometric_dimension() == 3
-    assert DA.topological_dimension() == 3
-    assert DA.ufl_cell() == tetrahedron
-
-    # Check region/domain getters
-    assert DA.top_domain() == DA
-    assert DA.subdomain_ids() == None
-    # assert DA.region_names() == []
-    # assert DA.regions() == []
-
-    # BDA = Boundary(DA) # TODO
-    # IDAB = Intersection(DA,DB) # TODO
-    # ODAB = Overlap(DA,DB) # TODO
-
-    # Create overlapping regions of each domain
-    DAL = Region(DA, (1, 2), "DAL")
-    DAR = Region(DA, (2, 3), "DAR")
-    DBL = Region(DB, (0, 1), "DBL")
-    DBR = Region(DB, (1, 4), "DBR")
-
-    # Check that regions are available through domains
-    # assert DA.region_names() == ['DAL', 'DAR']
-    # assert DA.regions() == [DAL, DAR]
-    # assert DA["DAR"] == DAR
-    # assert DA["DAL"] == DAL
-
-    # Create function spaces on DA
-    VA = FiniteElement("Lagrange", DA, 1)
-    VAL = FiniteElement("Lagrange", DAL, 1)
-    VAR = FiniteElement("Lagrange", DAR, 1)
-
-    # Create function spaces on DB
-    VB = FiniteElement("Lagrange", DB, 1)
-    VBL = FiniteElement("Lagrange", DBL, 1)
-    VBR = FiniteElement("Lagrange", DBR, 1)
-
-    # Check that regions are available through elements
-    assert VA.ufl_domain() == DA
-    assert VAL.ufl_domain() == DAL
-    assert VAR.ufl_domain() == DAR
-
-    # Create functions in each space on DA
-    fa = Coefficient(VA)
-    fal = Coefficient(VAL)
-    far = Coefficient(VAR)
-
-    # Create functions in each space on DB
-    fb = Coefficient(VB)
-    fbl = Coefficient(VBL)
-    fbr = Coefficient(VBR)
-
-    # Checks of coefficient domains is covered well in the mixed element test
-
-    # Create measure objects directly based on domain and region objects
-    dxa = dx(DA)
-    dxal = dx(DAL)
-    dxar = dx('DAR')  # Get Region by name
-
-    # Create measure proxy objects from strings and ints, requiring
-    # domains and regions to be part of their integrands
-    dxb = dx('DB')   # Get Mesh by name
-    dxbl = dx(Region(DB, (1, 4), 'DBL2'))
-    # Provide a region with different name but same subdomain ids as
-    # DBL
-    dxbr = dx((1, 4))
-    # Assume unique Mesh and provide subdomain ids explicitly
-
-    # Not checking measure objects in detail, as long as
-    # they carry information to construct integrals below
-    # they are good to go.
-
-    # Create integrals on each region with matching spaces and measures
-    Ma = fa * dxa
-    Mar = far * dxar
-    Mal = fal * dxal
-    Mb = fb * dxb
-    Mbr = fbr * dxbr
-    Mbl = fbl * dxbl
-
-    # TODO: Check forms, by getting and inspecting domains somehow.
-
-    # TODO: How do we express the distinction between "everywhere" and
-    # "nowhere"? subdomain_ids=None vs []?
-
-    # Create forms from integrals over overlapping regions on same top domain
-    Marl = Mar + Mal
-    Mbrl = Mbr + Mbl
-
-    # Create forms from integrals over top domain and regions
-    Mac = Ma + Marl
-    Mbc = Mb + Mbrl
-
-    # Create forms from separate top domains
-    Mab = Ma + Mb
-
-    # Create forms from separate top domains with overlapping regions
-    Mabrl = Mac + Mbc
-
-    # self.assertFalse(True) # Getting here, but it's not bloody likely that
-    # everything above is actually working. Add assertions!
-
-
-def xtest_subdomain_stuff():  # Old sketch, not working
-    D = Mesh(triangle)
-
-    D1 = D[1]
-    D2 = D[2]
-    D3 = D[3]
-
-    DL = Region(D, (D1, D2), 'DL')
-    DR = Region(D, (D2, D3), 'DR')
-    DM = Overlap(DL, DR)
-
-    assert DM == D2
-
-    VL = VectorElement(DL, "Lagrange", 1)
-    VR = FiniteElement(DR, "Lagrange", 2)
-    V = VL * VR
-
-    def sub_elements_on_subdomains(W):
-        # Get from W: (already there)
-        subelements = (VL, VR)
-        # Get from W:
-        subdomains = (D1, D2, D3)
-        # Build in W:
-        dom2elm = {D1: (VL,),
-                   D2: (VL, VR),
-                   D3: (VR,), }
-        # Build in W:
-        elm2dom = {VL: (D1, D2),
-                   VR: (D2, D3)}
-
-    # ElementSwitch represents joining of elements restricted to disjunct
-    # subdomains.
-
-    # An element restricted to a domain union becomes a switch
-    # of elements restricted to each disjoint subdomain
-    VL_D1 = VectorElement(D1, "Lagrange", 1)
-    VL_D2 = VectorElement(D2, "Lagrange", 1)
-    VLalt = ElementSwitch({D1: VL_D1,
-                           D2: VL_D2})
-    # Ditto
-    VR_D2 = FiniteElement(D2, "Lagrange", 2)
-    VR_D3 = FiniteElement(D3, "Lagrange", 2)
-    VRalt = ElementSwitch({D2: VR_D2,
-                           D3: VR_D3})
-    # A mixed element of ElementSwitches is mixed only on the overlapping
-    # domains:
-    Valt1 = VLalt * VRalt
-    Valt2 = ElementSwitch({D1: VL_D1,
-                           D2: VL_D2 * VR_D2,
-                           D3: VR_D3})
-
-    ul, ur = TrialFunctions(V)
-    vl, vr = TestFunctions(V)
-
-    # Implemented by user:
-    al = dot(ul, vl) * dx(DL)
-    ar = ur * vr * dx(DR)
-
-    # Disjunctified by UFL:
-    alonly = dot(ul, vl) * dx(D1)
-    # integral_1 knows that only subelement VL is active
-    am = (dot(ul, vl) + ur * vr) * dx(D2)
-    # integral_2 knows that both subelements are active
-    aronly = ur * vr * \
-        dx(D3)  # integral_3 knows that only subelement VR is active

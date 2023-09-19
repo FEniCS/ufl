@@ -1,5 +1,3 @@
-    # -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
@@ -8,8 +6,8 @@ __date__ = "2008-03-12 -- 2009-01-28"
 
 import pytest
 
-from ufl import (Argument, Coefficient, FacetNormal, Matrix, TestFunction, TrialFunction, adjoint, div, dot, ds, dx,
-                 grad, inner, triangle)
+from ufl import (Argument, Coefficient, FacetNormal, TestFunction, TrialFunction, adjoint, div, dot, ds,
+                 dx, grad, inner, triangle)
 from ufl.algorithms import (expand_derivatives, expand_indices, extract_arguments, extract_coefficients,
                             extract_elements, extract_unique_elements)
 from ufl.corealg.traversal import post_traversal, pre_traversal, unique_post_traversal, unique_pre_traversal
@@ -62,7 +60,7 @@ def test_extract_coefficients_vs_fixture(coefficients, forms):
 def test_extract_elements_and_extract_unique_elements(element, forms):
     b = forms[2]
     integrals = b.integrals_by_type("cell")
-    integrand = integrals[0].integrand()
+    integrals[0].integrand()
 
     element1 = element
     element2 = element

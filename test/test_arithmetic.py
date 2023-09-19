@@ -1,8 +1,3 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-import pytest
-
 from ufl import (Identity, SpatialCoordinate, as_matrix, as_ufl, as_vector, elem_div, elem_mult, elem_op, sin,
                  tetrahedron, triangle)
 from ufl.classes import ComplexValue, Division, FloatValue, IntValue

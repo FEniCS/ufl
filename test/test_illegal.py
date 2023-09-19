@@ -1,12 +1,8 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 import pytest
 
-from ufl import *
-from ufl.algorithms import *
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
+from ufl import Argument, Coefficient
 
 # TODO: Add more illegal expressions to check!
 

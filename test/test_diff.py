@@ -1,14 +1,10 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2014-10-14"
 
-import math
-
 import pytest
 
-from ufl import *
+from ufl import (Coefficient, FunctionSpace, Mesh, SpatialCoordinate, as_vector, atan,
+                 cos, diff, exp, indices, ln, sin, tan, triangle, variable)
 from ufl.algorithms import expand_derivatives
 from ufl.constantvalue import as_ufl
 from ufl.finiteelement import FiniteElement

@@ -1,11 +1,5 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
+"""Test internal utility functions."""
 
-"""
-Test internal utility functions.
-"""
-
-from ufl.finiteelement import FiniteElement
 from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
 
 

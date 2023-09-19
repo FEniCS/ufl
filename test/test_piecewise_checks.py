@@ -1,15 +1,13 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-"""
-Test the is_cellwise_constant function on all relevant terminal types.
-"""
+"""Test the is_cellwise_constant function on all relevant terminal types."""
 
 import pytest
 
-from ufl import *
+from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
+                 Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
+                 MinFacetEdgeLength, SpatialCoordinate, TestFunction, hexahedron, interval,
+                 quadrilateral, tetrahedron, triangle)
 from ufl.checks import is_cellwise_constant
-from ufl.classes import *
+from ufl.classes import CellCoordinate, FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1, L2, HInf
 

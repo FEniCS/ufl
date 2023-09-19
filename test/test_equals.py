@@ -1,16 +1,8 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
+"""Test of expression comparison."""
 
-"""
-Test of expression comparison.
-"""
-
-import pytest
-
-# This imports everything external code will see from ufl
-from ufl import *
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
+from ufl import Coefficient, Cofunction, triangle
 
 
 def test_comparison_of_coefficients():
@@ -38,6 +30,7 @@ def test_comparison_of_coefficients():
     assert not v1 == u1
     assert not v2 == u2
 
+
 def test_comparison_of_cofunctions():
     V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     U = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
@@ -62,7 +55,6 @@ def test_comparison_of_cofunctions():
     assert not u1 == u2
     assert not v1 == u1
     assert not v2 == u2
-
 
 
 def test_comparison_of_products():

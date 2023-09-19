@@ -3,10 +3,13 @@ __date__ = "2009-02-17 -- 2009-02-17"
 
 from itertools import chain
 
-import pytest
-
-from ufl import *
-from ufl.algorithms import compute_form_data, expand_indices, post_traversal, strip_variables
+from ufl import (CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal, FiniteElement,
+                 FunctionSpace, Identity, Index, Jacobian, JacobianInverse, Mesh, SpatialCoordinate, TensorElement,
+                 TestFunction, TrialFunction, VectorElement, acos, as_matrix, as_tensor, as_vector, asin, atan,
+                 conditional, cos, derivative, diff, dot, dx, exp, i, indices, inner, interval, j, k, ln, lt,
+                 nabla_grad, outer, quadrilateral, replace, sign, sin, split, sqrt, tan, tetrahedron, triangle,
+                 variable, zero)
+from ufl.algorithms import compute_form_data, expand_indices, strip_variables
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
@@ -283,22 +286,6 @@ def testAbs(self):
     _test(self, f, df)
 
 
-def testConditional(self):
-    def cond(w): return lt(1.0, 2.0)
-
-    def f(w): return conditional(cond(w), 2*w, 3*w)
-
-    def df(w, v): return 2*v
-    _test(self, f, df)
-
-    def cond(w): return lt(2.0, 1.0)
-
-    def f(w): return conditional(cond(w), 2*w, 3*w)
-
-    def df(w, v): return 3*v
-    _test(self, f, df)
-
-
 def testConditional(self):  # This will fail without bugfix in derivative
     def cond(w): return lt(w, 1.0)
 
@@ -327,22 +314,22 @@ def testListTensor(self):
     v = variable(as_ufl(42))
     f = as_tensor((
         ((0, 0), (0, 0)),
-            ((v, 2*v), (0, 0)),
-            ((v**2, 1), (2, v/2)),
+        ((v, 2*v), (0, 0)),
+        ((v**2, 1), (2, v/2)),
     ))
     assert f.ufl_shape == (3, 2, 2)
     g = as_tensor((
         ((0, 0), (0, 0)),
-            ((1, 2), (0, 0)),
-            ((84, 0), (0, 0.5)),
+        ((1, 2), (0, 0)),
+        ((84, 0), (0, 0.5)),
     ))
     assert g.ufl_shape == (3, 2, 2)
     dfv = diff(f, v)
     x = None
-    for i in range(3):
-        for j in range(2):
-            for k in range(2):
-                self.assertEqual(dfv[i, j, k](x), g[i, j, k](x))
+    for a in range(3):
+        for b in range(2):
+            for c in range(2):
+                self.assertEqual(dfv[a, b, c](x), g[a, b, c](x))
 
 # --- Coefficient and argument input configurations
 
@@ -391,7 +378,7 @@ def test_multiple_coefficient_derivative(self):
 
 def test_indexed_coefficient_derivative(self):
     cell = triangle
-    I = Identity(cell.geometric_dimension())
+    ident = Identity(cell.geometric_dimension())
     V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     W = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
     u = Coefficient(W)
@@ -403,7 +390,7 @@ def test_indexed_coefficient_derivative(self):
 
     actual = derivative(a, u[0], v)
 
-    dw = v*u[k].dx(0) + u[i]*I[0, k]*v.dx(i)
+    dw = v*u[k].dx(0) + u[i]*ident[0, k]*v.dx(i)
     expected = 2 * w[k] * dw
 
     assertEqualBySampling(actual, expected)
@@ -411,7 +398,6 @@ def test_indexed_coefficient_derivative(self):
 
 def test_multiple_indexed_coefficient_derivative(self):
     cell = tetrahedron
-    I = Identity(cell.geometric_dimension())
     V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V2 = MixedElement([V, V])
     W = FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1)
@@ -440,24 +426,23 @@ def test_segregated_derivative_of_convection(self):
 
     Lv = {}
     Lvu = {}
-    for i in range(cell.geometric_dimension()):
-        Lv[i] = derivative(L, v[i], dv)
-        for j in range(cell.geometric_dimension()):
-            Lvu[i, j] = derivative(Lv[i], u[j], du)
+    for a in range(cell.geometric_dimension()):
+        Lv[a] = derivative(L, v[a], dv)
+        for b in range(cell.geometric_dimension()):
+            Lvu[a, b] = derivative(Lv[a], u[b], du)
 
-    for i in range(cell.geometric_dimension()):
-        for j in range(cell.geometric_dimension()):
-            form = Lvu[i, j]*dx
+    for a in range(cell.geometric_dimension()):
+        for b in range(cell.geometric_dimension()):
+            form = Lvu[a, b]*dx
             fd = compute_form_data(form)
             pf = fd.preprocessed_form
-            a = expand_indices(pf)
-            # print (i,j), str(a)
+            expand_indices(pf)
 
     k = Index()
-    for i in range(cell.geometric_dimension()):
-        for j in range(cell.geometric_dimension()):
-            actual = Lvu[i, j]
-            expected = du*u[i].dx(j)*dv + u[k]*du.dx(k)*dv
+    for a in range(cell.geometric_dimension()):
+        for b in range(cell.geometric_dimension()):
+            actual = Lvu[a, b]
+            expected = du*u[a].dx(b)*dv + u[k]*du.dx(k)*dv
             assertEqualBySampling(actual, expected)
 
 # --- User provided derivatives of coefficients
@@ -657,10 +642,10 @@ def test_mass_derived_from_functional(self):
 
     f = (w**2/2)*dx
     L = w*v*dx
-    a = u*v*dx
+    a = u*v*dx  # noqa: F841
     F = derivative(f, w, v)
-    J1 = derivative(L, w, u)
-    J2 = derivative(F, w, u)
+    J1 = derivative(L, w, u)  # noqa: F841
+    J2 = derivative(F, w, u)  # noqa: F841
     # TODO: assert something
 
 # --- Interaction with replace
@@ -718,6 +703,7 @@ def test_index_simplification_reference_grad(self):
     assert expr.ufl_free_indices == ()
     assert expr.ufl_shape == ()
 
+
 # --- Scratch space
 
 def test_foobar(self):
@@ -740,5 +726,5 @@ def test_foobar(self):
         return inner(epsilon(u), epsilon(v))
 
     L = NS_a(U, v)*dx
-    a = derivative(L, U, du)
+    a = derivative(L, U, du)  # noqa: F841
     # TODO: assert something

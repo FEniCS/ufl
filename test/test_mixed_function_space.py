@@ -1,14 +1,8 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-from ufl import *
-
 __authors__ = "Cecile Daversin Catty"
 __date__ = "2019-03-26 -- 2019-03-26"
 
-import pytest
-
-from ufl import *
+from ufl import (FunctionSpace, Measure, MixedFunctionSpace, TestFunctions, TrialFunctions, interval,
+                 tetrahedron, triangle)
 from ufl.algorithms.formsplitter import extract_blocks
 from ufl.domain import default_domain
 from ufl.finiteelement import FiniteElement
@@ -32,10 +26,10 @@ def test_mixed_functionspace(self):
     # MixedFunctionSpace = V_3d x V_2d x V_1d
     V = MixedFunctionSpace(V_3d, V_2d, V_1d)
     # Check sub spaces
-    assert( V.num_sub_spaces() == 3 )
-    assert( V.ufl_sub_space(0) == V_3d )
-    assert( V.ufl_sub_space(1) == V_2d )
-    assert( V.ufl_sub_space(2) == V_1d )
+    assert V.num_sub_spaces() == 3
+    assert V.ufl_sub_space(0) == V_3d
+    assert V.ufl_sub_space(1) == V_2d
+    assert V.ufl_sub_space(2) == V_1d
 
     # Arguments from MixedFunctionSpace
     (u_3d, u_2d, u_1d) = TrialFunctions(V)
@@ -66,30 +60,29 @@ def test_mixed_functionspace(self):
 
     # Check extract_block algorithm
     # LHS
-    assert ( extract_blocks(a,0,0) == a_33 )
-    assert ( extract_blocks(a,0,1) == a_23 )
-    assert ( extract_blocks(a,0,2) == a_13 )
-    assert ( extract_blocks(a,1,0) == a_32 )
-    assert ( extract_blocks(a,1,1) == a_22 )
-    assert ( extract_blocks(a,1,2) == a_12 )
-    assert ( extract_blocks(a,2,0) == a_31 )
-    assert ( extract_blocks(a,2,1) == a_21 )
-    assert ( extract_blocks(a,2,2) == a_11 )
+    assert extract_blocks(a, 0, 0) == a_33
+    assert extract_blocks(a, 0, 1) == a_23
+    assert extract_blocks(a, 0, 2) == a_13
+    assert extract_blocks(a, 1, 0) == a_32
+    assert extract_blocks(a, 1, 1) == a_22
+    assert extract_blocks(a, 1, 2) == a_12
+    assert extract_blocks(a, 2, 0) == a_31
+    assert extract_blocks(a, 2, 1) == a_21
+    assert extract_blocks(a, 2, 2) == a_11
     # RHS
-    assert ( extract_blocks(f,0) == f_3 )
-    assert ( extract_blocks(f,1) == f_2 )
-    assert ( extract_blocks(f,2) == f_1 )
+    assert extract_blocks(f, 0) == f_3
+    assert extract_blocks(f, 1) == f_2
+    assert extract_blocks(f, 2) == f_1
 
     # Test dual space method
     V_dual = V.dual()
-    assert( V_dual.num_sub_spaces() == 3 )
-    assert( V_dual.ufl_sub_space(0) == V_3d.dual() )
-    assert( V_dual.ufl_sub_space(1) == V_2d.dual() )
-    assert( V_dual.ufl_sub_space(2) == V_1d.dual() )
+    assert V_dual.num_sub_spaces() == 3
+    assert V_dual.ufl_sub_space(0) == V_3d.dual()
+    assert V_dual.ufl_sub_space(1) == V_2d.dual()
+    assert V_dual.ufl_sub_space(2) == V_1d.dual()
 
-    V_dual = V.dual(*[0,2])
-    assert( V_dual.num_sub_spaces() == 3 )
-    assert( V_dual.ufl_sub_space(0) == V_3d.dual() )
-    assert( V_dual.ufl_sub_space(1) == V_2d )
-    assert( V_dual.ufl_sub_space(2) == V_1d.dual() )
-
+    V_dual = V.dual(0, 2)
+    assert V_dual.num_sub_spaces() == 3
+    assert V_dual.ufl_sub_space(0) == V_3d.dual()
+    assert V_dual.ufl_sub_space(1) == V_2d
+    assert V_dual.ufl_sub_space(2) == V_1d.dual()

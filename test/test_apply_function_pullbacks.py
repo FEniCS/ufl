@@ -1,12 +1,10 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 import numpy
 
-from ufl import Cell, Coefficient, as_domain, as_tensor, as_vector, indices, triangle
+from ufl import (Cell, Coefficient, as_domain, as_tensor, as_vector, dx,
+                 indices, triangle)
 from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import CellOrientation, Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
+from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
 
@@ -122,7 +120,7 @@ def test_apply_single_function_pullbacks_triangle3d():
     detJ = JacobianDeterminant(domain)
     Jinv = JacobianInverse(domain)
     # o = CellOrientation(domain)
-    i, j, k, l = indices(4)
+    i, j, k, l = indices(4)  # noqa: E741
 
     # Contravariant H(div) Piola mapping:
     M_hdiv = ((1.0/detJ) * J)  # Not applying cell orientation here
@@ -154,16 +152,14 @@ def test_apply_single_function_pullbacks_triangle3d():
             # Vd
             *(as_tensor(M_hdiv[i, j]*as_vector([rvdm[3], rvdm[4]])[j], (i,))[n]
               for n in range(3))
-    ]),
-        vcm: as_vector([
+        ]), vcm: as_vector([
             # Vd
             *(as_tensor(M_hdiv[i, j]*as_vector([rvcm[0], rvcm[1]])[j], (i,))[n]
               for n in range(3)),
             # Vc
             *(as_tensor(Jinv[i, j]*as_vector([rvcm[2], rvcm[3]])[i], (j,))[n]
               for n in range(3))
-    ]),
-        tm: as_vector([
+        ]), tm: as_vector([
             # Vc
             *(as_tensor(Jinv[i, j]*as_vector([rtm[0], rtm[1]])[i], (j,))[n]
               for n in range(3)),
@@ -171,8 +167,7 @@ def test_apply_single_function_pullbacks_triangle3d():
             rtm[2], rtm[3], rtm[4],
             rtm[5], rtm[6], rtm[7],
             rtm[8], rtm[9], rtm[10],
-    ]),
-        sm: as_vector([
+        ]), sm: as_vector([
             # T
             rsm[0], rsm[1], rsm[2],
             rsm[3], rsm[4], rsm[5],
@@ -181,14 +176,14 @@ def test_apply_single_function_pullbacks_triangle3d():
             rsm[9], rsm[10], rsm[11],
             rsm[10], rsm[12], rsm[13],
             rsm[11], rsm[13], rsm[14],
-    ]),
+        ]),
         # Case from failing ffc demo:
         vd0m: as_vector([
             M_hdiv[0, j]*as_vector([rvd0m[0], rvd0m[1]])[j],
             M_hdiv[1, j]*as_vector([rvd0m[0], rvd0m[1]])[j],
             M_hdiv[2, j]*as_vector([rvd0m[0], rvd0m[1]])[j],
             rvd0m[2]
-    ]),
+        ]),
         # This combines it all:
         w: as_vector([
             # S
@@ -211,7 +206,7 @@ def test_apply_single_function_pullbacks_triangle3d():
             rw[21],
             # U
             rw[22],
-    ]),
+        ]),
     }
 
     # Check functions of various elements outside a mixed context
@@ -309,7 +304,7 @@ def test_apply_single_function_pullbacks_triangle():
     J = Jacobian(domain)
     detJ = JacobianDeterminant(domain)
     Jinv = JacobianInverse(domain)
-    i, j, k, l = indices(4)
+    i, j, k, l = indices(4)  # noqa: E741
 
     # Contravariant H(div) Piola mapping:
     M_hdiv = (1.0/detJ) * J
@@ -335,7 +330,7 @@ def test_apply_single_function_pullbacks_triangle():
             # Vd
             *(as_tensor(M_hdiv[i, j]*as_vector([rvdm[2], rvdm[3]])[j], (i,))[n]
               for n in range(2)),
-    ]),
+        ]),
         vcm: as_vector([
             # Vd
             *(as_tensor(M_hdiv[i, j]*as_vector([rvcm[0], rvcm[1]])[j], (i,))[n]
@@ -343,7 +338,7 @@ def test_apply_single_function_pullbacks_triangle():
             # Vc
             *(as_tensor(Jinv[i, j]*as_vector([rvcm[2], rvcm[3]])[i], (j,))[n]
               for n in range(2)),
-    ]),
+        ]),
         tm: as_vector([
             # Vc
             *(as_tensor(Jinv[i, j]*as_vector([rtm[0], rtm[1]])[i], (j,))[n]
@@ -351,7 +346,7 @@ def test_apply_single_function_pullbacks_triangle():
             # T
             rtm[2], rtm[3],
             rtm[4], rtm[5],
-    ]),
+        ]),
         sm: as_vector([
             # T
             rsm[0], rsm[1],
@@ -359,7 +354,7 @@ def test_apply_single_function_pullbacks_triangle():
             # S
             rsm[4], rsm[5],
             rsm[5], rsm[6],
-    ]),
+        ]),
         # This combines it all:
         w: as_vector([
             # S
@@ -379,7 +374,7 @@ def test_apply_single_function_pullbacks_triangle():
             rw[12],
             # U
             rw[13],
-    ]),
+        ]),
     }
 
     # Check functions of various elements outside a mixed context

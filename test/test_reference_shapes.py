@@ -1,11 +1,6 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-import pytest
-
-from ufl import *
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1, HCurl, HDiv
+from ufl import Cell
 
 
 def test_reference_shapes():

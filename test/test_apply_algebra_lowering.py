@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import pytest
 
 from ufl import Coefficient, Index, as_tensor, interval, sqrt, tetrahedron, triangle
@@ -89,25 +87,25 @@ def test_inverse1(A1):
 
 
 def xtest_inverse2(A2):
-    expected = todo
+    expected = "TODO"
     assert inverse_expr(A2) == renumber_indices(expected)
 
 
 def xtest_inverse3(A3):
-    expected = todo
+    expected = "TODO"
     assert inverse_expr(A3) == renumber_indices(expected)
 
 
 def xtest_pseudo_inverse21(A21):
-    expected = todo
+    expected = "TODO"
     assert renumber_indices(inverse_expr(A21)) == renumber_indices(expected)
 
 
 def xtest_pseudo_inverse31(A31):
-    expected = todo
+    expected = "TODO"
     assert renumber_indices(inverse_expr(A31)) == renumber_indices(expected)
 
 
 def xtest_pseudo_inverse32(A32):
-    expected = todo
+    expected = "TODO"
     assert renumber_indices(inverse_expr(A32)) == renumber_indices(expected)

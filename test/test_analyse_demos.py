@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-28 -- 2008-09-28"
 
@@ -8,7 +6,7 @@ from glob import glob
 
 import pytest
 
-from ufl.algorithms import compute_form_data, load_ufl_file, validate_form
+from ufl.algorithms import load_ufl_file, validate_form
 
 demodir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "demo"))
 

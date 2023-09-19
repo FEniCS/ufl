@@ -1,30 +1,14 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
-__date__ = "2011-04-14 -- 2011-04-14"
+__date__ = "2011-04-14"
 
-import pytest
-
-from ufl import *
+from ufl import PermutationSymbol, as_matrix, as_vector, indices, product
 from ufl.classes import Indexed
 from ufl.constantvalue import ComplexValue, FloatValue, IntValue, Zero, as_ufl
-from ufl.finiteelement import FiniteElement
 
 
 def test_zero(self):
     z1 = Zero(())
-    z2 = Zero(())
-    z3 = as_ufl(0)
-    z4 = as_ufl(0.0)
-    z5 = FloatValue(0)
-    z6 = FloatValue(0.0)
 
-    # self.assertTrue(z1 is z2)
-    # self.assertTrue(z1 is z3)
-    # self.assertTrue(z1 is z4)
-    # self.assertTrue(z1 is z5)
-    # self.assertTrue(z1 is z6)
     assert z1 == z1
     assert int(z1) == 0
     assert float(z1) == 0.0
