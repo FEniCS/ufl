@@ -1,3 +1,4 @@
+# flake8: noqa
 """Pull back and push forward maps."""
 
 from abc import ABC
