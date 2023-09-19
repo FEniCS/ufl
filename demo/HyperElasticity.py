@@ -4,10 +4,8 @@
 #
 
 # Modified by Garth N. Wells, 2009
-from ufl import (Coefficient, Constant, FacetNormal, Identity,
-                 SpatialCoordinate, TestFunction, TrialFunction, derivative,
-                 det, diff, dot, ds, dx, exp, grad, inner, inv, tetrahedron,
-                 tr, variable)
+from ufl import (Coefficient, Constant, FacetNormal, Identity, SpatialCoordinate, TestFunction, TrialFunction,
+                 derivative, det, diff, dot, ds, dx, exp, grad, inner, inv, tetrahedron, tr, variable)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

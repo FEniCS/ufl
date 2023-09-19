@@ -2,8 +2,7 @@
 
 import pytest
 
-from ufl import (Coefficient, Index, as_tensor, interval, sqrt, tetrahedron,
-                 triangle)
+from ufl import Coefficient, Index, as_tensor, interval, sqrt, tetrahedron, triangle
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.finiteelement import FiniteElement

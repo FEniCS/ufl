@@ -19,8 +19,7 @@
 # equations using a mixed formulation (Taylor-Hood elements) in
 # combination with the lhs() and rhs() operators to extract the
 # bilinear and linear forms from an expression F = 0.
-from ufl import (Coefficient, TestFunctions, TrialFunctions, div, dot, dx,
-                 grad, inner, lhs, rhs, triangle)
+from ufl import Coefficient, TestFunctions, TrialFunctions, div, dot, dx, grad, inner, lhs, rhs, triangle
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1
 

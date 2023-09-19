@@ -14,20 +14,14 @@ import warnings
 from functools import reduce
 from itertools import combinations
 
-from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian,
-                         CellOrientation, CellOrigin, CellVertices, CellVolume,
-                         Expr, FacetEdgeVectors, FacetJacobian,
-                         FacetJacobianDeterminant, FloatValue, Form, Integral,
-                         Jacobian, JacobianDeterminant, JacobianInverse,
-                         MaxCellEdgeLength, ReferenceCellVolume,
-                         ReferenceFacetVolume, ReferenceGrad, ReferenceNormal,
-                         SpatialCoordinate)
+from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian, CellOrientation, CellOrigin, CellVertices,
+                         CellVolume, Expr, FacetEdgeVectors, FacetJacobian, FacetJacobianDeterminant, FloatValue, Form,
+                         Integral, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength,
+                         ReferenceCellVolume, ReferenceFacetVolume, ReferenceGrad, ReferenceNormal, SpatialCoordinate)
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
-# FacetJacobianInverse,
-# FacetOrientation, QuadratureWeight,
 from ufl.domain import extract_unique_domain
 from ufl.measure import custom_integral_types, point_integral_types
 from ufl.operators import conj, max_value, min_value, real, sqrt
@@ -35,7 +29,9 @@ from ufl.tensors import as_tensor, as_vector
 
 
 class GeometryLoweringApplier(MultiFunction):
+    """Geometry lowering."""
     def __init__(self, preserve_types=()):
+        """Initialise."""
         MultiFunction.__init__(self)
         # Store preserve_types as boolean lookup table
         self._preserve_types = [False] * Expr._ufl_num_typecodes_
@@ -45,10 +41,12 @@ class GeometryLoweringApplier(MultiFunction):
     expr = MultiFunction.reuse_if_untouched
 
     def terminal(self, t):
+        """Apply to terminal."""
         return t
 
     @memoized_handler
     def jacobian(self, o):
+        """Apply to jacobian."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
         domain = extract_unique_domain(o)
@@ -63,6 +61,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def _future_jacobian(self, o):
+        """Apply to _future_jacobian."""
         # If we're not using Coefficient to represent the spatial
         # coordinate, we can just as well just return o here too
         # unless we add representation of basis functions and dofs to
@@ -71,6 +70,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def jacobian_inverse(self, o):
+        """Apply to jacobian_inverse."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -83,6 +83,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def jacobian_determinant(self, o):
+        """Apply to jacobian_determinant."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -101,6 +102,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def facet_jacobian(self, o):
+        """Apply to facet_jacobian."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -112,6 +114,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def facet_jacobian_inverse(self, o):
+        """Apply to facet_jacobian_inverse."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -123,6 +126,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def facet_jacobian_determinant(self, o):
+        """Apply to facet_jacobian_determinant."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -141,7 +145,10 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def spatial_coordinate(self, o):
-        "Fall through to coordinate field of domain if it exists."
+        """Apply to spatial_coordinate.
+
+        Fall through to coordinate field of domain if it exists.
+        """
         if self._preserve_types[o._ufl_typecode_]:
             return o
         if extract_unique_domain(o).ufl_coordinate_element().mapping != "identity":
@@ -152,7 +159,10 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def cell_coordinate(self, o):
-        "Compute from physical coordinates if they are known, using the appropriate mappings."
+        """Apply to cell_coordinate.
+
+        Compute from physical coordinates if they are known, using the appropriate mappings.
+        """
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -166,6 +176,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def facet_cell_coordinate(self, o):
+        """Apply to facet_cell_coordinate."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -174,6 +185,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def cell_volume(self, o):
+        """Apply to cell_volume."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -190,6 +202,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def facet_area(self, o):
+        """Apply to facet_area."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -211,6 +224,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def circumradius(self, o):
+        """Apply to circumradius."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -251,13 +265,16 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def max_cell_edge_length(self, o):
+        """Apply to max_cell_edge_length."""
         return self._reduce_cell_edge_length(o, max_value)
 
     @memoized_handler
     def min_cell_edge_length(self, o):
+        """Apply to min_cell_edge_length."""
         return self._reduce_cell_edge_length(o, min_value)
 
     def _reduce_cell_edge_length(self, o, reduction_op):
+        """Apply to _reduce_cell_edge_length."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -282,6 +299,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def cell_diameter(self, o):
+        """Apply to cell_diameter."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -306,13 +324,16 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def max_facet_edge_length(self, o):
+        """Apply to max_facet_edge_length."""
         return self._reduce_facet_edge_length(o, max_value)
 
     @memoized_handler
     def min_facet_edge_length(self, o):
+        """Apply to min_facet_edge_length."""
         return self._reduce_facet_edge_length(o, min_value)
 
     def _reduce_facet_edge_length(self, o, reduction_op):
+        """Apply to _reduce_facet_edge_length."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -336,6 +357,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def cell_normal(self, o):
+        """Apply to cell_normal."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -368,6 +390,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def facet_normal(self, o):
+        """Apply to facet_normal."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -417,8 +440,9 @@ def apply_geometry_lowering(form, preserve_types=()):
 
     Assumes the expression is preprocessed or at least that derivatives have been expanded.
 
-    @param form:
-        An Expr or Form.
+    Args:
+        form: An Expr or Form.
+        preserve_types: Preserved types
     """
     if isinstance(form, Form):
         newintegrals = [apply_geometry_lowering(integral, preserve_types)

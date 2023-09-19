@@ -4,10 +4,8 @@ import pytest
 
 from ufl import *
 from ufl.algorithms import tree_format
-from ufl.algorithms.apply_derivatives import (GateauxDerivativeRuleset,
-                                              GenericDerivativeRuleset,
-                                              GradRuleset, VariableRuleset,
-                                              apply_derivatives)
+from ufl.algorithms.apply_derivatives import (GateauxDerivativeRuleset, GenericDerivativeRuleset, GradRuleset,
+                                              VariableRuleset, apply_derivatives)
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Grad
 from ufl.finiteelement import FiniteElement

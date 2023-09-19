@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Functions implementing compound expressions as equivalent representations using basic operators."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -8,6 +6,8 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2009-2010
+
+import warnings
 
 from ufl.constantvalue import Zero, zero
 from ufl.core.multiindex import Index, indices
@@ -25,6 +25,7 @@ from ufl.tensors import as_matrix, as_tensor, as_vector
 
 
 def cross_expr(a, b):
+    """Symbolic cross product."""
     assert len(a) == 3
     assert len(b) == 3
 
@@ -79,7 +80,7 @@ def pseudo_inverse_expr(A):
 
 
 def determinant_expr(A):
-    "Compute the (pseudo-)determinant of A."
+    """Compute the (pseudo-)determinant of A."""
     sh = A.ufl_shape
     if isinstance(A, Zero):
         return zero()
@@ -102,28 +103,36 @@ def determinant_expr(A):
 
 
 def _det_2x2(B, i, j, k, l):  # noqa: E741
+    """Determinant of a 2 by 2 matrix."""
     return B[i, k] * B[j, l] - B[i, l] * B[j, k]
 
 
 def determinant_expr_2x2(B):
+    """Determinant of a 2 by 2 matrix."""
     return _det_2x2(B, 0, 1, 0, 1)
 
 
 def old_determinant_expr_3x3(A):
+    """Determinant of a 3 by 3 matrix."""
+    warnings.warn("The use of old_determinant_expr_3x3 is deprecated and will be removed after December 2023. "
+                  "Please, use determinant_expr_3x3 instead", FutureWarning)
     return A[0, 0] * _det_2x2(A, 1, 2, 1, 2) + A[0, 1] * _det_2x2(A, 1, 2, 2, 0) + A[0, 2] * _det_2x2(A, 1, 2, 0, 1)
 
 
 def determinant_expr_3x3(A):
+    """Determinant of a 3 by 3 matrix."""
     return codeterminant_expr_nxn(A, [0, 1, 2], [0, 1, 2])
 
 
 def determinant_expr_nxn(A):
+    """Determinant of a n by n matrix."""
     nrow, ncol = A.ufl_shape
     assert nrow == ncol
     return codeterminant_expr_nxn(A, list(range(nrow)), list(range(ncol)))
 
 
 def codeterminant_expr_nxn(A, rows, cols):
+    """Determinant of a n by n matrix."""
     if len(rows) == 2:
         return _det_2x2(A, rows[0], rows[1], cols[0], cols[1])
     codet = 0.0
@@ -136,7 +145,7 @@ def codeterminant_expr_nxn(A, rows, cols):
 
 
 def inverse_expr(A):
-    "Compute the inverse of A."
+    """Compute the inverse of A."""
     sh = A.ufl_shape
     if sh == ():
         return 1.0 / A
@@ -150,6 +159,7 @@ def inverse_expr(A):
 
 
 def adj_expr(A):
+    """Adjoint of a matrix."""
     sh = A.ufl_shape
     if sh[0] != sh[1]:
         raise ValueError("Expecting square matrix.")
@@ -165,11 +175,13 @@ def adj_expr(A):
 
 
 def adj_expr_2x2(A):
+    """Adjoint of a 2 by 2 matrix."""
     return as_matrix([[A[1, 1], -A[0, 1]],
                       [-A[1, 0], A[0, 0]]])
 
 
 def adj_expr_3x3(A):
+    """Adjoint of a 3 by 3 matrix."""
     return as_matrix([[
         A[2, 2] * A[1, 1] - A[1, 2] * A[2, 1],
         -A[0, 1] * A[2, 2] + A[0, 2] * A[2, 1],
@@ -186,6 +198,7 @@ def adj_expr_3x3(A):
 
 
 def adj_expr_4x4(A):
+    """Adjoint of a 4 by 4 matrix."""
     return as_matrix([[
         -A[3, 3] * A[2, 1] * A[1, 2] + A[1, 2] * A[3, 1] * A[2, 3] + A[1, 1] * A[3, 3] * A[2, 2] - A[3, 1] * A[2, 2] * A[1, 3] + A[2, 1] * A[1, 3] * A[3, 2] - A[1, 1] * A[3, 2] * A[2, 3],  # noqa: E501
         -A[3, 1] * A[0, 2] * A[2, 3] + A[0, 1] * A[3, 2] * A[2, 3] - A[0, 3] * A[2, 1] * A[3, 2] + A[3, 3] * A[2, 1] * A[0, 2] - A[3, 3] * A[0, 1] * A[2, 2] + A[0, 3] * A[3, 1] * A[2, 2],  # noqa: E501
@@ -210,6 +223,7 @@ def adj_expr_4x4(A):
 
 
 def cofactor_expr(A):
+    """Cofactor of a matrix."""
     sh = A.ufl_shape
     if sh[0] != sh[1]:
         raise ValueError("Expecting square matrix.")
@@ -225,11 +239,13 @@ def cofactor_expr(A):
 
 
 def cofactor_expr_2x2(A):
+    """Cofactor of a 2 by 2 matrix."""
     return as_matrix([[A[1, 1], -A[1, 0]],
                       [-A[0, 1], A[0, 0]]])
 
 
 def cofactor_expr_3x3(A):
+    """Cofactor of a 3 by 3 matrix."""
     return as_matrix([[
         A[1, 1] * A[2, 2] - A[2, 1] * A[1, 2],
         A[2, 0] * A[1, 2] - A[1, 0] * A[2, 2],
@@ -246,6 +262,7 @@ def cofactor_expr_3x3(A):
 
 
 def cofactor_expr_4x4(A):
+    """Cofactor of a 4 by 4 matrix."""
     return as_matrix([[
         -A[3, 1] * A[2, 2] * A[1, 3] - A[3, 2] * A[2, 3] * A[1, 1] + A[1, 3] * A[3, 2] * A[2, 1] + A[3, 1] * A[2, 3] * A[1, 2] + A[2, 2] * A[1, 1] * A[3, 3] - A[3, 3] * A[2, 1] * A[1, 2],  # noqa: E501
         -A[1, 0] * A[2, 2] * A[3, 3] + A[2, 0] * A[3, 3] * A[1, 2] + A[2, 2] * A[1, 3] * A[3, 0] - A[2, 3] * A[3, 0] * A[1, 2] + A[1, 0] * A[3, 2] * A[2, 3] - A[1, 3] * A[3, 2] * A[2, 0],  # noqa: E501
@@ -270,6 +287,7 @@ def cofactor_expr_4x4(A):
 
 
 def deviatoric_expr(A):
+    """Deviatoric of a matrix."""
     sh = A.ufl_shape
     if sh[0] != sh[1]:
         raise ValueError("Expecting square matrix.")
@@ -283,11 +301,13 @@ def deviatoric_expr(A):
 
 
 def deviatoric_expr_2x2(A):
+    """Deviatoric of a 2 by 2 matrix."""
     return as_matrix([[-1. / 2 * A[1, 1] + 1. / 2 * A[0, 0], A[0, 1]],
                       [A[1, 0], 1. / 2 * A[1, 1] - 1. / 2 * A[0, 0]]])
 
 
 def deviatoric_expr_3x3(A):
+    """Deviatoric of a 3 by 3 matrix."""
     return as_matrix([[-1. / 3 * A[1, 1] - 1. / 3 * A[2, 2] + 2. / 3 * A[0, 0], A[0, 1], A[0, 2]],
                       [A[1, 0], 2. / 3 * A[1, 1] - 1. / 3 * A[2, 2] - 1. / 3 * A[0, 0], A[1, 2]],
                       [A[2, 0], A[2, 1], -1. / 3 * A[1, 1] + 2. / 3 * A[2, 2] - 1. / 3 * A[0, 0]]])

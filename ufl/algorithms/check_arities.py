@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-
+"""Check arities."""
 from itertools import chain
 
 from ufl.classes import Argument, Zero
@@ -10,27 +8,34 @@ from ufl.corealg.traversal import traverse_unique_terminals
 
 
 class ArityMismatch(BaseException):
+    """Arity mismatch exception."""
     pass
 
 
-# String representation of an arity tuple:
 def _afmt(atuple):
+    """Return a string representation of an arity tuple."""
     return tuple(f"conj({arg})" if conj else str(arg) for arg, conj in atuple)
 
 
 class ArityChecker(MultiFunction):
+    """Arity checker."""
+
     def __init__(self, arguments):
+        """Initialise."""
         MultiFunction.__init__(self)
         self.arguments = arguments
         self._et = ()
 
     def terminal(self, o):
+        """Apply to terminal."""
         return self._et
 
     def argument(self, o):
+        """Apply to argument."""
         return ((o, False),)
 
     def nonlinear_operator(self, o):
+        """Apply to nonlinear_operator."""
         # Cutoff traversal by not having *ops in argument list of this
         # handler.  Traverse only the terminals under here the fastest
         # way we know of:
@@ -43,16 +48,19 @@ class ArityChecker(MultiFunction):
     expr = nonlinear_operator
 
     def sum(self, o, a, b):
+        """Apply to sum."""
         if a != b:
             raise ArityMismatch(f"Adding expressions with non-matching form arguments {_afmt(a)} vs {_afmt(b)}.")
         return a
 
     def division(self, o, a, b):
+        """Apply to division."""
         if b:
             raise ArityMismatch(f"Cannot divide by form argument {b}.")
         return a
 
     def product(self, o, a, b):
+        """Apply to product."""
         if a and b:
             # Check that we don't have test*test, trial*trial, even
             # for different parts in a block system
@@ -77,14 +85,17 @@ class ArityChecker(MultiFunction):
 
     # inner, outer and dot all behave as product but for conjugates
     def inner(self, o, a, b):
+        """Apply to inner."""
         return self.product(o, a, self.conj(None, b))
 
     dot = inner
 
     def outer(self, o, a, b):
+        """Apply to outer."""
         return self.product(o, self.conj(None, a), b)
 
     def linear_operator(self, o, a):
+        """Apply to linear_operator."""
         return a
 
     # Positive and negative restrictions behave as linear operators
@@ -102,15 +113,18 @@ class ArityChecker(MultiFunction):
 
     # Conj, is a sesquilinear operator
     def conj(self, o, a):
+        """Apply to conj."""
         return tuple((a_[0], not a_[1]) for a_ in a)
 
     # Does it make sense to have a Variable(Argument)? I see no
     # problem.
     def variable(self, o, f, a):
+        """Apply to variable."""
         return f
 
     # Conditional is linear on each side of the condition
     def conditional(self, o, c, a, b):
+        """Apply to conditional."""
         if c:
             raise ArityMismatch(f"Condition cannot depend on form arguments ({_afmt(a)}).")
         if a and isinstance(o.ufl_operands[2], Zero):
@@ -129,6 +143,7 @@ class ArityChecker(MultiFunction):
                                 f"{_afmt(a)} vs {_afmt(b)}.")
 
     def linear_indexed_type(self, o, a, i):
+        """Apply to linear_indexed_type."""
         return a
 
     # All of these indexed thingies behave as a linear_indexed_type
@@ -137,6 +152,7 @@ class ArityChecker(MultiFunction):
     component_tensor = linear_indexed_type
 
     def list_tensor(self, o, *ops):
+        """Apply to list_tensor."""
         args = set(chain(*ops))
         if args:
             # Check that each list tensor component has the same
@@ -156,6 +172,7 @@ class ArityChecker(MultiFunction):
 
 
 def check_integrand_arity(expr, arguments, complex_mode=False):
+    """Check the arity of an integrand."""
     arguments = tuple(sorted(set(arguments),
                              key=lambda x: (x.number(), x.part())))
     rules = ArityChecker(arguments)
@@ -176,5 +193,6 @@ def check_integrand_arity(expr, arguments, complex_mode=False):
 
 
 def check_form_arity(form, arguments, complex_mode=False):
+    """Check the arity of a form."""
     for itg in form.integrals():
         check_integrand_arity(itg.integrand(), arguments, complex_mode)

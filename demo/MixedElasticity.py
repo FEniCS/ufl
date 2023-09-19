@@ -17,8 +17,7 @@
 #
 # First added:  2008-10-03
 # Last changed: 2011-07-22
-from ufl import (TestFunctions, TrialFunctions, as_vector, div, dot, dx, inner,
-                 skew, tetrahedron, tr)
+from ufl import TestFunctions, TrialFunctions, as_vector, div, dot, dx, inner, skew, tetrahedron, tr
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import L2, HDiv
 

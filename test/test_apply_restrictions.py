@@ -3,10 +3,8 @@
 
 from pytest import raises
 
-from ufl import (Coefficient, FacetNormal, SpatialCoordinate, as_tensor, grad,
-                 i, triangle)
-from ufl.algorithms.apply_restrictions import (apply_default_restrictions,
-                                               apply_restrictions)
+from ufl import Coefficient, FacetNormal, SpatialCoordinate, as_tensor, grad, i, triangle
+from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1, L2

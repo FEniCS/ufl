@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
-"""This module defines expression transformation utilities,
-for expanding free indices in expressions to explicit fixed
-indices only."""
+"""This module defines expression transformation utilities.
+
+These utilities are for expanding free indices in expressions to explicit fixed indices only.
+"""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -20,20 +20,22 @@ from ufl.utils.stacks import Stack, StackDict
 
 
 class IndexExpander(ReuseTransformer):
-    """..."""
+    """Index expander."""
 
     def __init__(self):
+        """Initialise."""
         ReuseTransformer.__init__(self)
         self._components = Stack()
         self._index2value = StackDict()
 
     def component(self):
-        "Return current component tuple."
+        """Return current component tuple."""
         if self._components:
             return self._components.peek()
         return ()
 
     def terminal(self, x):
+        """Apply to terminal."""
         if x.ufl_shape:
             c = self.component()
             if len(x.ufl_shape) != len(c):
@@ -42,6 +44,7 @@ class IndexExpander(ReuseTransformer):
         return x
 
     def form_argument(self, x):
+        """Apply to form_argument."""
         sh = x.ufl_shape
         if sh == ():
             return x
@@ -63,6 +66,7 @@ class IndexExpander(ReuseTransformer):
             return x[c]
 
     def zero(self, x):
+        """Apply to zero."""
         if len(x.ufl_shape) != len(self.component()):
             raise ValueError("Component size mismatch.")
 
@@ -74,6 +78,7 @@ class IndexExpander(ReuseTransformer):
         return Zero()
 
     def scalar_value(self, x):
+        """Apply to scalar_value."""
         if len(x.ufl_shape) != len(self.component()):
             self.print_visit_stack()
         if len(x.ufl_shape) != len(self.component()):
@@ -86,6 +91,7 @@ class IndexExpander(ReuseTransformer):
         return x._ufl_class_(x.value())
 
     def conditional(self, x):
+        """Apply to conditional."""
         c, t, f = x.ufl_operands
 
         # Not accepting nonscalars in condition
@@ -104,6 +110,7 @@ class IndexExpander(ReuseTransformer):
         return self.reuse_if_possible(x, c, t, f)
 
     def division(self, x):
+        """Apply to division."""
         a, b = x.ufl_operands
 
         # Not accepting nonscalars in division anymore
@@ -123,6 +130,7 @@ class IndexExpander(ReuseTransformer):
         return self.reuse_if_possible(x, a, b)
 
     def index_sum(self, x):
+        """Apply to index_sum."""
         ops = []
         summand, multiindex = x.ufl_operands
         index, = multiindex
@@ -138,6 +146,7 @@ class IndexExpander(ReuseTransformer):
         return sum(ops)
 
     def _multi_index_values(self, x):
+        """Apply to _multi_index_values."""
         comp = []
         for i in x._indices:
             if isinstance(i, FixedIndex):
@@ -147,10 +156,12 @@ class IndexExpander(ReuseTransformer):
         return tuple(comp)
 
     def multi_index(self, x):
+        """Apply to multi_index."""
         comp = self._multi_index_values(x)
         return MultiIndex(tuple(FixedIndex(i) for i in comp))
 
     def indexed(self, x):
+        """Apply to indexed."""
         A, ii = x.ufl_operands
 
         # Push new component built from index value map
@@ -173,6 +184,7 @@ class IndexExpander(ReuseTransformer):
         return result
 
     def component_tensor(self, x):
+        """Apply to component_tensor."""
         # This function evaluates the tensor expression
         # with indices equal to the current component tuple
         expression, indices = x.ufl_operands
@@ -197,6 +209,7 @@ class IndexExpander(ReuseTransformer):
         return result
 
     def list_tensor(self, x):
+        """Apply to list_tensor."""
         # Pick the right subtensor and subcomponent
         c = self.component()
         c0, c1 = c[0], c[1:]
@@ -208,6 +221,7 @@ class IndexExpander(ReuseTransformer):
         return r
 
     def grad(self, x):
+        """Apply to grad."""
         f, = x.ufl_operands
         if not isinstance(f, (Terminal, Grad)):
             raise ValueError("Expecting expand_derivatives to have been applied.")
@@ -216,4 +230,5 @@ class IndexExpander(ReuseTransformer):
 
 
 def expand_indices(e):
+    """Expand indices."""
     return apply_transformer(e, IndexExpander())

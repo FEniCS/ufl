@@ -20,8 +20,7 @@
 # The bilinear form a(v, u1) and linear form L(v) for
 # one backward Euler step with the heat equation.
 #
-from ufl import (Coefficient, Constant, TestFunction, TrialFunction, dot, dx,
-                 grad, triangle)
+from ufl import Coefficient, Constant, TestFunction, TrialFunction, dot, dx, grad, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

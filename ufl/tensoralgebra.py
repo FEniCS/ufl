@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Compound tensor algebra operations."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -45,9 +43,12 @@ from ufl.sorting import sorted_expr
 
 @ufl_type(is_abstract=True)
 class CompoundTensorOperator(Operator):
+    """Compount tensor operator."""
+
     __slots__ = ()
 
     def __init__(self, operands):
+        """Initialise."""
         Operator.__init__(self, operands)
 
 # TODO: Use this and make Sum handle scalars only?
@@ -85,33 +86,42 @@ class CompoundTensorOperator(Operator):
 
 @ufl_type(is_shaping=True, num_ops=1, inherit_indices_from_operand=0)
 class Transposed(CompoundTensorOperator):
+    """Transposed tensor."""
+
     __slots__ = ()
 
     def __new__(cls, A):
+        """Create new Transposed."""
         if isinstance(A, Zero):
             a, b = A.ufl_shape
             return Zero((b, a), A.ufl_free_indices, A.ufl_index_dimensions)
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
         if len(A.ufl_shape) != 2:
             raise ValueError("Transposed is only defined for rank 2 tensors.")
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         s = self.ufl_operands[0].ufl_shape
         return (s[1], s[0])
 
     def __str__(self):
+        """Format as a string."""
         return "%s^T" % parstr(self.ufl_operands[0], self)
 
 
 @ufl_type(num_ops=2)
 class Outer(CompoundTensorOperator):
+    """Outer."""
+
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
+        """Create new Outer."""
         ash, bsh = a.ufl_shape, b.ufl_shape
         if isinstance(a, Zero) or isinstance(b, Zero):
             fi, fid = merge_nonoverlapping_indices(a, b)
@@ -121,6 +131,7 @@ class Outer(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (a, b))
         fi, fid = merge_nonoverlapping_indices(a, b)
         self.ufl_free_indices = fi
@@ -128,18 +139,23 @@ class Outer(CompoundTensorOperator):
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         return self.ufl_operands[0].ufl_shape + self.ufl_operands[1].ufl_shape
 
     def __str__(self):
+        """Format as a string."""
         return "%s (X) %s" % (parstr(self.ufl_operands[0], self),
                               parstr(self.ufl_operands[1], self))
 
 
 @ufl_type(num_ops=2)
 class Inner(CompoundTensorOperator):
+    """Inner."""
+
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
+        """Create new Inner."""
         # Checks
         ash, bsh = a.ufl_shape, b.ufl_shape
         if ash != bsh:
@@ -160,7 +176,7 @@ class Inner(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
-
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (a, b))
 
         fi, fid = merge_nonoverlapping_indices(a, b)
@@ -170,15 +186,19 @@ class Inner(CompoundTensorOperator):
     ufl_shape = ()
 
     def __str__(self):
+        """Format as a string."""
         return "%s : %s" % (parstr(self.ufl_operands[0], self),
                             parstr(self.ufl_operands[1], self))
 
 
 @ufl_type(num_ops=2)
 class Dot(CompoundTensorOperator):
+    """Dot."""
+
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
+        """Create new Dot."""
         ash = a.ufl_shape
         bsh = b.ufl_shape
         ar, br = len(ash), len(bsh)
@@ -203,6 +223,7 @@ class Dot(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (a, b))
         fi, fid = merge_nonoverlapping_indices(a, b)
         self.ufl_free_indices = fi
@@ -210,18 +231,23 @@ class Dot(CompoundTensorOperator):
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         return self.ufl_operands[0].ufl_shape[:-1] + self.ufl_operands[1].ufl_shape[1:]
 
     def __str__(self):
+        """Format as a string."""
         return "%s . %s" % (parstr(self.ufl_operands[0], self),
                             parstr(self.ufl_operands[1], self))
 
 
 @ufl_type(is_index_free=True, num_ops=1)
 class Perp(CompoundTensorOperator):
+    """Perp."""
+
     __slots__ = ()
 
     def __new__(cls, A):
+        """Create new Perp."""
         sh = A.ufl_shape
 
         # Checks
@@ -237,19 +263,24 @@ class Perp(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
     ufl_shape = (2,)
 
     def __str__(self):
+        """Format as a string."""
         return "perp(%s)" % self.ufl_operands[0]
 
 
 @ufl_type(num_ops=2)
 class Cross(CompoundTensorOperator):
+    """Cross."""
+
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
+        """Create new Cross."""
         ash = a.ufl_shape
         bsh = b.ufl_shape
 
@@ -267,6 +298,7 @@ class Cross(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (a, b))
         fi, fid = merge_nonoverlapping_indices(a, b)
         self.ufl_free_indices = fi
@@ -275,15 +307,19 @@ class Cross(CompoundTensorOperator):
     ufl_shape = (3,)
 
     def __str__(self):
+        """Format as a string."""
         return "%s x %s" % (parstr(self.ufl_operands[0], self),
                             parstr(self.ufl_operands[1], self))
 
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class Trace(CompoundTensorOperator):
+    """Trace."""
+
     __slots__ = ()
 
     def __new__(cls, A):
+        """Create new Trace."""
         # Checks
         if len(A.ufl_shape) != 2:
             raise ValueError("Trace of tensor with rank != 2 is undefined.")
@@ -295,19 +331,24 @@ class Trace(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
     ufl_shape = ()
 
     def __str__(self):
+        """Format as a string."""
         return "tr(%s)" % self.ufl_operands[0]
 
 
 @ufl_type(is_scalar=True, num_ops=1)
 class Determinant(CompoundTensorOperator):
+    """Determinant."""
+
     __slots__ = ()
 
     def __new__(cls, A):
+        """Create new Determinant."""
         sh = A.ufl_shape
         r = len(sh)
         Afi = A.ufl_free_indices
@@ -329,9 +370,11 @@ class Determinant(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
     def __str__(self):
+        """Format as a string."""
         return "det(%s)" % self.ufl_operands[0]
 
 
@@ -339,9 +382,12 @@ class Determinant(CompoundTensorOperator):
 # Cofactor?
 @ufl_type(is_index_free=True, num_ops=1)
 class Inverse(CompoundTensorOperator):
+    """Inverse."""
+
     __slots__ = ()
 
     def __new__(cls, A):
+        """Create new Inverse."""
         sh = A.ufl_shape
         r = len(sh)
 
@@ -364,21 +410,27 @@ class Inverse(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         return self.ufl_operands[0].ufl_shape
 
     def __str__(self):
+        """Format as a string."""
         return "%s^-1" % parstr(self.ufl_operands[0], self)
 
 
 @ufl_type(is_index_free=True, num_ops=1)
 class Cofactor(CompoundTensorOperator):
+    """Cofactor."""
+
     __slots__ = ()
 
     def __init__(self, A):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
         # Checks
@@ -394,17 +446,22 @@ class Cofactor(CompoundTensorOperator):
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         return self.ufl_operands[0].ufl_shape
 
     def __str__(self):
+        """Format as a string."""
         return "cofactor(%s)" % self.ufl_operands[0]
 
 
 @ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Deviatoric(CompoundTensorOperator):
+    """Deviatoric."""
+
     __slots__ = ()
 
     def __new__(cls, A):
+        """Create new Deviatoric."""
         sh = A.ufl_shape
 
         # Checks
@@ -422,17 +479,22 @@ class Deviatoric(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
     def __str__(self):
+        """Format as a string."""
         return "dev(%s)" % self.ufl_operands[0]
 
 
 @ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Skew(CompoundTensorOperator):
+    """Skew."""
+
     __slots__ = ()
 
     def __new__(cls, A):
+        """Create new Skew."""
         sh = A.ufl_shape
         Afi = A.ufl_free_indices
 
@@ -451,17 +513,22 @@ class Skew(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
     def __str__(self):
+        """Format as a string."""
         return "skew(%s)" % self.ufl_operands[0]
 
 
 @ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Sym(CompoundTensorOperator):
+    """Sym."""
+
     __slots__ = ()
 
     def __new__(cls, A):
+        """Create new Sym."""
         sh = A.ufl_shape
         Afi = A.ufl_free_indices
 
@@ -480,7 +547,9 @@ class Sym(CompoundTensorOperator):
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
+        """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
     def __str__(self):
+        """Format as a string."""
         return f"sym({self.ufl_operands[0]})"

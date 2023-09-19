@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module defines the IndexSum class."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -20,11 +19,12 @@ from ufl.precedence import parstr
 
 @ufl_type(num_ops=2)
 class IndexSum(Operator):
-    __slots__ = ("_dimension",
-                 "ufl_free_indices",
-                 "ufl_index_dimensions",)
+    """Index sum."""
+
+    __slots__ = ("_dimension", "ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, summand, index):
+        """Create a new IndexSum."""
         # Error checks
         if not isinstance(summand, Expr):
             raise ValueError(f"Expecting Expr instance, got {ufl_err_str(summand)}")
@@ -47,6 +47,7 @@ class IndexSum(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, summand, index):
+        """Initialise."""
         j, = index
         fi = summand.ufl_free_indices
         fid = summand.ufl_index_dimensions
@@ -57,16 +58,20 @@ class IndexSum(Operator):
         Operator.__init__(self, (summand, index))
 
     def index(self):
+        """Get index."""
         return self.ufl_operands[1][0]
 
     def dimension(self):
+        """Get dimension."""
         return self._dimension
 
     @property
     def ufl_shape(self):
+        """Get UFL shape."""
         return self.ufl_operands[0].ufl_shape
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         i, = self.ufl_operands[1]
         tmp = 0
         for k in range(self._dimension):
@@ -77,5 +82,6 @@ class IndexSum(Operator):
         return tmp
 
     def __str__(self):
+        """Format as a string."""
         return "sum_{%s} %s " % (str(self.ufl_operands[1]),
                                  parstr(self.ufl_operands[0], self))

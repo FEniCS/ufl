@@ -1,5 +1,8 @@
-"""This module contains the apply_restrictions algorithm which propagates
-restrictions in a form towards the terminals."""
+"""Apply restrictions.
+
+This module contains the apply_restrictions algorithm which propagates restrictions in a form
+towards the terminals.
+"""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -18,7 +21,10 @@ from ufl.sobolevspace import H1
 
 
 class RestrictionPropagator(MultiFunction):
+    """Restriction propagator."""
+
     def __init__(self, side=None):
+        """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
         self.default_restriction = "+"
@@ -30,7 +36,7 @@ class RestrictionPropagator(MultiFunction):
                         "-": RestrictionPropagator("-")}
 
     def restricted(self, o):
-        "When hitting a restricted quantity, visit child with a separate restriction algorithm."
+        """When hitting a restricted quantity, visit child with a separate restriction algorithm."""
         # Assure that we have only two levels here, inside or outside
         # the Restricted node
         if self.current_restriction is not None:
@@ -44,25 +50,27 @@ class RestrictionPropagator(MultiFunction):
     # --- Reusable rules
 
     def _ignore_restriction(self, o):
-        "Ignore current restriction, quantity is independent of side also from a computational point of view."
+        """Ignore current restriction, quantity is independent of side also from a computational point of view."""
         return o
 
     def _require_restriction(self, o):
-        "Restrict a discontinuous quantity to current side, require a side to be set."
+        """Restrict a discontinuous quantity to current side, require a side to be set."""
         if self.current_restriction is None:
             raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
         return o(self.current_restriction)
 
     def _default_restricted(self, o):
-        "Restrict a continuous quantity to default side if no current restriction is set."
+        """Restrict a continuous quantity to default side if no current restriction is set."""
         r = self.current_restriction
         if r is None:
             r = self.default_restriction
         return o(r)
 
     def _opposite(self, o):
-        """Restrict a quantity to default side, if the current restriction
-        is different swap the sign, require a side to be set."""
+        """Restrict a quantity to default side.
+
+        If the current restriction is different swap the sign, require a side to be set.
+        """
         if self.current_restriction is None:
             raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
         elif self.current_restriction == self.default_restriction:
@@ -71,6 +79,7 @@ class RestrictionPropagator(MultiFunction):
             return -o(self.default_restriction)
 
     def _missing_rule(self, o):
+        """Raise an error."""
         raise ValueError(f"Missing rule for {o._ufl_class_.__name__}")
 
     # --- Rules for operators
@@ -85,11 +94,11 @@ class RestrictionPropagator(MultiFunction):
     grad = _require_restriction
 
     def variable(self, o, op, label):
-        "Strip variable."
+        """Strip variable."""
         return op
 
     def reference_value(self, o):
-        "Reference value of something follows same restriction rule as the underlying object."
+        """Reference value of something follows same restriction rule as the underlying object."""
         f, = o.ufl_operands
         assert f._ufl_is_terminal_
         g = self(f)
@@ -129,15 +138,20 @@ class RestrictionPropagator(MultiFunction):
     reference_facet_volume = _ignore_restriction
 
     def coefficient(self, o):
-        """Allow coefficients to be unrestricted (apply default if so) if the values are
-        fully continuous across the facet."""
+        """Restrict a coefficient.
+
+        Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous
+        across the facet.
+        """
         if o.ufl_element() in H1:
             # If the coefficient _value_ is _fully_ continuous
-            return self._default_restricted(o)  # Must still be computed from one of the sides, we just don't care which
+            # It must still be computed from one of the sides, we just don't care which
+            return self._default_restricted(o)
         else:
             return self._require_restriction(o)
 
     def facet_normal(self, o):
+        """Restrict a facet_normal."""
         D = extract_unique_domain(o)
         e = D.ufl_coordinate_element()
         gd = D.geometric_dimension()
@@ -159,7 +173,7 @@ class RestrictionPropagator(MultiFunction):
 
 
 def apply_restrictions(expression):
-    "Propagate restriction nodes to wrap differential terminals directly."
+    """Propagate restriction nodes to wrap differential terminals directly."""
     integral_types = [k for k in integral_type_to_measure_name.keys()
                       if k.startswith("interior_facet")]
     rules = RestrictionPropagator()
@@ -168,7 +182,10 @@ def apply_restrictions(expression):
 
 
 class DefaultRestrictionApplier(MultiFunction):
+    """Default restriction applier."""
+
     def __init__(self, side=None):
+        """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
         self.default_restriction = "+"
@@ -177,6 +194,7 @@ class DefaultRestrictionApplier(MultiFunction):
                         "-": DefaultRestrictionApplier("-")}
 
     def terminal(self, o):
+        """Apply to terminal."""
         # Most terminals are unchanged
         return o
 
@@ -184,17 +202,19 @@ class DefaultRestrictionApplier(MultiFunction):
     operator = MultiFunction.reuse_if_untouched
 
     def restricted(self, o):
+        """Apply to restricted."""
         # Don't restrict twice
         return o
 
     def derivative(self, o):
+        """Apply to derivative."""
         # I don't think it's safe to just apply default restriction
         # to the argument of any derivative, i.e. grad(cg1_function)
         # is not continuous across cells even if cg1_function is.
         return o
 
     def _default_restricted(self, o):
-        "Restrict a continuous quantity to default side if no current restriction is set."
+        """Restrict a continuous quantity to default side if no current restriction is set."""
         r = self.current_restriction
         if r is None:
             r = self.default_restriction
@@ -219,7 +239,8 @@ class DefaultRestrictionApplier(MultiFunction):
 def apply_default_restrictions(expression):
     """Some terminals can be restricted from either side.
 
-    This applies a default restriction to such terminals if unrestricted."""
+    This applies a default restriction to such terminals if unrestricted.
+    """
     integral_types = [k for k in integral_type_to_measure_name.keys()
                       if k.startswith("interior_facet")]
     rules = DefaultRestrictionApplier()

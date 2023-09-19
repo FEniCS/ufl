@@ -1,31 +1,37 @@
-# -*- coding: utf-8 -*-
-"""Algorithm for replacing form arguments with 'stripped' versions where any
-data-carrying objects have been extracted to a mapping."""
+"""Algorithm for replacing form arguments with 'stripped' versions.
+
+In the stripped version, any data-carrying objects have been extracted to a mapping.
+"""
 
 from ufl.algorithms.replace import replace
-from ufl.classes import (Argument, Coefficient, Constant, Form, FunctionSpace,
-                         Integral, Mesh, MeshView, MixedFunctionSpace,
-                         TensorProductFunctionSpace)
+from ufl.classes import (Argument, Coefficient, Constant, Form, FunctionSpace, Integral, Mesh, MeshView,
+                         MixedFunctionSpace, TensorProductFunctionSpace)
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 
 
 class TerminalStripper(MultiFunction):
+    """Terminal stripper."""
+
     def __init__(self):
+        """Initialise."""
         super().__init__()
         self.mapping = {}
 
     def argument(self, o):
+        """Apply to argument."""
         o_new = Argument(strip_function_space(o.ufl_function_space()),
                          o.number(), o.part())
         return self.mapping.setdefault(o, o_new)
 
     def coefficient(self, o):
+        """Apply to coefficient."""
         o_new = Coefficient(strip_function_space(o.ufl_function_space()),
                             o.count())
         return self.mapping.setdefault(o, o_new)
 
     def constant(self, o):
+        """Apply to constant."""
         o_new = Constant(strip_domain(o.ufl_domain()), o.ufl_shape,
                          o.count())
         return self.mapping.setdefault(o, o_new)
@@ -34,18 +40,19 @@ class TerminalStripper(MultiFunction):
 
 
 def strip_terminal_data(o):
-    """Return a new form where all terminals have been replaced by UFL-only
-    equivalents.
-
-    :arg o: The object to be stripped. This must either be a :class:`~.Form`
-        or :class:`~.Integral`.
-    :returns: A 2-tuple containing an equivalent UFL-only object and a mapping
-        allowing the original form to be reconstructed using
-        :func:`replace_terminal_data`.
+    """Return a new form where all terminals have been replaced by UFL-only equivalents.
 
     This function is useful for forms containing augmented UFL objects that
     hold references to large data structures. These objects are be extracted
     into the mapping allowing the form to be cached without leaking memory.
+
+    Args:
+        o: The object to be stripped. This must either be a Form or Integral
+
+    Returns:
+        A 2-tuple containing an equivalent UFL-only object and a mapping
+        allowing the original form to be reconstructed using replace_terminal_data
+
     """
     # We need to keep track of two maps because integrals store references to the
     # domain and ``replace`` expects only a mapping containing ``Expr`` objects.
@@ -72,14 +79,15 @@ def strip_terminal_data(o):
 
 
 def replace_terminal_data(o, mapping):
-    """Return a new form where the terminals have been replaced using the
-    provided mapping.
+    """Return a new form where the terminals have been replaced using the provided mapping.
 
-    :arg o: The object to have its terminals replaced. This must either be a
-        :class:`~.Form` or :class:`~.Integral`.
-    :arg mapping: A mapping suitable for reconstructing the form such as the one
-        returned by :func:`strip_terminal_data`.
-    :returns: The new form.
+    Args:
+        o: The object to have its terminals replaced. This must either be a Form or Integral.
+        mapping: A mapping suitable for reconstructing the form such as the one
+            returned by strip_terminal_data.
+
+    Returns:
+        The new form.
     """
     if isinstance(o, Form):
         return Form([replace_terminal_data(itg, mapping) for itg in o.integrals()])
@@ -92,7 +100,7 @@ def replace_terminal_data(o, mapping):
 
 
 def strip_function_space(function_space):
-    "Return a new function space with all non-UFL information removed."
+    """Return a new function space with all non-UFL information removed."""
     if isinstance(function_space, FunctionSpace):
         return FunctionSpace(strip_domain(function_space.ufl_domain()),
                              function_space.ufl_element())
@@ -107,7 +115,7 @@ def strip_function_space(function_space):
 
 
 def strip_domain(domain):
-    "Return a new domain with all non-UFL information removed."
+    """Return a new domain with all non-UFL information removed."""
     if isinstance(domain, Mesh):
         return Mesh(domain.ufl_coordinate_element(), domain.ufl_id())
     elif isinstance(domain, MeshView):

@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"This module defines classes representing constant values."
+"""This module defines classes representing constant values."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -14,8 +13,7 @@ from math import atan2
 
 import ufl
 # --- Helper functions imported here for compatibility---
-from ufl.checks import (is_python_scalar, is_true_ufl_scalar,  # noqa: F401
-                        is_ufl_scalar)
+from ufl.checks import is_python_scalar, is_true_ufl_scalar, is_ufl_scalar  # noqa: F401
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal
@@ -26,7 +24,7 @@ precision = None
 
 
 def format_float(x):
-    "Format float value based on global UFL precision."
+    """Format float value based on global UFL precision."""
     if precision:
         return "{:.{prec}}".format(float(x), prec=precision)
     else:
@@ -37,35 +35,41 @@ def format_float(x):
 
 @ufl_type(is_abstract=True)
 class ConstantValue(Terminal):
+    """Constant value."""
+
     __slots__ = ()
 
     def __init__(self):
+        """Initialise."""
         Terminal.__init__(self)
 
     def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
+        """Return whether this expression is spatially constant over each cell."""
         return True
 
     def ufl_domains(self):
-        "Return tuple of domains related to this terminal object."
+        """Return tuple of domains related to this terminal object."""
         return ()
 
 
-# --- Class for representing zero tensors of different shapes ---
-
-# TODO: Add geometric dimension/domain and Argument dependencies to
-# Zero?
+# TODO: Add geometric dimension/domain and Argument dependencies to Zero?
 @ufl_type(is_literal=True)
 class Zero(ConstantValue):
-    "UFL literal type: Representation of a zero valued expression."
+    """Representation of a zero valued expression.
+
+    Class for representing zero tensors of different shapes.
+    """
+
     __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
 
     _cache = {}
 
     def __getnewargs__(self):
+        """Get new args."""
         return (self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
 
     def __new__(cls, shape=(), free_indices=(), index_dimensions=None):
+        """Create new Zero."""
         if free_indices:
             self = ConstantValue.__new__(cls)
         else:
@@ -78,9 +82,11 @@ class Zero(ConstantValue):
         return self
 
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
+        """Initialise."""
         pass
 
     def _init(self, shape=(), free_indices=(), index_dimensions=None):
+        """Initialise."""
         ConstantValue.__init__(self)
 
         if not all(isinstance(i, int) for i in shape):
@@ -112,9 +118,11 @@ class Zero(ConstantValue):
             self.ufl_index_dimensions = index_dimensions
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         return 0.0
 
     def __str__(self):
+        """Format as a string."""
         if self.ufl_shape == () and self.ufl_free_indices == ():
             return "0"
         if self.ufl_free_indices == ():
@@ -124,6 +132,7 @@ class Zero(ConstantValue):
         return "0 (shape %s, index labels %s)" % (self.ufl_shape, self.ufl_free_indices)
 
     def __repr__(self):
+        """Representation."""
         r = "Zero(%s, %s, %s)" % (
             repr(self.ufl_shape),
             repr(self.ufl_free_indices),
@@ -131,6 +140,7 @@ class Zero(ConstantValue):
         return r
 
     def __eq__(self, other):
+        """Check equalty."""
         if isinstance(other, Zero):
             if self is other:
                 return True
@@ -143,27 +153,34 @@ class Zero(ConstantValue):
             return False
 
     def __neg__(self):
+        """Negate."""
         return self
 
     def __abs__(self):
+        """Absolute value."""
         return self
 
     def __bool__(self):
+        """Convert to a bool."""
         return False
+
     __nonzero__ = __bool__
 
     def __float__(self):
+        """Convert to a float."""
         return 0.0
 
     def __int__(self):
+        """Convert to an int."""
         return 0
 
     def __complex__(self):
+        """Convert to a complex number."""
         return 0 + 0j
 
 
 def zero(*shape):
-    "UFL literal constant: Return a zero tensor with the given shape."
+    """UFL literal constant: Return a zero tensor with the given shape."""
     if len(shape) == 1 and isinstance(shape[0], tuple):
         return Zero(shape[0])
     else:
@@ -174,21 +191,27 @@ def zero(*shape):
 
 @ufl_type(is_abstract=True, is_scalar=True)
 class ScalarValue(ConstantValue):
-    "A constant scalar value."
+    """A constant scalar value."""
+
     __slots__ = ("_value",)
 
     def __init__(self, value):
+        """Initialise."""
         ConstantValue.__init__(self)
         self._value = value
 
     def value(self):
+        """Get the value."""
         return self._value
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         return self._value
 
     def __eq__(self, other):
-        """This is implemented to allow comparison with python scalars.
+        """Check equalty.
+
+        This is implemented to allow comparison with python scalars.
 
         Note that this will make IntValue(1) != FloatValue(1.0),
         but ufl-python comparisons like
@@ -207,39 +230,50 @@ class ScalarValue(ConstantValue):
             return False
 
     def __str__(self):
+        """Format as a string."""
         return str(self._value)
 
     def __float__(self):
+        """Convert to a float."""
         return float(self._value)
 
     def __int__(self):
+        """Convert to an int."""
         return int(self._value)
 
     def __complex__(self):
+        """Convert to a complex number."""
         return complex(self._value)
 
     def __neg__(self):
+        """Negate."""
         return type(self)(-self._value)
 
     def __abs__(self):
+        """Absolute value."""
         return type(self)(abs(self._value))
 
     def real(self):
+        """Real part."""
         return self._value.real
 
     def imag(self):
+        """Imaginary part."""
         return self._value.imag
 
 
 @ufl_type(wraps_type=complex, is_literal=True)
 class ComplexValue(ScalarValue):
-    "UFL literal type: Representation of a constant, complex scalar"
+    """Representation of a constant, complex scalar."""
+
     __slots__ = ()
 
     def __getnewargs__(self):
+        """Get new args."""
         return (self._value,)
 
     def __new__(cls, value):
+        """Create a new ComplexValue."""
         if value.imag == 0:
             if value.real == 0:
                 return Zero()
@@ -249,64 +283,78 @@ class ComplexValue(ScalarValue):
             return ConstantValue.__new__(cls)
 
     def __init__(self, value):
+        """Initialise."""
         ScalarValue.__init__(self, complex(value))
 
     def modulus(self):
+        """Get the modulus."""
         return abs(self.value())
 
     def argument(self):
+        """Get the argument."""
         return atan2(self.value().imag, self.value().real)
 
     def __repr__(self):
+        """Representation."""
         r = "%s(%s)" % (type(self).__name__, repr(self._value))
         return r
 
     def __float__(self):
+        """Convert to a float."""
         raise TypeError("ComplexValues cannot be cast to float")
 
     def __int__(self):
+        """Convert to an int."""
         raise TypeError("ComplexValues cannot be cast to int")
 
 
 @ufl_type(is_abstract=True, is_scalar=True)
 class RealValue(ScalarValue):
-    "Abstract class used to differentiate real values from complex ones"
+    """Abstract class used to differentiate real values from complex ones."""
+
     __slots__ = ()
 
 
 @ufl_type(wraps_type=float, is_literal=True)
 class FloatValue(RealValue):
-    "UFL literal type: Representation of a constant scalar floating point value."
+    """Representation of a constant scalar floating point value."""
+
     __slots__ = ()
 
     def __getnewargs__(self):
+        """Get new args."""
         return (self._value,)
 
     def __new__(cls, value):
+        """Create a new FloatValue."""
         if value == 0.0:
             # Always represent zero with Zero
             return Zero()
         return ConstantValue.__new__(cls)
 
     def __init__(self, value):
+        """Initialise."""
         super(FloatValue, self).__init__(float(value))
 
     def __repr__(self):
+        """Representation."""
         r = "%s(%s)" % (type(self).__name__, format_float(self._value))
         return r
 
 
 @ufl_type(wraps_type=int, is_literal=True)
 class IntValue(RealValue):
-    "UFL literal type: Representation of a constant scalar integer value."
+    """Representation of a constant scalar integer value."""
     __slots__ = ()
 
     _cache = {}
 
     def __getnewargs__(self):
+        """Get new args."""
         return (self._value,)
 
     def __new__(cls, value):
+        """Create a new IntValue."""
         if value == 0:
             # Always represent zero with Zero
             return Zero()
@@ -324,12 +372,15 @@ class IntValue(RealValue):
         return self
 
     def _init(self, value):
+        """Initialise."""
         super(IntValue, self).__init__(int(value))
 
     def __init__(self, value):
+        """Initialise."""
         pass
 
     def __repr__(self):
+        """Representation."""
         r = "%s(%s)" % (type(self).__name__, repr(self._value))
         return r
 
@@ -338,20 +389,22 @@ class IntValue(RealValue):
 
 @ufl_type()
 class Identity(ConstantValue):
-    "UFL literal type: Representation of an identity matrix."
+    """Representation of an identity matrix."""
     __slots__ = ("_dim", "ufl_shape")
 
     def __init__(self, dim):
+        """Initialise."""
         ConstantValue.__init__(self)
         self._dim = dim
         self.ufl_shape = (dim, dim)
 
     def evaluate(self, x, mapping, component, index_values):
-        "Evaluates the identity matrix on the given components."
+        """Evaluate."""
         a, b = component
         return 1 if a == b else 0
 
     def __getitem__(self, key):
+        """Get an item."""
         if len(key) != 2:
             raise ValueError("Size mismatch for Identity.")
         if all(isinstance(k, (int, FixedIndex)) for k in key):
@@ -359,13 +412,16 @@ class Identity(ConstantValue):
         return Expr.__getitem__(self, key)
 
     def __str__(self):
+        """Format as a string."""
         return "I"
 
     def __repr__(self):
+        """Representation."""
         r = "Identity(%d)" % self._dim
         return r
 
     def __eq__(self, other):
+        """Check equalty."""
         return isinstance(other, Identity) and self._dim == other._dim
 
 
@@ -373,22 +429,26 @@ class Identity(ConstantValue):
 
 @ufl_type()
 class PermutationSymbol(ConstantValue):
-    """UFL literal type: Representation of a permutation symbol.
+    """Representation of a permutation symbol.
 
     This is also known as the Levi-Civita symbol, antisymmetric symbol,
-    or alternating symbol."""
+    or alternating symbol.
+    """
+
     __slots__ = ("ufl_shape", "_dim")
 
     def __init__(self, dim):
+        """Initialise."""
         ConstantValue.__init__(self)
         self._dim = dim
         self.ufl_shape = (dim,) * dim
 
     def evaluate(self, x, mapping, component, index_values):
-        "Evaluates the permutation symbol."
+        """Evaluate."""
         return self.__eps(component)
 
     def __getitem__(self, key):
+        """Get an item."""
         if len(key) != self._dim:
             raise ValueError("Size mismatch for PermutationSymbol.")
         if all(isinstance(k, (int, FixedIndex)) for k in key):
@@ -396,19 +456,23 @@ class PermutationSymbol(ConstantValue):
         return Expr.__getitem__(self, key)
 
     def __str__(self):
+        """Format as a string."""
         return "eps"
 
     def __repr__(self):
+        """Representation."""
         r = "PermutationSymbol(%d)" % self._dim
         return r
 
     def __eq__(self, other):
+        """Check equalty."""
         return isinstance(other, PermutationSymbol) and self._dim == other._dim
 
     def __eps(self, x):
-        """This function body is taken from
-        http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita
+        """Get eps.
 
+        This function body is taken from
+        http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita
         """
         result = IntValue(1)
         for i, x1 in enumerate(x):
@@ -422,7 +486,7 @@ class PermutationSymbol(ConstantValue):
 
 
 def as_ufl(expression):
-    "Converts expression to an Expr if possible."
+    """Converts expression to an Expr if possible."""
     if isinstance(expression, (Expr, ufl.BaseForm)):
         return expression
     elif isinstance(expression, complex):

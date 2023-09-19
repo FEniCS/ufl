@@ -6,8 +6,7 @@ from itertools import chain
 import pytest
 
 from ufl import *
-from ufl.algorithms import (compute_form_data, expand_indices, post_traversal,
-                            strip_variables)
+from ufl.algorithms import compute_form_data, expand_indices, post_traversal, strip_variables
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering

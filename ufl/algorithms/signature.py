@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Signature computation for forms."""
-
 # Copyright (C) 2012-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -10,14 +8,13 @@
 import hashlib
 
 from ufl.algorithms.domain_analysis import canonicalize_metadata
-from ufl.classes import (Argument, Coefficient, Constant, ConstantValue,
-                         ExprList, ExprMapping, GeometricQuantity, Index,
-                         Label, MultiIndex)
-from ufl.corealg.traversal import (traverse_unique_terminals,
-                                   unique_post_traversal)
+from ufl.classes import (Argument, Coefficient, Constant, ConstantValue, ExprList, ExprMapping, GeometricQuantity,
+                         Index, Label, MultiIndex)
+from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
 
 
 def compute_multiindex_hashdata(expr, index_numbering):
+    """Compute multiindex hashdata."""
     data = []
     for i in expr:
         if isinstance(i, Index):
@@ -34,7 +31,7 @@ def compute_multiindex_hashdata(expr, index_numbering):
 
 
 def compute_terminal_hashdata(expressions, renumbering):
-
+    """Compute terminal hashdata."""
     if not isinstance(expressions, list):
         expressions = [expressions]
     assert renumbering is not None
@@ -87,6 +84,7 @@ def compute_terminal_hashdata(expressions, renumbering):
 
 
 def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
+    """Compute expression hashdata."""
     cache = {}
 
     for expr in unique_post_traversal(expression):
@@ -105,6 +103,7 @@ def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
 
 
 def compute_expression_signature(expr, renumbering):  # FIXME: Fix callers
+    """Compute expression signature."""
     # FIXME: Rewrite in terms of compute_form_signature?
 
     # Build hashdata for all terminals first
@@ -119,6 +118,7 @@ def compute_expression_signature(expr, renumbering):  # FIXME: Fix callers
 
 
 def compute_form_signature(form, renumbering):  # FIXME: Fix callers
+    """Compute form signature."""
     # Extract integrands
     integrals = form.integrals()
     integrands = [integral.integrand() for integral in integrals]

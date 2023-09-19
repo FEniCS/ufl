@@ -1,4 +1,6 @@
-"""The Unified Form Language is an embedded domain specific language
+"""UFL: The Unified Form Language.
+
+The Unified Form Language is an embedded domain specific language
 for definition of variational forms intended for finite element
 discretization. More precisely, it defines a fixed interface for choosing
 finite element spaces and defining expressions for weak forms in a
@@ -170,7 +172,7 @@ A very brief overview of the language contents follows:
     - sqrt
     - exp, ln, erf
     - cos, sin, tan
-    - acos, asin, atan, atan_2
+    - acos, asin, atan, atan2
     - cosh, sinh, tanh
     - bessel_J, bessel_Y, bessel_I, bessel_K
 
@@ -225,6 +227,7 @@ A very brief overview of the language contents follows:
 # Modified by Lawrence Mitchell, 2014
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
+# Modified by Nacime Bouziani, 2019
 
 import importlib.metadata
 
@@ -235,8 +238,7 @@ from math import e, pi
 import ufl.exproperators as __exproperators
 from ufl.action import Action
 from ufl.adjoint import Adjoint
-from ufl.argument import (Argument, Arguments, Coargument, TestFunction,
-                          TestFunctions, TrialFunction, TrialFunctions)
+from ufl.argument import Argument, Arguments, Coargument, TestFunction, TestFunctions, TrialFunction, TrialFunctions
 from ufl.cell import AbstractCell, Cell, TensorProductCell, as_cell
 from ufl.coefficient import Coefficient, Coefficients, Cofunction
 from ufl.constant import Constant, TensorConstant, VectorConstant
@@ -245,38 +247,27 @@ from ufl.core.multiindex import Index, indices
 from ufl.domain import AbstractDomain, Mesh, MeshView, as_domain
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
-from ufl.formoperators import (action, adjoint, derivative, energy_norm,
-                               extract_blocks, functional, lhs, replace, rhs,
+from ufl.formoperators import (action, adjoint, derivative, energy_norm, extract_blocks, functional, lhs, replace, rhs,
                                sensitivity_rhs, system)
 from ufl.functionspace import FunctionSpace, MixedFunctionSpace
-from ufl.geometry import (CellDiameter, CellNormal, CellVolume, Circumradius,
-                          FacetArea, FacetNormal, Jacobian,
-                          JacobianDeterminant, JacobianInverse,
-                          MaxCellEdgeLength, MaxFacetEdgeLength,
-                          MinCellEdgeLength, MinFacetEdgeLength,
-                          SpatialCoordinate)
+from ufl.geometry import (CellDiameter, CellNormal, CellVolume, Circumradius, FacetArea, FacetNormal, Jacobian,
+                          JacobianDeterminant, JacobianInverse, MaxCellEdgeLength, MaxFacetEdgeLength,
+                          MinCellEdgeLength, MinFacetEdgeLength, SpatialCoordinate)
 from ufl.integral import Integral
 from ufl.matrix import Matrix
-from ufl.measure import (Measure, custom_integral_types, integral_types,
-                         register_integral_type)
-from ufl.objects import (dc, dC, dI, dO, dP, ds, dS, ds_b, dS_h, ds_t, ds_tb,
-                         ds_v, dS_v, dx, dX, facet, hexahedron, i, interval, j,
-                         k, l, p, pentatope, prism, pyramid, q, quadrilateral,
-                         r, s, tesseract, tetrahedron, triangle, vertex)
-from ufl.operators import (And, Dn, Dx, Not, Or, acos, asin, atan, atan_2, avg,
-                           bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg,
-                           cofac, conditional, conj, cos, cosh, cross, curl,
-                           det, dev, diag, diag_vector, diff, div, dot,
-                           elem_div, elem_mult, elem_op, elem_pow, eq, erf,
-                           exp, exterior_derivative, facet_avg, ge, grad, gt,
-                           imag, inner, inv, jump, le, ln, lt, max_value,
-                           min_value, nabla_div, nabla_grad, ne, outer, perp,
-                           rank, real, rot, shape, sign, sin, sinh, skew, sqrt,
-                           sym, tan, tanh, tr, transpose, variable)
+from ufl.measure import Measure, custom_integral_types, integral_types, register_integral_type
+from ufl.objects import (dc, dC, dI, dO, dP, ds, dS, ds_b, dS_h, ds_t, ds_tb, ds_v, dS_v, dx, dX, facet, hexahedron, i,
+                         interval, j, k, l, p, pentatope, prism, pyramid, q, quadrilateral, r, s, tesseract,
+                         tetrahedron, triangle, vertex)
+from ufl.operators import (And, Dn, Dx, Not, Or, acos, asin, atan, atan_2, avg, bessel_I, bessel_J, bessel_K, bessel_Y,
+                           cell_avg, cofac, conditional, conj, cos, cosh, cross, curl, det, dev, diag, diag_vector,
+                           diff, div, dot, elem_div, elem_mult, elem_op, elem_pow, eq, erf, exp, exterior_derivative,
+                           facet_avg, ge, grad, gt, imag, inner, inv, jump, le, ln, lt, max_value, min_value, nabla_div,
+                           nabla_grad, ne, outer, perp, rank, real, rot, shape, sign, sin, sinh, skew, sqrt, sym, tan,
+                           tanh, tr, transpose, variable)
 from ufl.sobolevspace import H1, H2, L2, HCurl, HDiv, HDivDiv, HEin, HInf
 from ufl.split_functions import split
-from ufl.tensors import (as_matrix, as_tensor, as_vector, unit_matrices,
-                         unit_matrix, unit_vector, unit_vectors)
+from ufl.tensors import as_matrix, as_tensor, as_vector, unit_matrices, unit_matrix, unit_vector, unit_vectors
 from ufl.utils.sequences import product
 
 __all__ = [
@@ -296,6 +287,8 @@ __all__ = [
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Cofunction', 'Coefficients',
     'Matrix', 'Adjoint', 'Action',
+    'Interpolate', 'interpolate',
+    'ExternalOperator',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
@@ -308,7 +301,7 @@ __all__ = [
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',
     'sqrt', 'exp', 'ln', 'erf',
     'cos', 'sin', 'tan',
-    'acos', 'asin', 'atan', 'atan_2',
+    'acos', 'asin', 'atan', 'atan2',
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',

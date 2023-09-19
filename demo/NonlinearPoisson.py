@@ -1,5 +1,4 @@
-from ufl import (Coefficient, TestFunction, TrialFunction, dot, dx, grad,
-                 triangle)
+from ufl import Coefficient, TestFunction, TrialFunction, dot, dx, grad, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

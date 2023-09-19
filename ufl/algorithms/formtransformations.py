@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""This module defines utilities for transforming
-complete Forms into new related Forms."""
+"""This module defines utilities for transforming complete Forms into new related Forms."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -29,6 +27,7 @@ from ufl.core.expr import ufl_err_str
 
 # FIXME: Don't use this below, it makes partextracter more expensive than necessary
 def _expr_has_terminal_types(expr, ufl_types):
+    """Check if an expression has terminal types."""
     input = [expr]
     while input:
         e = input.pop()
@@ -41,22 +40,23 @@ def _expr_has_terminal_types(expr, ufl_types):
 
 
 def zero_expr(e):
+    """Create a zero expression."""
     return Zero(e.ufl_shape, e.ufl_free_indices, e.ufl_index_dimensions)
 
 
 class PartExtracter(Transformer):
-    """
-    PartExtracter extracts those parts of a form that contain the
-    given argument(s).
-    """
+    """PartExtracter extracts those parts of a form that contain the given argument(s)."""
 
     def __init__(self, arguments):
+        """Initialise."""
         Transformer.__init__(self)
         self._want = set(arguments)
 
     def expr(self, x):
-        """The default is a nonlinear operator not accepting any
-        Arguments among its children."""
+        """Apply to expr.
+
+        The default is a nonlinear operator not accepting any Arguments among its children.
+        """
         if _expr_has_terminal_types(x, Argument):
             raise ValueError(f"Found Argument in {ufl_err_str(x)}, this is an invalid expression.")
         return (x, set())
@@ -66,8 +66,7 @@ class PartExtracter(Transformer):
     terminal = expr
 
     def variable(self, x):
-        "Return relevant parts of this variable."
-
+        """Return relevant parts of this variable."""
         # Extract parts/provides from this variable's expression
         expression, label = x.ufl_operands
         part, provides = self.visit(expression)
@@ -83,8 +82,7 @@ class PartExtracter(Transformer):
         return (x, provides)
 
     def argument(self, x):
-        "Return itself unless itself provides too much."
-
+        """Return itself unless itself provides too much."""
         # An argument provides itself
         provides = {x}
 
@@ -95,9 +93,7 @@ class PartExtracter(Transformer):
         return (x, provides)
 
     def sum(self, x):
-        """
-        Return the terms that might eventually yield the correct
-        parts(!)
+        """Return the terms that might eventually yield the correct parts(!).
 
         The logic required for sums is a bit elaborate:
 
@@ -119,9 +115,8 @@ class PartExtracter(Transformer):
         3) Bottom-line: if there are terms with providing different
         arguments -- provide terms that contain the most arguments. If
         there are terms providing different sets of same size -> throw
-        error (e.g. Argument(-1) + Argument(-2))
+        error (e.g. Argument(-1) + Argument(-2)).
         """
-
         parts_that_provide = {}
 
         # 1. Skip terms that provide too much
@@ -168,9 +163,11 @@ class PartExtracter(Transformer):
         return (x, most_provided)
 
     def product(self, x, *ops):
-        """ Note: Product is a visit-children-first handler. ops are
-        the visited factors."""
+        """Apply to product.
 
+        Note: Product is a visit-children-first handler. ops are
+        the visited factors.
+        """
         provides = set()
         factors = []
 
@@ -199,8 +196,7 @@ class PartExtracter(Transformer):
     dot = product
 
     def division(self, x):
-        "Return parts_of_numerator/denominator."
-
+        """Return parts_of_numerator/denominator."""
         # Get numerator and denominator
         numerator, denominator = x.ufl_operands
 
@@ -223,9 +219,11 @@ class PartExtracter(Transformer):
         return (x, provides)
 
     def linear_operator(self, x, arg):
-        """A linear operator with a single operand accepting arity > 0,
-        providing whatever Argument its operand does."""
+        """Apply to linear_operator.
 
+        A linear operator with a single operand accepting arity > 0,
+        providing whatever Argument its operand does.
+        """
         # linear_operator is a visit-children-first handler. Handled
         # arguments are in arg.
         part, provides = arg
@@ -256,9 +254,7 @@ class PartExtracter(Transformer):
     imag = linear_operator
 
     def linear_indexed_type(self, x):
-        """Return parts of expression belonging to this indexed
-        expression."""
-
+        """Return parts of expression belonging to this indexed expression."""
         expression, index = x.ufl_operands
         part, provides = self.visit(expression)
 
@@ -278,6 +274,7 @@ class PartExtracter(Transformer):
     component_tensor = linear_indexed_type
 
     def list_tensor(self, x, *ops):
+        """Apply to list_tensor."""
         # list_tensor is a visit-children-first handler. ops contains
         # the visited operands with their provides. (It follows that
         # none of the visited operands provide more than wanted.)
@@ -306,7 +303,6 @@ class PartExtracter(Transformer):
 
 def compute_form_with_arity(form, arity, arguments=None):
     """Compute parts of form of given arity."""
-
     # Extract all arguments in form
     if arguments is None:
         arguments = form.arguments()
@@ -316,7 +312,7 @@ def compute_form_with_arity(form, arity, arguments=None):
         raise ValueError("compute_form_with_arity cannot handle parts.")
 
     if len(arguments) < arity:
-        warnings.warn("Form has no parts with arity %d." % arity)
+        warnings.warn(f"Form has no parts with arity {arity}.")
         return 0 * form
 
     # Assuming that the form is not a sum of terms
@@ -336,7 +332,6 @@ def compute_form_with_arity(form, arity, arguments=None):
 
 def compute_form_arities(form):
     """Return set of arities of terms present in form."""
-
     # Extract all arguments present in form
     arguments = form.arguments()
 
@@ -361,10 +356,8 @@ def compute_form_lhs(form):
     """Compute the left hand side of a form.
 
     Example:
-    -------
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
-
     """
     return compute_form_with_arity(form, 2)
 
@@ -373,19 +366,17 @@ def compute_form_rhs(form):
     """Compute the right hand side of a form.
 
     Example:
-    -------
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
-
     """
     return -compute_form_with_arity(form, 1)
 
 
 def compute_form_functional(form):
-    """Compute the functional part of a form, that
-    is the terms independent of Arguments.
+    """Compute the functional part of a form, that is the terms independent of Arguments.
 
-    (Used for testing, not sure if it's useful for anything?)"""
+    (Used for testing, not sure if it's useful for anything?)
+    """
     return compute_form_with_arity(form, 0)
 
 

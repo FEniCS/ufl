@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """A collection of utility algorithms for handling UFL files."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -24,7 +23,10 @@ from ufl.utils.sorting import sorted_by_key
 
 
 class FileData(object):
+    """File data."""
+
     def __init__(self):
+        """Initialise."""
         self.elements = []
         self.coefficients = []
         self.expressions = []
@@ -34,6 +36,7 @@ class FileData(object):
         self.reserved_objects = {}
 
     def __bool__(self):
+        """Convert to a bool."""
         return bool(self.elements or self.coefficients or self.forms or self.expressions or  # noqa: W504
                     self.object_names or self.object_by_name or self.reserved_objects)
 
@@ -41,9 +44,11 @@ class FileData(object):
 
 
 def read_lines_decoded(fn):
+    """Read decoded lines of a UFL file."""
     r = re.compile(b".*coding: *([^ ]+)")
 
     def match(line):
+        """Match."""
         return r.match(line, re.ASCII)
 
     # First read lines as bytes
@@ -69,7 +74,7 @@ def read_lines_decoded(fn):
 
 
 def read_ufl_file(filename):
-    "Read a UFL file."
+    """Read a UFL file."""
     if not os.path.exists(filename):
         raise ValueError(f"File '{filename}' doesn't exist.")
     lines = read_lines_decoded(filename)
@@ -78,14 +83,14 @@ def read_ufl_file(filename):
 
 
 def execute_ufl_code(uflcode):
-    # Execute code
+    """Execute code."""
     namespace = {}
     exec(uflcode, namespace)
     return namespace
 
 
 def interpret_ufl_namespace(namespace):
-    "Takes a namespace dict from an executed ufl file and converts it to a FileData object."
+    """Take a namespace dict from an executed ufl file and convert it to a FileData object."""
     # Object to hold all returned data
     ufd = FileData()
 
@@ -172,7 +177,7 @@ def interpret_ufl_namespace(namespace):
 
 
 def load_ufl_file(filename):
-    "Load a UFL file with elements, coefficients, expressions and forms."
+    """Load a UFL file with elements, coefficients, expressions and forms."""
     # Read code from file and execute it
     uflcode = read_ufl_file(filename)
     namespace = execute_ufl_code(uflcode)
@@ -180,6 +185,6 @@ def load_ufl_file(filename):
 
 
 def load_forms(filename):
-    "Return a list of all forms in a file."
+    """Return a list of all forms in a file."""
     ufd = load_ufl_file(filename)
     return ufd.forms

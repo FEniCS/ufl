@@ -3,8 +3,7 @@
 # Modified by: Martin Sandve Alnes
 # Date: 2009-02-12
 #
-from ufl import (FacetNormal, TestFunctions, TrialFunctions, div, dot, ds, dx,
-                 tetrahedron)
+from ufl import FacetNormal, TestFunctions, TrialFunctions, div, dot, ds, dx, tetrahedron
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1, HDiv
 

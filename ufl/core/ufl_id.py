@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"Utilites for types with a globally counted unique id attached to each object."
+"""Utilites for types with a globally counted unique id attached to each object."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -40,11 +39,11 @@ def attach_ufl_id(cls):
     """
 
     def _get_ufl_id(self):
-        "Return the ufl_id of this object."
+        """Return the ufl_id of this object."""
         return self._ufl_id
 
     def _init_ufl_id(cls):
-        "Initialize new ufl_id for the object under construction."
+        """Initialize new ufl_id for the object under construction."""
         # Bind cls with closure here
 
         def init_ufl_id(self, ufl_id):

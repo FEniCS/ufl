@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"Various utility data structures."
+"""Various utility data structures."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -12,12 +11,15 @@ class Stack(list):
     """A stack datastructure."""
 
     def __init__(self, *args):
+        """Initialise."""
         list.__init__(self, *args)
 
     def push(self, v):
+        """Push."""
         list.append(self, v)
 
     def peek(self):
+        """Peek."""
         return self[-1]
 
 
@@ -25,6 +27,7 @@ class StackDict(dict):
     """A dict that can be changed incrementally with 'd.push(k,v)' and have changes rolled back with 'k,v = d.pop()'."""
 
     def __init__(self, *args, **kwargs):
+        """Initialise."""
         dict.__init__(self, *args, **kwargs)
         self._l = []
 

@@ -3,13 +3,10 @@
 
 import numpy
 
-from ufl import (Cell, Coefficient, as_domain, as_tensor, as_vector, indices,
-                 triangle)
-from ufl.algorithms.apply_function_pullbacks import \
-    apply_single_function_pullbacks
+from ufl import Cell, Coefficient, as_domain, as_tensor, as_vector, indices, triangle
+from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import (CellOrientation, Jacobian, JacobianDeterminant,
-                         JacobianInverse, ReferenceValue)
+from ufl.classes import CellOrientation, Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
 

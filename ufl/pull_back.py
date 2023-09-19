@@ -1,6 +1,6 @@
 """Pull back and push forward maps."""
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 
 class NonStandardPullBackException(BaseException):
@@ -10,6 +10,7 @@ class NonStandardPullBackException(BaseException):
 
 class AbstractPullBack(ABC):
     """An abstract pull back."""
+
     def apply(self, expr: Expression) -> Expression:
         """Apply the pull back.
 

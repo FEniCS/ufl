@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Basic algorithms for applying functions to subexpressions."""
-
 # Copyright (C) 2014-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -11,28 +9,27 @@
 
 from ufl.core.expr import Expr
 from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.traversal import (cutoff_unique_post_traversal,
-                                   unique_post_traversal)
+from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_post_traversal
 
 
-def map_expr_dag(function, expression,
-                 compress=True,
-                 vcache=None,
-                 rcache=None):
+def map_expr_dag(function, expression,  compress=True, vcache=None, rcache=None):
     """Apply a function to each subexpression node in an expression DAG.
-
-    If *compress* is ``True`` (default) the output object from
-    the function is cached in a ``dict`` and reused such that the
-    resulting expression DAG does not contain duplicate objects.
 
     If the same funtion is called multiple times in a transformation
     (as for example in apply_derivatives), then to reuse caches across
-    the call, provide these two arguments:
+    the call, use the arguments vcache and rcache.
 
-    :arg vcache: Optional dict for caching results of intermediate transformations
-    :arg rcache: Optional dict for caching results for compression.
+    Args:
+        function: The function
+        expression: An expression
+        compress: If True (default), the output object from
+            the function is cached in a dict and reused such that the
+            resulting expression DAG does not contain duplicate objects
+        vcache: Optional dict for caching results of intermediate transformations
+        rcache: Optional dict for caching results for compression
 
-    Return the result of the final function call.
+    Returns:
+        The result of the final function call
     """
     result, = map_expr_dags(function, [expression], compress=compress,
                             vcache=vcache,
@@ -40,10 +37,7 @@ def map_expr_dag(function, expression,
     return result
 
 
-def map_expr_dags(function, expressions,
-                  compress=True,
-                  vcache=None,
-                  rcache=None):
+def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None):
     """Apply a function to each subexpression node in an expression DAG.
 
     If *compress* is ``True`` (default) the output object from
@@ -52,14 +46,20 @@ def map_expr_dags(function, expressions,
 
     If the same funtion is called multiple times in a transformation
     (as for example in apply_derivatives), then to reuse caches across
-    the call, provide these two arguments:
+    the call, use the arguments vcache and rcache.
 
-    :arg vcache: Optional dict for caching results of intermediate transformations
-    :arg rcache: Optional dict for caching results for compression.
+    Args:
+        function: The function
+        expression: An expression
+        compress: If True (default), the output object from
+            the function is cached in a dict and reused such that the
+            resulting expression DAG does not contain duplicate objects
+        vcache: Optional dict for caching results of intermediate transformations
+        rcache: Optional dict for caching results for compression
 
-    Return a list with the result of the final function call for each expression.
+    Returns:
+        a list with the result of the final function call for each expression
     """
-
     # Temporary data structures
     # expr -> r = function(expr,...),  cache of intermediate results
     vcache = {} if vcache is None else vcache

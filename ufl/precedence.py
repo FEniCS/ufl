@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"Precedence handling."
+"""Precedence handling."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -13,6 +12,7 @@ import warnings
 
 
 def parstr(child, parent, pre="(", post=")", format=str):
+    """Parstr."""
     # Execute when needed instead of on import, which leads to all
     # kinds of circular trouble.  Fixing this could be an optimization
     # of str(expr) though.
@@ -40,9 +40,9 @@ def parstr(child, parent, pre="(", post=")", format=str):
 
 
 def build_precedence_list():
-    from ufl.classes import (Abs, BesselFunction, Division, Indexed, IndexSum,
-                             MathFunction, Operator, Power, Product, Sum,
-                             Terminal)
+    """Build precedence list."""
+    from ufl.classes import (Abs, BesselFunction, Division, Indexed, IndexSum, MathFunction, Operator, Power, Product,
+                             Sum, Terminal)
 
     # TODO: Fill in other types...
     # Power <= Transposed
@@ -71,6 +71,7 @@ def build_precedence_list():
 
 def build_precedence_mapping(precedence_list):
     """Given a precedence list, build a dict with class->int mappings.
+
     Utility function used by some external code.
     """
     from ufl.classes import Expr, abstract_classes, all_ufl_classes
@@ -97,7 +98,7 @@ def build_precedence_mapping(precedence_list):
 
 
 def assign_precedences(precedence_list):
-    "Given a precedence list, assign ints to class._precedence."
+    """Given a precedence list, assign ints to class._precedence."""
     pm, missing = build_precedence_mapping(precedence_list)
     for c, p in sorted(pm.items(), key=lambda x: x[0].__name__):
         c._precedence = p

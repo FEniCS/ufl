@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Various sequence manipulation utilities."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs

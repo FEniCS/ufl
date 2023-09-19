@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"Basic algebra operations."
-
+"""Basic algebra operations."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -10,8 +8,7 @@
 # Modified by Anders Logg, 2008
 
 from ufl.checks import is_true_ufl_scalar, is_ufl_scalar
-from ufl.constantvalue import (ComplexValue, IntValue, ScalarValue, Zero,
-                               as_ufl, zero)
+from ufl.constantvalue import ComplexValue, IntValue, ScalarValue, Zero, as_ufl, zero
 from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -26,9 +23,12 @@ from ufl.sorting import sorted_expr
           inherit_shape_from_operand=0, inherit_indices_from_operand=0,
           binop="__add__", rbinop="__radd__")
 class Sum(Operator):
+    """Sum."""
+
     __slots__ = ()
 
     def __new__(cls, a, b):
+        """Create a new Sum."""
         # Make sure everything is an Expr
         a = as_ufl(a)
         b = as_ufl(b)
@@ -78,16 +78,20 @@ class Sum(Operator):
         return self
 
     def _init(self, a, b):
+        """Initialise."""
         self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
+        """Initialise."""
         Operator.__init__(self)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         return sum(o.evaluate(x, mapping, component,
                               index_values) for o in self.ufl_operands)
 
     def __str__(self):
+        """Format as a string."""
         return " + ".join([parstr(o, self) for o in self.ufl_operands])
 
 
@@ -95,9 +99,11 @@ class Sum(Operator):
           binop="__mul__", rbinop="__rmul__")
 class Product(Operator):
     """The product of two or more UFL objects."""
+
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
+        """Create a new product."""
         # Conversion
         a = as_ufl(a)
         b = as_ufl(b)
@@ -144,7 +150,7 @@ class Product(Operator):
         return self
 
     def _init(self, a, b):
-        "Constructor, called by __new__ with already checked arguments."
+        """Constructor, called by __new__ with already checked arguments."""
         self.ufl_operands = (a, b)
 
         # Extract indices
@@ -156,11 +162,13 @@ class Product(Operator):
         self.ufl_index_dimensions = fid
 
     def __init__(self, a, b):
+        """Initialise."""
         Operator.__init__(self)
 
     ufl_shape = ()
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         ops = self.ufl_operands
         sh = self.ufl_shape
         if sh:
@@ -175,6 +183,7 @@ class Product(Operator):
         return tmp
 
     def __str__(self):
+        """Format as a string."""
         a, b = self.ufl_operands
         return " * ".join((parstr(a, self), parstr(b, self)))
 
@@ -183,9 +192,12 @@ class Product(Operator):
           inherit_indices_from_operand=0,
           binop="__div__", rbinop="__rdiv__")
 class Division(Operator):
+    """Division."""
+
     __slots__ = ()
 
     def __new__(cls, a, b):
+        """Create a new Division."""
         # Conversion
         a = as_ufl(a)
         b = as_ufl(b)
@@ -222,14 +234,17 @@ class Division(Operator):
         return self
 
     def _init(self, a, b):
+        """Initialise."""
         self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
+        """Initialise."""
         Operator.__init__(self)
 
     ufl_shape = ()  # self.ufl_operands[0].ufl_shape
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
@@ -241,6 +256,7 @@ class Division(Operator):
         return e
 
     def __str__(self):
+        """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)} / {parstr(self.ufl_operands[1], self)}"
 
 
@@ -248,9 +264,12 @@ class Division(Operator):
           inherit_indices_from_operand=0,
           binop="__pow__", rbinop="__rpow__")
 class Power(Operator):
+    """Power."""
+
     __slots__ = ()
 
     def __new__(cls, a, b):
+        """Create new Power."""
         # Conversion
         a = as_ufl(a)
         b = as_ufl(b)
@@ -283,20 +302,24 @@ class Power(Operator):
         return self
 
     def _init(self, a, b):
+        """Initialise."""
         self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
+        """Initialise."""
         Operator.__init__(self)
 
     ufl_shape = ()
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evalute."""
         a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
         return a**b
 
     def __str__(self):
+        """Format as a string."""
         a, b = self.ufl_operands
         return f"{parstr(a, self)} ** {parstr(b, self)}"
 
@@ -305,9 +328,12 @@ class Power(Operator):
           inherit_shape_from_operand=0, inherit_indices_from_operand=0,
           unop="__abs__")
 class Abs(Operator):
+    """Absolute value."""
+
     __slots__ = ()
 
     def __new__(cls, a):
+        """Create a new Abs."""
         a = as_ufl(a)
 
         # Simplification
@@ -321,13 +347,16 @@ class Abs(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, a):
+        """Initialise."""
         Operator.__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         return abs(a)
 
     def __str__(self):
+        """Format as a string."""
         a, = self.ufl_operands
         return f"|{parstr(a, self)}|"
 
@@ -335,9 +364,12 @@ class Abs(Operator):
 @ufl_type(num_ops=1,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Conj(Operator):
+    """Complex conjugate."""
+
     __slots__ = ()
 
     def __new__(cls, a):
+        """Creatr a new Conj."""
         a = as_ufl(a)
 
         # Simplification
@@ -351,13 +383,16 @@ class Conj(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, a):
+        """Initialise."""
         Operator.__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         return a.conjugate()
 
     def __str__(self):
+        """Format as a string."""
         a, = self.ufl_operands
         return f"conj({parstr(a, self)})"
 
@@ -365,9 +400,12 @@ class Conj(Operator):
 @ufl_type(num_ops=1,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Real(Operator):
+    """Real part."""
+
     __slots__ = ()
 
     def __new__(cls, a):
+        """Create a new Real."""
         a = as_ufl(a)
 
         # Simplification
@@ -383,13 +421,16 @@ class Real(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, a):
+        """Initialise."""
         Operator.__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         return a.real
 
     def __str__(self):
+        """Format as a string."""
         a, = self.ufl_operands
         return f"Re[{parstr(a, self)}]"
 
@@ -397,9 +438,12 @@ class Real(Operator):
 @ufl_type(num_ops=1,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Imag(Operator):
+    """Imaginary part."""
+
     __slots__ = ()
 
     def __new__(cls, a):
+        """Create a new Imag."""
         a = as_ufl(a)
 
         # Simplification
@@ -413,12 +457,15 @@ class Imag(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, a):
+        """Initialise."""
         Operator.__init__(self, (a,))
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         return a.imag
 
     def __str__(self):
+        """Format as a string."""
         a, = self.ufl_operands
         return f"Im[{parstr(a, self)}]"

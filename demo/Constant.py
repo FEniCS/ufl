@@ -18,8 +18,7 @@
 # Modified by Martin Sandve Alnes, 2009
 #
 # Test form for scalar and vector constants.
-from ufl import (Coefficient, Constant, TestFunction, TrialFunction,
-                 VectorConstant, dot, dx, grad, inner, triangle)
+from ufl import Coefficient, Constant, TestFunction, TrialFunction, VectorConstant, dot, dx, grad, inner, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

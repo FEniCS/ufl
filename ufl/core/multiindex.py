@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module defines the single index types and some internal index utilities."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
@@ -23,7 +22,7 @@ class IndexBase(object):
     __slots__ = ()
 
     def __init__(self):
-        pass
+        """Initialise."""
 
 
 class FixedIndex(IndexBase):
@@ -33,9 +32,11 @@ class FixedIndex(IndexBase):
     _cache = {}
 
     def __getnewargs__(self):
+        """Get new args."""
         return (self._value,)
 
     def __new__(cls, value):
+        """Create new FixedIndex."""
         self = FixedIndex._cache.get(value)
         if self is None:
             if not isinstance(value, int):
@@ -46,68 +47,81 @@ class FixedIndex(IndexBase):
         return self
 
     def _init(self, value):
+        """Initialise."""
         IndexBase.__init__(self)
         self._value = value
         self._hash = hash(("FixedIndex", self._value))
 
     def __init__(self, value):
-        pass
+        """Initialise."""
 
     def __hash__(self):
+        """Hash."""
         return self._hash
 
     def __eq__(self, other):
+        """Check equality."""
         return isinstance(other, FixedIndex) and (self._value == other._value)
 
     def __int__(self):
+        """Convert to int."""
         return self._value
 
     def __str__(self):
-        return "%d" % self._value
+        """Represent with a string."""
+        return f"{self._value}"
 
     def __repr__(self):
-        r = "FixedIndex(%d)" % self._value
-        return r
+        """Return representation."""
+        return f"FixedIndex({self._value})"
 
 
 class Index(IndexBase, Counted):
     """UFL value: An index with no value assigned.
 
-    Used to represent free indices in Einstein indexing notation."""
+    Used to represent free indices in Einstein indexing notation.
+    """
+
     __slots__ = ("_count", "_counted_class")
 
     def __init__(self, count=None):
+        """Initialise."""
         IndexBase.__init__(self)
         Counted.__init__(self, count, Index)
 
     def __hash__(self):
+        """Hash."""
         return hash(("Index", self._count))
 
     def __eq__(self, other):
+        """Check equality."""
         return isinstance(other, Index) and (self._count == other._count)
 
     def __str__(self):
-        c = str(self._count)
+        """Represent as a string."""
+        c = f"{self._count}"
         if len(c) > 1:
-            c = "{%s}" % c
-        return "i_%s" % c
+            c = f"{{{c}}}"
+        return f"i_{c}"
 
     def __repr__(self):
-        r = "Index(%d)" % self._count
-        return r
+        """Return representation."""
+        return f"Index({self._count})"
 
 
 @ufl_type()
 class MultiIndex(Terminal):
-    "Represents a sequence of indices, either fixed or free."
+    """Represents a sequence of indices, either fixed or free."""
     __slots__ = ("_indices",)
 
     _cache = {}
 
     def __getnewargs__(self):
+        """Get new args."""
         return (self._indices,)
 
     def __new__(cls, indices):
+        """Create new MultiIndex."""
         if not isinstance(indices, tuple):
             raise ValueError("Expecting a tuple of indices.")
 
@@ -133,25 +147,28 @@ class MultiIndex(Terminal):
         return self
 
     def __init__(self, indices):
-        pass
+        """Initialise."""
 
     def _init(self, indices):
+        """Initialise."""
         Terminal.__init__(self)
         self._indices = indices
 
     def indices(self):
-        "Return tuple of indices."
+        """Return tuple of indices."""
         return self._indices
 
     def _ufl_compute_hash_(self):
+        """Compute UFL hash."""
         return hash(("MultiIndex",) + tuple(hash(ind) for ind in self._indices))
 
     def __eq__(self, other):
+        """Check equality."""
         return isinstance(other, MultiIndex) and \
             self._indices == other._indices
 
     def evaluate(self, x, mapping, component, index_values):
-        "Evaluate index."
+        """Evaluate index."""
         # Build component from index values
         component = []
         for i in self._indices:
@@ -163,30 +180,43 @@ class MultiIndex(Terminal):
 
     @property
     def ufl_shape(self):
-        "This shall not be used."
+        """Get the UFL shape.
+
+        This should not be used.
+        """
         raise ValueError("Multiindex has no shape (it is not a tensor expression).")
 
     @property
     def ufl_free_indices(self):
-        "This shall not be used."
+        """Get the UFL free indices.
+
+        This should not be used.
+        """
         raise ValueError("Multiindex has no free indices (it is not a tensor expression).")
 
     @property
     def ufl_index_dimensions(self):
-        "This shall not be used."
+        """Get the UFL index dimensions.
+
+        This should not be used.
+        """
         raise ValueError("Multiindex has no free indices (it is not a tensor expression).")
 
     def is_cellwise_constant(self):
-        "Always True."
+        """Check if cellwise constant.
+
+        Always True.
+        """
         return True
 
     def ufl_domains(self):
-        "Return tuple of domains related to this terminal object."
+        """Return tuple of domains related to this terminal object."""
         return ()
 
     # --- Adding multiindices ---
 
     def __add__(self, other):
+        """Add."""
         if isinstance(other, tuple):
             return MultiIndex(self._indices + other)
         elif isinstance(other, MultiIndex):
@@ -194,6 +224,7 @@ class MultiIndex(Terminal):
         return NotImplemented
 
     def __radd__(self, other):
+        """Add."""
         if isinstance(other, tuple):
             return MultiIndex(other + self._indices)
         elif isinstance(other, MultiIndex):
@@ -203,24 +234,27 @@ class MultiIndex(Terminal):
     # --- String formatting ---
 
     def __str__(self):
+        """Format as a string."""
         return ", ".join(str(i) for i in self._indices)
 
     def __repr__(self):
-        r = "MultiIndex(%s)" % repr(self._indices)
-        return r
+        """Return representation."""
+        return f"MultiIndex({self._indices!r})"
 
     # --- Iteration protocol ---
-
     def __len__(self):
+        """Get length."""
         return len(self._indices)
 
     def __getitem__(self, i):
+        """Get an item."""
         return self._indices[i]
 
     def __iter__(self):
+        """Return iteratable."""
         return iter(self._indices)
 
 
 def indices(n):
-    "UFL value: Return a tuple of :math:`n` new Index objects."
+    """Return a tuple of n new Index objects."""
     return tuple(Index() for i in range(n))

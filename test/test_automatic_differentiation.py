@@ -13,17 +13,12 @@ import pytest
 
 import ufl
 import ufl.algorithms
-from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius,
-                 Coefficient, Constant, FacetArea, FacetNormal, Identity,
-                 Jacobian, JacobianDeterminant, JacobianInverse,
-                 MaxCellEdgeLength, MaxFacetEdgeLength, MinCellEdgeLength,
-                 MinFacetEdgeLength, Not, Or, PermutationSymbol,
-                 SpatialCoordinate, acos, as_matrix, as_tensor, as_ufl,
-                 as_vector, asin, atan, bessel_I, bessel_J, bessel_K, bessel_Y,
-                 cofac, conditional, cos, cross, derivative, det, dev, diff,
-                 dot, eq, erf, exp, ge, grad, gt, indices, inner, interval,
-                 inv, le, ln, lt, ne, outer, replace, sin, skew, sqrt, sym,
-                 tan, tetrahedron, tr, triangle, variable)
+from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
+                 Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength, MaxFacetEdgeLength,
+                 MinCellEdgeLength, MinFacetEdgeLength, Not, Or, PermutationSymbol, SpatialCoordinate, acos, as_matrix,
+                 as_tensor, as_ufl, as_vector, asin, atan, bessel_I, bessel_J, bessel_K, bessel_Y, cofac, conditional,
+                 cos, cross, derivative, det, dev, diff, dot, eq, erf, exp, ge, grad, gt, indices, inner, interval, inv,
+                 le, ln, lt, ne, outer, replace, sin, skew, sqrt, sym, tan, tetrahedron, tr, triangle, variable)
 from ufl.algorithms import expand_derivatives
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal

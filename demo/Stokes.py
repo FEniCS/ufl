@@ -20,8 +20,7 @@
 #
 # The bilinear form a(v, u) and Linear form L(v) for the Stokes
 # equations using a mixed formulation (Taylor-Hood elements).
-from ufl import (Coefficient, TestFunctions, TrialFunctions, div, dot, dx,
-                 grad, inner, triangle)
+from ufl import Coefficient, TestFunctions, TrialFunctions, div, dot, dx, grad, inner, triangle
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1
 
