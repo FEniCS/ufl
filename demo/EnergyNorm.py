@@ -17,7 +17,7 @@
 #
 # This example demonstrates how to define a functional, here
 # the energy norm (squared) for a reaction-diffusion problem.
-from ufl import Coefficient, FiniteElement, dot, dx, grad, tetrahedron, Mesh, FunctionSpace, VectorElement
+from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, VectorElement, dot, dx, grad, tetrahedron
 
 element = FiniteElement("Lagrange", tetrahedron, 1)
 domain = Mesh(VectorElement("Lagrange", tetrahedron, 1))

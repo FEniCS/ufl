@@ -16,8 +16,8 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Test form for operators on Coefficients.
-from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction,
-                 dot, dx, grad, sqrt, triangle, max_value, Mesh, FunctionSpace, VectorElement)
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorElement, dot, dx,
+                 grad, max_value, sqrt, triangle)
 
 element = FiniteElement("Lagrange", triangle, 1)
 domain = Mesh(VectorElement("Lagrange", triangle, 1))

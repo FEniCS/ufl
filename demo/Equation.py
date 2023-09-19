@@ -34,8 +34,8 @@
 # the unknown u to the right-hand side, all terms may
 # be listed on one line and left- and right-hand sides
 # extracted by lhs() and rhs().
-from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction, dot,
-                 dx, grad, lhs, rhs, triangle, Mesh, FunctionSpace, VectorElement)
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorElement, dot, dx,
+                 grad, lhs, rhs, triangle)
 
 element = FiniteElement("Lagrange", triangle, 1)
 domain = Mesh(VectorElement("Lagrange", triangle, 1))

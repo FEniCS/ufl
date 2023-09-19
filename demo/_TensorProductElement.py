@@ -17,8 +17,8 @@
 #
 # First added:  2012-08-16
 # Last changed: 2012-08-16
-from ufl import (FiniteElement, TensorProductElement, TestFunction,
-                 TrialFunction, dx, interval, tetrahedron, triangle)
+from ufl import (FiniteElement, FunctionSpace, Mesh, TensorProductElement, TestFunction, TrialFunction, dx, interval,
+                 tetrahedron, triangle)
 
 V0 = FiniteElement("CG", triangle, 1)
 V1 = FiniteElement("DG", interval, 0)

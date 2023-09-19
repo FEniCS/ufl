@@ -4,10 +4,9 @@
 #
 
 # Modified by Garth N. Wells, 2009
-from ufl import (Coefficient, Constant, FacetNormal, FiniteElement, Identity,
-                 SpatialCoordinate, TensorElement, TestFunction, TrialFunction,
-                 VectorElement, derivative, det, diff, dot, ds, dx, exp, grad,
-                 inner, inv, tetrahedron, tr, variable, Mesh, FunctionSpace)
+from ufl import (Coefficient, Constant, FacetNormal, FiniteElement, FunctionSpace, Identity, Mesh, SpatialCoordinate,
+                 TensorElement, TestFunction, TrialFunction, VectorElement, derivative, det, diff, dot, ds, dx, exp,
+                 grad, inner, inv, tetrahedron, tr, variable)
 
 # Cell and its properties
 cell = tetrahedron

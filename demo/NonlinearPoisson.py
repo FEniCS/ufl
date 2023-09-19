@@ -1,5 +1,5 @@
-from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction, dot,
-                 dx, grad, triangle, Mesh, FunctionSpace, VectorElement)
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorElement, dot, dx,
+                 grad, triangle)
 
 element = FiniteElement("Lagrange", triangle, 1)
 domain = Mesh(VectorElement("Lagrange", triangle, 1))

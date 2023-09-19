@@ -20,8 +20,8 @@
 #
 # The bilinear form a(v, u) and Linear form L(v) for the Stokes
 # equations using a mixed formulation (Taylor-Hood elements).
-from ufl import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
-                 VectorElement, div, dot, dx, grad, inner, triangle, Mesh, FunctionSpace)
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunctions, TrialFunctions, VectorElement, div,
+                 dot, dx, grad, inner, triangle)
 
 cell = triangle
 P2 = VectorElement("Lagrange", cell, 2)

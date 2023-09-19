@@ -23,8 +23,8 @@ This demo illustrates the FEEC notation
 
 and their aliases.
 """
-from ufl import (FiniteElement, TestFunction, TestFunctions, TrialFunction,
-                 TrialFunctions, dx, Mesh, FunctionSpace, VectorElement)
+from ufl import (FiniteElement, FunctionSpace, Mesh, TestFunction, TestFunctions, TrialFunction, TrialFunctions,
+                 VectorElement, dx)
 from ufl import exterior_derivative as d
 from ufl import inner, interval, tetrahedron, triangle
 
