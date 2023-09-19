@@ -24,18 +24,21 @@
 # (Brezzi-Douglas-Marini) elements.
 #
 from ufl import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
-                 div, dot, dx, triangle)
+                 div, dot, dx, triangle, Mesh, FunctionSpace, VectorElement)
 
 cell = triangle
 BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1)
 DG0 = FiniteElement("Discontinuous Lagrange", cell, 0)
 
 element = BDM1 * DG0
+domain = Mesh(VectorElement("Lagrange", cell, 1))
+space = FunctionSpace(domain, element)
+dg0_space = FunctionSpace(domain, DG0)
 
-(tau, w) = TestFunctions(element)
-(sigma, u) = TrialFunctions(element)
+(tau, w) = TestFunctions(space)
+(sigma, u) = TrialFunctions(space)
 
-f = Coefficient(DG0)
+f = Coefficient(dg0_space)
 
 a = (dot(tau, sigma) - div(tau) * u + w * div(sigma)) * dx
 L = w * f * dx

@@ -4,17 +4,19 @@
 # Date: 2009-02-12
 #
 from ufl import (FacetNormal, FiniteElement, TestFunctions, TrialFunctions,
-                 div, dot, ds, dx, tetrahedron)
+                 div, dot, ds, dx, tetrahedron, Mesh, FunctionSpace, VectorElement)
 
 cell = tetrahedron
 RT = FiniteElement("Raviart-Thomas", cell, 1)
 DG = FiniteElement("DG", cell, 0)
 MX = RT * DG
+domain = Mesh(VectorElement("Lagrange", cell, 1))
+space = FunctionSpace(domain, MX)
 
-(u, p) = TrialFunctions(MX)
-(v, q) = TestFunctions(MX)
+(u, p) = TrialFunctions(space)
+(v, q) = TestFunctions(space)
 
-n = FacetNormal(cell)
+n = FacetNormal(domain)
 
 a0 = (dot(u, v) + div(u) * q + div(v) * p) * dx
 a1 = (dot(u, v) + div(u) * q + div(v) * p) * dx - p * dot(v, n) * ds

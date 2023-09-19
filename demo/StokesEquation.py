@@ -20,17 +20,20 @@
 # combination with the lhs() and rhs() operators to extract the
 # bilinear and linear forms from an expression F = 0.
 from ufl import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
-                 VectorElement, div, dot, dx, grad, inner, lhs, rhs, triangle)
+                 VectorElement, div, dot, dx, grad, inner, lhs, rhs, triangle, Mesh, FunctionSpace)
 
 cell = triangle
 P2 = VectorElement("Lagrange", cell, 2)
 P1 = FiniteElement("Lagrange", cell, 1)
 TH = P2 * P1
+domain = Mesh(VectorElement("Lagrange", cell, 1))
+space = FunctionSpace(domain, TH)
+p2_space = FunctionSpace(domain, P2)
 
-(v, q) = TestFunctions(TH)
-(u, p) = TrialFunctions(TH)
+(v, q) = TestFunctions(space)
+(u, p) = TrialFunctions(space)
 
-f = Coefficient(P2)
+f = Coefficient(p2_space)
 
 F = (inner(grad(v), grad(u)) - div(v) * p + q * div(u)) * dx - dot(v, f) * dx
 a = lhs(F)

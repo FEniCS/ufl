@@ -17,13 +17,15 @@
 #
 # Test form for operators on Coefficients.
 from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction,
-                 dot, dx, grad, sqrt, triangle, max_value)
+                 dot, dx, grad, sqrt, triangle, max_value, Mesh, FunctionSpace, VectorElement)
 
 element = FiniteElement("Lagrange", triangle, 1)
+domain = Mesh(VectorElement("Lagrange", triangle, 1))
+space = FunctionSpace(domain, element)
 
-v = TestFunction(element)
-u = TrialFunction(element)
-f = Coefficient(element)
-g = Coefficient(element)
+v = TestFunction(space)
+u = TrialFunction(space)
+f = Coefficient(space)
+g = Coefficient(space)
 
 a = sqrt(1 / max_value(1 / f, -1 / f)) * sqrt(g) * dot(grad(v), grad(u)) * dx + v * u * sqrt(f * g) * g * dx

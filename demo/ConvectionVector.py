@@ -3,11 +3,13 @@
 # Date: 2008-10-03
 #
 from ufl import (Coefficient, TestFunction, VectorElement, dot, dx, grad,
-                 triangle)
+                 triangle, Mesh, FunctionSpace)
 
 element = VectorElement("Lagrange", triangle, 1)
+domain = Mesh(VectorElement("Lagrange", triangle, 1))
+space = FunctionSpace(domain, element)
 
-v = TestFunction(element)
-w = Coefficient(element)
+v = TestFunction(space)
+w = Coefficient(space)
 
 a = dot(dot(w, grad(w)), v) * dx

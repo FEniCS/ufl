@@ -3,13 +3,16 @@
 # Date: 2008-10-03
 #
 from ufl import (Coefficient, Constant, FiniteElement, derivative, dx, exp,
-                 interval, variable)
+                 interval, variable, Mesh, FunctionSpace, VectorElement)
 
 cell = interval
 element = FiniteElement("CG", cell, 2)
-u = Coefficient(element)
-b = Constant(cell)
-K = Constant(cell)
+domain = Mesh(VectorElement("Lagrange", cell, 1))
+space = FunctionSpace(domain, element)
+
+u = Coefficient(space)
+b = Constant(domain)
+K = Constant(domain)
 
 E = u.dx(0) + u.dx(0)**2 / 2
 E = variable(E)

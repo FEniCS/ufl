@@ -4,12 +4,14 @@
 # Date: 2009-01-12
 #
 from ufl import (TestFunction, TrialFunction, VectorElement, dx, grad, inner,
-                 tetrahedron)
+                 tetrahedron, Mesh, FunctionSpace)
 
 element = VectorElement("Lagrange", tetrahedron, 1)
+domain = Mesh(VectorElement("Lagrange", tetrahedron, 1))
+space = FunctionSpace(domain, element)
 
-v = TestFunction(element)
-u = TrialFunction(element)
+v = TestFunction(space)
+u = TrialFunction(space)
 
 
 def epsilon(v):

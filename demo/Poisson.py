@@ -22,13 +22,15 @@
 #
 # The bilinear form a(v, u) and linear form L(v) for Poisson's equation.
 from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction, dx,
-                 grad, inner, triangle)
+                 grad, inner, triangle, Mesh, FunctionSpace, VectorElement)
 
 element = FiniteElement("Lagrange", triangle, 1)
+domain = Mesh(VectorElement("Lagrange", triangle, 1))
+space = FunctionSpace(domain, element)
 
-u = TrialFunction(element)
-v = TestFunction(element)
-f = Coefficient(element)
+u = TrialFunction(space)
+v = TestFunction(space)
+f = Coefficient(space)
 
 a = inner(grad(v), grad(u)) * dx(degree=1)
 L = v * f * dx(degree=2)

@@ -18,13 +18,16 @@
 # The bilinear form a(v, u) and linear form L(v) for
 # tensor-weighted Poisson's equation.
 from ufl import (Coefficient, FiniteElement, TensorElement, TestFunction,
-                 TrialFunction, dx, grad, inner, triangle)
+                 TrialFunction, dx, grad, inner, triangle, Mesh, FunctionSpace, VectorElement)
 
 P1 = FiniteElement("Lagrange", triangle, 1)
 P0 = TensorElement("Discontinuous Lagrange", triangle, 0, shape=(2, 2))
+domain = Mesh(VectorElement("Lagrange", triangle, 1))
+p1_space = FunctionSpace(domain, P1)
+p0_space = FunctionSpace(domain, P0)
 
-v = TestFunction(P1)
-u = TrialFunction(P1)
-C = Coefficient(P0)
+v = TestFunction(p1_space)
+u = TrialFunction(p1_space)
+C = Coefficient(p0_space)
 
 a = inner(grad(v), C * grad(u)) * dx

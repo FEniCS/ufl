@@ -3,12 +3,14 @@
 # Date: 2008-10-03
 #
 from ufl import (Coefficient, TestFunction, TrialFunction, VectorElement, dx,
-                 i, j, triangle)
+                 i, j, triangle, Mesh, FunctionSpace)
 
 element = VectorElement("Lagrange", triangle, 1)
+domain = Mesh(VectorElement("Lagrange", triangle, 1))
+space = FunctionSpace(domain, element)
 
-u = TrialFunction(element)
-v = TestFunction(element)
-w = Coefficient(element)
+u = TrialFunction(space)
+v = TestFunction(space)
+w = Coefficient(space)
 
 a = (u[j] * w[i].dx(j) + w[j] * u[i].dx(j)) * v[i] * dx

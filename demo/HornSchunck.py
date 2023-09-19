@@ -4,24 +4,27 @@
 # but not tested so this could contain errors!
 #
 from ufl import (Coefficient, Constant, FiniteElement, VectorElement,
-                 derivative, dot, dx, grad, inner, triangle)
+                 derivative, dot, dx, grad, inner, triangle, Mesh, FunctionSpace)
 
 # Finite element spaces for scalar and vector fields
 cell = triangle
 S = FiniteElement("CG", cell, 1)
 V = VectorElement("CG", cell, 1)
+domain = Mesh(VectorElement("Lagrange", cell, 1))
+S_space = FunctionSpace(domain, S)
+V_space = FunctionSpace(domain, V)
 
 # Optical flow function
-u = Coefficient(V)
+u = Coefficient(V_space)
 
 # Previous image brightness
-I0 = Coefficient(S)
+I0 = Coefficient(S_space)
 
 # Current image brightness
-I1 = Coefficient(S)
+I1 = Coefficient(S_space)
 
 # Regularization parameter
-lamda = Constant(cell)
+lamda = Constant(domain)
 
 # Coefficiental to minimize
 M = (dot(u, grad(I1)) + (I1 - I0))**2 * dx\

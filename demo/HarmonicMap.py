@@ -4,14 +4,17 @@
 # Date: 2009-04-09
 #
 from ufl import (Coefficient, FiniteElement, VectorElement,
-                 derivative, dot, dx, grad, inner, triangle)
+                 derivative, dot, dx, grad, inner, triangle, Mesh, FunctionSpace)
 
 cell = triangle
 X = VectorElement("Lagrange", cell, 1)
 Y = FiniteElement("Lagrange", cell, 1)
+domain = Mesh(VectorElement("Lagrange", cell, 1))
+X_space = FunctionSpace(domain, X)
+Y_space = FunctionSpace(domain, Y)
 
-x = Coefficient(X)
-y = Coefficient(Y)
+x = Coefficient(X_space)
+y = Coefficient(Y_space)
 
 L = inner(grad(x), grad(x)) * dx + dot(x, x) * y * dx
 

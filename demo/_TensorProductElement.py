@@ -26,8 +26,14 @@ V2 = FiniteElement("DG", tetrahedron, 0)
 
 V = TensorProductElement(V0, V1, V2)
 
-u = TrialFunction(V)
-v = TestFunction(V)
+c0 = FiniteElement("CG", triangle, 1)
+c1 = FiniteElement("CG", interval, 1)
+c2 = FiniteElement("CG", tetrahedron, 1)
+domain = Mesh(TensorProductElement(c0, c1, c2))
+space = FunctionSpace(domain, V)
+
+u = TrialFunction(space)
+v = TestFunction(space)
 
 dxxx = dx * dx * dx
 a = u * v * dxxx
