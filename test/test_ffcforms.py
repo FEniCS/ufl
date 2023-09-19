@@ -1,8 +1,9 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-"""Unit tests including all demo forms from FFC 0.5.0. The forms are
+"""Test FFC forms.
+
+Unit tests including all demo forms from FFC 0.5.0. The forms are
 modified (with comments) to work with the UFL notation which differs
-from the FFC notation in some places."""
+from the FFC notation in some places.
+"""
 
 __author__ = "Anders Logg (logg@simula.no) et al."
 __date__ = "2008-04-09 -- 2008-09-26"
@@ -13,6 +14,7 @@ __license__ = "GNU GPL version 3 or any later version"
 # by Johan Jansson, Kristian Oelgaard, Marie Rognes, and Garth Wells.
 
 import pytest
+
 from ufl import *
 
 

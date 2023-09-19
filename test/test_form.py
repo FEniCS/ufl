@@ -1,8 +1,7 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
 import pytest
 
-from ufl import *
+from ufl import (Coefficient, Cofunction, FiniteElement, Form, FormSum, FunctionSpace, Mesh, SpatialCoordinate,
+                 TestFunction, TrialFunction, VectorElement, dot, ds, dx, grad, inner, nabla_grad, triangle)
 from ufl.form import BaseForm
 
 
@@ -127,7 +126,7 @@ def test_form_call():
     f = Coefficient(V)
     g = Coefficient(V)
     a = g*inner(grad(v), grad(u))*dx
-    M = a(f, f, coefficients={ g: 1 })
+    M = a(f, f, coefficients={g: 1})
     assert M == grad(f)**2*dx
 
     import sys
@@ -135,6 +134,7 @@ def test_form_call():
         a = u*v*dx
         M = eval("(a @ f) @ g")
         assert M == g*f*dx
+
 
 def test_formsum(mass):
     V = FiniteElement("CG", triangle, 1)
@@ -158,5 +158,4 @@ def test_formsum(mass):
 
     assert(2 * v)
     assert(isinstance(2 * v, BaseForm))
-    assert((2 * v).weights()[0] == 2) 
-
+    assert((2 * v).weights()[0] == 2)

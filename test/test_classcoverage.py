@@ -1,6 +1,3 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-06 -- 2009-02-10"
 
@@ -8,9 +5,9 @@ import pytest
 
 import ufl
 from ufl import *
-from ufl.constantvalue import as_ufl
-from ufl.classes import *
 from ufl.algorithms import *
+from ufl.classes import *
+from ufl.constantvalue import as_ufl
 
 has_repr = set()
 has_dict = set()

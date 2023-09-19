@@ -1,14 +1,8 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-from ufl import *
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-03-14 -- 2009-03-14"
 
-import pytest
-
-from ufl import *
+from ufl import (Coefficient, FiniteElement, MixedElement, TensorElement, TestFunction, VectorElement, as_vector,
+                 product, split, triangle)
 
 
 def test_split(self):

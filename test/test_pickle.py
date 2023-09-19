@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
 """Pickle all the unit test forms from FFC 0.5.0"""
 
 __author__ = "Anders Logg (logg@simula.no) et al."
@@ -10,11 +8,13 @@ __license__ = "GNU GPL version 3 or any later version"
 # Examples copied from the FFC demo directory, examples contributed
 # by Johan Jansson, Kristian Oelgaard, Marie Rognes, and Garth Wells.
 
+import pickle
+
 import pytest
+
 from ufl import *
 from ufl.algorithms import compute_form_data
 
-import pickle
 p = pickle.HIGHEST_PROTOCOL
 
 

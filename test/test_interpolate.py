@@ -1,24 +1,17 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-import pytest
-from ufl import *
-
+"""Test Interpolate object."""
 
 __authors__ = "Nacime Bouziani"
 __date__ = "2021-11-19"
 
-"""
-Test Interpolate object
-"""
+import pytest
 
-from ufl.core.interpolate import Interpolate
+from ufl import (Action, Adjoint, Argument, Coefficient, FiniteElement, FunctionSpace, TestFunction, TrialFunction,
+                 action, adjoint, derivative, dx, grad, inner, replace, triangle)
 from ufl.algorithms.ad import expand_derivatives
-from ufl.algorithms.analysis import (extract_coefficients, extract_arguments,
-                                     extract_arguments_and_coefficients,
-                                     extract_base_form_operators)
-
+from ufl.algorithms.analysis import (extract_arguments, extract_arguments_and_coefficients, extract_base_form_operators,
+                                     extract_coefficients)
 from ufl.algorithms.expand_indices import expand_indices
+from ufl.core.interpolate import Interpolate
 from ufl.domain import default_domain
 
 

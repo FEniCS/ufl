@@ -1,10 +1,9 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
+import math
 
 import pytest
-from ufl.classes import Sum, Product
-import math
+
 from ufl import *
+from ufl.classes import Product, Sum
 
 
 def xtest_zero_times_argument(self):

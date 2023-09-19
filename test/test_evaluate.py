@@ -1,13 +1,11 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-13 -- 2009-02-13"
 
-import pytest
 import math
 
-from ufl import *
+from ufl import (Argument, Coefficient, FiniteElement, Identity, SpatialCoordinate, as_matrix, as_vector, cos, cross,
+                 det, dev, dot, exp, i, indices, inner, j, ln, outer, sin, skew, sqrt, sym, tan, tetrahedron, tr,
+                 triangle)
 from ufl.constantvalue import as_ufl
 
 
@@ -27,14 +25,14 @@ def testZero():
 
 def testIdentity():
     cell = triangle
-    I = Identity(cell.geometric_dimension())
+    ident = Identity(cell.geometric_dimension())
 
-    s = 123 * I[0, 0]
+    s = 123 * ident[0, 0]
     e = s((5, 7))
     v = 123
     assert e == v
 
-    s = 123 * I[1, 0]
+    s = 123 * ident[1, 0]
     e = s((5, 7))
     v = 0
     assert e == v
@@ -107,9 +105,9 @@ def testIndexSum():
 def testIndexSum2():
     cell = triangle
     x = SpatialCoordinate(cell)
-    I = Identity(cell.geometric_dimension())
+    ident = Identity(cell.geometric_dimension())
     i, j = indices(2)
-    s = (x[i] * x[j]) * I[i, j]
+    s = (x[i] * x[j]) * ident[i, j]
     e = s((5, 7))
     # v = sum_i sum_j x_i x_j delta_ij = x_0 x_0 + x_1 x_1
     v = 5 ** 2 + 7 ** 2
@@ -277,15 +275,15 @@ def test_cross():
             as_vector((0, x[2], 0))],
     ]
     for t in ts:
-        for i in range(3):
-            for j in range(3):
-                cij = cross(t[i], t[j])
-                dij = dot(cij, cij)
-                eij = dij(xv)
-                tni = dot(t[i], t[i])(xv)
-                tnj = dot(t[j], t[j])(xv)
-                vij = tni * tnj if i != j else 0
-                assert eij == vij
+        for a in range(3):
+            for b in range(3):
+                cab = cross(t[a], t[b])
+                dab = dot(cab, cab)
+                eab = dab(xv)
+                tna = dot(t[a], t[a])(xv)
+                tnb = dot(t[b], t[b])(xv)
+                vab = tna * tnb if a != b else 0
+                assert eab == vab
 
 
 def xtest_dev():

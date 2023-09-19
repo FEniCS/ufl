@@ -1,20 +1,10 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-"""
-Tests of the various ways Measure objects can be created and used.
-"""
+"""Tests of the various ways Measure objects can be created and used."""
 
 import pytest
+from mockobjects import MockMesh, MockMeshFunction
 
-# This imports everything external code will see from ufl
 from ufl import *
 from ufl.algorithms import compute_form_data
-
-# all_cells = (interval, triangle, tetrahedron,
-#             quadrilateral, hexahedron)
-
-from mockobjects import MockMesh, MockMeshFunction
 
 
 def test_construct_forms_from_default_measures():

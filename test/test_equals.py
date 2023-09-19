@@ -1,13 +1,7 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-"""
-Test of expression comparison.
-"""
+"""Test of expression comparison."""
 
 import pytest
 
-# This imports everything external code will see from ufl
 from ufl import *
 
 

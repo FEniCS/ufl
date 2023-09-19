@@ -1,8 +1,3 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-# Last changed: 2014-02-24
-
 import pytest
 
 from ufl import *
@@ -80,7 +75,7 @@ def test_tensor_symmetry():
 
 
 def test_mixed_tensor_symmetries():
-    from ufl.algorithms import expand_indices, expand_compounds
+    from ufl.algorithms import expand_compounds, expand_indices
 
     S = FiniteElement('CG', triangle, 1)
     V = VectorElement('CG', triangle, 1)

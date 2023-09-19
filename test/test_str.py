@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from ufl import *
 from ufl.classes import *
 

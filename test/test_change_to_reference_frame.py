@@ -1,12 +1,9 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
 """Tests of the change to reference frame algorithm."""
 
 import pytest
 
 from ufl import *
-
-from ufl.classes import Form, Integral, Expr, ReferenceGrad, ReferenceValue
+from ufl.classes import Expr, Form, Integral, ReferenceGrad, ReferenceValue
 
 '''
 from ufl.classes import ReferenceGrad, JacobianInverse

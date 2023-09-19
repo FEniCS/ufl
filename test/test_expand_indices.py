@@ -1,20 +1,18 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-03-19 -- 2012-03-20"
 
 # Modified by Anders Logg, 2008
 # Modified by Garth N. Wells, 2009
 
-import pytest
 import math
 from pprint import *
+
+import pytest
 
 from ufl import *
 from ufl.algorithms import *
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import Sum, Product
+from ufl.classes import Product, Sum
 
 # TODO: Test expand_indices2 throuroughly for correctness, then efficiency:
 # expand_indices, expand_indices2 = expand_indices2, expand_indices

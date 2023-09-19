@@ -1,9 +1,8 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
 import pytest
+
 from ufl import *
-from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.algorithms.check_arities import ArityMismatch
+from ufl.algorithms.compute_form_data import compute_form_data
 
 
 def test_check_arities():

@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Test tensor algebra operators.
-"""
+"""Test tensor algebra operators."""
 
 import pytest
+
 from ufl import *
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 

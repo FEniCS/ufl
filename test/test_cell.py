@@ -1,5 +1,6 @@
-import ufl
 import pytest
+
+import ufl
 
 
 def test_interval():

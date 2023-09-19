@@ -1,10 +1,6 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 import pytest
 
 from ufl import *
-# from ufl.indexutils import *
 from ufl.algorithms import *
 from ufl.classes import IndexSum
 

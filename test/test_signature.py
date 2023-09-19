@@ -1,17 +1,12 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-"""
-Test the computation of form signatures.
-"""
+"""Test the computation of form signatures."""
+
+from itertools import chain
 
 import pytest
 
 from ufl import *
-
-from ufl.classes import MultiIndex, FixedIndex
 from ufl.algorithms.signature import compute_multiindex_hashdata, compute_terminal_hashdata
-
-from itertools import chain
+from ufl.classes import FixedIndex, MultiIndex
 
 # TODO: Test compute_terminal_hashdata
 #   TODO: Check that form argument counts only affect the sig by their relative ordering

@@ -1,11 +1,9 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
-import pytest
 from pprint import *
+
+import pytest
 
 from ufl import *
 from ufl.algorithms import *

@@ -1,12 +1,10 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Marie E. Rognes"
 
 # First added: 2011-11-09
 # Last changed: 2011-11-09
 
 import pytest
+
 from ufl import *
 
 

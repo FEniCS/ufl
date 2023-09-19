@@ -1,15 +1,11 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-"""
-Tests of domain language and attaching domains to forms.
-"""
+"""Tests of domain language and attaching domains to forms."""
 
-from mockobjects import MockMesh, MockMeshFunction
 import pytest
+from mockobjects import MockMesh, MockMeshFunction
 
 from ufl import *
-from ufl.domain import as_domain, default_domain
 from ufl.algorithms import compute_form_data
+from ufl.domain import as_domain, default_domain
 
 all_cells = (interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
