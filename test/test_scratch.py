@@ -10,9 +10,8 @@ import warnings
 
 import pytest
 
-# This imports everything external code will see from ufl
-from ufl import *
-# TODO: Import only what you need from classes and algorithms:
+from ufl import (Coefficient, FiniteElement, Identity, TensorElement, TestFunction, VectorElement, as_matrix, as_tensor,
+                 as_vector, dx, grad, indices, inner, outer, triangle)
 from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
 from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 

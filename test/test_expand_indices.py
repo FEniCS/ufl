@@ -5,12 +5,12 @@ __date__ = "2009-03-19 -- 2012-03-20"
 # Modified by Garth N. Wells, 2009
 
 import math
-from pprint import *
 
 import pytest
 
-from ufl import *
-from ufl.algorithms import *
+from ufl import (Coefficient, FiniteElement, Identity, TensorElement, VectorElement, as_tensor, as_vector, cos, det,
+                 div, dot, dx, exp, grad, i, inner, j, k, l, ln, nabla_div, nabla_grad, outer, sin, triangle)
+from ufl.algorithms import compute_form_data, expand_derivatives, expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Product, Sum
 

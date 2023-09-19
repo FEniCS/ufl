@@ -5,7 +5,8 @@ __authors__ = "Marie E. Rognes"
 
 import pytest
 
-from ufl import *
+from ufl import (Argument, Coefficient, Constant, FiniteElement, TestFunction, TrialFunction, action, derivative, ds,
+                 dS, dx, exp, interval, system)
 
 
 def test_lhs_rhs_simple():

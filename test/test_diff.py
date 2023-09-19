@@ -5,7 +5,8 @@ import math
 
 import pytest
 
-from ufl import *
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, SpatialCoordinate, VectorElement, as_vector, atan,
+                 cos, diff, exp, indices, ln, sin, tan, triangle, variable)
 from ufl.algorithms import expand_derivatives
 from ufl.constantvalue import as_ufl
 

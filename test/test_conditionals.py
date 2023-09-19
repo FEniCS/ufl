@@ -3,9 +3,8 @@ __date__ = "2008-08-20 -- 2012-11-30"
 
 import pytest
 
-from ufl import *
-# from ufl.algorithms import *
-from ufl.classes import *
+from ufl import Coefficient, FiniteElement, conditional, eq, ge, gt, le, lt, ne, triangle
+from ufl.classes import EQ, GE, GT, LE, LT, NE
 
 
 @pytest.fixture

@@ -5,7 +5,12 @@ from itertools import chain
 
 import pytest
 
-from ufl import *
+from ufl import (CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal, FiniteElement,
+                 FunctionSpace, Identity, Index, Jacobian, JacobianInverse, Mesh, SpatialCoordinate, TensorElement,
+                 TestFunction, TrialFunction, VectorElement, acos, as_matrix, as_tensor, as_vector, asin, atan,
+                 conditional, cos, derivative, diff, dot, dx, exp, i, indices, inner, interval, j, k, ln, lt,
+                 nabla_grad, outer, quadrilateral, replace, sign, sin, split, sqrt, tan, tetrahedron, triangle,
+                 variable, zero)
 from ufl.algorithms import compute_form_data, expand_indices, post_traversal, strip_variables
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives

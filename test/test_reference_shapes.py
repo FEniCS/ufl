@@ -1,6 +1,6 @@
 import pytest
 
-from ufl import *
+from ufl import Cell, FiniteElement, MixedElement, TensorElement, VectorElement
 
 
 def test_reference_shapes():

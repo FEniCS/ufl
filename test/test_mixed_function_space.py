@@ -3,7 +3,8 @@ __date__ = "2019-03-26 -- 2019-03-26"
 
 import pytest
 
-from ufl import *
+from ufl import (FiniteElement, FunctionSpace, Measure, MixedFunctionSpace, TestFunctions, TrialFunctions, interval,
+                 tetrahedron, triangle)
 from ufl.algorithms.formsplitter import extract_blocks
 from ufl.domain import default_domain
 

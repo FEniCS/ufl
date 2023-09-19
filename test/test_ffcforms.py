@@ -15,7 +15,9 @@ __license__ = "GNU GPL version 3 or any later version"
 
 import pytest
 
-from ufl import *
+from ufl import (Coefficient, Constant, Dx, FacetNormal, FiniteElement, TensorElement, TestFunction, TestFunctions,
+                 TrialFunction, TrialFunctions, VectorConstant, VectorElement, avg, curl, div, dot, ds, dS, dx, grad, i,
+                 inner, j, jump, lhs, rhs, sqrt, tetrahedron, triangle)
 
 
 def testConstant():

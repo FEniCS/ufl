@@ -1,7 +1,6 @@
 import pytest
 
-from ufl import *
-from ufl.algorithms import *
+from ufl import Argument, Coefficient, FiniteElement, VectorElement
 
 # TODO: Add more illegal expressions to check!
 

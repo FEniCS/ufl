@@ -2,7 +2,7 @@
 
 import pytest
 
-from ufl import *
+from ufl import Coefficient, Cofunction, FiniteElement, triangle
 
 
 def test_comparison_of_coefficients():

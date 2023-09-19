@@ -3,7 +3,8 @@
 import pytest
 from mockobjects import MockMesh, MockMeshFunction
 
-from ufl import *
+from ufl import (Cell, Coefficient, FiniteElement, FunctionSpace, Identity, Measure, Mesh, as_tensor, as_ufl, dC, dI,
+                 dO, dx, grad, inner, triangle)
 from ufl.algorithms import compute_form_data
 
 

@@ -2,9 +2,12 @@
 
 import pytest
 
-from ufl import *
+from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
+                 FiniteElement, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
+                 MinFacetEdgeLength, SpatialCoordinate, TestFunction, VectorElement, hexahedron, interval,
+                 quadrilateral, tetrahedron, triangle)
 from ufl.checks import is_cellwise_constant
-from ufl.classes import *
+from ufl.classes import CellCoordinate, FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse
 
 
 def get_domains():

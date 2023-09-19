@@ -1,27 +1,11 @@
 import pytest
 
-from ufl import *
-from ufl.algorithms import *
+from ufl import (Argument, Coefficient, TensorElement, TestFunction, TrialFunction, VectorElement, as_matrix, as_tensor,
+                 as_vector, cos, dx, exp, i, indices, j, k, l, outer, sin, triangle)
 from ufl.classes import IndexSum
 
 # TODO: add more expressions to test as many possible combinations of index notation as feasible...
 
-
-def xtest_index_utils(self):
-    ii = indices(3)
-    assert ii == unique_indices(ii)
-    assert ii == unique_indices(ii+ii)
-
-    assert () == repeated_indices(ii)
-    assert ii == repeated_indices(ii+ii)
-
-    assert ii == shared_indices(ii, ii)
-    assert ii == shared_indices(ii, ii+ii)
-    assert ii == shared_indices(ii+ii, ii)
-    assert ii == shared_indices(ii+ii, ii+ii)
-
-    assert ii == single_indices(ii)
-    assert () == single_indices(ii+ii)
 
 
 def test_vector_indices(self):

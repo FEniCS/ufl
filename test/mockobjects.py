@@ -1,4 +1,4 @@
-from ufl import *
+from ufl import Measure, Mesh, triangle
 
 
 class MockMesh:

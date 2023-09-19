@@ -3,8 +3,6 @@ __date__ = "2014-03-04"
 
 from math import inf
 
-import pytest
-
 from ufl import (H1, H2, L2, EnrichedElement, FiniteElement, HCurl, HDiv, HInf, TensorProductElement, interval,
                  quadrilateral, triangle)
 from ufl.sobolevspace import DirectionalSobolevSpace, SobolevSpace

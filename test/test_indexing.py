@@ -1,7 +1,7 @@
 import pytest
 
-from ufl import *
-from ufl.classes import *
+from ufl import Index, SpatialCoordinate, outer, triangle
+from ufl.classes import FixedIndex, Indexed, MultiIndex, Outer, Zero
 
 
 @pytest.fixture

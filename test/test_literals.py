@@ -3,7 +3,7 @@ __date__ = "2011-04-14"
 
 import pytest
 
-from ufl import *
+from ufl import PermutationSymbol, as_matrix, as_vector, indices, product
 from ufl.classes import Indexed
 from ufl.constantvalue import ComplexValue, FloatValue, IntValue, Zero, as_ufl
 

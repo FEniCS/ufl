@@ -12,7 +12,9 @@ import pickle
 
 import pytest
 
-from ufl import *
+from ufl import (Coefficient, Constant, Dx, FacetNormal, FiniteElement, Identity, TensorElement, TestFunction,
+                 TestFunctions, TrialFunction, TrialFunctions, VectorConstant, VectorElement, avg, curl, div, dot, dS,
+                 ds, dx, grad, i, inner, j, jump, lhs, rhs, sqrt, tetrahedron, triangle)
 from ufl.algorithms import compute_form_data
 
 p = pickle.HIGHEST_PROTOCOL

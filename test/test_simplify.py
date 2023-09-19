@@ -2,7 +2,9 @@ import math
 
 import pytest
 
-from ufl import *
+from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction, VectorConstant, acos, as_tensor, as_ufl, asin,
+                 atan, cos, cosh, dx, exp, i, j, ln, max_value, min_value, outer, sin, sinh, tan, tanh, triangle)
+from ufl.algorithms import compute_form_data
 from ufl.classes import Product, Sum
 
 

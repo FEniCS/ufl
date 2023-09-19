@@ -1,6 +1,7 @@
 import pytest
 
-from ufl import *
+from ufl import (Coefficient, FiniteElement, MixedElement, TensorElement, VectorElement, WithMapping, dx, hexahedron,
+                 inner, interval, quadrilateral, tetrahedron, triangle)
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
