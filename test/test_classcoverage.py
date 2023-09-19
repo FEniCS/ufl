@@ -1,16 +1,21 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-06 -- 2009-02-10"
 
-import pytest
-
 import ufl
-from ufl import *
-from ufl.constantvalue import as_ufl
-from ufl.classes import *
-from ufl.algorithms import *
+from ufl import *  # noqa: F403, F401
+from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
+                 FiniteElement, Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength,
+                 MinFacetEdgeLength, MixedElement, Not, Or, PermutationSymbol, SpatialCoordinate, TensorConstant,
+                 TensorElement, VectorConstant, VectorElement, acos, action, as_matrix, as_tensor, as_ufl, as_vector,
+                 asin, atan, cell_avg, cofac, conditional, cos, cosh, cross, curl, derivative, det, dev, diff, div, dot,
+                 ds, dS, dx, eq, exp, facet_avg, ge, grad, gt, i, inner, inv, j, k, l, le, ln, lt, nabla_div,
+                 nabla_grad, ne, outer, rot, sin, sinh, skew, sqrt, sym, tan, tanh, tetrahedron, tr, transpose,
+                 triangle, variable)
+from ufl.algorithms import *  # noqa: F403, F401
+from ufl.classes import *  # noqa: F403, F401
+from ufl.classes import (Acos, Asin, Atan, CellCoordinate, Cos, Cosh, Exp, Expr, FacetJacobian,
+                         FacetJacobianDeterminant, FacetJacobianInverse, FloatValue, IntValue, Ln, Outer, Sin, Sinh,
+                         Sqrt, Tan, Tanh, all_ufl_classes)
 
 has_repr = set()
 has_dict = set()
@@ -29,7 +34,7 @@ def _test_object(a, shape, free_indices):
     assert hash(a) == hash(e)
 
     # Can't really test str more than that it exists
-    s = str(a)
+    str(a)
 
     # Check that some properties are at least available
     fi = a.ufl_free_indices
@@ -64,7 +69,7 @@ def _test_object2(a):
     assert hash(a) == hash(e)
 
     # Can't really test str more than that it exists
-    s = str(a)
+    str(a)
 
 
 def _test_form(a):
@@ -74,7 +79,7 @@ def _test_form(a):
     assert hash(a) == hash(e)
 
     # Can't really test str more than that it exists
-    s = str(a)
+    str(a)
 
 
 def testExports(self):
@@ -148,12 +153,12 @@ def testAll(self):
     a = IntValue(123)
     _test_object(a, (), ())
 
-    I = Identity(1)
-    _test_object(I, (1, 1), ())
-    I = Identity(2)
-    _test_object(I, (2, 2), ())
-    I = Identity(3)
-    _test_object(I, (3, 3), ())
+    ident = Identity(1)
+    _test_object(ident, (1, 1), ())
+    ident = Identity(2)
+    _test_object(ident, (2, 2), ())
+    ident = Identity(3)
+    _test_object(ident, (3, 3), ())
 
     e = PermutationSymbol(2)
     _test_object(e, (2, 2), ())
@@ -166,9 +171,9 @@ def testAll(self):
     _test_object(xi, (dim,), ())
 
     # g = CellBarycenter(cell)
-    #_test_object(g, (dim,), ())
+    # _test_object(g, (dim,), ())
     # g = FacetBarycenter(cell)
-    #_test_object(g, (dim,), ())
+    # _test_object(g, (dim,), ())
 
     g = Jacobian(cell)
     _test_object(g, (dim, dim), ())
@@ -187,7 +192,7 @@ def testAll(self):
     g = FacetNormal(cell)
     _test_object(g, (dim,), ())
     # g = CellNormal(cell)
-    #_test_object(g, (dim,), ())
+    # _test_object(g, (dim,), ())
 
     g = CellVolume(cell)
     _test_object(g, (), ())
@@ -196,7 +201,7 @@ def testAll(self):
     g = Circumradius(cell)
     _test_object(g, (), ())
     # g = CellSurfaceArea(cell)
-    #_test_object(g, (), ())
+    # _test_object(g, (), ())
 
     g = FacetArea(cell)
     _test_object(g, (), ())
@@ -205,7 +210,7 @@ def testAll(self):
     g = MaxFacetEdgeLength(cell)
     _test_object(g, (), ())
     # g = FacetDiameter(cell)
-    #_test_object(g, (), ())
+    # _test_object(g, (), ())
 
     a = variable(v0)
     _test_object(a, (), ())
@@ -242,8 +247,8 @@ def testAll(self):
     a = f2[l, 1]
     _test_object(a, (), (l,))
 
-    I = Identity(dim)
-    a = inv(I)
+    ident = Identity(dim)
+    a = inv(ident)
     _test_object(a, (dim, dim), ())
     a = inv(v2)
     _test_object(a, (dim, dim), ())
@@ -524,14 +529,14 @@ def testAll(self):
     _test_object(a, (), ())
 
     # a = PositiveRestricted(v0)
-    #_test_object(a, (), ())
+    # _test_object(a, (), ())
     a = v0('+')
     _test_object(a, (), ())
     a = v0('+')*f0
     _test_object(a, (), ())
 
     # a = NegativeRestricted(v0)
-    #_test_object(a, (), ())
+    # _test_object(a, (), ())
     a = v0('-')
     _test_object(a, (), ())
     a = v0('-') + f0

@@ -1,5 +1,6 @@
-import ufl
 import pytest
+
+import ufl
 
 
 def test_interval():
@@ -49,7 +50,6 @@ def test_tesseract():
     assert cell.num_vertices() == 16
     assert cell.num_edges() == 32
     assert cell.num_faces() == 24
-
 
 
 @pytest.mark.parametrize("cell", [ufl.interval])

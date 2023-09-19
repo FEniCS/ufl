@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from ufl import *
-from ufl.classes import *
+from ufl import (CellDiameter, CellVolume, Circumradius, FacetArea, FacetNormal, FiniteElement, Index,
+                 SpatialCoordinate, TestFunction, TrialFunction, as_matrix, as_ufl, as_vector, quadrilateral,
+                 tetrahedron, triangle)
 
 
 def test_str_int_value(self):

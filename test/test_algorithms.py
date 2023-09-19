@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
@@ -7,16 +5,12 @@ __date__ = "2008-03-12 -- 2009-01-28"
 # Modified by Garth N. Wells, 2009
 
 import pytest
-from pprint import *
 
-from ufl import (FiniteElement, TestFunction, TrialFunction, Matrix, triangle,
-                 div, grad, Argument, dx, adjoint, Coefficient,
-                 FacetNormal, inner, dot, ds)
-from ufl.algorithms import (extract_arguments, expand_derivatives,
-                            expand_indices, extract_elements,
-                            extract_unique_elements, extract_coefficients)
-from ufl.corealg.traversal import (pre_traversal, post_traversal,
-                                   unique_pre_traversal, unique_post_traversal)
+from ufl import (Argument, Coefficient, FacetNormal, FiniteElement, TestFunction, TrialFunction, adjoint, div, dot, ds,
+                 dx, grad, inner, triangle)
+from ufl.algorithms import (expand_derivatives, expand_indices, extract_arguments, extract_coefficients,
+                            extract_elements, extract_unique_elements)
+from ufl.corealg.traversal import post_traversal, pre_traversal, unique_post_traversal, unique_pre_traversal
 
 # TODO: add more tests, covering all utility algorithms
 
@@ -64,7 +58,7 @@ def test_extract_coefficients_vs_fixture(coefficients, forms):
 def test_extract_elements_and_extract_unique_elements(forms):
     b = forms[2]
     integrals = b.integrals_by_type("cell")
-    integrand = integrals[0].integrand()
+    integrals[0].integrand()
 
     element1 = FiniteElement("CG", triangle, 1)
     element2 = FiniteElement("CG", triangle, 1)

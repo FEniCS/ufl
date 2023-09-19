@@ -1,21 +1,17 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-"""
+"""Test scratch.
+
 This is a template file you can copy when making a new test case.
 Begin by copying this file to a filename matching test_*.py.
 The tests in the file will then automatically be run by ./test.py.
 Next look at the TODO markers below for places to edit.
 """
 
-import pytest
 import warnings
 
-# This imports everything external code will see from ufl
-from ufl import *
+from ufl import (Coefficient, FiniteElement, Identity, TensorElement, TestFunction, VectorElement, as_matrix, as_tensor,
+                 as_vector, dx, grad, indices, inner, outer, triangle)
+from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
 from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
-
-# TODO: Import only what you need from classes and algorithms:
-from ufl.classes import Grad, FormArgument, Zero, Indexed, FixedIndex, ListTensor
 
 
 class MockForwardAD:

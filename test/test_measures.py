@@ -1,20 +1,8 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-"""
-Tests of the various ways Measure objects can be created and used.
-"""
-
-import pytest
-
-# This imports everything external code will see from ufl
-from ufl import *
-from ufl.algorithms import compute_form_data
-
-# all_cells = (interval, triangle, tetrahedron,
-#             quadrilateral, hexahedron)
+"""Tests of the various ways Measure objects can be created and used."""
 
 from mockobjects import MockMesh, MockMeshFunction
+
+from ufl import Cell, Coefficient, FiniteElement, FunctionSpace, Measure, Mesh, as_ufl, dC, dI, dO, triangle
 
 
 def test_construct_forms_from_default_measures():
@@ -64,12 +52,12 @@ def test_construct_forms_from_default_measures():
     assert dS_v.integral_type() == "interior_facet_vert"
 
     # Check that defaults are set properly
-    assert dx.ufl_domain() == None
+    assert dx.ufl_domain() is None
     assert dx.metadata() == {}
 
     # Check that we can create a basic form with default measure
     one = as_ufl(1)
-    a = one * dx(Mesh(triangle))
+    one * dx(Mesh(triangle))
 
 
 def test_foo():
@@ -146,8 +134,6 @@ def test_foo():
 
     assert dxm.ufl_domain() is None
     assert dxm.subdomain_id() == "everywhere"
-
-    dxi = dx(metadata={"quadrature_degree": 3})
 
     # Mock some dolfin data structures
     dx = Measure("dx")

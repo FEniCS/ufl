@@ -1,11 +1,5 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-# Last changed: 2014-02-24
-
-import pytest
-
-from ufl import *
+from ufl import (Coefficient, FiniteElement, MixedElement, TensorElement, VectorElement, WithMapping, dx, hexahedron,
+                 inner, interval, quadrilateral, tetrahedron, triangle)
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
@@ -80,7 +74,7 @@ def test_tensor_symmetry():
 
 
 def test_mixed_tensor_symmetries():
-    from ufl.algorithms import expand_indices, expand_compounds
+    from ufl.algorithms import expand_compounds, expand_indices
 
     S = FiniteElement('CG', triangle, 1)
     V = VectorElement('CG', triangle, 1)
@@ -179,6 +173,7 @@ def test_missing_cell():
         assert element == eval(repr(element))
         element = TensorElement("DG L2", cell, 1, shape=(2, 2))
         assert element == eval(repr(element))
+
 
 def test_invalid_degree():
     cell = triangle

@@ -1,10 +1,8 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-import pytest
-from ufl.classes import Sum, Product
 import math
-from ufl import *
+
+from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction, VectorConstant, acos, as_tensor, as_ufl, asin,
+                 atan, cos, cosh, dx, exp, i, j, ln, max_value, min_value, outer, sin, sinh, tan, tanh, triangle)
+from ufl.algorithms import compute_form_data
 
 
 def xtest_zero_times_argument(self):
@@ -23,7 +21,6 @@ def xtest_zero_times_argument(self):
 def test_divisions(self):
     element = FiniteElement("CG", triangle, 1)
     f = Coefficient(element)
-    g = Coefficient(element)
 
     # Test simplification of division by 1
     a = f
@@ -97,22 +94,22 @@ def test_sums(self):
 
 
 def test_mathfunctions(self):
-    for i in (0.1, 0.3, 0.9):
-        assert math.sin(i) == sin(i)
-        assert math.cos(i) == cos(i)
-        assert math.tan(i) == tan(i)
-        assert math.sinh(i) == sinh(i)
-        assert math.cosh(i) == cosh(i)
-        assert math.tanh(i) == tanh(i)
-        assert math.asin(i) == asin(i)
-        assert math.acos(i) == acos(i)
-        assert math.atan(i) == atan(i)
-        assert math.exp(i) == exp(i)
-        assert math.log(i) == ln(i)
+    for a in (0.1, 0.3, 0.9):
+        assert math.sin(a) == sin(a)
+        assert math.cos(a) == cos(a)
+        assert math.tan(a) == tan(a)
+        assert math.sinh(a) == sinh(a)
+        assert math.cosh(a) == cosh(a)
+        assert math.tanh(a) == tanh(a)
+        assert math.asin(a) == asin(a)
+        assert math.acos(a) == acos(a)
+        assert math.atan(a) == atan(a)
+        assert math.exp(a) == exp(a)
+        assert math.log(a) == ln(a)
         # TODO: Implement automatic simplification of conditionals?
-        assert i == float(max_value(i, i-1))
+        assert a == float(max_value(a, a-1))
         # TODO: Implement automatic simplification of conditionals?
-        assert i == float(min_value(i, i+1))
+        assert a == float(min_value(a, a+1))
 
 
 def test_indexing(self):
@@ -125,5 +122,5 @@ def test_indexing(self):
 
     Bij = u[i]*v[j]
     Bij2 = as_tensor(Bij, (i, j))[i, j]
-    Bij3 = as_tensor(Bij, (i, j))
+    as_tensor(Bij, (i, j))
     assert Bij2 == Bij

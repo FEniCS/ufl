@@ -1,21 +1,16 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-from ufl import (FiniteElement, FunctionSpace, MixedFunctionSpace,
-                 Coefficient, Matrix, Cofunction, FormSum, Argument, Coargument,
-                 TestFunction, TrialFunction, Adjoint, Action,
-                 action, adjoint, derivative, inner, tetrahedron, triangle, interval, dx)
-from ufl.constantvalue import Zero
-from ufl.form import ZeroBaseForm
-
 __authors__ = "India Marsden"
-__date__ = "2020-12-28 -- 2020-12-28"
+__date__ = "2020-12-28"
 
 import pytest
 
-from ufl.domain import default_domain
-from ufl.duals import is_primal, is_dual
+from ufl import (Action, Adjoint, Argument, Coargument, Coefficient, Cofunction, FiniteElement, FormSum, FunctionSpace,
+                 Matrix, MixedFunctionSpace, TestFunction, TrialFunction, action, adjoint, derivative, dx, inner,
+                 interval, tetrahedron, triangle)
 from ufl.algorithms.ad import expand_derivatives
+from ufl.constantvalue import Zero
+from ufl.domain import default_domain
+from ufl.duals import is_dual, is_primal
+from ufl.form import ZeroBaseForm
 
 
 def test_mixed_functionspace(self):
@@ -72,7 +67,7 @@ def test_dual_coefficients():
     assert not is_primal(w)
 
     with pytest.raises(ValueError):
-        x = Cofunction(V)
+        Cofunction(V)
 
 
 def test_dual_arguments():
@@ -95,7 +90,7 @@ def test_dual_arguments():
     assert not is_primal(w)
 
     with pytest.raises(ValueError):
-        x = Coargument(V, 4)
+        Coargument(V, 4)
 
 
 def test_addition():

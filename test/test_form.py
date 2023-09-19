@@ -1,8 +1,7 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
 import pytest
 
-from ufl import *
+from ufl import (Coefficient, Cofunction, FiniteElement, Form, FormSum, FunctionSpace, Mesh, SpatialCoordinate,
+                 TestFunction, TrialFunction, VectorElement, dot, ds, dx, grad, inner, nabla_grad, triangle)
 from ufl.form import BaseForm
 
 
@@ -127,7 +126,7 @@ def test_form_call():
     f = Coefficient(V)
     g = Coefficient(V)
     a = g*inner(grad(v), grad(u))*dx
-    M = a(f, f, coefficients={ g: 1 })
+    M = a(f, f, coefficients={g: 1})
     assert M == grad(f)**2*dx
 
     import sys
@@ -136,27 +135,27 @@ def test_form_call():
         M = eval("(a @ f) @ g")
         assert M == g*f*dx
 
+
 def test_formsum(mass):
     V = FiniteElement("CG", triangle, 1)
     v = Cofunction(V)
 
-    assert(v + mass)
-    assert(mass + v)
-    assert(isinstance((mass+v), FormSum))
+    assert v + mass
+    assert mass + v
+    assert isinstance((mass+v), FormSum)
 
-    assert(len((mass + v + v).components()) == 3)
+    assert len((mass + v + v).components()) == 3
     # Variational forms are summed appropriately
-    assert(len((mass + v + mass).components()) == 2)
+    assert len((mass + v + mass).components()) == 2
 
-    assert(v - mass)
-    assert(mass - v)
-    assert(isinstance((mass+v), FormSum))
+    assert v - mass
+    assert mass - v
+    assert isinstance((mass+v), FormSum)
 
-    assert(-v)
-    assert(isinstance(-v, BaseForm))
-    assert((-v).weights()[0] == -1)
+    assert -v
+    assert isinstance(-v, BaseForm)
+    assert (-v).weights()[0] == -1
 
-    assert(2 * v)
-    assert(isinstance(2 * v, BaseForm))
-    assert((2 * v).weights()[0] == 2) 
-
+    assert 2 * v
+    assert isinstance(2 * v, BaseForm)
+    assert (2 * v).weights()[0] == 2

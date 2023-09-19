@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import pytest
-from ufl import *
-from ufl.compound_expressions import *
+
+from ufl import Coefficient, FiniteElement, Index, TensorElement, as_tensor, interval, sqrt, tetrahedron, triangle
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 
 
 @pytest.fixture
@@ -86,25 +85,25 @@ def test_inverse1(A1):
 
 
 def xtest_inverse2(A2):
-    expected = todo
+    expected = "TODO"
     assert inverse_expr(A2) == renumber_indices(expected)
 
 
 def xtest_inverse3(A3):
-    expected = todo
+    expected = "TODO"
     assert inverse_expr(A3) == renumber_indices(expected)
 
 
 def xtest_pseudo_inverse21(A21):
-    expected = todo
+    expected = "TODO"
     assert renumber_indices(inverse_expr(A21)) == renumber_indices(expected)
 
 
 def xtest_pseudo_inverse31(A31):
-    expected = todo
+    expected = "TODO"
     assert renumber_indices(inverse_expr(A31)) == renumber_indices(expected)
 
 
 def xtest_pseudo_inverse32(A32):
-    expected = todo
+    expected = "TODO"
     assert renumber_indices(inverse_expr(A32)) == renumber_indices(expected)

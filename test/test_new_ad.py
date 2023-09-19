@@ -1,17 +1,8 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-import pytest
-
-from ufl import *
-
-from ufl.tensors import as_tensor
-from ufl.classes import Grad
-from ufl.algorithms import tree_format
+from ufl import (CellVolume, Coefficient, Constant, FacetNormal, FiniteElement, Identity, SpatialCoordinate,
+                 TestFunction, VectorConstant, VectorElement, as_ufl, cos, derivative, diff, exp, grad, ln, sin, tan,
+                 triangle, variable, zero)
+from ufl.algorithms.apply_derivatives import GenericDerivativeRuleset, GradRuleset, apply_derivatives
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.algorithms.apply_derivatives import (
-    apply_derivatives, GenericDerivativeRuleset,
-    GradRuleset, VariableRuleset, GateauxDerivativeRuleset)
-
 
 # Note: the old tests in test_automatic_differentiation.py are a bit messy
 #       but still cover many things that are not in here yet.
@@ -31,8 +22,8 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     z = zero((3, 2))
     one = as_ufl(1)
     two = as_ufl(2.0)
-    I = Identity(d)
-    literals = [z, one, two, I]
+    ident = Identity(d)
+    literals = [z, one, two, ident]
 
     # Geometry
     x = SpatialCoordinate(cell)
@@ -70,25 +61,24 @@ def test_literal_derivatives_are_zero():
     # Literals
     one = as_ufl(1)
     two = as_ufl(2.0)
-    I = Identity(d)
-    E = PermutationSymbol(d)
-    literals = [one, two, I]
+    ident = Identity(d)
+    literals = [one, two, ident]
 
     # Generic ruleset handles literals directly:
-    for l in literals:
+    for lit in literals:
         for sh in [(), (d,), (d, d+1)]:
-            assert GenericDerivativeRuleset(sh)(l) == zero(l.ufl_shape + sh)
+            assert GenericDerivativeRuleset(sh)(lit) == zero(lit.ufl_shape + sh)
 
     # Variables
     v0 = variable(one)
     v1 = variable(zero((d,)))
-    v2 = variable(I)
+    v2 = variable(ident)
     variables = [v0, v1, v2]
 
     # Test literals via apply_derivatives and variable ruleset:
-    for l in literals:
+    for lit in literals:
         for v in variables:
-            assert apply_derivatives(diff(l, v)) == zero(l.ufl_shape + v.ufl_shape)
+            assert apply_derivatives(diff(lit, v)) == zero(lit.ufl_shape + v.ufl_shape)
 
     V0 = FiniteElement("DG", cell, 0)
     V1 = FiniteElement("Lagrange", cell, 1)
@@ -99,9 +89,9 @@ def test_literal_derivatives_are_zero():
     args = [(u0, v0), (u1, v1)]
 
     # Test literals via apply_derivatives and variable ruleset:
-    for l in literals:
+    for lit in literals:
         for u, v in args:
-            assert apply_derivatives(derivative(l, u, v)) == zero(l.ufl_shape + v.ufl_shape)
+            assert apply_derivatives(derivative(lit, u, v)) == zero(lit.ufl_shape + v.ufl_shape)
 
     # Test grad ruleset directly since grad(literal) is invalid:
     assert GradRuleset(d)(one) == zero((d,))
@@ -122,14 +112,12 @@ def test_grad_ruleset():
     # Literals
     one = as_ufl(1)
     two = as_ufl(2.0)
-    I = Identity(d)
-    literals = [one, two, I]
+    ident = Identity(d)
 
     # Geometry
     x = SpatialCoordinate(cell)
     n = FacetNormal(cell)
     volume = CellVolume(cell)
-    geometry = [x, n, volume]
 
     # Arguments
     u0 = TestFunction(V0)
@@ -145,33 +133,20 @@ def test_grad_ruleset():
     vf0 = Coefficient(W0)
     vf1 = Coefficient(W1)
     vf2 = Coefficient(W2)
-    coefficients = [f0, f1, vf0, vf1]
-
-    # Expressions
-    e0 = f0 + f1
-    e1 = u0 * (f1/3 - f0**2)
-    e2 = exp(sin(cos(tan(ln(x[0])))))
-    expressions = [e0, e1, e2]
-
-    # Variables
-    v0 = variable(one)
-    v1 = variable(f1)
-    v2 = variable(f0*f1)
-    variables = [v0, v1, v2]
 
     rules = GradRuleset(d)
 
     # Literals
     assert rules(one) == zero((d,))
     assert rules(two) == zero((d,))
-    assert rules(I) == zero((d, d, d))
+    assert rules(ident) == zero((d, d, d))
 
     # Assumed piecewise constant geometry
     for g in [n, volume]:
         assert rules(g) == zero(g.ufl_shape + (d,))
 
     # Non-constant geometry
-    assert rules(x) == I
+    assert rules(x) == ident
 
     # Arguments
     for u in arguments:

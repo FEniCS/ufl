@@ -1,9 +1,7 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 from pytest import raises
-from ufl import *
-from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
+
+from ufl import Coefficient, FacetNormal, FiniteElement, SpatialCoordinate, as_tensor, grad, i, triangle
+from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
 
 
