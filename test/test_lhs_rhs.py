@@ -16,22 +16,22 @@ def test_lhs_rhs_simple():
 
     F0 = f * u * v * w * dx
     a, L = system(F0)
-    assert(len(a.integrals()) == 0)
-    assert(len(L.integrals()) == 0)
+    assert len(a.integrals()) == 0
+    assert len(L.integrals()) == 0
 
     F1 = derivative(F0, f)
     a, L = system(F1)
-    assert(len(a.integrals()) == 0)
-    assert(len(L.integrals()) == 0)
+    assert len(a.integrals()) == 0
+    assert len(L.integrals()) == 0
 
     F2 = action(F0, f)
     a, L = system(F2)
-    assert(len(a.integrals()) == 1)
-    assert(len(L.integrals()) == 0)
+    assert len(a.integrals()) == 1
+    assert len(L.integrals()) == 0
 
     F3 = action(F2, f)
     a, L = system(F3)
-    assert(len(L.integrals()) == 1)
+    assert len(L.integrals()) == 1
 
 
 def test_lhs_rhs_derivatives():
@@ -42,8 +42,8 @@ def test_lhs_rhs_derivatives():
 
     F0 = exp(f) * u * v * dx + v * dx + f * v * ds + exp(f)('+') * v * dS
     a, L = system(F0)
-    assert(len(a.integrals()) == 1)
-    assert(len(L.integrals()) == 3)
+    assert len(a.integrals()) == 1
+    assert len(L.integrals()) == 3
 
     derivative(F0, f)
     a, L = system(F0)
@@ -62,9 +62,9 @@ def test_lhs_rhs_slightly_obscure():
     # F = f*u*w*dx + f*w*dx
     F = f * u * w * dx
     a, L = system(F)
-    assert(len(a.integrals()) == 1)
-    assert(len(L.integrals()) == 0)
+    assert len(a.integrals()) == 1
+    assert len(L.integrals()) == 0
 
     F = f * w * dx
     a, L = system(F)
-    assert(len(L.integrals()) == 1)
+    assert len(L.integrals()) == 1

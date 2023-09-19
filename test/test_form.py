@@ -140,22 +140,22 @@ def test_formsum(mass):
     V = FiniteElement("CG", triangle, 1)
     v = Cofunction(V)
 
-    assert(v + mass)
-    assert(mass + v)
-    assert(isinstance((mass+v), FormSum))
+    assert v + mass
+    assert mass + v
+    assert isinstance((mass+v), FormSum)
 
-    assert(len((mass + v + v).components()) == 3)
+    assert len((mass + v + v).components()) == 3
     # Variational forms are summed appropriately
-    assert(len((mass + v + mass).components()) == 2)
+    assert len((mass + v + mass).components()) == 2
 
-    assert(v - mass)
-    assert(mass - v)
-    assert(isinstance((mass+v), FormSum))
+    assert v - mass
+    assert mass - v
+    assert isinstance((mass+v), FormSum)
 
-    assert(-v)
-    assert(isinstance(-v, BaseForm))
-    assert((-v).weights()[0] == -1)
+    assert -v
+    assert isinstance(-v, BaseForm)
+    assert (-v).weights()[0] == -1
 
-    assert(2 * v)
-    assert(isinstance(2 * v, BaseForm))
-    assert((2 * v).weights()[0] == 2)
+    assert 2 * v
+    assert isinstance(2 * v, BaseForm)
+    assert (2 * v).weights()[0] == 2

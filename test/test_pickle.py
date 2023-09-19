@@ -38,8 +38,8 @@ def testConstant():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testElasticity():
@@ -59,7 +59,7 @@ def testElasticity():
     a_pickle = pickle.dumps(a, p)
     a_restore = pickle.loads(a_pickle)
 
-    assert(a.signature() == a_restore.signature())
+    assert a.signature() == a_restore.signature()
 
 
 def testEnergyNorm():
@@ -72,7 +72,7 @@ def testEnergyNorm():
     a_pickle = pickle.dumps(a, p)
     a_restore = pickle.loads(a_pickle)
 
-    assert(a.signature() == a_restore.signature())
+    assert a.signature() == a_restore.signature()
 
 
 def testEquation():
@@ -95,8 +95,8 @@ def testEquation():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testFunctionOperators():
@@ -116,7 +116,7 @@ def testFunctionOperators():
     a_pickle = pickle.dumps(a, p)
     a_restore = pickle.loads(a_pickle)
 
-    assert(a.signature() == a_restore.signature())
+    assert a.signature() == a_restore.signature()
 
 
 def testHeat():
@@ -138,8 +138,8 @@ def testHeat():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testMass():
@@ -154,7 +154,7 @@ def testMass():
     a_pickle = pickle.dumps(a, p)
     a_restore = pickle.loads(a_pickle)
 
-    assert(a.signature() == a_restore.signature())
+    assert a.signature() == a_restore.signature()
 
 
 def testMixedMixedElement():
@@ -166,7 +166,7 @@ def testMixedMixedElement():
     element_pickle = pickle.dumps(element, p)
     element_restore = pickle.loads(element_pickle)
 
-    assert(element == element_restore)
+    assert element == element_restore
 
 
 def testMixedPoisson():
@@ -191,8 +191,8 @@ def testMixedPoisson():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testNavierStokes():
@@ -210,7 +210,7 @@ def testNavierStokes():
     a_pickle = pickle.dumps(a, p)
     a_restore = pickle.loads(a_pickle)
 
-    assert(a.signature() == a_restore.signature())
+    assert a.signature() == a_restore.signature()
 
 
 def testNeumannProblem():
@@ -233,8 +233,8 @@ def testNeumannProblem():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testOptimization():
@@ -253,8 +253,8 @@ def testOptimization():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testP5tet():
@@ -264,7 +264,7 @@ def testP5tet():
     element_pickle = pickle.dumps(element, p)
     element_restore = pickle.loads(element_pickle)
 
-    assert(element == element_restore)
+    assert element == element_restore
 
 
 def testP5tri():
@@ -317,8 +317,8 @@ def testPoissonDG():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testPoisson():
@@ -338,8 +338,8 @@ def testPoisson():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testPoissonSystem():
@@ -361,8 +361,8 @@ def testPoissonSystem():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testQuadratureElement():
@@ -391,8 +391,8 @@ def testQuadratureElement():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testStokes():
@@ -419,8 +419,8 @@ def testStokes():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testSubDomain():
@@ -434,7 +434,7 @@ def testSubDomain():
     M_pickle = pickle.dumps(M, p)
     M_restore = pickle.loads(M_pickle)
 
-    assert(M.signature() == M_restore.signature())
+    assert M.signature() == M_restore.signature()
 
 
 def testSubDomains():
@@ -450,7 +450,7 @@ def testSubDomains():
     a_pickle = pickle.dumps(a, p)
     a_restore = pickle.loads(a_pickle)
 
-    assert(a.signature() == a_restore.signature())
+    assert a.signature() == a_restore.signature()
 
 
 def testTensorWeightedPoisson():
@@ -484,7 +484,7 @@ def testTensorWeightedPoisson():
     a_pickle = pickle.dumps(a, p)
     a_restore = pickle.loads(a_pickle)
 
-    assert(a.signature() == a_restore.signature())
+    assert a.signature() == a_restore.signature()
 
 
 def testVectorLaplaceGradCurl():
@@ -521,8 +521,8 @@ def testVectorLaplaceGradCurl():
     L_pickle = pickle.dumps(L, p)
     L_restore = pickle.loads(L_pickle)
 
-    assert(a.signature() == a_restore.signature())
-    assert(L.signature() == L_restore.signature())
+    assert a.signature() == a_restore.signature()
+    assert L.signature() == L_restore.signature()
 
 
 def testIdentity():
@@ -530,7 +530,7 @@ def testIdentity():
     i = Identity(2)
     i_pickle = pickle.dumps(i, p)
     i_restore = pickle.loads(i_pickle)
-    assert(i == i_restore)
+    assert i == i_restore
 
 
 def testFormData():
@@ -547,4 +547,4 @@ def testFormData():
     form_data_pickle = pickle.dumps(form_data, p)
     form_data_restore = pickle.loads(form_data_pickle)
 
-    assert(str(form_data) == str(form_data_restore))
+    assert str(form_data) == str(form_data_restore)
