@@ -1,8 +1,6 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2014-10-14"
 
-import math
-
 import pytest
 
 from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, SpatialCoordinate, VectorElement, as_vector, atan,

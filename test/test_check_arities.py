@@ -26,11 +26,9 @@ def test_check_arities():
     L = derivative(M, u, dv)
     a = derivative(L, u, du)
 
-    fd = compute_form_data(M)
-    fd = compute_form_data(L)
-    fd = compute_form_data(a)
-
-    assert True
+    compute_form_data(M)
+    compute_form_data(L)
+    compute_form_data(a)
 
 
 def test_complex_arities():

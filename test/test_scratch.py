@@ -8,8 +8,6 @@ Next look at the TODO markers below for places to edit.
 
 import warnings
 
-import pytest
-
 from ufl import (Coefficient, FiniteElement, Identity, TensorElement, TestFunction, VectorElement, as_matrix, as_tensor,
                  as_vector, dx, grad, indices, inner, outer, triangle)
 from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero

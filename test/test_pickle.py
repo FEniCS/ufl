@@ -10,8 +10,6 @@ __license__ = "GNU GPL version 3 or any later version"
 
 import pickle
 
-import pytest
-
 from ufl import (Coefficient, Constant, Dx, FacetNormal, FiniteElement, Identity, TensorElement, TestFunction,
                  TestFunctions, TrialFunction, TrialFunctions, VectorConstant, VectorElement, avg, curl, div, dot, dS,
                  ds, dx, grad, i, inner, j, jump, lhs, rhs, sqrt, tetrahedron, triangle)
@@ -26,7 +24,6 @@ def testConstant():
 
     v = TestFunction(element)
     u = TrialFunction(element)
-    f = Coefficient(element)
 
     c = Constant("triangle")
     d = VectorConstant("triangle")
@@ -275,7 +272,7 @@ def testP5tri():
     element = FiniteElement("Lagrange", triangle, 5)
 
     element_pickle = pickle.dumps(element, p)
-    element_restore = pickle.loads(element_pickle)
+    pickle.loads(element_pickle)
 
 
 def testPoissonDG():
@@ -430,8 +427,6 @@ def testSubDomain():
 
     element = FiniteElement("CG", "tetrahedron", 1)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
     f = Coefficient(element)
 
     M = f * dx(2) + f * ds(5)

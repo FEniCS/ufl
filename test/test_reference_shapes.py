@@ -1,5 +1,3 @@
-import pytest
-
 from ufl import Cell, FiniteElement, MixedElement, TensorElement, VectorElement
 
 

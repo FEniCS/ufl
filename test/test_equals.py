@@ -1,7 +1,5 @@
 """Test of expression comparison."""
 
-import pytest
-
 from ufl import Coefficient, Cofunction, FiniteElement, triangle
 
 
@@ -30,6 +28,7 @@ def test_comparison_of_coefficients():
     assert not v1 == u1
     assert not v2 == u2
 
+
 def test_comparison_of_cofunctions():
     V = FiniteElement("CG", triangle, 1)
     U = FiniteElement("CG", triangle, 2)
@@ -54,7 +53,6 @@ def test_comparison_of_cofunctions():
     assert not u1 == u2
     assert not v1 == u1
     assert not v2 == u2
-
 
 
 def test_comparison_of_products():

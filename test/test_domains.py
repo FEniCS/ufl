@@ -1,11 +1,10 @@
 """Tests of domain language and attaching domains to forms."""
 
 import pytest
-from mockobjects import MockMesh, MockMeshFunction
+from mockobjects import MockMesh
 
-from ufl import (Cell, Coefficient, Constant, FiniteElement, FunctionSpace, Mesh, MixedElement, TestFunctions,
-                 TrialFunctions, VectorElement, as_vector, dot, ds, dS, dx, hexahedron, interval, quadrilateral,
-                 tetrahedron, triangle)
+from ufl import (Cell, Coefficient, Constant, FiniteElement, FunctionSpace, Mesh, VectorElement, ds, dS, dx, hexahedron,
+                 interval, quadrilateral, tetrahedron, triangle)
 from ufl.algorithms import compute_form_data
 from ufl.domain import as_domain, default_domain
 

@@ -3,8 +3,6 @@ __authors__ = "Marie E. Rognes"
 # First added: 2011-11-09
 # Last changed: 2011-11-09
 
-import pytest
-
 from ufl import (Argument, Coefficient, Constant, FiniteElement, TestFunction, TrialFunction, action, derivative, ds,
                  dS, dx, exp, interval, system)
 
@@ -47,7 +45,7 @@ def test_lhs_rhs_derivatives():
     assert(len(a.integrals()) == 1)
     assert(len(L.integrals()) == 3)
 
-    F1 = derivative(F0, f)
+    derivative(F0, f)
     a, L = system(F0)
 
 

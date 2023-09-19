@@ -1,8 +1,6 @@
 import gc
 import sys
 
-import pytest
-
 from ufl import (Coefficient, Constant, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, dx, grad,
                  inner, triangle)
 from ufl.algorithms import replace_terminal_data, strip_terminal_data

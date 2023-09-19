@@ -1,5 +1,3 @@
-import pytest
-
 from ufl import (Coefficient, FiniteElement, MixedElement, TensorElement, VectorElement, WithMapping, dx, hexahedron,
                  inner, interval, quadrilateral, tetrahedron, triangle)
 
@@ -175,6 +173,7 @@ def test_missing_cell():
         assert element == eval(repr(element))
         element = TensorElement("DG L2", cell, 1, shape=(2, 2))
         assert element == eval(repr(element))
+
 
 def test_invalid_degree():
     cell = triangle

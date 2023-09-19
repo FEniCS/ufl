@@ -1,9 +1,5 @@
 """Test the computation of form signatures."""
 
-from itertools import chain
-
-import pytest
-
 from ufl import (Argument, CellDiameter, CellVolume, Circumradius, Coefficient, FacetArea, FacetNormal, FiniteElement,
                  FunctionSpace, Identity, Mesh, SpatialCoordinate, TensorElement, TestFunction, VectorElement,
                  as_domain, as_vector, diff, dot, ds, dx, hexahedron, indices, inner, interval, quadrilateral,
@@ -77,10 +73,10 @@ def test_terminal_hashdata_depends_on_literals(self):
         for d in (2, 3):
             domain = as_domain({2: triangle, 3: tetrahedron}[d])
             x = SpatialCoordinate(domain)
-            I = Identity(d)
+            ident = Identity(d)
             for fv in (1.1, 2.2):
                 for iv in (5, 7):
-                    expr = (I[0, j]*(fv*x[j]))**iv
+                    expr = (ident[0, j]*(fv*x[j]))**iv
 
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))
@@ -112,13 +108,13 @@ def test_terminal_hashdata_depends_on_geometry(self):
             a = FacetArea(cell)
             # s = CellSurfaceArea(cell)
             v = CellVolume(cell)
-            I = Identity(d)
+            ident = Identity(d)
 
             ws = (x, n)
             qs = (h, r, a, v)  # , s)
             for w in ws:
                 for q in qs:
-                    expr = (I[0, j]*(q*w[j]))
+                    expr = (ident[0, j]*(q*w[j]))
 
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))
@@ -384,7 +380,7 @@ def test_multiindex_hashdata_depends_on_the_order_indices_are_observed(self):
             # each repetition but repr and hashes changing
             # because new indices are created each repetition.
             index_numbering = {}
-            i, j, k, l = indices(4)
+            i, j, k, l = indices(4)  # noqa: E741
             for expr in (MultiIndex((i,)),
                          MultiIndex((i,)),  # r
                          MultiIndex((i, j)),

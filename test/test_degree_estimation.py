@@ -2,8 +2,6 @@ __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
 
-import pytest
-
 from ufl import (Argument, Coefficient, Coefficients, FacetNormal, FiniteElement, SpatialCoordinate,
                  TensorProductElement, VectorElement, cos, div, dot, grad, i, inner, nabla_div, nabla_grad, sin, tan,
                  triangle)
