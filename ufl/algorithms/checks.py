@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Functions to check the validity of forms."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -80,7 +79,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
                             msg = "TrialFunctions"
                         else:
                             msg = "Arguments with same number and part"
-                        msg = "Found different %s: %s and %s." % (msg, repr(f), repr(g))
+                        msg = f"Found different {msg}: {f!r} and {g!r}."
                         errors.append(msg)
                 else:
                     arguments[(n, p)] = f
@@ -88,8 +87,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     # Check that all integrands are scalar
     for expression in iter_expressions(form):
         if not is_true_ufl_scalar(expression):
-            errors.append("Found non-scalar integrand expression: %s\n" %
-                          ufl_err_str(expression))
+            errors.append("Found non-scalar integrand expression: {ufl_err_str(expression)}\n")
 
     # Check that restrictions are permissible
     for integral in form.integrals():

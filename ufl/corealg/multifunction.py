@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Base class for multifunctions with UFL ``Expr`` type dispatch."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -16,13 +14,13 @@ from ufl.core.ufl_type import UFLType
 
 
 def get_num_args(function):
-    "Return the number of arguments accepted by *function*."
+    """Return the number of arguments accepted by *function*."""
     sig = inspect.signature(function)
     return len(sig.parameters) + 1
 
 
 def memoized_handler(handler):
-    "Function decorator to memoize ``MultiFunction`` handlers."
+    """Function decorator to memoize ``MultiFunction`` handlers."""
 
     def _memoized_handler(self, o):
         c = getattr(self, "_memoized_handler_cache")
@@ -50,6 +48,7 @@ class MultiFunction(object):
     _handlers_cache = {}
 
     def __init__(self):
+        """Initialise."""
         # Analyse class properties and cache handler data the
         # first time this is run for a particular class
         # (cached for each algorithm for performance)
@@ -92,11 +91,11 @@ class MultiFunction(object):
         self._memoized_handler_cache = {}
 
     def __call__(self, o, *args):
-        "Delegate to handler function based on typecode of first argument."
+        """Delegate to handler function based on typecode of first argument."""
         return self._handlers[o._ufl_typecode_](o, *args)
 
     def undefined(self, o, *args):
-        "Trigger error for types with missing handlers."
+        """Trigger error for types with missing handlers."""
         raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
 
     def reuse_if_untouched(self, o, *ops):

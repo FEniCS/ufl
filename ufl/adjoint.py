@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module defines the Adjoint class."""
 
 # Copyright (C) 2021 India Marsden
@@ -35,6 +34,7 @@ class Adjoint(BaseForm):
         "_hash")
 
     def __new__(cls, *args, **kw):
+        """Create a new Adjoint."""
         form = args[0]
         # Check trivial case: This is not a ufl.Zero but a ZeroBaseForm!
         if form == 0:
@@ -59,6 +59,7 @@ class Adjoint(BaseForm):
         return super(Adjoint, cls).__new__(cls)
 
     def __init__(self, form):
+        """Initialise."""
         BaseForm.__init__(self)
 
         if len(form.arguments()) != 2:
@@ -71,10 +72,11 @@ class Adjoint(BaseForm):
         self._repr = "Adjoint(%s)" % repr(self._form)
 
     def ufl_function_spaces(self):
-        "Get the tuple of function spaces of the underlying form"
+        """Get the tuple of function spaces of the underlying form."""
         return self._form.ufl_function_spaces()
 
     def form(self):
+        """Return the form."""
         return self._form
 
     def _analyze_form_arguments(self):
@@ -89,6 +91,7 @@ class Adjoint(BaseForm):
         self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
 
     def equals(self, other):
+        """Check if two Adjoints are equal."""
         if type(other) is not Adjoint:
             return False
         if self is other:
@@ -98,13 +101,15 @@ class Adjoint(BaseForm):
         return bool(self._form == other._form)
 
     def __str__(self):
+        """Format as a string."""
         return f"Adjoint({self._form})"
 
     def __repr__(self):
+        """Representation."""
         return self._repr
 
     def __hash__(self):
-        """Hash code for use in dicts."""
+        """Hash."""
         if self._hash is None:
             self._hash = hash(("Adjoint", hash(self._form)))
         return self._hash

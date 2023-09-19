@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"Utilites for sorting."
+"""Utilites for sorting."""
 
 # Copyright (C) 2008-2016 Johan Hake
 #
@@ -11,16 +10,12 @@ import warnings
 
 
 def topological_sorting(nodes, edges):
-    """
-    Return a topologically sorted list of the nodes
+    """Return a topologically sorted list of the nodes.
 
-    Implemented algorithm from Wikipedia :P
-
-    <http://en.wikipedia.org/wiki/Topological_sorting>
+    Implemented algorithm from Wikipedia (http://en.wikipedia.org/wiki/Topological_sorting).
 
     No error for cyclic edges...
     """
-
     L = []
     S = nodes[:]
     for node in nodes:
@@ -47,12 +42,12 @@ def topological_sorting(nodes, edges):
 
 
 def sorted_by_count(seq):
-    "Sort a sequence by the item.count()."
+    """Sort a sequence by the item.count()."""
     return sorted(seq, key=lambda x: x.count())
 
 
 def sorted_by_key(mapping):
-    "Sort dict items by key, allowing different key types."
+    """Sort dict items by key, allowing different key types."""
     # Python3 doesn't allow comparing builtins of different type,
     # therefore the typename trick here
     def _key(x):

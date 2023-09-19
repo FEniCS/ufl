@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-"Utilities for analysing and manipulating free index tuples"
-
+"""Utilities for analysing and manipulating free index tuples."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-
 
 from ufl.core.multiindex import FixedIndex, Index, indices
 
@@ -15,7 +12,9 @@ from ufl.core.multiindex import FixedIndex, Index, indices
 # be optimized
 
 def unique_sorted_indices(indices):
-    """Given a list of (id, dim) tuples already sorted by id,
+    """Get unique sorted indices.
+
+    Given a list of (id, dim) tuples already sorted by id,
     return a unique list with duplicates removed.
     Also checks that the dimensions of duplicates are matching.
     """
@@ -39,7 +38,6 @@ def merge_unique_indices(afi, afid, bfi, bfid):
     return a unique list with duplicates removed.
     Also checks that the dimensions of duplicates are matching.
     """
-
     na = len(afi)
     nb = len(bfi)
 
@@ -131,6 +129,7 @@ def remove_indices(fi, fid, rfi):
 
 
 def create_slice_indices(component, shape, fi):
+    """Create slice indices."""
     all_indices = []
     slice_indices = []
     repeated_indices = []
@@ -175,12 +174,9 @@ def merge_nonoverlapping_indices(a, b):
     """Merge non-overlapping free indices into one representation.
 
     Example:
-    -------
       C[i,j,r,s] = outer(A[i,s], B[j,r])
       A, B -> (i,j,r,s), (idim,jdim,rdim,sdim)
-
     """
-
     # Extract input properties
     ai = a.ufl_free_indices
     bi = b.ufl_free_indices
@@ -204,12 +200,9 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
     """Merge overlapping free indices into one free and one repeated representation.
 
     Example:
-    -------
       C[j,r] := A[i,j,k] * B[i,r,k]
       A, B -> (j,r), (jdim,rdim), (i,k), (idim,kdim)
-
     """
-
     # Extract input properties
     an = len(afi)
     bn = len(bfi)

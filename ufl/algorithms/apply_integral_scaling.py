@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
 
 # Copyright (C) 2013-2016 Martin Sandve Alnæs
@@ -16,7 +15,6 @@ from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 
 def compute_integrand_scaling_factor(integral):
     """Change integrand geometry to the right representations."""
-
     domain = integral.ufl_domain()
     integral_type = integral.integral_type()
     # co = CellOrientation(domain)
@@ -75,7 +73,7 @@ def compute_integrand_scaling_factor(integral):
 
 
 def apply_integral_scaling(form):
-    "Multiply integrands by a factor to scale the integral to reference frame."
+    """Multiply integrands by a factor to scale the integral to reference frame."""
     # TODO: Consider adding an in_reference_frame property to Integral
     #       and checking it here and setting it in the returned form
     if isinstance(form, Form):
@@ -106,6 +104,7 @@ def apply_integral_scaling(form):
         md["estimated_polynomial_degree"] = new_degree
 
         def scale_coordinate_derivative(o, scale):
+            """Scale the coordinate derivative."""
             o_ = o.ufl_operands
             if isinstance(o, CoordinateDerivative):
                 return CoordinateDerivative(scale_coordinate_derivative(o_[0], scale), o_[1], o_[2], o_[3])

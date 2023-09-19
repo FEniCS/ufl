@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module defines the Indexed class."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -20,12 +19,15 @@ from ufl.precedence import parstr
 
 @ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
+    """Indexed."""
+
     __slots__ = (
         "ufl_free_indices",
         "ufl_index_dimensions",
     )
 
     def __new__(cls, expression, multiindex):
+        """Create a new Indexed."""
         if isinstance(expression, Zero):
             # Zero-simplify indexed Zero objects
             shape = expression.ufl_shape
@@ -47,6 +49,7 @@ class Indexed(Operator):
             return Operator.__new__(cls)
 
     def __init__(self, expression, multiindex):
+        """Initialise."""
         # Store operands
         Operator.__init__(self, (expression, multiindex))
 
@@ -88,6 +91,7 @@ class Indexed(Operator):
     ufl_shape = ()
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
+        """Evaluate."""
         A, ii = self.ufl_operands
         component = ii.evaluate(x, mapping, None, index_values)
         if derivatives:
@@ -96,10 +100,12 @@ class Indexed(Operator):
             return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
+        """Format as a string."""
         return "%s[%s]" % (parstr(self.ufl_operands[0], self),
                            self.ufl_operands[1])
 
     def __getitem__(self, key):
+        """Get an item."""
         if key == ():
             # So that one doesn't have to special case indexing of
             # expressions without shape.

@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-"""This module attaches special functions to Expr.
-This way we avoid circular dependencies between e.g.
-Sum and its superclass Expr."""
+"""Expr operators.
 
+This module attaches special functions to Expr.
+This way we avoid circular dependencies between e.g.
+Sum and its superclass Expr.
+"""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -34,22 +35,22 @@ from ufl.conditional import LE, GE, LT, GT
 
 
 def _le(left, right):
-    "UFL operator: A boolean expresion (left <= right) for use with conditional."
+    """A boolean expresion (left <= right) for use with conditional."""
     return LE(left, right)
 
 
 def _ge(left, right):
-    "UFL operator: A boolean expresion (left >= right) for use with conditional."
+    """A boolean expresion (left >= right) for use with conditional."""
     return GE(left, right)
 
 
 def _lt(left, right):
-    "UFL operator: A boolean expresion (left < right) for use with conditional."
+    """A boolean expresion (left < right) for use with conditional."""
     return LT(left, right)
 
 
 def _gt(left, right):
-    "UFL operator: A boolean expresion (left > right) for use with conditional."
+    """A boolean expresion (left > right) for use with conditional."""
     return GT(left, right)
 
 
@@ -84,7 +85,7 @@ Expr.__ge__ = _ge
 
 
 def _as_tensor(self, indices):
-    "UFL operator: A^indices := as_tensor(A, indices)."
+    """A^indices := as_tensor(A, indices)."""
     if not isinstance(indices, tuple):
         raise ValueError("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
     if not all(isinstance(i, Index) for i in indices):
@@ -98,6 +99,7 @@ Expr.__xor__ = _as_tensor
 # --- Helper functions for product handling ---
 
 def _mult(a, b):
+    """Multiply."""
     # Discover repeated indices, which results in index sums
     afi = a.ufl_free_indices
     bfi = b.ufl_free_indices
@@ -174,6 +176,7 @@ _valid_types = (Expr, numbers.Real, numbers.Integral, numbers.Complex)
 
 
 def _mul(self, o):
+    """Multiply."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     o = as_ufl(o)
@@ -184,6 +187,7 @@ Expr.__mul__ = _mul
 
 
 def _rmul(self, o):
+    """Multiply."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     o = as_ufl(o)
@@ -194,6 +198,7 @@ Expr.__rmul__ = _rmul
 
 
 def _add(self, o):
+    """Add."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Sum(self, o)
@@ -203,6 +208,7 @@ Expr.__add__ = _add
 
 
 def _radd(self, o):
+    """Add."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     if isinstance(o, numbers.Number) and o == 0:
@@ -216,6 +222,7 @@ Expr.__radd__ = _radd
 
 
 def _sub(self, o):
+    """Subtract."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Sum(self, -o)
@@ -225,6 +232,7 @@ Expr.__sub__ = _sub
 
 
 def _rsub(self, o):
+    """Subtract."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Sum(o, -self)
@@ -234,6 +242,7 @@ Expr.__rsub__ = _rsub
 
 
 def _div(self, o):
+    """Divide."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     sh = self.ufl_shape
@@ -249,6 +258,7 @@ Expr.__truediv__ = _div
 
 
 def _rdiv(self, o):
+    """Divide."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Division(o, self)
@@ -259,6 +269,7 @@ Expr.__rtruediv__ = _rdiv
 
 
 def _pow(self, o):
+    """Raise to a power."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     if o == 2 and self.ufl_shape:
@@ -270,6 +281,7 @@ Expr.__pow__ = _pow
 
 
 def _rpow(self, o):
+    """Raise to a power."""
     if not isinstance(o, _valid_types):
         return NotImplemented
     return Power(o, self)
@@ -280,6 +292,7 @@ Expr.__rpow__ = _rpow
 
 # TODO: Add Negated class for this? Might simplify reductions in Add.
 def _neg(self):
+    """Negate."""
     return -1 * self
 
 
@@ -287,6 +300,7 @@ Expr.__neg__ = _neg
 
 
 def _abs(self):
+    """Absolute value."""
     return Abs(self)
 
 
@@ -296,6 +310,7 @@ Expr.__abs__ = _abs
 # --- Extend Expr with restiction operators a("+"), a("-") ---
 
 def _restrict(self, side):
+    """Restrict."""
     if side == "+":
         return PositiveRestricted(self)
     if side == "-":
@@ -304,9 +319,11 @@ def _restrict(self, side):
 
 
 def _eval(self, coord, mapping=None, component=()):
-    # Evaluate expression at this particular coordinate, with provided
-    # values for other terminals in mapping
+    """Evaluate.
 
+    Evaluate expression at this particular coordinate, with provided
+    values for other terminals in mapping.
+    """
     # Evaluate derivatives first
     from ufl.algorithms import expand_derivatives
     f = expand_derivatives(self)
@@ -319,7 +336,7 @@ def _eval(self, coord, mapping=None, component=()):
 
 
 def _call(self, arg, mapping=None, component=()):
-    # Taking the restriction or evaluating depending on argument
+    """Take the restriction or evaluate depending on argument."""
     if arg in ("+", "-"):
         if mapping is not None:
             raise ValueError("Not expecting a mapping when taking restriction.")
@@ -334,8 +351,10 @@ Expr.__call__ = _call
 # --- Extend Expr with the transpose operation A.T ---
 
 def _transpose(self):
-    """Transpose a rank-2 tensor expression. For more general transpose
-    operations of higher order tensor expressions, use indexing and Tensor."""
+    """Transpose a rank-2 tensor expression.
+
+    For more general transpose operations of higher order tensor expressions, use indexing and Tensor.
+    """
     return Transposed(self)
 
 
@@ -345,7 +364,7 @@ Expr.T = property(_transpose)
 # --- Extend Expr with indexing operator a[i] ---
 
 def _getitem(self, component):
-
+    """Get an item."""
     # Treat component consistently as tuple below
     if not isinstance(component, tuple):
         component = (component,)
@@ -406,7 +425,7 @@ Expr.__getitem__ = _getitem
 # --- Extend Expr with spatial differentiation operator a.dx(i) ---
 
 def _dx(self, *ii):
-    "Return the partial derivative with respect to spatial variable number *ii*."
+    """Return the partial derivative with respect to spatial variable number *ii*."""
     d = self
     # Unwrap ii to allow .dx(i,j) and .dx((i,j))
     if len(ii) == 1 and isinstance(ii[0], tuple):

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"Various high level ways to transform a complete Form into a new Form."
-
+"""Various high level ways to transform a complete Form into a new Form."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -45,30 +43,28 @@ from ufl.algorithms import replace  # noqa
 
 
 def extract_blocks(form, i=None, j=None):
-    """UFL form operator:
+    """Extract blocks.
+
     Given a linear or bilinear form on a mixed space,
     extract the block corresponding to the indices ix, iy.
 
     Example:
-    -------
        a = inner(grad(u), grad(v))*dx + div(u)*q*dx + div(v)*p*dx
        extract_blocks(a, 0, 0) -> inner(grad(u), grad(v))*dx
        extract_blocks(a) -> [inner(grad(u), grad(v))*dx, div(v)*p*dx, div(u)*q*dx, 0]
-
     """
     return formsplitter.extract_blocks(form, i, j)
 
 
 def lhs(form):
-    """UFL form operator:
+    """Get the left hand side.
+
     Given a combined bilinear and linear form,
     extract the left hand side (bilinear form part).
 
     Example:
-    -------
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
-
     """
     form = as_form(form)
     form = expand_derivatives(form)
@@ -76,15 +72,14 @@ def lhs(form):
 
 
 def rhs(form):
-    """UFL form operator:
+    """Get the right hand side.
+
     Given a combined bilinear and linear form,
     extract the right hand side (negated linear form part).
 
     Example:
-    -------
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
-
     """
     form = as_form(form)
     form = expand_derivatives(form)
@@ -92,20 +87,23 @@ def rhs(form):
 
 
 def system(form):
-    """UFL form operator: Split a form into the left hand side and right hand
-    side, see ``lhs`` and ``rhs``."""
+    """Split a form into the left hand side and right hand side.
+
+    See ``lhs`` and ``rhs``.
+    """
     return lhs(form), rhs(form)
 
 
 def functional(form):  # TODO: Does this make sense for anything other than testing?
-    "UFL form operator: Extract the functional part of form."
+    """Extract the functional part of form."""
     form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_functional(form)
 
 
 def action(form, coefficient=None, derivatives_expanded=None):
-    """UFL form operator:
+    """Get the action.
+
     Given a bilinear form, return a linear form
     with an additional coefficient, representing the
     action of the form on the coefficient. This can be
@@ -130,16 +128,19 @@ def action(form, coefficient=None, derivatives_expanded=None):
 
 
 def energy_norm(form, coefficient=None):
-    """UFL form operator:
+    """Get the energy norm.
+
     Given a bilinear form *a* and a coefficient *f*,
-    return the functional :math:`a(f,f)`."""
+    return the functional :math:`a(f,f)`.
+    """
     form = as_form(form)
     form = expand_derivatives(form)
     return compute_energy_norm(form, coefficient)
 
 
 def adjoint(form, reordered_arguments=None, derivatives_expanded=None):
-    """UFL form operator:
+    """Get the adjoint.
+
     Given a combined bilinear form, compute the adjoint form by
     changing the ordering (count) of the test and trial functions, and
     taking the complex conjugate of the result.
@@ -169,6 +170,7 @@ def adjoint(form, reordered_arguments=None, derivatives_expanded=None):
 
 
 def zero_lists(shape):
+    """Createa list of zeros of the given shape."""
     if len(shape) == 0:
         raise ValueError("Invalid shape.")
     elif len(shape) == 1:
@@ -178,6 +180,7 @@ def zero_lists(shape):
 
 
 def set_list_item(li, i, v):
+    """Set an item in a nested list."""
     # Get to the innermost list
     if len(i) > 1:
         for j in i[:-1]:
@@ -187,6 +190,7 @@ def set_list_item(li, i, v):
 
 
 def _handle_derivative_arguments(form, coefficient, argument):
+    """Handle derivative arguments."""
     # Wrap single coefficient in tuple for uniform treatment below
     if isinstance(coefficient, (list, tuple, ListTensor)):
         coefficients = tuple(coefficient)
@@ -279,9 +283,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
 
 def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
-    """UFL form operator:
-    Compute the Gateaux derivative of *form* w.r.t. *coefficient* in direction
-    of *argument*.
+    """Compute the Gateaux derivative of *form* w.r.t. *coefficient* in direction of *argument*.
 
     If the argument is omitted, a new ``Argument`` is created
     in the same space as the coefficient, with argument number
@@ -301,7 +303,6 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     If provided, *coefficient_derivatives* should be a mapping from
     ``Coefficient`` instances to their derivatives w.r.t. *coefficient*.
     """
-
     if isinstance(form, FormSum):
         # Distribute derivative over FormSum components
         return FormSum(*[(derivative(component, coefficient, argument, coefficient_derivatives), 1)
@@ -377,8 +378,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
 
 
 def sensitivity_rhs(a, u, L, v):
-    """UFL form operator:
-    Compute the right hand side for a sensitivity calculation system.
+    r"""Compute the right hand side for a sensitivity calculation system.
 
     The derivation behind this computation is as follows.
     Assume *a*, *L* to be bilinear and linear forms
