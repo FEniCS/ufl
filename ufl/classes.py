@@ -19,38 +19,39 @@ of classes, and for mapping types to different handler functions.
 # This will be populated part by part below
 __all__ = []
 
-
 # Import all submodules, triggering execution of the ufl_type class
 # decorator for each Expr class.
 
 import ufl.algebra
 import ufl.argument
-# Operator types
 import ufl.averaging
+import ufl.cell
 import ufl.coefficient
 import ufl.conditional
-# Terminal types
 import ufl.constantvalue
-# Base classes of Expr type hierarchy
 import ufl.core.expr
+import ufl.core.multiindex
 import ufl.core.operator
 import ufl.core.terminal
 import ufl.differentiation
+import ufl.domain
+import ufl.equation
 import ufl.exprcontainers
+import ufl.finiteelement
+import ufl.form
+import ufl.functionspace
 import ufl.geometry
 import ufl.indexed
 import ufl.indexsum
+import ufl.integral
 import ufl.mathfunctions
+import ufl.measure
 import ufl.referencevalue
 import ufl.restriction
 import ufl.tensoralgebra
 import ufl.tensors
 import ufl.variable
-# Make sure we import exproperators which attaches special functions
-# to Expr
 from ufl import exproperators as __exproperators
-
-# Make sure to import modules with new Expr subclasses here!
 
 # Collect all classes in sets automatically classified by some properties
 all_ufl_classes = set(ufl.core.expr.Expr._ufl_all_classes_)
@@ -93,42 +94,13 @@ def populate_namespace_with_module_classes(mod, loc):
     return names
 
 
-import ufl.cell  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.cell, locals())
-
-import ufl.finiteelement  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.finiteelement, locals())
-
-import ufl.domain  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.domain, locals())
-
-import ufl.functionspace  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.functionspace, locals())
-
-import ufl.core.multiindex  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.core.multiindex, locals())
-
-import ufl.argument  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.argument, locals())
-
-import ufl.measure  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.measure, locals())
-
-import ufl.integral  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.integral, locals())
-
-import ufl.form  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.form, locals())
-
-import ufl.equation  # noqa E401
-
 __all__ += populate_namespace_with_module_classes(ufl.equation, locals())

@@ -10,8 +10,10 @@
 
 from ufl.algorithms.analysis import has_exact_type
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import CoefficientDerivative, ExternalOperator, Form, Interpolate
+from ufl.classes import CoefficientDerivative, Form
 from ufl.constantvalue import as_ufl
+from ufl.core.external_operator import ExternalOperator
+from ufl.core.interpolate import Interpolate
 from ufl.corealg.multifunction import MultiFunction
 
 

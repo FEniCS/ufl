@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"This module defines the UFL finite element classes."
-
+"""This module defines the UFL finite element classes."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -30,11 +28,7 @@ class AbstractFiniteElement(_abc.ABC):
 
     @_abc.abstractmethod
     def __repr__(self) -> str:
-        """Format as string for evaluation as Python object.
-
-        This representation must include all the input arguments of the element
-        as it will be used to check for element equality.
-        """
+        """Format as string for evaluation as Python object."""
 
     @_abc.abstractmethod
     def __str__(self) -> str:

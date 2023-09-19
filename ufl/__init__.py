@@ -259,7 +259,7 @@ from ufl.measure import Measure, custom_integral_types, integral_types, register
 from ufl.objects import (dc, dC, dI, dO, dP, ds, dS, ds_b, dS_h, ds_t, ds_tb, ds_v, dS_v, dx, dX, facet, hexahedron, i,
                          interval, j, k, l, p, pentatope, prism, pyramid, q, quadrilateral, r, s, tesseract,
                          tetrahedron, triangle, vertex)
-from ufl.operators import (And, Dn, Dx, Not, Or, acos, asin, atan, atan_2, avg, bessel_I, bessel_J, bessel_K, bessel_Y,
+from ufl.operators import (And, Dn, Dx, Not, Or, acos, asin, atan, atan2, avg, bessel_I, bessel_J, bessel_K, bessel_Y,
                            cell_avg, cofac, conditional, conj, cos, cosh, cross, curl, det, dev, diag, diag_vector,
                            diff, div, dot, elem_div, elem_mult, elem_op, elem_pow, eq, erf, exp, exterior_derivative,
                            facet_avg, ge, grad, gt, imag, inner, inv, jump, le, ln, lt, max_value, min_value, nabla_div,
