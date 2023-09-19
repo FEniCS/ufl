@@ -18,19 +18,20 @@ from ufl.algorithms.analysis import (extract_arguments, extract_arguments_and_co
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.core.interpolate import Interpolate
 from ufl.domain import default_domain
+from ufl.finiteelement import FiniteElement
 
 
 @pytest.fixture
 def V1():
     domain_2d = default_domain(triangle)
-    f1 = FiniteElement("CG", triangle, 1)
+    f1 = FiniteElement("CG", triangle, 1, (), (), "identity", H1)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
 def V2():
     domain_2d = default_domain(triangle)
-    f1 = FiniteElement("CG", triangle, 2)
+    f1 = FiniteElement("CG", triangle, 2, (), (), "identity", H1)
     return FunctionSpace(domain_2d, f1)
 
 

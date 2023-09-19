@@ -217,7 +217,7 @@ def test_everywhere_integrals_with_backwards_compatibility():
 def test_merge_sort_integral_data():
     D = Mesh(triangle)
 
-    V = FunctionSpace(D, FiniteElement("CG", triangle, 1))
+    V = FunctionSpace(D, FiniteElement("CG", triangle, 1, (), (), "identity", H1))
 
     u = Coefficient(V)
     c = Constant(D)

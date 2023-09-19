@@ -13,6 +13,7 @@ import pytest
 
 # This imports everything external code will see from ufl
 from ufl import *
+from ufl.finiteelement import FiniteElement
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.core.external_operator import ExternalOperator
@@ -23,21 +24,21 @@ from ufl.form import BaseForm
 @pytest.fixture
 def V1():
     domain_2d = default_domain(triangle)
-    f1 = FiniteElement("CG", triangle, 1)
+    f1 = FiniteElement("CG", triangle, 1, (), (), "identity", H1)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
 def V2():
     domain_2d = default_domain(triangle)
-    f1 = FiniteElement("CG", triangle, 2)
+    f1 = FiniteElement("CG", triangle, 2, (), (), "identity", H1)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
 def V3():
     domain_2d = default_domain(triangle)
-    f1 = FiniteElement("CG", triangle, 3)
+    f1 = FiniteElement("CG", triangle, 3, (), (), "identity", H1)
     return FunctionSpace(domain_2d, f1)
 
 

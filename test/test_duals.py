@@ -1,7 +1,7 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-from ufl import (Action, Adjoint, Argument, Coargument, Coefficient, Cofunction, FiniteElement, FormSum, FunctionSpace,
+from ufl import (Action, Adjoint, Argument, Coargument, Coefficient, Cofunction, FormSum, FunctionSpace,
                  Matrix, MixedFunctionSpace, TestFunction, TrialFunction, action, adjoint, derivative, dx, inner,
                  interval, tetrahedron, triangle)
 from ufl.constantvalue import Zero

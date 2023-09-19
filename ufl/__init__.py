@@ -244,6 +244,8 @@ from ufl.coefficient import Coefficient, Coefficients, Cofunction
 from ufl.constant import Constant, TensorConstant, VectorConstant
 from ufl.constantvalue import Identity, PermutationSymbol, as_ufl, zero
 from ufl.core.multiindex import Index, indices
+from ufl.core.interpolate import Interpolate, interpolate
+from ufl.core.external_operator import ExternalOperator
 from ufl.domain import AbstractDomain, Mesh, MeshView, as_domain
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
