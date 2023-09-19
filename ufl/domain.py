@@ -275,7 +275,7 @@ def default_domain(cell):
     """Create a singular default Mesh from a cell, always returning the same Mesh object for the same cell."""
     global _default_domains
 
-    raise NotImplementedError()  # TODO: remove
+    warnings.warn("default_domain is deprecated.", FutureWarning)
 
     assert isinstance(cell, AbstractCell)
     domain = _default_domains.get(cell)
@@ -290,6 +290,8 @@ def default_domain(cell):
 
 def as_domain(domain):
     """Convert any valid object to an AbstractDomain type."""
+    warnings.warn("default_domain is deprecated.", FutureWarning)
+
     if isinstance(domain, AbstractDomain):
         # Modern UFL files and dolfin behaviour
         return domain
