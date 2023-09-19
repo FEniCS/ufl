@@ -1,56 +1,73 @@
 import pytest
 
-from ufl import Argument, Coefficient, FiniteElement, VectorElement
+from ufl import Argument, Coefficient, FiniteElement, FunctionSpace, Mesh, VectorElement
 
 # TODO: Add more illegal expressions to check!
 
 
+@pytest.fixture
 def selement():
     return FiniteElement("Lagrange", "triangle", 1)
 
 
+@pytest.fixture
 def velement():
     return VectorElement("Lagrange", "triangle", 1)
 
 
 @pytest.fixture
-def a():
-    return Argument(selement(), 2)
+def domain():
+    return Mesh(VectorElement("Lagrange", "triangle", 1))
 
 
 @pytest.fixture
-def b():
-    return Argument(selement(), 3)
+def sspace(domain, selement):
+    return FunctionSpace(domain, selement)
 
 
 @pytest.fixture
-def v():
-    return Argument(velement(), 4)
+def vspace(domain, velement):
+    return FunctionSpace(domain, velement)
 
 
 @pytest.fixture
-def u():
-    return Argument(velement(), 5)
+def a(sspace):
+    return Argument(sspace, 2)
 
 
 @pytest.fixture
-def f():
-    return Coefficient(selement())
+def b(sspace):
+    return Argument(sspace, 3)
 
 
 @pytest.fixture
-def g():
-    return Coefficient(selement())
+def v(vspace):
+    return Argument(vspace, 4)
 
 
 @pytest.fixture
-def vf():
-    return Coefficient(velement())
+def u(vspace):
+    return Argument(vspace, 5)
 
 
 @pytest.fixture
-def vg():
-    return Coefficient(velement())
+def f(sspace):
+    return Coefficient(sspace)
+
+
+@pytest.fixture
+def g(sspace):
+    return Coefficient(sspace)
+
+
+@pytest.fixture
+def vf(vspace):
+    return Coefficient(vspace)
+
+
+@pytest.fixture
+def vg(vspace):
+    return Coefficient(vspace)
 
 
 def test_mul_v_u(v, u):

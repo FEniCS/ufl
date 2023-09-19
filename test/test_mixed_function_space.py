@@ -1,17 +1,16 @@
 __authors__ = "Cecile Daversin Catty"
 __date__ = "2019-03-26 -- 2019-03-26"
 
-from ufl import (FiniteElement, FunctionSpace, Measure, MixedFunctionSpace, TestFunctions, TrialFunctions, interval,
-                 tetrahedron, triangle)
+from ufl import (FiniteElement, FunctionSpace, Measure, Mesh, MixedFunctionSpace, TestFunctions, TrialFunctions,
+                 VectorElement, interval, tetrahedron, triangle)
 from ufl.algorithms.formsplitter import extract_blocks
-from ufl.domain import default_domain
 
 
 def test_mixed_functionspace(self):
     # Domains
-    domain_3d = default_domain(tetrahedron)
-    domain_2d = default_domain(triangle)
-    domain_1d = default_domain(interval)
+    domain_3d = Mesh(VectorElement("Lagrange", tetrahedron, 1))
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
+    domain_1d = Mesh(VectorElement("Lagrange", interval, 1))
     # Finite elements
     f_1d = FiniteElement("CG", interval, 1)
     f_2d = FiniteElement("CG", triangle, 1)

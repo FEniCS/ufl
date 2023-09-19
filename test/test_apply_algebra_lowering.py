@@ -1,43 +1,51 @@
 import pytest
 
-from ufl import Coefficient, FiniteElement, Index, TensorElement, as_tensor, interval, sqrt, tetrahedron, triangle
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Index, Mesh, TensorElement, VectorElement, as_tensor,
+                 interval, sqrt, tetrahedron, triangle)
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 
 
 @pytest.fixture
 def A0(request):
-    return Coefficient(FiniteElement("CG", interval, 1))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", interval, 1)), FiniteElement("CG", interval, 1)))
 
 
 @pytest.fixture
 def A1(request):
-    return Coefficient(TensorElement("CG", interval, 1))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", interval, 1)), TensorElement("CG", interval, 1)))
 
 
 @pytest.fixture
 def A2(request):
-    return Coefficient(TensorElement("CG", triangle, 1))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1)))
 
 
 @pytest.fixture
 def A3(request):
-    return Coefficient(TensorElement("CG", tetrahedron, 1))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", tetrahedron, 1)), TensorElement("CG", tetrahedron, 1)))
 
 
 @pytest.fixture
 def A21(request):
-    return Coefficient(TensorElement("CG", triangle, 1, shape=(2, 1)))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1, shape=(2, 1))))
 
 
 @pytest.fixture
 def A31(request):
-    return Coefficient(TensorElement("CG", triangle, 1, shape=(3, 1)))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1, shape=(3, 1))))
 
 
 @pytest.fixture
 def A32(request):
-    return Coefficient(TensorElement("CG", triangle, 1, shape=(3, 2)))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1, shape=(3, 2))))
 
 
 def test_determinant0(A0):

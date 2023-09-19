@@ -179,7 +179,8 @@ def testCoefficient():
 
 def testDiffX():
     cell = triangle
-    x = SpatialCoordinate(cell)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    x = SpatialCoordinate(domain)
     f = x[0] ** 2 * x[1] ** 2
     i, = indices(1)
     df1 = diff(f, x)
