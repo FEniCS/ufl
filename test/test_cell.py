@@ -52,7 +52,6 @@ def test_tesseract():
     assert cell.num_faces() == 24
 
 
-
 @pytest.mark.parametrize("cell", [ufl.interval])
 def test_cells_1d(cell):
     assert cell.num_facets() == cell.num_vertices()

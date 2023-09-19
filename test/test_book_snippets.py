@@ -7,10 +7,14 @@ these and please do keep UFL compatible with these
 snippets as long as possible.
 """
 
-import pytest
-
-from ufl import *
-from ufl.algorithms import *
+from ufl import (Argument, Cell, Coefficient, Coefficients, Constant, Dx, FiniteElement, Identity, Index, MixedElement,
+                 SpatialCoordinate, TensorConstant, TensorElement, TestFunction, TestFunctions, TrialFunction,
+                 TrialFunctions, VectorConstant, VectorElement, action, adjoint, as_matrix, as_tensor, as_ufl,
+                 conditional, cos, derivative, diff, dot, ds, dx, exp, grad, i, indices, inner, j, k, lt, outer, pi,
+                 replace, sensitivity_rhs, sin, split, system, tetrahedron, tr, triangle, variable)
+from ufl.algorithms import (Transformer, compute_form_data, expand_compounds, expand_derivatives, expand_indices,
+                            post_traversal, tree_format)
+from ufl.corealg.multifunction import MultiFunction
 
 
 def test_uflcode_269(self):
@@ -26,8 +30,8 @@ def test_uflcode_269(self):
     c2 = Constant(cell)
 
     # Deformation gradient Fij = dXi/dxj
-    I = Identity(cell.geometric_dimension())
-    F = I + grad(u)
+    ident = Identity(cell.geometric_dimension())
+    F = ident + grad(u)
 
     # Right Cauchy-Green strain tensor C with invariants
     C = variable(F.T*F)
@@ -42,16 +46,16 @@ def test_uflcode_269(self):
 
     # Weak forms
     L = inner(F*S, grad(phi0))*dx
-    a = derivative(L, u, phi1)
+    derivative(L, u, phi1)
 
 
 def test_uflcode_316(self):
     shapestring = 'triangle'
-    cell = Cell(shapestring)
+    cell = Cell(shapestring)  # noqa: F841
 
 
 def test_uflcode_323(self):
-    cell = tetrahedron
+    cell = tetrahedron  # noqa: F841
 
 
 def test_uflcode_356(self):
@@ -61,8 +65,8 @@ def test_uflcode_356(self):
     V = VectorElement("Lagrange", cell, 2)
     T = TensorElement("DG", cell, 0, symmetry=True)
 
-    TH = V*P
-    ME = MixedElement(T, V, P)
+    TH = V*P  # noqa: F841
+    ME = MixedElement(T, V, P)  # noqa: F841
 
 
 def test_uflcode_400(self):
@@ -74,8 +78,8 @@ def test_uflcode_400(self):
     v = TestFunction(V)
     u = TrialFunction(V)
     # ...
-    a = w*dot(grad(u), grad(v))*dx
-    L = f*v*dx + g**2*v*ds(0) + h*v*ds(1)
+    a = w*dot(grad(u), grad(v))*dx  # noqa: F841
+    L = f*v*dx + g**2*v*ds(0) + h*v*ds(1)  # noqa: F841
 
 
 def test_uflcode_469(self):
@@ -88,25 +92,25 @@ def test_uflcode_469(self):
     dx02 = dx(0, {"integration_order": 2})
     dx14 = dx(1, {"integration_order": 4})
     dx12 = dx(1, {"integration_order": 2})
-    L = f*v*dx02 + g*v*dx14 + h*v*dx12
+    L = f*v*dx02 + g*v*dx14 + h*v*dx12  # noqa: F841
 
 
 def test_uflcode_552(self):
     element = FiniteElement("CG", triangle, 1)
     # ...
-    phi = Argument(element, 2)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    phi = Argument(element, 2)  # noqa: F841
+    v = TestFunction(element)  # noqa: F841
+    u = TrialFunction(element)  # noqa: F841
 
 
 def test_uflcode_563(self):
     cell = triangle
     element = FiniteElement("CG", cell, 1)
     # ...
-    w = Coefficient(element)
-    c = Constant(cell)
-    v = VectorConstant(cell)
-    M = TensorConstant(cell)
+    w = Coefficient(element)  # noqa: F841
+    c = Constant(cell)  # noqa: F841
+    v = VectorConstant(cell)  # noqa: F841
+    M = TensorConstant(cell)  # noqa: F841
 
 
 def test_uflcode_574(self):
@@ -137,7 +141,7 @@ def test_uflcode_644(self):
     v = Coefficient(V)
     # ...
     A = outer(u, v)
-    Aij = A[i, j]
+    Aij = A[i, j]  # noqa: F841
 
 
 def test_uflcode_651(self):
@@ -146,12 +150,12 @@ def test_uflcode_651(self):
     v = Coefficient(V)
     # ...
     Aij = v[j]*u[i]
-    A = as_tensor(Aij, (i, j))
+    A = as_tensor(Aij, (i, j))  # noqa: F841
 
 
 def test_uflcode_671(self):
-    i = Index()
-    j, k, l = indices(3)
+    i = Index()  # noqa: F841
+    j, k, l = indices(3)  # noqa: F841, E741
 
 
 def test_uflcode_684(self):
@@ -161,7 +165,7 @@ def test_uflcode_684(self):
     th = pi/2
     A = as_matrix([[cos(th), -sin(th)],
                    [sin(th), cos(th)]])
-    u = A*v
+    u = A*v  # noqa: F841
 
 
 def test_uflcode_824(self):
@@ -169,7 +173,7 @@ def test_uflcode_824(self):
     f = Coefficient(V)
     # ...
     df = Dx(f, i)
-    df = f.dx(i)
+    df = f.dx(i)  # noqa: F841
 
 
 def test_uflcode_886(self):
@@ -179,19 +183,10 @@ def test_uflcode_886(self):
     g = sin(x[0])
     v = variable(g)
     f = exp(v**2)
-    h = diff(f, v)
+    h = diff(f, v)  # noqa: F841
     # ...
     # print v
     # print h
-
-
-def test_python_894(self):
-    # We don't have to keep the string output compatible, so no test here.
-    pass
-    #>>> print v
-    # var0(sin((x)[0]))
-    #>>> print h
-    # d/d[var0(sin((x)[0]))] (exp((var0(sin((x)[0]))) ** 2))
 
 
 def test_uflcode_930(self):
@@ -199,13 +194,7 @@ def test_uflcode_930(self):
     true_value = 1
     false_value = 0
     # ...
-    f = conditional(condition, true_value, false_value)
-
-
-def test_uflcode_1003(self):
-    # Not testable, but this is tested below anyway
-    "a = derivative(L, w, u)"
-    pass
+    f = conditional(condition, true_value, false_value)  # noqa: F841
 
 
 def test_uflcode_1026(self):
@@ -216,7 +205,7 @@ def test_uflcode_1026(self):
     w = Coefficient(element)
     f = 0.5*w**2*dx
     F = derivative(f, w, v)
-    J = derivative(F, w, u)
+    J = derivative(F, w, u)  # noqa: F841
 
 
 def test_uflcode_1050(self):
@@ -226,7 +215,7 @@ def test_uflcode_1050(self):
     x, y = split(u)
     f = inner(grad(x), grad(x))*dx + y*dot(x, x)*dx
     F = derivative(f, u)
-    J = derivative(F, u)
+    J = derivative(F, u)  # noqa: F841
 
 
 def test_uflcode_1085(self):
@@ -238,7 +227,7 @@ def test_uflcode_1085(self):
     v = TestFunction(V)
     M = Coefficient(T)
     a = M[i, j]*u[k].dx(j)*v[k].dx(i)*dx
-    astar = adjoint(a)
+    astar = adjoint(a)  # noqa: F841
 
 
 def test_uflcode_1120(self):
@@ -249,8 +238,8 @@ def test_uflcode_1120(self):
     f = Coefficient(V)
     g = Coefficient(V)
     L = f**2 / (2*g)*v*dx
-    L2 = replace(L, {f: g, g: 3})
-    L3 = g**2 / 6*v*dx
+    L2 = replace(L, {f: g, g: 3})  # noqa: F841
+    L3 = g**2 / 6*v*dx  # noqa: F841
 
 
 def test_uflcode_1157(self):
@@ -276,7 +265,7 @@ def test_uflcode_1190(self):
     a, L = system(pde)
     # ...
     u = Coefficient(element)
-    sL = diff(L, c) - action(diff(a, c), u)
+    sL = diff(L, c) - action(diff(a, c), u)  # noqa: F841
 
 
 def test_uflcode_1195(self):
@@ -291,22 +280,14 @@ def test_uflcode_1195(self):
     a, L = system(pde)
     u = Coefficient(element)
     # ...
-    sL = sensitivity_rhs(a, u, L, c)
+    sL = sensitivity_rhs(a, u, L, c)  # noqa: F841
 
 
 def test_uflcode_1365(self):
     e = 0
     v = variable(e)
     f = sin(v)
-    g = diff(f, v)
-
-
-def test_python_1426(self):
-    # Covered by the below test
-    pass
-    # from ufl.algorithms import Graph
-    # G = Graph(expression)
-    # V, E = G
+    g = diff(f, v)  # noqa: F841
 
 
 def test_python_1446(self):
@@ -316,7 +297,7 @@ def test_python_1446(self):
     v = TestFunction(V)
     c = Constant(cell)
     f = Coefficient(V)
-    e = c*f**2*u*v
+    e = c*f**2*u*v  # noqa: F841
 
     # The linearized Graph functionality has been removed from UFL:
     # from ufl.algorithms import Graph, partition
@@ -335,7 +316,7 @@ def test_python_1512(self):
     v = TestFunction(V)
     c = Constant(cell)
     f = Coefficient(V)
-    e = c*f**2*u*v
+    e = c*f**2*u*v  # noqa: F841
 
     # The linearized Graph functionality has been removed from UFL:
     # from ufl.algorithms import Graph, partition
@@ -353,7 +334,7 @@ def test_python_1557(self):
     v = TestFunction(V)
     c = Constant(cell)
     f = Coefficient(V)
-    e = c*f**2*u*v
+    e = c*f**2*u*v  # noqa: F841
 
     # The linearized Graph functionality has been removed from UFL:
     # from ufl.algorithms import Graph, partition
@@ -370,23 +351,12 @@ def test_python_1557(self):
     #        v = V[i]
 
 
-def test_python_1843(self):
-    def apply_ad(e, ad_routine):
-        if e._ufl_is_terminal_:
-            return e
-        ops = [apply_ad(o, ad_routine) for o in e.ufl_operands]
-        e = e._ufl_expr_reconstruct_(*ops)
-        if isinstance(e, Derivative):
-            e = ad_routine(e)
-        return e
-
-
 def test_uflcode_1901(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
     # ...
-    v = Argument(element, 2)
-    w = Coefficient(element)
+    v = Argument(element, 2)  # noqa: F841
+    w = Coefficient(element)  # noqa: F841
 
 
 def test_python_1942(self):
@@ -421,18 +391,12 @@ def test_python_1963(self):
 
 
 def test_python_1990(self):
-    from ufl.classes import IntValue, Sum
     expression = as_ufl(3)
 
     def int_operation(x):
         return 7
-    # ...
-    if isinstance(expression, IntValue):
-        result = int_operation(expression)
-    elif isinstance(expression, Sum):
-        result = sum_operation(expression)
-    # etc.
-    # ...
+
+    result = int_operation(expression)
     self.assertTrue(result == 7)
 
 
@@ -487,7 +451,7 @@ def test_python_2087(self):
 
     f = Constant(triangle)
     r = Replacer({f: f**2})
-    g = r.visit(2*f)
+    g = r.visit(2*f)  # noqa: F841
 
 
 def test_python_2189(self):
@@ -503,10 +467,10 @@ def test_python_2189(self):
     ad = expand_derivatives(ac)
     ai = expand_indices(ad)
 
-    af = tree_format(a)
-    acf = tree_format(ac)
-    adf = "\n", tree_format(ad)
-    aif = tree_format(ai)
+    af = tree_format(a)  # noqa: F841
+    acf = tree_format(ac)  # noqa: F841
+    adf = "\n", tree_format(ad)  # noqa: F841
+    aif = tree_format(ai)  # noqa: F841
 
     if 0:
         print(("\na: ", str(a), "\n", tree_format(a)))
@@ -580,4 +544,4 @@ def test_python_2462(self):
     # ...
     # print repr(preprocess(myform).preprocessed_form)
     # ...
-    r = repr(compute_form_data(myform).preprocessed_form)
+    r = repr(compute_form_data(myform).preprocessed_form)  # noqa: F841
