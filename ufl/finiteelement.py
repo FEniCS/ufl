@@ -116,14 +116,17 @@ class AbstractFiniteElement(_abc.ABC):
         return repr(self) < repr(other)
 
     def symmetry(self):  # FIXME: different approach
-        """Return the symmetry dict, which is a mapping :math:`c_0 \\to c_1`
+        r"""Return the symmetry dict.
+
+        This is a mapping :math:`c_0 \\to c_1`
         meaning that component :math:`c_0` is represented by component
         :math:`c_1`.
-        A component is a tuple of one or more ints."""
+        A component is a tuple of one or more ints.
+        """
         return {}
 
     def _check_component(self, i):
-        """Check that component index i is valid"""
+        """Check that component index i is valid."""
         sh = self.value_shape
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
@@ -132,23 +135,21 @@ class AbstractFiniteElement(_abc.ABC):
                 f"for element (value rank {r}).")
 
     def extract_subelement_component(self, i):
-        """Extract direct subelement index and subelement relative
-        component index for a given component index."""
+        """Extract direct subelement index and subelement relative component index for a given component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
         return (None, i)
 
     def extract_component(self, i):
-        """Recursively extract component index relative to a (simple) element
-        and that element for given value component index."""
+        """Recursively extract component index relative to a (simple) element."""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
         return (i, self)
 
     def _check_reference_component(self, i):
-        "Check that reference component index i is valid."
+        """Check that reference component index i is valid."""
         sh = self.value_shape
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
@@ -157,16 +158,14 @@ class AbstractFiniteElement(_abc.ABC):
                 f"for element (value rank {r}).")
 
     def extract_subelement_reference_component(self, i):
-        """Extract direct subelement index and subelement relative
-        reference component index for a given reference component index."""
+        """Extract direct subelement index."""
         if isinstance(i, int):
             i = (i,)
         self._check_reference_component(i)
         return (None, i)
 
     def extract_reference_component(self, i):
-        """Recursively extract reference component index relative to a (simple) element
-        and that element for given reference value component index."""
+        """Recursively extract reference component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_reference_component(i)
@@ -174,6 +173,7 @@ class AbstractFiniteElement(_abc.ABC):
 
     @property
     def flattened_sub_element_mapping(self):
+        """Doc."""
         return None
 
 
@@ -266,6 +266,7 @@ class FiniteElement(AbstractFiniteElement):
 
     # FIXME: functions below this comment are hacks
     def symmetry(self):
+        """Doc."""
         if self._component_map is None:
             return {}
         s = {}
@@ -279,6 +280,7 @@ class FiniteElement(AbstractFiniteElement):
 
     @property
     def flattened_sub_element_mapping(self):
+        """Doc."""
         if self._component_map is None:
             return None
         else:
@@ -290,6 +292,7 @@ class MixedElement(AbstractFiniteElement):
     __slots__ = ["_repr", "_str", "_subelements", "_cell"]
 
     def __init__(self, subelements):
+        """Initialise."""
         self._repr = f"ufl.finiteelement.MixedElement({subelements!r})"
         self._str = f"<MixedElement with {len(subelements)} subelement(s)>"
         self._subelements = [MixedElement(e) if isinstance(e, list) else e for e in subelements]
@@ -363,8 +366,7 @@ class MixedElement(AbstractFiniteElement):
 
     # FIXME: functions below this comment are hacks
     def extract_subelement_component(self, i):
-        """Extract direct subelement index and subelement relative
-        component index for a given component index."""
+        """Extract direct subelement index and subelement relative component index for a given component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
