@@ -1,8 +1,8 @@
 import pytest
 
+from ufl import Argument, Coefficient, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
-from ufl import Argument, Coefficient
 
 # TODO: Add more illegal expressions to check!
 

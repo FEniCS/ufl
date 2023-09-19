@@ -3,7 +3,7 @@
 from ufl import Coefficient, triangle
 from ufl.classes import Expr, ReferenceValue
 from ufl.finiteelement import FiniteElement
-from ufl.sobolevspace import H1
+from ufl.sobolevspace import H1, HDiv
 
 
 def change_to_reference_frame(expr):

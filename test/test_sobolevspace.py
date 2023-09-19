@@ -3,9 +3,8 @@ __date__ = "2014-03-04"
 
 from math import inf
 
+from ufl import H1, H2, L2, HCurl, HDiv, HInf, triangle
 from ufl.finiteelement import FiniteElement
-from ufl import (H1, H2, L2, HCurl, HDiv, HInf, interval,
-                 quadrilateral, triangle)
 from ufl.sobolevspace import SobolevSpace  # noqa: F401
 from ufl.sobolevspace import DirectionalSobolevSpace
 

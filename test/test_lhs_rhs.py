@@ -3,10 +3,10 @@ __authors__ = "Marie E. Rognes"
 # First added: 2011-11-09
 # Last changed: 2011-11-09
 
+from ufl import (Argument, Coefficient, Constant, TestFunction, TrialFunction, action, derivative, ds, dS, dx, exp,
+                 interval, system)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
-from ufl import (Argument, Coefficient, Constant, TestFunction, TrialFunction, action, derivative, ds,
-                 dS, dx, exp, interval, system)
 
 
 def test_lhs_rhs_simple():

@@ -1,10 +1,10 @@
 import pytest
 
-from ufl import (Coefficient, Cofunction, Form, FormSum, FunctionSpace, Mesh, SpatialCoordinate,
-                 TestFunction, TrialFunction, dot, ds, dx, grad, inner, nabla_grad, triangle)
+from ufl import (Coefficient, Cofunction, Form, FormSum, FunctionSpace, Mesh, SpatialCoordinate, TestFunction,
+                 TrialFunction, dot, ds, dx, grad, inner, nabla_grad, triangle)
+from ufl.finiteelement import FiniteElement
 from ufl.form import BaseForm
 from ufl.sobolevspace import H1
-from ufl.finiteelement import FiniteElement
 
 
 @pytest.fixture

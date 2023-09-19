@@ -1,7 +1,7 @@
 import pytest
 
-from ufl import (Argument, Coefficient, TestFunction, TrialFunction, as_matrix, as_tensor,
-                 as_vector, cos, dx, exp, i, indices, j, k, l, outer, sin, triangle)
+from ufl import (Argument, Coefficient, TestFunction, TrialFunction, as_matrix, as_tensor, as_vector, cos, dx, exp, i,
+                 indices, j, k, l, outer, sin, triangle)
 from ufl.classes import IndexSum
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1

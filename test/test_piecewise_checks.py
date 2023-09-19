@@ -2,10 +2,9 @@
 
 import pytest
 
-from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
-                 MinFacetEdgeLength, SpatialCoordinate, TestFunction, hexahedron, interval,
-                 quadrilateral, tetrahedron, triangle)
+from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal, Jacobian,
+                 JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh, MinFacetEdgeLength, SpatialCoordinate,
+                 TestFunction, hexahedron, interval, quadrilateral, tetrahedron, triangle)
 from ufl.checks import is_cellwise_constant
 from ufl.classes import CellCoordinate, FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse
 from ufl.finiteelement import FiniteElement
@@ -27,7 +26,8 @@ def get_domains():
 def get_nonlinear():
     domains_with_quadratic_coordinates = []
     for D in get_domains():
-        V = FiniteElement("Lagrange", D.ufl_cell(), 2, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 2, (D.ufl_cell().geometric_dimension(), ),
+                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         domains_with_quadratic_coordinates.append(E)
 
@@ -50,7 +50,8 @@ def domains(request):
     domains = get_domains()
     domains_with_linear_coordinates = []
     for D in domains:
-        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
+                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         domains_with_linear_coordinates.append(E)
 
@@ -69,7 +70,8 @@ def affine_domains(request):
 
     affine_domains_with_linear_coordinates = []
     for D in affine_domains:
-        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
+                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         affine_domains_with_linear_coordinates.append(E)
 
@@ -89,7 +91,8 @@ def affine_facet_domains(request):
     affine_facet_domains = [Mesh(cell) for cell in affine_facet_cells]
     affine_facet_domains_with_linear_coordinates = []
     for D in affine_facet_domains:
-        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
+                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         affine_facet_domains_with_linear_coordinates.append(E)
 
@@ -108,7 +111,8 @@ def nonaffine_domains(request):
     nonaffine_domains = [Mesh(cell) for cell in nonaffine_cells]
     nonaffine_domains_with_linear_coordinates = []
     for D in nonaffine_domains:
-        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
+                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         nonaffine_domains_with_linear_coordinates.append(E)
 
@@ -126,7 +130,8 @@ def nonaffine_facet_domains(request):
     nonaffine_facet_domains = [Mesh(cell) for cell in nonaffine_facet_cells]
     nonaffine_facet_domains_with_linear_coordinates = []
     for D in nonaffine_facet_domains:
-        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ), (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+        V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
+                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
         E = Mesh(V)
         nonaffine_facet_domains_with_linear_coordinates.append(E)
 

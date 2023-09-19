@@ -3,7 +3,7 @@ __date__ = "2008-08-20 -- 2012-11-30"
 
 import pytest
 
-from ufl import Coefficient, FiniteElement, conditional, eq, ge, gt, le, lt, ne, triangle
+from ufl import Coefficient, conditional, eq, ge, gt, le, lt, ne, triangle
 from ufl.classes import EQ, GE, GT, LE, LT, NE
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1

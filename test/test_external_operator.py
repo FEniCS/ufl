@@ -5,14 +5,15 @@ __date__ = "2019-03-26"
 
 import pytest
 
-from ufl import (Action, Argument, Coefficient, Constant, Form, FunctionSpace, TestFunction,
-                 TrialFunction, action, adjoint, cos, derivative, dx, inner, sin, triangle)
-from ufl.finiteelement import FiniteElement
+from ufl import (Action, Argument, Coefficient, Constant, Form, FunctionSpace, TestFunction, TrialFunction, action,
+                 adjoint, cos, derivative, dx, inner, sin, triangle)
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.core.external_operator import ExternalOperator
 from ufl.domain import default_domain
+from ufl.finiteelement import FiniteElement
 from ufl.form import BaseForm
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture

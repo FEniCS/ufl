@@ -2,9 +2,8 @@ import cmath
 
 import pytest
 
-from ufl import (Coefficient, TestFunction, TrialFunction, as_tensor, as_ufl, atan, conditional, conj,
-                 cos, cosh, dot, dx, exp, ge, grad, gt, imag, inner, le, ln, lt, max_value, min_value, outer, real, sin,
-                 sqrt, triangle)
+from ufl import (Coefficient, TestFunction, TrialFunction, as_tensor, as_ufl, atan, conditional, conj, cos, cosh, dot,
+                 dx, exp, ge, grad, gt, imag, inner, le, ln, lt, max_value, min_value, outer, real, sin, sqrt, triangle)
 from ufl.algebra import Conj, Imag, Real
 from ufl.algorithms import estimate_total_polynomial_degree
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering

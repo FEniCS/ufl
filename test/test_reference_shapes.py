@@ -1,6 +1,6 @@
+from ufl import Cell
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1, HCurl, HDiv
-from ufl import Cell
 
 
 def test_reference_shapes():

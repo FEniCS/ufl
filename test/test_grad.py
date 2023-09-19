@@ -1,7 +1,7 @@
 """Test use of grad in various situations."""
 
-from ufl import (Coefficient, Constant, TensorConstant, VectorConstant,
-                 div, dx, grad, indices, inner, interval, tetrahedron, triangle)
+from ufl import (Coefficient, Constant, TensorConstant, VectorConstant, div, dx, grad, indices, inner, interval,
+                 tetrahedron, triangle)
 from ufl.algorithms import compute_form_data
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1

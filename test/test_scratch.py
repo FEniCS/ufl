@@ -8,12 +8,12 @@ Next look at the TODO markers below for places to edit.
 
 import warnings
 
-from ufl import (Coefficient, Identity, TestFunction, as_matrix, as_tensor,
-                 as_vector, dx, grad, indices, inner, outer, triangle)
+from ufl import (Coefficient, Identity, TestFunction, as_matrix, as_tensor, as_vector, dx, grad, indices, inner, outer,
+                 triangle)
 from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
-from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
+from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 
 
 class MockForwardAD:

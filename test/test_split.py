@@ -1,12 +1,9 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-03-14 -- 2009-03-14"
 
-import pytest
-
+from ufl import Coefficient, TestFunction, as_vector, product, split, triangle
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1
-from ufl import (Coefficient, TestFunction, as_vector,
-                 product, split, triangle)
 
 
 def test_split(self):

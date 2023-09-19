@@ -1,13 +1,12 @@
 """Test the computation of form signatures."""
 
-from ufl import (Argument, CellDiameter, CellVolume, Circumradius, Coefficient, FacetArea, FacetNormal,
-                 FunctionSpace, Identity, Mesh, SpatialCoordinate, TestFunction,
-                 as_domain, as_vector, diff, dot, ds, dx, hexahedron, indices, inner, interval, quadrilateral,
-                 tetrahedron, triangle, variable)
+from ufl import (Argument, CellDiameter, CellVolume, Circumradius, Coefficient, FacetArea, FacetNormal, FunctionSpace,
+                 Identity, Mesh, SpatialCoordinate, TestFunction, as_domain, as_vector, diff, dot, ds, dx, hexahedron,
+                 indices, inner, interval, quadrilateral, tetrahedron, triangle, variable)
 from ufl.algorithms.signature import compute_multiindex_hashdata, compute_terminal_hashdata
 from ufl.classes import FixedIndex, MultiIndex
 from ufl.finiteelement import FiniteElement
-from ufl.sobolevspace import H1
+from ufl.sobolevspace import H1, L2
 
 # TODO: Test compute_terminal_hashdata
 #   TODO: Check that form argument counts only affect the sig by their relative ordering
@@ -158,7 +157,8 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
                         else:
                             assert d == 3
                             S = FiniteElement(family, cell, degree, (3, 3), (6, ), "identity", sobolev, component_map={
-                                (0, 0): 0, (0, 1): 1, (0, 2): 2, (1, 0): 1, (1, 1): 3, (1, 2): 4, (2, 0): 2, (2, 1): 4, (2, 2): 5})
+                                (0, 0): 0, (0, 1): 1, (0, 2): 2, (1, 0): 1, (1, 1): 3,
+                                (1, 2): 4, (2, 0): 2, (2, 1): 4, (2, 2): 5})
                         elements = [V, W, W2, T, S]
                         assert len(elements) == nelm
 

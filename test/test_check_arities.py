@@ -1,7 +1,7 @@
 import pytest
 
-from ufl import (Coefficient, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate, TestFunction, TrialFunction,
-                 adjoint, cofac, conj, derivative, ds, dx, grad, inner, tetrahedron)
+from ufl import (Coefficient, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate, TestFunction, TrialFunction, adjoint,
+                 cofac, conj, derivative, ds, dx, grad, inner, tetrahedron)
 from ufl.algorithms.check_arities import ArityMismatch
 from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.finiteelement import FiniteElement

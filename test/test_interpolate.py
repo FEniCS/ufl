@@ -5,8 +5,8 @@ __date__ = "2021-11-19"
 
 import pytest
 
-from ufl import (Action, Adjoint, Argument, Coefficient, FunctionSpace, TestFunction, TrialFunction,
-                 action, adjoint, derivative, dx, grad, inner, replace, triangle)
+from ufl import (Action, Adjoint, Argument, Coefficient, FunctionSpace, TestFunction, TrialFunction, action, adjoint,
+                 derivative, dx, grad, inner, replace, triangle)
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.analysis import (extract_arguments, extract_arguments_and_coefficients, extract_base_form_operators,
                                      extract_coefficients)
@@ -14,6 +14,7 @@ from ufl.algorithms.expand_indices import expand_indices
 from ufl.core.interpolate import Interpolate
 from ufl.domain import default_domain
 from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture

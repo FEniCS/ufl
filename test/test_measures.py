@@ -1,5 +1,7 @@
 """Tests of the various ways Measure objects can be created and used."""
 
+from mockobjects import MockMesh, MockMeshFunction
+
 from ufl import Cell, Coefficient, FunctionSpace, Measure, Mesh, as_ufl, dC, dI, dO, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1

@@ -3,12 +3,11 @@ __date__ = "2009-02-17 -- 2009-02-17"
 
 from itertools import chain
 
-from ufl import (CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal, FiniteElement,
-                 FunctionSpace, Identity, Index, Jacobian, JacobianInverse, Mesh, SpatialCoordinate, TensorElement,
-                 TestFunction, TrialFunction, VectorElement, acos, as_matrix, as_tensor, as_vector, asin, atan,
-                 conditional, cos, derivative, diff, dot, dx, exp, i, indices, inner, interval, j, k, ln, lt,
-                 nabla_grad, outer, quadrilateral, replace, sign, sin, split, sqrt, tan, tetrahedron, triangle,
-                 variable, zero)
+from ufl import (CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal, FunctionSpace,
+                 Identity, Index, Jacobian, JacobianInverse, Mesh, SpatialCoordinate, TestFunction, TrialFunction, acos,
+                 as_matrix, as_tensor, as_vector, asin, atan, conditional, cos, derivative, diff, dot, dx, exp, i,
+                 indices, inner, interval, j, k, ln, lt, nabla_grad, outer, quadrilateral, replace, sign, sin, split,
+                 sqrt, tan, tetrahedron, triangle, variable, zero)
 from ufl.algorithms import compute_form_data, expand_indices, strip_variables
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
@@ -17,7 +16,7 @@ from ufl.classes import Indexed, MultiIndex, ReferenceGrad
 from ufl.constantvalue import as_ufl
 from ufl.domain import extract_unique_domain
 from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.sobolevspace import H1
+from ufl.sobolevspace import H1, L2
 
 
 def assertEqualBySampling(actual, expected):

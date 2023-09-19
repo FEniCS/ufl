@@ -3,8 +3,8 @@ __date__ = "2009-02-17 -- 2014-10-14"
 
 import pytest
 
-from ufl import (Coefficient, FunctionSpace, Mesh, SpatialCoordinate, as_vector, atan,
-                 cos, diff, exp, indices, ln, sin, tan, triangle, variable)
+from ufl import (Coefficient, FunctionSpace, Mesh, SpatialCoordinate, as_vector, atan, cos, diff, exp, indices, ln, sin,
+                 tan, triangle, variable)
 from ufl.algorithms import expand_derivatives
 from ufl.constantvalue import as_ufl
 from ufl.finiteelement import FiniteElement

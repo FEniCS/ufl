@@ -3,18 +3,15 @@
 import pytest
 from mockobjects import MockMesh
 
-from ufl import (Cell, Coefficient, Constant, FunctionSpace, Mesh, ds, dS, dx, hexahedron,
-                 interval, quadrilateral, tetrahedron, triangle)
+import ufl  # noqaL F401
+from ufl import (Cell, Coefficient, Constant, FunctionSpace, Mesh, ds, dS, dx, hexahedron, interval, quadrilateral,
+                 tetrahedron, triangle)
 from ufl.algorithms import compute_form_data
 from ufl.domain import as_domain, default_domain
-
-all_cells = (interval, triangle, tetrahedron,
-             quadrilateral, hexahedron)
-
-from mockobjects import MockMesh, MockMeshFunction
-
 from ufl.finiteelement import FiniteElement
-from ufl.sobolevspace import H1, L2
+from ufl.sobolevspace import H1
+
+all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
 
 def test_construct_domains_from_cells():
@@ -152,13 +149,15 @@ def test_join_domains():
     assert 2 == len(join_domains([Mesh(xa), Mesh(xb)]))
 
     # Incompatible cells require labeling
-    # self.assertRaises(BaseException, lambda: join_domains([Mesh(triangle), Mesh(triangle3)]))     # FIXME: Figure out
+    # self.assertRaises(BaseException, lambda: join_domains([Mesh(triangle), Mesh(triangle3)])) # FIXME: Figure out
     # self.assertRaises(BaseException, lambda: join_domains([Mesh(triangle),
     # Mesh(quadrilateral)])) # FIXME: Figure out
 
     # Incompatible coordinates require labeling
-    xc = Coefficient(FunctionSpace(Mesh(triangle), FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)))
-    xd = Coefficient(FunctionSpace(Mesh(triangle), FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)))
+    xc = Coefficient(FunctionSpace(
+        Mesh(triangle), FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)))
+    xd = Coefficient(FunctionSpace(
+        Mesh(triangle), FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)))
     with pytest.raises(BaseException):
         join_domains([Mesh(xc), Mesh(xd)])
 

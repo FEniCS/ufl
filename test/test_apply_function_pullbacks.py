@@ -1,7 +1,6 @@
 import numpy
 
-from ufl import (Cell, Coefficient, as_domain, as_tensor, as_vector, dx,
-                 indices, triangle)
+from ufl import Cell, Coefficient, as_domain, as_tensor, as_vector, dx, indices, triangle
 from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
@@ -49,8 +48,10 @@ def test_apply_single_function_pullbacks_triangle3d():
     }, sub_elements=[
         FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
         for _ in range(6)])
-    COV2T = FiniteElement("Regge", cell, 0, (3, 3), (2, 2), "double covariant Piola", HEin)   # (0, 2)-symmetric tensors
-    CONTRA2T = FiniteElement("HHJ", cell, 0, (3, 3), (2, 2), "double contravariant Piola", HDivDiv)  # (2, 0)-symmetric tensors
+    # (0, 2)-symmetric tensors
+    COV2T = FiniteElement("Regge", cell, 0, (3, 3), (2, 2), "double covariant Piola", HEin)
+    # (2, 0)-symmetric tensors
+    CONTRA2T = FiniteElement("HHJ", cell, 0, (3, 3), (2, 2), "double contravariant Piola", HDivDiv)
 
     Uml2 = MixedElement([UL2, UL2])
     Um = MixedElement([U, U])

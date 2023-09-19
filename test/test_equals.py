@@ -1,8 +1,8 @@
 """Test of expression comparison."""
 
+from ufl import Coefficient, Cofunction, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
-from ufl import Coefficient, Cofunction, triangle
 
 
 def test_comparison_of_coefficients():

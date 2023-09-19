@@ -4,19 +4,18 @@ __date__ = "2008-09-06 -- 2009-02-10"
 import ufl
 from ufl import *  # noqa: F403, F401
 from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength,
-                 MinFacetEdgeLength, Not, Or, PermutationSymbol, SpatialCoordinate, TensorConstant,
-                 VectorConstant, acos, action, as_matrix, as_tensor, as_ufl, as_vector,
-                 asin, atan, cell_avg, cofac, conditional, cos, cosh, cross, curl, derivative, det, dev, diff, div, dot,
-                 ds, dS, dx, eq, exp, facet_avg, ge, grad, gt, i, inner, inv, j, k, l, le, ln, lt, nabla_div,
-                 nabla_grad, ne, outer, rot, sin, sinh, skew, sqrt, sym, tan, tanh, tetrahedron, tr, transpose,
-                 triangle, variable)
+                 Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, MinFacetEdgeLength, Not,
+                 Or, PermutationSymbol, SpatialCoordinate, TensorConstant, VectorConstant, acos, action, as_matrix,
+                 as_tensor, as_ufl, as_vector, asin, atan, cell_avg, cofac, conditional, cos, cosh, cross, curl,
+                 derivative, det, dev, diff, div, dot, ds, dS, dx, eq, exp, facet_avg, ge, grad, gt, i, inner, inv, j,
+                 k, l, le, ln, lt, nabla_div, nabla_grad, ne, outer, rot, sin, sinh, skew, sqrt, sym, tan, tanh,
+                 tetrahedron, tr, transpose, triangle, variable)
 from ufl.algorithms import *  # noqa: F403, F401
 from ufl.classes import *  # noqa: F403, F401
 from ufl.classes import (Acos, Asin, Atan, CellCoordinate, Cos, Cosh, Exp, Expr, FacetJacobian,
                          FacetJacobianDeterminant, FacetJacobianInverse, FloatValue, IntValue, Ln, Outer, Sin, Sinh,
                          Sqrt, Tan, Tanh, all_ufl_classes)
-from ufl.finiteelement import FiniteElement
+from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1
 
 has_repr = set()

@@ -1,6 +1,5 @@
-from ufl import (CellDiameter, CellVolume, Circumradius, FacetArea, FacetNormal, Index,
-                 SpatialCoordinate, TestFunction, TrialFunction, as_matrix, as_ufl, as_vector, quadrilateral,
-                 tetrahedron, triangle)
+from ufl import (CellDiameter, CellVolume, Circumradius, FacetArea, FacetNormal, Index, SpatialCoordinate, TestFunction,
+                 TrialFunction, as_matrix, as_ufl, as_vector, quadrilateral, tetrahedron, triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
