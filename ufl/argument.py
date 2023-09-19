@@ -19,7 +19,6 @@ import warnings
 
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
-from ufl.domain import default_domain
 from ufl.duals import is_dual, is_primal
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm
@@ -44,16 +43,8 @@ class BaseArgument(object):
 
     def __init__(self, function_space, number, part=None):
         """initialise."""
-        if isinstance(function_space, AbstractFiniteElement):
-            # For legacy support for UFL files using cells, we map the cell to
-            # the default Mesh
-            element = function_space
-            domain = default_domain(element.cell)
-            function_space = FunctionSpace(domain, element)
-            warnings.warn("The use of FiniteElement as an input to Argument will be deprecated by December 2023. "
-                          "Please, use FunctionSpace instead", FutureWarning)
-        elif not isinstance(function_space, AbstractFunctionSpace):
-            raise ValueError("Expecting a FunctionSpace or FiniteElement.")
+        if not isinstance(function_space, AbstractFunctionSpace):
+            raise ValueError("Expecting a FunctionSpace.")
 
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.ufl_element().value_shape

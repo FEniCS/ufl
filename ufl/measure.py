@@ -15,7 +15,7 @@ from itertools import chain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
-from ufl.domain import AbstractDomain, as_domain, extract_domains
+from ufl.domain import AbstractDomain, extract_domains
 from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
@@ -121,7 +121,7 @@ class Measure(object):
         self._integral_type = as_integral_type(integral_type)
 
         # Check that we either have a proper AbstractDomain or none
-        self._domain = None if domain is None else as_domain(domain)
+        self._domain = domain
         if not (self._domain is None or isinstance(self._domain, AbstractDomain)):
             raise ValueError("Invalid domain.")
 
@@ -228,12 +228,10 @@ class Measure(object):
         # Let syntax dx(domain) or dx(domain, metadata) mean integral
         # over entire domain.  To do this we need to hijack the first
         # argument:
-        if subdomain_id is not None and (
-            isinstance(subdomain_id, AbstractDomain) or hasattr(subdomain_id, 'ufl_domain')
-        ):
+        if subdomain_id is not None and isinstance(subdomain_id, AbstractDomain):
             if domain is not None:
                 raise ValueError("Ambiguous: setting domain both as keyword argument and first argument.")
-            subdomain_id, domain = "everywhere", as_domain(subdomain_id)
+            subdomain_id, domain = "everywhere", subdomain_id
 
         # If degree or scheme is set, inject into metadata. This is a
         # quick fix to enable the dx(..., degree=3) notation.

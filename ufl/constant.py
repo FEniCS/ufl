@@ -8,7 +8,6 @@
 
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-from ufl.domain import as_domain
 from ufl.utils.counted import Counted
 
 
@@ -23,7 +22,7 @@ class Constant(Terminal, Counted):
         Terminal.__init__(self)
         Counted.__init__(self, count, Constant)
 
-        self._ufl_domain = as_domain(domain)
+        self._ufl_domain = domain
         self._ufl_shape = shape
 
         # Repr string is build in such way, that reconstruction
@@ -74,11 +73,9 @@ class Constant(Terminal, Counted):
 
 def VectorConstant(domain, count=None):
     """Vector constant."""
-    domain = as_domain(domain)
     return Constant(domain, shape=(domain.geometric_dimension(), ), count=count)
 
 
 def TensorConstant(domain, count=None):
     """Tensor constant."""
-    domain = as_domain(domain)
     return Constant(domain, shape=(domain.geometric_dimension(), domain.geometric_dimension()), count=count)

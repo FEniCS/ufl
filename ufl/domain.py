@@ -67,16 +67,8 @@ class Mesh(AbstractDomain):
 
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
-        if isinstance(coordinate_element, Coefficient):
+        if isinstance(coordinate_element, (Coefficient, AbstractCell)):
             raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
-
-        # Accept a cell in place of an element for brevity Mesh(triangle)
-        if isinstance(coordinate_element, AbstractCell):
-            from ufl.finiteelement import FiniteElement
-            from ufl.sobolevspace import H1
-            coordinate_element = FiniteElement(
-                "Lagrange", coordinate_element, 1, (coordinate_element.geometric_dimension(), ),
-                (coordinate_element.geometric_dimension(), ), "identity", H1)
 
         # Store coordinate element
         self._ufl_coordinate_element = coordinate_element
@@ -185,53 +177,6 @@ class MeshView(AbstractDomain):
         typespecific = (self._ufl_id, self._ufl_mesh)
         return (self.geometric_dimension(), self.topological_dimension(),
                 "MeshView", typespecific)
-
-
-def affine_mesh(cell, ufl_id=None):
-    """Create a Mesh over a given cell type with an affine geometric parameterization."""
-    from ufl.finiteelement import FiniteElement
-    from ufl.sobolevspace import H1
-    coordinate_element = FiniteElement(
-        "Lagrange", as_cell(cell), 1, (as_cell(cell).geometric_dimension(), ),
-        (as_cell(cell).geometric_dimension(), ), "identity", H1)
-    return Mesh(coordinate_element, ufl_id=ufl_id)
-
-
-_default_domains = {}
-
-
-def default_domain(cell):
-    """Create a singular default Mesh from a cell, always returning the same Mesh object for the same cell."""
-    global _default_domains
-    assert isinstance(cell, AbstractCell)
-    domain = _default_domains.get(cell)
-    if domain is None:
-        # Create one and only one affine Mesh with a negative ufl_id
-        # to avoid id collision
-        ufl_id = -(len(_default_domains) + 1)
-        domain = affine_mesh(cell, ufl_id=ufl_id)
-        _default_domains[cell] = domain
-    return domain
-
-
-def as_domain(domain):
-    """Convert any valid object to an AbstractDomain type."""
-    if isinstance(domain, AbstractDomain):
-        # Modern UFL files and dolfin behaviour
-        return domain
-
-    try:
-        return extract_unique_domain(domain)
-    except AttributeError:
-        try:
-            # Legacy UFL files
-            # TODO: Make this conversion in the relevant constructors
-            # closer to the user interface?
-            # TODO: Make this configurable to be an error from the dolfin side?
-            cell = as_cell(domain)
-            return default_domain(cell)
-        except ValueError:
-            return domain.ufl_domain()
 
 
 def sort_domains(domains):

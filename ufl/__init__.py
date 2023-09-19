@@ -246,7 +246,7 @@ from ufl.constantvalue import Identity, PermutationSymbol, as_ufl, zero
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate, interpolate
 from ufl.core.multiindex import Index, indices
-from ufl.domain import AbstractDomain, Mesh, MeshView, as_domain
+from ufl.domain import AbstractDomain, Mesh, MeshView
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.formoperators import (action, adjoint, derivative, energy_norm, extract_blocks, functional, lhs, replace, rhs,
@@ -275,7 +275,7 @@ from ufl.utils.sequences import product
 __all__ = [
     'product',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
-    'as_domain', 'AbstractDomain', 'Mesh', 'MeshView',
+    'AbstractDomain', 'Mesh', 'MeshView',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',
     'SpatialCoordinate',
     'CellVolume', 'CellDiameter', 'Circumradius',
