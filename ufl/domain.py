@@ -290,8 +290,6 @@ def default_domain(cell):
 
 def as_domain(domain):
     """Convert any valid object to an AbstractDomain type."""
-    warnings.warn("as_domain is deprecated.", FutureWarning)
-
     if isinstance(domain, AbstractDomain):
         # Modern UFL files and dolfin behaviour
         return domain
