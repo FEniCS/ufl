@@ -96,9 +96,7 @@ class SumDegreeEstimator(MultiFunction):
         are taken. Does not reduce the degree when TensorProduct elements
         or quadrilateral elements are involved.
         """
-        # This cell check might be needed here. If all tests pass, remove this comment before merging (!)
-        # if isinstance(f, int) and v.ufl_domain().ufl_cell().cellname() not in ["quadrilateral", "hexahedron"]:
-        if isinstance(f, int):
+        if isinstance(f, int) and v.ufl_domain().ufl_cell().cellname() not in ["quadrilateral", "hexahedron"]:
             return max(f - 1, 0)
         else:
             return f
