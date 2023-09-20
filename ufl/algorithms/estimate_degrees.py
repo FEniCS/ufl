@@ -90,11 +90,10 @@ class SumDegreeEstimator(MultiFunction):
         return d
 
     def _reduce_degree(self, v, f):
-        """Apply to _reduce_degree.
+        """Reduce the estimated degree by one.
 
-        Reduces the estimated degree by one; used when derivatives
-        are taken. Does not reduce the degree when TensorProduct elements
-        or quadrilateral elements are involved.
+        This is used when derivatives are taken. It does not reduce the degree when
+        TensorProduct elements or quadrilateral elements are involved.
         """
         if isinstance(f, int) and v.ufl_domain().ufl_cell().cellname() not in ["quadrilateral", "hexahedron"]:
             return max(f - 1, 0)
