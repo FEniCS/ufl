@@ -15,7 +15,7 @@ from itertools import chain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
-from ufl.domain import AbstractDomain, extract_domains
+from ufl.domain import AbstractDomain, as_domain, extract_domains
 from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
@@ -121,6 +121,8 @@ class Measure(object):
         self._integral_type = as_integral_type(integral_type)
 
         # Check that we either have a proper AbstractDomain or none
+        if domain is not None:
+            _domain = as_domain(domain)
         self._domain = domain
         if not (self._domain is None or isinstance(self._domain, AbstractDomain)):
             raise ValueError("Invalid domain.")
