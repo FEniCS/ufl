@@ -274,11 +274,11 @@ def test_differentiation():
     # -- Action -- #
     Ac = Action(w, u)
     dAcdu = derivative(Ac, u)
-    assert dAcdu == action(adjoint(derivative(w, u)), u) + action(w, derivative(u, u))
+    assert dAcdu == action(adjoint(derivative(w, u), derivatives_expanded=True), u) + action(w, derivative(u, u))
 
     dAcdu = expand_derivatives(dAcdu)
     # Since dw/du = 0
-    assert dAcdu == Action(w, v)
+    assert dAcdu == 1 * Action(w, v)
 
     # -- Form sum -- #
     uhat = Argument(U, 1)

@@ -322,7 +322,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             dleft = derivative(left, coefficient, argument, coefficient_derivatives)
             dright = derivative(right, coefficient, argument, coefficient_derivatives)
             # Leibniz formula
-            return action(adjoint(dleft), right) + action(left, dright)
+            return action(adjoint(dleft, derivatives_expanded=True), right) + action(left, dright)
         else:
             raise NotImplementedError('Action derivative not supported when the left argument is not a 1-form.')
 
