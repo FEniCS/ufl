@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Non-recursive traversal-based hash computation algorithm.
 
 Fast iteration over nodes in an ``Expr`` DAG to compute

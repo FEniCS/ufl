@@ -21,6 +21,7 @@ __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 class AbstractCell(UFLObject):
     """A base class for all cells."""
+
     @abstractmethod
     def topological_dimension(self) -> int:
         """Return the dimension of the topology of this cell."""
@@ -209,6 +210,12 @@ class Cell(AbstractCell):
                  "_sub_entities", "_sub_entity_types")
 
     def __init__(self, cellname: str, geometric_dimension: typing.Optional[int] = None):
+        """Initialise.
+
+        Args:
+            cellname: Name of the cell
+            geometric_dimension: Geometric dimension
+        """
         if cellname not in _sub_entity_celltypes:
             raise ValueError(f"Unsupported cell type: {cellname}")
 
@@ -283,18 +290,21 @@ class Cell(AbstractCell):
         return self._cellname
 
     def __str__(self) -> str:
+        """Format as a string."""
         if self._gdim == self._tdim:
             return self._cellname
         else:
             return f"{self._cellname}{self._gdim}D"
 
     def __repr__(self) -> str:
+        """Representation."""
         if self._gdim == self._tdim:
             return self._cellname
         else:
             return f"Cell({self._cellname}, {self._gdim})"
 
     def _ufl_hash_data_(self) -> typing.Hashable:
+        """UFL hash data."""
         return (self._cellname, self._gdim)
 
     def reconstruct(self, **kwargs: typing.Any) -> Cell:
@@ -309,9 +319,17 @@ class Cell(AbstractCell):
 
 
 class TensorProductCell(AbstractCell):
+    """Tensor product cell."""
+
     __slots__ = ("_cells", "_tdim", "_gdim")
 
     def __init__(self, *cells: Cell, geometric_dimension: typing.Optional[int] = None):
+        """Initialise.
+
+        Args:
+            cells: Cells to take the tensor product of
+            geometric_dimension: Geometric dimension
+        """
         self._cells = tuple(as_cell(cell) for cell in cells)
 
         self._tdim = sum([cell.topological_dimension() for cell in self._cells])
@@ -392,6 +410,7 @@ class TensorProductCell(AbstractCell):
         return " * ".join([cell.cellname() for cell in self._cells])
 
     def __str__(self) -> str:
+        """Format as a string."""
         s = "TensorProductCell("
         s += ", ".join(f"{c!r}" for c in self._cells)
         if self._tdim != self._gdim:
@@ -400,9 +419,11 @@ class TensorProductCell(AbstractCell):
         return s
 
     def __repr__(self) -> str:
+        """Representation."""
         return str(self)
 
     def _ufl_hash_data_(self) -> typing.Hashable:
+        """UFL hash data."""
         return tuple(c._ufl_hash_data_() for c in self._cells) + (self._gdim,)
 
     def reconstruct(self, **kwargs: typing.Any) -> Cell:

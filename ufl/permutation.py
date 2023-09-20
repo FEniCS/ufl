@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-"""This module provides utility functions for computing permutations
-and generating index lists."""
-
+"""This module provides utility functions for computing permutations and generating index lists."""
 # Copyright (C) 2008-2016 Anders Logg and Kent-Andre Mardal
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -12,7 +9,7 @@ and generating index lists."""
 
 
 def compute_indices(shape):
-    "Compute all index combinations for given shape"
+    """Compute all index combinations for given shape."""
     if len(shape) == 0:
         return ((),)
     sub_indices = compute_indices(shape[1:])
@@ -24,13 +21,13 @@ def compute_indices(shape):
 
 
 def build_component_numbering(shape, symmetry):
-    """Build a numbering of components within the given value shape,
-    taking into consideration a symmetry mapping which leaves the
+    """Build a numbering of components within the given value shape.
+
+    This takes into consideration a symmetry mapping which leaves the
     mapping noncontiguous. Returns a dict { component -> numbering }
     and an ordered list of components [ numbering -> component ].  The
     dict contains all components while the list only contains the ones
     not mapped by the symmetry mapping.
-
     """
     vi2si, si2vi = {}, []
     indices = compute_indices(shape)

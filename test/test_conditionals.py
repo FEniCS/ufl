@@ -1,26 +1,27 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-08-20 -- 2012-11-30"
 
 import pytest
 
-from ufl import *
-# from ufl.algorithms import *
-from ufl.classes import *
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, VectorElement, conditional, eq, ge, gt, le, lt, ne,
+                 triangle)
+from ufl.classes import EQ, GE, GT, LE, LT, NE
 
 
 @pytest.fixture
 def f():
     element = FiniteElement("Lagrange", triangle, 1)
-    return Coefficient(element)
+    domain = Mesh(VectorElement('Lagrange', triangle, 1))
+    space = FunctionSpace(domain, element)
+    return Coefficient(space)
 
 
 @pytest.fixture
 def g():
     element = FiniteElement("Lagrange", triangle, 1)
-    return Coefficient(element)
+    domain = Mesh(VectorElement('Lagrange', triangle, 1))
+    space = FunctionSpace(domain, element)
+    return Coefficient(space)
 
 
 def test_conditional_does_not_allow_bool_condition(f, g):
@@ -30,17 +31,6 @@ def test_conditional_does_not_allow_bool_condition(f, g):
         conditional(True, 1, 0)
 
 
-def test_eq_produces_ufl_expr(f, g):
-    expr1 = eq(f, f)
-    expr2 = eq(f, g)
-    expr3 = eq(f, g)
-    assert isinstance(expr1, EQ)
-    assert isinstance(expr2, EQ)
-    assert not bool(expr1 == expr2)
-    assert bool(expr1 != expr2)
-    assert bool(expr2 == expr3)
-
-
 def test_eq_oper_produces_bool(f, g):
     expr1 = f == f
     expr2 = f == g
@@ -48,15 +38,6 @@ def test_eq_oper_produces_bool(f, g):
     assert isinstance(expr2, bool)
     assert expr1
     assert not expr2
-
-
-def xtest_eq_produces_ufl_expr(f, g):
-    expr1 = f == g
-    expr2 = eq(f, g)
-    assert isinstance(expr1, EQ)
-    assert isinstance(expr2, EQ)
-    assert bool(expr1 == expr2)
-    assert not bool(expr1 != expr2)
 
 
 def test_eq_produces_ufl_expr(f, g):

@@ -23,8 +23,8 @@ This demo illustrates the FEEC notation
 
 and their aliases.
 """
-from ufl import (FiniteElement, TestFunction, TestFunctions, TrialFunction,
-                 TrialFunctions, dx)
+from ufl import (FiniteElement, FunctionSpace, Mesh, TestFunction, TestFunctions, TrialFunction, TrialFunctions,
+                 VectorElement, dx)
 from ufl import exterior_derivative as d
 from ufl import inner, interval, tetrahedron, triangle
 
@@ -38,8 +38,10 @@ for cell in cells:
 
             # Testing exterior derivative
             V = FiniteElement(family, cell, r, form_degree=k)
-            v = TestFunction(V)
-            u = TrialFunction(V)
+            domain = Mesh(VectorElement("Lagrange", cell, 1))
+            space = FunctionSpace(domain, V)
+            v = TestFunction(space)
+            u = TrialFunction(space)
 
             a = inner(d(u), d(v)) * dx
 
@@ -47,7 +49,8 @@ for cell in cells:
             if k > 0 and k < tdim + 1:
                 S = FiniteElement(family, cell, r, form_degree=k - 1)
                 W = S * V
-                (sigma, u) = TrialFunctions(W)
-                (tau, v) = TestFunctions(W)
+                mixed_space = FunctionSpace(domain, W)
+                (sigma, u) = TrialFunctions(mixed_space)
+                (tau, v) = TestFunctions(mixed_space)
 
                 a = (inner(sigma, tau) - inner(d(tau), u) + inner(d(sigma), v) + inner(d(u), d(v))) * dx

@@ -17,8 +17,8 @@
 #
 # First added:  2008-10-03
 # Last changed: 2011-07-22
-from ufl import (MixedElement, TestFunctions, TrialFunctions, VectorElement,
-                 as_vector, div, dot, dx, inner, skew, tetrahedron, tr)
+from ufl import (FunctionSpace, Mesh, MixedElement, TestFunctions, TrialFunctions, VectorElement, as_vector, div, dot,
+                 dx, inner, skew, tetrahedron, tr)
 
 
 def skw(tau):
@@ -43,8 +43,11 @@ Q = VectorElement("P Lambda", cell, r - 1, form_degree=n)
 
 W = MixedElement(S, V, Q)
 
-(sigma, u, gamma) = TrialFunctions(W)
-(tau, v, eta) = TestFunctions(W)
+domain = Mesh(VectorElement("Lagrange", cell, 1))
+space = FunctionSpace(domain, W)
+
+(sigma, u, gamma) = TrialFunctions(space)
+(tau, v, eta) = TestFunctions(space)
 
 a = (
     inner(sigma, tau) - tr(sigma) * tr(tau) + dot(

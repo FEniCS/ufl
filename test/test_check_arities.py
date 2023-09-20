@@ -1,9 +1,9 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
 import pytest
-from ufl import *
-from ufl.algorithms.compute_form_data import compute_form_data
+
+from ufl import (Coefficient, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate, TestFunction, TrialFunction,
+                 VectorElement, adjoint, cofac, conj, derivative, ds, dx, grad, inner, tetrahedron)
 from ufl.algorithms.check_arities import ArityMismatch
+from ufl.algorithms.compute_form_data import compute_form_data
 
 
 def test_check_arities():
@@ -26,11 +26,9 @@ def test_check_arities():
     L = derivative(M, u, dv)
     a = derivative(L, u, du)
 
-    fd = compute_form_data(M)
-    fd = compute_form_data(L)
-    fd = compute_form_data(a)
-
-    assert True
+    compute_form_data(M)
+    compute_form_data(L)
+    compute_form_data(a)
 
 
 def test_complex_arities():

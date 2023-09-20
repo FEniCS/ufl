@@ -21,15 +21,16 @@
 #
 # The bilinear form for the nonlinear term in the
 # Navier-Stokes equations with fixed convective velocity.
-from ufl import (Coefficient, TestFunction, TrialFunction, VectorElement, dot,
-                 dx, grad, tetrahedron)
+from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorElement, dot, dx, grad, tetrahedron
 
 cell = tetrahedron
 element = VectorElement("Lagrange", cell, 1)
+domain = Mesh(VectorElement("Lagrange", cell, 1))
+space = FunctionSpace(domain, element)
 
-v = TestFunction(element)
-u = TrialFunction(element)
-w = Coefficient(element)
+v = TestFunction(space)
+u = TrialFunction(space)
+w = Coefficient(space)
 
 Du = grad(u)
 a = dot(dot(w, Du), v) * dx

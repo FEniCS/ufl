@@ -1,9 +1,4 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-import pytest
-
-from ufl import *
+from ufl import Cell, FiniteElement, MixedElement, TensorElement, VectorElement
 
 
 def test_reference_shapes():

@@ -17,15 +17,17 @@
 #
 # The bilinear form a(v, u) and linear form L(v) for
 # Poisson's equation with Neumann boundary conditions.
-from ufl import (Coefficient, TestFunction, TrialFunction, VectorElement, ds,
-                 dx, grad, inner, triangle)
+from ufl import (Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorElement, ds, dx, grad, inner,
+                 triangle)
 
 element = VectorElement("Lagrange", triangle, 1)
+domain = Mesh(VectorElement("Lagrange", triangle, 1))
+space = FunctionSpace(domain, element)
 
-v = TestFunction(element)
-u = TrialFunction(element)
-f = Coefficient(element)
-g = Coefficient(element)
+v = TestFunction(space)
+u = TrialFunction(space)
+f = Coefficient(space)
+g = Coefficient(space)
 
 a = inner(grad(v), grad(u)) * dx
 L = inner(v, f) * dx + inner(v, g) * ds

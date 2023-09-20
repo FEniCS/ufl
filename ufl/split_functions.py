@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"Algorithm for splitting a Coefficient or Argument into subfunctions."
-
+"""Algorithm for splitting a Coefficient or Argument into subfunctions."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -18,9 +16,11 @@ from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides
 
 
 def split(v):
-    """UFL operator: If v is a Coefficient or Argument in a mixed space, returns
-    a tuple with the function components corresponding to the subelements."""
+    """Split a coefficient or argument.
 
+    If v is a Coefficient or Argument in a mixed space, returns
+    a tuple with the function components corresponding to the subelements.
+    """
     # Default range is all of v
     begin = 0
     end = None

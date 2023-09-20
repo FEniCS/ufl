@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"The Form class."
-
+"""The Form class."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -10,6 +8,7 @@
 # Modified by Anders Logg, 2009-2011.
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
+# Modified by Nacime Bouziani, 2020.
 # Modified by Jørgen S. Dokken 2023.
 
 import numbers
@@ -35,9 +34,7 @@ __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
 
 
 def _sorted_integrals(integrals):
-    """Sort integrals by domain id, integral type, subdomain id
-    for a more stable signature computation."""
-
+    """Sort integrals by domain id, integral type, subdomain id for a more stable signature computation."""
     # Group integrals in multilevel dict by keys
     # [domain][integral_type][subdomain_id]
     integrals_dict = defaultdict(
@@ -45,8 +42,7 @@ def _sorted_integrals(integrals):
     for integral in integrals:
         d = integral.ufl_domain()
         if d is None:
-            raise ValueError(
-                "Each integral in a form must have a uniquely defined integration domain.")
+            raise ValueError("Each integral in a form must have a uniquely defined integration domain.")
         it = integral.integral_type()
         si = integral.subdomain_id()
         integrals_dict[d][it][si] += [integral]
@@ -80,29 +76,50 @@ def _sorted_integrals(integrals):
 
 @ufl_type()
 class BaseForm(object, metaclass=UFLType):
-    """Description of an object containing arguments"""
+    """Description of an object containing arguments."""
 
     # Slots is kept empty to enable multiple inheritance with other
     # classes
     __slots__ = ()
     _ufl_is_abstract_ = True
-    _ufl_required_methods_ = ('_analyze_form_arguments', "ufl_domains")
+    _ufl_required_methods_ = ('_analyze_form_arguments', '_analyze_domains', "ufl_domains")
 
     def __init__(self):
-        # Internal variables for caching form argument data
+        """Initialise."""
+        # Internal variables for caching form argument/coefficient data
         self._arguments = None
+        self._coefficients = None
 
     # --- Accessor interface ---
     def arguments(self):
-        "Return all ``Argument`` objects found in form."
+        """Return all ``Argument`` objects found in form."""
         if self._arguments is None:
             self._analyze_form_arguments()
         return self._arguments
 
+    def coefficients(self):
+        """Return all ``Coefficient`` objects found in form."""
+        if self._coefficients is None:
+            self._analyze_form_arguments()
+        return self._coefficients
+
+    def ufl_domain(self):
+        """Return the single geometric integration domain occuring in the base form.
+
+        Fails if multiple domains are found.
+        """
+        if self._domains is None:
+            self._analyze_domains()
+
+        if len(self._domains) > 1:
+            raise ValueError("%s must have exactly one domain." % type(self).__name__)
+        # Return the single geometric domain
+        return self._domains[0]
+
     # --- Operator implementations ---
 
     def __eq__(self, other):
-        """Delayed evaluation of the == operator!
+        """Delayed evaluation of the == operator.
 
         Just 'lhs_form == rhs_form' gives an Equation,
         while 'bool(lhs_form == rhs_form)' delegates
@@ -111,10 +128,12 @@ class BaseForm(object, metaclass=UFLType):
         return Equation(self, other)
 
     def __radd__(self, other):
+        """Add."""
         # Ordering of form additions make no difference
         return self.__add__(other)
 
     def __add__(self, other):
+        """Add."""
         if isinstance(other, (int, float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
@@ -123,7 +142,6 @@ class BaseForm(object, metaclass=UFLType):
             return self
 
         elif isinstance(other, ZeroBaseForm):
-            self._check_arguments_sum(other)
             # Simplify addition with ZeroBaseForm
             return self
 
@@ -131,7 +149,6 @@ class BaseForm(object, metaclass=UFLType):
         # We could overwrite ZeroBaseForm.__add__ but that implies
         # duplicating cases with `0` and `ufl.Zero`.
         elif isinstance(self, ZeroBaseForm):
-            self._check_arguments_sum(other)
             # Simplify addition with ZeroBaseForm
             return other
 
@@ -143,31 +160,20 @@ class BaseForm(object, metaclass=UFLType):
             # Let python protocols do their job if we don't handle it
             return NotImplemented
 
-    def _check_arguments_sum(self, other):
-        # Get component with the highest number of arguments
-        a = max((self, other), key=lambda x: len(x.arguments()))
-        b = self if a is other else other
-        # Components don't necessarily have the exact same arguments
-        # but the first argument(s) need to match as for `a + L`
-        # where a and L are a bilinear and linear form respectively.
-        a_args = sorted(a.arguments(), key=lambda x: x.number())
-        b_args = sorted(b.arguments(), key=lambda x: x.number())
-        if b_args != a_args[:len(b_args)]:
-            raise ValueError('Mismatching arguments when summing:\n %s\n and\n %s' % (self, other))
-
     def __sub__(self, other):
-        "Subtract other form from this one."
+        """Subtract other form from this one."""
         return self + (-other)
 
     def __rsub__(self, other):
-        "Subtract this form from other."
+        """Subtract this form from other."""
         return other + (-self)
 
     def __neg__(self):
         """Negate all integrals in form.
 
         This enables the handy "-form" syntax for e.g. the
-        linearized system (J, -F) from a nonlinear form F."""
+        linearized system (J, -F) from a nonlinear form F.
+        """
         if isinstance(self, ZeroBaseForm):
             # `-` doesn't change anything for ZeroBaseForm.
             # This also facilitates simplifying FormSum containing ZeroBaseForm objects.
@@ -175,21 +181,21 @@ class BaseForm(object, metaclass=UFLType):
         return FormSum((self, -1))
 
     def __rmul__(self, scalar):
-        "Multiply all integrals in form with constant scalar value."
+        """Multiply all integrals in form with constant scalar value."""
         # This enables the handy "0*form" or "dt*form" syntax
         if is_scalar_constant_expression(scalar):
             return FormSum((self, scalar))
         return NotImplemented
 
     def __mul__(self, coefficient):
-        "Take the action of this form on the given coefficient."
+        """Take the action of this form on the given coefficient."""
         if isinstance(coefficient, Expr):
             from ufl.formoperators import action
             return action(self, coefficient)
         return NotImplemented
 
     def __ne__(self, other):
-        "Immediately evaluate the != operator (as opposed to the == operator)."
+        """Immediately evaluate the != operator (as opposed to the == operator)."""
         return not self.equals(other)
 
     def __call__(self, *args, **kwargs):
@@ -203,7 +209,6 @@ class BaseForm(object, metaclass=UFLType):
         to replace Coefficients with expressions of matching shapes.
 
         Example:
-        -------
           V = FiniteElement("CG", triangle, 1)
           v = TestFunction(V)
           u = TrialFunction(V)
@@ -213,7 +218,6 @@ class BaseForm(object, metaclass=UFLType):
           M = a(f, f, coefficients={ g: 1 })
 
         Is equivalent to M == grad(f)**2*dx.
-
         """
         repdict = {}
 
@@ -234,7 +238,6 @@ class BaseForm(object, metaclass=UFLType):
                     repdict[f] = coefficients[f]
                 else:
                     warnings("Coefficient %s is not in form." % ufl_err_str(f))
-
         if repdict:
             from ufl.formoperators import replace
             return replace(self, repdict)
@@ -242,24 +245,22 @@ class BaseForm(object, metaclass=UFLType):
             return self
 
     def _ufl_compute_hash_(self):
-        "Compute the hash"
+        """Compute the hash."""
         # Ensure compatibility with MultiFunction
         # `hash(self)` will call the `__hash__` method of the subclass.
         return hash(self)
 
     def _ufl_expr_reconstruct_(self, *operands):
-        "Return a new object of the same type with new operands."
+        """Return a new object of the same type with new operands."""
         return type(self)(*operands)
 
-    # "a @ f" notation in python 3.5
     __matmul__ = __mul__
-
-    # --- String conversion functions, for UI purposes only ---
 
 
 @ufl_type()
 class Form(BaseForm):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
+
     __slots__ = (
         # --- List of Integral objects (a Form is a sum of these Integrals, everything else is derived)
         "_integrals",
@@ -268,6 +269,7 @@ class Form(BaseForm):
         "_domain_numbering",
         "_subdomain_data",
         "_arguments",
+        "_base_form_operators",
         "_coefficients",
         "_coefficient_numbering",
         "_constants",
@@ -282,6 +284,7 @@ class Form(BaseForm):
     )
 
     def __init__(self, integrals):
+        """Initialise."""
         BaseForm.__init__(self)
         # Basic input checking (further compatibilty analysis happens
         # later)
@@ -305,6 +308,9 @@ class Form(BaseForm):
         self._constant_numbering = None
         self._terminal_numbering = None
 
+        # Internal variables for caching base form operator data
+        self._base_form_operators = None
+
         from ufl.algorithms.analysis import extract_constants
         self._constants = extract_constants(self)
 
@@ -319,20 +325,20 @@ class Form(BaseForm):
     # --- Accessor interface ---
 
     def integrals(self):
-        "Return a sequence of all integrals in form."
+        """Return a sequence of all integrals in form."""
         return self._integrals
 
     def integrals_by_type(self, integral_type):
-        "Return a sequence of all integrals with a particular domain type."
+        """Return a sequence of all integrals with a particular domain type."""
         return tuple(integral for integral in self.integrals()
                      if integral.integral_type() == integral_type)
 
     def integrals_by_domain(self, domain):
-        "Return a sequence of all integrals with a particular integration domain."
+        """Return a sequence of all integrals with a particular integration domain."""
         return tuple(integral for integral in self.integrals() if integral.ufl_domain() == domain)
 
     def empty(self):
-        "Returns whether the form has no integrals."
+        """Returns whether the form has no integrals."""
         return self.integrals() == ()
 
     def ufl_domains(self):
@@ -347,22 +353,20 @@ class Form(BaseForm):
         return self._integration_domains
 
     def ufl_cell(self):
-        """Return the single cell this form is defined on, fails if multiple
-        cells are found.
+        """Return the single cell this form is defined on.
 
+        Fails if multiple cells are found.
         """
         return self.ufl_domain().ufl_cell()
 
     def ufl_domain(self):
-        """Return the single geometric integration domain occuring in the
-        form.
+        """Return the single geometric integration domain occuring in the form.
 
         Fails if multiple domains are found.
 
         NB! This does not include domains of coefficients defined on
         other meshes, look at form data for that additional
         information.
-
         """
         # Collect all domains
         domains = self.ufl_domains()
@@ -384,41 +388,37 @@ class Form(BaseForm):
         return gdims[0]
 
     def domain_numbering(self):
-        """Return a contiguous numbering of domains in a mapping
-        ``{domain:number}``."""
+        """Return a contiguous numbering of domains in a mapping ``{domain:number}``."""
         if self._domain_numbering is None:
             self._analyze_domains()
         return self._domain_numbering
 
     def subdomain_data(self):
-        """Returns a mapping on the form ``{domain:{integral_type:
-            subdomain_data}}``."""
+        """Returns a mapping on the form ``{domain:{integral_type: subdomain_data}}``."""
         if self._subdomain_data is None:
             self._analyze_subdomain_data()
         return self._subdomain_data
 
     def max_subdomain_ids(self):
-        """Returns a mapping on the form
-        ``{domain:{integral_type:max_subdomain_id}}``."""
+        """Returns a mapping on the form ``{domain:{integral_type:max_subdomain_id}}``."""
         if self._max_subdomain_ids is None:
             self._analyze_subdomain_data()
         return self._max_subdomain_ids
 
-    def arguments(self):
-        "Return all ``Argument`` objects found in form."
-        if self._arguments is None:
-            self._analyze_form_arguments()
-        return self._arguments
-
     def coefficients(self):
-        "Return all ``Coefficient`` objects found in form."
+        """Return all ``Coefficient`` objects found in form."""
         if self._coefficients is None:
             self._analyze_form_arguments()
         return self._coefficients
 
+    def base_form_operators(self):
+        """Return all ``BaseFormOperator`` objects found in form."""
+        if self._base_form_operators is None:
+            self._analyze_base_form_operators()
+        return self._base_form_operators
+
     def coefficient_numbering(self):
-        """Return a contiguous numbering of coefficients in a mapping
-        ``{coefficient:number}``."""
+        """Return a contiguous numbering of coefficients in a mapping ``{coefficient:number}``."""
         # cyclic import
         from ufl.coefficient import Coefficient
 
@@ -431,11 +431,11 @@ class Form(BaseForm):
         return self._coefficient_numbering
 
     def constants(self):
+        """Get constants."""
         return self._constants
 
     def constant_numbering(self):
-        """Return a contiguous numbering of constants in a mapping
-        ``{constant:number}``."""
+        """Return a contiguous numbering of constants in a mapping ``{constant:number}``."""
         if self._constant_numbering is None:
             self._constant_numbering = {
                 expr: num
@@ -451,7 +451,6 @@ class Form(BaseForm):
 
         The numbering is computed per type so :class:`Coefficient`s,
         :class:`Constant`s, etc will each be numbered from zero.
-
         """
         # cyclic import
         from ufl.algorithms.analysis import extract_type
@@ -469,7 +468,7 @@ class Form(BaseForm):
         return self._terminal_numbering
 
     def signature(self):
-        "Signature for use with jit cache (independent of incidental numbering of indices etc.)"
+        """Signature for use with jit cache (independent of incidental numbering of indices etc)."""
         if self._signature is None:
             self._compute_signature()
         return self._signature
@@ -477,17 +476,17 @@ class Form(BaseForm):
     # --- Operator implementations ---
 
     def __hash__(self):
-        "Hash code for use in dicts (includes incidental numbering of indices etc.)"
+        """Hash."""
         if self._hash is None:
             self._hash = hash(tuple(hash(itg) for itg in self.integrals()))
         return self._hash
 
     def __ne__(self, other):
-        "Immediate evaluation of the != operator (as opposed to the == operator)."
+        """Immediate evaluation of the != operator (as opposed to the == operator)."""
         return not self.equals(other)
 
     def equals(self, other):
-        "Evaluate ``bool(lhs_form == rhs_form)``."
+        """Evaluate ``bool(lhs_form == rhs_form)``."""
         if type(other) is not Form:
             return False
         if len(self._integrals) != len(other._integrals):
@@ -497,16 +496,17 @@ class Form(BaseForm):
         return all(a == b for a, b in zip(self._integrals, other._integrals))
 
     def __radd__(self, other):
+        """Add."""
         # Ordering of form additions make no difference
         return self.__add__(other)
 
     def __add__(self, other):
+        """Add."""
         if isinstance(other, Form):
             # Add integrals from both forms
             return Form(list(chain(self.integrals(), other.integrals())))
 
         if isinstance(other, ZeroBaseForm):
-            self._check_arguments_sum(other)
             # Simplify addition with ZeroBaseForm
             return self
 
@@ -529,37 +529,37 @@ class Form(BaseForm):
             return NotImplemented
 
     def __sub__(self, other):
-        "Subtract other form from this one."
+        """Subtract other form from this one."""
         return self + (-other)
 
     def __rsub__(self, other):
-        "Subtract this form from other."
+        """Subtract this form from other."""
         return other + (-self)
 
     def __neg__(self):
         """Negate all integrals in form.
 
         This enables the handy "-form" syntax for e.g. the
-        linearized system (J, -F) from a nonlinear form F."""
+        linearized system (J, -F) from a nonlinear form F.
+        """
         return Form([-itg for itg in self.integrals()])
 
     def __rmul__(self, scalar):
-        "Multiply all integrals in form with constant scalar value."
+        """Multiply all integrals in form with constant scalar value."""
         # This enables the handy "0*form" or "dt*form" syntax
         if is_scalar_constant_expression(scalar):
             return Form([scalar * itg for itg in self.integrals()])
         return NotImplemented
 
     def __mul__(self, coefficient):
-        "UFL form operator: Take the action of this form on the given coefficient."
+        """UFL form operator: Take the action of this form on the given coefficient."""
         if isinstance(coefficient, Expr):
             from ufl.formoperators import action
             return action(self, coefficient)
         return NotImplemented
 
     def __call__(self, *args, **kwargs):
-        """UFL form operator: Evaluate form by replacing arguments and
-        coefficients.
+        """UFL form operator: Evaluate form by replacing arguments and coefficients.
 
         Replaces form.arguments() with given positional arguments in
         same number and ordering. Number of positional arguments must
@@ -569,7 +569,6 @@ class Form(BaseForm):
         to replace Coefficients with expressions of matching shapes.
 
         Example:
-        -------
           V = FiniteElement("CG", triangle, 1)
           v = TestFunction(V)
           u = TrialFunction(V)
@@ -579,7 +578,6 @@ class Form(BaseForm):
           M = a(f, f, coefficients={ g: 1 })
 
         Is equivalent to M == grad(f)**2*dx.
-
         """
         repdict = {}
 
@@ -606,13 +604,12 @@ class Form(BaseForm):
         else:
             return self
 
-    # "a @ f" notation in python 3.5
     __matmul__ = __mul__
 
     # --- String conversion functions, for UI purposes only ---
 
     def __str__(self):
-        "Compute shorter string representation of form. This can be huge for complicated forms."
+        """Compute shorter string representation of form. This can be huge for complicated forms."""
         # Warning used for making sure we don't use this in the general pipeline:
         # warning("Calling str on form is potentially expensive and should be avoided except during debugging.")
         # Not caching this because it can be huge
@@ -620,7 +617,7 @@ class Form(BaseForm):
         return s or "<empty Form>"
 
     def __repr__(self):
-        "Compute repr string of form. This can be huge for complicated forms."
+        """Compute repr string of form. This can be huge for complicated forms."""
         # Warning used for making sure we don't use this in the general pipeline:
         # warning("Calling repr on form is potentially expensive and should be avoided except during debugging.")
         # Not caching this because it can be huge
@@ -631,6 +628,7 @@ class Form(BaseForm):
     # --- Analysis functions, precomputation and caching of various quantities
 
     def _analyze_domains(self):
+        """Analyze domains."""
         from ufl.domain import join_domains, sort_domains
 
         # Collect unique integration domains
@@ -644,6 +642,7 @@ class Form(BaseForm):
         self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
 
     def _analyze_subdomain_data(self):
+        """Analyze subdomain data."""
         integration_domains = self.ufl_domains()
         integrals = self.integrals()
 
@@ -666,7 +665,7 @@ class Form(BaseForm):
         self._subdomain_data = subdomain_data
 
     def _analyze_form_arguments(self):
-        "Analyze which Argument and Coefficient objects can be found in the form."
+        """Analyze which Argument and Coefficient objects can be found in the form."""
         from ufl.algorithms.analysis import extract_arguments_and_coefficients
         arguments, coefficients = extract_arguments_and_coefficients(self)
 
@@ -676,7 +675,14 @@ class Form(BaseForm):
         self._coefficients = tuple(
             sorted(set(coefficients), key=lambda x: x.count()))
 
+    def _analyze_base_form_operators(self):
+        """Analyze which BaseFormOperator objects can be found in the form."""
+        from ufl.algorithms.analysis import extract_base_form_operators
+        base_form_ops = extract_base_form_operators(self)
+        self._base_form_operators = tuple(sorted(base_form_ops, key=lambda x: x.count()))
+
     def _compute_renumbering(self):
+        """Compute renumbering."""
         # Include integration domains and coefficients in renumbering
         dn = self.domain_numbering()
         tn = self.terminal_numbering()
@@ -712,24 +718,29 @@ class Form(BaseForm):
         return renumbering
 
     def _compute_signature(self):
+        """Compute signature."""
         from ufl.algorithms.signature import compute_form_signature
         self._signature = compute_form_signature(self, self._compute_renumbering())
 
 
 def as_form(form):
-    "Convert to form if not a form, otherwise return form."
-    if not isinstance(form, BaseForm):
+    """Convert to form if not a form, otherwise return form."""
+    if not isinstance(form, BaseForm) and form != 0:
         raise ValueError(f"Unable to convert object to a UFL form: {ufl_err_str(form)}")
     return form
 
 
 @ufl_type()
 class FormSum(BaseForm):
-    """Description of a weighted sum of variational forms and form-like objects
+    """Form sum.
+
+    Description of a weighted sum of variational forms and form-like objects
     components is the list of Forms to be summed
-    arg_weights is a list of tuples of component index and weight"""
+    arg_weights is a list of tuples of component index and weight
+    """
 
     __slots__ = ("_arguments",
+                 "_coefficients",
                  "_weights",
                  "_components",
                  "ufl_operands",
@@ -738,20 +749,39 @@ class FormSum(BaseForm):
                  "_hash")
     _ufl_required_methods_ = ('_analyze_form_arguments')
 
+    def __new__(cls, *args, **kwargs):
+        """Create a new FormSum."""
+        # All the components are `ZeroBaseForm`
+        if all(component == 0 for component, _ in args):
+            # Assume that the arguments of all the components have consistent with each other  and select
+            # the first one to define the arguments of `ZeroBaseForm`.
+            # This might not always be true but `ZeroBaseForm`'s arguments are not checked anywhere
+            # because we can't reliably always infer them.
+            ((arg, _), *_) = args
+            arguments = arg.arguments()
+            return ZeroBaseForm(arguments)
+
+        return super(FormSum, cls).__new__(cls)
+
     def __init__(self, *components):
+        """Initialise."""
         BaseForm.__init__(self)
+
+        # Remove `ZeroBaseForm` components
+        filtered_components = [(component, w) for component, w in components if component != 0]
 
         weights = []
         full_components = []
-        for (component, w) in components:
+        for (component, w) in filtered_components:
             if isinstance(component, FormSum):
                 full_components.extend(component.components())
-                weights.extend(w * component.weights())
+                weights.extend([w * wc for wc in component.weights()])
             else:
                 full_components.append(component)
                 weights.append(w)
 
         self._arguments = None
+        self._coefficients = None
         self._domains = None
         self._domain_numbering = None
         self._hash = None
@@ -761,12 +791,15 @@ class FormSum(BaseForm):
         self.ufl_operands = self._components
 
     def components(self):
+        """Get components."""
         return self._components
 
     def weights(self):
+        """Get weights."""
         return self._weights
 
     def _sum_variational_components(self):
+        """Sum variational components."""
         var_forms = None
         other_components = []
         new_weights = []
@@ -786,20 +819,29 @@ class FormSum(BaseForm):
         self._weights = new_weights
 
     def _analyze_form_arguments(self):
-        "Return all ``Argument`` objects found in form."
+        """Return all ``Argument`` objects found in form."""
         arguments = []
+        coefficients = []
         for component in self._components:
             arguments.extend(component.arguments())
+            coefficients.extend(component.coefficients())
         self._arguments = tuple(set(arguments))
+        self._coefficients = tuple(set(coefficients))
+
+    def _analyze_domains(self):
+        """Analyze which domains can be found in FormSum."""
+        from ufl.domain import join_domains
+        # Collect unique domains
+        self._domains = join_domains([component.ufl_domain() for component in self._components])
 
     def __hash__(self):
-        "Hash code for use in dicts (includes incidental numbering of indices etc.)"
+        """Hash."""
         if self._hash is None:
             self._hash = hash(tuple(hash(component) for component in self.components()))
         return self._hash
 
     def equals(self, other):
-        "Evaluate ``bool(lhs_form == rhs_form)``."
+        """Evaluate ``bool(lhs_form == rhs_form)``."""
         if type(other) is not FormSum:
             return False
         if self is other:
@@ -808,7 +850,7 @@ class FormSum(BaseForm):
                 all(a == b for a, b in zip(self.components(), other.components())))
 
     def __str__(self):
-        "Compute shorter string representation of form. This can be huge for complicated forms."
+        """Compute shorter string representation of form. This can be huge for complicated forms."""
         # Warning used for making sure we don't use this in the general pipeline:
         # warning("Calling str on form is potentially expensive and should be avoided except during debugging.")
         # Not caching this because it can be huge
@@ -816,7 +858,7 @@ class FormSum(BaseForm):
         return s or "<empty FormSum>"
 
     def __repr__(self):
-        "Compute repr string of form. This can be huge for complicated forms."
+        """Compute repr string of form. This can be huge for complicated forms."""
         # Warning used for making sure we don't use this in the general pipeline:
         # warning("Calling repr on form is potentially expensive and should be avoided except during debugging.")
         # Not caching this because it can be huge
@@ -831,7 +873,6 @@ class ZeroBaseForm(BaseForm):
 
     ZeroBaseForm is idempotent with respect to assembly and is mostly
     used for sake of simplifying base-form expressions.
-
     """
 
     __slots__ = ("_arguments",
@@ -842,6 +883,7 @@ class ZeroBaseForm(BaseForm):
                  "form")
 
     def __init__(self, arguments):
+        """Initialise."""
         BaseForm.__init__(self)
         self._arguments = arguments
         self.ufl_operands = arguments
@@ -849,13 +891,16 @@ class ZeroBaseForm(BaseForm):
         self.form = None
 
     def _analyze_form_arguments(self):
-        return self._arguments
+        """Analyze form arguments."""
+        # `self._arguments` is already set in `BaseForm.__init__`
+        self._coefficients = ()
 
     def __ne__(self, other):
-        # Overwrite BaseForm.__neq__ which relies on `equals`
+        """Overwrite BaseForm.__neq__ which relies on `equals`."""
         return not self == other
 
     def __eq__(self, other):
+        """Check equality."""
         if type(other) is ZeroBaseForm:
             if self is other:
                 return True
@@ -866,13 +911,15 @@ class ZeroBaseForm(BaseForm):
             return False
 
     def __str__(self):
+        """Format as a string."""
         return "ZeroBaseForm(%s)" % (", ".join(str(arg) for arg in self._arguments))
 
     def __repr__(self):
+        """Representation."""
         return "ZeroBaseForm(%s)" % (", ".join(repr(arg) for arg in self._arguments))
 
     def __hash__(self):
-        """Hash code for use in dicts."""
+        """Hash."""
         if self._hash is None:
             self._hash = hash(("ZeroBaseForm", hash(self._arguments)))
         return self._hash

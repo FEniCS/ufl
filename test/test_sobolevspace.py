@@ -1,17 +1,12 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "David Ham"
 __date__ = "2014-03-04"
 
-import pytest
-from ufl import (EnrichedElement, TensorProductElement,
-                 FiniteElement, triangle, interval,
-                 quadrilateral, HDiv, HCurl)
-from ufl.sobolevspace import SobolevSpace, DirectionalSobolevSpace
-from ufl import H2, H1, HDiv, HCurl, L2, HInf
 from math import inf
 
+from ufl import (H1, H2, L2, EnrichedElement, FiniteElement, HCurl, HDiv, HInf, TensorProductElement, interval,
+                 quadrilateral, triangle)
+from ufl.sobolevspace import SobolevSpace  # noqa: F401
+from ufl.sobolevspace import DirectionalSobolevSpace
 
 # Construct directional Sobolev spaces, with varying smoothness in
 # spatial coordinates

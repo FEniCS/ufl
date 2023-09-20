@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -108,15 +107,20 @@ circumradius_tetrahedron = tmp_area / (6*cellvolume)
 
 
 class ChangeToReferenceGrad(MultiFunction):
+    """Change to reference grad."""
+
     def __init__(self):
+        """Initalise."""
         MultiFunction.__init__(self)
 
     expr = MultiFunction.reuse_if_untouched
 
     def terminal(self, o):
+        """Apply to terminal."""
         return o
 
     def grad(self, o):
+        """Apply to grad."""
         # Peel off the Grads and count them, and get restriction if
         # it's between the grad and the terminal
         ngrads = 0
@@ -193,9 +197,11 @@ class ChangeToReferenceGrad(MultiFunction):
         return jinv_lgrad_f
 
     def reference_grad(self, o):
+        """Apply to reference_grad."""
         raise ValueError("Not expecting reference grad while applying change to reference grad.")
 
     def coefficient_derivative(self, o):
+        """Apply to coefficient_derivative."""
         raise ValueError("Coefficient derivatives should be expanded before applying change to reference grad.")
 
 
@@ -204,8 +210,8 @@ def change_to_reference_grad(e):
 
     Assumes the expression is preprocessed or at least that derivatives have been expanded.
 
-    @param e:
-        An Expr or Form.
+    Args:
+        e: An Expr or Form.
     """
     mf = ChangeToReferenceGrad()
     return map_expr_dag(mf, e)
@@ -213,7 +219,6 @@ def change_to_reference_grad(e):
 
 def change_integrand_geometry_representation(integrand, scale, integral_type):
     """Change integrand geometry to the right representations."""
-
     integrand = apply_function_pullbacks(integrand)
 
     integrand = change_to_reference_grad(integrand)

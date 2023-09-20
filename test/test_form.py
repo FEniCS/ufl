@@ -1,8 +1,7 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
 import pytest
 
-from ufl import *
+from ufl import (Coefficient, Cofunction, FiniteElement, Form, FormSum, FunctionSpace, Mesh, SpatialCoordinate,
+                 TestFunction, TrialFunction, VectorElement, dot, ds, dx, grad, inner, nabla_grad, triangle)
 from ufl.form import BaseForm
 
 
@@ -14,48 +13,59 @@ def element():
 
 
 @pytest.fixture
-def mass():
+def domain():
+    cell = triangle
+    return Mesh(VectorElement("Lagrange", cell, 1))
+
+
+@pytest.fixture
+def mass(domain):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
     return u * v * dx
 
 
 @pytest.fixture
-def stiffness():
+def stiffness(domain):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
     return inner(grad(u), grad(v)) * dx
 
 
 @pytest.fixture
-def convection():
+def convection(domain):
     cell = triangle
     element = VectorElement("Lagrange", cell, 1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    w = Coefficient(element)
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    w = Coefficient(space)
     return dot(dot(w, nabla_grad(u)), v) * dx
 
 
 @pytest.fixture
-def load():
+def load(domain):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
-    f = Coefficient(element)
-    v = TestFunction(element)
+    space = FunctionSpace(domain, element)
+    f = Coefficient(space)
+    v = TestFunction(space)
     return f * v * dx
 
 
 @pytest.fixture
-def boundary_load():
+def boundary_load(domain):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
-    f = Coefficient(element)
-    v = TestFunction(element)
+    space = FunctionSpace(domain, element)
+    f = Coefficient(space)
+    v = TestFunction(space)
     return f * v * ds
 
 
@@ -75,10 +85,11 @@ def test_form_arguments(mass, stiffness, convection, load):
     assert ((f * v) * u * dx + (u * 3) * (v / 2) * dx(2)).arguments() == (v, u)
 
 
-def test_form_coefficients(element):
-    v = TestFunction(element)
-    f = Coefficient(element)
-    g = Coefficient(element)
+def test_form_coefficients(element, domain):
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    f = Coefficient(space)
+    g = Coefficient(space)
 
     assert (g * dx).coefficients() == (g,)
     assert (g * dx + g * ds).coefficients() == (g,)
@@ -89,7 +100,7 @@ def test_form_coefficients(element):
 
 def test_form_domains():
     cell = triangle
-    domain = Mesh(cell)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
     element = FiniteElement("Lagrange", cell, 1)
     V = FunctionSpace(domain, element)
 
@@ -121,13 +132,15 @@ def test_form_integrals(mass, boundary_load):
 
 
 def test_form_call():
-    V = FiniteElement("CG", triangle, 1)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    element = FiniteElement("Lagrange", triangle, 1)
+    V = FunctionSpace(domain, element)
     v = TestFunction(V)
     u = TrialFunction(V)
     f = Coefficient(V)
     g = Coefficient(V)
     a = g*inner(grad(v), grad(u))*dx
-    M = a(f, f, coefficients={ g: 1 })
+    M = a(f, f, coefficients={g: 1})
     assert M == grad(f)**2*dx
 
     import sys
@@ -136,27 +149,29 @@ def test_form_call():
         M = eval("(a @ f) @ g")
         assert M == g*f*dx
 
+
 def test_formsum(mass):
-    V = FiniteElement("CG", triangle, 1)
-    v = Cofunction(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    element = FiniteElement("Lagrange", triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = Cofunction(V.dual())
 
-    assert(v + mass)
-    assert(mass + v)
-    assert(isinstance((mass+v), FormSum))
+    assert v + mass
+    assert mass + v
+    assert isinstance((mass+v), FormSum)
 
-    assert(len((mass + v + v).components()) == 3)
+    assert len((mass + v + v).components()) == 3
     # Variational forms are summed appropriately
-    assert(len((mass + v + mass).components()) == 2)
+    assert len((mass + v + mass).components()) == 2
 
-    assert(v - mass)
-    assert(mass - v)
-    assert(isinstance((mass+v), FormSum))
+    assert v - mass
+    assert mass - v
+    assert isinstance((mass+v), FormSum)
 
-    assert(-v)
-    assert(isinstance(-v, BaseForm))
-    assert((-v).weights()[0] == -1)
+    assert -v
+    assert isinstance(-v, BaseForm)
+    assert (-v).weights()[0] == -1
 
-    assert(2 * v)
-    assert(isinstance(2 * v, BaseForm))
-    assert((2 * v).weights()[0] == 2) 
-
+    assert 2 * v
+    assert isinstance(2 * v, BaseForm)
+    assert (2 * v).weights()[0] == 2

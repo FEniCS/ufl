@@ -1,9 +1,8 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 from pytest import raises
-from ufl import *
-from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
+
+from ufl import (Coefficient, FacetNormal, FiniteElement, FunctionSpace, Mesh, SpatialCoordinate, VectorElement,
+                 as_tensor, grad, i, triangle)
+from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
 
 
@@ -12,11 +11,17 @@ def test_apply_restrictions():
     V0 = FiniteElement("DG", cell, 0)
     V1 = FiniteElement("Lagrange", cell, 1)
     V2 = FiniteElement("Lagrange", cell, 2)
-    f0 = Coefficient(V0)
-    f = Coefficient(V1)
-    g = Coefficient(V2)
-    n = FacetNormal(cell)
-    x = SpatialCoordinate(cell)
+
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    v0_space = FunctionSpace(domain, V0)
+    v1_space = FunctionSpace(domain, V1)
+    v2_space = FunctionSpace(domain, V2)
+
+    f0 = Coefficient(v0_space)
+    f = Coefficient(v1_space)
+    g = Coefficient(v2_space)
+    n = FacetNormal(domain)
+    x = SpatialCoordinate(domain)
 
     assert raises(BaseException, lambda: apply_restrictions(f0))
     assert raises(BaseException, lambda: apply_restrictions(grad(f)))

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Various string formatting utilities."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -77,10 +75,12 @@ def estr(elements):
 
 
 def _indent_string(n):
+    """Return indentation string."""
     return "    " * n
 
 
 def _tree_format_expression(expression, indentation, parentheses):
+    """Tree format expression."""
     ind = _indent_string(indentation)
     if expression._ufl_is_terminal_:
         s = "%s%s" % (ind, repr(expression))
@@ -96,6 +96,7 @@ def _tree_format_expression(expression, indentation, parentheses):
 
 
 def tree_format(expression, indentation=0, parentheses=True):
+    """Tree format."""
     from ufl.core.expr import Expr
     from ufl.form import Form
     from ufl.integral import Integral

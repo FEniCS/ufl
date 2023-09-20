@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+"""Expr equals."""
 
 from collections import defaultdict
 
@@ -9,10 +9,11 @@ hash_notequals = defaultdict(int)
 
 
 def expr_equals(self, other):
-    """Checks whether the two expressions are represented the
-    exact same way. This does not check if the expressions are
-    mathematically equal or equivalent! Used by sets and dicts."""
+    """Checks whether the two expressions are represented the exact same way.
 
+    This does not check if the expressions are
+    mathematically equal or equivalent! Used by sets and dicts.
+    """
     # Fast cutoffs for common cases, type difference or hash
     # difference will cutoff more or less all nonequal types
     if type(self) is not type(other) or hash(self) != hash(other):

@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-"""This module provides an extensive list of predefined finite element
-families. Users or, more likely, form compilers, may register new
-elements by calling the function register_element."""
+"""Element.
 
+This module provides an extensive list of predefined finite element
+families. Users or, more likely, form compilers, may register new
+elements by calling the function register_element.
+"""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -32,7 +33,7 @@ aliases = {}
 # Function for registering new elements
 def register_element(family, short_name, value_rank, sobolev_space, mapping,
                      degree_range, cellnames):
-    "Register new finite element family."
+    """Register new finite element family."""
     if family in ufl_elements:
         raise ValueError(f"Finite element '{family}%s' has already been registered.")
     ufl_elements[family] = (family, short_name, value_rank, sobolev_space,
@@ -43,11 +44,12 @@ def register_element(family, short_name, value_rank, sobolev_space, mapping,
 
 
 def register_alias(alias, to):
+    """Doc."""
     aliases[alias] = to
 
 
 def show_elements():
-    "Shows all registered elements."
+    """Shows all registered elements."""
     print("Showing all registered elements:")
     print("================================")
     shown = set()
@@ -275,11 +277,12 @@ register_element("Direct Serendipity Reduced H(div)", "Sdirect H(div) red", 1, H
 # variant='mse' in the appropriate places
 
 def feec_element(family, n, r, k):
-    """Finite element exterior calculus notation
+    """Finite element exterior calculus notation.
+
     n = topological dimension of domain
     r = polynomial order
-    k = form_degree"""
-
+    k = form_degree
+    """
     # Note: We always map to edge elements in 2D, don't know how to
     # differentiate otherwise?
 
@@ -321,11 +324,12 @@ def feec_element(family, n, r, k):
 
 
 def feec_element_l2(family, n, r, k):
-    """Finite element exterior calculus notation
+    """Finite element exterior calculus notation.
+
     n = topological dimension of domain
     r = polynomial order
-    k = form_degree"""
-
+    k = form_degree
+    """
     # Note: We always map to edge elements in 2D, don't know how to
     # differentiate otherwise?
 
@@ -393,7 +397,6 @@ def canonical_element_description(family, cell, order, form_degree):
     This is used by the FiniteElement constructor to ved input
     data against the element list and aliases defined in ufl.
     """
-
     # Get domain dimensions
     if cell is not None:
         tdim = cell.topological_dimension()
