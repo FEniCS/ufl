@@ -26,7 +26,7 @@ class Fixture:
         element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
         velement = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
         telement = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)
-        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+        domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
         space = FunctionSpace(domain, element)
         vspace = FunctionSpace(domain, velement)
         tspace = FunctionSpace(domain, telement)

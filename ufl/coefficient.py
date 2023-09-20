@@ -10,15 +10,13 @@
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 # Modified by Ignacia Fierro-Piccardo 2023.
-import warnings
 
 from ufl.argument import Argument
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual, is_primal
-from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import Counted
 

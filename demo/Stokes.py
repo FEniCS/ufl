@@ -28,7 +28,7 @@ cell = triangle
 P2 = FiniteElement("Lagrange", cell, 2, (2, ), (2, ), "identity", H1)
 P1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 TH = MixedElement([P2, P1])
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
 space = FunctionSpace(domain, TH)
 p2_space = FunctionSpace(domain, P2)
 

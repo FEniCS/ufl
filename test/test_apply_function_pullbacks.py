@@ -1,6 +1,6 @@
 import numpy
 
-from ufl import Cell, Coefficient, FunctionSpace, Mesh, as_domain, as_tensor, as_vector, dx, indices, triangle
+from ufl import Cell, Coefficient, FunctionSpace, Mesh, as_tensor, as_vector, dx, indices, triangle
 from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
@@ -34,7 +34,7 @@ def check_single_function_pullback(g, mappings):
 def test_apply_single_function_pullbacks_triangle3d():
     triangle3d = Cell("triangle", geometric_dimension=3)
     cell = triangle3d
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
 
     UL2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), "L2 Piola", L2)
     U0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", L2)
@@ -236,7 +236,7 @@ def test_apply_single_function_pullbacks_triangle3d():
 
 def test_apply_single_function_pullbacks_triangle():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
 
     Ul2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), "L2 Piola", L2)
     U = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)

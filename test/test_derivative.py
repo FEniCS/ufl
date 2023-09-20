@@ -74,7 +74,7 @@ def assertEqualBySampling(actual, expected):
 def _test(self, f, df):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -340,7 +340,7 @@ def testListTensor(self):
 def test_single_scalar_coefficient_derivative(self):
     cell = triangle
     V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, V)
     u = Coefficient(space)
     v = TestFunction(space)
@@ -352,7 +352,7 @@ def test_single_scalar_coefficient_derivative(self):
 def test_single_vector_coefficient_derivative(self):
     cell = triangle
     V = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, V)
     u = Coefficient(space)
     v = TestFunction(space)
@@ -367,7 +367,7 @@ def test_multiple_coefficient_derivative(self):
     V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     W = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
     M = MixedElement([V, W])
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     v_space = FunctionSpace(domain, V)
     w_space = FunctionSpace(domain, W)
     m_space = FunctionSpace(domain, M)
@@ -392,7 +392,7 @@ def test_indexed_coefficient_derivative(self):
     ident = Identity(cell.geometric_dimension())
     V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     W = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     v_space = FunctionSpace(domain, V)
     w_space = FunctionSpace(domain, W)
     u = Coefficient(w_space)
@@ -415,7 +415,7 @@ def test_multiple_indexed_coefficient_derivative(self):
     V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V2 = MixedElement([V, V])
     W = FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
     v2_space = FunctionSpace(domain, V2)
     w_space = FunctionSpace(domain, W)
     u = Coefficient(w_space)
@@ -434,7 +434,7 @@ def test_segregated_derivative_of_convection(self):
     V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     W = FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
     v_space = FunctionSpace(domain, V)
     w_space = FunctionSpace(domain, W)
 
@@ -595,7 +595,7 @@ def test_vector_coefficient_derivatives_of_product(self):
 def testHyperElasticity(self):
     cell = interval
     element = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (1, ), (1, ), "identity", H1))
     space = FunctionSpace(domain, element)
     w = Coefficient(space)
     v = TestFunction(space)
@@ -674,7 +674,7 @@ def test_mass_derived_from_functional(self):
     cell = triangle
     V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, V)
 
     v = TestFunction(space)
@@ -696,7 +696,7 @@ def test_derivative_replace_works_together(self):
     cell = triangle
     V = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, V)
 
     v = TestFunction(space)

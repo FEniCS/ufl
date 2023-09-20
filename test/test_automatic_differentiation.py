@@ -18,16 +18,16 @@ from ufl.algorithms import expand_derivatives
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal
 from ufl.finiteelement import FiniteElement
-from ufl.sobolevspace import L2
+from ufl.sobolevspace import L2, H1
 
 
 class ExpressionCollection(object):
 
     def __init__(self, cell):
         self.cell = cell
+        d = cell.geometric_dimension()
         domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
 
-        d = cell.geometric_dimension()
         x = SpatialCoordinate(domain)
         n = FacetNormal(domain)
         c = CellVolume(domain)

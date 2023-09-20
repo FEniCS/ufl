@@ -181,7 +181,7 @@ def testCoefficient():
 
 def testDiffX():
     cell = triangle
-    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     x = SpatialCoordinate(domain)
     f = x[0] ** 2 * x[1] ** 2
     i, = indices(1)

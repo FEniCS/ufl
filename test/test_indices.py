@@ -217,7 +217,6 @@ def test_tensor(self):
 
 def test_indexed(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    element = VectorElement("CG", "triangle", 1)
     domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
@@ -239,7 +238,7 @@ def test_indexed(self):
 def test_spatial_derivative(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)

@@ -2,11 +2,13 @@ import pytest
 
 from ufl import Index, Mesh, SpatialCoordinate, outer, triangle
 from ufl.classes import FixedIndex, Indexed, MultiIndex, Outer, Zero
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def domain():
-    return Mesh(VectorElement("Lagrange", triangle, 1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
 
 
 @pytest.fixture

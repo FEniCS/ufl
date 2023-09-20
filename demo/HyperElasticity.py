@@ -11,7 +11,7 @@ from ufl.sobolevspace import H1
 
 # Cell and its properties
 cell = tetrahedron
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
 d = cell.geometric_dimension()
 N = FacetNormal(domain)
 x = SpatialCoordinate(domain)

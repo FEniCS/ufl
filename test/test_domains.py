@@ -16,11 +16,13 @@ all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
 def test_construct_domains_from_cells():
     for cell in all_cells:
+        d = cell.geometric_dimension()
         Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
 
 
 def test_construct_domains_with_names():
     for cell in all_cells:
+        d = cell.geometric_dimension()
         e = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1)
         D2 = Mesh(e, ufl_id=2)
         D3 = Mesh(e, ufl_id=3)
@@ -32,9 +34,11 @@ def test_construct_domains_with_names():
 def test_domains_sort_by_name():
     # This ordering is rather arbitrary, but at least this shows sorting is
     # working
-    domains1 = [Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1), ufl_id=hash(cell.cellname()))
+    domains1 = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
+                                   (cell.geometric_dimension(), ), "identity", H1), ufl_id=hash(cell.cellname()))
                 for cell in all_cells]
-    domains2 = [Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1), ufl_id=hash(cell.cellname()))
+    domains2 = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
+                                   (cell.geometric_dimension(), ), "identity", H1), ufl_id=hash(cell.cellname()))
                 for cell in sorted(all_cells)]
     sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
                                                D.topological_dimension(),

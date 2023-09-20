@@ -20,7 +20,7 @@
 from ufl import (FunctionSpace, Mesh, TestFunctions, TrialFunctions, as_vector, div, dot, dx, inner, skew, tetrahedron,
                  tr)
 from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.sobolevspace import L2, HDiv
+from ufl.sobolevspace import L2, HDiv, H1
 
 
 def skw(tau):
@@ -40,7 +40,7 @@ Q = FiniteElement("Discontinuous Lagrange", cell, r - 1, (3, ), (3, ), "identity
 
 W = MixedElement([S, V, Q])
 
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
 space = FunctionSpace(domain, W)
 
 (sigma, u, gamma) = TrialFunctions(space)

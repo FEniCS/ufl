@@ -8,8 +8,8 @@ from ufl.sobolevspace import H1
 
 def test_split(self):
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
     d = cell.geometric_dimension()
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
     f = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     v = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1,
                       sub_elements=[f for _ in range(d)])

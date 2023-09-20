@@ -1,6 +1,8 @@
 from ufl import (Identity, Mesh, SpatialCoordinate, as_matrix, as_ufl, as_vector, elem_div, elem_mult, elem_op, sin,
                  tetrahedron, triangle)
 from ufl.classes import ComplexValue, Division, FloatValue, IntValue
+from ufl.finiteelement import FiniteElement
+from ufl.sobolevspace import H1
 
 
 def test_scalar_casting(self):
@@ -16,13 +18,13 @@ def test_scalar_casting(self):
 
 
 def test_ufl_float_division(self):
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
     d = SpatialCoordinate(domain)[0] / 10.0  # TODO: Use mock instead of x
     self.assertIsInstance(d, Division)
 
 
 def test_float_ufl_division(self):
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
     d = 3.14 / SpatialCoordinate(domain)[0]  # TODO: Use mock instead of x
     self.assertIsInstance(d, Division)
 
@@ -65,7 +67,7 @@ def test_elem_mult(self):
 
 
 def test_elem_mult_on_matrices(self):
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
 
     A = as_matrix(((1, 2), (3, 4)))
     B = as_matrix(((4, 5), (6, 7)))
@@ -83,7 +85,7 @@ def test_elem_mult_on_matrices(self):
 
 
 def test_elem_div(self):
-    domain = Mesh(VectorElement("Lagrange", tetrahedron, 1))
+    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1))
     x, y, z = SpatialCoordinate(domain)
     A = as_matrix(((x, y, z), (3, 4, 5)))
     B = as_matrix(((7, 8, 9), (z, x, y)))
@@ -91,7 +93,7 @@ def test_elem_div(self):
 
 
 def test_elem_op(self):
-    domain = Mesh(VectorElement("Lagrange", tetrahedron, 1))
+    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1))
     x, y, z = SpatialCoordinate(domain)
     A = as_matrix(((x, y, z), (3, 4, 5)))
     self.assertEqual(elem_op(sin, A), as_matrix(((sin(x), sin(y), sin(z)),

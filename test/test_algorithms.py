@@ -24,7 +24,7 @@ def element():
 
 @pytest.fixture(scope='module')
 def domain():
-    return Mesh(VectorElement("CG", triangle, 1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
 
 
 @pytest.fixture(scope='module')

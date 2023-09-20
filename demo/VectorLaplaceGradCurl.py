@@ -19,7 +19,7 @@
 # problem using 0- and 1-forms. Intended to demonstrate use of Nedelec
 # elements.
 from ufl import Coefficient, FunctionSpace, Mesh, TestFunctions, TrialFunctions, curl, dx, grad, inner, tetrahedron
-from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1, HCurl
 
 
@@ -42,7 +42,7 @@ CURL = FiniteElement("N1curl", cell, order, (3, ), (3, ), "covariant Piola", HCu
 
 VectorLagrange = FiniteElement("Lagrange", cell, order + 1, (3, ), (3, ), "identity", H1)
 
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
 space = FunctionSpace(domain, GRAD * CURL)
 fspace = FunctionSpace(domain, VectorLagrange)
 

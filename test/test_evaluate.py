@@ -42,7 +42,7 @@ def testIdentity():
 
 def testCoords():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     x = SpatialCoordinate(domain)
     s = x[0] + x[1]
     e = s((5, 7))
@@ -53,7 +53,7 @@ def testCoords():
 def testFunction1():
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     s = 3 * f
@@ -65,7 +65,7 @@ def testFunction1():
 def testFunction2():
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
 
@@ -80,7 +80,7 @@ def testFunction2():
 def testArgument2():
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
     f = Argument(space, 2)
 
@@ -94,7 +94,7 @@ def testArgument2():
 
 def testAlgebra():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     x = SpatialCoordinate(domain)
     s = 3 * (x[0] + x[1]) - 7 + x[0] ** (x[1] / 2)
     e = s((5, 7))
@@ -104,7 +104,7 @@ def testAlgebra():
 
 def testIndexSum():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     x = SpatialCoordinate(domain)
     i, = indices(1)
     s = x[i] * x[i]
@@ -115,7 +115,7 @@ def testIndexSum():
 
 def testIndexSum2():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     x = SpatialCoordinate(domain)
     ident = Identity(cell.geometric_dimension())
     i, j = indices(2)

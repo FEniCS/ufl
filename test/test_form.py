@@ -17,7 +17,7 @@ def element():
 @pytest.fixture
 def domain():
     cell = triangle
-    return Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    return Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
 
 
 @pytest.fixture
@@ -103,7 +103,7 @@ def test_form_coefficients(element, domain):
 def test_form_domains():
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     V = FunctionSpace(domain, element)
 
     v = TestFunction(V)

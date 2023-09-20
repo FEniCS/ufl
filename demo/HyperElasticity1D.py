@@ -8,7 +8,7 @@ from ufl.sobolevspace import H1
 
 cell = interval
 element = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (1, ), (1, ), "identity", H1))
 space = FunctionSpace(domain, element)
 
 u = Coefficient(space)

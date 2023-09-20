@@ -114,7 +114,7 @@ def testAll(self):
 
     e13D = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (dim, ), (dim, ), "identity", H1))
     domain3D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1))
     e0_space = FunctionSpace(domain, e0)
     e1_space = FunctionSpace(domain, e1)

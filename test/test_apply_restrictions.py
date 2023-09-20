@@ -13,7 +13,7 @@ def test_apply_restrictions():
     V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V2 = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
     v2_space = FunctionSpace(domain, V2)

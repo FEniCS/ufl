@@ -11,7 +11,7 @@ cell = triangle
 X = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
 Y = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 M = MixedElement([X, Y])
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
 space = FunctionSpace(domain, M)
 
 u = Coefficient(space)

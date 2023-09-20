@@ -19,6 +19,7 @@
 # Last changed: 2012-08-16
 from ufl import (FunctionSpace, Mesh, TensorProductElement, TestFunction, TrialFunction, dx, interval, tetrahedron,
                  triangle)
+from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1, L2
 
 V0 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)

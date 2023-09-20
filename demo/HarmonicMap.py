@@ -10,7 +10,7 @@ from ufl.sobolevspace import H1
 cell = triangle
 X = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
 Y = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
 X_space = FunctionSpace(domain, X)
 Y_space = FunctionSpace(domain, Y)
 

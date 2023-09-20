@@ -538,7 +538,7 @@ def testVectorLaplaceGradCurl():
     CURL = FiniteElement("N1curl", shape, order, (3, ), (3, ), "covariant Piola", HCurl)
 
     VectorLagrange = FiniteElement("Lagrange", shape, order + 1, (3, ), (3, ), "identity", H1)
-    domain = Mesh(VectorElement("Lagrange", shape, 1))
+    domain = Mesh(FiniteElement("Lagrange", shape, 1, (3, ), (3, ), "identity", H1))
 
     [a, L] = HodgeLaplaceGradCurl(FunctionSpace(domain, GRAD * CURL), FunctionSpace(domain, VectorLagrange))
 

@@ -48,7 +48,7 @@ def test_imag(self):
 def test_compute_form_adjoint(self):
     cell = triangle
     element = FiniteElement('Lagrange', cell, 1, (), (), "identity", H1)
-    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
 
     u = TrialFunction(space)
@@ -77,7 +77,7 @@ def test_complex_algebra(self):
 def test_automatic_simplification(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -91,7 +91,7 @@ def test_automatic_simplification(self):
 def test_apply_algebra_lowering_complex(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -120,7 +120,7 @@ def test_apply_algebra_lowering_complex(self):
 def test_remove_complex_nodes(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
 
     u = TrialFunction(space)
@@ -143,7 +143,7 @@ def test_remove_complex_nodes(self):
 def test_comparison_checker(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
 
     u = TrialFunction(space)
@@ -171,7 +171,7 @@ def test_comparison_checker(self):
 def test_complex_degree_handling(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 3, (), (), "identity", H1)
-    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)

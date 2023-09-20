@@ -12,7 +12,6 @@ from ufl.algorithms.analysis import (extract_arguments, extract_arguments_and_co
                                      extract_coefficients)
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.core.interpolate import Interpolate
-from ufl.domain import default_domain
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
