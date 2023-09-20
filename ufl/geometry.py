@@ -8,7 +8,7 @@
 
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-from ufl.domain import extract_unique_domain
+from ufl.domain import as_domain, extract_unique_domain
 
 """
 Possible coordinate bootstrapping:
@@ -82,7 +82,7 @@ class GeometricQuantity(Terminal):
     def __init__(self, domain):
         """Initialise."""
         Terminal.__init__(self)
-        self._domain = domain
+        self._domain = as_domain(domain)
 
     def ufl_domains(self):
         """Get the UFL domains."""

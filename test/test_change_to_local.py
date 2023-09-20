@@ -10,7 +10,7 @@ from ufl.sobolevspace import H1
 
 def test_change_to_reference_grad():
     cell = triangle
-    domain = Mesh(cell)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     U = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (), (), "identity", H1))
     V = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
     u = Coefficient(U)

@@ -540,7 +540,8 @@ def testVectorLaplaceGradCurl():
     VectorLagrange = FiniteElement("Lagrange", shape, order + 1, (3, ), (3, ), "identity", H1)
     domain = Mesh(FiniteElement("Lagrange", shape, 1, (3, ), (3, ), "identity", H1))
 
-    [a, L] = HodgeLaplaceGradCurl(FunctionSpace(domain, GRAD * CURL), FunctionSpace(domain, VectorLagrange))
+    [a, L] = HodgeLaplaceGradCurl(FunctionSpace(domain, MixedElement([GRAD, CURL])),
+                                  FunctionSpace(domain, VectorLagrange))
 
     a_pickle = pickle.dumps(a, p)
     a_restore = pickle.loads(a_pickle)

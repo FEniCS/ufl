@@ -47,10 +47,10 @@ def coefficients(space):
 
 
 @pytest.fixture
-def forms(arguments, coefficients, space):
+def forms(arguments, coefficients, domain):
     v, u = arguments
     c, f = coefficients
-    n = FacetNormal(space)
+    n = FacetNormal(domain)
     a = u * v * dx
     L = f * v * dx
     b = u * v * dx(0) + inner(c * grad(u), grad(v)) * dx(1) + dot(n, grad(u)) * v * ds + f * v * dx
@@ -66,7 +66,7 @@ def test_extract_coefficients_vs_fixture(coefficients, forms):
     assert coefficients == tuple(extract_coefficients(forms[2]))
 
 
-def test_extract_elements_and_extract_unique_elements(forms, domain):
+def test_extract_elements_and_extract_unique_elements(forms, element, domain):
     b = forms[2]
     integrals = b.integrals_by_type("cell")
     integrals[0].integrand()
@@ -85,9 +85,7 @@ def test_extract_elements_and_extract_unique_elements(forms, domain):
     assert extract_unique_elements(a) == (element1,)
 
 
-def test_pre_and_post_traversal():
-    element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    space = FunctionSpace(domain, element)
+def test_pre_and_post_traversal(space):
     v = TestFunction(space)
     f = Coefficient(space)
     g = Coefficient(space)
@@ -104,7 +102,7 @@ def test_pre_and_post_traversal():
     assert list(unique_post_traversal(s)) == [v, f, p1, g, p2, s]
 
 
-def test_expand_indices():
+def test_expand_indices(domain):
     element = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
     space = FunctionSpace(domain, element)
     v = TestFunction(space)

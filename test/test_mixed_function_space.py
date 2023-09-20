@@ -35,9 +35,9 @@ def test_mixed_functionspace(self):
     (v_3d, v_2d, v_1d) = TestFunctions(V)
 
     # Measures
-    dx3 = Measure("dx", domain=V_3d)
-    dx2 = Measure("dx", domain=V_2d)
-    dx1 = Measure("dx", domain=V_1d)
+    dx3 = Measure("dx", domain=domain_3d)
+    dx2 = Measure("dx", domain=domain_2d)
+    dx1 = Measure("dx", domain=domain_1d)
 
     # Mixed variational form
     # LHS

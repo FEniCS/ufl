@@ -19,7 +19,7 @@ def velement():
 
 @pytest.fixture
 def domain():
-    return Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
 
 
 @pytest.fixture

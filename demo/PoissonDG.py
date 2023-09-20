@@ -28,7 +28,6 @@ from ufl.sobolevspace import H1, L2
 
 cell = triangle
 element = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), "identity", L2)
-element = FiniteElement("Discontinuous Lagrange", cell, 1)
 domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
 space = FunctionSpace(domain, element)
 

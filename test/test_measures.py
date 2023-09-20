@@ -59,7 +59,7 @@ def test_construct_forms_from_default_measures():
 
     # Check that we can create a basic form with default measure
     one = as_ufl(1)
-    one * dx(Mesh(triangle))
+    one * dx(Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)))
 
 
 def test_foo():
@@ -69,7 +69,7 @@ def test_foo():
     tdim = 2
     cell = Cell("triangle", gdim)
     mymesh = MockMesh(9)
-    mydomain = Mesh(cell, ufl_id=9, cargo=mymesh)
+    mydomain = Mesh(FiniteElement("Lagrange", cell, 1, (gdim, ), (gdim, ), "identity", H1), ufl_id=9, cargo=mymesh)
 
     assert cell.topological_dimension() == tdim
     assert cell.geometric_dimension() == gdim

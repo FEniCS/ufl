@@ -192,8 +192,6 @@ def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_orde
                 domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1), ufl_id=i)
                 for k in counts:
                     V = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
-                    f = Coefficient(V, count=k)
-                    g = Coefficient(V, count=k+2)
                     space = FunctionSpace(domain, V)
                     f = Coefficient(space, count=k)
                     g = Coefficient(space, count=k+2)
@@ -282,7 +280,9 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     hashes = set()
     ufl_ids = [1, 2]
     cells = [triangle, quadrilateral]
-    domains = [Mesh(cell, ufl_id=ufl_id) for cell in cells for ufl_id in ufl_ids]
+    domains = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
+                                  (cell.geometric_dimension(), ), "identity", H1),
+                    ufl_id=ufl_id) for cell in cells for ufl_id in ufl_ids]
     nreps = 2
     num_exprs = 2
 

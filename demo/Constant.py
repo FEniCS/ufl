@@ -24,7 +24,7 @@ from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
 cell = triangle
-element = FiniteElement("Lagrange", cell, 1)
+element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
 space = FunctionSpace(domain, element)
 
@@ -32,8 +32,8 @@ v = TestFunction(space)
 u = TrialFunction(space)
 f = Coefficient(space)
 
-c = Constant(space)
-d = VectorConstant(space)
+c = Constant(domain)
+d = VectorConstant(domain)
 
 a = c * dot(grad(v), grad(u)) * dx
 L = inner(d, grad(v)) * dx

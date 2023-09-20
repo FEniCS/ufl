@@ -21,7 +21,8 @@ def get_domains():
         tetrahedron,
         hexahedron,
     ]
-    return [Mesh(cell) for cell in all_cells]
+    return [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
+                               (cell.geometric_dimension(), ), "identity", H1)) for cell in all_cells]
 
 
 def get_nonlinear():
@@ -67,7 +68,8 @@ def affine_domains(request):
         triangle,
         tetrahedron,
     ]
-    affine_domains = [Mesh(cell) for cell in affine_cells]
+    affine_domains = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
+                                         (cell.geometric_dimension(), ), "identity", H1)) for cell in affine_cells]
 
     affine_domains_with_linear_coordinates = []
     for D in affine_domains:
@@ -89,7 +91,9 @@ def affine_facet_domains(request):
         quadrilateral,
         tetrahedron,
     ]
-    affine_facet_domains = [Mesh(cell) for cell in affine_facet_cells]
+    affine_facet_domains = [Mesh(FiniteElement(
+        "Lagrange", cell, 1, (cell.geometric_dimension(), ),
+        (cell.geometric_dimension(), ), "identity", H1)) for cell in affine_facet_cells]
     affine_facet_domains_with_linear_coordinates = []
     for D in affine_facet_domains:
         V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
@@ -109,7 +113,9 @@ def nonaffine_domains(request):
         quadrilateral,
         hexahedron,
     ]
-    nonaffine_domains = [Mesh(cell) for cell in nonaffine_cells]
+    nonaffine_domains = [Mesh(FiniteElement(
+        "Lagrange", cell, 1, (cell.geometric_dimension(), ),
+        (cell.geometric_dimension(), ), "identity", H1)) for cell in nonaffine_cells]
     nonaffine_domains_with_linear_coordinates = []
     for D in nonaffine_domains:
         V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
@@ -128,7 +134,9 @@ def nonaffine_facet_domains(request):
     nonaffine_facet_cells = [
         hexahedron,
     ]
-    nonaffine_facet_domains = [Mesh(cell) for cell in nonaffine_facet_cells]
+    nonaffine_facet_domains = [Mesh(FiniteElement(
+        "Lagrange", cell, 1, (cell.geometric_dimension(), ),
+        (cell.geometric_dimension(), ), "identity", H1)) for cell in nonaffine_facet_cells]
     nonaffine_facet_domains_with_linear_coordinates = []
     for D in nonaffine_facet_domains:
         V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
@@ -167,7 +175,7 @@ def test_coordinates_never_cellwise_constant(domains):
 
 def test_coordinates_never_cellwise_constant_vertex():
     # The only exception here:
-    domains = Mesh(Cell("vertex", 3))
+    domains = Mesh(FiniteElement("Lagrange", Cell("vertex", 3), 1, (3, ), (3, ), "identity", H1))
     assert domains.ufl_cell().cellname() == "vertex"
     e = SpatialCoordinate(domains)
     assert is_cellwise_constant(e)
@@ -225,7 +233,7 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
     assert is_cellwise_constant(e)
 
     V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 0, (), (), "identity", L2)
-    d = domains_not_linear.ufl_cell().geometry_dimension()
+    d = domains_not_linear.ufl_cell().geometric_dimension()
     domain = Mesh(FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d, ), (d, ), "identity", H1))
     space = FunctionSpace(domain, V)
     e = Coefficient(space)
@@ -246,7 +254,7 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
 
 def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
     V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 1, (), (), "identity", L2)
-    d = domains_not_linear.ufl_cell().geometry_dimension()
+    d = domains_not_linear.ufl_cell().geometric_dimension()
     domain = Mesh(FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d, ), (d, ), "identity", H1))
     space = FunctionSpace(domain, V)
     e = Coefficient(space)

@@ -179,6 +179,18 @@ class MeshView(AbstractDomain):
                 "MeshView", typespecific)
 
 
+def as_domain(domain):
+    """Convert any valid object to an AbstractDomain type."""
+    if isinstance(domain, AbstractDomain):
+        # Modern UFL files and dolfin behaviour
+        return domain
+
+    try:
+        return extract_unique_domain(domain)
+    except AttributeError:
+        return domain.ufl_domain()
+
+
 def sort_domains(domains):
     """Sort domains in a canonical ordering."""
     return tuple(sorted(domains, key=lambda domain: domain._ufl_sort_key_()))

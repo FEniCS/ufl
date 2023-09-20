@@ -13,11 +13,6 @@ def test_total_degree_estimation():
     V2 = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
     VV = FiniteElement("Lagrange", triangle, 3, (2, ), (2, ), "identity", H1)
     VM = MixedElement([V1, V2])
-    v1 = Argument(V1, 2)
-    v2 = Argument(V2, 3)
-    f1, f2 = Coefficients(VM)
-    vv = Argument(VV, 4)
-    vu = Argument(VV, 5)
 
     domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
 
