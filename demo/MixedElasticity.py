@@ -20,7 +20,7 @@
 from ufl import (FunctionSpace, Mesh, TestFunctions, TrialFunctions, as_vector, div, dot, dx, inner, skew, tetrahedron,
                  tr)
 from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.sobolevspace import L2, HDiv, H1
+from ufl.sobolevspace import H1, L2, HDiv
 
 
 def skw(tau):
