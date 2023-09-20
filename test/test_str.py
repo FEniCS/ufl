@@ -1,5 +1,6 @@
-from ufl import (CellDiameter, CellVolume, Circumradius, FacetArea, FacetNormal, Index, SpatialCoordinate, TestFunction,
-                 TrialFunction, as_matrix, as_ufl, as_vector, quadrilateral, tetrahedron, triangle)
+from ufl import (CellDiameter, CellVolume, Circumradius, FacetArea, FacetNormal, FiniteElement, FunctionSpace, Index,
+                 Mesh, SpatialCoordinate, TestFunction, TrialFunction, as_matrix, as_ufl, as_vector, quadrilateral,
+                 tetrahedron, triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
@@ -13,7 +14,8 @@ def test_str_float_value(self):
 
 
 def test_str_zero(self):
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    x = SpatialCoordinate(domain)
     assert str(as_ufl(0)) == "0"
     assert str(0*x) == "0 (shape (2,))"
     assert str(0*x*x[Index(42)]) == "0 (shape (2,), index labels (42,))"
@@ -25,38 +27,41 @@ def test_str_index(self):
 
 
 def test_str_coordinate(self):
-    assert str(SpatialCoordinate(triangle)) == "x"
-    assert str(SpatialCoordinate(triangle)[0]) == "x[0]"
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    assert str(SpatialCoordinate(domain)) == "x"
+    assert str(SpatialCoordinate(domain)[0]) == "x[0]"
 
 
 def test_str_normal(self):
-    assert str(FacetNormal(triangle)) == "n"
-    assert str(FacetNormal(triangle)[0]) == "n[0]"
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    assert str(FacetNormal(domain)) == "n"
+    assert str(FacetNormal(domain)[0]) == "n[0]"
 
 
 def test_str_circumradius(self):
-    assert str(Circumradius(triangle)) == "circumradius"
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    assert str(Circumradius(domain)) == "circumradius"
 
 
 def test_str_diameter(self):
-    assert str(CellDiameter(triangle)) == "diameter"
-
-
-# def test_str_cellsurfacearea(self):
-#     assert str(CellSurfaceArea(triangle)) == "surfacearea"
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    assert str(CellDiameter(domain)) == "diameter"
 
 
 def test_str_facetarea(self):
-    assert str(FacetArea(triangle)) == "facetarea"
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    assert str(FacetArea(domain)) == "facetarea"
 
 
 def test_str_volume(self):
-    assert str(CellVolume(triangle)) == "volume"
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    assert str(CellVolume(domain)) == "volume"
 
 
 def test_str_scalar_argument(self):
-    v = TestFunction(FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1))
-    u = TrialFunction(FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    v = TestFunction(FunctionSpace(domain, FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)))
+    u = TrialFunction(FunctionSpace(domain, FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)))
     assert str(v) == "v_0"
     assert str(u) == "v_1"
 
@@ -69,19 +74,22 @@ def test_str_scalar_argument(self):
 
 
 def test_str_list_vector():
-    x, y, z = SpatialCoordinate(tetrahedron)
+    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1))
+    x, y, z = SpatialCoordinate(domain)
     v = as_vector((x, y, z))
     assert str(v) == ("[%s, %s, %s]" % (x, y, z))
 
 
 def test_str_list_vector_with_zero():
-    x, y, z = SpatialCoordinate(tetrahedron)
+    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1))
+    x, y, z = SpatialCoordinate(domain)
     v = as_vector((x, 0, 0))
     assert str(v) == ("[%s, 0, 0]" % (x,))
 
 
 def test_str_list_matrix():
-    x, y = SpatialCoordinate(triangle)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    x, y = SpatialCoordinate(domain)
     v = as_matrix(((2*x, 3*y),
                    (4*x, 5*y)))
     a = str(2*x)
@@ -92,7 +100,8 @@ def test_str_list_matrix():
 
 
 def test_str_list_matrix_with_zero():
-    x, y = SpatialCoordinate(triangle)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    x, y = SpatialCoordinate(domain)
     v = as_matrix(((2*x, 3*y),
                    (0, 0)))
     a = str(2*x)

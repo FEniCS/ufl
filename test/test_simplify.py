@@ -1,7 +1,8 @@
 import math
 
-from ufl import (Coefficient, TestFunction, TrialFunction, VectorConstant, acos, as_tensor, as_ufl, asin, atan, cos,
-                 cosh, dx, exp, i, j, ln, max_value, min_value, outer, sin, sinh, tan, tanh, triangle)
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorConstant, acos,
+                 as_tensor, as_ufl, asin, atan, cos, cosh, dx, exp, i, j, ln, max_value, min_value, outer, sin, sinh,
+                 tan, tanh, triangle)
 from ufl.algorithms import compute_form_data
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
@@ -10,8 +11,10 @@ from ufl.sobolevspace import H1
 def xtest_zero_times_argument(self):
     # FIXME: Allow zero forms
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
     L = 0*v*dx
     a = 0*(u*v)*dx
     b = (0*u)*v*dx
@@ -22,7 +25,9 @@ def xtest_zero_times_argument(self):
 
 def test_divisions(self):
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    f = Coefficient(space)
 
     # Test simplification of division by 1
     a = f
@@ -47,8 +52,10 @@ def test_divisions(self):
 
 def test_products(self):
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    f = Coefficient(element)
-    g = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    f = Coefficient(space)
+    g = Coefficient(space)
 
     # Test simplification of literal multiplication
     assert f*0 == as_ufl(0)
@@ -67,8 +74,10 @@ def test_products(self):
 
 def test_sums(self):
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    f = Coefficient(element)
-    g = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    f = Coefficient(space)
+    g = Coefficient(space)
 
     # Test reordering of operands
     assert f + g == g + f
@@ -115,8 +124,9 @@ def test_mathfunctions(self):
 
 
 def test_indexing(self):
-    u = VectorConstant(triangle)
-    v = VectorConstant(triangle)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    u = VectorConstant(domain)
+    v = VectorConstant(domain)
 
     A = outer(u, v)
     A2 = as_tensor(A[i, j], (i, j))

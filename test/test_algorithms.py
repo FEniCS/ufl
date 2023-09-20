@@ -6,8 +6,8 @@ __date__ = "2008-03-12 -- 2009-01-28"
 
 import pytest
 
-from ufl import (Argument, Coefficient, FacetNormal, TestFunction, TrialFunction, adjoint, div, dot, ds, dx, grad,
-                 inner, triangle)
+from ufl import (Argument, Coefficient, FacetNormal, FunctionSpace, Mesh, TestFunction, TrialFunction,
+                 adjoint, div, dot, ds, dx, grad, inner, triangle)
 from ufl.algorithms import (expand_derivatives, expand_indices, extract_arguments, extract_coefficients,
                             extract_elements, extract_unique_elements)
 from ufl.corealg.traversal import post_traversal, pre_traversal, unique_post_traversal, unique_pre_traversal
@@ -23,28 +23,37 @@ def element():
 
 
 @pytest.fixture(scope='module')
-def arguments(element):
-    v = TestFunction(element)
-    u = TrialFunction(element)
+def domain():
+    return Mesh(VectorElement("CG", triangle, 1))
+
+
+@pytest.fixture(scope='module')
+def space(element, domain):
+    return FunctionSpace(domain, element)
+
+
+@pytest.fixture(scope='module')
+def arguments(space):
+    v = TestFunction(space)
+    u = TrialFunction(space)
     return (v, u)
 
 
 @pytest.fixture(scope='module')
-def coefficients(element):
-    c = Coefficient(element)
-    f = Coefficient(element)
+def coefficients(space):
+    c = Coefficient(space)
+    f = Coefficient(space)
     return (c, f)
 
 
 @pytest.fixture
-def forms(arguments, coefficients):
+def forms(arguments, coefficients, space):
     v, u = arguments
     c, f = coefficients
-    n = FacetNormal(triangle)
+    n = FacetNormal(space)
     a = u * v * dx
     L = f * v * dx
-    b = u * v * dx(0) + inner(c * grad(u), grad(v)) * \
-        dx(1) + dot(n, grad(u)) * v * ds + f * v * dx
+    b = u * v * dx(0) + inner(c * grad(u), grad(v)) * dx(1) + dot(n, grad(u)) * v * ds + f * v * dx
     return (a, L, b)
 
 
@@ -57,7 +66,7 @@ def test_extract_coefficients_vs_fixture(coefficients, forms):
     assert coefficients == tuple(extract_coefficients(forms[2]))
 
 
-def test_extract_elements_and_extract_unique_elements(element, forms):
+def test_extract_elements_and_extract_unique_elements(forms, domain):
     b = forms[2]
     integrals = b.integrals_by_type("cell")
     integrals[0].integrand()
@@ -65,8 +74,11 @@ def test_extract_elements_and_extract_unique_elements(element, forms):
     element1 = element
     element2 = element
 
-    v = TestFunction(element1)
-    u = TrialFunction(element2)
+    space1 = FunctionSpace(domain, element1)
+    space2 = FunctionSpace(domain, element2)
+
+    v = TestFunction(space1)
+    u = TrialFunction(space2)
 
     a = u * v * dx
     assert extract_elements(a) == (element1, element2)
@@ -75,9 +87,10 @@ def test_extract_elements_and_extract_unique_elements(element, forms):
 
 def test_pre_and_post_traversal():
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    v = TestFunction(element)
-    f = Coefficient(element)
-    g = Coefficient(element)
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    f = Coefficient(space)
+    g = Coefficient(space)
     p1 = f * v
     p2 = g * v
     s = p1 + p2
@@ -93,8 +106,9 @@ def test_pre_and_post_traversal():
 
 def test_expand_indices():
     element = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     def evaluate(form):
         return form.cell_integral()[0].integrand()((), {v: 3, u: 5})  # TODO: How to define values of derivatives?
@@ -109,18 +123,21 @@ def test_expand_indices():
     # TODO: Test something more
 
 
-def test_adjoint():
+def test_adjoint(domain):
     cell = triangle
 
     V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
     V2 = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
 
-    u = TrialFunction(V1)
-    v = TestFunction(V2)
+    s1 = FunctionSpace(domain, V1)
+    s2 = FunctionSpace(domain, V2)
+
+    u = TrialFunction(s1)
+    v = TestFunction(s2)
     assert u.number() > v.number()
 
-    u2 = Argument(V1, 2)
-    v2 = Argument(V2, 3)
+    u2 = Argument(s1, 2)
+    v2 = Argument(s2, 3)
     assert u2.number() < v2.number()
 
     a = u * v * dx

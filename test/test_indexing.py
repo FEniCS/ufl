@@ -1,24 +1,29 @@
 import pytest
 
-from ufl import Index, SpatialCoordinate, outer, triangle
+from ufl import Index, Mesh, SpatialCoordinate, VectorElement, outer, triangle
 from ufl.classes import FixedIndex, Indexed, MultiIndex, Outer, Zero
 
 
 @pytest.fixture
-def x1():
-    x = SpatialCoordinate(triangle)
+def domain():
+    return Mesh(VectorElement("Lagrange", triangle, 1))
+
+
+@pytest.fixture
+def x1(domain):
+    x = SpatialCoordinate(domain)
     return x
 
 
 @pytest.fixture
-def x2():
-    x = SpatialCoordinate(triangle)
+def x2(domain):
+    x = SpatialCoordinate(domain)
     return outer(x, x)
 
 
 @pytest.fixture
-def x3():
-    x = SpatialCoordinate(triangle)
+def x3(domain):
+    x = SpatialCoordinate(domain)
     return outer(outer(x, x), x)
 
 

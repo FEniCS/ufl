@@ -1,5 +1,6 @@
-from ufl import (CellVolume, Coefficient, Constant, FacetNormal, Identity, SpatialCoordinate, TestFunction,
-                 VectorConstant, as_ufl, cos, derivative, diff, exp, grad, ln, sin, tan, triangle, variable, zero)
+from ufl import (CellVolume, Coefficient, Constant, FacetNormal, FiniteElement, FunctionSpace, Identity, Mesh,
+                 SpatialCoordinate, TestFunction, VectorConstant, as_ufl, cos, derivative, diff, exp, grad, ln, sin,
+                 tan, triangle, variable, zero)
 from ufl.algorithms.apply_derivatives import GenericDerivativeRuleset, GradRuleset, apply_derivatives
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.finiteelement import FiniteElement
@@ -19,6 +20,10 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", L2)
     V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    v0_space = FunctionSpace(domain, V0)
+    v1_space = FunctionSpace(domain, V1)
+
     # Literals
     z = zero((3, 2))
     one = as_ufl(1)
@@ -27,19 +32,19 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     literals = [z, one, two, ident]
 
     # Geometry
-    x = SpatialCoordinate(cell)
-    n = FacetNormal(cell)
-    volume = CellVolume(cell)
+    x = SpatialCoordinate(domain)
+    n = FacetNormal(domain)
+    volume = CellVolume(domain)
     geometry = [x, n, volume]
 
     # Arguments
-    v0 = TestFunction(V0)
-    v1 = TestFunction(V1)
+    v0 = TestFunction(v0_space)
+    v1 = TestFunction(v1_space)
     arguments = [v0, v1]
 
     # Coefficients
-    f0 = Coefficient(V0)
-    f1 = Coefficient(V1)
+    f0 = Coefficient(v0_space)
+    f1 = Coefficient(v1_space)
     coefficients = [f0, f1]
 
     # Expressions
@@ -83,10 +88,13 @@ def test_literal_derivatives_are_zero():
 
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", L2)
     V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    u0 = Coefficient(V0)
-    u1 = Coefficient(V1)
-    v0 = TestFunction(V0)
-    v1 = TestFunction(V1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    v0_space = FunctionSpace(domain, V0)
+    v1_space = FunctionSpace(domain, V1)
+    u0 = Coefficient(v0_space)
+    u1 = Coefficient(v1_space)
+    v0 = TestFunction(v0_space)
+    v1 = TestFunction(v1_space)
     args = [(u0, v0), (u1, v1)]
 
     # Test literals via apply_derivatives and variable ruleset:
@@ -110,30 +118,38 @@ def test_grad_ruleset():
     W1 = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1)
     W2 = FiniteElement("Lagrange", cell, 2, (d, ), (d, ), "identity", H1)
 
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    v0_space = FunctionSpace(domain, V0)
+    v1_space = FunctionSpace(domain, V1)
+    v2_space = FunctionSpace(domain, V2)
+    w0_space = FunctionSpace(domain, W0)
+    w1_space = FunctionSpace(domain, W1)
+    w2_space = FunctionSpace(domain, W2)
+
     # Literals
     one = as_ufl(1)
     two = as_ufl(2.0)
     ident = Identity(d)
 
     # Geometry
-    x = SpatialCoordinate(cell)
-    n = FacetNormal(cell)
-    volume = CellVolume(cell)
+    x = SpatialCoordinate(domain)
+    n = FacetNormal(domain)
+    volume = CellVolume(domain)
 
     # Arguments
-    u0 = TestFunction(V0)
-    u1 = TestFunction(V1)
+    u0 = TestFunction(v0_space)
+    u1 = TestFunction(v1_space)
     arguments = [u0, u1]
 
     # Coefficients
-    r = Constant(cell)
-    vr = VectorConstant(cell)
-    f0 = Coefficient(V0)
-    f1 = Coefficient(V1)
-    f2 = Coefficient(V2)
-    vf0 = Coefficient(W0)
-    vf1 = Coefficient(W1)
-    vf2 = Coefficient(W2)
+    r = Constant(domain)
+    vr = VectorConstant(domain)
+    f0 = Coefficient(v0_space)
+    f1 = Coefficient(v1_space)
+    f2 = Coefficient(v2_space)
+    vf0 = Coefficient(w0_space)
+    vf1 = Coefficient(w1_space)
+    vf2 = Coefficient(w2_space)
 
     rules = GradRuleset(d)
 

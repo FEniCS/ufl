@@ -1,6 +1,6 @@
 """Test of expression comparison."""
 
-from ufl import Coefficient, Cofunction, triangle
+from ufl import Coefficient, Cofunction, FiniteElement, FunctionSpace, Mesh, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
@@ -9,12 +9,18 @@ def test_comparison_of_coefficients():
     V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     U = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
     Ub = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
-    v1 = Coefficient(V, count=1)
-    v1b = Coefficient(V, count=1)
-    v2 = Coefficient(V, count=2)
-    u1 = Coefficient(U, count=1)
-    u2 = Coefficient(U, count=2)
-    u2b = Coefficient(Ub, count=2)
+
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    v_space = FunctionSpace(domain, V)
+    u_space = FunctionSpace(domain, U)
+    ub_space = FunctionSpace(domain, Ub)
+
+    v1 = Coefficient(v_space, count=1)
+    v1b = Coefficient(v_space, count=1)
+    v2 = Coefficient(v_space, count=2)
+    u1 = Coefficient(u_space, count=1)
+    u2 = Coefficient(u_space, count=2)
+    u2b = Coefficient(ub_space, count=2)
 
     # Identical objects
     assert v1 == v1
@@ -35,12 +41,18 @@ def test_comparison_of_cofunctions():
     V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     U = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
     Ub = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
-    v1 = Cofunction(V, count=1)
-    v1b = Cofunction(V, count=1)
-    v2 = Cofunction(V, count=2)
-    u1 = Cofunction(U, count=1)
-    u2 = Cofunction(U, count=2)
-    u2b = Cofunction(Ub, count=2)
+
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    v_space = FunctionSpace(domain, V)
+    u_space = FunctionSpace(domain, U)
+    ub_space = FunctionSpace(domain, Ub)
+
+    v1 = Cofunction(v_space.dual(), count=1)
+    v1b = Cofunction(v_space.dual(), count=1)
+    v2 = Cofunction(v_space.dual(), count=2)
+    u1 = Cofunction(u_space.dual(), count=1)
+    u2 = Cofunction(u_space.dual(), count=2)
+    u2b = Cofunction(ub_space.dual(), count=2)
 
     # Identical objects
     assert v1 == v1
@@ -59,8 +71,10 @@ def test_comparison_of_cofunctions():
 
 def test_comparison_of_products():
     V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    v = Coefficient(V)
-    u = Coefficient(V)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    v_space = FunctionSpace(domain, V)
+    v = Coefficient(v_space)
+    u = Coefficient(v_space)
     a = (v * 2) * u
     b = (2 * v) * u
     c = 2 * (v * u)
@@ -71,8 +85,10 @@ def test_comparison_of_products():
 
 def test_comparison_of_sums():
     V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    v = Coefficient(V)
-    u = Coefficient(V)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    v_space = FunctionSpace(domain, V)
+    v = Coefficient(v_space)
+    u = Coefficient(v_space)
     a = (v + 2) + u
     b = (2 + v) + u
     c = 2 + (v + u)
@@ -83,9 +99,11 @@ def test_comparison_of_sums():
 
 def test_comparison_of_deeply_nested_expression():
     V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    v = Coefficient(V, count=1)
-    u = Coefficient(V, count=1)
-    w = Coefficient(V, count=2)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    v_space = FunctionSpace(domain, V)
+    v = Coefficient(v_space, count=1)
+    u = Coefficient(v_space, count=1)
+    w = Coefficient(v_space, count=2)
 
     def build_expr(a):
         for i in range(100):

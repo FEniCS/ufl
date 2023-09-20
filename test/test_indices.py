@@ -1,7 +1,7 @@
 import pytest
 
-from ufl import (Argument, Coefficient, TestFunction, TrialFunction, as_matrix, as_tensor, as_vector, cos, dx, exp, i,
-                 indices, j, k, l, outer, sin, triangle)
+from ufl import (Argument, Coefficient, FunctionSpace, Mesh, TensorElement, TestFunction, TrialFunction, VectorElement,
+                 as_matrix, as_tensor, as_vector, cos, dx, exp, i, indices, j, k, l, outer, sin, triangle)
 from ufl.classes import IndexSum
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
@@ -11,16 +11,20 @@ from ufl.sobolevspace import H1
 
 def test_vector_indices(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    u = Argument(element, 2)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    u = Argument(space, 2)
+    f = Coefficient(space)
     u[i]*f[i]*dx
     u[j]*f[j]*dx
 
 
 def test_tensor_indices(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)
-    u = Argument(element, 2)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    u = Argument(space, 2)
+    f = Coefficient(space)
     u[i, j]*f[i, j]*dx
     u[j, i]*f[i, j]*dx
     u[j, i]*f[j, i]*dx
@@ -30,8 +34,10 @@ def test_tensor_indices(self):
 
 def test_indexed_sum1(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    u = Argument(element, 2)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    u = Argument(space, 2)
+    f = Coefficient(space)
     a = u[i]+f[i]
     with pytest.raises(BaseException):
         a*dx
@@ -39,9 +45,11 @@ def test_indexed_sum1(self):
 
 def test_indexed_sum2(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    v = Argument(element, 2)
-    u = Argument(element, 3)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = Argument(space, 2)
+    u = Argument(space, 3)
+    f = Coefficient(space)
     a = u[j]+f[j]+v[j]+2*v[j]+exp(u[i]*u[i])/2*f[j]
     with pytest.raises(BaseException):
         a*dx
@@ -49,26 +57,32 @@ def test_indexed_sum2(self):
 
 def test_indexed_sum3(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    u = Argument(element, 2)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    u = Argument(space, 2)
+    f = Coefficient(space)
     with pytest.raises(BaseException):
         u[i]+f[j]
 
 
 def test_indexed_function1(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    v = Argument(element, 2)
-    u = Argument(element, 3)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = Argument(space, 2)
+    u = Argument(space, 3)
+    f = Coefficient(space)
     aarg = (u[i]+f[i])*v[i]
     exp(aarg)*dx
 
 
 def test_indexed_function2(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    v = Argument(element, 2)
-    u = Argument(element, 3)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = Argument(space, 2)
+    u = Argument(space, 3)
+    f = Coefficient(space)
     bfun = cos(f[0])
     left = u[i] + f[i]
     right = v[i] * bfun
@@ -81,17 +95,21 @@ def test_indexed_function2(self):
 
 def test_indexed_function3(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    Argument(element, 2)
-    u = Argument(element, 3)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    Argument(space, 2)
+    u = Argument(space, 3)
+    f = Coefficient(space)
     with pytest.raises(BaseException):
         sin(u[i] + f[i])*dx
 
 
 def test_vector_from_indices(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     # legal
     vv = as_vector(u[i], i)
@@ -106,8 +124,10 @@ def test_vector_from_indices(self):
 
 def test_matrix_from_indices(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     A = as_matrix(u[i]*v[j], (i, j))
     B = as_matrix(v[k]*v[k]*u[i]*v[j], (j, i))
@@ -122,8 +142,10 @@ def test_matrix_from_indices(self):
 
 def test_vector_from_list(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     # create vector from list
     vv = as_vector([u[0], v[0]])
@@ -134,8 +156,10 @@ def test_vector_from_list(self):
 
 def test_matrix_from_list(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     # create matrix from list
     A = as_matrix([[u[0], u[1]], [v[0], v[1]]])
@@ -153,10 +177,12 @@ def test_matrix_from_list(self):
 
 def test_tensor(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    f = Coefficient(element)
-    g = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    f = Coefficient(space)
+    g = Coefficient(space)
 
     # define the components of a fourth order tensor
     Cijkl = u[i]*v[j]*f[k]*g[l]
@@ -191,9 +217,12 @@ def test_tensor(self):
 
 def test_indexed(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    Coefficient(element)
+    element = VectorElement("CG", "triangle", 1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    Coefficient(space)
     i, j, k, l = indices(4)  # noqa: E741
 
     a = v[i]
@@ -210,8 +239,10 @@ def test_indexed(self):
 def test_spatial_derivative(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
     i, j, k, l = indices(4)  # noqa: E741
     d = cell.geometric_dimension()
 

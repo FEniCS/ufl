@@ -13,21 +13,23 @@ __license__ = "GNU GPL version 3 or any later version"
 # Examples copied from the FFC demo directory, examples contributed
 # by Johan Jansson, Kristian Oelgaard, Marie Rognes, and Garth Wells.
 
-from ufl import (Coefficient, Constant, Dx, FacetNormal, TestFunction, TestFunctions, TrialFunction, TrialFunctions,
-                 VectorConstant, avg, curl, div, dot, ds, dS, dx, grad, i, inner, j, jump, lhs, rhs, sqrt, tetrahedron,
-                 triangle)
+from ufl import (Coefficient, Constant, Dx, FacetNormal, FiniteElement, FunctionSpace, Mesh, TensorElement,
+                 TestFunction, TestFunctions, TrialFunction, TrialFunctions, VectorConstant, avg, curl, div, dot, ds,
+                 dS, dx, grad, i, inner, j, jump, lhs, rhs, sqrt, tetrahedron, triangle)
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1, L2, HCurl, HDiv
 
 
 def testConstant():
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
-    c = Constant("triangle")
-    d = VectorConstant("triangle")
+    c = Constant(domain)
+    d = VectorConstant(domain)
 
     a = c * dot(grad(v), grad(u)) * dx  # noqa: F841
 
@@ -37,9 +39,11 @@ def testConstant():
 
 def testElasticity():
     element = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "tetrahedron", 1, (3, ), (3, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     def eps(v):
         # FFC notation: return grad(v) + transp(grad(v))
@@ -51,19 +55,23 @@ def testElasticity():
 
 def testEnergyNorm():
     element = FiniteElement("Lagrange", tetrahedron, 1, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "tetrahedron", 1, (3, ), (3, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = Coefficient(element)
+    v = Coefficient(space)
     a = (v * v + dot(grad(v), grad(v))) * dx  # noqa: F841
 
 
 def testEquation():
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
     k = 0.1
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    u0 = Coefficient(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    u0 = Coefficient(space)
 
     F = v * (u - u0) * dx + k * dot(grad(v), grad(0.5 * (u0 + u))) * dx
 
@@ -73,11 +81,13 @@ def testEquation():
 
 def testFunctionOperators():
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    f = Coefficient(element)
-    g = Coefficient(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    f = Coefficient(space)
+    g = Coefficient(space)
 
     # FFC notation: a = sqrt(1/modulus(1/f))*sqrt(g)*dot(grad(v), grad(u))*dx
     # + v*u*sqrt(f*g)*g*dx
@@ -86,13 +96,15 @@ def testFunctionOperators():
 
 def testHeat():
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u1 = TrialFunction(element)
-    u0 = Coefficient(element)
-    c = Coefficient(element)
-    f = Coefficient(element)
-    k = Constant("triangle")
+    v = TestFunction(space)
+    u1 = TrialFunction(space)
+    u0 = Coefficient(space)
+    c = Coefficient(space)
+    f = Coefficient(space)
+    k = Constant(domain)
 
     a = v * u1 * dx + k * c * dot(grad(v), grad(u1)) * dx  # noqa: F841
     L = v * u0 * dx + k * v * f * dx  # noqa: F841
@@ -100,9 +112,11 @@ def testHeat():
 
 def testMass():
     element = FiniteElement("Lagrange", tetrahedron, 3, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "tetrahedron", 1, (3, ), (3, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     a = v * u * dx  # noqa: F841
 
@@ -119,11 +133,13 @@ def testMixedPoisson():
     DG = FiniteElement("Discontinuous Lagrange", triangle, q - 1, (), (), "identity", L2)
 
     mixed_element = MixedElement([BDM, DG])
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, mixed_element)
 
-    (tau, w) = TestFunctions(mixed_element)
-    (sigma, u) = TrialFunctions(mixed_element)
+    (tau, w) = TestFunctions(space)
+    (sigma, u) = TrialFunctions(space)
 
-    f = Coefficient(DG)
+    f = Coefficient(FunctionSpace(domain, DG))
 
     a = (dot(tau, sigma) - div(tau) * u + w * div(sigma)) * dx  # noqa: F841
     L = w * f * dx  # noqa: F841
@@ -131,11 +147,13 @@ def testMixedPoisson():
 
 def testNavierStokes():
     element = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "tetrahedron", 1, (3, ), (3, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
-    w = Coefficient(element)
+    w = Coefficient(space)
 
     # FFC notation: a = v[i]*w[j]*D(u[i], j)*dx
     a = v[i] * w[j] * Dx(u[i], j) * dx  # noqa: F841
@@ -143,11 +161,13 @@ def testNavierStokes():
 
 def testNeumannProblem():
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    f = Coefficient(element)
-    g = Coefficient(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    f = Coefficient(space)
+    g = Coefficient(space)
 
     # FFC notation: a = dot(grad(v), grad(u))*dx
     a = inner(grad(v), grad(u)) * dx  # noqa: F841
@@ -158,10 +178,12 @@ def testNeumannProblem():
 
 def testOptimization():
     element = FiniteElement("Lagrange", triangle, 3, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    f = Coefficient(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    f = Coefficient(space)
 
     a = dot(grad(v), grad(u)) * dx  # noqa: F841
     L = v * f * dx  # noqa: F841
@@ -177,17 +199,19 @@ def testP5tri():
 
 def testPoissonDG():
     element = FiniteElement("Discontinuous Lagrange", triangle, 1, (), (), "identity", L2)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    f = Coefficient(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    f = Coefficient(space)
 
-    n = FacetNormal(triangle)
+    n = FacetNormal(domain)
 
-    # FFC notation: h = MeshSize("triangle"), not supported by UFL
-    h = Constant(triangle)
+    # FFC notation: h = MeshSize(domain), not supported by UFL
+    h = Constant(domain)
 
-    gN = Coefficient(element)
+    gN = Coefficient(space)
 
     alpha = 4.0
     gamma = 8.0
@@ -214,10 +238,12 @@ def testPoissonDG():
 
 def testPoisson():
     element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    f = Coefficient(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    f = Coefficient(space)
 
     # Note: inner() also works
     a = dot(grad(v), grad(u)) * dx  # noqa: F841
@@ -226,10 +252,12 @@ def testPoisson():
 
 def testPoissonSystem():
     element = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    f = Coefficient(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    f = Coefficient(space)
 
     # FFC notation: a = dot(grad(v), grad(u))*dx
     a = inner(grad(v), grad(u)) * dx  # noqa: F841
@@ -244,9 +272,11 @@ def testProjection():
     # projection can be extended to handle also local projections.
 
     P1 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, P1)
 
-    v = TestFunction(P1)  # noqa: F841
-    f = Coefficient(P1)  # noqa: F841
+    v = TestFunction(space)  # noqa: F841
+    f = Coefficient(space)  # noqa: F841
 
     # pi0 = Projection(P0)
     # pi1 = Projection(P1)
@@ -265,12 +295,15 @@ def testQuadratureElement():
     QE = FiniteElement("Quadrature", triangle, 3, (), (), "identity", L2)
     sig = FiniteElement("Quadrature", triangle, 3, (2, ), (2, ), "identity", L2)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    u0 = Coefficient(element)
-    C = Coefficient(QE)
-    sig0 = Coefficient(sig)
-    f = Coefficient(element)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    space = FunctionSpace(domain, element)
+
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    u0 = Coefficient(space)
+    C = Coefficient(FunctionSpace(domain, QE))
+    sig0 = Coefficient(FunctionSpace(domain, sig))
+    f = Coefficient(space)
 
     a = v.dx(i) * C * u.dx(i) * dx + v.dx(i) * 2 * u0 * u * u0.dx(i) * dx  # noqa: F841
     L = v * f * dx - dot(grad(v), sig0) * dx  # noqa: F841
@@ -283,10 +316,14 @@ def testStokes():
     P1 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     TH = MixedElement([P2, P1])
 
-    (v, q) = TestFunctions(TH)
-    (u, p) = TrialFunctions(TH)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    th_space = FunctionSpace(domain, TH)
+    p2_space = FunctionSpace(domain, P2)
 
-    f = Coefficient(P2)
+    (v, q) = TestFunctions(th_space)
+    (u, p) = TrialFunctions(th_space)
+
+    f = Coefficient(p2_space)
 
     # FFC notation:
     # a = (dot(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
@@ -297,17 +334,21 @@ def testStokes():
 
 def testSubDomain():
     element = FiniteElement("Lagrange", tetrahedron, 1, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "tetrahedron", 1, (3, ), (3, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    f = Coefficient(element)
+    f = Coefficient(space)
 
     M = f * dx(2) + f * ds(5)  # noqa: F841
 
 
 def testSubDomains():
     element = FiniteElement("Lagrange", tetrahedron, 1, (), (), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", "tetrahedron", 1, (3, ), (3, ), "identity", H1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     a = v * u * dx(0) + 10.0 * v * u * dx(1) + v * u * ds(0) + 2.0 * v * u * ds(1)
     a += v('+') * u('+') * dS(0) + 4.3 * v('+') * u('+') * dS(1)
@@ -334,18 +375,22 @@ def testTensorWeightedPoisson():
     P1 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
     P0 = FiniteElement("Discontinuous Lagrange", triangle, 0, (2, 2), (2, 2), "identity", L2)
 
-    v = TestFunction(P1)
-    u = TrialFunction(P1)
-    C = Coefficient(P0)
+    domain = Mesh(FiniteElement("Lagrange", "triangle", 1, (2, ), (2, ), "identity", H1))
+    p1_space = FunctionSpace(domain, P1)
+    p0_space = FunctionSpace(domain, P0)
+
+    v = TestFunction(p1_space)
+    u = TrialFunction(p1_space)
+    C = Coefficient(p0_space)
 
     a = inner(grad(v), C * grad(u)) * dx  # noqa: F841
 
 
 def testVectorLaplaceGradCurl():
-    def HodgeLaplaceGradCurl(element, felement):
-        (tau, v) = TestFunctions(element)
-        (sigma, u) = TrialFunctions(element)
-        f = Coefficient(felement)
+    def HodgeLaplaceGradCurl(space, fspace):
+        (tau, v) = TestFunctions(space)
+        (sigma, u) = TrialFunctions(space)
+        f = Coefficient(fspace)
 
         # FFC notation: a = (dot(tau, sigma) - dot(grad(tau), u) + dot(v,
         # grad(sigma)) + dot(curl(v), curl(u)))*dx
@@ -366,5 +411,7 @@ def testVectorLaplaceGradCurl():
     CURL = FiniteElement("N1curl", shape, order, (3, ), (3, ), "covariant Piola", HCurl)
 
     VectorLagrange = FiniteElement("Lagrange", shape, order + 1, (3, ), (3, ), "identity", H1)
+    domain = Mesh(VectorElement("Lagrange", shape, 1))
 
-    [a, L] = HodgeLaplaceGradCurl(MixedElement([GRAD, CURL]), VectorLagrange)
+    [a, L] = HodgeLaplaceGradCurl(FunctionSpace(domain, MixedElement([GRAD, CURL])),
+                                  FunctionSpace(domain, VectorLagrange))

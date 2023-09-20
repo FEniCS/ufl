@@ -20,7 +20,8 @@
 #
 # The bilinear form a(v, u) and Linear form L(v) for the Stokes
 # equations using a mixed formulation (Taylor-Hood elements).
-from ufl import Coefficient, TestFunctions, TrialFunctions, div, dot, dx, grad, inner, triangle
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunctions, TrialFunctions, div, dot, dx, grad,
+                 inner, triangle)
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1
 
@@ -28,11 +29,14 @@ cell = triangle
 P2 = FiniteElement("Lagrange", cell, 2, (2, ), (2, ), "identity", H1)
 P1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
 TH = MixedElement([P2, P1])
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+space = FunctionSpace(domain, TH)
+p2_space = FunctionSpace(domain, P2)
 
-(v, q) = TestFunctions(TH)
-(u, p) = TrialFunctions(TH)
+(v, q) = TestFunctions(space)
+(u, p) = TrialFunctions(space)
 
-f = Coefficient(P2)
+f = Coefficient(p2_space)
 
 a = (inner(grad(v), grad(u)) - div(v) * p + q * div(u)) * dx
 L = dot(v, f) * dx

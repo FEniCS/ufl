@@ -17,7 +17,8 @@
 #
 # First added:  2008-10-03
 # Last changed: 2011-07-22
-from ufl import TestFunctions, TrialFunctions, as_vector, div, dot, dx, inner, skew, tetrahedron, tr
+from ufl import (FunctionSpace, Mesh, MixedElement, TestFunctions, TrialFunctions, as_vector, div, dot, dx, inner, skew,
+                 tetrahedron, tr)
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import L2, HDiv
 
@@ -39,8 +40,11 @@ Q = FiniteElement("Discontinuous Lagrange", cell, r - 1, (3, ), (3, ), "identity
 
 W = MixedElement([S, V, Q])
 
-(sigma, u, gamma) = TrialFunctions(W)
-(tau, v, eta) = TestFunctions(W)
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+space = FunctionSpace(domain, W)
+
+(sigma, u, gamma) = TrialFunctions(space)
+(tau, v, eta) = TestFunctions(space)
 
 a = (
     inner(sigma, tau) - tr(sigma) * tr(tau) + dot(

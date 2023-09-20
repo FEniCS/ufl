@@ -1,8 +1,9 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
-from ufl import (Argument, Coefficient, Coefficients, FacetNormal, SpatialCoordinate, cos, div, dot, grad, i, inner,
-                 nabla_div, nabla_grad, sin, tan, triangle)
+from ufl import (Argument, Coefficient, Coefficients, FacetNormal, FiniteElement, FunctionSpace, Mesh,
+                 SpatialCoordinate, TensorProductElement, cos, div, dot, grad, i, inner, nabla_div, nabla_grad, sin,
+                 tan, triangle)
 from ufl.algorithms import estimate_total_polynomial_degree
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1
@@ -19,7 +20,20 @@ def test_total_degree_estimation():
     vv = Argument(VV, 4)
     vu = Argument(VV, 5)
 
-    x, y = SpatialCoordinate(triangle)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+
+    v1_space = FunctionSpace(domain, V1)
+    v2_space = FunctionSpace(domain, V2)
+    vv_space = FunctionSpace(domain, VV)
+    vm_space = FunctionSpace(domain, VM)
+
+    v1 = Argument(v1_space, 2)
+    v2 = Argument(v2_space, 3)
+    f1, f2 = Coefficients(vm_space)
+    vv = Argument(vv_space, 4)
+    vu = Argument(vv_space, 5)
+
+    x, y = SpatialCoordinate(domain)
     assert estimate_total_polynomial_degree(x) == 1
     assert estimate_total_polynomial_degree(x * y) == 2
     assert estimate_total_polynomial_degree(x ** 3) == 3
@@ -67,7 +81,7 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(f2 ** 3 * v1 + f1 * v1) == 7
 
     # Math functions of constant values are constant values
-    nx, ny = FacetNormal(triangle)
+    nx, ny = FacetNormal(domain)
     e = nx ** 2
     for f in [sin, cos, tan, abs, lambda z:z**7]:
         assert estimate_total_polynomial_degree(f(e)) == 0
@@ -90,9 +104,10 @@ def test_some_compound_types():
 
     P2 = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
     V2 = FiniteElement("Lagrange", triangle, 2, (2, ), (2, ), "identity", H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
 
-    u = Coefficient(P2)
-    v = Coefficient(V2)
+    u = Coefficient(FunctionSpace(domain, P2))
+    v = Coefficient(FunctionSpace(domain, V2))
 
     assert etpd(u.dx(0)) == 2 - 1
     assert etpd(grad(u)) == 2 - 1

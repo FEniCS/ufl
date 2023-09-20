@@ -4,12 +4,13 @@ __date__ = "2008-09-06 -- 2009-02-10"
 import ufl
 from ufl import *  # noqa: F403, F401
 from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, MinFacetEdgeLength, Not,
-                 Or, PermutationSymbol, SpatialCoordinate, TensorConstant, VectorConstant, acos, action, as_matrix,
-                 as_tensor, as_ufl, as_vector, asin, atan, cell_avg, cofac, conditional, cos, cosh, cross, curl,
-                 derivative, det, dev, diff, div, dot, ds, dS, dx, eq, exp, facet_avg, ge, grad, gt, i, inner, inv, j,
-                 k, l, le, ln, lt, nabla_div, nabla_grad, ne, outer, rot, sin, sinh, skew, sqrt, sym, tan, tanh,
-                 tetrahedron, tr, transpose, triangle, variable)
+                 FunctionSpace, Identity, Jacobian, JacobianDeterminant, JacobianInverse,
+                 MaxFacetEdgeLength, Mesh, MinFacetEdgeLength, Not, Or, PermutationSymbol,
+                 SpatialCoordinate, TensorConstant, VectorConstant, acos, action, as_matrix, as_tensor,
+                 as_ufl, as_vector, asin, atan, cell_avg, cofac, conditional, cos, cosh, cross, curl, derivative, det,
+                 dev, diff, div, dot, ds, dS, dx, eq, exp, facet_avg, ge, grad, gt, i, inner, inv, j, k, l, le, ln, lt,
+                 nabla_div, nabla_grad, ne, outer, rot, sin, sinh, skew, sqrt, sym, tan, tanh, tetrahedron, tr,
+                 transpose, triangle, variable)
 from ufl.algorithms import *  # noqa: F403, F401
 from ufl.classes import *  # noqa: F403, F401
 from ufl.classes import (Acos, Asin, Atan, CellCoordinate, Cos, Cosh, Exp, Expr, FacetJacobian,
@@ -114,38 +115,46 @@ def testAll(self):
 
     e13D = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1)
 
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+    domain3D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1))
+    e0_space = FunctionSpace(domain, e0)
+    e1_space = FunctionSpace(domain, e1)
+    e2_space = FunctionSpace(domain, e2)
+    e3_space = FunctionSpace(domain, e3)
+    e13d_space = FunctionSpace(domain3D, e13D)
+
     # --- Terminals:
 
-    v13D = Argument(e13D, 3)
-    f13D = Coefficient(e13D)
+    v13D = Argument(e13d_space, 3)
+    f13D = Coefficient(e13d_space)
 
-    v0 = Argument(e0, 4)
-    v1 = Argument(e1, 5)
-    v2 = Argument(e2, 6)
-    v3 = Argument(e3, 7)
+    v0 = Argument(e0_space, 4)
+    v1 = Argument(e1_space, 5)
+    v2 = Argument(e2_space, 6)
+    v3 = Argument(e3_space, 7)
 
     _test_object(v0, (), ())
     _test_object(v1, (dim,), ())
     _test_object(v2, (dim, dim), ())
     _test_object(v3, (1 + dim + dim ** 2, ), ())
 
-    f0 = Coefficient(e0)
-    f1 = Coefficient(e1)
-    f2 = Coefficient(e2)
-    f3 = Coefficient(e3)
+    f0 = Coefficient(e0_space)
+    f1 = Coefficient(e1_space)
+    f2 = Coefficient(e2_space)
+    f3 = Coefficient(e3_space)
 
     _test_object(f0, (), ())
     _test_object(f1, (dim,), ())
     _test_object(f2, (dim, dim), ())
     _test_object(f3, (1 + dim + dim ** 2, ), ())
 
-    c = Constant(cell)
+    c = Constant(domain)
     _test_object(c, (), ())
 
-    c = VectorConstant(cell)
+    c = VectorConstant(domain)
     _test_object(c, (dim,), ())
 
-    c = TensorConstant(cell)
+    c = TensorConstant(domain)
     _test_object(c, (dim, dim), ())
 
     a = FloatValue(1.23)
@@ -166,51 +175,51 @@ def testAll(self):
     e = PermutationSymbol(3)
     _test_object(e, (3, 3, 3), ())
 
-    x = SpatialCoordinate(cell)
+    x = SpatialCoordinate(domain)
     _test_object(x, (dim,), ())
-    xi = CellCoordinate(cell)
+    xi = CellCoordinate(domain)
     _test_object(xi, (dim,), ())
 
-    # g = CellBarycenter(cell)
+    # g = CellBarycenter(domain)
     # _test_object(g, (dim,), ())
-    # g = FacetBarycenter(cell)
+    # g = FacetBarycenter(domain)
     # _test_object(g, (dim,), ())
 
-    g = Jacobian(cell)
+    g = Jacobian(domain)
     _test_object(g, (dim, dim), ())
-    g = JacobianDeterminant(cell)
+    g = JacobianDeterminant(domain)
     _test_object(g, (), ())
-    g = JacobianInverse(cell)
+    g = JacobianInverse(domain)
     _test_object(g, (dim, dim), ())
 
-    g = FacetJacobian(cell)
+    g = FacetJacobian(domain)
     _test_object(g, (dim, dim-1), ())
-    g = FacetJacobianDeterminant(cell)
+    g = FacetJacobianDeterminant(domain)
     _test_object(g, (), ())
-    g = FacetJacobianInverse(cell)
+    g = FacetJacobianInverse(domain)
     _test_object(g, (dim-1, dim), ())
 
-    g = FacetNormal(cell)
+    g = FacetNormal(domain)
     _test_object(g, (dim,), ())
-    # g = CellNormal(cell)
+    # g = CellNormal(domain)
     # _test_object(g, (dim,), ())
 
-    g = CellVolume(cell)
+    g = CellVolume(domain)
     _test_object(g, (), ())
-    g = CellDiameter(cell)
+    g = CellDiameter(domain)
     _test_object(g, (), ())
-    g = Circumradius(cell)
+    g = Circumradius(domain)
     _test_object(g, (), ())
-    # g = CellSurfaceArea(cell)
+    # g = CellSurfaceArea(domain)
     # _test_object(g, (), ())
 
-    g = FacetArea(cell)
+    g = FacetArea(domain)
     _test_object(g, (), ())
-    g = MinFacetEdgeLength(cell)
+    g = MinFacetEdgeLength(domain)
     _test_object(g, (), ())
-    g = MaxFacetEdgeLength(cell)
+    g = MaxFacetEdgeLength(domain)
     _test_object(g, (), ())
-    # g = FacetDiameter(cell)
+    # g = FacetDiameter(domain)
     # _test_object(g, (), ())
 
     a = variable(v0)

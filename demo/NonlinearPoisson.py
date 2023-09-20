@@ -1,13 +1,15 @@
-from ufl import Coefficient, TestFunction, TrialFunction, dot, dx, grad, triangle
+from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
 element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+space = FunctionSpace(domain, element)
 
-v = TestFunction(element)
-u = TrialFunction(element)
-u0 = Coefficient(element)
-f = Coefficient(element)
+v = TestFunction(space)
+u = TrialFunction(space)
+u0 = Coefficient(space)
+f = Coefficient(space)
 
 a = (1 + u0**2) * dot(grad(v), grad(u)) * dx \
     + 2 * u0 * u * dot(grad(v), grad(u0)) * dx

@@ -2,13 +2,15 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-30
 #
-from ufl import Coefficient, action, adjoint, derivative, dx, grad, inner, triangle
+from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, action, adjoint, derivative, dx, grad, inner, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
 element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+space = FunctionSpace(domain, element)
 
-w = Coefficient(element)
+w = Coefficient(space)
 
 # H1 semi-norm
 f = inner(grad(w), grad(w)) / 2 * dx

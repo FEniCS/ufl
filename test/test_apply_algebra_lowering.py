@@ -1,6 +1,7 @@
 import pytest
 
-from ufl import Coefficient, Index, as_tensor, interval, sqrt, tetrahedron, triangle
+from ufl import (Coefficient, FunctionSpace, Index, Mesh, as_tensor, interval, sqrt,
+                 tetrahedron, triangle)
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.finiteelement import FiniteElement
@@ -9,37 +10,51 @@ from ufl.sobolevspace import H1
 
 @pytest.fixture
 def A0(request):
-    return Coefficient(FiniteElement("Lagrange", interval, 1, (), (), "identity", H1))
+    return Coefficient(FunctionSpace(
+        Mesh(FiniteElement("Lagrange", interval, 1, (1, ), (1, ), "identity", H1)),
+             FiniteElement("Lagrange", interval, 1, (), (), "identity", H1)))
 
 
 @pytest.fixture
 def A1(request):
-    return Coefficient(FiniteElement("Lagrange", interval, 1, (1, 1), (1, 1), "identity", H1))
+    return Coefficient(FunctionSpace(
+        Mesh(FiniteElement("Lagrange", interval, 1, (1, ), (1, ), "identity", H1)),
+        FiniteElement("Lagrange", interval, 1, (1, 1), (1, 1), "identity", H1)))
 
 
 @pytest.fixture
 def A2(request):
-    return Coefficient(FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1))
+    return Coefficient(FunctionSpace(
+        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)),
+        FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)))
 
 
 @pytest.fixture
 def A3(request):
-    return Coefficient(FiniteElement("Lagrange", tetrahedron, 1, (3, 3), (3, 3), "identity", H1))
+    return Coefficient(FunctionSpace(
+        Mesh(FiniteElement("Lagrange", triangle, 1, (3, ), (3, ), "identity", H1)),
+        FiniteElement("Lagrange", triangle, 1, (3, 3), (3, 3), "identity", H1)))
 
 
 @pytest.fixture
 def A21(request):
-    return Coefficient(FiniteElement("Lagrange", triangle, 1, (2, 1), (2, 1), "identity", H1))
+    return Coefficient(FunctionSpace(
+        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)),
+        FiniteElement("Lagrange", triangle, 1, (2, 1), (2, 1), "identity", H1)))
 
 
 @pytest.fixture
 def A31(request):
-    return Coefficient(FiniteElement("Lagrange", triangle, 1, (3, 1), (3, 1), "identity", H1))
+    return Coefficient(FunctionSpace(
+        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)),
+        FiniteElement("Lagrange", triangle, 1, (3, 1), (3, 1), "identity", H1)))
 
 
 @pytest.fixture
 def A32(request):
-    return Coefficient(FiniteElement("Lagrange", triangle, 1, (3, 2), (3, 2), "identity", H1))
+    return Coefficient(FunctionSpace(
+        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)),
+        FiniteElement("Lagrange", triangle, 1, (3, 2), (3, 2), "identity", H1)))
 
 
 def test_determinant0(A0):

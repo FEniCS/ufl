@@ -34,17 +34,20 @@
 # the unknown u to the right-hand side, all terms may
 # be listed on one line and left- and right-hand sides
 # extracted by lhs() and rhs().
-from ufl import Coefficient, TestFunction, TrialFunction, dot, dx, grad, lhs, rhs, triangle
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, lhs, rhs,
+                 triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
 element = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+space = FunctionSpace(domain, element)
 
 k = 0.1
 
-v = TestFunction(element)
-u = TrialFunction(element)
-u0 = Coefficient(element)
+v = TestFunction(space)
+u = TrialFunction(space)
+u0 = Coefficient(space)
 
 F = v * (u - u0) * dx + k * dot(grad(v), grad(0.5 * (u0 + u))) * dx
 

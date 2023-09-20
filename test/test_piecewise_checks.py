@@ -2,9 +2,10 @@
 
 import pytest
 
-from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal, Jacobian,
-                 JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh, MinFacetEdgeLength, SpatialCoordinate,
-                 TestFunction, hexahedron, interval, quadrilateral, tetrahedron, triangle)
+from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
+                 FiniteElement, FunctionSpace, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
+                 MinFacetEdgeLength, SpatialCoordinate, TestFunction, hexahedron, interval, quadrilateral, tetrahedron,
+                 triangle)
 from ufl.checks import is_cellwise_constant
 from ufl.classes import CellCoordinate, FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse
 from ufl.finiteelement import FiniteElement
@@ -224,10 +225,14 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
     assert is_cellwise_constant(e)
 
     V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 0, (), (), "identity", L2)
-    e = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", domains_not_linear.ufl_cell(), 1))
+    space = FunctionSpace(domain, V)
+    e = Coefficient(space)
     assert is_cellwise_constant(e)
+
     V = FiniteElement("Real", domains_not_linear.ufl_cell(), 0, (), (), "identity", HInf)
-    e = Coefficient(V)
+    space = FunctionSpace(domain, V)
+    e = Coefficient(space)
     assert is_cellwise_constant(e)
 
     # This should be true, but that has to wait for a fix of issue #13
@@ -240,7 +245,9 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
 
 def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
     V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 1, (), (), "identity", L2)
-    e = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", domains_not_linear.ufl_cell(), 1))
+    space = FunctionSpace(domain, V)
+    e = Coefficient(space)
     assert not is_cellwise_constant(e)
-    e = TestFunction(V)
+    e = TestFunction(space)
     assert not is_cellwise_constant(e)

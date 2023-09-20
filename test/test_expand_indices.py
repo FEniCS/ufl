@@ -8,8 +8,8 @@ import math
 
 import pytest
 
-from ufl import (Coefficient, Identity, as_tensor, cos, det, div, dot, dx, exp, grad, i, inner, j, k, l, ln, nabla_div,
-                 nabla_grad, outer, sin, triangle)
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Identity, Mesh, TensorElement, as_tensor, cos, det, div,
+                 dot, dx, exp, grad, i, inner, j, k, l, ln, nabla_div, nabla_grad, outer, sin, triangle)
 from ufl.algorithms import compute_form_data, expand_derivatives, expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.finiteelement import FiniteElement
@@ -26,10 +26,14 @@ class Fixture:
         element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
         velement = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
         telement = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)
-        self.sf = Coefficient(element)
-        self.sf2 = Coefficient(element)
-        self.vf = Coefficient(velement)
-        self.tf = Coefficient(telement)
+        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
+        space = FunctionSpace(domain, element)
+        vspace = FunctionSpace(domain, velement)
+        tspace = FunctionSpace(domain, telement)
+        self.sf = Coefficient(space)
+        self.sf2 = Coefficient(space)
+        self.vf = Coefficient(vspace)
+        self.tf = Coefficient(tspace)
 
         # Note: the derivatives of these functions make no sense, but
         #       their unique constant values are used for validation.

@@ -17,7 +17,8 @@
 #
 # First added:  2012-08-16
 # Last changed: 2012-08-16
-from ufl import FiniteElement, TensorProductElement, TestFunction, TrialFunction, dx, interval, tetrahedron, triangle
+from ufl import (FiniteElement, FunctionSpace, Mesh, TensorProductElement, TestFunction, TrialFunction, dx, interval,
+                 tetrahedron, triangle)
 from ufl.sobolevspace import H1, L2
 
 V0 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
@@ -26,8 +27,14 @@ V2 = FiniteElement("DG", tetrahedron, 0, (), (), "identity", L2)
 
 V = TensorProductElement(V0, V1, V2)
 
-u = TrialFunction(V)
-v = TestFunction(V)
+c0 = FiniteElement("CG", triangle, 1)
+c1 = FiniteElement("CG", interval, 1)
+c2 = FiniteElement("CG", tetrahedron, 1)
+domain = Mesh(TensorProductElement(c0, c1, c2))
+space = FunctionSpace(domain, V)
+
+u = TrialFunction(space)
+v = TestFunction(space)
 
 dxxx = dx * dx * dx
 a = u * v * dxxx

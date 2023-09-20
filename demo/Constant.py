@@ -18,19 +18,22 @@
 # Modified by Martin Sandve Alnes, 2009
 #
 # Test form for scalar and vector constants.
-from ufl import Coefficient, Constant, TestFunction, TrialFunction, VectorConstant, dot, dx, grad, inner, triangle
+from ufl import (Coefficient, Constant, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorConstant,
+                 dot, dx, grad, inner, triangle)
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
 cell = triangle
-element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+element = FiniteElement("Lagrange", cell, 1)
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+space = FunctionSpace(domain, element)
 
-v = TestFunction(element)
-u = TrialFunction(element)
-f = Coefficient(element)
+v = TestFunction(space)
+u = TrialFunction(space)
+f = Coefficient(space)
 
-c = Constant(cell)
-d = VectorConstant(cell)
+c = Constant(space)
+d = VectorConstant(space)
 
 a = c * dot(grad(v), grad(u)) * dx
 L = inner(d, grad(v)) * dx
