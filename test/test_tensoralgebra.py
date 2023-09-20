@@ -2,8 +2,8 @@
 
 import pytest
 
-from ufl import (FacetNormal, Mesh, VectorElement, as_matrix, as_tensor, as_vector, cofac, cross, det, dev, diag,
-                 diag_vector, dot, inner, inv, outer, perp, skew, sym, tr, transpose, triangle, zero)
+from ufl import (FacetNormal, Mesh, as_matrix, as_tensor, as_vector, cofac, cross, det, dev, diag, diag_vector, dot,
+                 inner, inv, outer, perp, skew, sym, tr, transpose, triangle, zero)
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 
 

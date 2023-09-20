@@ -23,7 +23,7 @@
 # a mixed formulation of Poisson's equation with BDM
 # (Brezzi-Douglas-Marini) elements.
 #
-from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunctions, TrialFunctions, div, dot, dx, triangle
+from ufl import Coefficient, FunctionSpace, Mesh, TestFunctions, TrialFunctions, div, dot, dx, triangle
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1, HDiv
 

@@ -1,5 +1,5 @@
-from ufl import (Identity, Mesh, SpatialCoordinate, as_matrix, as_ufl, as_vector, elem_div, elem_mult,
-                 elem_op, sin, tetrahedron, triangle)
+from ufl import (Identity, Mesh, SpatialCoordinate, as_matrix, as_ufl, as_vector, elem_div, elem_mult, elem_op, sin,
+                 tetrahedron, triangle)
 from ufl.classes import ComplexValue, Division, FloatValue, IntValue
 
 

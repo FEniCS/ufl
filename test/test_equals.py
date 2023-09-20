@@ -1,6 +1,6 @@
 """Test of expression comparison."""
 
-from ufl import Coefficient, Cofunction, FiniteElement, FunctionSpace, Mesh, triangle
+from ufl import Coefficient, Cofunction, FunctionSpace, Mesh, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

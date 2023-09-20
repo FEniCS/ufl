@@ -2,7 +2,7 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-28
 #
-from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, derivative, dx, triangle
+from ufl import Coefficient, FunctionSpace, Mesh, derivative, dx, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

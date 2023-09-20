@@ -1,7 +1,6 @@
 from pytest import raises
 
-from ufl import (Coefficient, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate,
-                 as_tensor, grad, i, triangle)
+from ufl import Coefficient, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate, as_tensor, grad, i, triangle
 from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.finiteelement import FiniteElement

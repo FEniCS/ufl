@@ -13,9 +13,9 @@ __license__ = "GNU GPL version 3 or any later version"
 # Examples copied from the FFC demo directory, examples contributed
 # by Johan Jansson, Kristian Oelgaard, Marie Rognes, and Garth Wells.
 
-from ufl import (Coefficient, Constant, Dx, FacetNormal, FiniteElement, FunctionSpace, Mesh, TensorElement,
-                 TestFunction, TestFunctions, TrialFunction, TrialFunctions, VectorConstant, avg, curl, div, dot, ds,
-                 dS, dx, grad, i, inner, j, jump, lhs, rhs, sqrt, tetrahedron, triangle)
+from ufl import (Coefficient, Constant, Dx, FacetNormal, FunctionSpace, Mesh, TestFunction, TestFunctions,
+                 TrialFunction, TrialFunctions, VectorConstant, avg, curl, div, dot, ds, dS, dx, grad, i, inner, j,
+                 jump, lhs, rhs, sqrt, tetrahedron, triangle)
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1, L2, HCurl, HDiv
 

@@ -1,8 +1,7 @@
 import math
 
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorConstant, acos,
-                 as_tensor, as_ufl, asin, atan, cos, cosh, dx, exp, i, j, ln, max_value, min_value, outer, sin, sinh,
-                 tan, tanh, triangle)
+from ufl import (Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorConstant, acos, as_tensor, as_ufl,
+                 asin, atan, cos, cosh, dx, exp, i, j, ln, max_value, min_value, outer, sin, sinh, tan, tanh, triangle)
 from ufl.algorithms import compute_form_data
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1

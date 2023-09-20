@@ -20,7 +20,7 @@
 # Last changed: 2009-03-02
 #
 # The bilinear form for a mass matrix.
-from ufl import FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, dx, triangle
+from ufl import FunctionSpace, Mesh, TestFunction, TrialFunction, dx, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

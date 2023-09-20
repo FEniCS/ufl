@@ -1,9 +1,8 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
-from ufl import (Argument, Coefficient, Coefficients, FacetNormal, FiniteElement, FunctionSpace, Mesh,
-                 SpatialCoordinate, TensorProductElement, cos, div, dot, grad, i, inner, nabla_div, nabla_grad, sin,
-                 tan, triangle)
+from ufl import (Argument, Coefficient, Coefficients, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate,
+                 TensorProductElement, cos, div, dot, grad, i, inner, nabla_div, nabla_grad, sin, tan, triangle)
 from ufl.algorithms import estimate_total_polynomial_degree
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1

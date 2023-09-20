@@ -3,7 +3,7 @@
 import pytest
 
 from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 FiniteElement, FunctionSpace, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
+                 FunctionSpace, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
                  MinFacetEdgeLength, SpatialCoordinate, TestFunction, hexahedron, interval, quadrilateral, tetrahedron,
                  triangle)
 from ufl.checks import is_cellwise_constant

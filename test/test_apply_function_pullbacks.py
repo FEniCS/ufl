@@ -1,7 +1,6 @@
 import numpy
 
-from ufl import (Cell, Coefficient, FunctionSpace, Mesh, as_domain, as_tensor, as_vector,
-                 dx, indices, triangle)
+from ufl import Cell, Coefficient, FunctionSpace, Mesh, as_domain, as_tensor, as_vector, dx, indices, triangle
 from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue

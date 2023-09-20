@@ -1,8 +1,8 @@
 __authors__ = "Cecile Daversin Catty"
 __date__ = "2019-03-26 -- 2019-03-26"
 
-from ufl import (FiniteElement, FunctionSpace, Measure, Mesh, MixedFunctionSpace, TestFunctions, TrialFunctions,
-                 interval, tetrahedron, triangle)
+from ufl import (FunctionSpace, Measure, Mesh, MixedFunctionSpace, TestFunctions, TrialFunctions, interval, tetrahedron,
+                 triangle)
 from ufl.algorithms.formsplitter import extract_blocks
 from ufl.domain import default_domain
 from ufl.finiteelement import FiniteElement

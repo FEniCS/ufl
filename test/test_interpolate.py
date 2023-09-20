@@ -5,8 +5,8 @@ __date__ = "2021-11-19"
 
 import pytest
 
-from ufl import (Action, Adjoint, Argument, Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction,
-                 TrialFunction, action, adjoint, derivative, dx, grad, inner, replace, triangle)
+from ufl import (Action, Adjoint, Argument, Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, action,
+                 adjoint, derivative, dx, grad, inner, replace, triangle)
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.analysis import (extract_arguments, extract_arguments_and_coefficients, extract_base_form_operators,
                                      extract_coefficients)

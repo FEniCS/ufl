@@ -1,4 +1,4 @@
-from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, dx, triangle
+from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, dx, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

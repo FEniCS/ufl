@@ -1,9 +1,8 @@
 """Test the computation of form signatures."""
 
-from ufl import (Argument, CellDiameter, CellVolume, Circumradius, Coefficient, FacetArea, FacetNormal, FiniteElement,
-                 FunctionSpace, Identity, Mesh, SpatialCoordinate, TensorElement, TestFunction, VectorElement,
-                 as_domain, as_vector, diff, dot, ds, dx, hexahedron, indices, inner, interval, quadrilateral,
-                 tetrahedron, triangle, variable)
+from ufl import (Argument, CellDiameter, CellVolume, Circumradius, Coefficient, FacetArea, FacetNormal, FunctionSpace,
+                 Identity, Mesh, SpatialCoordinate, TestFunction, as_domain, as_vector, diff, dot, ds, dx, hexahedron,
+                 indices, inner, interval, quadrilateral, tetrahedron, triangle, variable)
 from ufl.algorithms.signature import compute_multiindex_hashdata, compute_terminal_hashdata
 from ufl.classes import FixedIndex, MultiIndex
 from ufl.finiteelement import FiniteElement

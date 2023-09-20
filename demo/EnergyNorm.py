@@ -17,7 +17,7 @@
 #
 # This example demonstrates how to define a functional, here
 # the energy norm (squared) for a reaction-diffusion problem.
-from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, dot, dx, grad, tetrahedron
+from ufl import Coefficient, FunctionSpace, Mesh, dot, dx, grad, tetrahedron
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

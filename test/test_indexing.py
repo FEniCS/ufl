@@ -1,6 +1,6 @@
 import pytest
 
-from ufl import Index, Mesh, SpatialCoordinate, VectorElement, outer, triangle
+from ufl import Index, Mesh, SpatialCoordinate, outer, triangle
 from ufl.classes import FixedIndex, Indexed, MultiIndex, Outer, Zero
 
 

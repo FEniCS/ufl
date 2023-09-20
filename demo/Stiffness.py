@@ -2,7 +2,7 @@
 # Author: Martin Sandve Alnes
 # Date: 2008-10-03
 #
-from ufl import FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, triangle
+from ufl import FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

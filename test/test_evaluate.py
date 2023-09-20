@@ -3,9 +3,9 @@ __date__ = "2009-02-13 -- 2009-02-13"
 
 import math
 
-from ufl import (Argument, Coefficient, FiniteElement, FunctionSpace, Identity, Mesh, SpatialCoordinate, VectorElement,
-                 as_matrix, as_vector, cos, cross, det, dev, dot, exp, i, indices, inner, j, ln, outer, sin, skew, sqrt,
-                 sym, tan, tetrahedron, tr, triangle)
+from ufl import (Argument, Coefficient, FunctionSpace, Identity, Mesh, SpatialCoordinate, as_matrix, as_vector, cos,
+                 cross, det, dev, dot, exp, i, indices, inner, j, ln, outer, sin, skew, sqrt, sym, tan, tetrahedron, tr,
+                 triangle)
 from ufl.constantvalue import as_ufl
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1

@@ -8,8 +8,8 @@ import math
 
 import pytest
 
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Identity, Mesh, TensorElement, as_tensor, cos, det, div,
-                 dot, dx, exp, grad, i, inner, j, k, l, ln, nabla_div, nabla_grad, outer, sin, triangle)
+from ufl import (Coefficient, FunctionSpace, Identity, Mesh, as_tensor, cos, det, div, dot, dx, exp, grad, i, inner, j,
+                 k, l, ln, nabla_div, nabla_grad, outer, sin, triangle)
 from ufl.algorithms import compute_form_data, expand_derivatives, expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.finiteelement import FiniteElement

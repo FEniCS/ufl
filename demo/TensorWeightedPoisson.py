@@ -17,8 +17,7 @@
 #
 # The bilinear form a(v, u) and linear form L(v) for
 # tensor-weighted Poisson's equation.
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TensorElement, TestFunction, TrialFunction, dx, grad,
-                 inner, triangle)
+from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, dx, grad, inner, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1, L2
 

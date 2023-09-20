@@ -20,7 +20,7 @@
 #
 # The linearised bilinear form a(u,v) and linear form L(v) for
 # the nonlinear equation - div (1+u) grad u = f (non-linear Poisson)
-from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, i, triangle
+from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, i, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 

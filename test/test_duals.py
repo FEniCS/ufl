@@ -3,9 +3,9 @@ __date__ = "2020-12-28"
 
 import pytest
 
-from ufl import (Action, Adjoint, Argument, Coargument, Coefficient, Cofunction, FiniteElement, FormSum, FunctionSpace,
-                 Matrix, Mesh, MixedFunctionSpace, TestFunction, TrialFunction, action, adjoint, derivative, dx, inner,
-                 interval, tetrahedron, triangle)
+from ufl import (Action, Adjoint, Argument, Coargument, Coefficient, Cofunction, FormSum, FunctionSpace, Matrix, Mesh,
+                 MixedFunctionSpace, TestFunction, TrialFunction, action, adjoint, derivative, dx, inner, interval,
+                 tetrahedron, triangle)
 from ufl.algorithms.ad import expand_derivatives
 from ufl.constantvalue import Zero
 from ufl.duals import is_dual, is_primal

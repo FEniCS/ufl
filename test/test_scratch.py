@@ -8,8 +8,8 @@ Next look at the TODO markers below for places to edit.
 
 import warnings
 
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Identity, Mesh, TensorElement, TestFunction, VectorElement,
-                 as_matrix, as_tensor, as_vector, dx, grad, indices, inner, outer, triangle)
+from ufl import (Coefficient, FunctionSpace, Identity, Mesh, TestFunction, as_matrix, as_tensor, as_vector, dx, grad,
+                 indices, inner, outer, triangle)
 from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1

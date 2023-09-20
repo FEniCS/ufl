@@ -10,9 +10,9 @@ __license__ = "GNU GPL version 3 or any later version"
 
 import pickle
 
-from ufl import (Coefficient, Constant, Dx, FacetNormal, FiniteElement, FunctionSpace, Identity, Mesh, TensorElement,
-                 TestFunction, TestFunctions, TrialFunction, TrialFunctions, VectorConstant, avg, curl, div, dot, dS,
-                 ds, dx, grad, i, inner, j, jump, lhs, rhs, sqrt, tetrahedron, triangle)
+from ufl import (Coefficient, Constant, Dx, FacetNormal, FunctionSpace, Identity, Mesh, TestFunction, TestFunctions,
+                 TrialFunction, TrialFunctions, VectorConstant, avg, curl, div, dot, dS, ds, dx, grad, i, inner, j,
+                 jump, lhs, rhs, sqrt, tetrahedron, triangle)
 from ufl.algorithms import compute_form_data
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.sobolevspace import H1, L2, HCurl, HDiv

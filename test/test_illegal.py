@@ -1,6 +1,6 @@
 import pytest
 
-from ufl import Argument, Coefficient, FiniteElement, FunctionSpace, Mesh, VectorElement, triangle
+from ufl import Argument, Coefficient, FunctionSpace, Mesh, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.sobolevspace import H1
 
