@@ -3,9 +3,9 @@ __date__ = "2009-02-13 -- 2009-02-13"
 
 import math
 
-from ufl import (Argument, Coefficient, FiniteElement, Identity, SpatialCoordinate, as_matrix, as_vector, cos, cross,
-                 det, dev, dot, exp, i, indices, inner, j, ln, outer, sin, skew, sqrt, sym, tan, tetrahedron, tr,
-                 triangle)
+from ufl import (Argument, Coefficient, FiniteElement, FunctionSpace, Identity, Mesh, SpatialCoordinate, VectorElement,
+                 as_matrix, as_vector, cos, cross, det, dev, dot, exp, i, indices, inner, j, ln, outer, sin, skew, sqrt,
+                 sym, tan, tetrahedron, tr, triangle)
 from ufl.constantvalue import as_ufl
 
 
@@ -40,7 +40,8 @@ def testIdentity():
 
 def testCoords():
     cell = triangle
-    x = SpatialCoordinate(cell)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    x = SpatialCoordinate(domain)
     s = x[0] + x[1]
     e = s((5, 7))
     v = 5 + 7
@@ -50,7 +51,9 @@ def testCoords():
 def testFunction1():
     cell = triangle
     element = FiniteElement("CG", cell, 1)
-    f = Coefficient(element)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    space = FunctionSpace(domain, element)
+    f = Coefficient(space)
     s = 3 * f
     e = s((5, 7), {f: 123})
     v = 3 * 123
@@ -60,7 +63,9 @@ def testFunction1():
 def testFunction2():
     cell = triangle
     element = FiniteElement("CG", cell, 1)
-    f = Coefficient(element)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    space = FunctionSpace(domain, element)
+    f = Coefficient(space)
 
     def g(x):
         return x[0]
@@ -73,7 +78,9 @@ def testFunction2():
 def testArgument2():
     cell = triangle
     element = FiniteElement("CG", cell, 1)
-    f = Argument(element, 2)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    space = FunctionSpace(domain, element)
+    f = Argument(space, 2)
 
     def g(x):
         return x[0]
@@ -85,7 +92,8 @@ def testArgument2():
 
 def testAlgebra():
     cell = triangle
-    x = SpatialCoordinate(cell)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    x = SpatialCoordinate(domain)
     s = 3 * (x[0] + x[1]) - 7 + x[0] ** (x[1] / 2)
     e = s((5, 7))
     v = 3 * (5. + 7.) - 7 + 5. ** (7. / 2)
@@ -94,7 +102,8 @@ def testAlgebra():
 
 def testIndexSum():
     cell = triangle
-    x = SpatialCoordinate(cell)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    x = SpatialCoordinate(domain)
     i, = indices(1)
     s = x[i] * x[i]
     e = s((5, 7))
@@ -104,7 +113,8 @@ def testIndexSum():
 
 def testIndexSum2():
     cell = triangle
-    x = SpatialCoordinate(cell)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    x = SpatialCoordinate(domain)
     ident = Identity(cell.geometric_dimension())
     i, j = indices(2)
     s = (x[i] * x[j]) * ident[i, j]
@@ -115,7 +125,8 @@ def testIndexSum2():
 
 
 def testMathFunctions():
-    x = SpatialCoordinate(triangle)[0]
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)[0]
 
     s = sin(x)
     e = s((5, 7))
@@ -149,7 +160,8 @@ def testMathFunctions():
 
 
 def testListTensor():
-    x, y = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x, y = SpatialCoordinate(domain)
 
     m = as_matrix([[x, y], [-y, -x]])
 
@@ -165,7 +177,8 @@ def testListTensor():
 
 
 def testComponentTensor1():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     m = as_vector(x[i], i)
 
     s = m[0] * m[1]
@@ -175,7 +188,8 @@ def testComponentTensor1():
 
 
 def testComponentTensor2():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     xx = outer(x, x)
 
     m = as_matrix(xx[i, j], (i, j))
@@ -187,7 +201,8 @@ def testComponentTensor2():
 
 
 def testComponentTensor3():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     xx = outer(x, x)
 
     m = as_matrix(xx[i, j], (i, j))
@@ -200,7 +215,9 @@ def testComponentTensor3():
 
 def testCoefficient():
     V = FiniteElement("CG", triangle, 1)
-    f = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, V)
+    f = Coefficient(space)
     e = f ** 2
 
     def eval_f(x):
@@ -210,7 +227,9 @@ def testCoefficient():
 
 def testCoefficientDerivative():
     V = FiniteElement("CG", triangle, 1)
-    f = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, V)
+    f = Coefficient(space)
     e = f.dx(0) ** 2 + f.dx(1) ** 2
 
     def eval_f(x, derivatives):
@@ -229,7 +248,8 @@ def testCoefficientDerivative():
 
 
 def test_dot():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     s = dot(x, 2 * x)
     e = s((5, 7))
     v = 2 * (5 * 5 + 7 * 7)
@@ -237,7 +257,8 @@ def test_dot():
 
 
 def test_inner():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     xx = as_matrix(((2 * x[0], 3 * x[0]), (2 * x[1], 3 * x[1])))
     s = inner(xx, 2 * xx)
     e = s((5, 7))
@@ -246,7 +267,8 @@ def test_inner():
 
 
 def test_outer():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     xx = outer(outer(x, x), as_vector((2, 3)))
     s = inner(xx, 2 * xx)
     e = s((5, 7))
@@ -255,7 +277,8 @@ def test_outer():
 
 
 def test_cross():
-    x = SpatialCoordinate(tetrahedron)
+    domain = Mesh(VectorElement("Lagrange", tetrahedron, 1))
+    x = SpatialCoordinate(domain)
     xv = (3, 5, 7)
 
     # Test cross product of triplets of orthogonal
@@ -287,7 +310,8 @@ def test_cross():
 
 
 def xtest_dev():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     xv = (5, 7)
     xx = outer(x, x)
     s1 = dev(2 * xx)
@@ -298,7 +322,8 @@ def xtest_dev():
 
 
 def test_skew():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     xv = (5, 7)
     xx = outer(x, x)
     s1 = skew(2 * xx)
@@ -309,7 +334,8 @@ def test_skew():
 
 
 def test_sym():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     xv = (5, 7)
     xx = outer(x, x)
     s1 = sym(2 * xx)
@@ -320,7 +346,8 @@ def test_sym():
 
 
 def test_tr():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     xv = (5, 7)
     xx = outer(x, x)
     s = tr(2 * xx)
@@ -330,7 +357,8 @@ def test_tr():
 
 
 def test_det2D():
-    x = SpatialCoordinate(triangle)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    x = SpatialCoordinate(domain)
     xv = (5, 7)
     a, b = 6.5, -4
     xx = as_matrix(((x[0], x[1]), (a, b)))

@@ -8,12 +8,12 @@ Other tests check for mathematical correctness of diff and derivative.
 import pytest
 
 from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 FiniteElement, Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength,
-                 MaxFacetEdgeLength, MinCellEdgeLength, MinFacetEdgeLength, Not, Or, PermutationSymbol,
-                 SpatialCoordinate, TensorElement, VectorElement, acos, as_matrix, as_tensor, as_ufl, as_vector, asin,
-                 atan, bessel_I, bessel_J, bessel_K, bessel_Y, cofac, conditional, cos, cross, derivative, det, dev,
-                 diff, dot, eq, erf, exp, ge, grad, gt, indices, inner, interval, inv, le, ln, lt, ne, outer, replace,
-                 sin, skew, sqrt, sym, tan, tetrahedron, tr, triangle, variable)
+                 FiniteElement, FunctionSpace, Identity, Jacobian, JacobianDeterminant, JacobianInverse,
+                 MaxCellEdgeLength, MaxFacetEdgeLength, Mesh, MinCellEdgeLength, MinFacetEdgeLength, Not, Or,
+                 PermutationSymbol, SpatialCoordinate, TensorElement, VectorElement, acos, as_matrix, as_tensor, as_ufl,
+                 as_vector, asin, atan, bessel_I, bessel_J, bessel_K, bessel_Y, cofac, conditional, cos, cross,
+                 derivative, det, dev, diff, dot, eq, erf, exp, ge, grad, gt, indices, inner, interval, inv, le, ln, lt,
+                 ne, outer, replace, sin, skew, sqrt, sym, tan, tetrahedron, tr, triangle, variable)
 from ufl.algorithms import expand_derivatives
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal
@@ -23,22 +23,23 @@ class ExpressionCollection(object):
 
     def __init__(self, cell):
         self.cell = cell
+        domain = Mesh(VectorElement("Lagrange", cell, 1))
 
         d = cell.geometric_dimension()
-        x = SpatialCoordinate(cell)
-        n = FacetNormal(cell)
-        c = CellVolume(cell)
-        R = Circumradius(cell)
-        h = CellDiameter(cell)
-        f = FacetArea(cell)
-        # s = CellSurfaceArea(cell)
-        mince = MinCellEdgeLength(cell)
-        maxce = MaxCellEdgeLength(cell)
-        minfe = MinFacetEdgeLength(cell)
-        maxfe = MaxFacetEdgeLength(cell)
-        J = Jacobian(cell)
-        detJ = JacobianDeterminant(cell)
-        invJ = JacobianInverse(cell)
+        x = SpatialCoordinate(domain)
+        n = FacetNormal(domain)
+        c = CellVolume(domain)
+        R = Circumradius(domain)
+        h = CellDiameter(domain)
+        f = FacetArea(domain)
+        # s = CellSurfaceArea(domain)
+        mince = MinCellEdgeLength(domain)
+        maxce = MaxCellEdgeLength(domain)
+        minfe = MinFacetEdgeLength(domain)
+        maxfe = MaxFacetEdgeLength(domain)
+        J = Jacobian(domain)
+        detJ = JacobianDeterminant(domain)
+        invJ = JacobianInverse(domain)
         # FIXME: Add all new geometry types here!
 
         ident = Identity(d)
@@ -48,12 +49,16 @@ class ExpressionCollection(object):
         V = VectorElement("U", cell, None)
         W = TensorElement("U", cell, None)
 
-        u = Coefficient(U)
-        v = Coefficient(V)
-        w = Coefficient(W)
-        du = Argument(U, 0)
-        dv = Argument(V, 1)
-        dw = Argument(W, 2)
+        u_space = FunctionSpace(domain, U)
+        v_space = FunctionSpace(domain, V)
+        w_space = FunctionSpace(domain, W)
+
+        u = Coefficient(u_space)
+        v = Coefficient(v_space)
+        w = Coefficient(w_space)
+        du = Argument(u_space, 0)
+        dv = Argument(v_space, 1)
+        dw = Argument(w_space, 2)
 
         class ObjectCollection(object):
             pass
@@ -280,11 +285,11 @@ def test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(self, 
 
 
 def _test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(self, collection):
-    c = Constant(collection.shared_objects.cell)
+    c = Constant(collection.shared_objects.domain)
 
-    u = Coefficient(collection.shared_objects.U)
-    v = Coefficient(collection.shared_objects.V)
-    w = Coefficient(collection.shared_objects.W)
+    u = Coefficient(collection.shared_objects.u_space)
+    v = Coefficient(collection.shared_objects.v_space)
+    w = Coefficient(collection.shared_objects.w_space)
 
     for t in collection.terminals:
         for var in (u, v, w):
@@ -307,11 +312,11 @@ def test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, d_expr
 
 
 def _test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, collection):
-    c = Constant(collection.shared_objects.cell)
+    c = Constant(collection.shared_objects.domain)
 
-    u = Coefficient(collection.shared_objects.U)
-    v = Coefficient(collection.shared_objects.V)
-    w = Coefficient(collection.shared_objects.W)
+    u = Coefficient(collection.shared_objects.u_space)
+    v = Coefficient(collection.shared_objects.v_space)
+    w = Coefficient(collection.shared_objects.w_space)
 
     vu = variable(u)
     vv = variable(v)
@@ -339,9 +344,9 @@ def test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(sel
 def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
     debug = 0
 
-    u = Coefficient(collection.shared_objects.U)
-    v = Coefficient(collection.shared_objects.V)
-    w = Coefficient(collection.shared_objects.W)
+    u = Coefficient(collection.shared_objects.u_space)
+    v = Coefficient(collection.shared_objects.v_space)
+    w = Coefficient(collection.shared_objects.w_space)
 
     # for t in chain(collection.noncompounds, collection.compounds):
     # debug = True
@@ -375,9 +380,9 @@ def test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, d_e
 def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
     debug = 0
 
-    u = Coefficient(collection.shared_objects.U)
-    v = Coefficient(collection.shared_objects.V)
-    w = Coefficient(collection.shared_objects.W)
+    u = Coefficient(collection.shared_objects.u_space)
+    v = Coefficient(collection.shared_objects.v_space)
+    w = Coefficient(collection.shared_objects.w_space)
 
     vu = variable(u)
     vv = variable(v)

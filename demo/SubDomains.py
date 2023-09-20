@@ -17,13 +17,14 @@
 #
 # This simple example illustrates how forms can be defined on different sub domains.
 # It is supported for all three integral types.
-from ufl import (FiniteElement, TestFunction, TrialFunction, ds, dS, dx,
-                 tetrahedron)
+from ufl import FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorElement, ds, dS, dx, tetrahedron
 
 element = FiniteElement("CG", tetrahedron, 1)
+domain = Mesh(VectorElement("Lagrange", tetrahedron, 1))
+space = FunctionSpace(domain, element)
 
-v = TestFunction(element)
-u = TrialFunction(element)
+v = TestFunction(space)
+u = TrialFunction(space)
 
 a = v * u * dx(0) + 10.0 * v * u * dx(1) + v * u * ds(0) + 2.0 * v * u * ds(1)\
     + v('+') * u('+') * dS(0) + 4.3 * v('+') * u('+') * dS(1)

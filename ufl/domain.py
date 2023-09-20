@@ -274,6 +274,9 @@ _default_domains = {}
 def default_domain(cell):
     """Create a singular default Mesh from a cell, always returning the same Mesh object for the same cell."""
     global _default_domains
+
+    warnings.warn("default_domain is deprecated.", FutureWarning)
+
     assert isinstance(cell, AbstractCell)
     domain = _default_domains.get(cell)
     if domain is None:

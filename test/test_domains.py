@@ -6,7 +6,6 @@ from mockobjects import MockMesh
 from ufl import (Cell, Coefficient, Constant, FiniteElement, FunctionSpace, Mesh, VectorElement, ds, dS, dx, hexahedron,
                  interval, quadrilateral, tetrahedron, triangle)
 from ufl.algorithms import compute_form_data
-from ufl.domain import as_domain, default_domain
 
 all_cells = (interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
@@ -14,36 +13,15 @@ all_cells = (interval, triangle, tetrahedron,
 
 def test_construct_domains_from_cells():
     for cell in all_cells:
-        D0 = Mesh(cell)
-        D1 = default_domain(cell)
-        D2 = as_domain(cell)
-        assert D0 is not D1
-        assert D0 is not D2
-        assert D1 is D2
-        if 0:
-            print()
-            for D in (D1, D2):
-                print(('id', id(D)))
-                print(('str', str(D)))
-                print(('repr', repr(D)))
-                print()
-        assert D0 != D1
-        assert D0 != D2
-        assert D1 == D2
-
-
-def test_as_domain_from_cell_is_equal():
-    for cell in all_cells:
-        D1 = as_domain(cell)
-        D2 = as_domain(cell)
-        assert D1 == D2
+        Mesh(VectorElement("Lagrange", cell, 1))
 
 
 def test_construct_domains_with_names():
     for cell in all_cells:
-        D2 = Mesh(cell, ufl_id=2)
-        D3 = Mesh(cell, ufl_id=3)
-        D3b = Mesh(cell, ufl_id=3)
+        e = VectorElement("Lagrange", cell, 1)
+        D2 = Mesh(e, ufl_id=2)
+        D3 = Mesh(e, ufl_id=3)
+        D3b = Mesh(e, ufl_id=3)
         assert D2 != D3
         assert D3 == D3b
 
@@ -51,9 +29,9 @@ def test_construct_domains_with_names():
 def test_domains_sort_by_name():
     # This ordering is rather arbitrary, but at least this shows sorting is
     # working
-    domains1 = [Mesh(cell, ufl_id=hash(cell.cellname()))
+    domains1 = [Mesh(VectorElement("Lagrange", cell, 1), ufl_id=hash(cell.cellname()))
                 for cell in all_cells]
-    domains2 = [Mesh(cell, ufl_id=hash(cell.cellname()))
+    domains2 = [Mesh(VectorElement("Lagrange", cell, 1), ufl_id=hash(cell.cellname()))
                 for cell in sorted(all_cells)]
     sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
                                                D.topological_dimension(),
@@ -74,10 +52,10 @@ def test_topdomain_creation():
 
 def test_cell_legacy_case():
     # Passing cell like old code does
-    D = as_domain(triangle)
+    D = Mesh(VectorElement("Lagrange", triangle, 1))
 
     V = FiniteElement("CG", triangle, 1)
-    f = Coefficient(V)
+    f = Coefficient(FunctionSpace(D, V))
     assert f.ufl_domains() == (D, )
 
     M = f * dx

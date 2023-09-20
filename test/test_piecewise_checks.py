@@ -3,7 +3,7 @@
 import pytest
 
 from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 FiniteElement, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
+                 FiniteElement, FunctionSpace, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
                  MinFacetEdgeLength, SpatialCoordinate, TestFunction, VectorElement, hexahedron, interval,
                  quadrilateral, tetrahedron, triangle)
 from ufl.checks import is_cellwise_constant
@@ -217,10 +217,13 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
     assert is_cellwise_constant(e)
 
     V = FiniteElement("DG", domains_not_linear.ufl_cell(), 0)
-    e = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", domains_not_linear.ufl_cell(), 1))
+    space = FunctionSpace(domain, V)
+    e = Coefficient(space)
     assert is_cellwise_constant(e)
     V = FiniteElement("R", domains_not_linear.ufl_cell(), 0)
-    e = Coefficient(V)
+    space = FunctionSpace(domain, V)
+    e = Coefficient(space)
     assert is_cellwise_constant(e)
 
     # This should be true, but that has to wait for a fix of issue #13
@@ -233,7 +236,9 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
 
 def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
     V = FiniteElement("DG", domains_not_linear.ufl_cell(), 1)
-    e = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", domains_not_linear.ufl_cell(), 1))
+    space = FunctionSpace(domain, V)
+    e = Coefficient(space)
     assert not is_cellwise_constant(e)
-    e = TestFunction(V)
+    e = TestFunction(space)
     assert not is_cellwise_constant(e)

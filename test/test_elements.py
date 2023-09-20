@@ -1,5 +1,5 @@
-from ufl import (Coefficient, FiniteElement, MixedElement, TensorElement, VectorElement, WithMapping, dx, hexahedron,
-                 inner, interval, quadrilateral, tetrahedron, triangle)
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, MixedElement, TensorElement, VectorElement,
+                 WithMapping, dx, hexahedron, inner, interval, quadrilateral, tetrahedron, triangle)
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
@@ -82,7 +82,9 @@ def test_mixed_tensor_symmetries():
 
     # M has dimension 4+1, symmetries are 2->1
     M = T * S
-    P = Coefficient(M)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    m_space = FunctionSpace(domain, M)
+    P = Coefficient(m_space)
     M = inner(P, P) * dx
 
     M2 = expand_indices(expand_compounds(M))
@@ -91,7 +93,8 @@ def test_mixed_tensor_symmetries():
 
     # M has dimension 2+(1+4), symmetries are 5->4
     M = V * (S * T)
-    P = Coefficient(M)
+    m_space = FunctionSpace(domain, M)
+    P = Coefficient(m_space)
     M = inner(P, P) * dx
 
     M2 = expand_indices(expand_compounds(M))

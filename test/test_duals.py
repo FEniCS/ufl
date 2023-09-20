@@ -4,20 +4,19 @@ __date__ = "2020-12-28"
 import pytest
 
 from ufl import (Action, Adjoint, Argument, Coargument, Coefficient, Cofunction, FiniteElement, FormSum, FunctionSpace,
-                 Matrix, MixedFunctionSpace, TestFunction, TrialFunction, action, adjoint, derivative, dx, inner,
-                 interval, tetrahedron, triangle)
+                 Matrix, Mesh, MixedFunctionSpace, TestFunction, TrialFunction, VectorElement, action, adjoint,
+                 derivative, dx, inner, interval, tetrahedron, triangle)
 from ufl.algorithms.ad import expand_derivatives
 from ufl.constantvalue import Zero
-from ufl.domain import default_domain
 from ufl.duals import is_dual, is_primal
 from ufl.form import ZeroBaseForm
 
 
 def test_mixed_functionspace(self):
     # Domains
-    domain_3d = default_domain(tetrahedron)
-    domain_2d = default_domain(triangle)
-    domain_1d = default_domain(interval)
+    domain_3d = Mesh(VectorElement("Lagrange", tetrahedron, 1))
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
+    domain_1d = Mesh(VectorElement("Lagrange", interval, 1))
     # Finite elements
     f_1d = FiniteElement("CG", interval, 1)
     f_2d = FiniteElement("CG", triangle, 1)
@@ -48,7 +47,7 @@ def test_mixed_functionspace(self):
 
 
 def test_dual_coefficients():
-    domain_2d = default_domain(triangle)
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
@@ -71,7 +70,7 @@ def test_dual_coefficients():
 
 
 def test_dual_arguments():
-    domain_2d = default_domain(triangle)
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
@@ -94,7 +93,7 @@ def test_dual_arguments():
 
 
 def test_addition():
-    domain_2d = default_domain(triangle)
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
@@ -132,7 +131,7 @@ def test_addition():
 
 
 def test_scalar_mult():
-    domain_2d = default_domain(triangle)
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
@@ -150,7 +149,7 @@ def test_scalar_mult():
 
 
 def test_adjoint():
-    domain_2d = default_domain(triangle)
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
     a = Matrix(V, V)
@@ -169,10 +168,10 @@ def test_adjoint():
 
 
 def test_action():
-    domain_2d = default_domain(triangle)
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
-    domain_1d = default_domain(interval)
+    domain_1d = Mesh(VectorElement("Lagrange", interval, 1))
     f_1d = FiniteElement("CG", interval, 1)
     U = FunctionSpace(domain_1d, f_1d)
 
@@ -229,10 +228,10 @@ def test_action():
 
 
 def test_differentiation():
-    domain_2d = default_domain(triangle)
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
-    domain_1d = default_domain(interval)
+    domain_1d = Mesh(VectorElement("Lagrange", interval, 1))
     f_1d = FiniteElement("CG", interval, 1)
     U = FunctionSpace(domain_1d, f_1d)
 
@@ -291,7 +290,7 @@ def test_differentiation():
 
 
 def test_zero_base_form_mult():
-    domain_2d = default_domain(triangle)
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
     f_2d = FiniteElement("CG", triangle, 1)
     V = FunctionSpace(domain_2d, f_2d)
     v = Argument(V, 0)

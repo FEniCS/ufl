@@ -6,32 +6,33 @@ __date__ = "2019-03-26"
 import pytest
 
 # This imports everything external code will see from ufl
-from ufl import (Action, Argument, Coefficient, Constant, FiniteElement, Form, FunctionSpace, TestFunction,
-                 TrialFunction, action, adjoint, cos, derivative, dx, inner, sin, triangle)
+from ufl import (Action, Argument, Coefficient, Constant, FiniteElement, Form, FunctionSpace, Mesh, TestFunction,
+                 TrialFunction, VectorElement, action, adjoint, cos, derivative, dx, inner, sin, triangle)
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.core.external_operator import ExternalOperator
-from ufl.domain import default_domain
 from ufl.form import BaseForm
 
 
 @pytest.fixture
-def V1():
-    domain_2d = default_domain(triangle)
+def domain_2d():
+    return Mesh(VectorElement("Lagrange", triangle, 1))
+
+
+@pytest.fixture
+def V1(domain_2d):
     f1 = FiniteElement("CG", triangle, 1)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
-def V2():
-    domain_2d = default_domain(triangle)
+def V2(domain_2d):
     f1 = FiniteElement("CG", triangle, 2)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
-def V3():
-    domain_2d = default_domain(triangle)
+def V3(domain_2d):
     f1 = FiniteElement("CG", triangle, 3)
     return FunctionSpace(domain_2d, f1)
 
@@ -177,12 +178,12 @@ def test_differentiation_procedure_action(V1, V2):
     assert dN2du.argument_slots() == (vstar_dN2du, - sin(s) * s_hat)
 
 
-def test_extractions(V1):
+def test_extractions(domain_2d, V1):
     from ufl.algorithms.analysis import (extract_arguments, extract_arguments_and_coefficients,
                                          extract_base_form_operators, extract_coefficients, extract_constants)
 
     u = Coefficient(V1)
-    c = Constant(triangle)
+    c = Constant(domain_2d)
 
     e = ExternalOperator(u, c, function_space=V1)
     vstar_e, = e.arguments()

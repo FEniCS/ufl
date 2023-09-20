@@ -2,9 +2,9 @@ import cmath
 
 import pytest
 
-from ufl import (Coefficient, FiniteElement, TestFunction, TrialFunction, as_tensor, as_ufl, atan, conditional, conj,
-                 cos, cosh, dot, dx, exp, ge, grad, gt, imag, inner, le, ln, lt, max_value, min_value, outer, real, sin,
-                 sqrt, triangle)
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorElement, as_tensor,
+                 as_ufl, atan, conditional, conj, cos, cosh, dot, dx, exp, ge, grad, gt, imag, inner, le, ln, lt,
+                 max_value, min_value, outer, real, sin, sqrt, triangle)
 from ufl.algebra import Conj, Imag, Real
 from ufl.algorithms import estimate_total_polynomial_degree
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
@@ -46,9 +46,11 @@ def test_imag(self):
 def test_compute_form_adjoint(self):
     cell = triangle
     element = FiniteElement('Lagrange', cell, 1)
+    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    space = FunctionSpace(domain, element)
 
-    u = TrialFunction(element)
-    v = TestFunction(element)
+    u = TrialFunction(space)
+    v = TestFunction(space)
 
     a = inner(grad(u), grad(v)) * dx
 
@@ -73,9 +75,11 @@ def test_complex_algebra(self):
 def test_automatic_simplification(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
+    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     assert inner(u, v) == u * conj(v)
     assert dot(u, v) == u * v
@@ -85,9 +89,11 @@ def test_automatic_simplification(self):
 def test_apply_algebra_lowering_complex(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
+    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    u = TrialFunction(element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     gv = grad(v)
     gu = grad(u)
@@ -112,10 +118,12 @@ def test_apply_algebra_lowering_complex(self):
 def test_remove_complex_nodes(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
+    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    space = FunctionSpace(domain, element)
 
-    u = TrialFunction(element)
-    v = TestFunction(element)
-    f = Coefficient(element)
+    u = TrialFunction(space)
+    v = TestFunction(space)
+    f = Coefficient(space)
 
     a = conj(v)
     b = real(u)
@@ -133,9 +141,11 @@ def test_remove_complex_nodes(self):
 def test_comparison_checker(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
+    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    space = FunctionSpace(domain, element)
 
-    u = TrialFunction(element)
-    v = TestFunction(element)
+    u = TrialFunction(space)
+    v = TestFunction(space)
 
     a = conditional(ge(abs(u), imag(v)), u, v)
     b = conditional(le(sqrt(abs(u)), imag(v)), as_ufl(1), as_ufl(1j))
@@ -159,8 +169,10 @@ def test_comparison_checker(self):
 def test_complex_degree_handling(self):
     cell = triangle
     element = FiniteElement("Lagrange", cell, 3)
+    domain = Mesh(VectorElement('Lagrange', cell, 1))
+    space = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
+    v = TestFunction(space)
 
     a = conj(v)
     b = imag(v)

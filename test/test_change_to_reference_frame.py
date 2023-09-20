@@ -1,6 +1,6 @@
 """Tests of the change to reference frame algorithm."""
 
-from ufl import Coefficient, FiniteElement, TensorElement, VectorElement, triangle
+from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, TensorElement, VectorElement, triangle
 from ufl.classes import Expr, ReferenceValue
 
 
@@ -14,25 +14,36 @@ def test_change_unmapped_form_arguments_to_reference_frame():
     V = VectorElement("CG", triangle, 1)
     T = TensorElement("CG", triangle, 1)
 
-    expr = Coefficient(U)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    u_space = FunctionSpace(domain, U)
+    v_space = FunctionSpace(domain, V)
+    t_space = FunctionSpace(domain, T)
+
+    expr = Coefficient(u_space)
     assert change_to_reference_frame(expr) == ReferenceValue(expr)
-    expr = Coefficient(V)
+    expr = Coefficient(v_space)
     assert change_to_reference_frame(expr) == ReferenceValue(expr)
-    expr = Coefficient(T)
+    expr = Coefficient(t_space)
     assert change_to_reference_frame(expr) == ReferenceValue(expr)
 
 
 def test_change_hdiv_form_arguments_to_reference_frame():
     V = FiniteElement("RT", triangle, 1)
 
-    expr = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    v_space = FunctionSpace(domain, V)
+
+    expr = Coefficient(v_space)
     assert change_to_reference_frame(expr) == ReferenceValue(expr)
 
 
 def test_change_hcurl_form_arguments_to_reference_frame():
     V = FiniteElement("RT", triangle, 1)
 
-    expr = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    v_space = FunctionSpace(domain, V)
+
+    expr = Coefficient(v_space)
     assert change_to_reference_frame(expr) == ReferenceValue(expr)
 
     '''
