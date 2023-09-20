@@ -122,10 +122,10 @@ class Measure(object):
 
         # Check that we either have a proper AbstractDomain or none
         if domain is not None:
-            _domain = as_domain(domain)
+            domain = as_domain(domain)
+            if not isinstance(domain, AbstractDomain):
+                raise ValueError("Invalid domain.")
         self._domain = domain
-        if not (self._domain is None or isinstance(self._domain, AbstractDomain)):
-            raise ValueError("Invalid domain.")
 
         # Store subdomain data
         self._subdomain_data = subdomain_data
@@ -230,7 +230,9 @@ class Measure(object):
         # Let syntax dx(domain) or dx(domain, metadata) mean integral
         # over entire domain.  To do this we need to hijack the first
         # argument:
-        if subdomain_id is not None and isinstance(subdomain_id, AbstractDomain):
+        if subdomain_id is not None and (
+            isinstance(subdomain_id, AbstractDomain) or hasattr(subdomain_id, "ufl_domain")
+        ):
             if domain is not None:
                 raise ValueError("Ambiguous: setting domain both as keyword argument and first argument.")
             subdomain_id, domain = "everywhere", subdomain_id
