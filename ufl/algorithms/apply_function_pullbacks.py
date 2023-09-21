@@ -134,6 +134,7 @@ def apply_single_function_pullbacks(r, element):
         g_components = []
         # For each unique piece in reference space, apply the appropriate pullback
         for offset, subelem in zip(offsets, elements):
+            sub_rsh = subelem.reference_value_shape
             rm = subelem.reference_value_size
             rsub = [rflat[offset + i] for i in range(rm)]
             rsub = as_tensor(numpy.asarray(rsub).reshape(sub_rsh))
