@@ -188,7 +188,21 @@ class FiniteElement(AbstractFiniteElement):
         reference_value_shape: _typing.Tuple[int, ...], mapping: str, sobolev_space: _SobolevSpace,
         component_map=None, sub_elements=[]
     ):
-        """Initialize basic finite element data."""
+        """Initialize a finite element.
+
+        This class should only be used for testing
+
+        Args:
+            family: The family name of the element
+            cell: The cell on which the element is defined
+            degree: The polynomial degree of the element
+            value_shape: The value shape of the element
+            reference_value_shape: The reference value shape of the element
+            mapping: The push forward map to use
+            sobolev_space: The Sobolev space containing this element
+            component_map: TODO
+            sub_elements: Sub elements of this element
+        """
         if component_map is None:
             self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
                           f"{reference_value_shape}, \"{mapping}\", {sobolev_space})")
@@ -293,8 +307,14 @@ class MixedElement(AbstractFiniteElement):
     """A mixed element."""
     __slots__ = ["_repr", "_str", "_subelements", "_cell"]
 
-    def __init__(self, subelements):
-        """Initialise."""
+    def __init__(self, subelements: _typing.List):
+        """Initialise a mixed element.
+
+        This class should only be used for testing
+
+        Args:
+            sub_elements: Sub elements of this element
+        """
         self._repr = f"ufl.finiteelement.MixedElement({subelements!r})"
         self._str = f"<MixedElement with {len(subelements)} subelement(s)>"
         self._subelements = [MixedElement(e) if isinstance(e, list) else e for e in subelements]
