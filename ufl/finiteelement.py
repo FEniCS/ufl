@@ -172,7 +172,6 @@ class AbstractFiniteElement(_abc.ABC):
         self._check_reference_component(i)
         return (i, self)
 
-    @property
     def flattened_sub_element_mapping(self):
         """Doc."""
         return None
@@ -282,7 +281,6 @@ class FiniteElement(AbstractFiniteElement):
                 s[j] = i
         return out
 
-    @property
     def flattened_sub_element_mapping(self) -> _typing.Union[None, _typing.List]:
         """Doc."""
         if self._component_map is None:
