@@ -276,7 +276,8 @@ def test_differentiation():
     # -- Action -- #
     Ac = Action(w, u)
     dAcdu = derivative(Ac, u)
-    assert dAcdu == action(adjoint(derivative(w, u)), u) + action(w, derivative(u, u))
+    assert dAcdu == (action(adjoint(derivative(w, u), derivatives_expanded=True), u, derivatives_expanded=True)
+                     + action(w, derivative(u, u), derivatives_expanded=True))
 
     dAcdu = expand_derivatives(dAcdu)
     # Since dw/du = 0
@@ -288,7 +289,7 @@ def test_differentiation():
     Fs = M + inner(u * uhat, v) * dx
     dFsdu = expand_derivatives(derivative(Fs, u))
     # Distribute differentiation over FormSum components
-    assert dFsdu == FormSum([inner(what * uhat, v) * dx, 1])
+    assert dFsdu == inner(what * uhat, v) * dx
 
 
 def test_zero_base_form_mult():

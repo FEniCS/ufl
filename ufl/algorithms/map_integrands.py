@@ -39,6 +39,11 @@ def map_integrands(function, form, only_integral_type=None):
         nonzero_components = [(component, w) for component, w in zip(mapped_components, form.weights())
                               # Catch ufl.Zero and ZeroBaseForm
                               if component != 0]
+
+        # Simplify case with one nonzero component and the corresponding weight is 1
+        if len(nonzero_components) == 1 and nonzero_components[0][1] == 1:
+            return nonzero_components[0][0]
+
         if all(not isinstance(component, BaseForm) for component, _ in nonzero_components):
             # Simplification of `BaseForm` objects may turn `FormSum` into a sum of `Expr` objects
             # that are not `BaseForm`, i.e. into a `Sum` object.
