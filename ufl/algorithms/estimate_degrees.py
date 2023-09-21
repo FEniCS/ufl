@@ -20,14 +20,6 @@ from ufl.form import Form
 from ufl.integral import Integral
 
 
-class IrreducibleInt(int):
-    """Degree type used by quadrilaterals.
-
-    Unlike int, values of this type are not decremeneted by _reduce_degree.
-    """
-    pass
-
-
 class SumDegreeEstimator(MultiFunction):
     """Sum degree estimator.
 
@@ -98,48 +90,34 @@ class SumDegreeEstimator(MultiFunction):
         return d
 
     def _reduce_degree(self, v, f):
-        """Apply to _reduce_degree.
+        """Reduce the estimated degree by one.
 
-        Reduces the estimated degree by one; used when derivatives
-        are taken. Does not reduce the degree when TensorProduct elements
-        or quadrilateral elements are involved.
+        This is used when derivatives are taken. It does not reduce the degree when
+        TensorProduct elements or quadrilateral elements are involved.
         """
-        if isinstance(f, int) and not isinstance(f, IrreducibleInt):
+        if isinstance(f, int) and v.ufl_domain().ufl_cell().cellname() not in ["quadrilateral", "hexahedron"]:
             return max(f - 1, 0)
         else:
-            # if tuple, do not reduce
             return f
 
     def _add_degrees(self, v, *ops):
         """Apply to _add_degrees."""
-        def add_single(ops):
-            if any(isinstance(o, IrreducibleInt) for o in ops):
-                return IrreducibleInt(sum(ops))
-            else:
-                return sum(ops)
-
         if any(isinstance(o, tuple) for o in ops):
             # we can add a slight hack here to handle things
             # like adding 0 to (3, 3) [by expanding
             # 0 to (0, 0) when making tempops]
             tempops = [foo if isinstance(foo, tuple) else (foo, foo) for foo in ops]
-            return tuple(map(add_single, zip(*tempops)))
+            return tuple(map(sum, zip(*tempops)))
         else:
-            return add_single(ops)
+            return sum(ops)
 
     def _max_degrees(self, v, *ops):
         """Apply to _max_degrees."""
-        def max_single(ops):
-            if any(isinstance(o, IrreducibleInt) for o in ops):
-                return IrreducibleInt(max(ops))
-            else:
-                return max(ops)
-
         if any(isinstance(o, tuple) for o in ops):
             tempops = [foo if isinstance(foo, tuple) else (foo, foo) for foo in ops]
-            return tuple(map(max_single, zip(*tempops)))
+            return tuple(map(max, zip(*tempops)))
         else:
-            return max_single(ops + (0,))
+            return max(ops + (0,))
 
     def _not_handled(self, v, *args):
         """Apply to _not_handled."""
