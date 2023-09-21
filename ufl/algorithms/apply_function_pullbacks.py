@@ -16,7 +16,6 @@ from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.domain import extract_unique_domain
 from ufl.tensors import as_tensor, as_vector
-from ufl.utils.sequences import product
 
 
 def sub_elements_with_mappings(element):
@@ -122,21 +121,20 @@ def apply_single_function_pullbacks(r, element):
         if mapping == "symmetries":
             subelem = element.sub_elements[0]
             fcm = element.flattened_sub_element_mapping
-            offsets = (product(subelem.reference_value_shape) * i for i in fcm)
+            offsets = (subelem.reference_value_size * i for i in fcm)
             elements = repeat(subelem)
         else:
             elements = sub_elements_with_mappings(element)
             # Python >= 3.8 has an initial keyword argument to
             # accumulate, but 3.7 does not.
             offsets = chain([0],
-                            accumulate(product(e.reference_value_shape)
+                            accumulate(e.reference_value_size
                                        for e in elements))
         rflat = as_vector([r[idx] for idx in numpy.ndindex(rsh)])
         g_components = []
         # For each unique piece in reference space, apply the appropriate pullback
         for offset, subelem in zip(offsets, elements):
-            sub_rsh = subelem.reference_value_shape
-            rm = product(sub_rsh)
+            rm = subelem.reference_value_size
             rsub = [rflat[offset + i] for i in range(rm)]
             rsub = as_tensor(numpy.asarray(rsub).reshape(sub_rsh))
             rmapped = apply_single_function_pullbacks(rsub, subelem)
