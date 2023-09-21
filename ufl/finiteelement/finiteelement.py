@@ -151,12 +151,6 @@ class FiniteElement(FiniteElementBase):
         self._short_name = short_name or family
         self._variant = variant
 
-        # Finite elements on quadrilaterals and hexahedrons have an IrreducibleInt as degree
-        if cell is not None:
-            if cell.cellname() in ["quadrilateral", "hexahedron"]:
-                from ufl.algorithms.estimate_degrees import IrreducibleInt
-                degree = IrreducibleInt(degree)
-
         # Type check variant
         if variant is not None and not isinstance(variant, str):
             raise ValueError("Illegal variant: must be string or None")
