@@ -120,7 +120,7 @@ def apply_single_function_pullbacks(r, element):
         rsh = r.ufl_shape
         if mapping == "symmetries":
             subelem = element.sub_elements[0]
-            fcm = element.flattened_sub_element_mapping
+            fcm = element.flattened_sub_element_mapping()
             offsets = (subelem.reference_value_size * i for i in fcm)
             elements = repeat(subelem)
         else:
