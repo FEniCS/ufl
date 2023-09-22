@@ -11,7 +11,7 @@ def camel2underscore(name):
     letters = []
     lastlower = False
     for i in name:
-        thislower = i.islower()
+        thislower = i.islower() or i.isdigit()
         if not thislower:
             # Don't insert _ between multiple upper case letters
             if lastlower:
