@@ -70,11 +70,19 @@ class AbstractFiniteElement(_abc.ABC):
 
     @_abc.abstractproperty
     def sub_elements(self) -> _typing.List:
-        """Return list of sub-elements."""
+        """Return list of sub-elements.
+
+        This function does not recurse: ie it does not extract the sub-elements
+        of sub-elements.
+        """
 
     @property
     def num_sub_elements(self) -> int:
-        """Return number of sub-elements."""
+        """Return number of sub-elements.
+
+        This function does not recurse: ie it does not count the sub-elements of
+        sub-elements.
+        """
         return len(self.sub_elements)
 
     def is_cellwise_constant(self) -> bool:
