@@ -126,52 +126,6 @@ class AbstractFiniteElement(_abc.ABC):
         """
         return {}
 
-    def _check_component(self, i):
-        """Check that component index i is valid."""
-        sh = self.value_shape
-        r = len(sh)
-        if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            raise ValueError(
-                f"Illegal component index {i} (value rank {len(i)}) "
-                f"for element (value rank {r}).")
-
-    def extract_subelement_component(self, i):
-        """Extract direct subelement index and subelement relative component index for a given component index."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_component(i)
-        return (None, i)
-
-    def extract_component(self, i):
-        """Recursively extract component index relative to a (simple) element."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_component(i)
-        return (i, self)
-
-    def _check_reference_component(self, i):
-        """Check that reference component index i is valid."""
-        sh = self.value_shape
-        r = len(sh)
-        if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            raise ValueError(
-                f"Illegal component index {i} (value rank {len(i)}) "
-                f"for element (value rank {r}).")
-
-    def extract_subelement_reference_component(self, i):
-        """Extract direct subelement index."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_reference_component(i)
-        return (None, i)
-
-    def extract_reference_component(self, i):
-        """Recursively extract reference component index."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_reference_component(i)
-        return (i, self)
-
     def flattened_sub_element_mapping(self):
         """Doc."""
         return None
@@ -365,38 +319,3 @@ class MixedElement(AbstractFiniteElement):
     def sub_elements(self) -> _typing.List:
         """Return list of sub-elements."""
         return self._subelements
-
-    # FIXME: functions below this comment are hacks
-    def extract_subelement_component(self, i) -> _typing.Union[None, _typing.List]:
-        """Extract direct subelement index and subelement relative component index for a given component index."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_component(i)
-
-        # Select between indexing modes
-        if len(self.value_shape) == 1:
-            # Indexing into a long vector of flattened subelement
-            # shapes
-            j, = i
-
-            # Find subelement for this index
-            for sub_element_index, e in enumerate(self.sub_elements):
-                sh = e.value_shape
-                si = product(sh)
-                if j < si:
-                    break
-                j -= si
-            if j < 0:
-                raise ValueError("Moved past last value component!")
-
-            # Convert index into a shape tuple
-            st = shape_to_strides(sh)
-            component = unflatten_index(j, st)
-        else:
-            # Indexing into a multidimensional tensor where subelement
-            # index is first axis
-            sub_element_index = i[0]
-            if sub_element_index >= len(self.sub_elements):
-                raise ValueError(f"Illegal component index (dimension {sub_element_index}).")
-            component = i[1:]
-        return (sub_element_index, component)

@@ -65,8 +65,11 @@ def split(v):
         # corresponding to beginning of range
         j = begin
         while True:
-            sub_i, j = element.extract_subelement_component(j)
-            element = element.sub_elements[sub_i]
+            for e in element.sub_elements:
+                if j < e.value_size:
+                    element = e
+                    break
+                j -= e.value_size
             # Then break when we find the subelement that covers the whole range
             if element.value_size == (end - begin):
                 break
