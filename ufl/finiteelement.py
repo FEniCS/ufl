@@ -78,6 +78,7 @@ class AbstractFiniteElement(_abc.ABC):
         return len(self.sub_elements)
 
     def is_cellwise_constant(self) -> bool:
+        """Return whether this element is spatially constant over each cell."""
         return self.embedded_degree == 0
 
     # Stuff below here needs thinking about
@@ -98,10 +99,6 @@ class AbstractFiniteElement(_abc.ABC):
     def __ne__(self, other) -> bool:
         """Compute element inequality for insertion in hashmaps."""
         return not self.__eq__(other)
-
-    def __lt__(self, other) -> bool:
-        """Compare elements by repr, to give a natural stable sorting."""
-        return repr(self) < repr(other)
 
     def symmetry(self) -> _typing.Dict:  # FIXME: different approach
         r"""Return the symmetry dict.
