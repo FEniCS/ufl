@@ -58,13 +58,6 @@ class AbstractFiniteElement(_abc.ABC):
     def reference_value_shape(self) -> _typing.Tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
 
-    @_abc.abstractproperty
-    def _is_globally_constant(self) -> bool:
-        """Check if the element is a global constant.
-
-        For Real elements, this should return True.
-        """
-
     @property
     def value_size(self) -> int:
         """Return the integer product of the value shape."""
@@ -83,6 +76,9 @@ class AbstractFiniteElement(_abc.ABC):
     def num_sub_elements(self) -> int:
         """Return number of sub-elements."""
         return len(self.sub_elements)
+
+    def is_cellwise_constant(self) -> bool:
+        return self.embedded_degree == 0
 
     # Stuff below here needs thinking about
     def _ufl_hash_data_(self) -> str:
@@ -190,14 +186,6 @@ class FiniteElement(AbstractFiniteElement):
         return self._reference_value_shape
 
     @property
-    def _is_globally_constant(self) -> bool:
-        """Check if the element is a global constant.
-
-        For Real elements, this should return True.
-        """
-        return self._family == "Real"
-
-    @property
     def sub_elements(self) -> _typing.List:
         """Return list of sub-elements."""
         return self._sub_elements
@@ -277,14 +265,6 @@ class MixedElement(AbstractFiniteElement):
     def reference_value_shape(self) -> _typing.Tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
         return (sum(e.reference_value_size for e in self._subelements), )
-
-    @property
-    def _is_globally_constant(self) -> bool:
-        """Check if the element is a global constant.
-
-        For Real elements, this should return True.
-        """
-        return all(e._is_globally_constant for e in self._subelements)
 
     @property
     def sub_elements(self) -> _typing.List:

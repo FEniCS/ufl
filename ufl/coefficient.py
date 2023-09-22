@@ -67,6 +67,10 @@ class BaseCoefficient(Counted):
         """Shortcut to get the finite element of the function space of this coefficient."""
         return self._ufl_function_space.ufl_element()
 
+    def is_cellwise_constant(self):
+        """Return whether this expression is spatially constant over each cell."""
+        return self.ufl_element().is_cellwise_constant()
+
     def ufl_domains(self):
         """Return tuple of domains related to this terminal object."""
         return self._ufl_function_space.ufl_domains()

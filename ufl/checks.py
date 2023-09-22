@@ -10,6 +10,9 @@
 
 from ufl.core.expr import Expr
 from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.sobolevspace import H1
+from ufl.core.terminal import FormArgument
+from ufl.geometry import GeometricQuantity
 
 
 def is_python_scalar(expression):
@@ -30,40 +33,7 @@ def is_true_ufl_scalar(expression):
 def is_cellwise_constant(expr):
     """Return whether expression is constant over a single cell."""
     # TODO: Implement more accurately considering e.g. derivatives?
-    return all(t.is_cellwise_constant() for t in traverse_unique_terminals(expr))
-
-
-def is_globally_constant(expr):
-    """Check if an expression is globally constant.
-
-    This includes spatially independent constant coefficients that
-    are not known before assembly time.
-    """
-    # TODO: This does not consider gradients of coefficients, so false
-    # negatives are possible.
-    # from ufl.argument import Argument
-    # from ufl.coefficient import Coefficient
-    from ufl.core.terminal import FormArgument
-    from ufl.geometry import GeometricQuantity
-    for e in traverse_unique_terminals(expr):
-        # Return False if any single terminal is not constant
-        if e._ufl_is_literal_:
-            # Accept literals first, they are the most common
-            # terminals
-            continue
-        elif isinstance(e, FormArgument):
-            # Accept only Real valued Arguments and Coefficients
-            if e.ufl_element()._is_globally_constant():
-                continue
-            else:
-                return False
-        elif isinstance(e, GeometricQuantity):
-            # Reject all geometric quantities, they all vary over
-            # cells
-            return False
-
-    # All terminals passed constant check
-    return True
+    return all(e.is_cellwise_constant() for e in traverse_unique_terminals(expr))
 
 
 def is_scalar_constant_expression(expr):
@@ -72,4 +42,19 @@ def is_scalar_constant_expression(expr):
         return True
     if expr.ufl_shape:
         return False
-    return is_globally_constant(expr)
+
+    # TODO: This does not consider gradients of coefficients, so false
+    # negatives are possible.
+    for e in traverse_unique_terminals(expr):
+        # Return False if any single terminal is not constant
+        if isinstance(e, FormArgument):
+            # Accept only globally constant Arguments and Coefficients
+            if e.ufl_element().embedded_degree > 0 or e.ufl_element() not in H1:
+                return False
+        elif isinstance(e, GeometricQuantity):
+            # Reject all geometric quantities, they all vary over
+            # cells
+            return False
+
+    # All terminals passed constant check
+    return True
