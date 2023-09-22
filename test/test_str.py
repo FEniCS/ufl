@@ -117,5 +117,5 @@ def test_str_list_matrix_with_zero():
 
 def test_str_element():
     elem = FiniteElement("Q", quadrilateral, 1, (), (), identity_pull_back, H1)
-    assert repr(elem) == "ufl.finiteelement.FiniteElement(\"Q\", quadrilateral, 1, (), (), \"identity\", H1)"
+    assert repr(elem) == "ufl.finiteelement.FiniteElement(\"Q\", quadrilateral, 1, (), (), IdentityPullBack(), H1)"
     assert str(elem) == "<Q1 on a quadrilateral>"

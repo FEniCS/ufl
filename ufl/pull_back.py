@@ -12,6 +12,10 @@ from ufl.core.multiindex import indices
 from ufl.domain import extract_unique_domain
 from ufl.tensors import as_tensor
 
+__all_classes__ = ["NonStandardPullBackException", "AbstractPullBack", "IdentityPullBack",
+                   "ContravariantPiola", "CovariantPiola", "L2Piola", "DoubleContravariantPiola",
+                   "DoubleCovariantPiola", "PhysicalPullBack", "CustomPullBack", "UndefinedPullBack"]
+
 
 class NonStandardPullBackException(BaseException):
     """Exception to raise if a map is non-standard."""
@@ -233,11 +237,11 @@ class UndefinedPullBack(AbstractPullBack):
 
 
 identity_pull_back = IdentityPullBack()
-covariant_poila = CovariantPiola()
-contravariant_poila = ContravariantPiola()
-l2_poila = L2Piola()
-double_covariant_poila = DoubleCovariantPiola()
-double_contravariant_poila = DoubleContravariantPiola()
+covariant_piola = CovariantPiola()
+contravariant_piola = ContravariantPiola()
+l2_piola = L2Piola()
+double_covariant_piola = DoubleCovariantPiola()
+double_contravariant_piola = DoubleContravariantPiola()
 physical_pull_back = PhysicalPullBack()
 custom_pull_back = CustomPullBack()
 undefined_pull_back = UndefinedPullBack()

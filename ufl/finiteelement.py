@@ -140,10 +140,10 @@ class FiniteElement(AbstractFiniteElement):
         """Initialize basic finite element data."""
         if component_map is None:
             self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
-                          f"{reference_value_shape}, \"{pull_back}\", {sobolev_space})")
+                          f"{reference_value_shape}, {pull_back}, {sobolev_space})")
         else:
             self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
-                          f"{reference_value_shape}, \"{pull_back}\", {sobolev_space}, component_map={component_map})")
+                          f"{reference_value_shape}, {pull_back}, {sobolev_space}, component_map={component_map})")
         self._str = f"<{family}{degree} on a {cell}>"
         self._family = family
         self._cell = cell

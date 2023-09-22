@@ -142,11 +142,13 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
                         W2 = FiniteElement(family, cell, degree, (d+1, ), (d+1, ), identity_pull_back, sobolev)
                         T = FiniteElement(family, cell, degree, (d, d), (d, d), identity_pull_back, sobolev)
                         if d == 2:
-                            S = FiniteElement(family, cell, degree, (2, 2), (3, ), identity_pull_back, sobolev, component_map={
+                            S = FiniteElement(family, cell, degree, (2, 2), (3, ),
+                                              identity_pull_back, sobolev, component_map={
                                 (0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2})
                         else:
                             assert d == 3
-                            S = FiniteElement(family, cell, degree, (3, 3), (6, ), identity_pull_back, sobolev, component_map={
+                            S = FiniteElement(family, cell, degree, (3, 3), (6, ),
+                                              identity_pull_back, sobolev, component_map={
                                 (0, 0): 0, (0, 1): 1, (0, 2): 2, (1, 0): 1, (1, 1): 3,
                                 (1, 2): 4, (2, 0): 2, (2, 1): 4, (2, 2): 5})
                         elements = [V, W, W2, T, S]
@@ -290,7 +292,8 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     def forms():
         for rep in range(nreps):
             for domain in domains:
-                V = FunctionSpace(domain, FiniteElement("Lagrange", domain.ufl_cell(), 2, (), (), identity_pull_back, H1))
+                V = FunctionSpace(domain, FiniteElement("Lagrange", domain.ufl_cell(), 2, (), (),
+                                  identity_pull_back, H1))
                 f = Coefficient(V, count=0)
                 v = TestFunction(V)
                 x = SpatialCoordinate(domain)

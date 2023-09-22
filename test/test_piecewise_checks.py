@@ -70,7 +70,8 @@ def affine_domains(request):
         tetrahedron,
     ]
     affine_domains = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
-                                         (cell.geometric_dimension(), ), identity_pull_back, H1)) for cell in affine_cells]
+                                         (cell.geometric_dimension(), ), identity_pull_back, H1))
+                      for cell in affine_cells]
 
     affine_domains_with_linear_coordinates = []
     for D in affine_domains:

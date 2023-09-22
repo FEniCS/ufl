@@ -4,11 +4,12 @@
 import pytest
 from mockobjects import MockMesh
 
-import ufl  # noqaL F401
+import ufl  # noqa: F401
 from ufl import (Cell, Coefficient, Constant, FunctionSpace, Mesh, ds, dS, dx, hexahedron, interval, quadrilateral,
                  tetrahedron, triangle)
 from ufl.algorithms import compute_form_data
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import IdentityPullBack  # noqa: F401
 from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
@@ -36,10 +37,12 @@ def test_domains_sort_by_name():
     # This ordering is rather arbitrary, but at least this shows sorting is
     # working
     domains1 = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
-                                   (cell.geometric_dimension(), ), identity_pull_back, H1), ufl_id=hash(cell.cellname()))
+                                   (cell.geometric_dimension(), ), identity_pull_back, H1),
+                     ufl_id=hash(cell.cellname()))
                 for cell in all_cells]
     domains2 = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
-                                   (cell.geometric_dimension(), ), identity_pull_back, H1), ufl_id=hash(cell.cellname()))
+                                   (cell.geometric_dimension(), ), identity_pull_back, H1),
+                     ufl_id=hash(cell.cellname()))
                 for cell in sorted(all_cells)]
     sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
                                                D.topological_dimension(),
@@ -154,7 +157,8 @@ def test_join_domains():
         Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1), ufl_id=8, cargo=mesh8)]))
     assert 2 == len(join_domains([
         Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1), ufl_id=7, cargo=mesh7),
-        Mesh(FiniteElement("Lagrange", quadrilateral, 1, (2, ), (2, ), identity_pull_back, H1), ufl_id=8, cargo=mesh8)]))
+        Mesh(FiniteElement("Lagrange", quadrilateral, 1, (2, ), (2, ), identity_pull_back, H1),
+             ufl_id=8, cargo=mesh8)]))
     # Geometric dimensions must match
     with pytest.raises(BaseException):
         join_domains([

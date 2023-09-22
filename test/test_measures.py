@@ -70,7 +70,8 @@ def test_foo():
     tdim = 2
     cell = Cell("triangle", gdim)
     mymesh = MockMesh(9)
-    mydomain = Mesh(FiniteElement("Lagrange", cell, 1, (gdim, ), (gdim, ), identity_pull_back, H1), ufl_id=9, cargo=mymesh)
+    mydomain = Mesh(FiniteElement("Lagrange", cell, 1, (gdim, ), (gdim, ), identity_pull_back, H1),
+                    ufl_id=9, cargo=mymesh)
 
     assert cell.topological_dimension() == tdim
     assert cell.geometric_dimension() == gdim

@@ -18,6 +18,8 @@ symbolic reasoning about the spaces in which finite elements lie.
 from functools import total_ordering
 from math import inf, isinf
 
+__all_classes__ = ["SobolevSpace", "DirectionalSobolevSpace"]
+
 
 @total_ordering
 class SobolevSpace(object):

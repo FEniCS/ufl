@@ -51,7 +51,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
         domain = extract_unique_domain(o)
-        if isinstance(domain.ufl_coordinate_element().pull_back, IdentityPullBack):
+        if not isinstance(domain.ufl_coordinate_element().pull_back, IdentityPullBack):
             raise ValueError("Piola mapped coordinates are not implemented.")
         # Note: No longer supporting domain.coordinates(), always
         # preserving SpatialCoordinate object.  However if Jacobians
@@ -152,7 +152,7 @@ class GeometryLoweringApplier(MultiFunction):
         """
         if self._preserve_types[o._ufl_typecode_]:
             return o
-        if isinstance(extract_unique_domain(o).ufl_coordinate_element().pull_back, IdentityPullBack):
+        if not isinstance(extract_unique_domain(o).ufl_coordinate_element().pull_back, IdentityPullBack):
             raise ValueError("Piola mapped coordinates are not implemented.")
         # No longer supporting domain.coordinates(), always preserving
         # SpatialCoordinate object.
