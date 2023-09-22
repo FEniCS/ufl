@@ -25,12 +25,3 @@ def flatten_multiindex(ii, strides):
     for c, s in zip(ii, strides):
         i += c * s
     return i
-
-
-def unflatten_index(i, strides):
-    """Return the multiindex corresponding to the given flat index."""
-    ii = []
-    for s in strides:
-        ii.append(i // s)
-        i %= s
-    return tuple(ii)

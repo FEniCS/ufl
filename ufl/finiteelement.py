@@ -14,7 +14,6 @@ import abc as _abc
 import typing as _typing
 
 from ufl.sobolevspace import SobolevSpace as _SobolevSpace
-from ufl.utils.indexflattening import shape_to_strides, unflatten_index
 from ufl.utils.sequences import product
 from ufl.cell import Cell as _Cell
 
