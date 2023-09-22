@@ -206,10 +206,6 @@ class Expr(object, metaclass=UFLType):
 
         # "__str__",
         # "__repr__",
-
-        # TODO: Add checks for methods/properties of terminals only?
-        # Required for terminals:
-        # "is_cellwise_constant", # TODO: Rename to ufl_is_cellwise_constant?
     )
 
     # --- Global variables for collecting all types ---
