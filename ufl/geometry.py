@@ -9,6 +9,7 @@
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain, extract_unique_domain
+from ufl.sobolevspace import H1
 
 """
 Possible coordinate bootstrapping:
@@ -675,7 +676,8 @@ class FacetNormal(GeometricFacetQuantity):
         # facets. Seems like too much work to fix right now.  Only
         # true for a piecewise linear coordinate field with simplex
         # _facets_.
-        is_piecewise_linear = self._domain.ufl_coordinate_element()._is_linear
+        ce = self._domain.ufl_coordinate_element()
+        is_piecewise_linear = ce.embedded_degree <= 1 and ce in H1
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
 

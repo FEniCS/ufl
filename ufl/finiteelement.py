@@ -69,10 +69,6 @@ class AbstractFiniteElement(_abc.ABC):
     def _is_cellwise_constant(self) -> bool:
         """Check if the basis functions of this element are constant over each cell."""
 
-    @_abc.abstractproperty
-    def _is_linear(self) -> bool:
-        """Check if the element is Lagrange degree 1."""
-
     @property
     def value_size(self) -> int:
         """Return the integer product of the value shape."""
@@ -211,11 +207,6 @@ class FiniteElement(AbstractFiniteElement):
         return self._is_globally_constant or self._degree == 0
 
     @property
-    def _is_linear(self) -> bool:
-        """Check if the element is Lagrange degree 1."""
-        return self._family == "Lagrange" and self._degree == 1
-
-    @property
     def sub_elements(self) -> _typing.List:
         """Return list of sub-elements."""
         return self._sub_elements
@@ -308,11 +299,6 @@ class MixedElement(AbstractFiniteElement):
     def _is_cellwise_constant(self) -> bool:
         """Return whether the basis functions of this element are constant over each cell."""
         return all(e._is_cellwise_constant for e in self._subelements)
-
-    @property
-    def _is_linear(self) -> bool:
-        """Check if the element is Lagrange degree 1."""
-        return all(e._is_linear for e in self._subelements)
 
     @property
     def sub_elements(self) -> _typing.List:
