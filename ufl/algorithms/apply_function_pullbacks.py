@@ -11,20 +11,19 @@ from itertools import accumulate, chain, repeat
 import numpy
 
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
-from ufl.core.multiindex import indices
+from ufl.classes import ReferenceValue
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
-from ufl.domain import extract_unique_domain
 from ufl.tensors import as_tensor, as_vector
+from ufl.pull_back import NonStandardPullBackException
 
 
 def sub_elements_with_mappings(element):
     """Return an ordered list of the largest subelements that have a defined mapping."""
-    if element.mapping != "undefined":
+    if element.pull_back != "undefined":
         return [element]
     elements = []
     for subelm in element.sub_elements:
-        if subelm.mapping != "undefined":
+        if subelm.pull_back != "undefined":
             elements.append(subelm)
         else:
             elements.extend(sub_elements_with_mappings(subelm))
@@ -42,49 +41,7 @@ def apply_known_single_pullback(r, element):
     # the latter may be a ListTensor or similar, rather than a
     # Coefficient/Argument (in the case of mixed elements, see below
     # in apply_single_function_pullbacks), to which we cannot apply ReferenceValue
-    mapping = element.mapping
-    domain = extract_unique_domain(r)
-    if mapping == "physical":
-        return r
-    elif mapping == "identity" or mapping == "custom":
-        return r
-    elif mapping == "contravariant Piola":
-        J = Jacobian(domain)
-        detJ = JacobianDeterminant(J)
-        transform = (1.0 / detJ) * J
-        # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
-        *k, i, j = indices(len(r.ufl_shape) + 1)
-        kj = (*k, j)
-        f = as_tensor(transform[i, j] * r[kj], (*k, i))
-        return f
-    elif mapping == "covariant Piola":
-        K = JacobianInverse(domain)
-        # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
-        *k, i, j = indices(len(r.ufl_shape) + 1)
-        kj = (*k, j)
-        f = as_tensor(K[j, i] * r[kj], (*k, i))
-        return f
-    elif mapping == "L2 Piola":
-        detJ = JacobianDeterminant(domain)
-        return r / detJ
-    elif mapping == "double contravariant Piola":
-        J = Jacobian(domain)
-        detJ = JacobianDeterminant(J)
-        transform = (1.0 / detJ) * J
-        # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
-        *k, i, j, m, n = indices(len(r.ufl_shape) + 2)
-        kmn = (*k, m, n)
-        f = as_tensor((1.0 / detJ)**2 * J[i, m] * r[kmn] * J[j, n], (*k, i, j))
-        return f
-    elif mapping == "double covariant Piola":
-        K = JacobianInverse(domain)
-        # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
-        *k, i, j, m, n = indices(len(r.ufl_shape) + 2)
-        kmn = (*k, m, n)
-        f = as_tensor(K[m, i] * r[kmn] * K[n, j], (*k, i, j))
-        return f
-    else:
-        raise ValueError(f"Unsupported mapping: {mapping}.")
+    return element.pull_back.apply(r)
 
 
 def apply_single_function_pullbacks(r, element):
@@ -97,15 +54,12 @@ def apply_single_function_pullbacks(r, element):
     Returns:
         a pulled back expression.
     """
-    mapping = element.mapping
+    mapping = element.pull_back
     if r.ufl_shape != element.reference_value_shape:
         raise ValueError(
             f"Expecting reference space expression with shape '{element.reference_value_shape}', "
             f"got '{r.ufl_shape}'")
-    if mapping in {"physical", "identity",
-                   "contravariant Piola", "covariant Piola",
-                   "double contravariant Piola", "double covariant Piola",
-                   "L2 Piola", "custom"}:
+    try:
         # Base case in recursion through elements. If the element
         # advertises a mapping we know how to handle, do that
         # directly.
@@ -114,7 +68,8 @@ def apply_single_function_pullbacks(r, element):
             raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', "
                              f"got '{f.ufl_shape}'")
         return f
-    elif mapping in {"symmetries", "undefined"}:
+    except NonStandardPullBackException:
+        # TODO: Move this code to pull_back.py
         # Need to pull back each unique piece of the reference space thing
         gsh = element.value_shape
         rsh = r.ufl_shape

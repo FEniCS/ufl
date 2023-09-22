@@ -14,6 +14,9 @@ import abc as _abc
 import typing as _typing
 
 from ufl.sobolevspace import SobolevSpace as _SobolevSpace
+from ufl.pull_back import AbstractPullBack as _AbstractPullBack
+from ufl.pull_back import UndefinedPullBack as _UndefinedPullBack
+from ufl.pull_back import IdentityPullBack as _IdentityPullBack
 from ufl.utils.sequences import product
 from ufl.cell import Cell as _Cell
 
@@ -39,8 +42,8 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the underlying Sobolev space."""
 
     @_abc.abstractproperty
-    def mapping(self) -> str:
-        """Return the mapping type for this element."""
+    def pull_back(self) -> _AbstractPullBack:
+        """Return the pull back map for this element."""
 
     @_abc.abstractproperty
     def embedded_degree(self) -> int:
@@ -126,28 +129,28 @@ class AbstractFiniteElement(_abc.ABC):
 class FiniteElement(AbstractFiniteElement):
     """A directly defined finite element."""
     __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape",
-                 "_reference_value_shape", "_mapping", "_sobolev_space", "_component_map",
+                 "_reference_value_shape", "_pull_back", "_sobolev_space", "_component_map",
                  "_sub_elements")
 
     def __init__(
         self, family: str, cell: _Cell, degree: int, value_shape: _typing.Tuple[int, ...],
-        reference_value_shape: _typing.Tuple[int, ...], mapping: str, sobolev_space: _SobolevSpace,
-        component_map=None, sub_elements=[]
+        reference_value_shape: _typing.Tuple[int, ...], pull_back: _AbstractPullBack,
+        sobolev_space: _SobolevSpace, component_map=None, sub_elements=[]
     ):
         """Initialize basic finite element data."""
         if component_map is None:
             self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
-                          f"{reference_value_shape}, \"{mapping}\", {sobolev_space})")
+                          f"{reference_value_shape}, \"{pull_back}\", {sobolev_space})")
         else:
             self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
-                          f"{reference_value_shape}, \"{mapping}\", {sobolev_space}, component_map={component_map})")
+                          f"{reference_value_shape}, \"{pull_back}\", {sobolev_space}, component_map={component_map})")
         self._str = f"<{family}{degree} on a {cell}>"
         self._family = family
         self._cell = cell
         self._degree = degree
         self._value_shape = value_shape
         self._reference_value_shape = reference_value_shape
-        self._mapping = mapping
+        self._pull_back = pull_back
         self._sobolev_space = sobolev_space
         self._component_map = component_map
         self._sub_elements = sub_elements
@@ -166,9 +169,9 @@ class FiniteElement(AbstractFiniteElement):
         return self._sobolev_space
 
     @property
-    def mapping(self) -> str:
-        """Return the mapping type for this element."""
-        return self._mapping
+    def pull_back(self) -> _AbstractPullBack:
+        """Return the pull back map for this element."""
+        return self._pull_back
 
     @property
     def embedded_degree(self) -> int:
@@ -244,12 +247,12 @@ class MixedElement(AbstractFiniteElement):
         return max(e.sobolev_space for e in self._subelements)
 
     @property
-    def mapping(self) -> str:
-        """Return the mapping type for this element."""
-        if all(e.mapping == "identity" for e in self._subelements):
-            return "identity"
+    def pull_back(self) -> _AbstractPullBack:
+        """Return the pull back map for this element."""
+        if all(isinstance(e.pull_back, _IdentityPullBack) for e in self._subelements):
+            return _IdentityPullBack()
         else:
-            return "undefined"
+            return _UndefinedPullBack()
 
     @property
     def embedded_degree(self) -> int:
