@@ -5,14 +5,15 @@ from ufl import (Coefficient, FacetNormal, FunctionSpace, Mesh, SpatialCoordinat
 from ufl.algorithms.check_arities import ArityMismatch
 from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 
 def test_check_arities():
     # Code from bitbucket issue #49
     cell = tetrahedron
-    D = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
-    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3, ), (3, ), "identity", H1))
+    D = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), identity_pull_back, H1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3, ), (3, ), identity_pull_back, H1))
     dv = TestFunction(V)
     du = TrialFunction(V)
 
@@ -35,8 +36,8 @@ def test_check_arities():
 
 def test_complex_arities():
     cell = tetrahedron
-    D = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
-    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3, ), (3, ), "identity", H1))
+    D = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), identity_pull_back, H1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3, ), (3, ), identity_pull_back, H1))
     v = TestFunction(V)
     u = TrialFunction(V)
 

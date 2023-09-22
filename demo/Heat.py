@@ -22,11 +22,12 @@
 #
 from ufl import Coefficient, Constant, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, triangle
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 cell = triangle
-element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+element = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)  # Test function

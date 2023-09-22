@@ -6,6 +6,7 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from abc import ABC, abstractmethod
+
 from ufl.core.expr import Expr
 from ufl.core.multiindex import indices
 from ufl.domain import extract_unique_domain

@@ -8,6 +8,7 @@ from ufl import (Argument, Coefficient, FunctionSpace, Identity, Mesh, SpatialCo
                  triangle)
 from ufl.constantvalue import as_ufl
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 
@@ -42,7 +43,7 @@ def testIdentity():
 
 def testCoords():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     s = x[0] + x[1]
     e = s((5, 7))
@@ -52,8 +53,8 @@ def testCoords():
 
 def testFunction1():
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    element = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     s = 3 * f
@@ -64,8 +65,8 @@ def testFunction1():
 
 def testFunction2():
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    element = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
 
@@ -79,8 +80,8 @@ def testFunction2():
 
 def testArgument2():
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    element = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, element)
     f = Argument(space, 2)
 
@@ -94,7 +95,7 @@ def testArgument2():
 
 def testAlgebra():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     s = 3 * (x[0] + x[1]) - 7 + x[0] ** (x[1] / 2)
     e = s((5, 7))
@@ -104,7 +105,7 @@ def testAlgebra():
 
 def testIndexSum():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     i, = indices(1)
     s = x[i] * x[i]
@@ -115,7 +116,7 @@ def testIndexSum():
 
 def testIndexSum2():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     ident = Identity(cell.geometric_dimension())
     i, j = indices(2)
@@ -127,7 +128,7 @@ def testIndexSum2():
 
 
 def testMathFunctions():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)[0]
 
     s = sin(x)
@@ -162,7 +163,7 @@ def testMathFunctions():
 
 
 def testListTensor():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x, y = SpatialCoordinate(domain)
 
     m = as_matrix([[x, y], [-y, -x]])
@@ -179,7 +180,7 @@ def testListTensor():
 
 
 def testComponentTensor1():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     m = as_vector(x[i], i)
 
@@ -190,7 +191,7 @@ def testComponentTensor1():
 
 
 def testComponentTensor2():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xx = outer(x, x)
 
@@ -203,7 +204,7 @@ def testComponentTensor2():
 
 
 def testComponentTensor3():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xx = outer(x, x)
 
@@ -216,8 +217,8 @@ def testComponentTensor3():
 
 
 def testCoefficient():
-    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    V = FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, V)
     f = Coefficient(space)
     e = f ** 2
@@ -228,8 +229,8 @@ def testCoefficient():
 
 
 def testCoefficientDerivative():
-    V = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    V = FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, V)
     f = Coefficient(space)
     e = f.dx(0) ** 2 + f.dx(1) ** 2
@@ -250,7 +251,7 @@ def testCoefficientDerivative():
 
 
 def test_dot():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     s = dot(x, 2 * x)
     e = s((5, 7))
@@ -259,7 +260,7 @@ def test_dot():
 
 
 def test_inner():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xx = as_matrix(((2 * x[0], 3 * x[0]), (2 * x[1], 3 * x[1])))
     s = inner(xx, 2 * xx)
@@ -269,7 +270,7 @@ def test_inner():
 
 
 def test_outer():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xx = outer(outer(x, x), as_vector((2, 3)))
     s = inner(xx, 2 * xx)
@@ -279,7 +280,7 @@ def test_outer():
 
 
 def test_cross():
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xv = (3, 5, 7)
 
@@ -312,7 +313,7 @@ def test_cross():
 
 
 def xtest_dev():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xv = (5, 7)
     xx = outer(x, x)
@@ -324,7 +325,7 @@ def xtest_dev():
 
 
 def test_skew():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xv = (5, 7)
     xx = outer(x, x)
@@ -336,7 +337,7 @@ def test_skew():
 
 
 def test_sym():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xv = (5, 7)
     xx = outer(x, x)
@@ -348,7 +349,7 @@ def test_sym():
 
 
 def test_tr():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xv = (5, 7)
     xx = outer(x, x)
@@ -359,7 +360,7 @@ def test_tr():
 
 
 def test_det2D():
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     xv = (5, 7)
     a, b = 6.5, -4

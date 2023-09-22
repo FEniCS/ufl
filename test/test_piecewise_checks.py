@@ -9,6 +9,7 @@ from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Cons
 from ufl.checks import is_cellwise_constant
 from ufl.classes import CellCoordinate, FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1, L2, HInf
 
 
@@ -22,14 +23,14 @@ def get_domains():
         hexahedron,
     ]
     return [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
-                               (cell.geometric_dimension(), ), "identity", H1)) for cell in all_cells]
+                               (cell.geometric_dimension(), ), identity_pull_back, H1)) for cell in all_cells]
 
 
 def get_nonlinear():
     domains_with_quadratic_coordinates = []
     for D in get_domains():
         V = FiniteElement("Lagrange", D.ufl_cell(), 2, (D.ufl_cell().geometric_dimension(), ),
-                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+                          (D.ufl_cell().geometric_dimension(), ), identity_pull_back, H1)
         E = Mesh(V)
         domains_with_quadratic_coordinates.append(E)
 
@@ -53,7 +54,7 @@ def domains(request):
     domains_with_linear_coordinates = []
     for D in domains:
         V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
-                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+                          (D.ufl_cell().geometric_dimension(), ), identity_pull_back, H1)
         E = Mesh(V)
         domains_with_linear_coordinates.append(E)
 
@@ -69,12 +70,12 @@ def affine_domains(request):
         tetrahedron,
     ]
     affine_domains = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
-                                         (cell.geometric_dimension(), ), "identity", H1)) for cell in affine_cells]
+                                         (cell.geometric_dimension(), ), identity_pull_back, H1)) for cell in affine_cells]
 
     affine_domains_with_linear_coordinates = []
     for D in affine_domains:
         V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
-                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+                          (D.ufl_cell().geometric_dimension(), ), identity_pull_back, H1)
         E = Mesh(V)
         affine_domains_with_linear_coordinates.append(E)
 
@@ -93,11 +94,11 @@ def affine_facet_domains(request):
     ]
     affine_facet_domains = [Mesh(FiniteElement(
         "Lagrange", cell, 1, (cell.geometric_dimension(), ),
-        (cell.geometric_dimension(), ), "identity", H1)) for cell in affine_facet_cells]
+        (cell.geometric_dimension(), ), identity_pull_back, H1)) for cell in affine_facet_cells]
     affine_facet_domains_with_linear_coordinates = []
     for D in affine_facet_domains:
         V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
-                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+                          (D.ufl_cell().geometric_dimension(), ), identity_pull_back, H1)
         E = Mesh(V)
         affine_facet_domains_with_linear_coordinates.append(E)
 
@@ -115,11 +116,11 @@ def nonaffine_domains(request):
     ]
     nonaffine_domains = [Mesh(FiniteElement(
         "Lagrange", cell, 1, (cell.geometric_dimension(), ),
-        (cell.geometric_dimension(), ), "identity", H1)) for cell in nonaffine_cells]
+        (cell.geometric_dimension(), ), identity_pull_back, H1)) for cell in nonaffine_cells]
     nonaffine_domains_with_linear_coordinates = []
     for D in nonaffine_domains:
         V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
-                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+                          (D.ufl_cell().geometric_dimension(), ), identity_pull_back, H1)
         E = Mesh(V)
         nonaffine_domains_with_linear_coordinates.append(E)
 
@@ -136,11 +137,11 @@ def nonaffine_facet_domains(request):
     ]
     nonaffine_facet_domains = [Mesh(FiniteElement(
         "Lagrange", cell, 1, (cell.geometric_dimension(), ),
-        (cell.geometric_dimension(), ), "identity", H1)) for cell in nonaffine_facet_cells]
+        (cell.geometric_dimension(), ), identity_pull_back, H1)) for cell in nonaffine_facet_cells]
     nonaffine_facet_domains_with_linear_coordinates = []
     for D in nonaffine_facet_domains:
         V = FiniteElement("Lagrange", D.ufl_cell(), 1, (D.ufl_cell().geometric_dimension(), ),
-                          (D.ufl_cell().geometric_dimension(), ), "identity", H1)
+                          (D.ufl_cell().geometric_dimension(), ), identity_pull_back, H1)
         E = Mesh(V)
         nonaffine_facet_domains_with_linear_coordinates.append(E)
 
@@ -175,7 +176,7 @@ def test_coordinates_never_cellwise_constant(domains):
 
 def test_coordinates_never_cellwise_constant_vertex():
     # The only exception here:
-    domains = Mesh(FiniteElement("Lagrange", Cell("vertex", 3), 1, (3, ), (3, ), "identity", H1))
+    domains = Mesh(FiniteElement("Lagrange", Cell("vertex", 3), 1, (3, ), (3, ), identity_pull_back, H1))
     assert domains.ufl_cell().cellname() == "vertex"
     e = SpatialCoordinate(domains)
     assert is_cellwise_constant(e)
@@ -232,14 +233,14 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
     e = Constant(domains_not_linear)
     assert is_cellwise_constant(e)
 
-    V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 0, (), (), "identity", L2)
+    V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 0, (), (), identity_pull_back, L2)
     d = domains_not_linear.ufl_cell().geometric_dimension()
-    domain = Mesh(FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d, ), (d, ), identity_pull_back, H1))
     space = FunctionSpace(domain, V)
     e = Coefficient(space)
     assert is_cellwise_constant(e)
 
-    V = FiniteElement("Real", domains_not_linear.ufl_cell(), 0, (), (), "identity", HInf)
+    V = FiniteElement("Real", domains_not_linear.ufl_cell(), 0, (), (), identity_pull_back, HInf)
     space = FunctionSpace(domain, V)
     e = Coefficient(space)
     assert is_cellwise_constant(e)
@@ -253,9 +254,9 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
 
 
 def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
-    V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 1, (), (), "identity", L2)
+    V = FiniteElement("Discontinuous Lagrange", domains_not_linear.ufl_cell(), 1, (), (), identity_pull_back, L2)
     d = domains_not_linear.ufl_cell().geometric_dimension()
-    domain = Mesh(FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d, ), (d, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d, ), (d, ), identity_pull_back, H1))
     space = FunctionSpace(domain, V)
     e = Coefficient(space)
     assert not is_cellwise_constant(e)

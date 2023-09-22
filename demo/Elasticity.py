@@ -5,10 +5,11 @@
 #
 from ufl import FunctionSpace, Mesh, TestFunction, TrialFunction, dx, grad, inner, tetrahedron
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
-element = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1)
-domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), "identity", H1))
+element = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), identity_pull_back, H1)
+domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), identity_pull_back, H1))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)

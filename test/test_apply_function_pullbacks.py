@@ -5,6 +5,7 @@ from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullba
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
 from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pull_back import contravariant_piola, covariant_piola, identity_pull_back, l2_piola
 from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
 
 
@@ -34,19 +35,19 @@ def check_single_function_pullback(g, mappings):
 def test_apply_single_function_pullbacks_triangle3d():
     triangle3d = Cell("triangle", geometric_dimension=3)
     cell = triangle3d
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), identity_pull_back, H1))
 
-    UL2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), "L2 Piola", L2)
-    U0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", L2)
-    U = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    V = FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1)
-    Vd = FiniteElement("Raviart-Thomas", cell, 1, (3, ), (2, ), "contravariant Piola", HDiv)
-    Vc = FiniteElement("N1curl", cell, 1, (3, ), (2, ), "covariant Piola", HCurl)
-    T = FiniteElement("Lagrange", cell, 1, (3, 3), (3, 3), "identity", H1)
+    UL2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), l2_piola, L2)
+    U0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), identity_pull_back, L2)
+    U = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+    V = FiniteElement("Lagrange", cell, 1, (3, ), (3, ), identity_pull_back, H1)
+    Vd = FiniteElement("Raviart-Thomas", cell, 1, (3, ), (2, ), contravariant_piola, HDiv)
+    Vc = FiniteElement("N1curl", cell, 1, (3, ), (2, ), covariant_piola, HCurl)
+    T = FiniteElement("Lagrange", cell, 1, (3, 3), (3, 3), identity_pull_back, H1)
     S = FiniteElement("Lagrange", cell, 1, (3, 3), (6, ), "symmetries", H1, component_map={
         (0, 0): 0, (1, 0): 1, (2, 0): 2, (0, 1): 1, (1, 1): 3, (2, 1): 4, (0, 2): 2, (1, 2): 4, (2, 2): 5
     }, sub_elements=[
-        FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+        FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
         for _ in range(6)])
     # (0, 2)-symmetric tensors
     COV2T = FiniteElement("Regge", cell, 0, (3, 3), (2, 2), "double covariant Piola", HEin)
@@ -236,18 +237,18 @@ def test_apply_single_function_pullbacks_triangle3d():
 
 def test_apply_single_function_pullbacks_triangle():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
 
-    Ul2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), "L2 Piola", L2)
-    U = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    V = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
-    Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), (2, ), "contravariant Piola", HDiv)
-    Vc = FiniteElement("N1curl", cell, 1, (2, ), (2, ), "covariant Piola", HCurl)
-    T = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), "identity", H1)
+    Ul2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), l2_piola, L2)
+    U = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+    V = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1)
+    Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), (2, ), contravariant_piola, HDiv)
+    Vc = FiniteElement("N1curl", cell, 1, (2, ), (2, ), covariant_piola, HCurl)
+    T = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), identity_pull_back, H1)
     S = FiniteElement("Lagrange", cell, 1, (2, 2), (3, ), "symmetries", H1, component_map={
         (0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2
     }, sub_elements=[
-        FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+        FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
         for i in range(3)])
 
     Uml2 = MixedElement([Ul2, Ul2])

@@ -3,21 +3,22 @@ __date__ = "2009-03-14 -- 2009-03-14"
 
 from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, as_vector, product, split, triangle
 from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 
 def test_split(self):
     cell = triangle
     d = cell.geometric_dimension()
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1))
-    f = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    v = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), "identity", H1,
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1))
+    f = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+    v = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1,
                       sub_elements=[f for _ in range(d)])
-    w = FiniteElement("Lagrange", cell, 1, (d+1, ), (d+1, ), "identity", H1,
+    w = FiniteElement("Lagrange", cell, 1, (d+1, ), (d+1, ), identity_pull_back, H1,
                       sub_elements=[f for _ in range(d + 1)])
-    t = FiniteElement("Lagrange", cell, 1, (d, d), (d, d), "identity", H1,
+    t = FiniteElement("Lagrange", cell, 1, (d, d), (d, d), identity_pull_back, H1,
                       sub_elements=[f for _ in range(d ** 2)])
-    s = FiniteElement("Lagrange", cell, 1, (2, 2), (3, ), "identity", H1,
+    s = FiniteElement("Lagrange", cell, 1, (2, 2), (3, ), identity_pull_back, H1,
                       component_map={(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2},
                       sub_elements=[f for _ in range(3)])
     m = MixedElement([f, v, w, t, s, s])

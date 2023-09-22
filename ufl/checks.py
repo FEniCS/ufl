@@ -9,10 +9,10 @@
 # Modified by Anders Logg, 2008-2009
 
 from ufl.core.expr import Expr
-from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.sobolevspace import H1
 from ufl.core.terminal import FormArgument
+from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.geometry import GeometricQuantity
+from ufl.sobolevspace import H1
 
 
 def is_python_scalar(expression):

@@ -31,8 +31,8 @@ from ufl.domain import extract_unique_domain
 from ufl.form import Form, ZeroBaseForm
 from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
                            sign, sin, sinh, sqrt)
+from ufl.pull_back import CustomPullBack, IdentityPullBack, PhysicalPullBack
 from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, unwrap_list_tensor
-from ufl.pull_back import IdentityPullBack, CustomPullBack, PhysicalPullBack
 
 # TODO: Add more rulesets?
 # - DivRuleset

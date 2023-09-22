@@ -13,23 +13,24 @@ from ufl.algorithms.analysis import (extract_arguments, extract_arguments_and_co
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.core.interpolate import Interpolate
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def domain_2d():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
 
 
 @pytest.fixture
 def V1(domain_2d):
-    f1 = FiniteElement("CG", triangle, 1, (), (), "identity", H1)
+    f1 = FiniteElement("CG", triangle, 1, (), (), identity_pull_back, H1)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
 def V2(domain_2d):
-    f1 = FiniteElement("CG", triangle, 2, (), (), "identity", H1)
+    f1 = FiniteElement("CG", triangle, 2, (), (), identity_pull_back, H1)
     return FunctionSpace(domain_2d, f1)
 
 

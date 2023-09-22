@@ -19,11 +19,12 @@
 # tensor-weighted Poisson's equation.
 from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, dx, grad, inner, triangle
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1, L2
 
-P1 = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-P0 = FiniteElement("Discontinuous Lagrange", triangle, 0, (2, 2), (2, 2), "identity", L2)
-domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+P1 = FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
+P0 = FiniteElement("Discontinuous Lagrange", triangle, 0, (2, 2), (2, 2), identity_pull_back, L2)
+domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
 p1_space = FunctionSpace(domain, P1)
 p0_space = FunctionSpace(domain, P0)
 

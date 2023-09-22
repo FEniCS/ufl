@@ -25,8 +25,8 @@ from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.domain import extract_unique_domain
 from ufl.measure import custom_integral_types, point_integral_types
 from ufl.operators import conj, max_value, min_value, real, sqrt
-from ufl.tensors import as_tensor, as_vector
 from ufl.pull_back import IdentityPullBack
+from ufl.tensors import as_tensor, as_vector
 
 
 class GeometryLoweringApplier(MultiFunction):

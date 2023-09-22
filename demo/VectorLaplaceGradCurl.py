@@ -20,6 +20,7 @@
 # elements.
 from ufl import Coefficient, FunctionSpace, Mesh, TestFunctions, TrialFunctions, curl, dx, grad, inner, tetrahedron
 from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pull_back import covariant_piola, identity_pull_back
 from ufl.sobolevspace import H1, HCurl
 
 
@@ -37,12 +38,12 @@ def HodgeLaplaceGradCurl(space, fspace):
 cell = tetrahedron
 order = 1
 
-GRAD = FiniteElement("Lagrange", cell, order, (), (), "identity", H1)
-CURL = FiniteElement("N1curl", cell, order, (3, ), (3, ), "covariant Piola", HCurl)
+GRAD = FiniteElement("Lagrange", cell, order, (), (), identity_pull_back, H1)
+CURL = FiniteElement("N1curl", cell, order, (3, ), (3, ), covariant_piola, HCurl)
 
-VectorLagrange = FiniteElement("Lagrange", cell, order + 1, (3, ), (3, ), "identity", H1)
+VectorLagrange = FiniteElement("Lagrange", cell, order + 1, (3, ), (3, ), identity_pull_back, H1)
 
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), identity_pull_back, H1))
 space = FunctionSpace(domain, MixedElement([GRAD, CURL]))
 fspace = FunctionSpace(domain, VectorLagrange)
 
