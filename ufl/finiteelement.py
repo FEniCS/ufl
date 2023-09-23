@@ -16,7 +16,7 @@ import typing as _typing
 from ufl.cell import Cell as _Cell
 from ufl.pull_back import AbstractPullBack as _AbstractPullBack
 from ufl.pull_back import IdentityPullBack as _IdentityPullBack
-from ufl.pull_back import UndefinedPullBack as _UndefinedPullBack
+from ufl.pull_back import MixedPullBack as _MixedPullBack
 from ufl.sobolevspace import SobolevSpace as _SobolevSpace
 from ufl.utils.sequences import product
 
@@ -252,7 +252,7 @@ class MixedElement(AbstractFiniteElement):
         if all(isinstance(e.pull_back, _IdentityPullBack) for e in self._subelements):
             return _IdentityPullBack()
         else:
-            return _UndefinedPullBack()
+            return _MixedPullBack(self)
 
     @property
     def embedded_degree(self) -> int:

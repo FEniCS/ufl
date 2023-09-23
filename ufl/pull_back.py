@@ -5,16 +5,26 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from itertools import accumulate, chain
+from typing import TYPE_CHECKING
+
+import numpy
 
 from ufl.core.expr import Expr
 from ufl.core.multiindex import indices
 from ufl.domain import extract_unique_domain
-from ufl.tensors import as_tensor
+from ufl.tensors import as_tensor, as_vector
+
+if TYPE_CHECKING:
+    from ufl.finiteelement import AbstractFiniteElement as _AbstractFiniteElement
 
 __all_classes__ = ["NonStandardPullBackException", "AbstractPullBack", "IdentityPullBack",
                    "ContravariantPiola", "CovariantPiola", "L2Piola", "DoubleContravariantPiola",
-                   "DoubleCovariantPiola", "PhysicalPullBack", "CustomPullBack", "UndefinedPullBack"]
+                   "DoubleCovariantPiola", "MixedPullBack",
+                   "PhysicalPullBack", "CustomPullBack", "UndefinedPullBack"]
 
 
 class NonStandardPullBackException(BaseException):
@@ -181,6 +191,42 @@ class DoubleCovariantPiola(AbstractPullBack):
         *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
         kmn = (*k, m, n)
         return as_tensor(K[m, i] * expr[kmn] * K[n, j], (*k, i, j))
+
+
+class MixedPullBack(AbstractPullBack):
+    """Pull back for a mixed element."""
+
+    def __init__(self, element: _AbstractFiniteElement):
+        self._element = element
+
+    def __repr__(self) -> str:
+        """Return a representation of the object."""
+        return f"MixedPullBack({self._element!r})"
+
+    def apply(self, expr):
+        """Apply the pull back.
+
+        Args:
+            expr: A function on a physical cell
+
+        Returns: The function pulled back to the reference cell
+        """
+        offsets = chain([0], accumulate(e.reference_value_size for e in self._element.sub_elements))
+        rflat = as_vector([expr[idx] for idx in numpy.ndindex(expr.ufl_shape)])
+        g_components = []
+        # For each unique piece in reference space, apply the appropriate pullback
+        for offset, subelem in zip(offsets, self._element.sub_elements):
+            rsub = [rflat[offset + i] for i in range(subelem.reference_value_size)]
+            rsub = as_tensor(numpy.asarray(rsub).reshape(subelem.reference_value_shape))
+            rmapped = subelem.pull_back.apply(rsub)
+            # Flatten into the pulled back expression for the whole thing
+            g_components.extend([rmapped[idx] for idx in numpy.ndindex(rmapped.ufl_shape)])
+        # And reshape appropriately
+        f = as_tensor(numpy.asarray(g_components).reshape(self._element.value_shape))
+        if f.ufl_shape != self._element.value_shape:
+            raise ValueError("Expecting pulled back expression with shape "
+                             f"'{self._element.value_shape}', got '{f.ufl_shape}'")
+        return f
 
 
 class PhysicalPullBack(AbstractPullBack):

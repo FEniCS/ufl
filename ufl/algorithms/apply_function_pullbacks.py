@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from itertools import accumulate, chain, repeat
+from itertools import repeat
 
 import numpy
 
@@ -15,19 +15,6 @@ from ufl.classes import ReferenceValue
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.pull_back import NonStandardPullBackException
 from ufl.tensors import as_tensor, as_vector
-
-
-def sub_elements_with_mappings(element):
-    """Return an ordered list of the largest subelements that have a defined mapping."""
-    if element.pull_back != "undefined":
-        return [element]
-    elements = []
-    for subelm in element.sub_elements:
-        if subelm.pull_back != "undefined":
-            elements.append(subelm)
-        else:
-            elements.extend(sub_elements_with_mappings(subelm))
-    return elements
 
 
 def apply_known_single_pullback(r, element):
@@ -73,18 +60,11 @@ def apply_single_function_pullbacks(r, element):
         # Need to pull back each unique piece of the reference space thing
         gsh = element.value_shape
         rsh = r.ufl_shape
-        if mapping == "symmetries":
-            subelem = element.sub_elements[0]
-            fcm = element.flattened_sub_element_mapping()
-            offsets = (subelem.reference_value_size * i for i in fcm)
-            elements = repeat(subelem)
-        else:
-            elements = sub_elements_with_mappings(element)
-            # Python >= 3.8 has an initial keyword argument to
-            # accumulate, but 3.7 does not.
-            offsets = chain([0],
-                            accumulate(e.reference_value_size
-                                       for e in elements))
+        # if mapping == "symmetries":
+        subelem = element.sub_elements[0]
+        fcm = element.flattened_sub_element_mapping()
+        offsets = (subelem.reference_value_size * i for i in fcm)
+        elements = repeat(subelem)
         rflat = as_vector([r[idx] for idx in numpy.ndindex(rsh)])
         g_components = []
         # For each unique piece in reference space, apply the appropriate pullback
