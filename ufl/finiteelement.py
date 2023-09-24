@@ -21,7 +21,7 @@ from ufl.pull_back import SymmetricPullBack as _SymmetricPullBack
 from ufl.sobolevspace import SobolevSpace as _SobolevSpace
 from ufl.utils.sequences import product
 
-__all_classes__ = ["AbstractFiniteElement", "FiniteElement", "MixedElement"]
+__all_classes__ = ["AbstractFiniteElement", "FiniteElement", "MixedElement", "SymmetricElement"]
 
 
 class AbstractFiniteElement(_abc.ABC):
@@ -94,24 +94,24 @@ class AbstractFiniteElement(_abc.ABC):
         """Return whether this element is spatially constant over each cell."""
         return self.embedded_degree == 0
 
+    @_abc.abstractmethod
+    def __hash__(self) -> int:
+        """Compute hash code."""
+
+    @_abc.abstractmethod
+    def __eq__(self, other) -> bool:
+        """Check element equality."""
+
+    def __ne__(self, other) -> bool:
+        """Check element inequality."""
+        return not self.__eq__(other)
+
     # Stuff below here needs thinking about
     def _ufl_hash_data_(self) -> str:
         return repr(self)
 
     def _ufl_signature_data_(self) -> str:
         return repr(self)
-
-    def __hash__(self) -> int:
-        """Compute hash code for insertion in hashmaps."""
-        return hash(self._ufl_hash_data_())
-
-    def __eq__(self, other) -> bool:
-        """Compute element equality for insertion in hashmaps."""
-        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
-
-    def __ne__(self, other) -> bool:
-        """Compute element inequality for insertion in hashmaps."""
-        return not self.__eq__(other)
 
 
 class FiniteElement(AbstractFiniteElement):
@@ -188,6 +188,14 @@ class FiniteElement(AbstractFiniteElement):
         """Return list of sub-elements."""
         return self._sub_elements
 
+    def __hash__(self) -> int:
+        """Compute hash code."""
+        return hash(f"{self!r}")
+
+    def __eq__(self, other) -> bool:
+        """Check element equality."""
+        return type(self) is type(other) and repr(self) == repr(other)
+
 
 class SymmetricElement(FiniteElement):
     """A symmetric finite element."""
@@ -214,56 +222,25 @@ class SymmetricElement(FiniteElement):
             _str=f"<symmetric element on a {cell}>")
 
 
-class MixedElement(AbstractFiniteElement):
+class MixedElement(FiniteElement):
     """A mixed element."""
-    __slots__ = ["_repr", "_str", "_subelements", "_cell"]
 
-    def __init__(self, subelements):
+    def __init__(self, sub_elements):
         """Initialise."""
-        self._repr = f"ufl.finiteelement.MixedElement({subelements!r})"
-        self._str = f"<MixedElement with {len(subelements)} subelement(s)>"
-        self._subelements = [MixedElement(e) if isinstance(e, list) else e for e in subelements]
-        self._cell = self._subelements[0].cell
-        for e in self._subelements:
-            assert e.cell == self._cell
-
-    def __repr__(self) -> str:
-        """Format as string for evaluation as Python object."""
-        return self._repr
-
-    def __str__(self) -> str:
-        """Format as string for nice printing."""
-        return self._str
-
-    @property
-    def sobolev_space(self) -> _SobolevSpace:
-        """Return the underlying Sobolev space."""
-        return max(e.sobolev_space for e in self._subelements)
-
-    @property
-    def pull_back(self) -> _AbstractPullBack:
-        """Return the pull back map for this element."""
-        if all(isinstance(e.pull_back, _IdentityPullBack) for e in self._subelements):
-            return _IdentityPullBack()
+        sub_elements = [MixedElement(e) if isinstance(e, list) else e for e in sub_elements]
+        cell = sub_elements[0].cell
+        for e in sub_elements:
+            assert e.cell == cell
+        degree = max(e.embedded_degree for e in sub_elements)
+        reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
+        if all(isinstance(e.pull_back, _IdentityPullBack) for e in sub_elements):
+            pull_back = _IdentityPullBack()
         else:
-            return _MixedPullBack(self)
+            pull_back = _MixedPullBack(self)
+        sobolev_space = max(e.sobolev_space for e in sub_elements)
 
-    @property
-    def embedded_degree(self) -> int:
-        """The maximum degree of a polynomial included in the basis for this element."""
-        return max(e.embedded_degree for e in self._subelements)
-
-    @property
-    def cell(self) -> _Cell:
-        """Return the cell type of the finite element."""
-        return self._cell
-
-    @property
-    def reference_value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the reference cell."""
-        return (sum(e.reference_value_size for e in self._subelements), )
-
-    @property
-    def sub_elements(self) -> _typing.List:
-        """Return list of sub-elements."""
-        return self._subelements
+        super().__init__(
+            "Mixed element", cell, degree, reference_value_shape, pull_back, sobolev_space,
+            sub_elements=sub_elements,
+            _repr=f"ufl.finiteelement.MixedElement({sub_elements!r})",
+            _str=f"<MixedElement with {len(sub_elements)} sub-element(s)>")
