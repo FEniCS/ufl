@@ -47,8 +47,24 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the pull back map for this element."""
 
     @_abc.abstractproperty
-    def embedded_degree(self) -> int:
-        """The maximum degree of a polynomial included in the basis for this element."""
+    def embedded_superdegree(self) -> _typing.Union[int, None]:
+        """The maximum degree of a polynomial included in the basis for this element.
+
+        This returns the degree of the lowest degree Lagrange space such that the polynomial
+        space of the Lagrange space is a superset of this element's polynomial space. If this
+        element contains basis functions that are not in any Lagrange space, this function should
+        return None.
+        """
+
+    @_abc.abstractproperty
+    def embedded_subdegree(self) -> int:
+        """The maximum degree Lagrange space that is a subset of this element.
+
+        This returns the degree of the highest degree Lagrange space such that the polynomial
+        space of the Lagrange space is a subset of this element's polynomial space. If this
+        element's polynomial space does not included the constant function, this function should
+        return -1.
+        """
 
     @_abc.abstractproperty
     def cell(self) -> _Cell:
@@ -92,7 +108,7 @@ class AbstractFiniteElement(_abc.ABC):
 
     def is_cellwise_constant(self) -> bool:
         """Return whether this element is spatially constant over each cell."""
-        return self.embedded_degree == 0
+        return self.embedded_superdegree == 0
 
     @_abc.abstractmethod
     def __hash__(self) -> int:
@@ -106,11 +122,12 @@ class AbstractFiniteElement(_abc.ABC):
         """Check element inequality."""
         return not self.__eq__(other)
 
-    # Stuff below here needs thinking about
     def _ufl_hash_data_(self) -> str:
+        """Return UFL hash data."""
         return repr(self)
 
     def _ufl_signature_data_(self) -> str:
+        """Return UFL signature data."""
         return repr(self)
 
 
@@ -118,15 +135,20 @@ class FiniteElement(AbstractFiniteElement):
     """A directly defined finite element."""
     __slots__ = ("_repr", "_str", "_family", "_cell", "_degree",
                  "_reference_value_shape", "_pull_back", "_sobolev_space",
-                 "_sub_elements")
+                 "_sub_elements", "_subdegree")
 
     def __init__(
         self, family: str, cell: _Cell, degree: int,
         reference_value_shape: _typing.Tuple[int, ...], pull_back: _AbstractPullBack,
         sobolev_space: _SobolevSpace, sub_elements=[],
-        _repr: _typing.Optional[str] = None, _str: _typing.Optional[str] = None
+        _repr: _typing.Optional[str] = None, _str: _typing.Optional[str] = None,
+        subdegree: _typing.Optional[int] = None
     ):
         """Initialize basic finite element data."""
+        if subdegree is None:
+            self._subdegree = degree
+        else:
+            self._subdegree = subdegree
         if _repr is None:
             if len(sub_elements) > 0:
                 self._repr = (
@@ -169,9 +191,13 @@ class FiniteElement(AbstractFiniteElement):
         return self._pull_back
 
     @property
-    def embedded_degree(self) -> int:
+    def embedded_superdegree(self) -> _typing.Union[int, None]:
         """The maximum degree of a polynomial included in the basis for this element."""
         return self._degree
+
+    def embedded_subdegree(self) -> int:
+        """The maximum degree Lagrange space that is a subset of this element."""
+        return self._subdegree
 
     @property
     def cell(self) -> _Cell:
@@ -208,7 +234,7 @@ class SymmetricElement(FiniteElement):
         """Initialise."""
         pull_back = _SymmetricPullBack(self, symmetry)
         reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
-        degree = max(e.embedded_degree for e in sub_elements)
+        degree = max(e.embedded_superdegree for e in sub_elements)
         cell = sub_elements[0].cell
         for e in sub_elements:
             if e.cell != cell:
@@ -231,7 +257,7 @@ class MixedElement(FiniteElement):
         cell = sub_elements[0].cell
         for e in sub_elements:
             assert e.cell == cell
-        degree = max(e.embedded_degree for e in sub_elements)
+        degree = max(e.embedded_superdegree for e in sub_elements)
         reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
         if all(isinstance(e.pull_back, _IdentityPullBack) for e in sub_elements):
             pull_back = _IdentityPullBack()

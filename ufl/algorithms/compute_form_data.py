@@ -42,7 +42,7 @@ def _auto_select_degree(elements):
     """
     # Use max degree of all elements, at least 1 (to work with
     # Lagrange elements)
-    return max_degree({e.embedded_degree for e in elements} - {None} | {1})
+    return max_degree({e.embedded_superdegree for e in elements} - {None} | {1})
 
 
 def _compute_element_mapping(form):
@@ -80,7 +80,7 @@ def _compute_element_mapping(form):
             reconstruct = True
 
         # Set degree
-        degree = element.embedded_degree
+        degree = element.embedded_superdegree
         if degree is None:
             degree = common_degree
             reconstruct = True

@@ -677,7 +677,7 @@ class FacetNormal(GeometricFacetQuantity):
         # true for a piecewise linear coordinate field with simplex
         # _facets_.
         ce = self._domain.ufl_coordinate_element()
-        is_piecewise_linear = ce.embedded_degree <= 1 and ce in H1
+        is_piecewise_linear = ce.embedded_superdegree <= 1 and ce in H1
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
 

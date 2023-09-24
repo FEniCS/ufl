@@ -49,7 +49,7 @@ def is_scalar_constant_expression(expr):
         # Return False if any single terminal is not constant
         if isinstance(e, FormArgument):
             # Accept only globally constant Arguments and Coefficients
-            if e.ufl_element().embedded_degree > 0 or e.ufl_element() not in H1:
+            if e.ufl_element().embedded_superdegree > 0 or e.ufl_element() not in H1:
                 return False
         elif isinstance(e, GeometricQuantity):
             # Reject all geometric quantities, they all vary over

@@ -94,7 +94,7 @@ class Mesh(AbstractDomain):
     def is_piecewise_linear_simplex_domain(self):
         """Check if the domain is a piecewise linear simplex."""
         ce = self._ufl_coordinate_element
-        return ce.embedded_degree <= 1 and ce in H1 and self.ufl_cell().is_simplex()
+        return ce.embedded_superdegree <= 1 and ce in H1 and self.ufl_cell().is_simplex()
 
     def __repr__(self):
         """Representation."""
