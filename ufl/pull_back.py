@@ -8,15 +8,15 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from itertools import accumulate, chain
 from typing import TYPE_CHECKING
 
 import numpy
+import typing
 
 from ufl.core.expr import Expr
 from ufl.core.multiindex import indices
 from ufl.domain import extract_unique_domain
-from ufl.tensors import as_tensor, as_vector
+from ufl.tensors import as_tensor
 
 if TYPE_CHECKING:
     from ufl.finiteelement import AbstractFiniteElement as _AbstractFiniteElement
@@ -221,7 +221,6 @@ class MixedPullBack(AbstractPullBack):
         offset = 0
         # For each unique piece in reference space, apply the appropriate pullback
         for subelem in self._element.sub_elements:
-            vs = subelem.reference_value_size
             rsub = as_tensor(numpy.asarray(
                 rflat[offset: offset + subelem.reference_value_size]
             ).reshape(subelem.reference_value_shape))
@@ -240,7 +239,7 @@ class MixedPullBack(AbstractPullBack):
 class SymmetricPullBack(AbstractPullBack):
     """Pull back for an element with symmetry."""
 
-    def __init__(self, element: _AbstractFiniteElement, symmetry: _typing.Dict[_typing.tuple[int, ...], int]):
+    def __init__(self, element: _AbstractFiniteElement, symmetry: typing.Dict[typing.tuple[int, ...], int]):
         """Initalise.
 
         args:
@@ -281,8 +280,8 @@ class SymmetricPullBack(AbstractPullBack):
         # And reshape appropriately
         f = as_tensor(numpy.asarray(g_components).reshape(self._element.value_shape))
         if f.ufl_shape != self._element.value_shape:
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', "
-                             f"got '{f.ufl_shape}'")
+            raise ValueError(f"Expecting pulled back expression with shape "
+                             f"'{self._element.value_shape}', got '{f.ufl_shape}'")
         return f
 
 

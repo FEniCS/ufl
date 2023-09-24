@@ -216,7 +216,7 @@ class SymmetricElement(FiniteElement):
             "Symmetric element", cell, degree, value_shape, reference_value_shape, pull_back,
             sobolev_space, sub_elements=sub_elements,
             _repr=(f"ufl.finiteelement.SymmetricElement({value_shape}, {symmetry!r}, {sub_elements!r})"),
-            _str =f"<symmetric element on a {cell}>")
+            _str=f"<symmetric element on a {cell}>")
 
 
 class MixedElement(AbstractFiniteElement):

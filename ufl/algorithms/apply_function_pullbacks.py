@@ -6,15 +6,9 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from itertools import repeat
-
-import numpy
-
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import ReferenceValue
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
-from ufl.pull_back import NonStandardPullBackException
-from ufl.tensors import as_tensor, as_vector
 
 
 def apply_known_single_pullback(r, element):

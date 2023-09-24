@@ -16,8 +16,8 @@ from ufl.classes import Terminal
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex
 from ufl.differentiation import Grad
-from ufl.utils.stacks import Stack, StackDict
 from ufl.pull_back import SymmetricPullBack
+from ufl.utils.stacks import Stack, StackDict
 
 
 class IndexExpander(ReuseTransformer):

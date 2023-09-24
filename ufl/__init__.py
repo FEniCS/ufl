@@ -277,8 +277,8 @@ from ufl.operators import (And, Dn, Dx, Not, Or, acos, asin, atan, atan2, avg, b
                            facet_avg, ge, grad, gt, imag, inner, inv, jump, le, ln, lt, max_value, min_value, nabla_div,
                            nabla_grad, ne, outer, perp, rank, real, rot, shape, sign, sin, sinh, skew, sqrt, sym, tan,
                            tanh, tr, transpose, variable)
-from ufl.pull_back import (contravariant_piola, covariant_piola, double_contravariant_piola, double_covariant_piola,
-                           identity_pull_back, l2_piola, MixedPullBack, SymmetricPullBack, AbstractPullBack)
+from ufl.pull_back import (AbstractPullBack, MixedPullBack, SymmetricPullBack, contravariant_piola, covariant_piola,
+                           double_contravariant_piola, double_covariant_piola, identity_pull_back, l2_piola)
 from ufl.sobolevspace import H1, H2, L2, HCurl, HDiv, HDivDiv, HEin, HInf
 from ufl.split_functions import split
 from ufl.tensors import as_matrix, as_tensor, as_vector, unit_matrices, unit_matrix, unit_vector, unit_vectors
