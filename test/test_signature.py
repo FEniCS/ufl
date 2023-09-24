@@ -5,7 +5,7 @@ from ufl import (Argument, CellDiameter, CellVolume, Circumradius, Coefficient, 
                  inner, interval, quadrilateral, tetrahedron, triangle, variable)
 from ufl.algorithms.signature import compute_multiindex_hashdata, compute_terminal_hashdata
 from ufl.classes import FixedIndex, MultiIndex
-from ufl.finiteelement import FiniteElement
+from ufl.finiteelement import FiniteElement, SymmetricElement
 from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1, L2
 
@@ -142,15 +142,19 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
                         W2 = FiniteElement(family, cell, degree, (d+1, ), (d+1, ), identity_pull_back, sobolev)
                         T = FiniteElement(family, cell, degree, (d, d), (d, d), identity_pull_back, sobolev)
                         if d == 2:
-                            S = FiniteElement(family, cell, degree, (2, 2), (3, ),
-                                              identity_pull_back, sobolev, component_map={
-                                (0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2})
+                            S = SymmetricElement(
+                                (2, 2),
+                                {(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2},
+                                [FiniteElement(family, cell, degree, (), (), identity_pull_back, sobolev)
+                                 for _ in range(3)])
                         else:
                             assert d == 3
-                            S = FiniteElement(family, cell, degree, (3, 3), (6, ),
-                                              identity_pull_back, sobolev, component_map={
-                                (0, 0): 0, (0, 1): 1, (0, 2): 2, (1, 0): 1, (1, 1): 3,
-                                (1, 2): 4, (2, 0): 2, (2, 1): 4, (2, 2): 5})
+                            S = SymmetricElement(
+                                (3, 3),
+                                {(0, 0): 0, (0, 1): 1, (0, 2): 2, (1, 0): 1, (1, 1): 3,
+                                 (1, 2): 4, (2, 0): 2, (2, 1): 4, (2, 2): 5},
+                                [FiniteElement(family, cell, degree, (), (), identity_pull_back, sobolev)
+                                 for _ in range(6)])
                         elements = [V, W, W2, T, S]
                         assert len(elements) == nelm
 

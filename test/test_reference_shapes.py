@@ -1,5 +1,5 @@
 from ufl import Cell
-from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.finiteelement import FiniteElement, MixedElement, SymmetricElement
 from ufl.pull_back import contravariant_piola, covariant_piola, identity_pull_back
 from ufl.sobolevspace import H1, HCurl, HDiv
 
@@ -29,8 +29,10 @@ def test_reference_shapes():
     assert T.value_shape == (3, 3)
     assert T.reference_value_shape == (3, 3)
 
-    S = FiniteElement("Lagrange", cell, 1, (3, 3), (6, ), identity_pull_back, H1, component_map={
-        (0, 0): 0, (1, 0): 1, (2, 0): 2, (0, 1): 1, (1, 1): 3, (2, 1): 4, (0, 2): 2, (1, 2): 4, (2, 2): 5})
+    S = SymmetricElement(
+        (3, 3),
+        {(0, 0): 0, (1, 0): 1, (2, 0): 2, (0, 1): 1, (1, 1): 3, (2, 1): 4, (0, 2): 2, (1, 2): 4, (2, 2): 5},
+        [FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1) for _ in range(6)])
     assert S.value_shape == (3, 3)
     assert S.reference_value_shape == (6,)
 

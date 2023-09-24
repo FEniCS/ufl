@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 __all_classes__ = ["NonStandardPullBackException", "AbstractPullBack", "IdentityPullBack",
                    "ContravariantPiola", "CovariantPiola", "L2Piola", "DoubleContravariantPiola",
-                   "DoubleCovariantPiola", "MixedPullBack",
+                   "DoubleCovariantPiola", "MixedPullBack", "SymmetricPullBack",
                    "PhysicalPullBack", "CustomPullBack", "UndefinedPullBack"]
 
 
@@ -197,6 +197,11 @@ class MixedPullBack(AbstractPullBack):
     """Pull back for a mixed element."""
 
     def __init__(self, element: _AbstractFiniteElement):
+        """Initalise.
+
+        args:
+            element: The mixed element
+        """
         self._element = element
 
     def __repr__(self) -> str:
@@ -211,21 +216,73 @@ class MixedPullBack(AbstractPullBack):
 
         Returns: The function pulled back to the reference cell
         """
-        offsets = chain([0], accumulate(e.reference_value_size for e in self._element.sub_elements))
-        rflat = as_vector([expr[idx] for idx in numpy.ndindex(expr.ufl_shape)])
+        rflat = [expr[idx] for idx in numpy.ndindex(expr.ufl_shape)]
         g_components = []
+        offset = 0
         # For each unique piece in reference space, apply the appropriate pullback
-        for offset, subelem in zip(offsets, self._element.sub_elements):
-            rsub = [rflat[offset + i] for i in range(subelem.reference_value_size)]
-            rsub = as_tensor(numpy.asarray(rsub).reshape(subelem.reference_value_shape))
+        for subelem in self._element.sub_elements:
+            vs = subelem.reference_value_size
+            rsub = as_tensor(numpy.asarray(
+                rflat[offset: offset + subelem.reference_value_size]
+            ).reshape(subelem.reference_value_shape))
+            rmapped = subelem.pull_back.apply(rsub)
+            # Flatten into the pulled back expression for the whole thing
+            g_components.extend([rmapped[idx] for idx in numpy.ndindex(rmapped.ufl_shape)])
+            offset += subelem.reference_value_size
+        # And reshape appropriately
+        f = as_tensor(numpy.asarray(g_components).reshape(self._element.value_shape))
+        if f.ufl_shape != self._element.value_shape:
+            raise ValueError("Expecting pulled back expression with shape "
+                             f"'{self._element.value_shape}', got '{f.ufl_shape}'")
+        return f
+
+
+class SymmetricPullBack(AbstractPullBack):
+    """Pull back for an element with symmetry."""
+
+    def __init__(self, element: _AbstractFiniteElement, symmetry: _typing.Dict[_typing.tuple[int, ...], int]):
+        """Initalise.
+
+        args:
+            element: The element
+            symmetry: A dictionary mapping from the component in physical space to the local component
+        """
+        self._element = element
+        self._symmetry = symmetry
+
+    def __repr__(self) -> str:
+        """Return a representation of the object."""
+        return f"SymmetricPullBack({self._element!r}, {self._symmetry!r})"
+
+    def apply(self, expr):
+        """Apply the pull back.
+
+        Args:
+            expr: A function on a physical cell
+
+        Returns: The function pulled back to the reference cell
+        """
+        rflat = [expr[idx] for idx in numpy.ndindex(expr.ufl_shape)]
+        g_components = []
+        offsets = [0]
+        for subelem in self._element.sub_elements:
+            offsets.append(offsets[-1] + subelem.reference_value_size)
+        # For each unique piece in reference space, apply the appropriate pullback
+        for component in numpy.ndindex(self._element.value_shape):
+            i = self._symmetry[component]
+            subelem = self._element.sub_elements[i]
+            rsub = as_tensor(numpy.asarray(
+                rflat[offsets[i]:offsets[i+1]]
+            ).reshape(subelem.reference_value_shape))
+            print(repr(subelem))
             rmapped = subelem.pull_back.apply(rsub)
             # Flatten into the pulled back expression for the whole thing
             g_components.extend([rmapped[idx] for idx in numpy.ndindex(rmapped.ufl_shape)])
         # And reshape appropriately
         f = as_tensor(numpy.asarray(g_components).reshape(self._element.value_shape))
         if f.ufl_shape != self._element.value_shape:
-            raise ValueError("Expecting pulled back expression with shape "
-                             f"'{self._element.value_shape}', got '{f.ufl_shape}'")
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', "
+                             f"got '{f.ufl_shape}'")
         return f
 
 

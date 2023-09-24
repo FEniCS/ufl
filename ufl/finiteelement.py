@@ -17,6 +17,7 @@ from ufl.cell import Cell as _Cell
 from ufl.pull_back import AbstractPullBack as _AbstractPullBack
 from ufl.pull_back import IdentityPullBack as _IdentityPullBack
 from ufl.pull_back import MixedPullBack as _MixedPullBack
+from ufl.pull_back import SymmetricPullBack as _SymmetricPullBack
 from ufl.sobolevspace import SobolevSpace as _SobolevSpace
 from ufl.utils.sequences import product
 
@@ -111,40 +112,35 @@ class AbstractFiniteElement(_abc.ABC):
         """Compute element inequality for insertion in hashmaps."""
         return not self.__eq__(other)
 
-    def symmetry(self) -> _typing.Dict:  # FIXME: different approach
-        r"""Return the symmetry dict.
-
-        This is a mapping :math:`c_0 \\to c_1`
-        meaning that component :math:`c_0` is represented by component
-        :math:`c_1`.
-        A component is a tuple of one or more ints.
-        """
-        return {}
-
-    def flattened_sub_element_mapping(self):
-        """Doc."""
-        return None
-
 
 class FiniteElement(AbstractFiniteElement):
     """A directly defined finite element."""
     __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape",
-                 "_reference_value_shape", "_pull_back", "_sobolev_space", "_component_map",
+                 "_reference_value_shape", "_pull_back", "_sobolev_space",
                  "_sub_elements")
 
     def __init__(
         self, family: str, cell: _Cell, degree: int, value_shape: _typing.Tuple[int, ...],
         reference_value_shape: _typing.Tuple[int, ...], pull_back: _AbstractPullBack,
-        sobolev_space: _SobolevSpace, component_map=None, sub_elements=[]
+        sobolev_space: _SobolevSpace, sub_elements=[],
+        _repr: _typing.Optional[str] = None, _str: _typing.Optional[str] = None
     ):
         """Initialize basic finite element data."""
-        if component_map is None:
-            self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
-                          f"{reference_value_shape}, {pull_back}, {sobolev_space})")
+        if _repr is None:
+            if len(sub_elements) > 0:
+                self._repr = (
+                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
+                    f"{reference_value_shape}, {pull_back}, {sobolev_space}, {sub_elements!r})")
+            else:
+                self._repr = (
+                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
+                    f"{reference_value_shape}, {pull_back}, {sobolev_space})")
         else:
-            self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
-                          f"{reference_value_shape}, {pull_back}, {sobolev_space}, component_map={component_map})")
-        self._str = f"<{family}{degree} on a {cell}>"
+            self._repr = _repr
+        if _str is None:
+            self._str = f"<{family}{degree} on a {cell}>"
+        else:
+            self._str = _str
         self._family = family
         self._cell = cell
         self._degree = degree
@@ -152,7 +148,6 @@ class FiniteElement(AbstractFiniteElement):
         self._reference_value_shape = reference_value_shape
         self._pull_back = pull_back
         self._sobolev_space = sobolev_space
-        self._component_map = component_map
         self._sub_elements = sub_elements
 
     def __repr__(self) -> str:
@@ -198,26 +193,30 @@ class FiniteElement(AbstractFiniteElement):
         """Return list of sub-elements."""
         return self._sub_elements
 
-    # FIXME: functions below this comment are hacks
-    def symmetry(self) -> _typing.Dict:
-        """Doc."""
-        if self._component_map is None:
-            return {}
-        s = {}
-        out = {}
-        for i, j in self._component_map.items():
-            if j in s:
-                out[i] = s[j]
-            else:
-                s[j] = i
-        return out
 
-    def flattened_sub_element_mapping(self) -> _typing.Union[None, _typing.List]:
-        """Doc."""
-        if self._component_map is None:
-            return None
-        else:
-            return list(self._component_map.values())
+class SymmetricElement(FiniteElement):
+    """A symmetric finite element."""
+
+    def __init__(
+        self, value_shape: _typing.Tuple[int, ...],
+        symmetry: _typing.Dict[_typing.Tuple[int, ...], int],
+        sub_elements: _typing.List[AbstractFiniteElement]
+    ):
+        """Initialise."""
+        pull_back = _SymmetricPullBack(self, symmetry)
+        reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
+        degree = max(e.embedded_degree for e in sub_elements)
+        cell = sub_elements[0].cell
+        for e in sub_elements:
+            if e.cell != cell:
+                raise ValueError("All sub-elements must be defined on the same cell")
+        sobolev_space = max(e.sobolev_space for e in sub_elements)
+
+        super().__init__(
+            "Symmetric element", cell, degree, value_shape, reference_value_shape, pull_back,
+            sobolev_space, sub_elements=sub_elements,
+            _repr=(f"ufl.finiteelement.SymmetricElement({value_shape}, {symmetry!r}, {sub_elements!r})"),
+            _str =f"<symmetric element on a {cell}>")
 
 
 class MixedElement(AbstractFiniteElement):

@@ -41,50 +41,15 @@ def apply_single_function_pullbacks(r, element):
     Returns:
         a pulled back expression.
     """
-    mapping = element.pull_back
     if r.ufl_shape != element.reference_value_shape:
         raise ValueError(
             f"Expecting reference space expression with shape '{element.reference_value_shape}', "
             f"got '{r.ufl_shape}'")
-    try:
-        # Base case in recursion through elements. If the element
-        # advertises a mapping we know how to handle, do that
-        # directly.
-        f = apply_known_single_pullback(r, element)
-        if f.ufl_shape != element.value_shape:
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', "
-                             f"got '{f.ufl_shape}'")
-        return f
-    except NonStandardPullBackException:
-        # TODO: Move this code to pull_back.py
-        # Need to pull back each unique piece of the reference space thing
-        gsh = element.value_shape
-        rsh = r.ufl_shape
-        # if mapping == "symmetries":
-        subelem = element.sub_elements[0]
-        fcm = element.flattened_sub_element_mapping()
-        offsets = (subelem.reference_value_size * i for i in fcm)
-        elements = repeat(subelem)
-        rflat = as_vector([r[idx] for idx in numpy.ndindex(rsh)])
-        g_components = []
-        # For each unique piece in reference space, apply the appropriate pullback
-        for offset, subelem in zip(offsets, elements):
-            sub_rsh = subelem.reference_value_shape
-            rm = subelem.reference_value_size
-            rsub = [rflat[offset + i] for i in range(rm)]
-            rsub = as_tensor(numpy.asarray(rsub).reshape(sub_rsh))
-            rmapped = apply_single_function_pullbacks(rsub, subelem)
-            # Flatten into the pulled back expression for the whole thing
-            g_components.extend([rmapped[idx]
-                                 for idx in numpy.ndindex(rmapped.ufl_shape)])
-        # And reshape appropriately
-        f = as_tensor(numpy.asarray(g_components).reshape(gsh))
-        if f.ufl_shape != element.value_shape:
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', "
-                             f"got '{f.ufl_shape}'")
-        return f
-    else:
-        raise ValueError(f"Unsupported mapping type: {mapping}")
+    f = apply_known_single_pullback(r, element)
+    if f.ufl_shape != element.value_shape:
+        raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', "
+                         f"got '{f.ufl_shape}'")
+    return f
 
 
 class FunctionPullbackApplier(MultiFunction):
