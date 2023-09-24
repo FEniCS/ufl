@@ -199,7 +199,7 @@ class MixedPullBack(AbstractPullBack):
     def __init__(self, element: _AbstractFiniteElement):
         """Initalise.
 
-        args:
+        Args:
             element: The mixed element
         """
         self._element = element
@@ -242,7 +242,7 @@ class SymmetricPullBack(AbstractPullBack):
     def __init__(self, element: _AbstractFiniteElement, symmetry: typing.Dict[typing.tuple[int, ...], int]):
         """Initalise.
 
-        args:
+        Args:
             element: The element
             symmetry: A dictionary mapping from the component in physical space to the local component
         """
