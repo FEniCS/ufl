@@ -24,10 +24,10 @@ class Fixture:
 
     def __init__(self):
         cell = triangle
-        element = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-        velement = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1)
-        telement = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), identity_pull_back, H1)
-        domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
+        element = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+        velement = FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1)
+        telement = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pull_back, H1)
+        domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
         space = FunctionSpace(domain, element)
         vspace = FunctionSpace(domain, velement)
         tspace = FunctionSpace(domain, telement)

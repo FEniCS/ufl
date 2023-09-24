@@ -108,15 +108,15 @@ def testAll(self):
     cell = triangle
     dim = cell.geometric_dimension()
 
-    e0 = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-    e1 = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1)
-    e2 = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), identity_pull_back, H1)
+    e0 = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    e1 = FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1)
+    e2 = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pull_back, H1)
     e3 = MixedElement([e0, e1, e2])
 
-    e13D = FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), identity_pull_back, H1)
+    e13D = FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pull_back, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (dim, ), (dim, ), identity_pull_back, H1))
-    domain3D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), (3, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (dim, ), identity_pull_back, H1))
+    domain3D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pull_back, H1))
     e0_space = FunctionSpace(domain, e0)
     e1_space = FunctionSpace(domain, e1)
     e2_space = FunctionSpace(domain, e2)

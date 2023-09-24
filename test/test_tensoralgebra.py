@@ -66,7 +66,7 @@ def test_inner(self, A, B, u, v):
 
 
 def test_pow2_inner(self, A, u):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     f = FacetNormal(domain)[0]
     f2 = f*f
     assert f2 == remove_complex_nodes(inner(f, f))

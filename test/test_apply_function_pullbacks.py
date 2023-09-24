@@ -36,23 +36,22 @@ def check_single_function_pullback(g, mappings):
 def test_apply_single_function_pullbacks_triangle3d():
     triangle3d = Cell("triangle", geometric_dimension=3)
     cell = triangle3d
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pull_back, H1))
 
-    UL2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), l2_piola, L2)
-    U0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), identity_pull_back, L2)
-    U = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-    V = FiniteElement("Lagrange", cell, 1, (3, ), (3, ), identity_pull_back, H1)
-    Vd = FiniteElement("Raviart-Thomas", cell, 1, (3, ), (2, ), contravariant_piola, HDiv)
-    Vc = FiniteElement("N1curl", cell, 1, (3, ), (2, ), covariant_piola, HCurl)
-    T = FiniteElement("Lagrange", cell, 1, (3, 3), (3, 3), identity_pull_back, H1)
+    UL2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), l2_piola, L2)
+    U0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pull_back, L2)
+    U = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    V = FiniteElement("Lagrange", cell, 1, (3, ), identity_pull_back, H1)
+    Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), contravariant_piola, HDiv)
+    Vc = FiniteElement("N1curl", cell, 1, (2, ), covariant_piola, HCurl)
+    T = FiniteElement("Lagrange", cell, 1, (3, 3), identity_pull_back, H1)
     S = SymmetricElement(
-        (3, 3),
         {(0, 0): 0, (1, 0): 1, (2, 0): 2, (0, 1): 1, (1, 1): 3, (2, 1): 4, (0, 2): 2, (1, 2): 4, (2, 2): 5},
-        [FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1) for _ in range(6)])
+        [FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1) for _ in range(6)])
     # (0, 2)-symmetric tensors
-    COV2T = FiniteElement("Regge", cell, 0, (3, 3), (2, 2), double_covariant_piola, HEin)
+    COV2T = FiniteElement("Regge", cell, 0, (2, 2), double_covariant_piola, HEin)
     # (2, 0)-symmetric tensors
-    CONTRA2T = FiniteElement("HHJ", cell, 0, (3, 3), (2, 2), double_contravariant_piola, HDivDiv)
+    CONTRA2T = FiniteElement("HHJ", cell, 0, (2, 2), double_contravariant_piola, HDivDiv)
 
     Uml2 = MixedElement([UL2, UL2])
     Um = MixedElement([U, U])
@@ -237,16 +236,16 @@ def test_apply_single_function_pullbacks_triangle3d():
 
 def test_apply_single_function_pullbacks_triangle():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
 
-    Ul2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), l2_piola, L2)
-    U = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-    V = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1)
-    Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), (2, ), contravariant_piola, HDiv)
-    Vc = FiniteElement("N1curl", cell, 1, (2, ), (2, ), covariant_piola, HCurl)
-    T = FiniteElement("Lagrange", cell, 1, (2, 2), (2, 2), identity_pull_back, H1)
-    S = SymmetricElement((2, 2), {(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2}, [
-        FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1) for i in range(3)])
+    Ul2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), l2_piola, L2)
+    U = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    V = FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1)
+    Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), contravariant_piola, HDiv)
+    Vc = FiniteElement("N1curl", cell, 1, (2, ), covariant_piola, HCurl)
+    T = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pull_back, H1)
+    S = SymmetricElement({(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2}, [
+        FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1) for i in range(3)])
 
     Uml2 = MixedElement([Ul2, Ul2])
     Um = MixedElement([U, U])

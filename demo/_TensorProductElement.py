@@ -23,9 +23,9 @@ from ufl.finiteelement import FiniteElement
 from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1, L2
 
-V0 = FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
-V1 = FiniteElement("DG", interval, 0, (), (), identity_pull_back, L2)
-V2 = FiniteElement("DG", tetrahedron, 0, (), (), identity_pull_back, L2)
+V0 = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+V1 = FiniteElement("DG", interval, 0, (), identity_pull_back, L2)
+V2 = FiniteElement("DG", tetrahedron, 0, (), identity_pull_back, L2)
 
 V = TensorProductElement(V0, V1, V2)
 

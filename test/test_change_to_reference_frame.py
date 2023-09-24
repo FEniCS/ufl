@@ -13,11 +13,11 @@ def change_to_reference_frame(expr):
 
 
 def test_change_unmapped_form_arguments_to_reference_frame():
-    U = FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
-    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1)
-    T = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), identity_pull_back, H1)
+    U = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1)
+    T = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pull_back, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     u_space = FunctionSpace(domain, U)
     v_space = FunctionSpace(domain, V)
     t_space = FunctionSpace(domain, T)
@@ -31,9 +31,9 @@ def test_change_unmapped_form_arguments_to_reference_frame():
 
 
 def test_change_hdiv_form_arguments_to_reference_frame():
-    V = FiniteElement("Raviart-Thomas", triangle, 1, (2, ), (2, ), contravariant_piola, HDiv)
+    V = FiniteElement("Raviart-Thomas", triangle, 1, (2, ), contravariant_piola, HDiv)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     v_space = FunctionSpace(domain, V)
 
     expr = Coefficient(v_space)
@@ -41,9 +41,9 @@ def test_change_hdiv_form_arguments_to_reference_frame():
 
 
 def test_change_hcurl_form_arguments_to_reference_frame():
-    V = FiniteElement("Raviart-Thomas", triangle, 1, (2, ), (2, ), contravariant_piola, HDiv)
+    V = FiniteElement("Raviart-Thomas", triangle, 1, (2, ), contravariant_piola, HDiv)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     v_space = FunctionSpace(domain, V)
 
     expr = Coefficient(v_space)

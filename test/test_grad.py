@@ -23,9 +23,9 @@ def xtest_grad_div_curl_properties_in_3D(self):
 def _test_grad_div_curl_properties(self, cell):
     d = cell.geometric_dimension()
 
-    S = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-    V = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1)
-    T = FiniteElement("Lagrange", cell, 1, (d, d), (d, d), identity_pull_back, H1)
+    S = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    V = FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1)
+    T = FiniteElement("Lagrange", cell, 1, (d, d), identity_pull_back, H1)
 
     cs = Constant(cell)
     cv = VectorConstant(cell)

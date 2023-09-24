@@ -20,12 +20,12 @@ from ufl.sobolevspace import H1
 
 @pytest.fixture(scope='module')
 def element():
-    return FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
+    return FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
 
 
 @pytest.fixture(scope='module')
 def domain():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
 
 
 @pytest.fixture(scope='module')
@@ -104,7 +104,7 @@ def test_pre_and_post_traversal(space):
 
 
 def test_expand_indices(domain):
-    element = FiniteElement("Lagrange", triangle, 2, (), (), identity_pull_back, H1)
+    element = FiniteElement("Lagrange", triangle, 2, (), identity_pull_back, H1)
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -125,8 +125,8 @@ def test_expand_indices(domain):
 def test_adjoint(domain):
     cell = triangle
 
-    V1 = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-    V2 = FiniteElement("Lagrange", cell, 2, (), (), identity_pull_back, H1)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pull_back, H1)
 
     s1 = FunctionSpace(domain, V1)
     s2 = FunctionSpace(domain, V2)

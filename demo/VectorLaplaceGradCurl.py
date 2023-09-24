@@ -38,12 +38,12 @@ def HodgeLaplaceGradCurl(space, fspace):
 cell = tetrahedron
 order = 1
 
-GRAD = FiniteElement("Lagrange", cell, order, (), (), identity_pull_back, H1)
-CURL = FiniteElement("N1curl", cell, order, (3, ), (3, ), covariant_piola, HCurl)
+GRAD = FiniteElement("Lagrange", cell, order, (), identity_pull_back, H1)
+CURL = FiniteElement("N1curl", cell, order, (3, ), covariant_piola, HCurl)
 
-VectorLagrange = FiniteElement("Lagrange", cell, order + 1, (3, ), (3, ), identity_pull_back, H1)
+VectorLagrange = FiniteElement("Lagrange", cell, order + 1, (3, ), identity_pull_back, H1)
 
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), identity_pull_back, H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pull_back, H1))
 space = FunctionSpace(domain, MixedElement([GRAD, CURL]))
 fspace = FunctionSpace(domain, VectorLagrange)
 

@@ -18,10 +18,10 @@ from ufl.sobolevspace import H1, L2
 def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     cell = triangle
     d = cell.geometric_dimension()
-    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), identity_pull_back, L2)
-    V1 = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pull_back, L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
 
@@ -87,9 +87,9 @@ def test_literal_derivatives_are_zero():
         for v in variables:
             assert apply_derivatives(diff(lit, v)) == zero(lit.ufl_shape + v.ufl_shape)
 
-    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), identity_pull_back, L2)
-    V1 = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1))
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pull_back, L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
     u0 = Coefficient(v0_space)
@@ -112,14 +112,14 @@ def test_grad_ruleset():
     cell = triangle
     d = cell.geometric_dimension()
 
-    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), identity_pull_back, L2)
-    V1 = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-    V2 = FiniteElement("Lagrange", cell, 2, (), (), identity_pull_back, H1)
-    W0 = FiniteElement("Discontinuous Lagrange", cell, 0, (2, ), (2, ), identity_pull_back, L2)
-    W1 = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1)
-    W2 = FiniteElement("Lagrange", cell, 2, (d, ), (d, ), identity_pull_back, H1)
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pull_back, L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pull_back, H1)
+    W0 = FiniteElement("Discontinuous Lagrange", cell, 0, (2, ), identity_pull_back, L2)
+    W1 = FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1)
+    W2 = FiniteElement("Lagrange", cell, 2, (d, ), identity_pull_back, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
     v2_space = FunctionSpace(domain, V2)

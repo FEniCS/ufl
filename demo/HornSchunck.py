@@ -10,9 +10,9 @@ from ufl.sobolevspace import H1
 
 # Finite element spaces for scalar and vector fields
 cell = triangle
-S = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-V = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
+S = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+V = FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1)
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
 S_space = FunctionSpace(domain, S)
 V_space = FunctionSpace(domain, V)
 

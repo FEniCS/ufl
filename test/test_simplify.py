@@ -10,8 +10,8 @@ from ufl.sobolevspace import H1
 
 def xtest_zero_times_argument(self):
     # FIXME: Allow zero forms
-    element = FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -24,8 +24,8 @@ def xtest_zero_times_argument(self):
 
 
 def test_divisions(self):
-    element = FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
 
@@ -51,8 +51,8 @@ def test_divisions(self):
 
 
 def test_products(self):
-    element = FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     g = Coefficient(space)
@@ -73,8 +73,8 @@ def test_products(self):
 
 
 def test_sums(self):
-    element = FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     g = Coefficient(space)
@@ -124,7 +124,7 @@ def test_mathfunctions(self):
 
 
 def test_indexing(self):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     u = VectorConstant(domain)
     v = VectorConstant(domain)
 

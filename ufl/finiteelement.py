@@ -55,12 +55,13 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the cell type of the finite element."""
 
     @_abc.abstractproperty
-    def value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the global domain."""
-
-    @_abc.abstractproperty
     def reference_value_shape(self) -> _typing.Tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
+
+    @property
+    def value_shape(self) -> _typing.Tuple[int, ...]:
+        """Return the shape of the value space on the global domain."""
+        return self.pull_back.physical_value_shape(self)
 
     @property
     def value_size(self) -> int:
@@ -115,12 +116,12 @@ class AbstractFiniteElement(_abc.ABC):
 
 class FiniteElement(AbstractFiniteElement):
     """A directly defined finite element."""
-    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape",
+    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree",
                  "_reference_value_shape", "_pull_back", "_sobolev_space",
                  "_sub_elements")
 
     def __init__(
-        self, family: str, cell: _Cell, degree: int, value_shape: _typing.Tuple[int, ...],
+        self, family: str, cell: _Cell, degree: int,
         reference_value_shape: _typing.Tuple[int, ...], pull_back: _AbstractPullBack,
         sobolev_space: _SobolevSpace, sub_elements=[],
         _repr: _typing.Optional[str] = None, _str: _typing.Optional[str] = None
@@ -129,11 +130,11 @@ class FiniteElement(AbstractFiniteElement):
         if _repr is None:
             if len(sub_elements) > 0:
                 self._repr = (
-                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
+                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, "
                     f"{reference_value_shape}, {pull_back}, {sobolev_space}, {sub_elements!r})")
             else:
                 self._repr = (
-                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
+                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, "
                     f"{reference_value_shape}, {pull_back}, {sobolev_space})")
         else:
             self._repr = _repr
@@ -144,7 +145,6 @@ class FiniteElement(AbstractFiniteElement):
         self._family = family
         self._cell = cell
         self._degree = degree
-        self._value_shape = value_shape
         self._reference_value_shape = reference_value_shape
         self._pull_back = pull_back
         self._sobolev_space = sobolev_space
@@ -179,11 +179,6 @@ class FiniteElement(AbstractFiniteElement):
         return self._cell
 
     @property
-    def value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the global domain."""
-        return self._value_shape
-
-    @property
     def reference_value_shape(self) -> _typing.Tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
         return self._reference_value_shape
@@ -198,7 +193,7 @@ class SymmetricElement(FiniteElement):
     """A symmetric finite element."""
 
     def __init__(
-        self, value_shape: _typing.Tuple[int, ...],
+        self,
         symmetry: _typing.Dict[_typing.Tuple[int, ...], int],
         sub_elements: _typing.List[AbstractFiniteElement]
     ):
@@ -213,9 +208,9 @@ class SymmetricElement(FiniteElement):
         sobolev_space = max(e.sobolev_space for e in sub_elements)
 
         super().__init__(
-            "Symmetric element", cell, degree, value_shape, reference_value_shape, pull_back,
+            "Symmetric element", cell, degree, reference_value_shape, pull_back,
             sobolev_space, sub_elements=sub_elements,
-            _repr=(f"ufl.finiteelement.SymmetricElement({value_shape}, {symmetry!r}, {sub_elements!r})"),
+            _repr=(f"ufl.finiteelement.SymmetricElement({symmetry!r}, {sub_elements!r})"),
             _str=f"<symmetric element on a {cell}>")
 
 
@@ -262,11 +257,6 @@ class MixedElement(AbstractFiniteElement):
     def cell(self) -> _Cell:
         """Return the cell type of the finite element."""
         return self._cell
-
-    @property
-    def value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the global domain."""
-        return (sum(e.value_size for e in self._subelements), )
 
     @property
     def reference_value_shape(self) -> _typing.Tuple[int, ...]:

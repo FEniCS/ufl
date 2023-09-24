@@ -27,7 +27,7 @@ class ExpressionCollection(object):
     def __init__(self, cell):
         self.cell = cell
         d = cell.geometric_dimension()
-        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1))
+        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1))
 
         x = SpatialCoordinate(domain)
         n = FacetNormal(domain)
@@ -48,9 +48,9 @@ class ExpressionCollection(object):
         ident = Identity(d)
         eps = PermutationSymbol(d)
 
-        U = FiniteElement("Undefined", cell, None, (), (), identity_pull_back, L2)
-        V = FiniteElement("Undefined", cell, None, (d, ), (d, ), identity_pull_back, L2)
-        W = FiniteElement("Undefined", cell, None, (d, d), (d, d), identity_pull_back, L2)
+        U = FiniteElement("Undefined", cell, None, (), identity_pull_back, L2)
+        V = FiniteElement("Undefined", cell, None, (d, ), identity_pull_back, L2)
+        W = FiniteElement("Undefined", cell, None, (d, d), identity_pull_back, L2)
 
         u_space = FunctionSpace(domain, U)
         v_space = FunctionSpace(domain, V)

@@ -19,18 +19,18 @@ from ufl.sobolevspace import H1
 
 @pytest.fixture
 def domain_2d():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), identity_pull_back, H1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
 
 
 @pytest.fixture
 def V1(domain_2d):
-    f1 = FiniteElement("CG", triangle, 1, (), (), identity_pull_back, H1)
+    f1 = FiniteElement("CG", triangle, 1, (), identity_pull_back, H1)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
 def V2(domain_2d):
-    f1 = FiniteElement("CG", triangle, 2, (), (), identity_pull_back, H1)
+    f1 = FiniteElement("CG", triangle, 2, (), identity_pull_back, H1)
     return FunctionSpace(domain_2d, f1)
 
 

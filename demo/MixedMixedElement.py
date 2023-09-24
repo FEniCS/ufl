@@ -21,6 +21,6 @@ from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
-P3 = FiniteElement("Lagrange", triangle, 3, (), (), identity_pull_back, H1)
+P3 = FiniteElement("Lagrange", triangle, 3, (), identity_pull_back, H1)
 
 element = MixedElement([[P3, P3], [P3, P3]])

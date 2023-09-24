@@ -173,16 +173,16 @@ def testIndexSum(v):
 
 
 def testCoefficient():
-    coord_elem = FiniteElement("Lagrange", triangle, 1, (3, ), (3, ), identity_pull_back, H1)
+    coord_elem = FiniteElement("Lagrange", triangle, 1, (3, ), identity_pull_back, H1)
     mesh = Mesh(coord_elem)
-    V = FunctionSpace(mesh, FiniteElement("Lagrange", triangle, 1, (), (), identity_pull_back, H1))
+    V = FunctionSpace(mesh, FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1))
     v = Coefficient(V)
     assert round(expand_derivatives(diff(v, v))-1.0, 7) == 0
 
 
 def testDiffX():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), identity_pull_back, H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
     x = SpatialCoordinate(domain)
     f = x[0] ** 2 * x[1] ** 2
     i, = indices(1)

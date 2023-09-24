@@ -8,8 +8,8 @@ from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 cell = interval
-element = FiniteElement("Lagrange", cell, 2, (), (), identity_pull_back, H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (1, ), (1, ), identity_pull_back, H1))
+element = FiniteElement("Lagrange", cell, 2, (), identity_pull_back, H1)
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (1, ), identity_pull_back, H1))
 space = FunctionSpace(domain, element)
 
 u = Coefficient(space)

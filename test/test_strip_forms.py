@@ -54,8 +54,8 @@ def test_strip_form_arguments_strips_data_refs():
 
     cell = triangle
     domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
-                                         (cell.geometric_dimension(), ), identity_pull_back, H1), data=mesh_data)
-    element = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+                                         identity_pull_back, H1), data=mesh_data)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)
@@ -92,8 +92,8 @@ def test_strip_form_arguments_does_not_change_form():
 
     cell = triangle
     domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
-                                         (cell.geometric_dimension(), ), identity_pull_back, H1), data=mesh_data)
-    element = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
+                                         identity_pull_back, H1), data=mesh_data)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)

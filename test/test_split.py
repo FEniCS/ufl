@@ -10,15 +10,15 @@ from ufl.sobolevspace import H1
 def test_split(self):
     cell = triangle
     d = cell.geometric_dimension()
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1))
-    f = FiniteElement("Lagrange", cell, 1, (), (), identity_pull_back, H1)
-    v = FiniteElement("Lagrange", cell, 1, (d, ), (d, ), identity_pull_back, H1,
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1))
+    f = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    v = FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1,
                       sub_elements=[f for _ in range(d)])
-    w = FiniteElement("Lagrange", cell, 1, (d+1, ), (d+1, ), identity_pull_back, H1,
+    w = FiniteElement("Lagrange", cell, 1, (d+1, ), identity_pull_back, H1,
                       sub_elements=[f for _ in range(d + 1)])
-    t = FiniteElement("Lagrange", cell, 1, (d, d), (d, d), identity_pull_back, H1,
+    t = FiniteElement("Lagrange", cell, 1, (d, d), identity_pull_back, H1,
                       sub_elements=[f for _ in range(d ** 2)])
-    s = SymmetricElement((2, 2), {(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2}, [f for _ in range(3)])
+    s = SymmetricElement({(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2}, [f for _ in range(3)])
     m = MixedElement([f, v, w, t, s, s])
 
     f_space = FunctionSpace(domain, f)
