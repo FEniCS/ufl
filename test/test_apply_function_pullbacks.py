@@ -5,8 +5,8 @@ from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullba
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
 from ufl.finiteelement import FiniteElement, MixedElement, SymmetricElement
-from ufl.pull_back import (SymmetricPullBack, contravariant_piola, covariant_piola, double_contravariant_piola,
-                           double_covariant_piola, identity_pull_back, l2_piola)
+from ufl.pull_back import (contravariant_piola, covariant_piola, double_contravariant_piola, double_covariant_piola,
+                           identity_pull_back, l2_piola)
 from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
 
 

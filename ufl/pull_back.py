@@ -7,11 +7,11 @@
 
 from __future__ import annotations
 
+import typing
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 import numpy
-import typing
 
 from ufl.core.expr import Expr
 from ufl.core.multiindex import indices
