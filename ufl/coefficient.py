@@ -69,7 +69,7 @@ class BaseCoefficient(Counted):
 
     def is_cellwise_constant(self):
         """Return whether this expression is spatially constant over each cell."""
-        return self.ufl_element()._is_cellwise_constant
+        return self.ufl_element().is_cellwise_constant()
 
     def ufl_domains(self):
         """Return tuple of domains related to this terminal object."""

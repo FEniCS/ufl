@@ -252,7 +252,7 @@ def sort_elements(elements):
     The ordering is based on sorting a directed acyclic graph.
     """
     # Set nodes
-    nodes = sorted(elements)
+    nodes = list(elements)
 
     # Set edges
     edges = dict((node, []) for node in nodes)

@@ -5,13 +5,14 @@
 #
 from ufl import Coefficient, FunctionSpace, Mesh, derivative, dot, dx, grad, inner, split, triangle
 from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 cell = triangle
-X = FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1)
-Y = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+X = FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1)
+Y = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
 M = MixedElement([X, Y])
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
 space = FunctionSpace(domain, M)
 
 u = Coefficient(space)

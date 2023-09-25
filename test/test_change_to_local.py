@@ -5,14 +5,15 @@ from ufl.algorithms import change_to_reference_grad
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import JacobianInverse, ReferenceGrad
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 
 def test_change_to_reference_grad():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
-    U = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (), (), "identity", H1))
-    V = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
+    U = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1))
+    V = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
     u = Coefficient(U)
     v = Coefficient(V)
     Jinv = JacobianInverse(domain)

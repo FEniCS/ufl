@@ -12,6 +12,7 @@ from ufl.algorithms import (expand_derivatives, expand_indices, extract_argument
                             extract_elements, extract_unique_elements)
 from ufl.corealg.traversal import post_traversal, pre_traversal, unique_post_traversal, unique_pre_traversal
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 # TODO: add more tests, covering all utility algorithms
@@ -19,12 +20,12 @@ from ufl.sobolevspace import H1
 
 @pytest.fixture(scope='module')
 def element():
-    return FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
+    return FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
 
 
 @pytest.fixture(scope='module')
 def domain():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
 
 
 @pytest.fixture(scope='module')
@@ -103,7 +104,7 @@ def test_pre_and_post_traversal(space):
 
 
 def test_expand_indices(domain):
-    element = FiniteElement("Lagrange", triangle, 2, (), (), "identity", H1)
+    element = FiniteElement("Lagrange", triangle, 2, (), identity_pull_back, H1)
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -124,8 +125,8 @@ def test_expand_indices(domain):
 def test_adjoint(domain):
     cell = triangle
 
-    V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    V2 = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pull_back, H1)
 
     s1 = FunctionSpace(domain, V1)
     s2 = FunctionSpace(domain, V2)
@@ -139,17 +140,17 @@ def test_adjoint(domain):
     assert u2.number() < v2.number()
 
     a = u * v * dx
-    a_arg_degrees = [arg.ufl_element().embedded_degree for arg in extract_arguments(a)]
+    a_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(a)]
     assert a_arg_degrees == [2, 1]
 
     b = adjoint(a)
-    b_arg_degrees = [arg.ufl_element().embedded_degree for arg in extract_arguments(b)]
+    b_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(b)]
     assert b_arg_degrees == [1, 2]
 
     c = adjoint(a, (u2, v2))
-    c_arg_degrees = [arg.ufl_element().embedded_degree for arg in extract_arguments(c)]
+    c_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(c)]
     assert c_arg_degrees == [1, 2]
 
     d = adjoint(b)
-    d_arg_degrees = [arg.ufl_element().embedded_degree for arg in extract_arguments(d)]
+    d_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(d)]
     assert d_arg_degrees == [2, 1]

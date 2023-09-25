@@ -4,16 +4,17 @@ from ufl import Coefficient, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate
 from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1, L2
 
 
 def test_apply_restrictions():
     cell = triangle
-    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", L2)
-    V1 = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
-    V2 = FiniteElement("Lagrange", cell, 2, (), (), "identity", H1)
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pull_back, L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pull_back, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
     v2_space = FunctionSpace(domain, V2)

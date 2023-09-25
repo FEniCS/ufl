@@ -25,14 +25,15 @@
 #
 from ufl import Coefficient, FunctionSpace, Mesh, TestFunctions, TrialFunctions, div, dot, dx, triangle
 from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pull_back import contravariant_piola, identity_pull_back
 from ufl.sobolevspace import H1, HDiv
 
 cell = triangle
-BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1, (2, ), (2, ), "contravariant Piola", HDiv)
-DG0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), (), "identity", H1)
+BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1, (2, ), contravariant_piola, HDiv)
+DG0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pull_back, H1)
 
 element = MixedElement([BDM1, DG0])
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
 space = FunctionSpace(domain, element)
 dg0_space = FunctionSpace(domain, DG0)
 

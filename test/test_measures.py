@@ -4,6 +4,7 @@ from mockobjects import MockMesh, MockMeshFunction
 
 from ufl import Cell, Coefficient, FunctionSpace, Measure, Mesh, as_ufl, dC, dI, dO, triangle
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 
@@ -59,7 +60,7 @@ def test_construct_forms_from_default_measures():
 
     # Check that we can create a basic form with default measure
     one = as_ufl(1)
-    one * dx(Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)))
+    one * dx(Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1)))
 
 
 def test_foo():
@@ -69,7 +70,8 @@ def test_foo():
     tdim = 2
     cell = Cell("triangle", gdim)
     mymesh = MockMesh(9)
-    mydomain = Mesh(FiniteElement("Lagrange", cell, 1, (gdim, ), (gdim, ), "identity", H1), ufl_id=9, cargo=mymesh)
+    mydomain = Mesh(FiniteElement("Lagrange", cell, 1, (gdim, ), identity_pull_back, H1),
+                    ufl_id=9, cargo=mymesh)
 
     assert cell.topological_dimension() == tdim
     assert cell.geometric_dimension() == gdim
@@ -81,7 +83,7 @@ def test_foo():
     assert mydomain.ufl_cargo() == mymesh
 
     # Define a coefficient for use in tests below
-    V = FunctionSpace(mydomain, FiniteElement("Lagrange", cell, 1, (), (), "identity", H1))
+    V = FunctionSpace(mydomain, FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1))
     f = Coefficient(V)
 
     # Test definition of a custom measure with explicit parameters

@@ -24,11 +24,12 @@
 from ufl import (Coefficient, Constant, FacetNormal, FunctionSpace, Mesh, TestFunction, TrialFunction, avg, dot, dS, ds,
                  dx, grad, inner, jump, triangle)
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1, L2
 
 cell = triangle
-element = FiniteElement("Discontinuous Lagrange", cell, 1, (), (), "identity", L2)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), (2, ), "identity", H1))
+element = FiniteElement("Discontinuous Lagrange", cell, 1, (), identity_pull_back, L2)
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)

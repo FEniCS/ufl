@@ -12,6 +12,7 @@ from ufl import (Coefficient, FunctionSpace, Identity, Mesh, TestFunction, as_ma
                  indices, inner, outer, triangle)
 from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 
@@ -212,8 +213,8 @@ def test_unwrap_list_tensor(self):
 
 
 def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
-    U = FiniteElement("Lagrange", triangle, 1, (), (), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    U = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, U)
     u = Coefficient(space)
     du = TestFunction(space)
@@ -238,8 +239,8 @@ def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
 
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
-    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, V)
     v = Coefficient(space)
     dv = TestFunction(space)
@@ -264,8 +265,8 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
 
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation(self):
-    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, V)
     v = Coefficient(space)
     dv = TestFunction(space)
@@ -321,8 +322,8 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
 
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation_in_list(self):
-    V = FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    V = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, V)
     v = Coefficient(space)
     dv = TestFunction(space)
@@ -378,8 +379,8 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
 
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
-    W = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    W = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, W)
     w = Coefficient(space)
     dw = TestFunction(space)
@@ -404,8 +405,8 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
 
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_variation(self):
-    W = FiniteElement("Lagrange", triangle, 1, (2, 2), (2, 2), "identity", H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), (2, ), "identity", H1))
+    W = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pull_back, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
     space = FunctionSpace(domain, W)
     w = Coefficient(space)
     dw = TestFunction(space)

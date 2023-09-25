@@ -6,6 +6,7 @@ from ufl.algorithms import replace_terminal_data, strip_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.finiteelement import FiniteElement
+from ufl.pull_back import identity_pull_back
 from ufl.sobolevspace import H1
 
 MIN_REF_COUNT = 2
@@ -53,8 +54,8 @@ def test_strip_form_arguments_strips_data_refs():
 
     cell = triangle
     domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
-                                         (cell.geometric_dimension(), ), "identity", H1), data=mesh_data)
-    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+                                         identity_pull_back, H1), data=mesh_data)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)
@@ -91,8 +92,8 @@ def test_strip_form_arguments_does_not_change_form():
 
     cell = triangle
     domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
-                                         (cell.geometric_dimension(), ), "identity", H1), data=mesh_data)
-    element = FiniteElement("Lagrange", cell, 1, (), (), "identity", H1)
+                                         identity_pull_back, H1), data=mesh_data)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)

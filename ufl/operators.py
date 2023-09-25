@@ -668,7 +668,12 @@ def exterior_derivative(f):
             raise NotImplementedError
         index = int(indices[0])
         element = expression.ufl_element()
-        element = element.extract_component(index)[1]
+        while index != 0:
+            for e in element.sub_elements:
+                if e.value_size > index:
+                    element = e
+                    break
+                index -= e.value_size
     elif isinstance(f, ListTensor):
         f0 = f.ufl_operands[0]
         f0expr, f0indices = f0.ufl_operands  # FIXME: Assumption on type of f0!!!
@@ -676,7 +681,12 @@ def exterior_derivative(f):
             raise NotImplementedError
         index = int(f0indices[0])
         element = f0expr.ufl_element()
-        element = element.extract_component(index)[1]
+        while index != 0:
+            for e in element.sub_elements:
+                if e.value_size > index:
+                    element = e
+                    break
+                index -= e.value_size
     else:
         try:
             element = f.ufl_element()
@@ -684,7 +694,7 @@ def exterior_derivative(f):
             raise ValueError(f"Unable to determine element from {f}")
 
     gdim = element.cell().geometric_dimension()
-    space = element.sobolev_space()
+    space = element.sobolev_space
 
     if space == sobolevspace.L2:
         return f

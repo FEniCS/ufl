@@ -13,12 +13,17 @@
 import abc as _abc
 import typing as _typing
 
-from ufl.sobolevspace import SobolevSpace as _SobolevSpace
-from ufl.utils.indexflattening import shape_to_strides, unflatten_index
-from ufl.utils.sequences import product
-from ufl.cell import Cell as _Cell
+import numpy as np
 
-__all_classes__ = ["AbstractFiniteElement", "FiniteElement", "MixedElement"]
+from ufl.cell import Cell as _Cell
+from ufl.pull_back import AbstractPullBack as _AbstractPullBack
+from ufl.pull_back import IdentityPullBack as _IdentityPullBack
+from ufl.pull_back import MixedPullBack as _MixedPullBack
+from ufl.pull_back import SymmetricPullBack as _SymmetricPullBack
+from ufl.sobolevspace import SobolevSpace as _SobolevSpace
+from ufl.utils.sequences import product
+
+__all_classes__ = ["AbstractFiniteElement", "FiniteElement", "MixedElement", "SymmetricElement"]
 
 
 class AbstractFiniteElement(_abc.ABC):
@@ -40,39 +45,60 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the underlying Sobolev space."""
 
     @_abc.abstractproperty
-    def mapping(self) -> str:
-        """Return the mapping type for this element."""
+    def pull_back(self) -> _AbstractPullBack:
+        """Return the pull back map for this element."""
 
     @_abc.abstractproperty
-    def embedded_degree(self) -> int:
-        """The maximum degree of a polynomial included in the basis for this element."""
+    def embedded_superdegree(self) -> _typing.Union[int, None]:
+        """The maximum degree of a polynomial included in the basis for this element.
+
+        This returns the degree of the lowest degree Lagrange space such that the polynomial
+        space of the Lagrange space is a superset of this element's polynomial space. If this
+        element contains basis functions that are not in any Lagrange space, this function should
+        return None.
+        """
+
+    @_abc.abstractproperty
+    def embedded_subdegree(self) -> int:
+        """The maximum degree Lagrange space that is a subset of this element.
+
+        This returns the degree of the highest degree Lagrange space such that the polynomial
+        space of the Lagrange space is a subset of this element's polynomial space. If this
+        element's polynomial space does not included the constant function, this function should
+        return -1.
+        """
 
     @_abc.abstractproperty
     def cell(self) -> _Cell:
         """Return the cell type of the finite element."""
 
     @_abc.abstractproperty
-    def value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the global domain."""
-
-    @_abc.abstractproperty
     def reference_value_shape(self) -> _typing.Tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
 
-    @_abc.abstractproperty
-    def _is_globally_constant(self) -> bool:
-        """Check if the element is a global constant.
+    @property
+    def components(self) -> _typing.Dict[_typing.Tuple[int, ...], int]:
+        """Get the numbering of the components of the element."""
+        if isinstance(self.pull_back, _SymmetricPullBack):
+            return self.pull_back._symmetry
 
-        For Real elements, this should return True.
-        """
+        if len(self.sub_elements) == 0:
+            return {(): 0}
 
-    @_abc.abstractproperty
-    def _is_cellwise_constant(self) -> bool:
-        """Check if the basis functions of this element are constant over each cell."""
+        components = {}
+        offset = 0
+        c_offset = 0
+        for e in self.sub_elements:
+            for i, j in enumerate(np.ndindex(e.value_shape)):
+                components[(offset + i, )] = c_offset + e.components[j]
+            c_offset += max(e.components.values()) + 1
+            offset += e.value_size
+        return components
 
-    @_abc.abstractproperty
-    def _is_linear(self) -> bool:
-        """Check if the element is Lagrange degree 1."""
+    @property
+    def value_shape(self) -> _typing.Tuple[int, ...]:
+        """Return the shape of the value space on the global domain."""
+        return self.pull_back.physical_value_shape(self)
 
     @property
     def value_size(self) -> int:
@@ -86,107 +112,58 @@ class AbstractFiniteElement(_abc.ABC):
 
     @_abc.abstractproperty
     def sub_elements(self) -> _typing.List:
-        """Return list of sub-elements."""
+        """Return list of sub-elements.
+
+        This function does not recurse: ie it does not extract the sub-elements
+        of sub-elements.
+        """
 
     @property
     def num_sub_elements(self) -> int:
-        """Return number of sub-elements."""
+        """Return number of sub-elements.
+
+        This function does not recurse: ie it does not count the sub-elements of
+        sub-elements.
+        """
         return len(self.sub_elements)
 
-    # Stuff below here needs thinking about
+    def is_cellwise_constant(self) -> bool:
+        """Return whether this element is spatially constant over each cell."""
+        return self.embedded_superdegree == 0
+
+    @_abc.abstractmethod
+    def __hash__(self) -> int:
+        """Compute hash code."""
+
+    @_abc.abstractmethod
+    def __eq__(self, other) -> bool:
+        """Check element equality."""
+
+    def __ne__(self, other) -> bool:
+        """Check element inequality."""
+        return not self.__eq__(other)
+
     def _ufl_hash_data_(self) -> str:
+        """Return UFL hash data."""
         return repr(self)
 
     def _ufl_signature_data_(self) -> str:
+        """Return UFL signature data."""
         return repr(self)
-
-    def __hash__(self) -> int:
-        """Compute hash code for insertion in hashmaps."""
-        return hash(self._ufl_hash_data_())
-
-    def __eq__(self, other) -> bool:
-        """Compute element equality for insertion in hashmaps."""
-        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
-
-    def __ne__(self, other) -> bool:
-        """Compute element inequality for insertion in hashmaps."""
-        return not self.__eq__(other)
-
-    def __lt__(self, other) -> bool:
-        """Compare elements by repr, to give a natural stable sorting."""
-        return repr(self) < repr(other)
-
-    def symmetry(self) -> _typing.Dict:  # FIXME: different approach
-        r"""Return the symmetry dict.
-
-        This is a mapping :math:`c_0 \\to c_1`
-        meaning that component :math:`c_0` is represented by component
-        :math:`c_1`.
-        A component is a tuple of one or more ints.
-        """
-        return {}
-
-    def _check_component(self, i):
-        """Check that component index i is valid."""
-        sh = self.value_shape
-        r = len(sh)
-        if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            raise ValueError(
-                f"Illegal component index {i} (value rank {len(i)}) "
-                f"for element (value rank {r}).")
-
-    def extract_subelement_component(self, i):
-        """Extract direct subelement index and subelement relative component index for a given component index."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_component(i)
-        return (None, i)
-
-    def extract_component(self, i):
-        """Recursively extract component index relative to a (simple) element."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_component(i)
-        return (i, self)
-
-    def _check_reference_component(self, i):
-        """Check that reference component index i is valid."""
-        sh = self.value_shape
-        r = len(sh)
-        if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            raise ValueError(
-                f"Illegal component index {i} (value rank {len(i)}) "
-                f"for element (value rank {r}).")
-
-    def extract_subelement_reference_component(self, i):
-        """Extract direct subelement index."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_reference_component(i)
-        return (None, i)
-
-    def extract_reference_component(self, i):
-        """Recursively extract reference component index."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_reference_component(i)
-        return (i, self)
-
-    def flattened_sub_element_mapping(self):
-        """Doc."""
-        return None
 
 
 class FiniteElement(AbstractFiniteElement):
     """A directly defined finite element."""
-    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree", "_value_shape",
-                 "_reference_value_shape", "_mapping", "_sobolev_space", "_component_map",
-                 "_sub_elements")
+    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree",
+                 "_reference_value_shape", "_pull_back", "_sobolev_space",
+                 "_sub_elements", "_subdegree")
 
     def __init__(
-        self, family: str, cell: _Cell, degree: int, value_shape: _typing.Tuple[int, ...],
-        reference_value_shape: _typing.Tuple[int, ...], mapping: str, sobolev_space: _SobolevSpace,
-        component_map=None, sub_elements=[]
+        self, family: str, cell: _Cell, degree: int,
+        reference_value_shape: _typing.Tuple[int, ...], pull_back: _AbstractPullBack,
+        sobolev_space: _SobolevSpace, sub_elements=[],
+        _repr: _typing.Optional[str] = None, _str: _typing.Optional[str] = None,
+        subdegree: _typing.Optional[int] = None,
     ):
         """Initialize a finite element.
 
@@ -196,28 +173,39 @@ class FiniteElement(AbstractFiniteElement):
             family: The family name of the element
             cell: The cell on which the element is defined
             degree: The polynomial degree of the element
-            value_shape: The value shape of the element
             reference_value_shape: The reference value shape of the element
-            mapping: The push forward map to use
+            pull_back: The pull back to use
             sobolev_space: The Sobolev space containing this element
-            component_map: TODO
             sub_elements: Sub elements of this element
+            _repr: A string representation of this elements
+            _str: A string for printing
+            subdegree: The embedded subdegree of this element
         """
-        if component_map is None:
-            self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
-                          f"{reference_value_shape}, \"{mapping}\", {sobolev_space})")
+        if subdegree is None:
+            self._subdegree = degree
         else:
-            self._repr = (f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, {value_shape}, "
-                          f"{reference_value_shape}, \"{mapping}\", {sobolev_space}, component_map={component_map})")
-        self._str = f"<{family}{degree} on a {cell}>"
+            self._subdegree = subdegree
+        if _repr is None:
+            if len(sub_elements) > 0:
+                self._repr = (
+                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, "
+                    f"{reference_value_shape}, {pull_back}, {sobolev_space}, {sub_elements!r})")
+            else:
+                self._repr = (
+                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, "
+                    f"{reference_value_shape}, {pull_back}, {sobolev_space})")
+        else:
+            self._repr = _repr
+        if _str is None:
+            self._str = f"<{family}{degree} on a {cell}>"
+        else:
+            self._str = _str
         self._family = family
         self._cell = cell
         self._degree = degree
-        self._value_shape = value_shape
         self._reference_value_shape = reference_value_shape
-        self._mapping = mapping
+        self._pull_back = pull_back
         self._sobolev_space = sobolev_space
-        self._component_map = component_map
         self._sub_elements = sub_elements
 
     def __repr__(self) -> str:
@@ -234,24 +222,24 @@ class FiniteElement(AbstractFiniteElement):
         return self._sobolev_space
 
     @property
-    def mapping(self) -> str:
-        """Return the mapping type for this element."""
-        return self._mapping
+    def pull_back(self) -> _AbstractPullBack:
+        """Return the pull back map for this element."""
+        return self._pull_back
 
     @property
-    def embedded_degree(self) -> int:
+    def embedded_superdegree(self) -> _typing.Union[int, None]:
         """The maximum degree of a polynomial included in the basis for this element."""
         return self._degree
+
+    @property
+    def embedded_subdegree(self) -> int:
+        """The maximum degree Lagrange space that is a subset of this element."""
+        return self._subdegree
 
     @property
     def cell(self) -> _Cell:
         """Return the cell type of the finite element."""
         return self._cell
-
-    @property
-    def value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the global domain."""
-        return self._value_shape
 
     @property
     def reference_value_shape(self) -> _typing.Tuple[int, ...]:
@@ -259,55 +247,27 @@ class FiniteElement(AbstractFiniteElement):
         return self._reference_value_shape
 
     @property
-    def _is_globally_constant(self) -> bool:
-        """Check if the element is a global constant.
-
-        For Real elements, this should return True.
-        """
-        return self._family == "Real"
-
-    @property
-    def _is_cellwise_constant(self) -> bool:
-        """Return whether the basis functions of this element are constant over each cell."""
-        return self._is_globally_constant or self._degree == 0
-
-    @property
-    def _is_linear(self) -> bool:
-        """Check if the element is Lagrange degree 1."""
-        return self._family == "Lagrange" and self._degree == 1
-
-    @property
     def sub_elements(self) -> _typing.List:
         """Return list of sub-elements."""
         return self._sub_elements
 
-    # FIXME: functions below this comment are hacks
-    def symmetry(self) -> _typing.Dict:
-        """Doc."""
-        if self._component_map is None:
-            return {}
-        s = {}
-        out = {}
-        for i, j in self._component_map.items():
-            if j in s:
-                out[i] = s[j]
-            else:
-                s[j] = i
-        return out
+    def __hash__(self) -> int:
+        """Compute hash code."""
+        return hash(f"{self!r}")
 
-    def flattened_sub_element_mapping(self) -> _typing.Union[None, _typing.List]:
-        """Doc."""
-        if self._component_map is None:
-            return None
-        else:
-            return list(self._component_map.values())
+    def __eq__(self, other) -> bool:
+        """Check element equality."""
+        return type(self) is type(other) and repr(self) == repr(other)
 
 
-class MixedElement(AbstractFiniteElement):
-    """A mixed element."""
-    __slots__ = ["_repr", "_str", "_subelements", "_cell"]
+class SymmetricElement(FiniteElement):
+    """A symmetric finite element."""
 
-    def __init__(self, subelements: _typing.List):
+    def __init__(
+        self,
+        symmetry: _typing.Dict[_typing.Tuple[int, ...], int],
+        sub_elements: _typing.List[AbstractFiniteElement]
+    ):
         """Initialise a mixed element.
 
         This class should only be used for testing
@@ -315,108 +275,41 @@ class MixedElement(AbstractFiniteElement):
         Args:
             sub_elements: Sub elements of this element
         """
-        self._repr = f"ufl.finiteelement.MixedElement({subelements!r})"
-        self._str = f"<MixedElement with {len(subelements)} subelement(s)>"
-        self._subelements = [MixedElement(e) if isinstance(e, list) else e for e in subelements]
-        self._cell = self._subelements[0].cell
-        for e in self._subelements:
-            assert e.cell == self._cell
+        pull_back = _SymmetricPullBack(self, symmetry)
+        reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
+        degree = max(e.embedded_superdegree for e in sub_elements)
+        cell = sub_elements[0].cell
+        for e in sub_elements:
+            if e.cell != cell:
+                raise ValueError("All sub-elements must be defined on the same cell")
+        sobolev_space = max(e.sobolev_space for e in sub_elements)
 
-    def __repr__(self) -> str:
-        """Format as string for evaluation as Python object."""
-        return self._repr
+        super().__init__(
+            "Symmetric element", cell, degree, reference_value_shape, pull_back,
+            sobolev_space, sub_elements=sub_elements,
+            _repr=(f"ufl.finiteelement.SymmetricElement({symmetry!r}, {sub_elements!r})"),
+            _str=f"<symmetric element on a {cell}>")
 
-    def __str__(self) -> str:
-        """Format as string for nice printing."""
-        return self._str
 
-    @property
-    def sobolev_space(self) -> _SobolevSpace:
-        """Return the underlying Sobolev space."""
-        return max(e.sobolev_space for e in self._subelements)
+class MixedElement(FiniteElement):
+    """A mixed element."""
 
-    @property
-    def mapping(self) -> str:
-        """Return the mapping type for this element."""
-        if all(e.mapping == "identity" for e in self._subelements):
-            return "identity"
+    def __init__(self, sub_elements):
+        """Initialise."""
+        sub_elements = [MixedElement(e) if isinstance(e, list) else e for e in sub_elements]
+        cell = sub_elements[0].cell
+        for e in sub_elements:
+            assert e.cell == cell
+        degree = max(e.embedded_superdegree for e in sub_elements)
+        reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
+        if all(isinstance(e.pull_back, _IdentityPullBack) for e in sub_elements):
+            pull_back = _IdentityPullBack()
         else:
-            return "undefined"
+            pull_back = _MixedPullBack(self)
+        sobolev_space = max(e.sobolev_space for e in sub_elements)
 
-    @property
-    def embedded_degree(self) -> int:
-        """The maximum degree of a polynomial included in the basis for this element."""
-        return max(e.embedded_degree for e in self._subelements)
-
-    @property
-    def cell(self) -> _Cell:
-        """Return the cell type of the finite element."""
-        return self._cell
-
-    @property
-    def value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the global domain."""
-        return (sum(e.value_size for e in self._subelements), )
-
-    @property
-    def reference_value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the reference cell."""
-        return (sum(e.reference_value_size for e in self._subelements), )
-
-    @property
-    def _is_globally_constant(self) -> bool:
-        """Check if the element is a global constant.
-
-        For Real elements, this should return True.
-        """
-        return all(e._is_globally_constant for e in self._subelements)
-
-    @property
-    def _is_cellwise_constant(self) -> bool:
-        """Return whether the basis functions of this element are constant over each cell."""
-        return all(e._is_cellwise_constant for e in self._subelements)
-
-    @property
-    def _is_linear(self) -> bool:
-        """Check if the element is Lagrange degree 1."""
-        return all(e._is_linear for e in self._subelements)
-
-    @property
-    def sub_elements(self) -> _typing.List:
-        """Return list of sub-elements."""
-        return self._subelements
-
-    # FIXME: functions below this comment are hacks
-    def extract_subelement_component(self, i) -> _typing.Union[None, _typing.List]:
-        """Extract direct subelement index and subelement relative component index for a given component index."""
-        if isinstance(i, int):
-            i = (i,)
-        self._check_component(i)
-
-        # Select between indexing modes
-        if len(self.value_shape) == 1:
-            # Indexing into a long vector of flattened subelement
-            # shapes
-            j, = i
-
-            # Find subelement for this index
-            for sub_element_index, e in enumerate(self.sub_elements):
-                sh = e.value_shape
-                si = product(sh)
-                if j < si:
-                    break
-                j -= si
-            if j < 0:
-                raise ValueError("Moved past last value component!")
-
-            # Convert index into a shape tuple
-            st = shape_to_strides(sh)
-            component = unflatten_index(j, st)
-        else:
-            # Indexing into a multidimensional tensor where subelement
-            # index is first axis
-            sub_element_index = i[0]
-            if sub_element_index >= len(self.sub_elements):
-                raise ValueError(f"Illegal component index (dimension {sub_element_index}).")
-            component = i[1:]
-        return (sub_element_index, component)
+        super().__init__(
+            "Mixed element", cell, degree, reference_value_shape, pull_back, sobolev_space,
+            sub_elements=sub_elements,
+            _repr=f"ufl.finiteelement.MixedElement({sub_elements!r})",
+            _str=f"<MixedElement with {len(sub_elements)} sub-element(s)>")

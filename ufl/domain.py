@@ -13,6 +13,7 @@ from ufl.cell import AbstractCell
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.sobolevspace import H1
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
@@ -92,7 +93,8 @@ class Mesh(AbstractDomain):
 
     def is_piecewise_linear_simplex_domain(self):
         """Check if the domain is a piecewise linear simplex."""
-        return self._ufl_coordinate_element._is_linear and self.ufl_cell().is_simplex()
+        ce = self._ufl_coordinate_element
+        return ce.embedded_superdegree <= 1 and ce in H1 and self.ufl_cell().is_simplex()
 
     def __repr__(self):
         """Representation."""

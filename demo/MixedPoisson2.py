@@ -5,13 +5,14 @@
 #
 from ufl import FacetNormal, FunctionSpace, Mesh, TestFunctions, TrialFunctions, div, dot, ds, dx, tetrahedron
 from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pull_back import contravariant_piola, identity_pull_back
 from ufl.sobolevspace import H1, HDiv
 
 cell = tetrahedron
-RT = FiniteElement("Raviart-Thomas", cell, 1, (3, ), (3, ), "contravariant Piola", HDiv)
-DG = FiniteElement("DG", cell, 0, (), (), "identity", H1)
+RT = FiniteElement("Raviart-Thomas", cell, 1, (3, ), contravariant_piola, HDiv)
+DG = FiniteElement("DG", cell, 0, (), identity_pull_back, H1)
 MX = MixedElement([RT, DG])
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), (3, ), "identity", H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pull_back, H1))
 space = FunctionSpace(domain, MX)
 
 (u, p) = TrialFunctions(space)
