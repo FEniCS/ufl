@@ -50,21 +50,21 @@ class AbstractFiniteElement(_abc.ABC):
 
     @_abc.abstractproperty
     def embedded_superdegree(self) -> _typing.Union[int, None]:
-        """The maximum degree of a polynomial included in the basis for this element.
+        """Return the degree of the minimum degree Lagrange space that spans this element.
 
         This returns the degree of the lowest degree Lagrange space such that the polynomial
-        space of the Lagrange space is a superset of this element's polynomial space. If this
+        space of the Lagrange space is a superspace of this element's polynomial space. If this
         element contains basis functions that are not in any Lagrange space, this function should
         return None.
         """
 
     @_abc.abstractproperty
     def embedded_subdegree(self) -> int:
-        """The maximum degree Lagrange space that is a subset of this element.
+        """Return the degree of the maximum degree Lagrange space that is spanned by this element.
 
         This returns the degree of the highest degree Lagrange space such that the polynomial
-        space of the Lagrange space is a subset of this element's polynomial space. If this
-        element's polynomial space does not included the constant function, this function should
+        space of the Lagrange space is a subspace of this element's polynomial space. If this
+        element's polynomial space does not include the constant function, this function should
         return -1.
         """
 
