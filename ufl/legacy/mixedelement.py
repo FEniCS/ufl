@@ -16,7 +16,7 @@ from ufl.cell import as_cell
 from ufl.legacy.finiteelement import FiniteElement
 from ufl.legacy.finiteelementbase import FiniteElementBase
 from ufl.permutation import compute_indices
-from ufl.pull_back import MixedPullBack, SymmetricPullBack
+from ufl.pull_back import IdentityPullBack, MixedPullBack, SymmetricPullBack
 from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
 from ufl.utils.sequences import max_degree, product
 
@@ -271,7 +271,10 @@ class MixedElement(FiniteElementBase):
     @property
     def pull_back(self):
         """Get the pull back."""
-        return MixedPullBack(self)
+        for e in self.sub_elements:
+            if not isinstance(e.pull_back, IdentityPullBack):
+                return MixedPullBack(self)
+        return IdentityPullBack()
 
 
 class VectorElement(MixedElement):

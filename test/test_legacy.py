@@ -1,5 +1,5 @@
-from ufl import (Coefficient, FunctionSpace, H1, Mesh,
-                 dx, hexahedron, identity_pull_back, inner, interval, quadrilateral, tetrahedron, triangle)
+from ufl import (H1, Coefficient, FunctionSpace, Mesh, dx, hexahedron, identity_pull_back, inner, interval,
+                 quadrilateral, tetrahedron, triangle)
 from ufl.legacy import FiniteElement, MixedElement, TensorElement, VectorElement, WithMapping
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
