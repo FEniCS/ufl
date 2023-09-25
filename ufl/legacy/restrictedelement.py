@@ -93,12 +93,12 @@ class RestrictedElement(FiniteElementBase):
     @property
     def num_sub_elements(self):
         """Return number of sub elements."""
-        return self._element.num_sub_elements()
+        return self._element.num_sub_elements
 
     @property
     def sub_elements(self):
         """Return list of sub elements."""
-        return self._element.sub_elements()
+        return self._element.sub_elements
 
     def num_restricted_sub_elements(self):
         """Return number of restricted sub elements."""

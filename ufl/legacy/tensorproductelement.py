@@ -109,12 +109,12 @@ class TensorProductElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Doc."""
         cell = kwargs.pop("cell", self.cell)
-        return TensorProductElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()], cell=cell)
+        return TensorProductElement(*[e.reconstruct(**kwargs) for e in self.sub_elements], cell=cell)
 
     def variant(self):
         """Doc."""
         try:
-            variant, = {e.variant() for e in self.sub_elements()}
+            variant, = {e.variant() for e in self.sub_elements}
             return variant
         except ValueError:
             return None
