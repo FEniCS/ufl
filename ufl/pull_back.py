@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import typing
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from typing import TYPE_CHECKING
 
 import numpy as np
