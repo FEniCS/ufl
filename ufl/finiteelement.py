@@ -273,6 +273,7 @@ class SymmetricElement(FiniteElement):
         This class should only be used for testing
 
         Args:
+            symmetry: Map from physical components to reference components
             sub_elements: Sub elements of this element
         """
         pull_back = _SymmetricPullBack(self, symmetry)
