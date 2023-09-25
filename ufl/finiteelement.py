@@ -13,6 +13,8 @@
 import abc as _abc
 import typing as _typing
 
+import numpy as np
+
 from ufl.cell import Cell as _Cell
 from ufl.pull_back import AbstractPullBack as _AbstractPullBack
 from ufl.pull_back import IdentityPullBack as _IdentityPullBack
@@ -73,6 +75,25 @@ class AbstractFiniteElement(_abc.ABC):
     @_abc.abstractproperty
     def reference_value_shape(self) -> _typing.Tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
+
+    @property
+    def components(self) -> _typing.Dict[_typing.Tuple[int, ...], int]:
+        """Get the numbering of the components of the element."""
+        if isinstance(self.pull_back, _SymmetricPullBack):
+            return self.pull_back._symmetry
+
+        if len(self.sub_elements) == 0:
+            return {(): 0}
+
+        components = {}
+        offset = 0
+        c_offset = 0
+        for e in self.sub_elements:
+            for i, j in enumerate(np.ndindex(e.value_shape)):
+                components[(offset + i, )] = c_offset + e.components[j]
+            c_offset += max(e.components.values()) + 1
+            offset += e.value_size
+        return components
 
     @property
     def value_shape(self) -> _typing.Tuple[int, ...]:
@@ -142,7 +163,7 @@ class FiniteElement(AbstractFiniteElement):
         reference_value_shape: _typing.Tuple[int, ...], pull_back: _AbstractPullBack,
         sobolev_space: _SobolevSpace, sub_elements=[],
         _repr: _typing.Optional[str] = None, _str: _typing.Optional[str] = None,
-        subdegree: _typing.Optional[int] = None
+        subdegree: _typing.Optional[int] = None,
     ):
         """Initialize basic finite element data."""
         if subdegree is None:
@@ -195,6 +216,7 @@ class FiniteElement(AbstractFiniteElement):
         """The maximum degree of a polynomial included in the basis for this element."""
         return self._degree
 
+    @property
     def embedded_subdegree(self) -> int:
         """The maximum degree Lagrange space that is a subset of this element."""
         return self._subdegree

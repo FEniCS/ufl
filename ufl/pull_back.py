@@ -11,7 +11,7 @@ import typing
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-import numpy
+import numpy as np
 
 from ufl.core.expr import Expr
 from ufl.core.multiindex import indices
@@ -297,20 +297,20 @@ class MixedPullBack(AbstractPullBack):
 
         Returns: The function pulled back to the reference cell
         """
-        rflat = [expr[idx] for idx in numpy.ndindex(expr.ufl_shape)]
+        rflat = [expr[idx] for idx in np.ndindex(expr.ufl_shape)]
         g_components = []
         offset = 0
         # For each unique piece in reference space, apply the appropriate pullback
         for subelem in self._element.sub_elements:
-            rsub = as_tensor(numpy.asarray(
+            rsub = as_tensor(np.asarray(
                 rflat[offset: offset + subelem.reference_value_size]
             ).reshape(subelem.reference_value_shape))
             rmapped = subelem.pull_back.apply(rsub)
             # Flatten into the pulled back expression for the whole thing
-            g_components.extend([rmapped[idx] for idx in numpy.ndindex(rmapped.ufl_shape)])
+            g_components.extend([rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape)])
             offset += subelem.reference_value_size
         # And reshape appropriately
-        f = as_tensor(numpy.asarray(g_components).reshape(self._element.value_shape))
+        f = as_tensor(np.asarray(g_components).reshape(self._element.value_shape))
         if f.ufl_shape != self._element.value_shape:
             raise ValueError("Expecting pulled back expression with shape "
                              f"'{self._element.value_shape}', got '{f.ufl_shape}'")
@@ -355,24 +355,24 @@ class SymmetricPullBack(AbstractPullBack):
 
         Returns: The function pulled back to the reference cell
         """
-        rflat = [expr[idx] for idx in numpy.ndindex(expr.ufl_shape)]
+        rflat = [expr[idx] for idx in np.ndindex(expr.ufl_shape)]
         g_components = []
         offsets = [0]
         for subelem in self._element.sub_elements:
             offsets.append(offsets[-1] + subelem.reference_value_size)
         # For each unique piece in reference space, apply the appropriate pullback
-        for component in numpy.ndindex(self._element.value_shape):
+        for component in np.ndindex(self._element.value_shape):
             i = self._symmetry[component]
             subelem = self._element.sub_elements[i]
-            rsub = as_tensor(numpy.asarray(
+            rsub = as_tensor(np.asarray(
                 rflat[offsets[i]:offsets[i+1]]
             ).reshape(subelem.reference_value_shape))
             print(repr(subelem))
             rmapped = subelem.pull_back.apply(rsub)
             # Flatten into the pulled back expression for the whole thing
-            g_components.extend([rmapped[idx] for idx in numpy.ndindex(rmapped.ufl_shape)])
+            g_components.extend([rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape)])
         # And reshape appropriately
-        f = as_tensor(numpy.asarray(g_components).reshape(self._element.value_shape))
+        f = as_tensor(np.asarray(g_components).reshape(self._element.value_shape))
         if f.ufl_shape != self._element.value_shape:
             raise ValueError(f"Expecting pulled back expression with shape "
                              f"'{self._element.value_shape}', got '{f.ufl_shape}'")

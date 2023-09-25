@@ -16,7 +16,6 @@ from ufl.classes import Terminal
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex
 from ufl.differentiation import Grad
-from ufl.pull_back import SymmetricPullBack
 from ufl.utils.stacks import Stack, StackDict
 
 
@@ -59,11 +58,9 @@ class IndexExpander(ReuseTransformer):
                 raise ValueError("Component size mismatch.")
 
             # Map it through an eventual symmetry mapping
-            if isinstance(e.pull_back, SymmetricPullBack):
-                c = min(i for i, j in e.pull_back._symmetry.items() if j == e.pull_back._symmetry[c])
-
-                if r != len(c):
-                    raise ValueError("Component size mismatch after symmetry mapping.")
+            c = min(i for i, j in e.components.items() if j == e.components[c])
+            if r != len(c):
+                raise ValueError("Component size mismatch after symmetry mapping.")
 
             return x[c]
 
