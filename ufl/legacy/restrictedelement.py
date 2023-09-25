@@ -56,7 +56,6 @@ class RestrictedElement(FiniteElementBase):
         """Doc."""
         return self._element._is_linear()
 
-    @property
     def sub_element(self):
         """Return the element which is restricted."""
         return self._element
@@ -96,6 +95,7 @@ class RestrictedElement(FiniteElementBase):
         """Return number of sub elements."""
         return self._element.num_sub_elements()
 
+    @property
     def sub_elements(self):
         """Return list of sub elements."""
         return self._element.sub_elements()
