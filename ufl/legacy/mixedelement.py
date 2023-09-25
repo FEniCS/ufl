@@ -233,7 +233,7 @@ class MixedElement(FiniteElementBase):
     def is_cellwise_constant(self, component=None):
         """Return whether the basis functions of this element is spatially constant over each cell."""
         if component is None:
-            return all(e.is_cellwise_constant() for e in self.sub_elements())
+            return all(e.is_cellwise_constant() for e in self.sub_elements)
         else:
             i, e = self.extract_component(component)
             return e.is_cellwise_constant()
@@ -248,12 +248,12 @@ class MixedElement(FiniteElementBase):
 
     def reconstruct(self, **kwargs):
         """Doc."""
-        return MixedElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()])
+        return MixedElement(*[e.reconstruct(**kwargs) for e in self.sub_elements])
 
     def variant(self):
         """Doc."""
         try:
-            variant, = {e.variant() for e in self.sub_elements()}
+            variant, = {e.variant() for e in self.sub_elements}
             return variant
         except ValueError:
             return None
@@ -333,7 +333,7 @@ class VectorElement(MixedElement):
     def reconstruct(self, **kwargs):
         """Doc."""
         sub_element = self._sub_element.reconstruct(**kwargs)
-        return VectorElement(sub_element, dim=len(self.sub_elements()))
+        return VectorElement(sub_element, dim=len(self.sub_elements))
 
     def variant(self):
         """Return the variant used to initialise the element."""
