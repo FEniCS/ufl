@@ -74,6 +74,7 @@ class IdentityPullBack(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return True
 
     def apply(self, expr):
@@ -107,6 +108,7 @@ class ContravariantPiola(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
     def apply(self, expr):
@@ -150,6 +152,7 @@ class CovariantPiola(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
     def apply(self, expr):
@@ -191,6 +194,7 @@ class L2Piola(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
     def apply(self, expr):
@@ -228,6 +232,7 @@ class DoubleContravariantPiola(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
     def apply(self, expr):
@@ -270,6 +275,7 @@ class DoubleCovariantPiola(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
     def apply(self, expr):
@@ -319,6 +325,7 @@ class MixedPullBack(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return all(e.pull_back.is_identity for e in self._element.sub_elements)
 
     def apply(self, expr):
@@ -381,6 +388,7 @@ class SymmetricPullBack(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return all(e.pull_back.is_identity for e in self._element.sub_elements)
 
     def apply(self, expr):
@@ -439,6 +447,7 @@ class PhysicalPullBack(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return True
 
     def apply(self, expr):
@@ -475,6 +484,7 @@ class CustomPullBack(AbstractPullBack):
 
     @property
     def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
         return True
 
     def apply(self, expr):
@@ -508,6 +518,11 @@ class UndefinedPullBack(AbstractPullBack):
     def __repr__(self) -> str:
         """Return a representation of the object."""
         return "UndefinedPullBack()"
+
+    @property
+    def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
+        return True
 
     def physical_value_shape(self, element) -> typing.Tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element.
