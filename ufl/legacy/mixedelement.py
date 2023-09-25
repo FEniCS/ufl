@@ -129,7 +129,7 @@ class MixedElement(FiniteElementBase):
     @property
     def sobolev_space(self):
         """Doc."""
-        return max(e.sobolev_space() for e in self._sub_elements)
+        return max(e.sobolev_space for e in self._sub_elements)
 
     def mapping(self):
         """Doc."""

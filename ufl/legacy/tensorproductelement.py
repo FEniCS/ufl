@@ -83,16 +83,16 @@ class TensorProductElement(FiniteElementBase):
     def sobolev_space(self):
         """Return the underlying Sobolev space of the TensorProductElement."""
         elements = self._sub_elements
-        if all(e.sobolev_space() == elements[0].sobolev_space()
+        if all(e.sobolev_space == elements[0].sobolev_space
                for e in elements):
-            return elements[0].sobolev_space()
+            return elements[0].sobolev_space
         else:
             # Generate a DirectionalSobolevSpace which contains
             # continuity information parametrized by spatial index
             orders = []
             for e in elements:
                 e_dim = e.cell.geometric_dimension()
-                e_order = (e.sobolev_space()._order,) * e_dim
+                e_order = (e.sobolev_space._order,) * e_dim
                 orders.extend(e_order)
             return DirectionalSobolevSpace(orders)
 

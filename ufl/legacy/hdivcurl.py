@@ -166,7 +166,7 @@ class WithMapping(FiniteElementBase):
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         if self.wrapee.mapping() == self.mapping():
-            return self.wrapee.sobolev_space()
+            return self.wrapee.sobolev_space
         else:
             return L2
 

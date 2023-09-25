@@ -66,12 +66,12 @@ class EnrichedElementBase(FiniteElementBase):
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         elements = [e for e in self._elements]
-        if all(e.sobolev_space() == elements[0].sobolev_space()
+        if all(e.sobolev_space == elements[0].sobolev_space
                for e in elements):
-            return elements[0].sobolev_space()
+            return elements[0].sobolev_space
         else:
             # Find smallest shared Sobolev space over all sub elements
-            spaces = [e.sobolev_space() for e in elements]
+            spaces = [e.sobolev_space for e in elements]
             superspaces = [{s} | set(s.parents) for s in spaces]
             intersect = set.intersection(*superspaces)
             for s in intersect.copy():

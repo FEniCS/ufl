@@ -46,7 +46,7 @@ class RestrictedElement(FiniteElementBase):
         if self._restriction_domain == "interior":
             return L2
         else:
-            return self._element.sobolev_space()
+            return self._element.sobolev_space
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this element is spatially constant over each cell."""
