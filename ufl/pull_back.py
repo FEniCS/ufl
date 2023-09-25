@@ -50,6 +50,10 @@ class AbstractPullBack(ABC):
             The value shape when the pull back is applied to the given element
         """
 
+    @abstractproperty
+    def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
+
     def apply(self, expr: Expr) -> Expr:
         """Apply the pull back.
 
@@ -67,6 +71,10 @@ class IdentityPullBack(AbstractPullBack):
     def __repr__(self) -> str:
         """Return a representation of the object."""
         return "IdentityPullBack()"
+
+    @property
+    def is_identity(self) -> bool:
+        return True
 
     def apply(self, expr):
         """Apply the pull back.
@@ -96,6 +104,10 @@ class ContravariantPiola(AbstractPullBack):
     def __repr__(self) -> str:
         """Return a representation of the object."""
         return "ContravariantPiola()"
+
+    @property
+    def is_identity(self) -> bool:
+        return False
 
     def apply(self, expr):
         """Apply the pull back.
@@ -136,6 +148,10 @@ class CovariantPiola(AbstractPullBack):
         """Return a representation of the object."""
         return "CovariantPiola()"
 
+    @property
+    def is_identity(self) -> bool:
+        return False
+
     def apply(self, expr):
         """Apply the pull back.
 
@@ -173,6 +189,10 @@ class L2Piola(AbstractPullBack):
         """Return a representation of the object."""
         return "L2Piola()"
 
+    @property
+    def is_identity(self) -> bool:
+        return False
+
     def apply(self, expr):
         """Apply the pull back.
 
@@ -205,6 +225,10 @@ class DoubleContravariantPiola(AbstractPullBack):
     def __repr__(self) -> str:
         """Return a representation of the object."""
         return "DoubleContravariantPiola()"
+
+    @property
+    def is_identity(self) -> bool:
+        return False
 
     def apply(self, expr):
         """Apply the pull back.
@@ -243,6 +267,10 @@ class DoubleCovariantPiola(AbstractPullBack):
     def __repr__(self) -> str:
         """Return a representation of the object."""
         return "DoubleCovariantPiola()"
+
+    @property
+    def is_identity(self) -> bool:
+        return False
 
     def apply(self, expr):
         """Apply the pull back.
@@ -288,6 +316,10 @@ class MixedPullBack(AbstractPullBack):
     def __repr__(self) -> str:
         """Return a representation of the object."""
         return f"MixedPullBack({self._element!r})"
+
+    @property
+    def is_identity(self) -> bool:
+        return all(e.pull_back.is_identity for e in self._element.sub_elements)
 
     def apply(self, expr):
         """Apply the pull back.
@@ -347,6 +379,10 @@ class SymmetricPullBack(AbstractPullBack):
         """Return a representation of the object."""
         return f"SymmetricPullBack({self._element!r}, {self._symmetry!r})"
 
+    @property
+    def is_identity(self) -> bool:
+        return all(e.pull_back.is_identity for e in self._element.sub_elements)
+
     def apply(self, expr):
         """Apply the pull back.
 
@@ -401,6 +437,10 @@ class PhysicalPullBack(AbstractPullBack):
         """Return a representation of the object."""
         return "PhysicalPullBack()"
 
+    @property
+    def is_identity(self) -> bool:
+        return True
+
     def apply(self, expr):
         """Apply the pull back.
 
@@ -432,6 +472,10 @@ class CustomPullBack(AbstractPullBack):
     def __repr__(self) -> str:
         """Return a representation of the object."""
         return "CustomPullBack()"
+
+    @property
+    def is_identity(self) -> bool:
+        return True
 
     def apply(self, expr):
         """Apply the pull back.

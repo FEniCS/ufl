@@ -25,7 +25,6 @@ from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.domain import extract_unique_domain
 from ufl.measure import custom_integral_types, point_integral_types
 from ufl.operators import conj, max_value, min_value, real, sqrt
-from ufl.pull_back import IdentityPullBack
 from ufl.tensors import as_tensor, as_vector
 
 
@@ -51,7 +50,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
         domain = extract_unique_domain(o)
-        if not isinstance(domain.ufl_coordinate_element().pull_back, IdentityPullBack):
+        if not domain.ufl_coordinate_element().pull_back.is_identity:
             raise ValueError("Piola mapped coordinates are not implemented.")
         # Note: No longer supporting domain.coordinates(), always
         # preserving SpatialCoordinate object.  However if Jacobians
@@ -152,7 +151,7 @@ class GeometryLoweringApplier(MultiFunction):
         """
         if self._preserve_types[o._ufl_typecode_]:
             return o
-        if not isinstance(extract_unique_domain(o).ufl_coordinate_element().pull_back, IdentityPullBack):
+        if not extract_unique_domain(o).ufl_coordinate_element().pull_back.is_identity:
             raise ValueError("Piola mapped coordinates are not implemented.")
         # No longer supporting domain.coordinates(), always preserving
         # SpatialCoordinate object.
