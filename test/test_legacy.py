@@ -4,6 +4,7 @@ from ufl.legacy import FiniteElement, MixedElement, TensorElement, VectorElement
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
+
 def test_legacy_vs_new():
     from ufl.finiteelement import FiniteElement as NewFiniteElement
     e = FiniteElement("Lagrange", triangle, 1)
