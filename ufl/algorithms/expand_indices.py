@@ -58,9 +58,10 @@ class IndexExpander(ReuseTransformer):
                 raise ValueError("Component size mismatch.")
 
             # Map it through an eventual symmetry mapping
-            c = min(i for i, j in e.components.items() if j == e.components[c])
-            if r != len(c):
-                raise ValueError("Component size mismatch after symmetry mapping.")
+            if len(e.components) > 1:
+                c = min(i for i, j in e.components.items() if j == e.components[c])
+                if r != len(c):
+                    raise ValueError("Component size mismatch after symmetry mapping.")
 
             return x[c]
 
