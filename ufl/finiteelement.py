@@ -56,6 +56,10 @@ class AbstractFiniteElement(_abc.ABC):
         space of the Lagrange space is a superspace of this element's polynomial space. If this
         element contains basis functions that are not in any Lagrange space, this function should
         return None.
+
+        Note that on a simplex cells, the polynomial space of Lagrange space is a complete polynomial
+        space, but on other cells this is not true. For example, on quadrilateral cells, the degree 1
+        Lagrange space includes the degree 2 polynomial xy.
         """
 
     @_abc.abstractproperty
@@ -66,6 +70,10 @@ class AbstractFiniteElement(_abc.ABC):
         space of the Lagrange space is a subspace of this element's polynomial space. If this
         element's polynomial space does not include the constant function, this function should
         return -1.
+
+        Note that on a simplex cells, the polynomial space of Lagrange space is a complete polynomial
+        space, but on other cells this is not true. For example, on quadrilateral cells, the degree 1
+        Lagrange space includes the degree 2 polynomial xy.
         """
 
     @_abc.abstractproperty
