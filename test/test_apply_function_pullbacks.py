@@ -1,7 +1,6 @@
 import numpy
 
 from ufl import Cell, Coefficient, FunctionSpace, Mesh, as_tensor, as_vector, dx, indices, triangle
-from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
 from ufl.finiteelement import FiniteElement, MixedElement, SymmetricElement
@@ -12,7 +11,7 @@ from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
 
 def check_single_function_pullback(g, mappings):
     expected = mappings[g]
-    actual = apply_single_function_pullbacks(ReferenceValue(g), g.ufl_element())
+    actual = g.ufl_element().pull_back.apply(ReferenceValue(g))
     assert expected.ufl_shape == actual.ufl_shape
     for idx in numpy.ndindex(actual.ufl_shape):
         rexp = renumber_indices(expected[idx])
