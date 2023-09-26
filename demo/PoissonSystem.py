@@ -23,12 +23,12 @@
 # Poisson's equation in system form (vector-valued).
 from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, inner, triangle
 from ufl.finiteelement import FiniteElement
-from ufl.pull_back import identity_pull_back
+from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 cell = triangle
-element = FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
+element = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)

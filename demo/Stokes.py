@@ -22,14 +22,14 @@
 # equations using a mixed formulation (Taylor-Hood elements).
 from ufl import Coefficient, FunctionSpace, Mesh, TestFunctions, TrialFunctions, div, dot, dx, grad, inner, triangle
 from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.pull_back import identity_pull_back
+from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 cell = triangle
-P2 = FiniteElement("Lagrange", cell, 2, (2, ), identity_pull_back, H1)
-P1 = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
+P2 = FiniteElement("Lagrange", cell, 2, (2, ), identity_pullback, H1)
+P1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
 TH = MixedElement([P2, P1])
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pull_back, H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
 space = FunctionSpace(domain, TH)
 p2_space = FunctionSpace(domain, P2)
 
