@@ -137,6 +137,7 @@ class WithMapping(FiniteElementBase):
         """Doc."""
         return f"WithMapping({repr(self.wrapee)}, '{self._mapping}')"
 
+    @property
     def value_shape(self):
         """Doc."""
         gdim = self.cell.geometric_dimension()
@@ -148,6 +149,7 @@ class WithMapping(FiniteElementBase):
         else:
             return self.wrapee.value_shape
 
+    @property
     def reference_value_shape(self):
         """Doc."""
         tdim = self.cell.topological_dimension()
@@ -163,6 +165,7 @@ class WithMapping(FiniteElementBase):
         """Doc."""
         return self._mapping
 
+    @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         if self.wrapee.mapping() == self.mapping():
