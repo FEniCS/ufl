@@ -50,7 +50,7 @@ class AbstractFiniteElement(_abc.ABC):
 
     @_abc.abstractmethod
     def __hash__(self) -> int:
-        """Compute hash code."""
+        """Return a hash."""
 
     @_abc.abstractmethod
     def __eq__(self, other: AbstractFiniteElement) -> bool:
@@ -238,7 +238,7 @@ class FiniteElement(AbstractFiniteElement):
         return self._str
 
     def __hash__(self) -> int:
-        """Compute hash code."""
+        """Return a hash."""
         return hash(f"{self!r}")
 
     def __eq__(self, other) -> bool:

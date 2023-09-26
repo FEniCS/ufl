@@ -280,7 +280,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = extract_unique_domain(o)
 
-        if not domain.ufl_coordinate_element().degree() == 1:
+        if domain.ufl_coordinate_element().embedded_superdegree > 1:
             # Don't lower bendy cells, instead leave it to form compiler
             warnings.warn("Only know how to compute cell edge lengths of P1 or Q1 cell.")
             return o
@@ -305,7 +305,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = extract_unique_domain(o)
 
-        if not domain.ufl_coordinate_element().degree() in {1, (1, 1)}:
+        if domain.ufl_coordinate_element().embedded_superdegree > 1:
             # Don't lower bendy cells, instead leave it to form compiler
             warnings.warn("Only know how to compute cell diameter of P1 or Q1 cell.")
             return o
@@ -342,7 +342,7 @@ class GeometryLoweringApplier(MultiFunction):
         if domain.ufl_cell().topological_dimension() < 3:
             raise ValueError("Facet edge lengths only make sense for topological dimension >= 3.")
 
-        elif not domain.ufl_coordinate_element().degree() == 1:
+        elif domain.ufl_coordinate_element().embedded_superdegree > 1:
             # Don't lower bendy cells, instead leave it to form compiler
             warnings.warn("Only know how to compute facet edge lengths of P1 or Q1 cell.")
             return o
