@@ -276,5 +276,7 @@ class FiniteElementBase(AbstractFiniteElement):
             return pull_back.double_contravariant_piola
         elif self.mapping() == "custom":
             return pull_back.custom_pull_back
+        elif self.mapping() == "physical":
+            return pull_back.physical_pull_back
 
         raise ValueError(f"Unsupported mapping: {self.mapping()}")
