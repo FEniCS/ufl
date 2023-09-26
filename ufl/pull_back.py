@@ -411,7 +411,6 @@ class SymmetricPullBack(AbstractPullBack):
             rsub = as_tensor(np.asarray(
                 rflat[offsets[i]:offsets[i+1]]
             ).reshape(subelem.reference_value_shape))
-            print(repr(subelem))
             rmapped = subelem.pull_back.apply(rsub)
             # Flatten into the pulled back expression for the whole thing
             g_components.extend([rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape)])

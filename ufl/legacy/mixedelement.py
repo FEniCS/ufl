@@ -468,15 +468,10 @@ class TensorElement(MixedElement):
                     raise ValueError("Sub-elements must all have the same value size")
             symmetry = {}
             n = 0
-            for i, j in self._symmetry.items():
-                if j in symmetry:
-                    symmetry[i] = symmetry[j]
-                else:
-                    symmetry[i] = n
-                    symmetry[j] = n
-                    n += 1
             for i in np.ndindex(self.value_shape[len(sub_element_value_shape):]):
-                if i not in symmetry:
+                if i in self._symmetry and self._symmetry[i] in symmetry:
+                    symmetry[i] = symmetry[self._symmetry[i]]
+                else:
                     symmetry[i] = n
                     n += 1
             return SymmetricPullBack(self, symmetry)
