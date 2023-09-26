@@ -284,6 +284,7 @@ class SymmetricElement(FiniteElement):
             symmetry: Map from physical components to reference components
             sub_elements: Sub elements of this element
         """
+        self._sub_elements = sub_elements
         pull_back = _SymmetricPullBack(self, symmetry)
         reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
         degree = max(e.embedded_superdegree for e in sub_elements)
