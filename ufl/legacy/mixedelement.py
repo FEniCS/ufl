@@ -246,6 +246,22 @@ class MixedElement(FiniteElementBase):
             i, e = self.extract_component(component)
             return e.degree()
 
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        if isinstance(self._degree, int):
+            return self._degree
+        else:
+            return min(e.embedded_subdegree for e in self.sub_elements)
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        if isinstance(self._degree, int):
+            return self._degree
+        else:
+            return max(e.embedded_superdegree for e in self.sub_elements)
+
     def reconstruct(self, **kwargs):
         """Doc."""
         return MixedElement(*[e.reconstruct(**kwargs) for e in self.sub_elements])
