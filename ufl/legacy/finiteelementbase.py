@@ -264,7 +264,7 @@ class FiniteElementBase(AbstractFiniteElement):
         """Get the pull back."""
         if self.mapping() == "identity":
             return pull_back.identity_pull_back
-        elif self.mapping() == "l2 Piola":
+        elif self.mapping() == "L2 Piola":
             return pull_back.l2_piola
         elif self.mapping() == "covariant Piola":
             return pull_back.covariant_piola
