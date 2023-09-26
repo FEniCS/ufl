@@ -16,7 +16,7 @@ from ufl.cell import as_cell
 from ufl.legacy.finiteelement import FiniteElement
 from ufl.legacy.finiteelementbase import FiniteElementBase
 from ufl.permutation import compute_indices
-from ufl.pull_back import IdentityPullBack, MixedPullBack, SymmetricPullBack
+from ufl.pullback import IdentityPullback, MixedPullback, SymmetricPullback
 from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
 from ufl.utils.sequences import max_degree, product
 
@@ -269,12 +269,12 @@ class MixedElement(FiniteElementBase):
         return "Mixed<" + tmp + ">"
 
     @property
-    def pull_back(self):
+    def pullback(self):
         """Get the pull back."""
         for e in self.sub_elements:
-            if not isinstance(e.pull_back, IdentityPullBack):
-                return MixedPullBack(self)
-        return IdentityPullBack()
+            if not isinstance(e.pullback, IdentityPullback):
+                return MixedPullback(self)
+        return IdentityPullback()
 
 
 class VectorElement(MixedElement):
@@ -459,7 +459,7 @@ class TensorElement(MixedElement):
                       f"symmetry={symmetry}{var_str})")
 
     @property
-    def pull_back(self):
+    def pullback(self):
         """Get pull back."""
         if len(self._symmetry) > 0:
             sub_element_value_shape = self.sub_elements[0].value_shape
@@ -474,8 +474,8 @@ class TensorElement(MixedElement):
                 else:
                     symmetry[i] = n
                     n += 1
-            return SymmetricPullBack(self, symmetry)
-        return super().pull_back
+            return SymmetricPullback(self, symmetry)
+        return super().pullback
 
     def __repr__(self):
         """Doc."""

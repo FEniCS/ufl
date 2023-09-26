@@ -31,7 +31,7 @@ from ufl.domain import extract_unique_domain
 from ufl.form import Form, ZeroBaseForm
 from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
                            sign, sin, sinh, sqrt)
-from ufl.pull_back import CustomPullBack, PhysicalPullBack
+from ufl.pullback import CustomPullback, PhysicalPullback
 from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, unwrap_list_tensor
 
 # TODO: Add more rulesets?
@@ -593,7 +593,7 @@ class GradRuleset(GenericDerivativeRuleset):
         """Differentiate a reference_value."""
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
-        if isinstance(f.ufl_element().pull_back, PhysicalPullBack):
+        if isinstance(f.ufl_element().pullback, PhysicalPullback):
             # TODO: Do we need to be more careful for immersed things?
             return ReferenceGrad(o)
 
@@ -832,7 +832,7 @@ class VariableRuleset(GenericDerivativeRuleset):
         # d/dv(o) == d/dv(rv(f)) = 0 if v is not f, or rv(dv/df)
         v = self._variable
         if isinstance(v, Coefficient) and o.ufl_operands[0] == v:
-            if not v.ufl_element().pull_back.is_identity:
+            if not v.ufl_element().pullback.is_identity:
                 # FIXME: This is a bit tricky, instead of Identity it is
                 #   actually inverse(transform), or we should rather not
                 #   convert to reference frame in the first place
@@ -1637,7 +1637,7 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
         """Apply to a coordinate_derivative."""
         from ufl.algorithms import extract_unique_elements
         for space in extract_unique_elements(o):
-            if isinstance(space.pull_back, CustomPullBack):
+            if isinstance(space.pullback, CustomPullback):
                 raise NotImplementedError(
                     "CoordinateDerivative is not supported for elements with custom pull back.")
 

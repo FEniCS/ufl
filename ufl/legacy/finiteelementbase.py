@@ -12,7 +12,7 @@
 
 from abc import abstractmethod, abstractproperty
 
-from ufl import pull_back
+from ufl import pullback
 from ufl.cell import AbstractCell, as_cell
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.utils.sequences import product
@@ -254,23 +254,23 @@ class FiniteElementBase(AbstractFiniteElement):
         return self.degree()
 
     @property
-    def pull_back(self):
+    def pullback(self):
         """Get the pull back."""
         if self.mapping() == "identity":
-            return pull_back.identity_pull_back
+            return pullback.identity_pullback
         elif self.mapping() == "L2 Piola":
-            return pull_back.l2_piola
+            return pullback.l2_piola
         elif self.mapping() == "covariant Piola":
-            return pull_back.covariant_piola
+            return pullback.covariant_piola
         elif self.mapping() == "contravariant Piola":
-            return pull_back.contravariant_piola
+            return pullback.contravariant_piola
         elif self.mapping() == "double covariant Piola":
-            return pull_back.double_covariant_piola
+            return pullback.double_covariant_piola
         elif self.mapping() == "double contravariant Piola":
-            return pull_back.double_contravariant_piola
+            return pullback.double_contravariant_piola
         elif self.mapping() == "custom":
-            return pull_back.custom_pull_back
+            return pullback.custom_pullback
         elif self.mapping() == "physical":
-            return pull_back.physical_pull_back
+            return pullback.physical_pullback
 
         raise ValueError(f"Unsupported mapping: {self.mapping()}")

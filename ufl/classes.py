@@ -46,7 +46,7 @@ import ufl.indexsum
 import ufl.integral
 import ufl.mathfunctions
 import ufl.measure
-import ufl.pull_back
+import ufl.pullback
 import ufl.referencevalue
 import ufl.restriction
 import ufl.sobolevspace
@@ -106,5 +106,5 @@ __all__ += populate_namespace_with_module_classes(ufl.measure, locals())
 __all__ += populate_namespace_with_module_classes(ufl.integral, locals())
 __all__ += populate_namespace_with_module_classes(ufl.form, locals())
 __all__ += populate_namespace_with_module_classes(ufl.equation, locals())
-__all__ += populate_namespace_with_module_classes(ufl.pull_back, locals())
+__all__ += populate_namespace_with_module_classes(ufl.pullback, locals())
 __all__ += populate_namespace_with_module_classes(ufl.sobolevspace, locals())
