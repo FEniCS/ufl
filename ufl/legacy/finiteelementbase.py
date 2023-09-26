@@ -248,11 +248,15 @@ class FiniteElementBase(AbstractFiniteElement):
     @property
     def embedded_superdegree(self):
         """Doc."""
+        if isinstance(self.degree(), tuple):
+            return max(self.degree())
         return self.degree()
 
     @property
     def embedded_subdegree(self):
         """Doc."""
+        if isinstance(self.degree(), tuple):
+            return max(self.degree())
         return self.degree()
 
     @property

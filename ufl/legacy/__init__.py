@@ -15,6 +15,7 @@ import warnings as _warnings
 from ufl.legacy.brokenelement import BrokenElement
 from ufl.legacy.enrichedelement import EnrichedElement, NodalEnrichedElement
 from ufl.legacy.finiteelement import FiniteElement
+from ufl.legacy.finiteelementbase import FiniteElementBase
 from ufl.legacy.hdivcurl import HCurlElement, HDivElement, WithMapping
 from ufl.legacy.mixedelement import MixedElement, TensorElement, VectorElement
 from ufl.legacy.restrictedelement import RestrictedElement
