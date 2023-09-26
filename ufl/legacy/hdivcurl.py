@@ -88,6 +88,7 @@ class HCurlElement(FiniteElementBase):
         """Doc."""
         return "covariant Piola"
 
+    @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         return HCurl

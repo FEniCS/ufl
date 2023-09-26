@@ -107,8 +107,6 @@ class FiniteElementBase(AbstractFiniteElement):
 
     def degree(self, component=None):
         """Return polynomial degree of finite element."""
-        # FIXME: Consider embedded_degree concept for more accurate
-        # degree, see blueprint
         return self._degree
 
     def quadrature_scheme(self):
@@ -248,15 +246,11 @@ class FiniteElementBase(AbstractFiniteElement):
     @property
     def embedded_superdegree(self):
         """Doc."""
-        if isinstance(self.degree(), tuple):
-            return max(self.degree())
         return self.degree()
 
     @property
     def embedded_subdegree(self):
         """Doc."""
-        if isinstance(self.degree(), tuple):
-            return max(self.degree())
         return self.degree()
 
     @property

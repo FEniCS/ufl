@@ -128,3 +128,14 @@ class TensorProductElement(FiniteElementBase):
         """Short pretty-print."""
         return "TensorProductElement(%s, cell=%s)" \
             % (', '.join([e.shortstr() for e in self._sub_elements]), str(self._cell))
+
+    @property
+    def embedded_superdegree(self):
+        """Doc."""
+        return sum(self.degree())
+
+    @property
+    def embedded_subdegree(self):
+        """Doc."""
+        return min(self.degree())
+

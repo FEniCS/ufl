@@ -72,6 +72,7 @@ class EnrichedElementBase(FiniteElementBase):
         else:
             # Find smallest shared Sobolev space over all sub elements
             spaces = [e.sobolev_space for e in elements]
+            from IPython import embed; embed()
             superspaces = [{s} | set(s.parents) for s in spaces]
             intersect = set.intersection(*superspaces)
             for s in intersect.copy():
