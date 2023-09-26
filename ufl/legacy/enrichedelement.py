@@ -93,6 +93,22 @@ class EnrichedElementBase(FiniteElementBase):
         """Doc."""
         return type(self)(*[e.reconstruct(**kwargs) for e in self._elements])
 
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        if isinstance(self._degree, int):
+            return self._degree
+        else:
+            return min(e.embedded_subdegree for e in self._elements)
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        if isinstance(self._degree, int):
+            return self._degree
+        else:
+            return max(e.embedded_superdegree for e in self._elements)
+
 
 class EnrichedElement(EnrichedElementBase):
     r"""The vector sum of several finite element spaces.
