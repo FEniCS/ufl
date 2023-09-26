@@ -59,6 +59,16 @@ class HDivElement(FiniteElementBase):
         """Format as string for pretty printing."""
         return f"HDivElement({self._element.shortstr()})"
 
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        return self._element.embedded_subdegree
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        return self._element.embedded_superdegree
+
 
 class HCurlElement(FiniteElementBase):
     """A curl-conforming version of an outer product element, assuming this makes mathematical sense."""
@@ -191,3 +201,13 @@ class WithMapping(FiniteElementBase):
     def shortstr(self):
         """Doc."""
         return f"WithMapping({self.wrapee.shortstr()}, {self._mapping})"
+
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        return self._element.embedded_subdegree
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        return self._element.embedded_superdegree
