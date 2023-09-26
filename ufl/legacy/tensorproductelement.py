@@ -138,4 +138,3 @@ class TensorProductElement(FiniteElementBase):
     def embedded_subdegree(self):
         """Doc."""
         return min(self.degree())
-
