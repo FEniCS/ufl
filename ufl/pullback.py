@@ -386,8 +386,7 @@ class SymmetricPullback(AbstractPullback):
         for e in element.sub_elements:
             if e.value_shape != self._sub_element_value_shape:
                 raise ValueError("Sub-elements must all have the same value shape.")
-        vshape = tuple(i + 1 for i in max(symmetry.keys()))
-        self._block_shape = vshape[:len(vshape)-len(self._sub_element_value_shape)]
+        self._block_shape = tuple(i + 1 for i in max(symmetry.keys()))
 
     def __repr__(self) -> str:
         """Return a representation of the object."""
