@@ -382,6 +382,12 @@ class SymmetricPullBack(AbstractPullBack):
         self._element = element
         self._symmetry = symmetry
 
+        self._sub_element_value_shape = element.sub_elements[0].value_shape
+        for e in element.sub_elements:
+            if e.value_shape != self._sub_element_value_shape:
+                raise ValueError("Sub-elements must all have the same value shape.")
+        self._block_shape = element.value_shape[-1-len(self._sub_element_value_shape):]
+
     def __repr__(self) -> str:
         """Return a representation of the object."""
         return f"SymmetricPullBack({self._element!r}, {self._symmetry!r})"
@@ -405,7 +411,7 @@ class SymmetricPullBack(AbstractPullBack):
         for subelem in self._element.sub_elements:
             offsets.append(offsets[-1] + subelem.reference_value_size)
         # For each unique piece in reference space, apply the appropriate pullback
-        for component in np.ndindex(self._element.value_shape):
+        for component in np.ndindex(self._block_shape):
             i = self._symmetry[component]
             subelem = self._element.sub_elements[i]
             rsub = as_tensor(np.asarray(
