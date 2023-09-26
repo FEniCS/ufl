@@ -5,7 +5,7 @@ from math import inf
 
 from ufl import H1, H2, L2, HCurl, HDiv, HInf, triangle
 from ufl.finiteelement import FiniteElement
-from ufl.pull_back import contravariant_piola, covariant_piola, identity_pull_back
+from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
 from ufl.sobolevspace import SobolevSpace  # noqa: F401
 from ufl.sobolevspace import DirectionalSobolevSpace
 
@@ -63,9 +63,9 @@ def xtest_contains_mixed():
 
 def test_contains_l2():
     l2_elements = [
-        FiniteElement("Discontinuous Lagrange", triangle, 0, (), identity_pull_back, L2),
-        FiniteElement("Discontinuous Lagrange", triangle, 1, (), identity_pull_back, L2),
-        FiniteElement("Discontinuous Lagrange", triangle, 2, (), identity_pull_back, L2),
+        FiniteElement("Discontinuous Lagrange", triangle, 0, (), identity_pullback, L2),
+        FiniteElement("Discontinuous Lagrange", triangle, 1, (), identity_pullback, L2),
+        FiniteElement("Discontinuous Lagrange", triangle, 2, (), identity_pullback, L2),
     ]
     for l2_element in l2_elements:
         assert l2_element in L2
@@ -81,8 +81,8 @@ def test_contains_l2():
 def test_contains_h1():
     h1_elements = [
         # Standard Lagrange elements:
-        FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1),
-        FiniteElement("Lagrange", triangle, 2, (), identity_pull_back, H1),
+        FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1),
+        FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1),
         # Some special elements:
         FiniteElement("MTW", triangle, 3, (2, ), contravariant_piola, H1),
         FiniteElement("Hermite", triangle, 3, (), "custom", H1),
@@ -116,7 +116,7 @@ def test_contains_h2():
 
 def test_contains_hinf():
     hinf_elements = [
-        FiniteElement("Real", triangle, 0, (), identity_pull_back, HInf)
+        FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
     ]
     for hinf_element in hinf_elements:
         assert hinf_element in HInf

@@ -12,30 +12,30 @@ from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.core.external_operator import ExternalOperator
 from ufl.finiteelement import FiniteElement
 from ufl.form import BaseForm
-from ufl.pull_back import identity_pull_back
+from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def domain_2d():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
 
 
 @pytest.fixture
 def V1(domain_2d):
-    f1 = FiniteElement("CG", triangle, 1, (), identity_pull_back, H1)
+    f1 = FiniteElement("CG", triangle, 1, (), identity_pullback, H1)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
 def V2(domain_2d):
-    f1 = FiniteElement("CG", triangle, 2, (), identity_pull_back, H1)
+    f1 = FiniteElement("CG", triangle, 2, (), identity_pullback, H1)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
 def V3(domain_2d):
-    f1 = FiniteElement("CG", triangle, 3, (), identity_pull_back, H1)
+    f1 = FiniteElement("CG", triangle, 3, (), identity_pullback, H1)
     return FunctionSpace(domain_2d, f1)
 
 

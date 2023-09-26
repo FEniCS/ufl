@@ -3,20 +3,20 @@ __date__ = "2009-03-14 -- 2009-03-14"
 
 from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, as_vector, product, split, triangle
 from ufl.finiteelement import FiniteElement, MixedElement, SymmetricElement
-from ufl.pull_back import identity_pull_back
+from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 
 def test_split(self):
     cell = triangle
     d = cell.geometric_dimension()
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1))
-    f = FiniteElement("Lagrange", cell, 1, (), identity_pull_back, H1)
-    v = FiniteElement("Lagrange", cell, 1, (d, ), identity_pull_back, H1,
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1))
+    f = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    v = FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1,
                       sub_elements=[f for _ in range(d)])
-    w = FiniteElement("Lagrange", cell, 1, (d+1, ), identity_pull_back, H1,
+    w = FiniteElement("Lagrange", cell, 1, (d+1, ), identity_pullback, H1,
                       sub_elements=[f for _ in range(d + 1)])
-    t = FiniteElement("Lagrange", cell, 1, (d, d), identity_pull_back, H1,
+    t = FiniteElement("Lagrange", cell, 1, (d, d), identity_pullback, H1,
                       sub_elements=[f for _ in range(d ** 2)])
     s = SymmetricElement({(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2}, [f for _ in range(3)])
     m = MixedElement([f, v, w, t, s, s])

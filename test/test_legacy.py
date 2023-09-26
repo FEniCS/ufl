@@ -1,4 +1,4 @@
-from ufl import (H1, Coefficient, FunctionSpace, Mesh, dx, hexahedron, identity_pull_back, inner, interval,
+from ufl import (H1, Coefficient, FunctionSpace, Mesh, dx, hexahedron, identity_pullback, inner, interval,
                  quadrilateral, tetrahedron, triangle)
 from ufl.legacy import FiniteElement, MixedElement, TensorElement, VectorElement, WithMapping
 
@@ -8,9 +8,9 @@ all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 def test_legacy_vs_new():
     from ufl.finiteelement import FiniteElement as NewFiniteElement
     e = FiniteElement("Lagrange", triangle, 1)
-    new_e = NewFiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    new_e = NewFiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     assert e.sobolev_space == new_e.sobolev_space
-    assert e.pull_back == new_e.pull_back
+    assert e.pullback == new_e.pullback
     assert e.embedded_superdegree == new_e.embedded_superdegree
     assert e.embedded_subdegree == new_e.embedded_subdegree
     assert e.cell == new_e.cell
@@ -97,7 +97,7 @@ def test_mixed_tensor_symmetries():
     V = VectorElement('CG', triangle, 1)
     T = TensorElement('CG', triangle, 1, symmetry=True)
 
-    print(T.pull_back)
+    print(T.pullback)
 
     # M has dimension 4+1, symmetries are 2->1
     M = T * S

@@ -2,7 +2,7 @@ import pytest
 
 from ufl import Argument, Coefficient, FunctionSpace, Mesh, triangle
 from ufl.finiteelement import FiniteElement
-from ufl.pull_back import identity_pull_back
+from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 # TODO: Add more illegal expressions to check!
@@ -10,17 +10,17 @@ from ufl.sobolevspace import H1
 
 @pytest.fixture
 def selement():
-    return FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    return FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
 
 
 @pytest.fixture
 def velement():
-    return FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1)
+    return FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
 
 
 @pytest.fixture
 def domain():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
 
 
 @pytest.fixture

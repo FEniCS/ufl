@@ -11,19 +11,19 @@ from ufl.constantvalue import Zero
 from ufl.duals import is_dual, is_primal
 from ufl.finiteelement import FiniteElement
 from ufl.form import ZeroBaseForm
-from ufl.pull_back import identity_pull_back
+from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 
 def test_mixed_functionspace(self):
     # Domains
-    domain_3d = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pull_back, H1))
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
-    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pull_back, H1))
+    domain_3d = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
     # Finite elements
-    f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pull_back, H1)
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
-    f_3d = FiniteElement("Lagrange", tetrahedron, 1, (), identity_pull_back, H1)
+    f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    f_3d = FiniteElement("Lagrange", tetrahedron, 1, (), identity_pullback, H1)
     # Function spaces
     V_3d = FunctionSpace(domain_3d, f_3d)
     V_2d = FunctionSpace(domain_2d, f_2d)
@@ -50,8 +50,8 @@ def test_mixed_functionspace(self):
 
 
 def test_dual_coefficients():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
 
@@ -73,8 +73,8 @@ def test_dual_coefficients():
 
 
 def test_dual_arguments():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
 
@@ -96,8 +96,8 @@ def test_dual_arguments():
 
 
 def test_addition():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
 
@@ -134,8 +134,8 @@ def test_addition():
 
 
 def test_scalar_mult():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
 
@@ -152,8 +152,8 @@ def test_scalar_mult():
 
 
 def test_adjoint():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     a = Matrix(V, V)
 
@@ -171,11 +171,11 @@ def test_adjoint():
 
 
 def test_action():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
-    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pull_back, H1))
-    f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pull_back, H1)
+    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
+    f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
     U = FunctionSpace(domain_1d, f_1d)
 
     a = Matrix(V, U)
@@ -231,11 +231,11 @@ def test_action():
 
 
 def test_differentiation():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
-    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pull_back, H1))
-    f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pull_back, H1)
+    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
+    f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
     U = FunctionSpace(domain_1d, f_1d)
 
     u = Coefficient(U)
@@ -294,8 +294,8 @@ def test_differentiation():
 
 
 def test_zero_base_form_mult():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pull_back, H1))
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pull_back, H1)
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     v = Argument(V, 0)
     Z = ZeroBaseForm((v, v))
