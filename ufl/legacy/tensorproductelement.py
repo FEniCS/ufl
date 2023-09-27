@@ -132,7 +132,7 @@ class TensorProductElement(FiniteElementBase):
     @property
     def embedded_superdegree(self):
         """Doc."""
-        return sum(self.degree())
+        return max(self.degree())
 
     @property
     def embedded_subdegree(self):
