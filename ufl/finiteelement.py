@@ -344,6 +344,8 @@ class MixedElement(FiniteElement):
     def __init__(self, sub_elements):
         """Initialise a mixed element.
 
+        This class should only be used for testing
+
         Args:
             sub_elements: Sub-elements of this element
         """
