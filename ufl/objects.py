@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"Utility objects for pretty syntax in user code."
-
+"""Utility objects for pretty syntax in user code."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -37,6 +35,8 @@ prism = Cell("prism", 3)
 pyramid = Cell("pyramid", 3)
 quadrilateral = Cell("quadrilateral", 2)
 hexahedron = Cell("hexahedron", 3)
+tesseract = Cell("tesseract", 4)
+pentatope = Cell("pentatope", 4)
 
 # Facet is just a dummy declaration for RestrictedElement
 facet = "facet"

@@ -1,11 +1,5 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-# Last changed: 2014-02-24
-
-import pytest
-
-from ufl import *
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, MixedElement, TensorElement, VectorElement,
+                 WithMapping, dx, hexahedron, inner, interval, quadrilateral, tetrahedron, triangle)
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
@@ -80,7 +74,7 @@ def test_tensor_symmetry():
 
 
 def test_mixed_tensor_symmetries():
-    from ufl.algorithms import expand_indices, expand_compounds
+    from ufl.algorithms import expand_compounds, expand_indices
 
     S = FiniteElement('CG', triangle, 1)
     V = VectorElement('CG', triangle, 1)
@@ -88,7 +82,9 @@ def test_mixed_tensor_symmetries():
 
     # M has dimension 4+1, symmetries are 2->1
     M = T * S
-    P = Coefficient(M)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    m_space = FunctionSpace(domain, M)
+    P = Coefficient(m_space)
     M = inner(P, P) * dx
 
     M2 = expand_indices(expand_compounds(M))
@@ -97,7 +93,8 @@ def test_mixed_tensor_symmetries():
 
     # M has dimension 2+(1+4), symmetries are 5->4
     M = V * (S * T)
-    P = Coefficient(M)
+    m_space = FunctionSpace(domain, M)
+    P = Coefficient(m_space)
     M = inner(P, P) * dx
 
     M2 = expand_indices(expand_compounds(M))
@@ -180,6 +177,7 @@ def test_missing_cell():
         element = TensorElement("DG L2", cell, 1, shape=(2, 2))
         assert element == eval(repr(element))
 
+
 def test_invalid_degree():
     cell = triangle
     for degree in (1, None):
@@ -229,3 +227,9 @@ def test_mse():
 
         element = FiniteElement('GLL-Edge L2', interval, degree - 1)
         assert element == eval(repr(element))
+
+
+def test_withmapping():
+    base = FiniteElement("CG", interval, 1)
+    element = WithMapping(base, "identity")
+    assert element == eval(repr(element))

@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
-"Algorithms for renumbering of counted objects, currently variables and indices."
-
+"""Algorithms for renumbering of counted objects, currently variables and indices."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.variable import Label, Variable
@@ -16,11 +13,15 @@ from ufl.classes import Zero
 
 
 class VariableRenumberingTransformer(ReuseTransformer):
+    """Variable renumbering transformer."""
+
     def __init__(self):
+        """Initialise."""
         ReuseTransformer.__init__(self)
         self.variable_map = {}
 
     def variable(self, o):
+        """Apply to variable."""
         e, l = o.ufl_operands  # noqa: E741
         v = self.variable_map.get(l)
         if v is None:
@@ -32,13 +33,18 @@ class VariableRenumberingTransformer(ReuseTransformer):
 
 
 class IndexRenumberingTransformer(VariableRenumberingTransformer):
-    "This is a poorly designed algorithm. It is used in some tests, please do not use for anything else."
+    """Index renumbering transformer.
+
+    This is a poorly designed algorithm. It is used in some tests, please do not use for anything else.
+    """
 
     def __init__(self):
+        """Initialise."""
         VariableRenumberingTransformer.__init__(self)
         self.index_map = {}
 
     def zero(self, o):
+        """Apply to zero."""
         fi = o.ufl_free_indices
         fid = o.ufl_index_dimensions
         mapped_fi = tuple(self.index(Index(count=i)) for i in fi)
@@ -47,6 +53,7 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
         return Zero(o.ufl_shape, new_fi, new_fid)
 
     def index(self, o):
+        """Apply to index."""
         if isinstance(o, FixedIndex):
             return o
         else:
@@ -58,11 +65,13 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
             return i
 
     def multi_index(self, o):
+        """Apply to multi_index."""
         new_indices = tuple(self.index(i) for i in o.indices())
         return MultiIndex(new_indices)
 
 
 def renumber_indices(expr):
+    """Renumber indices."""
     if isinstance(expr, Expr):
         num_free_indices = len(expr.ufl_free_indices)
 
@@ -70,5 +79,5 @@ def renumber_indices(expr):
 
     if isinstance(expr, Expr):
         if num_free_indices != len(result.ufl_free_indices):
-            error("The number of free indices left in expression should be invariant w.r.t. renumbering.")
+            raise ValueError("The number of free indices left in expression should be invariant w.r.t. renumbering.")
     return result

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """This module defines classes for conditional expressions."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -9,7 +7,6 @@
 
 import warnings
 
-from ufl.log import error
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
@@ -26,22 +23,30 @@ from ufl.checks import is_true_ufl_scalar
 
 @ufl_type(is_abstract=True, is_scalar=True)
 class Condition(Operator):
+    """Condition."""
+
     __slots__ = ()
 
     def __init__(self, operands):
+        """Initialise."""
         Operator.__init__(self, operands)
 
     def __bool__(self):
+        """Convert to a bool."""
         # Showing explicit error here to protect against misuse
-        error("UFL conditions cannot be evaluated as bool in a Python context.")
+        raise ValueError("UFL conditions cannot be evaluated as bool in a Python context.")
+
     __nonzero__ = __bool__
 
 
 @ufl_type(is_abstract=True, num_ops=2)
 class BinaryCondition(Condition):
+    """Binary condition."""
+
     __slots__ = ('_name',)
 
     def __init__(self, name, left, right):
+        """Initialise."""
         left = as_ufl(left)
         right = as_ufl(right)
 
@@ -60,16 +65,17 @@ class BinaryCondition(Condition):
             # only conditions
             for arg in (left, right):
                 if not isinstance(arg, Condition):
-                    error("Expecting a Condition, not %s." % ufl_err_str(arg))
+                    raise ValueError(f"Expecting a Condition, not {ufl_err_str(arg)}.")
         else:
             # Binary operators acting on non-boolean expressions allow
             # only scalars
             if left.ufl_shape != () or right.ufl_shape != ():
-                error("Expecting scalar arguments.")
+                raise ValueError("Expecting scalar arguments.")
             if left.ufl_free_indices != () or right.ufl_free_indices != ():
-                error("Expecting scalar arguments.")
+                raise ValueError("Expecting scalar arguments.")
 
     def __str__(self):
+        """Format as a string."""
         return "%s %s %s" % (parstr(self.ufl_operands[0], self),
                              self._name, parstr(self.ufl_operands[1], self))
 
@@ -78,18 +84,24 @@ class BinaryCondition(Condition):
 # reserved for object equivalence for use in set and dict.
 @ufl_type()
 class EQ(BinaryCondition):
+    """Equality condition."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         BinaryCondition.__init__(self, "==", left, right)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a == b)
 
     def __bool__(self):
+        """Convert to a bool."""
         return expr_equals(self.ufl_operands[0], self.ufl_operands[1])
+
     __nonzero__ = __bool__
 
 
@@ -97,29 +109,39 @@ class EQ(BinaryCondition):
 # reserved for object equivalence for use in set and dict.
 @ufl_type()
 class NE(BinaryCondition):
+    """Not equal condition."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         BinaryCondition.__init__(self, "!=", left, right)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a != b)
 
     def __bool__(self):
+        """Convert to a bool."""
         return not expr_equals(self.ufl_operands[0], self.ufl_operands[1])
+
     __nonzero__ = __bool__
 
 
 @ufl_type(binop="__le__")
 class LE(BinaryCondition):
+    """Less than or equal condition."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         BinaryCondition.__init__(self, "<=", left, right)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a <= b)
@@ -127,12 +149,16 @@ class LE(BinaryCondition):
 
 @ufl_type(binop="__ge__")
 class GE(BinaryCondition):
+    """Greater than or equal to condition."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         BinaryCondition.__init__(self, ">=", left, right)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a >= b)
@@ -140,12 +166,16 @@ class GE(BinaryCondition):
 
 @ufl_type(binop="__lt__")
 class LT(BinaryCondition):
+    """Less than condition."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         BinaryCondition.__init__(self, "<", left, right)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a < b)
@@ -153,12 +183,16 @@ class LT(BinaryCondition):
 
 @ufl_type(binop="__gt__")
 class GT(BinaryCondition):
+    """Greater than condition."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         BinaryCondition.__init__(self, ">", left, right)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a > b)
@@ -166,12 +200,16 @@ class GT(BinaryCondition):
 
 @ufl_type()
 class AndCondition(BinaryCondition):
+    """And condition."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         BinaryCondition.__init__(self, "&&", left, right)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a and b)
@@ -179,12 +217,16 @@ class AndCondition(BinaryCondition):
 
 @ufl_type()
 class OrCondition(BinaryCondition):
+    """Or condition."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         BinaryCondition.__init__(self, "||", left, right)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a or b)
@@ -192,51 +234,61 @@ class OrCondition(BinaryCondition):
 
 @ufl_type(num_ops=1)
 class NotCondition(Condition):
+    """Not condition."""
+
     __slots__ = ()
 
     def __init__(self, condition):
+        """Initialise."""
         Condition.__init__(self, (condition,))
         if not isinstance(condition, Condition):
-            error("Expecting a condition.")
+            raise ValueError("Expecting a condition.")
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         return bool(not a)
 
     def __str__(self):
+        """Format as a string."""
         return "!(%s)" % (str(self.ufl_operands[0]),)
 
-
-# --- Conditional expression (condition ? true_value : false_value) ---
 
 @ufl_type(num_ops=3, inherit_shape_from_operand=1,
           inherit_indices_from_operand=1)
 class Conditional(Operator):
+    """Conditional expression.
+
+    In C++ these take the format `(condition ? true_value : false_value)`.
+    """
+
     __slots__ = ()
 
     def __init__(self, condition, true_value, false_value):
+        """Initialise."""
         if not isinstance(condition, Condition):
-            error("Expectiong condition as first argument.")
+            raise ValueError("Expectiong condition as first argument.")
         true_value = as_ufl(true_value)
         false_value = as_ufl(false_value)
         tsh = true_value.ufl_shape
         fsh = false_value.ufl_shape
         if tsh != fsh:
-            error("Shape mismatch between conditional branches.")
+            raise ValueError("Shape mismatch between conditional branches.")
         tfi = true_value.ufl_free_indices
         ffi = false_value.ufl_free_indices
         if tfi != ffi:
-            error("Free index mismatch between conditional branches.")
+            raise ValueError("Free index mismatch between conditional branches.")
         if isinstance(condition, (EQ, NE)):
             if not all((condition.ufl_operands[0].ufl_shape == (),
                         condition.ufl_operands[0].ufl_free_indices == (),
                         condition.ufl_operands[1].ufl_shape == (),
                         condition.ufl_operands[1].ufl_free_indices == ())):
-                error("Non-scalar == or != is not allowed.")
+                raise ValueError("Non-scalar == or != is not allowed.")
 
         Operator.__init__(self, (condition, true_value, false_value))
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         c = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         if c:
             a = self.ufl_operands[1]
@@ -245,6 +297,7 @@ class Conditional(Operator):
         return a.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
+        """Format as a string."""
         return "%s ? %s : %s" % tuple(parstr(o, self) for o in self.ufl_operands)
 
 
@@ -252,15 +305,18 @@ class Conditional(Operator):
 
 @ufl_type(is_scalar=True, num_ops=1)
 class MinValue(Operator):
-    "UFL operator: Take the minimum of two values."
+    """Take the minimum of two values."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         Operator.__init__(self, (left, right))
         if not (is_true_ufl_scalar(left) and is_true_ufl_scalar(right)):
-            error("Expecting scalar arguments.")
+            raise ValueError("Expecting scalar arguments.")
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
@@ -272,20 +328,24 @@ class MinValue(Operator):
         return res
 
     def __str__(self):
+        """Format as a string."""
         return "min_value(%s, %s)" % self.ufl_operands
 
 
 @ufl_type(is_scalar=True, num_ops=1)
 class MaxValue(Operator):
-    "UFL operator: Take the maximum of two values."
+    """Take the maximum of two values."""
+
     __slots__ = ()
 
     def __init__(self, left, right):
+        """Initialise."""
         Operator.__init__(self, (left, right))
         if not (is_true_ufl_scalar(left) and is_true_ufl_scalar(right)):
-            error("Expecting scalar arguments.")
+            raise ValueError("Expecting scalar arguments.")
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
@@ -297,4 +357,5 @@ class MaxValue(Operator):
         return res
 
     def __str__(self):
+        """Format as a string."""
         return "max_value(%s, %s)" % self.ufl_operands

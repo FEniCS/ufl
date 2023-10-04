@@ -1,22 +1,17 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-"""
+"""Test scratch.
+
 This is a template file you can copy when making a new test case.
 Begin by copying this file to a filename matching test_*.py.
 The tests in the file will then automatically be run by ./test.py.
 Next look at the TODO markers below for places to edit.
 """
 
-import pytest
 import warnings
 
-# This imports everything external code will see from ufl
-from ufl import *
-from ufl.log import error
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Identity, Mesh, TensorElement, TestFunction, VectorElement,
+                 as_matrix, as_tensor, as_vector, dx, grad, indices, inner, outer, triangle)
+from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
 from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
-
-# TODO: Import only what you need from classes and algorithms:
-from ufl.classes import Grad, FormArgument, Zero, Indexed, FixedIndex, ListTensor
 
 
 class MockForwardAD:
@@ -44,7 +39,7 @@ class MockForwardAD:
             o, = o.ufl_operands
             ngrads += 1
         if not isinstance(o, FormArgument):
-            error("Expecting gradient of a FormArgument, not %s" % repr(o))
+            raise ValueError("Expecting gradient of a FormArgument, not %s" % repr(o))
 
         def apply_grads(f):
             if not isinstance(f, FormArgument):
@@ -53,7 +48,7 @@ class MockForwardAD:
                 print(o)
                 print(g)
                 print((','*60))
-                error("What?")
+                raise ValueError("What?")
             for i in range(ngrads):
                 f = Grad(f)
             return f
@@ -78,9 +73,9 @@ class MockForwardAD:
                 vval, vcomp = v.ufl_operands
                 vcomp = tuple(vcomp)
             else:
-                error("Expecting argument or component of argument.")
+                raise ValueError("Expecting argument or component of argument.")
             if not all(isinstance(k, FixedIndex) for k in vcomp):
-                error("Expecting only fixed indices in variation.")
+                raise ValueError("Expecting only fixed indices in variation.")
             return vval, vcomp
 
         def compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp):
@@ -118,7 +113,7 @@ class MockForwardAD:
 
                 else:
                     if wshape != ():
-                        error("Expecting scalar coefficient in this branch.")
+                        raise ValueError("Expecting scalar coefficient in this branch.")
                     # Case: d/dt [w + t v[...]]
                     wval, wcomp = w, ()
 
@@ -133,14 +128,14 @@ class MockForwardAD:
                     continue
                 assert isinstance(wval, FormArgument)
                 if not all(isinstance(k, FixedIndex) for k in wcomp):
-                    error("Expecting only fixed indices in differentiation variable.")
+                    raise ValueError("Expecting only fixed indices in differentiation variable.")
                 wshape = wval.ufl_shape
 
                 vval, vcomp = analyse_variation_argument(v)
                 gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
 
             else:
-                error("Expecting coefficient or component of coefficient.")
+                raise ValueError("Expecting coefficient or component of coefficient.")
 
         # FIXME: Handle other coefficient derivatives: oprimes = self._cd._data.get(o)
 
@@ -156,15 +151,15 @@ class MockForwardAD:
                 if not isinstance(oprimes, tuple):
                     oprimes = (oprimes,)
                     if len(oprimes) != len(self._v):
-                        error("Got a tuple of arguments, "
-                              "expecting a matching tuple of coefficient derivatives.")
+                        raise ValueError("Got a tuple of arguments, "
+                                         "expecting a matching tuple of coefficient derivatives.")
 
                 # Compute dg/dw_j = dg/dw_h : v.
                 # Since we may actually have a tuple of oprimes and vs in a
                 # 'mixed' space, sum over them all to get the complete inner
                 # product. Using indices to define a non-compound inner product.
                 for (oprime, v) in zip(oprimes, self._v):
-                    error("FIXME: Figure out how to do this with ngrads")
+                    raise ValueError("FIXME: Figure out how to do this with ngrads")
                     so, oi = as_scalar(oprime)
                     rv = len(v.ufl_shape)
                     oi1 = oi[:-rv]
@@ -216,8 +211,10 @@ def test_unwrap_list_tensor(self):
 
 def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
     U = FiniteElement("CG", triangle, 1)
-    u = Coefficient(U)
-    du = TestFunction(U)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, U)
+    u = Coefficient(space)
+    du = TestFunction(space)
 
     mad = MockForwardAD()
     mad._w = (u,)
@@ -240,8 +237,10 @@ def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
     V = VectorElement("CG", triangle, 1)
-    v = Coefficient(V)
-    dv = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, V)
+    v = Coefficient(space)
+    dv = TestFunction(space)
 
     mad = MockForwardAD()
     mad._w = (v,)
@@ -264,8 +263,10 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation(self):
     V = VectorElement("CG", triangle, 1)
-    v = Coefficient(V)
-    dv = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, V)
+    v = Coefficient(space)
+    dv = TestFunction(space)
 
     mad = MockForwardAD()
 
@@ -319,8 +320,10 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation_in_list(self):
     V = VectorElement("CG", triangle, 1)
-    v = Coefficient(V)
-    dv = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, V)
+    v = Coefficient(space)
+    dv = TestFunction(space)
 
     mad = MockForwardAD()
 
@@ -374,8 +377,10 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
     W = TensorElement("CG", triangle, 1)
-    w = Coefficient(W)
-    dw = TestFunction(W)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, W)
+    w = Coefficient(space)
+    dw = TestFunction(space)
 
     mad = MockForwardAD()
     mad._w = (w,)
@@ -398,8 +403,10 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_variation(self):
     W = TensorElement("CG", triangle, 1)
-    w = Coefficient(W)
-    dw = TestFunction(W)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, W)
+    w = Coefficient(space)
+    dw = TestFunction(space)
 
     mad = MockForwardAD()
 

@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"Extract part of a form in a mixed FunctionSpace."
+"""Extract part of a form in a mixed FunctionSpace."""
 
 # Copyright (C) 2016 Chris Richardson and Lawrence Mitchell
 #
@@ -18,13 +17,16 @@ from ufl.functionspace import FunctionSpace
 
 
 class FormSplitter(MultiFunction):
+    """Form splitter."""
 
     def split(self, form, ix, iy=0):
+        """Split."""
         # Remember which block to extract
         self.idx = [ix, iy]
         return map_integrand_dags(self, form)
 
     def argument(self, obj):
+        """Apply to argument."""
         if (obj.part() is not None):
             # Mixed element built from MixedFunctionSpace,
             # whose sub-function spaces are indexed by obj.part()
@@ -70,12 +72,14 @@ class FormSplitter(MultiFunction):
             return as_vector(args)
 
     def multi_index(self, obj):
+        """Apply to multi_index."""
         return obj
 
     expr = MultiFunction.reuse_if_untouched
 
 
 def extract_blocks(form, i=None, j=None):
+    """Extract blocks."""
     fs = FormSplitter()
     arguments = form.arguments()
     forms = []

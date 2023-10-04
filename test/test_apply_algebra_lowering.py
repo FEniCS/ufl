@@ -1,44 +1,51 @@
-# -*- coding: utf-8 -*-
-
 import pytest
-from ufl import *
-from ufl.compound_expressions import *
+
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Index, Mesh, TensorElement, VectorElement, as_tensor,
+                 interval, sqrt, tetrahedron, triangle)
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 
 
 @pytest.fixture
 def A0(request):
-    return Coefficient(FiniteElement("CG", interval, 1))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", interval, 1)), FiniteElement("CG", interval, 1)))
 
 
 @pytest.fixture
 def A1(request):
-    return Coefficient(TensorElement("CG", interval, 1))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", interval, 1)), TensorElement("CG", interval, 1)))
 
 
 @pytest.fixture
 def A2(request):
-    return Coefficient(TensorElement("CG", triangle, 1))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1)))
 
 
 @pytest.fixture
 def A3(request):
-    return Coefficient(TensorElement("CG", tetrahedron, 1))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", tetrahedron, 1)), TensorElement("CG", tetrahedron, 1)))
 
 
 @pytest.fixture
 def A21(request):
-    return Coefficient(TensorElement("CG", triangle, 1, shape=(2, 1)))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1, shape=(2, 1))))
 
 
 @pytest.fixture
 def A31(request):
-    return Coefficient(TensorElement("CG", triangle, 1, shape=(3, 1)))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1, shape=(3, 1))))
 
 
 @pytest.fixture
 def A32(request):
-    return Coefficient(TensorElement("CG", triangle, 1, shape=(3, 2)))
+    return Coefficient(FunctionSpace(
+        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1, shape=(3, 2))))
 
 
 def test_determinant0(A0):
@@ -55,7 +62,7 @@ def test_determinant2(A2):
 
 def test_determinant3(A3):
     assert determinant_expr(A3) == (A3[0, 0]*(A3[1, 1]*A3[2, 2] - A3[1, 2]*A3[2, 1])
-                                    + A3[0, 1]*(A3[1, 2]*A3[2, 0] - A3[1, 0]*A3[2, 2])
+                                    + (A3[1, 0]*A3[2, 2] - A3[1, 2]*A3[2, 0])*(-A3[0, 1])
                                     + A3[0, 2]*(A3[1, 0]*A3[2, 1] - A3[1, 1]*A3[2, 0]))
 
 
@@ -86,25 +93,25 @@ def test_inverse1(A1):
 
 
 def xtest_inverse2(A2):
-    expected = todo
+    expected = "TODO"
     assert inverse_expr(A2) == renumber_indices(expected)
 
 
 def xtest_inverse3(A3):
-    expected = todo
+    expected = "TODO"
     assert inverse_expr(A3) == renumber_indices(expected)
 
 
 def xtest_pseudo_inverse21(A21):
-    expected = todo
+    expected = "TODO"
     assert renumber_indices(inverse_expr(A21)) == renumber_indices(expected)
 
 
 def xtest_pseudo_inverse31(A31):
-    expected = todo
+    expected = "TODO"
     assert renumber_indices(inverse_expr(A31)) == renumber_indices(expected)
 
 
 def xtest_pseudo_inverse32(A32):
-    expected = todo
+    expected = "TODO"
     assert renumber_indices(inverse_expr(A32)) == renumber_indices(expected)

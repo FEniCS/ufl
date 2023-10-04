@@ -1,14 +1,10 @@
-# -*- coding: utf-8 -*-
-"Utilities for analysing and manipulating free index tuples"
-
+"""Utilities for analysing and manipulating free index tuples."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-
-from ufl.log import error
 from ufl.core.multiindex import FixedIndex, Index, indices
 
 
@@ -16,7 +12,9 @@ from ufl.core.multiindex import FixedIndex, Index, indices
 # be optimized
 
 def unique_sorted_indices(indices):
-    """Given a list of (id, dim) tuples already sorted by id,
+    """Get unique sorted indices.
+
+    Given a list of (id, dim) tuples already sorted by id,
     return a unique list with duplicates removed.
     Also checks that the dimensions of duplicates are matching.
     """
@@ -28,7 +26,7 @@ def unique_sorted_indices(indices):
             prev = i
         else:
             if i[1] != prev[1]:
-                error("Nonmatching dimensions for free indices with same id!")
+                raise ValueError("Nonmatching dimensions for free indices with same id!")
     return tuple(newindices)
 
 
@@ -40,7 +38,6 @@ def merge_unique_indices(afi, afid, bfi, bfid):
     return a unique list with duplicates removed.
     Also checks that the dimensions of duplicates are matching.
     """
-
     na = len(afi)
     nb = len(bfi)
 
@@ -113,7 +110,7 @@ def remove_indices(fi, fid, rfi):
 
         # Expecting to find each index from rfi in fi
         if not removed:
-            error("Index to be removed ({0}) not part of indices ({1}).".format(rk, fi))
+            raise ValueError(f"Index to be removed ({rk}) not part of indices ({fi}).")
 
         # Next to remove
         k += 1
@@ -132,6 +129,7 @@ def remove_indices(fi, fid, rfi):
 
 
 def create_slice_indices(component, shape, fi):
+    """Create slice indices."""
     all_indices = []
     slice_indices = []
     repeated_indices = []
@@ -145,15 +143,15 @@ def create_slice_indices(component, shape, fi):
             free_indices.append(ind)
         elif isinstance(ind, FixedIndex):
             if int(ind) >= shape[len(all_indices)]:
-                error("Index out of bounds.")
+                raise ValueError("Index out of bounds.")
             all_indices.append(ind)
         elif isinstance(ind, int):
             if int(ind) >= shape[len(all_indices)]:
-                error("Index out of bounds.")
+                raise ValueError("Index out of bounds.")
             all_indices.append(FixedIndex(ind))
         elif isinstance(ind, slice):
             if ind != slice(None):
-                error("Only full slices (:) allowed.")
+                raise ValueError("Only full slices (:) allowed.")
             i = Index()
             slice_indices.append(i)
             all_indices.append(i)
@@ -163,10 +161,10 @@ def create_slice_indices(component, shape, fi):
             slice_indices.extend(ii)
             all_indices.extend(ii)
         else:
-            error("Not expecting {0}.".format(ind))
+            raise ValueError(f"Not expecting {ind}.")
 
     if len(all_indices) != len(shape):
-        error("Component and shape length don't match.")
+        raise ValueError("Component and shape length don't match.")
 
     return tuple(all_indices), tuple(slice_indices), tuple(repeated_indices)
 
@@ -176,12 +174,9 @@ def merge_nonoverlapping_indices(a, b):
     """Merge non-overlapping free indices into one representation.
 
     Example:
-    -------
       C[i,j,r,s] = outer(A[i,s], B[j,r])
       A, B -> (i,j,r,s), (idim,jdim,rdim,sdim)
-
     """
-
     # Extract input properties
     ai = a.ufl_free_indices
     bi = b.ufl_free_indices
@@ -194,7 +189,7 @@ def merge_nonoverlapping_indices(a, b):
         free_indices, index_dimensions = zip(*s)
         # Consistency checks
         if len(set(free_indices)) != len(free_indices):
-            error("Not expecting repeated indices.")
+            raise ValueError("Not expecting repeated indices.")
     else:
         free_indices, index_dimensions = (), ()
     return free_indices, index_dimensions
@@ -205,12 +200,9 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
     """Merge overlapping free indices into one free and one repeated representation.
 
     Example:
-    -------
       C[j,r] := A[i,j,k] * B[i,r,k]
       A, B -> (j,r), (jdim,rdim), (i,k), (idim,kdim)
-
     """
-
     # Extract input properties
     an = len(afi)
     bn = len(bfi)
@@ -237,8 +229,8 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
 
     # Consistency checks
     if len(set(free_indices)) != len(free_indices):
-        error("Not expecting repeated indices left.")
+        raise ValueError("Not expecting repeated indices left.")
     if len(free_indices) + 2 * len(repeated_indices) != an + bn:
-        error("Expecting only twice repeated indices.")
+        raise ValueError("Expecting only twice repeated indices.")
 
     return tuple(free_indices), tuple(index_dimensions), tuple(repeated_indices), tuple(repeated_index_dimensions)

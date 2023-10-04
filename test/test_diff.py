@@ -1,15 +1,12 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2014-10-14"
 
 import pytest
-import math
 
-from ufl import *
-from ufl.constantvalue import as_ufl
+from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, SpatialCoordinate, VectorElement, as_vector, atan,
+                 cos, diff, exp, indices, ln, sin, tan, triangle, variable)
 from ufl.algorithms import expand_derivatives
+from ufl.constantvalue import as_ufl
 
 
 def get_variables():
@@ -182,7 +179,8 @@ def testCoefficient():
 
 def testDiffX():
     cell = triangle
-    x = SpatialCoordinate(cell)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    x = SpatialCoordinate(domain)
     f = x[0] ** 2 * x[1] ** 2
     i, = indices(1)
     df1 = diff(f, x)

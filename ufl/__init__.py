@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
-# flake8: noqa
-"""The Unified Form Language is an embedded domain specific language
+"""UFL: The Unified Form Language.
+
+The Unified Form Language is an embedded domain specific language
 for definition of variational forms intended for finite element
 discretization. More precisely, it defines a fixed interface for choosing
 finite element spaces and defining expressions for weak forms in a
@@ -11,19 +11,19 @@ with it.
 
 * To import the language, type::
 
-    from ufl import *
+    import ufl
 
 * To import the underlying classes an UFL expression tree is built
   from, type
   ::
 
-    from ufl.classes import *
+    import ufl.classes
 
 * Various algorithms for working with UFL expression trees can be
   accessed by
   ::
 
-    from ufl.algorithms import *
+    import ufl.algorithms
 
 Classes and algorithms are considered implementation details and
 should not be used in form definitions.
@@ -38,7 +38,7 @@ and
 
 The development version can be found in the repository at
 
-  https://www.bitbucket.org/fenics-project/ufl
+  https://github.com/FEniCS/ufl
 
 A very brief overview of the language contents follows:
 
@@ -55,6 +55,8 @@ A very brief overview of the language contents follows:
     - hexahedron
     - prism
     - pyramid
+    - pentatope
+    - tesseract
 
 * Domains::
 
@@ -185,7 +187,7 @@ A very brief overview of the language contents follows:
     - sqrt
     - exp, ln, erf
     - cos, sin, tan
-    - acos, asin, atan, atan_2
+    - acos, asin, atan, atan2
     - cosh, sinh, tanh
     - bessel_J, bessel_Y, bessel_I, bessel_K
 
@@ -219,7 +221,7 @@ A very brief overview of the language contents follows:
     - rhs, lhs
     - system
     - functional
-    - replace, replace_integral_domains
+    - replace
     - adjoint
     - action
     - energy_norm,
@@ -240,13 +242,14 @@ A very brief overview of the language contents follows:
 # Modified by Lawrence Mitchell, 2014
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
+# Modified by Nacime Bouziani, 2019
 
-import pkg_resources
+import importlib.metadata
 
-__version__ = pkg_resources.get_distribution("fenics-ufl").version
+__version__ = importlib.metadata.version("fenics-ufl")
 
 # README
-# Imports here should be what the user sees when doing "from ufl import *",
+# Imports here should be what the user sees
 # which means we should _not_ import f.ex. "Grad", but "grad".
 # This way we expose the language, the operation "grad", but less
 # of the implementation, the particular class "Grad".
@@ -255,10 +258,6 @@ __version__ = pkg_resources.get_distribution("fenics-ufl").version
 # Utility functions (product is the counterpart of the built-in
 # python function sum, can be useful for users as well?)
 from ufl.utils.sequences import product
-
-# Output control
-from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
-    UFLException, DEBUG, INFO, ERROR, CRITICAL
 
 # Types for geometric quantities
 
@@ -276,20 +275,19 @@ from ufl.geometry import (
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin, HDivDiv, HInf
 
 # Finite elements classes
-from ufl.finiteelement import FiniteElementBase, FiniteElement, \
-    MixedElement, VectorElement, TensorElement, EnrichedElement, \
-    NodalEnrichedElement, RestrictedElement, TensorProductElement, \
-    HDivElement, HCurlElement, BrokenElement, WithMapping
+from ufl.finiteelement import (
+    FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement, EnrichedElement,
+    NodalEnrichedElement, RestrictedElement, TensorProductElement, HDivElement, HCurlElement, BrokenElement,
+    WithMapping)
 
 # Hook to extend predefined element families
-from ufl.finiteelement.elementlist import register_element, show_elements  # , ufl_elements
+from ufl.finiteelement.elementlist import register_element, show_elements
 
 # Function spaces
 from ufl.functionspace import FunctionSpace, MixedFunctionSpace
 
 # Arguments
-from ufl.argument import Argument, Coargument, TestFunction, TrialFunction, \
-    Arguments, TestFunctions, TrialFunctions
+from ufl.argument import Argument, Coargument, TestFunction, TrialFunction, Arguments, TestFunctions, TrialFunctions
 
 # Coefficients
 from ufl.coefficient import Coefficient, Cofunction, Coefficients
@@ -304,6 +302,9 @@ from ufl.adjoint import Adjoint
 # Actions
 from ufl.action import Action
 
+# Interpolates
+from ufl.core.interpolate import Interpolate, interpolate
+
 # Split function
 from ufl.split_functions import split
 
@@ -315,67 +316,52 @@ from ufl.core.multiindex import Index, indices
 
 # Special functions for expression base classes
 # (ensure this is imported, since it attaches operators to Expr)
-import ufl.exproperators as __exproperators
+import ufl.exproperators as __exproperators  # noqa: F401
 
 # Containers for expressions with value rank > 0
-from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
+from ufl.tensors import as_tensor, as_vector, as_matrix
 from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
-from ufl.operators import rank, shape, \
-    conj, real, imag, \
-    outer, inner, dot, cross, perp, \
-    det, inv, cofac, \
-    transpose, tr, diag, diag_vector, \
-    dev, skew, sym, \
-    sqrt, exp, ln, erf, \
-    cos, sin, tan, \
-    acos, asin, atan, atan_2, \
-    cosh, sinh, tanh, \
-    bessel_J, bessel_Y, bessel_I, bessel_K, \
-    eq, ne, le, ge, lt, gt, And, Or, Not, \
-    conditional, sign, max_value, min_value, \
-    variable, diff, \
-    Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
-    jump, avg, cell_avg, facet_avg, \
-    elem_mult, elem_div, elem_pow, elem_op
+from ufl.operators import (
+    rank, shape, conj, real, imag, outer, inner, dot, cross, perp,
+    det, inv, cofac, transpose, tr, diag, diag_vector, dev, skew, sym,
+    sqrt, exp, ln, erf, cos, sin, tan, acos, asin, atan, atan2, cosh, sinh, tanh,
+    bessel_J, bessel_Y, bessel_I, bessel_K, eq, ne, le, ge, lt, gt, And, Or, Not,
+    conditional, sign, max_value, min_value, variable, diff,
+    Dx, grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative,
+    jump, avg, cell_avg, facet_avg, elem_mult, elem_div, elem_pow, elem_op)
+
+# External Operator
+from ufl.core.external_operator import ExternalOperator
 
 # Measure classes
 from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
 
 # Form class
-from ufl.form import Form, BaseForm, FormSum, ZeroBaseForm, replace_integral_domains
+from ufl.form import Form, BaseForm, FormSum, ZeroBaseForm
 
 # Integral classes
 from ufl.integral import Integral
 
-# Special functions for Measure class
-# (ensure this is imported, since it attaches operators to Measure)
-import ufl.measureoperators as __measureoperators
-
 # Representations of transformed forms
-from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
-system, functional, adjoint, sensitivity_rhs, extract_blocks #, dirichlet_functional
+from ufl.formoperators import (replace, derivative, action, energy_norm, rhs, lhs,
+                               system, functional, adjoint, sensitivity_rhs, extract_blocks)
 
 # Predefined convenience objects
 from ufl.objects import (
-    vertex, interval, triangle, tetrahedron,
+    vertex, interval, triangle, tetrahedron, pentatope, tesseract,
     quadrilateral, hexahedron, prism, pyramid, facet,
     i, j, k, l, p, q, r, s,
     dx, ds, dS, dP,
     dc, dC, dO, dI, dX,
-    ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
-)
+    ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v)
 
 # Useful constants
 from math import e, pi
 
-
-# Define ufl.* namespace
 __all__ = [
     'product',
-    'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
-    'UFLException', 'DEBUG', 'INFO', 'ERROR', 'CRITICAL',
     'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv', 'HInf', 'HEin', 'HDivDiv',
@@ -392,15 +378,17 @@ __all__ = [
     'BrokenElement', "WithMapping",
     'register_element', 'show_elements',
     'FunctionSpace', 'MixedFunctionSpace',
-    'Argument','Coargument', 'TestFunction', 'TrialFunction',
+    'Argument', 'Coargument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Cofunction', 'Coefficients',
     'Matrix', 'Adjoint', 'Action',
+    'Interpolate', 'interpolate',
+    'ExternalOperator',
     'Constant', 'VectorConstant', 'TensorConstant',
     'split',
     'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
     'Index', 'indices',
-    'as_tensor', 'as_vector', 'as_matrix', 'relabel',
+    'as_tensor', 'as_vector', 'as_matrix',
     'unit_vector', 'unit_vectors', 'unit_matrix', 'unit_matrices',
     'rank', 'shape', 'conj', 'real', 'imag',
     'outer', 'inner', 'dot', 'cross', 'perp',
@@ -408,7 +396,7 @@ __all__ = [
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',
     'sqrt', 'exp', 'ln', 'erf',
     'cos', 'sin', 'tan',
-    'acos', 'asin', 'atan', 'atan_2',
+    'acos', 'asin', 'atan', 'atan2',
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
@@ -417,15 +405,15 @@ __all__ = [
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg', 'cell_avg', 'facet_avg',
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
-    'Form','FormSum', 'ZeroBaseForm',
+    'Form', 'BaseForm', 'FormSum', 'ZeroBaseForm',
     'Integral', 'Measure', 'register_integral_type', 'integral_types', 'custom_integral_types',
-    'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'extract_blocks',
+    'replace', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs', 'extract_blocks',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'dx', 'ds', 'dS', 'dP',
     'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
-    'prism', 'pyramid',
+    'prism', 'pyramid', 'pentatope', 'tesseract',
     'quadrilateral', 'hexahedron', 'facet',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',

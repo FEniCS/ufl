@@ -1,14 +1,13 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
-"""
-Test the is_cellwise_constant function on all relevant terminal types.
-"""
+"""Test the is_cellwise_constant function on all relevant terminal types."""
 
 import pytest
-from ufl import *
-from ufl.classes import *
+
+from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
+                 FiniteElement, FunctionSpace, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
+                 MinFacetEdgeLength, SpatialCoordinate, TestFunction, VectorElement, hexahedron, interval,
+                 quadrilateral, tetrahedron, triangle)
 from ufl.checks import is_cellwise_constant
+from ufl.classes import CellCoordinate, FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse
 
 
 def get_domains():
@@ -218,10 +217,13 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
     assert is_cellwise_constant(e)
 
     V = FiniteElement("DG", domains_not_linear.ufl_cell(), 0)
-    e = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", domains_not_linear.ufl_cell(), 1))
+    space = FunctionSpace(domain, V)
+    e = Coefficient(space)
     assert is_cellwise_constant(e)
     V = FiniteElement("R", domains_not_linear.ufl_cell(), 0)
-    e = Coefficient(V)
+    space = FunctionSpace(domain, V)
+    e = Coefficient(space)
     assert is_cellwise_constant(e)
 
     # This should be true, but that has to wait for a fix of issue #13
@@ -234,7 +236,9 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
 
 def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
     V = FiniteElement("DG", domains_not_linear.ufl_cell(), 1)
-    e = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", domains_not_linear.ufl_cell(), 1))
+    space = FunctionSpace(domain, V)
+    e = Coefficient(space)
     assert not is_cellwise_constant(e)
-    e = TestFunction(V)
+    e = TestFunction(space)
     assert not is_cellwise_constant(e)

@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
-"""This module defines expression transformation utilities,
-for expanding free indices in expressions to explicit fixed
-indices only."""
+"""This module defines expression transformation utilities.
+
+These utilities are for expanding free indices in expressions to explicit fixed indices only.
+"""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -11,39 +11,40 @@ indices only."""
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.log import error
 from ufl.utils.stacks import Stack, StackDict
-from ufl.classes import Terminal, ListTensor
+from ufl.classes import Terminal
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.differentiation import Grad
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.corealg.traversal import unique_pre_traversal
 
 
 class IndexExpander(ReuseTransformer):
-    """..."""
+    """Index expander."""
 
     def __init__(self):
+        """Initialise."""
         ReuseTransformer.__init__(self)
         self._components = Stack()
         self._index2value = StackDict()
 
     def component(self):
-        "Return current component tuple."
+        """Return current component tuple."""
         if self._components:
             return self._components.peek()
         return ()
 
     def terminal(self, x):
+        """Apply to terminal."""
         if x.ufl_shape:
             c = self.component()
             if len(x.ufl_shape) != len(c):
-                error("Component size mismatch.")
+                raise ValueError("Component size mismatch.")
             return x[c]
         return x
 
     def form_argument(self, x):
+        """Apply to form_argument."""
         sh = x.ufl_shape
         if sh == ():
             return x
@@ -54,45 +55,48 @@ class IndexExpander(ReuseTransformer):
             # Get component
             c = self.component()
             if r != len(c):
-                error("Component size mismatch.")
+                raise ValueError("Component size mismatch.")
 
             # Map it through an eventual symmetry mapping
             s = e.symmetry()
             c = s.get(c, c)
             if r != len(c):
-                error("Component size mismatch after symmetry mapping.")
+                raise ValueError("Component size mismatch after symmetry mapping.")
 
             return x[c]
 
     def zero(self, x):
+        """Apply to zero."""
         if len(x.ufl_shape) != len(self.component()):
-            error("Component size mismatch.")
+            raise ValueError("Component size mismatch.")
 
         s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
         if s:
-            error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
+            raise ValueError(f"Free index set mismatch, these indices have no value assigned: {s}.")
 
         # There is no index/shape info in this zero because that is asserted above
         return Zero()
 
     def scalar_value(self, x):
+        """Apply to scalar_value."""
         if len(x.ufl_shape) != len(self.component()):
             self.print_visit_stack()
         if len(x.ufl_shape) != len(self.component()):
-            error("Component size mismatch.")
+            raise ValueError("Component size mismatch.")
 
         s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
         if s:
-            error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
+            raise ValueError(f"Free index set mismatch, these indices have no value assigned: {s}.")
 
         return x._ufl_class_(x.value())
 
     def conditional(self, x):
+        """Apply to conditional."""
         c, t, f = x.ufl_operands
 
         # Not accepting nonscalars in condition
         if c.ufl_shape != ():
-            error("Not expecting tensor in condition.")
+            raise ValueError("Not expecting tensor in condition.")
 
         # Conditional may be indexed, push empty component
         self._components.push(())
@@ -106,16 +110,17 @@ class IndexExpander(ReuseTransformer):
         return self.reuse_if_possible(x, c, t, f)
 
     def division(self, x):
+        """Apply to division."""
         a, b = x.ufl_operands
 
         # Not accepting nonscalars in division anymore
         if a.ufl_shape != ():
-            error("Not expecting tensor in division.")
+            raise ValueError("Not expecting tensor in division.")
         if self.component() != ():
-            error("Not expecting component in division.")
+            raise ValueError("Not expecting component in division.")
 
         if b.ufl_shape != ():
-            error("Not expecting division by tensor.")
+            raise ValueError("Not expecting division by tensor.")
         a = self.visit(a)
 
         # self._components.push(())
@@ -125,6 +130,7 @@ class IndexExpander(ReuseTransformer):
         return self.reuse_if_possible(x, a, b)
 
     def index_sum(self, x):
+        """Apply to index_sum."""
         ops = []
         summand, multiindex = x.ufl_operands
         index, = multiindex
@@ -140,6 +146,7 @@ class IndexExpander(ReuseTransformer):
         return sum(ops)
 
     def _multi_index_values(self, x):
+        """Apply to _multi_index_values."""
         comp = []
         for i in x._indices:
             if isinstance(i, FixedIndex):
@@ -149,10 +156,12 @@ class IndexExpander(ReuseTransformer):
         return tuple(comp)
 
     def multi_index(self, x):
+        """Apply to multi_index."""
         comp = self._multi_index_values(x)
         return MultiIndex(tuple(FixedIndex(i) for i in comp))
 
     def indexed(self, x):
+        """Apply to indexed."""
         A, ii = x.ufl_operands
 
         # Push new component built from index value map
@@ -175,16 +184,17 @@ class IndexExpander(ReuseTransformer):
         return result
 
     def component_tensor(self, x):
+        """Apply to component_tensor."""
         # This function evaluates the tensor expression
         # with indices equal to the current component tuple
         expression, indices = x.ufl_operands
         if expression.ufl_shape != ():
-            error("Expecting scalar base expression.")
+            raise ValueError("Expecting scalar base expression.")
 
         # Update index map with component tuple values
         comp = self.component()
         if len(indices) != len(comp):
-            error("Index/component mismatch.")
+            raise ValueError("Index/component mismatch.")
         for i, v in zip(indices.indices(), comp):
             self._index2value.push(i, v)
         self._components.push(())
@@ -199,6 +209,7 @@ class IndexExpander(ReuseTransformer):
         return result
 
     def list_tensor(self, x):
+        """Apply to list_tensor."""
         # Pick the right subtensor and subcomponent
         c = self.component()
         c0, c1 = c[0], c[1:]
@@ -210,21 +221,14 @@ class IndexExpander(ReuseTransformer):
         return r
 
     def grad(self, x):
+        """Apply to grad."""
         f, = x.ufl_operands
         if not isinstance(f, (Terminal, Grad)):
-            error("Expecting expand_derivatives to have been applied.")
+            raise ValueError("Expecting expand_derivatives to have been applied.")
         # No need to visit child as long as it is on the form [Grad]([Grad](terminal))
         return x[self.component()]
 
 
 def expand_indices(e):
+    """Expand indices."""
     return apply_transformer(e, IndexExpander())
-
-
-def purge_list_tensors(expr):
-    """Get rid of all ListTensor instances by expanding
-    expressions to use their components directly.
-    Will usually increase the size of the expression."""
-    if any(isinstance(subexpr, ListTensor) for subexpr in unique_pre_traversal(expr)):
-        return expand_indices(expr)  # TODO: Only expand what's necessary to get rid of list tensors
-    return expr

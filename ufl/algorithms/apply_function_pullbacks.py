@@ -16,13 +16,12 @@ from ufl.classes import (Jacobian, JacobianDeterminant, JacobianInverse,
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.domain import extract_unique_domain
-from ufl.log import error
 from ufl.tensors import as_tensor, as_vector
 from ufl.utils.sequences import product
 
 
 def sub_elements_with_mappings(element):
-    "Return an ordered list of the largest subelements that have a defined mapping."
+    """Return an ordered list of the largest subelements that have a defined mapping."""
     if element.mapping() != "undefined":
         return [element]
     elements = []
@@ -34,32 +33,12 @@ def sub_elements_with_mappings(element):
     return elements
 
 
-def create_nested_lists(shape):
-    if len(shape) == 0:
-        return [None]
-    elif len(shape) == 1:
-        return [None] * shape[0]
-    else:
-        return [create_nested_lists(shape[1:]) for i in range(shape[0])]
-
-
-def reshape_to_nested_list(components, shape):
-    if len(shape) == 0:
-        assert len(components) == 1
-        return [components[0]]
-    elif len(shape) == 1:
-        assert len(components) == shape[0]
-        return components
-    else:
-        n = product(shape[1:])
-        return [reshape_to_nested_list(components[n * i:n * (i + 1)], shape[1:]) for i in range(shape[0])]
-
-
 def apply_known_single_pullback(r, element):
     """Apply pullback with given mapping.
 
-    :arg r: Expression wrapped in ReferenceValue
-    :arg element: The element defining the mapping
+    Args:
+        r: Expression wrapped in ReferenceValue
+        element: The element defining the mapping
     """
     # Need to pass in r rather than the physical space thing, because
     # the latter may be a ListTensor or similar, rather than a
@@ -69,7 +48,7 @@ def apply_known_single_pullback(r, element):
     domain = extract_unique_domain(r)
     if mapping == "physical":
         return r
-    elif mapping == "identity":
+    elif mapping == "identity" or mapping == "custom":
         return r
     elif mapping == "contravariant Piola":
         J = Jacobian(domain)
@@ -107,28 +86,35 @@ def apply_known_single_pullback(r, element):
         f = as_tensor(K[m, i] * r[kmn] * K[n, j], (*k, i, j))
         return f
     else:
-        error("Should never be reached!")
+        raise ValueError(f"Unsupported mapping: {mapping}.")
 
 
 def apply_single_function_pullbacks(r, element):
-    """Apply an appropriate pullback to something in physical space
+    """Apply an appropriate pullback to something in physical space.
 
-    :arg r: An expression wrapped in ReferenceValue.
-    :arg element: The element this expression lives in.
-    :returns: a pulled back expression."""
+    Args:
+        r: An expression wrapped in ReferenceValue.
+        element: The element this expression lives in.
+
+    Returns:
+        a pulled back expression.
+    """
     mapping = element.mapping()
     if r.ufl_shape != element.reference_value_shape():
-        error("Expecting reference space expression with shape '%s', got '%s'" % (element.reference_value_shape(), r.ufl_shape))
+        raise ValueError(
+            f"Expecting reference space expression with shape '{element.reference_value_shape()}', "
+            f"got '{r.ufl_shape}'")
     if mapping in {"physical", "identity",
                    "contravariant Piola", "covariant Piola",
                    "double contravariant Piola", "double covariant Piola",
-                   "L2 Piola"}:
+                   "L2 Piola", "custom"}:
         # Base case in recursion through elements. If the element
         # advertises a mapping we know how to handle, do that
         # directly.
         f = apply_known_single_pullback(r, element)
         if f.ufl_shape != element.value_shape():
-            error("Expecting pulled back expression with shape '%s', got '%s'" % (element.value_shape(), f.ufl_shape))
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', "
+                             f"got '{f.ufl_shape}'")
         return f
     elif mapping in {"symmetries", "undefined"}:
         # Need to pull back each unique piece of the reference space thing
@@ -161,23 +147,29 @@ def apply_single_function_pullbacks(r, element):
         # And reshape appropriately
         f = as_tensor(numpy.asarray(g_components).reshape(gsh))
         if f.ufl_shape != element.value_shape():
-            error("Expecting pulled back expression with shape '%s', got '%s'" % (element.value_shape(), f.ufl_shape))
+            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape()}', "
+                             f"got '{f.ufl_shape}'")
         return f
     else:
-        error("Unhandled mapping type '%s'" % mapping)
+        raise ValueError(f"Unsupported mapping type: {mapping}")
 
 
 class FunctionPullbackApplier(MultiFunction):
+    """A pull back applier."""
+
     def __init__(self):
+        """Initalise."""
         MultiFunction.__init__(self)
 
     expr = MultiFunction.reuse_if_untouched
 
     def terminal(self, t):
+        """Apply to a terminal."""
         return t
 
     @memoized_handler
     def form_argument(self, o):
+        """Apply to a form_argument."""
         # Represent 0-derivatives of form arguments on reference
         # element
         f = apply_single_function_pullbacks(ReferenceValue(o), o.ufl_element())
@@ -186,11 +178,12 @@ class FunctionPullbackApplier(MultiFunction):
 
 
 def apply_function_pullbacks(expr):
-    """Change representation of coefficients and arguments in expression
-    by applying Piola mappings where applicable and representing all
+    """Change representation of coefficients and arguments in an expression.
+
+    Applies Piola mappings where applicable and represents all
     form arguments in reference value.
 
-    @param expr:
-        An Expr.
+    Args:
+        expr: An Expression
     """
     return map_integrand_dags(FunctionPullbackApplier(), expr)

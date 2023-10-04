@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-# flake8: noqa
-"This module collects algorithms and utility functions operating on UFL objects."
+"""This module collects algorithms and utility functions operating on UFL objects."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -21,7 +19,7 @@ __all__ = [
     "estimate_total_polynomial_degree",
     "sort_elements",
     "compute_form_data",
-    "purge_list_tensors",
+    "preprocess_form",
     "apply_transformer",
     "ReuseTransformer",
     "load_ufl_file",
@@ -31,11 +29,11 @@ __all__ = [
     "extract_type",
     "extract_elements",
     "extract_sub_elements",
-    "preprocess_expression",
     "expand_indices",
     "replace",
     "expand_derivatives",
     "extract_coefficients",
+    "extract_base_form_operators",
     "strip_variables",
     "strip_terminal_data",
     "replace_terminal_data",
@@ -52,7 +50,10 @@ __all__ = [
     "compute_form_rhs",
     "compute_form_functional",
     "compute_form_signature",
+    "compute_form_arities",
     "tree_format",
+    "read_ufl_file",
+    "load_forms",
 ]
 
 # Utilities for traversing over expression trees in different ways
@@ -72,6 +73,7 @@ from ufl.algorithms.analysis import (
     extract_arguments,
     extract_coefficients,
     # extract_arguments_and_coefficients,
+    extract_base_form_operators,
     extract_elements,
     extract_unique_elements,
     extract_sub_elements,
@@ -81,7 +83,7 @@ from ufl.algorithms.analysis import (
 
 # Preprocessing a form to extract various meta data
 # from ufl.algorithms.formdata import FormData
-from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.algorithms.compute_form_data import compute_form_data, preprocess_form
 
 # Utilities for checking properties of forms
 from ufl.algorithms.signature import compute_form_signature
@@ -103,7 +105,7 @@ from ufl.algorithms.change_to_reference import change_to_reference_grad
 from ufl.algorithms.expand_compounds import expand_compounds
 # from ufl.algorithms.estimate_degrees import SumDegreeEstimator
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
-from ufl.algorithms.expand_indices import expand_indices, purge_list_tensors
+from ufl.algorithms.expand_indices import expand_indices
 
 # Utilities for transforming complete Forms into other Forms
 from ufl.algorithms.formtransformations import compute_form_adjoint
@@ -124,6 +126,4 @@ from ufl.algorithms.formfiles import read_ufl_file
 from ufl.algorithms.formfiles import load_ufl_file
 from ufl.algorithms.formfiles import load_forms
 
-# Utilities for UFL object printing
-# from ufl.formatting.printing import integral_info, form_info
-from ufl.formatting.printing import tree_format
+from ufl.utils.formatting import tree_format

@@ -1,63 +1,65 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-
 __authors__ = "Marie E. Rognes"
 
 # First added: 2011-11-09
 # Last changed: 2011-11-09
 
-import pytest
-from ufl import *
+from ufl import (Argument, Coefficient, Constant, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction,
+                 VectorElement, action, derivative, ds, dS, dx, exp, interval, system)
 
 
 def test_lhs_rhs_simple():
     V = FiniteElement("CG", interval, 1)
-    v = TestFunction(V)
-    u = TrialFunction(V)
-    w = Argument(V, 2)  # This was 0, not sure why
-    f = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", interval, 1))
+    space = FunctionSpace(domain, V)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    w = Argument(space, 2)  # This was 0, not sure why
+    f = Coefficient(space)
 
     F0 = f * u * v * w * dx
     a, L = system(F0)
-    assert(len(a.integrals()) == 0)
-    assert(len(L.integrals()) == 0)
+    assert len(a.integrals()) == 0
+    assert len(L.integrals()) == 0
 
     F1 = derivative(F0, f)
     a, L = system(F1)
-    assert(len(a.integrals()) == 0)
-    assert(len(L.integrals()) == 0)
+    assert len(a.integrals()) == 0
+    assert len(L.integrals()) == 0
 
     F2 = action(F0, f)
     a, L = system(F2)
-    assert(len(a.integrals()) == 1)
-    assert(len(L.integrals()) == 0)
+    assert len(a.integrals()) == 1
+    assert len(L.integrals()) == 0
 
     F3 = action(F2, f)
     a, L = system(F3)
-    assert(len(L.integrals()) == 1)
+    assert len(L.integrals()) == 1
 
 
 def test_lhs_rhs_derivatives():
     V = FiniteElement("CG", interval, 1)
-    v = TestFunction(V)
-    u = TrialFunction(V)
-    f = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", interval, 1))
+    space = FunctionSpace(domain, V)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    f = Coefficient(space)
 
     F0 = exp(f) * u * v * dx + v * dx + f * v * ds + exp(f)('+') * v * dS
     a, L = system(F0)
-    assert(len(a.integrals()) == 1)
-    assert(len(L.integrals()) == 3)
+    assert len(a.integrals()) == 1
+    assert len(L.integrals()) == 3
 
-    F1 = derivative(F0, f)
+    derivative(F0, f)
     a, L = system(F0)
 
 
 def test_lhs_rhs_slightly_obscure():
-
     V = FiniteElement("CG", interval, 1)
-    u = TrialFunction(V)
-    w = Argument(V, 2)
-    f = Constant(interval)
+    domain = Mesh(VectorElement("Lagrange", interval, 1))
+    space = FunctionSpace(domain, V)
+    u = TrialFunction(space)
+    w = Argument(space, 2)
+    f = Constant(domain)
 
     # FIXME:
     # ufl.algorithsm.formtransformations.compute_form_with_arity
@@ -65,9 +67,9 @@ def test_lhs_rhs_slightly_obscure():
     # F = f*u*w*dx + f*w*dx
     F = f * u * w * dx
     a, L = system(F)
-    assert(len(a.integrals()) == 1)
-    assert(len(L.integrals()) == 0)
+    assert len(a.integrals()) == 1
+    assert len(L.integrals()) == 0
 
     F = f * w * dx
     a, L = system(F)
-    assert(len(L.integrals()) == 1)
+    assert len(L.integrals()) == 1

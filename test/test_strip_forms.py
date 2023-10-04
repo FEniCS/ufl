@@ -1,13 +1,11 @@
 import gc
 import sys
 
-import pytest
-
-from ufl import *
-from ufl.algorithms import strip_terminal_data, replace_terminal_data
+from ufl import (Coefficient, Constant, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, dx, grad,
+                 inner, triangle)
+from ufl.algorithms import replace_terminal_data, strip_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import attach_operators_from_hash_data
-
 
 MIN_REF_COUNT = 2
 """The minimum value returned by sys.getrefcount."""

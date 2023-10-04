@@ -4,51 +4,56 @@
 #
 
 # Modified by Garth N. Wells, 2009
-from ufl import (Coefficient, Constant, FacetNormal, FiniteElement, Identity,
-                 SpatialCoordinate, TensorElement, TestFunction, TrialFunction,
-                 VectorElement, derivative, det, diff, dot, ds, dx, exp, grad,
-                 inner, inv, tetrahedron, tr, variable)
+from ufl import (Coefficient, Constant, FacetNormal, FiniteElement, FunctionSpace, Identity, Mesh, SpatialCoordinate,
+                 TensorElement, TestFunction, TrialFunction, VectorElement, derivative, det, diff, dot, ds, dx, exp,
+                 grad, inner, inv, tetrahedron, tr, variable)
 
 # Cell and its properties
 cell = tetrahedron
+domain = Mesh(VectorElement("Lagrange", cell, 1))
 d = cell.geometric_dimension()
-N = FacetNormal(cell)
-x = SpatialCoordinate(cell)
+N = FacetNormal(domain)
+x = SpatialCoordinate(domain)
 
 # Elements
 u_element = VectorElement("CG", cell, 2)
 p_element = FiniteElement("CG", cell, 1)
 A_element = TensorElement("CG", cell, 1)
 
+# Spaces
+u_space = FunctionSpace(domain, u_element)
+p_space = FunctionSpace(domain, p_element)
+A_space = FunctionSpace(domain, A_element)
+
 # Test and trial functions
-v = TestFunction(u_element)
-w = TrialFunction(u_element)
+v = TestFunction(u_space)
+w = TrialFunction(u_space)
 
 # Displacement at current and two previous timesteps
-u = Coefficient(u_element)
-up = Coefficient(u_element)
-upp = Coefficient(u_element)
+u = Coefficient(u_space)
+up = Coefficient(u_space)
+upp = Coefficient(u_space)
 
 # Time parameters
-dt = Constant(cell)
+dt = Constant(domain)
 
 # Fiber field
-A = Coefficient(A_element)
+A = Coefficient(A_space)
 
 # External forces
-T = Coefficient(u_element)
-p0 = Coefficient(p_element)
+T = Coefficient(u_space)
+p0 = Coefficient(p_space)
 
 # Material parameters FIXME
-rho = Constant(cell)
-K = Constant(cell)
-c00 = Constant(cell)
-c11 = Constant(cell)
-c22 = Constant(cell)
+rho = Constant(domain)
+K = Constant(domain)
+c00 = Constant(domain)
+c11 = Constant(domain)
+c22 = Constant(domain)
 
 # Deformation gradient
-I = Identity(d)
-F = I + grad(u)
+Id = Identity(d)
+F = Id + grad(u)
 F = variable(F)
 Finv = inv(F)
 J = det(F)
@@ -66,7 +71,7 @@ I2_C = (I1_C**2 - tr(C * C)) / 2
 I3_C = J**2
 
 # Green strain tensor
-E = (C - I) / 2
+E = (C - Id) / 2
 
 # Mapping of strain in fiber directions
 Ef = A * E * A.T

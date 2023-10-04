@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Various expression traversal utilities.
 
 The algorithms here are non-recursive, which is faster than recursion
@@ -40,8 +39,7 @@ def post_traversal(expr):
 
 
 def cutoff_post_traversal(expr, cutofftypes):
-    """Yield ``o`` for each node ``o`` in *expr*, child before parent, but
-    skipping subtrees of the cutofftypes."""
+    """Yield ``o`` for each node ``o`` in *expr*, child before parent, but skipping subtrees of the cutofftypes."""
     lifo = [(expr, list(reversed(expr.ufl_operands)))]
     while lifo:
         expr, deps = lifo[-1]
@@ -81,7 +79,8 @@ def unique_pre_traversal(expr, visited=None):
 def unique_post_traversal(expr, visited=None):
     """Yield ``o`` for each node ``o`` in *expr*, child before parent.
 
-    Never visit a node twice."""
+    Never visit a node twice.
+    """
     lifo = [(expr, list(expr.ufl_operands))]
     if visited is None:
         visited = set()
@@ -102,7 +101,8 @@ def unique_post_traversal(expr, visited=None):
 def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
     """Yield ``o`` for each node ``o`` in *expr*, child before parent.
 
-    Never visit a node twice."""
+    Never visit a node twice.
+    """
     lifo = [(expr, list(reversed(expr.ufl_operands)))]
     if visited is None:
         visited = set()
@@ -125,12 +125,14 @@ def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
 
 
 def traverse_terminals(expr):
+    """Traverse terminals."""
     for op in pre_traversal(expr):
         if op._ufl_is_terminal_:
             yield op
 
 
 def traverse_unique_terminals(expr, visited=None):
+    """Traverse unique terminals."""
     for op in unique_pre_traversal(expr, visited=visited):
         if op._ufl_is_terminal_:
             yield op

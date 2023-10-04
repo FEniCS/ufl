@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
-"""This module contains a sorting rule for expr objects that
-is more robust w.r.t. argument numbering than using repr."""
+"""Sorting.
 
+This module contains a sorting rule for expr objects that
+is more robust w.r.t. argument numbering than using repr.
+"""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -10,7 +11,6 @@ is more robust w.r.t. argument numbering than using repr."""
 #
 # Modified by Anders Logg, 2009-2010.
 # Modified by Johan Hake, 2010.
-
 
 from functools import cmp_to_key
 
@@ -22,6 +22,7 @@ from ufl.variable import Label
 
 
 def _cmp_multi_index(a, b):
+    """Cmp multi index."""
     # Careful not to depend on Index.count() here!
     # This is placed first because it is most frequent.
     # Make decision based on the first index pair possible
@@ -34,7 +35,7 @@ def _cmp_multi_index(a, b):
             if x < y:
                 return -1
             elif x > y:
-                return +1
+                return 1
             else:
                 # Same value, no decision
                 continue
@@ -43,7 +44,7 @@ def _cmp_multi_index(a, b):
             return -1
         elif fix2:
             # Sort fixed before free
-            return +1
+            return 1
         else:
             # Both are Index, no decision, do not depend on count!
             pass
@@ -54,6 +55,7 @@ def _cmp_multi_index(a, b):
 
 
 def _cmp_label(a, b):
+    """Cmp label."""
     # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
     # Therefore, even though a and b are not equal in general (__eq__ won't be True),
     # but for this sorting they are considered equal and we return 0.
@@ -61,18 +63,20 @@ def _cmp_label(a, b):
 
 
 def _cmp_coefficient(a, b):
+    """Cmp coefficient."""
     # It's ok to compare relative counts for Coefficients,
     # since their ordering is a property of the form
     x, y = a._count, b._count
     if x < y:
         return -1
     elif x > y:
-        return +1
+        return 1
     else:
         return 0
 
 
 def _cmp_argument(a, b):
+    """Cmp argument."""
     # It's ok to compare relative number and part for Arguments,
     # since their ordering is a property of the form
     x = (a._number, a._part)
@@ -80,16 +84,17 @@ def _cmp_argument(a, b):
     if x < y:
         return -1
     elif x > y:
-        return +1
+        return 1
     else:
         return 0
 
 
 def _cmp_terminal_by_repr(a, b):
+    """Cmp terminal by repr."""
     # The cost of repr on a terminal is fairly small, and bounded
     x = repr(a)
     y = repr(b)
-    return -1 if x < y else (0 if x == y else +1)
+    return -1 if x < y else (0 if x == y else 1)
 
 
 # Hack up a MultiFunction-like type dispatch for terminal comparisons
@@ -101,8 +106,7 @@ _terminal_cmps[Label._ufl_typecode_] = _cmp_label
 
 
 def cmp_expr(a, b):
-    "Replacement for cmp(a, b), removed in Python 3, for Expr objects."
-
+    """Replacement for cmp(a, b), removed in Python 3, for Expr objects."""
     # Modelled after pre_traversal to avoid recursion:
     left = [(a, b)]
     while left:
@@ -111,7 +115,7 @@ def cmp_expr(a, b):
         # First sort quickly by type code
         x, y = a._ufl_typecode_, b._ufl_typecode_
         if x != y:
-            return -1 if x < y else +1
+            return -1 if x < y else 1
 
         # Now we know that the type is the same, check further based
         # on type specific properties.
@@ -149,18 +153,19 @@ def cmp_expr(a, b):
             # try to avoid the cost of this check for most nodes.
             x, y = len(aops), len(bops)
             if x != y:
-                return -1 if x < y else +1
+                return -1 if x < y else 1
 
     # Equal if we get out of the above loop!
     return 0
 
 
 def sorted_expr(sequence):
-    "Return a canonically sorted list of Expr objects in sequence."
+    """Return a canonically sorted list of Expr objects in sequence."""
     return sorted(sequence, key=cmp_to_key(cmp_expr))
 
 
 def sorted_expr_sum(seq):
+    """Sorted expr sum."""
     seq2 = sorted(seq, key=cmp_to_key(cmp_expr))
     s = seq2[0]
     for e in seq2[1:]:

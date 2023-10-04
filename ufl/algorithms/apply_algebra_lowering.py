@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""Algorithm for expanding compound expressions into
-equivalent representations using basic operators."""
+"""Algorithm for expanding compound expressions into equivalent representations using basic operators."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
@@ -10,10 +8,8 @@ equivalent representations using basic operators."""
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.log import error
-
 from ufl.classes import Product, Grad, Conj
-from ufl.core.multiindex import indices, Index, FixedIndex
+from ufl.core.multiindex import indices, Index
 from ufl.tensors import as_tensor, as_matrix, as_vector
 
 from ufl.compound_expressions import deviatoric_expr, determinant_expr, cofactor_expr, inverse_expr
@@ -23,10 +19,10 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 
 
 class LowerCompoundAlgebra(MultiFunction):
-    """Expands high level compound operators (e.g. inner) to equivalent
-    representations using basic operators (e.g. index notation)."""
+    """Expands high level compound operators to equivalent representations using basic operators."""
 
     def __init__(self):
+        """Initialize."""
         MultiFunction.__init__(self)
 
     ufl_type = MultiFunction.reuse_if_untouched
@@ -34,53 +30,41 @@ class LowerCompoundAlgebra(MultiFunction):
     # ------------ Compound tensor operators
 
     def trace(self, o, A):
+        """Lower a trace."""
         i = Index()
         return A[i, i]
 
     def transposed(self, o, A):
+        """Lower a transposed."""
         i, j = indices(2)
         return as_tensor(A[i, j], (j, i))
 
-    def _square_matrix_shape(self, A):
-        sh = A.ufl_shape
-        if sh[0] != sh[1]:
-            error("Expecting square matrix.")
-        if sh[0] is None:
-            error("Unknown dimension.")
-        return sh
-
     def deviatoric(self, o, A):
+        """Lower a deviatoric."""
         return deviatoric_expr(A)
 
     def skew(self, o, A):
+        """Lower a skew."""
         i, j = indices(2)
         return as_matrix((A[i, j] - A[j, i]) / 2, (i, j))
 
     def sym(self, o, A):
+        """Lower a sym."""
         i, j = indices(2)
         return as_matrix((A[i, j] + A[j, i]) / 2, (i, j))
 
     def cross(self, o, a, b):
+        """Lower a cross."""
         def c(i, j):
             return Product(a[i], b[j]) - Product(a[j], b[i])
         return as_vector((c(1, 2), c(2, 0), c(0, 1)))
 
-    def altenative_dot(self, o, a, b):  # TODO: Test this
-        ash = a.ufl_shape
-        bsh = b.ufl_shape
-        ai = indices(len(ash) - 1)
-        bi = indices(len(bsh) - 1)
-        # Simplification for tensors where the dot-sum dimension has
-        # length 1
-        if ash[-1] == 1:
-            k = (FixedIndex(0),)
-        else:
-            k = (Index(),)
-        # Potentially creates a single IndexSum over a Product
-        s = a[ai + k] * b[k + bi]
-        return as_tensor(s, ai + bi)
+    def perp(self, o, a):
+        """Lower a perp."""
+        return as_vector([-a[1], a[0]])
 
     def dot(self, o, a, b):
+        """Lower a dot."""
         ai = indices(len(a.ufl_shape) - 1)
         bi = indices(len(b.ufl_shape) - 1)
         k = (Index(),)
@@ -88,37 +72,19 @@ class LowerCompoundAlgebra(MultiFunction):
         s = a[ai + k] * b[k + bi]
         return as_tensor(s, ai + bi)
 
-    def alternative_inner(self, o, a, b):  # TODO: Test this
-        ash = a.ufl_shape
-        bsh = b.ufl_shape
-        if ash != bsh:
-            error("Nonmatching shapes.")
-        # Simplification for tensors with one or more dimensions of
-        # length 1
-        ii = []
-        zi = FixedIndex(0)
-        for n in ash:
-            if n == 1:
-                ii.append(zi)
-            else:
-                ii.append(Index())
-        ii = tuple(ii)
-        # ii = indices(len(a.ufl_shape))
-        # Potentially creates multiple IndexSums over a Product
-        s = a[ii] * Conj(b[ii])
-        return s
-
     def inner(self, o, a, b):
+        """Lower an inner."""
         ash = a.ufl_shape
         bsh = b.ufl_shape
         if ash != bsh:
-            error("Nonmatching shapes.")
+            raise ValueError("Nonmatching shapes.")
         ii = indices(len(ash))
         # Creates multiple IndexSums over a Product
         s = a[ii] * Conj(b[ii])
         return s
 
     def outer(self, o, a, b):
+        """Lower an outer."""
         ii = indices(len(a.ufl_shape))
         jj = indices(len(b.ufl_shape))
         # Create a Product with no shared indices
@@ -126,25 +92,31 @@ class LowerCompoundAlgebra(MultiFunction):
         return as_tensor(s, ii + jj)
 
     def determinant(self, o, A):
+        """Lower a determinant."""
         return determinant_expr(A)
 
     def cofactor(self, o, A):
+        """Lower a cofactor."""
         return cofactor_expr(A)
 
     def inverse(self, o, A):
+        """Lower an inverse."""
         return inverse_expr(A)
 
     # ------------ Compound differential operators
 
     def div(self, o, a):
+        """Lower a div."""
         i = Index()
         return a[..., i].dx(i)
 
     def nabla_div(self, o, a):
+        """Lower a nabla_div."""
         i = Index()
         return a[i, ...].dx(i)
 
     def nabla_grad(self, o, a):
+        """Lower a nabla_grad."""
         sh = a.ufl_shape
         if sh == ():
             return Grad(a)
@@ -154,10 +126,12 @@ class LowerCompoundAlgebra(MultiFunction):
             return as_tensor(a[ii].dx(j), (j,) + ii)
 
     def curl(self, o, a):
+        """Lower a curl."""
         # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.ufl_shape == ()
         # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.ufl_shape == (2,)
         # o = curl a = "cross(nabla, a)"              if a.ufl_shape == (3,)
         def c(i, j):
+            """A component of curl."""
             return a[j].dx(i) - a[i].dx(j)
         sh = a.ufl_shape
         if sh == ():
@@ -166,10 +140,9 @@ class LowerCompoundAlgebra(MultiFunction):
             return c(0, 1)
         if sh == (3,):
             return as_vector((c(1, 2), c(2, 0), c(0, 1)))
-        error("Invalid shape %s of curl argument." % (sh,))
+        raise ValueError(f"Invalid shape {sh} of curl argument.")
 
 
 def apply_algebra_lowering(expr):
-    """Expands high level compound operators (e.g. inner) to equivalent
-    representations using basic operators (e.g. index notation)."""
+    """Expands high level compound operators to equivalent representations using basic operators."""
     return map_integrand_dags(LowerCompoundAlgebra(), expr)

@@ -1,15 +1,9 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
-"""
-Tests of the change to local representaiton algorithms.
-"""
+"""Tests of the change to local representaiton algorithms."""
 
-import pytest
-
-from ufl import *
-from ufl.classes import ReferenceGrad, JacobianInverse
-from ufl.algorithms import tree_format, change_to_reference_grad
+from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, VectorElement, as_tensor, grad, indices, triangle
+from ufl.algorithms import change_to_reference_grad
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.classes import JacobianInverse, ReferenceGrad
 
 
 def test_change_to_reference_grad():
@@ -58,8 +52,8 @@ def test_change_to_reference_grad():
 
     expr = grad(grad(grad(v)))
     actual = change_to_reference_grad(expr)
-    expected = as_tensor(
-        Jinv[s, k] * (Jinv[r, j] * (Jinv[q, i] * ReferenceGrad(ReferenceGrad(ReferenceGrad(v)))[t, q, r, s])), (t, i, j, k))
+    expected = as_tensor(Jinv[s, k] * (Jinv[r, j] * (
+        Jinv[q, i] * ReferenceGrad(ReferenceGrad(ReferenceGrad(v)))[t, q, r, s])), (t, i, j, k))
     assert renumber_indices(actual) == renumber_indices(expected)
 
     # print tree_format(expected)

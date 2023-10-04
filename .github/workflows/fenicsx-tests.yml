@@ -42,6 +42,7 @@ jobs:
           path: ./ffcx
           repository: FEniCS/ffcx
           ref: main
+
       - name: Install FFCx
         run: |
           cd ffcx
@@ -55,8 +56,6 @@ jobs:
     container: fenicsproject/test-env:nightly-openmpi
 
     env:
-      CC: clang
-      CXX: clang++
 
       PETSC_ARCH: linux-gnu-complex-32
       OMPI_ALLOW_RUN_AS_ROOT: 1

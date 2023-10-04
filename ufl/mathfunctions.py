@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """This module provides basic mathematical functions."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -15,10 +13,10 @@ import cmath
 import numbers
 import warnings
 
-from ufl.log import error
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue, ConstantValue, as_ufl
+from ufl.constantvalue import (is_true_ufl_scalar, Zero, RealValue, FloatValue, IntValue, ComplexValue,
+                               ConstantValue, as_ufl)
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -46,17 +44,20 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=1)
 class MathFunction(Operator):
-    "Base class for all unary scalar math functions."
+    """Base class for all unary scalar math functions."""
+
     # Freeze member variables for objects in this class
     __slots__ = ("_name",)
 
     def __init__(self, name, argument):
+        """Initialise."""
         Operator.__init__(self, (argument,))
         if not is_true_ufl_scalar(argument):
-            error("Expecting scalar argument.")
+            raise ValueError("Expecting scalar argument.")
         self._name = name
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         try:
             if isinstance(a, numbers.Real):
@@ -69,14 +70,18 @@ class MathFunction(Operator):
         return res
 
     def __str__(self):
+        """Format as a string."""
         return "%s(%s)" % (self._name, self.ufl_operands[0])
 
 
 @ufl_type()
 class Sqrt(MathFunction):
+    """Square root."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Sqrt."""
         if isinstance(argument, (RealValue, Zero, numbers.Real)):
             if float(argument) < 0:
                 return ComplexValue(cmath.sqrt(complex(argument)))
@@ -87,14 +92,18 @@ class Sqrt(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "sqrt", argument)
 
 
 @ufl_type()
 class Exp(MathFunction):
+    """Exponentiation.."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Exp."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.exp(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -102,14 +111,18 @@ class Exp(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "exp", argument)
 
 
 @ufl_type()
 class Ln(MathFunction):
+    """Natural logarithm."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Ln."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.log(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -117,9 +130,11 @@ class Ln(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "ln", argument)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         try:
             return math.log(a)
@@ -129,9 +144,12 @@ class Ln(MathFunction):
 
 @ufl_type()
 class Cos(MathFunction):
+    """Cosine."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Cos."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.cos(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -139,14 +157,18 @@ class Cos(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "cos", argument)
 
 
 @ufl_type()
 class Sin(MathFunction):
+    """Sine."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Sin."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.sin(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -154,14 +176,18 @@ class Sin(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "sin", argument)
 
 
 @ufl_type()
 class Tan(MathFunction):
+    """Tangent."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Tan."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.tan(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -169,14 +195,18 @@ class Tan(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "tan", argument)
 
 
 @ufl_type()
 class Cosh(MathFunction):
+    """Hyperbolic cosine."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Cosh."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.cosh(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -184,14 +214,18 @@ class Cosh(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "cosh", argument)
 
 
 @ufl_type()
 class Sinh(MathFunction):
+    """Hyperbolic sine."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Sinh."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.sinh(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -199,14 +233,18 @@ class Sinh(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "sinh", argument)
 
 
 @ufl_type()
 class Tanh(MathFunction):
+    """Hyperbolic tangent."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Tanh."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.tanh(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -214,14 +252,18 @@ class Tanh(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "tanh", argument)
 
 
 @ufl_type()
 class Acos(MathFunction):
+    """Inverse cosine."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Acos."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.acos(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -229,14 +271,18 @@ class Acos(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "acos", argument)
 
 
 @ufl_type()
 class Asin(MathFunction):
+    """Inverse sine."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Asin."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.asin(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -244,14 +290,18 @@ class Asin(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "asin", argument)
 
 
 @ufl_type()
 class Atan(MathFunction):
+    """Inverse tangent."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Atan."""
         if isinstance(argument, (RealValue, Zero)):
             return FloatValue(math.atan(float(argument)))
         if isinstance(argument, (ComplexValue)):
@@ -259,14 +309,18 @@ class Atan(MathFunction):
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "atan", argument)
 
 
 @ufl_type(is_scalar=True, num_ops=2)
 class Atan2(Operator):
+    """Inverse tangent with two inputs."""
+
     __slots__ = ()
 
     def __new__(cls, arg1, arg2):
+        """Create a new Atan2."""
         if isinstance(arg1, (RealValue, Zero)) and isinstance(arg2, (RealValue, Zero)):
             return FloatValue(math.atan2(float(arg1), float(arg2)))
         if isinstance(arg1, (ComplexValue)) or isinstance(arg2, (ComplexValue)):
@@ -274,76 +328,69 @@ class Atan2(Operator):
         return Operator.__new__(cls)
 
     def __init__(self, arg1, arg2):
+        """Initialise."""
         Operator.__init__(self, (arg1, arg2))
         if isinstance(arg1, (ComplexValue, complex)) or isinstance(arg2, (ComplexValue, complex)):
             raise TypeError("Atan2 does not support complex numbers.")
         if not is_true_ufl_scalar(arg1):
-            error("Expecting scalar argument 1.")
+            raise ValueError("Expecting scalar argument 1.")
         if not is_true_ufl_scalar(arg2):
-            error("Expecting scalar argument 2.")
+            raise ValueError("Expecting scalar argument 2.")
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         try:
             res = math.atan2(a, b)
         except TypeError:
-            error('Atan2 does not support complex numbers.')
+            raise ValueError('Atan2 does not support complex numbers.')
         except ValueError:
-            warnings.warn('Value error in evaluation of function atan_2 with arguments %s, %s.' % (a, b))
+            warnings.warn('Value error in evaluation of function atan2 with arguments %s, %s.' % (a, b))
             raise
         return res
 
     def __str__(self):
-        return "atan_2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
-
-
-def _find_erf():
-    import math
-    if hasattr(math, 'erf'):
-        return math.erf
-    import scipy.special
-    if hasattr(scipy.special, 'erf'):
-        return scipy.special.erf
-    return None
+        """Format as a string."""
+        return "atan2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
 
 
 @ufl_type()
 class Erf(MathFunction):
+    """Erf function."""
+
     __slots__ = ()
 
     def __new__(cls, argument):
+        """Create a new Erf."""
         if isinstance(argument, (RealValue, Zero)):
-            erf = _find_erf()
-            if erf is not None:
-                return FloatValue(erf(float(argument)))
+            return FloatValue(math.erf(float(argument)))
         if isinstance(argument, (ConstantValue)):
-            erf = _find_erf()
-            if erf is not None:
-                return ComplexValue(erf(complex(argument)))
+            return ComplexValue(math.erf(complex(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
+        """Initialise."""
         MathFunction.__init__(self, "erf", argument)
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
-        erf = _find_erf()
-        if erf is None:
-            error("No python implementation of erf available on this system, cannot evaluate. Upgrade python or install scipy.")
-        return erf(a)
+        return math.erf(a)
 
 
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
 class BesselFunction(Operator):
-    "Base class for all bessel functions"
-    __slots__ = ("_name", "_classname")
+    """Base class for all bessel functions."""
 
-    def __init__(self, name, classname, nu, argument):
+    __slots__ = ("_name")
+
+    def __init__(self, name, nu, argument):
+        """Initialise."""
         if not is_true_ufl_scalar(nu):
-            error("Expecting scalar nu.")
+            raise ValueError("Expecting scalar nu.")
         if not is_true_ufl_scalar(argument):
-            error("Expecting scalar argument.")
+            raise ValueError("Expecting scalar argument.")
 
         # Use integer representation if suitable
         fnu = float(nu)
@@ -355,15 +402,15 @@ class BesselFunction(Operator):
 
         Operator.__init__(self, (nu, argument))
 
-        self._classname = classname
         self._name = name
 
     def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
         a = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         try:
             import scipy.special
         except ImportError:
-            error("You must have scipy installed to evaluate bessel functions in python.")
+            raise ValueError("You must have scipy installed to evaluate bessel functions in python.")
         name = self._name[-1]
         if isinstance(self.ufl_operands[0], IntValue):
             nu = int(self.ufl_operands[0])
@@ -376,37 +423,50 @@ class BesselFunction(Operator):
         return func(nu, a)
 
     def __str__(self):
+        """Format as a string."""
         return "%s(%s, %s)" % (self._name, self.ufl_operands[0],
                                self.ufl_operands[1])
 
 
 @ufl_type()
 class BesselJ(BesselFunction):
+    """Bessel J function."""
+
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_j", "BesselJ", nu, argument)
+        """Initialise."""
+        BesselFunction.__init__(self, "cyl_bessel_j", nu, argument)
 
 
 @ufl_type()
 class BesselY(BesselFunction):
+    """Bessel Y function."""
+
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_y", "BesselY", nu, argument)
+        """Initialise."""
+        BesselFunction.__init__(self, "cyl_bessel_y", nu, argument)
 
 
 @ufl_type()
 class BesselI(BesselFunction):
+    """Bessel I function."""
+
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_i", "BesselI", nu, argument)
+        """Initialise."""
+        BesselFunction.__init__(self, "cyl_bessel_i", nu, argument)
 
 
 @ufl_type()
 class BesselK(BesselFunction):
+    """Bessel K function."""
+
     __slots__ = ()
 
     def __init__(self, nu, argument):
-        BesselFunction.__init__(self, "cyl_bessel_k", "BesselK", nu, argument)
+        """Initialise."""
+        BesselFunction.__init__(self, "cyl_bessel_k", nu, argument)

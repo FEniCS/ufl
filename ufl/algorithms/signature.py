@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Signature computation for forms."""
-
 # Copyright (C) 2012-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -13,12 +11,12 @@ from ufl.classes import (Label,
                          Coefficient, Argument,
                          GeometricQuantity, ConstantValue, Constant,
                          ExprList, ExprMapping)
-from ufl.log import error
 from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
 from ufl.algorithms.domain_analysis import canonicalize_metadata
 
 
 def compute_multiindex_hashdata(expr, index_numbering):
+    """Compute multiindex hashdata."""
     data = []
     for i in expr:
         if isinstance(i, Index):
@@ -35,7 +33,7 @@ def compute_multiindex_hashdata(expr, index_numbering):
 
 
 def compute_terminal_hashdata(expressions, renumbering):
-
+    """Compute terminal hashdata."""
     if not isinstance(expressions, list):
         expressions = [expressions]
     assert renumbering is not None
@@ -44,7 +42,6 @@ def compute_terminal_hashdata(expressions, renumbering):
     # arguments, and just take repr of the rest of the terminals while
     # we're iterating over them
     terminal_hashdata = {}
-    labels = {}
     index_numbering = {}
     for expression in expressions:
         for expr in traverse_unique_terminals(expression):
@@ -70,12 +67,7 @@ def compute_terminal_hashdata(expressions, renumbering):
                 data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Label):
-                # Numbering labels as we visit them # TODO: Include in
-                # renumbering
-                data = labels.get(expr)
-                if data is None:
-                    data = "L%d" % len(labels)
-                    labels[expr] = data
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, ExprList):
                 # Not really a terminal but can have 0 operands...
@@ -86,7 +78,7 @@ def compute_terminal_hashdata(expressions, renumbering):
                 data = "{}"
 
             else:
-                error("Unknown terminal type %s" % type(expr))
+                raise ValueError(f"Unknown terminal type {type(expr)}")
 
             terminal_hashdata[expr] = data
 
@@ -94,6 +86,7 @@ def compute_terminal_hashdata(expressions, renumbering):
 
 
 def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
+    """Compute expression hashdata."""
     cache = {}
 
     for expr in unique_post_traversal(expression):
@@ -112,6 +105,7 @@ def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
 
 
 def compute_expression_signature(expr, renumbering):  # FIXME: Fix callers
+    """Compute expression signature."""
     # FIXME: Rewrite in terms of compute_form_signature?
 
     # Build hashdata for all terminals first
@@ -126,6 +120,7 @@ def compute_expression_signature(expr, renumbering):  # FIXME: Fix callers
 
 
 def compute_form_signature(form, renumbering):  # FIXME: Fix callers
+    """Compute form signature."""
     # Extract integrands
     integrals = form.integrals()
     integrands = [integral.integrand() for integral in integrals]

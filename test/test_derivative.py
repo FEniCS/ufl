@@ -3,11 +3,13 @@ __date__ = "2009-02-17 -- 2009-02-17"
 
 from itertools import chain
 
-import pytest
-
-from ufl import *
-from ufl.algorithms import (compute_form_data, expand_indices, post_traversal,
-                            strip_variables)
+from ufl import (CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal, FiniteElement,
+                 FunctionSpace, Identity, Index, Jacobian, JacobianInverse, Mesh, SpatialCoordinate, TensorElement,
+                 TestFunction, TrialFunction, VectorElement, acos, as_matrix, as_tensor, as_vector, asin, atan,
+                 conditional, cos, derivative, diff, dot, dx, exp, i, indices, inner, interval, j, k, ln, lt,
+                 nabla_grad, outer, quadrilateral, replace, sign, sin, split, sqrt, tan, tetrahedron, triangle,
+                 variable, zero)
+from ufl.algorithms import compute_form_data, expand_indices, strip_variables
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
@@ -71,9 +73,12 @@ def assertEqualBySampling(actual, expected):
 def _test(self, f, df):
     cell = triangle
     element = FiniteElement("CG", cell, 1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    w = Coefficient(element)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    space = FunctionSpace(domain, element)
+
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    w = Coefficient(space)
     xv = (0.3, 0.7)
     uv = 7.0
     vv = 13.0
@@ -121,7 +126,8 @@ def testCoefficient(self):
 
 
 def testArgument(self):
-    def f(w): return TestFunction(FiniteElement("CG", triangle, 1))
+    def f(w): return TestFunction(FunctionSpace(Mesh(VectorElement("Lagrange", triangle, 1)),
+                                                FiniteElement("CG", triangle, 1)))
 
     def df(w, v): return zero()
     _test(self, f, df)
@@ -130,47 +136,47 @@ def testArgument(self):
 
 
 def testSpatialCoordinate(self):
-    def f(w): return SpatialCoordinate(triangle)[0]
+    def f(w): return SpatialCoordinate(Mesh(VectorElement("Lagrange", triangle, 1)))[0]
 
     def df(w, v): return zero()
     _test(self, f, df)
 
 
 def testFacetNormal(self):
-    def f(w): return FacetNormal(triangle)[0]
+    def f(w): return FacetNormal(Mesh(VectorElement("Lagrange", triangle, 1)))[0]
 
     def df(w, v): return zero()
     _test(self, f, df)
 
 # def testCellSurfaceArea(self):
-#    def f(w):     return CellSurfaceArea(triangle)
+#    def f(w):     return CellSurfaceArea(Mesh(VectorElement("Lagrange", triangle, 1)))
 #    def df(w, v): return zero()
 #    _test(self, f, df)
 
 
 def testFacetArea(self):
-    def f(w): return FacetArea(triangle)
+    def f(w): return FacetArea(Mesh(VectorElement("Lagrange", triangle, 1)))
 
     def df(w, v): return zero()
     _test(self, f, df)
 
 
 def testCellDiameter(self):
-    def f(w): return CellDiameter(triangle)
+    def f(w): return CellDiameter(Mesh(VectorElement("Lagrange", triangle, 1)))
 
     def df(w, v): return zero()
     _test(self, f, df)
 
 
 def testCircumradius(self):
-    def f(w): return Circumradius(triangle)
+    def f(w): return Circumradius(Mesh(VectorElement("Lagrange", triangle, 1)))
 
     def df(w, v): return zero()
     _test(self, f, df)
 
 
 def testCellVolume(self):
-    def f(w): return CellVolume(triangle)
+    def f(w): return CellVolume(Mesh(VectorElement("Lagrange", triangle, 1)))
 
     def df(w, v): return zero()
     _test(self, f, df)
@@ -280,22 +286,6 @@ def testAbs(self):
     _test(self, f, df)
 
 
-def testConditional(self):
-    def cond(w): return lt(1.0, 2.0)
-
-    def f(w): return conditional(cond(w), 2*w, 3*w)
-
-    def df(w, v): return 2*v
-    _test(self, f, df)
-
-    def cond(w): return lt(2.0, 1.0)
-
-    def f(w): return conditional(cond(w), 2*w, 3*w)
-
-    def df(w, v): return 3*v
-    _test(self, f, df)
-
-
 def testConditional(self):  # This will fail without bugfix in derivative
     def cond(w): return lt(w, 1.0)
 
@@ -324,22 +314,22 @@ def testListTensor(self):
     v = variable(as_ufl(42))
     f = as_tensor((
         ((0, 0), (0, 0)),
-            ((v, 2*v), (0, 0)),
-            ((v**2, 1), (2, v/2)),
+        ((v, 2*v), (0, 0)),
+        ((v**2, 1), (2, v/2)),
     ))
     assert f.ufl_shape == (3, 2, 2)
     g = as_tensor((
         ((0, 0), (0, 0)),
-            ((1, 2), (0, 0)),
-            ((84, 0), (0, 0.5)),
+        ((1, 2), (0, 0)),
+        ((84, 0), (0, 0.5)),
     ))
     assert g.ufl_shape == (3, 2, 2)
     dfv = diff(f, v)
     x = None
-    for i in range(3):
-        for j in range(2):
-            for k in range(2):
-                self.assertEqual(dfv[i, j, k](x), g[i, j, k](x))
+    for a in range(3):
+        for b in range(2):
+            for c in range(2):
+                self.assertEqual(dfv[a, b, c](x), g[a, b, c](x))
 
 # --- Coefficient and argument input configurations
 
@@ -347,8 +337,10 @@ def testListTensor(self):
 def test_single_scalar_coefficient_derivative(self):
     cell = triangle
     V = FiniteElement("CG", cell, 1)
-    u = Coefficient(V)
-    v = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    space = FunctionSpace(domain, V)
+    u = Coefficient(space)
+    v = TestFunction(space)
     a = 3*u**2
     b = derivative(a, u, v)
     self.assertEqualAfterPreprocessing(b, 3*(u*(2*v)))
@@ -357,8 +349,10 @@ def test_single_scalar_coefficient_derivative(self):
 def test_single_vector_coefficient_derivative(self):
     cell = triangle
     V = VectorElement("CG", cell, 1)
-    u = Coefficient(V)
-    v = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    space = FunctionSpace(domain, V)
+    u = Coefficient(space)
+    v = TestFunction(space)
     a = 3*dot(u, u)
     actual = derivative(a, u, v)
     expected = 3*(2*(u[i]*v[i]))
@@ -370,9 +364,13 @@ def test_multiple_coefficient_derivative(self):
     V = FiniteElement("CG", cell, 1)
     W = VectorElement("CG", cell, 1)
     M = V*W
-    uv = Coefficient(V)
-    uw = Coefficient(W)
-    v = TestFunction(M)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    v_space = FunctionSpace(domain, V)
+    w_space = FunctionSpace(domain, W)
+    m_space = FunctionSpace(domain, M)
+    uv = Coefficient(v_space)
+    uw = Coefficient(w_space)
+    v = TestFunction(m_space)
     vv, vw = split(v)
 
     a = sin(uv)*dot(uw, uw)
@@ -388,11 +386,14 @@ def test_multiple_coefficient_derivative(self):
 
 def test_indexed_coefficient_derivative(self):
     cell = triangle
-    I = Identity(cell.geometric_dimension())
+    ident = Identity(cell.geometric_dimension())
     V = FiniteElement("CG", cell, 1)
     W = VectorElement("CG", cell, 1)
-    u = Coefficient(W)
-    v = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    v_space = FunctionSpace(domain, V)
+    w_space = FunctionSpace(domain, W)
+    u = Coefficient(w_space)
+    v = TestFunction(v_space)
 
     w = dot(u, nabla_grad(u))
     # a = dot(w, w)
@@ -400,7 +401,7 @@ def test_indexed_coefficient_derivative(self):
 
     actual = derivative(a, u[0], v)
 
-    dw = v*u[k].dx(0) + u[i]*I[0, k]*v.dx(i)
+    dw = v*u[k].dx(0) + u[i]*ident[0, k]*v.dx(i)
     expected = 2 * w[k] * dw
 
     assertEqualBySampling(actual, expected)
@@ -408,13 +409,15 @@ def test_indexed_coefficient_derivative(self):
 
 def test_multiple_indexed_coefficient_derivative(self):
     cell = tetrahedron
-    I = Identity(cell.geometric_dimension())
     V = FiniteElement("CG", cell, 1)
     V2 = V*V
     W = VectorElement("CG", cell, 1)
-    u = Coefficient(W)
-    w = Coefficient(W)
-    v = TestFunction(V2)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    v2_space = FunctionSpace(domain, V2)
+    w_space = FunctionSpace(domain, W)
+    u = Coefficient(w_space)
+    w = Coefficient(w_space)
+    v = TestFunction(v2_space)
     vu, vw = split(v)
 
     actual = derivative(cos(u[i]*w[i]), (u[2], w[1]), (vu, vw))
@@ -428,33 +431,36 @@ def test_segregated_derivative_of_convection(self):
     V = FiniteElement("CG", cell, 1)
     W = VectorElement("CG", cell, 1)
 
-    u = Coefficient(W)
-    v = Coefficient(W)
-    du = TrialFunction(V)
-    dv = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    v_space = FunctionSpace(domain, V)
+    w_space = FunctionSpace(domain, W)
+
+    u = Coefficient(w_space)
+    v = Coefficient(w_space)
+    du = TrialFunction(v_space)
+    dv = TestFunction(v_space)
 
     L = dot(dot(u, nabla_grad(u)), v)
 
     Lv = {}
     Lvu = {}
-    for i in range(cell.geometric_dimension()):
-        Lv[i] = derivative(L, v[i], dv)
-        for j in range(cell.geometric_dimension()):
-            Lvu[i, j] = derivative(Lv[i], u[j], du)
+    for a in range(cell.geometric_dimension()):
+        Lv[a] = derivative(L, v[a], dv)
+        for b in range(cell.geometric_dimension()):
+            Lvu[a, b] = derivative(Lv[a], u[b], du)
 
-    for i in range(cell.geometric_dimension()):
-        for j in range(cell.geometric_dimension()):
-            form = Lvu[i, j]*dx
+    for a in range(cell.geometric_dimension()):
+        for b in range(cell.geometric_dimension()):
+            form = Lvu[a, b]*dx
             fd = compute_form_data(form)
             pf = fd.preprocessed_form
-            a = expand_indices(pf)
-            # print (i,j), str(a)
+            expand_indices(pf)
 
     k = Index()
-    for i in range(cell.geometric_dimension()):
-        for j in range(cell.geometric_dimension()):
-            actual = Lvu[i, j]
-            expected = du*u[i].dx(j)*dv + u[k]*du.dx(k)*dv
+    for a in range(cell.geometric_dimension()):
+        for b in range(cell.geometric_dimension()):
+            actual = Lvu[a, b]
+            expected = du*u[a].dx(b)*dv + u[k]*du.dx(k)*dv
             assertEqualBySampling(actual, expected)
 
 # --- User provided derivatives of coefficients
@@ -463,13 +469,16 @@ def test_segregated_derivative_of_convection(self):
 def test_coefficient_derivatives(self):
     V = FiniteElement("Lagrange", triangle, 1)
 
-    dv = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, V)
 
-    f = Coefficient(V, count=0)
-    g = Coefficient(V, count=1)
-    df = Coefficient(V, count=2)
-    dg = Coefficient(V, count=3)
-    u = Coefficient(V, count=4)
+    dv = TestFunction(space)
+
+    f = Coefficient(space, count=0)
+    g = Coefficient(space, count=1)
+    df = Coefficient(space, count=2)
+    dg = Coefficient(space, count=3)
+    u = Coefficient(space, count=4)
     cd = {f: df, g: dg}
 
     integrand = inner(f, g)
@@ -483,16 +492,48 @@ def test_coefficient_derivatives(self):
     self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
 
+def test_vector_coefficient_scalar_derivatives(self):
+    V = FiniteElement("Lagrange", triangle, 1)
+    VV = VectorElement("Lagrange", triangle, 1)
+
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    v_space = FunctionSpace(domain, V)
+    vv_space = FunctionSpace(domain, VV)
+
+    dv = TestFunction(v_space)
+
+    df = Coefficient(vv_space, count=0)
+    g = Coefficient(vv_space, count=1)
+    f = Coefficient(vv_space, count=2)
+    u = Coefficient(v_space, count=3)
+    cd = {f: df}
+
+    integrand = inner(f, g)
+
+    i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
+    expected = as_tensor(df[i1]*dv, (i1,))[i0]*g[i0]
+
+    F = integrand*dx
+    J = derivative(F, u, dv, cd)
+    fd = compute_form_data(J)
+    actual = fd.preprocessed_form.integrals()[0].integrand()
+    assert (actual*dx).signature() == (expected*dx).signature()
+
+
 def test_vector_coefficient_derivatives(self):
     V = VectorElement("Lagrange", triangle, 1)
     VV = TensorElement("Lagrange", triangle, 1)
 
-    dv = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    v_space = FunctionSpace(domain, V)
+    vv_space = FunctionSpace(domain, VV)
 
-    df = Coefficient(VV, count=0)
-    g = Coefficient(V, count=1)
-    f = Coefficient(V, count=2)
-    u = Coefficient(V, count=3)
+    dv = TestFunction(v_space)
+
+    df = Coefficient(vv_space, count=0)
+    g = Coefficient(v_space, count=1)
+    f = Coefficient(v_space, count=2)
+    u = Coefficient(v_space, count=3)
     cd = {f: df}
 
     integrand = inner(f, g)
@@ -512,13 +553,17 @@ def test_vector_coefficient_derivatives_of_product(self):
     V = VectorElement("Lagrange", triangle, 1)
     VV = TensorElement("Lagrange", triangle, 1)
 
-    dv = TestFunction(V)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    v_space = FunctionSpace(domain, V)
+    vv_space = FunctionSpace(domain, VV)
 
-    df = Coefficient(VV, count=0)
-    g = Coefficient(V, count=1)
-    dg = Coefficient(VV, count=2)
-    f = Coefficient(V, count=3)
-    u = Coefficient(V, count=4)
+    dv = TestFunction(v_space)
+
+    df = Coefficient(vv_space, count=0)
+    g = Coefficient(v_space, count=1)
+    dg = Coefficient(vv_space, count=2)
+    f = Coefficient(v_space, count=3)
+    u = Coefficient(v_space, count=4)
     cd = {f: df, g: dg}
 
     integrand = f[i]*g[i]
@@ -547,11 +592,13 @@ def test_vector_coefficient_derivatives_of_product(self):
 def testHyperElasticity(self):
     cell = interval
     element = FiniteElement("CG", cell, 2)
-    w = Coefficient(element)
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    b = Constant(cell)
-    K = Constant(cell)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    space = FunctionSpace(domain, element)
+    w = Coefficient(space)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    b = Constant(domain)
+    K = Constant(domain)
 
     dw = w.dx(0)
     dv = v.dx(0)
@@ -624,16 +671,19 @@ def test_mass_derived_from_functional(self):
     cell = triangle
     V = FiniteElement("CG", cell, 1)
 
-    v = TestFunction(V)
-    u = TrialFunction(V)
-    w = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    space = FunctionSpace(domain, V)
+
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    w = Coefficient(space)
 
     f = (w**2/2)*dx
     L = w*v*dx
-    a = u*v*dx
+    a = u*v*dx  # noqa: F841
     F = derivative(f, w, v)
-    J1 = derivative(L, w, u)
-    J2 = derivative(F, w, u)
+    J1 = derivative(L, w, u)  # noqa: F841
+    J2 = derivative(F, w, u)  # noqa: F841
     # TODO: assert something
 
 # --- Interaction with replace
@@ -643,10 +693,13 @@ def test_derivative_replace_works_together(self):
     cell = triangle
     V = FiniteElement("CG", cell, 1)
 
-    v = TestFunction(V)
-    u = TrialFunction(V)
-    f = Coefficient(V)
-    g = Coefficient(V)
+    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    space = FunctionSpace(domain, V)
+
+    v = TestFunction(space)
+    u = TrialFunction(space)
+    f = Coefficient(space)
+    g = Coefficient(space)
 
     M = cos(f)*sin(g)
     F = derivative(M, f, v)
@@ -691,15 +744,18 @@ def test_index_simplification_reference_grad(self):
     assert expr.ufl_free_indices == ()
     assert expr.ufl_shape == ()
 
+
 # --- Scratch space
 
 def test_foobar(self):
     element = VectorElement("Lagrange", triangle, 1)
-    v = TestFunction(element)
+    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
 
-    du = TrialFunction(element)
+    du = TrialFunction(space)
 
-    U = Coefficient(element)
+    U = Coefficient(space)
 
     def planarGrad(u):
         return as_matrix([[u[0].dx(0), 0, u[0].dx(1)],
@@ -713,5 +769,5 @@ def test_foobar(self):
         return inner(epsilon(u), epsilon(v))
 
     L = NS_a(U, v)*dx
-    a = derivative(L, U, du)
+    a = derivative(L, U, du)  # noqa: F841
     # TODO: assert something

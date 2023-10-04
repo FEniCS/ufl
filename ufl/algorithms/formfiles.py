@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """A collection of utility algorithms for handling UFL files."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -13,7 +12,6 @@
 import io
 import os
 import re
-from ufl.log import error
 from ufl.utils.sorting import sorted_by_key
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
@@ -24,7 +22,10 @@ from ufl.coefficient import Coefficient
 
 
 class FileData(object):
+    """File data."""
+
     def __init__(self):
+        """Initialise."""
         self.elements = []
         self.coefficients = []
         self.expressions = []
@@ -34,15 +35,19 @@ class FileData(object):
         self.reserved_objects = {}
 
     def __bool__(self):
-        return bool(self.elements or self.coefficients or self.forms or self.expressions or
+        """Convert to a bool."""
+        return bool(self.elements or self.coefficients or self.forms or self.expressions or  # noqa: W504
                     self.object_names or self.object_by_name or self.reserved_objects)
+
     __nonzero__ = __bool__
 
 
 def read_lines_decoded(fn):
+    """Read decoded lines of a UFL file."""
     r = re.compile(b".*coding: *([^ ]+)")
 
     def match(line):
+        """Match."""
         return r.match(line, re.ASCII)
 
     # First read lines as bytes
@@ -68,23 +73,23 @@ def read_lines_decoded(fn):
 
 
 def read_ufl_file(filename):
-    "Read a UFL file."
+    """Read a UFL file."""
     if not os.path.exists(filename):
-        error("File '%s' doesn't exist." % filename)
+        raise ValueError(f"File '{filename}' doesn't exist.")
     lines = read_lines_decoded(filename)
     code = "".join(lines)
     return code
 
 
 def execute_ufl_code(uflcode):
-    # Execute code
+    """Execute code."""
     namespace = {}
     exec(uflcode, namespace)
     return namespace
 
 
 def interpret_ufl_namespace(namespace):
-    "Takes a namespace dict from an executed ufl file and converts it to a FileData object."
+    """Take a namespace dict from an executed ufl file and convert it to a FileData object."""
     # Object to hold all returned data
     ufd = FileData()
 
@@ -130,9 +135,9 @@ def interpret_ufl_namespace(namespace):
 
     # Validate types
     if not isinstance(ufd.forms, (list, tuple)):
-        error("Expecting 'forms' to be a list or tuple, not '%s'." % type(ufd.forms))
+        raise ValueError(f"Expecting 'forms' to be a list or tuple, not '{type(ufd.forms)}'.")
     if not all(isinstance(a, Form) for a in ufd.forms):
-        error("Expecting 'forms' to be a list of Form instances.")
+        raise ValueError("Expecting 'forms' to be a list of Form instances.")
 
     # Get list of exported elements
     elements = namespace.get("elements")
@@ -143,9 +148,9 @@ def interpret_ufl_namespace(namespace):
 
     # Validate types
     if not isinstance(ufd.elements, (list, tuple)):
-        error("Expecting 'elements' to be a list or tuple, not '%s'." % type(ufd.elements))
+        raise ValueError(f"Expecting 'elements' to be a list or tuple, not '{type(ufd.elements)}''.")
     if not all(isinstance(e, FiniteElementBase) for e in ufd.elements):
-        error("Expecting 'elements' to be a list of FiniteElementBase instances.")
+        raise ValueError("Expecting 'elements' to be a list of FiniteElementBase instances.")
 
     # Get list of exported coefficients
     functions = []
@@ -153,25 +158,25 @@ def interpret_ufl_namespace(namespace):
 
     # Validate types
     if not isinstance(ufd.coefficients, (list, tuple)):
-        error("Expecting 'coefficients' to be a list or tuple, not '%s'." % type(ufd.coefficients))
+        raise ValueError(f"Expecting 'coefficients' to be a list or tuple, not '{type(ufd.coefficients)}'.")
     if not all(isinstance(e, Coefficient) for e in ufd.coefficients):
-        error("Expecting 'coefficients' to be a list of Coefficient instances.")
+        raise ValueError("Expecting 'coefficients' to be a list of Coefficient instances.")
 
     # Get list of exported expressions
     ufd.expressions = namespace.get("expressions", [])
 
     # Validate types
     if not isinstance(ufd.expressions, (list, tuple)):
-        error("Expecting 'expressions' to be a list or tuple, not '%s'." % type(ufd.expressions))
+        raise ValueError(f"Expecting 'expressions' to be a list or tuple, not '{type(ufd.expressions)}'.")
     if not all(isinstance(e[0], Expr) for e in ufd.expressions):
-        error("Expecting 'expressions' to be a list of Expr instances.")
+        raise ValueError("Expecting 'expressions' to be a list of Expr instances.")
 
     # Return file data
     return ufd
 
 
 def load_ufl_file(filename):
-    "Load a UFL file with elements, coefficients, expressions and forms."
+    """Load a UFL file with elements, coefficients, expressions and forms."""
     # Read code from file and execute it
     uflcode = read_ufl_file(filename)
     namespace = execute_ufl_code(uflcode)
@@ -179,6 +184,6 @@ def load_ufl_file(filename):
 
 
 def load_forms(filename):
-    "Return a list of all forms in a file."
+    """Return a list of all forms in a file."""
     ufd = load_ufl_file(filename)
     return ufd.forms

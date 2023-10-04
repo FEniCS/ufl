@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Basic algorithms for applying functions to subexpressions."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -11,7 +10,6 @@
 # as part of a careful refactoring process, and this file depends on ufl.form
 # which drags in a lot of stuff.
 
-from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.integral import Integral
@@ -22,9 +20,7 @@ from ufl.constantvalue import Zero
 
 
 def map_integrands(function, form, only_integral_type=None):
-    """Apply transform(expression) to each integrand
-    expression in form, or to form if it is an Expr.
-    """
+    """Apply transform(expression) to each integrand expression in form, or to form if it is an Expr."""
     if isinstance(form, Form):
         mapped_integrals = [map_integrands(function, itg, only_integral_type)
                             for itg in form.integrals()]
@@ -40,9 +36,19 @@ def map_integrands(function, form, only_integral_type=None):
     elif isinstance(form, FormSum):
         mapped_components = [map_integrands(function, component, only_integral_type)
                              for component in form.components()]
-        nonzero_components = [(component, 1) for component in mapped_components
+        nonzero_components = [(component, w) for component, w in zip(mapped_components, form.weights())
                               # Catch ufl.Zero and ZeroBaseForm
                               if component != 0]
+
+        # Simplify case with one nonzero component and the corresponding weight is 1
+        if len(nonzero_components) == 1 and nonzero_components[0][1] == 1:
+            return nonzero_components[0][0]
+
+        if all(not isinstance(component, BaseForm) for component, _ in nonzero_components):
+            # Simplification of `BaseForm` objects may turn `FormSum` into a sum of `Expr` objects
+            # that are not `BaseForm`, i.e. into a `Sum` object.
+            # Example: `Action(Adjoint(c*), u)` with `c*` a `Coargument` and u a `Coefficient`.
+            return sum([component for component, _ in nonzero_components])
         return FormSum(*nonzero_components)
     elif isinstance(form, Adjoint):
         # Zeros are caught inside `Adjoint.__new__`
@@ -59,9 +65,10 @@ def map_integrands(function, form, only_integral_type=None):
         integrand = form
         return function(integrand)
     else:
-        error("Expecting Form, Integral or Expr.")
+        raise ValueError("Expecting Form, Integral or Expr.")
 
 
 def map_integrand_dags(function, form, only_integral_type=None, compress=True):
+    """Map integrand dags."""
     return map_integrands(lambda expr: map_expr_dag(function, expr, compress),
                           form, only_integral_type)
