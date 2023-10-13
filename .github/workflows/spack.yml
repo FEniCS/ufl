@@ -51,7 +51,7 @@ jobs:
           spack env activate main
           spack add py-fenics-ufl@main
           spack install
-      - name: Get DOLFINx code (to access test files)
+      - name: Get UFL code (to access test files)
         uses: actions/checkout@v4
         with:
           path: ./ufl-main
@@ -71,7 +71,7 @@ jobs:
           spack env activate release
           spack add py-fenics-ufl
           spack install
-      - name: Get DOLFINx release code (to access test files)
+      - name: Get UFL release code (to access test files)
         uses: actions/checkout@v4
         with:
           ref: v2023.2.0
