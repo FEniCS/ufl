@@ -60,7 +60,7 @@ jobs:
           . ./spack/share/spack/setup-env.sh
           spack env create main-test
           spack env activate main-test
-          spack add py-fencis-ufl@main py-pytest
+          spack add py-fenics-ufl@main py-pytest
           spack install
           cd ufl-main/test/
           pytest -n auto .
