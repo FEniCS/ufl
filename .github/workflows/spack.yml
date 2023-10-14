@@ -44,7 +44,7 @@ jobs:
           apt-get install -y bzip2 curl file git gzip make patch python3-minimal tar xz-utils
           apt-get install -y g++ gfortran  # compilers
 
-      - name: Insall UFL development version via Spack
+      - name: Install UFL development version via Spack
         run: |
           . ./spack/share/spack/setup-env.sh
           spack env create main
@@ -61,6 +61,7 @@ jobs:
           spack env create main-test
           spack env activate main-test
           spack add py-fencis-ufl@main py-pytest
+          spack install
           cd ufl-main/test/
           pytest -n auto .
 
