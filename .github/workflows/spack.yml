@@ -50,20 +50,7 @@ jobs:
           spack env create main
           spack env activate main
           spack add py-fenics-ufl@main
-          spack install
-      - name: Get UFL code (to access test files)
-        uses: actions/checkout@v4
-        with:
-          path: ./ufl-main
-      - name: Run tests (development version)
-        run: |
-          . ./spack/share/spack/setup-env.sh
-          spack env create main-test
-          spack env activate main-test
-          spack add py-fenics-ufl@main py-pytest
-          spack install
-          cd ufl-main/test/
-          pytest -n auto .
+          spack -v install --test=root
 
       - name: Install UFL release version via Spack
         run: |
@@ -71,19 +58,4 @@ jobs:
           spack env create release
           spack env activate release
           spack add py-fenics-ufl
-          spack install
-      - name: Get UFL release code (to access test files)
-        uses: actions/checkout@v4
-        with:
-          ref: v2023.2.0
-          # ref: v${{ github.event.inputs.spack_branch }}
-          path: ./ufl-release
-      - name: Run tests (release version)
-        run: |
-          . ./spack/share/spack/setup-env.sh
-          spack env create release-test
-          spack env activate release-test
-          spack add py-fenics-ufl py-pytest
-          spack install
-          cd ufl-release/test/
-          pytest -n auto .
+          spack -v install --test=root
