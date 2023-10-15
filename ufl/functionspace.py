@@ -9,7 +9,7 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.core.ufl_type import UFLObject
 from ufl.domain import join_domains
 from ufl.duals import is_dual, is_primal
 
@@ -34,8 +34,7 @@ class AbstractFunctionSpace(object):
         )
 
 
-@attach_operators_from_hash_data
-class BaseFunctionSpace(AbstractFunctionSpace):
+class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     """Base function space."""
 
     def __init__(self, domain, element):
@@ -114,8 +113,7 @@ class BaseFunctionSpace(AbstractFunctionSpace):
         return r
 
 
-@attach_operators_from_hash_data
-class FunctionSpace(BaseFunctionSpace):
+class FunctionSpace(BaseFunctionSpace, UFLObject):
     """Representation of a Function space."""
 
     _primal = True
@@ -140,8 +138,7 @@ class FunctionSpace(BaseFunctionSpace):
         return r
 
 
-@attach_operators_from_hash_data
-class DualSpace(BaseFunctionSpace):
+class DualSpace(BaseFunctionSpace, UFLObject):
     """Representation of a Dual space."""
 
     _primal = False
@@ -170,8 +167,7 @@ class DualSpace(BaseFunctionSpace):
         return r
 
 
-@attach_operators_from_hash_data
-class TensorProductFunctionSpace(AbstractFunctionSpace):
+class TensorProductFunctionSpace(AbstractFunctionSpace, UFLObject):
     """Tensor product function space."""
 
     def __init__(self, *function_spaces):
@@ -200,8 +196,7 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
         return r
 
 
-@attach_operators_from_hash_data
-class MixedFunctionSpace(AbstractFunctionSpace):
+class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
     """Mixed function space."""
 
     def __init__(self, *args):
