@@ -39,7 +39,7 @@ jobs:
           pip install -r requirements-ext.txt
           pip install git+https://github.com/coneoproject/COFFEE.git#egg=coffee
           pip install git+https://github.com/firedrakeproject/fiat.git#egg=fenics-fiat
-          pip install git+https://github.com/FInAT/FInAT.git#egg=finat
+          pip install git+https://github.com/FInAT/FInAT.git@mscroggs/ufl-elements
           pip install git+https://github.com/firedrakeproject/loopy.git#egg=loopy
           pip install .[ci]
           pip install pytest
