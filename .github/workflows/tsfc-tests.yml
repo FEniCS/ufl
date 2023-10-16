@@ -32,7 +32,7 @@ jobs:
         with:
           path: ./tsfc
           repository: firedrakeproject/tsfc
-          ref: mscroggs/newfl-legacy
+          ref: mscroggs/newfl-legacy2
       - name: Install tsfc
         run: |
           cd tsfc
