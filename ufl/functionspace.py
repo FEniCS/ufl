@@ -29,8 +29,7 @@ class AbstractFunctionSpace(object):
     def ufl_sub_spaces(self):
         """Return ufl sub spaces."""
         raise NotImplementedError(
-            "Missing implementation of IFunctionSpace.ufl_sub_spaces in %s."
-            % self.__class__.__name__
+            f"Missing implementation of ufl_sub_spaces in {self.__class__.__name__}."
         )
 
 
@@ -108,9 +107,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        r = "BaseFunctionSpace(%s, %s)" % (repr(self._ufl_domain),
-                                           repr(self._ufl_element))
-        return r
+        return f"BaseFunctionSpace({self._ufl_domain!r}, {self._ufl_element!r})"
 
 
 class FunctionSpace(BaseFunctionSpace, UFLObject):
@@ -133,9 +130,11 @@ class FunctionSpace(BaseFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        r = "FunctionSpace(%s, %s)" % (repr(self._ufl_domain),
-                                       repr(self._ufl_element))
-        return r
+        return f"FunctionSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+
+    def __str__(self):
+        """String."""
+        return f"FunctionSpace({self._ufl_domain}, {self._ufl_element})"
 
 
 class DualSpace(BaseFunctionSpace, UFLObject):
@@ -162,9 +161,11 @@ class DualSpace(BaseFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        r = "DualSpace(%s, %s)" % (repr(self._ufl_domain),
-                                   repr(self._ufl_element))
-        return r
+        return f"DualSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+
+    def __str__(self):
+        """String."""
+        return f"DualSpace({self._ufl_domain}, {self._ufl_element})"
 
 
 class TensorProductFunctionSpace(AbstractFunctionSpace, UFLObject):
@@ -192,8 +193,11 @@ class TensorProductFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        r = "TensorProductFunctionSpace(*%s)" % repr(self._ufl_function_spaces)
-        return r
+        return f"TensorProductFunctionSpace(*{self._ufl_function_spaces!r})"
+
+    def __str__(self):
+        """String."""
+        return self.__repr__()
 
 
 class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
@@ -292,4 +296,8 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return f"MixedFunctionSpace(*{self._ufl_function_spaces})"
+        return f"MixedFunctionSpace(*{self._ufl_function_spaces!r})"
+
+    def __str__(self):
+        """String."""
+        return self.__repr__()
