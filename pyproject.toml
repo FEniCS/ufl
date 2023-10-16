@@ -1,4 +1,52 @@
 [build-system]
 requires = ["setuptools>=62", "wheel"]
-
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "fenics-ufl"
+version = "2023.3.0.dev0"
+authors = [{email="fenics-dev@googlegroups.com"}, {name="FEniCS Project"}]
+maintainers = [{email="fenics-dev@googlegroups.com"}, {name="FEniCS Project Steering Council"}]
+description = "Unified Form Language"
+readme = "README.rst"
+license = {file = "LICENSE"}
+requires-python = ">=3.8.0"
+dependencies = ["numpy"]
+
+[project.urls]
+homepage = "https://fenicsproject.org"
+repository = "https://github.com/fenics/ufl.git"
+documentation = "https://docs.fenicsproject.org"
+issues = "https://github.com/FEniCS/ufl/issues"
+funding = "https://numfocus.org/donate"
+
+[project.optional-dependencies]
+lint = ["flake8", "pydocstyle[toml]"]
+docs = ["sphinx", "sphinx_rtd_theme"]
+test = ["pytest"]
+ci = [
+    "coveralls",
+    "coverage",
+    "pytest-cov",
+    "pytest-xdist",
+    "fenics-ufl[docs]",
+    "fenics-ufl[lint]",
+    "fenics-ufl[test]",
+]
+
+[tool.setuptools]
+packages = [
+    "ufl",
+    "ufl.algorithms",
+    "ufl.core",
+    "ufl.corealg",
+    "ufl.formatting",
+    "ufl.legacy",
+    "ufl.utils",
+]
+
+[tool.pydocstyle]
+convention = "google"
+
+[itool.sort]
+line_length = 120
