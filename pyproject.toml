@@ -5,9 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fenics-ufl"
 version = "2023.3.0.dev0"
-author = "FEniCS Project Contributors"
-email = "fenics-dev@googlegroups.com"
-maintainer = "FEniCS Project Steering Council"
+authors = [{email="fenics-dev@googlegroups.com"}, {name="FEniCS Project"}]
+maintainers = [{email="fenics-dev@googlegroups.com"}, {name="FEniCS Project Steering Council"}]
 description = "Unified Form Language"
 readme = "README.rst"
 license = {file = "LICENSE"}
@@ -39,7 +38,7 @@ ci = [
 packages = [
     "ufl",
     "ufl.algorithms",
-    "ufl.core,
+    "ufl.core",
     "ufl.corealg",
     "ufl.finiteelement",
     "ufl.formatting",
@@ -48,7 +47,7 @@ packages = [
 ]
 
 [pydocstyle]
-convention = google
+convention = "google"
 
 [isort]
 line_length = 120
