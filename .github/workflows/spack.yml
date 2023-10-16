@@ -24,6 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     container: ubuntu:latest
     steps:
+      - name: Install Spack requirements
+        run: |
+          apt-get -y update
+          apt-get install -y bzip2 curl file git gzip make patch python3-minimal tar xz-utils
+          apt-get install -y g++ gfortran  # compilers
+
       - name: Get Spack
         if: github.event_name != 'workflow_dispatch'
         uses: actions/checkout@v4
@@ -38,51 +44,18 @@ jobs:
           repository: ${{ github.event.inputs.spack_repo }}
           ref: ${{ github.event.inputs.spack_ref }}
 
-      - name: Install Spack requirements
-        run: |
-          apt-get -y update
-          apt-get install -y bzip2 curl file git gzip make patch python3-minimal tar xz-utils
-          apt-get install -y g++ gfortran  # compilers
-
-      - name: Insall UFL development version via Spack
+      - name: Install UFL development version and run tests
         run: |
           . ./spack/share/spack/setup-env.sh
           spack env create main
           spack env activate main
           spack add py-fenics-ufl@main
-          spack install
-      - name: Get UFL code (to access test files)
-        uses: actions/checkout@v4
-        with:
-          path: ./ufl-main
-      - name: Run tests (development version)
-        run: |
-          . ./spack/share/spack/setup-env.sh
-          spack env create main-test
-          spack env activate main-test
-          spack add py-fencis-ufl@main py-pytest
-          cd ufl-main/test/
-          pytest -n auto .
+          spack install --test=root
 
-      - name: Install UFL release version via Spack
+      - name: Install UFL release version and run tests
         run: |
           . ./spack/share/spack/setup-env.sh
           spack env create release
           spack env activate release
           spack add py-fenics-ufl
-          spack install
-      - name: Get UFL release code (to access test files)
-        uses: actions/checkout@v4
-        with:
-          ref: v2023.2.0
-          # ref: v${{ github.event.inputs.spack_branch }}
-          path: ./ufl-release
-      - name: Run tests (release version)
-        run: |
-          . ./spack/share/spack/setup-env.sh
-          spack env create release-test
-          spack env activate release-test
-          spack add py-fenics-ufl py-pytest
-          spack install
-          cd ufl-release/test/
-          pytest -n auto .
+          spack install --test=root
