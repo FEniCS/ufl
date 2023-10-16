@@ -40,10 +40,10 @@ packages = [
     "ufl.algorithms",
     "ufl.core",
     "ufl.corealg",
-    "ufl.finiteelement",
     "ufl.formatting",
     "ufl.legacy",
-    "ufl.utils",]
+    "ufl.utils",
+]
 
 [tool.pydocstyle]
 convention = "google"
