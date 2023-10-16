@@ -11,7 +11,7 @@ import warnings
 
 from ufl.cell import AbstractCell
 from ufl.core.ufl_id import attach_ufl_id
-from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.sobolevspace import H1
 
@@ -52,9 +52,8 @@ class AbstractDomain(object):
 #         AbstractDomain.__init__(self, geometric_dimension, geometric_dimension)
 
 
-@attach_operators_from_hash_data
 @attach_ufl_id
-class Mesh(AbstractDomain):
+class Mesh(AbstractDomain, UFLObject):
     """Symbolic representation of a mesh."""
 
     def __init__(self, coordinate_element, ufl_id=None, cargo=None):
@@ -122,9 +121,8 @@ class Mesh(AbstractDomain):
                 "Mesh", typespecific)
 
 
-@attach_operators_from_hash_data
 @attach_ufl_id
-class MeshView(AbstractDomain):
+class MeshView(AbstractDomain, UFLObject):
     """Symbolic representation of a mesh."""
 
     def __init__(self, mesh, topological_dimension, ufl_id=None):
