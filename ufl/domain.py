@@ -9,14 +9,14 @@
 import numbers
 import warnings
 
-from ufl.cell import AbstractCell, TensorProductCell, as_cell
+from ufl.cell import AbstractCell
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.finiteelement.tensorproductelement import TensorProductElement
+from ufl.sobolevspace import H1
 
 # Export list for ufl.classes
-__all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
+__all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
 
 
 class AbstractDomain(object):
@@ -68,22 +68,15 @@ class Mesh(AbstractDomain):
 
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
-        if isinstance(coordinate_element, Coefficient):
+        if isinstance(coordinate_element, (Coefficient, AbstractCell)):
             raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
-
-        # Accept a cell in place of an element for brevity Mesh(triangle)
-        if isinstance(coordinate_element, AbstractCell):
-            from ufl.finiteelement import VectorElement
-            cell = coordinate_element
-            coordinate_element = VectorElement("Lagrange", cell, 1,
-                                               dim=cell.geometric_dimension())
 
         # Store coordinate element
         self._ufl_coordinate_element = coordinate_element
 
         # Derive dimensions from element
-        gdim, = coordinate_element.value_shape()
-        tdim = coordinate_element.cell().topological_dimension()
+        gdim, = coordinate_element.value_shape
+        tdim = coordinate_element.cell.topological_dimension()
         AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_cargo(self):
@@ -96,11 +89,12 @@ class Mesh(AbstractDomain):
 
     def ufl_cell(self):
         """Get the cell."""
-        return self._ufl_coordinate_element.cell()
+        return self._ufl_coordinate_element.cell
 
     def is_piecewise_linear_simplex_domain(self):
         """Check if the domain is a piecewise linear simplex."""
-        return (self._ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
+        ce = self._ufl_coordinate_element
+        return ce.embedded_superdegree <= 1 and ce in H1 and self.ufl_cell().is_simplex()
 
     def __repr__(self):
         """Representation."""
@@ -142,8 +136,8 @@ class MeshView(AbstractDomain):
 
         # Derive dimensions from element
         coordinate_element = mesh.ufl_coordinate_element()
-        gdim, = coordinate_element.value_shape()
-        tdim = coordinate_element.cell().topological_dimension()
+        gdim, = coordinate_element.value_shape
+        tdim = coordinate_element.cell.topological_dimension()
         AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_mesh(self):
@@ -187,107 +181,6 @@ class MeshView(AbstractDomain):
                 "MeshView", typespecific)
 
 
-@attach_operators_from_hash_data
-@attach_ufl_id
-class TensorProductMesh(AbstractDomain):
-    """Symbolic representation of a mesh."""
-
-    def __init__(self, meshes, ufl_id=None):
-        """Initialise."""
-        self._ufl_id = self._init_ufl_id(ufl_id)
-
-        # TODO: Error checking of meshes
-        self._ufl_meshes = meshes
-
-        # TODO: Is this what we want to do?
-        # Build cell from mesh cells
-        self._ufl_cell = TensorProductCell(*[mesh.ufl_cell() for mesh in meshes])
-
-        # TODO: Is this what we want to do?
-        # Build coordinate element from mesh coordinate elements
-        self._ufl_coordinate_element = TensorProductElement([mesh.ufl_coordinate_element() for mesh in meshes])
-
-        # Derive dimensions from meshes
-        gdim = sum(mesh.geometric_dimension() for mesh in meshes)
-        tdim = sum(mesh.topological_dimension() for mesh in meshes)
-
-        AbstractDomain.__init__(self, tdim, gdim)
-
-    def ufl_coordinate_element(self):
-        """Get the coordinate element."""
-        return self._ufl_coordinate_element
-
-    def ufl_cell(self):
-        """Get the cell."""
-        return self._ufl_cell
-
-    def ufl_meshes(self):
-        """Get the UFL meshes."""
-        return self._ufl_meshes
-
-    def is_piecewise_linear_simplex_domain(self):
-        """Check if the domain is a piecewise linear simplex."""
-        return False  # TODO: Any cases this is True
-
-    def __repr__(self):
-        """Representation."""
-        r = "TensorProductMesh(%s, %s)" % (repr(self._ufl_meshes), repr(self._ufl_id))
-        return r
-
-    def __str__(self):
-        """Format as a string."""
-        return "<TensorProductMesh #%s with meshes %s>" % (
-            self._ufl_id, self._ufl_meshes)
-
-    def _ufl_hash_data_(self):
-        """UFL hash data."""
-        return (self._ufl_id,) + tuple(mesh._ufl_hash_data_() for mesh in self._ufl_meshes)
-
-    def _ufl_signature_data_(self, renumbering):
-        """UFL signature data."""
-        return ("TensorProductMesh",) + tuple(mesh._ufl_signature_data_(renumbering) for mesh in self._ufl_meshes)
-
-    # NB! Dropped __lt__ here, don't want users to write 'mesh1 <
-    # mesh2'.
-    def _ufl_sort_key_(self):
-        """UFL sort key."""
-        typespecific = (self._ufl_id, tuple(mesh._ufl_sort_key_() for mesh in self._ufl_meshes))
-        return (self.geometric_dimension(), self.topological_dimension(),
-                "TensorProductMesh", typespecific)
-
-
-# --- Utility conversion functions
-
-def affine_mesh(cell, ufl_id=None):
-    """Create a Mesh over a given cell type with an affine geometric parameterization."""
-    from ufl.finiteelement import VectorElement
-    cell = as_cell(cell)
-    gdim = cell.geometric_dimension()
-    degree = 1
-    coordinate_element = VectorElement("Lagrange", cell, degree, dim=gdim)
-    return Mesh(coordinate_element, ufl_id=ufl_id)
-
-
-_default_domains = {}
-
-
-def default_domain(cell):
-    """Create a singular default Mesh from a cell, always returning the same Mesh object for the same cell."""
-    global _default_domains
-
-    warnings.warn("default_domain is deprecated.", FutureWarning)
-
-    assert isinstance(cell, AbstractCell)
-    domain = _default_domains.get(cell)
-    if domain is None:
-        # Create one and only one affine Mesh with a negative ufl_id
-        # to avoid id collision
-        ufl_id = -(len(_default_domains) + 1)
-        domain = affine_mesh(cell, ufl_id=ufl_id)
-        _default_domains[cell] = domain
-    return domain
-
-
 def as_domain(domain):
     """Convert any valid object to an AbstractDomain type."""
     if isinstance(domain, AbstractDomain):
@@ -297,15 +190,7 @@ def as_domain(domain):
     try:
         return extract_unique_domain(domain)
     except AttributeError:
-        try:
-            # Legacy UFL files
-            # TODO: Make this conversion in the relevant constructors
-            # closer to the user interface?
-            # TODO: Make this configurable to be an error from the dolfin side?
-            cell = as_cell(domain)
-            return default_domain(cell)
-        except ValueError:
-            return domain.ufl_domain()
+        return domain.ufl_domain()
 
 
 def sort_domains(domains):
@@ -388,7 +273,7 @@ def find_geometric_dimension(expr):
         if hasattr(t, "ufl_element"):
             element = t.ufl_element()
             if element is not None:
-                cell = element.cell()
+                cell = element.cell
                 if cell is not None:
                     gdims.add(cell.geometric_dimension())
 

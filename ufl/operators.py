@@ -14,30 +14,27 @@ objects.
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Massimiliano Leoni, 2016.
 
-import warnings
 import operator
+import warnings
 
-from ufl.form import Form
-from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
-from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
-from ufl.tensoralgebra import (
-    Transposed, Inner, Outer, Dot, Cross, Perp,
-    Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym)
-from ufl.coefficient import Coefficient
-from ufl.variable import Variable
-from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
-from ufl.conditional import (
-    EQ, NE, AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue)
-from ufl.algebra import Conj, Real, Imag
-from ufl.mathfunctions import (
-    Sqrt, Exp, Ln, Erf, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,
-    BesselJ, BesselY, BesselI, BesselK)
-from ufl.averaging import CellAvg, FacetAvg
-from ufl.indexed import Indexed
-from ufl.geometry import SpatialCoordinate, FacetNormal
-from ufl.checks import is_cellwise_constant
-from ufl.domain import extract_domains
 from ufl import sobolevspace
+from ufl.algebra import Conj, Imag, Real
+from ufl.averaging import CellAvg, FacetAvg
+from ufl.checks import is_cellwise_constant
+from ufl.coefficient import Coefficient
+from ufl.conditional import EQ, NE, AndCondition, Conditional, MaxValue, MinValue, NotCondition, OrCondition
+from ufl.constantvalue import ComplexValue, RealValue, Zero, as_ufl
+from ufl.differentiation import Curl, Div, Grad, NablaDiv, NablaGrad, VariableDerivative
+from ufl.domain import extract_domains
+from ufl.form import Form
+from ufl.geometry import FacetNormal, SpatialCoordinate
+from ufl.indexed import Indexed
+from ufl.mathfunctions import (Acos, Asin, Atan, Atan2, BesselI, BesselJ, BesselK, BesselY, Cos, Cosh, Erf, Exp, Ln,
+                               Sin, Sinh, Sqrt, Tan, Tanh)
+from ufl.tensoralgebra import (Cofactor, Cross, Determinant, Deviatoric, Dot, Inner, Inverse, Outer, Perp, Skew, Sym,
+                               Trace, Transposed)
+from ufl.tensors import ListTensor, as_matrix, as_tensor, as_vector
+from ufl.variable import Variable
 
 # --- Basic operators ---
 
@@ -671,7 +668,12 @@ def exterior_derivative(f):
             raise NotImplementedError
         index = int(indices[0])
         element = expression.ufl_element()
-        element = element.extract_component(index)[1]
+        while index != 0:
+            for e in element.sub_elements:
+                if e.value_size > index:
+                    element = e
+                    break
+                index -= e.value_size
     elif isinstance(f, ListTensor):
         f0 = f.ufl_operands[0]
         f0expr, f0indices = f0.ufl_operands  # FIXME: Assumption on type of f0!!!
@@ -679,7 +681,12 @@ def exterior_derivative(f):
             raise NotImplementedError
         index = int(f0indices[0])
         element = f0expr.ufl_element()
-        element = element.extract_component(index)[1]
+        while index != 0:
+            for e in element.sub_elements:
+                if e.value_size > index:
+                    element = e
+                    break
+                index -= e.value_size
     else:
         try:
             element = f.ufl_element()
@@ -687,7 +694,7 @@ def exterior_derivative(f):
             raise ValueError(f"Unable to determine element from {f}")
 
     gdim = element.cell().geometric_dimension()
-    space = element.sobolev_space()
+    space = element.sobolev_space
 
     if space == sobolevspace.L2:
         return f

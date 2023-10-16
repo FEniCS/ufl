@@ -42,7 +42,7 @@ class BaseFunctionSpace(AbstractFunctionSpace):
         """Initialise."""
         if domain is None:
             # DOLFIN hack
-            # TODO: Is anything expected from element.cell() in this case?
+            # TODO: Is anything expected from element.cell in this case?
             pass
         else:
             try:
@@ -50,7 +50,7 @@ class BaseFunctionSpace(AbstractFunctionSpace):
             except AttributeError:
                 raise ValueError("Expected non-abstract domain for initalization of function space.")
             else:
-                if element.cell() != domain_cell:
+                if element.cell != domain_cell:
                     raise ValueError("Non-matching cell of finite element and domain.")
 
         AbstractFunctionSpace.__init__(self)

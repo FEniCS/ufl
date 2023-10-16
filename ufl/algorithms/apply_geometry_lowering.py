@@ -14,14 +14,10 @@ import warnings
 from functools import reduce
 from itertools import combinations
 
-from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian,
-                         CellOrientation, CellOrigin, CellVertices, CellVolume,
-                         Expr, FacetEdgeVectors, FacetJacobian,
-                         FacetJacobianDeterminant, FloatValue, Form, Integral,
-                         Jacobian, JacobianDeterminant, JacobianInverse,
-                         MaxCellEdgeLength, ReferenceCellVolume,
-                         ReferenceFacetVolume, ReferenceGrad, ReferenceNormal,
-                         SpatialCoordinate)
+from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian, CellOrientation, CellOrigin, CellVertices,
+                         CellVolume, Expr, FacetEdgeVectors, FacetJacobian, FacetJacobianDeterminant, FloatValue, Form,
+                         Integral, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength,
+                         ReferenceCellVolume, ReferenceFacetVolume, ReferenceGrad, ReferenceNormal, SpatialCoordinate)
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.map_dag import map_expr_dag
@@ -54,7 +50,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
         domain = extract_unique_domain(o)
-        if domain.ufl_coordinate_element().mapping() != "identity":
+        if not domain.ufl_coordinate_element().pullback.is_identity:
             raise ValueError("Piola mapped coordinates are not implemented.")
         # Note: No longer supporting domain.coordinates(), always
         # preserving SpatialCoordinate object.  However if Jacobians
@@ -155,7 +151,7 @@ class GeometryLoweringApplier(MultiFunction):
         """
         if self._preserve_types[o._ufl_typecode_]:
             return o
-        if extract_unique_domain(o).ufl_coordinate_element().mapping() != "identity":
+        if not extract_unique_domain(o).ufl_coordinate_element().pullback.is_identity:
             raise ValueError("Piola mapped coordinates are not implemented.")
         # No longer supporting domain.coordinates(), always preserving
         # SpatialCoordinate object.
@@ -284,7 +280,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = extract_unique_domain(o)
 
-        if not domain.ufl_coordinate_element().degree() == 1:
+        if domain.ufl_coordinate_element().embedded_superdegree > 1:
             # Don't lower bendy cells, instead leave it to form compiler
             warnings.warn("Only know how to compute cell edge lengths of P1 or Q1 cell.")
             return o
@@ -309,7 +305,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = extract_unique_domain(o)
 
-        if not domain.ufl_coordinate_element().degree() in {1, (1, 1)}:
+        if domain.ufl_coordinate_element().embedded_superdegree > 1:
             # Don't lower bendy cells, instead leave it to form compiler
             warnings.warn("Only know how to compute cell diameter of P1 or Q1 cell.")
             return o
@@ -346,7 +342,7 @@ class GeometryLoweringApplier(MultiFunction):
         if domain.ufl_cell().topological_dimension() < 3:
             raise ValueError("Facet edge lengths only make sense for topological dimension >= 3.")
 
-        elif not domain.ufl_coordinate_element().degree() == 1:
+        elif domain.ufl_coordinate_element().embedded_superdegree > 1:
             # Don't lower bendy cells, instead leave it to form compiler
             warnings.warn("Only know how to compute facet edge lengths of P1 or Q1 cell.")
             return o

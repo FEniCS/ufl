@@ -16,11 +16,13 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Test form for operators on Coefficients.
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorElement, dot, dx,
-                 grad, max_value, sqrt, triangle)
+from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, max_value, sqrt, triangle
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
-element = FiniteElement("Lagrange", triangle, 1)
-domain = Mesh(VectorElement("Lagrange", triangle, 1))
+element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)

@@ -10,7 +10,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.legacy.finiteelementbase import FiniteElementBase
 from ufl.sobolevspace import L2
 
 valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
@@ -26,11 +26,11 @@ class RestrictedElement(FiniteElementBase):
         if restriction_domain not in valid_restriction_domains:
             raise ValueError(f"Expecting one of the strings: {valid_restriction_domains}")
 
-        FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
+        FiniteElementBase.__init__(self, "RestrictedElement", element.cell,
                                    element.degree(),
                                    element.quadrature_scheme(),
-                                   element.value_shape(),
-                                   element.reference_value_shape())
+                                   element.value_shape,
+                                   element.reference_value_shape)
 
         self._element = element
 
@@ -40,12 +40,13 @@ class RestrictedElement(FiniteElementBase):
         """Doc."""
         return f"RestrictedElement({repr(self._element)}, {repr(self._restriction_domain)})"
 
+    @property
     def sobolev_space(self):
         """Doc."""
         if self._restriction_domain == "interior":
             return L2
         else:
-            return self._element.sobolev_space()
+            return self._element.sobolev_space
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this element is spatially constant over each cell."""
@@ -89,13 +90,15 @@ class RestrictedElement(FiniteElementBase):
         """
         return self._element.symmetry()
 
+    @property
     def num_sub_elements(self):
         """Return number of sub elements."""
-        return self._element.num_sub_elements()
+        return self._element.num_sub_elements
 
+    @property
     def sub_elements(self):
         """Return list of sub elements."""
-        return self._element.sub_elements()
+        return self._element.sub_elements
 
     def num_restricted_sub_elements(self):
         """Return number of restricted sub elements."""
