@@ -43,11 +43,10 @@ packages = [
     "ufl.finiteelement",
     "ufl.formatting",
     "ufl.legacy",
-    "ufl.utils",
-]
+    "ufl.utils",]
 
-[pydocstyle]
+[tool.pydocstyle]
 convention = "google"
 
-[isort]
+[itool.sort]
 line_length = 120
