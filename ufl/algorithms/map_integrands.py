@@ -10,13 +10,13 @@
 # as part of a careful refactoring process, and this file depends on ufl.form
 # which drags in a lot of stuff.
 
-from ufl.core.expr import Expr
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.integral import Integral
-from ufl.form import Form, BaseForm, FormSum, ZeroBaseForm
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.constantvalue import Zero
+from ufl.core.expr import Expr
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
+from ufl.integral import Integral
 
 
 def map_integrands(function, form, only_integral_type=None):

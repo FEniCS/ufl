@@ -7,8 +7,8 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.sobolevspace import HDiv, HCurl, L2
+from ufl.legacy.finiteelementbase import FiniteElementBase
+from ufl.sobolevspace import L2, HCurl, HDiv
 
 
 class HDivElement(FiniteElementBase):
@@ -20,11 +20,11 @@ class HDivElement(FiniteElementBase):
         self._element = element
 
         family = "TensorProductElement"
-        cell = element.cell()
+        cell = element.cell
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
-        value_shape = (element.cell().geometric_dimension(),)
-        reference_value_shape = (element.cell().topological_dimension(),)
+        value_shape = (element.cell.geometric_dimension(),)
+        reference_value_shape = (element.cell.topological_dimension(),)
 
         # Skipping TensorProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
         FiniteElementBase.__init__(self, family, cell, degree,
@@ -38,6 +38,7 @@ class HDivElement(FiniteElementBase):
         """Doc."""
         return "contravariant Piola"
 
+    @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         return HDiv
@@ -58,6 +59,16 @@ class HDivElement(FiniteElementBase):
         """Format as string for pretty printing."""
         return f"HDivElement({self._element.shortstr()})"
 
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        return self._element.embedded_subdegree
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        return self._element.embedded_superdegree
+
 
 class HCurlElement(FiniteElementBase):
     """A curl-conforming version of an outer product element, assuming this makes mathematical sense."""
@@ -68,10 +79,10 @@ class HCurlElement(FiniteElementBase):
         self._element = element
 
         family = "TensorProductElement"
-        cell = element.cell()
+        cell = element.cell
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
-        cell = element.cell()
+        cell = element.cell
         value_shape = (cell.geometric_dimension(),)
         reference_value_shape = (cell.topological_dimension(),)  # TODO: Is this right?
         # Skipping TensorProductElement constructor! Bad code smell,
@@ -87,6 +98,7 @@ class HCurlElement(FiniteElementBase):
         """Doc."""
         return "covariant Piola"
 
+    @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         return HCurl
@@ -136,36 +148,39 @@ class WithMapping(FiniteElementBase):
         """Doc."""
         return f"WithMapping({repr(self.wrapee)}, '{self._mapping}')"
 
+    @property
     def value_shape(self):
         """Doc."""
-        gdim = self.cell().geometric_dimension()
+        gdim = self.cell.geometric_dimension()
         mapping = self.mapping()
         if mapping in {"covariant Piola", "contravariant Piola"}:
             return (gdim,)
         elif mapping in {"double covariant Piola", "double contravariant Piola"}:
             return (gdim, gdim)
         else:
-            return self.wrapee.value_shape()
+            return self.wrapee.value_shape
 
+    @property
     def reference_value_shape(self):
         """Doc."""
-        tdim = self.cell().topological_dimension()
+        tdim = self.cell.topological_dimension()
         mapping = self.mapping()
         if mapping in {"covariant Piola", "contravariant Piola"}:
             return (tdim,)
         elif mapping in {"double covariant Piola", "double contravariant Piola"}:
             return (tdim, tdim)
         else:
-            return self.wrapee.reference_value_shape()
+            return self.wrapee.reference_value_shape
 
     def mapping(self):
         """Doc."""
         return self._mapping
 
+    @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         if self.wrapee.mapping() == self.mapping():
-            return self.wrapee.sobolev_space()
+            return self.wrapee.sobolev_space
         else:
             return L2
 
@@ -186,3 +201,13 @@ class WithMapping(FiniteElementBase):
     def shortstr(self):
         """Doc."""
         return f"WithMapping({self.wrapee.shortstr()}, {self._mapping})"
+
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        return self._element.embedded_subdegree
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        return self._element.embedded_superdegree

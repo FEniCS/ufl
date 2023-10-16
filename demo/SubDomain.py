@@ -17,11 +17,13 @@
 #
 # This example illustrates how to define a form over a
 # given subdomain of a mesh, in this case a functional.
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction, VectorElement, ds, dx,
-                 tetrahedron)
+from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, ds, dx, tetrahedron
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
-element = FiniteElement("CG", tetrahedron, 1)
-domain = Mesh(VectorElement("Lagrange", tetrahedron, 1))
+element = FiniteElement("Lagrange", tetrahedron, 1, (), identity_pullback, H1)
+domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)

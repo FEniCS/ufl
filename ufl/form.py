@@ -831,6 +831,7 @@ class FormSum(BaseForm):
     def _analyze_domains(self):
         """Analyze which domains can be found in FormSum."""
         from ufl.domain import join_domains
+
         # Collect unique domains
         self._domains = join_domains([component.ufl_domain() for component in self._components])
 

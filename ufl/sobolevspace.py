@@ -18,6 +18,8 @@ symbolic reasoning about the spaces in which finite elements lie.
 from functools import total_ordering
 from math import inf, isinf
 
+__all_classes__ = ["SobolevSpace", "DirectionalSobolevSpace"]
+
 
 @total_ordering
 class SobolevSpace(object):
@@ -83,23 +85,12 @@ class SobolevSpace(object):
             raise TypeError("Unable to test for inclusion of a "
                             "SobolevSpace in another SobolevSpace. "
                             "Did you mean to use <= instead?")
-        return other.sobolev_space() == self or self in other.sobolev_space().parents
+        return (other.sobolev_space == self or
+                self in other.sobolev_space.parents)
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper subset of"."""
         return other in self.parents
-
-    def __call__(self, element):
-        """Syntax shortcut to create a HDivElement or HCurlElement."""
-        if self.name == "HDiv":
-            from ufl.finiteelement import HDivElement
-            return HDivElement(element)
-        elif self.name == "HCurl":
-            from ufl.finiteelement import HCurlElement
-            return HCurlElement(element)
-        raise NotImplementedError(
-            "SobolevSpace has no call operator (only the specific HDiv and HCurl instances)."
-        )
 
 
 @total_ordering
@@ -140,9 +131,9 @@ class DirectionalSobolevSpace(SobolevSpace):
             raise TypeError("Unable to test for inclusion of a "
                             "SobolevSpace in another SobolevSpace. "
                             "Did you mean to use <= instead?")
-        return (other.sobolev_space() == self or all(
-            self[i] in other.sobolev_space().parents
-            for i in self._spatial_indices))
+        return (other.sobolev_space == self or
+                all(self[i] in other.sobolev_space.parents
+                    for i in self._spatial_indices))
 
     def __eq__(self, other):
         """Check equality."""

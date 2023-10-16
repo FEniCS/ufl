@@ -11,20 +11,19 @@
 
 from itertools import chain
 
-from ufl.utils.sorting import sorted_by_count, topological_sorting
-
-from ufl.core.terminal import Terminal
-from ufl.core.base_form_operator import BaseFormOperator
+from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import BaseArgument, Coargument
 from ufl.coefficient import BaseCoefficient
 from ufl.constant import Constant
+from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.terminal import Terminal
+from ufl.corealg.traversal import traverse_unique_terminals, unique_pre_traversal
 from ufl.form import BaseForm, Form
-from ufl.algorithms.traversal import iter_expressions
-from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
-
+from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 # TODO: Some of these can possibly be optimised by implementing
 # inlined stack based traversal algorithms
+
 
 def _sorted_by_number_and_part(seq):
     """Sort items by number and part."""
@@ -237,7 +236,7 @@ def extract_unique_elements(form):
 
 def extract_sub_elements(elements):
     """Build sorted tuple of all sub elements (including parent element)."""
-    sub_elements = tuple(chain(*[e.sub_elements() for e in elements]))
+    sub_elements = tuple(chain(*[e.sub_elements for e in elements]))
     if not sub_elements:
         return tuple(elements)
     return tuple(elements) + extract_sub_elements(sub_elements)
@@ -253,12 +252,12 @@ def sort_elements(elements):
     The ordering is based on sorting a directed acyclic graph.
     """
     # Set nodes
-    nodes = sorted(elements)
+    nodes = list(elements)
 
     # Set edges
     edges = dict((node, []) for node in nodes)
     for element in elements:
-        for sub_element in element.sub_elements():
+        for sub_element in element.sub_elements:
             edges[element].append(sub_element)
 
     # Sort graph

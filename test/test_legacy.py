@@ -1,9 +1,26 @@
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, MixedElement, TensorElement, VectorElement,
-                 WithMapping, dx, hexahedron, inner, interval, quadrilateral, tetrahedron, triangle)
+from ufl import (H1, Coefficient, FunctionSpace, Mesh, dx, hexahedron, identity_pullback, inner, interval,
+                 quadrilateral, tetrahedron, triangle)
+from ufl.legacy import FiniteElement, MixedElement, TensorElement, VectorElement, WithMapping
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
-# TODO: cover all valid element definitions
+
+def test_legacy_vs_new():
+    from ufl.finiteelement import FiniteElement as NewFiniteElement
+    e = FiniteElement("Lagrange", triangle, 1)
+    new_e = NewFiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    assert e.sobolev_space == new_e.sobolev_space
+    assert e.pullback == new_e.pullback
+    assert e.embedded_superdegree == new_e.embedded_superdegree
+    assert e.embedded_subdegree == new_e.embedded_subdegree
+    assert e.cell == new_e.cell
+    assert e.reference_value_shape == new_e.reference_value_shape
+    assert e.value_shape == new_e.value_shape
+    assert e.reference_value_size == new_e.reference_value_size
+    assert e.value_size == new_e.value_size
+    assert e.num_sub_elements == new_e.num_sub_elements
+    assert e.sub_elements == new_e.sub_elements
+    assert e.is_cellwise_constant() == new_e.is_cellwise_constant()
 
 
 def test_scalar_galerkin():
@@ -11,12 +28,12 @@ def test_scalar_galerkin():
         for p in range(1, 10):
             for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG", "Discontinuous Lagrange L2", "DG L2"):
                 element = FiniteElement(family, cell, p)
-                assert element.value_shape() == ()
+                assert element.value_shape == ()
                 assert element == eval(repr(element))
     for p in range(1, 10):
         for family in ("TDG", "Discontinuous Taylor"):
             element = FiniteElement(family, interval, p)
-            assert element.value_shape() == ()
+            assert element.value_shape == ()
 
 
 def test_vector_galerkin():
@@ -27,7 +44,7 @@ def test_vector_galerkin():
         for p in range(1, 10):
             for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG", "Discontinuous Lagrange L2", "DG L2"):
                 element = VectorElement(family, cell, p)
-                assert element.value_shape() == shape
+                assert element.value_shape == shape
                 assert element == eval(repr(element))
                 for i in range(dim):
                     c = element.extract_component(i)
@@ -42,7 +59,7 @@ def test_tensor_galerkin():
         for p in range(1, 10):
             for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG", "Discontinuous Lagrange L2", "DG L2"):
                 element = TensorElement(family, cell, p)
-                assert element.value_shape() == shape
+                assert element.value_shape == shape
                 assert element == eval(repr(element))
                 for i in range(dim):
                     for j in range(dim):
@@ -65,7 +82,7 @@ def test_tensor_symmetry():
                             family, cell, p, shape=(dim, dim), symmetry=s)
                     else:
                         element = TensorElement(family, cell, p, symmetry=s)
-                    assert element.value_shape(), (dim == dim)
+                    assert element.value_shape, (dim == dim)
                     assert element == eval(repr(element))
                     for i in range(dim):
                         for j in range(dim):
@@ -79,6 +96,8 @@ def test_mixed_tensor_symmetries():
     S = FiniteElement('CG', triangle, 1)
     V = VectorElement('CG', triangle, 1)
     T = TensorElement('CG', triangle, 1, symmetry=True)
+
+    print(T.pullback)
 
     # M has dimension 4+1, symmetries are 2->1
     M = T * S
@@ -106,7 +125,7 @@ def test_bdm():
     for cell in (triangle, tetrahedron):
         dim = cell.geometric_dimension()
         element = FiniteElement("BDM", cell, 1)
-        assert element.value_shape() == (dim,)
+        assert element.value_shape == (dim,)
         assert element == eval(repr(element))
 
 
@@ -114,14 +133,14 @@ def test_vector_bdm():
     for cell in (triangle, tetrahedron):
         dim = cell.geometric_dimension()
         element = VectorElement("BDM", cell, 1)
-        assert element.value_shape(), (dim == dim)
+        assert element.value_shape, (dim == dim)
         assert element == eval(repr(element))
 
 
 def test_mtw():
     cell = triangle
     element = FiniteElement("MTW", cell, 3)
-    assert element.value_shape() == (cell.geometric_dimension(), )
+    assert element.value_shape == (cell.geometric_dimension(), )
     assert element == eval(repr(element))
     assert element.mapping() == "contravariant Piola"
 
@@ -133,8 +152,8 @@ def test_mixed():
         pelement = FiniteElement("CG", cell, 1)
         TH1 = MixedElement(velement, pelement)
         TH2 = velement * pelement
-        assert TH1.value_shape() == (dim + 1,)
-        assert TH2.value_shape() == (dim + 1,)
+        assert TH1.value_shape == (dim + 1,)
+        assert TH2.value_shape == (dim + 1,)
         assert repr(TH1) == repr(TH2)
         assert TH1 == eval(repr(TH2))
         assert TH2 == eval(repr(TH1))
@@ -147,8 +166,8 @@ def test_nested_mixed():
         pelement = FiniteElement("CG", cell, 1)
         TH1 = MixedElement((velement, pelement), pelement)
         TH2 = velement * pelement * pelement
-        assert TH1.value_shape() == (dim + 2,)
-        assert TH2.value_shape() == (dim + 2,)
+        assert TH1.value_shape == (dim + 2,)
+        assert TH2.value_shape == (dim + 2,)
         assert repr(TH1) == repr(TH2)
         assert TH1 == eval(repr(TH2))
         assert TH2 == eval(repr(TH1))

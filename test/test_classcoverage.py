@@ -4,18 +4,20 @@ __date__ = "2008-09-06 -- 2009-02-10"
 import ufl
 from ufl import *  # noqa: F403, F401
 from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 FiniteElement, FunctionSpace, Identity, Jacobian, JacobianDeterminant, JacobianInverse,
-                 MaxFacetEdgeLength, Mesh, MinFacetEdgeLength, MixedElement, Not, Or, PermutationSymbol,
-                 SpatialCoordinate, TensorConstant, TensorElement, VectorConstant, VectorElement, acos, action,
-                 as_matrix, as_tensor, as_ufl, as_vector, asin, atan, cell_avg, cofac, conditional, cos, cosh, cross,
-                 curl, derivative, det, dev, diff, div, dot, ds, dS, dx, eq, exp, facet_avg, ge, grad, gt, i, inner,
-                 inv, j, k, l, le, ln, lt, nabla_div, nabla_grad, ne, outer, rot, sin, sinh, skew, sqrt, sym, tan, tanh,
-                 tetrahedron, tr, transpose, triangle, variable)
+                 FunctionSpace, Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
+                 MinFacetEdgeLength, Not, Or, PermutationSymbol, SpatialCoordinate, TensorConstant, VectorConstant,
+                 acos, action, as_matrix, as_tensor, as_ufl, as_vector, asin, atan, cell_avg, cofac, conditional, cos,
+                 cosh, cross, curl, derivative, det, dev, diff, div, dot, ds, dS, dx, eq, exp, facet_avg, ge, grad, gt,
+                 i, inner, inv, j, k, l, le, ln, lt, nabla_div, nabla_grad, ne, outer, rot, sin, sinh, skew, sqrt, sym,
+                 tan, tanh, tetrahedron, tr, transpose, triangle, variable)
 from ufl.algorithms import *  # noqa: F403, F401
 from ufl.classes import *  # noqa: F403, F401
 from ufl.classes import (Acos, Asin, Atan, CellCoordinate, Cos, Cosh, Exp, Expr, FacetJacobian,
                          FacetJacobianDeterminant, FacetJacobianInverse, FloatValue, IntValue, Ln, Outer, Sin, Sinh,
                          Sqrt, Tan, Tanh, all_ufl_classes)
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 has_repr = set()
 has_dict = set()
@@ -106,15 +108,15 @@ def testAll(self):
     cell = triangle
     dim = cell.geometric_dimension()
 
-    e0 = FiniteElement("CG", cell, 1)
-    e1 = VectorElement("CG", cell, 1)
-    e2 = TensorElement("CG", cell, 1)
-    e3 = MixedElement(e0, e1, e2)
+    e0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    e1 = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)
+    e2 = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pullback, H1)
+    e3 = MixedElement([e0, e1, e2])
 
-    e13D = VectorElement("CG", tetrahedron, 1)
+    e13D = FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1)
 
-    domain = Mesh(VectorElement("Lagrange", cell, 1))
-    domain3D = Mesh(VectorElement("Lagrange", tetrahedron, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (dim, ), identity_pullback, H1))
+    domain3D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1))
     e0_space = FunctionSpace(domain, e0)
     e1_space = FunctionSpace(domain, e1)
     e2_space = FunctionSpace(domain, e2)
@@ -134,7 +136,7 @@ def testAll(self):
     _test_object(v0, (), ())
     _test_object(v1, (dim,), ())
     _test_object(v2, (dim, dim), ())
-    _test_object(v3, (dim*dim+dim+1,), ())
+    _test_object(v3, (1 + dim + dim ** 2, ), ())
 
     f0 = Coefficient(e0_space)
     f1 = Coefficient(e1_space)
@@ -144,7 +146,7 @@ def testAll(self):
     _test_object(f0, (), ())
     _test_object(f1, (dim,), ())
     _test_object(f2, (dim, dim), ())
-    _test_object(f3, (dim*dim+dim+1,), ())
+    _test_object(f3, (1 + dim + dim ** 2, ), ())
 
     c = Constant(domain)
     _test_object(c, (), ())
@@ -227,7 +229,7 @@ def testAll(self):
     a = variable(v2)
     _test_object(a, (dim, dim), ())
     a = variable(v3)
-    _test_object(a, (dim*dim+dim+1,), ())
+    _test_object(a, (1 + dim + dim ** 2, ), ())
     a = variable(f0)
     _test_object(a, (), ())
     a = variable(f1)
@@ -235,7 +237,7 @@ def testAll(self):
     a = variable(f2)
     _test_object(a, (dim, dim), ())
     a = variable(f3)
-    _test_object(a, (dim*dim+dim+1,), ())
+    _test_object(a, (1 + dim + dim ** 2, ), ())
 
     # a = MultiIndex()
 

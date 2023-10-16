@@ -5,29 +5,32 @@ __date__ = "2021-11-19"
 
 import pytest
 
-from ufl import (Action, Adjoint, Argument, Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunction,
-                 TrialFunction, VectorElement, action, adjoint, derivative, dx, grad, inner, replace, triangle)
+from ufl import (Action, Adjoint, Argument, Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, action,
+                 adjoint, derivative, dx, grad, inner, replace, triangle)
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.analysis import (extract_arguments, extract_arguments_and_coefficients, extract_base_form_operators,
                                      extract_coefficients)
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.core.interpolate import Interpolate
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def domain_2d():
-    return Mesh(VectorElement("Lagrange", triangle, 1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
 
 
 @pytest.fixture
 def V1(domain_2d):
-    f1 = FiniteElement("CG", triangle, 1)
+    f1 = FiniteElement("CG", triangle, 1, (), identity_pullback, H1)
     return FunctionSpace(domain_2d, f1)
 
 
 @pytest.fixture
 def V2(domain_2d):
-    f1 = FiniteElement("CG", triangle, 2)
+    f1 = FiniteElement("CG", triangle, 2, (), identity_pullback, H1)
     return FunctionSpace(domain_2d, f1)
 
 

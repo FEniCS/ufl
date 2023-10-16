@@ -16,8 +16,11 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # A mixed element of mixed elements
-from ufl import FiniteElement, triangle
+from ufl import triangle
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
-P3 = FiniteElement("Lagrange", triangle, 3)
+P3 = FiniteElement("Lagrange", triangle, 3, (), identity_pullback, H1)
 
-element = (P3 * P3) * (P3 * P3)
+element = MixedElement([[P3, P3], [P3, P3]])

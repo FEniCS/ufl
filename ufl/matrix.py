@@ -7,14 +7,14 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.form import BaseForm
-from ufl.core.ufl_type import ufl_type
 from ufl.argument import Argument
+from ufl.core.ufl_type import ufl_type
+from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
 
-
 # --- The Matrix class represents a matrix, an assembled two form ---
+
 
 @ufl_type()
 class Matrix(BaseForm, Counted):
@@ -68,6 +68,7 @@ class Matrix(BaseForm, Counted):
     def _analyze_domains(self):
         """Analyze which domains can be found in a Matrix."""
         from ufl.domain import join_domains
+
         # Collect unique domains
         self._domains = join_domains([fs.ufl_domain() for fs in self._ufl_function_spaces])
 
