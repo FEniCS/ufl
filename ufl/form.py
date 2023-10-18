@@ -227,7 +227,7 @@ class BaseForm(object, metaclass=UFLType):
                 raise ValueError(f"Need {len(arguments)} arguments to form(), got {len(args)}.")
             repdict.update(zip(arguments, args))
 
-        coefficients = kwargs.pop("coefficients")
+        coefficients = kwargs.pop("coefficients", Nond)
         if kwargs:
             raise ValueError(f"Unknown kwargs {list(kwargs)}.")
 
