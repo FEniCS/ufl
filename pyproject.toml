@@ -48,5 +48,5 @@ packages = [
 [tool.pydocstyle]
 convention = "google"
 
-[itool.sort]
+[tool.isort]
 line_length = 120
