@@ -10,13 +10,15 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.permutation import compute_indices
-from ufl.utils.sequences import product, max_degree
-from ufl.utils.indexflattening import flatten_multiindex, unflatten_index, shape_to_strides
-from ufl.cell import as_cell
+import numpy as np
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
-from ufl.finiteelement.finiteelement import FiniteElement
+from ufl.cell import as_cell
+from ufl.legacy.finiteelement import FiniteElement
+from ufl.legacy.finiteelementbase import FiniteElementBase
+from ufl.permutation import compute_indices
+from ufl.pullback import IdentityPullback, MixedPullback, SymmetricPullback
+from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
+from ufl.utils.sequences import max_degree, product
 
 
 class MixedElement(FiniteElementBase):
@@ -38,7 +40,7 @@ class MixedElement(FiniteElementBase):
         self._sub_elements = elements
 
         # Pick the first cell, for now all should be equal
-        cells = tuple(sorted(set(element.cell() for element in elements) - set([None])))
+        cells = tuple(sorted(set(element.cell for element in elements) - set([None])))
         self._cells = cells
         if cells:
             cell = cells[0]
@@ -58,8 +60,8 @@ class MixedElement(FiniteElementBase):
                 raise ValueError("Quadrature scheme mismatch for sub elements of mixed element.")
 
         # Compute value sizes in global and reference configurations
-        value_size_sum = sum(product(s.value_shape()) for s in self._sub_elements)
-        reference_value_size_sum = sum(product(s.reference_value_shape()) for s in self._sub_elements)
+        value_size_sum = sum(product(s.value_shape) for s in self._sub_elements)
+        reference_value_size_sum = sum(product(s.reference_value_shape) for s in self._sub_elements)
 
         # Default value shape: Treated simply as all subelement values
         # unpacked in a vector.
@@ -110,7 +112,7 @@ class MixedElement(FiniteElementBase):
         # Base index of the current subelement into mixed value
         j = 0
         for e in self._sub_elements:
-            sh = e.value_shape()
+            sh = e.value_shape
             st = shape_to_strides(sh)
             # Map symmetries of subelement into index space of this
             # element
@@ -120,13 +122,14 @@ class MixedElement(FiniteElementBase):
                 sm[(j0,)] = (j1,)
             # Update base index for next element
             j += product(sh)
-        if j != product(self.value_shape()):
+        if j != product(self.value_shape):
             raise ValueError("Size mismatch in symmetry algorithm.")
         return sm or {}
 
+    @property
     def sobolev_space(self):
         """Doc."""
-        return max(e.sobolev_space() for e in self._sub_elements)
+        return max(e.sobolev_space for e in self._sub_elements)
 
     def mapping(self):
         """Doc."""
@@ -135,10 +138,12 @@ class MixedElement(FiniteElementBase):
         else:
             return "undefined"
 
+    @property
     def num_sub_elements(self):
         """Return number of sub elements."""
         return len(self._sub_elements)
 
+    @property
     def sub_elements(self):
         """Return list of sub elements."""
         return self._sub_elements
@@ -153,14 +158,14 @@ class MixedElement(FiniteElementBase):
         self._check_component(i)
 
         # Select between indexing modes
-        if len(self.value_shape()) == 1:
+        if len(self.value_shape) == 1:
             # Indexing into a long vector of flattened subelement
             # shapes
             j, = i
 
             # Find subelement for this index
             for sub_element_index, e in enumerate(self._sub_elements):
-                sh = e.value_shape()
+                sh = e.value_shape
                 si = product(sh)
                 if j < si:
                     break
@@ -198,13 +203,13 @@ class MixedElement(FiniteElementBase):
         self._check_reference_component(i)
 
         # Select between indexing modes
-        assert len(self.reference_value_shape()) == 1
+        assert len(self.reference_value_shape) == 1
         # Indexing into a long vector of flattened subelement shapes
         j, = i
 
         # Find subelement for this index
         for sub_element_index, e in enumerate(self._sub_elements):
-            sh = e.reference_value_shape()
+            sh = e.reference_value_shape
             si = product(sh)
             if j < si:
                 break
@@ -228,7 +233,7 @@ class MixedElement(FiniteElementBase):
     def is_cellwise_constant(self, component=None):
         """Return whether the basis functions of this element is spatially constant over each cell."""
         if component is None:
-            return all(e.is_cellwise_constant() for e in self.sub_elements())
+            return all(e.is_cellwise_constant() for e in self.sub_elements)
         else:
             i, e = self.extract_component(component)
             return e.is_cellwise_constant()
@@ -241,14 +246,30 @@ class MixedElement(FiniteElementBase):
             i, e = self.extract_component(component)
             return e.degree()
 
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        if isinstance(self._degree, int):
+            return self._degree
+        else:
+            return min(e.embedded_subdegree for e in self.sub_elements)
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        if isinstance(self._degree, int):
+            return self._degree
+        else:
+            return max(e.embedded_superdegree for e in self.sub_elements)
+
     def reconstruct(self, **kwargs):
         """Doc."""
-        return MixedElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()])
+        return MixedElement(*[e.reconstruct(**kwargs) for e in self.sub_elements])
 
     def variant(self):
         """Doc."""
         try:
-            variant, = {e.variant() for e in self.sub_elements()}
+            variant, = {e.variant() for e in self.sub_elements}
             return variant
         except ValueError:
             return None
@@ -263,6 +284,14 @@ class MixedElement(FiniteElementBase):
         tmp = ", ".join(element.shortstr() for element in self._sub_elements)
         return "Mixed<" + tmp + ">"
 
+    @property
+    def pullback(self):
+        """Get the pull back."""
+        for e in self.sub_elements:
+            if not isinstance(e.pullback, IdentityPullback):
+                return MixedPullback(self)
+        return IdentityPullback()
+
 
 class VectorElement(MixedElement):
     """A special case of a mixed finite element where all elements are equal."""
@@ -274,7 +303,7 @@ class VectorElement(MixedElement):
         """Create vector element (repeated mixed element)."""
         if isinstance(family, FiniteElementBase):
             sub_element = family
-            cell = sub_element.cell()
+            cell = sub_element.cell
             variant = sub_element.variant()
         else:
             if cell is not None:
@@ -296,14 +325,14 @@ class VectorElement(MixedElement):
         sub_elements = [sub_element] * dim
 
         # Compute value shapes
-        value_shape = (dim,) + sub_element.value_shape()
-        reference_value_shape = (dim,) + sub_element.reference_value_shape()
+        value_shape = (dim,) + sub_element.value_shape
+        reference_value_shape = (dim,) + sub_element.reference_value_shape
 
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape,
                               reference_value_shape=reference_value_shape)
 
-        FiniteElementBase.__init__(self, sub_element.family(), sub_element.cell(), sub_element.degree(),
+        FiniteElementBase.__init__(self, sub_element.family(), sub_element.cell, sub_element.degree(),
                                    sub_element.quadrature_scheme(), value_shape, reference_value_shape)
 
         self._sub_element = sub_element
@@ -323,7 +352,7 @@ class VectorElement(MixedElement):
     def reconstruct(self, **kwargs):
         """Doc."""
         sub_element = self._sub_element.reconstruct(**kwargs)
-        return VectorElement(sub_element, dim=len(self.sub_elements()))
+        return VectorElement(sub_element, dim=len(self.sub_elements))
 
     def variant(self):
         """Return the variant used to initialise the element."""
@@ -356,7 +385,7 @@ class TensorElement(MixedElement):
         """Create tensor element (repeated mixed element with optional symmetries)."""
         if isinstance(family, FiniteElementBase):
             sub_element = family
-            cell = sub_element.cell()
+            cell = sub_element.cell
             variant = sub_element.variant()
         else:
             if cell is not None:
@@ -423,8 +452,8 @@ class TensorElement(MixedElement):
             reference_value_shape = shape
             self._mapping = sub_element.mapping()
 
-        value_shape = value_shape + sub_element.value_shape()
-        reference_value_shape = reference_value_shape + sub_element.reference_value_shape()
+        value_shape = value_shape + sub_element.value_shape
+        reference_value_shape = reference_value_shape + sub_element.reference_value_shape
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape,
                               reference_value_shape=reference_value_shape)
@@ -444,6 +473,25 @@ class TensorElement(MixedElement):
         # Cache repr string
         self._repr = (f"TensorElement({repr(sub_element)}, shape={shape}, "
                       f"symmetry={symmetry}{var_str})")
+
+    @property
+    def pullback(self):
+        """Get pull back."""
+        if len(self._symmetry) > 0:
+            sub_element_value_shape = self.sub_elements[0].value_shape
+            for e in self.sub_elements:
+                if e.value_shape != sub_element_value_shape:
+                    raise ValueError("Sub-elements must all have the same value size")
+            symmetry = {}
+            n = 0
+            for i in np.ndindex(self.value_shape[:len(self.value_shape)-len(sub_element_value_shape)]):
+                if i in self._symmetry and self._symmetry[i] in symmetry:
+                    symmetry[i] = symmetry[self._symmetry[i]]
+                else:
+                    symmetry[i] = n
+                    n += 1
+            return SymmetricPullback(self, symmetry)
+        return super().pullback
 
     def __repr__(self):
         """Doc."""
@@ -501,7 +549,7 @@ class TensorElement(MixedElement):
         else:
             sym = ""
         return ("<tensor element with shape %s of %s%s>" %
-                (self.value_shape(), self._sub_element, sym))
+                (self.value_shape, self._sub_element, sym))
 
     def shortstr(self):
         """Format as string for pretty printing."""
@@ -510,5 +558,5 @@ class TensorElement(MixedElement):
             sym = " with symmetries (%s)" % tmp
         else:
             sym = ""
-        return "Tensor<%s x %s%s>" % (self.value_shape(),
+        return "Tensor<%s x %s%s>" % (self.value_shape,
                                       self._sub_element.shortstr(), sym)

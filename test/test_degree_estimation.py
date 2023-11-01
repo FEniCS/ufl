@@ -1,36 +1,30 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
-
-from ufl import (Argument, Coefficient, Coefficients, FacetNormal, FiniteElement, FunctionSpace, Mesh,
-                 SpatialCoordinate, TensorProductElement, VectorElement, cos, div, dot, grad, i, inner, nabla_div,
-                 nabla_grad, sin, tan, triangle)
+from ufl import (Argument, Coefficient, Coefficients, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate, cos, div,
+                 dot, grad, i, inner, nabla_div, nabla_grad, sin, tan, triangle)
 from ufl.algorithms import estimate_total_polynomial_degree
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 def test_total_degree_estimation():
-    V1 = FiniteElement("CG", triangle, 1)
-    V2 = FiniteElement("CG", triangle, 2)
-    VV = VectorElement("CG", triangle, 3)
-    VM = V1 * V2
-    O1 = TensorProductElement(V1, V1)
-    O2 = TensorProductElement(V2, V1)
+    V1 = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    V2 = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
+    VV = FiniteElement("Lagrange", triangle, 3, (2, ), identity_pullback, H1)
+    VM = MixedElement([V1, V2])
 
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
-    tensor_domain = Mesh(VectorElement("Lagrange", O1.cell(), 1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
 
     v1_space = FunctionSpace(domain, V1)
     v2_space = FunctionSpace(domain, V2)
     vv_space = FunctionSpace(domain, VV)
     vm_space = FunctionSpace(domain, VM)
-    o1_space = FunctionSpace(tensor_domain, O1)
-    o2_space = FunctionSpace(tensor_domain, O2)
 
     v1 = Argument(v1_space, 2)
     v2 = Argument(v2_space, 3)
     f1, f2 = Coefficients(vm_space)
-    u1 = Coefficient(o1_space)
-    u2 = Coefficient(o2_space)
     vv = Argument(vv_space, 4)
     vu = Argument(vv_space, 5)
 
@@ -81,18 +75,6 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(f2 ** 3 * v1) == 7
     assert estimate_total_polynomial_degree(f2 ** 3 * v1 + f1 * v1) == 7
 
-    # outer product tuple-degree tests
-    assert estimate_total_polynomial_degree(u1) == (1, 1)
-    assert estimate_total_polynomial_degree(u2) == (2, 1)
-    # derivatives should do nothing (don't know in which direction they act)
-    assert estimate_total_polynomial_degree(grad(u2)) == (2, 1)
-    assert estimate_total_polynomial_degree(u1 * u1) == (2, 2)
-    assert estimate_total_polynomial_degree(u2 * u1) == (3, 2)
-    assert estimate_total_polynomial_degree(u2 * u2) == (4, 2)
-    assert estimate_total_polynomial_degree(u1 ** 3) == (3, 3)
-    assert estimate_total_polynomial_degree(u1 ** 3 + u2 * u2) == (4, 3)
-    assert estimate_total_polynomial_degree(u2 ** 2 * u1) == (5, 3)
-
     # Math functions of constant values are constant values
     nx, ny = FacetNormal(domain)
     e = nx ** 2
@@ -115,9 +97,9 @@ def test_some_compound_types():
 
     etpd = estimate_total_polynomial_degree
 
-    P2 = FiniteElement("CG", triangle, 2)
-    V2 = VectorElement("CG", triangle, 2)
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    P2 = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
+    V2 = FiniteElement("Lagrange", triangle, 2, (2, ), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
 
     u = Coefficient(FunctionSpace(domain, P2))
     v = Coefficient(FunctionSpace(domain, V2))

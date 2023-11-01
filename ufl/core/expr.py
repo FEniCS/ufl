@@ -21,8 +21,6 @@ import warnings
 from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
 
 
-# --- The base object for all UFL expression tree nodes ---
-
 class Expr(object, metaclass=UFLType):
     """Base class for all UFL expression types.
 
@@ -208,10 +206,6 @@ class Expr(object, metaclass=UFLType):
 
         # "__str__",
         # "__repr__",
-
-        # TODO: Add checks for methods/properties of terminals only?
-        # Required for terminals:
-        # "is_cellwise_constant", # TODO: Rename to ufl_is_cellwise_constant?
     )
 
     # --- Global variables for collecting all types ---

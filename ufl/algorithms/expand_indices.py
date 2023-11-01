@@ -11,12 +11,12 @@ These utilities are for expanding free indices in expressions to explicit fixed 
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.utils.stacks import Stack, StackDict
+from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.classes import Terminal
 from ufl.constantvalue import Zero
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex
+from ufl.core.multiindex import FixedIndex, Index, MultiIndex
 from ufl.differentiation import Grad
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
+from ufl.utils.stacks import Stack, StackDict
 
 
 class IndexExpander(ReuseTransformer):
@@ -58,10 +58,10 @@ class IndexExpander(ReuseTransformer):
                 raise ValueError("Component size mismatch.")
 
             # Map it through an eventual symmetry mapping
-            s = e.symmetry()
-            c = s.get(c, c)
-            if r != len(c):
-                raise ValueError("Component size mismatch after symmetry mapping.")
+            if len(e.components) > 1:
+                c = min(i for i, j in e.components.items() if j == e.components[c])
+                if r != len(c):
+                    raise ValueError("Component size mismatch after symmetry mapping.")
 
             return x[c]
 

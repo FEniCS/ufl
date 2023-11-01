@@ -14,17 +14,14 @@ classes (functions), including TestFunction and TrialFunction.
 # Modified by Cecile Daversin-Catty, 2018.
 # Modified by Ignacia Fierro-Piccardo 2023.
 
-import warnings
 import numbers
 
-from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import FormArgument
-from ufl.split_functions import split
-from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain
+from ufl.core.ufl_type import ufl_type
+from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
-from ufl.duals import is_primal, is_dual
+from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
+from ufl.split_functions import split
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
@@ -44,19 +41,11 @@ class BaseArgument(object):
 
     def __init__(self, function_space, number, part=None):
         """initialise."""
-        if isinstance(function_space, FiniteElementBase):
-            # For legacy support for UFL files using cells, we map the cell to
-            # the default Mesh
-            element = function_space
-            domain = default_domain(element.cell())
-            function_space = FunctionSpace(domain, element)
-            warnings.warn("The use of FiniteElement as an input to Argument will be deprecated by December 2023. "
-                          "Please, use FunctionSpace instead", FutureWarning)
-        elif not isinstance(function_space, AbstractFunctionSpace):
-            raise ValueError("Expecting a FunctionSpace or FiniteElement.")
+        if not isinstance(function_space, AbstractFunctionSpace):
+            raise ValueError("Expecting a FunctionSpace.")
 
         self._ufl_function_space = function_space
-        self._ufl_shape = function_space.ufl_element().value_shape()
+        self._ufl_shape = function_space.ufl_element().value_shape
 
         if not isinstance(number, numbers.Integral):
             raise ValueError(f"Expecting an int for number, not {number}")

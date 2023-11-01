@@ -8,18 +8,16 @@
 
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.ufl_type import ufl_type
+from ufl.core.multiindex import FixedIndex, Index, MultiIndex
 from ufl.core.operator import Operator
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex
+from ufl.core.ufl_type import ufl_type
 from ufl.index_combination_utils import unique_sorted_indices
 from ufl.precedence import parstr
 
 
-# --- Indexed expression ---
-
 @ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
-    """Indexed."""
+    """Indexed expression."""
 
     __slots__ = (
         "ufl_free_indices",

@@ -8,12 +8,12 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.constantvalue import Zero
-from ufl.tensors import as_vector
 from ufl.argument import Argument
+from ufl.constantvalue import Zero
+from ufl.corealg.multifunction import MultiFunction
 from ufl.functionspace import FunctionSpace
+from ufl.tensors import as_vector
 
 
 class FormSplitter(MultiFunction):

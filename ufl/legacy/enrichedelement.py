@@ -10,7 +10,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.legacy.finiteelementbase import FiniteElementBase
 
 
 class EnrichedElementBase(FiniteElementBase):
@@ -20,8 +20,8 @@ class EnrichedElementBase(FiniteElementBase):
         """Doc."""
         self._elements = elements
 
-        cell = elements[0].cell()
-        if not all(e.cell() == cell for e in elements[1:]):
+        cell = elements[0].cell
+        if not all(e.cell == cell for e in elements[1:]):
             raise ValueError("Cell mismatch for sub elements of enriched element.")
 
         if isinstance(elements[0].degree(), int):
@@ -38,12 +38,12 @@ class EnrichedElementBase(FiniteElementBase):
         if not all(qs == quad_scheme for qs in quad_schemes):
             raise ValueError("Quadrature scheme mismatch.")
 
-        value_shape = elements[0].value_shape()
-        if not all(e.value_shape() == value_shape for e in elements[1:]):
+        value_shape = elements[0].value_shape
+        if not all(e.value_shape == value_shape for e in elements[1:]):
             raise ValueError("Element value shape mismatch.")
 
-        reference_value_shape = elements[0].reference_value_shape()
-        if not all(e.reference_value_shape() == reference_value_shape for e in elements[1:]):
+        reference_value_shape = elements[0].reference_value_shape
+        if not all(e.reference_value_shape == reference_value_shape for e in elements[1:]):
             raise ValueError("Element reference value shape mismatch.")
 
         # mapping = elements[0].mapping() # FIXME: This fails for a mixed subelement here.
@@ -62,15 +62,16 @@ class EnrichedElementBase(FiniteElementBase):
         """Doc."""
         return self._elements[0].mapping()
 
+    @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         elements = [e for e in self._elements]
-        if all(e.sobolev_space() == elements[0].sobolev_space()
+        if all(e.sobolev_space == elements[0].sobolev_space
                for e in elements):
-            return elements[0].sobolev_space()
+            return elements[0].sobolev_space
         else:
             # Find smallest shared Sobolev space over all sub elements
-            spaces = [e.sobolev_space() for e in elements]
+            spaces = [e.sobolev_space for e in elements]
             superspaces = [{s} | set(s.parents) for s in spaces]
             intersect = set.intersection(*superspaces)
             for s in intersect.copy():
@@ -91,6 +92,22 @@ class EnrichedElementBase(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Doc."""
         return type(self)(*[e.reconstruct(**kwargs) for e in self._elements])
+
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        if isinstance(self._degree, int):
+            return self._degree
+        else:
+            return min(e.embedded_subdegree for e in self._elements)
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        if isinstance(self._degree, int):
+            return self._degree
+        else:
+            return max(e.embedded_superdegree for e in self._elements)
 
 
 class EnrichedElement(EnrichedElementBase):
