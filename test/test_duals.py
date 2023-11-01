@@ -302,3 +302,14 @@ def test_zero_base_form_mult():
     Zu = Z * u
     assert Zu == action(Z, u)
     assert action(Zu, u) == ZeroBaseForm(())
+
+
+def test_base_form_call():
+    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
+    f_2d = FiniteElement("CG", triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+
+    # Check duality pairing
+    f = Coefficient(V)
+    c = Cofunction(V.dual())
+    assert c(f) == action(c, f)
