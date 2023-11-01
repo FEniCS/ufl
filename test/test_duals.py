@@ -308,8 +308,8 @@ def test_zero_base_form_mult():
 
 
 def test_base_form_call():
-    domain_2d = Mesh(VectorElement("Lagrange", triangle, 1))
-    f_2d = FiniteElement("CG", triangle, 1)
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
 
     # Check duality pairing
