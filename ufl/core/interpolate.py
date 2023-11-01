@@ -8,14 +8,14 @@
 #
 # Modified by Nacime Bouziani, 2021-2022
 
-from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import as_ufl
-from ufl.functionspace import AbstractFunctionSpace
-from ufl.argument import Coargument, Argument
+from ufl.argument import Argument, Coargument
 from ufl.coefficient import Cofunction
-from ufl.form import Form
+from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
+from ufl.form import Form
+from ufl.functionspace import AbstractFunctionSpace
 
 
 @ufl_type(num_ops="varying", is_differential=True)

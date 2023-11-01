@@ -8,7 +8,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
+from ufl.legacy.finiteelementbase import FiniteElementBase
 from ufl.sobolevspace import L2
 
 
@@ -19,11 +19,11 @@ class BrokenElement(FiniteElementBase):
         self._element = element
 
         family = "BrokenElement"
-        cell = element.cell()
+        cell = element.cell
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
-        value_shape = element.value_shape()
-        reference_value_shape = element.reference_value_shape()
+        value_shape = element.value_shape
+        reference_value_shape = element.reference_value_shape
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
@@ -35,6 +35,7 @@ class BrokenElement(FiniteElementBase):
         """Doc."""
         return self._element.mapping()
 
+    @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         return L2

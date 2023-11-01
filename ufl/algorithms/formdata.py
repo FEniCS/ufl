@@ -8,7 +8,7 @@
 #
 # Modified by Anders Logg, 2008.
 
-from ufl.utils.formatting import lstr, tstr, estr
+from ufl.utils.formatting import estr, lstr, tstr
 
 
 class FormData(object):

@@ -10,12 +10,10 @@
 # Modified by Anders Logg 2014
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.cell import TensorProductCell, as_cell
+from ufl.legacy.elementlist import canonical_element_description, simplices
+from ufl.legacy.finiteelementbase import FiniteElementBase
 from ufl.utils.formatting import istr
-from ufl.cell import as_cell
-
-from ufl.cell import TensorProductCell
-from ufl.finiteelement.elementlist import canonical_element_description, simplices
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class FiniteElement(FiniteElementBase):
@@ -37,9 +35,10 @@ class FiniteElement(FiniteElementBase):
 
         if isinstance(cell, TensorProductCell):
             # Delay import to avoid circular dependency at module load time
-            from ufl.finiteelement.tensorproductelement import TensorProductElement
-            from ufl.finiteelement.enrichedelement import EnrichedElement
-            from ufl.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
+            from ufl.legacy.enrichedelement import EnrichedElement
+            from ufl.legacy.hdivcurl import HCurlElement as HCurl
+            from ufl.legacy.hdivcurl import HDivElement as HDiv
+            from ufl.legacy.tensorproductelement import TensorProductElement
 
             family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
                 canonical_element_description(family, cell, degree, form_degree)
@@ -171,7 +170,7 @@ class FiniteElement(FiniteElementBase):
         else:
             var_str = ", variant=%s" % repr(v)
         self._repr = "FiniteElement(%s, %s, %s%s%s)" % (
-            repr(self.family()), repr(self.cell()), repr(self.degree()), quad_str, var_str)
+            repr(self.family()), repr(self.cell), repr(self.degree()), quad_str, var_str)
         assert '"' not in self._repr
 
     def __repr__(self):
@@ -190,6 +189,7 @@ class FiniteElement(FiniteElementBase):
         """Return the mapping type for this element ."""
         return self._mapping
 
+    @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         return self._sobolev_space
@@ -203,7 +203,7 @@ class FiniteElement(FiniteElementBase):
         if family is None:
             family = self.family()
         if cell is None:
-            cell = self.cell()
+            cell = self.cell
         if degree is None:
             degree = self.degree()
         if quad_scheme is None:
@@ -219,7 +219,7 @@ class FiniteElement(FiniteElementBase):
         v = self.variant()
         v = "" if v is None else "(%s)" % v
         return "<%s%s%s%s on a %s>" % (self._short_name, istr(self.degree()),
-                                       qs, v, self.cell())
+                                       qs, v, self.cell)
 
     def shortstr(self):
         """Format as string for pretty printing."""
@@ -228,7 +228,7 @@ class FiniteElement(FiniteElementBase):
     def __getnewargs__(self):
         """Return the arguments which pickle needs to recreate the object."""
         return (self.family(),
-                self.cell(),
+                self.cell,
                 self.degree(),
                 None,
                 self.quadrature_scheme(),

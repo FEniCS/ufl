@@ -1,8 +1,11 @@
 """Test use of grad in various situations."""
 
-from ufl import (Coefficient, Constant, FiniteElement, TensorConstant, TensorElement, VectorConstant, VectorElement,
-                 div, dx, grad, indices, inner, interval, tetrahedron, triangle)
+from ufl import (Coefficient, Constant, TensorConstant, VectorConstant, div, dx, grad, indices, inner, interval,
+                 tetrahedron, triangle)
 from ufl.algorithms import compute_form_data
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 def xtest_grad_div_curl_properties_in_1D(self):
@@ -20,9 +23,9 @@ def xtest_grad_div_curl_properties_in_3D(self):
 def _test_grad_div_curl_properties(self, cell):
     d = cell.geometric_dimension()
 
-    S = FiniteElement("CG", cell, 1)
-    V = VectorElement("CG", cell, 1)
-    T = TensorElement("CG", cell, 1)
+    S = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1)
+    T = FiniteElement("Lagrange", cell, 1, (d, d), identity_pullback, H1)
 
     cs = Constant(cell)
     cv = VectorConstant(cell)

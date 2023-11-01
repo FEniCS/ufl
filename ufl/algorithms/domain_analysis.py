@@ -6,18 +6,17 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import numbers
+import typing
 from collections import defaultdict
 
 import ufl
-from ufl.integral import Integral
+from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
 from ufl.form import Form
+from ufl.integral import Integral
 from ufl.protocols import id_or_none
 from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
-from ufl.algorithms.coordinate_derivative_helpers import (
-    attach_coordinate_derivatives, strip_coordinate_derivatives)
-import numbers
-import typing
 
 
 class IntegralData(object):

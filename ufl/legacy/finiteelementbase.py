@@ -10,15 +10,18 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.utils.sequences import product
+from abc import abstractmethod, abstractproperty
+
+from ufl import pullback
 from ufl.cell import AbstractCell, as_cell
-from abc import ABC, abstractmethod
+from ufl.finiteelement import AbstractFiniteElement
+from ufl.utils.sequences import product
 
 
-class FiniteElementBase(ABC):
+class FiniteElementBase(AbstractFiniteElement):
     """Base class for all finite elements."""
     __slots__ = ("_family", "_cell", "_degree", "_quad_scheme",
-                 "_value_shape", "_reference_value_shape", "__weakref__")
+                 "_value_shape", "_reference_value_shape")
 
     # TODO: Not all these should be in the base class! In particular
     # family, degree, and quad_scheme do not belong here.
@@ -49,7 +52,7 @@ class FiniteElementBase(ABC):
         """Format as string for evaluation as Python object."""
         pass
 
-    @abstractmethod
+    @abstractproperty
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
         pass
@@ -104,14 +107,13 @@ class FiniteElementBase(ABC):
 
     def degree(self, component=None):
         """Return polynomial degree of finite element."""
-        # FIXME: Consider embedded_degree concept for more accurate
-        # degree, see blueprint
         return self._degree
 
     def quadrature_scheme(self):
         """Return quadrature scheme of finite element."""
         return self._quad_scheme
 
+    @property
     def cell(self):
         """Return cell of finite element."""
         return self._cell
@@ -120,21 +122,25 @@ class FiniteElementBase(ABC):
         """Return whether the basis functions of this element is spatially constant over each cell."""
         return self._is_globally_constant() or self.degree() == 0
 
+    @property
     def value_shape(self):
         """Return the shape of the value space on the global domain."""
         return self._value_shape
 
+    @property
     def reference_value_shape(self):
         """Return the shape of the value space on the reference cell."""
         return self._reference_value_shape
 
+    @property
     def value_size(self):
         """Return the integer product of the value shape."""
-        return product(self.value_shape())
+        return product(self.value_shape)
 
+    @property
     def reference_value_size(self):
         """Return the integer product of the reference value shape."""
-        return product(self.reference_value_shape())
+        return product(self.reference_value_shape)
 
     def symmetry(self):  # FIXME: different approach
         r"""Return the symmetry dict.
@@ -148,7 +154,7 @@ class FiniteElementBase(ABC):
 
     def _check_component(self, i):
         """Check that component index i is valid."""
-        sh = self.value_shape()
+        sh = self.value_shape
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
             raise ValueError(
@@ -174,7 +180,7 @@ class FiniteElementBase(ABC):
 
     def _check_reference_component(self, i):
         """Check that reference component index i is valid."""
-        sh = self.value_shape()
+        sh = self.value_shape
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
             raise ValueError(
@@ -201,10 +207,12 @@ class FiniteElementBase(ABC):
         self._check_reference_component(i)
         return (i, self)
 
+    @property
     def num_sub_elements(self):
         """Return number of sub-elements."""
         return 0
 
+    @property
     def sub_elements(self):
         """Return list of sub-elements."""
         return []
@@ -213,20 +221,20 @@ class FiniteElementBase(ABC):
         """Add two elements, creating an enriched element."""
         if not isinstance(other, FiniteElementBase):
             raise ValueError(f"Can't add element and {other.__class__}.")
-        from ufl.finiteelement import EnrichedElement
+        from ufl.legacy import EnrichedElement
         return EnrichedElement(self, other)
 
     def __mul__(self, other):
         """Multiply two elements, creating a mixed element."""
         if not isinstance(other, FiniteElementBase):
             raise ValueError("Can't multiply element and {other.__class__}.")
-        from ufl.finiteelement import MixedElement
+        from ufl.legacy import MixedElement
         return MixedElement(self, other)
 
     def __getitem__(self, index):
         """Restrict finite element to a subdomain, subcomponent or topology (cell)."""
         if index in ("facet", "interior"):
-            from ufl.finiteelement import RestrictedElement
+            from ufl.legacy import RestrictedElement
             return RestrictedElement(self, index)
         else:
             raise KeyError(f"Invalid index for restriction: {repr(index)}")
@@ -234,3 +242,35 @@ class FiniteElementBase(ABC):
     def __iter__(self):
         """Iter."""
         raise TypeError(f"'{type(self).__name__}' object is not iterable")
+
+    @property
+    def embedded_superdegree(self):
+        """Doc."""
+        return self.degree()
+
+    @property
+    def embedded_subdegree(self):
+        """Doc."""
+        return self.degree()
+
+    @property
+    def pullback(self):
+        """Get the pull back."""
+        if self.mapping() == "identity":
+            return pullback.identity_pullback
+        elif self.mapping() == "L2 Piola":
+            return pullback.l2_piola
+        elif self.mapping() == "covariant Piola":
+            return pullback.covariant_piola
+        elif self.mapping() == "contravariant Piola":
+            return pullback.contravariant_piola
+        elif self.mapping() == "double covariant Piola":
+            return pullback.double_covariant_piola
+        elif self.mapping() == "double contravariant Piola":
+            return pullback.double_contravariant_piola
+        elif self.mapping() == "custom":
+            return pullback.custom_pullback
+        elif self.mapping() == "physical":
+            return pullback.physical_pullback
+
+        raise ValueError(f"Unsupported mapping: {self.mapping()}")

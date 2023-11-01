@@ -7,14 +7,14 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.form import BaseForm, FormSum, Form, ZeroBaseForm
-from ufl.core.ufl_type import ufl_type
 from ufl.algebra import Sum
-from ufl.constantvalue import Zero
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
-from ufl.differentiation import CoefficientDerivative
+from ufl.constantvalue import Zero
 from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.ufl_type import ufl_type
+from ufl.differentiation import CoefficientDerivative
+from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.matrix import Matrix
 
 # --- The Action class represents the action of a numerical object that needs
@@ -120,6 +120,7 @@ class Action(BaseForm):
     def _analyze_domains(self):
         """Analyze which domains can be found in Action."""
         from ufl.domain import join_domains
+
         # Collect unique domains
         self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
 

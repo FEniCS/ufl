@@ -2,9 +2,12 @@
 
 import pytest
 
-from ufl import (FacetNormal, Mesh, VectorElement, as_matrix, as_tensor, as_vector, cofac, cross, det, dev, diag,
-                 diag_vector, dot, inner, inv, outer, perp, skew, sym, tr, transpose, triangle, zero)
+from ufl import (FacetNormal, Mesh, as_matrix, as_tensor, as_vector, cofac, cross, det, dev, diag, diag_vector, dot,
+                 inner, inv, outer, perp, skew, sym, tr, transpose, triangle, zero)
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture(scope="module")
@@ -63,7 +66,7 @@ def test_inner(self, A, B, u, v):
 
 
 def test_pow2_inner(self, A, u):
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
     f = FacetNormal(domain)[0]
     f2 = f*f
     assert f2 == remove_complex_nodes(inner(f, f))

@@ -3,11 +3,9 @@
 In the stripped version, any data-carrying objects have been extracted to a mapping.
 """
 
-from ufl.classes import Form, Integral
-from ufl.classes import Argument, Coefficient, Constant
-from ufl.classes import FunctionSpace, TensorProductFunctionSpace, MixedFunctionSpace
-from ufl.classes import Mesh, MeshView, TensorProductMesh
 from ufl.algorithms.replace import replace
+from ufl.classes import (Argument, Coefficient, Constant, Form, FunctionSpace, Integral, Mesh, MeshView,
+                         MixedFunctionSpace, TensorProductFunctionSpace)
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 
@@ -123,8 +121,5 @@ def strip_domain(domain):
     elif isinstance(domain, MeshView):
         return MeshView(strip_domain(domain.ufl_mesh()),
                         domain.topological_dimension(), domain.ufl_id())
-    elif isinstance(domain, TensorProductMesh):
-        meshes = [strip_domain(mesh) for mesh in domain.ufl_meshes()]
-        return TensorProductMesh(meshes, domain.ufl_id())
     else:
         raise NotImplementedError(f"{type(domain)} cannot be stripped")

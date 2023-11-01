@@ -13,9 +13,8 @@
 from itertools import chain
 
 from ufl.cell import TensorProductCell, as_cell
+from ufl.legacy.finiteelementbase import FiniteElementBase
 from ufl.sobolevspace import DirectionalSobolevSpace
-
-from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class TensorProductElement(FiniteElementBase):
@@ -43,7 +42,7 @@ class TensorProductElement(FiniteElementBase):
 
         if cell is None:
             # Define cell as the product of each elements cell
-            cell = TensorProductCell(*[e.cell() for e in elements])
+            cell = TensorProductCell(*[e.cell for e in elements])
         else:
             cell = as_cell(cell)
 
@@ -54,8 +53,8 @@ class TensorProductElement(FiniteElementBase):
         quad_scheme = None
 
         # match FIAT implementation
-        value_shape = tuple(chain(*[e.value_shape() for e in elements]))
-        reference_value_shape = tuple(chain(*[e.reference_value_shape() for e in elements]))
+        value_shape = tuple(chain(*[e.value_shape for e in elements]))
+        reference_value_shape = tuple(chain(*[e.reference_value_shape for e in elements]))
         if len(value_shape) > 1:
             raise ValueError("Product of vector-valued elements not supported")
         if len(reference_value_shape) > 1:
@@ -80,39 +79,42 @@ class TensorProductElement(FiniteElementBase):
         else:
             return "undefined"
 
+    @property
     def sobolev_space(self):
         """Return the underlying Sobolev space of the TensorProductElement."""
         elements = self._sub_elements
-        if all(e.sobolev_space() == elements[0].sobolev_space()
+        if all(e.sobolev_space == elements[0].sobolev_space
                for e in elements):
-            return elements[0].sobolev_space()
+            return elements[0].sobolev_space
         else:
             # Generate a DirectionalSobolevSpace which contains
             # continuity information parametrized by spatial index
             orders = []
             for e in elements:
-                e_dim = e.cell().geometric_dimension()
-                e_order = (e.sobolev_space()._order,) * e_dim
+                e_dim = e.cell.geometric_dimension()
+                e_order = (e.sobolev_space._order,) * e_dim
                 orders.extend(e_order)
             return DirectionalSobolevSpace(orders)
 
+    @property
     def num_sub_elements(self):
         """Return number of subelements."""
         return len(self._sub_elements)
 
+    @property
     def sub_elements(self):
         """Return subelements (factors)."""
         return self._sub_elements
 
     def reconstruct(self, **kwargs):
         """Doc."""
-        cell = kwargs.pop("cell", self.cell())
-        return TensorProductElement(*[e.reconstruct(**kwargs) for e in self.sub_elements()], cell=cell)
+        cell = kwargs.pop("cell", self.cell)
+        return TensorProductElement(*[e.reconstruct(**kwargs) for e in self.sub_elements], cell=cell)
 
     def variant(self):
         """Doc."""
         try:
-            variant, = {e.variant() for e in self.sub_elements()}
+            variant, = {e.variant() for e in self.sub_elements}
             return variant
         except ValueError:
             return None
@@ -126,3 +128,13 @@ class TensorProductElement(FiniteElementBase):
         """Short pretty-print."""
         return "TensorProductElement(%s, cell=%s)" \
             % (', '.join([e.shortstr() for e in self._sub_elements]), str(self._cell))
+
+    @property
+    def embedded_superdegree(self):
+        """Doc."""
+        return sum(self.degree())
+
+    @property
+    def embedded_subdegree(self):
+        """Doc."""
+        return min(self.degree())

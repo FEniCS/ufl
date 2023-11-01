@@ -19,14 +19,17 @@
 # equations using a mixed formulation (Taylor-Hood elements) in
 # combination with the lhs() and rhs() operators to extract the
 # bilinear and linear forms from an expression F = 0.
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, TestFunctions, TrialFunctions, VectorElement, div,
-                 dot, dx, grad, inner, lhs, rhs, triangle)
+from ufl import (Coefficient, FunctionSpace, Mesh, TestFunctions, TrialFunctions, div, dot, dx, grad, inner, lhs, rhs,
+                 triangle)
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 cell = triangle
-P2 = VectorElement("Lagrange", cell, 2)
-P1 = FiniteElement("Lagrange", cell, 1)
-TH = P2 * P1
-domain = Mesh(VectorElement("Lagrange", cell, 1))
+P2 = FiniteElement("Lagrange", cell, 2, (2, ), identity_pullback, H1)
+P1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+TH = MixedElement([P2, P1])
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
 space = FunctionSpace(domain, TH)
 p2_space = FunctionSpace(domain, P2)
 
