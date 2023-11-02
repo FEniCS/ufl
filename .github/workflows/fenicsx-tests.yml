@@ -88,7 +88,6 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
           cmake --build build
           cmake --install build
-          python3 -m pip -v install -r dolfinx/python/build-requirements.txt # TO REMOVE
           python3 -m pip -v install --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" dolfinx/python/
       - name: Run DOLFINx unit tests
         run: python3 -m pytest -n auto dolfinx/python/test/unit
