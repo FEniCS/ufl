@@ -37,7 +37,7 @@ jobs:
           python3 -m pip install git+https://github.com/FEniCS/basix.git
 
       - name: Clone FFCx
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./ffcx
           repository: FEniCS/ffcx
@@ -53,10 +53,9 @@ jobs:
   dolfinx-tests:
     name: Run DOLFINx tests
     runs-on: ubuntu-latest
-    container: fenicsproject/test-env:nightly-openmpi
+    container: ghcr.io/fenics/test-env:current-openmpi
 
     env:
-
       PETSC_ARCH: linux-gnu-complex-32
       OMPI_ALLOW_RUN_AS_ROOT: 1
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
@@ -67,7 +66,7 @@ jobs:
       OMPI_MCA_hwloc_base_binding_policy: none
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies (Python)
         run: |
           python3 -m pip install --upgrade pip
@@ -82,7 +81,7 @@ jobs:
           python3 -m pip install git+https://github.com/FEniCS/ffcx.git
 
       - name: Clone DOLFINx
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./dolfinx
           repository: FEniCS/dolfinx
