@@ -41,7 +41,6 @@ packages = [
     "ufl.core",
     "ufl.corealg",
     "ufl.formatting",
-    "ufl.legacy",
     "ufl.utils",
 ]
 
