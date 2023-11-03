@@ -37,7 +37,7 @@ jobs:
           python3 -m pip install git+https://github.com/FEniCS/basix.git
 
       - name: Clone FFCx
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./ffcx
           repository: FEniCS/ffcx
@@ -53,11 +53,10 @@ jobs:
   dolfinx-tests:
     name: Run DOLFINx tests
     runs-on: ubuntu-latest
-    container: fenicsproject/test-env:nightly-openmpi
+    container: ghcr.io/fenics/test-env:current-openmpi
 
     env:
-
-      PETSC_ARCH: linux-gnu-complex-32
+      PETSC_ARCH: linux-gnu-complex128-32
       OMPI_ALLOW_RUN_AS_ROOT: 1
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
       OMPI_MCA_rmaps_base_oversubscribe: 1
@@ -67,10 +66,7 @@ jobs:
       OMPI_MCA_hwloc_base_binding_policy: none
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Install dependencies (Python)
-        run: |
-          python3 -m pip install --upgrade pip
+      - uses: actions/checkout@v4
 
       - name: Install UFL
         run: |
@@ -82,7 +78,7 @@ jobs:
           python3 -m pip install git+https://github.com/FEniCS/ffcx.git
 
       - name: Clone DOLFINx
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./dolfinx
           repository: FEniCS/dolfinx
@@ -92,6 +88,6 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
           cmake --build build
           cmake --install build
-          pip3 -v install --global-option build --global-option --debug dolfinx/python/
+          python3 -m pip -v install --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" dolfinx/python/
       - name: Run DOLFINx unit tests
         run: python3 -m pytest -n auto dolfinx/python/test/unit
