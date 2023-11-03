@@ -308,7 +308,7 @@ def get_integral_symbol(integral_type, domain, subdomain_id):
             pass
         elif subdomain_id == "otherwise":
             subdomain_strs.append("[rest of domain]")
-        istr += ",".join(subdomain_strs)
+    istr += ",".join(subdomain_strs)
 
     dxstr = ufl.measure.integral_type_to_measure_name[integral_type]
     dxstr = measure_font(dxstr)
