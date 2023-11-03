@@ -267,7 +267,7 @@ class Conditional(Operator):
     def __init__(self, condition, true_value, false_value):
         """Initialise."""
         if not isinstance(condition, Condition):
-            raise ValueError("Expectiong condition as first argument.")
+            raise ValueError("Expecting condition as first argument.")
         true_value = as_ufl(true_value)
         false_value = as_ufl(false_value)
         tsh = true_value.ufl_shape
