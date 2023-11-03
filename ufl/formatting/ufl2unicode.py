@@ -306,7 +306,7 @@ def get_integral_symbol(integral_type, domain, subdomain_id):
             subdomain_strs.append(subscript_number(int(subdomain)))
         elif subdomain == "everywhere":
             pass
-        elif subdomain_id == "otherwise":
+        elif subdomain == "otherwise":
             subdomain_strs.append("[rest of domain]")
     istr += ",".join(subdomain_strs)
 
