@@ -300,14 +300,15 @@ def get_integral_symbol(integral_type, domain, subdomain_id):
 
     # TODO: Render domain description
 
-    if isinstance(subdomain_id, numbers.Integral):
-        istr += subscript_number(int(subdomain_id))
-    elif subdomain_id == "everywhere":
-        pass
-    elif subdomain_id == "otherwise":
-        istr += "[rest of domain]"
-    elif isinstance(subdomain_id, tuple):
-        istr += ",".join([subscript_number(int(i)) for i in subdomain_id])
+    subdomain_strs = []
+    for subdomain in subdomain_id:
+        if isinstance(subdomain, numbers.Integral):
+            subdomain_strs.append(subscript_number(int(subdomain)))
+        elif subdomain == "everywhere":
+            pass
+        elif subdomain == "otherwise":
+            subdomain_strs.append("[rest of domain]")
+    istr += ",".join(subdomain_strs)
 
     dxstr = ufl.measure.integral_type_to_measure_name[integral_type]
     dxstr = measure_font(dxstr)
