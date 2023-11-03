@@ -198,51 +198,10 @@ class BaseForm(object, metaclass=UFLType):
         """Immediately evaluate the != operator (as opposed to the == operator)."""
         return not self.equals(other)
 
-    def __call__(self, *args, **kwargs):
-        """Evaluate form by replacing arguments and coefficients.
-
-        Replaces form.arguments() with given positional arguments in
-        same number and ordering. Number of positional arguments must
-        be 0 or equal to the number of Arguments in the form.
-
-        The optional keyword argument coefficients can be set to a dict
-        to replace Coefficients with expressions of matching shapes.
-
-        Example:
-          V = FiniteElement("CG", triangle, 1)
-          v = TestFunction(V)
-          u = TrialFunction(V)
-          f = Coefficient(V)
-          g = Coefficient(V)
-          a = g*inner(grad(u), grad(v))*dx
-          M = a(f, f, coefficients={ g: 1 })
-
-        Is equivalent to M == grad(f)**2*dx.
-        """
-        repdict = {}
-
-        if args:
-            arguments = self.arguments()
-            if len(arguments) != len(args):
-                raise ValueError(f"Need {len(arguments)} arguments to form(), got {len(args)}.")
-            repdict.update(zip(arguments, args))
-
-        coefficients = kwargs.pop("coefficients", None)
-        if kwargs:
-            raise ValueError(f"Unknown kwargs {list(kwargs)}.")
-
-        if coefficients is not None:
-            coeffs = self.coefficients()
-            for f in coefficients:
-                if f in coeffs:
-                    repdict[f] = coefficients[f]
-                else:
-                    warnings("Coefficient %s is not in form." % ufl_err_str(f))
-        if repdict:
-            from ufl.formoperators import replace
-            return replace(self, repdict)
-        else:
-            return self
+    def __call__(self, x):
+        """Take the action of this form on ``x``."""
+        from ufl.formoperators import action
+        return action(self, x)
 
     def _ufl_compute_hash_(self):
         """Compute the hash."""
