@@ -6,9 +6,9 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.constantvalue import ConstantValue
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import ConstantValue
 
 
 @ufl_type(inherit_shape_from_operand=0,

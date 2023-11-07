@@ -8,10 +8,13 @@ import math
 
 import pytest
 
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Identity, Mesh, TensorElement, VectorElement, as_tensor,
-                 cos, det, div, dot, dx, exp, grad, i, inner, j, k, l, ln, nabla_div, nabla_grad, outer, sin, triangle)
+from ufl import (Coefficient, FunctionSpace, Identity, Mesh, as_tensor, cos, det, div, dot, dx, exp, grad, i, inner, j,
+                 k, l, ln, nabla_div, nabla_grad, outer, sin, triangle)
 from ufl.algorithms import compute_form_data, expand_derivatives, expand_indices
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 # TODO: Test expand_indices2 throuroughly for correctness, then efficiency:
 # expand_indices, expand_indices2 = expand_indices2, expand_indices
@@ -21,10 +24,10 @@ class Fixture:
 
     def __init__(self):
         cell = triangle
-        element = FiniteElement("Lagrange", cell, 1)
-        velement = VectorElement("Lagrange", cell, 1)
-        telement = TensorElement("Lagrange", cell, 1)
-        domain = Mesh(VectorElement("Lagrange", cell, 1))
+        element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+        velement = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)
+        telement = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pullback, H1)
+        domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
         space = FunctionSpace(domain, element)
         vspace = FunctionSpace(domain, velement)
         tspace = FunctionSpace(domain, telement)

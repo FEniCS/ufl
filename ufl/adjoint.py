@@ -8,9 +8,10 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.form import BaseForm, FormSum, ZeroBaseForm
 from ufl.argument import Coargument
 from ufl.core.ufl_type import ufl_type
+from ufl.form import BaseForm, FormSum, ZeroBaseForm
+
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
 
@@ -87,6 +88,7 @@ class Adjoint(BaseForm):
     def _analyze_domains(self):
         """Analyze which domains can be found in Adjoint."""
         from ufl.domain import join_domains
+
         # Collect unique domains
         self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
 

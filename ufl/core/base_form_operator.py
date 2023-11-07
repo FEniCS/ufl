@@ -15,10 +15,10 @@ and as operators such as ExternalOperator or Interpolate.
 from collections import OrderedDict
 
 from ufl.argument import Argument, Coargument
-from ufl.core.operator import Operator
-from ufl.form import BaseForm
-from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import as_ufl
+from ufl.core.operator import Operator
+from ufl.core.ufl_type import ufl_type
+from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
 

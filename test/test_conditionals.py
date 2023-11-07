@@ -3,23 +3,25 @@ __date__ = "2008-08-20 -- 2012-11-30"
 
 import pytest
 
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, VectorElement, conditional, eq, ge, gt, le, lt, ne,
-                 triangle)
+from ufl import Coefficient, FunctionSpace, Mesh, conditional, eq, ge, gt, le, lt, ne, triangle
 from ufl.classes import EQ, GE, GT, LE, LT, NE
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def f():
-    element = FiniteElement("Lagrange", triangle, 1)
-    domain = Mesh(VectorElement('Lagrange', triangle, 1))
+    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     return Coefficient(space)
 
 
 @pytest.fixture
 def g():
-    element = FiniteElement("Lagrange", triangle, 1)
-    domain = Mesh(VectorElement('Lagrange', triangle, 1))
+    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     return Coefficient(space)
 

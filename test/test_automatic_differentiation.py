@@ -8,24 +8,27 @@ Other tests check for mathematical correctness of diff and derivative.
 import pytest
 
 from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 FiniteElement, FunctionSpace, Identity, Jacobian, JacobianDeterminant, JacobianInverse,
-                 MaxCellEdgeLength, MaxFacetEdgeLength, Mesh, MinCellEdgeLength, MinFacetEdgeLength, Not, Or,
-                 PermutationSymbol, SpatialCoordinate, TensorElement, VectorElement, acos, as_matrix, as_tensor, as_ufl,
-                 as_vector, asin, atan, bessel_I, bessel_J, bessel_K, bessel_Y, cofac, conditional, cos, cross,
-                 derivative, det, dev, diff, dot, eq, erf, exp, ge, grad, gt, indices, inner, interval, inv, le, ln, lt,
-                 ne, outer, replace, sin, skew, sqrt, sym, tan, tetrahedron, tr, triangle, variable)
+                 FunctionSpace, Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength,
+                 MaxFacetEdgeLength, Mesh, MinCellEdgeLength, MinFacetEdgeLength, Not, Or, PermutationSymbol,
+                 SpatialCoordinate, acos, as_matrix, as_tensor, as_ufl, as_vector, asin, atan, bessel_I, bessel_J,
+                 bessel_K, bessel_Y, cofac, conditional, cos, cross, derivative, det, dev, diff, dot, eq, erf, exp, ge,
+                 grad, gt, indices, inner, interval, inv, le, ln, lt, ne, outer, replace, sin, skew, sqrt, sym, tan,
+                 tetrahedron, tr, triangle, variable)
 from ufl.algorithms import expand_derivatives
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1, L2
 
 
 class ExpressionCollection(object):
 
     def __init__(self, cell):
         self.cell = cell
-        domain = Mesh(VectorElement("Lagrange", cell, 1))
-
         d = cell.geometric_dimension()
+        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1))
+
         x = SpatialCoordinate(domain)
         n = FacetNormal(domain)
         c = CellVolume(domain)
@@ -45,9 +48,9 @@ class ExpressionCollection(object):
         ident = Identity(d)
         eps = PermutationSymbol(d)
 
-        U = FiniteElement("U", cell, None)
-        V = VectorElement("U", cell, None)
-        W = TensorElement("U", cell, None)
+        U = FiniteElement("Undefined", cell, None, (), identity_pullback, L2)
+        V = FiniteElement("Undefined", cell, None, (d, ), identity_pullback, L2)
+        W = FiniteElement("Undefined", cell, None, (d, d), identity_pullback, L2)
 
         u_space = FunctionSpace(domain, U)
         v_space = FunctionSpace(domain, V)

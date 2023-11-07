@@ -22,7 +22,7 @@ def topological_sorting(nodes, edges):
         for es in edges.values():
             if node in es and node in S:
                 S.remove(node)
-                continue
+                break
 
     while S:
         node = S.pop(0)

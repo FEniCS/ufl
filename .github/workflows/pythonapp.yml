@@ -34,7 +34,7 @@ jobs:
           flake8 --statistics .
       - name: Check documentation style
         run: |
-          python -m pip install pydocstyle
+          python -m pip install pydocstyle[toml]
           python -m pydocstyle ufl/
       - name: Install UFL
         run: python -m pip install .[ci]

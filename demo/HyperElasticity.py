@@ -3,22 +3,24 @@
 # Date: 2008-12-22
 #
 
+from ufl import (Coefficient, Constant, FacetNormal, FunctionSpace, Identity, Mesh, SpatialCoordinate, TestFunction,
+                 TrialFunction, derivative, det, diff, dot, ds, dx, exp, grad, inner, inv, tetrahedron, tr, variable)
+from ufl.finiteelement import FiniteElement
 # Modified by Garth N. Wells, 2009
-from ufl import (Coefficient, Constant, FacetNormal, FiniteElement, FunctionSpace, Identity, Mesh, SpatialCoordinate,
-                 TensorElement, TestFunction, TrialFunction, VectorElement, derivative, det, diff, dot, ds, dx, exp,
-                 grad, inner, inv, tetrahedron, tr, variable)
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 # Cell and its properties
 cell = tetrahedron
-domain = Mesh(VectorElement("Lagrange", cell, 1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1))
 d = cell.geometric_dimension()
 N = FacetNormal(domain)
 x = SpatialCoordinate(domain)
 
 # Elements
-u_element = VectorElement("CG", cell, 2)
-p_element = FiniteElement("CG", cell, 1)
-A_element = TensorElement("CG", cell, 1)
+u_element = FiniteElement("Lagrange", cell, 2, (3, ), identity_pullback, H1)
+p_element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+A_element = FiniteElement("Lagrange", cell, 1, (3, 3), identity_pullback, H1)
 
 # Spaces
 u_space = FunctionSpace(domain, u_element)

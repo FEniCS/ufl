@@ -8,12 +8,12 @@ These are used to label expressions as variables for differentiation.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.utils.counted import Counted
-from ufl.core.expr import Expr
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal
-from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl
+from ufl.core.expr import Expr
+from ufl.core.operator import Operator
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
+from ufl.utils.counted import Counted
 
 
 @ufl_type()

@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout UFL
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.ufl_ref }}
 
@@ -50,7 +50,7 @@ jobs:
       - name: Build sdist and wheel
         run: python -m build .
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: dist/*
 
@@ -65,7 +65,7 @@ jobs:
           path: dist
 
       - name: Push to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.5.0
+        uses: pypa/gh-action-pypi-publish@release/v1
         if: ${{ github.event.inputs.pypi_publish == 'true' }}
         with:
           user: __token__
@@ -73,7 +73,7 @@ jobs:
           repository_url: https://upload.pypi.org/legacy/
 
       - name: Push to Test PyPI
-        uses: pypa/gh-action-pypi-publish@v1.5.0
+        uses: pypa/gh-action-pypi-publish@release/v1
         if: ${{ github.event.inputs.test_pypi_publish == 'true' }}
         with:
           user: __token__

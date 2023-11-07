@@ -1,15 +1,17 @@
 import numpy
 
-from ufl import (Cell, Coefficient, FiniteElement, FunctionSpace, Mesh, TensorElement, VectorElement, as_tensor,
-                 as_vector, dx, indices, triangle)
-from ufl.algorithms.apply_function_pullbacks import apply_single_function_pullbacks
+from ufl import Cell, Coefficient, FunctionSpace, Mesh, as_tensor, as_vector, dx, indices, triangle
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
+from ufl.finiteelement import FiniteElement, MixedElement, SymmetricElement
+from ufl.pullback import (contravariant_piola, covariant_piola, double_contravariant_piola, double_covariant_piola,
+                          identity_pullback, l2_piola)
+from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
 
 
 def check_single_function_pullback(g, mappings):
     expected = mappings[g]
-    actual = apply_single_function_pullbacks(ReferenceValue(g), g.ufl_element())
+    actual = g.ufl_element().pullback.apply(ReferenceValue(g))
     assert expected.ufl_shape == actual.ufl_shape
     for idx in numpy.ndindex(actual.ufl_shape):
         rexp = renumber_indices(expected[idx])
@@ -33,30 +35,34 @@ def check_single_function_pullback(g, mappings):
 def test_apply_single_function_pullbacks_triangle3d():
     triangle3d = Cell("triangle", geometric_dimension=3)
     cell = triangle3d
-    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1))
 
-    UL2 = FiniteElement("DG L2", cell, 1)
-    U0 = FiniteElement("DG", cell, 0)
-    U = FiniteElement("CG", cell, 1)
-    V = VectorElement("CG", cell, 1)
-    Vd = FiniteElement("RT", cell, 1)
-    Vc = FiniteElement("N1curl", cell, 1)
-    T = TensorElement("CG", cell, 1)
-    S = TensorElement("CG", cell, 1, symmetry=True)
-    COV2T = FiniteElement("Regge", cell, 0)   # (0, 2)-symmetric tensors
-    CONTRA2T = FiniteElement("HHJ", cell, 0)  # (2, 0)-symmetric tensors
+    UL2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), l2_piola, L2)
+    U0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
+    U = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1)
+    Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), contravariant_piola, HDiv)
+    Vc = FiniteElement("N1curl", cell, 1, (2, ), covariant_piola, HCurl)
+    T = FiniteElement("Lagrange", cell, 1, (3, 3), identity_pullback, H1)
+    S = SymmetricElement(
+        {(0, 0): 0, (1, 0): 1, (2, 0): 2, (0, 1): 1, (1, 1): 3, (2, 1): 4, (0, 2): 2, (1, 2): 4, (2, 2): 5},
+        [FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1) for _ in range(6)])
+    # (0, 2)-symmetric tensors
+    COV2T = FiniteElement("Regge", cell, 0, (2, 2), double_covariant_piola, HEin)
+    # (2, 0)-symmetric tensors
+    CONTRA2T = FiniteElement("HHJ", cell, 0, (2, 2), double_contravariant_piola, HDivDiv)
 
-    Uml2 = UL2*UL2
-    Um = U*U
-    Vm = U*V
-    Vdm = V*Vd
-    Vcm = Vd*Vc
-    Tm = Vc*T
-    Sm = T*S
+    Uml2 = MixedElement([UL2, UL2])
+    Um = MixedElement([U, U])
+    Vm = MixedElement([U, V])
+    Vdm = MixedElement([V, Vd])
+    Vcm = MixedElement([Vd, Vc])
+    Tm = MixedElement([Vc, T])
+    Sm = MixedElement([T, S])
 
-    Vd0 = Vd*U0  # case from failing ffc demo
+    Vd0 = MixedElement([Vd, U0])  # case from failing ffc demo
 
-    W = S*T*Vc*Vd*V*U
+    W = MixedElement([S, T, Vc, Vd, V, U])
 
     ul2 = Coefficient(FunctionSpace(domain, UL2))
     u = Coefficient(FunctionSpace(domain, U))
@@ -229,25 +235,26 @@ def test_apply_single_function_pullbacks_triangle3d():
 
 def test_apply_single_function_pullbacks_triangle():
     cell = triangle
-    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
 
-    Ul2 = FiniteElement("DG L2", cell, 1)
-    U = FiniteElement("CG", cell, 1)
-    V = VectorElement("CG", cell, 1)
-    Vd = FiniteElement("RT", cell, 1)
-    Vc = FiniteElement("N1curl", cell, 1)
-    T = TensorElement("CG", cell, 1)
-    S = TensorElement("CG", cell, 1, symmetry=True)
+    Ul2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), l2_piola, L2)
+    U = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)
+    Vd = FiniteElement("Raviart-Thomas", cell, 1, (2, ), contravariant_piola, HDiv)
+    Vc = FiniteElement("N1curl", cell, 1, (2, ), covariant_piola, HCurl)
+    T = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pullback, H1)
+    S = SymmetricElement({(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2}, [
+        FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1) for i in range(3)])
 
-    Uml2 = Ul2*Ul2
-    Um = U*U
-    Vm = U*V
-    Vdm = V*Vd
-    Vcm = Vd*Vc
-    Tm = Vc*T
-    Sm = T*S
+    Uml2 = MixedElement([Ul2, Ul2])
+    Um = MixedElement([U, U])
+    Vm = MixedElement([U, V])
+    Vdm = MixedElement([V, Vd])
+    Vcm = MixedElement([Vd, Vc])
+    Tm = MixedElement([Vc, T])
+    Sm = MixedElement([T, S])
 
-    W = S*T*Vc*Vd*V*U
+    W = MixedElement([S, T, Vc, Vd, V, U])
 
     ul2 = Coefficient(FunctionSpace(domain, Ul2))
     u = Coefficient(FunctionSpace(domain, U))
