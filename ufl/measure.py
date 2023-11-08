@@ -21,6 +21,24 @@ from ufl.protocols import id_or_none
 # Export list for ufl.classes
 __all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
 
+integral_type_to_measure_name = {
+    "cell": "dx",
+    "exterior_facet": "ds",
+    "interior_facet": "dS",
+    "vertex": "dP",
+    "custom": "dc",
+    "cutcell": "dC",
+    "interface": "dI",
+    "overlap": "dO",
+    "exterior_facet_bottom": "ds_b",
+    "exterior_facet_top": "ds_t",
+    "exterior_facet_vert": "ds_v",
+    "interior_facet_horiz": "dS_h",
+    "interior_facet_vert": "dS_v",
+}
+
+measure_name_to_integral_type = {s: i for i, s in integral_type_to_measure_name.items()}
+
 
 # TODO: Design a class IntegralType(name, shortname, codim, num_cells, ...)?
 # TODO: Improve descriptions below:
@@ -465,24 +483,6 @@ ds_tb = ds_b + ds_t
 
 # Default measure dX including both uncut and cut cells
 dX = dx + dC
-
-integral_type_to_measure_name = {
-    "cell": "dx",
-    "exterior_facet": "ds",
-    "interior_facet": "dS",
-    "vertex": "dP",
-    "custom": "dc",
-    "cutcell": "dC",
-    "interface": "dI",
-    "overlap": "dO",
-    "exterior_facet_bottom": "ds_b",
-    "exterior_facet_top": "ds_t",
-    "exterior_facet_vert": "ds_v",
-    "interior_facet_horiz": "dS_h",
-    "interior_facet_vert": "dS_v",
-}
-
-measure_name_to_integral_type = {s: i for i, s in integral_type_to_measure_name.items()}
 
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
 point_integral_types = ("vertex", )

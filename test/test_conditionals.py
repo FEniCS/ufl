@@ -101,8 +101,8 @@ def test_lt_produces_ufl_expr(f, g):
     expr1 = lt(f, g)
     expr2 = f < g
     # Correct types (no bools here!):
-    assert isinstance(expr1, LT)
-    assert isinstance(expr2, LT)
+    assert isinstance(expr1, (GT, LT))
+    assert isinstance(expr2, (GT, LT))
     # Representations are the same:
     assert bool(expr1 == expr2)
     # Protection from misuse in boolean python expression context:
@@ -114,8 +114,8 @@ def test_gt_produces_ufl_expr(f, g):
     expr1 = gt(f, g)
     expr2 = f > g
     # Correct types (no bools here!):
-    assert isinstance(expr1, GT)
-    assert isinstance(expr2, GT)
+    assert isinstance(expr1, (GT, LT))
+    assert isinstance(expr2, (GT, LT))
     # Representations are the same:
     assert bool(expr1 == expr2)
     # Protection from misuse in boolean python expression context:

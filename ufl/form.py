@@ -82,7 +82,7 @@ class BaseForm(object, metaclass=UFLType):
     # classes
     __slots__ = ()
     _ufl_is_abstract_ = True
-    _ufl_required_methods_ = ('_analyze_form_arguments', '_analyze_domains', "ufl_domains")
+    _ufl_required_methods_ = ('_analyze_form_arguments', '_analyze_domains', 'ufl_domains')
 
     def __init__(self):
         """Initialise."""

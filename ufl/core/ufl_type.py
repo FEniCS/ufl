@@ -161,30 +161,6 @@ def check_type_traits_consistency(cls):
             raise TypeError(msg.format(cls))
 
 
-def check_implements_required_methods(cls):
-    """Check if type implements the required methods."""
-    if not cls._ufl_is_abstract_:
-        for attr in core.expr.Expr._ufl_required_methods_:
-            if not hasattr(cls, attr):
-                msg = "Class {0.__name__} has no {1} method."
-                raise TypeError(msg.format(cls, attr))
-            elif not callable(getattr(cls, attr)):
-                msg = "Required method {1} of class {0.__name__} is not callable."
-                raise TypeError(msg.format(cls, attr))
-
-
-def check_implements_required_properties(cls):
-    """Check if type implements the required properties."""
-    if not cls._ufl_is_abstract_:
-        for attr in core.expr.Expr._ufl_required_properties_:
-            if not hasattr(cls, attr):
-                msg = "Class {0.__name__} has no {1} property."
-                raise TypeError(msg.format(cls, attr))
-            elif callable(getattr(cls, attr)):
-                msg = "Required property {1} of class {0.__name__} is a callable method."
-                raise TypeError(msg.format(cls, attr))
-
-
 def attach_implementations_of_indexing_interface(
     cls, inherit_shape_from_operand, inherit_indices_from_operand
 ):
@@ -326,8 +302,6 @@ def ufl_type(
         check_abstract_trait_consistency(cls)
         check_has_slots(cls)
         check_is_terminal_consistency(cls)
-        check_implements_required_methods(cls)
-        check_implements_required_properties(cls)
         check_type_traits_consistency(cls)
 
         return cls

@@ -12,9 +12,10 @@ import numbers
 import warnings
 
 from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
+from abc import abstractmethod, abstractproperty
 
 
-class Expr(object, metaclass=UFLType):
+class Expr(metaclass=UFLType):
     """Base class for all UFL expression types.
 
     *Instance properties*
@@ -155,52 +156,6 @@ class Expr(object, metaclass=UFLType):
     # Type trait: If the type never has free indices.
     _ufl_is_index_free_ = False
 
-    # --- All subclasses must define these object attributes ---
-
-    # Each subclass of Expr is checked to have these properties in
-    # ufl_type
-    _ufl_required_properties_ = (
-        # A tuple of operands, all of them Expr instances.
-        "ufl_operands",
-
-        # A tuple of ints, the value shape of the expression.
-        "ufl_shape",
-
-        # A tuple of free index counts.
-        "ufl_free_indices",
-
-        # A tuple providing the int dimension for each free index.
-        "ufl_index_dimensions",
-    )
-
-    # Each subclass of Expr is checked to have these methods in
-    # ufl_type
-    # FIXME: Add more and enable all
-    _ufl_required_methods_ = (
-        # To compute the hash on demand, this method is called.
-        "_ufl_compute_hash_",
-
-        # The data returned from this method is used to compute the
-        # signature of a form
-        "_ufl_signature_data_",
-
-        # The == operator must be implemented to compare for identical
-        # representation, used by set() and dict(). The __hash__
-        # operator is added by ufl_type.
-        "__eq__",
-
-        # To reconstruct an object of the same type with operands or
-        # properties changed.
-        "_ufl_expr_reconstruct_",  # Implemented in Operator and Terminal so this should never fail
-
-        "ufl_domains",
-        # "ufl_cell",
-        # "ufl_domain",
-
-        # "__str__",
-        # "__repr__",
-    )
-
     # --- Global variables for collecting all types ---
 
     # A global dict mapping language_operator_name to the type it
@@ -240,15 +195,44 @@ class Expr(object, metaclass=UFLType):
         delattr(Expr, "__del__")
         return (Expr._ufl_obj_init_counts_, Expr._ufl_obj_del_counts_)
 
-    # === Abstract functions that must be implemented by subclasses ===
+    # TODO: fix UFL typing and make the following actual abstract methods and properties
 
-    # --- Functions for reconstructing expression ---
+    @abstractproperty
+    def ABSTRACT_ufl_operarands(self):
+        """A tuple of operands, all of them Expr instances."""
 
-    def _ufl_expr_reconstruct_(self, *operands):
+    @abstractproperty
+    def ABSTRACT_ufl_shape(self):
+        """A tuple of ints, the value shape of the expression."""
+        raise NotImplementedError()
+
+    @abstractproperty
+    def ABSTRACT_ugl_free_indices(self):
+        """A tuple of free index counts."""
+
+    @abstractproperty
+    def ABSTRACT_ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+
+    @abstractmethod
+    def ABSTRACT__ufl_compute_hash_(self):
+        """To compute the hash on demand, this method is called."""
+
+    @abstractmethod
+    def ABSTRACT__ufl_expr_reconstruct_(self, *operands):
         """Return a new object of the same type with new operands."""
-        raise NotImplementedError(self.__class__._ufl_expr_reconstruct_)
 
-    # --- Functions for geometric properties of expression ---
+    @abstractmethod
+    def ABSTRACT__ufl_signature_data_(self, renumbering):
+        """Return data that uniquely identifies form compiler relevant aspects of this object."""
+
+    @abstractmethod
+    def ABSTRACT___repr__(self):
+        """Return string representation this object can be reconstructed from."""
+
+    @abstractmethod
+    def ABSTRACT___str__(self):
+        """Return pretty print string representation of this object."""
 
     def ufl_domains(self):
         """Return all domains this expression is defined on."""
@@ -263,8 +247,6 @@ class Expr(object, metaclass=UFLType):
                       "use extract_unique_domain(expr) instead.", DeprecationWarning)
         from ufl.domain import extract_unique_domain
         return extract_unique_domain(self)
-
-    # --- Functions for float evaluation ---
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
@@ -311,33 +293,9 @@ class Expr(object, metaclass=UFLType):
         ufl_from_type = "_ufl_from_{0}_".format(value.__class__.__name__)
         return getattr(Expr, ufl_from_type)(value)
 
-        # if hasattr(Expr, ufl_from_type):
-        #     return getattr(Expr, ufl_from_type)(value)
-        # Fail gracefully if no valid type conversion found
-        # raise TypeError("Cannot convert a {0.__class__.__name__} to UFL type.".format(value))
-
-    # --- Special functions for string representations ---
-
-    # All subclasses must implement _ufl_signature_data_
-    def _ufl_signature_data_(self, renumbering):
-        """Return data that uniquely identifies form compiler relevant aspects of this object."""
-        raise NotImplementedError(self.__class__._ufl_signature_data_)
-
-    # All subclasses must implement __repr__
-    def __repr__(self):
-        """Return string representation this object can be reconstructed from."""
-        raise NotImplementedError(self.__class__.__repr__)
-
-    # All subclasses must implement __str__
-    def __str__(self):
-        """Return pretty print string representation of this object."""
-        raise NotImplementedError(self.__class__.__str__)
-
     def _ufl_err_str_(self):
         """Return a short string to represent this Expr in an error message."""
         return f"<{self._ufl_class_.__name__} id={id(self)}>"
-
-    # --- Special functions used for processing expressions ---
 
     def __eq__(self, other):
         """Checks whether the two expressions are represented the exact same way.
@@ -420,7 +378,7 @@ class Expr(object, metaclass=UFLType):
             raise ValueError("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
         return as_tensor(self, indices)
 
-    def __mult__(self, other):
+    def __mul__(self, other):
         """Multiply."""
         from ufl.constantvalue import Zero, as_ufl
         from ufl.algebra import Product
@@ -507,7 +465,7 @@ class Expr(object, metaclass=UFLType):
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
         other = as_ufl(other)
-        return other.__mult__(self)
+        return other.__mul__(self)
 
     def __add__(self, other):
         """Add."""
@@ -597,7 +555,7 @@ class Expr(object, metaclass=UFLType):
         from ufl.algebra import Abs
         return Abs(self)
 
-    def __cell__(self, arg, mapping=None, component=()):
+    def __call__(self, arg, mapping=None, component=()):
         """Take a restriction or evaluate depending on argument."""
         from ufl.restriction import NegativeRestricted, PositiveRestricted
         from ufl.utils.stacks import StackDict
