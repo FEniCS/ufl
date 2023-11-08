@@ -572,7 +572,7 @@ class Expr(object, metaclass=UFLType):
     def __pow__(self, other):
         """Raise to a power."""
         from ufl.tensoralgebra import Inner
-        from ufl.algrebra import Power
+        from ufl.algebra import Power
 
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
@@ -582,7 +582,7 @@ class Expr(object, metaclass=UFLType):
 
     def __rpow__(self, other):
         """Raise to a power."""
-        from ufl.algrebra import Power
+        from ufl.algebra import Power
 
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
@@ -599,7 +599,7 @@ class Expr(object, metaclass=UFLType):
 
     def __cell__(self, arg, mapping=None, component=()):
         """Take a restriction or evaluate depending on argument."""
-        from ufl.restiction import NegativeRestricted, PositiveRestricted
+        from ufl.restriction import NegativeRestricted, PositiveRestricted
         from ufl.utils.stacks import StackDict
 
         if arg in ("+", "-"):
