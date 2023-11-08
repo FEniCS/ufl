@@ -53,7 +53,7 @@ class AbstractFiniteElement(_abc.ABC):
         """Return a hash."""
 
     @_abc.abstractmethod
-    def __eq__(self, other: AbstractFiniteElement) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check if this element is equal to another element."""
 
     @_abc.abstractproperty
@@ -108,7 +108,7 @@ class AbstractFiniteElement(_abc.ABC):
         of sub-elements.
         """
 
-    def __ne__(self, other: AbstractFiniteElement) -> bool:
+    def __ne__(self, other: object) -> bool:
         """Check if this element is different to another element."""
         return not self.__eq__(other)
 
@@ -138,7 +138,7 @@ class AbstractFiniteElement(_abc.ABC):
         if len(self.sub_elements) == 0:
             return {(): 0}
 
-        components = {}
+        components: _typing.Dict[_typing.Tuple[int, ...], int] = {}
         offset = 0
         c_offset = 0
         for e in self.sub_elements:
@@ -324,7 +324,7 @@ class SymmetricElement(FiniteElement):
         self._sub_elements = sub_elements
         pullback = _SymmetricPullback(self, symmetry)
         reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
-        degree = max(e.embedded_superdegree for e in sub_elements)
+        degree = max(e.embedded_superdegree for e in sub_elements if e.embedded_superdegree is not None)
         cell = sub_elements[0].cell
         for e in sub_elements:
             if e.cell != cell:

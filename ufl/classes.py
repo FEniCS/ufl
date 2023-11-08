@@ -53,7 +53,6 @@ import ufl.sobolevspace
 import ufl.tensoralgebra
 import ufl.tensors
 import ufl.variable
-from ufl import exproperators as __exproperators
 
 # Collect all classes in sets automatically classified by some properties
 all_ufl_classes = set(ufl.core.expr.Expr._ufl_all_classes_)
@@ -68,7 +67,6 @@ __all__ += [
     "ufl_classes",
     "terminal_classes",
     "nonterminal_classes",
-    "__exproperators",
 ]
 
 

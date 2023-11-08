@@ -12,7 +12,6 @@ from ufl.constantvalue import as_ufl
 from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.exprequals import expr_equals
 from ufl.precedence import parstr
 
 # --- Condition classes ---
@@ -100,7 +99,7 @@ class EQ(BinaryCondition):
 
     def __bool__(self):
         """Convert to a bool."""
-        return expr_equals(self.ufl_operands[0], self.ufl_operands[1])
+        return as_ufl(self.ufl_operands[0]) == as_ufl(self.ufl_operands[1])
 
     __nonzero__ = __bool__
 
@@ -125,7 +124,7 @@ class NE(BinaryCondition):
 
     def __bool__(self):
         """Convert to a bool."""
-        return not expr_equals(self.ufl_operands[0], self.ufl_operands[1])
+        return not as_ufl(self.ufl_operands[0]) == as_ufl(self.ufl_operands[1])
 
     __nonzero__ = __bool__
 

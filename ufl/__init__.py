@@ -245,7 +245,6 @@ __version__ = importlib.metadata.version("fenics-ufl")
 
 from math import e, pi
 
-import ufl.exproperators as __exproperators
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.argument import Argument, Arguments, Coargument, TestFunction, TestFunctions, TrialFunction, TrialFunctions
@@ -267,10 +266,10 @@ from ufl.geometry import (CellDiameter, CellNormal, CellVolume, Circumradius, Fa
                           MinCellEdgeLength, MinFacetEdgeLength, SpatialCoordinate)
 from ufl.integral import Integral
 from ufl.matrix import Matrix
-from ufl.measure import Measure, custom_integral_types, integral_types, register_integral_type
-from ufl.objects import (dc, dC, dI, dO, dP, ds, dS, ds_b, dS_h, ds_t, ds_tb, ds_v, dS_v, dx, dX, facet, hexahedron, i,
-                         interval, j, k, l, p, pentatope, prism, pyramid, q, quadrilateral, r, s, tesseract,
-                         tetrahedron, triangle, vertex)
+from ufl.measure import (Measure, custom_integral_types, dc, dC, dI, dO, dP, ds, dS, ds_b, dS_h, ds_t, ds_tb, ds_v,
+                         dS_v, dx, dX, integral_types, register_integral_type)
+from ufl.objects import (facet, hexahedron, i, interval, j, k, l, p, pentatope, prism, pyramid, q, quadrilateral, r, s,
+                         tesseract, tetrahedron, triangle, vertex)
 from ufl.operators import (And, Dn, Dx, Not, Or, acos, asin, atan, atan2, avg, bessel_I, bessel_J, bessel_K, bessel_Y,
                            cell_avg, cofac, conditional, conj, cos, cosh, cross, curl, det, dev, diag, diag_vector,
                            diff, div, dot, elem_div, elem_mult, elem_op, elem_pow, eq, erf, exp, exterior_derivative,

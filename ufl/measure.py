@@ -25,40 +25,6 @@ __all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
 # TODO: Design a class IntegralType(name, shortname, codim, num_cells, ...)?
 # TODO: Improve descriptions below:
 
-# Enumeration of valid domain types
-_integral_types = [
-    # === Integration over full topological dimension:
-    ("cell", "dx"),  # Over cells of a mesh
-
-    # === Integration over topological dimension - 1:
-    ("exterior_facet", "ds"),  # Over one-sided exterior facets of a mesh
-    ("interior_facet", "dS"),  # Over two-sided facets between pairs of adjacent cells of a mesh
-
-    # === Integration over topological dimension 0
-    ("vertex", "dP"),  # Over vertices of a mesh
-
-    # === Integration over custom domains
-    ("custom", "dc"),  # Over custom user-defined domains (run-time quadrature points)
-    ("cutcell", "dC"),  # Over a cell with some part cut away (run-time quadrature points)
-    ("interface", "dI"),  # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
-    ("overlap", "dO"),  # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
-
-    # === Firedrake specifics:
-    ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
-    ("exterior_facet_top", "ds_t"),  # Over top facets on extruded mesh
-    ("exterior_facet_vert", "ds_v"),  # Over side facets of an extruded mesh
-    ("interior_facet_horiz", "dS_h"),  # Over horizontal facets of an extruded mesh
-    ("interior_facet_vert", "dS_v"),  # Over vertical facets of an extruded mesh
-]
-
-integral_type_to_measure_name = {i: s for i, s in _integral_types}
-measure_name_to_integral_type = {s: i for i, s in _integral_types}
-
-custom_integral_types = ("custom", "cutcell", "interface", "overlap")
-point_integral_types = ("vertex",)  # "point")
-facet_integral_types = ("exterior_facet", "interior_facet")
-
-
 def register_integral_type(integral_type, measure_name):
     """Register an integral type."""
     global integral_type_to_measure_name, measure_name_to_integral_type
@@ -469,3 +435,55 @@ class MeasureProduct(object):
     def sub_measures(self):
         """Return submeasures."""
         return self._measures
+
+
+# Integration over cell
+dx = Measure("cell")
+
+# Integration over facets
+ds = Measure("exterior_facet")
+dS = Measure("interior_facet")
+
+# Integration over vertices
+dP = Measure("vertex")
+
+# Custom integration
+dc = Measure("custom")
+dC = Measure("cutcell")
+dI = Measure("interface")
+dO = Measure("overlap")
+
+# Firedrake specifics
+ds_b = Measure("exterior_facet_bottom")
+ds_t = Measure("exterior_facet_top")
+ds_v = Measure("exterior_facet_vert")
+dS_h = Measure("interior_facet_horiz")
+dS_v = Measure("interior_facet_vert")
+
+# TODO: Firedrake hack, remove later
+ds_tb = ds_b + ds_t
+
+# Default measure dX including both uncut and cut cells
+dX = dx + dC
+
+integral_type_to_measure_name = {
+    "cell": "dx",
+    "exterior_facet": "ds",
+    "interior_facet": "dS",
+    "vertex": "dP",
+    "custom": "dc",
+    "cutcell": "dC",
+    "interface": "dI",
+    "overlap": "dO",
+    "exterior_facet_bottom": "ds_b",
+    "exterior_facet_top": "ds_t",
+    "exterior_facet_vert": "ds_v",
+    "interior_facet_horiz": "dS_h",
+    "interior_facet_vert": "dS_v",
+}
+
+measure_name_to_integral_type = {s: i for i, s in integral_type_to_measure_name.items()}
+
+custom_integral_types = ("custom", "cutcell", "interface", "overlap")
+point_integral_types = ("vertex", )
+facet_integral_types = ("exterior_facet", "interior_facet")
