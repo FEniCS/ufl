@@ -1,24 +1,22 @@
 """Balancing."""
-# -*- coding: utf-8 -*-
 # Copyright (C) 2011-2017 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.classes import (CellAvg, FacetAvg, Grad, Indexed, NegativeRestricted, PositiveRestricted, ReferenceGrad,
-                         ReferenceValue)
+from ufl.averaging import CellAvg, FacetAvg
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-
-modifier_precedence = [
-    ReferenceValue, ReferenceGrad, Grad, CellAvg, FacetAvg, PositiveRestricted,
-    NegativeRestricted, Indexed
-]
+from ufl.differentiation import Grad, ReferenceGrad
+from ufl.indexed import Indexed
+from ufl.referencevalue import ReferenceValue
+from ufl.restriction import NegativeRestricted, PositiveRestricted
 
 modifier_precedence = {
     m._ufl_handler_name_: i
-    for i, m in enumerate(modifier_precedence)
+    for i, m in enumerate([ReferenceValue, ReferenceGrad, Grad, CellAvg,
+                           FacetAvg, PositiveRestricted, NegativeRestricted, Indexed])
 }
 
 

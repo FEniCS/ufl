@@ -8,11 +8,12 @@
 #
 # Modified by Anders Logg, 2009-2010
 
+from ufl.algebra import Conj, Product
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Conj, Grad, Product
 from ufl.compound_expressions import cofactor_expr, determinant_expr, deviatoric_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction
+from ufl.differentiation import Grad
 from ufl.tensors import as_matrix, as_tensor, as_vector
 
 

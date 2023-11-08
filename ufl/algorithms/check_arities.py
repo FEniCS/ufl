@@ -1,7 +1,8 @@
 """Check arities."""
 from itertools import chain
 
-from ufl.classes import Argument, Zero
+from ufl.argument import Argument
+from ufl.constantvalue import Zero
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.traversal import traverse_unique_terminals

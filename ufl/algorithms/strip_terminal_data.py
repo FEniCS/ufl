@@ -4,10 +4,15 @@ In the stripped version, any data-carrying objects have been extracted to a mapp
 """
 
 from ufl.algorithms.replace import replace
-from ufl.classes import (Argument, Coefficient, Constant, Form, FunctionSpace, Integral, Mesh, MeshView,
-                         MixedFunctionSpace, TensorProductFunctionSpace)
+from ufl.argument import Argument
+from ufl.coefficient import Coefficient
+from ufl.constant import Constant
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
+from ufl.domain import Mesh, MeshView
+from ufl.form import Form
+from ufl.functionspace import FunctionSpace, MixedFunctionSpace, TensorProductFunctionSpace
+from ufl.integral import Integral
 
 
 class TerminalStripper(MultiFunction):

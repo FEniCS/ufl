@@ -7,8 +7,8 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import ReferenceValue
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
+from ufl.referencevalue import ReferenceValue
 
 
 class FunctionPullbackApplier(MultiFunction):

@@ -9,10 +9,13 @@
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.checks import is_cellwise_constant
-from ufl.classes import Grad, JacobianInverse, ReferenceGrad, ReferenceValue, Restricted
 from ufl.core.multiindex import indices
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
+from ufl.differentiation import Grad, ReferenceGrad
+from ufl.geometry import JacobianInverse
+from ufl.referencevalue import ReferenceValue
+from ufl.restriction import Restricted
 from ufl.tensors import as_tensor
 
 """

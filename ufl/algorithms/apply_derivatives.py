@@ -6,33 +6,41 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import typing
 import warnings
 from collections import defaultdict
 from math import pi
 
 from ufl.action import Action
+from ufl.algebra import Conj, Imag, Product, Real, Sum
 from ufl.algorithms.analysis import extract_arguments
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.argument import BaseArgument
 from ufl.checks import is_cellwise_constant
-from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue, ExprList, ExprMapping, FloatValue,
-                         FormArgument, Grad, Identity, Imag, Indexed, IndexSum, JacobianInverse, ListTensor, Product,
-                         Real, ReferenceGrad, ReferenceValue, SpatialCoordinate, Sum, Variable, Zero)
-from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
+from ufl.coefficient import Coefficient
+from ufl.constantvalue import ConstantValue, FloatValue, Identity, Zero, is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
-from ufl.core.terminal import Terminal
+from ufl.core.terminal import FormArgument, Terminal
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.differentiation import BaseFormCoordinateDerivative, BaseFormOperatorDerivative, CoordinateDerivative
+from ufl.differentiation import (BaseFormCoordinateDerivative, BaseFormOperatorDerivative, CoordinateDerivative, Grad,
+                                 ReferenceGrad)
 from ufl.domain import extract_unique_domain
+from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import Form, ZeroBaseForm
+from ufl.geometry import JacobianInverse, SpatialCoordinate
+from ufl.indexed import Indexed
+from ufl.indexsum import IndexSum
 from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
                            sign, sin, sinh, sqrt)
 from ufl.pullback import CustomPullback, PhysicalPullback
-from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, unwrap_list_tensor
+from ufl.referencevalue import ReferenceValue
+from ufl.tensors import (ComponentTensor, ListTensor, as_scalar, as_scalars, as_tensor, unit_indexed_tensor,
+                         unwrap_list_tensor)
+from ufl.variable import Variable
 
 # TODO: Add more rulesets?
 # - DivRuleset
@@ -1193,7 +1201,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
         """Initialise."""
         GateauxDerivativeRuleset.__init__(self, coefficients, arguments, coefficient_derivatives, pending_operations)
 
-    def pending_operations_recording(base_form_operator_handler):
+    def pending_operations_recording(base_form_operator_handler: typing.Callable):
         """Decorate a function to record pending operations."""
         def wrapper(self, base_form_op, *dfs):
             """Decorate."""

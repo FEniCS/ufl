@@ -12,9 +12,9 @@ These utilities are for expanding free indices in expressions to explicit fixed 
 # Modified by Anders Logg, 2009.
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.classes import Terminal
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex
+from ufl.core.terminal import Terminal
 from ufl.differentiation import Grad
 from ufl.utils.stacks import Stack, StackDict
 

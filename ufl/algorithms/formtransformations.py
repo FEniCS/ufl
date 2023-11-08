@@ -21,7 +21,6 @@ from ufl.algorithms.transformer import Transformer
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
-# All classes:
 from ufl.core.expr import ufl_err_str
 
 

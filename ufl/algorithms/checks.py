@@ -10,12 +10,10 @@
 # Modified by Mehdi Nikbakht, 2010.
 
 from ufl.algorithms.check_restrictions import check_restrictions
-# UFL algorithms
 from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import is_true_ufl_scalar
-# UFL classes
 from ufl.core.expr import ufl_err_str
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.domain import extract_unique_domain

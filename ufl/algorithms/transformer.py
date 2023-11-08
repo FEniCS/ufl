@@ -14,10 +14,12 @@ algorithms.
 # Modified by Anders Logg, 2009-2010
 
 import inspect
+import typing
 
 from ufl.algorithms.map_integrands import map_integrands
-from ufl.classes import Variable, all_ufl_classes
+from ufl.classes import all_ufl_classes
 from ufl.core.ufl_type import UFLType
+from ufl.variable import Variable
 
 
 def is_post_handler(function):
@@ -34,7 +36,8 @@ class Transformer(object):
     Base class for a visitor-like algorithm design pattern used to
     transform expression trees from one representation to another.
     """
-    _handlers_cache = {}
+    _handlers_cache: typing.Dict[
+        UFLType, typing.List[typing.Optional[typing.Tuple[str, bool]]]] = {}
 
     def __init__(self, variable_cache=None):
         """Initialise."""

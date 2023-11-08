@@ -6,11 +6,19 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import hashlib
+import typing
 
 from ufl.algorithms.domain_analysis import canonicalize_metadata
-from ufl.classes import (Argument, Coefficient, Constant, ConstantValue, ExprList, ExprMapping, GeometricQuantity,
-                         Index, Label, MultiIndex)
+from ufl.argument import Argument
+from ufl.coefficient import Coefficient
+from ufl.constant import Constant
+from ufl.constantvalue import ConstantValue
+from ufl.core.expr import Expr
+from ufl.core.multiindex import Index, MultiIndex
 from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
+from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.geometry import GeometricQuantity
+from ufl.variable import Label
 
 
 def compute_multiindex_hashdata(expr, index_numbering):
@@ -85,7 +93,7 @@ def compute_terminal_hashdata(expressions, renumbering):
 
 def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
     """Compute expression hashdata."""
-    cache = {}
+    cache: typing.Dict[Expr, bytes] = {}
 
     for expr in unique_post_traversal(expression):
         # Uniquely traverse tree and hash each node
