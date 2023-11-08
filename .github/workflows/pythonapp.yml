@@ -41,7 +41,7 @@ jobs:
         run: |
           python -m pip install isort
           python -m isort --check .
-      - name: Check isort
+      - name: Run mypy checks
         run: |
           python -m pip install mypy
           python -m mypy --install-types --non-interactive ufl/
