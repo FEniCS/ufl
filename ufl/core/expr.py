@@ -8,12 +8,12 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-import typing
 import numbers
+import typing
 import warnings
+from abc import abstractmethod, abstractproperty
 
 from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
-from abc import abstractmethod, abstractproperty
 
 
 class Expr(metaclass=UFLType):
@@ -381,12 +381,12 @@ class Expr(metaclass=UFLType):
 
     def __mul__(self, other):
         """Multiply."""
-        from ufl.constantvalue import Zero, as_ufl
         from ufl.algebra import Product
-        from ufl.tensors import as_tensor
+        from ufl.constantvalue import Zero, as_ufl
         from ufl.core.multiindex import Index, MultiIndex, indices
         from ufl.index_combination_utils import merge_overlapping_indices
         from ufl.indexsum import IndexSum
+        from ufl.tensors import as_tensor
 
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
@@ -530,8 +530,8 @@ class Expr(metaclass=UFLType):
 
     def __pow__(self, other):
         """Raise to a power."""
-        from ufl.tensoralgebra import Inner
         from ufl.algebra import Power
+        from ufl.tensoralgebra import Inner
 
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
@@ -582,12 +582,12 @@ class Expr(metaclass=UFLType):
 
     def __getitem__(self, component):
         """Get an item."""
-        from ufl.tensors import ComponentTensor, as_tensor
         from ufl.constantvalue import Zero
         from ufl.core.multiindex import MultiIndex
+        from ufl.index_combination_utils import create_slice_indices
         from ufl.indexed import Indexed
         from ufl.indexsum import IndexSum
-        from ufl.index_combination_utils import create_slice_indices
+        from ufl.tensors import ComponentTensor, as_tensor
 
         # Treat component consistently as tuple below
         if not isinstance(component, tuple):
