@@ -11,14 +11,14 @@
 import typing
 
 from ufl.core.terminal import Terminal
-from ufl.core.ufl_type import ufl_type
+from ufl.core.ufl_type import UFLObject
 from ufl.utils.counted import Counted
 
 # Export list for ufl.classes
 __all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
 
-class IndexBase(object):
+class IndexBase(UFLObject):
     """Base class for all indices."""
     __slots__ = ()
 
@@ -90,6 +90,9 @@ class Index(IndexBase, Counted):
         IndexBase.__init__(self)
         Counted.__init__(self, count, Index)
 
+    def _ufl_hash_data_(self):
+        raise NotImplmentedError()
+
     def __hash__(self):
         """Hash."""
         return hash(("Index", self._count))
@@ -110,7 +113,6 @@ class Index(IndexBase, Counted):
         return f"Index({self._count})"
 
 
-@ufl_type()
 class MultiIndex(Terminal):
     """Represents a sequence of indices, either fixed or free."""
     __slots__ = ("_indices",)

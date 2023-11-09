@@ -13,10 +13,10 @@ import typing
 import warnings
 from abc import abstractmethod, abstractproperty
 
-from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
+from ufl.core.ufl_type import UFLObject
 
 
-class Expr(metaclass=UFLType):
+class Expr(UFLObject):
     """Base class for all UFL expression types.
 
     *Instance properties*
@@ -53,8 +53,7 @@ class Expr(metaclass=UFLType):
 
         .. code-block:: python
 
-            @ufl_type()
-            class MyOperator(Operator):
+            class MyOperator(UFLObject):
                 pass
 
     *Type collections*
@@ -78,7 +77,7 @@ class Expr(metaclass=UFLType):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = ("_hash", "__weakref__")
+    __slots__ = ("_hash", )
     # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
@@ -116,7 +115,7 @@ class Expr(metaclass=UFLType):
     # A reference to the UFL class itself.  This makes it possible to
     # do type(f)._ufl_class_ and be sure you get the actual UFL class
     # instead of a subclass from another library.
-    _ufl_class_: typing.Optional[UFLType] = None
+    _ufl_class_: typing.Optional[type] = None
 
     # The handler name.  This is the name of the handler function you
     # implement for this type in a multifunction.
@@ -161,10 +160,10 @@ class Expr(metaclass=UFLType):
 
     # A global dict mapping language_operator_name to the type it
     # produces
-    _ufl_language_operators_: typing.Dict[str, UFLType] = {}
+    _ufl_language_operators_: typing.Dict[str, type] = {}
 
     # List of all terminal modifier types
-    _ufl_terminal_modifiers_: typing.List[UFLType] = []
+    _ufl_terminal_modifiers_: typing.List[type] = []
 
     # --- Mechanism for profiling object creation and deletion ---
 
@@ -702,10 +701,6 @@ class Expr(metaclass=UFLType):
 # Initializing traits here because Expr is not defined in the class
 # declaration
 Expr._ufl_class_ = Expr
-
-# Update Expr with metaclass properties (e.g. typecode or handler name)
-# Explicitly done here instead of using `@ufl_type` to avoid circular imports.
-update_ufl_type_attributes(Expr)
 
 
 def ufl_err_str(expr):

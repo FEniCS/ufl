@@ -8,13 +8,8 @@
 
 from ufl.constantvalue import ConstantValue
 from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0,
-          num_ops=1,
-          is_evaluation=True)
 class CellAvg(Operator):
     """Cell average."""
 
@@ -45,10 +40,6 @@ class CellAvg(Operator):
         return f"cell_avg({self.ufl_operands[0]})"
 
 
-@ufl_type(inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0,
-          num_ops=1,
-          is_evaluation=True)
 class FacetAvg(Operator):
     """Facet average."""
 

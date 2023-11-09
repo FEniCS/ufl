@@ -18,7 +18,7 @@ import typing
 
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.classes import all_ufl_classes
-from ufl.core.ufl_type import UFLType
+from ufl.core.ufl_type import UFLObject
 from ufl.variable import Variable
 
 
@@ -30,14 +30,14 @@ def is_post_handler(function):
     return visit_children_first
 
 
-class Transformer(object):
+class Transformer(UFLObject):
     """Transformer.
 
     Base class for a visitor-like algorithm design pattern used to
     transform expression trees from one representation to another.
     """
     _handlers_cache: typing.Dict[
-        UFLType, typing.List[typing.Optional[typing.Tuple[str, bool]]]] = {}
+        type, typing.List[typing.Optional[typing.Tuple[str, bool]]]] = {}
 
     def __init__(self, variable_cache=None):
         """Initialise."""
@@ -61,10 +61,11 @@ class Transformer(object):
                     try:
                         handler_name = c._ufl_handler_name_
                     except AttributeError as attribute_error:
-                        if type(classobject) is not UFLType:
-                            raise attribute_error
+                        # TODO: what is this meant to do?
+                        # if type(classobject) is not UFLObject:
+                        #    raise attribute_error
                         # Default handler name for UFL types
-                        handler_name = UFLType._ufl_handler_name_
+                        handler_name = UFLObject._ufl_handler_name_
                     function = getattr(self, handler_name, None)
                     if function:
                         cache_data[
@@ -145,7 +146,7 @@ class Transformer(object):
         """Reconstruct expr."""
         return o._ufl_expr_reconstruct_(*operands)
 
-    # Set default behaviour for any UFLType
+    # Set default behaviour for any UFLObject
     ufl_type = undefined
 
     # Set default behaviour for any Terminal

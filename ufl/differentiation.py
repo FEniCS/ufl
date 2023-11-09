@@ -14,7 +14,6 @@ from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
-from ufl.core.ufl_type import ufl_type
 from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import BaseForm
@@ -24,8 +23,6 @@ from ufl.variable import Variable
 # --- Basic differentiation objects ---
 
 
-@ufl_type(is_abstract=True,
-          is_differential=True)
 class Derivative(Operator):
     """Base class for all derivative types."""
 
@@ -36,8 +33,6 @@ class Derivative(Operator):
         Operator.__init__(self, operands)
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
 class CoefficientDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the degrees of freedom in a discrete Coefficient."""
 
@@ -71,8 +66,6 @@ class CoefficientDerivative(Derivative):
                self.ufl_operands[2], self.ufl_operands[3])
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
 class CoordinateDerivative(CoefficientDerivative):
     """Derivative of the integrand of a form w.r.t. the SpatialCoordinates."""
 
@@ -85,8 +78,6 @@ class CoordinateDerivative(CoefficientDerivative):
                self.ufl_operands[2], self.ufl_operands[3])
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
 class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
@@ -124,8 +115,6 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
         self._coefficients = base_form_coeffs
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
 class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
     """Derivative of a base form w.r.t. the SpatialCoordinates."""
 
@@ -138,8 +127,6 @@ class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
                                     coefficient_derivatives)
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
 class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     """Derivative of a base form operator w.r.t the degrees of freedom in a discrete Coefficient."""
     _ufl_noslots_ = True
@@ -169,8 +156,6 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
         return argument_slots
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
 class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):
     """Derivative of a base form operator w.r.t. the SpatialCoordinates."""
     _ufl_noslots_ = True
@@ -182,7 +167,6 @@ class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, Coordinat
                                             coefficient_derivatives)
 
 
-@ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
     """Variable Derivative."""
 
@@ -228,7 +212,6 @@ class VariableDerivative(Derivative):
 
 # --- Compound differentiation objects ---
 
-@ufl_type(is_abstract=True)
 class CompoundDerivative(Derivative):
     """Base class for all compound derivative types."""
 
@@ -239,7 +222,6 @@ class CompoundDerivative(Derivative):
         Derivative.__init__(self, operands)
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Grad(CompoundDerivative):
     """Grad."""
 
@@ -289,8 +271,6 @@ class Grad(CompoundDerivative):
         return "grad(%s)" % self.ufl_operands[0]
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True,
-          is_in_reference_frame=True)
 class ReferenceGrad(CompoundDerivative):
     """Reference grad."""
 
@@ -340,7 +320,6 @@ class ReferenceGrad(CompoundDerivative):
         return "reference_grad(%s)" % self.ufl_operands[0]
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Div(CompoundDerivative):
     """Div."""
 
@@ -371,8 +350,6 @@ class Div(CompoundDerivative):
         return "div(%s)" % self.ufl_operands[0]
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True,
-          is_in_reference_frame=True)
 class ReferenceDiv(CompoundDerivative):
     """Reference divergence."""
 
@@ -403,7 +380,6 @@ class ReferenceDiv(CompoundDerivative):
         return "reference_div(%s)" % self.ufl_operands[0]
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class NablaGrad(CompoundDerivative):
     """Nabla grad."""
 
@@ -444,7 +420,6 @@ class NablaGrad(CompoundDerivative):
         return "nabla_grad(%s)" % self.ufl_operands[0]
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class NablaDiv(CompoundDerivative):
     """Nabla div."""
 
@@ -478,7 +453,6 @@ class NablaDiv(CompoundDerivative):
 _curl_shapes = {(): (2,), (2,): (), (3,): (3,)}
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Curl(CompoundDerivative):
     """Compound derivative."""
 
@@ -509,8 +483,6 @@ class Curl(CompoundDerivative):
         return "curl(%s)" % self.ufl_operands[0]
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0,
-          is_terminal_modifier=True, is_in_reference_frame=True)
 class ReferenceCurl(CompoundDerivative):
     """Reference curl."""
 

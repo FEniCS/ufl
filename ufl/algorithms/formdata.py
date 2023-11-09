@@ -8,10 +8,11 @@
 #
 # Modified by Anders Logg, 2008.
 
+from ufl.core.ufl_type import UFLObject
 from ufl.utils.formatting import estr, lstr, tstr
 
 
-class FormData(object):
+class FormData(UFLObject):
     """Class collecting various information extracted from a Form by calling preprocess."""
 
     def __init__(self):

@@ -21,7 +21,7 @@ from ufl.checks import is_scalar_constant_expression
 from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.ufl_type import UFLType, ufl_type
+from ufl.core.ufl_type import UFLObject
 from ufl.domain import extract_unique_domain, sort_domains
 from ufl.equation import Equation
 from ufl.integral import Integral
@@ -75,14 +75,12 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
-@ufl_type()
-class BaseForm(object, metaclass=UFLType):
+class BaseForm(UFLObject):
     """Description of an object containing arguments."""
 
     # Slots is kept empty to enable multiple inheritance with other
     # classes
     __slots__ = ()
-    _ufl_is_abstract_ = True
     _ufl_required_methods_: typing.Tuple[str, ...] = ('_analyze_form_arguments', '_analyze_domains', 'ufl_domains')
 
     def __init__(self):
@@ -217,7 +215,6 @@ class BaseForm(object, metaclass=UFLType):
     __matmul__ = __mul__
 
 
-@ufl_type()
 class Form(BaseForm):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
 
@@ -690,7 +687,6 @@ def as_form(form):
     return form
 
 
-@ufl_type()
 class FormSum(BaseForm):
     """Form sum.
 
@@ -828,7 +824,6 @@ class FormSum(BaseForm):
         return r
 
 
-@ufl_type()
 class ZeroBaseForm(BaseForm):
     """Description of a zero base form.
 

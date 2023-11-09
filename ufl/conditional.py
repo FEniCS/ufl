@@ -11,7 +11,6 @@ from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
 from ufl.precedence import parstr
 
 # --- Condition classes ---
@@ -20,7 +19,6 @@ from ufl.precedence import parstr
 # is a boolean type not a float type
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
 class Condition(Operator):
     """Condition."""
 
@@ -38,7 +36,6 @@ class Condition(Operator):
     __nonzero__ = __bool__
 
 
-@ufl_type(is_abstract=True, num_ops=2)
 class BinaryCondition(Condition):
     """Binary condition."""
 
@@ -81,7 +78,6 @@ class BinaryCondition(Condition):
 
 # Not associating with __eq__, the concept of equality with == is
 # reserved for object equivalence for use in set and dict.
-@ufl_type()
 class EQ(BinaryCondition):
     """Equality condition."""
 
@@ -106,7 +102,6 @@ class EQ(BinaryCondition):
 
 # Not associating with __ne__, the concept of equality with == is
 # reserved for object equivalence for use in set and dict.
-@ufl_type()
 class NE(BinaryCondition):
     """Not equal condition."""
 
@@ -129,7 +124,6 @@ class NE(BinaryCondition):
     __nonzero__ = __bool__
 
 
-@ufl_type(binop="__le__")
 class LE(BinaryCondition):
     """Less than or equal condition."""
 
@@ -146,7 +140,6 @@ class LE(BinaryCondition):
         return bool(a <= b)
 
 
-@ufl_type(binop="__ge__")
 class GE(BinaryCondition):
     """Greater than or equal to condition."""
 
@@ -163,7 +156,6 @@ class GE(BinaryCondition):
         return bool(a >= b)
 
 
-@ufl_type(binop="__lt__")
 class LT(BinaryCondition):
     """Less than condition."""
 
@@ -180,7 +172,6 @@ class LT(BinaryCondition):
         return bool(a < b)
 
 
-@ufl_type(binop="__gt__")
 class GT(BinaryCondition):
     """Greater than condition."""
 
@@ -197,7 +188,6 @@ class GT(BinaryCondition):
         return bool(a > b)
 
 
-@ufl_type()
 class AndCondition(BinaryCondition):
     """And condition."""
 
@@ -214,7 +204,6 @@ class AndCondition(BinaryCondition):
         return bool(a and b)
 
 
-@ufl_type()
 class OrCondition(BinaryCondition):
     """Or condition."""
 
@@ -231,7 +220,6 @@ class OrCondition(BinaryCondition):
         return bool(a or b)
 
 
-@ufl_type(num_ops=1)
 class NotCondition(Condition):
     """Not condition."""
 
@@ -253,8 +241,6 @@ class NotCondition(Condition):
         return "!(%s)" % (str(self.ufl_operands[0]),)
 
 
-@ufl_type(num_ops=3, inherit_shape_from_operand=1,
-          inherit_indices_from_operand=1)
 class Conditional(Operator):
     """Conditional expression.
 
@@ -302,7 +288,6 @@ class Conditional(Operator):
 
 # --- Specific functions higher level than a conditional ---
 
-@ufl_type(is_scalar=True, num_ops=1)
 class MinValue(Operator):
     """Take the minimum of two values."""
 
@@ -331,7 +316,6 @@ class MinValue(Operator):
         return "min_value(%s, %s)" % self.ufl_operands
 
 
-@ufl_type(is_scalar=True, num_ops=1)
 class MaxValue(Operator):
     """Take the maximum of two values."""
 

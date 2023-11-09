@@ -10,12 +10,10 @@ from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex
 from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
 from ufl.index_combination_utils import unique_sorted_indices
 from ufl.precedence import parstr
 
 
-@ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
     """Indexed expression."""
 

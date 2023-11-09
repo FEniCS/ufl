@@ -9,12 +9,10 @@ from ufl.argument import Coargument
 from ufl.coefficient import Cofunction
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
 
 # --- Non-tensor types ---
 
 
-@ufl_type(num_ops="varying")
 class ExprList(Operator):
     """List of Expr objects. For internal use, never to be created by end users."""
 
@@ -72,7 +70,6 @@ class ExprList(Operator):
         raise ValueError("A non-tensor type has no index_dimensions.")
 
 
-@ufl_type(num_ops="varying")
 class ExprMapping(Operator):
     """Mapping of Expr objects. For internal use, never to be created by end users."""
 

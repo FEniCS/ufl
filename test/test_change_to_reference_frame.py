@@ -1,9 +1,10 @@
 """Tests of the change to reference frame algorithm."""
 
 from ufl import Coefficient, FunctionSpace, Mesh, triangle
-from ufl.classes import Expr, ReferenceValue
+from ufl.core.expr import Expr
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import contravariant_piola, identity_pullback
+from ufl.referencevalue import ReferenceValue
 from ufl.sobolevspace import H1, HDiv
 
 

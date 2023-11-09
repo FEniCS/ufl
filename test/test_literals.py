@@ -2,8 +2,8 @@ __authors__ = "Martin Sandve Alnæs"
 __date__ = "2011-04-14"
 
 from ufl import PermutationSymbol, as_matrix, as_vector, indices, product
-from ufl.classes import Indexed
 from ufl.constantvalue import ComplexValue, FloatValue, IntValue, Zero, as_ufl
+from ufl.indexed import Indexed
 
 
 def test_zero(self):

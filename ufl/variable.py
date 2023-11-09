@@ -12,11 +12,9 @@ from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
-from ufl.core.ufl_type import ufl_type
 from ufl.utils.counted import Counted
 
 
-@ufl_type()
 class Label(Terminal, Counted):
     """Label."""
 
@@ -66,7 +64,6 @@ class Label(Terminal, Counted):
         return ("Label", renumbering[self])
 
 
-@ufl_type(is_shaping=True, is_index_free=True, num_ops=1, inherit_shape_from_operand=0)
 class Variable(Operator):
     """A Variable is a representative for another expression.
 

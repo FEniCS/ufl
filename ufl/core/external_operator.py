@@ -13,10 +13,8 @@ how this operator should be evaluated as well as its derivatives from a given se
 # Modified by Nacime Bouziani, 2023
 
 from ufl.core.base_form_operator import BaseFormOperator
-from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(num_ops="varying", is_differential=True)
 class ExternalOperator(BaseFormOperator):
     """External operator."""
 

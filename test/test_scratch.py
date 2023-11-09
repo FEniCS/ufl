@@ -10,11 +10,15 @@ import warnings
 
 from ufl import (Coefficient, FunctionSpace, Identity, Mesh, TestFunction, as_matrix, as_tensor, as_vector, dx, grad,
                  indices, inner, outer, triangle)
-from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
+from ufl.constantvalue import Zero
+from ufl.core.multiindex import FixedIndex
+from ufl.core.terminal import FormArgument
+from ufl.differentiation import Grad
 from ufl.finiteelement import FiniteElement
+from ufl.indexed import Indexed
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
-from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
+from ufl.tensors import ListTensor, as_scalar, unit_indexed_tensor, unwrap_list_tensor
 
 
 class MockForwardAD:

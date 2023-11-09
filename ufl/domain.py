@@ -19,7 +19,7 @@ from ufl.sobolevspace import H1
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
 
 
-class AbstractDomain(object):
+class AbstractDomain(UFLObject):
     """Symbolic representation of a geometric domain with only a geometric and topological dimension."""
 
     def __init__(self, topological_dimension, geometric_dimension):

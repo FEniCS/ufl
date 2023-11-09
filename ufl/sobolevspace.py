@@ -18,11 +18,13 @@ symbolic reasoning about the spaces in which finite elements lie.
 from functools import total_ordering
 from math import inf, isinf
 
+from ufl.core.ufl_type import UFLObject
+
 __all_classes__ = ["SobolevSpace", "DirectionalSobolevSpace"]
 
 
 @total_ordering
-class SobolevSpace(object):
+class SobolevSpace(UFLObject):
     """Symbolic representation of a Sobolev space.
 
     This implements a subset of the methods of a Python set so that finite elements and
@@ -58,6 +60,10 @@ class SobolevSpace(object):
     def __str__(self):
         """Format as a string."""
         return self.name
+
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return (self.name, self.parents)
 
     def __repr__(self):
         """Representation."""

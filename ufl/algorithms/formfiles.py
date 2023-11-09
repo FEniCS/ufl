@@ -17,12 +17,13 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constant import Constant
 from ufl.core.expr import Expr
+from ufl.core.ufl_type import UFLObject
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import Form
 from ufl.utils.sorting import sorted_by_key
 
 
-class FileData(object):
+class FileData(UFLObject):
     """File data."""
 
     def __init__(self):

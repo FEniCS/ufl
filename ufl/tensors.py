@@ -11,14 +11,12 @@ from ufl.constantvalue import Zero, as_ufl
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
 from ufl.core.operator import Operator
-from ufl.core.ufl_type import ufl_type
 from ufl.index_combination_utils import remove_indices
 from ufl.indexed import Indexed
 
 # --- Classes representing tensors of UFL expressions ---
 
 
-@ufl_type(is_shaping=True, num_ops="varying", inherit_indices_from_operand=0)
 class ListTensor(Operator):
     """Wraps a list of expressions into a tensor valued expression of one higher rank."""
 
@@ -113,7 +111,6 @@ class ListTensor(Operator):
         return substring(self.ufl_operands, 0)
 
 
-@ufl_type(is_shaping=True, num_ops="varying")
 class ComponentTensor(Operator):
     """Maps the free indices of a scalar valued expression to tensor axes."""
 

@@ -17,7 +17,6 @@ from ufl.checks import is_python_scalar, is_true_ufl_scalar, is_ufl_scalar  # no
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal
-from ufl.core.ufl_type import ufl_type
 
 # Precision for float formatting
 precision = None
@@ -31,9 +30,6 @@ def format_float(x):
         return "{}".format(float(x))
 
 
-# --- Base classes for constant types ---
-
-@ufl_type(is_abstract=True)
 class ConstantValue(Terminal):
     """Constant value."""
 
@@ -53,7 +49,6 @@ class ConstantValue(Terminal):
 
 
 # TODO: Add geometric dimension/domain and Argument dependencies to Zero?
-@ufl_type(is_literal=True)
 class Zero(ConstantValue):
     """Representation of a zero valued expression.
 
@@ -187,9 +182,6 @@ def zero(*shape):
         return Zero(shape)
 
 
-# --- Scalar value types ---
-
-@ufl_type(is_abstract=True, is_scalar=True)
 class ScalarValue(ConstantValue):
     """A constant scalar value."""
 
@@ -262,7 +254,6 @@ class ScalarValue(ConstantValue):
         return self._value.imag
 
 
-@ufl_type(wraps_type=complex, is_literal=True)
 class ComplexValue(ScalarValue):
     """Representation of a constant, complex scalar."""
 
@@ -308,14 +299,12 @@ class ComplexValue(ScalarValue):
         raise TypeError("ComplexValues cannot be cast to int")
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
 class RealValue(ScalarValue):
     """Abstract class used to differentiate real values from complex ones."""
 
     __slots__ = ()
 
 
-@ufl_type(wraps_type=float, is_literal=True)
 class FloatValue(RealValue):
     """Representation of a constant scalar floating point value."""
 
@@ -342,7 +331,6 @@ class FloatValue(RealValue):
         return r
 
 
-@ufl_type(wraps_type=int, is_literal=True)
 class IntValue(RealValue):
     """Representation of a constant scalar integer value."""
     __slots__ = ()
@@ -385,9 +373,6 @@ class IntValue(RealValue):
         return r
 
 
-# --- Identity matrix ---
-
-@ufl_type()
 class Identity(ConstantValue):
     """Representation of an identity matrix."""
     __slots__ = ("_dim", "ufl_shape")
@@ -425,9 +410,6 @@ class Identity(ConstantValue):
         return isinstance(other, Identity) and self._dim == other._dim
 
 
-# --- Permutation symbol ---
-
-@ufl_type()
 class PermutationSymbol(ConstantValue):
     """Representation of a permutation symbol.
 

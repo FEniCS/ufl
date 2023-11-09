@@ -5,11 +5,13 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-# Export list for ufl.classes
+from ufl.core.ufl_type import UFLObject
+
 __all_classes__ = ["Equation"]
 
 
-class Equation(object):
+
+class Equation(UFLObject):
     """Equation.
 
     This class is used to represent equations expressed by the "=="

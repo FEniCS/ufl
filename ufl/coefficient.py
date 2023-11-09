@@ -13,7 +13,6 @@
 
 from ufl.argument import Argument
 from ufl.core.terminal import FormArgument
-from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
@@ -31,7 +30,6 @@ class BaseCoefficient(Counted):
     # __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
     _ufl_noslots_ = True
     __slots__ = ()
-    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         """Get new args."""
@@ -98,7 +96,6 @@ class BaseCoefficient(Counted):
         return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
 
-@ufl_type()
 class Cofunction(BaseCoefficient, BaseForm):
     """UFL form argument type: Representation of a form coefficient from a dual space."""
 
@@ -155,7 +152,6 @@ class Cofunction(BaseCoefficient, BaseForm):
         self._coefficients = (self,)
 
 
-@ufl_type()
 class Coefficient(FormArgument, BaseCoefficient):
     """UFL form argument type: Representation of a form coefficient."""
 

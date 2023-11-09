@@ -11,7 +11,7 @@ import inspect
 import typing
 
 from ufl.core.expr import Expr
-from ufl.core.ufl_type import UFLType
+from ufl.core.ufl_type import UFLObject
 
 
 def get_num_args(function):
@@ -33,7 +33,7 @@ def memoized_handler(handler):
     return _memoized_handler
 
 
-class MultiFunction(object):
+class MultiFunction(UFLObject):
     """Base class for collections of non-recursive expression node handlers.
 
     Subclass this (remember to call the ``__init__`` method of this class),
@@ -46,7 +46,7 @@ class MultiFunction(object):
     algorithm object. Of course Python's function call overhead still applies.
     """
 
-    _handlers_cache: typing.Dict[UFLType, typing.Tuple[typing.List[str], bool]] = {}
+    _handlers_cache: typing.Dict[type, typing.Tuple[typing.List[str], bool]] = {}
 
     def __init__(self):
         """Initialise."""
@@ -69,10 +69,11 @@ class MultiFunction(object):
                     try:
                         handler_name = c._ufl_handler_name_
                     except AttributeError as attribute_error:
-                        if type(classobject) is not UFLType:
-                            raise attribute_error
+                        # TODO
+                        # if type(classobject) is not UFLType:
+                        #    raise attribute_error
                         # Default handler name for UFL types
-                        handler_name = UFLType._ufl_handler_name_
+                        handler_name = UFLObject._ufl_handler_name_
 
                     if hasattr(self, handler_name):
                         handler_names[classobject._ufl_typecode_] = handler_name
@@ -114,5 +115,5 @@ class MultiFunction(object):
         else:
             return o._ufl_expr_reconstruct_(*ops)
 
-    # Set default behaviour for any UFLType as undefined
+    # Set default behaviour for any UFLObject as undefined
     ufl_type = undefined

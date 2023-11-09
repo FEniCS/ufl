@@ -8,6 +8,8 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
+from ufl.core.ufl_type import UFLObject
+
 
 def attach_ufl_id(cls):
     """Equip class with ``.ufl_id()`` and handle bookkeeping.
@@ -17,7 +19,7 @@ def attach_ufl_id(cls):
         1. Apply to class::
 
             @attach_ufl_id
-            class MyClass(object):
+            class MyClass(UFLObject):
 
         2. If ``__slots__`` is defined, include ``_ufl_id`` attribute::
 

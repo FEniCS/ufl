@@ -3,7 +3,7 @@
 from ufl import Coefficient, FunctionSpace, Mesh, as_tensor, grad, indices, triangle
 from ufl.algorithms import change_to_reference_grad
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import JacobianInverse, ReferenceGrad
+from ufl.differentiation import JacobianInverse, ReferenceGrad
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1

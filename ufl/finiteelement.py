@@ -18,6 +18,7 @@ import typing as _typing
 import numpy as np
 
 from ufl.cell import Cell as _Cell
+from ufl.core.ufl_type import UFLObject
 from ufl.pullback import AbstractPullback as _AbstractPullback
 from ufl.pullback import IdentityPullback as _IdentityPullback
 from ufl.pullback import MixedPullback as _MixedPullback
@@ -28,7 +29,7 @@ from ufl.utils.sequences import product
 __all_classes__ = ["AbstractFiniteElement", "FiniteElement", "MixedElement", "SymmetricElement"]
 
 
-class AbstractFiniteElement(_abc.ABC):
+class AbstractFiniteElement(UFLObject):
     """Base class for all finite elements.
 
     To make your element library compatible with UFL, you should make a subclass of AbstractFiniteElement

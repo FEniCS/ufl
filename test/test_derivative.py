@@ -12,10 +12,12 @@ from ufl.algorithms import compute_form_data, expand_indices, strip_variables
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
-from ufl.classes import Indexed, MultiIndex, ReferenceGrad
 from ufl.constantvalue import as_ufl
+from ufl.core.multiindex import MultiIndex
+from ufl.differentiation import ReferenceGrad
 from ufl.domain import extract_unique_domain
 from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.indexed import Indexed
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2
 

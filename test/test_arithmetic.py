@@ -1,6 +1,7 @@
 from ufl import (Identity, Mesh, SpatialCoordinate, as_matrix, as_ufl, as_vector, elem_div, elem_mult, elem_op, sin,
                  tetrahedron, triangle)
-from ufl.classes import ComplexValue, Division, FloatValue, IntValue
+from ufl.algebra import Division
+from ufl.constantvalue import ComplexValue, FloatValue, IntValue
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1

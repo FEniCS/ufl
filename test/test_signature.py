@@ -4,7 +4,7 @@ from ufl import (Argument, CellDiameter, CellVolume, Circumradius, Coefficient, 
                  Identity, Mesh, SpatialCoordinate, TestFunction, as_vector, diff, dot, ds, dx, hexahedron, indices,
                  inner, interval, quadrilateral, tetrahedron, triangle, variable)
 from ufl.algorithms.signature import compute_multiindex_hashdata, compute_terminal_hashdata
-from ufl.classes import FixedIndex, MultiIndex
+from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.finiteelement import FiniteElement, SymmetricElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2

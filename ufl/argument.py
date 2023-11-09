@@ -17,7 +17,7 @@ classes (functions), including TestFunction and TrialFunction.
 import numbers
 
 from ufl.core.terminal import FormArgument
-from ufl.core.ufl_type import ufl_type
+from ufl.core.ufl_type import UFLObject
 from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
@@ -29,11 +29,10 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 
 # --- Class representing an argument (basis function) in a form ---
 
-class BaseArgument(object):
+class BaseArgument(UFLObject):
     """UFL value: Representation of an argument to a form."""
 
     __slots__ = ()
-    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         """Get new args."""
@@ -137,7 +136,6 @@ class BaseArgument(object):
         )
 
 
-@ufl_type()
 class Argument(FormArgument, BaseArgument):
     """UFL value: Representation of an argument to a form."""
 
@@ -180,7 +178,6 @@ class Argument(FormArgument, BaseArgument):
         return self._repr
 
 
-@ufl_type()
 class Coargument(BaseForm, BaseArgument):
     """UFL value: Representation of an argument to a form in a dual space."""
 

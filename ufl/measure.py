@@ -15,6 +15,7 @@ from itertools import chain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
+from ufl.core.ufl_type import UFLObject
 from ufl.domain import AbstractDomain, as_domain, extract_domains
 from ufl.protocols import id_or_none
 
@@ -74,7 +75,7 @@ def measure_names():
     return tuple(sorted(measure_name_to_integral_type.keys()))
 
 
-class Measure(object):
+class Measure(UFLObject):
     """Representation of an integration measure.
 
     The Measure object holds information about integration properties
@@ -133,6 +134,10 @@ class Measure(object):
         if metadata is not None and not isinstance(metadata, dict):
             raise ValueError("Invalid metadata.")
         self._metadata = metadata or {}
+
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return (self._integral_type, self._domain, self._subdomain_id, self._metadata, self._subdomain_data)
 
     def integral_type(self):
         """Return the domain type.
@@ -381,7 +386,7 @@ class Measure(object):
         return Form([integral])
 
 
-class MeasureSum(object):
+class MeasureSum(UFLObject):
     """Represents a sum of measures.
 
     This is a notational intermediate object to translate the notation
@@ -395,6 +400,13 @@ class MeasureSum(object):
     def __init__(self, *measures):
         """Initialise."""
         self._measures = measures
+
+    def __repr__(self):
+        return "MeasureSum(" + ", ".join(f"{m!r}" for m in self._measures) + ")"
+
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return self._measures
 
     def __rmul__(self, other):
         """Multiply."""
@@ -414,7 +426,7 @@ class MeasureSum(object):
         return "{\n    " + "\n  + ".join(map(str, self._measures)) + "\n}"
 
 
-class MeasureProduct(object):
+class MeasureProduct(UFLObject):
     """Represents a product of measures.
 
     This is a notational intermediate object to handle the notation

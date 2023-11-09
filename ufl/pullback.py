@@ -8,13 +8,14 @@
 from __future__ import annotations
 
 import typing
-from abc import ABC, abstractmethod, abstractproperty
+from abc import abstractmethod, abstractproperty
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 from ufl.core.expr import Expr
 from ufl.core.multiindex import indices
+from ufl.core.ufl_type import UFLObject
 from ufl.domain import extract_unique_domain
 from ufl.tensors import as_tensor
 
@@ -32,7 +33,7 @@ class NonStandardPullbackException(BaseException):
     pass
 
 
-class AbstractPullback(ABC):
+class AbstractPullback(UFLObject):
     """An abstract pull back."""
 
     @abstractmethod
@@ -63,6 +64,12 @@ class AbstractPullback(ABC):
         Returns: The function pulled back to the reference cell
         """
         raise NonStandardPullbackException()
+
+    def __str__(self):
+        return self.__repr__()
+
+    def _ufl_hash_data_(self):
+        return self.__repr__()
 
 
 class IdentityPullback(AbstractPullback):
@@ -119,7 +126,7 @@ class ContravariantPiola(AbstractPullback):
 
         Returns: The function pulled back to the reference cell
         """
-        from ufl.classes import Jacobian, JacobianDeterminant
+        from ufl.geometry import Jacobian, JacobianDeterminant
 
         domain = extract_unique_domain(expr)
         J = Jacobian(domain)

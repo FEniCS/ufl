@@ -12,7 +12,6 @@ from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
 from ufl.constantvalue import Zero
 from ufl.core.base_form_operator import BaseFormOperator
-from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.matrix import Matrix
@@ -21,7 +20,6 @@ from ufl.matrix import Matrix
 #     to be computed at assembly time ---
 
 
-@ufl_type()
 class Action(BaseForm):
     """UFL base form type: respresents the action of an object on another.
 

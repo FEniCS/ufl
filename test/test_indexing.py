@@ -1,10 +1,13 @@
 import pytest
 
 from ufl import Index, Mesh, SpatialCoordinate, outer, triangle
-from ufl.classes import FixedIndex, Indexed, MultiIndex, Outer, Zero
+from ufl.constantvalue import Zero
+from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.finiteelement import FiniteElement
+from ufl.indexed import Indexed
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
+from ufl.tensoralgebra import Outer
 
 
 @pytest.fixture

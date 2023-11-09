@@ -22,6 +22,8 @@ __all__ = []
 # Import all submodules, triggering execution of the ufl_type class
 # decorator for each Expr class.
 
+import inspect
+
 import ufl.algebra
 import ufl.argument
 import ufl.averaging
@@ -56,14 +58,13 @@ import ufl.variable
 
 # Collect all classes in sets automatically classified by some properties
 all_ufl_classes = set(ufl.core.expr.Expr._ufl_all_classes_)
-abstract_classes = set(c for c in all_ufl_classes if c._ufl_is_abstract_)
-ufl_classes = set(c for c in all_ufl_classes if not c._ufl_is_abstract_)
+abstract_classes = set(c for c in all_ufl_classes if inspect.isabstract(c))
+ufl_classes = set(c for c in all_ufl_classes if not inspect.isabstract(c))
 terminal_classes = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
 nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
 
 __all__ += [
     "all_ufl_classes",
-    "abstract_classes",
     "ufl_classes",
     "terminal_classes",
     "nonterminal_classes",

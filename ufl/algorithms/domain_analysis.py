@@ -12,6 +12,7 @@ from collections import defaultdict
 
 import ufl
 from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
+from ufl.core.ufl_type import UFLObject
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.protocols import id_or_none
@@ -19,7 +20,7 @@ from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
 
 
-class IntegralData(object):
+class IntegralData(UFLObject):
     """Utility class.
 
     This class has members (domain, integral_type, subdomain_id, integrals, metadata),
@@ -79,7 +80,7 @@ class IntegralData(object):
         return s
 
 
-class ExprTupleKey(object):
+class ExprTupleKey(UFLObject):
     """Tuple comparison helper."""
     __slots__ = ('x',)
 

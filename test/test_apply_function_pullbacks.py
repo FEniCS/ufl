@@ -2,10 +2,11 @@ import numpy
 
 from ufl import Cell, Coefficient, FunctionSpace, Mesh, as_tensor, as_vector, dx, indices, triangle
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
 from ufl.finiteelement import FiniteElement, MixedElement, SymmetricElement
+from ufl.geometry import Jacobian, JacobianDeterminant, JacobianInverse
 from ufl.pullback import (contravariant_piola, covariant_piola, double_contravariant_piola, double_covariant_piola,
                           identity_pullback, l2_piola)
+from ufl.referencevalue import ReferenceValue
 from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
 
 

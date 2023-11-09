@@ -41,8 +41,12 @@ def parstr(child, parent, pre="(", post=")", format=str):
 
 def build_precedence_list():
     """Build precedence list."""
-    from ufl.classes import (Abs, BesselFunction, Division, Indexed, IndexSum, MathFunction, Operator, Power, Product,
-                             Sum, Terminal)
+    from ufl.algebra import Abs, Division, Power, Product, Sum
+    from ufl.core.operator import Operator
+    from ufl.core.terminal import Terminal
+    from ufl.indexed import Indexed
+    from ufl.indexsum import IndexSum
+    from ufl.mathfunctions import BesselFunction, MathFunction
 
     # TODO: Fill in other types...
     # Power <= Transposed
@@ -74,7 +78,8 @@ def build_precedence_mapping(precedence_list):
 
     Utility function used by some external code.
     """
-    from ufl.classes import Expr, abstract_classes, all_ufl_classes
+    from ufl.classes import abstract_classes, all_ufl_classes
+    from ufl.core.expr import Expr
     pm = {}
     missing = set()
     # Assign integer values for each precedence level

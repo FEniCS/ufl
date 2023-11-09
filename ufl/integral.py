@@ -12,6 +12,7 @@
 import ufl
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.core.expr import Expr
+from ufl.core.ufl_type import UFLObject
 from ufl.measure import Measure  # noqa
 from ufl.protocols import id_or_none
 
@@ -19,7 +20,7 @@ from ufl.protocols import id_or_none
 __all_classes__ = ["Integral"]
 
 
-class Integral(object):
+class Integral(UFLObject):
     """An integral over a single domain."""
 
     __slots__ = ("_integrand", "_integral_type", "_ufl_domain", "_subdomain_id", "_metadata", "_subdomain_data")
