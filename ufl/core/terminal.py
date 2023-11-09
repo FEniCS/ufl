@@ -25,7 +25,7 @@ class Terminal(Expr):
     """
 
     __slots__ = ()
-
+    _ufl_typecode_ = -1
     def __init__(self):
         """Initialise the terminal."""
         Expr.__init__(self)

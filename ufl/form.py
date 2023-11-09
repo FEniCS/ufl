@@ -12,6 +12,7 @@
 # Modified by Jørgen S. Dokken 2023.
 
 import numbers
+import typing
 import warnings
 from collections import defaultdict
 from itertools import chain
@@ -82,7 +83,7 @@ class BaseForm(object, metaclass=UFLType):
     # classes
     __slots__ = ()
     _ufl_is_abstract_ = True
-    _ufl_required_methods_ = ('_analyze_form_arguments', '_analyze_domains', 'ufl_domains')
+    _ufl_required_methods_: typing.Tuple[str, ...] = ('_analyze_form_arguments', '_analyze_domains', 'ufl_domains')
 
     def __init__(self):
         """Initialise."""
@@ -706,7 +707,7 @@ class FormSum(BaseForm):
                  "_domains",
                  "_domain_numbering",
                  "_hash")
-    _ufl_required_methods_ = ('_analyze_form_arguments')
+    _ufl_required_methods_ = ('_analyze_form_arguments', )
 
     def __new__(cls, *args, **kwargs):
         """Create a new FormSum."""

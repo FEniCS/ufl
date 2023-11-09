@@ -8,6 +8,7 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+import typing
 import numbers
 import warnings
 
@@ -115,7 +116,7 @@ class Expr(metaclass=UFLType):
     # A reference to the UFL class itself.  This makes it possible to
     # do type(f)._ufl_class_ and be sure you get the actual UFL class
     # instead of a subclass from another library.
-    _ufl_class_ = None
+    _ufl_class_: typing.Optional[UFLType] = None
 
     # The handler name.  This is the name of the handler function you
     # implement for this type in a multifunction.
@@ -160,10 +161,10 @@ class Expr(metaclass=UFLType):
 
     # A global dict mapping language_operator_name to the type it
     # produces
-    _ufl_language_operators_ = {}
+    _ufl_language_operators_: typing.Dict[str, UFLType] = {}
 
     # List of all terminal modifier types
-    _ufl_terminal_modifiers_ = []
+    _ufl_terminal_modifiers_: typing.List[UFLType] = []
 
     # --- Mechanism for profiling object creation and deletion ---
 

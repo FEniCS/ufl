@@ -8,6 +8,7 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
+import typing
 
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
@@ -29,7 +30,7 @@ class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
     __slots__ = ("_value", "_hash")
 
-    _cache = {}
+    _cache: typing.Dict[int, IndexBase] = {}
 
     def __getnewargs__(self):
         """Get new args."""
@@ -114,7 +115,7 @@ class MultiIndex(Terminal):
     """Represents a sequence of indices, either fixed or free."""
     __slots__ = ("_indices",)
 
-    _cache = {}
+    _cache: typing.Dict[int, Terminal] = {}
 
     def __getnewargs__(self):
         """Get new args."""

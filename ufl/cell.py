@@ -59,7 +59,7 @@ class AbstractCell(UFLObject):
         """Return the cellname of the cell."""
 
     @abstractmethod
-    def reconstruct(self, **kwargs: typing.Any) -> Cell:
+    def reconstruct(self, **kwargs: typing.Any) -> AbstractCell:
         """Reconstruct this cell, overwriting properties by those in kwargs."""
 
     def __lt__(self, other: AbstractCell) -> bool:
@@ -184,7 +184,7 @@ class AbstractCell(UFLObject):
         return self.sub_entity_types(tdim - 3)
 
 
-_sub_entity_celltypes = {
+_sub_entity_celltypes: typing.Dict[str, typing.List[typing.Tuple[str, ...]]] = {
     "vertex": [("vertex", )],
     "interval": [tuple("vertex" for i in range(2)), ("interval", )],
     "triangle": [tuple("vertex" for i in range(3)), tuple("interval" for i in range(3)), ("triangle", )],
@@ -307,7 +307,7 @@ class Cell(AbstractCell):
         """UFL hash data."""
         return (self._cellname, self._gdim)
 
-    def reconstruct(self, **kwargs: typing.Any) -> Cell:
+    def reconstruct(self, **kwargs: typing.Any) -> AbstractCell:
         """Reconstruct this cell, overwriting properties by those in kwargs."""
         gdim = self._gdim
         for key, value in kwargs.items():
@@ -323,7 +323,7 @@ class TensorProductCell(AbstractCell):
 
     __slots__ = ("_cells", "_tdim", "_gdim")
 
-    def __init__(self, *cells: Cell, geometric_dimension: typing.Optional[int] = None):
+    def __init__(self, *cells: AbstractCell, geometric_dimension: typing.Optional[int] = None):
         """Initialise.
 
         Args:
@@ -342,7 +342,7 @@ class TensorProductCell(AbstractCell):
         if self._tdim > self._gdim:
             raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
-    def sub_cells(self) -> typing.List[AbstractCell]:
+    def sub_cells(self) -> typing.Tuple[AbstractCell, ...]:
         """Return list of cell factors."""
         return self._cells
 
@@ -385,21 +385,21 @@ class TensorProductCell(AbstractCell):
     def sub_entities(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the sub-entities of the given dimension."""
         if dim < 0 or dim > self._tdim:
-            return []
+            return ()
         if dim == 0:
-            return [Cell("vertex", self._gdim) for i in range(self.num_sub_entities(0))]
+            return tuple(Cell("vertex", self._gdim) for i in range(self.num_sub_entities(0)))
         if dim == self._tdim:
-            return [self]
+            return (self, )
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
     def sub_entity_types(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique sub-entity types of the given dimension."""
         if dim < 0 or dim > self._tdim:
-            return []
+            return ()
         if dim == 0:
-            return [Cell("vertex", self._gdim)]
+            return (Cell("vertex", self._gdim), )
         if dim == self._tdim:
-            return [self]
+            return (self, )
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
     def _lt(self, other) -> bool:
@@ -426,7 +426,7 @@ class TensorProductCell(AbstractCell):
         """UFL hash data."""
         return tuple(c._ufl_hash_data_() for c in self._cells) + (self._gdim,)
 
-    def reconstruct(self, **kwargs: typing.Any) -> Cell:
+    def reconstruct(self, **kwargs: typing.Any) -> AbstractCell:
         """Reconstruct this cell, overwriting properties by those in kwargs."""
         gdim = self._gdim
         for key, value in kwargs.items():
@@ -477,6 +477,6 @@ def as_cell(cell: typing.Union[AbstractCell, str, typing.Tuple[AbstractCell, ...
     elif isinstance(cell, str):
         return Cell(cell)
     elif isinstance(cell, tuple):
-        return TensorProductCell(cell)
+        return TensorProductCell(*cell)
     else:
         raise ValueError(f"Invalid cell {cell}.")

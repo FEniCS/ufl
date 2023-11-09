@@ -8,6 +8,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 import inspect
+import typing
 
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import UFLType
@@ -45,7 +46,7 @@ class MultiFunction(object):
     algorithm object. Of course Python's function call overhead still applies.
     """
 
-    _handlers_cache = {}
+    _handlers_cache: typing.Dict[UFLType, typing.Tuple[typing.List[str], bool]] = {}
 
     def __init__(self):
         """Initialise."""

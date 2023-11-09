@@ -9,10 +9,10 @@
 # Modified by Anders Logg, 2011.
 # Modified by Massimiliano Leoni, 2016.
 
+import typing
 from math import atan2
 
 import ufl
-# --- Helper functions imported here for compatibility---
 from ufl.checks import is_python_scalar, is_true_ufl_scalar, is_ufl_scalar  # noqa: F401
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
@@ -62,7 +62,7 @@ class Zero(ConstantValue):
 
     __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
 
-    _cache = {}
+    _cache: typing.Dict[int, ConstantValue] = {}
 
     def __getnewargs__(self):
         """Get new args."""
@@ -347,7 +347,7 @@ class IntValue(RealValue):
     """Representation of a constant scalar integer value."""
     __slots__ = ()
 
-    _cache = {}
+    _cache: typing.Dict[int, RealValue] = {}
 
     def __getnewargs__(self):
         """Get new args."""
