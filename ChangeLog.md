@@ -9,7 +9,7 @@
 - Remove scripts
 - Remove LaTeX support (not functional)
 - Add support for complex valued elements; complex mode
-  is chosen by ``compute_form_data(form, complex_mode=True)`` typically
+  is chosen by `compute_form_data(form, complex_mode=True)` typically
   by a form compiler; otherwise UFL language is agnostic to the choice
   of real/complex domain
 
@@ -19,16 +19,16 @@
 
 ## 2017.2.0 (2017-12-05)
 
-- Add geometric quantity ``CellDiameter`` defined as a set diameter
+- Add geometric quantity `CellDiameter` defined as a set diameter
   of the cell, i.e., maximal distance between any two points of the
   cell; implemented on simplices and quads/hexes
 - Rename internally used reference quantities
-  ``(Cell|Facet)EdgeVectors`` to ``Reference(Cell|Facet)EdgeVectors``
-- Add internally used quantites ``CellVertices``,
-  ``(Cell|Facet)EdgeVectors`` which are physical-coordinates-valued;
+  `(Cell|Facet)EdgeVectors` to `Reference(Cell|Facet)EdgeVectors`
+- Add internally used quantites `CellVertices`,
+  `(Cell|Facet)EdgeVectors` which are physical-coordinates-valued;
   will be useful for further geometry lowering implementations
   for quads/hexes
-- Implement geometry lowering of ``(Min|Max)(Cell|Facet)EdgeLength``
+- Implement geometry lowering of `(Min|Max)(Cell|Facet)EdgeLength`
   for quads and hexes
 
 ## 2017.1.0.post1 (2017-09-12)
@@ -37,53 +37,55 @@
 
 ## 2017.1.0 (2017-05-09)
 
-- Add the ``DirectionalSobolevSpace`` subclass of ``SobolevSpace``. This
+- Add the `DirectionalSobolevSpace` subclass of `SobolevSpace`. This
   allows one to use spaces where elements have varying continuity in
   different spatial directions.
-- Add ``sobolev_space`` methods for ``HDiv`` and ``HCurl`` finite
+- Add `sobolev_space` methods for `HDiv` and `HCurl` finite
   elements.
-- Add ``sobolev_space`` methods for ``TensorProductElement`` and
-  ``EnrichedElement``.  The smallest shared Sobolev space will be
+- Add `sobolev_space` methods for `TensorProductElement` and
+  `EnrichedElement`.  The smallest shared Sobolev space will be
   returned for enriched elements. For the tensor product elements, a
-  ``DirectionalSobolevSpace`` is returned depending on the order of the
+  `DirectionalSobolevSpace` is returned depending on the order of the
   spaces associated with the component elements.
 
 ## 2016.2.0 (2016-11-30)
 
-- Add call operator syntax to ``Form`` to replace arguments and
+- Add call operator syntax to `Form` to replace arguments and
   coefficients. This makes it easier to e.g. express the norm
-  defined by a bilinear form as a functional. Example usage::
-
-    # Equivalent to replace(a, {u: f, v: f})
-    M = a(f, f)
-    # Equivalent to replace(a, {f:1})
-    c = a(coefficients={f:1})
-- Add call operator syntax to ``Form`` to replace arguments and
-  coefficients::
-
-    a(f, g) == replace(a, {u: f, v: g})
-    a(coefficients={f:1}) == replace(a, {f:1})
-- Add ``@`` operator to ``Form``: ``form @ f == action(form, f)``
+  defined by a bilinear form as a functional. Example usage:
+```python
+# Equivalent to replace(a, {u: f, v: f})
+M = a(f, f)
+# Equivalent to replace(a, {f:1})
+c = a(coefficients={f:1})
+```
+- Add call operator syntax to `Form` to replace arguments and
+  coefficients:
+```python
+a(f, g) == replace(a, {u: f, v: g})
+a(coefficients={f:1}) == replace(a, {f:1})
+```
+- Add `@` operator to `Form`: `form @ f == action(form, f)`
   (python 3.5+ only)
-- Reduce noise in Mesh str such that ``print(form)`` gets more short and
+- Reduce noise in Mesh str such that `print(form)` gets more short and
   readable
-- Fix repeated ``split(function)`` for arbitrary nested elements
-- EnrichedElement: Remove ``+/*`` warning
+- Fix repeated `split(function)` for arbitrary nested elements
+- EnrichedElement: Remove `+/*` warning
 
-  In the distant past, ``A + B => MixedElement([A, B])``.  The change
-  that ``A + B => EnrichedElement([A, B])`` was made in ``d622c74`` (22
-  March 2010).  A warning was introduced in ``fcbc5ff`` (26 March 2010)
-  that the meaning of ``+`` had changed, and that users wanting a
-  ``MixedElement`` should use ``*`` instead.  People have, presumably,
+  In the distant past, `A + B => MixedElement([A, B])`.  The change
+  that `A + B => EnrichedElement([A, B])` was made in `d622c74` (22
+  March 2010).  A warning was introduced in `fcbc5ff` (26 March 2010)
+  that the meaning of `+` had changed, and that users wanting a
+  `MixedElement` should use `*` instead.  People have, presumably,
   been seeing this warning for 6 1/2 years by now, so it's probably safe
   to remove.
-- Rework ``TensorProductElement`` implementation, replaces
-  ``OuterProductElement``
-- Rework ``TensorProductCell`` implementation, replaces
-  ``OuterProductCell``
-- Remove ``OuterProductVectorElement`` and ``OuterProductTensorElement``
-- Add ``FacetElement`` and ``InteriorElement``
-- Add ``Hellan-Herrmann-Johnson`` element
+- Rework `TensorProductElement` implementation, replaces
+  `OuterProductElement`
+- Rework `TensorProductCell` implementation, replaces
+  `OuterProductCell`
+- Remove `OuterProductVectorElement` and `OuterProductTensorElement`
+- Add `FacetElement` and `InteriorElement`
+- Add `Hellan-Herrmann-Johnson` element
 - Add support for double covariant and contravariant mappings in mixed
   elements
 - Support discontinuous Taylor elements on all simplices
@@ -137,7 +139,7 @@
 - Remove Measure constants
 - Remove cell2D and cell3D
 - Implement reference_value in apply_restrictions
-- Rename point integral to vertex integral and kept ``*dP`` syntax
+- Rename point integral to vertex integral and kept `*dP` syntax
 - Replace lambda functions in ufl_type with named functions for nicer
   stack traces
 - Minor bugfixes, removal of unused code and cleanups
@@ -183,7 +185,7 @@
 
 ## 1.4.0 (2014-06-02)
 
-- New integral type custom_integral (``*dc``)
+- New integral type custom_integral (`*dc`)
 - Add analysis of which coefficients each integral actually uses to optimize assembly
 - Improved svg rendering of cells and sobolevspaces in ipython notebook
 - Add sobolev spaces, use notation "element in HCurl" (HCurl, HDiv, H1, H2, L2)
@@ -277,7 +279,7 @@
 - Added bessel functions of first and second kind, normal and modified,
   bessel_J(nu, x), bessel_Y(nu, x), bessel_I(nu, x), bessel_K(nu, x)
 - Extended derivative() to allow indexed coefficient(s) as differentiation variable
-- Made ``*Constant`` use the ``Real`` space instead of ``DG0``
+- Made `*Constant` use the `Real` space instead of `DG0`
 - Bugfix in adjoint where test and trial functions were in different spaces
 - Bugfix in replace where the argument to a grad was replaced with 0
 - Bugfix in reconstruction of tensor elements
@@ -360,7 +362,7 @@
 - Bug fix for lhs/rhs with list tensor types
 - Add new log function set_prefix
 - Add new log function log(level, message)
-- Added macro cell integral ``*dE``
+- Added macro cell integral `*dE`
 - Added mechanism to add additional integral types
 - Added LiftingOperator and LiftingFunction
 - Added ElementRestriction
