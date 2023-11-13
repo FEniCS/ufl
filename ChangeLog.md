@@ -53,18 +53,18 @@
 - Add call operator syntax to `Form` to replace arguments and
   coefficients. This makes it easier to e.g. express the norm
   defined by a bilinear form as a functional. Example usage:
-```python
-# Equivalent to replace(a, {u: f, v: f})
-M = a(f, f)
-# Equivalent to replace(a, {f:1})
-c = a(coefficients={f:1})
-```
+    ```python
+    # Equivalent to replace(a, {u: f, v: f})
+    M = a(f, f)
+    # Equivalent to replace(a, {f:1})
+    c = a(coefficients={f:1})
+    ```
 - Add call operator syntax to `Form` to replace arguments and
   coefficients:
-```python
-a(f, g) == replace(a, {u: f, v: g})
-a(coefficients={f:1}) == replace(a, {f:1})
-```
+    ```python
+    a(f, g) == replace(a, {u: f, v: g})
+    a(coefficients={f:1}) == replace(a, {f:1})
+    ```
 - Add `@` operator to `Form`: `form @ f == action(form, f)`
   (python 3.5+ only)
 - Reduce noise in Mesh str such that `print(form)` gets more short and
