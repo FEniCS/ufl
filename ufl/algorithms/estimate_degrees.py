@@ -11,10 +11,10 @@
 
 import warnings
 
-from ufl.corealg.multifunction import MultiFunction
 from ufl.checks import is_cellwise_constant
 from ufl.constantvalue import IntValue
 from ufl.corealg.map_dag import map_expr_dags
+from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import extract_unique_domain
 from ufl.form import Form
 from ufl.integral import Integral
@@ -52,14 +52,14 @@ class SumDegreeEstimator(MultiFunction):
             return 0
         else:
             # As a heuristic, just returning domain degree to bump up degree somewhat
-            return extract_unique_domain(v).ufl_coordinate_element().degree()
+            return extract_unique_domain(v).ufl_coordinate_element().embedded_superdegree
 
     def spatial_coordinate(self, v):
         """Apply to spatial_coordinate.
 
         A coordinate provides additional degrees depending on coordinate field of domain.
         """
-        return extract_unique_domain(v).ufl_coordinate_element().degree()
+        return extract_unique_domain(v).ufl_coordinate_element().embedded_superdegree
 
     def cell_coordinate(self, v):
         """Apply to cell_coordinate.
@@ -74,7 +74,7 @@ class SumDegreeEstimator(MultiFunction):
         A form argument provides a degree depending on the element,
         or the default degree if the element has no degree.
         """
-        return v.ufl_element().degree()  # FIXME: Use component to improve accuracy for mixed elements
+        return v.ufl_element().embedded_superdegree  # FIXME: Use component to improve accuracy for mixed elements
 
     def coefficient(self, v):
         """Apply to coefficient.
@@ -84,7 +84,7 @@ class SumDegreeEstimator(MultiFunction):
         """
         e = v.ufl_element()
         e = self.element_replace_map.get(e, e)
-        d = e.degree()  # FIXME: Use component to improve accuracy for mixed elements
+        d = e.embedded_superdegree  # FIXME: Use component to improve accuracy for mixed elements
         if d is None:
             d = self.default_degree
         return d

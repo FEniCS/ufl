@@ -5,9 +5,9 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument
+from ufl.core.ufl_type import ufl_type
 
 
 @ufl_type(num_ops=1,
@@ -28,7 +28,7 @@ class ReferenceValue(Operator):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        return self.ufl_operands[0].ufl_element().reference_value_shape()
+        return self.ufl_operands[0].ufl_element().reference_value_shape
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         """Get child from mapping and return the component asked for."""

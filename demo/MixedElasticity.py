@@ -17,8 +17,11 @@
 #
 # First added:  2008-10-03
 # Last changed: 2011-07-22
-from ufl import (FunctionSpace, Mesh, MixedElement, TestFunctions, TrialFunctions, VectorElement, as_vector, div, dot,
-                 dx, inner, skew, tetrahedron, tr)
+from ufl import (FunctionSpace, Mesh, TestFunctions, TrialFunctions, as_vector, div, dot, dx, inner, skew, tetrahedron,
+                 tr)
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pullback import contravariant_piola, identity_pullback
+from ufl.sobolevspace import H1, L2, HDiv
 
 
 def skw(tau):
@@ -32,18 +35,13 @@ n = 3
 
 # Finite element exterior calculus syntax
 r = 1
-S = VectorElement("P Lambda", cell, r, form_degree=n - 1)
-V = VectorElement("P Lambda", cell, r - 1, form_degree=n)
-Q = VectorElement("P Lambda", cell, r - 1, form_degree=n)
+S = FiniteElement("vector BDM", cell, r, (3, 3), contravariant_piola, HDiv)
+V = FiniteElement("Discontinuous Lagrange", cell, r - 1, (3, ), identity_pullback, L2)
+Q = FiniteElement("Discontinuous Lagrange", cell, r - 1, (3, ), identity_pullback, L2)
 
-# Alternative syntax:
-# S = VectorElement("BDM", cell, r)
-# V = VectorElement("Discontinuous Lagrange", cell, r-1)
-# Q = VectorElement("Discontinuous Lagrange", cell, r-1)
+W = MixedElement([S, V, Q])
 
-W = MixedElement(S, V, Q)
-
-domain = Mesh(VectorElement("Lagrange", cell, 1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1))
 space = FunctionSpace(domain, W)
 
 (sigma, u, gamma) = TrialFunctions(space)

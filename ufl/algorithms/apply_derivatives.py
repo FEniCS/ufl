@@ -10,34 +10,30 @@ import warnings
 from collections import defaultdict
 from math import pi
 
+from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
+from ufl.argument import BaseArgument
 from ufl.checks import is_cellwise_constant
-from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue,
-                         ExprList, ExprMapping, FloatValue, FormArgument, Grad,
-                         Identity, Imag, Indexed, IndexSum, JacobianInverse,
-                         ListTensor, Product, Real, ReferenceGrad,
-                         ReferenceValue, SpatialCoordinate, Sum, Variable,
-                         Zero)
+from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue, ExprList, ExprMapping, FloatValue,
+                         FormArgument, Grad, Identity, Imag, Indexed, IndexSum, JacobianInverse, ListTensor, Product,
+                         Real, ReferenceGrad, ReferenceValue, SpatialCoordinate, Sum, Variable, Zero)
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
 from ufl.core.terminal import Terminal
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.differentiation import CoordinateDerivative, BaseFormCoordinateDerivative, BaseFormOperatorDerivative
+from ufl.differentiation import BaseFormCoordinateDerivative, BaseFormOperatorDerivative, CoordinateDerivative
 from ufl.domain import extract_unique_domain
-from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg,
-                           conditional, cos, cosh, exp, facet_avg, ln, sign,
-                           sin, sinh, sqrt)
-from ufl.tensors import (as_scalar, as_scalars, as_tensor, unit_indexed_tensor,
-                         unwrap_list_tensor)
-
-from ufl.argument import BaseArgument
-from ufl.action import Action
 from ufl.form import Form, ZeroBaseForm
-from ufl.core.base_form_operator import BaseFormOperator
+from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
+                           sign, sin, sinh, sqrt)
+from ufl.pullback import CustomPullback, PhysicalPullback
+from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, unwrap_list_tensor
+
 # TODO: Add more rulesets?
 # - DivRuleset
 # - CurlRuleset
@@ -597,7 +593,7 @@ class GradRuleset(GenericDerivativeRuleset):
         """Differentiate a reference_value."""
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
-        if f.ufl_element().mapping() == "physical":
+        if isinstance(f.ufl_element().pullback, PhysicalPullback):
             # TODO: Do we need to be more careful for immersed things?
             return ReferenceGrad(o)
 
@@ -836,7 +832,7 @@ class VariableRuleset(GenericDerivativeRuleset):
         # d/dv(o) == d/dv(rv(f)) = 0 if v is not f, or rv(dv/df)
         v = self._variable
         if isinstance(v, Coefficient) and o.ufl_operands[0] == v:
-            if v.ufl_element().mapping() != "identity":
+            if not v.ufl_element().pullback.is_identity:
                 # FIXME: This is a bit tricky, instead of Identity it is
                 #   actually inverse(transform), or we should rather not
                 #   convert to reference frame in the first place
@@ -1641,7 +1637,7 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
         """Apply to a coordinate_derivative."""
         from ufl.algorithms import extract_unique_elements
         for space in extract_unique_elements(o):
-            if space.mapping() == "custom":
+            if isinstance(space.pullback, CustomPullback):
                 raise NotImplementedError(
                     "CoordinateDerivative is not supported for elements with custom pull back.")
 

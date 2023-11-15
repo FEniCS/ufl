@@ -6,13 +6,13 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.argument import Argument, Coargument
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
-from ufl.argument import Argument, Coargument
 from ufl.constantvalue import Zero
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
-from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import extract_unique_domain, find_geometric_dimension
@@ -101,7 +101,7 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
 
     def _analyze_form_arguments(self):
         """Collect the arguments of the corresponding BaseForm."""
-        from ufl.algorithms.analysis import extract_type, extract_coefficients
+        from ufl.algorithms.analysis import extract_coefficients, extract_type
         base_form, _, arguments, _ = self.ufl_operands
 
         def arg_type(x):

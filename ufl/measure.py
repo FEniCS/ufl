@@ -10,15 +10,13 @@
 # Modified by Massimiliano Leoni, 2016.
 
 import numbers
-
 from itertools import chain
 
-from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
-from ufl.domain import as_domain, AbstractDomain, extract_domains
+from ufl.core.expr import Expr
+from ufl.domain import AbstractDomain, as_domain, extract_domains
 from ufl.protocols import id_or_none
-
 
 # Export list for ufl.classes
 __all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
@@ -123,9 +121,11 @@ class Measure(object):
         self._integral_type = as_integral_type(integral_type)
 
         # Check that we either have a proper AbstractDomain or none
-        self._domain = None if domain is None else as_domain(domain)
-        if not (self._domain is None or isinstance(self._domain, AbstractDomain)):
-            raise ValueError("Invalid domain.")
+        if domain is not None:
+            domain = as_domain(domain)
+            if not isinstance(domain, AbstractDomain):
+                raise ValueError("Invalid domain.")
+        self._domain = domain
 
         # Store subdomain data
         self._subdomain_data = subdomain_data
@@ -231,11 +231,11 @@ class Measure(object):
         # over entire domain.  To do this we need to hijack the first
         # argument:
         if subdomain_id is not None and (
-            isinstance(subdomain_id, AbstractDomain) or hasattr(subdomain_id, 'ufl_domain')
+            isinstance(subdomain_id, AbstractDomain) or hasattr(subdomain_id, "ufl_domain")
         ):
             if domain is not None:
                 raise ValueError("Ambiguous: setting domain both as keyword argument and first argument.")
-            subdomain_id, domain = "everywhere", as_domain(subdomain_id)
+            subdomain_id, domain = "everywhere", subdomain_id
 
         # If degree or scheme is set, inject into metadata. This is a
         # quick fix to enable the dx(..., degree=3) notation.
@@ -344,8 +344,8 @@ class Measure(object):
         Integration properties are taken from this Measure object.
         """
         # Avoid circular imports
-        from ufl.integral import Integral
         from ufl.form import Form
+        from ufl.integral import Integral
 
         # Allow python literals: 1*dx and 1.0*dx
         if isinstance(integrand, (int, float)):

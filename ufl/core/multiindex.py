@@ -9,9 +9,9 @@
 # Modified by Massimiliano Leoni, 2016.
 
 
-from ufl.utils.counted import Counted
-from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
+from ufl.utils.counted import Counted
 
 # Export list for ufl.classes
 __all_classes__ = ["IndexBase", "FixedIndex", "Index"]

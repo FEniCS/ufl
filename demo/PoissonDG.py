@@ -21,12 +21,15 @@
 # The bilinear form a(v, u) and linear form L(v) for
 # Poisson's equation in a discontinuous Galerkin (DG)
 # formulation.
-from ufl import (Coefficient, Constant, FacetNormal, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction,
-                 VectorElement, avg, dot, dS, ds, dx, grad, inner, jump, triangle)
+from ufl import (Coefficient, Constant, FacetNormal, FunctionSpace, Mesh, TestFunction, TrialFunction, avg, dot, dS, ds,
+                 dx, grad, inner, jump, triangle)
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1, L2
 
 cell = triangle
-element = FiniteElement("Discontinuous Lagrange", cell, 1)
-domain = Mesh(VectorElement("Lagrange", cell, 1))
+element = FiniteElement("Discontinuous Lagrange", cell, 1, (), identity_pullback, L2)
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)

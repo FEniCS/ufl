@@ -3,13 +3,16 @@ __authors__ = "Marie E. Rognes"
 # First added: 2011-11-09
 # Last changed: 2011-11-09
 
-from ufl import (Argument, Coefficient, Constant, FiniteElement, FunctionSpace, Mesh, TestFunction, TrialFunction,
-                 VectorElement, action, derivative, ds, dS, dx, exp, interval, system)
+from ufl import (Argument, Coefficient, Constant, FunctionSpace, Mesh, TestFunction, TrialFunction, action, derivative,
+                 ds, dS, dx, exp, interval, system)
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 def test_lhs_rhs_simple():
-    V = FiniteElement("CG", interval, 1)
-    domain = Mesh(VectorElement("Lagrange", interval, 1))
+    V = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
     space = FunctionSpace(domain, V)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -37,8 +40,8 @@ def test_lhs_rhs_simple():
 
 
 def test_lhs_rhs_derivatives():
-    V = FiniteElement("CG", interval, 1)
-    domain = Mesh(VectorElement("Lagrange", interval, 1))
+    V = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
     space = FunctionSpace(domain, V)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -54,8 +57,8 @@ def test_lhs_rhs_derivatives():
 
 
 def test_lhs_rhs_slightly_obscure():
-    V = FiniteElement("CG", interval, 1)
-    domain = Mesh(VectorElement("Lagrange", interval, 1))
+    V = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
     space = FunctionSpace(domain, V)
     u = TrialFunction(space)
     w = Argument(space, 2)

@@ -9,14 +9,13 @@
 # Modified by Matthew Scroggs, 2023
 
 from __future__ import annotations
-import typing
-import warnings
 
+import typing
+from abc import ABC, abstractmethod
+
+import ufl.core as core
 from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.utils.formatting import camel2underscore
-from abc import ABC, abstractmethod
-# Avoid circular import
-import ufl.core as core
 
 
 class UFLObject(ABC):
@@ -45,33 +44,6 @@ class UFLObject(ABC):
     def __ne__(self, other):
         """Check inequality."""
         return not self.__eq__(other)
-
-
-def attach_operators_from_hash_data(cls):
-    """Class decorator to attach ``__hash__``, ``__eq__`` and ``__ne__`` implementations.
-
-    These are implemented in terms of a ``._ufl_hash_data()`` method on the class,
-    which should return a tuple or hashable and comparable data.
-    """
-    warnings.warn("attach_operators_from_hash_data deprecated, please use UFLObject instead.", DeprecationWarning)
-    assert hasattr(cls, "_ufl_hash_data_")
-
-    def __hash__(self):
-        """__hash__ implementation attached in attach_operators_from_hash_data."""
-        return hash(self._ufl_hash_data_())
-    cls.__hash__ = __hash__
-
-    def __eq__(self, other):
-        """__eq__ implementation attached in attach_operators_from_hash_data."""
-        return type(self) is type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
-    cls.__eq__ = __eq__
-
-    def __ne__(self, other):
-        """__ne__ implementation attached in attach_operators_from_hash_data."""
-        return not self.__eq__(other)
-    cls.__ne__ = __ne__
-
-    return cls
 
 
 def get_base_attr(cls, name):

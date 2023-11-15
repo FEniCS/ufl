@@ -6,13 +6,11 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import hashlib
-from ufl.classes import (Label,
-                         Index, MultiIndex,
-                         Coefficient, Argument,
-                         GeometricQuantity, ConstantValue, Constant,
-                         ExprList, ExprMapping)
-from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
+
 from ufl.algorithms.domain_analysis import canonicalize_metadata
+from ufl.classes import (Argument, Coefficient, Constant, ConstantValue, ExprList, ExprMapping, GeometricQuantity,
+                         Index, Label, MultiIndex)
+from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
 
 
 def compute_multiindex_hashdata(expr, index_numbering):

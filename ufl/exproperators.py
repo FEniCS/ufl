@@ -14,24 +14,22 @@ Sum and its superclass Expr.
 
 import numbers
 
-from ufl.utils.stacks import StackDict
-from ufl.core.expr import Expr
+from ufl.algebra import Abs, Division, Power, Product, Sum
+from ufl.conditional import GE, GT, LE, LT
 from ufl.constantvalue import Zero, as_ufl
-from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Transposed, Inner
-from ufl.core.multiindex import MultiIndex, Index, indices
+from ufl.core.expr import Expr
+from ufl.core.multiindex import Index, MultiIndex, indices
+from ufl.differentiation import Grad
+from ufl.exprequals import expr_equals
+from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-from ufl.tensors import as_tensor, ComponentTensor
-from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import Grad
-from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
-
-from ufl.exprequals import expr_equals
+from ufl.restriction import NegativeRestricted, PositiveRestricted
+from ufl.tensoralgebra import Inner, Transposed
+from ufl.tensors import ComponentTensor, as_tensor
+from ufl.utils.stacks import StackDict
 
 # --- Boolean operators ---
-
-from ufl.conditional import LE, GE, LT, GT
 
 
 def _le(left, right):

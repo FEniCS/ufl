@@ -1,51 +1,60 @@
 import pytest
 
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Index, Mesh, TensorElement, VectorElement, as_tensor,
-                 interval, sqrt, tetrahedron, triangle)
+from ufl import Coefficient, FunctionSpace, Index, Mesh, as_tensor, interval, sqrt, triangle
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def A0(request):
     return Coefficient(FunctionSpace(
-        Mesh(VectorElement("CG", interval, 1)), FiniteElement("CG", interval, 1)))
+        Mesh(FiniteElement("Lagrange", interval, 1,  (1, ), identity_pullback, H1)),
+        FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)))
 
 
 @pytest.fixture
 def A1(request):
     return Coefficient(FunctionSpace(
-        Mesh(VectorElement("CG", interval, 1)), TensorElement("CG", interval, 1)))
+        Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1)),
+        FiniteElement("Lagrange", interval, 1, (1, 1), identity_pullback, H1)))
 
 
 @pytest.fixture
 def A2(request):
     return Coefficient(FunctionSpace(
-        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1)))
+        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)),
+        FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)))
 
 
 @pytest.fixture
 def A3(request):
     return Coefficient(FunctionSpace(
-        Mesh(VectorElement("CG", tetrahedron, 1)), TensorElement("CG", tetrahedron, 1)))
+        Mesh(FiniteElement("Lagrange", triangle, 1, (3, ), identity_pullback, H1)),
+        FiniteElement("Lagrange", triangle, 1, (3, 3), identity_pullback, H1)))
 
 
 @pytest.fixture
 def A21(request):
     return Coefficient(FunctionSpace(
-        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1, shape=(2, 1))))
+        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)),
+        FiniteElement("Lagrange", triangle, 1, (2, 1), identity_pullback, H1)))
 
 
 @pytest.fixture
 def A31(request):
     return Coefficient(FunctionSpace(
-        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1, shape=(3, 1))))
+        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)),
+        FiniteElement("Lagrange", triangle, 1, (3, 1), identity_pullback, H1)))
 
 
 @pytest.fixture
 def A32(request):
     return Coefficient(FunctionSpace(
-        Mesh(VectorElement("CG", triangle, 1)), TensorElement("CG", triangle, 1, shape=(3, 2))))
+        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)),
+        FiniteElement("Lagrange", triangle, 1, (3, 2), identity_pullback, H1)))
 
 
 def test_determinant0(A0):

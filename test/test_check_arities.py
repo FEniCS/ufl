@@ -1,16 +1,19 @@
 import pytest
 
-from ufl import (Coefficient, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate, TestFunction, TrialFunction,
-                 VectorElement, adjoint, cofac, conj, derivative, ds, dx, grad, inner, tetrahedron)
+from ufl import (Coefficient, FacetNormal, FunctionSpace, Mesh, SpatialCoordinate, TestFunction, TrialFunction, adjoint,
+                 cofac, conj, derivative, ds, dx, grad, inner, tetrahedron)
 from ufl.algorithms.check_arities import ArityMismatch
 from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 def test_check_arities():
     # Code from bitbucket issue #49
     cell = tetrahedron
-    D = Mesh(cell)
-    V = FunctionSpace(D, VectorElement("P", cell, 2))
+    D = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3, ), identity_pullback, H1))
     dv = TestFunction(V)
     du = TrialFunction(V)
 
@@ -33,8 +36,8 @@ def test_check_arities():
 
 def test_complex_arities():
     cell = tetrahedron
-    D = Mesh(cell)
-    V = FunctionSpace(D, VectorElement("P", cell, 2))
+    D = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3, ), identity_pullback, H1))
     v = TestFunction(V)
     u = TrialFunction(V)
 

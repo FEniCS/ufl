@@ -1,27 +1,30 @@
 import pytest
 
-from ufl import (Coefficient, Cofunction, FiniteElement, Form, FormSum, FunctionSpace, Mesh, SpatialCoordinate,
-                 TestFunction, TrialFunction, VectorElement, dot, ds, dx, grad, inner, nabla_grad, triangle)
+from ufl import (Coefficient, Cofunction, Form, FormSum, FunctionSpace, Mesh, SpatialCoordinate, TestFunction,
+                 TrialFunction, dot, ds, dx, grad, inner, nabla_grad, triangle)
+from ufl.finiteelement import FiniteElement
 from ufl.form import BaseForm
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def element():
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     return element
 
 
 @pytest.fixture
 def domain():
     cell = triangle
-    return Mesh(VectorElement("Lagrange", cell, 1))
+    return Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
 
 
 @pytest.fixture
 def mass(domain):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -31,7 +34,7 @@ def mass(domain):
 @pytest.fixture
 def stiffness(domain):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -41,7 +44,7 @@ def stiffness(domain):
 @pytest.fixture
 def convection(domain):
     cell = triangle
-    element = VectorElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -52,7 +55,7 @@ def convection(domain):
 @pytest.fixture
 def load(domain):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     v = TestFunction(space)
@@ -62,7 +65,7 @@ def load(domain):
 @pytest.fixture
 def boundary_load(domain):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     v = TestFunction(space)
@@ -100,8 +103,8 @@ def test_form_coefficients(element, domain):
 
 def test_form_domains():
     cell = triangle
-    domain = Mesh(VectorElement("Lagrange", cell, 1))
-    element = FiniteElement("Lagrange", cell, 1)
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
     V = FunctionSpace(domain, element)
 
     v = TestFunction(V)
@@ -132,8 +135,8 @@ def test_form_integrals(mass, boundary_load):
 
 
 def test_form_call():
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
-    element = FiniteElement("Lagrange", triangle, 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
     V = FunctionSpace(domain, element)
     v = TestFunction(V)
     u = TrialFunction(V)
@@ -151,8 +154,8 @@ def test_form_call():
 
 
 def test_formsum(mass):
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
-    element = FiniteElement("Lagrange", triangle, 1)
+    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
     V = FunctionSpace(domain, element)
     v = Cofunction(V.dual())
 

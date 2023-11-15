@@ -8,8 +8,8 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.core.expr import Expr
-from ufl.corealg.traversal import unique_post_traversal, cutoff_unique_post_traversal
 from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_post_traversal
 
 
 def map_expr_dag(function, expression,  compress=True, vcache=None, rcache=None):
