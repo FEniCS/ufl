@@ -6,11 +6,11 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.core.operator import Operator
-from ufl.precedence import parstr
 from ufl.core.ufl_type import ufl_type
-
+from ufl.precedence import parstr
 
 # --- Restriction operators ---
+
 
 @ufl_type(is_abstract=True,
           num_ops=1,

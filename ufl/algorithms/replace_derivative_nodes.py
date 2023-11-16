@@ -1,11 +1,11 @@
 """Algorithm for replacing derivative nodes in a BaseForm or Expr."""
 
 import ufl
-from ufl.corealg.multifunction import MultiFunction
-from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.analysis import extract_arguments
-from ufl.tensors import ListTensor
+from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.constantvalue import as_ufl
+from ufl.corealg.multifunction import MultiFunction
+from ufl.tensors import ListTensor
 
 
 class DerivativeNodeReplacer(MultiFunction):

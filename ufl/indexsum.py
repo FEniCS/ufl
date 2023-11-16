@@ -7,15 +7,15 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 
-from ufl.core.ufl_type import ufl_type
-from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.operator import Operator
-from ufl.core.multiindex import MultiIndex
-from ufl.precedence import parstr
 from ufl.constantvalue import Zero
-
+from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.multiindex import MultiIndex
+from ufl.core.operator import Operator
+from ufl.core.ufl_type import ufl_type
+from ufl.precedence import parstr
 
 # --- Sum over an index ---
+
 
 @ufl_type(num_ops=2)
 class IndexSum(Operator):

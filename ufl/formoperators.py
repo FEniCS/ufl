@@ -9,37 +9,29 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.form import Form, FormSum, BaseForm, ZeroBaseForm, as_form
-from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.base_form_operator import BaseFormOperator
-from ufl.split_functions import split
-from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.variable import Variable
-from ufl.finiteelement import MixedElement
+from ufl.action import Action
+from ufl.adjoint import Adjoint
+from ufl.algorithms import replace  # noqa: F401
+from ufl.algorithms import (compute_energy_norm, compute_form_action, compute_form_adjoint, compute_form_functional,
+                            compute_form_lhs, compute_form_rhs, expand_derivatives, extract_arguments, formsplitter)
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
-from ufl.adjoint import Adjoint
-from ufl.action import Action
-from ufl.differentiation import (CoefficientDerivative, CoordinateDerivative,
-                                 BaseFormDerivative, BaseFormCoordinateDerivative,
-                                 BaseFormOperatorDerivative, BaseFormOperatorCoordinateDerivative)
-from ufl.constantvalue import is_true_ufl_scalar, as_ufl
-from ufl.indexed import Indexed
+from ufl.constantvalue import as_ufl, is_true_ufl_scalar
+from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex
-from ufl.tensors import as_tensor, ListTensor
-from ufl.sorting import sorted_expr
+from ufl.differentiation import (BaseFormCoordinateDerivative, BaseFormDerivative, BaseFormOperatorCoordinateDerivative,
+                                 BaseFormOperatorDerivative, CoefficientDerivative, CoordinateDerivative)
+from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.finiteelement import MixedElement
+from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm, as_form
 from ufl.functionspace import FunctionSpace
 from ufl.geometry import SpatialCoordinate
-
-# An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import compute_form_adjoint, compute_form_action
-from ufl.algorithms import compute_energy_norm
-from ufl.algorithms import compute_form_lhs, compute_form_rhs, compute_form_functional
-from ufl.algorithms import expand_derivatives, extract_arguments
-from ufl.algorithms import formsplitter
-
-# Part of the external interface
-from ufl.algorithms import replace  # noqa
+from ufl.indexed import Indexed
+from ufl.sorting import sorted_expr
+from ufl.split_functions import split
+from ufl.tensors import ListTensor, as_tensor
+from ufl.variable import Variable
 
 
 def extract_blocks(form, i=None, j=None):
@@ -223,14 +215,14 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
         # Create argument and split it if in a mixed space
         function_spaces = [c.ufl_function_space() for c in coefficients]
-        domains = [fs.ufl_domain() for fs in function_spaces]
-        elements = [fs.ufl_element() for fs in function_spaces]
         if len(function_spaces) == 1:
             arguments = (Argument(function_spaces[0], number, part),)
         else:
             # Create in mixed space over assumed (for now) same domain
+            domains = [fs.ufl_domain() for fs in function_spaces]
+            elements = [fs.ufl_element() for fs in function_spaces]
             assert all(fs.ufl_domain() == domains[0] for fs in function_spaces)
-            elm = MixedElement(*elements)
+            elm = MixedElement(elements)
             fs = FunctionSpace(domains[0], elm)
             arguments = split(Argument(fs, number, part))
     else:

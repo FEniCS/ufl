@@ -10,19 +10,15 @@
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 # Modified by Ignacia Fierro-Piccardo 2023.
-import warnings
 
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import FormArgument
 from ufl.argument import Argument
-from ufl.finiteelement import FiniteElementBase
-from ufl.domain import default_domain
-from ufl.functionspace import AbstractFunctionSpace, FunctionSpace, MixedFunctionSpace
+from ufl.core.terminal import FormArgument
+from ufl.core.ufl_type import ufl_type
+from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
+from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import Counted
-from ufl.duals import is_primal, is_dual
-
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -45,19 +41,11 @@ class BaseCoefficient(Counted):
         """Initalise."""
         Counted.__init__(self, count, Coefficient)
 
-        if isinstance(function_space, FiniteElementBase):
-            # For legacy support for .ufl files using cells, we map
-            # the cell to The Default Mesh
-            element = function_space
-            domain = default_domain(element.cell())
-            function_space = FunctionSpace(domain, element)
-            warnings.warn("The use of FiniteElement as an input to Coefficient will be deprecated by December 2023. "
-                          "Please, use FunctionSpace instead", FutureWarning)
-        elif not isinstance(function_space, AbstractFunctionSpace):
-            raise ValueError("Expecting a FunctionSpace or FiniteElement.")
+        if not isinstance(function_space, AbstractFunctionSpace):
+            raise ValueError("Expecting a FunctionSpace.")
 
         self._ufl_function_space = function_space
-        self._ufl_shape = function_space.ufl_element().value_shape()
+        self._ufl_shape = function_space.ufl_element().value_shape
 
         self._repr = "BaseCoefficient(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))

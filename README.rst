@@ -13,6 +13,8 @@ https://www.fenicsproject.org
 
 .. image:: https://github.com/FEniCS/ufl/workflows/UFL%20CI/badge.svg
    :target: https://github.com/FEniCS/ufl/workflows/UFL%20CI
+.. image:: https://github.com/FEniCS/ufl/actions/workflows/spack.yml/badge.svg
+   :target: https://github.com/FEniCS/ufl/actions/workflows/spack.yml
 .. image:: https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=master
    :target: https://coveralls.io/github/FEniCS/ufl?branch=master
    :alt: Coverage Status
@@ -20,10 +22,12 @@ https://www.fenicsproject.org
    :target: https://fenics.readthedocs.io/projects/ufl/en/latest/?badge=latest
    :alt: Documentation Status
 
+
 Documentation
 =============
 
 Documentation can be viewed at https://fenics-ufl.readthedocs.org/.
+
 
 License
 =======

@@ -5,13 +5,13 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.algebra import Conj, Operator
+from ufl.constantvalue import Zero
 from ufl.core.expr import ufl_err_str
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import Zero
-from ufl.algebra import Operator, Conj
+from ufl.index_combination_utils import merge_nonoverlapping_indices
 from ufl.precedence import parstr
 from ufl.sorting import sorted_expr
-from ufl.index_combination_utils import merge_nonoverlapping_indices
 
 # Algebraic operations on tensors:
 # FloatValues:

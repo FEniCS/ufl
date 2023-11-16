@@ -3,8 +3,9 @@ __date__ = "2014-03-04"
 
 from math import inf
 
-from ufl import (H1, H2, L2, EnrichedElement, FiniteElement, HCurl, HDiv, HInf, TensorProductElement, interval,
-                 quadrilateral, triangle)
+from ufl import H1, H2, L2, HCurl, HDiv, HInf, triangle
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
 from ufl.sobolevspace import SobolevSpace  # noqa: F401
 from ufl.sobolevspace import DirectionalSobolevSpace
 
@@ -62,18 +63,9 @@ def xtest_contains_mixed():
 
 def test_contains_l2():
     l2_elements = [
-        FiniteElement("DG", triangle, 0),
-        FiniteElement("DG", triangle, 1),
-        FiniteElement("DG", triangle, 2),
-        FiniteElement("CR", triangle, 1),
-        # Tensor product elements:
-        TensorProductElement(FiniteElement("DG", interval, 1),
-                             FiniteElement("DG", interval, 1)),
-        TensorProductElement(FiniteElement("DG", interval, 1),
-                             FiniteElement("CG", interval, 2)),
-        # Enriched element:
-        EnrichedElement(FiniteElement("DG", triangle, 1),
-                        FiniteElement("B", triangle, 3))
+        FiniteElement("Discontinuous Lagrange", triangle, 0, (), identity_pullback, L2),
+        FiniteElement("Discontinuous Lagrange", triangle, 1, (), identity_pullback, L2),
+        FiniteElement("Discontinuous Lagrange", triangle, 2, (), identity_pullback, L2),
     ]
     for l2_element in l2_elements:
         assert l2_element in L2
@@ -89,19 +81,11 @@ def test_contains_l2():
 def test_contains_h1():
     h1_elements = [
         # Standard Lagrange elements:
-        FiniteElement("CG", triangle, 1),
-        FiniteElement("CG", triangle, 2),
+        FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1),
+        FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1),
         # Some special elements:
-        FiniteElement("HER", triangle),
-        FiniteElement("MTW", triangle),
-        # Tensor product elements:
-        TensorProductElement(FiniteElement("CG", interval, 1),
-                             FiniteElement("CG", interval, 1)),
-        TensorProductElement(FiniteElement("CG", interval, 2),
-                             FiniteElement("CG", interval, 2)),
-        # Enriched elements:
-        EnrichedElement(FiniteElement("CG", triangle, 2),
-                        FiniteElement("B", triangle, 3))
+        FiniteElement("MTW", triangle, 3, (2, ), contravariant_piola, H1),
+        FiniteElement("Hermite", triangle, 3, (), "custom", H1),
     ]
     for h1_element in h1_elements:
         assert h1_element in H1
@@ -116,8 +100,8 @@ def test_contains_h1():
 
 def test_contains_h2():
     h2_elements = [
-        FiniteElement("ARG", triangle, 5),
-        FiniteElement("MOR", triangle, 2),
+        FiniteElement("ARG", triangle, 5, (), "custom", H2),
+        FiniteElement("MOR", triangle, 2, (), "custom", H2),
     ]
     for h2_element in h2_elements:
         assert h2_element in H2
@@ -132,7 +116,7 @@ def test_contains_h2():
 
 def test_contains_hinf():
     hinf_elements = [
-        FiniteElement("R", triangle, 0)
+        FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
     ]
     for hinf_element in hinf_elements:
         assert hinf_element in HInf
@@ -148,16 +132,9 @@ def test_contains_hinf():
 
 def test_contains_hdiv():
     hdiv_elements = [
-        FiniteElement("RT", triangle, 1),
-        FiniteElement("BDM", triangle, 1),
-        FiniteElement("BDFM", triangle, 2),
-        # HDiv elements:
-        HDiv(TensorProductElement(FiniteElement("DG", triangle, 1),
-                                  FiniteElement("CG", interval, 2))),
-        HDiv(TensorProductElement(FiniteElement("RT", triangle, 1),
-                                  FiniteElement("DG", interval, 1))),
-        HDiv(TensorProductElement(FiniteElement("N1curl", triangle, 1),
-                                  FiniteElement("DG", interval, 1)))
+        FiniteElement("Raviart-Thomas", triangle, 1, (2, ), contravariant_piola, HDiv),
+        FiniteElement("BDM", triangle, 1, (2, ), contravariant_piola, HDiv),
+        FiniteElement("BDFM", triangle, 2, (2, ), contravariant_piola, HDiv),
     ]
     for hdiv_element in hdiv_elements:
         assert hdiv_element in HDiv
@@ -172,15 +149,8 @@ def test_contains_hdiv():
 
 def test_contains_hcurl():
     hcurl_elements = [
-        FiniteElement("N1curl", triangle, 1),
-        FiniteElement("N2curl", triangle, 1),
-        # HCurl elements:
-        HCurl(TensorProductElement(FiniteElement("CG", triangle, 1),
-                                   FiniteElement("DG", interval, 1))),
-        HCurl(TensorProductElement(FiniteElement("N1curl", triangle, 1),
-                                   FiniteElement("CG", interval, 1))),
-        HCurl(TensorProductElement(FiniteElement("RT", triangle, 1),
-                                   FiniteElement("CG", interval, 1)))
+        FiniteElement("N1curl", triangle, 1, (2, ), covariant_piola, HCurl),
+        FiniteElement("N2curl", triangle, 1, (2, ), covariant_piola, HCurl),
     ]
     for hcurl_element in hcurl_elements:
         assert hcurl_element in HCurl
@@ -191,79 +161,3 @@ def test_contains_hcurl():
         assert hcurl_element not in HDiv
         assert hcurl_element not in H2
         assert hcurl_element not in H2dx2dy
-
-
-def test_enriched_elements_hdiv():
-    A = FiniteElement("CG", interval, 1)
-    B = FiniteElement("DG", interval, 0)
-    AxB = TensorProductElement(A, B)
-    BxA = TensorProductElement(B, A)
-    C = FiniteElement("RTCF", quadrilateral, 1)
-    D = FiniteElement("DQ", quadrilateral, 0)
-    Q1 = TensorProductElement(C, B)
-    Q2 = TensorProductElement(D, A)
-    hdiv_elements = [
-        EnrichedElement(HDiv(AxB), HDiv(BxA)),
-        EnrichedElement(HDiv(Q1), HDiv(Q2))
-    ]
-    for hdiv_element in hdiv_elements:
-        assert hdiv_element in HDiv
-        assert hdiv_element in L2
-        assert hdiv_element in H0dx0dy
-        assert hdiv_element not in H1
-        assert hdiv_element not in H1dx1dy
-        assert hdiv_element not in HCurl
-        assert hdiv_element not in H2
-        assert hdiv_element not in H2dx2dy
-
-
-def test_enriched_elements_hcurl():
-    A = FiniteElement("CG", interval, 1)
-    B = FiniteElement("DG", interval, 0)
-    AxB = TensorProductElement(A, B)
-    BxA = TensorProductElement(B, A)
-    C = FiniteElement("RTCE", quadrilateral, 1)
-    D = FiniteElement("DQ", quadrilateral, 0)
-    Q1 = TensorProductElement(C, B)
-    Q2 = TensorProductElement(D, A)
-    hcurl_elements = [
-        EnrichedElement(HCurl(AxB), HCurl(BxA)),
-        EnrichedElement(HCurl(Q1), HCurl(Q2))
-    ]
-    for hcurl_element in hcurl_elements:
-        assert hcurl_element in HCurl
-        assert hcurl_element in L2
-        assert hcurl_element in H0dx0dy
-        assert hcurl_element not in H1
-        assert hcurl_element not in H1dx1dy
-        assert hcurl_element not in HDiv
-        assert hcurl_element not in H2
-        assert hcurl_element not in H2dx2dy
-
-
-def test_varying_continuity_elements():
-    P1DG_t = FiniteElement("DG", triangle, 1)
-    P1DG_i = FiniteElement("DG", interval, 1)
-    P1 = FiniteElement("CG", interval, 1)
-    P2 = FiniteElement("CG", interval, 2)
-    P3 = FiniteElement("CG", interval, 3)
-    RT1 = FiniteElement("RT", triangle, 1)
-    ARG = FiniteElement("ARG", triangle, 5)
-
-    # Tensor product elements
-    P1DGP2 = TensorProductElement(P1DG_t, P2)
-    P1P1DG = TensorProductElement(P1, P1DG_i)
-    P1DGP1 = TensorProductElement(P1DG_i, P1)
-    RT1DG1 = TensorProductElement(RT1, P1DG_i)
-    P2P3 = TensorProductElement(P2, P3)
-    ARGP3 = TensorProductElement(ARG, P3)
-
-    assert P1DGP2 in H1dz and P1DGP2 in L2
-    assert P1DGP2 not in H1dh
-    assert P1DGP1 in H1dy and P1DGP2 in L2
-    assert P1P1DG in H1dx and P1P1DG in L2
-    assert P1P1DG not in H1dx1dy
-    assert RT1DG1 in H000 and RT1DG1 in L2
-    assert P2P3 in H1dx1dy and P2P3 in H1
-    assert ARG in H2dx2dy
-    assert ARGP3 in H2dhH1dz

@@ -16,6 +16,9 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # A fifth degree Lagrange finite element on a tetrahedron
-from ufl import FiniteElement, tetrahedron
+from ufl import tetrahedron
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
-element = FiniteElement("Lagrange", tetrahedron, 5)
+element = FiniteElement("Lagrange", tetrahedron, 5, (), identity_pullback, H1)
