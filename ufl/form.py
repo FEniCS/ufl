@@ -784,8 +784,11 @@ class FormSum(BaseForm):
         for component in self._components:
             arguments.extend(component.arguments())
             coefficients.extend(component.coefficients())
-        self._arguments = tuple(set(arguments))
-        self._coefficients = tuple(set(coefficients))
+        # Define canonical numbering of arguments and coefficients
+        self._arguments = tuple(
+            sorted(set(arguments), key=lambda x: x.number()))
+        self._coefficients = tuple(
+            sorted(set(coefficients), key=lambda x: x.count()))
 
     def _analyze_domains(self):
         """Analyze which domains can be found in FormSum."""
