@@ -9,7 +9,7 @@ authors = [{email="fenics-dev@googlegroups.com"}, {name="FEniCS Project"}]
 maintainers = [{email="fenics-dev@googlegroups.com"}, {name="FEniCS Project Steering Council"}]
 description = "Unified Form Language"
 readme = "README.rst"
-license = {file = "LICENSE"}
+license = {text = "LGPL-3.0-or-later"}
 requires-python = ">=3.8.0"
 dependencies = ["numpy"]
 
