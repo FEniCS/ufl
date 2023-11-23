@@ -268,6 +268,7 @@ class Expr(object, metaclass=UFLType):
         """Return the single unique domain this expression is defined on, or throw an error."""
         warnings.warn("Expr.ufl_domain() is deprecated, please "
                       "use extract_unique_domain(expr) instead.", DeprecationWarning)
+        assert False
         from ufl.domain import extract_unique_domain
         return extract_unique_domain(self)
 
