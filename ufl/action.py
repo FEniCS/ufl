@@ -16,6 +16,7 @@ from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.matrix import Matrix
+from itertools import chain
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -121,8 +122,8 @@ class Action(BaseForm):
         """Analyze which domains can be found in Action."""
         from ufl.domain import join_domains
 
-        # Collect unique domains
-        self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
+        # Collect domains
+        self._domains = join_domains(chain.from_iterable(e.ufl_domains() for e in self.ufl_operands))
 
     def equals(self, other):
         """Check if two Actions are equal."""
