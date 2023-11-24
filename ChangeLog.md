@@ -1,97 +1,91 @@
-Changelog
-=========
+# Changelog
 
-2021.1.0
--------------
+## 2021.1.0
 
 - Mixed dimensional domain support
 
-2019.1.0 (2019-04-17)
----------------------
+## 2019.1.0 (2019-04-17)
 
 - Remove scripts
 - Remove LaTeX support (not functional)
 - Add support for complex valued elements; complex mode
-  is chosen by ``compute_form_data(form, complex_mode=True)`` typically
+  is chosen by `compute_form_data(form, complex_mode=True)` typically
   by a form compiler; otherwise UFL language is agnostic to the choice
   of real/complex domain
 
-2018.1.0 (2018-06-14)
----------------------
+## 2018.1.0 (2018-06-14)
 
 - Remove python2 support
 
-2017.2.0 (2017-12-05)
----------------------
+## 2017.2.0 (2017-12-05)
 
-- Add geometric quantity ``CellDiameter`` defined as a set diameter
+- Add geometric quantity `CellDiameter` defined as a set diameter
   of the cell, i.e., maximal distance between any two points of the
   cell; implemented on simplices and quads/hexes
 - Rename internally used reference quantities
-  ``(Cell|Facet)EdgeVectors`` to ``Reference(Cell|Facet)EdgeVectors``
-- Add internally used quantites ``CellVertices``,
-  ``(Cell|Facet)EdgeVectors`` which are physical-coordinates-valued;
+  `(Cell|Facet)EdgeVectors` to `Reference(Cell|Facet)EdgeVectors`
+- Add internally used quantites `CellVertices`,
+  `(Cell|Facet)EdgeVectors` which are physical-coordinates-valued;
   will be useful for further geometry lowering implementations
   for quads/hexes
-- Implement geometry lowering of ``(Min|Max)(Cell|Facet)EdgeLength``
+- Implement geometry lowering of `(Min|Max)(Cell|Facet)EdgeLength`
   for quads and hexes
 
-2017.1.0.post1 (2017-09-12)
----------------------------
+## 2017.1.0.post1 (2017-09-12)
 
 - Change PyPI package name to fenics-ufl.
 
-2017.1.0 (2017-05-09)
----------------------
+## 2017.1.0 (2017-05-09)
 
-- Add the ``DirectionalSobolevSpace`` subclass of ``SobolevSpace``. This
+- Add the `DirectionalSobolevSpace` subclass of `SobolevSpace`. This
   allows one to use spaces where elements have varying continuity in
   different spatial directions.
-- Add ``sobolev_space`` methods for ``HDiv`` and ``HCurl`` finite
+- Add `sobolev_space` methods for `HDiv` and `HCurl` finite
   elements.
-- Add ``sobolev_space`` methods for ``TensorProductElement`` and
-  ``EnrichedElement``.  The smallest shared Sobolev space will be
+- Add `sobolev_space` methods for `TensorProductElement` and
+  `EnrichedElement`.  The smallest shared Sobolev space will be
   returned for enriched elements. For the tensor product elements, a
-  ``DirectionalSobolevSpace`` is returned depending on the order of the
+  `DirectionalSobolevSpace` is returned depending on the order of the
   spaces associated with the component elements.
 
-2016.2.0 (2016-11-30)
----------------------
+## 2016.2.0 (2016-11-30)
 
-- Add call operator syntax to ``Form`` to replace arguments and
+- Add call operator syntax to `Form` to replace arguments and
   coefficients. This makes it easier to e.g. express the norm
-  defined by a bilinear form as a functional. Example usage::
-
+  defined by a bilinear form as a functional. Example usage:
+    ```python
     # Equivalent to replace(a, {u: f, v: f})
     M = a(f, f)
     # Equivalent to replace(a, {f:1})
     c = a(coefficients={f:1})
-- Add call operator syntax to ``Form`` to replace arguments and
-  coefficients::
-
+    ```
+- Add call operator syntax to `Form` to replace arguments and
+  coefficients:
+    ```python
     a(f, g) == replace(a, {u: f, v: g})
     a(coefficients={f:1}) == replace(a, {f:1})
-- Add ``@`` operator to ``Form``: ``form @ f == action(form, f)``
+    ```
+- Add `@` operator to `Form`: `form @ f == action(form, f)`
   (python 3.5+ only)
-- Reduce noise in Mesh str such that ``print(form)`` gets more short and
+- Reduce noise in Mesh str such that `print(form)` gets more short and
   readable
-- Fix repeated ``split(function)`` for arbitrary nested elements
-- EnrichedElement: Remove ``+/*`` warning
+- Fix repeated `split(function)` for arbitrary nested elements
+- EnrichedElement: Remove `+/*` warning
 
-  In the distant past, ``A + B => MixedElement([A, B])``.  The change
-  that ``A + B => EnrichedElement([A, B])`` was made in ``d622c74`` (22
-  March 2010).  A warning was introduced in ``fcbc5ff`` (26 March 2010)
-  that the meaning of ``+`` had changed, and that users wanting a
-  ``MixedElement`` should use ``*`` instead.  People have, presumably,
+  In the distant past, `A + B => MixedElement([A, B])`.  The change
+  that `A + B => EnrichedElement([A, B])` was made in `d622c74` (22
+  March 2010).  A warning was introduced in `fcbc5ff` (26 March 2010)
+  that the meaning of `+` had changed, and that users wanting a
+  `MixedElement` should use `*` instead.  People have, presumably,
   been seeing this warning for 6 1/2 years by now, so it's probably safe
   to remove.
-- Rework ``TensorProductElement`` implementation, replaces
-  ``OuterProductElement``
-- Rework ``TensorProductCell`` implementation, replaces
-  ``OuterProductCell``
-- Remove ``OuterProductVectorElement`` and ``OuterProductTensorElement``
-- Add ``FacetElement`` and ``InteriorElement``
-- Add ``Hellan-Herrmann-Johnson`` element
+- Rework `TensorProductElement` implementation, replaces
+  `OuterProductElement`
+- Rework `TensorProductCell` implementation, replaces
+  `OuterProductCell`
+- Remove `OuterProductVectorElement` and `OuterProductTensorElement`
+- Add `FacetElement` and `InteriorElement`
+- Add `Hellan-Herrmann-Johnson` element
 - Add support for double covariant and contravariant mappings in mixed
   elements
 - Support discontinuous Taylor elements on all simplices
@@ -103,8 +97,7 @@ Changelog
 - Add bitbucket pipelines testing
 - Improve documentation
 
-2016.1.0 (2016-06-23)
----------------------
+## 2016.1.0 (2016-06-23)
 
 - Add operator A^(i,j) := as_tensor(A, (i,j))
 - Updates to old manual for publishing on fenics-ufl.readthedocs.org
@@ -127,8 +120,7 @@ Changelog
 - Large reworking of symbolic geometry pipeline
 - Implement symbolic Piola mappings
 
-1.6.0 (2015-07-28)
-------------------
+## 1.6.0 (2015-07-28)
 
 - Change approach to attaching __hash__ implementation to accomodate python 3
 - Implement new non-recursive traversal based hash computation
@@ -147,13 +139,12 @@ Changelog
 - Remove Measure constants
 - Remove cell2D and cell3D
 - Implement reference_value in apply_restrictions
-- Rename point integral to vertex integral and kept ``*dP`` syntax
+- Rename point integral to vertex integral and kept `*dP` syntax
 - Replace lambda functions in ufl_type with named functions for nicer
   stack traces
 - Minor bugfixes, removal of unused code and cleanups
 
-1.5.0 (2015-01-12)
-------------------
+## 1.5.0 (2015-01-12)
 
 - Require Python 2.7
 - Python 3 support
@@ -192,10 +183,9 @@ Changelog
 - Fix signature stability w.r.t. metadata dicts
 - Minor bugfixes, removal of unused code and cleanups
 
-1.4.0 (2014-06-02)
-------------------
+## 1.4.0 (2014-06-02)
 
-- New integral type custom_integral (``*dc``)
+- New integral type custom_integral (`*dc`)
 - Add analysis of which coefficients each integral actually uses to optimize assembly
 - Improved svg rendering of cells and sobolevspaces in ipython notebook
 - Add sobolev spaces, use notation "element in HCurl" (HCurl, HDiv, H1, H2, L2)
@@ -225,8 +215,7 @@ Changelog
 - Various minor bugfixes
 - Various docstring improvements
 
-1.3.0 (2014-01-07)
-------------------
+## 1.3.0 (2014-01-07)
 
 - Add cell_avg and facet_avg operators, can be applied to a Coefficient or Argument or restrictions thereof
 - Fix bug in cofactor: now it is transposed the correct way.
@@ -236,8 +225,7 @@ Changelog
 - Add atan2 function
 - Allow form+0 -> form
 
-1.2.0 (2013-03-24)
-------------------
+## 1.2.0 (2013-03-24)
 
 - NB! Using shapes such as (1,) and (1,1) instead of () for 1D tensor quantities I, x, grad(f)
 - Add cell.facet_diameter
@@ -249,8 +237,7 @@ Changelog
 - Generalize jump(v,n) for rank(v) > 2
 - Fix some minor bugs
 
-1.1.0 (2013-01-07)
-------------------
+## 1.1.0 (2013-01-07)
 
 - Add support for pickling of expressions (thanks to Graham Markall)
 - Add shorthand notation A**2 == inner(A, A), special cased for power 2.
@@ -260,8 +247,7 @@ Changelog
 - Bugfix in quadrature degree estimation, never returning <0 now
 - Remove use of cmp to accomodate removal from python 3
 
-1.1-alpha-prerelease (2012-11-18)
----------------------------------
+## 1.1-alpha-prerelease (2012-11-18)
 
 (Not released, snapshot archived with submission of UFL journal paper)
 - Support adding 0 to forms, allowing sum([a])
@@ -273,13 +259,11 @@ Changelog
 - Add simplification f/f -> 1
 - Add operators <,>,<=,>= in place of lt,gt,le,ge
 
-1.0.0 (2011-12-07)
-------------------
+## 1.0.0 (2011-12-07)
 
 - No changes since rc1.
 
-1.0-rc1 (2011-11-22)
---------------------
+## 1.0-rc1 (2011-11-22)
 
 - Added tests covering snippets from UFL chapter in FEniCS book
 - Added more unit tests
@@ -288,27 +272,24 @@ Changelog
 - Fixed rtruediv bug
 - Fixed bug with derivatives of elements of type Real with unspecified cell
 
-1.0-beta3 (2011-10-26)
-----------------------
+## 1.0-beta3 (2011-10-26)
 
 - Added nabla_grad and nabla_div operators
 - Added error function erf(x)
 - Added bessel functions of first and second kind, normal and modified,
   bessel_J(nu, x), bessel_Y(nu, x), bessel_I(nu, x), bessel_K(nu, x)
 - Extended derivative() to allow indexed coefficient(s) as differentiation variable
-- Made ``*Constant`` use the ``Real`` space instead of ``DG0``
+- Made `*Constant` use the `Real` space instead of `DG0`
 - Bugfix in adjoint where test and trial functions were in different spaces
 - Bugfix in replace where the argument to a grad was replaced with 0
 - Bugfix in reconstruction of tensor elements
 - Some other minor bugfixes
 
-1.0-beta2 (2011-08-11)
-----------------------
+## 1.0-beta2 (2011-08-11)
 
 - Support c*form where c depends on a coefficient in a Real space
 
-1.0-beta (2011-07-08)
----------------------
+## 1.0-beta (2011-07-08)
 
 - Add script ufl-version
 - Added syntax for associating an arbitrary domain data object with a measure:
@@ -319,8 +300,7 @@ Changelog
 - Fixed support for symmetries in subelements of a mixed element
 - Add support for specifying derivatives of coefficients to derivative()
 
-0.9.1 (2011-05-16)
-------------------
+## 0.9.1 (2011-05-16)
 
 - Remove set_foo functions in finite element classes
 - Change license from GPL v3 or later to LGPL v3 or later
@@ -332,23 +312,20 @@ Changelog
 - Add subdomain member variables to form class
 - Allow action on forms of arbitrary rank
 
-0.9.0 (2011-02-23)
-------------------
+## 0.9.0 (2011-02-23)
 
 - Allow jump(Sigma, n) for matrix-valued expression Sigma
 - Bug fix in scalar curl operator
 - Bug fix in deviatoric operator
 
-0.5.4 (2010-09-01)
-------------------
+## 0.5.4 (2010-09-01)
 
 - Bug fixes in PartExtracter
 - Do not import x for coordinate
 - Add Circumradius to Cell (Cell.circumradius)
 - Add CellVolume to Cell (Cell.volume)
 
-0.5.3 (2010-07-01)
-------------------
+## 0.5.3 (2010-07-01)
 
 - Rename ElementRestriction --> RestrictedElement
 - Experimental import of x from tetrahedron
@@ -357,46 +334,40 @@ Changelog
 - Rename ElementUnion -> EnrichedElement
 - Add support for tan() and inverse trigonometric functions
 
-0.5.2 (2010-02-15)
-------------------
+## 0.5.2 (2010-02-15)
 
 - Attach form data to preprocessed form, accessible by form.form_data()
 
-0.5.1 (2010-02-03)
-------------------
+## 0.5.1 (2010-02-03)
 
 - Fix bug in propagate_restriction
 
-0.5.0 (2010-02-01)
-------------------
+## 0.5.0 (2010-02-01)
 
 - Several interface changes in FormData class
 - Introduce call preprocess(form) to be called at beginning of compilation
 - Rename BasisFunction --> Argument
 - Rename Function --> Coefficient
 
-0.4.1 (2009-12-04)
-------------------
+## 0.4.1 (2009-12-04)
 
 - Redefine grad().T --> grad()
 - New meaning of estimate_max_polynomial_degree
 - New function estimate_total_polynomial_degree
 - Allow degree = None and cell = None for elements
 
-0.4.0 (2009-09-23)
-------------------
+## 0.4.0 (2009-09-23)
 
 - Extensions for ElementRestriction (restrict FiniteElement to Cell)
 - Bug fix for lhs/rhs with list tensor types
 - Add new log function set_prefix
 - Add new log function log(level, message)
-- Added macro cell integral ``*dE``
+- Added macro cell integral `*dE`
 - Added mechanism to add additional integral types
 - Added LiftingOperator and LiftingFunction
 - Added ElementRestriction
 
-0.3.0 (2009-05-28)
-------------------
+## 0.3.0 (2009-05-28)
 
 - Some critical bugfixes, in particular in differentiation.
 - Added form operators "system" and "sensitivity_rhs".
@@ -408,12 +379,10 @@ Changelog
   for quadrature degree estimation.
 - Improved manual.
 
-0.2.0 (2009-04-07)
-------------------
+## 0.2.0 (2009-04-07)
 
 - Initial release of UFL.
 
-0.1.0 (unreleased)
-------------------
+## 0.1.0 (unreleased)
 
 - Unreleased development versions of UFL.
