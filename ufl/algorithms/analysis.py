@@ -142,13 +142,13 @@ def has_exact_type(a, ufl_type):
     Returns:
         Whether an object of class ufl_type can be found in a
     """
-    tc = ufl_type._ufl_typecode_
+    tc = ufl_type._typecode()
     if issubclass(ufl_type, Terminal):
         # Optimization
         traversal = traverse_unique_terminals
     else:
         traversal = unique_pre_traversal
-    return any(o._ufl_typecode_ == tc for e in iter_expressions(a) for o in traversal(e))
+    return any(o._typecode() == tc for e in iter_expressions(a) for o in traversal(e))
 
 
 def extract_arguments(a):

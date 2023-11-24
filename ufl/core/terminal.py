@@ -23,7 +23,10 @@ class Terminal(Expr):
     """
 
     __slots__ = ()
-    _ufl_typecode_ = -1
+
+    @classmethod
+    def _is_terminal(cls) -> bool:
+        return True
 
     def __init__(self):
         """Initialise the terminal."""
@@ -98,4 +101,4 @@ class FormArgument(Terminal):
 
     def __init__(self):
         """Initialise the form argument."""
-        Terminal.__init__(self)
+        super().__init__()

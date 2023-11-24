@@ -43,7 +43,7 @@ def cutoff_post_traversal(expr, cutofftypes):
     lifo = [(expr, list(reversed(expr.ufl_operands)))]
     while lifo:
         expr, deps = lifo[-1]
-        if cutofftypes[expr._ufl_typecode_]:
+        if cutofftypes[expr._typecode()]:
             yield expr
             lifo.pop()
         else:
@@ -108,7 +108,7 @@ def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
         visited = set()
     while lifo:
         expr, deps = lifo[-1]
-        if cutofftypes[expr._ufl_typecode_]:
+        if cutofftypes[expr._typecode()]:
             yield expr
             visited.add(expr)
             lifo.pop()
@@ -127,12 +127,12 @@ def cutoff_unique_post_traversal(expr, cutofftypes, visited=None):
 def traverse_terminals(expr):
     """Traverse terminals."""
     for op in pre_traversal(expr):
-        if op._ufl_is_terminal_:
+        if op._is_terminal():
             yield op
 
 
 def traverse_unique_terminals(expr, visited=None):
     """Traverse unique terminals."""
     for op in unique_pre_traversal(expr, visited=visited):
-        if op._ufl_is_terminal_:
+        if op._is_terminal():
             yield op

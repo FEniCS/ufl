@@ -41,7 +41,7 @@ class GeometryLoweringApplier(MultiFunction):
         # Store preserve_types as boolean lookup table
         self._preserve_types = [False] * Expr._ufl_num_typecodes_
         for cls in preserve_types:
-            self._preserve_types[cls._ufl_typecode_] = True
+            self._preserve_types[cls._typecode()] = True
 
     expr = MultiFunction.reuse_if_untouched
 
@@ -52,7 +52,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def jacobian(self, o):
         """Apply to jacobian."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
         domain = extract_unique_domain(o)
         if not domain.ufl_coordinate_element().pullback.is_identity:
@@ -76,7 +76,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def jacobian_inverse(self, o):
         """Apply to jacobian_inverse."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -89,7 +89,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def jacobian_determinant(self, o):
         """Apply to jacobian_determinant."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -108,7 +108,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def facet_jacobian(self, o):
         """Apply to facet_jacobian."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -120,7 +120,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def facet_jacobian_inverse(self, o):
         """Apply to facet_jacobian_inverse."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -132,7 +132,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def facet_jacobian_determinant(self, o):
         """Apply to facet_jacobian_determinant."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -154,7 +154,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         Fall through to coordinate field of domain if it exists.
         """
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
         if not extract_unique_domain(o).ufl_coordinate_element().pullback.is_identity:
             raise ValueError("Piola mapped coordinates are not implemented.")
@@ -168,7 +168,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         Compute from physical coordinates if they are known, using the appropriate mappings.
         """
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -182,7 +182,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def facet_cell_coordinate(self, o):
         """Apply to facet_cell_coordinate."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         raise ValueError("Missing computation of facet reference coordinates "
@@ -191,7 +191,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def cell_volume(self, o):
         """Apply to cell_volume."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -208,7 +208,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def facet_area(self, o):
         """Apply to facet_area."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -230,7 +230,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def circumradius(self, o):
         """Apply to circumradius."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -280,7 +280,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     def _reduce_cell_edge_length(self, o, reduction_op):
         """Apply to _reduce_cell_edge_length."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -305,7 +305,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def cell_diameter(self, o):
         """Apply to cell_diameter."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -339,7 +339,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     def _reduce_facet_edge_length(self, o, reduction_op):
         """Apply to _reduce_facet_edge_length."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -363,7 +363,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def cell_normal(self, o):
         """Apply to cell_normal."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)
@@ -396,7 +396,7 @@ class GeometryLoweringApplier(MultiFunction):
     @memoized_handler
     def facet_normal(self, o):
         """Apply to facet_normal."""
-        if self._preserve_types[o._ufl_typecode_]:
+        if self._preserve_types[o._typecode()]:
             return o
 
         domain = extract_unique_domain(o)

@@ -8,6 +8,7 @@
 # Modified by Massimiliano Leoni, 2016
 
 from ufl.core.expr import Expr
+from ufl.core.ufl_type import all_ufl_classes
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_post_traversal
 
@@ -67,13 +68,13 @@ def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None
     rcache = {} if rcache is None else rcache
 
     # Build mapping typecode:bool, for which types to skip the subtree of
-    if isinstance(function, MultiFunction):
-        cutoff_types = function._is_cutoff_type
-        handlers = function._handlers  # Optimization
-    else:
-        # Regular function: no skipping supported
-        cutoff_types = [False] * Expr._ufl_num_typecodes_
-        handlers = [function] * Expr._ufl_num_typecodes_
+    #if isinstance(function, MultiFunction):
+    #    cutoff_types = function._is_cutoff_type
+    #    handlers = function._handlers  # Optimization
+    #else:
+    #    # Regular function: no skipping supported
+    cutoff_types = {}
+    handlers = {}
 
     # Create visited set here to share between traversal calls
     visited = set()
@@ -94,10 +95,13 @@ def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None
                 continue
 
             # Cache miss: Get transformed operands, then apply transformation
-            if cutoff_types[v._ufl_typecode_]:
-                r = handlers[v._ufl_typecode_](v)
+            if v not in cutoff_types:
+                cutoff_types[v] = False
+                handlers[v] = function
+            if cutoff_types[v]:
+                r = handlers[v](v)
             else:
-                r = handlers[v._ufl_typecode_](v, *[vcache[u] for u in v.ufl_operands])
+                r = handlers[v](v, *[vcache[u] for u in v.ufl_operands])
 
             # Optionally check if r is in rcache, a memory optimization
             # to be able to keep representation of result compact

@@ -100,7 +100,7 @@ class RestrictionPropagator(MultiFunction):
     def reference_value(self, o):
         """Reference value of something follows same restriction rule as the underlying object."""
         f, = o.ufl_operands
-        assert f._ufl_is_terminal_
+        assert f._is_terminal()
         g = self(f)
         if isinstance(g, Restricted):
             side = g.side()

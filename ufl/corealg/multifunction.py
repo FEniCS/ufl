@@ -12,6 +12,7 @@ import typing
 
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import UFLObject
+from ufl.classes import all_ufl_classes
 
 
 def get_num_args(function):
@@ -56,45 +57,36 @@ class MultiFunction(UFLObject):
         algorithm_class = type(self)
         cache_data = MultiFunction._handlers_cache.get(algorithm_class)
         if not cache_data:
-            handler_names = [None] * len(Expr._ufl_all_classes_)
-
-            # Iterate over the inheritance chain for each Expr
-            # subclass (NB! This assumes that all UFL classes inherits
-            # from a single Expr subclass and that the first
-            # superclass is always from the UFL Expr hierarchy!)
-            for classobject in Expr._ufl_all_classes_:
-                for c in classobject.mro():
-                    # Register classobject with handler for the first
-                    # encountered superclass
-                    try:
-                        handler_name = c._ufl_handler_name_
-                    except AttributeError as attribute_error:
-                        # TODO
-                        # if type(classobject) is not UFLType:
-                        #    raise attribute_error
-                        # Default handler name for UFL types
-                        handler_name = UFLObject._ufl_handler_name_
-
-                    if hasattr(self, handler_name):
-                        handler_names[classobject._ufl_typecode_] = handler_name
-                        break
-            is_cutoff_type = [get_num_args(getattr(self, name)) == 2
-                              for name in handler_names]
-            cache_data = (handler_names, is_cutoff_type)
+            cache_data = ({}, {})
             MultiFunction._handlers_cache[algorithm_class] = cache_data
 
         # Build handler list for this particular class (get functions
         # bound to self, these cannot be cached)
-        handler_names, is_cutoff_type = cache_data
-        self._handlers = [getattr(self, name) for name in handler_names]
-        self._is_cutoff_type = is_cutoff_type
+        handler_names, self._is_cutoff_type = cache_data
+        self._handlers = {o: getattr(self, name) for o, name in handler_names.items()}
 
         # Create cache for memoized_handler
         self._memoized_handler_cache = {}
 
     def __call__(self, o, *args):
         """Delegate to handler function based on typecode of first argument."""
-        return self._handlers[o._ufl_typecode_](o, *args)
+        t = o.__class__
+        if t not in self._handlers:
+            for c in t.mro():
+                try:
+                    hname = c._ufl_handler_name_
+                except AttributeError:
+                    hname = UFLObject._ufl_handler_name_
+                print(o, t, c, hname)
+                if hasattr(self, hname):
+                    print(o, t, c, hname)
+                    self._handlers[t] = getattr(self, hname)
+                    self._is_cutoff_type[t] = get_num_args(self._handlers[t]) == 2
+                    break
+            else:
+                self._handlers[t] = undefined
+                self._is_cutoff_type[t] = False
+        return self._handlers[t](o, *args)
 
     def undefined(self, o, *args):
         """Trigger error for types with missing handlers."""
@@ -114,6 +106,15 @@ class MultiFunction(UFLObject):
             return o
         else:
             return o._ufl_expr_reconstruct_(*ops)
+
+    def __repr__(self):
+        raise NotImplementedError()
+
+    def __str__(self):
+        raise NotImplementedError()
+
+    def _ufl_hash_data_(self):
+        raise NotImplementedError()
 
     # Set default behaviour for any UFLObject as undefined
     ufl_type = undefined

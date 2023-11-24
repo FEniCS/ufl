@@ -99,10 +99,10 @@ def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
         # Uniquely traverse tree and hash each node
         # E.g. (a + b*c) is hashed as hash([+, hash(a), hash([*, hash(b), hash(c)])])
         # Traversal uses post pattern, so children hashes are cached
-        if expr._ufl_is_terminal_:
+        if expr._is_terminal():
             data = [terminal_hashdata[expr]]
         else:
-            data = [expr._ufl_typecode_]
+            data = [expr._typecode()]
 
             for op in expr.ufl_operands:
                 data += [cache[op]]

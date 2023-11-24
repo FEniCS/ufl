@@ -177,6 +177,11 @@ class Argument(FormArgument, BaseArgument):
         """Representation."""
         return self._repr
 
+    @property
+    def ufl_shape(self):
+        """Return the associated UFL shape."""
+        return self._ufl_shape
+
 
 class Coargument(BaseForm, BaseArgument):
     """UFL value: Representation of an argument to a form in a dual space."""

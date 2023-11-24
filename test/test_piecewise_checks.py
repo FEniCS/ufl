@@ -7,7 +7,7 @@ from ufl import (Cell, CellDiameter, CellVolume, Circumradius, Coefficient, Cons
                  MinFacetEdgeLength, SpatialCoordinate, TestFunction, hexahedron, interval, quadrilateral, tetrahedron,
                  triangle)
 from ufl.checks import is_cellwise_constant
-from ufl.differentiation import FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse
+from ufl.geometry import FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse
 from ufl.finiteelement import FiniteElement
 from ufl.geometry import CellCoordinate
 from ufl.pullback import identity_pullback

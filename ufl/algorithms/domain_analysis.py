@@ -102,6 +102,15 @@ class ExprTupleKey(UFLObject):
             mdo = canonicalize_metadata(other.x[1])
             return mds < mdo
 
+    def __repr__(self):
+        raise NotImplementedError()
+
+    def __str__(self):
+        raise NotImplementedError()
+
+    def _ufl_hash_data_(self):
+        raise NotImplementedError()
+
 
 def group_integrals_by_domain_and_type(integrals, domains):
     """Group integrals by domain and type.

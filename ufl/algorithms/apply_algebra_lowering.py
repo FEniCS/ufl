@@ -26,6 +26,15 @@ class LowerCompoundAlgebra(MultiFunction):
 
     ufl_type = MultiFunction.reuse_if_untouched
 
+    def __repr__(self):
+        raise NotImplementedError()
+
+    def _ufl_hash_data_(self):
+        raise NotImplementedError()
+
+    def __str__(self):
+        raise NotImplementedError()
+
     # ------------ Compound tensor operators
 
     def trace(self, o, A):

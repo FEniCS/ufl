@@ -70,7 +70,7 @@ class Transformer(UFLObject):
                     if function:
                         cache_data[
                             classobject.
-                            _ufl_typecode_] = handler_name, is_post_handler(
+                            _typecode()] = handler_name, is_post_handler(
                                 function)
                         break
             Transformer._handlers_cache[type(self)] = cache_data
@@ -104,7 +104,7 @@ class Transformer(UFLObject):
 
         # Get handler for the UFL class of o (type(o) may be an
         # external subclass of the actual UFL class)
-        h, visit_children_first = self._handlers[o._ufl_typecode_]
+        h, visit_children_first = self._handlers[o._typecode()]
 
         # Is this a handler that expects transformed children as
         # input?

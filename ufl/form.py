@@ -89,6 +89,9 @@ class BaseForm(UFLObject):
         self._arguments = None
         self._coefficients = None
 
+    def _ufl_hash_data_(self):
+        raise NotImplementedError()
+
     # --- Accessor interface ---
     def arguments(self):
         """Return all ``Argument`` objects found in form."""

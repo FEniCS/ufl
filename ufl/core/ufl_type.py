@@ -18,6 +18,8 @@ import ufl.core as core
 from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.utils.formatting import camel2underscore
 
+all_ufl_classes = []
+
 
 class UFLObject(ABC):
     """A UFL Object."""
@@ -27,9 +29,6 @@ class UFLObject(ABC):
 
     # Set the handler name for UFLType
     _ufl_handler_name_ = "ufl_type"
-
-    # A global array of all Expr and BaseForm subclasses, indexed by typecode
-    _ufl_all_classes_: typing.List[type] = []
 
     # A global set of all handler names added
     _ufl_all_handler_names_: typing.Set[str] = set()
@@ -42,8 +41,16 @@ class UFLObject(ABC):
     # typecode
     _ufl_obj_del_counts_: typing.List[int] = []
 
-    # Type trait: If the type is terminal.
-    _ufl_is_terminal_: bool
+    @classmethod
+    def _typecode(cls) -> int:
+        global all_ufl_classes
+        if cls not in all_ufl_classes:
+            all_ufl_classes.append(cls)
+        return all_ufl_classes.index(cls)
+
+    @classmethod
+    def _is_terminal(cls) -> bool:
+        return False
 
     @abstractmethod
     def _ufl_hash_data_(self) -> typing.Hashable:
@@ -98,7 +105,7 @@ def determine_num_ops(cls, num_ops, unop, binop, rbinop):
     # be determined automatically
     if num_ops is not None:
         return num_ops
-    elif cls._ufl_is_terminal_:
+    elif cls._is_terminal():
         return 0
     elif unop:
         return 1
@@ -111,13 +118,13 @@ def determine_num_ops(cls, num_ops, unop, binop, rbinop):
 
 def check_is_terminal_consistency(cls):
     """Check for consistency in ``is_terminal`` trait among superclasses."""
-    if cls._ufl_is_terminal_ is None:
+    if cls._is_terminal() is None:
         msg = (f"Class {cls.__name__} has not specified the is_terminal trait."
                " Did you forget to inherit from Terminal or Operator?")
         raise TypeError(msg)
 
-    base_is_terminal = get_base_attr(cls, "_ufl_is_terminal_")
-    if base_is_terminal is not None and cls._ufl_is_terminal_ != base_is_terminal:
+    base_is_terminal = get_base_attr(cls, "_is_terminal")()
+    if base_is_terminal is not None and cls._is_terminal() != base_is_terminal:
         msg = (f"Conflicting given and automatic 'is_terminal' trait for class {cls.__name__}."
                " Check if you meant to inherit from Terminal or Operator.")
         raise TypeError(msg)
@@ -174,7 +181,7 @@ def check_type_traits_consistency(cls):
     #        raise TypeError(msg.format(cls, cls._ufl_num_ops_))
 
     # Check that num_ops is not set to nonzero for a terminal
-    #if cls._ufl_is_terminal_ and cls._ufl_num_ops_ != 0:
+    #if cls._is_terminal() and cls._ufl_num_ops_ != 0:
     #    msg = "Class {0.__name__} has num_ops > 0 but is terminal."
     #    raise TypeError(msg.format(cls))
 

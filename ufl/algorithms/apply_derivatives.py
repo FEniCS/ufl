@@ -547,7 +547,7 @@ class GradRuleset(GenericDerivativeRuleset):
         # grad(K) == K_ji rgrad(K)_rj
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
-        if not o._ufl_is_terminal_:
+        if not o._is_terminal():
             raise ValueError("ReferenceValue can only wrap a terminal")
         Do = grad_to_reference_grad(o, o)
         return Do
@@ -605,7 +605,7 @@ class GradRuleset(GenericDerivativeRuleset):
             # TODO: Do we need to be more careful for immersed things?
             return ReferenceGrad(o)
 
-        if not f._ufl_is_terminal_:
+        if not f._is_terminal():
             raise ValueError("ReferenceValue can only wrap a terminal")
         domain = extract_unique_domain(f)
         K = JacobianInverse(domain)
@@ -714,7 +714,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
     def reference_value(self, o):
         """Differentiate a reference_value."""
-        if not o.ufl_operands[0]._ufl_is_terminal_:
+        if not o.ufl_operands[0]._is_terminal():
             raise ValueError("ReferenceValue can only wrap a terminal")
         return ReferenceGrad(o)
 
@@ -973,7 +973,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         #       this to allow the user to write
         #       derivative(...ReferenceValue...,...).
         # f, = o.ufl_operands
-        # if not f._ufl_is_terminal_:
+        # if not f._is_terminal():
         #     raise ValueError("ReferenceValue can only wrap terminals directly.")
         # FIXME: check all cases like in coefficient
         # if f is w:

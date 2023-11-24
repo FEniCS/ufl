@@ -98,10 +98,10 @@ def _cmp_terminal_by_repr(a, b):
 
 # Hack up a MultiFunction-like type dispatch for terminal comparisons
 _terminal_cmps = {}
-_terminal_cmps[MultiIndex._ufl_typecode_] = _cmp_multi_index
-_terminal_cmps[Argument._ufl_typecode_] = _cmp_argument
-_terminal_cmps[Coefficient._ufl_typecode_] = _cmp_coefficient
-_terminal_cmps[Label._ufl_typecode_] = _cmp_label
+_terminal_cmps[MultiIndex._typecode()] = _cmp_multi_index
+_terminal_cmps[Argument._typecode()] = _cmp_argument
+_terminal_cmps[Coefficient._typecode()] = _cmp_coefficient
+_terminal_cmps[Label._typecode()] = _cmp_label
 
 
 def cmp_expr(a, b):
@@ -112,13 +112,13 @@ def cmp_expr(a, b):
         a, b = left.pop()
 
         # First sort quickly by type code
-        x, y = a._ufl_typecode_, b._ufl_typecode_
+        x, y = a._typecode(), b._typecode()
         if x != y:
             return -1 if x < y else 1
 
         # Now we know that the type is the same, check further based
         # on type specific properties.
-        if a._ufl_is_terminal_:
+        if a._is_terminal():
             if x in _terminal_cmps:
                 c = _terminal_cmps[x](a, b)
             else:

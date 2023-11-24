@@ -23,6 +23,7 @@ __all__ = []
 # decorator for each Expr class.
 
 import inspect
+import sys
 
 import ufl.algebra
 import ufl.argument
@@ -56,12 +57,13 @@ import ufl.tensoralgebra
 import ufl.tensors
 import ufl.variable
 
+from ufl.core.ufl_type import all_ufl_classes
+
 # Collect all classes in sets automatically classified by some properties
-all_ufl_classes = set(ufl.core.expr.Expr._ufl_all_classes_)
 abstract_classes = set(c for c in all_ufl_classes if inspect.isabstract(c))
 ufl_classes = set(c for c in all_ufl_classes if not inspect.isabstract(c))
-terminal_classes = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
-nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
+terminal_classes = set(c for c in all_ufl_classes if c._is_terminal())
+nonterminal_classes = set(c for c in all_ufl_classes if not c._is_terminal())
 
 __all__ += [
     "all_ufl_classes",
@@ -74,8 +76,7 @@ __all__ += [
 def populate_namespace_with_expr_classes(namespace):
     """Export all Expr subclasses into the namespace under their natural name."""
     names = []
-    classes = ufl.core.expr.Expr._ufl_all_classes_
-    for cls in classes:
+    for cls in all_ufl_classes:
         class_name = cls.__name__
         namespace[class_name] = cls
         names.append(class_name)

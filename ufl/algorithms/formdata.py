@@ -36,3 +36,12 @@ class FormData(UFLObject):
             ("Unique sub elements", estr(self.unique_sub_elements)),
         )
         return tstr(geometry + subdomains + functions)
+
+    def _ufl_hash_data_(self):
+        raise NotImplementedError()
+
+    def __hash__(self):
+        return hash(f"{self!r}")
+
+    def __repr__(self):
+        raise NotImplementedError()

@@ -25,7 +25,7 @@ def balance_modified_terminal(expr):
     # NB! Assuming e.g. grad(cell_avg(expr)) does not occur,
     # i.e. it is simplified to 0 immediately.
 
-    if expr._ufl_is_terminal_:
+    if expr._is_terminal():
         return expr
 
     assert expr._ufl_is_terminal_modifier_
@@ -34,12 +34,12 @@ def balance_modified_terminal(expr):
 
     # Build list of modifier layers
     layers = [expr]
-    while not expr._ufl_is_terminal_:
+    while not expr._is_terminal():
         assert expr._ufl_is_terminal_modifier_
         expr = expr.ufl_operands[0]
         layers.append(expr)
     assert layers[-1] is expr
-    assert expr._ufl_is_terminal_
+    assert expr._is_terminal()
 
     # Apply modifiers in order
     layers = sorted(

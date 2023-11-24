@@ -93,10 +93,6 @@ class Expr(UFLObject):
         """
         return self.ufl_operands
 
-    def __init__(self):
-        """Initialise."""
-        self._hash = None
-
     # This shows the principal behaviour of the hash function attached
     # in ufl_type:
     # def __hash__(self):
@@ -167,18 +163,6 @@ class Expr(UFLObject):
 
     # --- Mechanism for profiling object creation and deletion ---
 
-    # Backup of default init and del
-    _ufl_regular__init__ = __init__
-
-    def _ufl_profiling__init__(self):
-        """Replacement constructor with object counting."""
-        Expr._ufl_regular__init__(self)
-        Expr._ufl_obj_init_counts_[self._ufl_typecode_] += 1
-
-    def _ufl_profiling__del__(self):
-        """Replacement destructor with object counting."""
-        Expr._ufl_obj_del_counts_[self._ufl_typecode_] -= 1
-
     @staticmethod
     def ufl_enable_profiling():
         """Turn on the object counting mechanism and reset counts to zero."""
@@ -198,40 +182,40 @@ class Expr(UFLObject):
     # TODO: fix UFL typing and make the following actual abstract methods and properties
 
     @abstractproperty
-    def ABSTRACT_ufl_operarands(self):
+    def ufl_operands(self):
         """A tuple of operands, all of them Expr instances."""
 
     @abstractproperty
-    def ABSTRACT_ufl_shape(self):
+    def ufl_shape(self):
         """A tuple of ints, the value shape of the expression."""
         raise NotImplementedError()
 
     @abstractproperty
-    def ABSTRACT_ugl_free_indices(self):
+    def ufl_free_indices(self):
         """A tuple of free index counts."""
 
     @abstractproperty
-    def ABSTRACT_ufl_index_dimensions(self):
+    def ufl_index_dimensions(self):
         """A tuple providing the int dimension for each free index."""
 
     @abstractmethod
-    def ABSTRACT__ufl_compute_hash_(self):
+    def _ufl_compute_hash_(self):
         """To compute the hash on demand, this method is called."""
 
-    @abstractmethod
-    def ABSTRACT__ufl_expr_reconstruct_(self, *operands):
+    def _ufl_expr_reconstruct_(self, *operands):
         """Return a new object of the same type with new operands."""
+        raise NotImplementedError()
 
     @abstractmethod
-    def ABSTRACT__ufl_signature_data_(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         """Return data that uniquely identifies form compiler relevant aspects of this object."""
 
     @abstractmethod
-    def ABSTRACT___repr__(self):
+    def __repr__(self):
         """Return string representation this object can be reconstructed from."""
 
     @abstractmethod
-    def ABSTRACT___str__(self):
+    def __str__(self):
         """Return pretty print string representation of this object."""
 
     def ufl_domains(self):
@@ -317,7 +301,7 @@ class Expr(UFLObject):
         while left:
             s, o = left.pop()
 
-            if s._ufl_is_terminal_:
+            if s._is_terminal():
                 # Compare terminals
                 if not s == o:
                     return False
@@ -330,7 +314,7 @@ class Expr(UFLObject):
 
                 for s, o in zip(so, oo):
                     # Fast cutoff for common case
-                    if s._ufl_typecode_ != o._ufl_typecode_:
+                    if s._typecode() != o._typecode():
                         return False
                     # Skip subtree if objects are the same
                     if s is o:

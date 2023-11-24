@@ -125,7 +125,7 @@ class ChangeToReferenceGrad(MultiFunction):
         ngrads = 0
         restricted = ''
         rv = False
-        while not o._ufl_is_terminal_:
+        while not o._is_terminal():
             if isinstance(o, Grad):
                 o, = o.ufl_operands
                 ngrads += 1

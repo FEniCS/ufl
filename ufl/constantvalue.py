@@ -33,11 +33,22 @@ def format_float(x):
 class ConstantValue(Terminal):
     """Constant value."""
 
-    __slots__ = ()
+    __slots__ = ("_shape",)
 
-    def __init__(self):
+    def __init__(self, shape):
         """Initialise."""
         Terminal.__init__(self)
+        self._shape = shape
+
+    def _ufl_hash_data_(self):
+        raise NotImplementedError()
+
+    def __hash__(self):
+        return hash(f"{self!r}")
+
+    @property
+    def ufl_shape(self):
+        return self._shape
 
     def is_cellwise_constant(self):
         """Return whether this expression is spatially constant over each cell."""
@@ -82,14 +93,13 @@ class Zero(ConstantValue):
 
     def _init(self, shape=(), free_indices=(), index_dimensions=None):
         """Initialise."""
-        ConstantValue.__init__(self)
+        ConstantValue.__init__(self, shape)
 
         if not all(isinstance(i, int) for i in shape):
             raise ValueError("Expecting tuple of int.")
         if not isinstance(free_indices, tuple):
             raise ValueError(f"Expecting tuple for free_indices, not {free_indices}.")
 
-        self.ufl_shape = shape
         if not free_indices:
             self.ufl_free_indices = ()
             self.ufl_index_dimensions = ()
@@ -189,7 +199,7 @@ class ScalarValue(ConstantValue):
 
     def __init__(self, value):
         """Initialise."""
-        ConstantValue.__init__(self)
+        ConstantValue.__init__(self, ())
         self._value = value
 
     def value(self):
@@ -365,12 +375,15 @@ class IntValue(RealValue):
 
     def __init__(self, value):
         """Initialise."""
-        pass
+        super(IntValue, self).__init__(int(value))
 
     def __repr__(self):
         """Representation."""
         r = "%s(%s)" % (type(self).__name__, repr(self._value))
         return r
+
+    def __hash__(self):
+        return hash(f"{self!r}")
 
 
 class Identity(ConstantValue):
@@ -379,9 +392,8 @@ class Identity(ConstantValue):
 
     def __init__(self, dim):
         """Initialise."""
-        ConstantValue.__init__(self)
+        ConstantValue.__init__(self, (dim, dim))
         self._dim = dim
-        self.ufl_shape = (dim, dim)
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
@@ -421,9 +433,8 @@ class PermutationSymbol(ConstantValue):
 
     def __init__(self, dim):
         """Initialise."""
-        ConstantValue.__init__(self)
+        ConstantValue.__init__(self, (dim, ) * dim)
         self._dim = dim
-        self.ufl_shape = (dim,) * dim
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""

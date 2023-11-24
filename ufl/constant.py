@@ -29,6 +29,12 @@ class Constant(Terminal, Counted):
         self._repr = "Constant({}, {}, {})".format(
             repr(self._ufl_domain), repr(self._ufl_shape), repr(self._count))
 
+    def _ufl_hash_data_(self):
+        raise NotImplementedError()
+
+    def __hash__(self):
+        return hash(self._repr)
+
     @property
     def ufl_shape(self):
         """Get the UFL shape."""

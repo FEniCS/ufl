@@ -48,6 +48,12 @@ class BaseCoefficient(Counted):
         self._repr = "BaseCoefficient(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))
 
+    def __hash__(self):
+        return has(self._repr)
+
+    def _ufl_hash_data_(self):
+        raise NotImplementedError()
+
     @property
     def ufl_shape(self):
         """Return the associated UFL shape."""
@@ -152,7 +158,7 @@ class Cofunction(BaseCoefficient, BaseForm):
         self._coefficients = (self,)
 
 
-class Coefficient(FormArgument, BaseCoefficient):
+class Coefficient(BaseCoefficient, FormArgument):
     """UFL form argument type: Representation of a form coefficient."""
 
     _ufl_noslots_ = True
@@ -162,6 +168,9 @@ class Coefficient(FormArgument, BaseCoefficient):
     __getnewargs__ = BaseCoefficient.__getnewargs__
     __str__ = BaseCoefficient.__str__
     _ufl_signature_data_ = BaseCoefficient._ufl_signature_data_
+
+    def __hash__(self):
+        return hash(self._repr)
 
     def __new__(cls, *args, **kw):
         """Create a new Coefficient."""

@@ -38,6 +38,9 @@ class Integral(UFLObject):
         self._metadata = metadata
         self._subdomain_data = subdomain_data
 
+    def _ufl_hash_data_(self):
+        raise NotImplementedError()
+
     def reconstruct(
         self, integrand=None,
         integral_type=None, domain=None, subdomain_id=None,
