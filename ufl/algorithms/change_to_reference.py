@@ -13,6 +13,7 @@ from ufl.classes import Grad, JacobianInverse, ReferenceGrad, ReferenceValue, Re
 from ufl.core.multiindex import indices
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
+from ufl.domain import extract_unique_domain
 from ufl.tensors import as_tensor
 
 """
@@ -139,7 +140,7 @@ class ChangeToReferenceGrad(MultiFunction):
             f = ReferenceValue(f)
 
         # Get domain and create Jacobian inverse object
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         Jinv = JacobianInverse(domain)
 
         if is_cellwise_constant(Jinv):
