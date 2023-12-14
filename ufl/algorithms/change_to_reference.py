@@ -105,6 +105,92 @@ tmp_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
 circumradius_tetrahedron = tmp_area / (6*cellvolume)
 
 """
+# @singledispatch
+# def _change_to_reference_grad(o, self):
+#     """Single-dispatch function to the change to reference coords through an expression
+
+#     :arg o: UFL expression
+#     :arg self: wrapper class that manages caches
+
+#     """
+#     raise AssertionError("UFL node expected, not %s" % type(o))
+
+# @_change_to_reference_grad.register(Grad)
+# def grad(self, o):
+#         # Peel off the Grads and count them, and get restriction if
+#         # it's between the grad and the terminal
+#         ngrads = 0
+#         restricted = ''
+#         rv = False
+#         while not o._ufl_is_terminal_:
+#             if isinstance(o, Grad):
+#                 o, = o.ufl_operands
+#                 ngrads += 1
+#             elif isinstance(o, Restricted):
+#                 restricted = o.side()
+#                 o, = o.ufl_operands
+#             elif isinstance(o, ReferenceValue):
+#                 rv = True
+#                 o, = o.ufl_operands
+#             else:
+#                 raise ValueError(f"Invalid type {o._ufl_class_.__name__}")
+#         f = o
+#         if rv:
+#             f = ReferenceValue(f)
+
+#         # Get domain and create Jacobian inverse object
+#         domain = o.ufl_domain()
+#         Jinv = JacobianInverse(domain)
+
+#         if is_cellwise_constant(Jinv):
+#             # Optimise slightly by turning Grad(Grad(...)) into
+#             # J^(-T)J^(-T)RefGrad(RefGrad(...))
+#             # rather than J^(-T)RefGrad(J^(-T)RefGrad(...))
+
+#             # Create some new indices
+#             ii = indices(len(f.ufl_shape))  # Indices to get to the scalar component of f
+#             jj = indices(ngrads)  # Indices to sum over the local gradient axes with the inverse Jacobian
+#             kk = indices(ngrads)  # Indices for the leftover inverse Jacobian axes
+
+#             # Preserve restricted property
+#             if restricted:
+#                 Jinv = Jinv(restricted)
+#                 f = f(restricted)
+
+#             # Apply the same number of ReferenceGrad without mappings
+#             lgrad = f
+#             for i in range(ngrads):
+#                 lgrad = ReferenceGrad(lgrad)
+
+#             # Apply mappings with scalar indexing operations (assumes
+#             # ReferenceGrad(Jinv) is zero)
+#             jinv_lgrad_f = lgrad[ii + jj]
+#             for j, k in zip(jj, kk):
+#                 jinv_lgrad_f = Jinv[j, k] * jinv_lgrad_f
+
+#             # Wrap back in tensor shape, derivative axes at the end
+#             jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii + kk)
+
+#         else:
+#             # J^(-T)RefGrad(J^(-T)RefGrad(...))
+
+#             # Preserve restricted property
+#             if restricted:
+#                 Jinv = Jinv(restricted)
+#                 f = f(restricted)
+
+#             jinv_lgrad_f = f
+#             for foo in range(ngrads):
+#                 ii = indices(len(jinv_lgrad_f.ufl_shape))  # Indices to get to the scalar component of f
+#                 j, k = indices(2)
+
+#                 lgrad = ReferenceGrad(jinv_lgrad_f)
+#                 jinv_lgrad_f = Jinv[j, k] * lgrad[ii + (j,)]
+
+#                 # Wrap back in tensor shape, derivative axes at the end
+#                 jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii + (k,))
+
+#         return jinv_lgrad_f
 
 
 class ChangeToReferenceGrad(MultiFunction):
