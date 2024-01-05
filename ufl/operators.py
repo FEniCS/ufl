@@ -693,7 +693,7 @@ def exterior_derivative(f):
         except Exception:
             raise ValueError(f"Unable to determine element from {f}")
 
-    gdim = element.cell().geometric_dimension()
+    gdim = element.cell.geometric_dimension()
     space = element.sobolev_space
 
     if space == sobolevspace.L2:
