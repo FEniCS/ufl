@@ -51,7 +51,7 @@ def test_strip_form_arguments_strips_data_refs():
     assert sys.getrefcount(const_data) == MIN_REF_COUNT
 
     cell = triangle
-    domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
+    domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (2, ),
                                          identity_pullback, H1), data=mesh_data)
     element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
@@ -89,7 +89,7 @@ def test_strip_form_arguments_does_not_change_form():
     const_data = object()
 
     cell = triangle
-    domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
+    domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (2, ),
                                          identity_pullback, H1), data=mesh_data)
     element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)

@@ -26,7 +26,7 @@ class ExpressionCollection(object):
 
     def __init__(self, cell):
         self.cell = cell
-        d = cell.geometric_dimension()
+        d = cell.topological_dimension()
         domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1))
 
         x = SpatialCoordinate(domain)

@@ -20,6 +20,8 @@ def split(v):
     If v is a Coefficient or Argument in a mixed space, returns
     a tuple with the function components corresponding to the subelements.
     """
+    domain = v.ufl_domain()
+
     # Default range is all of v
     begin = 0
     end = None
@@ -57,7 +59,7 @@ def split(v):
         raise ValueError("Don't know how to split tensor valued mixed functions without flattened index space.")
 
     # Compute value size and set default range end
-    value_size = element.value_size
+    value_size = element.value_size(domain)
     if end is None:
         end = value_size
     else:
@@ -66,12 +68,12 @@ def split(v):
         j = begin
         while True:
             for e in element.sub_elements:
-                if j < e.value_size:
+                if j < e.value_size(domain):
                     element = e
                     break
-                j -= e.value_size
+                j -= e.value_size(domain)
             # Then break when we find the subelement that covers the whole range
-            if element.value_size == (end - begin):
+            if element.value_size(domain) == (end - begin):
                 break
 
     # Build expressions representing the subfunction of v for each subelement
@@ -80,7 +82,7 @@ def split(v):
     for i, e in enumerate(element.sub_elements):
         # Get shape, size, indices, and v components
         # corresponding to subelement value
-        shape = e.value_shape
+        shape = e.value_shape(domain)
         strides = shape_to_strides(shape)
         rank = len(shape)
         sub_size = product(shape)

@@ -33,8 +33,7 @@ def check_single_function_pullback(g, mappings):
 
 
 def test_apply_single_function_pullbacks_triangle3d():
-    triangle3d = Cell("triangle", geometric_dimension=3)
-    cell = triangle3d
+    cell = Cell("triangle")
     domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1))
 
     UL2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), l2_piola, L2)

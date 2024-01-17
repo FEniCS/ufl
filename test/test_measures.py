@@ -68,13 +68,12 @@ def test_foo():
     # Define a manifold domain, allows checking gdim/tdim mixup errors
     gdim = 3
     tdim = 2
-    cell = Cell("triangle", gdim)
+    cell = Cell("triangle")
     mymesh = MockMesh(9)
     mydomain = Mesh(FiniteElement("Lagrange", cell, 1, (gdim, ), identity_pullback, H1),
                     ufl_id=9, cargo=mymesh)
 
     assert cell.topological_dimension() == tdim
-    assert cell.geometric_dimension() == gdim
     assert cell.cellname() == "triangle"
     assert mydomain.topological_dimension() == tdim
     assert mydomain.geometric_dimension() == gdim

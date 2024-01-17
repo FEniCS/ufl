@@ -106,7 +106,7 @@ def testAll(self):
 
     # --- Elements:
     cell = triangle
-    dim = cell.geometric_dimension()
+    dim = 2
 
     e0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     e1 = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)

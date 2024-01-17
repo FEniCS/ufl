@@ -9,7 +9,7 @@ from ufl.sobolevspace import H1
 
 def test_split(self):
     cell = triangle
-    d = cell.geometric_dimension()
+    d = cell.topological_dimension()
     domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1))
     f = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     v = FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1,
