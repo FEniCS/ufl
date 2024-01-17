@@ -50,7 +50,7 @@ def assertEqualBySampling(actual, expected):
     adomain = extract_unique_domain(actual)
     bdomain = extract_unique_domain(expected)
     acell = adomain.ufl_cell()
-    bcell = adomain.ufl_cell()
+    bcell = bdomain.ufl_cell()
     assert acell == bcell
     if adomain.geometric_dimension() == 1:
         x = (0.3,)
