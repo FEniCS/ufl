@@ -456,9 +456,10 @@ class CellVertices(GeometricCellQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        cell = extract_unique_domain(self).ufl_cell()
+        domain = extract_unique_domain(self)
+        cell = domain.ufl_cell()
         nv = cell.num_vertices()
-        g = cell.geometric_dimension()
+        g = domain.geometric_dimension()
         return (nv, g)
 
     def is_cellwise_constant(self):
@@ -484,9 +485,10 @@ class CellEdgeVectors(GeometricCellQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        cell = extract_unique_domain(self).ufl_cell()
+        domain = extract_unique_domain(self)
+        cell = domain.ufl_cell()
         ne = cell.num_edges()
-        g = cell.geometric_dimension()
+        g = domain.geometric_dimension()
         return (ne, g)
 
     def is_cellwise_constant(self):
@@ -512,7 +514,8 @@ class FacetEdgeVectors(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        cell = extract_unique_domain(self).ufl_cell()
+        domain = extract_unique_domain(self)
+        cell = domain.ufl_cell()
         facet_types = cell.facet_types()
 
         # Raise exception for cells with more than one facet type e.g. prisms
@@ -520,7 +523,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
             raise Exception(f"Cell type {cell} not supported.")
 
         nfe = facet_types[0].num_edges()
-        g = cell.geometric_dimension()
+        g = domain.geometric_dimension()
         return (nfe, g)
 
     def is_cellwise_constant(self):
