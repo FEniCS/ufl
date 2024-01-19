@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fenics-ufl"
 version = "2023.3.0.dev0"
-authors = [{email="fenics-steering-council@googlegroups.com"}, {name="FEniCS Steering Council"}]
+authors = [{name="UFL contributors"}]
 maintainers = [{email="fenics-steering-council@googlegroups.com"}, {name="FEniCS Steering Council"}]
 description = "Unified Form Language"
 readme = "README.rst"
