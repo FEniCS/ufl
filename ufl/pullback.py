@@ -495,6 +495,9 @@ class CustomPullback(AbstractPullback):
     This should probably be removed.
     """
 
+    def __init__(self, physical_value_shape: typing.Tuple[int, ...]):
+        self._pvs = physical_value_shape
+
     def __repr__(self) -> str:
         """Return a representation of the object."""
         return "CustomPullback()"
@@ -524,6 +527,8 @@ class CustomPullback(AbstractPullback):
         Returns:
             The value shape when the pull back is applied to the given element
         """
+        if self._pvs is not None:
+            return self._pvs
         raise NotImplementedError()
 
 
