@@ -36,7 +36,7 @@ class AbstractFunctionSpace(object):
 class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     """Base function space."""
 
-    def __init__(self, domain, element):
+    def __init__(self, domain, element, label=None):
         """Initialise."""
         if domain is None:
             # DOLFIN hack
@@ -75,11 +75,16 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         else:
             return (domain,)
 
+    def label(self):
+        """Return label containing boundary domains"""
+        return self.label
+    
     def _ufl_hash_data_(self, name=None):
         """UFL hash data."""
         name = name or "BaseFunctionSpace"
         domain = self.ufl_domain()
         element = self.ufl_element()
+        bdata = self.label()
         if domain is None:
             ddata = None
         else:
@@ -88,13 +93,14 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             edata = None
         else:
             edata = element._ufl_hash_data_()
-        return (name, ddata, edata)
+        return (name, ddata, edata, bdata)
 
     def _ufl_signature_data_(self, renumbering, name=None):
         """UFL signature data."""
         name = name or "BaseFunctionSpace"
         domain = self.ufl_domain()
         element = self.ufl_element()
+        bdata = self.label()
         if domain is None:
             ddata = None
         else:
@@ -103,7 +109,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             edata = None
         else:
             edata = element._ufl_signature_data_()
-        return (name, ddata, edata)
+        return (name, ddata, edata, bdata)
 
     def __repr__(self):
         """Representation."""
