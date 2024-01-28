@@ -54,6 +54,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         AbstractFunctionSpace.__init__(self)
         self._ufl_domain = domain
         self._ufl_element = element
+        self._label = label
 
     def ufl_sub_spaces(self):
         """Return ufl sub spaces."""
@@ -77,7 +78,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def label(self):
         """Return label containing boundary domains"""
-        return self.label
+        return self._label
     
     def _ufl_hash_data_(self, name=None):
         """UFL hash data."""
@@ -124,7 +125,7 @@ class FunctionSpace(BaseFunctionSpace, UFLObject):
 
     def dual(self):
         """Get the dual of the space."""
-        return DualSpace(self._ufl_domain, self._ufl_element)
+        return DualSpace(self._ufl_domain, self._ufl_element, label=self._label)
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -149,13 +150,13 @@ class DualSpace(BaseFunctionSpace, UFLObject):
     _primal = False
     _dual = True
 
-    def __init__(self, domain, element):
+    def __init__(self, domain, element, label=None):
         """Initialise."""
-        BaseFunctionSpace.__init__(self, domain, element)
+        BaseFunctionSpace.__init__(self, domain, element, label)
 
     def dual(self):
         """Get the dual of the space."""
-        return FunctionSpace(self._ufl_domain, self._ufl_element)
+        return FunctionSpace(self._ufl_domain, self._ufl_element, label=self._label)
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
