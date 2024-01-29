@@ -123,7 +123,6 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         return product(self.value_shape)
 
 
-
 class FunctionSpace(BaseFunctionSpace, UFLObject):
     """Representation of a Function space."""
 
