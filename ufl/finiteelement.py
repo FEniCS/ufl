@@ -124,14 +124,6 @@ class AbstractFiniteElement(_abc.ABC):
         """Return UFL signature data."""
         return repr(self)
 
-    def value_shape(self, domain) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on a physical domain."""
-        return self.pullback.physical_value_shape(self, domain)
-
-    def value_size(self, domain) -> int:
-        """Return the integer product of the value shape on a physical domain."""
-        return product(self.value_shape(domain))
-
     @property
     def components(self) -> _typing.Dict[_typing.Tuple[int, ...], int]:
         """Get the numbering of the components of the element.

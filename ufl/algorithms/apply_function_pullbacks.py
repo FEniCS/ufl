@@ -30,16 +30,16 @@ class FunctionPullbackApplier(MultiFunction):
         # Represent 0-derivatives of form arguments on reference
         # element
         r = ReferenceValue(o)
+        space = o.ufl_function_space()
         element = o.ufl_element()
-        domain = o.ufl_domain()
 
         if r.ufl_shape != element.reference_value_shape:
             raise ValueError(
                 f"Expecting reference space expression with shape '{element.reference_value_shape}', "
                 f"got '{r.ufl_shape}'")
         f = element.pullback.apply(r)
-        if f.ufl_shape != element.value_shape(domain):
-            raise ValueError(f"Expecting pulled back expression with shape '{element.value_shape}', "
+        if f.ufl_shape != space.value_shape:
+            raise ValueError(f"Expecting pulled back expression with shape '{space.value_shape}', "
                              f"got '{f.ufl_shape}'")
 
         assert f.ufl_shape == o.ufl_shape

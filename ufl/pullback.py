@@ -16,6 +16,7 @@ import numpy as np
 from ufl.core.expr import Expr
 from ufl.core.multiindex import indices
 from ufl.domain import extract_unique_domain
+from ufl.functionspace import FunctionSpace
 from ufl.tensors import as_tensor
 
 if TYPE_CHECKING:
@@ -344,6 +345,7 @@ class MixedPullback(AbstractPullback):
         Returns: The function pulled back to the reference cell
         """
         domain = expr.ufl_domain()
+        space = FunctionSpace(domain, self._element)
         rflat = [expr[idx] for idx in np.ndindex(expr.ufl_shape)]
         g_components = []
         offset = 0
@@ -357,10 +359,10 @@ class MixedPullback(AbstractPullback):
             g_components.extend([rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape)])
             offset += subelem.reference_value_size
         # And reshape appropriately
-        f = as_tensor(np.asarray(g_components).reshape(self._element.value_shape(domain)))
-        if f.ufl_shape != self._element.value_shape(domain):
+        f = as_tensor(np.asarray(g_components).reshape(space.value_shape))
+        if f.ufl_shape != space.value_shape:
             raise ValueError("Expecting pulled back expression with shape "
-                             f"'{self._element.value_shape(domain)}', got '{f.ufl_shape}'")
+                             f"'{space.value_shape}', got '{f.ufl_shape}'")
         return f
 
     def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
@@ -374,7 +376,7 @@ class MixedPullback(AbstractPullback):
             The value shape when the pull back is applied to the given element
         """
         assert element == self._element
-        dim = sum(e.value_size(domain) for e in self._element.sub_elements)
+        dim = sum(FunctionSpace(domain, e).value_size for e in self._element.sub_elements)
         return (dim, )
 
 
@@ -415,6 +417,7 @@ class SymmetricPullback(AbstractPullback):
         Returns: The function pulled back to the reference cell
         """
         domain = expr.ufl_domain()
+        space = FunctionSpace(domain, self._element)
         rflat = [expr[idx] for idx in np.ndindex(expr.ufl_shape)]
         g_components = []
         offsets = [0]
@@ -431,10 +434,10 @@ class SymmetricPullback(AbstractPullback):
             # Flatten into the pulled back expression for the whole thing
             g_components.extend([rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape)])
         # And reshape appropriately
-        f = as_tensor(np.asarray(g_components).reshape(self._element.value_shape(domain)))
-        if f.ufl_shape != self._element.value_shape(domain):
+        f = as_tensor(np.asarray(g_components).reshape(space.value_shape))
+        if f.ufl_shape != space.value_shape:
             raise ValueError(f"Expecting pulled back expression with shape "
-                             f"'{self._element.value_shape(domain)}', got '{f.ufl_shape}'")
+                             f"'{space.value_shape}', got '{f.ufl_shape}'")
         return f
 
     def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:

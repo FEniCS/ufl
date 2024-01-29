@@ -9,9 +9,12 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
+import typing
+
 from ufl.core.ufl_type import UFLObject
 from ufl.domain import join_domains
 from ufl.duals import is_dual, is_primal
+from ufl.utils.sequences import product
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -108,6 +111,17 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     def __repr__(self):
         """Representation."""
         return f"BaseFunctionSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+
+    @property
+    def value_shape(self) -> typing.Tuple[int, ...]:
+        """Return the shape of the value space on a physical domain."""
+        return self._ufl_element.pullback.physical_value_shape(self._ufl_element, self._ufl_domain)
+
+    @property
+    def value_size(self) -> int:
+        """Return the integer product of the value shape on a physical domain."""
+        return product(self.value_shape)
+
 
 
 class FunctionSpace(BaseFunctionSpace, UFLObject):

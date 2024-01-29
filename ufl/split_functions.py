@@ -7,6 +7,8 @@
 #
 # Modified by Anders Logg, 2008
 
+from ufl.functionspace import FunctionSpace
+
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
 from ufl.tensors import ListTensor, as_matrix, as_vector
@@ -59,7 +61,7 @@ def split(v):
         raise ValueError("Don't know how to split tensor valued mixed functions without flattened index space.")
 
     # Compute value size and set default range end
-    value_size = element.value_size(domain)
+    value_size = v.ufl_function_space().value_size
     if end is None:
         end = value_size
     else:
@@ -68,12 +70,12 @@ def split(v):
         j = begin
         while True:
             for e in element.sub_elements:
-                if j < e.value_size(domain):
+                if j < FunctionSpace(domain, e).value_size:
                     element = e
                     break
-                j -= e.value_size(domain)
+                j -= FunctionSpace(domain, e).value_size
             # Then break when we find the subelement that covers the whole range
-            if element.value_size(domain) == (end - begin):
+            if FunctionSpace(domain, element).value_size == (end - begin):
                 break
 
     # Build expressions representing the subfunction of v for each subelement
@@ -82,7 +84,7 @@ def split(v):
     for i, e in enumerate(element.sub_elements):
         # Get shape, size, indices, and v components
         # corresponding to subelement value
-        shape = e.value_shape(domain)
+        shape = FunctionSpace(domain, e).value_shape
         strides = shape_to_strides(shape)
         rank = len(shape)
         sub_size = product(shape)
