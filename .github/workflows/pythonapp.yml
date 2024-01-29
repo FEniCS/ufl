@@ -63,7 +63,7 @@ jobs:
           make html
 
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: doc-${{ matrix.os }}-${{ matrix.python-version }}
           path: doc/sphinx/build/html/

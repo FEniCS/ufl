@@ -119,6 +119,8 @@ class Cofunction(BaseCoefficient, BaseForm):
     _primal = False
     _dual = True
 
+    __eq__ = BaseForm.__eq__
+
     def __new__(cls, *args, **kw):
         """Create a new Cofunction."""
         if args[0] and is_primal(args[0]):

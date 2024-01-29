@@ -95,7 +95,7 @@ class SumDegreeEstimator(MultiFunction):
         This is used when derivatives are taken. It does not reduce the degree when
         TensorProduct elements or quadrilateral elements are involved.
         """
-        if isinstance(f, int) and v.ufl_domain().ufl_cell().cellname() not in ["quadrilateral", "hexahedron"]:
+        if isinstance(f, int) and extract_unique_domain(v).ufl_cell().cellname() not in ["quadrilateral", "hexahedron"]:
             return max(f - 1, 0)
         else:
             return f

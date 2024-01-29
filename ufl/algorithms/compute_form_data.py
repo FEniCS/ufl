@@ -28,6 +28,7 @@ from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.coefficient import Coefficient
 from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.domain import extract_unique_domain
 from ufl.form import Form
 from ufl.functionspace import FunctionSpace
 from ufl.geometry import GeometricFacetQuantity
@@ -181,8 +182,9 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
-        if f.ufl_domain() is not None:
-            new_e = FunctionSpace(f.ufl_domain(), new_e)
+        domain = extract_unique_domain(f)
+        if domain is not None:
+            new_e = FunctionSpace(domain, new_e)
         new_f = Coefficient(new_e, count=i)
         new_coefficients.append(new_f)
         replace_map[f] = new_f
