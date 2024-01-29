@@ -527,6 +527,8 @@ class CustomPullback(AbstractPullback):
         Returns:
             The value shape when the pull back is applied to the given element
         """
+        if element.reference_value_shape == ():
+            return ()
         raise NotImplementedError()
 
 
