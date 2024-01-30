@@ -76,6 +76,10 @@ class UFLObject(ABC):
         """Check inequality."""
         return not self.__eq__(other)
 
+    def apply_default_restrictions(self):
+        """Apply default restrictions."""
+        raise NotImplementedError()
+
 
 def get_base_attr(cls, name):
     """Return first non-``None`` attribute of given name among base classes."""

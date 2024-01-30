@@ -130,6 +130,10 @@ class GeometricFacetQuantity(GeometricQuantity):
 
     __slots__ = ()
 
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return (self.__classname__, self._domain)
+
 
 # --- Coordinate represented in different coordinate systems
 

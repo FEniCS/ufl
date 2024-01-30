@@ -79,6 +79,12 @@ class IntegralData(UFLObject):
         s += "\nand metadata:\n{metadata}"
         return s
 
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return ("IntegralData", self.domain, self.integral_type, self.subdomain_id, self.integrals, self.metadata)
+
+    def __repr__(self):
+        return self.__str__()
 
 class ExprTupleKey(UFLObject):
     """Tuple comparison helper."""

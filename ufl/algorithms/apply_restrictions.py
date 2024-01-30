@@ -241,8 +241,14 @@ def apply_default_restrictions(expression):
 
     This applies a default restriction to such terminals if unrestricted.
     """
+    try:
+        return expression.apply_default_restrictions()
+    except:
+        from IPython import embed; embed()
+
     integral_types = [k for k in integral_type_to_measure_name.keys()
                       if k.startswith("interior_facet")]
+
     rules = DefaultRestrictionApplier()
     return map_integrand_dags(rules, expression,
                               only_integral_type=integral_types)

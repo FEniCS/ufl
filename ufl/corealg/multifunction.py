@@ -77,15 +77,15 @@ class MultiFunction(UFLObject):
                     hname = c._ufl_handler_name_
                 except AttributeError:
                     hname = UFLObject._ufl_handler_name_
-                print(o, t, c, hname)
                 if hasattr(self, hname):
-                    print(o, t, c, hname)
                     self._handlers[t] = getattr(self, hname)
                     self._is_cutoff_type[t] = get_num_args(self._handlers[t]) == 2
                     break
             else:
                 self._handlers[t] = undefined
                 self._is_cutoff_type[t] = False
+        print(type(o))
+        print(type(self))
         return self._handlers[t](o, *args)
 
     def undefined(self, o, *args):

@@ -682,6 +682,10 @@ class Form(BaseForm):
         from ufl.algorithms.signature import compute_form_signature
         self._signature = compute_form_signature(self, self._compute_renumbering())
 
+    def apply_default_restrictions(self):
+        """Apply default restrictions."""
+        pass
+
 
 def as_form(form):
     """Convert to form if not a form, otherwise return form."""

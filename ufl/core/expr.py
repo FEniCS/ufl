@@ -162,7 +162,6 @@ class Expr(UFLObject):
     _ufl_terminal_modifiers_: typing.List[type] = []
 
     # --- Mechanism for profiling object creation and deletion ---
-
     @staticmethod
     def ufl_enable_profiling():
         """Turn on the object counting mechanism and reset counts to zero."""

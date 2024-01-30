@@ -163,8 +163,8 @@ class Argument(FormArgument, BaseArgument):
 
     def __init__(self, function_space, number, part=None):
         """Initialise."""
-        FormArgument.__init__(self)
         BaseArgument.__init__(self, function_space, number, part)
+        FormArgument.__init__(self)
 
         self._repr = "Argument(%s, %s, %s)" % (
             repr(self._ufl_function_space), repr(self._number), repr(self._part))
@@ -181,6 +181,14 @@ class Argument(FormArgument, BaseArgument):
     def ufl_shape(self):
         """Return the associated UFL shape."""
         return self._ufl_shape
+
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return ("Argument", hash(self._ufl_function_space), self._number, self._part)
+
+    def __hash__(self) -> int:
+        """Hash the object."""
+        return hash(self._ufl_hash_data_())
 
 
 class Coargument(BaseForm, BaseArgument):
@@ -250,12 +258,9 @@ class Coargument(BaseForm, BaseArgument):
         return (self._ufl_function_space == other._ufl_function_space and  # noqa: W504
                 self._number == other._number and self._part == other._part)
 
-    def __hash__(self):
-        """Hash."""
-        return hash(("Coargument",
-                     hash(self._ufl_function_space),
-                     self._number,
-                     self._part))
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return ("Coargument", hash(self._ufl_function_space), self._number, self._part)
 
 # --- Helper functions for pretty syntax ---
 
