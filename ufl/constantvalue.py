@@ -58,6 +58,10 @@ class ConstantValue(Terminal):
         """Return tuple of domains related to this terminal object."""
         return ()
 
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return self
+
 
 # TODO: Add geometric dimension/domain and Argument dependencies to Zero?
 class Zero(ConstantValue):

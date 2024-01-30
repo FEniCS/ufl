@@ -17,7 +17,7 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
+from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 from ufl.algorithms.domain_analysis import (build_integral_data, group_form_integrals,
@@ -298,7 +298,7 @@ def compute_form_data(
 
     # Apply default restriction to fully continuous terminals
     if do_apply_default_restrictions:
-        form = apply_default_restrictions(form)
+        form = form.apply_default_restrictions()
 
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller

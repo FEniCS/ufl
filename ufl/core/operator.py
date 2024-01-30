@@ -49,3 +49,11 @@ class Operator(Expr):
         """Default repr string construction for operators."""
         # This should work for most cases
         return f"{self._ufl_class_.__name__}({', '.join(repr(op) for op in self.ufl_operands)})"
+
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        ops = [i.apply_default_restrictions(only_integral_type) for i in self.ufl_operands]
+        if all(a is b for a, b in zip(self.ufl_operands, ops)):
+            return self
+        else:
+            return self.__class__(*ops)

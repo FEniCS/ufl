@@ -76,9 +76,9 @@ class UFLObject(ABC):
         """Check inequality."""
         return not self.__eq__(other)
 
-    def apply_default_restrictions(self):
+    def apply_default_restrictions(self, only_integral_type=None):
         """Apply default restrictions."""
-        raise NotImplementedError()
+        raise NotImplementedError(f"apply_default_restrictions not implemented for {self.__class__.__name__}")
 
 
 def get_base_attr(cls, name):

@@ -92,6 +92,10 @@ class Terminal(Expr):
         """Default comparison of terminals just compare repr strings."""
         return repr(self) == repr(other)
 
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return self
+
 
 # --- Subgroups of terminals ---
 

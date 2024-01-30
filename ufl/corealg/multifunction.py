@@ -84,8 +84,6 @@ class MultiFunction(UFLObject):
             else:
                 self._handlers[t] = undefined
                 self._is_cutoff_type[t] = False
-        print(type(o))
-        print(type(self))
         return self._handlers[t](o, *args)
 
     def undefined(self, o, *args):

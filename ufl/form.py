@@ -682,9 +682,11 @@ class Form(BaseForm):
         from ufl.algorithms.signature import compute_form_signature
         self._signature = compute_form_signature(self, self._compute_renumbering())
 
-    def apply_default_restrictions(self):
+    def apply_default_restrictions(self, only_integral_type=None):
         """Apply default restrictions."""
-        pass
+        integrals = [
+            i.apply_default_restrictions(only_integral_type) for i in self.integrals()]
+        return Form([i for i in integrals if not isinstance(i.integrand(), Zero)])
 
 
 def as_form(form):

@@ -7,8 +7,16 @@
 
 from ufl.core.operator import Operator
 from ufl.precedence import parstr
+from abc import abstractproperty
 
-# --- Restriction operators ---
+def default_restriction(o):
+    """Apply the default restrictions to an object."""
+    return o("+")
+
+
+def require_restriction(o):
+    """Raise an error."""
+    raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
 
 
 class Restricted(Operator):
@@ -35,16 +43,55 @@ class Restricted(Operator):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)}({self._side})"
 
+    @property
+    def ufl_shape(self):
+        """Shape."""
+        return self.ufl_operands[0].ufl_shape
+
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return self
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @abstractproperty
+    def _side(self):
+        """The side on which the restriction is taken."""
+
 
 class PositiveRestricted(Restricted):
     """Positive restriction."""
 
     __slots__ = ()
-    _side = "+"
+
+    @property
+    def _side(self):
+        """The side on which the restriction is taken."""
+        return "+"
+
+    def __repr__(self):
+        """Format as a string."""
+        return f"PositiveRestricted({self.ufl_operands[0]!r})"
 
 
 class NegativeRestricted(Restricted):
     """Negative restriction."""
 
     __slots__ = ()
-    _side = "-"
+
+    @property
+    def _side(self):
+        """The side on which the restriction is taken."""
+        return "-"
+
+    def __repr__(self):
+        """Format as a string."""
+        return f"NegativeRestricted({self.ufl_operands[0]!r})"

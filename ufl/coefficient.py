@@ -18,6 +18,8 @@ from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import Counted
+from ufl.restriction import default_restriction, require_restriction
+from ufl.sobolevspace import H1
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -203,6 +205,14 @@ class Coefficient(BaseCoefficient, FormArgument):
     def __repr__(self):
         """Representation."""
         return self._repr
+
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        if self.ufl_element() in H1:
+            # return self
+            return default_restriction(self)
+        else:
+            return require_restriction(self)
 
 
 # --- Helper functions for subfunctions on mixed elements ---

@@ -8,6 +8,7 @@
 
 from ufl.core.terminal import Terminal
 from ufl.domain import as_domain, extract_unique_domain
+from ufl.restriction import default_restriction
 from ufl.sobolevspace import H1
 
 """
@@ -178,6 +179,10 @@ class SpatialCoordinate(GeometricCellQuantity):
         # When calling `derivative`, the count is used to sort over.
         return -1
 
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return default_restriction(self)
+
 
 class CellCoordinate(GeometricCellQuantity):
     """The coordinate in a reference cell.
@@ -270,6 +275,10 @@ class FacetOrigin(GeometricFacetQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return default_restriction(self)
+
 
 class CellFacetOrigin(GeometricFacetQuantity):
     """The reference cell coordinate corresponding to origin of a reference facet."""
@@ -340,6 +349,10 @@ class FacetJacobian(GeometricFacetQuantity):
         # Only true for a piecewise linear coordinate field in simplex
         # cells
         return self._domain.is_piecewise_linear_simplex_domain()
+
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return default_restriction(self)
 
 
 class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
@@ -544,6 +557,10 @@ class FacetJacobianDeterminant(GeometricFacetQuantity):
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return default_restriction(self)
+
 
 class CellFacetJacobianDeterminant(GeometricFacetQuantity):
     """The pseudo-determinant of the CellFacetJacobian."""
@@ -608,6 +625,10 @@ class FacetJacobianInverse(GeometricFacetQuantity):
         # Only true for a piecewise linear coordinate field in simplex
         # cells
         return self._domain.is_piecewise_linear_simplex_domain()
+
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return default_restriction(self)
 
 
 class CellFacetJacobianInverse(GeometricFacetQuantity):
@@ -738,6 +759,10 @@ class FacetArea(GeometricFacetQuantity):  # FIXME: Should this be allowed for in
     __slots__ = ()
     name = "facetarea"
 
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return default_restriction(self)
+
 
 class MinCellEdgeLength(GeometricCellQuantity):
     """The minimum edge length of the cell."""
@@ -759,12 +784,20 @@ class MinFacetEdgeLength(GeometricFacetQuantity):
     __slots__ = ()
     name = "minfacetedgelength"
 
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return default_restriction(self)
+
 
 class MaxFacetEdgeLength(GeometricFacetQuantity):
     """The maximum edge length of the facet."""
 
     __slots__ = ()
     name = "maxfacetedgelength"
+
+    def apply_default_restrictions(self, only_integral_type=None):
+        """Apply default restrictions."""
+        return default_restriction(self)
 
 
 # --- Types representing other stuff
