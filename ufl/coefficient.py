@@ -206,13 +206,19 @@ class Coefficient(BaseCoefficient, FormArgument):
         """Representation."""
         return self._repr
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
         if self.ufl_element() in H1:
-            # return self
-            return default_restriction(self)
+            return self(default_restriction)
         else:
             return require_restriction(self)
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        if self.ufl_element() in H1:
+            return self(default_restriction)
+        else:
+            return -self(default_restriction)
 
 
 # --- Helper functions for subfunctions on mixed elements ---

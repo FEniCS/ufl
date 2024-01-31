@@ -257,6 +257,10 @@ class MultiIndex(Terminal):
         """Return iteratable."""
         return iter(self._indices)
 
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return self
+
 
 def indices(n):
     """Return a tuple of n new Index objects."""

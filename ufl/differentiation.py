@@ -18,6 +18,7 @@ from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import BaseForm
 from ufl.precedence import parstr
+from ufl.restriction import require_restriction
 from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
@@ -269,6 +270,10 @@ class Grad(CompoundDerivative):
     def __str__(self):
         """Format as a string."""
         return "grad(%s)" % self.ufl_operands[0]
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        require_restriction(self)
 
 
 class ReferenceGrad(CompoundDerivative):

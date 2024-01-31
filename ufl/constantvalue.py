@@ -58,8 +58,12 @@ class ConstantValue(Terminal):
         """Return tuple of domains related to this terminal object."""
         return ()
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
+        return self
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
         return self
 
 

@@ -9,9 +9,7 @@ from ufl.core.operator import Operator
 from ufl.precedence import parstr
 from abc import abstractproperty
 
-def default_restriction(o):
-    """Apply the default restrictions to an object."""
-    return o("+")
+default_restriction = "+"
 
 
 def require_restriction(o):
@@ -48,9 +46,15 @@ class Restricted(Operator):
         """Shape."""
         return self.ufl_operands[0].ufl_shape
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
         return self
+
+    def apply_restrictions(self, side=None):
+        """Apply default restrictions."""
+        if side is not None:
+            raise ValueError("Cannot restrict an expression twice.")
+        return self.__class__(self.ufl_operands[0].apply_restrictions(self._side))
 
     @property
     def ufl_free_indices(self):

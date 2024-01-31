@@ -75,8 +75,12 @@ class Constant(Terminal, Counted):
             self._ufl_domain._ufl_signature_data_(renumbering), repr(self._ufl_shape),
             repr(renumbering[self]))
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
+        return self
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
         return self
 
 

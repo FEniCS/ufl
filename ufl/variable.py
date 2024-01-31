@@ -63,6 +63,10 @@ class Label(Terminal, Counted):
             return ("Label", self._count)
         return ("Label", renumbering[self])
 
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return self
+
 
 class Variable(Operator):
     """A Variable is a representative for another expression.
@@ -122,3 +126,7 @@ class Variable(Operator):
         """Format as a string."""
         return "var%d(%s)" % (self.ufl_operands[1].count(),
                               self.ufl_operands[0])
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return self  # TODO: is this right?

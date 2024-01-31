@@ -27,6 +27,7 @@ from ufl.equation import Equation
 from ufl.integral import Integral
 from ufl.utils.counted import Counted
 from ufl.utils.sorting import sorted_by_count
+from ufl.measure import integral_type_to_measure_name
 
 # Export list for ufl.classes
 __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
@@ -682,10 +683,14 @@ class Form(BaseForm):
         from ufl.algorithms.signature import compute_form_signature
         self._signature = compute_form_signature(self, self._compute_renumbering())
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        integrals = [
-            i.apply_default_restrictions(only_integral_type) for i in self.integrals()]
+        integrals = [i.apply_default_restrictions() for i in self.integrals()]
+        return Form([i for i in integrals if not isinstance(i.integrand(), Zero)])
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        integrals = [i.apply_restrictions(side) for i in self.integrals()]
         return Form([i for i in integrals if not isinstance(i.integrand(), Zero)])
 
 

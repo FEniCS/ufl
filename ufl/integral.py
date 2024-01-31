@@ -139,9 +139,16 @@ class Integral(UFLObject):
                     id_or_none(self._subdomain_data))
         return hash(hashdata)
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        if (only_integral_type is None) or (self.integral_type() in only_integral_type):
-            return self.reconstruct(self.integrand().apply_default_restrictions(only_integral_type))
+        if self.integral_type().startswith("interior_facet"):
+            return self.reconstruct(self.integrand().apply_default_restrictions())
+        else:
+            return self
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        if self.integral_type().startswith("interior_facet"):
+            return self.reconstruct(self.integrand().apply_restrictions(side))
         else:
             return self

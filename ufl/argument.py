@@ -21,6 +21,7 @@ from ufl.core.ufl_type import UFLObject
 from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
+from ufl.restriction import require_restriction
 from ufl.split_functions import split
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
@@ -189,6 +190,10 @@ class Argument(FormArgument, BaseArgument):
     def __hash__(self) -> int:
         """Hash the object."""
         return hash(self._ufl_hash_data_())
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return require_restriction(self)
 
 
 class Coargument(BaseForm, BaseArgument):

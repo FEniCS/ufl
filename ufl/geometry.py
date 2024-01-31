@@ -8,7 +8,7 @@
 
 from ufl.core.terminal import Terminal
 from ufl.domain import as_domain, extract_unique_domain
-from ufl.restriction import default_restriction
+from ufl.restriction import default_restriction, require_restriction
 from ufl.sobolevspace import H1
 
 """
@@ -125,6 +125,10 @@ class GeometricCellQuantity(GeometricQuantity):
 
     __slots__ = ()
 
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return require_restriction(self)
+
 
 class GeometricFacetQuantity(GeometricQuantity):
     """Geometric facet quantity."""
@@ -134,6 +138,10 @@ class GeometricFacetQuantity(GeometricQuantity):
     def _ufl_hash_data_(self):
         """Hash data."""
         return (self.__classname__, self._domain)
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return require_restriction(self)
 
 
 # --- Coordinate represented in different coordinate systems
@@ -179,9 +187,9 @@ class SpatialCoordinate(GeometricCellQuantity):
         # When calling `derivative`, the count is used to sort over.
         return -1
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        return default_restriction(self)
+        return self(default_restriction)
 
 
 class CellCoordinate(GeometricCellQuantity):
@@ -243,6 +251,10 @@ class FacetCoordinate(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         return t <= 1
 
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return self
+
 
 # --- Origin of coordinate systems in larger coordinate systems
 
@@ -275,9 +287,9 @@ class FacetOrigin(GeometricFacetQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        return default_restriction(self)
+        return self(default_restriction)
 
 
 class CellFacetOrigin(GeometricFacetQuantity):
@@ -350,9 +362,9 @@ class FacetJacobian(GeometricFacetQuantity):
         # cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        return default_restriction(self)
+        return self(default_restriction)
 
 
 class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
@@ -557,9 +569,9 @@ class FacetJacobianDeterminant(GeometricFacetQuantity):
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        return default_restriction(self)
+        return self(default_restriction)
 
 
 class CellFacetJacobianDeterminant(GeometricFacetQuantity):
@@ -626,9 +638,9 @@ class FacetJacobianInverse(GeometricFacetQuantity):
         # cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        return default_restriction(self)
+        return self(default_restriction)
 
 
 class CellFacetJacobianInverse(GeometricFacetQuantity):
@@ -680,6 +692,22 @@ class FacetNormal(GeometricFacetQuantity):
         is_piecewise_linear = ce.embedded_superdegree <= 1 and ce in H1
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        domain = self.ufl_domain()
+        e = domain.ufl_coordinate_element()
+        gdim = domain.geometric_dimension()
+        tdim = domain.topological_dimension()
+        if e.embedded_superdegree <= 1 and e in H1 and gd == td:
+            if side is None:
+                require_restriction(self)
+            elif side == default_restriction:
+                return self(default_restriction)
+            else:
+                return -self(default_restriction)
+        else:
+            require_restriction(self)
+
 
 class CellNormal(GeometricCellQuantity):
     """The upwards pointing normal vector of the current manifold cell."""
@@ -724,12 +752,20 @@ class ReferenceCellVolume(GeometricCellQuantity):
     __slots__ = ()
     name = "reference_cell_volume"
 
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return self
+
 
 class ReferenceFacetVolume(GeometricFacetQuantity):
     """The volume of the reference cell of the current facet."""
 
     __slots__ = ()
     name = "reference_facet_volume"
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return self
 
 
 class CellVolume(GeometricCellQuantity):
@@ -759,9 +795,9 @@ class FacetArea(GeometricFacetQuantity):  # FIXME: Should this be allowed for in
     __slots__ = ()
     name = "facetarea"
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        return default_restriction(self)
+        return self(default_restriction)
 
 
 class MinCellEdgeLength(GeometricCellQuantity):
@@ -784,9 +820,9 @@ class MinFacetEdgeLength(GeometricFacetQuantity):
     __slots__ = ()
     name = "minfacetedgelength"
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        return default_restriction(self)
+        return self(default_restriction)
 
 
 class MaxFacetEdgeLength(GeometricFacetQuantity):
@@ -795,9 +831,9 @@ class MaxFacetEdgeLength(GeometricFacetQuantity):
     __slots__ = ()
     name = "maxfacetedgelength"
 
-    def apply_default_restrictions(self, only_integral_type=None):
+    def apply_default_restrictions(self):
         """Apply default restrictions."""
-        return default_restriction(self)
+        return self(default_restriction)
 
 
 # --- Types representing other stuff
@@ -839,3 +875,7 @@ class QuadratureWeight(GeometricQuantity):
         """Return whether this expression is spatially constant over each cell."""
         # The weight usually varies with the quadrature points
         return False
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        return self

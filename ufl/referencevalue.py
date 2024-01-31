@@ -7,6 +7,7 @@
 
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument
+from ufl.restriction import Restricted
 
 
 class ReferenceValue(Operator):
@@ -32,3 +33,14 @@ class ReferenceValue(Operator):
     def __str__(self):
         """Format as a string."""
         return f"reference_value({self.ufl_operands[0]})"
+
+    def apply_restrictions(self, side=None):
+        """Apply restrictions."""
+        f, = o.ufl_operands
+        assert f._is_terminal()
+        g = f.apply_restrictions(side)
+        if isinstance(g, Restricted):
+            side = g.side()
+            return self(side)
+        else:
+            return self
