@@ -50,7 +50,6 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             else:
                 if element.cell != domain_cell:
                     raise ValueError("Non-matching cell of finite element and domain.")
-        
         AbstractFunctionSpace.__init__(self)
         self._label = label
         self._ufl_domain = domain
@@ -85,7 +84,6 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         name = name or "BaseFunctionSpace"
         domain = self.ufl_domain()
         element = self.ufl_element()
-        bdata = self.label()
         if domain is None:
             ddata = None
         else:
@@ -94,14 +92,13 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             edata = None
         else:
             edata = element._ufl_hash_data_()
-        return (name, ddata, edata, bdata)
+        return (name, ddata, edata, self.label())
 
     def _ufl_signature_data_(self, renumbering, name=None):
         """UFL signature data."""
         name = name or "BaseFunctionSpace"
         domain = self.ufl_domain()
         element = self.ufl_element()
-        bdata = self.label()
         if domain is None:
             ddata = None
         else:
@@ -110,7 +107,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             edata = None
         else:
             edata = element._ufl_signature_data_()
-        return (name, ddata, edata, bdata)
+        return (name, ddata, edata, self.label())
 
     def __repr__(self):
         """Representation."""
