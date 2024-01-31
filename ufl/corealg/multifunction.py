@@ -10,9 +10,7 @@
 import inspect
 import typing
 
-from ufl.core.expr import Expr
 from ufl.core.ufl_type import UFLObject
-from ufl.classes import all_ufl_classes
 
 
 def get_num_args(function):
@@ -82,7 +80,7 @@ class MultiFunction(UFLObject):
                     self._is_cutoff_type[t] = get_num_args(self._handlers[t]) == 2
                     break
             else:
-                self._handlers[t] = undefined
+                self._handlers[t] = self.undefined
                 self._is_cutoff_type[t] = False
         return self._handlers[t](o, *args)
 

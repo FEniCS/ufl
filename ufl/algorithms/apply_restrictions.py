@@ -13,15 +13,6 @@ towards the terminals.
 import warnings
 
 
-from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
-from ufl.domain import extract_unique_domain
-from ufl.measure import integral_type_to_measure_name
-from ufl.restriction import Restricted
-from ufl.sobolevspace import H1
-
-
 def apply_restrictions(expression):
     """Propagate restriction nodes to wrap differential terminals directly."""
     warnings.warn(

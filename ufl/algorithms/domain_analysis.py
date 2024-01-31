@@ -86,6 +86,7 @@ class IntegralData(UFLObject):
     def __repr__(self):
         return self.__str__()
 
+
 class ExprTupleKey(UFLObject):
     """Tuple comparison helper."""
     __slots__ = ('x',)

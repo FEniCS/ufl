@@ -51,7 +51,7 @@ class BaseCoefficient(Counted):
             repr(self._ufl_function_space), repr(self._count))
 
     def __hash__(self):
-        return has(self._repr)
+        return hash(self._repr)
 
     def _ufl_hash_data_(self):
         raise NotImplementedError()

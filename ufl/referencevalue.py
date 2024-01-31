@@ -36,7 +36,7 @@ class ReferenceValue(Operator):
 
     def apply_restrictions(self, side=None):
         """Apply restrictions."""
-        f, = o.ufl_operands
+        f, = self.ufl_operands
         assert f._is_terminal()
         g = f.apply_restrictions(side)
         if isinstance(g, Restricted):

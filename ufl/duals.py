@@ -6,10 +6,8 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 
-from ufl.core.ufl_type import UFLObject
 
-
-def is_primal(UFLObject):
+def is_primal(object):
     """Determine if the object belongs to a primal space.
 
     This is not simply the negation of is_dual,
@@ -19,7 +17,7 @@ def is_primal(UFLObject):
     return hasattr(object, '_primal') and object._primal
 
 
-def is_dual(UFLObject):
+def is_dual(object):
     """Determine if the object belongs to a dual space.
 
     This is not simply the negation of is_primal,

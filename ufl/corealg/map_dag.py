@@ -7,9 +7,6 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.core.expr import Expr
-from ufl.core.ufl_type import all_ufl_classes
-from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_post_traversal
 
 
@@ -68,10 +65,10 @@ def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None
     rcache = {} if rcache is None else rcache
 
     # Build mapping typecode:bool, for which types to skip the subtree of
-    #if isinstance(function, MultiFunction):
+    # if isinstance(function, MultiFunction):
     #    cutoff_types = function._is_cutoff_type
     #    handlers = function._handlers  # Optimization
-    #else:
+    # else:
     #    # Regular function: no skipping supported
     cutoff_types = {}
     handlers = {}

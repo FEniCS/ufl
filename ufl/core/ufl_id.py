@@ -8,8 +8,6 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.core.ufl_type import UFLObject
-
 
 def attach_ufl_id(cls):
     """Equip class with ``.ufl_id()`` and handle bookkeeping.

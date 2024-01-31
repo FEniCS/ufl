@@ -10,7 +10,6 @@ from ufl.core.ufl_type import UFLObject
 __all_classes__ = ["Equation"]
 
 
-
 class Equation(UFLObject):
     """Equation.
 

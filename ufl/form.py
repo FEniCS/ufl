@@ -27,7 +27,6 @@ from ufl.equation import Equation
 from ufl.integral import Integral
 from ufl.utils.counted import Counted
 from ufl.utils.sorting import sorted_by_count
-from ufl.measure import integral_type_to_measure_name
 
 # Export list for ufl.classes
 __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]

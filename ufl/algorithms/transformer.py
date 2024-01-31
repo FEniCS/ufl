@@ -60,7 +60,7 @@ class Transformer(UFLObject):
                     # encountered superclass
                     try:
                         handler_name = c._ufl_handler_name_
-                    except AttributeError as attribute_error:
+                    except AttributeError:
                         # TODO: what is this meant to do?
                         # if type(classobject) is not UFLObject:
                         #    raise attribute_error

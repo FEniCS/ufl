@@ -91,7 +91,7 @@ class Index(IndexBase, Counted):
         Counted.__init__(self, count, Index)
 
     def _ufl_hash_data_(self):
-        raise NotImplmentedError()
+        raise NotImplementedError()
 
     def __hash__(self):
         """Hash."""

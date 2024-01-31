@@ -698,7 +698,7 @@ class FacetNormal(GeometricFacetQuantity):
         e = domain.ufl_coordinate_element()
         gdim = domain.geometric_dimension()
         tdim = domain.topological_dimension()
-        if e.embedded_superdegree <= 1 and e in H1 and gd == td:
+        if e.embedded_superdegree <= 1 and e in H1 and gdim == tdim:
             if side is None:
                 require_restriction(self)
             elif side == default_restriction:

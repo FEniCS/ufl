@@ -23,7 +23,6 @@ __all__ = []
 # decorator for each Expr class.
 
 import inspect
-import sys
 
 import ufl.algebra
 import ufl.argument

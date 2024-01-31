@@ -15,8 +15,6 @@ import typing
 from abc import ABC, abstractmethod
 
 import ufl.core as core
-from ufl.core.compute_expr_hash import compute_expr_hash
-from ufl.utils.formatting import camel2underscore
 
 all_ufl_classes = []
 
@@ -177,24 +175,24 @@ def check_type_traits_consistency(cls):
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_del_counts_)
 
     # Check that non-abstract types always specify num_ops
-    #if not inspect.isabstract(cls):
+    # if not inspect.isabstract(cls):
     #    if cls._ufl_num_ops_ is None:
     #        msg = "Class {0.__name__} has not specified num_ops."
     #        raise TypeError(msg.format(cls))
 
     # Check for non-abstract types that num_ops has the right type
-    #if not inspect.isabstract(cls):
+    # if not inspect.isabstract(cls):
     #    if not (isinstance(cls._ufl_num_ops_, int) or cls._ufl_num_ops_ == "varying"):
     #        msg = 'Class {0.__name__} has invalid num_ops value {1} (integer or "varying").'
     #        raise TypeError(msg.format(cls, cls._ufl_num_ops_))
 
     # Check that num_ops is not set to nonzero for a terminal
-    #if cls._is_terminal() and cls._ufl_num_ops_ != 0:
+    # if cls._is_terminal() and cls._ufl_num_ops_ != 0:
     #    msg = "Class {0.__name__} has num_ops > 0 but is terminal."
     #    raise TypeError(msg.format(cls))
 
     # Check that a non-scalar type doesn't have a scalar base class.
-    #if not cls._ufl_is_scalar_:
+    # if not cls._ufl_is_scalar_:
     #    if get_base_attr(cls, "_ufl_is_scalar_"):
     #        msg = "Non-scalar class {0.__name__} is has a scalar base class."
     #        raise TypeError(msg.format(cls))
