@@ -16,8 +16,8 @@ import warnings
 def apply_restrictions(expression):
     """Propagate restriction nodes to wrap differential terminals directly."""
     warnings.warn(
-        "The function apply_default_restrictions is deprecated. "
-        "Please, use object.apply_default_restrictions() directly instead.",
+        "The function apply_restrictions is deprecated and will be removed after December 2024. "
+        "Please use object.apply_restrictions() directly instead.",
         FutureWarning)
     return expression.apply_restrictions()
 
@@ -28,7 +28,7 @@ def apply_default_restrictions(expression):
     This applies a default restriction to such terminals if unrestricted.
     """
     warnings.warn(
-        "The function apply_default_restrictions is deprecated. "
-        "Please, use object.apply_default_restrictions() directly instead.",
+        "The function apply_default_restrictions is deprecated and will be removed after "
+        "December 2024. Please use object.apply_default_restrictions() directly instead.",
         FutureWarning)
     return expression.apply_default_restrictions()
