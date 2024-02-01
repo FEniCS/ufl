@@ -56,7 +56,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         self._ufl_element = element
 
     def label(self):
-        """Return label of boundary domains to differentiate restricted and unrestricted"""
+        """Return label of boundary domains to differentiate restricted and unrestricted."""
         return self._label
 
     def ufl_sub_spaces(self):
