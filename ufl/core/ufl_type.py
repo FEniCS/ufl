@@ -82,6 +82,14 @@ class UFLObject(ABC):
         """Apply restrictions."""
         raise NotImplementedError(f"apply_restrictions not implemented for {self.__class__.__name__}")
 
+    def check_arity(self, arguments, complex_mode=False):
+        """Check the arity."""
+        raise NotImplementedError(f"check_arity not implemented for {self.__class__.__name__}")
+
+    def get_arity(self):
+        """Get the arity."""
+        raise NotImplementedError(f"get_arity not implemented for {self.__class__.__name__}")
+
 
 def get_base_attr(cls, name):
     """Return first non-``None`` attribute of given name among base classes."""

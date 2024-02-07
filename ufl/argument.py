@@ -195,6 +195,10 @@ class Argument(FormArgument, BaseArgument):
         """Apply restrictions."""
         return require_restriction(self)
 
+    def get_arity(self):
+        """Get the arity."""
+        return ((self, False), )
+
 
 class Coargument(BaseForm, BaseArgument):
     """UFL value: Representation of an argument to a form in a dual space."""

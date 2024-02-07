@@ -96,6 +96,10 @@ class Terminal(Expr):
         """Apply default restrictions."""
         return self
 
+    def get_arity(self):
+        """Get the arity."""
+        return ()
+
 
 # --- Subgroups of terminals ---
 

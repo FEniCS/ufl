@@ -39,6 +39,10 @@ class CellAvg(Operator):
         """Format as a string."""
         return f"cell_avg({self.ufl_operands[0]})"
 
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()
+
 
 class FacetAvg(Operator):
     """Facet average."""
@@ -67,3 +71,7 @@ class FacetAvg(Operator):
     def __str__(self):
         """Format as a string."""
         return f"facet_avg({self.ufl_operands[0]})"
+
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()

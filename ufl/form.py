@@ -692,6 +692,28 @@ class Form(BaseForm):
         integrals = [i.apply_restrictions(side) for i in self.integrals()]
         return Form([i for i in integrals if not isinstance(i.integrand(), Zero)])
 
+    def check_arity(self, arguments, complex_mode=False):
+        """Check the arity."""
+        from ufl.algorithms.check_arities import ArityMismatch
+        for integral in self.integrals():
+            integrand = integral.integrand()
+            arguments = tuple(sorted(set(arguments),
+                                     key=lambda x: (x.number(), x.part())))
+            arg_tuples = integrand.get_arity()
+            args = tuple(a[0] for a in arg_tuples)
+            if args != arguments:
+                raise ArityMismatch(f"Integrand arguments {args} differ from form arguments {arguments}.")
+            if complex_mode:
+                # Check that the test function is conjugated and that any
+                # trial function is not conjugated. Further arguments are
+                # treated as trial funtions (i.e. no conjugation) but this
+                # might not be correct.
+                for arg, conj in arg_tuples:
+                    if arg.number() == 0 and not conj:
+                        raise ArityMismatch("Failure to conjugate test function in complex Form")
+                    elif arg.number() > 0 and conj:
+                        raise ArityMismatch(f"Argument {arg} is spuriously conjugated in complex Form")
+
 
 def as_form(form):
     """Convert to form if not a form, otherwise return form."""

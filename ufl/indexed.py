@@ -108,3 +108,7 @@ class Indexed(Operator):
             return self
         raise ValueError(f"Attempting to index with {ufl_err_str(key)}, "
                          f"but object is already indexed: {ufl_err_str(self)}")
+
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()

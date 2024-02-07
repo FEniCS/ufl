@@ -90,6 +90,15 @@ class Sum(Operator):
         """Format as a string."""
         return " + ".join([parstr(o, self) for o in self.ufl_operands])
 
+    def get_arity(self):
+        """Get the arity."""
+        from ufl.algorithms.check_arities import _afmt, ArityMismatch
+        a = self.ufl_operands[0].get_arity()
+        b = self.ufl_operands[1].get_arity()
+        if a != b:
+            raise ArityMismatch(f"Adding expressions with non-matching form arguments {_afmt(a)} vs {_afmt(b)}.")
+        return a
+
 
 class Product(Operator):
     """The product of two or more UFL objects."""
@@ -181,6 +190,33 @@ class Product(Operator):
         a, b = self.ufl_operands
         return " * ".join((parstr(a, self), parstr(b, self)))
 
+    def get_arity(self):
+        """Get the arity."""
+        from ufl.algorithms.check_arities import _afmt, ArityMismatch
+        a = self.ufl_operands[0].get_arity()
+        b = self.ufl_operands[1].get_arity()
+        if a and b:
+            # Check that we don't have test*test, trial*trial, even
+            # for different parts in a block system
+            anumbers = set(x[0].number() for x in a)
+            for x in b:
+                if x[0].number() in anumbers:
+                    raise ArityMismatch("Multiplying expressions with overlapping form argument number "
+                                        f"{x[0].number()}, argument is {_afmt(x)}.")
+            # Combine argument lists
+            c = tuple(sorted(set(a + b), key=lambda x: (x[0].number(), x[0].part())))
+            # Check that we don't have any arguments shared between a
+            # and b
+            if len(c) != len(a) + len(b) or len(c) != len({x[0] for x in c}):
+                raise ArityMismatch("Multiplying expressions with overlapping form arguments "
+                                    f"{_afmt(a)} vs {_afmt(b)}.")
+            # It's fine for argument parts to overlap
+            return c
+        elif a:
+            return a
+        else:
+            return b
+
 
 class Division(Operator):
     """Division."""
@@ -249,6 +285,15 @@ class Division(Operator):
     def __str__(self):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)} / {parstr(self.ufl_operands[1], self)}"
+
+    def get_arity(self):
+        """Get the arity."""
+        from ufl.algorithms.check_arities import ArityMismatch
+        a = self.ufl_operands[0].get_arity()
+        b = self.ufl_operands[1].get_arity()
+        if b:
+            raise ArityMismatch(f"Cannot divide by form argument {b}.")
+        return a
 
 
 class Power(Operator):
@@ -378,6 +423,10 @@ class Conj(Operator):
         """Format as a string."""
         a, = self.ufl_operands
         return f"conj({parstr(a, self)})"
+
+    def get_arity(self):
+        """Get the arity."""
+        return tuple((i, not j) for i, j in self.ufl_operands[0].get_arity())
 
 
 class Real(Operator):

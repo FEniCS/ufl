@@ -44,3 +44,7 @@ class ReferenceValue(Operator):
             return self(side)
         else:
             return self
+
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()

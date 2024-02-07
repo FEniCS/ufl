@@ -130,3 +130,7 @@ class Variable(Operator):
     def apply_restrictions(self, side=None):
         """Apply restrictions."""
         return self  # TODO: is this right?
+
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()

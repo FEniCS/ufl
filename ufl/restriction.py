@@ -70,6 +70,10 @@ class Restricted(Operator):
     def _side(self):
         """The side on which the restriction is taken."""
 
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()
+
 
 class PositiveRestricted(Restricted):
     """Positive restriction."""

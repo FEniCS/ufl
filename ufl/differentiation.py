@@ -275,6 +275,10 @@ class Grad(CompoundDerivative):
         """Apply restrictions."""
         require_restriction(self)
 
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()
+
 
 class ReferenceGrad(CompoundDerivative):
     """Reference grad."""
@@ -323,6 +327,10 @@ class ReferenceGrad(CompoundDerivative):
     def __str__(self):
         """Format as a string."""
         return "reference_grad(%s)" % self.ufl_operands[0]
+
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()
 
 
 class Div(CompoundDerivative):

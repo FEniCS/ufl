@@ -49,6 +49,10 @@ class CompoundTensorOperator(Operator):
         """Initialise."""
         Operator.__init__(self, operands)
 
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()
+
 # TODO: Use this and make Sum handle scalars only?
 #       This would simplify some algorithms. The only
 #       problem is we can't use + in many algorithms because
@@ -143,6 +147,27 @@ class Outer(CompoundTensorOperator):
         return "%s (X) %s" % (parstr(self.ufl_operands[0], self),
                               parstr(self.ufl_operands[1], self))
 
+    def get_arity(self):
+        """Get the arity."""
+        from ufl.algorithms.check_arities import ArityMismatch, _afmt
+        a = tuple((i, not j) for i, j in self.ufl_operands[0].get_arity())
+        b = self.ufl_operands[1].get_arity()
+        assert a and b
+        anumbers = set(x[0].number() for x in a)
+        for x in b:
+            if x[0].number() in anumbers:
+                raise ArityMismatch("Multiplying expressions with overlapping form argument number "
+                                    f"{x[0].number()}, argument is {_afmt(x)}.")
+        # Combine argument lists
+        c = tuple(sorted(set(a + b), key=lambda x: (x[0].number(), x[0].part())))
+        # Check that we don't have any arguments shared between a
+        # and b
+        if len(c) != len(a) + len(b) or len(c) != len({x[0] for x in c}):
+            raise ArityMismatch("Multiplying expressions with overlapping form arguments "
+                                f"{_afmt(a)} vs {_afmt(b)}.")
+        # It's fine for argument parts to overlap
+        return c
+
 
 class Inner(CompoundTensorOperator):
     """Inner."""
@@ -184,6 +209,27 @@ class Inner(CompoundTensorOperator):
         """Format as a string."""
         return "%s : %s" % (parstr(self.ufl_operands[0], self),
                             parstr(self.ufl_operands[1], self))
+
+    def get_arity(self):
+        """Get the arity."""
+        from ufl.algorithms.check_arities import ArityMismatch, _afmt
+        a = self.ufl_operands[0].get_arity()
+        b = tuple((i, not j) for i, j in self.ufl_operands[1].get_arity())
+        assert a and b
+        anumbers = set(x[0].number() for x in a)
+        for x in b:
+            if x[0].number() in anumbers:
+                raise ArityMismatch("Multiplying expressions with overlapping form argument number "
+                                    f"{x[0].number()}, argument is {_afmt(x)}.")
+        # Combine argument lists
+        c = tuple(sorted(set(a + b), key=lambda x: (x[0].number(), x[0].part())))
+        # Check that we don't have any arguments shared between a
+        # and b
+        if len(c) != len(a) + len(b) or len(c) != len({x[0] for x in c}):
+            raise ArityMismatch("Multiplying expressions with overlapping form arguments "
+                                f"{_afmt(a)} vs {_afmt(b)}.")
+        # It's fine for argument parts to overlap
+        return c
 
 
 class Dot(CompoundTensorOperator):
@@ -232,6 +278,27 @@ class Dot(CompoundTensorOperator):
         """Format as a string."""
         return "%s . %s" % (parstr(self.ufl_operands[0], self),
                             parstr(self.ufl_operands[1], self))
+
+    def get_arity(self):
+        """Get the arity."""
+        from ufl.algorithms.check_arities import ArityMismatch, _afmt
+        a = self.ufl_operands[0].get_arity()
+        b = tuple((i, not j) for i, j in self.ufl_operands[1].get_arity())
+        assert a and b
+        anumbers = set(x[0].number() for x in a)
+        for x in b:
+            if x[0].number() in anumbers:
+                raise ArityMismatch("Multiplying expressions with overlapping form argument number "
+                                    f"{x[0].number()}, argument is {_afmt(x)}.")
+        # Combine argument lists
+        c = tuple(sorted(set(a + b), key=lambda x: (x[0].number(), x[0].part())))
+        # Check that we don't have any arguments shared between a
+        # and b
+        if len(c) != len(a) + len(b) or len(c) != len({x[0] for x in c}):
+            raise ArityMismatch("Multiplying expressions with overlapping form arguments "
+                                f"{_afmt(a)} vs {_afmt(b)}.")
+        # It's fine for argument parts to overlap
+        return c
 
 
 class Perp(CompoundTensorOperator):

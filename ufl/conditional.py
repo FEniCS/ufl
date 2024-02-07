@@ -8,7 +8,7 @@
 import warnings
 
 from ufl.checks import is_true_ufl_scalar
-from ufl.constantvalue import as_ufl
+from ufl.constantvalue import as_ufl, Zero
 from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.precedence import parstr
@@ -284,6 +284,29 @@ class Conditional(Operator):
     def __str__(self):
         """Format as a string."""
         return "%s ? %s : %s" % tuple(parstr(o, self) for o in self.ufl_operands)
+
+    def get_arity(self):
+        """Get the arity."""
+        from ufl.algorithms.check_arities import ArityMismatch, _afmt
+        c = self.ufl_operands[0].get_arity()
+        a = self.ufl_operands[1].get_arity()
+        b = self.ufl_operands[2].get_arity()
+        if c:
+            raise ArityMismatch(f"Condition cannot depend on form arguments ({_afmt(a)}).")
+        if a and isinstance(self.ufl_operands[2], Zero):
+            # Allow conditional(c, arg, 0)
+            return a
+        elif b and isinstance(self.ufl_operands[1], Zero):
+            # Allow conditional(c, 0, arg)
+            return b
+        elif a == b:
+            # Allow conditional(c, test, test)
+            return a
+        else:
+            # Do not allow e.g. conditional(c, test, trial),
+            # conditional(c, test, nonzeroconstant)
+            raise ArityMismatch("Conditional subexpressions with non-matching form arguments "
+                                f"{_afmt(a)} vs {_afmt(b)}.")
 
 
 # --- Specific functions higher level than a conditional ---

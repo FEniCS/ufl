@@ -83,3 +83,7 @@ class IndexSum(Operator):
         """Format as a string."""
         return "sum_{%s} %s " % (str(self.ufl_operands[1]),
                                  parstr(self.ufl_operands[0], self))
+
+    def get_arity(self):
+        """Get the arity."""
+        return self.ufl_operands[0].get_arity()
