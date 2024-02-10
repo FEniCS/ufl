@@ -66,6 +66,7 @@ class SobolevSpace(object):
 
     def __eq__(self, other):
         """Check equality."""
+        print("XXXXX")
         return isinstance(other, SobolevSpace) and self.name == other.name
 
     def __ne__(self, other):
@@ -84,8 +85,7 @@ class SobolevSpace(object):
         """Implement `fe in s` where `fe` is a FiniteElement and `s` is a SobolevSpace."""
         if isinstance(other, SobolevSpace):
             raise TypeError(
-                "Unable to test for inclusion of a "
-                "SobolevSpace in another SobolevSpace. "
+                "Unable to test for inclusion of a SobolevSpace in another SobolevSpace. "
                 "Did you mean to use <= instead?"
             )
         return other.sobolev_space == self or self in other.sobolev_space.parents
@@ -100,7 +100,7 @@ class DirectionalSobolevSpace(SobolevSpace):
     """Directional Sobolev space.
 
     Symbolic representation of a Sobolev space with varying smoothness
-    in differerent spatial directions.
+    in different spatial directions.
     """
 
     def __init__(self, orders):
@@ -133,8 +133,7 @@ class DirectionalSobolevSpace(SobolevSpace):
         """
         if isinstance(other, SobolevSpace):
             raise TypeError(
-                "Unable to test for inclusion of a "
-                "SobolevSpace in another SobolevSpace. "
+                "Unable to test for inclusion of a SobolevSpace in another SobolevSpace. "
                 "Did you mean to use <= instead?"
             )
         return other.sobolev_space == self or all(
@@ -143,6 +142,7 @@ class DirectionalSobolevSpace(SobolevSpace):
 
     def __eq__(self, other):
         """Check equality."""
+        print("FFFFFF")
         if isinstance(other, DirectionalSobolevSpace):
             return self._orders == other._orders
         return all(self[i] == other for i in self._spatial_indices)

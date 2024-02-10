@@ -21,6 +21,7 @@ from ufl.algorithms import (
     expand_derivatives,
     extract_arguments,
     formsplitter,
+    replace,  # noqa: F401
 )
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
