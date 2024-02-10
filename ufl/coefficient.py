@@ -45,7 +45,7 @@ class BaseCoefficient(Counted):
             raise ValueError("Expecting a FunctionSpace.")
 
         self._ufl_function_space = function_space
-        self._ufl_shape = function_space.ufl_element().value_shape
+        self._ufl_shape = function_space.value_shape
 
         self._repr = "BaseCoefficient(%s, %s)" % (
             repr(self._ufl_function_space), repr(self._count))

@@ -17,7 +17,7 @@ from ufl.sobolevspace import H1, L2
 
 def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     cell = triangle
-    d = cell.geometric_dimension()
+    d = 2
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
     V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
 
@@ -63,7 +63,7 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
 
 def test_literal_derivatives_are_zero():
     cell = triangle
-    d = cell.geometric_dimension()
+    d = 2
 
     # Literals
     one = as_ufl(1)
@@ -110,7 +110,7 @@ def test_literal_derivatives_are_zero():
 
 def test_grad_ruleset():
     cell = triangle
-    d = cell.geometric_dimension()
+    d = 2
 
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
     V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)

@@ -13,7 +13,7 @@ from ufl.sobolevspace import H1
 # Cell and its properties
 cell = tetrahedron
 domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1))
-d = cell.geometric_dimension()
+d = 3
 N = FacetNormal(domain)
 x = SpatialCoordinate(domain)
 

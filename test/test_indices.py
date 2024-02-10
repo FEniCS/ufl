@@ -244,7 +244,7 @@ def test_spatial_derivative(self):
     v = TestFunction(space)
     u = TrialFunction(space)
     i, j, k, l = indices(4)  # noqa: E741
-    d = cell.geometric_dimension()
+    d = 2
 
     a = v[i].dx(i)
     self.assertSameIndices(a, ())

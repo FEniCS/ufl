@@ -18,13 +18,13 @@ all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
 def test_construct_domains_from_cells():
     for cell in all_cells:
-        d = cell.geometric_dimension()
+        d = cell.topological_dimension()
         Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1))
 
 
 def test_construct_domains_with_names():
     for cell in all_cells:
-        d = cell.geometric_dimension()
+        d = cell.topological_dimension()
         e = FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1)
         D2 = Mesh(e, ufl_id=2)
         D3 = Mesh(e, ufl_id=3)
@@ -36,16 +36,15 @@ def test_construct_domains_with_names():
 def test_domains_sort_by_name():
     # This ordering is rather arbitrary, but at least this shows sorting is
     # working
-    domains1 = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
+    domains1 = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.topological_dimension(), ),
                                    identity_pullback, H1),
                      ufl_id=hash(cell.cellname()))
                 for cell in all_cells]
-    domains2 = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.geometric_dimension(), ),
+    domains2 = [Mesh(FiniteElement("Lagrange", cell, 1, (cell.topological_dimension(), ),
                                    identity_pullback, H1),
                      ufl_id=hash(cell.cellname()))
                 for cell in sorted(all_cells)]
-    sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
-                                               D.topological_dimension(),
+    sdomains = sorted(domains1, key=lambda D: (D.topological_dimension(),
                                                D.ufl_cell(),
                                                D.ufl_id()))
     assert sdomains != domains1
@@ -115,7 +114,7 @@ def test_join_domains():
     from ufl.domain import join_domains
     mesh7 = MockMesh(7)
     mesh8 = MockMesh(8)
-    triangle3 = Cell("triangle", geometric_dimension=3)
+    triangle = Cell("triangle")
     xa = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
     xb = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
 
@@ -163,11 +162,11 @@ def test_join_domains():
     with pytest.raises(BaseException):
         join_domains([
             Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)),
-            Mesh(FiniteElement("Lagrange", triangle3, 1, (3, ), identity_pullback, H1))])
+            Mesh(FiniteElement("Lagrange", triangle, 1, (3, ), identity_pullback, H1))])
     with pytest.raises(BaseException):
         join_domains([
             Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1), ufl_id=7, cargo=mesh7),
-            Mesh(FiniteElement("Lagrange", triangle3, 1, (3, ), identity_pullback, H1), ufl_id=8, cargo=mesh8)])
+            Mesh(FiniteElement("Lagrange", triangle, 1, (3, ), identity_pullback, H1), ufl_id=8, cargo=mesh8)])
     # Cargo and mesh ids must match
     with pytest.raises(BaseException):
         Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1), ufl_id=7, cargo=mesh8)
@@ -181,7 +180,7 @@ def test_join_domains():
         Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1), ufl_id=7), None,
         Mesh(FiniteElement("Lagrange", quadrilateral, 1, (2, ), identity_pullback, H1), ufl_id=8)]))
     assert None not in join_domains([
-        Mesh(FiniteElement("Lagrange", triangle3, 1, (3, ), identity_pullback, H1), ufl_id=7), None,
+        Mesh(FiniteElement("Lagrange", triangle, 1, (3, ), identity_pullback, H1), ufl_id=7), None,
         Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1), ufl_id=8)])
 
 

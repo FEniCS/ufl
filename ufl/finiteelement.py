@@ -149,16 +149,6 @@ class AbstractFiniteElement(_abc.ABC):
         return components
 
     @property
-    def value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the physical domain."""
-        return self.pullback.physical_value_shape(self)
-
-    @property
-    def value_size(self) -> int:
-        """Return the integer product of the value shape."""
-        return product(self.value_shape)
-
-    @property
     def reference_value_size(self) -> int:
         """Return the integer product of the reference value shape."""
         return product(self.reference_value_shape)

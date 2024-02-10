@@ -47,14 +47,16 @@ def assertEqualBySampling(actual, expected):
 
     amapping = dict((c, make_value(c)) for c in chain(ad.original_form.coefficients(), ad.original_form.arguments()))
     bmapping = dict((c, make_value(c)) for c in chain(bd.original_form.coefficients(), bd.original_form.arguments()))
-    acell = extract_unique_domain(actual).ufl_cell()
-    bcell = extract_unique_domain(expected).ufl_cell()
+    adomain = extract_unique_domain(actual)
+    bdomain = extract_unique_domain(expected)
+    acell = adomain.ufl_cell()
+    bcell = bdomain.ufl_cell()
     assert acell == bcell
-    if acell.geometric_dimension() == 1:
+    if adomain.geometric_dimension() == 1:
         x = (0.3,)
-    elif acell.geometric_dimension() == 2:
+    elif adomain.geometric_dimension() == 2:
         x = (0.3, 0.4)
-    elif acell.geometric_dimension() == 3:
+    elif adomain.geometric_dimension() == 3:
         x = (0.3, 0.4, 0.5)
     av = a(x, amapping)
     bv = b(x, bmapping)
@@ -464,7 +466,7 @@ def test_multiple_coefficient_derivative(self):
 
 def test_indexed_coefficient_derivative(self):
     cell = triangle
-    ident = Identity(cell.geometric_dimension())
+    ident = Identity(2)
     V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     W = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)
     domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
@@ -522,21 +524,21 @@ def test_segregated_derivative_of_convection(self):
 
     Lv = {}
     Lvu = {}
-    for a in range(cell.geometric_dimension()):
+    for a in range(3):
         Lv[a] = derivative(L, v[a], dv)
-        for b in range(cell.geometric_dimension()):
+        for b in range(3):
             Lvu[a, b] = derivative(Lv[a], u[b], du)
 
-    for a in range(cell.geometric_dimension()):
-        for b in range(cell.geometric_dimension()):
+    for a in range(3):
+        for b in range(3):
             form = Lvu[a, b]*dx
             fd = compute_form_data(form)
             pf = fd.preprocessed_form
             expand_indices(pf)
 
     k = Index()
-    for a in range(cell.geometric_dimension()):
-        for b in range(cell.geometric_dimension()):
+    for a in range(3):
+        for b in range(3):
             actual = Lvu[a, b]
             expected = du*u[a].dx(b)*dv + u[k]*du.dx(k)*dv
             assertEqualBySampling(actual, expected)

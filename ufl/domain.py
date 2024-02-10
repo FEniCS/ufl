@@ -74,7 +74,7 @@ class Mesh(AbstractDomain, UFLObject):
         self._ufl_coordinate_element = coordinate_element
 
         # Derive dimensions from element
-        gdim, = coordinate_element.value_shape
+        gdim, = coordinate_element.reference_value_shape
         tdim = coordinate_element.cell.topological_dimension()
         AbstractDomain.__init__(self, tdim, gdim)
 
@@ -268,12 +268,6 @@ def find_geometric_dimension(expr):
         domain = extract_unique_domain(t)
         if domain is not None:
             gdims.add(domain.geometric_dimension())
-        if hasattr(t, "ufl_element"):
-            element = t.ufl_element()
-            if element is not None:
-                cell = element.cell
-                if cell is not None:
-                    gdims.add(cell.geometric_dimension())
 
     if len(gdims) != 1:
         raise ValueError("Cannot determine geometric dimension from expression.")

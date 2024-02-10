@@ -45,7 +45,7 @@ class BaseArgument(object):
             raise ValueError("Expecting a FunctionSpace.")
 
         self._ufl_function_space = function_space
-        self._ufl_shape = function_space.ufl_element().value_shape
+        self._ufl_shape = function_space.value_shape
 
         if not isinstance(number, numbers.Integral):
             raise ValueError(f"Expecting an int for number, not {number}")
