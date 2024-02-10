@@ -35,6 +35,7 @@ class ExternalOperator(BaseFormOperator):
             derivatives: tuple specifying the derivative multiindex.
                 argument_slots: tuple composed containing expressions with
                 ufl.Argument or ufl.Coefficient objects.
+            argument_slots: TODO
         """
         # -- Derivatives -- #
         if derivatives is not None:

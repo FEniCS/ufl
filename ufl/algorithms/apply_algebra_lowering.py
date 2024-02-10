@@ -1,7 +1,4 @@
-"""
-Algorithm for expanding compound expressions into equivalent
-representations using basic operators.
-"""
+"""Algorithm for expanding compound expressions."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #

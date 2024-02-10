@@ -75,7 +75,8 @@ class BaseCoefficient(Counted):
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
-        """
+        """Signature data.
+
         Signature data for form arguments depend on the global numbering
         of the form arguments and domains.
         """

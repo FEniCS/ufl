@@ -128,8 +128,10 @@ class DirectionalSobolevSpace(SobolevSpace):
         return spaces[self._orders[spatial_index]]
 
     def __contains__(self, other):
-        """
-        Implement `fe in s` where `fe` is a FiniteElement and `s` is a DirectionalSobolevSpace.
+        """Check if one space is contained in another.
+
+        Implement `fe in s` where `fe` is a FiniteElement and `s` is a
+        DirectionalSobolevSpace.
         """
         if isinstance(other, SobolevSpace):
             raise TypeError(

@@ -1,7 +1,4 @@
-"""
-Algorithm for removing conj, real, and imag nodes from a form for when
-the user is in 'real mode'.
-"""
+"""Remove conj, real, and imag nodes from a form."""
 
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.constantvalue import ComplexValue

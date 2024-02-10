@@ -236,7 +236,8 @@ class VariableStripper(ReuseTransformer):
 
 
 def apply_transformer(e, transformer, integral_type=None):
-    """
+    """Apply transforms.
+
     Apply transformer.visit(expression) to each integrand expression in
     form, or to form if it is an Expr.
     """

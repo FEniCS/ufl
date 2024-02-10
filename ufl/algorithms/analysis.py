@@ -1,7 +1,4 @@
-"""
-Utility algorithms for inspection of and information extraction from UFL
-objects in various ways.
-"""
+"""Utility algorithms for inspection of and information extraction from UFL objects."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #

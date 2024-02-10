@@ -34,7 +34,8 @@ __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
 
 
 def _sorted_integrals(integrals):
-    """
+    """Sort integrals for a stable signature computation.
+
     Sort integrals by domain id, integral type, subdomain id for a more
     stable signature computation.
     """

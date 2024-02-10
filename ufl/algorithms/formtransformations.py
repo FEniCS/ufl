@@ -1,4 +1,4 @@
-"""This module defines utilities for transforming complete Forms into new related Forms."""
+"""Utilities for transforming complete Forms into new related Forms."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #

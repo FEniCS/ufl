@@ -95,7 +95,8 @@ class BaseArgument(object):
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
-        """
+        """Signature data.
+
         Signature data for form arguments depend on the global numbering
         of the form arguments and domains.
         """
@@ -304,7 +305,8 @@ def Arguments(function_space, number):
 def TestFunctions(function_space):
     """Create a TestFunction in a mixed space.
 
-    Returns a tuple with the function components corresponding to the subelements.
+    Returns a tuple with the function components corresponding to the
+    subelements.
     """
     return Arguments(function_space, 0)
 
@@ -312,6 +314,7 @@ def TestFunctions(function_space):
 def TrialFunctions(function_space):
     """Create a TrialFunction in a mixed space.
 
-    Returns a tuple with the function components corresponding to the subelements.
+    Returns a tuple with the function components corresponding to the
+    subelements.
     """
     return Arguments(function_space, 1)

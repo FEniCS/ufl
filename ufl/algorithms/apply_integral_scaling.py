@@ -1,7 +1,4 @@
-"""
-Algorithm for replacing gradients in an expression with reference
-gradients and coordinate mappings.
-"""
+"""Algorithm for replacing gradients in an expression."""
 
 # Copyright (C) 2013-2016 Martin Sandve Alnæs
 #

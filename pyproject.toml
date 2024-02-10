@@ -59,7 +59,7 @@ select = [
     # "N", # pep8-naming
     "E", # pycodestyle
     "W", # pycodestyle
-    # "D",   # pydocstyle
+    "D",   # pydocstyle
     "F",   # pyflakes
     "I",   # isort
     "RUF", # Ruff-specific rules
@@ -75,6 +75,10 @@ select = [
 ignore = ["RUF005", "RUF012"]
 allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
+[tool.ruff.lint.per-file-ignores]
+"demo/*" = ["D"]
+"doc/*" = ["D"]
+"test/*" = ["D"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

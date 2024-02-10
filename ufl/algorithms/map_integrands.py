@@ -20,7 +20,8 @@ from ufl.integral import Integral
 
 
 def map_integrands(function, form, only_integral_type=None):
-    """
+    """Map integrands.
+
     Apply transform(expression) to each integrand expression in form, or
     to form if it is an Expr.
     """

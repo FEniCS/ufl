@@ -136,14 +136,15 @@ def elem_op_items(op_ind, indices, *args):
 
 
 def elem_op(op, *args):
-    """
-    Take the elementwise application of operator op on scalar values
+    """Apply element-wise operations.
+
+    Take the element-wise application of operator op on scalar values
     from one or more tensor arguments.
     """
     args = [as_ufl(arg) for arg in args]
     sh = args[0].ufl_shape
     if not all(sh == x.ufl_shape for x in args):
-        raise ValueError("Cannot take elementwise operation with different shapes.")
+        raise ValueError("Cannot take element-wise operation with different shapes.")
 
     if sh == ():
         return op(*args)
@@ -271,7 +272,8 @@ def tr(A):
 
 
 def diag(A):
-    """
+    """Diagonal ranl-2 tensor.
+
     Take the diagonal part of rank 2 tensor A or make a diagonal rank 2
     tensor from a rank 1 tensor.
 

@@ -24,7 +24,9 @@ class Stack(list):
 
 
 class StackDict(dict):
-    """A dict that can be changed incrementally with 'd.push(k,v)' and have
+    """A dictionary type.
+
+    A dict that can be changed incrementally with 'd.push(k,v)' and have
     changes rolled back with 'k,v = d.pop()'.
     """
 

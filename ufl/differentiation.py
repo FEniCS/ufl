@@ -37,10 +37,7 @@ class Derivative(Operator):
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class CoefficientDerivative(Derivative):
-    """
-    Derivative of the integrand of a form w.r.t. the degrees of freedom
-    in a discrete Coefficient.
-    """
+    """Derivative of form integrand w.r.t. the degrees of freedom in a discrete Coefficient."""
 
     __slots__ = ()
 

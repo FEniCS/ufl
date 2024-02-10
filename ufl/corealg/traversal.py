@@ -39,7 +39,8 @@ def post_traversal(expr):
 
 
 def cutoff_post_traversal(expr, cutofftypes):
-    """
+    """Cut-off post-tranversal.
+
     Yield ``o`` for each node ``o`` in *expr*, child before parent, but
     skipping subtrees of the cutofftypes.
     """

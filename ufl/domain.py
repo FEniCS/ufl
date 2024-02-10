@@ -20,9 +20,9 @@ __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
 
 
 class AbstractDomain(object):
-    """
-    Symbolic representation of a geometric domain with only a geometric
-    and topological dimension.
+    """Symbolic representation of a geometric domain.
+
+    Domain has only a geometric and a topological dimension.
     """
 
     def __init__(self, topological_dimension, geometric_dimension):

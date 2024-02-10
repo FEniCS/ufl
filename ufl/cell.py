@@ -36,7 +36,8 @@ class AbstractCell(UFLObject):
 
     @abstractmethod
     def _lt(self, other) -> bool:
-        """
+        """Less than operator.
+
         Define an arbitrarily chosen but fixed sort order for all
         instances of this type with the same dimensions.
         """

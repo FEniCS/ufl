@@ -15,7 +15,7 @@ from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_post_trav
 def map_expr_dag(function, expression, compress=True, vcache=None, rcache=None):
     """Apply a function to each subexpression node in an expression DAG.
 
-    If the same funtion is called multiple times in a transformation
+    If the same function is called multiple times in a transformation
     (as for example in apply_derivatives), then to reuse caches across
     the call, use the arguments vcache and rcache.
 
@@ -25,7 +25,8 @@ def map_expr_dag(function, expression, compress=True, vcache=None, rcache=None):
         compress: If True (default), the output object from
             the function is cached in a dict and reused such that the
             resulting expression DAG does not contain duplicate objects
-        vcache: Optional dict for caching results of intermediate transformations
+        vcache: Optional dict for caching results of intermediate
+            transformations
         rcache: Optional dict for caching results for compression
 
     Returns:
@@ -38,19 +39,19 @@ def map_expr_dag(function, expression, compress=True, vcache=None, rcache=None):
 
 
 def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None):
-    """Apply a function to each subexpression node in an expression DAG.
+    """Apply a function to each sub-expression node in an expression DAG.
 
     If *compress* is ``True`` (default) the output object from
     the function is cached in a ``dict`` and reused such that the
     resulting expression DAG does not contain duplicate objects.
 
-    If the same funtion is called multiple times in a transformation
+    If the same function is called multiple times in a transformation
     (as for example in apply_derivatives), then to reuse caches across
     the call, use the arguments vcache and rcache.
 
     Args:
         function: The function
-        expression: An expression
+        expressions: An expression
         compress: If True (default), the output object from
             the function is cached in a dict and reused such that the
             resulting expression DAG does not contain duplicate objects

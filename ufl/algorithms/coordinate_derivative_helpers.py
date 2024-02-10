@@ -1,4 +1,4 @@
-"""This module provides the necessary tools to strip away and reattach coordinate derivatives.
+"""Tools to strip away and reattach coordinate derivatives.
 
 This is used in compute_form_data.
 """
@@ -64,9 +64,9 @@ def strip_coordinate_derivatives(integrals):
         coordinate_derivatives = []
 
         def take_top_coordinate_derivatives(o):
-            """
-            Grab all coordinate derivatives and store them, so that we
-            can apply them later again.
+            """Get all coordinate derivatives and store them.
+
+            So we can apply them later again.
             """
             o_ = o.ufl_operands
             if isinstance(o, CoordinateDerivative):

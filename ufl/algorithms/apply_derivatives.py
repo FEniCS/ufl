@@ -1,7 +1,4 @@
-"""
-This module contains the apply_derivatives algorithm which computes the
-derivatives of a form of expression.
-"""
+"""Apply derivatives algorithm which computes the derivatives of a form of expression."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -136,17 +133,11 @@ class GenericDerivativeRuleset(MultiFunction):
     # --- Helper functions for creating zeros with the right shapes
 
     def independent_terminal(self, o):
-        """
-        Return a zero with the right shape for terminals independent of
-        differentiation variable.
-        """
+        """A zero with correct shape for terminals independent of diff. variable."""
         return Zero(o.ufl_shape + self._var_shape)
 
     def independent_operator(self, o):
-        """
-        Return a zero with the right shape and indices for operators
-        independent of differentiation variable.
-        """
+        """A zero with correct shape and indices for operators independent of diff. variable."""
         return Zero(o.ufl_shape + self._var_shape, o.ufl_free_indices, o.ufl_index_dimensions)
 
     # --- All derivatives need to define grad and averaging

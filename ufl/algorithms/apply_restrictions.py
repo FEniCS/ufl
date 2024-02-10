@@ -49,9 +49,10 @@ class RestrictionPropagator(MultiFunction):
     # --- Reusable rules
 
     def _ignore_restriction(self, o):
-        """
-        Ignore current restriction, quantity is independent of side also
-        from a computational point of view.
+        """Ignore current restriction.
+
+        Quantity is independent of side also from a computational point
+        of view.
         """
         return o
 

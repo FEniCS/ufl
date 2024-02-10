@@ -229,7 +229,8 @@ def attach_implementations_of_indexing_interface(
 
 
 def update_global_expr_attributes(cls):
-    """
+    """Update global attributres.
+
     Update global ``Expr`` attributes, mainly by adding *cls* to global
     collections of ufl types.
     """
@@ -284,16 +285,14 @@ def ufl_type(
     binop=None,
     rbinop=None,
 ):
-    """
-    This decorator is to be applied to every subclass in the UFL
-    ``Expr`` and ``BaseForm`` hierarchy.
+    """Decorator to apply to every subclass in the UFL ``Expr`` and ``BaseForm`` hierarchy.
 
-    This decorator contains a number of checks that are
-    intended to enforce uniform behaviour across UFL types.
+    This decorator contains a number of checks that are intended to
+    enforce uniform behaviour across UFL types.
 
-    The rationale behind the checks and the meaning of the
-    optional arguments should be sufficiently documented
-    in the source code below.
+    The rationale behind the checks and the meaning of the optional
+    arguments should be sufficiently documented in the source code
+    below.
     """
 
     def _ufl_type_decorator_(cls):
