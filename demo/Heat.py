@@ -20,22 +20,33 @@
 # The bilinear form a(v, u1) and linear form L(v) for
 # one backward Euler step with the heat equation.
 #
-from ufl import Coefficient, Constant, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, triangle
+from ufl import (
+    Coefficient,
+    Constant,
+    FunctionSpace,
+    Mesh,
+    TestFunction,
+    TrialFunction,
+    dot,
+    dx,
+    grad,
+    triangle,
+)
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 cell = triangle
 element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)  # Test function
 u1 = TrialFunction(space)  # Value at t_n
-u0 = Coefficient(space)      # Value at t_n-1
-c = Coefficient(space)      # Heat conductivity
-f = Coefficient(space)      # Heat source
-k = Constant(domain)         # Time step
+u0 = Coefficient(space)  # Value at t_n-1
+c = Coefficient(space)  # Heat conductivity
+f = Coefficient(space)  # Heat source
+k = Constant(domain)  # Time step
 
 a = v * u1 * dx + k * c * dot(grad(v), grad(u1)) * dx
 L = v * u0 * dx + k * v * f * dx

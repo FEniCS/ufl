@@ -49,7 +49,9 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             try:
                 domain_cell = domain.ufl_cell()
             except AttributeError:
-                raise ValueError("Expected non-abstract domain for initalization of function space.")
+                raise ValueError(
+                    "Expected non-abstract domain for initalization of function space."
+                )
             else:
                 if element.cell != domain_cell:
                     raise ValueError("Non-matching cell of finite element and domain.")
@@ -199,14 +201,15 @@ class TensorProductFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
-        return ("TensorProductFunctionSpace",) \
-            + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
+        return ("TensorProductFunctionSpace",) + tuple(
+            V._ufl_hash_data_() for V in self.ufl_sub_spaces()
+        )
 
     def _ufl_signature_data_(self, renumbering):
         """UFL signature data."""
-        return ("TensorProductFunctionSpace",) \
-            + tuple(V._ufl_signature_data_(renumbering)
-                    for V in self.ufl_sub_spaces())
+        return ("TensorProductFunctionSpace",) + tuple(
+            V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces()
+        )
 
     def __repr__(self):
         """Representation."""
@@ -232,10 +235,8 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
                 raise ValueError("Expecting BaseFunctionSpace objects")
 
         # A mixed FS is only primal/dual if all the subspaces are primal/dual"
-        self._primal = all([is_primal(subspace)
-                            for subspace in self._ufl_function_spaces])
-        self._dual = all([is_dual(subspace)
-                          for subspace in self._ufl_function_spaces])
+        self._primal = all([is_primal(subspace) for subspace in self._ufl_function_spaces])
+        self._dual = all([is_dual(subspace) for subspace in self._ufl_function_spaces])
 
     def ufl_sub_spaces(self):
         """Return ufl sub spaces."""
@@ -257,13 +258,13 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
         the original components in the other positions.
         """
         if args:
-            spaces = [space.dual() if i in args else space
-                      for i, space in enumerate(self._ufl_function_spaces)]
+            spaces = [
+                space.dual() if i in args else space
+                for i, space in enumerate(self._ufl_function_spaces)
+            ]
             return MixedFunctionSpace(*spaces)
         else:
-            return MixedFunctionSpace(
-                *[space.dual()for space in self._ufl_function_spaces]
-            )
+            return MixedFunctionSpace(*[space.dual() for space in self._ufl_function_spaces])
 
     def ufl_elements(self):
         """Return ufl elements."""
@@ -277,7 +278,8 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
             raise ValueError(
                 "Found multiple elements. Cannot return only one. "
                 "Consider building a FunctionSpace from a MixedElement "
-                "in case of homogeneous dimension.")
+                "in case of homogeneous dimension."
+            )
 
     def ufl_domains(self):
         """Return ufl domains."""
@@ -302,14 +304,13 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
-        return ("MixedFunctionSpace",) \
-            + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
+        return ("MixedFunctionSpace",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
 
     def _ufl_signature_data_(self, renumbering):
         """UFL signature data."""
-        return ("MixedFunctionSpace",) \
-            + tuple(V._ufl_signature_data_(renumbering)
-                    for V in self.ufl_sub_spaces())
+        return ("MixedFunctionSpace",) + tuple(
+            V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces()
+        )
 
     def __repr__(self):
         """Representation."""

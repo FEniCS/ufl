@@ -45,7 +45,8 @@ class Action(BaseForm):
         "_arguments",
         "_coefficients",
         "_domains",
-        "_hash")
+        "_hash",
+    )
 
     def __new__(cls, *args, **kw):
         """Create a new Action."""
@@ -71,12 +72,10 @@ class Action(BaseForm):
 
         if isinstance(left, (FormSum, Sum)):
             # Action distributes over sums on the LHS
-            return FormSum(*[(Action(component, right), 1)
-                             for component in left.ufl_operands])
+            return FormSum(*[(Action(component, right), 1) for component in left.ufl_operands])
         if isinstance(right, (FormSum, Sum)):
             # Action also distributes over sums on the RHS
-            return FormSum(*[(Action(left, component), 1)
-                             for component in right.ufl_operands])
+            return FormSum(*[(Action(left, component), 1) for component in right.ufl_operands])
 
         return super(Action, cls).__new__(cls)
 
@@ -98,8 +97,7 @@ class Action(BaseForm):
     def ufl_function_spaces(self):
         """Get the tuple of function spaces of the underlying form."""
         if isinstance(self._right, Form):
-            return self._left.ufl_function_spaces()[:-1] \
-                + self._right.ufl_function_spaces()[1:]
+            return self._left.ufl_function_spaces()[:-1] + self._right.ufl_function_spaces()[1:]
         elif isinstance(self._right, Coefficient):
             return self._left.ufl_function_spaces()[:-1]
 
@@ -124,7 +122,9 @@ class Action(BaseForm):
         from ufl.domain import join_domains
 
         # Collect domains
-        self._domains = join_domains(chain.from_iterable(e.ufl_domains() for e in self.ufl_operands))
+        self._domains = join_domains(
+            chain.from_iterable(e.ufl_domains() for e in self.ufl_operands)
+        )
 
     def equals(self, other):
         """Check if two Actions are equal."""
@@ -158,18 +158,19 @@ def _check_function_spaces(left, right):
         # right as a consequence of Leibniz formula.
         right, *_ = right.ufl_operands
 
-    # `left` can also be a Coefficient in V (= V**), e.g. `action(Coefficient(V), Cofunction(V.dual()))`.
+    # `left` can also be a Coefficient in V (= V**), e.g.
+    # `action(Coefficient(V), Cofunction(V.dual()))`.
     left_arg = left.arguments()[-1] if not isinstance(left, Coefficient) else left
     if isinstance(right, (Form, Action, Matrix, ZeroBaseForm)):
         if left_arg.ufl_function_space().dual() != right.arguments()[0].ufl_function_space():
             raise TypeError("Incompatible function spaces in Action")
     elif isinstance(right, (Coefficient, Cofunction, Argument, BaseFormOperator)):
         if left_arg.ufl_function_space() != right.ufl_function_space():
-
             raise TypeError("Incompatible function spaces in Action")
     # `Zero` doesn't contain any information about the function space.
-    # -> Not a problem since Action will get simplified with a `ZeroBaseForm`
-    #    which won't take into account the arguments on the right because of argument contraction.
+    # -> Not a problem since Action will get simplified with a
+    #    `ZeroBaseForm` which won't take into account the arguments on
+    #    the right because of argument contraction.
     # This occurs for:
     # `derivative(Action(A, B), u)` with B is an `Expr` such that dB/du == 0
     # -> `derivative(B, u)` becomes `Zero` when expanding derivatives since B is an Expr.
@@ -180,7 +181,8 @@ def _check_function_spaces(left, right):
 def _get_action_form_arguments(left, right):
     """Perform argument contraction to work out the arguments of Action."""
     coefficients = ()
-    # `left` can also be a Coefficient in V (= V**), e.g. `action(Coefficient(V), Cofunction(V.dual()))`.
+    # `left` can also be a Coefficient in V (= V**), e.g.
+    # `action(Coefficient(V), Cofunction(V.dual()))`.
     left_args = left.arguments()[:-1] if not isinstance(left, Coefficient) else ()
     if isinstance(right, BaseForm):
         arguments = left_args + right.arguments()[1:]
@@ -189,6 +191,7 @@ def _get_action_form_arguments(left, right):
         # Action differentiation pushes differentiation through
         # right as a consequence of Leibniz formula.
         from ufl.algorithms.analysis import extract_arguments_and_coefficients
+
         right_args, right_coeffs = extract_arguments_and_coefficients(right)
         arguments = left_args + tuple(right_args)
         coefficients += tuple(right_coeffs)

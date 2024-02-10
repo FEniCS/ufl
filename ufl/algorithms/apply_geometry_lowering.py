@@ -14,10 +14,31 @@ import warnings
 from functools import reduce
 from itertools import combinations
 
-from ufl.classes import (CellCoordinate, CellEdgeVectors, CellFacetJacobian, CellOrientation, CellOrigin, CellVertices,
-                         CellVolume, Expr, FacetEdgeVectors, FacetJacobian, FacetJacobianDeterminant, FloatValue, Form,
-                         Integral, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength,
-                         ReferenceCellVolume, ReferenceFacetVolume, ReferenceGrad, ReferenceNormal, SpatialCoordinate)
+from ufl.classes import (
+    CellCoordinate,
+    CellEdgeVectors,
+    CellFacetJacobian,
+    CellOrientation,
+    CellOrigin,
+    CellVertices,
+    CellVolume,
+    Expr,
+    FacetEdgeVectors,
+    FacetJacobian,
+    FacetJacobianDeterminant,
+    FloatValue,
+    Form,
+    Integral,
+    Jacobian,
+    JacobianDeterminant,
+    JacobianInverse,
+    MaxCellEdgeLength,
+    ReferenceCellVolume,
+    ReferenceFacetVolume,
+    ReferenceGrad,
+    ReferenceNormal,
+    SpatialCoordinate,
+)
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.map_dag import map_expr_dag
@@ -30,6 +51,7 @@ from ufl.tensors import as_tensor, as_vector
 
 class GeometryLoweringApplier(MultiFunction):
     """Geometry lowering."""
+
     def __init__(self, preserve_types=()):
         """Initialise."""
         MultiFunction.__init__(self)
@@ -180,8 +202,10 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        raise ValueError("Missing computation of facet reference coordinates "
-                         "from physical coordinates via mappings.")
+        raise ValueError(
+            "Missing computation of facet reference coordinates "
+            "from physical coordinates via mappings."
+        )
 
     @memoized_handler
     def cell_volume(self, o):
@@ -256,7 +280,7 @@ class GeometryLoweringApplier(MultiFunction):
             lb = elen[4] * elen[1]
             lc = elen[5] * elen[0]
             # p = perimeter
-            p = (la + lb + lc)
+            p = la + lb + lc
             # s = semiperimeter
             s = p / 2
             # area of intermediate triangle with Herons formula
@@ -431,7 +455,9 @@ class GeometryLoweringApplier(MultiFunction):
             r = n
 
         if r.ufl_shape != o.ufl_shape:
-            raise ValueError(f"Inconsistent dimensions (in={o.ufl_shape[0]}, out={r.ufl_shape[0]}).")
+            raise ValueError(
+                f"Inconsistent dimensions (in={o.ufl_shape[0]}, out={r.ufl_shape[0]})."
+            )
         return r
 
 
@@ -445,8 +471,9 @@ def apply_geometry_lowering(form, preserve_types=()):
         preserve_types: Preserved types
     """
     if isinstance(form, Form):
-        newintegrals = [apply_geometry_lowering(integral, preserve_types)
-                        for integral in form.integrals()]
+        newintegrals = [
+            apply_geometry_lowering(integral, preserve_types) for integral in form.integrals()
+        ]
         return Form(newintegrals)
 
     elif isinstance(form, Integral):

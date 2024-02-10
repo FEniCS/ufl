@@ -1,4 +1,4 @@
-"""Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
+"""Algorithm for replacing gradients in an expression."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -35,12 +35,15 @@ class FunctionPullbackApplier(MultiFunction):
 
         if r.ufl_shape != element.reference_value_shape:
             raise ValueError(
-                f"Expecting reference space expression with shape '{element.reference_value_shape}', "
-                f"got '{r.ufl_shape}'")
+                "Expecting reference space expression with shape "
+                f"'{element.reference_value_shape}', got '{r.ufl_shape}'"
+            )
         f = element.pullback.apply(r)
         if f.ufl_shape != space.value_shape:
-            raise ValueError(f"Expecting pulled back expression with shape '{space.value_shape}', "
-                             f"got '{f.ufl_shape}'")
+            raise ValueError(
+                f"Expecting pulled back expression with shape '{space.value_shape}', "
+                f"got '{f.ufl_shape}'"
+            )
 
         assert f.ufl_shape == o.ufl_shape
         return f

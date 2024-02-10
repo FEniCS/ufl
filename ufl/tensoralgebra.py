@@ -41,6 +41,7 @@ from ufl.sorting import sorted_expr
 
 # --- Classes representing compound tensor algebra operations ---
 
+
 @ufl_type(is_abstract=True)
 class CompoundTensorOperator(Operator):
     """Compount tensor operator."""
@@ -50,6 +51,7 @@ class CompoundTensorOperator(Operator):
     def __init__(self, operands):
         """Initialise."""
         Operator.__init__(self, operands)
+
 
 # TODO: Use this and make Sum handle scalars only?
 #       This would simplify some algorithms. The only
@@ -144,8 +146,10 @@ class Outer(CompoundTensorOperator):
 
     def __str__(self):
         """Format as a string."""
-        return "%s (X) %s" % (parstr(self.ufl_operands[0], self),
-                              parstr(self.ufl_operands[1], self))
+        return "%s (X) %s" % (
+            parstr(self.ufl_operands[0], self),
+            parstr(self.ufl_operands[1], self),
+        )
 
 
 @ufl_type(num_ops=2)
@@ -187,8 +191,7 @@ class Inner(CompoundTensorOperator):
 
     def __str__(self):
         """Format as a string."""
-        return "%s : %s" % (parstr(self.ufl_operands[0], self),
-                            parstr(self.ufl_operands[1], self))
+        return "%s : %s" % (parstr(self.ufl_operands[0], self), parstr(self.ufl_operands[1], self))
 
 
 @ufl_type(num_ops=2)
@@ -202,13 +205,14 @@ class Dot(CompoundTensorOperator):
         ash = a.ufl_shape
         bsh = b.ufl_shape
         ar, br = len(ash), len(bsh)
-        scalar = (ar == 0 and br == 0)
+        scalar = ar == 0 and br == 0
 
         # Checks
         if not ((ar >= 1 and br >= 1) or scalar):
             raise ValueError(
                 "Dot product requires non-scalar arguments, "
-                f"got arguments with ranks {ar} and {br}.")
+                f"got arguments with ranks {ar} and {br}."
+            )
         if not (scalar or ash[-1] == bsh[0]):
             raise ValueError("Dimension mismatch in dot product.")
 
@@ -236,8 +240,7 @@ class Dot(CompoundTensorOperator):
 
     def __str__(self):
         """Format as a string."""
-        return "%s . %s" % (parstr(self.ufl_operands[0], self),
-                            parstr(self.ufl_operands[1], self))
+        return "%s . %s" % (parstr(self.ufl_operands[0], self), parstr(self.ufl_operands[1], self))
 
 
 @ufl_type(is_index_free=True, num_ops=1)
@@ -288,7 +291,8 @@ class Cross(CompoundTensorOperator):
         if not (len(ash) == 1 and ash == bsh):
             raise ValueError(
                 f"Cross product requires arguments of rank 1, got {ufl_err_str(a)} "
-                f"and {ufl_err_str(b)}.")
+                f"and {ufl_err_str(b)}."
+            )
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -308,8 +312,7 @@ class Cross(CompoundTensorOperator):
 
     def __str__(self):
         """Format as a string."""
-        return "%s x %s" % (parstr(self.ufl_operands[0], self),
-                            parstr(self.ufl_operands[1], self))
+        return "%s x %s" % (parstr(self.ufl_operands[0], self), parstr(self.ufl_operands[1], self))
 
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
@@ -468,7 +471,9 @@ class Deviatoric(CompoundTensorOperator):
         if len(sh) != 2:
             raise ValueError("Deviatoric part of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
-            raise ValueError(f"Cannot take deviatoric part of rectangular matrix with dimensions {sh}.")
+            raise ValueError(
+                f"Cannot take deviatoric part of rectangular matrix with dimensions {sh}."
+            )
         if A.ufl_free_indices:
             raise ValueError("Not expecting free indices in Deviatoric.")
 
@@ -536,7 +541,9 @@ class Sym(CompoundTensorOperator):
         if len(sh) != 2:
             raise ValueError("Symmetric part of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
-            raise ValueError(f"Cannot take symmetric part of rectangular matrix with dimensions {sh}.")
+            raise ValueError(
+                f"Cannot take symmetric part of rectangular matrix with dimensions {sh}."
+            )
         if Afi:
             raise ValueError("Not expecting free indices in Sym.")
 

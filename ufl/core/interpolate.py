@@ -39,10 +39,12 @@ class Interpolate(BaseFormOperator):
 
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
-                raise ValueError('Expecting a primal function space.')
+                raise ValueError("Expecting a primal function space.")
             v = Argument(v.dual(), 0)
         elif not isinstance(v, dual_args):
-            raise ValueError("Expecting the second argument to be FunctionSpace, FiniteElement or dual.")
+            raise ValueError(
+                "Expecting the second argument to be FunctionSpace, FiniteElement or dual."
+            )
 
         expr = as_ufl(expr)
         if isinstance(expr, dual_args):
@@ -55,8 +57,9 @@ class Interpolate(BaseFormOperator):
         function_space = vv.ufl_function_space().dual()
         # Set the operand as `expr` for DAG traversal purpose.
         operand = expr
-        BaseFormOperator.__init__(self, operand, function_space=function_space,
-                                  argument_slots=argument_slots)
+        BaseFormOperator.__init__(
+            self, operand, function_space=function_space, argument_slots=argument_slots
+        )
 
     def _ufl_expr_reconstruct_(self, expr, v=None, **add_kwargs):
         """Return a new object of the same type with new operands."""
@@ -81,9 +84,11 @@ class Interpolate(BaseFormOperator):
         """Check for equality."""
         if self is other:
             return True
-        return (type(self) is type(other) and
-                all(a == b for a, b in zip(self._argument_slots, other._argument_slots)) and
-                self.ufl_function_space() == other.ufl_function_space())
+        return (
+            type(self) is type(other)
+            and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
+            and self.ufl_function_space() == other.ufl_function_space()
+        )
 
 
 # Helper function

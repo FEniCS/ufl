@@ -46,7 +46,8 @@ class SumDegreeEstimator(MultiFunction):
     def geometric_quantity(self, v):
         """Apply to geometric_quantity.
 
-        Some geometric quantities are cellwise constant. Others are nonpolynomial and thus hard to estimate.
+        Some geometric quantities are cellwise constant. Others are
+        nonpolynomial and thus hard to estimate.
         """
         if is_cellwise_constant(v):
             return 0
@@ -74,7 +75,9 @@ class SumDegreeEstimator(MultiFunction):
         A form argument provides a degree depending on the element,
         or the default degree if the element has no degree.
         """
-        return v.ufl_element().embedded_superdegree  # FIXME: Use component to improve accuracy for mixed elements
+        return (
+            v.ufl_element().embedded_superdegree
+        )  # FIXME: Use component to improve accuracy for mixed elements
 
     def coefficient(self, v):
         """Apply to coefficient.
@@ -95,7 +98,10 @@ class SumDegreeEstimator(MultiFunction):
         This is used when derivatives are taken. It does not reduce the degree when
         TensorProduct elements or quadrilateral elements are involved.
         """
-        if isinstance(f, int) and extract_unique_domain(v).ufl_cell().cellname() not in ["quadrilateral", "hexahedron"]:
+        if isinstance(f, int) and extract_unique_domain(v).ufl_cell().cellname() not in [
+            "quadrilateral",
+            "hexahedron",
+        ]:
             return max(f - 1, 0)
         else:
             return f
@@ -284,7 +290,8 @@ class SumDegreeEstimator(MultiFunction):
         Using the heuristic:
         degree(atan2(const,const)) == 0
         degree(atan2(a,b)) == max(degree(a),degree(b))+2
-        which can be wildly inaccurate but at least gives a somewhat high integration degree.
+        which can be wildly inaccurate but at least gives a somewhat
+        high integration degree.
         """
         if a or b:
             return self._add_degrees(v, self._max_degrees(v, a, b), 2)
@@ -297,7 +304,8 @@ class SumDegreeEstimator(MultiFunction):
         Using the heuristic:
         degree(sin(const)) == 0
         degree(sin(a)) == degree(a)+2
-        which can be wildly inaccurate but at least gives a somewhat high integration degree.
+        which can be wildly inaccurate but at least gives a somewhat
+        high integration degree.
         """
         if a:
             return self._add_degrees(v, a, 2)
@@ -310,7 +318,8 @@ class SumDegreeEstimator(MultiFunction):
         Using the heuristic
         degree(bessel_*(const)) == 0
         degree(bessel_*(x)) == degree(x)+2
-        which can be wildly inaccurate but at least gives a somewhat high integration degree.
+        which can be wildly inaccurate but at least gives a somewhat
+        high integration degree.
         """
         if x:
             return self._add_degrees(v, x, 2)
@@ -337,6 +346,7 @@ class SumDegreeEstimator(MultiFunction):
         Same as conditional.
         """
         return self._max_degrees(v, a, r)
+
     max_value = min_value
 
     def coordinate_derivative(self, v, integrand_degree, b, direction_degree, d):
@@ -357,8 +367,7 @@ class SumDegreeEstimator(MultiFunction):
         return self._max_degrees(v, *o)
 
 
-def estimate_total_polynomial_degree(e, default_degree=1,
-                                     element_replace_map={}):
+def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}):
     """Estimate total polynomial degree of integrand.
 
     NB: Although some compound types are supported here,
@@ -366,8 +375,8 @@ def estimate_total_polynomial_degree(e, default_degree=1,
     prior to degree estimation. In generic code, this algorithm
     should only be applied after preprocessing.
 
-    For coefficients defined on an element with unspecified degree (None),
-    the degree is set to the given default degree.
+    For coefficients defined on an element with unspecified degree
+    (None), the degree is set to the given default degree.
     """
     de = SumDegreeEstimator(default_degree, element_replace_map)
     if isinstance(e, Form):

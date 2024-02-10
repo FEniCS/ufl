@@ -3,22 +3,45 @@
 # Date: 2008-12-22
 #
 
-from ufl import (Coefficient, Constant, FacetNormal, FunctionSpace, Identity, Mesh, SpatialCoordinate, TestFunction,
-                 TrialFunction, derivative, det, diff, dot, ds, dx, exp, grad, inner, inv, tetrahedron, tr, variable)
+from ufl import (
+    Coefficient,
+    Constant,
+    FacetNormal,
+    FunctionSpace,
+    Identity,
+    Mesh,
+    SpatialCoordinate,
+    TestFunction,
+    TrialFunction,
+    derivative,
+    det,
+    diff,
+    dot,
+    ds,
+    dx,
+    exp,
+    grad,
+    inner,
+    inv,
+    tetrahedron,
+    tr,
+    variable,
+)
 from ufl.finiteelement import FiniteElement
+
 # Modified by Garth N. Wells, 2009
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 # Cell and its properties
 cell = tetrahedron
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
 d = 3
 N = FacetNormal(domain)
 x = SpatialCoordinate(domain)
 
 # Elements
-u_element = FiniteElement("Lagrange", cell, 2, (3, ), identity_pullback, H1)
+u_element = FiniteElement("Lagrange", cell, 2, (3,), identity_pullback, H1)
 p_element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
 A_element = FiniteElement("Lagrange", cell, 1, (3, 3), identity_pullback, H1)
 
@@ -79,7 +102,9 @@ E = (C - Id) / 2
 Ef = A * E * A.T
 
 # Strain energy function W(Q(Ef))
-Q = c00 * Ef[0, 0]**2 + c11 * Ef[1, 1]**2 + c22 * Ef[2, 2]**2  # FIXME: insert some simple law here
+Q = (
+    c00 * Ef[0, 0] ** 2 + c11 * Ef[1, 1] ** 2 + c22 * Ef[2, 2] ** 2
+)  # FIXME: insert some simple law here
 W = (K / 2) * (exp(Q) - 1)  # + p stuff
 
 # First Piola-Kirchoff stress tensor
@@ -87,13 +112,15 @@ P = diff(W, F)
 
 # Acceleration term discretized with finite differences
 k = dt / rho
-acc = (u - 2 * up + upp)
+acc = u - 2 * up + upp
 
 # Residual equation # FIXME: Can contain errors, not tested!
-a_F = inner(acc, v) * dx \
-    + k * inner(P, grad(v)) * dx \
-    - k * dot(J * Finv * T, v) * ds(0) \
+a_F = (
+    inner(acc, v) * dx
+    + k * inner(P, grad(v)) * dx
+    - k * dot(J * Finv * T, v) * ds(0)
     - k * dot(J * Finv * p0 * N, v) * ds(1)
+)
 
 # Jacobi matrix of residual equation
 a_J = derivative(a_F, u, w)

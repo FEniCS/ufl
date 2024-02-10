@@ -2,8 +2,30 @@
 
 import pytest
 
-from ufl import (FacetNormal, Mesh, as_matrix, as_tensor, as_vector, cofac, cross, det, dev, diag, diag_vector, dot,
-                 inner, inv, outer, perp, skew, sym, tr, transpose, triangle, zero)
+from ufl import (
+    FacetNormal,
+    Mesh,
+    as_matrix,
+    as_tensor,
+    as_vector,
+    cofac,
+    cross,
+    det,
+    dev,
+    diag,
+    diag_vector,
+    dot,
+    inner,
+    inv,
+    outer,
+    perp,
+    skew,
+    sym,
+    tr,
+    transpose,
+    triangle,
+    zero,
+)
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
@@ -43,13 +65,13 @@ def test_repeated_as_tensor(self, A, B, u, v):
 
 def test_outer(self, A, B, u, v):
     C = outer(u, v)
-    D = as_matrix([[10*30, 10*40], [20*30, 20*40]])
+    D = as_matrix([[10 * 30, 10 * 40], [20 * 30, 20 * 40]])
     self.assertEqualValues(C, D)
 
     C = outer(A, v)
     A, v = A, v
     dims = (0, 1)
-    D = as_tensor([[[A[i, j]*v[k] for k in dims] for j in dims] for i in dims])
+    D = as_tensor([[[A[i, j] * v[k] for k in dims] for j in dims] for i in dims])
     self.assertEqualValues(C, D)
 
     # TODO: Test other ranks
@@ -57,18 +79,18 @@ def test_outer(self, A, B, u, v):
 
 def test_inner(self, A, B, u, v):
     C = inner(A, B)
-    D = 2*6 + 3*7 + 4*8 + 5*9
+    D = 2 * 6 + 3 * 7 + 4 * 8 + 5 * 9
     self.assertEqualValues(C, D)
 
     C = inner(u, v)
-    D = 10*30 + 20*40
+    D = 10 * 30 + 20 * 40
     self.assertEqualValues(C, D)
 
 
 def test_pow2_inner(self, A, u):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f = FacetNormal(domain)[0]
-    f2 = f*f
+    f2 = f * f
     assert f2 == remove_complex_nodes(inner(f, f))
 
     u2 = u**2
@@ -83,13 +105,12 @@ def test_pow2_inner(self, A, u):
 
 def test_dot(self, A, B, u, v):
     C = dot(u, v)
-    D = 10*30 + 20*40
+    D = 10 * 30 + 20 * 40
     self.assertEqualValues(C, D)
 
     C = dot(A, B)
     dims = (0, 1)
-    D = as_matrix([[sum(A[i, k]*B[k, j] for k in dims)
-                    for j in dims] for i in dims])
+    D = as_matrix([[sum(A[i, k] * B[k, j] for k in dims) for j in dims] for i in dims])
     self.assertEqualValues(C, D)
 
 
@@ -131,21 +152,21 @@ def test_perp(self):
 
 def xtest_dev(self, A):
     C = dev(A)
-    D = 0*C  # FIXME: Add expected value here
+    D = 0 * C  # FIXME: Add expected value here
     self.assertEqualValues(C, D)
 
 
 def test_skew(self, A):
     C = skew(A)
     A, dims = A, (0, 1)
-    D = 0.5*as_matrix([[A[i, j] - A[j, i] for j in dims] for i in dims])
+    D = 0.5 * as_matrix([[A[i, j] - A[j, i] for j in dims] for i in dims])
     self.assertEqualValues(C, D)
 
 
 def test_sym(self, A):
     C = sym(A)
     A, dims = A, (0, 1)
-    D = 0.5*as_matrix([[A[i, j] + A[j, i] for j in dims] for i in dims])
+    D = 0.5 * as_matrix([[A[i, j] + A[j, i] for j in dims] for i in dims])
     self.assertEqualValues(C, D)
 
 
@@ -185,7 +206,7 @@ def test_tr(self, A):
 def test_det(self, A):
     dims = (0, 1)
     C = det(A)
-    D = sum((-A[i, 0]*A[0, i] if i != 0 else A[i-1, -1]*A[i, 0]) for i in dims)
+    D = sum((-A[i, 0] * A[0, i] if i != 0 else A[i - 1, -1] * A[i, 0]) for i in dims)
     self.assertEqualValues(C, D)
 
 
@@ -198,6 +219,6 @@ def test_cofac(self, A):
 def xtest_inv(self, A):
     # FIXME: Test fails probably due to integer division
     C = inv(A)
-    detA = sum((-A[i, 0]*A[0, i] if i != 0 else A[i-1, -1]*A[i, 0]) for i in (0, 1))
+    detA = sum((-A[i, 0] * A[0, i] if i != 0 else A[i - 1, -1] * A[i, 0]) for i in (0, 1))
     D = as_matrix([[(-A[i, j] if i != j else A[i, j]) for j in (-1, 0)] for i in (-1, 0)]) / detA
     self.assertEqualValues(C, D)

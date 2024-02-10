@@ -1,4 +1,4 @@
-"""This module contains the apply_derivatives algorithm which computes the derivatives of a form of expression."""
+"""Apply derivatives algorithm which computes the derivatives of a form of expression."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -16,9 +16,31 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.argument import BaseArgument
 from ufl.checks import is_cellwise_constant
-from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue, ExprList, ExprMapping, FloatValue,
-                         FormArgument, Grad, Identity, Imag, Indexed, IndexSum, JacobianInverse, ListTensor, Product,
-                         Real, ReferenceGrad, ReferenceValue, SpatialCoordinate, Sum, Variable, Zero)
+from ufl.classes import (
+    Coefficient,
+    ComponentTensor,
+    Conj,
+    ConstantValue,
+    ExprList,
+    ExprMapping,
+    FloatValue,
+    FormArgument,
+    Grad,
+    Identity,
+    Imag,
+    Indexed,
+    IndexSum,
+    JacobianInverse,
+    ListTensor,
+    Product,
+    Real,
+    ReferenceGrad,
+    ReferenceValue,
+    SpatialCoordinate,
+    Sum,
+    Variable,
+    Zero,
+)
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import ufl_err_str
@@ -26,11 +48,30 @@ from ufl.core.multiindex import FixedIndex, MultiIndex, indices
 from ufl.core.terminal import Terminal
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.differentiation import BaseFormCoordinateDerivative, BaseFormOperatorDerivative, CoordinateDerivative
+from ufl.differentiation import (
+    BaseFormCoordinateDerivative,
+    BaseFormOperatorDerivative,
+    CoordinateDerivative,
+)
 from ufl.domain import extract_unique_domain
 from ufl.form import Form, ZeroBaseForm
-from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
-                           sign, sin, sinh, sqrt)
+from ufl.operators import (
+    bessel_I,
+    bessel_J,
+    bessel_K,
+    bessel_Y,
+    cell_avg,
+    conditional,
+    cos,
+    cosh,
+    exp,
+    facet_avg,
+    ln,
+    sign,
+    sin,
+    sinh,
+    sqrt,
+)
 from ufl.pullback import CustomPullback, PhysicalPullback
 from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, unwrap_list_tensor
 
@@ -53,8 +94,10 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def expr(self, o):
         """Raise error."""
-        raise ValueError(f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
-                         "Have you added a new type?")
+        raise ValueError(
+            f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
+            "Have you added a new type?"
+        )
 
     def unexpected(self, o):
         """Raise error about unexpected type."""
@@ -62,11 +105,16 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def override(self, o):
         """Raise error about overriding."""
-        raise ValueError(f"Type {o._ufl_class_.__name__} must be overridden in specialized AD rule set.")
+        raise ValueError(
+            f"Type {o._ufl_class_.__name__} must be overridden in specialized AD rule set."
+        )
 
     def derivative(self, o):
         """Raise error."""
-        raise ValueError(f"Unhandled derivative type {o._ufl_class_.__name__}, nested differentiation has failed.")
+        raise ValueError(
+            f"Unhandled derivative type {o._ufl_class_.__name__}, "
+            "nested differentiation has failed."
+        )
 
     # --- Some types just don't have any derivative, this is just to
     # --- make algorithm structure generic
@@ -74,20 +122,22 @@ class GenericDerivativeRuleset(MultiFunction):
     def non_differentiable_terminal(self, o):
         """Return the non-differentiated object.
 
-        Labels and indices are not differentiable: it's convenient to return the non-differentiated object.
+        Labels and indices are not differentiable: it's convenient to
+        return the non-differentiated object.
         """
         return o
+
     label = non_differentiable_terminal
     multi_index = non_differentiable_terminal
 
     # --- Helper functions for creating zeros with the right shapes
 
     def independent_terminal(self, o):
-        """Return a zero with the right shape for terminals independent of differentiation variable."""
+        """A zero with correct shape for terminals independent of diff. variable."""
         return Zero(o.ufl_shape + self._var_shape)
 
     def independent_operator(self, o):
-        """Return a zero with the right shape and indices for operators independent of differentiation variable."""
+        """A zero with correct shape and indices for operators independent of diff. variable."""
         return Zero(o.ufl_shape + self._var_shape, o.ufl_free_indices, o.ufl_index_dimensions)
 
     # --- All derivatives need to define grad and averaging
@@ -276,11 +326,13 @@ class GenericDerivativeRuleset(MultiFunction):
         if isinstance(gp, Zero):
             # This probably produces better results for the common
             # case of f**constant
-            op = fp * g * f**(g - 1)
+            op = fp * g * f ** (g - 1)
         else:
             # Note: This produces expressions like (1/w)*w**5 instead of w**4
             # op = o * (fp * g / f + gp * ln(f)) # This reuses o
-            op = f**(g - 1) * (g * fp + f * ln(f) * gp)  # This gives better accuracy in dolfin integration test
+            op = f ** (g - 1) * (
+                g * fp + f * ln(f) * gp
+            )  # This gives better accuracy in dolfin integration test
 
         # Example: d/dx[x**(x**3)]:
         # f = x
@@ -296,7 +348,7 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def abs(self, o, df):
         """Differentiate an abs."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         # return conditional(eq(f, 0), 0, Product(sign(f), df)) abs is
         # not complex differentiable, so we workaround the case of a
         # real F in complex mode by defensively casting to real inside
@@ -323,8 +375,8 @@ class GenericDerivativeRuleset(MultiFunction):
         """Differentiate a math_function."""
         # FIXME: Introduce a UserOperator type instead of this hack
         # and define user derivative() function properly
-        if hasattr(o, 'derivative'):
-            f, = o.ufl_operands
+        if hasattr(o, "derivative"):
+            (f,) = o.ufl_operands
             return df * o.derivative()
         raise ValueError("Unknown math function.")
 
@@ -338,57 +390,58 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def ln(self, o, fp):
         """Differentiate a ln."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         if isinstance(f, Zero):
             raise ZeroDivisionError()
         return fp / f
 
     def cos(self, o, fp):
         """Differentiate a cos."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         return fp * -sin(f)
 
     def sin(self, o, fp):
         """Differentiate a sin."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         return fp * cos(f)
 
     def tan(self, o, fp):
         """Differentiate a tan."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         return 2.0 * fp / (cos(2.0 * f) + 1.0)
 
     def cosh(self, o, fp):
         """Differentiate a cosh."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         return fp * sinh(f)
 
     def sinh(self, o, fp):
         """Differentiate a sinh."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         return fp * cosh(f)
 
     def tanh(self, o, fp):
         """Differentiate a tanh."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
 
         def sech(y):
             return (2.0 * cosh(y)) / (cosh(2.0 * y) + 1.0)
-        return fp * sech(f)**2
+
+        return fp * sech(f) ** 2
 
     def acos(self, o, fp):
         """Differentiate an acos."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         return -fp / sqrt(1.0 - f**2)
 
     def asin(self, o, fp):
         """Differentiate an asin."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         return fp / sqrt(1.0 - f**2)
 
     def atan(self, o, fp):
         """Differentiate an atan."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         return fp / (1.0 + f**2)
 
     def atan2(self, o, fp, gp):
@@ -398,8 +451,8 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def erf(self, o, fp):
         """Differentiate an erf."""
-        f, = o.ufl_operands
-        return fp * (2.0 / sqrt(pi) * exp(-f**2))
+        (f,) = o.ufl_operands
+        return fp * (2.0 / sqrt(pi) * exp(-(f**2)))
 
     # --- Bessel functions
 
@@ -407,7 +460,9 @@ class GenericDerivativeRuleset(MultiFunction):
         """Differentiate a bessel_j."""
         nu, f = o.ufl_operands
         if not (nup is None or isinstance(nup, Zero)):
-            raise NotImplementedError("Differentiation of bessel function w.r.t. nu is not supported.")
+            raise NotImplementedError(
+                "Differentiation of bessel function w.r.t. nu is not supported."
+            )
 
         if isinstance(nu, Zero):
             op = -bessel_J(1, f)
@@ -419,7 +474,9 @@ class GenericDerivativeRuleset(MultiFunction):
         """Differentiate a bessel_y."""
         nu, f = o.ufl_operands
         if not (nup is None or isinstance(nup, Zero)):
-            raise NotImplementedError("Differentiation of bessel function w.r.t. nu is not supported.")
+            raise NotImplementedError(
+                "Differentiation of bessel function w.r.t. nu is not supported."
+            )
 
         if isinstance(nu, Zero):
             op = -bessel_Y(1, f)
@@ -431,7 +488,9 @@ class GenericDerivativeRuleset(MultiFunction):
         """Differentiate a bessel_i."""
         nu, f = o.ufl_operands
         if not (nup is None or isinstance(nup, Zero)):
-            raise NotImplementedError("Differentiation of bessel function w.r.t. nu is not supported.")
+            raise NotImplementedError(
+                "Differentiation of bessel function w.r.t. nu is not supported."
+            )
 
         if isinstance(nu, Zero):
             op = bessel_I(1, f)
@@ -443,7 +502,9 @@ class GenericDerivativeRuleset(MultiFunction):
         """Differentiate a bessel_k."""
         nu, f = o.ufl_operands
         if not (nup is None or isinstance(nup, Zero)):
-            raise NotImplementedError("Differentiation of bessel function w.r.t. nu is not supported.")
+            raise NotImplementedError(
+                "Differentiation of bessel function w.r.t. nu is not supported."
+            )
 
         if isinstance(nu, Zero):
             op = -bessel_K(1, f)
@@ -568,7 +629,8 @@ class GradRuleset(GenericDerivativeRuleset):
         """Differentiate a base_form_operator."""
         # Push the grad through the operator is not legal in most cases:
         #    -> Not enouth regularity for chain rule to hold!
-        # By the time we evaluate `grad(o)`, the operator `o` will have been assembled and substituted by its output.
+        # By the time we evaluate `grad(o)`, the operator `o` will have
+        # been assembled and substituted by its output.
         return Grad(o)
 
     def coefficient(self, o):
@@ -609,7 +671,9 @@ class GradRuleset(GenericDerivativeRuleset):
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
 
-        valid_operand = f._ufl_is_in_reference_frame_ or isinstance(f, (JacobianInverse, SpatialCoordinate))
+        valid_operand = f._ufl_is_in_reference_frame_ or isinstance(
+            f, (JacobianInverse, SpatialCoordinate)
+        )
         if not valid_operand:
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")
         domain = extract_unique_domain(f)
@@ -664,10 +728,10 @@ def grad_to_reference_grad(o, K):
 
 class ReferenceGradRuleset(GenericDerivativeRuleset):
     """Apply the reference grad derivative."""
+
     def __init__(self, topological_dimension):
         """Initialise."""
-        GenericDerivativeRuleset.__init__(self,
-                                          var_shape=(topological_dimension,))
+        GenericDerivativeRuleset.__init__(self, var_shape=(topological_dimension,))
         self._Id = Identity(topological_dimension)
 
     # --- Specialized rules for geometric quantities
@@ -722,7 +786,9 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
     def grad(self, o):
         """Differentiate a grad."""
-        raise ValueError(f"Grad should have been transformed by this point, but got {type(o).__name__}.")
+        raise ValueError(
+            f"Grad should have been transformed by this point, but got {type(o).__name__}."
+        )
 
     def reference_grad(self, o):
         """Differentiate a reference_grad.
@@ -730,8 +796,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f)).
         """
         # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0],
-                          (ReferenceGrad, ReferenceValue, Terminal)):
+        if not isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue, Terminal)):
             raise ValueError("Expecting only grads applied to a terminal.")
         return ReferenceGrad(o)
 
@@ -741,6 +806,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
 class VariableRuleset(GenericDerivativeRuleset):
     """Differentiate with respect to a variable."""
+
     def __init__(self, var):
         """Initialise."""
         GenericDerivativeRuleset.__init__(self, var_shape=var.ufl_shape)
@@ -784,9 +850,6 @@ class VariableRuleset(GenericDerivativeRuleset):
 
     # Explicitly defining da/dw == 0
     argument = GenericDerivativeRuleset.independent_terminal
-
-    # def _argument(self, o):
-    #    return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,))  # TODO: Missing this type
 
     def coefficient(self, o):
         """Differentiate a coefficient.
@@ -838,7 +901,8 @@ class VariableRuleset(GenericDerivativeRuleset):
                 #   convert to reference frame in the first place
                 raise ValueError(
                     "Missing implementation: To handle derivatives of rv(f) w.r.t. f for "
-                    "mapped elements, rewriting to reference frame should not happen first...")
+                    "mapped elements, rewriting to reference frame should not happen first..."
+                )
             # dv/dv = identity of rank 2*rank(v)
             return self._Id
         else:
@@ -850,8 +914,7 @@ class VariableRuleset(GenericDerivativeRuleset):
 
         Variable derivative of a gradient of a terminal must be 0.
         """
-        if not isinstance(o.ufl_operands[0],
-                          (ReferenceGrad, ReferenceValue)):
+        if not isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue)):
             raise ValueError("Unexpected argument to reference_grad.")
         return self.independent_terminal(o)
 
@@ -942,7 +1005,10 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             if not isinstance(dos, tuple):
                 dos = (dos,)
             if len(dos) != len(self._v):
-                raise ValueError("Got a tuple of arguments, expecting a matching tuple of coefficient derivatives.")
+                raise ValueError(
+                    "Got a tuple of arguments, expecting a "
+                    "matching tuple of coefficient derivatives."
+                )
             dosum = Zero(o.ufl_shape)
             for do, v in zip(dos, self._v):
                 so, oi = as_scalar(do)
@@ -958,7 +1024,9 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     def reference_value(self, o):
         """Differentiate a reference_value."""
-        raise NotImplementedError("Currently no support for ReferenceValue in CoefficientDerivative.")
+        raise NotImplementedError(
+            "Currently no support for ReferenceValue in CoefficientDerivative."
+        )
         # TODO: This is implementable for regular derivative(M(f),f,v)
         #       but too messy if customized coefficient derivative
         #       relations are given by the user.  We would only need
@@ -976,7 +1044,9 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     def reference_grad(self, o):
         """Differentiate a reference_grad."""
-        raise NotImplementedError("Currently no support for ReferenceGrad in CoefficientDerivative.")
+        raise NotImplementedError(
+            "Currently no support for ReferenceGrad in CoefficientDerivative."
+        )
         # TODO: This is implementable for regular derivative(M(f),f,v)
         #       but too messy if customized coefficient derivative
         #       relations are given by the user.  We would only need
@@ -995,7 +1065,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         ngrads = 0
         o = g
         while isinstance(o, Grad):
-            o, = o.ufl_operands
+            (o,) = o.ufl_operands
             ngrads += 1
         # `grad(N)` where N is a BaseFormOperator is treated as if `N` was a Coefficient.
         if not isinstance(o, (FormArgument, BaseFormOperator)):
@@ -1008,7 +1078,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
         # Find o among all w without any indexing, which makes this
         # easy
-        for (w, v) in zip(self._w, self._v):
+        for w, v in zip(self._w, self._v):
             if o == w and isinstance(v, FormArgument):
                 # Case: d/dt [w + t v]
                 return apply_grads(v)
@@ -1048,8 +1118,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
         # Accumulate contributions from variations in different
         # components
-        for (w, v) in zip(self._w, self._v):
-
+        for w, v in zip(self._w, self._v):
             # -- Analyse differentiation variable coefficient -- #
 
             # Can differentiate a Form wrt a BaseFormOperator
@@ -1067,7 +1136,9 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                     for wcomp, vsub in unwrap_list_tensor(v):
                         if not isinstance(vsub, Zero):
                             vval, vcomp = analyse_variation_argument(vsub)
-                            gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
+                            gprimesum = gprimesum + compute_gprimeterm(
+                                ngrads, vval, vcomp, wshape, wcomp
+                            )
 
                 else:
                     if wshape != ():
@@ -1076,11 +1147,11 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                     wval, wcomp = w, ()
 
                     vval, vcomp = analyse_variation_argument(v)
-                    gprimesum = gprimesum + compute_gprimeterm(ngrads, vval,
-                                                               vcomp, wshape,
-                                                               wcomp)
+                    gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
 
-            elif isinstance(w, Indexed):  # This path is tested in unit tests, but not actually used?
+            elif isinstance(
+                w, Indexed
+            ):  # This path is tested in unit tests, but not actually used?
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
                 wval, wcomp = w.ufl_operands
@@ -1115,14 +1186,15 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                     if len(oprimes) != len(self._v):
                         raise ValueError(
                             "Got a tuple of arguments, expecting a"
-                            " matching tuple of coefficient derivatives.")
+                            " matching tuple of coefficient derivatives."
+                        )
 
                 # Compute dg/dw_j = dg/dw_h : v.
                 # Since we may actually have a tuple of oprimes and vs
                 # in a 'mixed' space, sum over them all to get the
                 # complete inner product. Using indices to define a
                 # non-compound inner product.
-                for (oprime, v) in zip(oprimes, self._v):
+                for oprime, v in zip(oprimes, self._v):
                     raise NotImplementedError("FIXME: Figure out how to do this with ngrads")
                     so, oi = as_scalar(oprime)
                     rv = len(v.ufl_shape)
@@ -1144,8 +1216,10 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     def base_form_operator(self, o, *dfs):
         """Differentiate a base_form_operator.
 
-        If d_coeff = 0 => BaseFormOperator's derivative is taken wrt a variable => we call the appropriate handler.
-        Otherwise => differentiation done wrt the BaseFormOperator (dF/dN[Nhat]) => we treat o as a Coefficient.
+        If d_coeff = 0 => BaseFormOperator's derivative is taken wrt a
+        variable => we call the appropriate handler. Otherwise =>
+        differentiation done wrt the BaseFormOperator (dF/dN[Nhat]) =>
+        we treat o as a Coefficient.
         """
         d_coeff = self.coefficient(o)
         # It also handles the non-scalar case
@@ -1178,7 +1252,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     def matrix(self, M):
         """Differentiate a matrix."""
         # Matrix rule: D_w[v](M) = v if M == w else 0
-        # We can't differentiate wrt a matrix so always return zero in the appropriate space
+        # We can't differentiate wrt a matrix so always return zero in
+        # the appropriate space
         return ZeroBaseForm(M.arguments() + self._v)
 
 
@@ -1191,22 +1266,31 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
 
     def __init__(self, coefficients, arguments, coefficient_derivatives, pending_operations):
         """Initialise."""
-        GateauxDerivativeRuleset.__init__(self, coefficients, arguments, coefficient_derivatives, pending_operations)
+        GateauxDerivativeRuleset.__init__(
+            self, coefficients, arguments, coefficient_derivatives, pending_operations
+        )
 
     def pending_operations_recording(base_form_operator_handler):
         """Decorate a function to record pending operations."""
+
         def wrapper(self, base_form_op, *dfs):
             """Decorate."""
-            # Get the outer `BaseFormOperator` expression, i.e. the operator that is being differentiated.
+            # Get the outer `BaseFormOperator` expression, i.e. the
+            # operator that is being differentiated.
             expression = self.pending_operations.expression
-            # If the base form operator we observe is different from the outer `BaseFormOperator`:
-            # -> Record that `BaseFormOperator` so that `d(expression)/d(base_form_op)` can then be computed later.
+            # If the base form operator we observe is different from the
+            # outer `BaseFormOperator`:
+            # -> Record that `BaseFormOperator` so that
+            # `d(expression)/d(base_form_op)` can then be computed
+            # later.
             # Else:
-            # -> Compute the Gateaux derivative of `base_form_ops` by calling the appropriate handler.
+            # -> Compute the Gateaux derivative of `base_form_ops` by
+            # calling the appropriate handler.
             if expression != base_form_op:
                 self.pending_operations += (base_form_op,)
                 return self.coefficient(base_form_op)
             return base_form_operator_handler(self, base_form_op, *dfs)
+
         return wrapper
 
     @pending_operations_recording
@@ -1232,16 +1316,22 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
                 #
                 #   `\sum_{i} dNdOi(..., Oi, ...; DOi(u)[v], ..., v*)`
                 #
-                # where we differentate wrt u, Oi is the i-th operand, N(..., Oi, ...; ..., v*) an ExternalOperator
-                # and v the direction (Argument). dNdOi(..., Oi, ...; DOi(u)[v]) is an ExternalOperator
-                # representing the Gateaux-derivative of N. For example:
+                # where we differentate wrt u, Oi is the i-th operand,
+                # N(..., Oi, ...; ..., v*) an ExternalOperator and v the
+                # direction (Argument). dNdOi(..., Oi, ...; DOi(u)[v])
+                # is an ExternalOperator representing the
+                # Gateaux-derivative of N. For example:
                 #  -> From N(u) = u**2, we get `dNdu(u; uhat, v*) = 2 * u * uhat`.
                 new_args = N.argument_slots() + (df,)
-                extop = N._ufl_expr_reconstruct_(*N.ufl_operands, derivatives=derivatives, argument_slots=new_args)
+                extop = N._ufl_expr_reconstruct_(
+                    *N.ufl_operands, derivatives=derivatives, argument_slots=new_args
+                )
             elif df == 0:
                 extop = Zero(N.ufl_shape)
             else:
-                raise NotImplementedError('Frechet derivative of external operators need to be provided!')
+                raise NotImplementedError(
+                    "Frechet derivative of external operators need to be provided!"
+                )
             result += (extop,)
         return sum(result)
 
@@ -1274,49 +1364,47 @@ class DerivativeRuleDispatcher(MultiFunction):
         """Apply to a grad."""
         rules = GradRuleset(o.ufl_shape[-1])
         key = (GradRuleset, o.ufl_shape[-1])
-        return map_expr_dag(rules, f,
-                            vcache=self.vcaches[key],
-                            rcache=self.rcaches[key])
+        return map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
 
     def reference_grad(self, o, f):
         """Apply to a reference_grad."""
         rules = ReferenceGradRuleset(o.ufl_shape[-1])  # FIXME: Look over this and test better.
         key = (ReferenceGradRuleset, o.ufl_shape[-1])
-        return map_expr_dag(rules, f,
-                            vcache=self.vcaches[key],
-                            rcache=self.rcaches[key])
+        return map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
 
     def variable_derivative(self, o, f, dummy_v):
         """Apply to a variable_derivative."""
         op = o.ufl_operands[1]
         rules = VariableRuleset(op)
         key = (VariableRuleset, op)
-        return map_expr_dag(rules, f,
-                            vcache=self.vcaches[key],
-                            rcache=self.rcaches[key])
+        return map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
 
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         """Apply to a coefficient_derivative."""
         dummy, w, v, cd = o.ufl_operands
-        pending_operations = BaseFormOperatorDerivativeRecorder(f, w, arguments=v, coefficient_derivatives=cd)
+        pending_operations = BaseFormOperatorDerivativeRecorder(
+            f, w, arguments=v, coefficient_derivatives=cd
+        )
         rules = GateauxDerivativeRuleset(w, v, cd, pending_operations)
         key = (GateauxDerivativeRuleset, w, v, cd)
-        # We need to go through the dag first to record the pending operations
-        mapped_expr = map_expr_dag(rules, f,
-                                   vcache=self.vcaches[key],
-                                   rcache=self.rcaches[key])
-        # Need to account for pending operations that have been stored in other integrands
+        # We need to go through the dag first to record the pending
+        # operations
+        mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        # Need to account for pending operations that have been stored
+        # in other integrands
         self.pending_operations += pending_operations
         return mapped_expr
 
     def base_form_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         """Apply to a base_form_operator_derivative."""
         dummy, w, v, cd = o.ufl_operands
-        pending_operations = BaseFormOperatorDerivativeRecorder(f, w, arguments=v, coefficient_derivatives=cd)
+        pending_operations = BaseFormOperatorDerivativeRecorder(
+            f, w, arguments=v, coefficient_derivatives=cd
+        )
         rules = BaseFormOperatorDerivativeRuleset(w, v, cd, pending_operations=pending_operations)
         key = (BaseFormOperatorDerivativeRuleset, w, v, cd)
         if isinstance(f, ZeroBaseForm):
-            arg, = v.ufl_operands
+            (arg,) = v.ufl_operands
             arguments = f.arguments()
             # derivative(F, u, du) with `du` a Coefficient
             # is equivalent to taking the action of the derivative.
@@ -1325,9 +1413,7 @@ class DerivativeRuleDispatcher(MultiFunction):
                 arguments += (arg,)
             return ZeroBaseForm(arguments)
         # We need to go through the dag first to record the pending operations
-        mapped_expr = map_expr_dag(rules, f,
-                                   vcache=self.vcaches[key],
-                                   rcache=self.rcaches[key])
+        mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
 
         mapped_f = rules.coefficient(f)
         if mapped_f != 0:
@@ -1342,19 +1428,23 @@ class DerivativeRuleDispatcher(MultiFunction):
         """Apply to a coordinate_derivative."""
         o_ = o.ufl_operands
         key = (CoordinateDerivative, o_[0])
-        return CoordinateDerivative(map_expr_dag(self, o_[0],
-                                                 vcache=self.vcaches[key],
-                                                 rcache=self.rcaches[key]),
-                                    o_[1], o_[2], o_[3])
+        return CoordinateDerivative(
+            map_expr_dag(self, o_[0], vcache=self.vcaches[key], rcache=self.rcaches[key]),
+            o_[1],
+            o_[2],
+            o_[3],
+        )
 
     def base_form_coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         """Apply to a base_form_coordinate_derivative."""
         o_ = o.ufl_operands
         key = (BaseFormCoordinateDerivative, o_[0])
-        return BaseFormCoordinateDerivative(map_expr_dag(self, o_[0],
-                                                         vcache=self.vcaches[key],
-                                                         rcache=self.rcaches[key]),
-                                            o_[1], o_[2], o_[3])
+        return BaseFormCoordinateDerivative(
+            map_expr_dag(self, o_[0], vcache=self.vcaches[key], rcache=self.rcaches[key]),
+            o_[1],
+            o_[2],
+            o_[3],
+        )
 
     def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
         """Apply to an indexed."""
@@ -1389,15 +1479,18 @@ class DerivativeRuleDispatcher(MultiFunction):
         return op
 
 
-class BaseFormOperatorDerivativeRecorder():
+class BaseFormOperatorDerivativeRecorder:
     """A derivative recorded for a base form operator."""
 
     def __init__(self, expression, var, **kwargs):
         """Initialise."""
         base_form_ops = kwargs.pop("base_form_ops", ())
 
-        if kwargs.keys() != {'arguments', 'coefficient_derivatives'}:
-            raise ValueError("Only `arguments` and `coefficient_derivatives` are allowed as derivative arguments.")
+        if kwargs.keys() != {"arguments", "coefficient_derivatives"}:
+            raise ValueError(
+                "Only `arguments` and `coefficient_derivatives` are "
+                "allowed as derivative arguments."
+            )
 
         self.expression = expression
         self.var = var
@@ -1418,18 +1511,23 @@ class BaseFormOperatorDerivativeRecorder():
             base_form_ops = self.base_form_ops + other
         elif isinstance(other, BaseFormOperatorDerivativeRecorder):
             if self.der_kwargs != other.der_kwargs:
-                raise ValueError(f"Derivative arguments must match when summing {type(self).__name__} objects.")
+                raise ValueError(
+                    f"Derivative arguments must match when summing {type(self).__name__} objects."
+                )
             base_form_ops = self.base_form_ops + other.base_form_ops
         else:
-            raise NotImplementedError(f"Sum of {type(self)} and {type(other)} objects is not supported.")
+            raise NotImplementedError(
+                f"Sum of {type(self)} and {type(other)} objects is not supported."
+            )
 
-        return BaseFormOperatorDerivativeRecorder(self.expression, self.var,
-                                                  base_form_ops=base_form_ops,
-                                                  **self.der_kwargs)
+        return BaseFormOperatorDerivativeRecorder(
+            self.expression, self.var, base_form_ops=base_form_ops, **self.der_kwargs
+        )
 
     def __radd__(self, other):
         """Add."""
-        # Recording order doesn't matter as collected `BaseFormOperator`s are sorted later on.
+        # Recording order doesn't matter as collected
+        # `BaseFormOperator`s are sorted later on.
         return self.__add__(other)
 
     def __iadd__(self, other):
@@ -1457,8 +1555,10 @@ def apply_derivatives(expression):
     rules = DerivativeRuleDispatcher()
 
     # If we hit a base form operator (bfo), then if `var` is:
-    #    - a BaseFormOperator → Return `d(expression)/dw` where `w` is the coefficient produced by the bfo `var`.
-    #    - else → Record the bfo on the MultiFunction object and returns 0.
+    #    - a BaseFormOperator → Return `d(expression)/dw` where `w` is
+    #      the coefficient produced by the bfo `var`.
+    #    - else → Record the bfo on the MultiFunction object and returns
+    #    - 0.
     # Example:
     #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `∂F/∂u`.
     dexpression_dvar = map_integrand_dags(rules, expression)
@@ -1474,29 +1574,40 @@ def apply_derivatives(expression):
     else:
         dexpression_dvar = ()
 
-    # Retrieve the base form operators, var, and the argument and coefficient_derivatives for `derivative`
+    # Retrieve the base form operators, var, and the argument and
+    # coefficient_derivatives for `derivative`
     var = pending_operations.var
     base_form_ops = pending_operations.base_form_ops
     der_kwargs = pending_operations.der_kwargs
     for N in sorted(set(base_form_ops), key=lambda x: x.count()):
         # -- Replace dexpr/dvar by dexpr/dN -- #
-        # We don't use `apply_derivatives` since the differentiation is done via `\partial` and not `d`.
-        dexpr_dN = map_integrand_dags(rules, replace_derivative_nodes(expression, {var.ufl_operands[0]: N}))
+        # We don't use `apply_derivatives` since the differentiation is
+        # done via `\partial` and not `d`.
+        dexpr_dN = map_integrand_dags(
+            rules, replace_derivative_nodes(expression, {var.ufl_operands[0]: N})
+        )
         # -- Add the BaseFormOperatorDerivative node -- #
-        var_arg, = der_kwargs['arguments'].ufl_operands
-        cd = der_kwargs['coefficient_derivatives']
-        # Not always the case since `derivative`'s syntax enables one to use a Coefficient as the Gateaux direction
+        (var_arg,) = der_kwargs["arguments"].ufl_operands
+        cd = der_kwargs["coefficient_derivatives"]
+        # Not always the case since `derivative`'s syntax enables one to
+        # use a Coefficient as the Gateaux direction
         if isinstance(var_arg, BaseArgument):
-            # Construct the argument number based on the BaseFormOperator arguments instead of naively
-            # using `var_arg`. This is critical when BaseFormOperators are used inside 0-forms.
+            # Construct the argument number based on the
+            # BaseFormOperator arguments instead of naively using
+            # `var_arg`. This is critical when BaseFormOperators are
+            # used inside 0-forms.
             #
             # Example: F = 0.5 * u** 2 * dx + 0.5 * N(u; v*)** 2 * dx
             #    -> dFdu[vhat] = <u, vhat> + Action(<N(u; v*), v0>, dNdu(u; v1, v*))
-            # with `vhat` a 0-numbered argument, and where `v1` and `vhat` have the same function space but
-            # a different number. Here, applying `vhat` (`var_arg`) naively would result in `dNdu(u; vhat, v*)`,
-            # i.e. the 2-forms `dNdu` would have two 0-numbered arguments. Instead we increment the argument number
-            # of `vhat` to form `v1`.
-            var_arg = type(var_arg)(var_arg.ufl_function_space(), number=len(N.arguments()), part=var_arg.part())
+            # with `vhat` a 0-numbered argument, and where `v1` and
+            # `vhat` have the same function space but a different
+            # number. Here, applying `vhat` (`var_arg`) naively would
+            # result in `dNdu(u; vhat, v*)`, i.e. the 2-forms `dNdu`
+            # would have two 0-numbered arguments. Instead we increment
+            # the argument number of `vhat` to form `v1`.
+            var_arg = type(var_arg)(
+                var_arg.ufl_function_space(), number=len(N.arguments()), part=var_arg.part()
+            )
         dN_dvar = apply_derivatives(BaseFormOperatorDerivative(N, var, ExprList(var_arg), cd))
         # -- Sum the Action: dF/du = ∂F/∂u + \sum_{i=1,...} Action(∂F/∂Ni, dNi/du) -- #
         if not (isinstance(dexpr_dN, Form) and len(dexpr_dN.integrals()) == 0):
@@ -1545,7 +1656,9 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
 
     def coefficient(self, o):
         """Differentiate a coefficient."""
-        raise NotImplementedError("CoordinateDerivative of coefficient in physical space is not implemented.")
+        raise NotImplementedError(
+            "CoordinateDerivative of coefficient in physical space is not implemented."
+        )
 
     def grad(self, o):
         """Differentiate a grad."""
@@ -1558,8 +1671,10 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         if do is not None:
             return do
         else:
-            raise NotImplementedError("CoordinateDerivative found a SpatialCoordinate that is different "
-                                      "from the one being differentiated.")
+            raise NotImplementedError(
+                "CoordinateDerivative found a SpatialCoordinate that is different "
+                "from the one being differentiated."
+            )
 
     def reference_value(self, o):
         """Differentiate a reference_value."""
@@ -1575,7 +1690,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         o = g
         ngrads = 0
         while isinstance(o, ReferenceGrad):
-            o, = o.ufl_operands
+            (o,) = o.ufl_operands
             ngrads += 1
         if not (isinstance(o, SpatialCoordinate) or isinstance(o.ufl_operands[0], FormArgument)):
             raise ValueError(f"Expecting gradient of a FormArgument, not {ufl_err_str(o)}")
@@ -1587,8 +1702,12 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
 
         # Find o among all w without any indexing, which makes this
         # easy
-        for (w, v) in zip(self._w, self._v):
-            if o == w and isinstance(v, ReferenceValue) and isinstance(v.ufl_operands[0], FormArgument):
+        for w, v in zip(self._w, self._v):
+            if (
+                o == w
+                and isinstance(v, ReferenceValue)
+                and isinstance(v.ufl_operands[0], FormArgument)
+            ):
                 # Case: d/dt [w + t v]
                 return apply_grads(v)
         return self.independent_terminal(o)
@@ -1596,8 +1715,10 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     def jacobian(self, o):
         """Differentiate a jacobian."""
         # d (grad_X(x))/d x => grad_X(Argument(x.function_space())
-        for (w, v) in zip(self._w, self._v):
-            if extract_unique_domain(o) == extract_unique_domain(w) and isinstance(v.ufl_operands[0], FormArgument):
+        for w, v in zip(self._w, self._v):
+            if extract_unique_domain(o) == extract_unique_domain(w) and isinstance(
+                v.ufl_operands[0], FormArgument
+            ):
                 return ReferenceGrad(v)
         return self.independent_terminal(o)
 
@@ -1636,10 +1757,12 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
     def coordinate_derivative(self, o, f, w, v, cd):
         """Apply to a coordinate_derivative."""
         from ufl.algorithms import extract_unique_elements
+
         for space in extract_unique_elements(o):
             if isinstance(space.pullback, CustomPullback):
                 raise NotImplementedError(
-                    "CoordinateDerivative is not supported for elements with custom pull back.")
+                    "CoordinateDerivative is not supported for elements with custom pull back."
+                )
 
         _, w, v, cd = o.ufl_operands
         rules = CoordinateDerivativeRuleset(w, v, cd)

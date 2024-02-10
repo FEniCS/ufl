@@ -1,5 +1,17 @@
-from ufl import (Identity, Mesh, SpatialCoordinate, as_matrix, as_ufl, as_vector, elem_div, elem_mult, elem_op, sin,
-                 tetrahedron, triangle)
+from ufl import (
+    Identity,
+    Mesh,
+    SpatialCoordinate,
+    as_matrix,
+    as_ufl,
+    as_vector,
+    elem_div,
+    elem_mult,
+    elem_op,
+    sin,
+    tetrahedron,
+    triangle,
+)
 from ufl.classes import ComplexValue, Division, FloatValue, IntValue
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
@@ -19,13 +31,13 @@ def test_scalar_casting(self):
 
 
 def test_ufl_float_division(self):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     d = SpatialCoordinate(domain)[0] / 10.0  # TODO: Use mock instead of x
     self.assertIsInstance(d, Division)
 
 
 def test_float_ufl_division(self):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     d = 3.14 / SpatialCoordinate(domain)[0]  # TODO: Use mock instead of x
     self.assertIsInstance(d, Division)
 
@@ -68,7 +80,7 @@ def test_elem_mult(self):
 
 
 def test_elem_mult_on_matrices(self):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
 
     A = as_matrix(((1, 2), (3, 4)))
     B = as_matrix(((4, 5), (6, 7)))
@@ -77,7 +89,7 @@ def test_elem_mult_on_matrices(self):
     x, y = SpatialCoordinate(domain)
     A = as_matrix(((x, y), (3, 4)))
     B = as_matrix(((4, 5), (y, x)))
-    self.assertEqual(elem_mult(A, B), as_matrix(((4*x, 5*y), (3*y, 4*x))))
+    self.assertEqual(elem_mult(A, B), as_matrix(((4 * x, 5 * y), (3 * y, 4 * x))))
 
     x, y = SpatialCoordinate(domain)
     A = as_matrix(((x, y), (3, 4)))
@@ -86,17 +98,18 @@ def test_elem_mult_on_matrices(self):
 
 
 def test_elem_div(self):
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
     x, y, z = SpatialCoordinate(domain)
     A = as_matrix(((x, y, z), (3, 4, 5)))
     B = as_matrix(((7, 8, 9), (z, x, y)))
-    self.assertEqual(elem_div(A, B), as_matrix(((x/7, y/8, z/9), (3/z, 4/x, 5/y))))
+    self.assertEqual(elem_div(A, B), as_matrix(((x / 7, y / 8, z / 9), (3 / z, 4 / x, 5 / y))))
 
 
 def test_elem_op(self):
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
     x, y, z = SpatialCoordinate(domain)
     A = as_matrix(((x, y, z), (3, 4, 5)))
-    self.assertEqual(elem_op(sin, A), as_matrix(((sin(x), sin(y), sin(z)),
-                                                 (sin(3), sin(4), sin(5)))))
+    self.assertEqual(
+        elem_op(sin, A), as_matrix(((sin(x), sin(y), sin(z)), (sin(3), sin(4), sin(5))))
+    )
     self.assertEqual(elem_op(sin, A).dx(0).ufl_shape, (2, 3))

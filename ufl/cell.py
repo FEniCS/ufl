@@ -36,7 +36,11 @@ class AbstractCell(UFLObject):
 
     @abstractmethod
     def _lt(self, other) -> bool:
-        """Define an arbitrarily chosen but fixed sort order for all instances of this type with the same dimensions."""
+        """Less than operator.
+
+        Define an arbitrarily chosen but fixed sort order for all
+        instances of this type with the same dimensions.
+        """
 
     @abstractmethod
     def num_sub_entities(self, dim: int) -> int:
@@ -181,29 +185,70 @@ class AbstractCell(UFLObject):
 
 
 _sub_entity_celltypes = {
-    "vertex": [("vertex", )],
-    "interval": [tuple("vertex" for i in range(2)), ("interval", )],
-    "triangle": [tuple("vertex" for i in range(3)), tuple("interval" for i in range(3)), ("triangle", )],
-    "quadrilateral": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(4)), ("quadrilateral", )],
-    "tetrahedron": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(6)),
-                    tuple("triangle" for i in range(4)), ("tetrahedron", )],
-    "hexahedron": [tuple("vertex" for i in range(8)), tuple("interval" for i in range(12)),
-                   tuple("quadrilateral" for i in range(6)), ("hexahedron", )],
-    "prism": [tuple("vertex" for i in range(6)), tuple("interval" for i in range(9)),
-              ("triangle", "quadrilateral", "quadrilateral", "quadrilateral", "triangle"), ("prism", )],
-    "pyramid": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(8)),
-                ("quadrilateral", "triangle", "triangle", "triangle", "triangle"), ("pyramid", )],
-    "pentatope": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(10)),
-                  tuple("triangle" for i in range(10)), tuple("tetrahedron" for i in range(5)), ("pentatope", )],
-    "tesseract": [tuple("vertex" for i in range(16)), tuple("interval" for i in range(32)),
-                  tuple("quadrilateral" for i in range(24)), tuple("hexahedron" for i in range(8)), ("tesseract", )],
+    "vertex": [("vertex",)],
+    "interval": [tuple("vertex" for i in range(2)), ("interval",)],
+    "triangle": [
+        tuple("vertex" for i in range(3)),
+        tuple("interval" for i in range(3)),
+        ("triangle",),
+    ],
+    "quadrilateral": [
+        tuple("vertex" for i in range(4)),
+        tuple("interval" for i in range(4)),
+        ("quadrilateral",),
+    ],
+    "tetrahedron": [
+        tuple("vertex" for i in range(4)),
+        tuple("interval" for i in range(6)),
+        tuple("triangle" for i in range(4)),
+        ("tetrahedron",),
+    ],
+    "hexahedron": [
+        tuple("vertex" for i in range(8)),
+        tuple("interval" for i in range(12)),
+        tuple("quadrilateral" for i in range(6)),
+        ("hexahedron",),
+    ],
+    "prism": [
+        tuple("vertex" for i in range(6)),
+        tuple("interval" for i in range(9)),
+        ("triangle", "quadrilateral", "quadrilateral", "quadrilateral", "triangle"),
+        ("prism",),
+    ],
+    "pyramid": [
+        tuple("vertex" for i in range(5)),
+        tuple("interval" for i in range(8)),
+        ("quadrilateral", "triangle", "triangle", "triangle", "triangle"),
+        ("pyramid",),
+    ],
+    "pentatope": [
+        tuple("vertex" for i in range(5)),
+        tuple("interval" for i in range(10)),
+        tuple("triangle" for i in range(10)),
+        tuple("tetrahedron" for i in range(5)),
+        ("pentatope",),
+    ],
+    "tesseract": [
+        tuple("vertex" for i in range(16)),
+        tuple("interval" for i in range(32)),
+        tuple("quadrilateral" for i in range(24)),
+        tuple("hexahedron" for i in range(8)),
+        ("tesseract",),
+    ],
 }
 
 
 class Cell(AbstractCell):
     """Representation of a named finite element cell with known structure."""
-    __slots__ = ("_cellname", "_tdim", "_num_cell_entities", "_sub_entity_types",
-                 "_sub_entities", "_sub_entity_types")
+
+    __slots__ = (
+        "_cellname",
+        "_tdim",
+        "_num_cell_entities",
+        "_sub_entity_types",
+        "_sub_entities",
+        "_sub_entity_types",
+    )
 
     def __init__(self, cellname: str):
         """Initialise.
@@ -220,11 +265,12 @@ class Cell(AbstractCell):
         self._tdim = len(self._sub_entity_celltypes) - 1
 
         self._num_cell_entities = [len(i) for i in self._sub_entity_celltypes]
-        self._sub_entities = [tuple(Cell(t) for t in se_types)
-                              for se_types in self._sub_entity_celltypes[:-1]]
+        self._sub_entities = [
+            tuple(Cell(t) for t in se_types) for se_types in self._sub_entity_celltypes[:-1]
+        ]
         self._sub_entity_types = [tuple(set(i)) for i in self._sub_entities]
-        self._sub_entities.append((weakref.proxy(self), ))
-        self._sub_entity_types.append((weakref.proxy(self), ))
+        self._sub_entities.append((weakref.proxy(self),))
+        self._sub_entity_types.append((weakref.proxy(self),))
 
         if not isinstance(self._tdim, numbers.Integral):
             raise ValueError("Expecting integer topological_dimension.")
@@ -285,7 +331,7 @@ class Cell(AbstractCell):
 
     def _ufl_hash_data_(self) -> typing.Hashable:
         """UFL hash data."""
-        return (self._cellname, )
+        return (self._cellname,)
 
     def reconstruct(self, **kwargs: typing.Any) -> Cell:
         """Reconstruct this cell, overwriting properties by those in kwargs."""
@@ -341,8 +387,9 @@ class TensorProductCell(AbstractCell):
         if dim == 0:
             return functools.reduce(lambda x, y: x * y, [c.num_vertices() for c in self._cells])
         if dim == self._tdim - 1:
-            # Note: This is not the number of facets that the cell has, but I'm leaving it here for now
-            # to not change past behaviour
+            # Note: This is not the number of facets that the cell has,
+            # but I'm leaving it here for now to not change past
+            # behaviour
             return sum(c.num_facets() for c in self._cells if c.topological_dimension() > 0)
         if dim == self._tdim:
             return 1
