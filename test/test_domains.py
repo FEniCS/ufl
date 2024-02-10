@@ -3,6 +3,7 @@
 import pytest
 from mockobjects import MockMesh
 
+import ufl  # noqa: F401
 from ufl import (
     Cell,
     Coefficient,
@@ -21,6 +22,7 @@ from ufl import (
 from ufl.algorithms import compute_form_data
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import (
+    IdentityPullback,  # noqa: F401
     identity_pullback,
 )
 from ufl.sobolevspace import H1

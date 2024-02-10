@@ -6,7 +6,10 @@ from math import inf
 from ufl import H1, H2, L2, HCurl, HDiv, HInf, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
-from ufl.sobolevspace import DirectionalSobolevSpace
+from ufl.sobolevspace import (
+    DirectionalSobolevSpace,
+    SobolevSpace,  # noqa: F401
+)
 
 # Construct directional Sobolev spaces, with varying smoothness in
 # spatial coordinates
@@ -53,10 +56,7 @@ def test_directional_space_relations():
 
 
 def test_repr():
-    print(repr(H2))
-    print(H2)
-    print(repr(H2) == H2)
-    # assert eval(repr(H2)) == H2
+    assert eval(repr(H2)) == H2
 
 
 def xtest_contains_mixed():
