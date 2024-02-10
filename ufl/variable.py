@@ -118,10 +118,12 @@ class Variable(Operator):
 
     def __eq__(self, other):
         """Check equality."""
-        return (isinstance(other, Variable) and self.ufl_operands[1] == other.ufl_operands[1] and  # noqa: W504
-                self.ufl_operands[0] == other.ufl_operands[0])
+        return (
+            isinstance(other, Variable)
+            and self.ufl_operands[1] == other.ufl_operands[1]
+            and self.ufl_operands[0] == other.ufl_operands[0]
+        )
 
     def __str__(self):
         """Format as a string."""
-        return "var%d(%s)" % (self.ufl_operands[1].count(),
-                              self.ufl_operands[0])
+        return "var%d(%s)" % (self.ufl_operands[1].count(), self.ufl_operands[0])

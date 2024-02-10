@@ -7,13 +7,76 @@ Other tests check for mathematical correctness of diff and derivative.
 
 import pytest
 
-from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 FunctionSpace, Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxCellEdgeLength,
-                 MaxFacetEdgeLength, Mesh, MinCellEdgeLength, MinFacetEdgeLength, Not, Or, PermutationSymbol,
-                 SpatialCoordinate, acos, as_matrix, as_tensor, as_ufl, as_vector, asin, atan, bessel_I, bessel_J,
-                 bessel_K, bessel_Y, cofac, conditional, cos, cross, derivative, det, dev, diff, dot, eq, erf, exp, ge,
-                 grad, gt, indices, inner, interval, inv, le, ln, lt, ne, outer, replace, sin, skew, sqrt, sym, tan,
-                 tetrahedron, tr, triangle, variable)
+from ufl import (
+    And,
+    Argument,
+    CellDiameter,
+    CellVolume,
+    Circumradius,
+    Coefficient,
+    Constant,
+    FacetArea,
+    FacetNormal,
+    FunctionSpace,
+    Identity,
+    Jacobian,
+    JacobianDeterminant,
+    JacobianInverse,
+    MaxCellEdgeLength,
+    MaxFacetEdgeLength,
+    Mesh,
+    MinCellEdgeLength,
+    MinFacetEdgeLength,
+    Not,
+    Or,
+    PermutationSymbol,
+    SpatialCoordinate,
+    acos,
+    as_matrix,
+    as_tensor,
+    as_ufl,
+    as_vector,
+    asin,
+    atan,
+    bessel_I,
+    bessel_J,
+    bessel_K,
+    bessel_Y,
+    cofac,
+    conditional,
+    cos,
+    cross,
+    derivative,
+    det,
+    dev,
+    diff,
+    dot,
+    eq,
+    erf,
+    exp,
+    ge,
+    grad,
+    gt,
+    indices,
+    inner,
+    interval,
+    inv,
+    le,
+    ln,
+    lt,
+    ne,
+    outer,
+    replace,
+    sin,
+    skew,
+    sqrt,
+    sym,
+    tan,
+    tetrahedron,
+    tr,
+    triangle,
+    variable,
+)
 from ufl.algorithms import expand_derivatives
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal
@@ -23,11 +86,10 @@ from ufl.sobolevspace import H1, L2
 
 
 class ExpressionCollection(object):
-
     def __init__(self, cell):
         self.cell = cell
         d = cell.topological_dimension()
-        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d, ), identity_pullback, H1))
+        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
 
         x = SpatialCoordinate(domain)
         n = FacetNormal(domain)
@@ -49,7 +111,7 @@ class ExpressionCollection(object):
         eps = PermutationSymbol(d)
 
         U = FiniteElement("Undefined", cell, None, (), identity_pullback, L2)
-        V = FiniteElement("Undefined", cell, None, (d, ), identity_pullback, L2)
+        V = FiniteElement("Undefined", cell, None, (d,), identity_pullback, L2)
         W = FiniteElement("Undefined", cell, None, (d, d), identity_pullback, L2)
 
         u_space = FunctionSpace(domain, U)
@@ -65,6 +127,7 @@ class ExpressionCollection(object):
 
         class ObjectCollection(object):
             pass
+
         self.shared_objects = ObjectCollection()
         for key, value in list(locals().items()):
             setattr(self.shared_objects, key, value)
@@ -78,51 +141,84 @@ class ExpressionCollection(object):
         self.terminals += self.geometry
         self.terminals += self.functions
 
-        self.algebra = ([
-            u*2, v*2, w*2,
-            u+2*u, v+2*v, w+2*w,
-            2/u, u/2, v/2, w/2,
-            u**3, 3**u,
-        ])
-        self.mathfunctions = ([
-            abs(u), sqrt(u), exp(u), ln(u),
-            cos(u), sin(u), tan(u), acos(u), asin(u), atan(u),
-            erf(u), bessel_I(1, u), bessel_J(1, u), bessel_K(1, u), bessel_Y(1, u),
-        ])
-        self.variables = ([
-            variable(u), variable(v), variable(w),
-            variable(w*u), 3*variable(w*u),
-        ])
+        self.algebra = [
+            u * 2,
+            v * 2,
+            w * 2,
+            u + 2 * u,
+            v + 2 * v,
+            w + 2 * w,
+            2 / u,
+            u / 2,
+            v / 2,
+            w / 2,
+            u**3,
+            3**u,
+        ]
+        self.mathfunctions = [
+            abs(u),
+            sqrt(u),
+            exp(u),
+            ln(u),
+            cos(u),
+            sin(u),
+            tan(u),
+            acos(u),
+            asin(u),
+            atan(u),
+            erf(u),
+            bessel_I(1, u),
+            bessel_J(1, u),
+            bessel_K(1, u),
+            bessel_Y(1, u),
+        ]
+        self.variables = [
+            variable(u),
+            variable(v),
+            variable(w),
+            variable(w * u),
+            3 * variable(w * u),
+        ]
 
         if d == 1:
             w2 = as_matrix(((u**2,),))
         if d == 2:
-            w2 = as_matrix(((u**2, u**3),
-                            (u**4, u**5)))
+            w2 = as_matrix(((u**2, u**3), (u**4, u**5)))
         if d == 3:
-            w2 = as_matrix(((u**2, u**3, u**4),
-                            (u**4, u**5, u**6),
-                            (u**6, u**7, u**8)))
+            w2 = as_matrix(((u**2, u**3, u**4), (u**4, u**5, u**6), (u**6, u**7, u**8)))
 
         # Indexed,  ListTensor, ComponentTensor, IndexSum
         i, j, k, l = indices(4)  # noqa: E741
-        self.indexing = ([
-                v[0], w[d-1, 0], v[i], w[i, j],
-                v[:], w[0, :], w[:, 0],
-                v[...], w[0, ...], w[..., 0],
-                v[i]*v[j], w[i, 0]*v[j], w[d-1, j]*v[i],
-                v[i]*v[i], w[i, 0]*w[0, i], v[i]*w[0, i],
-                v[j]*w[d-1, j], w[i, i], w[i, j]*w[j, i],
-                as_tensor(v[i]*w[k, 0], (k, i)),
-                as_tensor(v[i]*w[k, 0], (k, i))[:, l],
-                as_tensor(w[i, j]*w[k, l], (k, j, l, i)),
-                as_tensor(w[i, j]*w[k, l], (k, j, l, i))[0, 0, 0, 0],
-                as_vector((u, 2, 3)),
-                as_matrix(((u**2, u**3), (u**4, u**5))),
-                as_vector((u, 2, 3))[i],
-                w2[i, j]*w[i, j],
-        ])
-        self.conditionals = ([
+        self.indexing = [
+            v[0],
+            w[d - 1, 0],
+            v[i],
+            w[i, j],
+            v[:],
+            w[0, :],
+            w[:, 0],
+            v[...],
+            w[0, ...],
+            w[..., 0],
+            v[i] * v[j],
+            w[i, 0] * v[j],
+            w[d - 1, j] * v[i],
+            v[i] * v[i],
+            w[i, 0] * w[0, i],
+            v[i] * w[0, i],
+            v[j] * w[d - 1, j],
+            w[i, i],
+            w[i, j] * w[j, i],
+            as_tensor(v[i] * w[k, 0], (k, i)),
+            as_tensor(v[i] * w[k, 0], (k, i))[:, l],
+            as_tensor(w[i, j] * w[k, l], (k, j, l, i)),
+            as_tensor(w[i, j] * w[k, l], (k, j, l, i))[0, 0, 0, 0],
+            as_vector((u, 2, 3)),
+            as_matrix(((u**2, u**3), (u**4, u**5))),
+            as_vector((u, 2, 3))[i],
+            w2[i, j] * w[i, j],
+        ]
+        self.conditionals = [
             conditional(le(u, 1.0), 1, 0),
             conditional(eq(3.0, u), 1, 0),
             conditional(ne(sin(u), cos(u)), 1, 0),
@@ -136,16 +232,16 @@ class ExpressionCollection(object):
             conditional(Not(ge(u, 0.0)), 1, 2),
             conditional(And(Not(ge(u, 0.0)), lt(u, 1.0)), 1, 2),
             conditional(le(u, 0.0), u**3, ln(u)),
-        ])
-        self.restrictions = [u('+'), u('-'), v('+'), v('-'), w('+'), w('-')]
+        ]
+        self.restrictions = [u("+"), u("-"), v("+"), v("-"), w("+"), w("-")]
         if d > 1:
             i, j = indices(2)
-            self.restrictions += ([
-                v('+')[i]*v('+')[i],
-                v[i]('+')*v[i]('+'),
-                (v[i]*v[i])('+'),
-                (v[i]*v[j])('+')*w[i, j]('+'),
-            ])
+            self.restrictions += [
+                v("+")[i] * v("+")[i],
+                v[i]("+") * v[i]("+"),
+                (v[i] * v[i])("+"),
+                (v[i] * v[j])("+") * w[i, j]("+"),
+            ]
 
         self.noncompounds = []
         self.noncompounds += self.algebra
@@ -158,7 +254,7 @@ class ExpressionCollection(object):
         if d == 1:
             self.tensorproducts = []
         else:
-            self.tensorproducts = ([
+            self.tensorproducts = [
                 dot(v, v),
                 dot(v, w),
                 dot(w, w),
@@ -168,26 +264,32 @@ class ExpressionCollection(object):
                 outer(w, v),
                 outer(v, w),
                 outer(w, w),
-            ])
+            ]
 
         if d == 1:
             self.tensoralgebra = []
         else:
-            self.tensoralgebra = ([
-                w.T, sym(w), skew(w), dev(w),
-                det(w), tr(w), cofac(w), inv(w),
-            ])
+            self.tensoralgebra = [
+                w.T,
+                sym(w),
+                skew(w),
+                dev(w),
+                det(w),
+                tr(w),
+                cofac(w),
+                inv(w),
+            ]
 
         if d != 3:
             self.crossproducts = []
         else:
-            self.crossproducts = ([
+            self.crossproducts = [
                 cross(v, v),
-                cross(v, 2*v),
+                cross(v, 2 * v),
                 cross(v, w[0, :]),
                 cross(v, w[:, 1]),
                 cross(w[:, 0], v),
-            ])
+            ]
 
         self.compounds = []
         self.compounds += self.tensorproducts
@@ -220,31 +322,36 @@ def ad_algorithm(expr):
             expr,
             apply_expand_compounds_before=True,
             apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=True)
+            use_alternative_wrapper_algorithm=True,
+        )
     elif alt == 2:
         return expand_derivatives(
             expr,
             apply_expand_compounds_before=False,
             apply_expand_compounds_after=True,
-            use_alternative_wrapper_algorithm=False)
+            use_alternative_wrapper_algorithm=False,
+        )
     elif alt == 3:
         return expand_derivatives(
             expr,
             apply_expand_compounds_before=False,
             apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=False)
+            use_alternative_wrapper_algorithm=False,
+        )
     elif alt == 4:
         return expand_derivatives(
             expr,
             apply_expand_compounds_before=False,
             apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=True)
+            use_alternative_wrapper_algorithm=True,
+        )
     elif alt == 5:
         return expand_derivatives(
             expr,
             apply_expand_compounds_before=False,
             apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=False)
+            use_alternative_wrapper_algorithm=False,
+        )
 
 
 def _test_no_derivatives_no_change(self, collection):
@@ -277,7 +384,9 @@ def test_no_derivatives_no_change(self, d_expr):
     _test_no_derivatives_no_change(self, ex.noncompounds)
 
 
-def xtest_compounds_no_derivatives_no_change(self, d_expr):  # This test fails with expand_compounds enabled
+def xtest_compounds_no_derivatives_no_change(
+    self, d_expr
+):  # This test fails with expand_compounds enabled
     d, ex = d_expr
     _test_no_derivatives_no_change(self, ex.compounds)
 
@@ -298,13 +407,13 @@ def _test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(self,
         for var in (u, v, w):
             before = derivative(t, var)  # This will often get preliminary simplified to zero
             after = ad_algorithm(before)
-            expected = 0*t
+            expected = 0 * t
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
-            before = derivative(c*t, var)  # This will usually not get simplified to zero
+            before = derivative(c * t, var)  # This will usually not get simplified to zero
             after = ad_algorithm(before)
-            expected = 0*t
+            expected = 0 * t
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
@@ -328,13 +437,13 @@ def _test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, colle
         for var in (vu, vv, vw):
             before = diff(t, var)  # This will often get preliminary simplified to zero
             after = ad_algorithm(before)
-            expected = 0*outer(t, var)
+            expected = 0 * outer(t, var)
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
-            before = diff(c*t, var)  # This will usually not get simplified to zero
+            before = diff(c * t, var)  # This will usually not get simplified to zero
             after = ad_algorithm(before)
-            expected = 0*outer(t, var)
+            expected = 0 * outer(t, var)
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
@@ -356,22 +465,22 @@ def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(se
     for t in collection.noncompounds:
         for var in (u, v, w):
             if debug:
-                print('\n', 'shapes:   ', t.ufl_shape, var.ufl_shape, '\n')
+                print("\n", "shapes:   ", t.ufl_shape, var.ufl_shape, "\n")
             if debug:
-                print('\n', 't:        ', str(t), '\n')
+                print("\n", "t:        ", str(t), "\n")
             if debug:
-                print('\n', 't ind:    ', str(t.ufl_free_indices), '\n')
+                print("\n", "t ind:    ", str(t.ufl_free_indices), "\n")
             if debug:
-                print('\n', 'var:      ', str(var), '\n')
+                print("\n", "var:      ", str(var), "\n")
             before = derivative(t, var)
             if debug:
-                print('\n', 'before:   ', str(before), '\n')
+                print("\n", "before:   ", str(before), "\n")
             after = ad_algorithm(before)
             if debug:
-                print('\n', 'after:    ', str(after), '\n')
-            expected = 0*t
+                print("\n", "after:    ", str(after), "\n")
+            expected = 0 * t
             if debug:
-                print('\n', 'expected: ', str(expected), '\n')
+                print("\n", "expected: ", str(expected), "\n")
             assert after == expected
 
 
@@ -396,13 +505,13 @@ def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, co
         for var in (vu, vv, vw):
             before = diff(t, var)
             if debug:
-                print('\n', 'before:   ', str(before), '\n')
+                print("\n", "before:   ", str(before), "\n")
             after = ad_algorithm(before)
             if debug:
-                print('\n', 'after:    ', str(after), '\n')
-            expected = 0*outer(t, var)
+                print("\n", "after:    ", str(after), "\n")
+            expected = 0 * outer(t, var)
             if debug:
-                print('\n', 'expected: ', str(expected), '\n')
+                print("\n", "expected: ", str(expected), "\n")
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
@@ -429,16 +538,16 @@ def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes
                 continue
 
             if debug:
-                print(('\n', '...:   ', t.ufl_shape, var.ufl_shape, '\n'))
+                print(("\n", "...:   ", t.ufl_shape, var.ufl_shape, "\n"))
             before = derivative(t, var)
             if debug:
-                print(('\n', 'before:   ', str(before), '\n'))
+                print(("\n", "before:   ", str(before), "\n"))
             after = ad_algorithm(before)
             if debug:
-                print(('\n', 'after:    ', str(after), '\n'))
-            expected_shape = 0*t
+                print(("\n", "after:    ", str(after), "\n"))
+            expected_shape = 0 * t
             if debug:
-                print(('\n', 'expected_shape: ', str(expected_shape), '\n'))
+                print(("\n", "expected_shape: ", str(expected_shape), "\n"))
             # print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
             if var in unique_post_traversal(t):
@@ -475,13 +584,13 @@ def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self,
 
             before = diff(t, var)
             if debug:
-                print(('\n', 'before:   ', str(before), '\n'))
+                print(("\n", "before:   ", str(before), "\n"))
             after = ad_algorithm(before)
             if debug:
-                print(('\n', 'after:    ', str(after), '\n'))
-            expected_shape = 0*outer(t, var)  # expected shape, not necessarily value
+                print(("\n", "after:    ", str(after), "\n"))
+            expected_shape = 0 * outer(t, var)  # expected shape, not necessarily value
             if debug:
-                print(('\n', 'expected_shape: ', str(expected_shape), '\n'))
+                print(("\n", "expected_shape: ", str(expected_shape), "\n"))
             # print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
             if var in unique_post_traversal(t):
@@ -502,8 +611,8 @@ def test_grad_coeff(self, d_expr):
         after = ad_algorithm(before)
 
         if before.ufl_shape != after.ufl_shape:
-            print(('\n', 'shapes:', before.ufl_shape, after.ufl_shape))
-            print(('\n', str(before), '\n', str(after), '\n'))
+            print(("\n", "shapes:", before.ufl_shape, after.ufl_shape))
+            print(("\n", str(before), "\n", str(after), "\n"))
 
         self.assertEqualTotalShape(before, after)
         if f is u:  # Differing by being wrapped in indexing types
@@ -543,8 +652,8 @@ def test_derivative_grad_coeff(self, d_expr):
         # assert after == expected
         if 0:
             print()
-            print(('B', f, "::", before))
-            print(('A', f, "::", after))
+            print(("B", f, "::", before))
+            print(("A", f, "::", after))
 
 
 def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
@@ -556,7 +665,7 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
     dw = collection.shared_objects.dw
     for g, dg in ((v, dv), (w, dw)):
         # Pick a single component
-        ii = (0,)*(len(g.ufl_shape))
+        ii = (0,) * (len(g.ufl_shape))
         f = g[ii]
         df = dg[ii]
 
@@ -576,5 +685,5 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
         # assert after == expected
         if 0:
             print()
-            print(('B', f, "::", before))
-            print(('A', f, "::", after))
+            print(("B", f, "::", before))
+            print(("A", f, "::", after))

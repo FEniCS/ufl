@@ -20,15 +20,22 @@ __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
 
 
 class AbstractDomain(object):
-    """Symbolic representation of a geometric domain with only a geometric and topological dimension."""
+    """
+    Symbolic representation of a geometric domain with only a geometric
+    and topological dimension.
+    """
 
     def __init__(self, topological_dimension, geometric_dimension):
         """Initialise."""
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
-            raise ValueError(f"Expecting integer geometric dimension, not {geometric_dimension.__class__}")
+            raise ValueError(
+                f"Expecting integer geometric dimension, not {geometric_dimension.__class__}"
+            )
         if not isinstance(topological_dimension, numbers.Integral):
-            raise ValueError(f"Expecting integer topological dimension, not {topological_dimension.__class__}")
+            raise ValueError(
+                f"Expecting integer topological dimension, not {topological_dimension.__class__}"
+            )
         if topological_dimension > geometric_dimension:
             raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
@@ -67,6 +74,7 @@ class Mesh(AbstractDomain, UFLObject):
 
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
+
         if isinstance(coordinate_element, (Coefficient, AbstractCell)):
             raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
 
@@ -74,7 +82,7 @@ class Mesh(AbstractDomain, UFLObject):
         self._ufl_coordinate_element = coordinate_element
 
         # Derive dimensions from element
-        gdim, = coordinate_element.reference_value_shape
+        (gdim,) = coordinate_element.reference_value_shape
         tdim = coordinate_element.cell.topological_dimension()
         AbstractDomain.__init__(self, tdim, gdim)
 
@@ -117,8 +125,7 @@ class Mesh(AbstractDomain, UFLObject):
     def _ufl_sort_key_(self):
         """UFL sort key."""
         typespecific = (self._ufl_id, self._ufl_coordinate_element)
-        return (self.geometric_dimension(), self.topological_dimension(),
-                "Mesh", typespecific)
+        return (self.geometric_dimension(), self.topological_dimension(), "Mesh", typespecific)
 
 
 @attach_ufl_id
@@ -134,7 +141,7 @@ class MeshView(AbstractDomain, UFLObject):
 
         # Derive dimensions from element
         coordinate_element = mesh.ufl_coordinate_element()
-        gdim, = coordinate_element.value_shape
+        (gdim,) = coordinate_element.value_shape
         tdim = coordinate_element.cell.topological_dimension()
         AbstractDomain.__init__(self, tdim, gdim)
 
@@ -159,7 +166,10 @@ class MeshView(AbstractDomain, UFLObject):
     def __str__(self):
         """Format as a string."""
         return "<MeshView #%s of dimension %d over mesh %s>" % (
-            self._ufl_id, self.topological_dimension(), self._ufl_mesh)
+            self._ufl_id,
+            self.topological_dimension(),
+            self._ufl_mesh,
+        )
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -167,16 +177,14 @@ class MeshView(AbstractDomain, UFLObject):
 
     def _ufl_signature_data_(self, renumbering):
         """UFL signature data."""
-        return ("MeshView", renumbering[self],
-                self._ufl_mesh._ufl_signature_data_(renumbering))
+        return ("MeshView", renumbering[self], self._ufl_mesh._ufl_signature_data_(renumbering))
 
     # NB! Dropped __lt__ here, don't want users to write 'mesh1 <
     # mesh2'.
     def _ufl_sort_key_(self):
         """UFL sort key."""
         typespecific = (self._ufl_id, self._ufl_mesh)
-        return (self.geometric_dimension(), self.topological_dimension(),
-                "MeshView", typespecific)
+        return (self.geometric_dimension(), self.topological_dimension(), "MeshView", typespecific)
 
 
 def as_domain(domain):
@@ -212,7 +220,7 @@ def join_domains(domains):
         gdims.add(domain.geometric_dimension())
     if len(gdims) != 1:
         raise ValueError("Found domains with different geometric dimensions.")
-    gdim, = gdims
+    (gdim,) = gdims
 
     # Split into legacy and modern style domains
     legacy_domains = []
@@ -226,14 +234,18 @@ def join_domains(domains):
 
     # Handle legacy domains checking
     if legacy_domains:
-        warnings.warn("The use of Legacy domains will be deprecated by December 2023. "
-                      "Please, use FunctionSpace instead", DeprecationWarning)
+        warnings.warn(
+            "The use of Legacy domains will be deprecated by December 2023. "
+            "Please, use FunctionSpace instead",
+            DeprecationWarning,
+        )
         if modern_domains:
             raise ValueError(
                 "Found both a new-style domain and a legacy default domain. "
                 "These should not be used interchangeably. To find the legacy "
                 "domain, note that it is automatically created from a cell so "
-                "look for constructors taking a cell.")
+                "look for constructors taking a cell."
+            )
         return tuple(legacy_domains)
 
     # Handle modern domains checking (assuming correct by construction)
@@ -241,6 +253,7 @@ def join_domains(domains):
 
 
 # TODO: Move these to an analysis module?
+
 
 def extract_domains(expr):
     """Return all domains expression is defined on."""
@@ -271,5 +284,5 @@ def find_geometric_dimension(expr):
 
     if len(gdims) != 1:
         raise ValueError("Cannot determine geometric dimension from expression.")
-    gdim, = gdims
+    (gdim,) = gdims
     return gdim

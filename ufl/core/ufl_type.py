@@ -59,7 +59,8 @@ def get_base_attr(cls, name):
 def set_trait(cls, basename, value, inherit=False):
     """Assign a trait to class with namespacing ``_ufl_basename_`` applied.
 
-    If trait value is ``None``, optionally inherit it from the closest base class that has it.
+    If trait value is ``None``, optionally inherit it from the closest
+    base class that has it.
     """
     name = "_ufl_" + basename + "_"
     if value is None and inherit:
@@ -88,14 +89,18 @@ def determine_num_ops(cls, num_ops, unop, binop, rbinop):
 def check_is_terminal_consistency(cls):
     """Check for consistency in ``is_terminal`` trait among superclasses."""
     if cls._ufl_is_terminal_ is None:
-        msg = (f"Class {cls.__name__} has not specified the is_terminal trait."
-               " Did you forget to inherit from Terminal or Operator?")
+        msg = (
+            f"Class {cls.__name__} has not specified the is_terminal trait."
+            " Did you forget to inherit from Terminal or Operator?"
+        )
         raise TypeError(msg)
 
     base_is_terminal = get_base_attr(cls, "_ufl_is_terminal_")
     if base_is_terminal is not None and cls._ufl_is_terminal_ != base_is_terminal:
-        msg = (f"Conflicting given and automatic 'is_terminal' trait for class {cls.__name__}."
-               " Check if you meant to inherit from Terminal or Operator.")
+        msg = (
+            f"Conflicting given and automatic 'is_terminal' trait for class {cls.__name__}."
+            " Check if you meant to inherit from Terminal or Operator."
+        )
         raise TypeError(msg)
 
 
@@ -105,8 +110,10 @@ def check_abstract_trait_consistency(cls):
         if base is core.expr.Expr:
             break
         if not issubclass(base, core.expr.Expr) and base._ufl_is_abstract_:
-            msg = ("Base class {0.__name__} of class {1.__name__} "
-                   "is not an abstract subclass of {2.__name__}.")
+            msg = (
+                "Base class {0.__name__} of class {1.__name__} "
+                "is not an abstract subclass of {2.__name__}."
+            )
             raise TypeError(msg.format(base, cls, core.expr.Expr))
 
 
@@ -116,15 +123,16 @@ def check_has_slots(cls):
         return
 
     if "__slots__" not in cls.__dict__:
-        msg = ("Class {0.__name__} is missing the __slots__ "
-               "attribute and is not marked with _ufl_noslots_.")
+        msg = (
+            "Class {0.__name__} is missing the __slots__ "
+            "attribute and is not marked with _ufl_noslots_."
+        )
         raise TypeError(msg.format(cls))
 
     # Check base classes for __slots__ as well, skipping object which is the last one
     for base in cls.mro()[1:-1]:
         if "__slots__" not in base.__dict__:
-            msg = ("Class {0.__name__} is has a base class "
-                   "{1.__name__} with __slots__ missing.")
+            msg = "Class {0.__name__} is has a base class {1.__name__} with __slots__ missing."
             raise TypeError(msg.format(cls, base))
 
 
@@ -202,22 +210,29 @@ def attach_implementations_of_indexing_interface(
     # operands.  This simplifies refactoring because a lot of types do
     # this.
     if inherit_shape_from_operand is not None:
+
         def _inherited_ufl_shape(self):
             return self.ufl_operands[inherit_shape_from_operand].ufl_shape
+
         cls.ufl_shape = property(_inherited_ufl_shape)
 
     if inherit_indices_from_operand is not None:
+
         def _inherited_ufl_free_indices(self):
             return self.ufl_operands[inherit_indices_from_operand].ufl_free_indices
 
         def _inherited_ufl_index_dimensions(self):
             return self.ufl_operands[inherit_indices_from_operand].ufl_index_dimensions
+
         cls.ufl_free_indices = property(_inherited_ufl_free_indices)
         cls.ufl_index_dimensions = property(_inherited_ufl_index_dimensions)
 
 
 def update_global_expr_attributes(cls):
-    """Update global ``Expr`` attributes, mainly by adding *cls* to global collections of ufl types."""
+    """
+    Update global ``Expr`` attributes, mainly by adding *cls* to global
+    collections of ufl types.
+    """
     if cls._ufl_is_terminal_modifier_:
         core.expr.Expr._ufl_terminal_modifiers_.append(cls)
 
@@ -249,13 +264,29 @@ def update_ufl_type_attributes(cls):
 
 
 def ufl_type(
-    is_abstract=False, is_terminal=None,  is_scalar=False, is_index_free=False, is_shaping=False,
-    is_literal=False, is_terminal_modifier=False, is_in_reference_frame=False, is_restriction=False,
-    is_evaluation=False, is_differential=None, use_default_hash=True, num_ops=None,
-    inherit_shape_from_operand=None, inherit_indices_from_operand=None, wraps_type=None, unop=None,
-    binop=None, rbinop=None
+    is_abstract=False,
+    is_terminal=None,
+    is_scalar=False,
+    is_index_free=False,
+    is_shaping=False,
+    is_literal=False,
+    is_terminal_modifier=False,
+    is_in_reference_frame=False,
+    is_restriction=False,
+    is_evaluation=False,
+    is_differential=None,
+    use_default_hash=True,
+    num_ops=None,
+    inherit_shape_from_operand=None,
+    inherit_indices_from_operand=None,
+    wraps_type=None,
+    unop=None,
+    binop=None,
+    rbinop=None,
 ):
-    """This decorator is to be applied to every subclass in the UFL ``Expr`` and ``BaseForm`` hierarchy.
+    """
+    This decorator is to be applied to every subclass in the UFL
+    ``Expr`` and ``BaseForm`` hierarchy.
 
     This decorator contains a number of checks that are
     intended to enforce uniform behaviour across UFL types.
@@ -285,11 +316,9 @@ def ufl_type(
 
         set_trait(cls, "is_terminal", is_terminal, inherit=True)
         set_trait(cls, "is_literal", is_literal, inherit=True)
-        set_trait(cls, "is_terminal_modifier", is_terminal_modifier,
-                  inherit=True)
+        set_trait(cls, "is_terminal_modifier", is_terminal_modifier, inherit=True)
         set_trait(cls, "is_shaping", is_shaping, inherit=True)
-        set_trait(cls, "is_in_reference_frame", is_in_reference_frame,
-                  inherit=True)
+        set_trait(cls, "is_in_reference_frame", is_in_reference_frame, inherit=True)
         set_trait(cls, "is_restriction", is_restriction, inherit=True)
         set_trait(cls, "is_evaluation", is_evaluation, inherit=True)
         set_trait(cls, "is_differential", is_differential, inherit=True)
@@ -305,7 +334,8 @@ def ufl_type(
         """# These are currently handled in the as_ufl implementation in constantvalue.py
         if wraps_type is not None:
             if not isinstance(wraps_type, type):
-                msg = "Expecting a type, not a {0.__name__} for the wraps_type argument in definition of {1.__name__}."
+                msg = "Expecting a type, not a {0.__name__} for the
+                wraps_type argument in definition of {1.__name__}."
                 raise TypeError(msg.format(type(wraps_type), cls))
 
             def _ufl_from_type_(value):
@@ -352,9 +382,9 @@ def ufl_type(
         # class!  This approach significantly reduces the amount of
         # small functions to implement across all the types but of
         # course it's a bit more opaque.
-        attach_implementations_of_indexing_interface(cls,
-                                                     inherit_shape_from_operand,
-                                                     inherit_indices_from_operand)
+        attach_implementations_of_indexing_interface(
+            cls, inherit_shape_from_operand, inherit_indices_from_operand
+        )
 
         # Update Expr
         update_global_expr_attributes(cls)

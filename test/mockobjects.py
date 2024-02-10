@@ -2,7 +2,6 @@ from ufl import Measure, Mesh, triangle
 
 
 class MockMesh:
-
     def __init__(self, ufl_id):
         self._ufl_id = ufl_id
 
@@ -12,9 +11,16 @@ class MockMesh:
     def ufl_domain(self):
         return Mesh(triangle, ufl_id=self.ufl_id(), cargo=self)
 
-    def ufl_measure(self, integral_type="dx", subdomain_id="everywhere", metadata=None, subdomain_data=None):
-        return Measure(integral_type, subdomain_id=subdomain_id, metadata=metadata, domain=self,
-                       subdomain_data=subdomain_data)
+    def ufl_measure(
+        self, integral_type="dx", subdomain_id="everywhere", metadata=None, subdomain_data=None
+    ):
+        return Measure(
+            integral_type,
+            subdomain_id=subdomain_id,
+            metadata=metadata,
+            domain=self,
+            subdomain_data=subdomain_data,
+        )
 
 
 class MockMeshFunction:
@@ -32,5 +38,9 @@ class MockMeshFunction:
 
     def ufl_measure(self, integral_type=None, subdomain_id="everywhere", metadata=None):
         return Measure(
-            integral_type, subdomain_id=subdomain_id, metadata=metadata,
-            domain=self.mesh(), subdomain_data=self)
+            integral_type,
+            subdomain_id=subdomain_id,
+            metadata=metadata,
+            domain=self.mesh(),
+            subdomain_data=self,
+        )

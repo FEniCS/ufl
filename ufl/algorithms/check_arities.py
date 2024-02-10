@@ -9,6 +9,7 @@ from ufl.corealg.traversal import traverse_unique_terminals
 
 class ArityMismatch(BaseException):
     """Arity mismatch exception."""
+
     pass
 
 
@@ -41,8 +42,10 @@ class ArityChecker(MultiFunction):
         # way we know of:
         for t in traverse_unique_terminals(o):
             if t._ufl_typecode_ == Argument._ufl_typecode_:
-                raise ArityMismatch(f"Applying nonlinear operator {o._ufl_class_.__name__} to "
-                                    f"expression depending on form argument {t}.")
+                raise ArityMismatch(
+                    f"Applying nonlinear operator {o._ufl_class_.__name__} to "
+                    f"expression depending on form argument {t}."
+                )
         return self._et
 
     expr = nonlinear_operator
@@ -50,7 +53,9 @@ class ArityChecker(MultiFunction):
     def sum(self, o, a, b):
         """Apply to sum."""
         if a != b:
-            raise ArityMismatch(f"Adding expressions with non-matching form arguments {_afmt(a)} vs {_afmt(b)}.")
+            raise ArityMismatch(
+                f"Adding expressions with non-matching form arguments {_afmt(a)} vs {_afmt(b)}."
+            )
         return a
 
     def division(self, o, a, b):
@@ -67,15 +72,19 @@ class ArityChecker(MultiFunction):
             anumbers = set(x[0].number() for x in a)
             for x in b:
                 if x[0].number() in anumbers:
-                    raise ArityMismatch("Multiplying expressions with overlapping form argument number "
-                                        f"{x[0].number()}, argument is {_afmt(x)}.")
+                    raise ArityMismatch(
+                        "Multiplying expressions with overlapping form argument number "
+                        f"{x[0].number()}, argument is {_afmt(x)}."
+                    )
             # Combine argument lists
             c = tuple(sorted(set(a + b), key=lambda x: (x[0].number(), x[0].part())))
             # Check that we don't have any arguments shared between a
             # and b
             if len(c) != len(a) + len(b) or len(c) != len({x[0] for x in c}):
-                raise ArityMismatch("Multiplying expressions with overlapping form arguments "
-                                    f"{_afmt(a)} vs {_afmt(b)}.")
+                raise ArityMismatch(
+                    "Multiplying expressions with overlapping form arguments "
+                    f"{_afmt(a)} vs {_afmt(b)}."
+                )
             # It's fine for argument parts to overlap
             return c
         elif a:
@@ -139,8 +148,10 @@ class ArityChecker(MultiFunction):
         else:
             # Do not allow e.g. conditional(c, test, trial),
             # conditional(c, test, nonzeroconstant)
-            raise ArityMismatch("Conditional subexpressions with non-matching form arguments "
-                                f"{_afmt(a)} vs {_afmt(b)}.")
+            raise ArityMismatch(
+                "Conditional subexpressions with non-matching form arguments "
+                f"{_afmt(a)} vs {_afmt(b)}."
+            )
 
     def linear_indexed_type(self, o, a, i):
         """Apply to linear_indexed_type."""
@@ -161,8 +172,10 @@ class ArityChecker(MultiFunction):
             if () in numbers:  # Allow e.g. <v[0], 0, v[1]> but not <v[0], u[0]>
                 numbers.remove(())
             if len(numbers) > 1:
-                raise ArityMismatch("Listtensor components must depend on the same argument numbers, "
-                                    f"found {numbers}.")
+                raise ArityMismatch(
+                    "Listtensor components must depend on the same argument numbers, "
+                    f"found {numbers}."
+                )
 
             # Allow different parts with the same number
             return tuple(sorted(args, key=lambda x: (x[0].number(), x[0].part())))
@@ -173,8 +186,7 @@ class ArityChecker(MultiFunction):
 
 def check_integrand_arity(expr, arguments, complex_mode=False):
     """Check the arity of an integrand."""
-    arguments = tuple(sorted(set(arguments),
-                             key=lambda x: (x.number(), x.part())))
+    arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), x.part())))
     rules = ArityChecker(arguments)
     arg_tuples = map_expr_dag(rules, expr, compress=False)
     args = tuple(a[0] for a in arg_tuples)

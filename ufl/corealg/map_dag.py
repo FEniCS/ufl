@@ -12,7 +12,7 @@ from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_post_traversal
 
 
-def map_expr_dag(function, expression,  compress=True, vcache=None, rcache=None):
+def map_expr_dag(function, expression, compress=True, vcache=None, rcache=None):
     """Apply a function to each subexpression node in an expression DAG.
 
     If the same funtion is called multiple times in a transformation
@@ -31,9 +31,9 @@ def map_expr_dag(function, expression,  compress=True, vcache=None, rcache=None)
     Returns:
         The result of the final function call
     """
-    result, = map_expr_dags(function, [expression], compress=compress,
-                            vcache=vcache,
-                            rcache=rcache)
+    (result,) = map_expr_dags(
+        function, [expression], compress=compress, vcache=vcache, rcache=rcache
+    )
     return result
 
 
@@ -80,9 +80,11 @@ def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None
 
     # Pick faster traversal algorithm if we have no cutoffs
     if any(cutoff_types):
+
         def traversal(expression):
             return cutoff_unique_post_traversal(expression, cutoff_types, visited)
     else:
+
         def traversal(expression):
             return unique_post_traversal(expression, visited)
 

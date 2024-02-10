@@ -1,8 +1,17 @@
 __authors__ = "Cecile Daversin Catty"
 __date__ = "2019-03-26 -- 2019-03-26"
 
-from ufl import (FunctionSpace, Measure, Mesh, MixedFunctionSpace, TestFunctions, TrialFunctions, interval, tetrahedron,
-                 triangle)
+from ufl import (
+    FunctionSpace,
+    Measure,
+    Mesh,
+    MixedFunctionSpace,
+    TestFunctions,
+    TrialFunctions,
+    interval,
+    tetrahedron,
+    triangle,
+)
 from ufl.algorithms.formsplitter import extract_blocks
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
@@ -11,9 +20,9 @@ from ufl.sobolevspace import H1
 
 def test_mixed_functionspace(self):
     # Domains
-    domain_3d = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1))
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
-    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
+    domain_3d = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
     # Finite elements
     f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
@@ -42,20 +51,20 @@ def test_mixed_functionspace(self):
 
     # Mixed variational form
     # LHS
-    a_11 = u_1d*v_1d*dx1
-    a_22 = u_2d*v_2d*dx2
-    a_33 = u_3d*v_3d*dx3
-    a_21 = u_2d*v_1d*dx1
-    a_12 = u_1d*v_2d*dx1
-    a_32 = u_3d*v_2d*dx2
-    a_23 = u_2d*v_3d*dx2
-    a_31 = u_3d*v_1d*dx1
-    a_13 = u_1d*v_3d*dx1
+    a_11 = u_1d * v_1d * dx1
+    a_22 = u_2d * v_2d * dx2
+    a_33 = u_3d * v_3d * dx3
+    a_21 = u_2d * v_1d * dx1
+    a_12 = u_1d * v_2d * dx1
+    a_32 = u_3d * v_2d * dx2
+    a_23 = u_2d * v_3d * dx2
+    a_31 = u_3d * v_1d * dx1
+    a_13 = u_1d * v_3d * dx1
     a = a_11 + a_22 + a_33 + a_21 + a_12 + a_32 + a_23 + a_31 + a_13
     # RHS
-    f_1 = v_1d*dx1
-    f_2 = v_2d*dx2
-    f_3 = v_3d*dx3
+    f_1 = v_1d * dx1
+    f_2 = v_2d * dx2
+    f_3 = v_3d * dx3
     f = f_1 + f_2 + f_3
 
     # Check extract_block algorithm

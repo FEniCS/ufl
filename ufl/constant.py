@@ -1,4 +1,4 @@
-"""This module defines classes representing non-literal values which are constant with respect to a domain."""
+"""Support fpr non-literal values which are constant with respect to a domain."""
 
 # Copyright (C) 2019 Michal Habera
 #
@@ -29,7 +29,8 @@ class Constant(Terminal, Counted):
         # Repr string is build in such way, that reconstruction
         # with eval() is possible
         self._repr = "Constant({}, {}, {})".format(
-            repr(self._ufl_domain), repr(self._ufl_shape), repr(self._count))
+            repr(self._ufl_domain), repr(self._ufl_shape), repr(self._count)
+        )
 
     @property
     def ufl_shape(self):
@@ -42,7 +43,7 @@ class Constant(Terminal, Counted):
 
     def ufl_domains(self):
         """Get the UFL domains."""
-        return (self.ufl_domain(), )
+        return (self.ufl_domain(),)
 
     def is_cellwise_constant(self):
         """Return True if the function is cellwise constant."""
@@ -62,23 +63,30 @@ class Constant(Terminal, Counted):
             return False
         if self is other:
             return True
-        return (self._count == other._count and self._ufl_domain == other._ufl_domain and   # noqa: W504
-                self._ufl_shape == self._ufl_shape)
+        return (
+            self._count == other._count
+            and self._ufl_domain == other._ufl_domain
+            and self._ufl_shape == self._ufl_shape
+        )
 
     def _ufl_signature_data_(self, renumbering):
         """Signature data for constant depends on renumbering."""
         return "Constant({}, {}, {})".format(
-            self._ufl_domain._ufl_signature_data_(renumbering), repr(self._ufl_shape),
-            repr(renumbering[self]))
+            self._ufl_domain._ufl_signature_data_(renumbering),
+            repr(self._ufl_shape),
+            repr(renumbering[self]),
+        )
 
 
 def VectorConstant(domain, count=None):
     """Vector constant."""
     domain = as_domain(domain)
-    return Constant(domain, shape=(domain.geometric_dimension(), ), count=count)
+    return Constant(domain, shape=(domain.geometric_dimension(),), count=count)
 
 
 def TensorConstant(domain, count=None):
     """Tensor constant."""
     domain = as_domain(domain)
-    return Constant(domain, shape=(domain.geometric_dimension(), domain.geometric_dimension()), count=count)
+    return Constant(
+        domain, shape=(domain.geometric_dimension(), domain.geometric_dimension()), count=count
+    )

@@ -34,6 +34,7 @@ class Transformer(object):
     Base class for a visitor-like algorithm design pattern used to
     transform expression trees from one representation to another.
     """
+
     _handlers_cache = {}
 
     def __init__(self, variable_cache=None):
@@ -64,17 +65,16 @@ class Transformer(object):
                         handler_name = UFLType._ufl_handler_name_
                     function = getattr(self, handler_name, None)
                     if function:
-                        cache_data[
-                            classobject.
-                            _ufl_typecode_] = handler_name, is_post_handler(
-                                function)
+                        cache_data[classobject._ufl_typecode_] = (
+                            handler_name,
+                            is_post_handler(function),
+                        )
                         break
             Transformer._handlers_cache[type(self)] = cache_data
 
         # Build handler list for this particular class (get functions
         # bound to self)
-        self._handlers = [(getattr(self, name), post)
-                          for (name, post) in cache_data]
+        self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
         # Keep a stack of objects visit is called on, to ease
         # backtracking
         self._visit_stack = []
@@ -236,9 +236,11 @@ class VariableStripper(ReuseTransformer):
 
 
 def apply_transformer(e, transformer, integral_type=None):
-    """Apply transformer.visit(expression) to each integrand expression in form, or to form if it is an Expr."""
-    return map_integrands(lambda expr: transformer.visit(expr), e,
-                          integral_type)
+    """
+    Apply transformer.visit(expression) to each integrand expression in
+    form, or to form if it is an Expr.
+    """
+    return map_integrands(lambda expr: transformer.visit(expr), e, integral_type)
 
 
 def strip_variables(e):

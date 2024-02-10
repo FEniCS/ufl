@@ -11,15 +11,15 @@ from ufl.sobolevspace import H1
 
 def test_change_to_reference_grad():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
     U = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1))
-    V = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
+    V = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
     u = Coefficient(U)
     v = Coefficient(V)
     Jinv = JacobianInverse(domain)
     i, j, k = indices(3)
     q, r, s = indices(3)
-    t, = indices(1)
+    (t,) = indices(1)
 
     # Single grad change on a scalar function
     expr = grad(u)
@@ -36,27 +36,33 @@ def test_change_to_reference_grad():
     # Multiple grads should work fine for affine domains:
     expr = grad(grad(u))
     actual = change_to_reference_grad(expr)
-    expected = as_tensor(
-        Jinv[s, j] * (Jinv[r, i] * ReferenceGrad(ReferenceGrad(u))[r, s]), (i, j))
+    expected = as_tensor(Jinv[s, j] * (Jinv[r, i] * ReferenceGrad(ReferenceGrad(u))[r, s]), (i, j))
     assert renumber_indices(actual) == renumber_indices(expected)
 
     expr = grad(grad(grad(u)))
     actual = change_to_reference_grad(expr)
     expected = as_tensor(
-        Jinv[s, k] * (Jinv[r, j] * (Jinv[q, i] * ReferenceGrad(ReferenceGrad(ReferenceGrad(u)))[q, r, s])), (i, j, k))
+        Jinv[s, k]
+        * (Jinv[r, j] * (Jinv[q, i] * ReferenceGrad(ReferenceGrad(ReferenceGrad(u)))[q, r, s])),
+        (i, j, k),
+    )
     assert renumber_indices(actual) == renumber_indices(expected)
 
     # Multiple grads on a vector valued function
     expr = grad(grad(v))
     actual = change_to_reference_grad(expr)
     expected = as_tensor(
-        Jinv[s, j] * (Jinv[r, i] * ReferenceGrad(ReferenceGrad(v))[t, r, s]), (t, i, j))
+        Jinv[s, j] * (Jinv[r, i] * ReferenceGrad(ReferenceGrad(v))[t, r, s]), (t, i, j)
+    )
     assert renumber_indices(actual) == renumber_indices(expected)
 
     expr = grad(grad(grad(v)))
     actual = change_to_reference_grad(expr)
-    expected = as_tensor(Jinv[s, k] * (Jinv[r, j] * (
-        Jinv[q, i] * ReferenceGrad(ReferenceGrad(ReferenceGrad(v)))[t, q, r, s])), (t, i, j, k))
+    expected = as_tensor(
+        Jinv[s, k]
+        * (Jinv[r, j] * (Jinv[q, i] * ReferenceGrad(ReferenceGrad(ReferenceGrad(v)))[t, q, r, s])),
+        (t, i, j, k),
+    )
     assert renumber_indices(actual) == renumber_indices(expected)
 
     # print tree_format(expected)

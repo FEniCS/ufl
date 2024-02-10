@@ -17,17 +17,23 @@
 #
 # This simple example illustrates how forms can be defined on different sub domains.
 # It is supported for all three integral types.
-from ufl import FunctionSpace, Mesh, TestFunction, TrialFunction, ds, dS, dx, tetrahedron
+from ufl import FunctionSpace, Mesh, TestFunction, TrialFunction, dS, ds, dx, tetrahedron
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 element = FiniteElement("Lagrange", tetrahedron, 1, (), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1))
+domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)
 u = TrialFunction(space)
 
-a = v * u * dx(0) + 10.0 * v * u * dx(1) + v * u * ds(0) + 2.0 * v * u * ds(1)\
-    + v('+') * u('+') * dS(0) + 4.3 * v('+') * u('+') * dS(1)
+a = (
+    v * u * dx(0)
+    + 10.0 * v * u * dx(1)
+    + v * u * ds(0)
+    + 2.0 * v * u * ds(1)
+    + v("+") * u("+") * dS(0)
+    + 4.3 * v("+") * u("+") * dS(1)
+)

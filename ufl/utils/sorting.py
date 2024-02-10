@@ -48,10 +48,12 @@ def sorted_by_count(seq):
 
 def sorted_by_key(mapping):
     """Sort dict items by key, allowing different key types."""
+
     # Python3 doesn't allow comparing builtins of different type,
     # therefore the typename trick here
     def _key(x):
         return (type(x[0]).__name__, x[0])
+
     return sorted(mapping.items(), key=_key)
 
 
@@ -81,8 +83,10 @@ def canonicalize_metadata(metadata):
         elif isinstance(value, (int, float, str)) or value is None:
             value = str(value)
         else:
-            warnings.warn(f"Applying str() to a metadata value of type {type(value).__name__}, "
-                          "don't know if this is safe.")
+            warnings.warn(
+                f"Applying str() to a metadata value of type {type(value).__name__}, "
+                "don't know if this is safe."
+            )
             value = str(value)
         newvalues.append(value)
 

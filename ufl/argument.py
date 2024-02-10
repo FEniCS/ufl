@@ -29,6 +29,7 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 
 # --- Class representing an argument (basis function) in a form ---
 
+
 class BaseArgument(object):
     """UFL value: Representation of an argument to a form."""
 
@@ -94,7 +95,10 @@ class BaseArgument(object):
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
-        """Signature data for form arguments depend on the global numbering of the form arguments and domains."""
+        """
+        Signature data for form arguments depend on the global numbering
+        of the form arguments and domains.
+        """
         fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
         return ("Argument", self._number, self._part, fsdata)
 
@@ -132,8 +136,10 @@ class BaseArgument(object):
         are the same ufl element but different dolfin function spaces.
         """
         return (
-            type(self) is type(other) and self._number == other._number and  # noqa: W504
-            self._part == other._part and self._ufl_function_space == other._ufl_function_space
+            type(self) is type(other)
+            and self._number == other._number
+            and self._part == other._part
+            and self._ufl_function_space == other._ufl_function_space
         )
 
 
@@ -169,7 +175,10 @@ class Argument(FormArgument, BaseArgument):
         BaseArgument.__init__(self, function_space, number, part)
 
         self._repr = "Argument(%s, %s, %s)" % (
-            repr(self._ufl_function_space), repr(self._number), repr(self._part))
+            repr(self._ufl_function_space),
+            repr(self._number),
+            repr(self._part),
+        )
 
     def ufl_domains(self):
         """Return UFL domains."""
@@ -193,7 +202,7 @@ class Coargument(BaseForm, BaseArgument):
         "_number",
         "_part",
         "_repr",
-        "_hash"
+        "_hash",
     )
 
     _primal = False
@@ -202,8 +211,10 @@ class Coargument(BaseForm, BaseArgument):
     def __new__(cls, *args, **kw):
         """Create a new Coargument."""
         if args[0] and is_primal(args[0]):
-            raise ValueError("ufl.Coargument takes in a dual space! If you want to define an argument "
-                             "in the primal space you should use ufl.Argument.")
+            raise ValueError(
+                "ufl.Coargument takes in a dual space! If you want to define an argument "
+                "in the primal space you should use ufl.Argument."
+            )
         return super().__new__(cls)
 
     def __init__(self, function_space, number, part=None):
@@ -214,7 +225,10 @@ class Coargument(BaseForm, BaseArgument):
         self.ufl_operands = ()
         self._hash = None
         self._repr = "Coargument(%s, %s, %s)" % (
-            repr(self._ufl_function_space), repr(self._number), repr(self._part))
+            repr(self._ufl_function_space),
+            repr(self._number),
+            repr(self._part),
+        )
 
     def arguments(self, outer_form=None):
         """Return all Argument objects found in form."""
@@ -228,8 +242,9 @@ class Coargument(BaseForm, BaseArgument):
         self._coefficients = ()
         # Coarguments map from V* to V*, i.e. V* -> V*, or equivalently V* x V -> R.
         # So they have one argument in the primal space and one in the dual space.
-        # However, when they are composed with linear forms with dual arguments, such as BaseFormOperators,
-        # the primal argument is discarded when analysing the argument as Coarguments.
+        # However, when they are composed with linear forms with dual
+        # arguments, such as BaseFormOperators, the primal argument is
+        # discarded when analysing the argument as Coarguments.
         if not outer_form:
             self._arguments = (Argument(self.ufl_function_space().dual(), 0), self)
         else:
@@ -245,15 +260,16 @@ class Coargument(BaseForm, BaseArgument):
             return False
         if self is other:
             return True
-        return (self._ufl_function_space == other._ufl_function_space and  # noqa: W504
-                self._number == other._number and self._part == other._part)
+        return (
+            self._ufl_function_space == other._ufl_function_space
+            and self._number == other._number
+            and self._part == other._part
+        )
 
     def __hash__(self):
         """Hash."""
-        return hash(("Coargument",
-                     hash(self._ufl_function_space),
-                     self._number,
-                     self._part))
+        return hash(("Coargument", hash(self._ufl_function_space), self._number, self._part))
+
 
 # --- Helper functions for pretty syntax ---
 
@@ -270,14 +286,17 @@ def TrialFunction(function_space, part=None):
 
 # --- Helper functions for creating subfunctions on mixed elements ---
 
+
 def Arguments(function_space, number):
     """Create an Argument in a mixed space.
 
     Returns a tuple with the function components corresponding to the subelements.
     """
     if isinstance(function_space, MixedFunctionSpace):
-        return [Argument(function_space.ufl_sub_space(i), number, i)
-                for i in range(function_space.num_sub_spaces())]
+        return [
+            Argument(function_space.ufl_sub_space(i), number, i)
+            for i in range(function_space.num_sub_spaces())
+        ]
     else:
         return split(Argument(function_space, number))
 

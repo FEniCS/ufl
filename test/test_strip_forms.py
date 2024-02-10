@@ -1,7 +1,18 @@
 import gc
 import sys
 
-from ufl import Coefficient, Constant, FunctionSpace, Mesh, TestFunction, TrialFunction, dx, grad, inner, triangle
+from ufl import (
+    Coefficient,
+    Constant,
+    FunctionSpace,
+    Mesh,
+    TestFunction,
+    TrialFunction,
+    dx,
+    grad,
+    inner,
+    triangle,
+)
 from ufl.algorithms import replace_terminal_data, strip_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
@@ -51,8 +62,9 @@ def test_strip_form_arguments_strips_data_refs():
     assert sys.getrefcount(const_data) == MIN_REF_COUNT
 
     cell = triangle
-    domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (2, ),
-                                         identity_pullback, H1), data=mesh_data)
+    domain = AugmentedMesh(
+        FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1), data=mesh_data
+    )
     element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
@@ -61,7 +73,7 @@ def test_strip_form_arguments_strips_data_refs():
     f = AugmentedCoefficient(V, data=coeff_data)
     k = AugmentedConstant(V, data=const_data)
 
-    form = k*f*inner(grad(v), grad(u))*dx
+    form = k * f * inner(grad(v), grad(u)) * dx
 
     # Remove extraneous references
     del cell, domain, element, V, v, u, f, k
@@ -89,8 +101,9 @@ def test_strip_form_arguments_does_not_change_form():
     const_data = object()
 
     cell = triangle
-    domain = AugmentedMesh(FiniteElement("Lagrange", cell, 1, (2, ),
-                                         identity_pullback, H1), data=mesh_data)
+    domain = AugmentedMesh(
+        FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1), data=mesh_data
+    )
     element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
@@ -99,7 +112,7 @@ def test_strip_form_arguments_does_not_change_form():
     f = AugmentedCoefficient(V, data=coeff_data)
     k = AugmentedConstant(V, data=const_data)
 
-    form = k*f*inner(grad(v), grad(u))*dx
+    form = k * f * inner(grad(v), grad(u)) * dx
     stripped_form, mapping = strip_terminal_data(form)
 
     assert stripped_form.signature() == form.signature()

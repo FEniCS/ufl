@@ -64,7 +64,10 @@ def strip_coordinate_derivatives(integrals):
         coordinate_derivatives = []
 
         def take_top_coordinate_derivatives(o):
-            """Grab all coordinate derivatives and store them, so that we can apply them later again."""
+            """
+            Grab all coordinate derivatives and store them, so that we
+            can apply them later again.
+            """
             o_ = o.ufl_operands
             if isinstance(o, CoordinateDerivative):
                 coordinate_derivatives.append((o_[1], o_[2], o_[3]))

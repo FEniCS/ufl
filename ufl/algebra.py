@@ -19,9 +19,13 @@ from ufl.sorting import sorted_expr
 # --- Algebraic operators ---
 
 
-@ufl_type(num_ops=2,
-          inherit_shape_from_operand=0, inherit_indices_from_operand=0,
-          binop="__add__", rbinop="__radd__")
+@ufl_type(
+    num_ops=2,
+    inherit_shape_from_operand=0,
+    inherit_indices_from_operand=0,
+    binop="__add__",
+    rbinop="__radd__",
+)
 class Sum(Operator):
     """Sum."""
 
@@ -87,16 +91,14 @@ class Sum(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
-        return sum(o.evaluate(x, mapping, component,
-                              index_values) for o in self.ufl_operands)
+        return sum(o.evaluate(x, mapping, component, index_values) for o in self.ufl_operands)
 
     def __str__(self):
         """Format as a string."""
         return " + ".join([parstr(o, self) for o in self.ufl_operands])
 
 
-@ufl_type(num_ops=2,
-          binop="__mul__", rbinop="__rmul__")
+@ufl_type(num_ops=2, binop="__mul__", rbinop="__rmul__")
 class Product(Operator):
     """The product of two or more UFL objects."""
 
@@ -111,16 +113,20 @@ class Product(Operator):
         # Type checking
         # Make sure everything is scalar
         if a.ufl_shape or b.ufl_shape:
-            raise ValueError("Product can only represent products of scalars, "
-                             f"got\n    {ufl_err_str(a)}\nand\n    {ufl_err_str(b)}")
+            raise ValueError(
+                "Product can only represent products of scalars, "
+                f"got\n    {ufl_err_str(a)}\nand\n    {ufl_err_str(b)}"
+            )
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
             # Got any zeros? Return zero.
-            fi, fid = merge_unique_indices(a.ufl_free_indices,
-                                           a.ufl_index_dimensions,
-                                           b.ufl_free_indices,
-                                           b.ufl_index_dimensions)
+            fi, fid = merge_unique_indices(
+                a.ufl_free_indices,
+                a.ufl_index_dimensions,
+                b.ufl_free_indices,
+                b.ufl_index_dimensions,
+            )
             return Zero((), fi, fid)
         sa = isinstance(a, ScalarValue)
         sb = isinstance(b, ScalarValue)
@@ -154,10 +160,9 @@ class Product(Operator):
         self.ufl_operands = (a, b)
 
         # Extract indices
-        fi, fid = merge_unique_indices(a.ufl_free_indices,
-                                       a.ufl_index_dimensions,
-                                       b.ufl_free_indices,
-                                       b.ufl_index_dimensions)
+        fi, fid = merge_unique_indices(
+            a.ufl_free_indices, a.ufl_index_dimensions, b.ufl_free_indices, b.ufl_index_dimensions
+        )
         self.ufl_free_indices = fi
         self.ufl_index_dimensions = fid
 
@@ -173,7 +178,9 @@ class Product(Operator):
         sh = self.ufl_shape
         if sh:
             if sh != ops[-1].ufl_shape:
-                raise ValueError("Expecting nonscalar product operand to be the last by convention.")
+                raise ValueError(
+                    "Expecting nonscalar product operand to be the last by convention."
+                )
             tmp = ops[-1].evaluate(x, mapping, component, index_values)
             ops = ops[:-1]
         else:
@@ -188,9 +195,7 @@ class Product(Operator):
         return " * ".join((parstr(a, self), parstr(b, self)))
 
 
-@ufl_type(num_ops=2,
-          inherit_indices_from_operand=0,
-          binop="__div__", rbinop="__rdiv__")
+@ufl_type(num_ops=2, inherit_indices_from_operand=0, binop="__div__", rbinop="__rdiv__")
 class Division(Operator):
     """Division."""
 
@@ -260,9 +265,7 @@ class Division(Operator):
         return f"{parstr(self.ufl_operands[0], self)} / {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(num_ops=2,
-          inherit_indices_from_operand=0,
-          binop="__pow__", rbinop="__rpow__")
+@ufl_type(num_ops=2, inherit_indices_from_operand=0, binop="__pow__", rbinop="__rpow__")
 class Power(Operator):
     """Power."""
 
@@ -282,7 +285,7 @@ class Power(Operator):
 
         # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
-            return as_ufl(a._value ** b._value)
+            return as_ufl(a._value**b._value)
         if isinstance(b, Zero):
             return IntValue(1)
         if isinstance(a, Zero) and isinstance(b, ScalarValue):
@@ -324,9 +327,7 @@ class Power(Operator):
         return f"{parstr(a, self)} ** {parstr(b, self)}"
 
 
-@ufl_type(num_ops=1,
-          inherit_shape_from_operand=0, inherit_indices_from_operand=0,
-          unop="__abs__")
+@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0, unop="__abs__")
 class Abs(Operator):
     """Absolute value."""
 
@@ -357,12 +358,11 @@ class Abs(Operator):
 
     def __str__(self):
         """Format as a string."""
-        a, = self.ufl_operands
+        (a,) = self.ufl_operands
         return f"|{parstr(a, self)}|"
 
 
-@ufl_type(num_ops=1,
-          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Conj(Operator):
     """Complex conjugate."""
 
@@ -393,12 +393,11 @@ class Conj(Operator):
 
     def __str__(self):
         """Format as a string."""
-        a, = self.ufl_operands
+        (a,) = self.ufl_operands
         return f"conj({parstr(a, self)})"
 
 
-@ufl_type(num_ops=1,
-          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Real(Operator):
     """Real part."""
 
@@ -431,12 +430,11 @@ class Real(Operator):
 
     def __str__(self):
         """Format as a string."""
-        a, = self.ufl_operands
+        (a,) = self.ufl_operands
         return f"Re[{parstr(a, self)}]"
 
 
-@ufl_type(num_ops=1,
-          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Imag(Operator):
     """Imaginary part."""
 
@@ -467,5 +465,5 @@ class Imag(Operator):
 
     def __str__(self):
         """Format as a string."""
-        a, = self.ufl_operands
+        (a,) = self.ufl_operands
         return f"Im[{parstr(a, self)}]"
