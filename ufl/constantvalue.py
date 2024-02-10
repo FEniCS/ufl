@@ -14,6 +14,7 @@ from math import atan2
 import ufl
 
 # --- Helper functions imported here for compatibility---
+from ufl.checks import is_python_scalar, is_true_ufl_scalar, is_ufl_scalar  # noqa: F401
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal

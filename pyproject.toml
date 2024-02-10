@@ -57,8 +57,8 @@ docstring-code-format = true
 [tool.ruff.lint]
 select = [
     # "N", # pep8-naming
-    "E",   # pycodestyle
-    "W",   # pycodestyle
+    "E", # pycodestyle
+    "W", # pycodestyle
     # "D",   # pydocstyle
     "F",   # pyflakes
     "I",   # isort
@@ -68,21 +68,13 @@ select = [
     "NPY", # numpy-specific rules
     "FLY", # use f-string not static joins
     "LOG", # https://docs.astral.sh/ruff/rules/#flake8-logging-log
-    "ISC", # https://docs.astral.sh/ruff/rules/#flake8-implicit-str-concat-isc
+    # "ISC", # https://docs.astral.sh/ruff/rules/#flake8-implicit-str-concat-isc
     # "B", # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
     # "A", # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
 ]
 ignore = ["RUF005", "RUF012"]
 allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
-# [tool.ruff.lint.per-file-ignores]
-# "test/*" = ["D"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-# [tool.pydocstyle]
-# convention = "google"
-
-# [tool.isort]
-# line_length = 120
