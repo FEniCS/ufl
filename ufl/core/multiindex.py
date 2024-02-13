@@ -20,6 +20,7 @@ __all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
 class IndexBase(UFLObject):
     """Base class for all indices."""
+
     __slots__ = ()
 
     def __init__(self):
@@ -28,6 +29,7 @@ class IndexBase(UFLObject):
 
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
+
     __slots__ = ("_value", "_hash")
 
     _cache: typing.Dict[int, IndexBase] = {}
@@ -115,6 +117,7 @@ class Index(IndexBase, Counted):
 
 class MultiIndex(Terminal):
     """Represents a sequence of indices, either fixed or free."""
+
     __slots__ = ("_indices",)
 
     _cache: typing.Dict[int, Terminal] = {}
@@ -167,8 +170,7 @@ class MultiIndex(Terminal):
 
     def __eq__(self, other):
         """Check equality."""
-        return isinstance(other, MultiIndex) and \
-            self._indices == other._indices
+        return isinstance(other, MultiIndex) and self._indices == other._indices
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate index."""

@@ -16,7 +16,7 @@ def camel2underscore(name):
             # Don't insert _ between multiple upper case letters
             if lastlower:
                 letters.append("_")
-            i = i.lower()  # noqa: E741
+            i = i.lower()
         lastlower = thislower
         letters.append(i)
     return "".join(letters)
@@ -45,7 +45,7 @@ def tstr(t, colsize=80):
 
     # Pretty-print table
     s = ""
-    for (key, value) in t:
+    for key, value in t:
         key = str(key)
         if isinstance(value, str):
             value = "'%s'" % value
@@ -85,7 +85,10 @@ def _tree_format_expression(expression, indentation, parentheses):
     if expression._is_terminal():
         s = "%s%s" % (ind, repr(expression))
     else:
-        sops = [_tree_format_expression(o, indentation + 1, parentheses) for o in expression.ufl_operands]
+        sops = [
+            _tree_format_expression(o, indentation + 1, parentheses)
+            for o in expression.ufl_operands
+        ]
         s = "%s%s\n" % (ind, expression._ufl_class_.__name__)
         if parentheses and len(sops) > 1:
             s += "%s(\n" % (ind,)

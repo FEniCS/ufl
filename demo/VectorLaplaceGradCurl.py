@@ -18,7 +18,18 @@
 # The bilinear form a(v, u) and linear form L(v) for the Hodge Laplace
 # problem using 0- and 1-forms. Intended to demonstrate use of Nedelec
 # elements.
-from ufl import Coefficient, FunctionSpace, Mesh, TestFunctions, TrialFunctions, curl, dx, grad, inner, tetrahedron
+from ufl import (
+    Coefficient,
+    FunctionSpace,
+    Mesh,
+    TestFunctions,
+    TrialFunctions,
+    curl,
+    dx,
+    grad,
+    inner,
+    tetrahedron,
+)
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import covariant_piola, identity_pullback
 from ufl.sobolevspace import H1, HCurl
@@ -29,7 +40,9 @@ def HodgeLaplaceGradCurl(space, fspace):
     sigma, u = TrialFunctions(space)
     f = Coefficient(fspace)
 
-    a = (inner(tau, sigma) - inner(grad(tau), u) + inner(v, grad(sigma)) + inner(curl(v), curl(u))) * dx
+    a = (
+        inner(tau, sigma) - inner(grad(tau), u) + inner(v, grad(sigma)) + inner(curl(v), curl(u))
+    ) * dx
     L = inner(v, f) * dx
 
     return a, L
@@ -39,11 +52,11 @@ cell = tetrahedron
 order = 1
 
 GRAD = FiniteElement("Lagrange", cell, order, (), identity_pullback, H1)
-CURL = FiniteElement("N1curl", cell, order, (3, ), covariant_piola, HCurl)
+CURL = FiniteElement("N1curl", cell, order, (3,), covariant_piola, HCurl)
 
-VectorLagrange = FiniteElement("Lagrange", cell, order + 1, (3, ), identity_pullback, H1)
+VectorLagrange = FiniteElement("Lagrange", cell, order + 1, (3,), identity_pullback, H1)
 
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (3, ), identity_pullback, H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
 space = FunctionSpace(domain, MixedElement([GRAD, CURL]))
 fspace = FunctionSpace(domain, VectorLagrange)
 

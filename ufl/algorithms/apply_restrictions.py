@@ -1,14 +1,13 @@
-"""Apply restrictions.
-
-This module contains the apply_restrictions algorithm which propagates restrictions in a form
-towards the terminals.
-"""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+"""Apply restrictions.
+
+This module contains the apply_restrictions algorithm which propagates
+restrictions in a form towards the terminals.
+"""
 
 import warnings
 
@@ -18,7 +17,8 @@ def apply_restrictions(expression):
     warnings.warn(
         "The function apply_restrictions is deprecated and will be removed after December 2024. "
         "Please use object.apply_restrictions() directly instead.",
-        FutureWarning)
+        FutureWarning,
+    )
     return expression.apply_restrictions()
 
 
@@ -30,5 +30,6 @@ def apply_default_restrictions(expression):
     warnings.warn(
         "The function apply_default_restrictions is deprecated and will be removed after "
         "December 2024. Please use object.apply_default_restrictions() directly instead.",
-        FutureWarning)
+        FutureWarning,
+    )
     return expression.apply_default_restrictions()

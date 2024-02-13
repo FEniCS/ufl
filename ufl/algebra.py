@@ -83,8 +83,7 @@ class Sum(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
-        return sum(o.evaluate(x, mapping, component,
-                              index_values) for o in self.ufl_operands)
+        return sum(o.evaluate(x, mapping, component, index_values) for o in self.ufl_operands)
 
     def __str__(self):
         """Format as a string."""
@@ -92,11 +91,14 @@ class Sum(Operator):
 
     def get_arity(self):
         """Get the arity."""
-        from ufl.algorithms.check_arities import _afmt, ArityMismatch
+        from ufl.algorithms.check_arities import ArityMismatch, _afmt
+
         a = self.ufl_operands[0].get_arity()
         b = self.ufl_operands[1].get_arity()
         if a != b:
-            raise ArityMismatch(f"Adding expressions with non-matching form arguments {_afmt(a)} vs {_afmt(b)}.")
+            raise ArityMismatch(
+                f"Adding expressions with non-matching form arguments {_afmt(a)} vs {_afmt(b)}."
+            )
         return a
 
 
@@ -114,16 +116,20 @@ class Product(Operator):
         # Type checking
         # Make sure everything is scalar
         if a.ufl_shape or b.ufl_shape:
-            raise ValueError("Product can only represent products of scalars, "
-                             f"got\n    {ufl_err_str(a)}\nand\n    {ufl_err_str(b)}")
+            raise ValueError(
+                "Product can only represent products of scalars, "
+                f"got\n    {ufl_err_str(a)}\nand\n    {ufl_err_str(b)}"
+            )
 
         # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
             # Got any zeros? Return zero.
-            fi, fid = merge_unique_indices(a.ufl_free_indices,
-                                           a.ufl_index_dimensions,
-                                           b.ufl_free_indices,
-                                           b.ufl_index_dimensions)
+            fi, fid = merge_unique_indices(
+                a.ufl_free_indices,
+                a.ufl_index_dimensions,
+                b.ufl_free_indices,
+                b.ufl_index_dimensions,
+            )
             return Zero((), fi, fid)
         sa = isinstance(a, ScalarValue)
         sb = isinstance(b, ScalarValue)
@@ -157,10 +163,9 @@ class Product(Operator):
         self.ufl_operands = (a, b)
 
         # Extract indices
-        fi, fid = merge_unique_indices(a.ufl_free_indices,
-                                       a.ufl_index_dimensions,
-                                       b.ufl_free_indices,
-                                       b.ufl_index_dimensions)
+        fi, fid = merge_unique_indices(
+            a.ufl_free_indices, a.ufl_index_dimensions, b.ufl_free_indices, b.ufl_index_dimensions
+        )
         self.ufl_free_indices = fi
         self.ufl_index_dimensions = fid
 
@@ -176,7 +181,9 @@ class Product(Operator):
         sh = self.ufl_shape
         if sh:
             if sh != ops[-1].ufl_shape:
-                raise ValueError("Expecting nonscalar product operand to be the last by convention.")
+                raise ValueError(
+                    "Expecting nonscalar product operand to be the last by convention."
+                )
             tmp = ops[-1].evaluate(x, mapping, component, index_values)
             ops = ops[:-1]
         else:
@@ -192,7 +199,8 @@ class Product(Operator):
 
     def get_arity(self):
         """Get the arity."""
-        from ufl.algorithms.check_arities import _afmt, ArityMismatch
+        from ufl.algorithms.check_arities import ArityMismatch, _afmt
+
         a = self.ufl_operands[0].get_arity()
         b = self.ufl_operands[1].get_arity()
         if a and b:
@@ -201,15 +209,19 @@ class Product(Operator):
             anumbers = set(x[0].number() for x in a)
             for x in b:
                 if x[0].number() in anumbers:
-                    raise ArityMismatch("Multiplying expressions with overlapping form argument number "
-                                        f"{x[0].number()}, argument is {_afmt(x)}.")
+                    raise ArityMismatch(
+                        "Multiplying expressions with overlapping form argument number "
+                        f"{x[0].number()}, argument is {_afmt(x)}."
+                    )
             # Combine argument lists
             c = tuple(sorted(set(a + b), key=lambda x: (x[0].number(), x[0].part())))
             # Check that we don't have any arguments shared between a
             # and b
             if len(c) != len(a) + len(b) or len(c) != len({x[0] for x in c}):
-                raise ArityMismatch("Multiplying expressions with overlapping form arguments "
-                                    f"{_afmt(a)} vs {_afmt(b)}.")
+                raise ArityMismatch(
+                    "Multiplying expressions with overlapping form arguments "
+                    f"{_afmt(a)} vs {_afmt(b)}."
+                )
             # It's fine for argument parts to overlap
             return c
         elif a:
@@ -289,6 +301,7 @@ class Division(Operator):
     def get_arity(self):
         """Get the arity."""
         from ufl.algorithms.check_arities import ArityMismatch
+
         a = self.ufl_operands[0].get_arity()
         b = self.ufl_operands[1].get_arity()
         if b:
@@ -315,7 +328,7 @@ class Power(Operator):
 
         # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
-            return as_ufl(a._value ** b._value)
+            return as_ufl(a._value**b._value)
         if isinstance(b, Zero):
             return IntValue(1)
         if isinstance(a, Zero) and isinstance(b, ScalarValue):
@@ -387,7 +400,7 @@ class Abs(Operator):
 
     def __str__(self):
         """Format as a string."""
-        a, = self.ufl_operands
+        (a,) = self.ufl_operands
         return f"|{parstr(a, self)}|"
 
 
@@ -421,7 +434,7 @@ class Conj(Operator):
 
     def __str__(self):
         """Format as a string."""
-        a, = self.ufl_operands
+        (a,) = self.ufl_operands
         return f"conj({parstr(a, self)})"
 
     def get_arity(self):
@@ -461,7 +474,7 @@ class Real(Operator):
 
     def __str__(self):
         """Format as a string."""
-        a, = self.ufl_operands
+        (a,) = self.ufl_operands
         return f"Re[{parstr(a, self)}]"
 
 
@@ -495,5 +508,5 @@ class Imag(Operator):
 
     def __str__(self):
         """Format as a string."""
-        a, = self.ufl_operands
+        (a,) = self.ufl_operands
         return f"Im[{parstr(a, self)}]"

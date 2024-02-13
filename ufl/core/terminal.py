@@ -56,10 +56,12 @@ class Terminal(Expr):
             except Exception:
                 pass
             # If it has an ufl_evaluate function, call it
-            if hasattr(self, 'ufl_evaluate'):
+            if hasattr(self, "ufl_evaluate"):
                 return self.ufl_evaluate(x, component, derivatives)
             # Take component if any
-            warnings.warn(f"Couldn't map '{self}' to a float, returning ufl object without evaluation.")
+            warnings.warn(
+                f"Couldn't map '{self}' to a float, returning ufl object without evaluation."
+            )
             f = self
             if component:
                 f = f[component]
@@ -103,8 +105,10 @@ class Terminal(Expr):
 
 # --- Subgroups of terminals ---
 
+
 class FormArgument(Terminal):
     """An abstract class for a form argument (a thing in a primal finite element space)."""
+
     __slots__ = ()
 
     def __init__(self):

@@ -11,7 +11,10 @@ import typing
 from collections import defaultdict
 
 import ufl
-from ufl.algorithms.coordinate_derivative_helpers import attach_coordinate_derivatives, strip_coordinate_derivatives
+from ufl.algorithms.coordinate_derivative_helpers import (
+    attach_coordinate_derivatives,
+    strip_coordinate_derivatives,
+)
 from ufl.core.ufl_type import UFLObject
 from ufl.form import Form
 from ufl.integral import Integral
@@ -23,17 +26,22 @@ from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
 class IntegralData(UFLObject):
     """Utility class.
 
-    This class has members (domain, integral_type, subdomain_id, integrals, metadata),
-    where metadata is an empty dictionary that may be used for
-    associating metadata with each object.
+    This class has members (domain, integral_type, subdomain_id,
+    integrals, metadata), where metadata is an empty dictionary that may
+    be used for associating metadata with each object.
     """
-    __slots__ = ('domain', 'integral_type', 'subdomain_id',
-                 'integrals', 'metadata',
-                 'integral_coefficients',
-                 'enabled_coefficients')
 
-    def __init__(self, domain, integral_type, subdomain_id, integrals,
-                 metadata):
+    __slots__ = (
+        "domain",
+        "integral_type",
+        "subdomain_id",
+        "integrals",
+        "metadata",
+        "integral_coefficients",
+        "enabled_coefficients",
+    )
+
+    def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
         """Initialise."""
         if 1 != len(set(itg.ufl_domain() for itg in integrals)):
             raise ValueError("Multiple domains mismatch in integral data.")
@@ -60,36 +68,51 @@ class IntegralData(UFLObject):
     def __lt__(self, other):
         """Check if self is less than other."""
         # To preserve behaviour of extract_integral_data:
-        return (
-            self.integral_type, self.subdomain_id, self.integrals, self.metadata
-        ) < (
-            other.integral_type, other.subdomain_id, other.integrals, other.metadata
+        return (self.integral_type, self.subdomain_id, self.integrals, self.metadata) < (
+            other.integral_type,
+            other.subdomain_id,
+            other.integrals,
+            other.metadata,
         )
 
     def __eq__(self, other):
         """Check for equality."""
         # Currently only used for tests:
-        return (self.integral_type == other.integral_type and self.subdomain_id == other.subdomain_id and  # noqa: W504
-                self.integrals == other.integrals and self.metadata == other.metadata)
+        return (
+            self.integral_type == other.integral_type
+            and self.subdomain_id == other.subdomain_id
+            and self.integrals == other.integrals
+            and self.metadata == other.metadata
+        )
 
     def __str__(self):
         """Format as a string."""
-        s = f"IntegralData over domain({self.integral_type}, {self.subdomain_id}), with integrals:\n"
+        s = f"IntegralData over domain({self.integral_type}, {self.subdomain_id})"
+        s += " with integrals:\n"
         s += "\n\n".join(map(str, self.integrals))
         s += "\nand metadata:\n{metadata}"
         return s
 
     def _ufl_hash_data_(self):
         """Hash data."""
-        return ("IntegralData", self.domain, self.integral_type, self.subdomain_id, self.integrals, self.metadata)
+        return (
+            "IntegralData",
+            self.domain,
+            self.integral_type,
+            self.subdomain_id,
+            self.integrals,
+            self.metadata,
+        )
 
     def __repr__(self):
+        """Representation."""
         return self.__str__()
 
 
 class ExprTupleKey(UFLObject):
     """Tuple comparison helper."""
-    __slots__ = ('x',)
+
+    __slots__ = ("x",)
 
     def __init__(self, x):
         """Initialise."""
@@ -110,9 +133,11 @@ class ExprTupleKey(UFLObject):
             return mds < mdo
 
     def __repr__(self):
+        """Representation."""
         raise NotImplementedError()
 
     def __str__(self):
+        """String representation."""
         raise NotImplementedError()
 
     def _ufl_hash_data_(self):
@@ -158,14 +183,14 @@ def integral_subdomain_ids(integral):
 
 
 def rearrange_integrals_by_single_subdomains(
-    integrals: typing.List[Integral],
-    do_append_everywhere_integrals: bool
+    integrals: typing.List[Integral], do_append_everywhere_integrals: bool
 ) -> typing.Dict[int, typing.List[Integral]]:
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
     Args:
         integrals: List of integrals
-        do_append_everywhere_integrals: Boolean indicating if integrals defined on the whole domain should
+        do_append_everywhere_integrals: Boolean indicating if integrals
+        defined on the whole domain should
             just be restricted to the set of input subdomain ids.
 
     Returns:
@@ -205,7 +230,8 @@ def rearrange_integrals_by_single_subdomains(
         if do_append_everywhere_integrals:
             for subdomain_id in sorted(single_subdomain_integrals.keys()):
                 single_subdomain_integrals[subdomain_id].append(
-                    ev_itg.reconstruct(subdomain_id=subdomain_id))
+                    ev_itg.reconstruct(subdomain_id=subdomain_id)
+                )
 
     if otherwise_integrals:
         single_subdomain_integrals["otherwise"] = otherwise_integrals
@@ -220,8 +246,9 @@ def accumulate_integrands_with_same_metadata(integrals):
         integrals: a list of integrals
 
     Returns:
-        A list of the form [(integrand0, metadata0), (integrand1, metadata1), ...]
-        where integrand0 < integrand1 by the canonical ufl expression ordering criteria.
+        A list of the form [(integrand0, metadata0), (integrand1,
+        metadata1), ...] where integrand0 < integrand1 by the canonical
+        ufl expression ordering criteria.
     """
     # Group integrals by compiler data hash
     by_cdid = {}
@@ -273,15 +300,26 @@ def build_integral_data(integrals):
         subdomain_id = integral.subdomain_id()
         subdomain_data = id_or_none(integral.subdomain_data())
         if subdomain_id == "everywhere":
-            raise ValueError("'everywhere' not a valid subdomain id.  Did you forget to call group_form_integrals?")
-        unique_integrals[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] += (subdomain_id,)
+            raise ValueError(
+                "'everywhere' not a valid subdomain id. "
+                "Did you forget to call group_form_integrals?"
+            )
+        unique_integrals[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] += (
+            subdomain_id,
+        )
         metadata_table[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] = metadata
 
     for integral_data, subdomain_ids in unique_integrals.items():
         (integral_type, ufl_domain, metadata, integrand, subdomain_data) = integral_data
 
-        integral = Integral(integrand, integral_type, ufl_domain, subdomain_ids,
-                            metadata_table[integral_data], subdomain_data)
+        integral = Integral(
+            integrand,
+            integral_type,
+            ufl_domain,
+            subdomain_ids,
+            metadata_table[integral_data],
+            subdomain_data,
+        )
         # Group for integral data (One integral data object for all
         # integrals with same domain, itype, (but possibly different metadata).
         itgs[(ufl_domain, integral_type, subdomain_ids)].append(integral)
@@ -291,7 +329,8 @@ def build_integral_data(integrals):
     def keyfunc(item):
         (d, itype, sid), integrals = item
         sid_int = tuple(-1 if i == "otherwise" else i for i in sid)
-        return (d._ufl_sort_key_(), itype, (type(sid).__name__, ), sid_int)
+        return (d._ufl_sort_key_(), itype, (type(sid).__name__,), sid_int)
+
     integral_datas = []
     for (d, itype, sid), integrals in sorted(itgs.items(), key=keyfunc):
         integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
@@ -304,7 +343,8 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
     Args:
         form: the Form to group the integrals of.
         domains: an iterable of Domains.
-        do_append_everywhere_integrals: Boolean indicating if integrals defined on the whole domain should
+        do_append_everywhere_integrals: Boolean indicating if integrals
+        defined on the whole domain should
             just be restricted to the set of input subdomain ids.
 
     Returns:
@@ -326,18 +366,21 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
             # (note: before this call, 'everywhere' is a valid subdomain_id,
             # and after this call, 'otherwise' is a valid subdomain_id)
             single_subdomain_integrals = rearrange_integrals_by_single_subdomains(
-                ddt_integrals, do_append_everywhere_integrals)
+                ddt_integrals, do_append_everywhere_integrals
+            )
 
             for subdomain_id, ss_integrals in sorted_by_key(single_subdomain_integrals):
-
                 # strip the coordinate derivatives from all integrals
                 # this yields a list of the form [(coordinate derivative, integral), ...]
                 stripped_integrals_and_coordderivs = strip_coordinate_derivatives(ss_integrals)
 
                 # now group the integrals by the coordinate derivative
                 def calc_hash(cd):
-                    return sum(sum(tuple_elem._ufl_compute_hash_()
-                                   for tuple_elem in tuple_) for tuple_ in cd)
+                    return sum(
+                        sum(tuple_elem._ufl_compute_hash_() for tuple_elem in tuple_)
+                        for tuple_ in cd
+                    )
+
                 coordderiv_integrals_dict = {}
                 for integral, coordderiv in stripped_integrals_and_coordderivs:
                     coordderivhash = calc_hash(coordderiv)
@@ -352,14 +395,16 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
                 # apply the CoordinateDerivative again
 
                 for cdhash, samecd_integrals in sorted_by_key(coordderiv_integrals_dict):
-
                     # Accumulate integrands of integrals that share the
                     # same compiler data
-                    integrands_and_cds = accumulate_integrands_with_same_metadata(samecd_integrals[1])
+                    integrands_and_cds = accumulate_integrands_with_same_metadata(
+                        samecd_integrals[1]
+                    )
 
                     for integrand, metadata in integrands_and_cds:
-                        integral = Integral(integrand, integral_type, domain,
-                                            subdomain_id, metadata, None)
+                        integral = Integral(
+                            integrand, integral_type, domain, subdomain_id, metadata, None
+                        )
                         integral = attach_coordinate_derivatives(integral, samecd_integrals[0])
                         integrals.append(integral)
     return Form(integrals)

@@ -9,9 +9,12 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
+import typing
+
 from ufl.core.ufl_type import UFLObject
 from ufl.domain import join_domains
 from ufl.duals import is_dual, is_primal
+from ufl.utils.sequences import product
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -36,7 +39,7 @@ class AbstractFunctionSpace(UFLObject):
 class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     """Base function space."""
 
-    def __init__(self, domain, element):
+    def __init__(self, domain, element, label=""):
         """Initialise."""
         if domain is None:
             # DOLFIN hack
@@ -46,14 +49,20 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             try:
                 domain_cell = domain.ufl_cell()
             except AttributeError:
-                raise ValueError("Expected non-abstract domain for initalization of function space.")
+                raise ValueError(
+                    "Expected non-abstract domain for initalization of function space."
+                )
             else:
                 if element.cell != domain_cell:
                     raise ValueError("Non-matching cell of finite element and domain.")
-
         AbstractFunctionSpace.__init__(self)
+        self._label = label
         self._ufl_domain = domain
         self._ufl_element = element
+
+    def label(self):
+        """Return label of boundary domains to differentiate restricted and unrestricted."""
+        return self._label
 
     def ufl_sub_spaces(self):
         """Return ufl sub spaces."""
@@ -88,7 +97,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             edata = None
         else:
             edata = element._ufl_hash_data_()
-        return (name, ddata, edata)
+        return (name, ddata, edata, self.label())
 
     def _ufl_signature_data_(self, renumbering, name=None):
         """UFL signature data."""
@@ -103,11 +112,21 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             edata = None
         else:
             edata = element._ufl_signature_data_()
-        return (name, ddata, edata)
+        return (name, ddata, edata, self.label())
 
     def __repr__(self):
         """Representation."""
         return f"BaseFunctionSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+
+    @property
+    def value_shape(self) -> typing.Tuple[int, ...]:
+        """Return the shape of the value space on a physical domain."""
+        return self._ufl_element.pullback.physical_value_shape(self._ufl_element, self._ufl_domain)
+
+    @property
+    def value_size(self) -> int:
+        """Return the integer product of the value shape on a physical domain."""
+        return product(self.value_shape)
 
 
 class FunctionSpace(BaseFunctionSpace, UFLObject):
@@ -118,7 +137,7 @@ class FunctionSpace(BaseFunctionSpace, UFLObject):
 
     def dual(self):
         """Get the dual of the space."""
-        return DualSpace(self._ufl_domain, self._ufl_element)
+        return DualSpace(self._ufl_domain, self._ufl_element, label=self.label())
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -143,13 +162,13 @@ class DualSpace(BaseFunctionSpace, UFLObject):
     _primal = False
     _dual = True
 
-    def __init__(self, domain, element):
+    def __init__(self, domain, element, label=""):
         """Initialise."""
-        BaseFunctionSpace.__init__(self, domain, element)
+        BaseFunctionSpace.__init__(self, domain, element, label)
 
     def dual(self):
         """Get the dual of the space."""
-        return FunctionSpace(self._ufl_domain, self._ufl_element)
+        return FunctionSpace(self._ufl_domain, self._ufl_element, label=self.label())
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -182,14 +201,15 @@ class TensorProductFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
-        return ("TensorProductFunctionSpace",) \
-            + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
+        return ("TensorProductFunctionSpace",) + tuple(
+            V._ufl_hash_data_() for V in self.ufl_sub_spaces()
+        )
 
     def _ufl_signature_data_(self, renumbering):
         """UFL signature data."""
-        return ("TensorProductFunctionSpace",) \
-            + tuple(V._ufl_signature_data_(renumbering)
-                    for V in self.ufl_sub_spaces())
+        return ("TensorProductFunctionSpace",) + tuple(
+            V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces()
+        )
 
     def __repr__(self):
         """Representation."""
@@ -215,10 +235,8 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
                 raise ValueError("Expecting BaseFunctionSpace objects")
 
         # A mixed FS is only primal/dual if all the subspaces are primal/dual"
-        self._primal = all([is_primal(subspace)
-                            for subspace in self._ufl_function_spaces])
-        self._dual = all([is_dual(subspace)
-                          for subspace in self._ufl_function_spaces])
+        self._primal = all([is_primal(subspace) for subspace in self._ufl_function_spaces])
+        self._dual = all([is_dual(subspace) for subspace in self._ufl_function_spaces])
 
     def ufl_sub_spaces(self):
         """Return ufl sub spaces."""
@@ -240,13 +258,13 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
         the original components in the other positions.
         """
         if args:
-            spaces = [space.dual() if i in args else space
-                      for i, space in enumerate(self._ufl_function_spaces)]
+            spaces = [
+                space.dual() if i in args else space
+                for i, space in enumerate(self._ufl_function_spaces)
+            ]
             return MixedFunctionSpace(*spaces)
         else:
-            return MixedFunctionSpace(
-                *[space.dual()for space in self._ufl_function_spaces]
-            )
+            return MixedFunctionSpace(*[space.dual() for space in self._ufl_function_spaces])
 
     def ufl_elements(self):
         """Return ufl elements."""
@@ -260,7 +278,8 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
             raise ValueError(
                 "Found multiple elements. Cannot return only one. "
                 "Consider building a FunctionSpace from a MixedElement "
-                "in case of homogeneous dimension.")
+                "in case of homogeneous dimension."
+            )
 
     def ufl_domains(self):
         """Return ufl domains."""
@@ -285,14 +304,13 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
-        return ("MixedFunctionSpace",) \
-            + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
+        return ("MixedFunctionSpace",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
 
     def _ufl_signature_data_(self, renumbering):
         """UFL signature data."""
-        return ("MixedFunctionSpace",) \
-            + tuple(V._ufl_signature_data_(renumbering)
-                    for V in self.ufl_sub_spaces())
+        return ("MixedFunctionSpace",) + tuple(
+            V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces()
+        )
 
     def __repr__(self):
         """Representation."""

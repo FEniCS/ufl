@@ -23,11 +23,16 @@ __all_classes__ = ["Integral"]
 class Integral(UFLObject):
     """An integral over a single domain."""
 
-    __slots__ = ("_integrand", "_integral_type", "_ufl_domain", "_subdomain_id", "_metadata", "_subdomain_data")
+    __slots__ = (
+        "_integrand",
+        "_integral_type",
+        "_ufl_domain",
+        "_subdomain_id",
+        "_metadata",
+        "_subdomain_data",
+    )
 
-    def __init__(
-        self, integrand, integral_type, domain, subdomain_id, metadata, subdomain_data
-    ):
+    def __init__(self, integrand, integral_type, domain, subdomain_id, metadata, subdomain_data):
         """Initialise."""
         if not isinstance(integrand, Expr):
             raise ValueError("Expecting integrand to be an Expr instance.")
@@ -42,9 +47,13 @@ class Integral(UFLObject):
         raise NotImplementedError()
 
     def reconstruct(
-        self, integrand=None,
-        integral_type=None, domain=None, subdomain_id=None,
-        metadata=None, subdomain_data=None
+        self,
+        integrand=None,
+        integral_type=None,
+        domain=None,
+        subdomain_id=None,
+        metadata=None,
+        subdomain_data=None,
     ):
         """Construct a new Integral object with some properties replaced with new values.
 
@@ -104,8 +113,9 @@ class Integral(UFLObject):
     def __rmul__(self, scalar):
         """Multiply."""
         if not is_scalar_constant_expression(scalar):
-            raise ValueError("An integral can only be multiplied by a "
-                             "globally constant scalar expression.")
+            raise ValueError(
+                "An integral can only be multiplied by a globally constant scalar expression."
+            )
         return self.reconstruct(scalar * self._integrand)
 
     def __str__(self):
@@ -117,26 +127,35 @@ class Integral(UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return (f"Integral({self._integrand!r}, {self._integral_type!r}, {self._ufl_domain!r}, "
-                f"{self._subdomain_id!r}, {self._metadata!r}, {self._subdomain_data!r})")
+        return (
+            f"Integral({self._integrand!r}, {self._integral_type!r}, {self._ufl_domain!r}, "
+            f"{self._subdomain_id!r}, {self._metadata!r}, {self._subdomain_data!r})"
+        )
 
     def __eq__(self, other):
         """Check equality."""
-        return (isinstance(other, Integral) and self._integral_type == other._integral_type and  # noqa: W504
-                self._ufl_domain == other._ufl_domain and self._subdomain_id == other._subdomain_id and  # noqa: W504
-                self._integrand == other._integrand and self._metadata == other._metadata and  # noqa: W504
-                id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data))
+        return (
+            isinstance(other, Integral)
+            and self._integral_type == other._integral_type
+            and self._ufl_domain == other._ufl_domain
+            and self._subdomain_id == other._subdomain_id
+            and self._integrand == other._integrand
+            and self._metadata == other._metadata
+            and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
+        )
 
     def __hash__(self):
         """Hash."""
         # Assuming few collisions by ignoring hash(self._metadata) (a
         # dict is not hashable but we assume it is immutable in
         # practice)
-        hashdata = (hash(self._integrand),
-                    self._integral_type,
-                    hash(self._ufl_domain),
-                    self._subdomain_id,
-                    id_or_none(self._subdomain_data))
+        hashdata = (
+            hash(self._integrand),
+            self._integral_type,
+            hash(self._ufl_domain),
+            self._subdomain_id,
+            id_or_none(self._subdomain_data),
+        )
         return hash(hashdata)
 
     def apply_default_restrictions(self):

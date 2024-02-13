@@ -1,4 +1,3 @@
-"""This module defines the ``Expr`` class, the superclass for all expression tree node types in UFL."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -7,6 +6,10 @@
 #
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
+"""This module defines the ``Expr`` class.
+
+Expr is the superclass for all expression tree node types in UFL.
+"""
 
 import numbers
 import typing
@@ -77,7 +80,7 @@ class Expr(UFLObject):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = ("_hash", )
+    __slots__ = ("_hash",)
     # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
@@ -222,16 +225,22 @@ class Expr(UFLObject):
 
     def ufl_domains(self):
         """Return all domains this expression is defined on."""
-        warnings.warn("Expr.ufl_domains() is deprecated, please "
-                      "use extract_domains(expr) instead.", DeprecationWarning)
+        warnings.warn(
+            "Expr.ufl_domains() is deprecated, please use extract_domains(expr) instead.",
+            DeprecationWarning,
+        )
         from ufl.domain import extract_domains
+
         return extract_domains(self)
 
     def ufl_domain(self):
         """Return the single unique domain this expression is defined on, or throw an error."""
-        warnings.warn("Expr.ufl_domain() is deprecated, please "
-                      "use extract_unique_domain(expr) instead.", DeprecationWarning)
+        warnings.warn(
+            "Expr.ufl_domain() is deprecated, please use extract_unique_domain(expr) instead.",
+            DeprecationWarning,
+        )
         from ufl.domain import extract_unique_domain
+
         return extract_unique_domain(self)
 
     def evaluate(self, x, mapping, component, index_values):
@@ -336,21 +345,25 @@ class Expr(UFLObject):
     def __le__(self, other):
         """Return less than or equal conditional."""
         from ufl.conditional import LE
+
         return LE(self, other)
 
     def __ge__(self, other):
         """Return greater than or equal conditional."""
         from ufl.conditional import GE
+
         return GE(self, other)
 
     def ___lt__(self, other):
         """Return less than conditional."""
         from ufl.conditional import LT
+
         return LT(self, other)
 
     def __gt__(self, other):
         """Return greater than conditional."""
         from ufl.conditional import GT
+
         return GT(self, other)
 
     def __xor__(self, indices):
@@ -359,9 +372,13 @@ class Expr(UFLObject):
         from ufl.tensors import as_tensor
 
         if not isinstance(indices, tuple):
-            raise ValueError("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
+            raise ValueError(
+                "Expecting a tuple of Index objects to A^indices := as_tensor(A, indices)."
+            )
         if not all(isinstance(i, Index) for i in indices):
-            raise ValueError("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
+            raise ValueError(
+                "Expecting a tuple of Index objects to A^indices := as_tensor(A, indices)."
+            )
         return as_tensor(self, indices)
 
     def __mul__(self, other):
@@ -448,6 +465,7 @@ class Expr(UFLObject):
     def __rmul__(self, other):
         """Multiply."""
         from ufl.constantvalue import as_ufl
+
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
         other = as_ufl(other)
@@ -456,6 +474,7 @@ class Expr(UFLObject):
     def __add__(self, other):
         """Add."""
         from ufl.algebra import Sum
+
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
         return Sum(self, other)
@@ -463,6 +482,7 @@ class Expr(UFLObject):
     def __radd__(self, other):
         """Add."""
         from ufl.algebra import Sum
+
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
         if isinstance(other, numbers.Number) and other == 0:
@@ -472,6 +492,7 @@ class Expr(UFLObject):
     def __sub__(self, other):
         """Subtract."""
         from ufl.algebra import Sum
+
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
         return Sum(self, -other)
@@ -479,6 +500,7 @@ class Expr(UFLObject):
     def __rsub__(self, other):
         """Subtract."""
         from ufl.algebra import Sum
+
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
         return Sum(other, -self)
@@ -505,6 +527,7 @@ class Expr(UFLObject):
     def __rdiv__(self, other):
         """Divide."""
         from ufl.algebra import Division
+
         if not isinstance(other, (Expr, numbers.Real, numbers.Integral, numbers.Complex)):
             return NotImplemented
         return Division(other, self)
@@ -539,6 +562,7 @@ class Expr(UFLObject):
     def __abs__(self):
         """Absolute value."""
         from ufl.algebra import Abs
+
         return Abs(self)
 
     def __call__(self, arg, mapping=None, component=()):
@@ -557,6 +581,7 @@ class Expr(UFLObject):
         else:
             # Evaluate derivatives first
             from ufl.algorithms import expand_derivatives
+
             f = expand_derivatives(self)
 
             # Evaluate recursively
@@ -581,12 +606,16 @@ class Expr(UFLObject):
         shape = self.ufl_shape
 
         # Analyse slices (:) and Ellipsis (...)
-        all_indices, slice_indices, repeated_indices = create_slice_indices(component, shape, self.ufl_free_indices)
+        all_indices, slice_indices, repeated_indices = create_slice_indices(
+            component, shape, self.ufl_free_indices
+        )
 
         # Check that we have the right number of indices for a tensor with
         # this shape
         if len(shape) != len(all_indices):
-            raise ValueError(f"Invalid number of indices {len(all_indices)} for expression of rank {len(shape)}.")
+            raise ValueError(
+                f"Invalid number of indices {len(all_indices)} for expression of rank {len(shape)}."
+            )
 
         # Special case for simplifying foo[...] => foo, foo[:] => foo or
         # similar
@@ -678,9 +707,11 @@ class Expr(UFLObject):
     def T(self):
         """Transpose a rank-2 tensor expression.
 
-        For more general transpose operations of higher order tensor expressions, use indexing and Tensor.
+        For more general transpose operations of higher order tensor expressions,
+        use indexing and Tensor.
         """
         from ufl.tensoralgebra import Transposed
+
         return Transposed(self)
 
 

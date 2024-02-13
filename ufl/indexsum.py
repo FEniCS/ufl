@@ -34,25 +34,25 @@ class IndexSum(Operator):
         # Simplification to zero
         if isinstance(summand, Zero):
             sh = summand.ufl_shape
-            j, = index
+            (j,) = index
             fi = summand.ufl_free_indices
             fid = summand.ufl_index_dimensions
             pos = fi.index(j.count())
-            fi = fi[:pos] + fi[pos + 1:]
-            fid = fid[:pos] + fid[pos + 1:]
+            fi = fi[:pos] + fi[pos + 1 :]
+            fid = fid[:pos] + fid[pos + 1 :]
             return Zero(sh, fi, fid)
 
         return Operator.__new__(cls)
 
     def __init__(self, summand, index):
         """Initialise."""
-        j, = index
+        (j,) = index
         fi = summand.ufl_free_indices
         fid = summand.ufl_index_dimensions
         pos = fi.index(j.count())
         self._dimension = fid[pos]
-        self.ufl_free_indices = fi[:pos] + fi[pos + 1:]
-        self.ufl_index_dimensions = fid[:pos] + fid[pos + 1:]
+        self.ufl_free_indices = fi[:pos] + fi[pos + 1 :]
+        self.ufl_index_dimensions = fid[:pos] + fid[pos + 1 :]
         Operator.__init__(self, (summand, index))
 
     def index(self):
@@ -70,19 +70,17 @@ class IndexSum(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
-        i, = self.ufl_operands[1]
+        (i,) = self.ufl_operands[1]
         tmp = 0
         for k in range(self._dimension):
             index_values.push(i, k)
-            tmp += self.ufl_operands[0].evaluate(x, mapping, component,
-                                                 index_values)
+            tmp += self.ufl_operands[0].evaluate(x, mapping, component, index_values)
             index_values.pop()
         return tmp
 
     def __str__(self):
         """Format as a string."""
-        return "sum_{%s} %s " % (str(self.ufl_operands[1]),
-                                 parstr(self.ufl_operands[0], self))
+        return "sum_{%s} %s " % (str(self.ufl_operands[1]), parstr(self.ufl_operands[0], self))
 
     def get_arity(self):
         """Get the arity."""

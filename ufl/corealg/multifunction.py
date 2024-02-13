@@ -29,6 +29,7 @@ def memoized_handler(handler):
             r = handler(self, o)
             c[o] = r
         return r
+
     return _memoized_handler
 
 
@@ -104,9 +105,11 @@ class MultiFunction(UFLObject):
             return o._ufl_expr_reconstruct_(*ops)
 
     def __repr__(self):
+        """Representation."""
         raise NotImplementedError()
 
     def __str__(self):
+        """String representation."""
         raise NotImplementedError()
 
     def _ufl_hash_data_(self):

@@ -6,8 +6,10 @@ from math import inf
 from ufl import H1, H2, L2, HCurl, HDiv, HInf, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
-from ufl.sobolevspace import SobolevSpace  # noqa: F401
-from ufl.sobolevspace import DirectionalSobolevSpace
+from ufl.sobolevspace import (
+    DirectionalSobolevSpace,
+    SobolevSpace,  # noqa: F401
+)
 
 # Construct directional Sobolev spaces, with varying smoothness in
 # spatial coordinates
@@ -26,10 +28,10 @@ H2dhH1dz = DirectionalSobolevSpace((2, 2, 1))
 
 
 def test_inclusion():
-    assert H2 < H1       # Inclusion
-    assert not H2 > H1   # Not included
+    assert H2 < H1  # Inclusion
+    assert not H2 > H1  # Not included
     assert HDiv <= HDiv  # Reflexivity
-    assert H2 < L2       # Transitivity
+    assert H2 < L2  # Transitivity
     assert H1 > H2
     assert L2 > H1
 
@@ -84,7 +86,7 @@ def test_contains_h1():
         FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1),
         FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1),
         # Some special elements:
-        FiniteElement("MTW", triangle, 3, (2, ), contravariant_piola, H1),
+        FiniteElement("MTW", triangle, 3, (2,), contravariant_piola, H1),
         FiniteElement("Hermite", triangle, 3, (), "custom", H1),
     ]
     for h1_element in h1_elements:
@@ -115,9 +117,7 @@ def test_contains_h2():
 
 
 def test_contains_hinf():
-    hinf_elements = [
-        FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
-    ]
+    hinf_elements = [FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)]
     for hinf_element in hinf_elements:
         assert hinf_element in HInf
         assert hinf_element in H2
@@ -132,9 +132,9 @@ def test_contains_hinf():
 
 def test_contains_hdiv():
     hdiv_elements = [
-        FiniteElement("Raviart-Thomas", triangle, 1, (2, ), contravariant_piola, HDiv),
-        FiniteElement("BDM", triangle, 1, (2, ), contravariant_piola, HDiv),
-        FiniteElement("BDFM", triangle, 2, (2, ), contravariant_piola, HDiv),
+        FiniteElement("Raviart-Thomas", triangle, 1, (2,), contravariant_piola, HDiv),
+        FiniteElement("BDM", triangle, 1, (2,), contravariant_piola, HDiv),
+        FiniteElement("BDFM", triangle, 2, (2,), contravariant_piola, HDiv),
     ]
     for hdiv_element in hdiv_elements:
         assert hdiv_element in HDiv
@@ -149,8 +149,8 @@ def test_contains_hdiv():
 
 def test_contains_hcurl():
     hcurl_elements = [
-        FiniteElement("N1curl", triangle, 1, (2, ), covariant_piola, HCurl),
-        FiniteElement("N2curl", triangle, 1, (2, ), covariant_piola, HCurl),
+        FiniteElement("N1curl", triangle, 1, (2,), covariant_piola, HCurl),
+        FiniteElement("N2curl", triangle, 1, (2,), covariant_piola, HCurl),
     ]
     for hcurl_element in hcurl_elements:
         assert hcurl_element in HCurl

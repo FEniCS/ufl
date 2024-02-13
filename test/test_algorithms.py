@@ -6,11 +6,37 @@ __date__ = "2008-03-12 -- 2009-01-28"
 
 import pytest
 
-from ufl import (Argument, Coefficient, FacetNormal, FunctionSpace, Mesh, TestFunction, TrialFunction, adjoint, div,
-                 dot, ds, dx, grad, inner, triangle)
-from ufl.algorithms import (expand_derivatives, expand_indices, extract_arguments, extract_coefficients,
-                            extract_elements, extract_unique_elements)
-from ufl.corealg.traversal import post_traversal, pre_traversal, unique_post_traversal, unique_pre_traversal
+from ufl import (
+    Argument,
+    Coefficient,
+    FacetNormal,
+    FunctionSpace,
+    Mesh,
+    TestFunction,
+    TrialFunction,
+    adjoint,
+    div,
+    dot,
+    ds,
+    dx,
+    grad,
+    inner,
+    triangle,
+)
+from ufl.algorithms import (
+    expand_derivatives,
+    expand_indices,
+    extract_arguments,
+    extract_coefficients,
+    extract_elements,
+    extract_unique_elements,
+)
+from ufl.corealg.traversal import (
+    post_traversal,
+    pre_traversal,
+    unique_post_traversal,
+    unique_pre_traversal,
+)
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
@@ -18,29 +44,29 @@ from ufl.sobolevspace import H1
 # TODO: add more tests, covering all utility algorithms
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def element():
     return FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def domain():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def space(element, domain):
     return FunctionSpace(domain, element)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def arguments(space):
     v = TestFunction(space)
     u = TrialFunction(space)
     return (v, u)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def coefficients(space):
     c = Coefficient(space)
     f = Coefficient(space)
@@ -110,7 +136,9 @@ def test_expand_indices(domain):
     u = TrialFunction(space)
 
     def evaluate(form):
-        return form.cell_integral()[0].integrand()((), {v: 3, u: 5})  # TODO: How to define values of derivatives?
+        return form.cell_integral()[0].integrand()(
+            (), {v: 3, u: 5}
+        )  # TODO: How to define values of derivatives?
 
     a = div(grad(v)) * u * dx
     # a1 = evaluate(a)

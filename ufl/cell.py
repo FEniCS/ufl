@@ -27,10 +27,6 @@ class AbstractCell(UFLObject):
         """Return the dimension of the topology of this cell."""
 
     @abstractmethod
-    def geometric_dimension(self) -> int:
-        """Return the dimension of the geometry of this cell."""
-
-    @abstractmethod
     def is_simplex(self) -> bool:
         """Return True if this is a simplex cell."""
 
@@ -40,7 +36,11 @@ class AbstractCell(UFLObject):
 
     @abstractmethod
     def _lt(self, other) -> bool:
-        """Define an arbitrarily chosen but fixed sort order for all instances of this type with the same dimensions."""
+        """Less than operator.
+
+        Define an arbitrarily chosen but fixed sort order for all
+        instances of this type with the same dimensions.
+        """
 
     @abstractmethod
     def num_sub_entities(self, dim: int) -> int:
@@ -65,8 +65,8 @@ class AbstractCell(UFLObject):
     def __lt__(self, other: AbstractCell) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all cells."""
         if type(self) is type(other):
-            s = (self.geometric_dimension(), self.topological_dimension())
-            o = (other.geometric_dimension(), other.topological_dimension())
+            s = self.topological_dimension()
+            o = other.topological_dimension()
             if s != o:
                 return s < o
             return self._lt(other)
@@ -185,36 +185,76 @@ class AbstractCell(UFLObject):
 
 
 _sub_entity_celltypes: typing.Dict[str, typing.List[typing.Tuple[str, ...]]] = {
-    "vertex": [("vertex", )],
-    "interval": [tuple("vertex" for i in range(2)), ("interval", )],
-    "triangle": [tuple("vertex" for i in range(3)), tuple("interval" for i in range(3)), ("triangle", )],
-    "quadrilateral": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(4)), ("quadrilateral", )],
-    "tetrahedron": [tuple("vertex" for i in range(4)), tuple("interval" for i in range(6)),
-                    tuple("triangle" for i in range(4)), ("tetrahedron", )],
-    "hexahedron": [tuple("vertex" for i in range(8)), tuple("interval" for i in range(12)),
-                   tuple("quadrilateral" for i in range(6)), ("hexahedron", )],
-    "prism": [tuple("vertex" for i in range(6)), tuple("interval" for i in range(9)),
-              ("triangle", "quadrilateral", "quadrilateral", "quadrilateral", "triangle"), ("prism", )],
-    "pyramid": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(8)),
-                ("quadrilateral", "triangle", "triangle", "triangle", "triangle"), ("pyramid", )],
-    "pentatope": [tuple("vertex" for i in range(5)), tuple("interval" for i in range(10)),
-                  tuple("triangle" for i in range(10)), tuple("tetrahedron" for i in range(5)), ("pentatope", )],
-    "tesseract": [tuple("vertex" for i in range(16)), tuple("interval" for i in range(32)),
-                  tuple("quadrilateral" for i in range(24)), tuple("hexahedron" for i in range(8)), ("tesseract", )],
+    "vertex": [("vertex",)],
+    "interval": [tuple("vertex" for i in range(2)), ("interval",)],
+    "triangle": [
+        tuple("vertex" for i in range(3)),
+        tuple("interval" for i in range(3)),
+        ("triangle",),
+    ],
+    "quadrilateral": [
+        tuple("vertex" for i in range(4)),
+        tuple("interval" for i in range(4)),
+        ("quadrilateral",),
+    ],
+    "tetrahedron": [
+        tuple("vertex" for i in range(4)),
+        tuple("interval" for i in range(6)),
+        tuple("triangle" for i in range(4)),
+        ("tetrahedron",),
+    ],
+    "hexahedron": [
+        tuple("vertex" for i in range(8)),
+        tuple("interval" for i in range(12)),
+        tuple("quadrilateral" for i in range(6)),
+        ("hexahedron",),
+    ],
+    "prism": [
+        tuple("vertex" for i in range(6)),
+        tuple("interval" for i in range(9)),
+        ("triangle", "quadrilateral", "quadrilateral", "quadrilateral", "triangle"),
+        ("prism",),
+    ],
+    "pyramid": [
+        tuple("vertex" for i in range(5)),
+        tuple("interval" for i in range(8)),
+        ("quadrilateral", "triangle", "triangle", "triangle", "triangle"),
+        ("pyramid",),
+    ],
+    "pentatope": [
+        tuple("vertex" for i in range(5)),
+        tuple("interval" for i in range(10)),
+        tuple("triangle" for i in range(10)),
+        tuple("tetrahedron" for i in range(5)),
+        ("pentatope",),
+    ],
+    "tesseract": [
+        tuple("vertex" for i in range(16)),
+        tuple("interval" for i in range(32)),
+        tuple("quadrilateral" for i in range(24)),
+        tuple("hexahedron" for i in range(8)),
+        ("tesseract",),
+    ],
 }
 
 
 class Cell(AbstractCell):
     """Representation of a named finite element cell with known structure."""
-    __slots__ = ("_cellname", "_tdim", "_gdim", "_num_cell_entities", "_sub_entity_types",
-                 "_sub_entities", "_sub_entity_types")
 
-    def __init__(self, cellname: str, geometric_dimension: typing.Optional[int] = None):
+    __slots__ = (
+        "_cellname",
+        "_tdim",
+        "_num_cell_entities",
+        "_sub_entity_types",
+        "_sub_entities",
+        "_sub_entity_types",
+    )
+
+    def __init__(self, cellname: str):
         """Initialise.
 
         Args:
             cellname: Name of the cell
-            geometric_dimension: Geometric dimension
         """
         if cellname not in _sub_entity_celltypes:
             raise ValueError(f"Unsupported cell type: {cellname}")
@@ -223,29 +263,21 @@ class Cell(AbstractCell):
 
         self._cellname = cellname
         self._tdim = len(self._sub_entity_celltypes) - 1
-        self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
 
         self._num_cell_entities = [len(i) for i in self._sub_entity_celltypes]
-        self._sub_entities = [tuple(Cell(t, self._gdim) for t in se_types)
-                              for se_types in self._sub_entity_celltypes[:-1]]
+        self._sub_entities = [
+            tuple(Cell(t) for t in se_types) for se_types in self._sub_entity_celltypes[:-1]
+        ]
         self._sub_entity_types = [tuple(set(i)) for i in self._sub_entities]
-        self._sub_entities.append((weakref.proxy(self), ))
-        self._sub_entity_types.append((weakref.proxy(self), ))
+        self._sub_entities.append((weakref.proxy(self),))
+        self._sub_entity_types.append((weakref.proxy(self),))
 
-        if not isinstance(self._gdim, numbers.Integral):
-            raise ValueError("Expecting integer geometric_dimension.")
         if not isinstance(self._tdim, numbers.Integral):
             raise ValueError("Expecting integer topological_dimension.")
-        if self._tdim > self._gdim:
-            raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
     def topological_dimension(self) -> int:
         """Return the dimension of the topology of this cell."""
         return self._tdim
-
-    def geometric_dimension(self) -> int:
-        """Return the dimension of the geometry of this cell."""
-        return self._gdim
 
     def is_simplex(self) -> bool:
         """Return True if this is a simplex cell."""
@@ -291,56 +323,40 @@ class Cell(AbstractCell):
 
     def __str__(self) -> str:
         """Format as a string."""
-        if self._gdim == self._tdim:
-            return self._cellname
-        else:
-            return f"{self._cellname}{self._gdim}D"
+        return self._cellname
 
     def __repr__(self) -> str:
         """Representation."""
-        if self._gdim == self._tdim:
-            return self._cellname
-        else:
-            return f"Cell({self._cellname}, {self._gdim})"
+        return self._cellname
 
     def _ufl_hash_data_(self) -> typing.Hashable:
         """UFL hash data."""
-        return (self._cellname, self._gdim)
+        return (self._cellname,)
 
     def reconstruct(self, **kwargs: typing.Any) -> AbstractCell:
         """Reconstruct this cell, overwriting properties by those in kwargs."""
-        gdim = self._gdim
         for key, value in kwargs.items():
-            if key == "geometric_dimension":
-                gdim = value
-            else:
-                raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
-        return Cell(self._cellname, geometric_dimension=gdim)
+            raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
+        return Cell(self._cellname)
 
 
 class TensorProductCell(AbstractCell):
     """Tensor product cell."""
 
-    __slots__ = ("_cells", "_tdim", "_gdim")
+    __slots__ = ("_cells", "_tdim")
 
-    def __init__(self, *cells: AbstractCell, geometric_dimension: typing.Optional[int] = None):
+    def __init__(self, *cells: AbstractCell):
         """Initialise.
 
         Args:
             cells: Cells to take the tensor product of
-            geometric_dimension: Geometric dimension
         """
         self._cells = tuple(as_cell(cell) for cell in cells)
 
         self._tdim = sum([cell.topological_dimension() for cell in self._cells])
-        self._gdim = self._tdim if geometric_dimension is None else geometric_dimension
 
-        if not isinstance(self._gdim, numbers.Integral):
-            raise ValueError("Expecting integer geometric_dimension.")
         if not isinstance(self._tdim, numbers.Integral):
             raise ValueError("Expecting integer topological_dimension.")
-        if self._tdim > self._gdim:
-            raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
     def sub_cells(self) -> typing.Tuple[AbstractCell, ...]:
         """Return list of cell factors."""
@@ -349,10 +365,6 @@ class TensorProductCell(AbstractCell):
     def topological_dimension(self) -> int:
         """Return the dimension of the topology of this cell."""
         return self._tdim
-
-    def geometric_dimension(self) -> int:
-        """Return the dimension of the geometry of this cell."""
-        return self._gdim
 
     def is_simplex(self) -> bool:
         """Return True if this is a simplex cell."""
@@ -375,8 +387,9 @@ class TensorProductCell(AbstractCell):
         if dim == 0:
             return functools.reduce(lambda x, y: x * y, [c.num_vertices() for c in self._cells])
         if dim == self._tdim - 1:
-            # Note: This is not the number of facets that the cell has, but I'm leaving it here for now
-            # to not change past behaviour
+            # Note: This is not the number of facets that the cell has,
+            # but I'm leaving it here for now to not change past
+            # behaviour
             return sum(c.num_facets() for c in self._cells if c.topological_dimension() > 0)
         if dim == self._tdim:
             return 1
@@ -387,9 +400,9 @@ class TensorProductCell(AbstractCell):
         if dim < 0 or dim > self._tdim:
             return ()
         if dim == 0:
-            return tuple(Cell("vertex", self._gdim) for i in range(self.num_sub_entities(0)))
+            return tuple(Cell("vertex") for i in range(self.num_sub_entities(0)))
         if dim == self._tdim:
-            return (self, )
+            return (self,)
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
     def sub_entity_types(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
@@ -397,9 +410,9 @@ class TensorProductCell(AbstractCell):
         if dim < 0 or dim > self._tdim:
             return ()
         if dim == 0:
-            return (Cell("vertex", self._gdim), )
+            return (Cell("vertex"),)
         if dim == self._tdim:
-            return (self, )
+            return (self,)
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
     def _lt(self, other) -> bool:
@@ -411,12 +424,7 @@ class TensorProductCell(AbstractCell):
 
     def __str__(self) -> str:
         """Format as a string."""
-        s = "TensorProductCell("
-        s += ", ".join(f"{c!r}" for c in self._cells)
-        if self._tdim != self._gdim:
-            s += f", geometric_dimension={self._gdim}"
-        s += ")"
-        return s
+        return "TensorProductCell(" + ", ".join(f"{c!r}" for c in self._cells) + ")"
 
     def __repr__(self) -> str:
         """Representation."""
@@ -424,46 +432,42 @@ class TensorProductCell(AbstractCell):
 
     def _ufl_hash_data_(self) -> typing.Hashable:
         """UFL hash data."""
-        return tuple(c._ufl_hash_data_() for c in self._cells) + (self._gdim,)
+        return tuple(c._ufl_hash_data_() for c in self._cells)
 
     def reconstruct(self, **kwargs: typing.Any) -> AbstractCell:
         """Reconstruct this cell, overwriting properties by those in kwargs."""
-        gdim = self._gdim
         for key, value in kwargs.items():
-            if key == "geometric_dimension":
-                gdim = value
-            else:
-                raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
-        return TensorProductCell(*self._cells, geometric_dimension=gdim)
+            raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
+        return TensorProductCell(*self._cells)
 
 
-def simplex(topological_dimension: int, geometric_dimension: typing.Optional[int] = None):
+def simplex(topological_dimension: int):
     """Return a simplex cell of the given dimension."""
     if topological_dimension == 0:
-        return Cell("vertex", geometric_dimension)
+        return Cell("vertex")
     if topological_dimension == 1:
-        return Cell("interval", geometric_dimension)
+        return Cell("interval")
     if topological_dimension == 2:
-        return Cell("triangle", geometric_dimension)
+        return Cell("triangle")
     if topological_dimension == 3:
-        return Cell("tetrahedron", geometric_dimension)
+        return Cell("tetrahedron")
     if topological_dimension == 4:
-        return Cell("pentatope", geometric_dimension)
+        return Cell("pentatope")
     raise ValueError(f"Unsupported topological dimension for simplex: {topological_dimension}")
 
 
-def hypercube(topological_dimension, geometric_dimension=None):
+def hypercube(topological_dimension: int):
     """Return a hypercube cell of the given dimension."""
     if topological_dimension == 0:
-        return Cell("vertex", geometric_dimension)
+        return Cell("vertex")
     if topological_dimension == 1:
-        return Cell("interval", geometric_dimension)
+        return Cell("interval")
     if topological_dimension == 2:
-        return Cell("quadrilateral", geometric_dimension)
+        return Cell("quadrilateral")
     if topological_dimension == 3:
-        return Cell("hexahedron", geometric_dimension)
+        return Cell("hexahedron")
     if topological_dimension == 4:
-        return Cell("tesseract", geometric_dimension)
+        return Cell("tesseract")
     raise ValueError(f"Unsupported topological dimension for hypercube: {topological_dimension}")
 
 

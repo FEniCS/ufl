@@ -55,7 +55,6 @@ import ufl.sobolevspace
 import ufl.tensoralgebra
 import ufl.tensors
 import ufl.variable
-
 from ufl.core.ufl_type import all_ufl_classes
 
 # Collect all classes in sets automatically classified by some properties
@@ -86,6 +85,7 @@ __all__ += populate_namespace_with_expr_classes(locals())
 
 
 # Semi-automated imports of non-expr classes:
+
 
 def populate_namespace_with_module_classes(mod, loc):
     """Export the classes that submodules list in __all_classes__."""

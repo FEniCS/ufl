@@ -28,12 +28,12 @@ class Matrix(BaseForm, Counted):
         "_ufl_shape",
         "_arguments",
         "_coefficients",
-        "_domains")
+        "_domains",
+    )
 
     def __getnewargs__(self):
         """Get new args."""
-        return (self._ufl_function_spaces[0], self._ufl_function_spaces[1],
-                self._count)
+        return (self._ufl_function_spaces[0], self._ufl_function_spaces[1], self._count)
 
     def __init__(self, row_space, column_space, count=None):
         """Initialise."""
@@ -51,7 +51,10 @@ class Matrix(BaseForm, Counted):
         self.ufl_operands = ()
         self._domains = None
         self._hash = None
-        self._repr = f"Matrix({self._ufl_function_spaces[0]!r}, {self._ufl_function_spaces[1]!r}, {self._count!r})"
+        self._repr = (
+            f"Matrix({self._ufl_function_spaces[0]!r} "
+            f"{self._ufl_function_spaces[1]!r}, {self._count!r})"
+        )
 
     def ufl_function_spaces(self):
         """Get the tuple of function spaces of this coefficient."""
@@ -59,8 +62,10 @@ class Matrix(BaseForm, Counted):
 
     def _analyze_form_arguments(self):
         """Define arguments of a matrix when considered as a form."""
-        self._arguments = (Argument(self._ufl_function_spaces[0], 0),
-                           Argument(self._ufl_function_spaces[1], 1))
+        self._arguments = (
+            Argument(self._ufl_function_spaces[0], 0),
+            Argument(self._ufl_function_spaces[1], 1),
+        )
         self._coefficients = ()
 
     def _analyze_domains(self):
@@ -94,4 +99,6 @@ class Matrix(BaseForm, Counted):
             return False
         if self is other:
             return True
-        return self._count == other._count and self._ufl_function_spaces == other._ufl_function_spaces
+        return (
+            self._count == other._count and self._ufl_function_spaces == other._ufl_function_spaces
+        )

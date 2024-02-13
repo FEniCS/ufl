@@ -4,6 +4,7 @@ import warnings
 
 class ArityMismatch(BaseException):
     """Arity mismatch exception."""
+
     pass
 
 
@@ -17,5 +18,6 @@ def check_form_arity(form, arguments, complex_mode=False):
     warnings.warn(
         "The function check_form_arity is deprecated and will be removed after December 2024. "
         "Please use form.check_arity() directly instead.",
-        FutureWarning)
+        FutureWarning,
+    )
     form.check_arity(arguments, complex_mode)

@@ -141,7 +141,7 @@ def cmp_expr(a, b):
             bops = b.ufl_operands
 
             # Sort by children in natural order
-            for (r, s) in zip(aops, bops):
+            for r, s in zip(aops, bops):
                 # Skip subtree if objects are the same
                 if r is s:
                     continue

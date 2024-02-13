@@ -9,14 +9,14 @@ from ufl.sobolevspace import H1
 
 cell = interval
 element = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (1, ), identity_pullback, H1))
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (1,), identity_pullback, H1))
 space = FunctionSpace(domain, element)
 
 u = Coefficient(space)
 b = Constant(domain)
 K = Constant(domain)
 
-E = u.dx(0) + u.dx(0)**2 / 2
+E = u.dx(0) + u.dx(0) ** 2 / 2
 E = variable(E)
 Q = b * E**2
 psi = K * (exp(Q) - 1)

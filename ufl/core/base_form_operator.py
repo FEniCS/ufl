@@ -1,7 +1,8 @@
 """Base form operator.
 
-This module defines the BaseFormOperator class, which is the base class for objects that can be seen as forms
-and as operators such as ExternalOperator or Interpolate.
+This module defines the BaseFormOperator class, which is the base class
+for objects that can be seen as forms and as operators such as
+ExternalOperator or Interpolate.
 """
 
 # Copyright (C) 2019 Nacime Bouziani
@@ -34,9 +35,11 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
         Args:
             operands: operands on which acts the operator.
-            function_space: the FunctionSpace or MixedFunctionSpace on which to build this Function.
-            derivatives: tuple specifiying the derivative multiindex.
-            argument_slots: tuple composed containing expressions with ufl.Argument or ufl.Coefficient objects.
+            function_space: the FunctionSpace or MixedFunctionSpace on
+                which to build this Function.
+            derivatives: tuple specifying the derivative multiindex.
+            argument_slots: tuple composed containing expressions with
+                ufl.Argument or ufl.Coefficient objects.
         """
         BaseForm.__init__(self)
         ufl_operands = tuple(map(as_ufl, operands))
@@ -71,12 +74,14 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     def argument_slots(self, outer_form=False):
         """Returns a tuple of expressions containing argument and coefficient based expressions.
 
-        We get an argument uhat when we take the Gateaux derivative in the direction uhat:
-        d/du N(u; v*) = dNdu(u; uhat, v*) where uhat is a ufl.Argument and v* a ufl.Coargument
-        Applying the action replace the last argument by coefficient:
-        action(dNdu(u; uhat, v*), w) = dNdu(u; w, v*) where du is a ufl.Coefficient.
+        We get an argument uhat when we take the Gateaux derivative in
+        the direction uhat: d/du N(u; v*) = dNdu(u; uhat, v*) where uhat
+        is a ufl.Argument and v* a ufl.Coargument Applying the action
+        replace the last argument by coefficient: action(dNdu(u; uhat,
+        v*), w) = dNdu(u; w, v*) where du is a ufl.Coefficient.
         """
         from ufl.algorithms.analysis import extract_arguments
+
         if not outer_form:
             return self._argument_slots
         # Takes into account argument contraction when a base form operator is in an outer form:
@@ -94,14 +99,19 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the base form."""
         from ufl.algorithms.analysis import extract_arguments, extract_coefficients, extract_type
+
         dual_arg, *arguments = self.argument_slots()
-        # When coarguments are treated as BaseForms, they have two arguments (one primal and one dual)
-        # as they map from V* to V* => V* x V -> R. However, when they are treated as mere "arguments",
-        # the primal space argument is discarded and we only have the dual space argument (Coargument).
-        # This is the exact same situation than BaseFormOperator's arguments which are different depending on
-        # whether the BaseFormOperator is used in an outer form or not.
-        arguments = (tuple(extract_type(dual_arg, Coargument))
-                     + tuple(a for arg in arguments for a in extract_arguments(arg)))
+        # When coarguments are treated as BaseForms, they have two
+        # arguments (one primal and one dual) as they map from V* to V*
+        # => V* x V -> R. However, when they are treated as mere
+        # "arguments", the primal space argument is discarded and we
+        # only have the dual space argument (Coargument). This is the
+        # exact same situation than BaseFormOperator's arguments which
+        # are different depending on whether the BaseFormOperator is
+        # used in an outer form or not.
+        arguments = tuple(extract_type(dual_arg, Coargument)) + tuple(
+            a for arg in arguments for a in extract_arguments(arg)
+        )
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         # 1) Need concept of order since we may have arguments with the same number
@@ -130,11 +140,16 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """
         return self.arguments()[0]._ufl_function_space.dual()
 
-    def _ufl_expr_reconstruct_(self, *operands, function_space=None, derivatives=None, argument_slots=None):
+    def _ufl_expr_reconstruct_(
+        self, *operands, function_space=None, derivatives=None, argument_slots=None
+    ):
         """Return a new object of the same type with new operands."""
-        return type(self)(*operands, function_space=function_space or self.ufl_function_space(),
-                          derivatives=derivatives or self.derivatives,
-                          argument_slots=argument_slots or self.argument_slots())
+        return type(self)(
+            *operands,
+            function_space=function_space or self.ufl_function_space(),
+            derivatives=derivatives or self.derivatives,
+            argument_slots=argument_slots or self.argument_slots(),
+        )
 
     def __repr__(self):
         """Default repr string construction for base form operators."""
@@ -147,11 +162,13 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def __hash__(self):
         """Hash code for use in dicts."""
-        hashdata = (type(self),
-                    tuple(hash(op) for op in self.ufl_operands),
-                    tuple(hash(arg) for arg in self._argument_slots),
-                    self.derivatives,
-                    hash(self.ufl_function_space()))
+        hashdata = (
+            type(self),
+            tuple(hash(op) for op in self.ufl_operands),
+            tuple(hash(arg) for arg in self._argument_slots),
+            self.derivatives,
+            hash(self.ufl_function_space()),
+        )
         return hash(hashdata)
 
     def __eq__(self, other):

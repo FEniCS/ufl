@@ -13,8 +13,16 @@ import math
 import numbers
 import warnings
 
-from ufl.constantvalue import (ComplexValue, ConstantValue, FloatValue, IntValue, RealValue, Zero, as_ufl,
-                               is_true_ufl_scalar)
+from ufl.constantvalue import (
+    ComplexValue,
+    ConstantValue,
+    FloatValue,
+    IntValue,
+    RealValue,
+    Zero,
+    as_ufl,
+    is_true_ufl_scalar,
+)
 from ufl.core.operator import Operator
 
 """
@@ -41,6 +49,7 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 
 # --- Function representations ---
 
+
 class MathFunction(Operator):
     """Base class for all unary scalar math functions."""
 
@@ -63,7 +72,9 @@ class MathFunction(Operator):
             else:
                 res = getattr(cmath, self._name)(a)
         except ValueError:
-            warnings.warn('Value error in evaluation of function %s with argument %s.' % (self._name, a))
+            warnings.warn(
+                "Value error in evaluation of function %s with argument %s." % (self._name, a)
+            )
             raise
         return res
 
@@ -329,9 +340,11 @@ class Atan2(Operator):
         try:
             res = math.atan2(a, b)
         except TypeError:
-            raise ValueError('Atan2 does not support complex numbers.')
+            raise ValueError("Atan2 does not support complex numbers.")
         except ValueError:
-            warnings.warn('Value error in evaluation of function atan2 with arguments %s, %s.' % (a, b))
+            warnings.warn(
+                "Value error in evaluation of function atan2 with arguments %s, %s." % (a, b)
+            )
             raise
         return res
 
@@ -366,7 +379,7 @@ class Erf(MathFunction):
 class BesselFunction(Operator):
     """Base class for all bessel functions."""
 
-    __slots__ = ("_name")
+    __slots__ = "_name"
 
     def __init__(self, name, nu, argument):
         """Initialise."""
@@ -393,22 +406,22 @@ class BesselFunction(Operator):
         try:
             import scipy.special
         except ImportError:
-            raise ValueError("You must have scipy installed to evaluate bessel functions in python.")
+            raise ValueError(
+                "You must have scipy installed to evaluate bessel functions in python."
+            )
         name = self._name[-1]
         if isinstance(self.ufl_operands[0], IntValue):
             nu = int(self.ufl_operands[0])
-            functype = 'n' if name != 'i' else 'v'
+            functype = "n" if name != "i" else "v"
         else:
-            nu = self.ufl_operands[0].evaluate(x, mapping, component,
-                                               index_values)
-            functype = 'v'
+            nu = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
+            functype = "v"
         func = getattr(scipy.special, name + functype)
         return func(nu, a)
 
     def __str__(self):
         """Format as a string."""
-        return "%s(%s, %s)" % (self._name, self.ufl_operands[0],
-                               self.ufl_operands[1])
+        return "%s(%s, %s)" % (self._name, self.ufl_operands[0], self.ufl_operands[1])
 
 
 class BesselJ(BesselFunction):

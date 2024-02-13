@@ -2,16 +2,110 @@ __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-06 -- 2009-02-10"
 
 import ufl
-from ufl import (And, Argument, CellDiameter, CellVolume, Circumradius, Coefficient, Constant, FacetArea, FacetNormal,
-                 FunctionSpace, Identity, Jacobian, JacobianDeterminant, JacobianInverse, MaxFacetEdgeLength, Mesh,
-                 MinFacetEdgeLength, Not, Or, PermutationSymbol, SpatialCoordinate, TensorConstant, VectorConstant,
-                 acos, action, as_matrix, as_tensor, as_ufl, as_vector, asin, atan, cell_avg, cofac, conditional, cos,
-                 cosh, cross, curl, derivative, det, dev, diff, div, dot, ds, dS, dx, eq, exp, facet_avg, ge, grad, gt,
-                 i, inner, inv, j, k, l, le, ln, lt, nabla_div, nabla_grad, ne, outer, rot, sin, sinh, skew, sqrt, sym,
-                 tan, tanh, tetrahedron, tr, transpose, triangle, variable)
-#from ufl.classes import (Acos, Asin, Atan, CellCoordinate, Cos, Cosh, Exp, Expr, FacetJacobian,
-#                         FacetJacobianDeterminant, FacetJacobianInverse, FloatValue, IntValue, Ln, Outer, Sin, Sinh,
-#                         Sqrt, Tan, Tanh, all_ufl_classes)
+from ufl import (
+    And,
+    Argument,
+    CellDiameter,
+    CellVolume,
+    Circumradius,
+    Coefficient,
+    Constant,
+    FacetArea,
+    FacetNormal,
+    FunctionSpace,
+    Identity,
+    Jacobian,
+    JacobianDeterminant,
+    JacobianInverse,
+    MaxFacetEdgeLength,
+    Mesh,
+    MinFacetEdgeLength,
+    Not,
+    Or,
+    PermutationSymbol,
+    SpatialCoordinate,
+    TensorConstant,
+    VectorConstant,
+    acos,
+    action,
+    as_matrix,
+    as_tensor,
+    as_ufl,
+    as_vector,
+    asin,
+    atan,
+    cell_avg,
+    cofac,
+    conditional,
+    cos,
+    cosh,
+    cross,
+    curl,
+    derivative,
+    det,
+    dev,
+    diff,
+    div,
+    dot,
+    dS,
+    ds,
+    dx,
+    eq,
+    exp,
+    facet_avg,
+    ge,
+    grad,
+    gt,
+    i,
+    inner,
+    inv,
+    j,
+    k,
+    l,
+    le,
+    ln,
+    lt,
+    nabla_div,
+    nabla_grad,
+    ne,
+    outer,
+    rot,
+    sin,
+    sinh,
+    skew,
+    sqrt,
+    sym,
+    tan,
+    tanh,
+    tetrahedron,
+    tr,
+    transpose,
+    triangle,
+    variable,
+)
+from ufl.classes import (
+    Acos,
+    Asin,
+    Atan,
+    CellCoordinate,
+    Cos,
+    Cosh,
+    Exp,
+    Expr,
+    FacetJacobian,
+    FacetJacobianDeterminant,
+    FacetJacobianInverse,
+    FloatValue,
+    IntValue,
+    Ln,
+    Outer,
+    Sin,
+    Sinh,
+    Sqrt,
+    Tan,
+    Tanh,
+    all_ufl_classes,
+)
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
@@ -22,9 +116,9 @@ has_dict = set()
 
 def _test_object(a, shape, free_indices):
     # Check if instances of this type has certain memory consuming members
-    if hasattr(a, '_repr'):
+    if hasattr(a, "_repr"):
         has_repr.add(a.__class__.__name__)
-    if hasattr(a, '__dict__'):
+    if hasattr(a, "__dict__"):
         has_dict.add(a.__class__.__name__)
 
     # Test reproduction via repr string
@@ -57,9 +151,9 @@ def _test_object(a, shape, free_indices):
 
 def _test_object2(a):
     # Check if instances of this type has certain memory consuming members
-    if hasattr(a, '_repr'):
+    if hasattr(a, "_repr"):
         has_repr.add(a.__class__.__name__)
-    if hasattr(a, '__dict__'):
+    if hasattr(a, "__dict__"):
         has_dict.add(a.__class__.__name__)
 
     # Test reproduction via repr string
@@ -89,8 +183,9 @@ def testExports(self):
             for c in list(vars(m).values()):
                 if isinstance(c, type) and issubclass(c, Expr):
                     all_expr_classes.append(c)
-    missing_classes = set(c.__name__ for c in all_expr_classes)\
-        - set(c.__name__ for c in all_ufl_classes)
+    missing_classes = set(c.__name__ for c in all_expr_classes) - set(
+        c.__name__ for c in all_ufl_classes
+    )
     if missing_classes:
         print("The following subclasses of Expr were not exported from ufl.classes:")
         print(("\n".join(sorted(missing_classes))))
@@ -98,22 +193,21 @@ def testExports(self):
 
 
 def testAll(self):
-
     Expr.ufl_enable_profiling()
 
     # --- Elements:
     cell = triangle
-    dim = cell.geometric_dimension()
+    dim = 2
 
     e0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    e1 = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)
+    e1 = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
     e2 = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pullback, H1)
     e3 = MixedElement([e0, e1, e2])
 
-    e13D = FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1)
+    e13D = FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (dim, ), identity_pullback, H1))
-    domain3D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (dim,), identity_pullback, H1))
+    domain3D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
     e0_space = FunctionSpace(domain, e0)
     e1_space = FunctionSpace(domain, e1)
     e2_space = FunctionSpace(domain, e2)
@@ -133,7 +227,7 @@ def testAll(self):
     _test_object(v0, (), ())
     _test_object(v1, (dim,), ())
     _test_object(v2, (dim, dim), ())
-    _test_object(v3, (1 + dim + dim ** 2, ), ())
+    _test_object(v3, (1 + dim + dim**2,), ())
 
     f0 = Coefficient(e0_space)
     f1 = Coefficient(e1_space)
@@ -143,7 +237,7 @@ def testAll(self):
     _test_object(f0, (), ())
     _test_object(f1, (dim,), ())
     _test_object(f2, (dim, dim), ())
-    _test_object(f3, (1 + dim + dim ** 2, ), ())
+    _test_object(f3, (1 + dim + dim**2,), ())
 
     c = Constant(domain)
     _test_object(c, (), ())
@@ -190,11 +284,11 @@ def testAll(self):
     _test_object(g, (dim, dim), ())
 
     g = FacetJacobian(domain)
-    _test_object(g, (dim, dim-1), ())
+    _test_object(g, (dim, dim - 1), ())
     g = FacetJacobianDeterminant(domain)
     _test_object(g, (), ())
     g = FacetJacobianInverse(domain)
-    _test_object(g, (dim-1, dim), ())
+    _test_object(g, (dim - 1, dim), ())
 
     g = FacetNormal(domain)
     _test_object(g, (dim,), ())
@@ -226,7 +320,7 @@ def testAll(self):
     a = variable(v2)
     _test_object(a, (dim, dim), ())
     a = variable(v3)
-    _test_object(a, (1 + dim + dim ** 2, ), ())
+    _test_object(a, (1 + dim + dim**2,), ())
     a = variable(f0)
     _test_object(a, (), ())
     a = variable(f1)
@@ -234,7 +328,7 @@ def testAll(self):
     a = variable(f2)
     _test_object(a, (dim, dim), ())
     a = variable(f3)
-    _test_object(a, (1 + dim + dim ** 2, ), ())
+    _test_object(a, (1 + dim + dim**2,), ())
 
     # a = MultiIndex()
 
@@ -287,7 +381,7 @@ def testAll(self):
     a = v2 + f2 + v2
     _test_object(a, (dim, dim), ())
     # a = Product()
-    a = 3*v0*(2.0*v0)*f0*(v0*3.0)
+    a = 3 * v0 * (2.0 * v0) * f0 * (v0 * 3.0)
     _test_object(a, (), ())
     # a = Division()
     a = v0 / 2.0
@@ -299,78 +393,76 @@ def testAll(self):
     # a = Power()
     a = f0**3
     _test_object(a, (), ())
-    a = (f0*2)**1.23
+    a = (f0 * 2) ** 1.23
     _test_object(a, (), ())
 
     # a = ListTensor()
-    a = as_vector([1.0, 2.0*f0, f0**2])
+    a = as_vector([1.0, 2.0 * f0, f0**2])
     _test_object(a, (3,), ())
-    a = as_matrix([[1.0, 2.0*f0, f0**2],
-                   [1.0, 2.0*f0, f0**2]])
+    a = as_matrix([[1.0, 2.0 * f0, f0**2], [1.0, 2.0 * f0, f0**2]])
     _test_object(a, (2, 3), ())
-    a = as_tensor([[[0.00, 0.01, 0.02],
-                    [0.10, 0.11, 0.12]],
-                   [[1.00, 1.01, 1.02],
-                    [1.10, 1.11, 1.12]]])
+    a = as_tensor(
+        [[[0.00, 0.01, 0.02], [0.10, 0.11, 0.12]], [[1.00, 1.01, 1.02], [1.10, 1.11, 1.12]]]
+    )
     _test_object(a, (2, 2, 3), ())
 
     # a = ComponentTensor()
-    a = as_vector(v1[i]*f1[j], i)
+    a = as_vector(v1[i] * f1[j], i)
     _test_object(a, (dim,), (j,))
-    a = as_matrix(v1[i]*f1[j], (j, i))
+    a = as_matrix(v1[i] * f1[j], (j, i))
     _test_object(a, (dim, dim), ())
-    a = as_tensor(v1[i]*f1[j], (i, j))
+    a = as_tensor(v1[i] * f1[j], (i, j))
     _test_object(a, (dim, dim), ())
-    a = as_tensor(v2[i, j]*f2[j, k], (i, k))
+    a = as_tensor(v2[i, j] * f2[j, k], (i, k))
     _test_object(a, (dim, dim), ())
 
     a = dev(v2)
     _test_object(a, (dim, dim), ())
     a = dev(f2)
     _test_object(a, (dim, dim), ())
-    a = dev(f2*f0+v2*3)
+    a = dev(f2 * f0 + v2 * 3)
     _test_object(a, (dim, dim), ())
 
     a = sym(v2)
     _test_object(a, (dim, dim), ())
     a = sym(f2)
     _test_object(a, (dim, dim), ())
-    a = sym(f2*f0+v2*3)
+    a = sym(f2 * f0 + v2 * 3)
     _test_object(a, (dim, dim), ())
 
     a = skew(v2)
     _test_object(a, (dim, dim), ())
     a = skew(f2)
     _test_object(a, (dim, dim), ())
-    a = skew(f2*f0+v2*3)
+    a = skew(f2 * f0 + v2 * 3)
     _test_object(a, (dim, dim), ())
 
     a = v2.T
     _test_object(a, (dim, dim), ())
     a = f2.T
     _test_object(a, (dim, dim), ())
-    a = transpose(f2*f0+v2*3)
+    a = transpose(f2 * f0 + v2 * 3)
     _test_object(a, (dim, dim), ())
 
     a = det(v2)
     _test_object(a, (), ())
     a = det(f2)
     _test_object(a, (), ())
-    a = det(f2*f0+v2*3)
+    a = det(f2 * f0 + v2 * 3)
     _test_object(a, (), ())
 
     a = tr(v2)
     _test_object(a, (), ())
     a = tr(f2)
     _test_object(a, (), ())
-    a = tr(f2*f0+v2*3)
+    a = tr(f2 * f0 + v2 * 3)
     _test_object(a, (), ())
 
     a = cofac(v2)
     _test_object(a, (dim, dim), ())
     a = cofac(f2)
     _test_object(a, (dim, dim), ())
-    a = cofac(f2*f0+v2*3)
+    a = cofac(f2 * f0 + v2 * 3)
     _test_object(a, (dim, dim), ())
 
     cond1 = le(f0, 1.0)
@@ -465,7 +557,7 @@ def testAll(self):
     s0 = variable(f0)
     s1 = variable(f1)
     s2 = variable(f2)
-    f = dot(s0*s1, s2)
+    f = dot(s0 * s1, s2)
     _test_object(s0, (), ())
     _test_object(s1, (dim,), ())
     _test_object(s2, (dim, dim), ())
@@ -474,7 +566,14 @@ def testAll(self):
     a = diff(f, s0)
     _test_object(a, (dim,), ())
     a = diff(f, s1)
-    _test_object(a, (dim, dim,), ())
+    _test_object(
+        a,
+        (
+            dim,
+            dim,
+        ),
+        (),
+    )
     a = diff(f, s2)
     _test_object(a, (dim, dim, dim), ())
 
@@ -497,9 +596,9 @@ def testAll(self):
     _test_object(a, (dim, dim), ())
     a = grad(f1)
     _test_object(a, (dim, dim), ())
-    a = grad(f0*v0)
+    a = grad(f0 * v0)
     _test_object(a, (dim,), ())
-    a = grad(f0*v1)
+    a = grad(f0 * v1)
     _test_object(a, (dim, dim), ())
 
     a = nabla_div(v1)
@@ -521,9 +620,9 @@ def testAll(self):
     _test_object(a, (dim, dim), ())
     a = nabla_grad(f1)
     _test_object(a, (dim, dim), ())
-    a = nabla_grad(f0*v0)
+    a = nabla_grad(f0 * v0)
     _test_object(a, (dim,), ())
-    a = nabla_grad(f0*v1)
+    a = nabla_grad(f0 * v1)
     _test_object(a, (dim, dim), ())
 
     a = curl(v13D)
@@ -537,16 +636,16 @@ def testAll(self):
 
     # a = PositiveRestricted(v0)
     # _test_object(a, (), ())
-    a = v0('+')
+    a = v0("+")
     _test_object(a, (), ())
-    a = v0('+')*f0
+    a = v0("+") * f0
     _test_object(a, (), ())
 
     # a = NegativeRestricted(v0)
     # _test_object(a, (), ())
-    a = v0('-')
+    a = v0("-")
     _test_object(a, (), ())
-    a = v0('-') + f0
+    a = v0("-") + f0
     _test_object(a, (), ())
 
     a = cell_avg(v0)
@@ -564,47 +663,47 @@ def testAll(self):
 
     # --- Integrals:
 
-    a = v0*dx
+    a = v0 * dx
     _test_form(a)
-    a = v0*dx(0)
+    a = v0 * dx(0)
     _test_form(a)
-    a = v0*dx(1)
+    a = v0 * dx(1)
     _test_form(a)
-    a = v0*ds
+    a = v0 * ds
     _test_form(a)
-    a = v0*ds(0)
+    a = v0 * ds(0)
     _test_form(a)
-    a = v0*ds(1)
+    a = v0 * ds(1)
     _test_form(a)
-    a = v0*dS
+    a = v0 * dS
     _test_form(a)
-    a = v0*dS(0)
+    a = v0 * dS(0)
     _test_form(a)
-    a = v0*dS(1)
+    a = v0 * dS(1)
     _test_form(a)
 
-    a = v0*dot(v1, f1)*dx
+    a = v0 * dot(v1, f1) * dx
     _test_form(a)
-    a = v0*dot(v1, f1)*dx(0)
+    a = v0 * dot(v1, f1) * dx(0)
     _test_form(a)
-    a = v0*dot(v1, f1)*dx(1)
+    a = v0 * dot(v1, f1) * dx(1)
     _test_form(a)
-    a = v0*dot(v1, f1)*ds
+    a = v0 * dot(v1, f1) * ds
     _test_form(a)
-    a = v0*dot(v1, f1)*ds(0)
+    a = v0 * dot(v1, f1) * ds(0)
     _test_form(a)
-    a = v0*dot(v1, f1)*ds(1)
+    a = v0 * dot(v1, f1) * ds(1)
     _test_form(a)
-    a = v0*dot(v1, f1)*dS
+    a = v0 * dot(v1, f1) * dS
     _test_form(a)
-    a = v0*dot(v1, f1)*dS(0)
+    a = v0 * dot(v1, f1) * dS(0)
     _test_form(a)
-    a = v0*dot(v1, f1)*dS(1)
+    a = v0 * dot(v1, f1) * dS(1)
     _test_form(a)
 
     # --- Form transformations:
 
-    a = f0*v0*dx + f0*v0*dot(f1, v1)*dx
+    a = f0 * v0 * dx + f0 * v0 * dot(f1, v1) * dx
     # b = lhs(a) # TODO
     # c = rhs(a) # TODO
     d = derivative(a, f1, v1)

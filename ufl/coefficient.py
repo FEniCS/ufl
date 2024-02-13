@@ -16,10 +16,10 @@ from ufl.core.terminal import FormArgument
 from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
-from ufl.split_functions import split
-from ufl.utils.counted import Counted
 from ufl.restriction import default_restriction, require_restriction
 from ufl.sobolevspace import H1
+from ufl.split_functions import split
+from ufl.utils.counted import Counted
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -45,12 +45,12 @@ class BaseCoefficient(Counted):
             raise ValueError("Expecting a FunctionSpace.")
 
         self._ufl_function_space = function_space
-        self._ufl_shape = function_space.ufl_element().value_shape
+        self._ufl_shape = function_space.value_shape
 
-        self._repr = "BaseCoefficient(%s, %s)" % (
-            repr(self._ufl_function_space), repr(self._count))
+        self._repr = "BaseCoefficient(%s, %s)" % (repr(self._ufl_function_space), repr(self._count))
 
     def __hash__(self):
+        """Hash."""
         return hash(self._repr)
 
     def _ufl_hash_data_(self):
@@ -82,7 +82,11 @@ class BaseCoefficient(Counted):
         return self._ufl_function_space.ufl_domains()
 
     def _ufl_signature_data_(self, renumbering):
-        """Signature data for form arguments depend on the global numbering of the form arguments and domains."""
+        """Signature data.
+
+        Signature data for form arguments depend on the global numbering
+        of the form arguments and domains.
+        """
         count = renumbering[self]
         fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
         return ("Coefficient", count, fsdata)
@@ -116,7 +120,7 @@ class Cofunction(BaseCoefficient, BaseForm):
         "ufl_operands",
         "_repr",
         "_ufl_shape",
-        "_hash"
+        "_hash",
     )
     _primal = False
     _dual = True
@@ -126,8 +130,10 @@ class Cofunction(BaseCoefficient, BaseForm):
     def __new__(cls, *args, **kw):
         """Create a new Cofunction."""
         if args[0] and is_primal(args[0]):
-            raise ValueError("ufl.Cofunction takes in a dual space. If you want to define a coefficient "
-                             "in the primal space you should use ufl.Coefficient.")
+            raise ValueError(
+                "ufl.Cofunction takes in a dual space. If you want to define a coefficient "
+                "in the primal space you should use ufl.Coefficient."
+            )
         return super().__new__(cls)
 
     def __init__(self, function_space, count=None):
@@ -137,8 +143,7 @@ class Cofunction(BaseCoefficient, BaseForm):
 
         self.ufl_operands = ()
         self._hash = None
-        self._repr = "Cofunction(%s, %s)" % (
-            repr(self._ufl_function_space), repr(self._count))
+        self._repr = "Cofunction(%s, %s)" % (repr(self._ufl_function_space), repr(self._count))
 
     def equals(self, other):
         """Check equality."""
@@ -150,9 +155,7 @@ class Cofunction(BaseCoefficient, BaseForm):
 
     def __hash__(self):
         """Hash."""
-        return hash(("Cofunction",
-                     hash(self._ufl_function_space),
-                     self._count))
+        return hash(("Cofunction", hash(self._ufl_function_space), self._count))
 
     def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the form."""
@@ -174,6 +177,7 @@ class Coefficient(BaseCoefficient, FormArgument):
     _ufl_signature_data_ = BaseCoefficient._ufl_signature_data_
 
     def __hash__(self):
+        """Hash."""
         return hash(self._repr)
 
     def __new__(cls, *args, **kw):
@@ -187,8 +191,7 @@ class Coefficient(BaseCoefficient, FormArgument):
         FormArgument.__init__(self)
         BaseCoefficient.__init__(self, function_space, count)
 
-        self._repr = "Coefficient(%s, %s)" % (
-            repr(self._ufl_function_space), repr(self._count))
+        self._repr = "Coefficient(%s, %s)" % (repr(self._ufl_function_space), repr(self._count))
 
     def ufl_domains(self):
         """Get the UFL domains."""
@@ -223,13 +226,16 @@ class Coefficient(BaseCoefficient, FormArgument):
 
 # --- Helper functions for subfunctions on mixed elements ---
 
+
 def Coefficients(function_space):
     """Create a Coefficient in a mixed space.
 
     Returns a tuple with the function components corresponding to the subelements.
     """
     if isinstance(function_space, MixedFunctionSpace):
-        return [Coefficient(fs) if is_primal(fs) else Cofunction(fs)
-                for fs in function_space.num_sub_spaces()]
+        return [
+            Coefficient(fs) if is_primal(fs) else Cofunction(fs)
+            for fs in function_space.num_sub_spaces()
+        ]
     else:
         return split(Coefficient(function_space))

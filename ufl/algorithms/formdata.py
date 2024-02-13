@@ -21,9 +21,11 @@ class FormData(UFLObject):
     def __str__(self):
         """Return formatted summary of form data."""
         types = sorted(self.max_subdomain_ids.keys())
-        geometry = (("Geometric dimension", self.geometric_dimension), )
-        subdomains = tuple((f"Number of {integral_type} subdomains", self.max_subdomain_ids[integral_type])
-                           for integral_type in types)
+        geometry = (("Geometric dimension", self.geometric_dimension),)
+        subdomains = tuple(
+            (f"Number of {integral_type} subdomains", self.max_subdomain_ids[integral_type])
+            for integral_type in types
+        )
         functions = (
             # Arguments
             ("Rank", self.rank),
@@ -41,7 +43,9 @@ class FormData(UFLObject):
         raise NotImplementedError()
 
     def __hash__(self):
+        """Hash."""
         return hash(f"{self!r}")
 
     def __repr__(self):
+        """Representation."""
         raise NotImplementedError()

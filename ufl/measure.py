@@ -44,6 +44,7 @@ measure_name_to_integral_type = {s: i for i, s in integral_type_to_measure_name.
 # TODO: Design a class IntegralType(name, shortname, codim, num_cells, ...)?
 # TODO: Improve descriptions below:
 
+
 def register_integral_type(integral_type, measure_name):
     """Register an integral type."""
     global integral_type_to_measure_name, measure_name_to_integral_type
@@ -58,8 +59,7 @@ def register_integral_type(integral_type, measure_name):
 def as_integral_type(integral_type):
     """Map short name to long name and require a valid one."""
     integral_type = integral_type.replace(" ", "_")
-    integral_type = measure_name_to_integral_type.get(integral_type,
-                                                      integral_type)
+    integral_type = measure_name_to_integral_type.get(integral_type, integral_type)
     if integral_type not in integral_type_to_measure_name:
         raise ValueError("Invalid integral_type.")
     return integral_type
@@ -85,12 +85,14 @@ class Measure(UFLObject):
 
     __slots__ = ("_integral_type", "_domain", "_subdomain_id", "_metadata", "_subdomain_data")
 
-    def __init__(self,
-                 integral_type,  # "dx" etc
-                 domain=None,
-                 subdomain_id="everywhere",
-                 metadata=None,
-                 subdomain_data=None):
+    def __init__(
+        self,
+        integral_type,  # "dx" etc
+        domain=None,
+        subdomain_id="everywhere",
+        metadata=None,
+        subdomain_data=None,
+    ):
         """Initialise.
 
         Args:
@@ -137,7 +139,13 @@ class Measure(UFLObject):
 
     def _ufl_hash_data_(self):
         """Hash data."""
-        return (self._integral_type, self._domain, self._subdomain_id, self._metadata, self._subdomain_data)
+        return (
+            self._integral_type,
+            self._domain,
+            self._subdomain_id,
+            self._metadata,
+            self._subdomain_data,
+        )
 
     def integral_type(self):
         """Return the domain type.
@@ -166,12 +174,9 @@ class Measure(UFLObject):
         """
         return self._metadata
 
-    def reconstruct(self,
-                    integral_type=None,
-                    subdomain_id=None,
-                    domain=None,
-                    metadata=None,
-                    subdomain_data=None):
+    def reconstruct(
+        self, integral_type=None, subdomain_id=None, domain=None, metadata=None, subdomain_data=None
+    ):
         """Construct a new Measure object with some properties replaced with new values.
 
         Example:
@@ -191,9 +196,13 @@ class Measure(UFLObject):
             metadata = self.metadata()
         if subdomain_data is None:
             subdomain_data = self.subdomain_data()
-        return Measure(self.integral_type(),
-                       domain=domain, subdomain_id=subdomain_id,
-                       metadata=metadata, subdomain_data=subdomain_data)
+        return Measure(
+            self.integral_type(),
+            domain=domain,
+            subdomain_id=subdomain_id,
+            metadata=metadata,
+            subdomain_data=subdomain_data,
+        )
 
     def subdomain_data(self):
         """Return the integral subdomain_data.
@@ -207,12 +216,18 @@ class Measure(UFLObject):
     # Note: Must keep the order of the first two arguments here
     # (subdomain_id, metadata) for backwards compatibility, because
     # some tutorials write e.g. dx(0, {...}) to set metadata.
-    def __call__(self, subdomain_id=None, metadata=None, domain=None,
-                 subdomain_data=None, degree=None, scheme=None):
+    def __call__(
+        self,
+        subdomain_id=None,
+        metadata=None,
+        domain=None,
+        subdomain_data=None,
+        degree=None,
+        scheme=None,
+    ):
         """Reconfigure measure with new domain specification or metadata."""
         # Let syntax dx() mean integral over everywhere
-        all_args = (subdomain_id, metadata, domain, subdomain_data,
-                    degree, scheme)
+        all_args = (subdomain_id, metadata, domain, subdomain_data, degree, scheme)
         if all(arg is None for arg in all_args):
             return self.reconstruct(subdomain_id="everywhere")
 
@@ -223,7 +238,9 @@ class Measure(UFLObject):
             isinstance(subdomain_id, AbstractDomain) or hasattr(subdomain_id, "ufl_domain")
         ):
             if domain is not None:
-                raise ValueError("Ambiguous: setting domain both as keyword argument and first argument.")
+                raise ValueError(
+                    "Ambiguous: setting domain both as keyword argument and first argument."
+                )
             subdomain_id, domain = "everywhere", subdomain_id
 
         # If degree or scheme is set, inject into metadata. This is a
@@ -239,9 +256,12 @@ class Measure(UFLObject):
         # If we get any keywords, use them to reconstruct Measure.
         # Note that if only one argument is given, it is the
         # subdomain_id, e.g. dx(3) == dx(subdomain_id=3)
-        return self.reconstruct(subdomain_id=subdomain_id, domain=domain,
-                                metadata=metadata,
-                                subdomain_data=subdomain_data)
+        return self.reconstruct(
+            subdomain_id=subdomain_id,
+            domain=domain,
+            metadata=metadata,
+            subdomain_data=subdomain_data,
+        )
 
     def __str__(self):
         """Format as a string."""
@@ -257,7 +277,7 @@ class Measure(UFLObject):
         if self._subdomain_data is not None:
             args.append("subdomain_data=%s" % (self._subdomain_data,))
 
-        return "%s(%s)" % (name, ', '.join(args))
+        return "%s(%s)" % (name, ", ".join(args))
 
     def __repr__(self):
         """Return a repr string for this Measure."""
@@ -273,17 +293,19 @@ class Measure(UFLObject):
         if self._subdomain_data is not None:
             args.append("subdomain_data=%s" % repr(self._subdomain_data))
 
-        r = "%s(%s)" % (type(self).__name__, ', '.join(args))
+        r = "%s(%s)" % (type(self).__name__, ", ".join(args))
         return r
 
     def __hash__(self):
         """Return a hash value for this Measure."""
         metadata_hashdata = tuple(sorted((k, id(v)) for k, v in list(self._metadata.items())))
-        hashdata = (self._integral_type,
-                    self._subdomain_id,
-                    hash(self._domain),
-                    metadata_hashdata,
-                    id_or_none(self._subdomain_data))
+        hashdata = (
+            self._integral_type,
+            self._subdomain_id,
+            hash(self._domain),
+            metadata_hashdata,
+            id_or_none(self._subdomain_data),
+        )
         return hash(hashdata)
 
     def __eq__(self, other):
@@ -291,10 +313,14 @@ class Measure(UFLObject):
         sorted_metadata = sorted((k, id(v)) for k, v in list(self._metadata.items()))
         sorted_other_metadata = sorted((k, id(v)) for k, v in list(other._metadata.items()))
 
-        return (isinstance(other, Measure) and self._integral_type == other._integral_type and  # noqa: W504
-                self._subdomain_id == other._subdomain_id and self._domain == other._domain and  # noqa: W504
-                id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data) and  # noqa: W504
-                sorted_metadata == sorted_other_metadata)
+        return (
+            isinstance(other, Measure)
+            and self._integral_type == other._integral_type
+            and self._subdomain_id == other._subdomain_id
+            and self._domain == other._domain
+            and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
+            and sorted_metadata == sorted_other_metadata
+        )
 
     def __add__(self, other):
         """Add two measures (self+other).
@@ -350,18 +376,33 @@ class Measure(UFLObject):
             raise ValueError(
                 "Can only integrate scalar expressions. The integrand is a "
                 f"tensor expression with value shape {integrand.ufl_shape} and "
-                f"free indices with labels {integrand.ufl_free_indices}.")
+                f"free indices with labels {integrand.ufl_free_indices}."
+            )
 
         # If we have a tuple of domain ids build the integrals one by
         # one and construct as a Form in one go.
         subdomain_id = self.subdomain_id()
         if isinstance(subdomain_id, tuple):
-            return Form(list(chain(*((integrand * self.reconstruct(subdomain_id=d)).integrals()
-                                     for d in subdomain_id))))
+            return Form(
+                list(
+                    chain(
+                        *(
+                            (integrand * self.reconstruct(subdomain_id=d)).integrals()
+                            for d in subdomain_id
+                        )
+                    )
+                )
+            )
 
         # Check that we have an integer subdomain or a string
         # ("everywhere" or "otherwise", any more?)
-        if not isinstance(subdomain_id, (str, numbers.Integral,)):
+        if not isinstance(
+            subdomain_id,
+            (
+                str,
+                numbers.Integral,
+            ),
+        ):
             raise ValueError("Expecting integer or string domain id.")
 
         # If we don't have an integration domain, try to find one in
@@ -370,19 +411,23 @@ class Measure(UFLObject):
         if domain is None:
             domains = extract_domains(integrand)
             if len(domains) == 1:
-                domain, = domains
+                (domain,) = domains
             elif len(domains) == 0:
                 raise ValueError("This integral is missing an integration domain.")
             else:
-                raise ValueError("Multiple domains found, making the choice of integration domain ambiguous.")
+                raise ValueError(
+                    "Multiple domains found, making the choice of integration domain ambiguous."
+                )
 
         # Otherwise create and return a one-integral form
-        integral = Integral(integrand=integrand,
-                            integral_type=self.integral_type(),
-                            domain=domain,
-                            subdomain_id=subdomain_id,
-                            metadata=self.metadata(),
-                            subdomain_data=self.subdomain_data())
+        integral = Integral(
+            integrand=integrand,
+            integral_type=self.integral_type(),
+            domain=domain,
+            subdomain_id=subdomain_id,
+            metadata=self.metadata(),
+            subdomain_data=self.subdomain_data(),
+        )
         return Form([integral])
 
 
@@ -402,6 +447,7 @@ class MeasureSum(UFLObject):
         self._measures = measures
 
     def __repr__(self):
+        """Representation."""
         return "MeasureSum(" + ", ".join(f"{m!r}" for m in self._measures) + ")"
 
     def _ufl_hash_data_(self):
@@ -497,5 +543,5 @@ ds_tb = ds_b + ds_t
 dX = dx + dC
 
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
-point_integral_types = ("vertex", )
+point_integral_types = ("vertex",)
 facet_integral_types = ("exterior_facet", "interior_facet")

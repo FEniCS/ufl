@@ -32,8 +32,7 @@ class CellAvg(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Performs an approximate symbolic evaluation, since we don't have a cell."""
-        return self.ufl_operands[0].evaluate(x, mapping, component,
-                                             index_values)
+        return self.ufl_operands[0].evaluate(x, mapping, component, index_values)
 
     def __str__(self):
         """Format as a string."""

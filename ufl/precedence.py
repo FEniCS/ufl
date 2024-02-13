@@ -16,7 +16,7 @@ def parstr(child, parent, pre="(", post=")", format=str):
     # Execute when needed instead of on import, which leads to all
     # kinds of circular trouble.  Fixing this could be an optimization
     # of str(expr) though.
-    if not hasattr(parent, '_precedence'):
+    if not hasattr(parent, "_precedence"):
         assign_precedences(build_precedence_list())
 
     # We want child to be evaluated fully first, and if the parent has
@@ -61,7 +61,12 @@ def build_precedence_list():
     # stronger than +, but weaker than product
     precedence_list.append((IndexSum,))
 
-    precedence_list.append((Product, Division,))
+    precedence_list.append(
+        (
+            Product,
+            Division,
+        )
+    )
 
     # NB! Depends on language!
     precedence_list.append((Power, MathFunction, BesselFunction, Abs))
@@ -80,6 +85,7 @@ def build_precedence_mapping(precedence_list):
     """
     from ufl.classes import abstract_classes, all_ufl_classes
     from ufl.core.expr import Expr
+
     pm = {}
     missing = set()
     # Assign integer values for each precedence level
@@ -108,4 +114,7 @@ def assign_precedences(precedence_list):
     for c, p in sorted(pm.items(), key=lambda x: x[0].__name__):
         c._precedence = p
     if missing:
-        warnings.warn("Missing precedence levels for classes:\n" + "\n".join(f"  {c}" for c in sorted(missing)))
+        warnings.warn(
+            "Missing precedence levels for classes:\n"
+            + "\n".join(f"  {c}" for c in sorted(missing))
+        )

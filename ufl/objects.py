@@ -16,16 +16,16 @@ i, j, k, l = indices(4)  # noqa: E741
 p, q, r, s = indices(4)
 
 # Create objects for builtin known cell types
-vertex = Cell("vertex", 0)
-interval = Cell("interval", 1)
-triangle = Cell("triangle", 2)
-tetrahedron = Cell("tetrahedron", 3)
-prism = Cell("prism", 3)
-pyramid = Cell("pyramid", 3)
-quadrilateral = Cell("quadrilateral", 2)
-hexahedron = Cell("hexahedron", 3)
-tesseract = Cell("tesseract", 4)
-pentatope = Cell("pentatope", 4)
+vertex = Cell("vertex")
+interval = Cell("interval")
+triangle = Cell("triangle")
+tetrahedron = Cell("tetrahedron")
+prism = Cell("prism")
+pyramid = Cell("pyramid")
+quadrilateral = Cell("quadrilateral")
+hexahedron = Cell("hexahedron")
+tesseract = Cell("tesseract")
+pentatope = Cell("pentatope")
 
 # Facet is just a dummy declaration for RestrictedElement
 facet = "facet"

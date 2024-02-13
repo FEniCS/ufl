@@ -36,8 +36,8 @@ class Transformer(UFLObject):
     Base class for a visitor-like algorithm design pattern used to
     transform expression trees from one representation to another.
     """
-    _handlers_cache: typing.Dict[
-        type, typing.List[typing.Optional[typing.Tuple[str, bool]]]] = {}
+
+    _handlers_cache: typing.Dict[type, typing.List[typing.Optional[typing.Tuple[str, bool]]]] = {}
 
     def __init__(self, variable_cache=None):
         """Initialise."""
@@ -68,17 +68,16 @@ class Transformer(UFLObject):
                         handler_name = UFLObject._ufl_handler_name_
                     function = getattr(self, handler_name, None)
                     if function:
-                        cache_data[
-                            classobject.
-                            _typecode()] = handler_name, is_post_handler(
-                                function)
+                        cache_data[classobject._typecode()] = (
+                            handler_name,
+                            is_post_handler(function),
+                        )
                         break
             Transformer._handlers_cache[type(self)] = cache_data
 
         # Build handler list for this particular class (get functions
         # bound to self)
-        self._handlers = [(getattr(self, name), post)
-                          for (name, post) in cache_data]
+        self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
         # Keep a stack of objects visit is called on, to ease
         # backtracking
         self._visit_stack = []
@@ -240,9 +239,12 @@ class VariableStripper(ReuseTransformer):
 
 
 def apply_transformer(e, transformer, integral_type=None):
-    """Apply transformer.visit(expression) to each integrand expression in form, or to form if it is an Expr."""
-    return map_integrands(lambda expr: transformer.visit(expr), e,
-                          integral_type)
+    """Apply transforms.
+
+    Apply transformer.visit(expression) to each integrand expression in
+    form, or to form if it is an Expr.
+    """
+    return map_integrands(lambda expr: transformer.visit(expr), e, integral_type)
 
 
 def strip_variables(e):

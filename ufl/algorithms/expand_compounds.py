@@ -1,4 +1,4 @@
-"""Algorithm for expanding compound expressions into equivalent representations using basic operators."""
+"""Algorithm for expanding compound expressions into equivalent representations."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
@@ -15,7 +15,10 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 
 def expand_compounds(e):
     """Expand compounds."""
-    warnings.warn("The use of expand_compounds is deprecated and will be removed after December 2023. "
-                  "Please, use apply_algebra_lowering directly instead", FutureWarning)
+    warnings.warn(
+        "The use of expand_compounds is deprecated and will be removed after December 2023. "
+        "Please, use apply_algebra_lowering directly instead",
+        FutureWarning,
+    )
 
     return apply_algebra_lowering(e)

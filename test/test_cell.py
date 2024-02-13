@@ -85,4 +85,3 @@ def test_tensorproductcell():
     cell = orig.reconstruct()
     assert cell.sub_cells() == orig.sub_cells()
     assert cell.topological_dimension() == orig.topological_dimension()
-    assert cell.geometric_dimension() == orig.geometric_dimension()

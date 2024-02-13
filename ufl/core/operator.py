@@ -31,6 +31,7 @@ class Operator(Expr):
         raise NotImplementedError()
 
     def __hash__(self):
+        """Hash."""
         return hash("{self!r}")
 
     def _ufl_expr_reconstruct_(self, *operands):

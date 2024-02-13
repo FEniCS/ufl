@@ -1,9 +1,9 @@
-"""Balancing."""
 # Copyright (C) 2011-2017 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+"""Balancing."""
 
 from ufl.averaging import CellAvg, FacetAvg
 from ufl.corealg.map_dag import map_expr_dag
@@ -15,8 +15,18 @@ from ufl.restriction import NegativeRestricted, PositiveRestricted
 
 modifier_precedence = {
     m._ufl_handler_name_: i
-    for i, m in enumerate([ReferenceValue, ReferenceGrad, Grad, CellAvg,
-                           FacetAvg, PositiveRestricted, NegativeRestricted, Indexed])
+    for i, m in enumerate(
+        [
+            ReferenceValue,
+            ReferenceGrad,
+            Grad,
+            CellAvg,
+            FacetAvg,
+            PositiveRestricted,
+            NegativeRestricted,
+            Indexed,
+        ]
+    )
 }
 
 
@@ -42,10 +52,9 @@ def balance_modified_terminal(expr):
     assert expr._is_terminal()
 
     # Apply modifiers in order
-    layers = sorted(
-        layers[:-1], key=lambda e: modifier_precedence[e._ufl_handler_name_])
+    layers = sorted(layers[:-1], key=lambda e: modifier_precedence[e._ufl_handler_name_])
     for op in layers:
-        ops = (expr, ) + op.ufl_operands[1:]
+        ops = (expr,) + op.ufl_operands[1:]
         expr = op._ufl_expr_reconstruct_(*ops)
 
     # Preserve id if nothing has changed

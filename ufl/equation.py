@@ -42,6 +42,7 @@ class Equation(UFLObject):
             return self.rhs.equals(self.lhs)
         else:
             raise ValueError("Either lhs or rhs of Equation must implement self.equals(other).")
+
     __nonzero__ = __bool__
 
     def __eq__(self, other):

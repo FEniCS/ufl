@@ -5,9 +5,10 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from abc import abstractproperty
+
 from ufl.core.operator import Operator
 from ufl.precedence import parstr
-from abc import abstractproperty
 
 default_restriction = "+"
 
@@ -34,8 +35,7 @@ class Restricted(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
-        return self.ufl_operands[0].evaluate(x, mapping, component,
-                                             index_values)
+        return self.ufl_operands[0].evaluate(x, mapping, component, index_values)
 
     def __str__(self):
         """Format as a string."""

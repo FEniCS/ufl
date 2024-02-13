@@ -1,85 +1,106 @@
 import pytest
 
-from ufl import (Argument, Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, as_matrix, as_tensor,
-                 as_vector, cos, dx, exp, i, indices, j, k, l, outer, sin, triangle)
+from ufl import (
+    Argument,
+    Coefficient,
+    FunctionSpace,
+    Mesh,
+    TestFunction,
+    TrialFunction,
+    as_matrix,
+    as_tensor,
+    as_vector,
+    cos,
+    dx,
+    exp,
+    i,
+    indices,
+    j,
+    k,
+    l,
+    outer,
+    sin,
+    triangle,
+)
 from ufl.finiteelement import FiniteElement
 from ufl.indexsum import IndexSum
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
-# TODO: add more expressions to test as many possible combinations of index notation as feasible...
+# TODO: add more expressions to test as many possible combinations of
+# index notation as feasible...
 
 
 def test_vector_indices(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     u = Argument(space, 2)
     f = Coefficient(space)
-    u[i]*f[i]*dx
-    u[j]*f[j]*dx
+    u[i] * f[i] * dx
+    u[j] * f[j] * dx
 
 
 def test_tensor_indices(self):
     element = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     u = Argument(space, 2)
     f = Coefficient(space)
-    u[i, j]*f[i, j]*dx
-    u[j, i]*f[i, j]*dx
-    u[j, i]*f[j, i]*dx
+    u[i, j] * f[i, j] * dx
+    u[j, i] * f[i, j] * dx
+    u[j, i] * f[j, i] * dx
     with pytest.raises(BaseException):
-        (u[i, i]+f[j, i])*dx
+        (u[i, i] + f[j, i]) * dx
 
 
 def test_indexed_sum1(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     u = Argument(space, 2)
     f = Coefficient(space)
-    a = u[i]+f[i]
+    a = u[i] + f[i]
     with pytest.raises(BaseException):
-        a*dx
+        a * dx
 
 
 def test_indexed_sum2(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = Argument(space, 2)
     u = Argument(space, 3)
     f = Coefficient(space)
-    a = u[j]+f[j]+v[j]+2*v[j]+exp(u[i]*u[i])/2*f[j]
+    a = u[j] + f[j] + v[j] + 2 * v[j] + exp(u[i] * u[i]) / 2 * f[j]
     with pytest.raises(BaseException):
-        a*dx
+        a * dx
 
 
 def test_indexed_sum3(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     u = Argument(space, 2)
     f = Coefficient(space)
     with pytest.raises(BaseException):
-        u[i]+f[j]
+        u[i] + f[j]
 
 
 def test_indexed_function1(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = Argument(space, 2)
     u = Argument(space, 3)
     f = Coefficient(space)
-    aarg = (u[i]+f[i])*v[i]
-    exp(aarg)*dx
+    aarg = (u[i] + f[i]) * v[i]
+    exp(aarg) * dx
 
 
 def test_indexed_function2(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = Argument(space, 2)
     u = Argument(space, 3)
@@ -95,19 +116,19 @@ def test_indexed_function2(self):
 
 
 def test_indexed_function3(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     Argument(space, 2)
     u = Argument(space, 3)
     f = Coefficient(space)
     with pytest.raises(BaseException):
-        sin(u[i] + f[i])*dx
+        sin(u[i] + f[i]) * dx
 
 
 def test_vector_from_indices(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -124,14 +145,14 @@ def test_vector_from_indices(self):
 
 
 def test_matrix_from_indices(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
 
-    A = as_matrix(u[i]*v[j], (i, j))
-    B = as_matrix(v[k]*v[k]*u[i]*v[j], (j, i))
+    A = as_matrix(u[i] * v[j], (i, j))
+    B = as_matrix(v[k] * v[k] * u[i] * v[j], (j, i))
     C = A + A
     C = B + B
     D = A + B
@@ -142,8 +163,8 @@ def test_matrix_from_indices(self):
 
 
 def test_vector_from_list(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -156,8 +177,8 @@ def test_vector_from_list(self):
 
 
 def test_matrix_from_list(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -165,7 +186,7 @@ def test_matrix_from_list(self):
     # create matrix from list
     A = as_matrix([[u[0], u[1]], [v[0], v[1]]])
     # create matrix from indices
-    B = as_matrix((v[k]*v[k]) * u[i]*v[j], (j, i))
+    B = as_matrix((v[k] * v[k]) * u[i] * v[j], (j, i))
     # Test addition
     C = A + A
     C = B + B
@@ -177,8 +198,8 @@ def test_matrix_from_list(self):
 
 
 def test_tensor(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -186,7 +207,7 @@ def test_tensor(self):
     g = Coefficient(space)
 
     # define the components of a fourth order tensor
-    Cijkl = u[i]*v[j]*f[k]*g[l]
+    Cijkl = u[i] * v[j] * f[k] * g[l]
     assert len(Cijkl.ufl_shape) == 0
     assert set(Cijkl.ufl_free_indices) == {i.count(), j.count(), k.count(), l.count()}
 
@@ -205,7 +226,7 @@ def test_tensor(self):
 
     # legal?
     vv = as_vector([u[i], v[i]])
-    f[i]*vv  # this is well defined: ww = sum_i <f_i*u_i, f_i*v_i>
+    f[i] * vv  # this is well defined: ww = sum_i <f_i*u_i, f_i*v_i>
 
     # illegal
     with pytest.raises(BaseException):
@@ -217,8 +238,8 @@ def test_tensor(self):
 
 
 def test_indexed(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -238,13 +259,13 @@ def test_indexed(self):
 
 def test_spatial_derivative(self):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
+    element = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
     i, j, k, l = indices(4)  # noqa: E741
-    d = cell.geometric_dimension()
+    d = 2
 
     a = v[i].dx(i)
     self.assertSameIndices(a, ())
@@ -256,7 +277,7 @@ def test_spatial_derivative(self):
     self.assertNotIsInstance(a, IndexSum)
     assert a.ufl_shape == ()
 
-    a = (v[i]*u[j]).dx(i, j)
+    a = (v[i] * u[j]).dx(i, j)
     self.assertSameIndices(a, ())
     self.assertIsInstance(a, IndexSum)
     assert a.ufl_shape == ()
@@ -272,7 +293,7 @@ def test_spatial_derivative(self):
     self.assertNotIsInstance(a, IndexSum)
     assert a.ufl_shape == ()
 
-    a = (v[i]*u[j]).dx(0, 1)
+    a = (v[i] * u[j]).dx(0, 1)
     assert set(a.ufl_free_indices) == {i.count(), j.count()}
     self.assertNotIsInstance(a, IndexSum)
     assert a.ufl_shape == ()

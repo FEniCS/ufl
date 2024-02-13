@@ -10,51 +10,72 @@ from ufl.sobolevspace import H1
 
 @pytest.fixture
 def A0(request):
-    return Coefficient(FunctionSpace(
-        Mesh(FiniteElement("Lagrange", interval, 1,  (1, ), identity_pullback, H1)),
-        FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)))
+    return Coefficient(
+        FunctionSpace(
+            Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1)),
+            FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1),
+        )
+    )
 
 
 @pytest.fixture
 def A1(request):
-    return Coefficient(FunctionSpace(
-        Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1)),
-        FiniteElement("Lagrange", interval, 1, (1, 1), identity_pullback, H1)))
+    return Coefficient(
+        FunctionSpace(
+            Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1)),
+            FiniteElement("Lagrange", interval, 1, (1, 1), identity_pullback, H1),
+        )
+    )
 
 
 @pytest.fixture
 def A2(request):
-    return Coefficient(FunctionSpace(
-        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)),
-        FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)))
+    return Coefficient(
+        FunctionSpace(
+            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
+            FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1),
+        )
+    )
 
 
 @pytest.fixture
 def A3(request):
-    return Coefficient(FunctionSpace(
-        Mesh(FiniteElement("Lagrange", triangle, 1, (3, ), identity_pullback, H1)),
-        FiniteElement("Lagrange", triangle, 1, (3, 3), identity_pullback, H1)))
+    return Coefficient(
+        FunctionSpace(
+            Mesh(FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1)),
+            FiniteElement("Lagrange", triangle, 1, (3, 3), identity_pullback, H1),
+        )
+    )
 
 
 @pytest.fixture
 def A21(request):
-    return Coefficient(FunctionSpace(
-        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)),
-        FiniteElement("Lagrange", triangle, 1, (2, 1), identity_pullback, H1)))
+    return Coefficient(
+        FunctionSpace(
+            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
+            FiniteElement("Lagrange", triangle, 1, (2, 1), identity_pullback, H1),
+        )
+    )
 
 
 @pytest.fixture
 def A31(request):
-    return Coefficient(FunctionSpace(
-        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)),
-        FiniteElement("Lagrange", triangle, 1, (3, 1), identity_pullback, H1)))
+    return Coefficient(
+        FunctionSpace(
+            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
+            FiniteElement("Lagrange", triangle, 1, (3, 1), identity_pullback, H1),
+        )
+    )
 
 
 @pytest.fixture
 def A32(request):
-    return Coefficient(FunctionSpace(
-        Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)),
-        FiniteElement("Lagrange", triangle, 1, (3, 2), identity_pullback, H1)))
+    return Coefficient(
+        FunctionSpace(
+            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
+            FiniteElement("Lagrange", triangle, 1, (3, 2), identity_pullback, H1),
+        )
+    )
 
 
 def test_determinant0(A0):
@@ -66,38 +87,42 @@ def test_determinant1(A1):
 
 
 def test_determinant2(A2):
-    assert determinant_expr(A2) == A2[0, 0]*A2[1, 1] - A2[0, 1]*A2[1, 0]
+    assert determinant_expr(A2) == A2[0, 0] * A2[1, 1] - A2[0, 1] * A2[1, 0]
 
 
 def test_determinant3(A3):
-    assert determinant_expr(A3) == (A3[0, 0]*(A3[1, 1]*A3[2, 2] - A3[1, 2]*A3[2, 1])
-                                    + (A3[1, 0]*A3[2, 2] - A3[1, 2]*A3[2, 0])*(-A3[0, 1])
-                                    + A3[0, 2]*(A3[1, 0]*A3[2, 1] - A3[1, 1]*A3[2, 0]))
+    assert determinant_expr(A3) == (
+        A3[0, 0] * (A3[1, 1] * A3[2, 2] - A3[1, 2] * A3[2, 1])
+        + (A3[1, 0] * A3[2, 2] - A3[1, 2] * A3[2, 0]) * (-A3[0, 1])
+        + A3[0, 2] * (A3[1, 0] * A3[2, 1] - A3[1, 1] * A3[2, 0])
+    )
 
 
 def test_pseudo_determinant21(A21):
     i = Index()
-    assert renumber_indices(determinant_expr(A21)) == renumber_indices(sqrt(A21[i, 0]*A21[i, 0]))
+    assert renumber_indices(determinant_expr(A21)) == renumber_indices(sqrt(A21[i, 0] * A21[i, 0]))
 
 
 def test_pseudo_determinant31(A31):
     i = Index()
-    assert renumber_indices(determinant_expr(A31)) == renumber_indices(sqrt((A31[i, 0]*A31[i, 0])))
+    assert renumber_indices(determinant_expr(A31)) == renumber_indices(
+        sqrt((A31[i, 0] * A31[i, 0]))
+    )
 
 
 def test_pseudo_determinant32(A32):
     i = Index()
     c = cross_expr(A32[:, 0], A32[:, 1])
-    assert renumber_indices(determinant_expr(A32)) == renumber_indices(sqrt(c[i]*c[i]))
+    assert renumber_indices(determinant_expr(A32)) == renumber_indices(sqrt(c[i] * c[i]))
 
 
 def test_inverse0(A0):
-    expected = 1.0/A0  # stays scalar
+    expected = 1.0 / A0  # stays scalar
     assert inverse_expr(A0) == renumber_indices(expected)
 
 
 def test_inverse1(A1):
-    expected = as_tensor(((1.0/A1[0, 0],),))  # reshaped into 1x1 tensor
+    expected = as_tensor(((1.0 / A1[0, 0],),))  # reshaped into 1x1 tensor
     assert inverse_expr(A1) == renumber_indices(expected)
 
 

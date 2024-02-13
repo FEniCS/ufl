@@ -35,7 +35,8 @@ class VariableRenumberingTransformer(ReuseTransformer):
 class IndexRenumberingTransformer(VariableRenumberingTransformer):
     """Index renumbering transformer.
 
-    This is a poorly designed algorithm. It is used in some tests, please do not use for anything else.
+    This is a poorly designed algorithm. It is used in some tests,
+    please do not use for anything else.
     """
 
     def __init__(self):
@@ -79,5 +80,8 @@ def renumber_indices(expr):
 
     if isinstance(expr, Expr):
         if num_free_indices != len(result.ufl_free_indices):
-            raise ValueError("The number of free indices left in expression should be invariant w.r.t. renumbering.")
+            raise ValueError(
+                "The number of free indices left in expression "
+                "should be invariant w.r.t. renumbering."
+            )
     return result
