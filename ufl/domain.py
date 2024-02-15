@@ -220,36 +220,8 @@ def join_domains(domains):
         gdims.add(domain.geometric_dimension())
     if len(gdims) != 1:
         raise ValueError("Found domains with different geometric dimensions.")
-    (gdim,) = gdims
 
-    # Split into legacy and modern style domains
-    legacy_domains = []
-    modern_domains = []
-    for domain in domains:
-        if isinstance(domain, Mesh) and domain.ufl_id() < 0:
-            assert domain.ufl_cargo() is None
-            legacy_domains.append(domain)
-        else:
-            modern_domains.append(domain)
-
-    # Handle legacy domains checking
-    if legacy_domains:
-        warnings.warn(
-            "The use of Legacy domains will be deprecated by December 2023. "
-            "Please, use FunctionSpace instead",
-            DeprecationWarning,
-        )
-        if modern_domains:
-            raise ValueError(
-                "Found both a new-style domain and a legacy default domain. "
-                "These should not be used interchangeably. To find the legacy "
-                "domain, note that it is automatically created from a cell so "
-                "look for constructors taking a cell."
-            )
-        return tuple(legacy_domains)
-
-    # Handle modern domains checking (assuming correct by construction)
-    return tuple(modern_domains)
+    return domains
 
 
 # TODO: Move these to an analysis module?
