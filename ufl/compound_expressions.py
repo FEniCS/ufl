@@ -7,7 +7,6 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-import warnings
 
 from ufl.constantvalue import Zero, zero
 from ufl.core.multiindex import Index, indices
@@ -133,9 +132,8 @@ def codeterminant_expr_nxn(A, rows, cols):
     r = rows[0]
     subrows = rows[1:]
     for i, c in enumerate(cols):
-        subcols = cols[:i] + cols[i + 1:]
-        codet += (-1) ** i * A[r, c] * \
-            codeterminant_expr_nxn(A, subrows, subcols)
+        subcols = cols[:i] + cols[i + 1 :]
+        codet += (-1) ** i * A[r, c] * codeterminant_expr_nxn(A, subrows, subcols)
     return codet
 
 
@@ -493,11 +491,8 @@ def deviatoric_expr_3x3(A):
     """Deviatoric of a 3 by 3 matrix."""
     return as_matrix(
         [
-            [-1.0 / 3 * A[1, 1] - 1.0 / 3 * A[2, 2] +
-                2.0 / 3 * A[0, 0], A[0, 1], A[0, 2]],
-            [A[1, 0], 2.0 / 3 * A[1, 1] - 1.0 / 3 *
-                A[2, 2] - 1.0 / 3 * A[0, 0], A[1, 2]],
-            [A[2, 0], A[2, 1], -1.0 / 3 * A[1, 1] +
-                2.0 / 3 * A[2, 2] - 1.0 / 3 * A[0, 0]],
+            [-1.0 / 3 * A[1, 1] - 1.0 / 3 * A[2, 2] + 2.0 / 3 * A[0, 0], A[0, 1], A[0, 2]],
+            [A[1, 0], 2.0 / 3 * A[1, 1] - 1.0 / 3 * A[2, 2] - 1.0 / 3 * A[0, 0], A[1, 2]],
+            [A[2, 0], A[2, 1], -1.0 / 3 * A[1, 1] + 2.0 / 3 * A[2, 2] - 1.0 / 3 * A[0, 0]],
         ]
     )

@@ -7,7 +7,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import numbers
-import warnings
 
 from ufl.cell import AbstractCell
 from ufl.core.ufl_id import attach_ufl_id
