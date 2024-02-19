@@ -7,7 +7,6 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-import warnings
 
 from ufl.constantvalue import Zero, zero
 from ufl.core.multiindex import Index, indices
@@ -111,20 +110,6 @@ def _det_2x2(B, i, j, k, l):  # noqa: E741
 def determinant_expr_2x2(B):
     """Determinant of a 2 by 2 matrix."""
     return _det_2x2(B, 0, 1, 0, 1)
-
-
-def old_determinant_expr_3x3(A):
-    """Determinant of a 3 by 3 matrix."""
-    warnings.warn(
-        "The use of old_determinant_expr_3x3 is deprecated and will be removed "
-        "after December 2023. Please, use determinant_expr_3x3 instead",
-        FutureWarning,
-    )
-    return (
-        A[0, 0] * _det_2x2(A, 1, 2, 1, 2)
-        + A[0, 1] * _det_2x2(A, 1, 2, 2, 0)
-        + A[0, 2] * _det_2x2(A, 1, 2, 0, 1)
-    )
 
 
 def determinant_expr_3x3(A):
