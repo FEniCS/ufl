@@ -66,7 +66,6 @@ class SobolevSpace(object):
 
     def __eq__(self, other):
         """Check equality."""
-        print("XXXXX")
         return isinstance(other, SobolevSpace) and self.name == other.name
 
     def __ne__(self, other):
