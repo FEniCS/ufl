@@ -20,11 +20,12 @@ from ufl.restriction import default_restriction, require_restriction
 from ufl.sobolevspace import H1
 from ufl.split_functions import split
 from ufl.utils.counted import Counted
+from ufl.core.ufl_type import UFLObject
 
 # --- The Coefficient class represents a coefficient in a form ---
 
 
-class BaseCoefficient(Counted):
+class BaseCoefficient(UFLObject, Counted):
     """UFL form argument type: Parent Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN

@@ -27,7 +27,7 @@ from ufl import (
     triangle,
 )
 from ufl.checks import is_cellwise_constant
-from ufl.classes import (
+from ufl.geometry import (
     CellCoordinate,
     FacetJacobian,
     FacetJacobianDeterminant,

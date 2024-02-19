@@ -28,6 +28,18 @@ class IndexExpander(ReuseTransformer):
         self._components = Stack()
         self._index2value = StackDict()
 
+    def __str__(self):
+        """String."""
+        raise NotImplementedError()
+
+    def __repr__(self):
+        """Representation."""
+        raise NotImplementedError()
+
+    def _ufl_hash_data_(self):
+        """UFL hash data."""
+        raise NotImplementedError()
+
     def component(self):
         """Return current component tuple."""
         if self._components:

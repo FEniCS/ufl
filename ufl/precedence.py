@@ -85,6 +85,7 @@ def build_precedence_mapping(precedence_list):
     """
     from ufl.classes import abstract_classes, all_ufl_classes
     from ufl.core.expr import Expr
+    from ufl.core.ufl_type import UFLObject
 
     pm = {}
     missing = set()
@@ -98,7 +99,7 @@ def build_precedence_mapping(precedence_list):
     for c in all_ufl_classes:
         if c not in abstract_classes and c not in pm:
             b = c.__bases__[0]
-            while b is not Expr:
+            while b is not Expr and b is not UFLObject:
                 if b in pm:
                     pm[c] = pm[b]
                     break

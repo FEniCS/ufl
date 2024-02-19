@@ -99,6 +99,7 @@ class MultiFunction(UFLObject):
 
         as a default rule.
         """
+        print(o)
         if all(a is b for a, b in zip(o.ufl_operands, ops)):
             return o
         else:

@@ -187,21 +187,23 @@ class Expr(UFLObject):
     def ufl_operands(self):
         """A tuple of operands, all of them Expr instances."""
 
-    @abstractproperty
+    # TODO: Make this abstract?
+    @property
     def ufl_shape(self):
         """A tuple of ints, the value shape of the expression."""
+        return ()
 
-    # @abstractproperty
+    # TODO: Make this abstract?
     @property
     def ufl_free_indices(self):
         """A tuple of free index counts."""
-        raise NotImplementedError()
+        return ()
 
-    # @abstractproperty
+    # TODO: Make this abstract?
     @property
     def ufl_index_dimensions(self):
         """A tuple providing the int dimension for each free index."""
-        raise NotImplementedError()
+        return ()
 
     @abstractmethod
     def _ufl_compute_hash_(self):

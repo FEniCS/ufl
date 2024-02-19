@@ -78,6 +78,10 @@ class FixedIndex(IndexBase):
         """Return representation."""
         return f"FixedIndex({self._value})"
 
+    def _ufl_hash_data_(self):
+        """UFL hash data."""
+        return (self._value)
+
 
 class Index(IndexBase, Counted):
     """UFL value: An index with no value assigned.
@@ -113,6 +117,10 @@ class Index(IndexBase, Counted):
     def __repr__(self):
         """Return representation."""
         return f"Index({self._count})"
+
+    def _ufl_hash_data_(self):
+        """UFL hash data."""
+        return (self._count,)
 
 
 class MultiIndex(Terminal):
@@ -262,6 +270,14 @@ class MultiIndex(Terminal):
     def apply_restrictions(self, side=None):
         """Apply restrictions."""
         return self
+
+    def _ufl_hash_data_(self):
+        """UFL hash data."""
+        return ("MultiIndex", self._indices,)
+
+    def __hash__(self):
+        """Hash."""
+        return hash(self._ufl_hash_data_())
 
 
 def indices(n):

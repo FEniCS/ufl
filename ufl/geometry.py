@@ -140,6 +140,10 @@ class GeometricFacetQuantity(GeometricQuantity):
         """Hash data."""
         return (self.__classname__, self._domain)
 
+    def __hash__(self):
+        """Hash."""
+        return hash(self._ufl_hash_data_)
+
     def apply_restrictions(self, side=None):
         """Apply restrictions."""
         return require_restriction(self)
