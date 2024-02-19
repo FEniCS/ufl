@@ -143,7 +143,6 @@ class DirectionalSobolevSpace(SobolevSpace):
 
     def __eq__(self, other):
         """Check equality."""
-        print("FFFFFF")
         if isinstance(other, DirectionalSobolevSpace):
             return self._orders == other._orders
         return all(self[i] == other for i in self._spatial_indices)
