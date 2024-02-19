@@ -39,7 +39,6 @@ __all__ = [
     "replace_terminal_data",
     "post_traversal",
     "change_to_reference_grad",
-    "expand_compounds",
     "validate_form",
     "FormSplitter",
     "extract_arguments",
@@ -71,7 +70,6 @@ from ufl.algorithms.change_to_reference import change_to_reference_grad
 from ufl.algorithms.checks import validate_form
 from ufl.algorithms.compute_form_data import compute_form_data, preprocess_form
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
-from ufl.algorithms.expand_compounds import expand_compounds
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.formfiles import load_forms, load_ufl_file, read_ufl_file
 from ufl.algorithms.formsplitter import FormSplitter
