@@ -720,6 +720,20 @@ class Expr(UFLObject):
     ):
         """Check restrictions."""
 
+    def get_arity(self):
+        """Get the arity."""
+        from ufl.corealg.traversal import traverse_unique_terminals
+        from ufl.algorithms.check_arities import ArityMismatch
+        from ufl.argument import Argument
+
+        for t in traverse_unique_terminals(self):
+            if type(t) is Argument:
+                raise ArityMismatch(
+                    f"Applying nonlinear operator {self.__class__.__name__} to "
+                    f"expression depending on form argument {t}."
+                )
+        return ()
+
 
 def ufl_err_str(expr):
     """Return a UFL error string."""

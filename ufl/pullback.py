@@ -187,7 +187,7 @@ class CovariantPiola(AbstractPullback):
 
         Returns: The function pulled back to the reference cell
         """
-        from ufl.classes import JacobianInverse
+        from ufl.geometry import JacobianInverse
 
         domain = extract_unique_domain(expr)
         K = JacobianInverse(domain)
@@ -230,7 +230,7 @@ class L2Piola(AbstractPullback):
 
         Returns: The function pulled back to the reference cell
         """
-        from ufl.classes import JacobianDeterminant
+        from ufl.geometry import JacobianDeterminant
 
         domain = extract_unique_domain(expr)
         detJ = JacobianDeterminant(domain)
@@ -269,7 +269,7 @@ class DoubleContravariantPiola(AbstractPullback):
 
         Returns: The function pulled back to the reference cell
         """
-        from ufl.classes import Jacobian, JacobianDeterminant
+        from ufl.geometry import Jacobian, JacobianDeterminant
 
         domain = extract_unique_domain(expr)
         J = Jacobian(domain)
@@ -313,7 +313,7 @@ class DoubleCovariantPiola(AbstractPullback):
 
         Returns: The function pulled back to the reference cell
         """
-        from ufl.classes import JacobianInverse
+        from ufl.geometry import JacobianInverse
 
         domain = extract_unique_domain(expr)
         K = JacobianInverse(domain)

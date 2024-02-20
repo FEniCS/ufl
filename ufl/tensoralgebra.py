@@ -116,6 +116,16 @@ class Transposed(CompoundTensorOperator):
         """Format as a string."""
         return "%s^T" % parstr(self.ufl_operands[0], self)
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
 
 class Outer(CompoundTensorOperator):
     """Outer."""
@@ -410,11 +420,19 @@ class Trace(CompoundTensorOperator):
         """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
-    ufl_shape = ()
-
     def __str__(self):
         """Format as a string."""
         return "tr(%s)" % self.ufl_operands[0]
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
 
 class Determinant(CompoundTensorOperator):
@@ -560,6 +578,21 @@ class Deviatoric(CompoundTensorOperator):
         """Format as a string."""
         return "dev(%s)" % self.ufl_operands[0]
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape
+
 
 class Skew(CompoundTensorOperator):
     """Skew."""
@@ -592,6 +625,21 @@ class Skew(CompoundTensorOperator):
     def __str__(self):
         """Format as a string."""
         return "skew(%s)" % self.ufl_operands[0]
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape
 
 
 class Sym(CompoundTensorOperator):
@@ -627,3 +675,18 @@ class Sym(CompoundTensorOperator):
     def __str__(self):
         """Format as a string."""
         return f"sym({self.ufl_operands[0]})"
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape

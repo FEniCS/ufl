@@ -144,3 +144,8 @@ class Variable(Operator):
     def get_arity(self):
         """Get the arity."""
         return self.ufl_operands[0].get_arity()
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape
