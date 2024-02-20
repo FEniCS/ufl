@@ -18,8 +18,8 @@ class Indexed(Operator):
     """Indexed expression."""
 
     __slots__ = (
-        "ufl_free_indices",
-        "ufl_index_dimensions",
+        "_ufl_free_indices",
+        "_ufl_index_dimensions",
     )
 
     def __new__(cls, expression, multiindex):
@@ -84,10 +84,18 @@ class Indexed(Operator):
             fi, fid = (), ()
 
         # Cache free index and dimensions
-        self.ufl_free_indices = fi
-        self.ufl_index_dimensions = fid
+        self._ufl_free_indices = fi
+        self._ufl_index_dimensions = fid
 
-    ufl_shape = ()
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self._ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self._ufl_index_dimensions
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         """Evaluate."""

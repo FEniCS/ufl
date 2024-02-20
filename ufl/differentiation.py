@@ -66,6 +66,21 @@ class CoefficientDerivative(Derivative):
             self.ufl_operands[3],
         )
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape
+
 
 class CoordinateDerivative(CoefficientDerivative):
     """Derivative of the integrand of a form w.r.t. the SpatialCoordinates."""
@@ -80,6 +95,21 @@ class CoordinateDerivative(CoefficientDerivative):
             self.ufl_operands[2],
             self.ufl_operands[3],
         )
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape
 
 
 class BaseFormDerivative(CoefficientDerivative, BaseForm):
@@ -125,6 +155,21 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
         )
         self._coefficients = base_form_coeffs
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape
+
 
 class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
     """Derivative of a base form w.r.t. the SpatialCoordinates."""
@@ -136,6 +181,21 @@ class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
         BaseFormDerivative.__init__(
             self, base_form, coefficients, arguments, coefficient_derivatives
         )
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape
 
 
 class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
@@ -171,6 +231,21 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
         )
         return argument_slots
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape
+
 
 class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):
     """Derivative of a base form operator w.r.t. the SpatialCoordinates."""
@@ -183,14 +258,29 @@ class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, Coordinat
             self, base_form, coefficients, arguments, coefficient_derivatives
         )
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self.ufl_operands[0].ufl_shape
+
 
 class VariableDerivative(Derivative):
     """Variable Derivative."""
 
     __slots__ = (
-        "ufl_shape",
-        "ufl_free_indices",
-        "ufl_index_dimensions",
+        "_ufl_shape",
+        "_ufl_free_indices",
+        "_ufl_index_dimensions",
     )
 
     def __new__(cls, f, v):
@@ -214,15 +304,30 @@ class VariableDerivative(Derivative):
     def __init__(self, f, v):
         """Initalise."""
         Derivative.__init__(self, (f, v))
-        self.ufl_free_indices = f.ufl_free_indices
-        self.ufl_index_dimensions = f.ufl_index_dimensions
-        self.ufl_shape = f.ufl_shape + v.ufl_shape
+        self._ufl_free_indices = f.ufl_free_indices
+        self._ufl_index_dimensions = f.ufl_index_dimensions
+        self._ufl_shape = f.ufl_shape + v.ufl_shape
 
     def __str__(self):
         """Format as a string."""
         if isinstance(self.ufl_operands[0], Terminal):
             return "d%s/d[%s]" % (self.ufl_operands[0], self.ufl_operands[1])
         return "d/d[%s] %s" % (self.ufl_operands[1], parstr(self.ufl_operands[0], self))
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self._ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self._ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        return self._ufl_shape
 
 
 # --- Compound differentiation objects ---
@@ -279,6 +384,16 @@ class Grad(CompoundDerivative):
     def ufl_shape(self):
         """Get the UFL shape."""
         return self.ufl_operands[0].ufl_shape + (self._dim,)
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
     def __str__(self):
         """Format as a string."""
@@ -343,6 +458,16 @@ class ReferenceGrad(CompoundDerivative):
         """Get the arity."""
         return self.ufl_operands[0].get_arity()
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
 
 class Div(CompoundDerivative):
     """Div."""
@@ -372,6 +497,16 @@ class Div(CompoundDerivative):
     def __str__(self):
         """Format as a string."""
         return "div(%s)" % self.ufl_operands[0]
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
 
 class ReferenceDiv(CompoundDerivative):
@@ -441,6 +576,16 @@ class NablaGrad(CompoundDerivative):
         """Format as a string."""
         return "nabla_grad(%s)" % self.ufl_operands[0]
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
 
 class NablaDiv(CompoundDerivative):
     """Nabla div."""
@@ -470,6 +615,16 @@ class NablaDiv(CompoundDerivative):
     def __str__(self):
         """Format as a string."""
         return "nabla_div(%s)" % self.ufl_operands[0]
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
 
 _curl_shapes = {(): (2,), (2,): (), (3,): (3,)}
@@ -504,6 +659,16 @@ class Curl(CompoundDerivative):
         """Format as a string."""
         return "curl(%s)" % self.ufl_operands[0]
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
 
 class ReferenceCurl(CompoundDerivative):
     """Reference curl."""
@@ -533,3 +698,13 @@ class ReferenceCurl(CompoundDerivative):
     def __str__(self):
         """Format as a string."""
         return "reference_curl(%s)" % self.ufl_operands[0]
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions

@@ -202,10 +202,6 @@ class Argument(FormArgument, BaseArgument):
         """Hash data."""
         return ("Argument", hash(self._ufl_function_space), self._number, self._part)
 
-    def __hash__(self) -> int:
-        """Hash the object."""
-        return hash(self._ufl_hash_data_())
-
     def apply_restrictions(self, side=None):
         """Apply restrictions."""
         return require_restriction(self)
