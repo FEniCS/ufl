@@ -160,17 +160,20 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         r += f"; derivatives={self.derivatives!r})"
         return r
 
-    def __hash__(self):
-        """Hash code for use in dicts."""
-        hashdata = (
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return (
             type(self),
             tuple(hash(op) for op in self.ufl_operands),
             tuple(hash(arg) for arg in self._argument_slots),
             self.derivatives,
             hash(self.ufl_function_space()),
         )
-        return hash(hashdata)
 
     def __eq__(self, other):
         """Check for equality."""
         raise NotImplementedError()
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()

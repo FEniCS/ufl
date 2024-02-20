@@ -27,13 +27,13 @@ from ufl import (
     triangle,
 )
 from ufl.checks import is_cellwise_constant
+from ufl.finiteelement import FiniteElement
 from ufl.geometry import (
     CellCoordinate,
     FacetJacobian,
     FacetJacobianDeterminant,
     FacetJacobianInverse,
 )
-from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2, HInf
 

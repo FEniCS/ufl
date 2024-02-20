@@ -5,6 +5,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import typing
 from abc import abstractproperty
 
 from ufl.core.operator import Operator
@@ -15,7 +16,7 @@ default_restriction = "+"
 
 def require_restriction(o):
     """Raise an error."""
-    raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+    raise ValueError(f"Discontinuous type {o.__class__.__name__} must be restricted.")
 
 
 class Restricted(Operator):
@@ -73,6 +74,14 @@ class Restricted(Operator):
     def get_arity(self):
         """Get the arity."""
         return self.ufl_operands[0].get_arity()
+
+    def check_restrictions(
+        self, require_restriction: bool, restriction: typing.Optional[str] = None
+    ):
+        """Check restrictions."""
+        if restriction is not None:
+            raise ValueError("Not expecting twice restricted expression.")
+        self.ufl_operands[0].check_restrictions(require_restriction, self._side)
 
 
 class PositiveRestricted(Restricted):

@@ -31,11 +31,7 @@ class Constant(Terminal, Counted):
         )
 
     def _ufl_hash_data_(self):
-        raise NotImplementedError()
-
-    def __hash__(self):
-        """Hash."""
-        return hash(self._repr)
+        return ("Constant", hash(self._ufl_domain), hash(self._ufl_shape), self._count)
 
     @property
     def ufl_shape(self):
@@ -73,6 +69,10 @@ class Constant(Terminal, Counted):
             and self._ufl_domain == other._ufl_domain
             and self._ufl_shape == self._ufl_shape
         )
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def _ufl_signature_data_(self, renumbering):
         """Signature data for constant depends on renumbering."""

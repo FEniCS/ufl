@@ -43,9 +43,6 @@ class Integral(UFLObject):
         self._metadata = metadata
         self._subdomain_data = subdomain_data
 
-    def _ufl_hash_data_(self):
-        raise NotImplementedError()
-
     def reconstruct(
         self,
         integrand=None,
@@ -146,17 +143,21 @@ class Integral(UFLObject):
 
     def __hash__(self):
         """Hash."""
+        return super().__hash__()
+
+    def _ufl_hash_data_(self):
+        """Hash."""
         # Assuming few collisions by ignoring hash(self._metadata) (a
         # dict is not hashable but we assume it is immutable in
         # practice)
-        hashdata = (
+        return (
+            "Integral",
             hash(self._integrand),
             self._integral_type,
             hash(self._ufl_domain),
             self._subdomain_id,
             id_or_none(self._subdomain_data),
         )
-        return hash(hashdata)
 
     def apply_default_restrictions(self):
         """Apply default restrictions."""

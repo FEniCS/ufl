@@ -25,6 +25,10 @@ class Label(Terminal, Counted):
         Terminal.__init__(self)
         Counted.__init__(self, count, Label)
 
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return ("Label", self._count)
+
     def __str__(self):
         """Format as a string."""
         return "Label(%d)" % self._count
@@ -124,6 +128,10 @@ class Variable(Operator):
             and self.ufl_operands[1] == other.ufl_operands[1]
             and self.ufl_operands[0] == other.ufl_operands[0]
         )
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __str__(self):
         """Format as a string."""

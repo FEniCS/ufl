@@ -85,6 +85,10 @@ class IntegralData(UFLObject):
             and self.metadata == other.metadata
         )
 
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
+
     def __str__(self):
         """Format as a string."""
         s = f"IntegralData over domain({self.integral_type}, {self.subdomain_id})"

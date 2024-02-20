@@ -6,6 +6,8 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import typing
+
 from ufl.core.terminal import Terminal
 from ufl.domain import as_domain, extract_unique_domain
 from ufl.restriction import default_restriction, require_restriction
@@ -101,15 +103,15 @@ class GeometricQuantity(Terminal):
 
     def _ufl_signature_data_(self, renumbering):
         """Signature data of geometric quantities depend on the domain numbering."""
-        return (self._ufl_class_.__name__,) + self._domain._ufl_signature_data_(renumbering)
+        return (self.__class__.__name__,) + self._domain._ufl_signature_data_(renumbering)
 
     def __str__(self):
         """Format as a string."""
-        return self._ufl_class_.name
+        return self.__class__.name
 
     def __repr__(self):
         """Representation."""
-        r = "%s(%s)" % (self._ufl_class_.__name__, repr(self._domain))
+        r = "%s(%s)" % (self.__class__.__name__, repr(self._domain))
         return r
 
     def _ufl_compute_hash_(self):
@@ -118,13 +120,21 @@ class GeometricQuantity(Terminal):
 
     def __eq__(self, other):
         """Check equality."""
-        return isinstance(other, self._ufl_class_) and other._domain == self._domain
+        return isinstance(other, self.__class__) and other._domain == self._domain
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
 
 class GeometricCellQuantity(GeometricQuantity):
     """Geometric cell quantity."""
 
     __slots__ = ()
+
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return (self.__class__.__name__, self._domain)
 
     def apply_restrictions(self, side=None):
         """Apply restrictions."""
@@ -138,7 +148,7 @@ class GeometricFacetQuantity(GeometricQuantity):
 
     def _ufl_hash_data_(self):
         """Hash data."""
-        return (self.__classname__, self._domain)
+        return (self.__class__.__name__, self._domain)
 
     def __hash__(self):
         """Hash."""
@@ -719,6 +729,17 @@ class FacetNormal(GeometricFacetQuantity):
                 return -self(default_restriction)
         else:
             require_restriction(self)
+
+    def check_restrictions(
+        self, require_restriction: bool, restriction: typing.Optional[str] = None
+    ):
+        """Check restrictions."""
+        if require_restriction:
+            if restriction is None:
+                raise ValueError("Facet normal must be restricted in interior facet integrals.")
+        else:
+            if restriction is not None:
+                raise ValueError("Restrictions are only allowed for interior facet integrals.")
 
 
 class CellNormal(GeometricCellQuantity):

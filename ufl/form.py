@@ -138,6 +138,10 @@ class BaseForm(UFLObject):
         """
         return Equation(self, other)
 
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
+
     def __radd__(self, other):
         """Add."""
         # Ordering of form additions make no difference
@@ -902,7 +906,6 @@ class ZeroBaseForm(BaseForm):
         "_arguments",
         "_coefficients",
         "ufl_operands",
-        "_hash",
         # Pyadjoint compatibility
         "form",
     )
@@ -912,7 +915,6 @@ class ZeroBaseForm(BaseForm):
         BaseForm.__init__(self)
         self._arguments = arguments
         self.ufl_operands = arguments
-        self._hash = None
         self.form = None
 
     def _analyze_form_arguments(self):
@@ -935,6 +937,10 @@ class ZeroBaseForm(BaseForm):
         else:
             return False
 
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
+
     def __str__(self):
         """Format as a string."""
         return "ZeroBaseForm(%s)" % (", ".join(str(arg) for arg in self._arguments))
@@ -943,8 +949,6 @@ class ZeroBaseForm(BaseForm):
         """Representation."""
         return "ZeroBaseForm(%s)" % (", ".join(repr(arg) for arg in self._arguments))
 
-    def __hash__(self):
-        """Hash."""
-        if self._hash is None:
-            self._hash = hash(("ZeroBaseForm", hash(self._arguments)))
-        return self._hash
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return ("ZeroBaseForm", hash(self._arguments))

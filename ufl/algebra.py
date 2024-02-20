@@ -81,6 +81,21 @@ class Sum(Operator):
         """Initialise."""
         Operator.__init__(self)
 
+    @property
+    def ufl_shape(self):
+        """A tuple of ints, the value shape of the expression."""
+        return self.ufl_operands[0].ufl_shape
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
         return sum(o.evaluate(x, mapping, component, index_values) for o in self.ufl_operands)
@@ -105,7 +120,7 @@ class Sum(Operator):
 class Product(Operator):
     """The product of two or more UFL objects."""
 
-    __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = ("_ufl_free_indices", "_ufl_index_dimensions")
 
     def __new__(cls, a, b):
         """Create a new product."""
@@ -166,14 +181,22 @@ class Product(Operator):
         fi, fid = merge_unique_indices(
             a.ufl_free_indices, a.ufl_index_dimensions, b.ufl_free_indices, b.ufl_index_dimensions
         )
-        self.ufl_free_indices = fi
-        self.ufl_index_dimensions = fid
+        self._ufl_free_indices = fi
+        self._ufl_index_dimensions = fid
 
     def __init__(self, a, b):
         """Initialise."""
         Operator.__init__(self)
 
-    ufl_shape = ()
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self._ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self._ufl_index_dimensions
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
@@ -280,7 +303,20 @@ class Division(Operator):
         """Initialise."""
         Operator.__init__(self)
 
-    ufl_shape = ()  # self.ufl_operands[0].ufl_shape
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """A tuple of ints, the value shape of the expression."""
+        return self.ufl_operands[0].ufl_shape
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
@@ -355,7 +391,15 @@ class Power(Operator):
         """Initialise."""
         Operator.__init__(self)
 
-    ufl_shape = ()
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
     def evaluate(self, x, mapping, component, index_values):
         """Evalute."""
@@ -393,6 +437,16 @@ class Abs(Operator):
         """Initialise."""
         Operator.__init__(self, (a,))
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -422,6 +476,16 @@ class Conj(Operator):
             return as_ufl(a._value.conjugate())
 
         return Operator.__new__(cls)
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
     def __init__(self, a):
         """Initialise."""
@@ -467,6 +531,16 @@ class Real(Operator):
         """Initialise."""
         Operator.__init__(self, (a,))
 
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -500,6 +574,16 @@ class Imag(Operator):
     def __init__(self, a):
         """Initialise."""
         Operator.__init__(self, (a,))
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""

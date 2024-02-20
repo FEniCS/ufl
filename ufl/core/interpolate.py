@@ -88,6 +88,10 @@ class Interpolate(BaseFormOperator):
             and self.ufl_function_space() == other.ufl_function_space()
         )
 
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
+
 
 # Helper function
 def interpolate(expr, v):

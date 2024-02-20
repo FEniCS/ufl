@@ -30,7 +30,7 @@ class IndexBase(UFLObject):
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
 
-    __slots__ = ("_value", "_hash")
+    __slots__ = ("_value",)
 
     _cache: typing.Dict[int, IndexBase] = {}
 
@@ -53,18 +53,17 @@ class FixedIndex(IndexBase):
         """Initialise."""
         IndexBase.__init__(self)
         self._value = value
-        self._hash = hash(("FixedIndex", self._value))
 
     def __init__(self, value):
         """Initialise."""
 
-    def __hash__(self):
-        """Hash."""
-        return self._hash
-
     def __eq__(self, other):
         """Check equality."""
         return isinstance(other, FixedIndex) and (self._value == other._value)
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __int__(self):
         """Convert to int."""
@@ -80,7 +79,7 @@ class FixedIndex(IndexBase):
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
-        return (self._value)
+        return ("FixedIndex", self._value)
 
 
 class Index(IndexBase, Counted):
@@ -96,16 +95,13 @@ class Index(IndexBase, Counted):
         IndexBase.__init__(self)
         Counted.__init__(self, count, Index)
 
-    def _ufl_hash_data_(self):
-        raise NotImplementedError()
-
-    def __hash__(self):
-        """Hash."""
-        return hash(("Index", self._count))
-
     def __eq__(self, other):
         """Check equality."""
         return isinstance(other, Index) and (self._count == other._count)
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __str__(self):
         """Represent as a string."""
@@ -120,7 +116,7 @@ class Index(IndexBase, Counted):
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
-        return (self._count,)
+        return ("Index", self._count)
 
 
 class MultiIndex(Terminal):
@@ -179,6 +175,10 @@ class MultiIndex(Terminal):
     def __eq__(self, other):
         """Check equality."""
         return isinstance(other, MultiIndex) and self._indices == other._indices
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate index."""
@@ -273,11 +273,10 @@ class MultiIndex(Terminal):
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
-        return ("MultiIndex", self._indices,)
-
-    def __hash__(self):
-        """Hash."""
-        return hash(self._ufl_hash_data_())
+        return (
+            "MultiIndex",
+            self._indices,
+        )
 
 
 def indices(n):

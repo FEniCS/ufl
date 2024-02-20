@@ -36,7 +36,7 @@ class Operator(Expr):
 
     def _ufl_expr_reconstruct_(self, *operands):
         """Return a new object of the same type with new operands."""
-        return self._ufl_class_(*operands)
+        return self.__class__(*operands)
 
     def _ufl_signature_data_(self):
         """Get UFL signature data."""
@@ -49,7 +49,7 @@ class Operator(Expr):
     def __repr__(self):
         """Default repr string construction for operators."""
         # This should work for most cases
-        return f"{self._ufl_class_.__name__}({', '.join(repr(op) for op in self.ufl_operands)})"
+        return f"{self.__class__.__name__}({', '.join(repr(op) for op in self.ufl_operands)})"
 
     def apply_default_restrictions(self):
         """Apply default restrictions."""

@@ -143,6 +143,10 @@ class BaseArgument(UFLObject):
             and self._ufl_function_space == other._ufl_function_space
         )
 
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
+
 
 class Argument(FormArgument, BaseArgument):
     """UFL value: Representation of an argument to a form."""
@@ -162,6 +166,7 @@ class Argument(FormArgument, BaseArgument):
     __str__ = BaseArgument.__str__
     _ufl_signature_data_ = BaseArgument._ufl_signature_data_
     __eq__ = BaseArgument.__eq__
+    __hash__ = BaseArgument.__hash__
 
     def __new__(cls, *args, **kw):
         """Create new Argument."""

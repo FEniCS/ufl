@@ -78,7 +78,7 @@ class ExternalOperator(BaseFormOperator):
     def assemble(self, *args, **kwargs):
         """Assemble the external operator."""
         raise NotImplementedError(
-            f"Symbolic evaluation of {self._ufl_class_.__name__} not available."
+            f"Symbolic evaluation of {self.__class__.__name__} not available."
         )
 
     def _ufl_expr_reconstruct_(
@@ -116,3 +116,7 @@ class ExternalOperator(BaseFormOperator):
             and self.derivatives == other.derivatives
             and self.ufl_function_space() == other.ufl_function_space()
         )
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()

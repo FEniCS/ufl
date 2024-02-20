@@ -76,13 +76,13 @@ class Zero(ConstantValue):
     Class for representing zero tensors of different shapes.
     """
 
-    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = ("_ufl_free_indices", "_ufl_index_dimensions")
 
     _cache: typing.Dict[int, ConstantValue] = {}
 
     def __getnewargs__(self):
         """Get new args."""
-        return (self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
+        return (self.ufl_shape, self._ufl_free_indices, self._ufl_index_dimensions)
 
     def __new__(cls, shape=(), free_indices=(), index_dimensions=None):
         """Create new Zero."""
@@ -111,15 +111,15 @@ class Zero(ConstantValue):
             raise ValueError(f"Expecting tuple for free_indices, not {free_indices}.")
 
         if not free_indices:
-            self.ufl_free_indices = ()
-            self.ufl_index_dimensions = ()
+            self._ufl_free_indices = ()
+            self._ufl_index_dimensions = ()
         elif all(isinstance(i, Index) for i in free_indices):  # Handle old input format
             if not isinstance(index_dimensions, dict) and all(
                 isinstance(i, Index) for i in index_dimensions.keys()
             ):
                 raise ValueError(f"Expecting tuple of index dimensions, not {index_dimensions}")
-            self.ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
-            self.ufl_index_dimensions = tuple(
+            self._ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
+            self._ufl_index_dimensions = tuple(
                 d for i, d in sorted(index_dimensions.items(), key=lambda x: x[0].count())
             )
         else:  # Handle new input format
@@ -136,8 +136,18 @@ class Zero(ConstantValue):
             # if sorted(free_indices) != list(free_indices):
             #    raise ValueError("Expecting sorted input. Remove this check later for efficiency.")
 
-            self.ufl_free_indices = free_indices
-            self.ufl_index_dimensions = index_dimensions
+            self._ufl_free_indices = free_indices
+            self._ufl_index_dimensions = index_dimensions
+
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self._ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self._ufl_index_dimensions
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
@@ -145,20 +155,20 @@ class Zero(ConstantValue):
 
     def __str__(self):
         """Format as a string."""
-        if self.ufl_shape == () and self.ufl_free_indices == ():
+        if self.ufl_shape == () and self._ufl_free_indices == ():
             return "0"
-        if self.ufl_free_indices == ():
+        if self._ufl_free_indices == ():
             return "0 (shape %s)" % (self.ufl_shape,)
         if self.ufl_shape == ():
-            return "0 (index labels %s)" % (self.ufl_free_indices,)
-        return "0 (shape %s, index labels %s)" % (self.ufl_shape, self.ufl_free_indices)
+            return "0 (index labels %s)" % (self._ufl_free_indices,)
+        return "0 (shape %s, index labels %s)" % (self.ufl_shape, self._ufl_free_indices)
 
     def __repr__(self):
         """Representation."""
         r = "Zero(%s, %s, %s)" % (
             repr(self.ufl_shape),
-            repr(self.ufl_free_indices),
-            repr(self.ufl_index_dimensions),
+            repr(self._ufl_free_indices),
+            repr(self._ufl_index_dimensions),
         )
         return r
 
@@ -169,13 +179,17 @@ class Zero(ConstantValue):
                 return True
             return (
                 self.ufl_shape == other.ufl_shape
-                and self.ufl_free_indices == other.ufl_free_indices
-                and self.ufl_index_dimensions == other.ufl_index_dimensions
+                and self._ufl_free_indices == other.ufl_free_indices
+                and self._ufl_index_dimensions == other.ufl_index_dimensions
             )
         elif isinstance(other, (int, float)):
             return other == 0
         else:
             return False
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __neg__(self):
         """Negate."""
@@ -242,7 +256,7 @@ class ScalarValue(ConstantValue):
         can still succeed. These will however not have the same
         hash value and therefore not collide in a dict.
         """
-        if isinstance(other, self._ufl_class_):
+        if isinstance(other, self.__class__):
             return self._value == other._value
         elif isinstance(other, (int, float)):
             # FIXME: Disallow this, require explicit 'expr ==
@@ -250,6 +264,10 @@ class ScalarValue(ConstantValue):
             return other == self._value
         else:
             return False
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __str__(self):
         """Format as a string."""
@@ -411,7 +429,7 @@ class IntValue(RealValue):
 class Identity(ConstantValue):
     """Representation of an identity matrix."""
 
-    __slots__ = ("_dim", "ufl_shape")
+    __slots__ = "_dim"
 
     def __init__(self, dim):
         """Initialise."""
@@ -444,6 +462,10 @@ class Identity(ConstantValue):
         """Check equalty."""
         return isinstance(other, Identity) and self._dim == other._dim
 
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
+
 
 class PermutationSymbol(ConstantValue):
     """Representation of a permutation symbol.
@@ -452,7 +474,7 @@ class PermutationSymbol(ConstantValue):
     or alternating symbol.
     """
 
-    __slots__ = ("ufl_shape", "_dim")
+    __slots__ = "_dim"
 
     def __init__(self, dim):
         """Initialise."""
@@ -483,6 +505,10 @@ class PermutationSymbol(ConstantValue):
     def __eq__(self, other):
         """Check equalty."""
         return isinstance(other, PermutationSymbol) and self._dim == other._dim
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __eps(self, x):
         """Get eps.

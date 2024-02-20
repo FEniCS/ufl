@@ -111,11 +111,6 @@ class Expr(UFLObject):
     # type traits that categorize types are mostly set to None for
     # Expr but should be True or False for any non-abstract type.
 
-    # A reference to the UFL class itself.  This makes it possible to
-    # do type(f)._ufl_class_ and be sure you get the actual UFL class
-    # instead of a subclass from another library.
-    _ufl_class_: typing.Optional[type] = None
-
     # The handler name.  This is the name of the handler function you
     # implement for this type in a multifunction.
     _ufl_handler_name_ = "expr"
@@ -247,7 +242,7 @@ class Expr(UFLObject):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        raise ValueError(f"Symbolic evaluation of {self._ufl_class_.__name__} not available.")
+        raise ValueError(f"Symbolic evaluation of {self.__class__.__name__} not available.")
 
     def _ufl_evaluate_scalar_(self):
         if self.ufl_shape or self.ufl_free_indices:
@@ -292,7 +287,7 @@ class Expr(UFLObject):
 
     def _ufl_err_str_(self):
         """Return a short string to represent this Expr in an error message."""
-        return f"<{self._ufl_class_.__name__} id={id(self)}>"
+        return f"<{self.__class__.__name__} id={id(self)}>"
 
     def __eq__(self, other):
         """Checks whether the two expressions are represented the exact same way.
@@ -339,6 +334,10 @@ class Expr(UFLObject):
         # Eagerly DAGify to reduce the size of the tree.
         self.ufl_operands = other.ufl_operands
         return True
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __ne__(self, other):
         """Check if not equal."""
@@ -716,10 +715,10 @@ class Expr(UFLObject):
 
         return Transposed(self)
 
-
-# Initializing traits here because Expr is not defined in the class
-# declaration
-Expr._ufl_class_ = Expr
+    def check_restrictions(
+        self, require_restriction: bool, restriction: typing.Optional[str] = None
+    ):
+        """Check restrictions."""
 
 
 def ufl_err_str(expr):

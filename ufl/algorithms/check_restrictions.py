@@ -6,52 +6,14 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
-
-
-class RestrictionChecker(MultiFunction):
-    """Restiction checker."""
-
-    def __init__(self, require_restriction):
-        """Initialise."""
-        MultiFunction.__init__(self)
-        self.current_restriction = None
-        self.require_restriction = require_restriction
-
-    def expr(self, o):
-        """Apply to expr."""
-        pass
-
-    def restricted(self, o):
-        """Apply to restricted."""
-        if self.current_restriction is not None:
-            raise ValueError("Not expecting twice restricted expression.")
-        self.current_restriction = o._side
-        (e,) = o.ufl_operands
-        self.visit(e)
-        self.current_restriction = None
-
-    def facet_normal(self, o):
-        """Apply to facet_normal."""
-        if self.require_restriction:
-            if self.current_restriction is None:
-                raise ValueError("Facet normal must be restricted in interior facet integrals.")
-        else:
-            if self.current_restriction is not None:
-                raise ValueError("Restrictions are only allowed for interior facet integrals.")
-
-    def form_argument(self, o):
-        """Apply to form_argument."""
-        if self.require_restriction:
-            if self.current_restriction is None:
-                raise ValueError("Form argument must be restricted in interior facet integrals.")
-        else:
-            if self.current_restriction is not None:
-                raise ValueError("Restrictions are only allowed for interior facet integrals.")
+import warnings
 
 
 def check_restrictions(expression, require_restriction):
     """Check that types that must be restricted are restricted in expression."""
-    rules = RestrictionChecker(require_restriction)
-    return map_expr_dag(rules, expression)
+    warnings.warn(
+        "The function apply_default_restrictions is deprecated and will be removed after "
+        "December 2024. Please use object.apply_default_restrictions() directly instead.",
+        FutureWarning,
+    )
+    return expression.check_restrictions(require_restriction=require_restriction)

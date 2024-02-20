@@ -29,11 +29,7 @@ class Equation(UFLObject):
         This will not trigger when setting 'equation = a == L',
         but when e.g. running 'if equation:'.
         """
-        # NB!: pep8 will say you should use isinstance here, but we do
-        #      actually want to compare the exact types in this case.
-        # Not equal if types are not identical (i.e. not accepting
-        # subclasses)
-        if type(self.lhs) != type(self.rhs):  # noqa: E721
+        if type(self.lhs) is not type(self.rhs):  # noqa: E721
             return False
         # Try to delegate to equals function
         if hasattr(self.lhs, "equals"):
@@ -51,8 +47,16 @@ class Equation(UFLObject):
 
     def __hash__(self):
         """Hash."""
-        return hash((hash(self.lhs), hash(self.rhs)))
+        return super().__hash__()
+
+    def _ufl_hash_data_(self):
+        """Hash data."""
+        return ("Equation", hash(self.lhs), hash(self.rhs))
 
     def __repr__(self):
         """Representation."""
         return f"Equation({self.lhs!r}, {self.rhs!r})"
+
+    def __str__(self):
+        """Format as a string."""
+        return f"Equation({self.lhs}, {self.rhs})"

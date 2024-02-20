@@ -64,7 +64,7 @@ class SobolevSpace(UFLObject):
 
     def _ufl_hash_data_(self):
         """Hash data."""
-        return (self.name, self.parents)
+        return ("SobolevSpace", self.name)
 
     def __repr__(self):
         """Representation."""
@@ -72,16 +72,15 @@ class SobolevSpace(UFLObject):
 
     def __eq__(self, other):
         """Check equality."""
-        print("XXXXX")
         return isinstance(other, SobolevSpace) and self.name == other.name
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __ne__(self, other):
         """Not equal."""
         return not self == other
-
-    def __hash__(self):
-        """Hash."""
-        return hash(("SobolevSpace", self.name))
 
     def __getitem__(self, spatial_index):
         """Returns the Sobolev space associated with a particular spatial coordinate."""
@@ -150,10 +149,13 @@ class DirectionalSobolevSpace(SobolevSpace):
 
     def __eq__(self, other):
         """Check equality."""
-        print("FFFFFF")
         if isinstance(other, DirectionalSobolevSpace):
             return self._orders == other._orders
         return all(self[i] == other for i in self._spatial_indices)
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper subset of."""

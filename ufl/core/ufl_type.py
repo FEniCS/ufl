@@ -95,6 +95,14 @@ class UFLObject(ABC):
         """Get the arity."""
         raise NotImplementedError(f"get_arity not implemented for {self.__class__.__name__}")
 
+    def check_restrictions(
+        self, require_restriction: bool, restriction: typing.Optional[str] = None
+    ):
+        """Check restrictions."""
+        raise NotImplementedError(
+            f"check_restrictions not implemented for {self.__class__.__name__}"
+        )
+
 
 def get_base_attr(cls, name):
     """Return first non-``None`` attribute of given name among base classes."""

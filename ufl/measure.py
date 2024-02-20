@@ -139,12 +139,14 @@ class Measure(UFLObject):
 
     def _ufl_hash_data_(self):
         """Hash data."""
+        metadata_hashdata = tuple(sorted((k, id(v)) for k, v in list(self._metadata.items())))
         return (
+            "Measure",
             self._integral_type,
-            self._domain,
             self._subdomain_id,
-            self._metadata,
-            self._subdomain_data,
+            hash(self._domain),
+            metadata_hashdata,
+            id_or_none(self._subdomain_data),
         )
 
     def integral_type(self):
@@ -296,18 +298,6 @@ class Measure(UFLObject):
         r = "%s(%s)" % (type(self).__name__, ", ".join(args))
         return r
 
-    def __hash__(self):
-        """Return a hash value for this Measure."""
-        metadata_hashdata = tuple(sorted((k, id(v)) for k, v in list(self._metadata.items())))
-        hashdata = (
-            self._integral_type,
-            self._subdomain_id,
-            hash(self._domain),
-            metadata_hashdata,
-            id_or_none(self._subdomain_data),
-        )
-        return hash(hashdata)
-
     def __eq__(self, other):
         """Checks if two Measures are equal."""
         sorted_metadata = sorted((k, id(v)) for k, v in list(self._metadata.items()))
@@ -321,6 +311,10 @@ class Measure(UFLObject):
             and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
             and sorted_metadata == sorted_other_metadata
         )
+
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
 
     def __add__(self, other):
         """Add two measures (self+other).

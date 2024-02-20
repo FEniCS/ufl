@@ -39,6 +39,18 @@ class Transformer(UFLObject):
 
     _handlers_cache: typing.Dict[type, typing.List[typing.Optional[typing.Tuple[str, bool]]]] = {}
 
+    def __str__(self):
+        """TODO."""
+        raise NotImplementedError()
+
+    def __repr__(self):
+        """TODO."""
+        raise NotImplementedError()
+
+    def _ufl_hash_data_(self):
+        """TODO."""
+        raise NotImplementedError()
+
     def __init__(self, variable_cache=None):
         """Initialise."""
         if variable_cache is None:
@@ -121,7 +133,7 @@ class Transformer(UFLObject):
 
     def undefined(self, o):
         """Trigger error."""
-        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
+        raise ValueError(f"No handler defined for {o.__class__.__name__}.")
 
     def reuse(self, o):
         """Reuse Expr (ignore children)."""

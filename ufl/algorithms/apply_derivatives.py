@@ -96,24 +96,24 @@ class GenericDerivativeRuleset(MultiFunction):
     def expr(self, o):
         """Raise error."""
         raise ValueError(
-            f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
+            f"Missing differentiation handler for type {o.__class__.__name__}. "
             "Have you added a new type?"
         )
 
     def unexpected(self, o):
         """Raise error about unexpected type."""
-        raise ValueError(f"Unexpected type {o._ufl_class_.__name__} in AD rules.")
+        raise ValueError(f"Unexpected type {o.__class__.__name__} in AD rules.")
 
     def override(self, o):
         """Raise error about overriding."""
         raise ValueError(
-            f"Type {o._ufl_class_.__name__} must be overridden in specialized AD rule set."
+            f"Type {o.__class__.__name__} must be overridden in specialized AD rule set."
         )
 
     def derivative(self, o):
         """Raise error."""
         raise ValueError(
-            f"Unhandled derivative type {o._ufl_class_.__name__}, "
+            f"Unhandled derivative type {o.__class__.__name__}, "
             "nested differentiation has failed."
         )
 

@@ -26,6 +26,18 @@ from ufl.utils.sorting import sorted_by_key
 class FileData(UFLObject):
     """File data."""
 
+    def __str__(self):
+        """TODO."""
+        raise NotImplementedError()
+
+    def __repr__(self):
+        """TODO."""
+        raise NotImplementedError()
+
+    def _ufl_hash_data_(self):
+        """TODO."""
+        raise NotImplementedError()
+
     def __init__(self):
         """Initialise."""
         self.elements = []

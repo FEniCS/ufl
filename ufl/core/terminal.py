@@ -11,6 +11,7 @@ Terminal the superclass for all types that are terminal nodes in an expression t
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+import typing
 import warnings
 
 from ufl.core.expr import Expr
@@ -94,6 +95,10 @@ class Terminal(Expr):
         """Default comparison of terminals just compare repr strings."""
         return repr(self) == repr(other)
 
+    def __hash__(self):
+        """Hash."""
+        return super().__hash__()
+
     def apply_default_restrictions(self):
         """Apply default restrictions."""
         return self
@@ -114,3 +119,14 @@ class FormArgument(Terminal):
     def __init__(self):
         """Initialise the form argument."""
         super().__init__()
+
+    def check_restrictions(
+        self, require_restriction: bool, restriction: typing.Optional[str] = None
+    ):
+        """Check restrictions."""
+        if require_restriction:
+            if restriction is None:
+                raise ValueError("Form argument must be restricted in interior facet integrals.")
+        else:
+            if restriction is not None:
+                raise ValueError("Restrictions are only allowed for interior facet integrals.")
