@@ -5,12 +5,14 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.algebra import Conj, Operator
+from ufl.algebra import Conj, Operator, Product
 from ufl.constantvalue import Zero
 from ufl.core.expr import ufl_err_str
+from ufl.core.multiindex import Index, indices
 from ufl.index_combination_utils import merge_nonoverlapping_indices
 from ufl.precedence import parstr
 from ufl.sorting import sorted_expr
+from ufl.tensors import as_matrix, as_tensor, as_vector
 
 # Algebraic operations on tensors:
 # FloatValues:
@@ -126,6 +128,12 @@ class Transposed(CompoundTensorOperator):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        A = self.ufl_operands[0].apply_algebra_lowering()
+        i, j = indices(2)
+        return as_tensor(A[i, j], (j, i))
+
 
 class Outer(CompoundTensorOperator):
     """Outer."""
@@ -187,11 +195,21 @@ class Outer(CompoundTensorOperator):
         # It's fine for argument parts to overlap
         return c
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        a = self.ufl_operands[0].apply_algebra_lowering()
+        b = self.ufl_operands[1].apply_algebra_lowering()
+        ii = indices(len(a.ufl_shape))
+        jj = indices(len(b.ufl_shape))
+        # Create a Product with no shared indices
+        s = Conj(a[ii]) * b[jj]
+        return as_tensor(s, ii + jj)
+
 
 class Inner(CompoundTensorOperator):
     """Inner."""
 
-    __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = ("_ufl_free_indices", "_ufl_index_dimensions")
 
     def __new__(cls, a, b):
         """Create new Inner."""
@@ -219,10 +237,18 @@ class Inner(CompoundTensorOperator):
         CompoundTensorOperator.__init__(self, (a, b))
 
         fi, fid = merge_nonoverlapping_indices(a, b)
-        self.ufl_free_indices = fi
-        self.ufl_index_dimensions = fid
+        self._ufl_free_indices = fi
+        self._ufl_index_dimensions = fid
 
-    ufl_shape = ()
+    @property
+    def ufl_free_indices(self):
+        """A tuple of free index counts."""
+        return self._ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """A tuple providing the int dimension for each free index."""
+        return self._ufl_index_dimensions
 
     def __str__(self):
         """Format as a string."""
@@ -234,7 +260,6 @@ class Inner(CompoundTensorOperator):
 
         a = self.ufl_operands[0].get_arity()
         b = tuple((i, not j) for i, j in self.ufl_operands[1].get_arity())
-        assert a and b
         anumbers = set(x[0].number() for x in a)
         for x in b:
             if x[0].number() in anumbers:
@@ -253,6 +278,19 @@ class Inner(CompoundTensorOperator):
             )
         # It's fine for argument parts to overlap
         return c
+
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        a = self.ufl_operands[0].apply_algebra_lowering()
+        b = self.ufl_operands[1].apply_algebra_lowering()
+        ash = a.ufl_shape
+        bsh = b.ufl_shape
+        if ash != bsh:
+            raise ValueError("Nonmatching shapes.")
+        ii = indices(len(ash))
+        # Creates multiple IndexSums over a Product
+        s = a[ii] * Conj(b[ii])
+        return s
 
 
 class Dot(CompoundTensorOperator):
@@ -328,6 +366,17 @@ class Dot(CompoundTensorOperator):
         # It's fine for argument parts to overlap
         return c
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        a = self.ufl_operands[0].apply_algebra_lowering()
+        b = self.ufl_operands[1].apply_algebra_lowering()
+        ai = indices(len(a.ufl_shape) - 1)
+        bi = indices(len(b.ufl_shape) - 1)
+        k = (Index(),)
+        # Creates a single IndexSum over a Product
+        s = a[ai + k] * b[k + bi]
+        return as_tensor(s, ai + bi)
+
 
 class Perp(CompoundTensorOperator):
     """Perp."""
@@ -359,6 +408,11 @@ class Perp(CompoundTensorOperator):
     def __str__(self):
         """Format as a string."""
         return "perp(%s)" % self.ufl_operands[0]
+
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        a = self.ufl_operands[0].apply_algebra_lowering()
+        return as_vector([-a[1], a[0]])
 
 
 class Cross(CompoundTensorOperator):
@@ -398,6 +452,16 @@ class Cross(CompoundTensorOperator):
         """Format as a string."""
         return "%s x %s" % (parstr(self.ufl_operands[0], self), parstr(self.ufl_operands[1], self))
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        a = self.ufl_operands[0].apply_algebra_lowering()
+        b = self.ufl_operands[1].apply_algebra_lowering()
+
+        def c(i, j):
+            return Product(a[i], b[j]) - Product(a[j], b[i])
+
+        return as_vector((c(1, 2), c(2, 0), c(0, 1)))
+
 
 class Trace(CompoundTensorOperator):
     """Trace."""
@@ -434,6 +498,12 @@ class Trace(CompoundTensorOperator):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        A = self.ufl_operands[0].apply_algebra_lowering()
+        i, j = indices(2)
+        return as_tensor(A[i, j], (j, i))
+
 
 class Determinant(CompoundTensorOperator):
     """Determinant."""
@@ -469,6 +539,12 @@ class Determinant(CompoundTensorOperator):
     def __str__(self):
         """Format as a string."""
         return "det(%s)" % self.ufl_operands[0]
+
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        from ufl.compound_expressions import determinant_expr
+
+        return determinant_expr(self.ufl_operands[0].apply_algebra_lowering())
 
 
 # TODO: Drop Inverse and represent it as product of Determinant and
@@ -514,6 +590,12 @@ class Inverse(CompoundTensorOperator):
         """Format as a string."""
         return "%s^-1" % parstr(self.ufl_operands[0], self)
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        from ufl.compound_expressions import inverse_expr
+
+        return inverse_expr(self.ufl_operands[0].apply_algebra_lowering())
+
 
 class Cofactor(CompoundTensorOperator):
     """Cofactor."""
@@ -543,6 +625,12 @@ class Cofactor(CompoundTensorOperator):
     def __str__(self):
         """Format as a string."""
         return "cofactor(%s)" % self.ufl_operands[0]
+
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        from ufl.compound_expressions import cofactor_expr
+
+        return cofactor_expr(self.ufl_operands[0].apply_algebra_lowering())
 
 
 class Deviatoric(CompoundTensorOperator):
@@ -593,6 +681,12 @@ class Deviatoric(CompoundTensorOperator):
         """Get the UFL shape."""
         return self.ufl_operands[0].ufl_shape
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        from ufl.compound_expressions import deviatoric_expr
+
+        return deviatoric_expr(self.ufl_operands[0].apply_algebra_lowering())
+
 
 class Skew(CompoundTensorOperator):
     """Skew."""
@@ -640,6 +734,12 @@ class Skew(CompoundTensorOperator):
     def ufl_shape(self):
         """Get the UFL shape."""
         return self.ufl_operands[0].ufl_shape
+
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        A = self.ufl_operands[0].apply_algebra_lowering()
+        i, j = indices(2)
+        return as_matrix((A[i, j] - A[j, i]) / 2, (i, j))
 
 
 class Sym(CompoundTensorOperator):
@@ -690,3 +790,9 @@ class Sym(CompoundTensorOperator):
     def ufl_shape(self):
         """Get the UFL shape."""
         return self.ufl_operands[0].ufl_shape
+
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        A = self.ufl_operands[0].apply_algebra_lowering()
+        i, j = indices(2)
+        return as_matrix((A[i, j] + A[j, i]) / 2, (i, j))

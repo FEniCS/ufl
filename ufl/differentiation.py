@@ -12,6 +12,7 @@ from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr
+from ufl.core.multiindex import Index, indices
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
 from ufl.domain import extract_unique_domain, find_geometric_dimension
@@ -19,6 +20,7 @@ from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import BaseForm
 from ufl.precedence import parstr
 from ufl.restriction import require_restriction
+from ufl.tensors import as_tensor, as_vector
 from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
@@ -508,6 +510,12 @@ class Div(CompoundDerivative):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        a = self.ufl_operands[0].apply_algebra_lowering()
+        i = Index()
+        return a[..., i].dx(i)
+
 
 class ReferenceDiv(CompoundDerivative):
     """Reference divergence."""
@@ -586,6 +594,17 @@ class NablaGrad(CompoundDerivative):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        a = self.ufl_operands[0].apply_algebra_lowering()
+        sh = a.ufl_shape
+        if sh == ():
+            return Grad(a)
+        else:
+            j = Index()
+            ii = tuple(indices(len(sh)))
+            return as_tensor(a[ii].dx(j), (j,) + ii)
+
 
 class NablaDiv(CompoundDerivative):
     """Nabla div."""
@@ -625,6 +644,12 @@ class NablaDiv(CompoundDerivative):
     def ufl_index_dimensions(self):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
+
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        a = self.ufl_operands[0].apply_algebra_lowering()
+        i = Index()
+        return a[..., i].dx(i)
 
 
 _curl_shapes = {(): (2,), (2,): (), (3,): (3,)}
@@ -668,6 +693,23 @@ class Curl(CompoundDerivative):
     def ufl_index_dimensions(self):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
+
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        a = self.ufl_operands[0].apply_algebra_lowering()
+
+        def c(i, j):
+            """A component of curl."""
+            return a[j].dx(i) - a[i].dx(j)
+
+        sh = a.ufl_shape
+        if sh == ():
+            return as_vector((a.dx(1), -a.dx(0)))
+        if sh == (2,):
+            return c(0, 1)
+        if sh == (3,):
+            return as_vector((c(1, 2), c(2, 0), c(0, 1)))
+        raise ValueError(f"Invalid shape {sh} of curl argument.")
 
 
 class ReferenceCurl(CompoundDerivative):

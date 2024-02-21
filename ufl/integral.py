@@ -43,6 +43,14 @@ class Integral(UFLObject):
         self._metadata = metadata
         self._subdomain_data = subdomain_data
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        i = self._integrand.apply_algebra_lowering()
+        if i is self._integrand:
+            return self
+        else:
+            return self.reconstruct(integrand=i)
+
     def reconstruct(
         self,
         integrand=None,

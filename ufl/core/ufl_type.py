@@ -103,6 +103,12 @@ class UFLObject(ABC):
             f"check_restrictions not implemented for {self.__class__.__name__}"
         )
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        raise NotImplementedError(
+            f"apply_algebra_lowering not implemented for {self.__class__.__name__}"
+        )
+
 
 def get_base_attr(cls, name):
     """Return first non-``None`` attribute of given name among base classes."""

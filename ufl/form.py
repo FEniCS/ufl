@@ -305,6 +305,14 @@ class Form(BaseForm):
         """Return a sequence of all integrals in form."""
         return self._integrals
 
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        ops = [o.apply_algebra_lowering() for o in self._integrals]
+        if all(a is b for a, b in zip(self._integrals, ops)):
+            return self
+        else:
+            return type(self)(ops)
+
     def integrals_by_type(self, integral_type):
         """Return a sequence of all integrals with a particular domain type."""
         return tuple(

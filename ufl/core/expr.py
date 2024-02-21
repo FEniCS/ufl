@@ -722,9 +722,9 @@ class Expr(UFLObject):
 
     def get_arity(self):
         """Get the arity."""
-        from ufl.corealg.traversal import traverse_unique_terminals
         from ufl.algorithms.check_arities import ArityMismatch
         from ufl.argument import Argument
+        from ufl.corealg.traversal import traverse_unique_terminals
 
         for t in traverse_unique_terminals(self):
             if type(t) is Argument:
@@ -733,6 +733,14 @@ class Expr(UFLObject):
                     f"expression depending on form argument {t}."
                 )
         return ()
+
+    def apply_algebra_lowering(self):
+        """Apply algebra lowering."""
+        ops = [o.apply_algebra_lowering() for o in self.ufl_operands]
+        if all(a is b for a, b in zip(self.ufl_operands, ops)):
+            return self
+        else:
+            return type(self)(*ops)
 
 
 def ufl_err_str(expr):

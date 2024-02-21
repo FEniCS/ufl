@@ -48,6 +48,9 @@ class Tester:
     def assertEqualValues(self, A, B):
         B = as_ufl(B)
         self.assertEqual(A.ufl_shape, B.ufl_shape)
+        print("a", type(A), A(None))
+        print("b", type(B), B(None))
+        print("a-b", (A - B)(None))
         self.assertEqual(inner(A - B, A - B)(None), 0)
 
 

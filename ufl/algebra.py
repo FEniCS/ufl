@@ -447,6 +447,11 @@ class Abs(Operator):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
 
+    @property
+    def ufl_shape(self):
+        """A tuple of ints, the value shape of the expression."""
+        return self.ufl_operands[0].ufl_shape
+
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -486,6 +491,11 @@ class Conj(Operator):
     def ufl_index_dimensions(self):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """A tuple of ints, the value shape of the expression."""
+        return self.ufl_operands[0].ufl_shape
 
     def __init__(self, a):
         """Initialise."""
@@ -541,6 +551,11 @@ class Real(Operator):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
 
+    @property
+    def ufl_shape(self):
+        """A tuple of ints, the value shape of the expression."""
+        return self.ufl_operands[0].ufl_shape
+
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -584,6 +599,11 @@ class Imag(Operator):
     def ufl_index_dimensions(self):
         """A tuple providing the int dimension for each free index."""
         return self.ufl_operands[0].ufl_index_dimensions
+
+    @property
+    def ufl_shape(self):
+        """A tuple of ints, the value shape of the expression."""
+        return self.ufl_operands[0].ufl_shape
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
