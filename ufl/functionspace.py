@@ -36,7 +36,7 @@ class AbstractFunctionSpace(object):
 class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     """Base function space."""
 
-    def __init__(self, domain, element):
+    def __init__(self, domain, element, label=""):
         """Initialise."""
         if domain is None:
             # DOLFIN hack
@@ -50,10 +50,14 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             else:
                 if element.cell != domain_cell:
                     raise ValueError("Non-matching cell of finite element and domain.")
-
         AbstractFunctionSpace.__init__(self)
+        self._label = label
         self._ufl_domain = domain
         self._ufl_element = element
+
+    def label(self):
+        """Return label of boundary domains to differentiate restricted and unrestricted."""
+        return self._label
 
     def ufl_sub_spaces(self):
         """Return ufl sub spaces."""
@@ -88,7 +92,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             edata = None
         else:
             edata = element._ufl_hash_data_()
-        return (name, ddata, edata)
+        return (name, ddata, edata, self.label())
 
     def _ufl_signature_data_(self, renumbering, name=None):
         """UFL signature data."""
@@ -103,7 +107,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             edata = None
         else:
             edata = element._ufl_signature_data_()
-        return (name, ddata, edata)
+        return (name, ddata, edata, self.label())
 
     def __repr__(self):
         """Representation."""
@@ -118,7 +122,7 @@ class FunctionSpace(BaseFunctionSpace, UFLObject):
 
     def dual(self):
         """Get the dual of the space."""
-        return DualSpace(self._ufl_domain, self._ufl_element)
+        return DualSpace(self._ufl_domain, self._ufl_element, label=self.label())
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -143,13 +147,13 @@ class DualSpace(BaseFunctionSpace, UFLObject):
     _primal = False
     _dual = True
 
-    def __init__(self, domain, element):
+    def __init__(self, domain, element, label=""):
         """Initialise."""
-        BaseFunctionSpace.__init__(self, domain, element)
+        BaseFunctionSpace.__init__(self, domain, element, label)
 
     def dual(self):
         """Get the dual of the space."""
-        return FunctionSpace(self._ufl_domain, self._ufl_element)
+        return FunctionSpace(self._ufl_domain, self._ufl_element, label=self.label())
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
