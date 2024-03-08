@@ -128,6 +128,8 @@ class UC:
 
     superscript_plus = u"⁺"
     superscript_minus = u"⁻"
+    superscript_vertical_bar = u"|"
+    superscript_question_mark = u"?"
     superscript_equals = u"⁼"
     superscript_left_paren = u"⁽"
     superscript_right_paren = u"⁾"
@@ -744,6 +746,14 @@ class Expression2UnicodeHandler(MultiFunction):
     def negative_restricted(self, o, f):
         """Format a negative_restriced."""
         return f"{par(f)}{UC.superscript_minus}"
+
+    def single_value_restricted(self, o, f):
+        """Format a sigle_value_restriced."""
+        return f"{par(f)}{UC.superscript_vertical_bar}"
+
+    def to_be_restricted(self, o, f):
+        """Format a to_be_restriced."""
+        return f"{par(f)}{UC.superscript_question_mark}"
 
     def cell_avg(self, o, f):
         """Format a cell_avg."""

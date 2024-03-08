@@ -15,7 +15,7 @@ import numpy as np
 
 from ufl.core.expr import Expr
 from ufl.core.multiindex import indices
-from ufl.domain import extract_unique_domain
+from ufl.domain import extract_unique_domain, AbstractDomain, MixedMesh
 from ufl.tensors import as_tensor
 
 if TYPE_CHECKING:
@@ -54,11 +54,12 @@ class AbstractPullback(ABC):
     def is_identity(self) -> bool:
         """Is this pull back the identity (or the identity applied to mutliple components)."""
 
-    def apply(self, expr: Expr) -> Expr:
+    def apply(self, expr: Expr, domain: AbstractDomain = None) -> Expr:
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
@@ -77,11 +78,12 @@ class IdentityPullback(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return True
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
@@ -111,17 +113,19 @@ class ContravariantPiola(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
         from ufl.classes import Jacobian, JacobianDeterminant
 
-        domain = extract_unique_domain(expr)
+        if domain is None:
+            domain = extract_unique_domain(expr)
         J = Jacobian(domain)
         detJ = JacobianDeterminant(J)
         transform = (1.0 / detJ) * J
@@ -155,17 +159,19 @@ class CovariantPiola(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
         from ufl.classes import JacobianInverse
 
-        domain = extract_unique_domain(expr)
+        if domain is None:
+            domain = extract_unique_domain(expr)
         K = JacobianInverse(domain)
         # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
         *k, i, j = indices(len(expr.ufl_shape) + 1)
@@ -197,17 +203,19 @@ class L2Piola(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
         from ufl.classes import JacobianDeterminant
 
-        domain = extract_unique_domain(expr)
+        if domain is None:
+            domain = extract_unique_domain(expr)
         detJ = JacobianDeterminant(domain)
         return expr / detJ
 
@@ -235,17 +243,19 @@ class DoubleContravariantPiola(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
         from ufl.classes import Jacobian, JacobianDeterminant
 
-        domain = extract_unique_domain(expr)
+        if domain is None:
+            domain = extract_unique_domain(expr)
         J = Jacobian(domain)
         detJ = JacobianDeterminant(J)
         # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
@@ -278,17 +288,19 @@ class DoubleCovariantPiola(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
         from ufl.classes import JacobianInverse
 
-        domain = extract_unique_domain(expr)
+        if domain is None:
+            domain = extract_unique_domain(expr)
         K = JacobianInverse(domain)
         # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
         *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
@@ -328,11 +340,12 @@ class MixedPullback(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return all(e.pullback.is_identity for e in self._element.sub_elements)
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
@@ -340,11 +353,16 @@ class MixedPullback(AbstractPullback):
         g_components = []
         offset = 0
         # For each unique piece in reference space, apply the appropriate pullback
-        for subelem in self._element.sub_elements:
+        if domain is None:
+            domain = extract_unique_domain(expr, expand_mixed_mesh=False)
+        if isinstance(domain, MixedMesh):
+            assert len(domain) == self._element.num_sub_elements
+        for i, subelem in enumerate(self._element.sub_elements):
             rsub = as_tensor(np.asarray(
                 rflat[offset: offset + subelem.reference_value_size]
             ).reshape(subelem.reference_value_shape))
-            rmapped = subelem.pullback.apply(rsub)
+            subdomain = domain[i] if isinstance(domain, MixedMesh) else None
+            rmapped = subelem.pullback.apply(rsub, domain=subdomain)
             # Flatten into the pulled back expression for the whole thing
             g_components.extend([rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape)])
             offset += subelem.reference_value_size
@@ -397,11 +415,12 @@ class SymmetricPullback(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return all(e.pullback.is_identity for e in self._element.sub_elements)
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
@@ -411,13 +430,18 @@ class SymmetricPullback(AbstractPullback):
         for subelem in self._element.sub_elements:
             offsets.append(offsets[-1] + subelem.reference_value_size)
         # For each unique piece in reference space, apply the appropriate pullback
+        if domain is None:
+            domain = extract_unique_domain(expr, expand_mixed_mesh=False)
+        if isinstance(domain, MixedMesh):
+            assert len(domain) == self._element.num_sub_elements
         for component in np.ndindex(self._block_shape):
             i = self._symmetry[component]
             subelem = self._element.sub_elements[i]
             rsub = as_tensor(np.asarray(
                 rflat[offsets[i]:offsets[i+1]]
             ).reshape(subelem.reference_value_shape))
-            rmapped = subelem.pullback.apply(rsub)
+            subdomain = domain[i] if isinstance(domain, MixedMesh) else None
+            rmapped = subelem.pullback.apply(rsub, domain=subdomain)
             # Flatten into the pulled back expression for the whole thing
             g_components.extend([rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape)])
         # And reshape appropriately
@@ -455,11 +479,12 @@ class PhysicalPullback(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return True
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
@@ -492,11 +517,12 @@ class CustomPullback(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return True
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """

@@ -101,6 +101,8 @@ class ArityChecker(MultiFunction):
     # Positive and negative restrictions behave as linear operators
     positive_restricted = linear_operator
     negative_restricted = linear_operator
+    single_value_restricted = linear_operator
+    to_be_restricted = linear_operator
 
     # Cell and facet average are linear operators
     cell_avg = linear_operator
