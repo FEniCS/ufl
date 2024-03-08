@@ -23,17 +23,20 @@ from ufl.sobolevspace import H1
 class RestrictionPropagator(MultiFunction):
     """Restriction propagator."""
 
-    def __init__(self, side=None):
+    def __init__(self, side=None, have_multiple_domains=False):
         """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
-        self.default_restriction = "+"
+        self.default_restriction = "?" if have_multiple_domains else "+"
         # Caches for propagating the restriction with map_expr_dag
-        self.vcaches = {"+": {}, "-": {}}
-        self.rcaches = {"+": {}, "-": {}}
+        self.vcaches = {"+": {}, "-": {}, "|": {}, "?": {}}
+        self.rcaches = {"+": {}, "-": {}, "|": {}, "?": {}}
         if self.current_restriction is None:
-            self._rp = {"+": RestrictionPropagator("+"),
-                        "-": RestrictionPropagator("-")}
+            self._rp = {"+": RestrictionPropagator("+", have_multiple_domains),
+                        "-": RestrictionPropagator("-", have_multiple_domains),
+                        "|": RestrictionPropagator("|", have_multiple_domains),
+                        "?": RestrictionPropagator("?", have_multiple_domains)}
+        self.have_multiple_domains = have_multiple_domains
 
     def restricted(self, o):
         """When hitting a restricted quantity, visit child with a separate restriction algorithm."""
@@ -55,9 +58,12 @@ class RestrictionPropagator(MultiFunction):
 
     def _require_restriction(self, o):
         """Restrict a discontinuous quantity to current side, require a side to be set."""
-        if self.current_restriction is None:
+        if self.current_restriction is not None:
+            return o(self.current_restriction)
+        elif self.have_multiple_domains:
+            return o
+        else:
             raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-        return o(self.current_restriction)
 
     def _default_restricted(self, o):
         """Restrict a continuous quantity to default side if no current restriction is set."""
@@ -172,11 +178,14 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression):
+def apply_restrictions(expression, have_multiple_domains=False):
     """Propagate restriction nodes to wrap differential terminals directly."""
-    integral_types = [k for k in integral_type_to_measure_name.keys()
-                      if k.startswith("interior_facet")]
-    rules = RestrictionPropagator()
+    if have_multiple_domains:
+        integral_types = None
+    else:
+        integral_types = [k for k in integral_type_to_measure_name.keys()
+                          if k.startswith("interior_facet")]
+    rules = RestrictionPropagator(have_multiple_domains=have_multiple_domains)
     return map_integrand_dags(rules, expression,
                               only_integral_type=integral_types)
 
@@ -184,14 +193,17 @@ def apply_restrictions(expression):
 class DefaultRestrictionApplier(MultiFunction):
     """Default restriction applier."""
 
-    def __init__(self, side=None):
+    def __init__(self, side=None, have_multiple_domains=False):
         """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
-        self.default_restriction = "+"
+        self.default_restriction = "?" if have_multiple_domains else "+"
         if self.current_restriction is None:
-            self._rp = {"+": DefaultRestrictionApplier("+"),
-                        "-": DefaultRestrictionApplier("-")}
+            self._rp = {"+": DefaultRestrictionApplier("+", have_multiple_domains),
+                        "-": DefaultRestrictionApplier("-", have_multiple_domains),
+                        "|": DefaultRestrictionApplier("|", have_multiple_domains),
+                        "?": DefaultRestrictionApplier("?", have_multiple_domains)}
+        self.have_multiple_domains = have_multiple_domains
 
     def terminal(self, o):
         """Apply to terminal."""
@@ -236,13 +248,16 @@ class DefaultRestrictionApplier(MultiFunction):
     facet_origin = _default_restricted  # FIXME: Is this valid for quads?
 
 
-def apply_default_restrictions(expression):
+def apply_default_restrictions(expression, have_multiple_domains=False):
     """Some terminals can be restricted from either side.
 
     This applies a default restriction to such terminals if unrestricted.
     """
-    integral_types = [k for k in integral_type_to_measure_name.keys()
-                      if k.startswith("interior_facet")]
-    rules = DefaultRestrictionApplier()
+    if have_multiple_domains:
+        integral_types = None
+    else:
+        integral_types = [k for k in integral_type_to_measure_name.keys()
+                          if k.startswith("interior_facet")]
+    rules = DefaultRestrictionApplier(have_multiple_domains=have_multiple_domains)
     return map_integrand_dags(rules, expression,
                               only_integral_type=integral_types)

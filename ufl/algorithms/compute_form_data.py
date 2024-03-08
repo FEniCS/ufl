@@ -30,7 +30,7 @@ from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import extract_unique_domain
+from ufl.domain import extract_unique_domain, collect_domains_in_form
 from ufl.utils.sequences import max_degree
 
 
@@ -181,7 +181,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
-        domain = extract_unique_domain(f)
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
         if domain is not None:
             new_e = FunctionSpace(domain, new_e)
         new_f = Coefficient(new_e, count=i)
@@ -296,8 +296,9 @@ def compute_form_data(
         form = apply_integral_scaling(form)
 
     # Apply default restriction to fully continuous terminals
+    have_multiple_domains = len(collect_domains_in_form(form)) > 1
     if do_apply_default_restrictions:
-        form = apply_default_restrictions(form)
+        form = apply_default_restrictions(form, have_multiple_domains=have_multiple_domains)
 
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller
@@ -323,7 +324,7 @@ def compute_form_data(
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
-        form = apply_restrictions(form)
+        form = apply_restrictions(form, have_multiple_domains=have_multiple_domains)
 
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:

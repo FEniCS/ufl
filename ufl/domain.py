@@ -122,6 +122,77 @@ class Mesh(AbstractDomain, UFLObject):
 
 
 @attach_ufl_id
+class MixedMesh(AbstractDomain, UFLObject):
+    """Symbolic representation of a mesh."""
+
+    def __init__(self, *meshes, ufl_id=None, cargo=None):
+        """Initialise."""
+        self._ufl_id = self._init_ufl_id(ufl_id)
+        # Store reference to object that will not be used by UFL
+        self._ufl_cargo = cargo
+        if cargo is not None and cargo.ufl_id() != self._ufl_id:
+            raise ValueError("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
+        coordinate_element = meshes[0]._ufl_coordinate_element
+        self._ufl_coordinate_element = coordinate_element
+        gdim, = coordinate_element.value_shape
+        tdim = coordinate_element.cell.topological_dimension()
+        AbstractDomain.__init__(self, tdim, gdim)
+        self._meshes = tuple(meshes)
+
+    def ufl_cargo(self):
+        """Return carried object that will not be used by UFL."""
+        return self._ufl_cargo
+
+    def ufl_coordinate_element(self):
+        """Get the coordinate element."""
+        return self._ufl_coordinate_element
+
+    def ufl_cell(self):
+        """Get the cell."""
+        return self._ufl_coordinate_element.cell
+
+    def is_piecewise_linear_simplex_domain(self):
+        """Check if the domain is a piecewise linear simplex."""
+        ce = self._ufl_coordinate_element
+        return ce.embedded_superdegree <= 1 and ce in H1 and self.ufl_cell().is_simplex()
+
+    def __repr__(self):
+        """Representation."""
+        r = "MixedMesh(*%s, ufl_id=%s)" % (repr(self._meshes), repr(self._ufl_id))
+        return r
+
+    def __str__(self):
+        """Format as a string."""
+        return "<MixedMesh #%s>" % (self._ufl_id,)
+
+    def _ufl_hash_data_(self):
+        """UFL hash data."""
+        return (type(self), self._ufl_id, self._ufl_coordinate_element)
+
+    def _ufl_signature_data_(self, renumbering):
+        """UFL signature data."""
+        return ("MixedMesh", renumbering[self], self._ufl_coordinate_element)
+
+    # NB! Dropped __lt__ here, don't want users to write 'mesh1 <
+    # mesh2'.
+    def _ufl_sort_key_(self):
+        """UFL sort key."""
+        typespecific = (self._ufl_id, self._ufl_coordinate_element)
+        return (self.geometric_dimension(), self.topological_dimension(),
+                "MixedMesh", typespecific)
+
+    def __len__(self):
+        return len(self._meshes)
+
+    def __getitem__(self, i):
+        assert i < len(self), f"index ({i}) >= num. meshes ({len(self)})"
+        return self._meshes[i]
+
+    def __iter__(self):
+        return iter(self._meshes)
+
+
+@attach_ufl_id
 class MeshView(AbstractDomain, UFLObject):
     """Symbolic representation of a mesh."""
 
@@ -183,12 +254,17 @@ def as_domain(domain):
     """Convert any valid object to an AbstractDomain type."""
     if isinstance(domain, AbstractDomain):
         # Modern UFL files and dolfin behaviour
+        if isinstance(domain, MixedMesh):
+            domain, = set(domain._meshes)
         return domain
 
     try:
         return extract_unique_domain(domain)
     except AttributeError:
-        return domain.ufl_domain()
+        domain = domain.ufl_domain()
+        if isinstance(domain, MixedMesh):
+            domain, = set(domain._meshes)
+        return domain
 
 
 def sort_domains(domains):
@@ -196,13 +272,22 @@ def sort_domains(domains):
     return tuple(sorted(domains, key=lambda domain: domain._ufl_sort_key_()))
 
 
-def join_domains(domains):
+def join_domains(domains, expand_mixed_mesh=True):
     """Take a list of domains and return a tuple with only unique domain objects.
 
     Checks that domains with the same id are compatible.
     """
     # Use hashing to join domains, ignore None
-    domains = set(domains) - set((None,))
+    domains_ = set(domains) - set((None,))
+    if expand_mixed_mesh:
+        domains = set()
+        for domain in domains_:
+            if isinstance(domain, MixedMesh):
+                domains.update(domain._meshes)
+            else:
+                domains.add(domain)
+    else:
+        domains = domains_
     if not domains:
         return ()
 
@@ -242,17 +327,17 @@ def join_domains(domains):
 
 # TODO: Move these to an analysis module?
 
-def extract_domains(expr):
+def extract_domains(expr, expand_mixed_mesh=True):
     """Return all domains expression is defined on."""
     domainlist = []
     for t in traverse_unique_terminals(expr):
         domainlist.extend(t.ufl_domains())
-    return sorted(join_domains(domainlist))
+    return sort_domains(join_domains(domainlist, expand_mixed_mesh=expand_mixed_mesh))
 
 
-def extract_unique_domain(expr):
+def extract_unique_domain(expr, expand_mixed_mesh=True):
     """Return the single unique domain expression is defined on or throw an error."""
-    domains = extract_domains(expr)
+    domains = extract_domains(expr, expand_mixed_mesh=expand_mixed_mesh)
     if len(domains) == 1:
         return domains[0]
     elif domains:
@@ -261,13 +346,25 @@ def extract_unique_domain(expr):
         return None
 
 
+def collect_domains_in_form(form):
+    meshes = form.ufl_domains()  # form._integration_domains
+    if any(isinstance(m, MixedMesh) for m in meshes):
+        raise RuntimeError("Found a MixedMesh in form._integration_domains")
+    meshes = set(meshes)
+    for integral in form.integrals():
+        meshes.update(extract_domains(integral.integrand()))
+    return sort_domains(meshes)
+
+
 def find_geometric_dimension(expr):
     """Find the geometric dimension of an expression."""
     gdims = set()
     for t in traverse_unique_terminals(expr):
-        domain = extract_unique_domain(t)
-        if domain is not None:
-            gdims.add(domain.geometric_dimension())
+        # Can have multiple domains of the same cell type.
+        domains = extract_domains(t)
+        if len(domains) > 0:
+            gdim, = set(domain.geometric_dimension() for domain in domains)
+            gdims.add(gdim)
         if hasattr(t, "ufl_element"):
             element = t.ufl_element()
             if element is not None:

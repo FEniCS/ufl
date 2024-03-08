@@ -653,7 +653,7 @@ class Form(BaseForm):
         # among integration domains
         k = len(dn)
         for c in self.coefficients():
-            d = extract_unique_domain(c)
+            d = extract_unique_domain(c, expand_mixed_mesh=False)
             if d is not None and d not in renumbering:
                 renumbering[d] = k
                 k += 1
@@ -661,7 +661,7 @@ class Form(BaseForm):
         # Add domains of arguments, these may include domains not
         # among integration domains
         for a in self._arguments:
-            d = a.ufl_function_space().ufl_domain()
+            d = extract_unique_domain(a, expand_mixed_mesh=False)
             if d is not None and d not in renumbering:
                 renumbering[d] = k
                 k += 1
@@ -669,7 +669,7 @@ class Form(BaseForm):
         # Add domains of constants, these may include domains not
         # among integration domains
         for c in self._constants:
-            d = extract_unique_domain(c)
+            d = extract_unique_domain(c, expand_mixed_mesh=False)
             if d is not None and d not in renumbering:
                 renumbering[d] = k
                 k += 1

@@ -9,6 +9,7 @@
 import warnings
 from collections import defaultdict
 from math import pi
+import numpy
 
 from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments
@@ -18,7 +19,8 @@ from ufl.argument import BaseArgument
 from ufl.checks import is_cellwise_constant
 from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue, ExprList, ExprMapping, FloatValue,
                          FormArgument, Grad, Identity, Imag, Indexed, IndexSum, JacobianInverse, ListTensor, Product,
-                         Real, ReferenceGrad, ReferenceValue, SpatialCoordinate, Sum, Variable, Zero)
+                         Real, ReferenceGrad, ReferenceValue, SpatialCoordinate, Sum, Variable, Zero,
+                         MixedElement)
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import ufl_err_str
@@ -27,7 +29,7 @@ from ufl.core.terminal import Terminal
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import BaseFormCoordinateDerivative, BaseFormOperatorDerivative, CoordinateDerivative
-from ufl.domain import extract_unique_domain
+from ufl.domain import extract_unique_domain, extract_domains, MixedMesh
 from ufl.form import Form, ZeroBaseForm
 from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
                            sign, sin, sinh, sqrt)
@@ -39,6 +41,18 @@ from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, u
 # - CurlRuleset
 # - ReferenceGradRuleset
 # - ReferenceDivRuleset
+
+
+def flatten_domain_element(domain, element):
+    "Return the flattened (domain, element) pairs for mixed domain problems."
+    if not isinstance(domain, MixedMesh):
+        #assert not element.mixed()
+        return ((domain, element), )
+    flattened = ()
+    for d, e in zip(domain, element.sub_elements, strict=True):
+        flattened += flatten_domain_element(d, e)
+    return flattened
+
 
 
 class GenericDerivativeRuleset(MultiFunction):
@@ -599,9 +613,35 @@ class GradRuleset(GenericDerivativeRuleset):
 
         if not f._ufl_is_terminal_:
             raise ValueError("ReferenceValue can only wrap a terminal")
-        domain = extract_unique_domain(f)
-        K = JacobianInverse(domain)
-        Do = grad_to_reference_grad(o, K)
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        if isinstance(domain, MixedMesh):
+            element = f.ufl_function_space().ufl_element()
+            assert element.num_sub_elements == len(domain), f"Got {element.num_sub_elements} != {len(domain)}"
+            g = ReferenceGrad(o)
+            vsh = g.ufl_shape[:-1]
+            ref_dim = g.ufl_shape[-1]
+            components = []
+            dofoffset = 0
+            for d, e in flatten_domain_element(domain, element):
+                K = JacobianInverse(d)
+                esh = e.reference_value_shape
+                if esh == ():
+                    esh = (1, )
+                rdim, gdim = K.ufl_shape
+                assert rdim == ref_dim
+                assert gdim == self._var_shape[0]
+                for idx in range(int(numpy.prod(esh))):
+                    for i in range(gdim):
+                        temp = Zero()
+                        for j in range(rdim):
+                            g[(dofoffset + idx, ) + (j, )]
+                            temp += g[(dofoffset + idx, ) + (j, )] * K[j, i]
+                        components.append(temp)
+                dofoffset += int(numpy.prod(esh))
+            Do = as_tensor(numpy.asarray(components).reshape(vsh + self._var_shape))
+        else:
+            K = JacobianInverse(domain)
+            Do = grad_to_reference_grad(o, K)
         return Do
 
     def reference_grad(self, o):
@@ -612,9 +652,12 @@ class GradRuleset(GenericDerivativeRuleset):
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(f, (JacobianInverse, SpatialCoordinate))
         if not valid_operand:
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")
-        domain = extract_unique_domain(f)
-        K = JacobianInverse(domain)
-        Do = grad_to_reference_grad(o, K)
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        if isinstance(domain, MixedMesh):
+            raise NotImplementedError("Implement this for MixedMesh")
+        else:
+            K = JacobianInverse(domain)
+            Do = grad_to_reference_grad(o, K)
         return Do
 
     # --- Nesting of gradients

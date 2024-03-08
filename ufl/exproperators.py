@@ -24,7 +24,7 @@ from ufl.exprequals import expr_equals
 from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-from ufl.restriction import NegativeRestricted, PositiveRestricted
+from ufl.restriction import NegativeRestricted, PositiveRestricted, SingleValueRestricted, ToBeRestricted
 from ufl.tensoralgebra import Inner, Transposed
 from ufl.tensors import ComponentTensor, as_tensor
 from ufl.utils.stacks import StackDict
@@ -305,7 +305,7 @@ def _abs(self):
 Expr.__abs__ = _abs
 
 
-# --- Extend Expr with restiction operators a("+"), a("-") ---
+# --- Extend Expr with restiction operators a("+"), a("-"), a("|"), a("?") ---
 
 def _restrict(self, side):
     """Restrict."""
@@ -313,6 +313,10 @@ def _restrict(self, side):
         return PositiveRestricted(self)
     if side == "-":
         return NegativeRestricted(self)
+    if side == "|":
+        return SingleValueRestricted(self)
+    if side == "?":
+        return ToBeRestricted(self)
     raise ValueError(f"Invalid side '{side}' in restriction operator.")
 
 
@@ -335,7 +339,7 @@ def _eval(self, coord, mapping=None, component=()):
 
 def _call(self, arg, mapping=None, component=()):
     """Take the restriction or evaluate depending on argument."""
-    if arg in ("+", "-"):
+    if arg in ("+", "-", "|", "?"):
         if mapping is not None:
             raise ValueError("Not expecting a mapping when taking restriction.")
         return _restrict(self, arg)

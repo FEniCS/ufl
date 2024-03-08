@@ -300,7 +300,7 @@ class ReferenceGrad(CompoundDerivative):
         """Create a new ReferenceGrad."""
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
-            dim = extract_unique_domain(f).topological_dimension()
+            dim = extract_unique_domain(f, expand_mixed_mesh=False).topological_dimension()
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices,
                         f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
@@ -308,7 +308,7 @@ class ReferenceGrad(CompoundDerivative):
     def __init__(self, f):
         """Initalise."""
         CompoundDerivative.__init__(self, (f,))
-        self._dim = extract_unique_domain(f).topological_dimension()
+        self._dim = extract_unique_domain(f, expand_mixed_mesh=False).topological_dimension()
 
     def _ufl_expr_reconstruct_(self, op):
         """Return a new object of the same type with new operands."""
