@@ -115,6 +115,7 @@ class Cofunction(BaseCoefficient, BaseForm):
         "_repr",
         "_ufl_shape",
         "_hash",
+        "_ufl_is_terminal_",
     )
     _primal = False
     _dual = True
@@ -137,6 +138,7 @@ class Cofunction(BaseCoefficient, BaseForm):
 
         self.ufl_operands = ()
         self._hash = None
+        self._ufl_is_terminal_ = None
         self._repr = "Cofunction(%s, %s)" % (repr(self._ufl_function_space), repr(self._count))
 
     def equals(self, other):

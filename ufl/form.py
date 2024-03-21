@@ -723,6 +723,7 @@ class FormSum(BaseForm):
         "_domains",
         "_domain_numbering",
         "_hash",
+        "_ufl_is_terminal_",
     )
     _ufl_required_methods_ = "_analyze_form_arguments"
 
@@ -764,6 +765,7 @@ class FormSum(BaseForm):
         self._domains = None
         self._domain_numbering = None
         self._hash = None
+        self._ufl_is_terminal_ = None
         self._weights = weights
         self._components = full_components
         self._sum_variational_components()
