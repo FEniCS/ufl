@@ -196,7 +196,7 @@ class UC:
     left_double_angled_bracket = "⟪"
     right_double_angled_bracket = "⟫"
 
-    combining_right_arrow_above = "\u20D7"
+    combining_right_arrow_above = "\u20d7"
     combining_overline = "\u0305"
 
 

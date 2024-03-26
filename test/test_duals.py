@@ -121,6 +121,9 @@ def test_addition():
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
 
+    fvector_2d = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    W = FunctionSpace(domain_2d, fvector_2d)
+
     u = TrialFunction(V)
     v = TestFunction(V)
 
@@ -151,6 +154,11 @@ def test_addition():
     res = L
     res -= ZeroBaseForm((v,))
     assert res == L
+
+    # Simplification with respect to ufl.Zero
+    a_W = Matrix(W, W)
+    res = a_W + Zero(W.value_shape)
+    assert res == a_W
 
 
 def test_scalar_mult():

@@ -14,7 +14,6 @@
 #        recommended to use. The __all__ list below is a start based
 #        on grepping of other FEniCS code for ufl.algorithm imports.
 
-
 __all__ = [
     "estimate_total_polynomial_degree",
     "sort_elements",

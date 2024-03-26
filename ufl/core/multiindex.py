@@ -8,7 +8,6 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.utils.counted import Counted
