@@ -121,7 +121,7 @@ def test_addition():
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
 
-    fvector_2d = FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)
+    fvector_2d = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
     W = FunctionSpace(domain_2d, fvector_2d)
 
     u = TrialFunction(V)

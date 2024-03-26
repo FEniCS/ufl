@@ -6,7 +6,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import MultiIndex

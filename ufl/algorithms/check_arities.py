@@ -1,4 +1,5 @@
 """Check arities."""
+
 from itertools import chain
 
 from ufl.classes import Argument, Zero

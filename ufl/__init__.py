@@ -44,147 +44,147 @@ A very brief overview of the language contents follows:
 
 * Cells::
 
-    - AbstractCell
-    - Cell
-    - TensorProductCell
-    - vertex
-    - interval
-    - triangle
-    - tetrahedron
-    - quadrilateral
-    - hexahedron
-    - prism
-    - pyramid
-    - pentatope
-    - tesseract
+    -AbstractCell
+    -Cell
+    -TensorProductCell
+    -vertex
+    -interval
+    -triangle
+    -tetrahedron
+    -quadrilateral
+    -hexahedron
+    -prism
+    -pyramid
+    -pentatope
+    -tesseract
 
 * Domains::
 
-    - AbstractDomain
-    - Mesh
-    - MeshView
+    -AbstractDomain
+    -Mesh
+    -MeshView
 
 * Sobolev spaces::
 
-    - L2
-    - H1
-    - H2
-    - HInf
-    - HDiv
-    - HCurl
-    - HEin
-    - HDivDiv
+    -L2
+    -H1
+    -H2
+    -HInf
+    -HDiv
+    -HCurl
+    -HEin
+    -HDivDiv
 
 
 * Pull backs::
 
-    - identity_pullback
-    - contravariant_piola
-    - covariant_piola
-    - l2_piola
-    - double_contravariant_piola
-    - double_covariant_piola
+    -identity_pullback
+    -contravariant_piola
+    -covariant_piola
+    -l2_piola
+    -double_contravariant_piola
+    -double_covariant_piola
 
 * Function spaces::
 
-    - FunctionSpace
-    - MixedFunctionSpace
+    -FunctionSpace
+    -MixedFunctionSpace
 
 * Arguments::
 
-    - Argument
-    - TestFunction
-    - TrialFunction
-    - Arguments
-    - TestFunctions
-    - TrialFunctions
+    -Argument
+    -TestFunction
+    -TrialFunction
+    -Arguments
+    -TestFunctions
+    -TrialFunctions
 
 * Coefficients::
 
-    - Coefficient
-    - Constant
-    - VectorConstant
-    - TensorConstant
+    -Coefficient
+    -Constant
+    -VectorConstant
+    -TensorConstant
 
 * Splitting form arguments in mixed spaces::
 
-    - split
+    -split
 
 * Literal constants::
 
-    - Identity
-    - PermutationSymbol
+    -Identity
+    -PermutationSymbol
 
 * Geometric quantities::
 
-    - SpatialCoordinate
-    - FacetNormal
-    - CellNormal
-    - CellVolume
-    - CellDiameter
-    - Circumradius
-    - MinCellEdgeLength
-    - MaxCellEdgeLength
-    - FacetArea
-    - MinFacetEdgeLength
-    - MaxFacetEdgeLength
-    - Jacobian
-    - JacobianDeterminant
-    - JacobianInverse
+    -SpatialCoordinate
+    -FacetNormal
+    -CellNormal
+    -CellVolume
+    -CellDiameter
+    -Circumradius
+    -MinCellEdgeLength
+    -MaxCellEdgeLength
+    -FacetArea
+    -MinFacetEdgeLength
+    -MaxFacetEdgeLength
+    -Jacobian
+    -JacobianDeterminant
+    -JacobianInverse
 
 * Indices::
 
-    - Index
-    - indices
-    - i, j, k, l
-    - p, q, r, s
+    -Index
+    -indices
+    -i, j, k, l
+    -p, q, r, s
 
 * Scalar to tensor expression conversion::
 
-    - as_tensor
-    - as_vector
-    - as_matrix
+    -as_tensor
+    -as_vector
+    -as_matrix
 
 * Unit vectors and matrices::
 
-    - unit_vector
-    - unit_vectors
-    - unit_matrix
-    - unit_matrices
+    -unit_vector
+    -unit_vectors
+    -unit_matrix
+    -unit_matrices
 
 * Tensor algebra operators::
 
-    - outer, inner, dot, cross, perp
-    - det, inv, cofac
-    - transpose, tr, diag, diag_vector
-    - dev, skew, sym
+    -outer, inner, dot, cross, perp
+    -det, inv, cofac
+    -transpose, tr, diag, diag_vector
+    -dev, skew, sym
 
 * Elementwise tensor operators::
 
-    - elem_mult
-    - elem_div
-    - elem_pow
-    - elem_op
+    -elem_mult
+    -elem_div
+    -elem_pow
+    -elem_op
 
 * Differential operators::
 
-    - variable
-    - diff,
-    - grad, nabla_grad
-    - div, nabla_div
-    - curl, rot
-    - Dx, Dn
+    -variable
+    (-diff,)
+    -grad, nabla_grad
+    -div, nabla_div
+    -curl, rot
+    -Dx, Dn
 
 * Nonlinear functions::
 
-    - max_value, min_value
-    - abs, sign
-    - sqrt
-    - exp, ln, erf
-    - cos, sin, tan
-    - acos, asin, atan, atan2
-    - cosh, sinh, tanh
-    - bessel_J, bessel_Y, bessel_I, bessel_K
+    -max_value, min_value
+    -abs, sign
+    -sqrt
+    -exp, ln, erf
+    -cos, sin, tan
+    -acos, asin, atan, atan2
+    -cosh, sinh, tanh
+    -bessel_J, bessel_Y, bessel_I, bessel_K
 
 * Complex operations::
 
@@ -193,10 +193,10 @@ A very brief overview of the language contents follows:
 
 * Discontinuous Galerkin operators::
 
-    - v('+'), v('-')
-    - jump
-    - avg
-    - cell_avg, facet_avg
+    -v("+"), v("-")
+    -jump
+    -avg
+    -cell_avg, facet_avg
 
 * Conditional operators::
 
@@ -207,21 +207,21 @@ A very brief overview of the language contents follows:
 
 * Integral measures::
 
-    - dx, ds, dS, dP
-    - dc, dC, dO, dI, dX
-    - ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
+    -dx, ds, dS, dP
+    -dc, dC, dO, dI, dX
+    -ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
 
 * Form transformations::
 
-    - rhs, lhs
-    - system
-    - functional
-    - replace
-    - adjoint
-    - action
-    - energy_norm,
-    - sensitivity_rhs
-    - derivative
+    -rhs, lhs
+    -system
+    -functional
+    -replace
+    -adjoint
+    -action
+    (-energy_norm,)
+    -sensitivity_rhs
+    -derivative
 """
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg

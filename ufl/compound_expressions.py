@@ -7,7 +7,6 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-
 from ufl.constantvalue import Zero, zero
 from ufl.core.multiindex import Index, indices
 from ufl.operators import sqrt
