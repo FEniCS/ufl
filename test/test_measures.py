@@ -60,21 +60,20 @@ def test_construct_forms_from_default_measures():
 
     # Check that we can create a basic form with default measure
     one = as_ufl(1)
-    one * dx(Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1)))
+    one * dx(Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)))
 
 
 def test_foo():
-
     # Define a manifold domain, allows checking gdim/tdim mixup errors
     gdim = 3
     tdim = 2
-    cell = Cell("triangle", gdim)
+    cell = Cell("triangle")
     mymesh = MockMesh(9)
-    mydomain = Mesh(FiniteElement("Lagrange", cell, 1, (gdim, ), identity_pullback, H1),
-                    ufl_id=9, cargo=mymesh)
+    mydomain = Mesh(
+        FiniteElement("Lagrange", cell, 1, (gdim,), identity_pullback, H1), ufl_id=9, cargo=mymesh
+    )
 
     assert cell.topological_dimension() == tdim
-    assert cell.geometric_dimension() == gdim
     assert cell.cellname() == "triangle"
     assert mydomain.topological_dimension() == tdim
     assert mydomain.geometric_dimension() == gdim
@@ -88,10 +87,7 @@ def test_foo():
 
     # Test definition of a custom measure with explicit parameters
     metadata = {"opt": True}
-    mydx = Measure("dx",
-                   domain=mydomain,
-                   subdomain_id=3,
-                   metadata=metadata)
+    mydx = Measure("dx", domain=mydomain, subdomain_id=3, metadata=metadata)
     assert mydx.ufl_domain().ufl_id() == mydomain.ufl_id()
     assert mydx.metadata() == metadata
     M = f * mydx
@@ -121,7 +117,7 @@ def test_foo():
     # Set subdomain_id to (2,3), still no domain set
     dx23 = dx((2, 3))
     assert dx23.ufl_domain() is None
-    assert dx23.subdomain_id(), (2 == 3)
+    assert dx23.subdomain_id(), 2 == 3
 
     # Map metadata to metadata, ffc interprets as before
     dxm = dx(metadata={"dummy": 123})
@@ -162,29 +158,29 @@ def test_foo():
 
     # Create some forms with these measures (used in checks below):
     Mx = f * dxd
-    Ms = f ** 2 * dsd
-    MS = f('+') * dSd
-    M = f * dxd + f ** 2 * dsd + f('+') * dSd
+    Ms = f**2 * dsd
+    MS = f("+") * dSd
+    M = f * dxd + f**2 * dsd + f("+") * dSd
 
     # Test extracting domain data from a form for each measure:
-    domain, = Mx.ufl_domains()
+    (domain,) = Mx.ufl_domains()
     assert domain.ufl_id() == mydomain.ufl_id()
     assert domain.ufl_cargo() == mymesh
     assert len(Mx.subdomain_data()[mydomain]["cell"]) == 1
     assert Mx.subdomain_data()[mydomain]["cell"][0] == cell_domains
 
-    domain, = Ms.ufl_domains()
+    (domain,) = Ms.ufl_domains()
     assert domain.ufl_cargo() == mymesh
     assert len(Ms.subdomain_data()[mydomain]["exterior_facet"]) == 1
     assert Ms.subdomain_data()[mydomain]["exterior_facet"][0] == exterior_facet_domains
 
-    domain, = MS.ufl_domains()
+    (domain,) = MS.ufl_domains()
     assert domain.ufl_cargo() == mymesh
     assert len(MS.subdomain_data()[mydomain]["interior_facet"]) == 1
     assert MS.subdomain_data()[mydomain]["interior_facet"][0] == interior_facet_domains
 
     # Test joining of these domains in a single form
-    domain, = M.ufl_domains()
+    (domain,) = M.ufl_domains()
     assert domain.ufl_cargo() == mymesh
     assert len(M.subdomain_data()[mydomain]["cell"]) == 1
     assert M.subdomain_data()[mydomain]["cell"][0] == cell_domains

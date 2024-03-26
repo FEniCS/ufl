@@ -1,4 +1,4 @@
-"""Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
+"""Algorithm for replacing gradients in an expression."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -18,14 +18,17 @@ from ufl.tensors import as_tensor
 
 """
 # Some notes:
-# Below, let v_i mean physical coordinate of vertex i and V_i mean the reference cell coordinate of the same vertex.
+# Below, let v_i mean physical coordinate of vertex i and V_i mean the
+reference cell coordinate of the same vertex.
 
 
-# Add a type for CellVertices? Note that vertices must be computed in linear cell cases!
-triangle_vertices[i,j] = component j of vertex i, following ufc numbering conventions
+# Add a type for CellVertices? Note that vertices must be computed in
+linear cell cases! triangle_vertices[i,j] = component j of vertex i,
+following ufc numbering conventions
 
 
-# DONE Add a type for CellEdgeLengths? Note that these are only easy to define in the linear cell case!
+# DONE Add a type for CellEdgeLengths? Note that these are only easy to
+define in the linear cell case!
 triangle_edge_lengths    = [v1v2, v0v2, v0v1] # shape (3,)
 tetrahedron_edge_lengths = [v0v1, v0v2, v0v3, v1v2, v1v3, v2v3] # shape (6,)
 
@@ -33,7 +36,8 @@ tetrahedron_edge_lengths = [v0v1, v0v2, v0v3, v1v2, v1v3, v2v3] # shape (6,)
 # DONE Here's how to compute edge lengths from the Jacobian:
 J =[ [dx0/dX0, dx0/dX1],
      [dx1/dX0, dx1/dX1] ]
-# First compute the edge vector, which is constant for each edge: the vector from one vertex to the other
+# First compute the edge vector, which is constant for each edge: the
+vector from one vertex to the other
 reference_edge_vector_0 = V2 - V1 # Example! Add a type ReferenceEdgeVectors?
 # Then apply J to it and take the length of the resulting vector, this is generic for affine cells
 edge_length_i = || dot(J, reference_edge_vector_i) ||
@@ -121,18 +125,18 @@ class ChangeToReferenceGrad(MultiFunction):
         # Peel off the Grads and count them, and get restriction if
         # it's between the grad and the terminal
         ngrads = 0
-        restricted = ''
+        restricted = ""
         rv = False
         while not o._ufl_is_terminal_:
             if isinstance(o, Grad):
-                o, = o.ufl_operands
+                (o,) = o.ufl_operands
                 ngrads += 1
             elif isinstance(o, Restricted):
                 restricted = o.side()
-                o, = o.ufl_operands
+                (o,) = o.ufl_operands
             elif isinstance(o, ReferenceValue):
                 rv = True
-                o, = o.ufl_operands
+                (o,) = o.ufl_operands
             else:
                 raise ValueError(f"Invalid type {o._ufl_class_.__name__}")
         f = o
@@ -150,7 +154,9 @@ class ChangeToReferenceGrad(MultiFunction):
 
             # Create some new indices
             ii = indices(len(f.ufl_shape))  # Indices to get to the scalar component of f
-            jj = indices(ngrads)  # Indices to sum over the local gradient axes with the inverse Jacobian
+            jj = indices(
+                ngrads
+            )  # Indices to sum over the local gradient axes with the inverse Jacobian
             kk = indices(ngrads)  # Indices for the leftover inverse Jacobian axes
 
             # Preserve restricted property
@@ -182,7 +188,9 @@ class ChangeToReferenceGrad(MultiFunction):
 
             jinv_lgrad_f = f
             for foo in range(ngrads):
-                ii = indices(len(jinv_lgrad_f.ufl_shape))  # Indices to get to the scalar component of f
+                ii = indices(
+                    len(jinv_lgrad_f.ufl_shape)
+                )  # Indices to get to the scalar component of f
                 j, k = indices(2)
 
                 lgrad = ReferenceGrad(jinv_lgrad_f)
@@ -199,13 +207,16 @@ class ChangeToReferenceGrad(MultiFunction):
 
     def coefficient_derivative(self, o):
         """Apply to coefficient_derivative."""
-        raise ValueError("Coefficient derivatives should be expanded before applying change to reference grad.")
+        raise ValueError(
+            "Coefficient derivatives should be expanded before applying change to reference grad."
+        )
 
 
 def change_to_reference_grad(e):
     """Change Grad objects in expression to products of JacobianInverse and ReferenceGrad.
 
-    Assumes the expression is preprocessed or at least that derivatives have been expanded.
+    Assumes the expression is preprocessed or at least that derivatives
+    have been expanded.
 
     Args:
         e: An Expr or Form.

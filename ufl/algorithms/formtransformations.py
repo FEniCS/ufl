@@ -1,4 +1,4 @@
-"""This module defines utilities for transforming complete Forms into new related Forms."""
+"""Utilities for transforming complete Forms into new related Forms."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -14,6 +14,7 @@ import warnings
 from logging import debug
 
 from ufl.algebra import Conj
+
 # Other algorithms:
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
@@ -21,6 +22,7 @@ from ufl.algorithms.transformer import Transformer
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
+
 # All classes:
 from ufl.core.expr import ufl_err_str
 
@@ -123,7 +125,6 @@ class PartExtracter(Transformer):
         original_terms = x.ufl_operands
         assert len(original_terms) == 2
         for term in original_terms:
-
             # Visit this term in the sum
             part, term_provides = self.visit(term)
 
@@ -145,8 +146,7 @@ class PartExtracter(Transformer):
 
         # 3. Return the terms that provide the biggest set
         most_provided = frozenset()
-        for (provideds, parts) in parts_that_provide.items():  # TODO: Just sort instead?
-
+        for provideds, parts in parts_that_provide.items():  # TODO: Just sort instead?
             # Throw error if size of sets are equal (and not zero)
             if len(provideds) == len(most_provided) and len(most_provided):
                 raise ValueError("Don't know what to do with sums with different Arguments.")
@@ -158,7 +158,7 @@ class PartExtracter(Transformer):
         if len(terms) == 2:
             x = self.reuse_if_possible(x, *terms)
         else:
-            x, = terms
+            (x,) = terms
 
         return (x, most_provided)
 
@@ -172,7 +172,6 @@ class PartExtracter(Transformer):
         factors = []
 
         for factor, factor_provides in ops:
-
             # If any factor is zero, return
             if isinstance(factor, Zero):
                 return (zero_expr(x), set())
@@ -202,7 +201,9 @@ class PartExtracter(Transformer):
 
         # Check for Arguments in the denominator
         if _expr_has_terminal_types(denominator, Argument):
-            raise ValueError(f"Found Argument in denominator of {ufl_err_str(x)}, this is an invalid expression.")
+            raise ValueError(
+                f"Found Argument in denominator of {ufl_err_str(x)}, this is an invalid expression."
+            )
 
         # Visit numerator
         numerator_parts, provides = self.visit(numerator)
@@ -281,18 +282,20 @@ class PartExtracter(Transformer):
 
         # Extract the most arguments provided by any of the components
         most_provides = ops[0][1]
-        for (component, provides) in ops:
-            if (provides - most_provides):
+        for component, provides in ops:
+            if provides - most_provides:
                 most_provides = provides
 
         # Check that all components either provide the same arguments
         # or vanish. (This check is here b/c it is not obvious what to
         # return if the components provide different arguments, at
         # least with the current transformer design.)
-        for (component, provides) in ops:
-            if (provides != most_provides and not isinstance(component, Zero)):
-                raise ValueError("PartExtracter does not know how to handle list_tensors with "
-                                 "non-zero components providing fewer arguments")
+        for component, provides in ops:
+            if provides != most_provides and not isinstance(component, Zero):
+                raise ValueError(
+                    "PartExtracter does not know how to handle list_tensors with "
+                    "non-zero components providing fewer arguments"
+                )
 
         # Return components
         components = [op[0] for op in ops]
@@ -327,6 +330,7 @@ def compute_form_with_arity(form, arity, arguments=None):
         if provides == sub_arguments:
             return e
         return Zero()
+
     return map_integrands(_transform, form)
 
 
@@ -341,7 +345,6 @@ def compute_form_arities(form):
 
     arities = set()
     for arity in range(len(arguments) + 1):
-
         # Compute parts with arity "arity"
         parts = compute_form_with_arity(form, arity, arguments)
 
@@ -432,13 +435,17 @@ def compute_energy_norm(form, coefficient):
     U = u.ufl_function_space()
     V = v.ufl_function_space()
     if U != V:
-        raise ValueError(f"Expecting equal finite elements for test and trial functions, got '{U}' and '{V}'.")
+        raise ValueError(
+            f"Expecting equal finite elements for test and trial functions, got '{U}' and '{V}'."
+        )
     if coefficient is None:
         coefficient = Coefficient(V)
     else:
         if coefficient.ufl_function_space() != U:
-            raise ValueError("Trying to compute action of form on a "
-                  "coefficient in an incompatible element space.")
+            raise ValueError(
+                "Trying to compute action of form on a "
+                "coefficient in an incompatible element space."
+            )
     return action(action(form, coefficient), coefficient)
 
 
@@ -462,10 +469,8 @@ def compute_form_adjoint(form, reordered_arguments=None):
         raise ValueError("Mistaken assumption in code!")
 
     if reordered_arguments is None:
-        reordered_u = Argument(u.ufl_function_space(), number=v.number(),
-                               part=v.part())
-        reordered_v = Argument(v.ufl_function_space(), number=u.number(),
-                               part=u.part())
+        reordered_u = Argument(u.ufl_function_space(), number=v.number(), part=v.part())
+        reordered_v = Argument(v.ufl_function_space(), number=u.number(), part=u.part())
     else:
         reordered_u, reordered_v = reordered_arguments
 

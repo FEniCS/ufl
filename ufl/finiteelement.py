@@ -31,12 +31,14 @@ __all_classes__ = ["AbstractFiniteElement", "FiniteElement", "MixedElement", "Sy
 class AbstractFiniteElement(_abc.ABC):
     """Base class for all finite elements.
 
-    To make your element library compatible with UFL, you should make a subclass of AbstractFiniteElement
-    and provide implementions of all the abstract methods and properties. All methods and properties
-    that are not marked as abstract are implemented here and should not need to be overwritten in your
-    subclass.
+    To make your element library compatible with UFL, you should make a
+    subclass of AbstractFiniteElement and provide implementions of all
+    the abstract methods and properties. All methods and properties that
+    are not marked as abstract are implemented here and should not need
+    to be overwritten in your subclass.
 
-    An example of how the methods in your subclass could be implemented can be found in Basix; see
+    An example of how the methods in your subclass could be implemented
+    can be found in Basix; see
     https://github.com/FEniCS/basix/blob/main/python/basix/ufl.py
     """
 
@@ -66,29 +68,33 @@ class AbstractFiniteElement(_abc.ABC):
 
     @_abc.abstractproperty
     def embedded_superdegree(self) -> _typing.Union[int, None]:
-        """Return the degree of the minimum degree Lagrange space that spans this element.
+        """Degree of the minimum degree Lagrange space that spans this element.
 
-        This returns the degree of the lowest degree Lagrange space such that the polynomial
-        space of the Lagrange space is a superspace of this element's polynomial space. If this
-        element contains basis functions that are not in any Lagrange space, this function should
-        return None.
+        This returns the degree of the lowest degree Lagrange space such
+        that the polynomial space of the Lagrange space is a superspace
+        of this element's polynomial space. If this element contains
+        basis functions that are not in any Lagrange space, this
+        function should return None.
 
-        Note that on a simplex cells, the polynomial space of Lagrange space is a complete polynomial
-        space, but on other cells this is not true. For example, on quadrilateral cells, the degree 1
+        Note that on a simplex cells, the polynomial space of Lagrange
+        space is a complete polynomial space, but on other cells this is
+        not true. For example, on quadrilateral cells, the degree 1
         Lagrange space includes the degree 2 polynomial xy.
         """
 
     @_abc.abstractproperty
     def embedded_subdegree(self) -> int:
-        """Return the degree of the maximum degree Lagrange space that is spanned by this element.
+        """Degree of the maximum degree Lagrange space that is spanned by this element.
 
-        This returns the degree of the highest degree Lagrange space such that the polynomial
-        space of the Lagrange space is a subspace of this element's polynomial space. If this
-        element's polynomial space does not include the constant function, this function should
-        return -1.
+        This returns the degree of the highest degree Lagrange space
+        such that the polynomial space of the Lagrange space is a
+        subspace of this element's polynomial space. If this element's
+        polynomial space does not include the constant function, this
+        function should return -1.
 
-        Note that on a simplex cells, the polynomial space of Lagrange space is a complete polynomial
-        space, but on other cells this is not true. For example, on quadrilateral cells, the degree 1
+        Note that on a simplex cells, the polynomial space of Lagrange
+        space is a complete polynomial space, but on other cells this is
+        not true. For example, on quadrilateral cells, the degree 1
         Lagrange space includes the degree 2 polynomial xy.
         """
 
@@ -143,20 +149,10 @@ class AbstractFiniteElement(_abc.ABC):
         c_offset = 0
         for e in self.sub_elements:
             for i, j in enumerate(np.ndindex(e.value_shape)):
-                components[(offset + i, )] = c_offset + e.components[j]
+                components[(offset + i,)] = c_offset + e.components[j]
             c_offset += max(e.components.values()) + 1
             offset += e.value_size
         return components
-
-    @property
-    def value_shape(self) -> _typing.Tuple[int, ...]:
-        """Return the shape of the value space on the physical domain."""
-        return self.pullback.physical_value_shape(self)
-
-    @property
-    def value_size(self) -> int:
-        """Return the integer product of the value shape."""
-        return product(self.value_shape)
 
     @property
     def reference_value_size(self) -> int:
@@ -175,15 +171,31 @@ class AbstractFiniteElement(_abc.ABC):
 
 class FiniteElement(AbstractFiniteElement):
     """A directly defined finite element."""
-    __slots__ = ("_repr", "_str", "_family", "_cell", "_degree",
-                 "_reference_value_shape", "_pullback", "_sobolev_space",
-                 "_sub_elements", "_subdegree")
+
+    __slots__ = (
+        "_repr",
+        "_str",
+        "_family",
+        "_cell",
+        "_degree",
+        "_reference_value_shape",
+        "_pullback",
+        "_sobolev_space",
+        "_sub_elements",
+        "_subdegree",
+    )
 
     def __init__(
-        self, family: str, cell: _Cell, degree: int,
-        reference_value_shape: _typing.Tuple[int, ...], pullback: _AbstractPullback,
-        sobolev_space: _SobolevSpace, sub_elements=[],
-        _repr: _typing.Optional[str] = None, _str: _typing.Optional[str] = None,
+        self,
+        family: str,
+        cell: _Cell,
+        degree: int,
+        reference_value_shape: _typing.Tuple[int, ...],
+        pullback: _AbstractPullback,
+        sobolev_space: _SobolevSpace,
+        sub_elements=[],
+        _repr: _typing.Optional[str] = None,
+        _str: _typing.Optional[str] = None,
         subdegree: _typing.Optional[int] = None,
     ):
         """Initialise a finite element.
@@ -209,12 +221,14 @@ class FiniteElement(AbstractFiniteElement):
         if _repr is None:
             if len(sub_elements) > 0:
                 self._repr = (
-                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, "
-                    f"{reference_value_shape}, {pullback}, {sobolev_space}, {sub_elements!r})")
+                    f'ufl.finiteelement.FiniteElement("{family}", {cell}, {degree}, '
+                    f"{reference_value_shape}, {pullback}, {sobolev_space}, {sub_elements!r})"
+                )
             else:
                 self._repr = (
-                    f"ufl.finiteelement.FiniteElement(\"{family}\", {cell}, {degree}, "
-                    f"{reference_value_shape}, {pullback}, {sobolev_space})")
+                    f'ufl.finiteelement.FiniteElement("{family}", {cell}, {degree}, '
+                    f"{reference_value_shape}, {pullback}, {sobolev_space})"
+                )
         else:
             self._repr = _repr
         if _str is None:
@@ -257,30 +271,34 @@ class FiniteElement(AbstractFiniteElement):
 
     @property
     def embedded_superdegree(self) -> _typing.Union[int, None]:
-        """Return the degree of the minimum degree Lagrange space that spans this element.
+        """Degree of the minimum degree Lagrange space that spans this element.
 
-        This returns the degree of the lowest degree Lagrange space such that the polynomial
-        space of the Lagrange space is a superspace of this element's polynomial space. If this
-        element contains basis functions that are not in any Lagrange space, this function should
-        return None.
+        This returns the degree of the lowest degree Lagrange space such
+        that the polynomial space of the Lagrange space is a superspace
+        of this element's polynomial space. If this element contains
+        basis functions that are not in any Lagrange space, this
+        function should return None.
 
-        Note that on a simplex cells, the polynomial space of Lagrange space is a complete polynomial
-        space, but on other cells this is not true. For example, on quadrilateral cells, the degree 1
+        Note that on a simplex cells, the polynomial space of Lagrange
+        space is a complete polynomial space, but on other cells this is
+        not true. For example, on quadrilateral cells, the degree 1
         Lagrange space includes the degree 2 polynomial xy.
         """
         return self._degree
 
     @property
     def embedded_subdegree(self) -> int:
-        """Return the degree of the maximum degree Lagrange space that is spanned by this element.
+        """Degree of the maximum degree Lagrange space that is spanned by this element.
 
-        This returns the degree of the highest degree Lagrange space such that the polynomial
-        space of the Lagrange space is a subspace of this element's polynomial space. If this
-        element's polynomial space does not include the constant function, this function should
-        return -1.
+        This returns the degree of the highest degree Lagrange space
+        such that the polynomial space of the Lagrange space is a
+        subspace of this element's polynomial space. If this element's
+        polynomial space does not include the constant function, this
+        function should return -1.
 
-        Note that on a simplex cells, the polynomial space of Lagrange space is a complete polynomial
-        space, but on other cells this is not true. For example, on quadrilateral cells, the degree 1
+        Note that on a simplex cells, the polynomial space of Lagrange
+        space is a complete polynomial space, but on other cells this is
+        not true. For example, on quadrilateral cells, the degree 1
         Lagrange space includes the degree 2 polynomial xy.
         """
         return self._subdegree
@@ -299,8 +317,8 @@ class FiniteElement(AbstractFiniteElement):
     def sub_elements(self) -> _typing.List:
         """Return list of sub-elements.
 
-        This function does not recurse: ie it does not extract the sub-elements
-        of sub-elements.
+        This function does not recurse: ie it does not extract the
+        sub-elements of sub-elements.
         """
         return self._sub_elements
 
@@ -311,7 +329,7 @@ class SymmetricElement(FiniteElement):
     def __init__(
         self,
         symmetry: _typing.Dict[_typing.Tuple[int, ...], int],
-        sub_elements: _typing.List[AbstractFiniteElement]
+        sub_elements: _typing.List[AbstractFiniteElement],
     ):
         """Initialise a symmetric element.
 
@@ -323,7 +341,7 @@ class SymmetricElement(FiniteElement):
         """
         self._sub_elements = sub_elements
         pullback = _SymmetricPullback(self, symmetry)
-        reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
+        reference_value_shape = (sum(e.reference_value_size for e in sub_elements),)
         degree = max(e.embedded_superdegree for e in sub_elements)
         cell = sub_elements[0].cell
         for e in sub_elements:
@@ -332,10 +350,16 @@ class SymmetricElement(FiniteElement):
         sobolev_space = max(e.sobolev_space for e in sub_elements)
 
         super().__init__(
-            "Symmetric element", cell, degree, reference_value_shape, pullback,
-            sobolev_space, sub_elements=sub_elements,
+            "Symmetric element",
+            cell,
+            degree,
+            reference_value_shape,
+            pullback,
+            sobolev_space,
+            sub_elements=sub_elements,
             _repr=(f"ufl.finiteelement.SymmetricElement({symmetry!r}, {sub_elements!r})"),
-            _str=f"<symmetric element on a {cell}>")
+            _str=f"<symmetric element on a {cell}>",
+        )
 
 
 class MixedElement(FiniteElement):
@@ -354,7 +378,7 @@ class MixedElement(FiniteElement):
         for e in sub_elements:
             assert e.cell == cell
         degree = max(e.embedded_superdegree for e in sub_elements)
-        reference_value_shape = (sum(e.reference_value_size for e in sub_elements), )
+        reference_value_shape = (sum(e.reference_value_size for e in sub_elements),)
         if all(isinstance(e.pullback, _IdentityPullback) for e in sub_elements):
             pullback = _IdentityPullback()
         else:
@@ -362,7 +386,13 @@ class MixedElement(FiniteElement):
         sobolev_space = max(e.sobolev_space for e in sub_elements)
 
         super().__init__(
-            "Mixed element", cell, degree, reference_value_shape, pullback, sobolev_space,
+            "Mixed element",
+            cell,
+            degree,
+            reference_value_shape,
+            pullback,
+            sobolev_space,
             sub_elements=sub_elements,
             _repr=f"ufl.finiteelement.MixedElement({sub_elements!r})",
-            _str=f"<MixedElement with {len(sub_elements)} sub-element(s)>")
+            _str=f"<MixedElement with {len(sub_elements)} sub-element(s)>",
+        )

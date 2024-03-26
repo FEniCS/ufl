@@ -1,7 +1,23 @@
 import pytest
 
-from ufl import (Coefficient, Cofunction, Form, FormSum, FunctionSpace, Mesh, SpatialCoordinate, TestFunction,
-                 TrialFunction, dot, ds, dx, grad, inner, nabla_grad, triangle)
+from ufl import (
+    Coefficient,
+    Cofunction,
+    Form,
+    FormSum,
+    FunctionSpace,
+    Mesh,
+    SpatialCoordinate,
+    TestFunction,
+    TrialFunction,
+    dot,
+    ds,
+    dx,
+    grad,
+    inner,
+    nabla_grad,
+    triangle,
+)
 from ufl.finiteelement import FiniteElement
 from ufl.form import BaseForm
 from ufl.pullback import identity_pullback
@@ -18,7 +34,7 @@ def element():
 @pytest.fixture
 def domain():
     cell = triangle
-    return Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
+    return Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
 
 
 @pytest.fixture
@@ -44,7 +60,7 @@ def stiffness(domain):
 @pytest.fixture
 def convection(domain):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1)
+    element = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -74,7 +90,7 @@ def boundary_load(domain):
 
 def test_form_arguments(mass, stiffness, convection, load):
     v, u = mass.arguments()
-    f, = load.coefficients()
+    (f,) = load.coefficients()
 
     assert v.number() == 0
     assert u.number() == 1
@@ -104,7 +120,7 @@ def test_form_coefficients(element, domain):
 def test_form_domains():
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
     V = FunctionSpace(domain, element)
 
     v = TestFunction(V)
@@ -136,32 +152,33 @@ def test_form_integrals(mass, boundary_load):
 
 def test_form_call():
     element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     V = FunctionSpace(domain, element)
     v = TestFunction(V)
     u = TrialFunction(V)
     f = Coefficient(V)
     g = Coefficient(V)
-    a = g*inner(grad(v), grad(u))*dx
+    a = g * inner(grad(v), grad(u)) * dx
     M = a(f, f, coefficients={g: 1})
-    assert M == grad(f)**2*dx
+    assert M == grad(f) ** 2 * dx
 
     import sys
+
     if sys.version_info.major >= 3 and sys.version_info.minor >= 5:
-        a = u*v*dx
+        a = u * v * dx
         M = eval("(a @ f) @ g")
-        assert M == g*f*dx
+        assert M == g * f * dx
 
 
 def test_formsum(mass):
     element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     V = FunctionSpace(domain, element)
     v = Cofunction(V.dual())
 
     assert v + mass
     assert mass + v
-    assert isinstance((mass+v), FormSum)
+    assert isinstance((mass + v), FormSum)
 
     assert len((mass + v + v).components()) == 3
     # Variational forms are summed appropriately
@@ -169,7 +186,7 @@ def test_formsum(mass):
 
     assert v - mass
     assert mass - v
-    assert isinstance((mass+v), FormSum)
+    assert isinstance((mass + v), FormSum)
 
     assert -v
     assert isinstance(-v, BaseForm)

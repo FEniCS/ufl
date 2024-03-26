@@ -16,7 +16,7 @@ from ufl.integral import Integral
 
 
 def iter_expressions(a):
-    """Utility function to handle Form, Integral and any Expr the same way when inspecting expressions.
+    """Handle Form, Integral and any Expr the same way when inspecting expressions.
 
     Returns an iterable over Expr instances:
     - a is an Expr: (a,)

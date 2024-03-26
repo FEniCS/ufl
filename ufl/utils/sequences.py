@@ -8,7 +8,7 @@
 
 from functools import reduce
 
-import numpy
+import numpy as np
 
 
 def product(sequence):
@@ -21,11 +21,11 @@ def product(sequence):
 
 def max_degree(degrees):
     """Maximum degree for mixture of scalar and tuple degrees."""
-    # numpy.maximum broadcasts scalar degrees to tuple degrees if
-    # necessary.  reduce applies numpy.maximum pairwise.
-    degree = reduce(numpy.maximum, map(numpy.asarray, degrees))
+    # np.maximum broadcasts scalar degrees to tuple degrees if
+    # necessary.  reduce applies np.maximum pairwise.
+    degree = reduce(np.maximum, map(np.asarray, degrees))
     if degree.ndim:
         degree = tuple(map(int, degree))  # tuple degree
     else:
-        degree = int(degree)              # scalar degree
+        degree = int(degree)  # scalar degree
     return degree

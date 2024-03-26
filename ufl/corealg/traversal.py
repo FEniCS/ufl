@@ -39,7 +39,11 @@ def post_traversal(expr):
 
 
 def cutoff_post_traversal(expr, cutofftypes):
-    """Yield ``o`` for each node ``o`` in *expr*, child before parent, but skipping subtrees of the cutofftypes."""
+    """Cut-off post-tranversal.
+
+    Yield ``o`` for each node ``o`` in *expr*, child before parent, but
+    skipping subtrees of the cutofftypes.
+    """
     lifo = [(expr, list(reversed(expr.ufl_operands)))]
     while lifo:
         expr, deps = lifo[-1]

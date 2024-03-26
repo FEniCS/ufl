@@ -51,6 +51,7 @@ def attach_ufl_id(cls):
                 ufl_id = cls._ufl_global_id
             cls._ufl_global_id = max(ufl_id, cls._ufl_global_id) + 1
             return ufl_id
+
         return init_ufl_id
 
     # Modify class:

@@ -13,7 +13,7 @@ from ufl.sobolevspace import H1
 @pytest.fixture
 def f():
     element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     return Coefficient(space)
 
@@ -21,7 +21,7 @@ def f():
 @pytest.fixture
 def g():
     element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     space = FunctionSpace(domain, element)
     return Coefficient(space)
 

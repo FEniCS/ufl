@@ -17,8 +17,17 @@
 #
 # First added:  2012-08-16
 # Last changed: 2012-08-16
-from ufl import (FunctionSpace, Mesh, TensorProductElement, TestFunction, TrialFunction, dx, interval, tetrahedron,
-                 triangle)
+from ufl import (
+    FunctionSpace,
+    Mesh,
+    TensorProductElement,
+    TestFunction,
+    TrialFunction,
+    dx,
+    interval,
+    tetrahedron,
+    triangle,
+)
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2

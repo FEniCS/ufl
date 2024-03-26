@@ -9,7 +9,7 @@ from ufl.sobolevspace import H1
 
 @pytest.fixture
 def domain():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
 
 
 @pytest.fixture

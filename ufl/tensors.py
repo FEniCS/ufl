@@ -39,11 +39,17 @@ class ListTensor(Operator):
 
         # Obviously, each subexpression must have the same shape
         if any(sh != e.ufl_shape for e in expressions[1:]):
-            raise ValueError("Cannot create a tensor by joining subexpressions with different shapes.")
+            raise ValueError(
+                "Cannot create a tensor by joining subexpressions with different shapes."
+            )
         if any(fi != e.ufl_free_indices for e in expressions[1:]):
-            raise ValueError("Cannot create a tensor where the components have different free indices.")
+            raise ValueError(
+                "Cannot create a tensor where the components have different free indices."
+            )
         if any(fid != e.ufl_index_dimensions for e in expressions[1:]):
-            raise ValueError("Cannot create a tensor where the components have different free index dimensions.")
+            raise ValueError(
+                "Cannot create a tensor where the components have different free index dimensions."
+            )
 
         # Simplify to Zero if possible
         if all(isinstance(e, Zero) for e in expressions):
@@ -59,7 +65,9 @@ class ListTensor(Operator):
         # Checks
         indexset = set(self.ufl_operands[0].ufl_free_indices)
         if not all(not (indexset ^ set(e.ufl_free_indices)) for e in self.ufl_operands):
-            raise ValueError("Can't combine subtensor expressions with different sets of free indices.")
+            raise ValueError(
+                "Can't combine subtensor expressions with different sets of free indices."
+            )
 
     @property
     def ufl_shape(self):
@@ -71,7 +79,8 @@ class ListTensor(Operator):
         if len(component) != len(self.ufl_shape):
             raise ValueError(
                 "Can only evaluate scalars, expecting a component "
-                "tuple of length {len(self.ufl_shape)}, not {component}.")
+                "tuple of length {len(self.ufl_shape)}, not {component}."
+            )
         a = self.ufl_operands[component[0]]
         component = component[1:]
         if derivatives:
@@ -96,6 +105,7 @@ class ListTensor(Operator):
 
     def __str__(self):
         """Format as a string."""
+
         def substring(expressions, indent):
             ind = " " * indent
             if any(isinstance(e, ListTensor) for e in expressions):
@@ -110,6 +120,7 @@ class ListTensor(Operator):
             else:
                 s = ", ".join(str(e) for e in expressions)
                 return "%s[%s]" % (ind, s)
+
         return substring(self.ufl_operands, 0)
 
 
@@ -123,9 +134,11 @@ class ComponentTensor(Operator):
         """Create a new ComponentTensor."""
         # Simplify
         if isinstance(expression, Zero):
-            fi, fid, sh = remove_indices(expression.ufl_free_indices,
-                                         expression.ufl_index_dimensions,
-                                         [ind.count() for ind in indices])
+            fi, fid, sh = remove_indices(
+                expression.ufl_free_indices,
+                expression.ufl_index_dimensions,
+                [ind.count() for ind in indices],
+            )
             return Zero(sh, fi, fid)
 
         # Construct
@@ -144,9 +157,11 @@ class ComponentTensor(Operator):
 
         Operator.__init__(self, (expression, indices))
 
-        fi, fid, sh = remove_indices(expression.ufl_free_indices,
-                                     expression.ufl_index_dimensions,
-                                     [ind.count() for ind in indices])
+        fi, fid, sh = remove_indices(
+            expression.ufl_free_indices,
+            expression.ufl_index_dimensions,
+            [ind.count() for ind in indices],
+        )
         self.ufl_free_indices = fi
         self.ufl_index_dimensions = fid
         self.ufl_shape = sh
@@ -190,9 +205,11 @@ class ComponentTensor(Operator):
 
 # --- User-level functions to wrap expressions in the correct way ---
 
+
 def numpy2nestedlists(arr):
     """Convert Numpy array to a nested list."""
     from numpy import ndarray
+
     if not isinstance(arr, ndarray):
         return arr
     return [numpy2nestedlists(arr[k]) for k in range(arr.shape[0])]
@@ -210,8 +227,9 @@ def _as_list_tensor(expressions):
 def from_numpy_to_lists(expressions):
     """Convert Numpy array to lists."""
     try:
-        import numpy
-        if isinstance(expressions, numpy.ndarray):
+        import numpy as np
+
+        if isinstance(expressions, np.ndarray):
             if expressions.shape == ():
                 # Unwrap scalar ndarray
                 return expressions.item()
@@ -389,6 +407,7 @@ def unit_indexed_tensor(shape, component):
     """Unit indexed tensor."""
     from ufl.constantvalue import Identity
     from ufl.operators import outer  # a bit of circular dependency issue here
+
     r = len(shape)
     if r == 0:
         return 0, ()

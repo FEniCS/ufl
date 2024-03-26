@@ -1,7 +1,7 @@
 """Apply restrictions.
 
-This module contains the apply_restrictions algorithm which propagates restrictions in a form
-towards the terminals.
+This module contains the apply_restrictions algorithm which propagates
+restrictions in a form towards the terminals.
 """
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -32,8 +32,7 @@ class RestrictionPropagator(MultiFunction):
         self.vcaches = {"+": {}, "-": {}}
         self.rcaches = {"+": {}, "-": {}}
         if self.current_restriction is None:
-            self._rp = {"+": RestrictionPropagator("+"),
-                        "-": RestrictionPropagator("-")}
+            self._rp = {"+": RestrictionPropagator("+"), "-": RestrictionPropagator("-")}
 
     def restricted(self, o):
         """When hitting a restricted quantity, visit child with a separate restriction algorithm."""
@@ -43,14 +42,18 @@ class RestrictionPropagator(MultiFunction):
             raise ValueError("Cannot restrict an expression twice.")
         # Configure a propagator for this side and apply to subtree
         side = o.side()
-        return map_expr_dag(self._rp[side], o.ufl_operands[0],
-                            vcache=self.vcaches[side],
-                            rcache=self.rcaches[side])
+        return map_expr_dag(
+            self._rp[side], o.ufl_operands[0], vcache=self.vcaches[side], rcache=self.rcaches[side]
+        )
 
     # --- Reusable rules
 
     def _ignore_restriction(self, o):
-        """Ignore current restriction, quantity is independent of side also from a computational point of view."""
+        """Ignore current restriction.
+
+        Quantity is independent of side also from a computational point
+        of view.
+        """
         return o
 
     def _require_restriction(self, o):
@@ -99,7 +102,7 @@ class RestrictionPropagator(MultiFunction):
 
     def reference_value(self, o):
         """Reference value of something follows same restriction rule as the underlying object."""
-        f, = o.ufl_operands
+        (f,) = o.ufl_operands
         assert f._ufl_is_terminal_
         g = self(f)
         if isinstance(g, Restricted):
@@ -140,8 +143,8 @@ class RestrictionPropagator(MultiFunction):
     def coefficient(self, o):
         """Restrict a coefficient.
 
-        Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous
-        across the facet.
+        Allow coefficients to be unrestricted (apply default if so) if
+        the values are fully continuous across the facet.
         """
         if o.ufl_element() in H1:
             # If the coefficient _value_ is _fully_ continuous
@@ -174,11 +177,11 @@ class RestrictionPropagator(MultiFunction):
 
 def apply_restrictions(expression):
     """Propagate restriction nodes to wrap differential terminals directly."""
-    integral_types = [k for k in integral_type_to_measure_name.keys()
-                      if k.startswith("interior_facet")]
+    integral_types = [
+        k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
+    ]
     rules = RestrictionPropagator()
-    return map_integrand_dags(rules, expression,
-                              only_integral_type=integral_types)
+    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
 
 
 class DefaultRestrictionApplier(MultiFunction):
@@ -190,8 +193,7 @@ class DefaultRestrictionApplier(MultiFunction):
         self.current_restriction = side
         self.default_restriction = "+"
         if self.current_restriction is None:
-            self._rp = {"+": DefaultRestrictionApplier("+"),
-                        "-": DefaultRestrictionApplier("-")}
+            self._rp = {"+": DefaultRestrictionApplier("+"), "-": DefaultRestrictionApplier("-")}
 
     def terminal(self, o):
         """Apply to terminal."""
@@ -241,8 +243,8 @@ def apply_default_restrictions(expression):
 
     This applies a default restriction to such terminals if unrestricted.
     """
-    integral_types = [k for k in integral_type_to_measure_name.keys()
-                      if k.startswith("interior_facet")]
+    integral_types = [
+        k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
+    ]
     rules = DefaultRestrictionApplier()
-    return map_integrand_dags(rules, expression,
-                              only_integral_type=integral_types)
+    return map_integrand_dags(rules, expression, only_integral_type=integral_types)

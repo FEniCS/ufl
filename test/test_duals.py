@@ -3,9 +3,29 @@ __date__ = "2020-12-28"
 
 import pytest
 
-from ufl import (Action, Adjoint, Argument, Coargument, Coefficient, Cofunction, FormSum, FunctionSpace, Matrix, Mesh,
-                 MixedFunctionSpace, TestFunction, TrialFunction, action, adjoint, derivative, dx, inner, interval,
-                 tetrahedron, triangle)
+from ufl import (
+    Action,
+    Adjoint,
+    Argument,
+    Coargument,
+    Coefficient,
+    Cofunction,
+    FormSum,
+    FunctionSpace,
+    Matrix,
+    Mesh,
+    MixedFunctionSpace,
+    TestFunction,
+    TrialFunction,
+    action,
+    adjoint,
+    derivative,
+    dx,
+    inner,
+    interval,
+    tetrahedron,
+    triangle,
+)
 from ufl.algorithms.ad import expand_derivatives
 from ufl.constantvalue import Zero
 from ufl.duals import is_dual, is_primal
@@ -17,9 +37,9 @@ from ufl.sobolevspace import H1
 
 def test_mixed_functionspace(self):
     # Domains
-    domain_3d = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3, ), identity_pullback, H1))
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
-    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
+    domain_3d = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
     # Finite elements
     f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
@@ -50,7 +70,7 @@ def test_mixed_functionspace(self):
 
 
 def test_dual_coefficients():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
@@ -73,7 +93,7 @@ def test_dual_coefficients():
 
 
 def test_dual_arguments():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
@@ -96,7 +116,7 @@ def test_dual_arguments():
 
 
 def test_addition():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
@@ -142,7 +162,7 @@ def test_addition():
 
 
 def test_scalar_mult():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     V_dual = V.dual()
@@ -160,7 +180,7 @@ def test_scalar_mult():
 
 
 def test_adjoint():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     a = Matrix(V, V)
@@ -179,10 +199,10 @@ def test_adjoint():
 
 
 def test_action():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
-    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
+    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
     f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
     U = FunctionSpace(domain_1d, f_1d)
 
@@ -230,7 +250,8 @@ def test_action():
     u2 = Coefficient(U)
     u3 = Coefficient(U)
     # Check Action left-distributivity with Sum
-    # Add 3 Coefficients to check composition of Sum works fine since u + u2 + u3 => Sum(u, Sum(u2, u3))
+    # Add 3 Coefficients to check composition of Sum works fine since u
+    # + u2 + u3 => Sum(u, Sum(u2, u3))
     res = action(a, u + u2 + u3)
     assert res == Action(a, u3) + Action(a, u) + Action(a, u2)
     # Check Action right-distributivity with Sum
@@ -239,10 +260,10 @@ def test_action():
 
 
 def test_differentiation():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
-    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1, ), identity_pullback, H1))
+    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
     f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
     U = FunctionSpace(domain_1d, f_1d)
 
@@ -254,7 +275,10 @@ def test_differentiation():
     w = Cofunction(U.dual())
     dwdu = expand_derivatives(derivative(w, u))
     assert isinstance(dwdu, ZeroBaseForm)
-    assert dwdu.arguments() == (Argument(w.ufl_function_space().dual(), 0), Argument(u.ufl_function_space(), 1))
+    assert dwdu.arguments() == (
+        Argument(w.ufl_function_space().dual(), 0),
+        Argument(u.ufl_function_space(), 1),
+    )
     # Check compatibility with int/float
     assert dwdu == 0
 
@@ -285,8 +309,10 @@ def test_differentiation():
     # -- Action -- #
     Ac = Action(w, u)
     dAcdu = derivative(Ac, u)
-    assert dAcdu == (action(adjoint(derivative(w, u), derivatives_expanded=True), u, derivatives_expanded=True)
-                     + action(w, derivative(u, u), derivatives_expanded=True))
+    assert dAcdu == (
+        action(adjoint(derivative(w, u), derivatives_expanded=True), u, derivatives_expanded=True)
+        + action(w, derivative(u, u), derivatives_expanded=True)
+    )
 
     dAcdu = expand_derivatives(dAcdu)
     # Since dw/du = 0
@@ -302,7 +328,7 @@ def test_differentiation():
 
 
 def test_zero_base_form_mult():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
     v = Argument(V, 0)
@@ -316,7 +342,7 @@ def test_zero_base_form_mult():
 
 
 def test_base_form_call():
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
     V = FunctionSpace(domain_2d, f_2d)
 

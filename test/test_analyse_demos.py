@@ -13,9 +13,8 @@ demodir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "demo"))
 
 def get_demo_filenames():
     filenames = sorted(
-        set(glob(os.path.join(demodir, "*.py")))
-        - set(glob(os.path.join(demodir, "_*.py")))
-        )
+        set(glob(os.path.join(demodir, "*.py"))) - set(glob(os.path.join(demodir, "_*.py")))
+    )
     return filenames
 
 

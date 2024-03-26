@@ -15,7 +15,7 @@ def id_or_none(obj):
     """
     if obj is None:
         return None
-    elif hasattr(obj, 'ufl_id'):
+    elif hasattr(obj, "ufl_id"):
         return obj.ufl_id()
     else:
         return id(obj)
