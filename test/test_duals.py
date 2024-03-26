@@ -157,7 +157,7 @@ def test_addition():
 
     # Simplification with respect to ufl.Zero
     a_W = Matrix(W, W)
-    res = a_W + Zero(W.ufl_element().value_shape)
+    res = a_W + Zero(W.value_shape)
     assert res == a_W
 
 
