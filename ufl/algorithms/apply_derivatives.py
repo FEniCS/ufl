@@ -19,8 +19,7 @@ from ufl.argument import BaseArgument
 from ufl.checks import is_cellwise_constant
 from ufl.classes import (Coefficient, ComponentTensor, Conj, ConstantValue, ExprList, ExprMapping, FloatValue,
                          FormArgument, Grad, Identity, Imag, Indexed, IndexSum, JacobianInverse, ListTensor, Product,
-                         Real, ReferenceGrad, ReferenceValue, SpatialCoordinate, Sum, Variable, Zero,
-                         MixedElement)
+                         Real, ReferenceGrad, ReferenceValue, SpatialCoordinate, Sum, Variable, Zero)
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import ufl_err_str
@@ -29,7 +28,7 @@ from ufl.core.terminal import Terminal
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import BaseFormCoordinateDerivative, BaseFormOperatorDerivative, CoordinateDerivative
-from ufl.domain import extract_unique_domain, extract_domains, MixedMesh
+from ufl.domain import extract_unique_domain, MixedMesh
 from ufl.form import Form, ZeroBaseForm
 from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
                            sign, sin, sinh, sqrt)
@@ -46,13 +45,11 @@ from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, u
 def flatten_domain_element(domain, element):
     "Return the flattened (domain, element) pairs for mixed domain problems."
     if not isinstance(domain, MixedMesh):
-        #assert not element.mixed()
         return ((domain, element), )
     flattened = ()
     for d, e in zip(domain, element.sub_elements, strict=True):
         flattened += flatten_domain_element(d, e)
     return flattened
-
 
 
 class GenericDerivativeRuleset(MultiFunction):

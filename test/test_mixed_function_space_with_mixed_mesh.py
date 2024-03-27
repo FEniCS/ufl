@@ -1,12 +1,9 @@
-import pytest
-
 from ufl import (triangle, Mesh, MixedMesh, FunctionSpace, TestFunction, TrialFunction, Coefficient,
-                 Measure, SpatialCoordinate, FacetNormal, CellVolume, FacetArea, inner, grad, div, as_vector, split, )
+                 Measure, SpatialCoordinate, CellVolume, FacetArea, inner, grad, div, split, )
 from ufl.algorithms import compute_form_data
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback, contravariant_piola
 from ufl.sobolevspace import H1, HDiv, L2
-
 
 
 def test_mixed_function_space_with_mixed_mesh_basic():
@@ -31,8 +28,7 @@ def test_mixed_function_space_with_mixed_mesh_basic():
     dx1 = Measure("dx", mesh1)
     ds2 = Measure("ds", mesh2)
     x = SpatialCoordinate(mesh1)
-    form = x[1] * f0 * inner(grad(u0), v1) * dx1(999) + \
-           div(f1) * g2 * inner(u1, grad(v2)) * ds2(888)
+    form = x[1] * f0 * inner(grad(u0), v1) * dx1(999) + div(f1) * g2 * inner(u1, grad(v2)) * ds2(888)
     fd = compute_form_data(form,
                            do_apply_function_pullbacks=True,
                            do_apply_integral_scaling=True,
@@ -90,4 +86,3 @@ def test_mixed_function_space_with_mixed_mesh_restriction():
                            do_apply_restrictions=True,
                            do_estimate_degrees=True,
                            complex_mode=False)
-    import pdb;pdb.set_trace()
