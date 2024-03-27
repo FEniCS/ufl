@@ -654,10 +654,12 @@ class GradRuleset(GenericDerivativeRuleset):
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")
         domain = extract_unique_domain(f, expand_mixed_mesh=False)
         if isinstance(domain, MixedMesh):
-            raise NotImplementedError("Implement this for MixedMesh")
-        else:
-            K = JacobianInverse(domain)
-            Do = grad_to_reference_grad(o, K)
+            if len(set(domain._meshes)) == 1:
+                domain, = set(domain._meshes)
+            else:
+                raise NotImplementedError("Implement this for MixedMesh")
+        K = JacobianInverse(domain)
+        Do = grad_to_reference_grad(o, K)
         return Do
 
     # --- Nesting of gradients
