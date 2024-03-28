@@ -10,6 +10,8 @@ from ufl import (
     Constant,
     FunctionSpace,
     Mesh,
+    TestFunction,
+    TrialFunction,
     dS,
     ds,
     dx,
@@ -20,6 +22,7 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import compute_form_data
+from ufl.domain import extract_domains
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import (
     IdentityPullback,  # noqa: F401
@@ -374,3 +377,35 @@ def test_merge_sort_integral_data():
     assert form_data[4].subdomain_id[0] == 2
     assert form_data[4].subdomain_id[1] == 4
     assert form_data[4].metadata == {}
+
+
+def test_extract_domains():
+    "Test that the domains are extracted properly from a mixed-domain expression"
+
+    # Create domains of different topological dimensions
+    gdim = 2
+    cell_type_0 = triangle
+    cell_type_1 = interval
+    dom_0 = Mesh(FiniteElement("Lagrange", cell_type_0, 1, (gdim,), identity_pullback, H1))
+    dom_1 = Mesh(FiniteElement("Lagrange", cell_type_1, 1, (gdim,), identity_pullback, H1))
+
+    # Define some finite element spaces
+    k = 1
+    ele_type = "Lagrange"
+    ele_0 = FiniteElement(ele_type, cell_type_0, k, (), identity_pullback, H1)
+    ele_1 = FiniteElement(ele_type, cell_type_1, k, (), identity_pullback, H1)
+
+    V_0 = FunctionSpace(dom_0, ele_0)
+    V_1 = FunctionSpace(dom_1, ele_1)
+
+    # Create test and trial functions
+    u = TrialFunction(V_0)
+    v = TestFunction(V_1)
+
+    # Create a mixed-domain expression
+    expr = u * v
+
+    domains = extract_domains(expr)
+
+    assert domains[0] == dom_1
+    assert domains[1] == dom_0

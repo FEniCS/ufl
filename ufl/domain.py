@@ -231,7 +231,10 @@ def extract_domains(expr):
     domainlist = []
     for t in traverse_unique_terminals(expr):
         domainlist.extend(t.ufl_domains())
-    return sorted(join_domains(domainlist))
+    return sorted(
+        join_domains(domainlist),
+        key=lambda D: (D.topological_dimension(), D.ufl_cell(), D.ufl_id()),
+    )
 
 
 def extract_unique_domain(expr):
