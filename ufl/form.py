@@ -233,6 +233,7 @@ class Form(BaseForm):
         "_coefficient_numbering",
         "_constants",
         "_constant_numbering",
+        "_geometric_quantities",
         "_terminal_numbering",
         "_hash",
         "_signature",
@@ -625,14 +626,15 @@ class Form(BaseForm):
 
     def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the form."""
-        from ufl.algorithms.analysis import extract_arguments_and_coefficients
-        arguments, coefficients = extract_arguments_and_coefficients(self)
+        from ufl.algorithms.analysis import extract_arguments_and_coefficients_and_geometric_quantities
+        arguments, coefficients, geometric_quantities = extract_arguments_and_coefficients_and_geometric_quantities(self)
 
         # Define canonical numbering of arguments and coefficients
         self._arguments = tuple(
             sorted(set(arguments), key=lambda x: x.number()))
         self._coefficients = tuple(
             sorted(set(coefficients), key=lambda x: x.count()))
+        self._geometric_quantities = geometric_quantities  # sorted by (type, domain)
 
     def _analyze_base_form_operators(self):
         """Analyze which BaseFormOperator objects can be found in the form."""
@@ -671,6 +673,12 @@ class Form(BaseForm):
         for c in self._constants:
             d = extract_unique_domain(c, expand_mixed_mesh=False)
             if d is not None and d not in renumbering:
+                renumbering[d] = k
+                k += 1
+
+        for gq in self._geometric_quantities:
+            d = gq._domain
+            if d not in renumbering:
                 renumbering[d] = k
                 k += 1
 

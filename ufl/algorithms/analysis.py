@@ -12,9 +12,11 @@
 from itertools import chain
 
 from ufl.algorithms.traversal import iter_expressions
+from ufl.domain import Mesh
 from ufl.argument import BaseArgument, Coargument
 from ufl.coefficient import BaseCoefficient
 from ufl.constant import Constant
+from ufl.geometry import GeometricQuantity
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.terminal import Terminal
 from ufl.corealg.traversal import traverse_unique_terminals, unique_pre_traversal
@@ -187,19 +189,20 @@ def extract_base_form_operators(a):
     return sorted_by_count(extract_type(a, BaseFormOperator))
 
 
-def extract_arguments_and_coefficients(a):
-    """Build two sorted lists of all arguments and coefficients in a.
+def extract_arguments_and_coefficients_and_geometric_quantities(a):
+    """Build three sorted lists of all arguments, coefficients, and geometric quantities in a.
 
-    This function is faster than extract_arguments + extract_coefficients
+    This function is faster than extract_arguments + extract_coefficients + extract_geometric_quantities
     for large forms, and has more validation built in.
 
     Args:
         a: A BaseForm, Integral or Expr
     """
     # Extract lists of all BaseArgument and BaseCoefficient instances
-    base_coeff_and_args = extract_type(a, (BaseArgument, BaseCoefficient))
-    arguments = [f for f in base_coeff_and_args if isinstance(f, BaseArgument)]
-    coefficients = [f for f in base_coeff_and_args if isinstance(f, BaseCoefficient)]
+    base_coeff_and_args_and_gq = extract_type(a, (BaseArgument, BaseCoefficient, GeometricQuantity))
+    arguments = [f for f in base_coeff_and_args_and_gq if isinstance(f, BaseArgument)]
+    coefficients = [f for f in base_coeff_and_args_and_gq if isinstance(f, BaseCoefficient)]
+    geometric_quantities = [f for f in base_coeff_and_args_and_gq if isinstance(f, GeometricQuantity)]
 
     # Build number,part: instance mappings, should be one to one
     bfnp = dict((f, (f.number(), f.part())) for f in arguments)
@@ -214,19 +217,30 @@ def extract_arguments_and_coefficients(a):
     if len(fcounts) != len(set(fcounts.values())):
         raise ValueError(
             "Found different coefficients with same counts.\n"
-            "The arguments found are:\n" + "\n".join(f"  {c}" for c in coefficients))
+            "The Coefficients found are:\n" + "\n".join(f"  {c}" for c in coefficients))
+
+    # Build count: instance mappings, should be one to one
+    gqcounts = {}
+    for gq in geometric_quantities:
+        assert isinstance(gq._domain, Mesh), f"Found that {gq}._domain is {gq._domain}"
+        gqcounts[gq] = (type(gq).name, gq._domain._ufl_id)
+    if len(gqcounts) != len(set(gqcounts.values())):
+        raise ValueError(
+            "Found different geometric quantities with same (geometric_quantity_type, domain).\n"
+            "The GeometricQuantities found are:\n" + "\n".join(f"  {gq}" for gq in geometric_quantities))
 
     # Passed checks, so we can safely sort the instances by count
     arguments = _sorted_by_number_and_part(arguments)
     coefficients = sorted_by_count(coefficients)
+    geometric_quantities = list(sorted(geometric_quantities, key=lambda gq: (type(gq).name, gq._domain._ufl_id)))
 
-    return arguments, coefficients
+    return arguments, coefficients, geometric_quantities
 
 
 def extract_elements(form):
     """Build sorted tuple of all elements used in form."""
-    args = chain(*extract_arguments_and_coefficients(form))
-    return tuple(f.ufl_element() for f in args)
+    arguments, coefficients, _ = extract_arguments_and_coefficients_and_geometric_quantities(form)
+    return tuple(f.ufl_element() for f in arguments + coefficients)
 
 
 def extract_unique_elements(form):
