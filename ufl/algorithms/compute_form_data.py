@@ -30,7 +30,7 @@ from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import extract_unique_domain, collect_domains_in_form
+from ufl.domain import extract_unique_domain, extract_domains
 from ufl.utils.sequences import max_degree
 
 
@@ -296,7 +296,7 @@ def compute_form_data(
         form = apply_integral_scaling(form)
 
     # Apply default restriction to fully continuous terminals
-    have_multiple_domains = len(collect_domains_in_form(form)) > 1
+    have_multiple_domains = len(extract_domains(form)) > 1
     if do_apply_default_restrictions:
         form = apply_default_restrictions(form, have_multiple_domains=have_multiple_domains)
 

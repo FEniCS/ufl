@@ -650,41 +650,12 @@ class Form(BaseForm):
         renumbering = {}
         renumbering.update(dn)
         renumbering.update(tn)
-
-        # Add domains of coefficients, these may include domains not
-        # among integration domains
         k = len(dn)
-        for c in self.coefficients():
-            ds = extract_domains(c)
-            for d in ds:
-                if d not in renumbering:
-                    renumbering[d] = k
-                    k += 1
-
-        # Add domains of arguments, these may include domains not
-        # among integration domains
-        for a in self._arguments:
-            ds = extract_domains(a)
-            for d in ds:
-                if d not in renumbering:
-                    renumbering[d] = k
-                    k += 1
-
-        # Add domains of constants, these may include domains not
-        # among integration domains
-        for c in self._constants:
-            ds = extract_domains(c)
-            for d in ds:
-                if d not in renumbering:
-                    renumbering[d] = k
-                    k += 1
-
-        for gq in self._geometric_quantities:
-            d = gq._domain
+        ds = extract_domains(self)
+        for d in ds:
             if d not in renumbering:
                 renumbering[d] = k
                 k += 1
-
         return renumbering
 
     def _compute_signature(self):
