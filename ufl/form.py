@@ -21,7 +21,7 @@ from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.ufl_type import UFLType, ufl_type
-from ufl.domain import extract_unique_domain, sort_domains
+from ufl.domain import extract_domains, sort_domains
 from ufl.equation import Equation
 from ufl.integral import Integral
 from ufl.utils.counted import Counted
@@ -655,26 +655,29 @@ class Form(BaseForm):
         # among integration domains
         k = len(dn)
         for c in self.coefficients():
-            d = extract_unique_domain(c, expand_mixed_mesh=False)
-            if d is not None and d not in renumbering:
-                renumbering[d] = k
-                k += 1
+            ds = extract_domains(c)
+            for d in ds:
+                if d not in renumbering:
+                    renumbering[d] = k
+                    k += 1
 
         # Add domains of arguments, these may include domains not
         # among integration domains
         for a in self._arguments:
-            d = extract_unique_domain(a, expand_mixed_mesh=False)
-            if d is not None and d not in renumbering:
-                renumbering[d] = k
-                k += 1
+            ds = extract_domains(a)
+            for d in ds:
+                if d not in renumbering:
+                    renumbering[d] = k
+                    k += 1
 
         # Add domains of constants, these may include domains not
         # among integration domains
         for c in self._constants:
-            d = extract_unique_domain(c, expand_mixed_mesh=False)
-            if d is not None and d not in renumbering:
-                renumbering[d] = k
-                k += 1
+            ds = extract_domains(c)
+            for d in ds:
+                if d not in renumbering:
+                    renumbering[d] = k
+                    k += 1
 
         for gq in self._geometric_quantities:
             d = gq._domain

@@ -120,6 +120,9 @@ class Mesh(AbstractDomain, UFLObject):
         return (self.geometric_dimension(), self.topological_dimension(),
                 "Mesh", typespecific)
 
+    def meshes(self):
+        return (self, )
+
 
 @attach_ufl_id
 class MixedMesh(AbstractDomain, UFLObject):
@@ -171,10 +174,8 @@ class MixedMesh(AbstractDomain, UFLObject):
 
     def _ufl_signature_data_(self, renumbering):
         """UFL signature data."""
-        return ("MixedMesh", renumbering[self], self._ufl_coordinate_element)
+        return ("MixedMesh", tuple(m._ufl_signature_data_(renumbering) for m in self._meshes))
 
-    # NB! Dropped __lt__ here, don't want users to write 'mesh1 <
-    # mesh2'.
     def _ufl_sort_key_(self):
         """UFL sort key."""
         typespecific = (self._ufl_id, self._ufl_coordinate_element)
@@ -190,6 +191,9 @@ class MixedMesh(AbstractDomain, UFLObject):
 
     def __iter__(self):
         return iter(self._meshes)
+
+    def meshes(self):
+        return self._meshes
 
 
 @attach_ufl_id
@@ -329,9 +333,14 @@ def join_domains(domains, expand_mixed_mesh=True):
 
 def extract_domains(expr, expand_mixed_mesh=True):
     """Return all domains expression is defined on."""
+    from ufl.form import Form
+
     domainlist = []
-    for t in traverse_unique_terminals(expr):
-        domainlist.extend(t.ufl_domains())
+    if isinstance(expr, Form):
+        pass
+    else:
+        for t in traverse_unique_terminals(expr):
+            domainlist.extend(t.ufl_domains())
     return sort_domains(join_domains(domainlist, expand_mixed_mesh=expand_mixed_mesh))
 
 
