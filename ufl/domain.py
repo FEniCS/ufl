@@ -261,7 +261,6 @@ def as_domain(domain):
         if isinstance(domain, MixedMesh):
             domain, = set(domain._meshes)
         return domain
-
     try:
         return extract_unique_domain(domain)
     except AttributeError:
@@ -337,7 +336,24 @@ def extract_domains(expr, expand_mixed_mesh=True):
 
     domainlist = []
     if isinstance(expr, Form):
-        pass
+        form = expr
+        # Add integration domains
+        domainlist.extend(expr.ufl_domains())
+        # Add domains of coefficients, these may include domains not
+        # among integration domains
+        for c in form.coefficients():
+            domainlist.extend(extract_domains(c))
+        # Add domains of arguments, these may include domains not
+        # among integration domains
+        for a in form._arguments:
+            domainlist.extend(extract_domains(a))
+        # Add domains of constants, these may include domains not
+        # among integration domains
+        for c in form._constants:
+            domainlist.extend(extract_domains(c))
+        # Add domains of geometric quantities
+        for gq in form._geometric_quantities:
+            domainlist.append(gq._domain)
     else:
         for t in traverse_unique_terminals(expr):
             domainlist.extend(t.ufl_domains())
@@ -353,16 +369,6 @@ def extract_unique_domain(expr, expand_mixed_mesh=True):
         raise ValueError("Found multiple domains, cannot return just one.")
     else:
         return None
-
-
-def collect_domains_in_form(form):
-    meshes = form.ufl_domains()  # form._integration_domains
-    if any(isinstance(m, MixedMesh) for m in meshes):
-        raise RuntimeError("Found a MixedMesh in form._integration_domains")
-    meshes = set(meshes)
-    for integral in form.integrals():
-        meshes.update(extract_domains(integral.integrand()))
-    return sort_domains(meshes)
 
 
 def find_geometric_dimension(expr):
