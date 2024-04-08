@@ -67,12 +67,13 @@ def test_mixed_function_space_with_mixed_mesh_restriction():
     mesh2 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=300)
     domain = MixedMesh(mesh0, mesh1, mesh2)
     V = FunctionSpace(domain, elem)
-    u = TrialFunction(V)
-    v = TestFunction(V)
+    V0 = FunctionSpace(mesh0, elem0)
+    V1 = FunctionSpace(mesh1, elem1)
+    V2 = FunctionSpace(mesh2, elem2)
+    u1 = TrialFunction(V1)
+    v2 = TestFunction(V2)
     f = Coefficient(V, count=1000)
     g = Coefficient(V, count=2000)
-    u0, u1, u2 = split(u)
-    v0, v1, v2 = split(v)
     f0, f1, f2 = split(f)
     g0, g1, g2 = split(g)
     dS1 = Measure("dS", mesh1)
@@ -86,3 +87,6 @@ def test_mixed_function_space_with_mixed_mesh_restriction():
                            do_apply_restrictions=True,
                            do_estimate_degrees=True,
                            complex_mode=False)
+    integral_data, = fd.integral_data
+    assert integral_data.domain_integral_type_map[mesh1] == "interior_facet"
+    assert integral_data.domain_integral_type_map[mesh2] == "exterior_facet"
