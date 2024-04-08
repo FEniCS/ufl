@@ -18,7 +18,8 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions, make_domain_restriction_map
+from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions, make_domain_restriction_map, make_domain_integral_type_map
+from ufl.algorithms.apply_coefficient_split import apply_coefficient_split, remove_component_and_list_tensors
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 # See TODOs at the call sites of these below:
@@ -28,11 +29,12 @@ from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.algorithms.replace import replace
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import extract_unique_domain, extract_domains
+from ufl.domain import extract_unique_domain, extract_domains, MixedMesh
 from ufl.utils.sequences import max_degree
-
+from ufl.constantvalue import Zero
 
 def _auto_select_degree(elements):
     """Automatically select degree for all elements of the form.
@@ -363,10 +365,6 @@ def compute_form_data(
         itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
                                          for coeff in self.reduced_coefficients]
 
-    if have_multiple_domains:
-        for itg_data in self.integral_data:
-            make_domain_restriction_map(itg_data)
-
     # --- Collect some trivial data
 
     # Get rank of form from argument list (assuming not a mixed arity form)
@@ -420,5 +418,35 @@ def compute_form_data(
     # TODO: This member is used by unit tests, change the tests to
     # remove this!
     self.preprocessed_form = preprocessed_form
+
+    if have_multiple_domains:
+        coefficient_split = {}
+        for o in self.reduced_coefficients:
+            c = self.function_replace_map[o]
+            elem = c.ufl_element()
+            if elem.num_sub_elements > 1:
+                mesh = extract_unique_domain(c, expand_mixed_mesh=False)
+                assert isinstance(mesh, MixedMesh)
+                coefficient_split[c] = [Coefficient(FunctionSpace(m, e))
+                                        for m, e in zip(mesh, elem.sub_elements, strict=True)]
+        self.coefficient_split = coefficient_split
+        for itg_data in self.integral_data:
+            new_integrals = []
+            old_integrals = []
+            for integral in itg_data.integrals:
+                integrand = replace(integral.integrand(), self.function_replace_map)
+                integrand = remove_component_and_list_tensors(integrand)
+                integrand = apply_coefficient_split(integrand, self.coefficient_split)
+                integrand = remove_component_and_list_tensors(integrand)
+                if not isinstance(integrand, Zero):
+                    new_integrals.append(integral.reconstruct(integrand=integrand))
+                    old_integrals.append(integral)
+            itg_data.integrals = new_integrals
+            domain_restriction_map = make_domain_restriction_map(itg_data)
+            itg_data.integrals = old_integrals
+            itg_data.domain_integral_type_map = make_domain_integral_type_map(domain_restriction_map, itg_data.domain, itg_data.integral_type)
+    else:
+        for itg_data in self.integral_data:
+            itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
 
     return self

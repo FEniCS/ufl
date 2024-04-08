@@ -273,28 +273,17 @@ class DomainRestrictionMapMaker(MultiFunction):
         MultiFunction.__init__(self)
         self._domain_restriction_map = domain_restriction_map
 
-    def expr(self, expr, *ops):
-        return expr
+    expr = MultiFunction.reuse_if_untouched
 
-    def terminal(self, expr):
-        """Apply to terminal."""
-        return expr
-
-    def _modifier(self, expr):
-        local_derivatives = 0
+    def _modifier(self, o):
         restriction = None
-        t = expr
-        multiindex = None
+        local_derivatives = 0
         reference_value = False
+        t = o
         while not t._ufl_is_terminal_:
-            print("")
-            print(repr(t))
             assert t._ufl_is_terminal_modifier_, f"Got {repr(t)}"
-            if isinstance(t, Indexed):
-                assert multiindex is None
-                t, multiindex = t.ufl_operands
-            elif isinstance(t, ReferenceValue):
-                assert reference_value is None, "Got twice pulled back terminal!"
+            if isinstance(t, ReferenceValue):
+                assert not reference_value, "Got twice pulled back terminal!"
                 reference_value = True
                 t, = t.ufl_operands
             elif isinstance(t, ReferenceGrad):
@@ -309,18 +298,16 @@ class DomainRestrictionMapMaker(MultiFunction):
             else:
                 raise ValueError("Unexpected type %s object %s." % (type(t), repr(t)))
         domain = extract_unique_domain(t, expand_mixed_mesh=False)
-        if isinstance(t, GeometricQuantity):
-            if isinstance(domain, MixedMesh):
-                raise RuntimeError(f"Got a geometric quantity defined on a mixed mesh: {repr(t)}")
-        elif isinstance(t, Coefficient):
-            if not reference_value:
-                raise RuntimeError(f"Got a coefficient not wrapped in reference value: {repr(t)}")
-            import pdb;pdb.set_trace()
-        else:
-            raise RuntimeError(f"Got a terminal of unexpected type: {repr(t)}")
-        if restriction is not None:
-            self._domain_restriction_map[domain].add(restriction)
-        return expr
+        if isinstance(domain, MixedMesh):
+            raise RuntimeError(f"Not expecting a mixed mesh at this stage: {repr(t)}")
+        if domain is not None:
+            if domain not in self._domain_restriction_map:
+                self._domain_restriction_map[domain] = set()
+            if restriction in ['+', '-', '|']:
+                self._domain_restriction_map[domain].add(restriction)
+            elif restriction not in ['?', None]:
+                raise RuntimeError
+        return o
 
     reference_value = _modifier
     reference_grad = _modifier
@@ -328,111 +315,45 @@ class DomainRestrictionMapMaker(MultiFunction):
     negative_restricted = _modifier
     single_value_restricted = _modifier
     to_be_restricted = _modifier
-    indexed = _modifier
+    terminal = _modifier
 
 
 def make_domain_restriction_map(integral_data):
     """Collect domain_restriction map."""
-    domain_restriction_map = defaultdict(set)
-    if integral_data.integral_type in ["exterior_facet", "interior_facet"]:
-        domain_restriction_map[integral_data.domain].add({"exterior_facet": '|',
-                                                          "interior_facet": '+'}[integral_data.integral_type])
+    domain_restriction_map = {}
     rule = DomainRestrictionMapMaker(domain_restriction_map)
     for integral in integral_data.integrals:
-        integrand = remove_indices(integral.integrand())
+        integrand = integral.integrand()
         _ = map_expr_dag(rule, integrand)
     return domain_restriction_map
 
 
-class FixedIndexRemover(MultiFunction):
-
-    def __init__(self, fimap):
-        MultiFunction.__init__(self)
-        self.fimap = fimap
-
-    expr = MultiFunction.reuse_if_untouched
-
-    def zero(self, o):
-        free_indices = []
-        index_dimensions = []
-        for i, d in zip(o.ufl_free_indices, o.ufl_index_dimensions):
-            if Index(i) in self.fimap:
-                ind_j = self.fimap[Index(i)]
-                if not isinstance(ind_j, FixedIndex):
-                    free_indices.append(ind_j.count())
-                    index_dimensions.append(d)
-            else:
-                free_indices.append(i)
-                index_dimensions.append(d)
-        return Zero(shape=o.ufl_shape, free_indices=tuple(free_indices), index_dimensions=tuple(index_dimensions))
-
-    def list_tensor(self, o):
-        rule = FixedIndexRemover(self.fimap)
-        cc = []
-        for o1 in o.ufl_operands:
-            comp = map_expr_dag(rule, o1)
-            cc.append(comp)
-        return ListTensor(*cc)
-
-    def multi_index(self, o):
-        return MultiIndex(tuple(self.fimap.get(i, i) for i in o.indices()))
-
-
-class IndexRemover(MultiFunction):
-
-    def __init__(self):
-        MultiFunction.__init__(self)
-
-    expr = MultiFunction.reuse_if_untouched
-
-    def _zero_simplify(self, o):
-        operand, = o.ufl_operands
-        rule = IndexRemover()
-        operand = map_expr_dag(rule, operand)
-        if isinstance(operand, Zero):
-            return Zero(shape=o.ufl_shape, free_indices=o.ufl_free_indices, index_dimensions=o.ufl_index_dimensions)
-        else:
-            return o._ufl_expr_reconstruct_(operand)
-
-    def indexed(self, o):
-        o1, i1 = o.ufl_operands
-        if isinstance(o1, ComponentTensor):
-            o2, i2 = o1.ufl_operands
-            fimap = dict(zip(i2.indices(), i1.indices(), strict=True))
-            rule = FixedIndexRemover(fimap)
-            v = map_expr_dag(rule, o2)
-            rule = IndexRemover()
-            return map_expr_dag(rule, v)
-        elif isinstance(o1, ListTensor):
-            if isinstance(i1[0], FixedIndex):
-                o1 = o1.ufl_operands[i1[0]._value]
-                rule = IndexRemover()
-                if len(i1) > 1:
-                    i1 = MultiIndex(i1[1:])
-                    return map_expr_dag(rule, Indexed(o1, i1))
+def make_domain_integral_type_map(domain_restriction_map, integration_domain, integration_type):
+    # Have no mixed mesh support
+    #if integration_type in ["exterior_facet_top", "exterior_facet_bottom", "exterior_facet_vert", "interior_facet_vert", "interior_facet_horiz"]:
+    #    return {integration_domain: integration_type}, [False for _ in integral_data.integrals]
+    #domain_restrictions_map, integrand_is_zero = make_domain_restrictions_map(integral_data, form_data)
+    domain_integral_type_dict = {}
+    for d, rs in domain_restriction_map.items():
+        if rs in [{'+'}, {'-'}, {'+', '-'}]:
+            domain_integral_type_dict[d] = "interior_facet"
+        elif rs == {'|'}:
+            domain_integral_type_dict[d] = "exterior_facet"
+        elif rs == set():
+            if d.topological_dimension() == integration_domain.topological_dimension():
+                if integration_type == "cell":
+                    domain_integral_type_dict[d] = "cell"
+                elif integration_type in ["exterior_facet", "interior_facet"]:
+                    domain_integral_type_dict[d] = "exterior_facet"
                 else:
-                    return map_expr_dag(rule, o1)
-        rule = IndexRemover()
-        o1 = map_expr_dag(rule, o1)
-        return Indexed(o1, i1)
-
-    # Do something nicer
-    positive_restricted = _zero_simplify
-    negative_restricted = _zero_simplify
-    single_value_restricted = _zero_simplify
-    to_be_restricted = _zero_simplify
-    reference_grad = _zero_simplify
-    reference_value = _zero_simplify
-
-
-def remove_indices(o):
-    if isinstance(o, Form):
-        integrals = []
-        for integral in o.integrals():
-            integrand = remove_indices(integral.integrand())
-            if not isinstance(integrand, Zero):
-                integrals.append(integral.reconstruct(integrand=integrand))
-        return o._ufl_expr_reconstruct_(integrals)
+                    raise NotImplementedError
+            else:
+                raise NotImplementedError
+        else:
+            raise RuntimeError(f"Found inconsistent restrictions {rs} for domain {d}")
+    if integration_domain in domain_integral_type_dict:
+        if domain_integral_type_dict[integration_domain] != integration_type:
+            raise RuntimeError(f"domain ({integration_domain}) has inconsistent restrictions : {domain_integral_type_dict[integration_domain]} != {integration_type}")
     else:
-        rule = IndexRemover()
-        return map_expr_dag(rule, o)
+        domain_integral_type_dict[integration_domain] = integration_type
+    return domain_integral_type_dict
