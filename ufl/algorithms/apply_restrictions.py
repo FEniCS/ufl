@@ -10,14 +10,17 @@ towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from collections import defaultdict
 
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.domain import extract_unique_domain
+from ufl.domain import extract_unique_domain, MixedMesh
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
+from ufl.geometry import GeometricQuantity
+from ufl.classes import Form, ReferenceGrad, ReferenceValue, Restricted, Indexed, MultiIndex, Index, FixedIndex, ComponentTensor, ListTensor, Zero
 
 
 class RestrictionPropagator(MultiFunction):
@@ -261,3 +264,175 @@ def apply_default_restrictions(expression, have_multiple_domains=False):
     rules = DefaultRestrictionApplier(have_multiple_domains=have_multiple_domains)
     return map_integrand_dags(rules, expression,
                               only_integral_type=integral_types)
+
+
+class DomainRestrictionMapMaker(MultiFunction):
+    """DomainRestrictionMapMaker."""
+
+    def __init__(self, domain_restriction_map):
+        MultiFunction.__init__(self)
+        self._domain_restriction_map = domain_restriction_map
+
+    def expr(self, expr, *ops):
+        return expr
+
+    def terminal(self, expr):
+        """Apply to terminal."""
+        return expr
+
+    def _modifier(self, expr):
+        local_derivatives = 0
+        restriction = None
+        t = expr
+        multiindex = None
+        reference_value = False
+        while not t._ufl_is_terminal_:
+            print("")
+            print(repr(t))
+            assert t._ufl_is_terminal_modifier_, f"Got {repr(t)}"
+            if isinstance(t, Indexed):
+                assert multiindex is None
+                t, multiindex = t.ufl_operands
+            elif isinstance(t, ReferenceValue):
+                assert reference_value is None, "Got twice pulled back terminal!"
+                reference_value = True
+                t, = t.ufl_operands
+            elif isinstance(t, ReferenceGrad):
+                local_derivatives += 1
+                t, = t.ufl_operands
+            elif isinstance(t, Restricted):
+                assert restriction is None, "Got twice restricted terminal!"
+                restriction = t._side
+                t, = t.ufl_operands
+            elif t._ufl_terminal_modifiers_:
+                raise ValueError("Missing handler for terminal modifier type %s, object is %s." % (type(t), repr(t)))
+            else:
+                raise ValueError("Unexpected type %s object %s." % (type(t), repr(t)))
+        domain = extract_unique_domain(t, expand_mixed_mesh=False)
+        if isinstance(t, GeometricQuantity):
+            if isinstance(domain, MixedMesh):
+                raise RuntimeError(f"Got a geometric quantity defined on a mixed mesh: {repr(t)}")
+        elif isinstance(t, Coefficient):
+            if not reference_value:
+                raise RuntimeError(f"Got a coefficient not wrapped in reference value: {repr(t)}")
+            import pdb;pdb.set_trace()
+        else:
+            raise RuntimeError(f"Got a terminal of unexpected type: {repr(t)}")
+        if restriction is not None:
+            self._domain_restriction_map[domain].add(restriction)
+        return expr
+
+    reference_value = _modifier
+    reference_grad = _modifier
+    positive_restricted = _modifier
+    negative_restricted = _modifier
+    single_value_restricted = _modifier
+    to_be_restricted = _modifier
+    indexed = _modifier
+
+
+def make_domain_restriction_map(integral_data):
+    """Collect domain_restriction map."""
+    domain_restriction_map = defaultdict(set)
+    if integral_data.integral_type in ["exterior_facet", "interior_facet"]:
+        domain_restriction_map[integral_data.domain].add({"exterior_facet": '|',
+                                                          "interior_facet": '+'}[integral_data.integral_type])
+    rule = DomainRestrictionMapMaker(domain_restriction_map)
+    for integral in integral_data.integrals:
+        integrand = remove_indices(integral.integrand())
+        _ = map_expr_dag(rule, integrand)
+    return domain_restriction_map
+
+
+class FixedIndexRemover(MultiFunction):
+
+    def __init__(self, fimap):
+        MultiFunction.__init__(self)
+        self.fimap = fimap
+
+    expr = MultiFunction.reuse_if_untouched
+
+    def zero(self, o):
+        free_indices = []
+        index_dimensions = []
+        for i, d in zip(o.ufl_free_indices, o.ufl_index_dimensions):
+            if Index(i) in self.fimap:
+                ind_j = self.fimap[Index(i)]
+                if not isinstance(ind_j, FixedIndex):
+                    free_indices.append(ind_j.count())
+                    index_dimensions.append(d)
+            else:
+                free_indices.append(i)
+                index_dimensions.append(d)
+        return Zero(shape=o.ufl_shape, free_indices=tuple(free_indices), index_dimensions=tuple(index_dimensions))
+
+    def list_tensor(self, o):
+        rule = FixedIndexRemover(self.fimap)
+        cc = []
+        for o1 in o.ufl_operands:
+            comp = map_expr_dag(rule, o1)
+            cc.append(comp)
+        return ListTensor(*cc)
+
+    def multi_index(self, o):
+        return MultiIndex(tuple(self.fimap.get(i, i) for i in o.indices()))
+
+
+class IndexRemover(MultiFunction):
+
+    def __init__(self):
+        MultiFunction.__init__(self)
+
+    expr = MultiFunction.reuse_if_untouched
+
+    def _zero_simplify(self, o):
+        operand, = o.ufl_operands
+        rule = IndexRemover()
+        operand = map_expr_dag(rule, operand)
+        if isinstance(operand, Zero):
+            return Zero(shape=o.ufl_shape, free_indices=o.ufl_free_indices, index_dimensions=o.ufl_index_dimensions)
+        else:
+            return o._ufl_expr_reconstruct_(operand)
+
+    def indexed(self, o):
+        o1, i1 = o.ufl_operands
+        if isinstance(o1, ComponentTensor):
+            o2, i2 = o1.ufl_operands
+            fimap = dict(zip(i2.indices(), i1.indices(), strict=True))
+            rule = FixedIndexRemover(fimap)
+            v = map_expr_dag(rule, o2)
+            rule = IndexRemover()
+            return map_expr_dag(rule, v)
+        elif isinstance(o1, ListTensor):
+            if isinstance(i1[0], FixedIndex):
+                o1 = o1.ufl_operands[i1[0]._value]
+                rule = IndexRemover()
+                if len(i1) > 1:
+                    i1 = MultiIndex(i1[1:])
+                    return map_expr_dag(rule, Indexed(o1, i1))
+                else:
+                    return map_expr_dag(rule, o1)
+        rule = IndexRemover()
+        o1 = map_expr_dag(rule, o1)
+        return Indexed(o1, i1)
+
+    # Do something nicer
+    positive_restricted = _zero_simplify
+    negative_restricted = _zero_simplify
+    single_value_restricted = _zero_simplify
+    to_be_restricted = _zero_simplify
+    reference_grad = _zero_simplify
+    reference_value = _zero_simplify
+
+
+def remove_indices(o):
+    if isinstance(o, Form):
+        integrals = []
+        for integral in o.integrals():
+            integrand = remove_indices(integral.integrand())
+            if not isinstance(integrand, Zero):
+                integrals.append(integral.reconstruct(integrand=integrand))
+        return o._ufl_expr_reconstruct_(integrals)
+    else:
+        rule = IndexRemover()
+        return map_expr_dag(rule, o)
