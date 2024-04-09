@@ -18,7 +18,7 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions, make_domain_restriction_map, make_domain_integral_type_map, apply_coefficient_split, remove_component_and_list_tensors
+from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions, replace_to_be_restricted, make_domain_restriction_map, make_domain_integral_type_map, apply_coefficient_split, remove_component_and_list_tensors
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 # See TODOs at the call sites of these below:
@@ -453,6 +453,7 @@ def compute_form_data(
         for itg_data in self.integral_data:
             domain_restriction_map = make_domain_restriction_map(itg_data)
             itg_data.domain_integral_type_map = make_domain_integral_type_map(domain_restriction_map, itg_data.domain, itg_data.integral_type)
+            itg_data.integrals = replace_to_be_restricted(itg_data.integrals, itg_data.domain_integral_type_map)
     else:
         for itg_data in self.integral_data:
             itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}

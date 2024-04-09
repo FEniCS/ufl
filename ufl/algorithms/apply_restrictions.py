@@ -365,6 +365,42 @@ def make_domain_integral_type_map(domain_restriction_map, integration_domain, in
     return domain_integral_type_dict
 
 
+class ToBeRestrectedReplacer(MultiFunction):
+
+    def __init__(self, domain_integral_type_map):
+        MultiFunction.__init__(self)
+        self.domain_integral_type_map = domain_integral_type_map
+
+    expr = MultiFunction.reuse_if_untouched
+
+    def to_be_restricted(self, o):
+        mt, = o.ufl_operands
+        domain = extract_unique_domain(mt)
+        if isinstance(domain, MixedMesh):
+            raise RuntimeError(f"Not expecting a mixed mesh at this stage: {repr(o)}")
+        if domain not in self.domain_integral_type_map:
+            raise RuntimeError(f"Integral type on {domain} not known")
+        integral_type = self.domain_integral_type_map[domain]
+        if integral_type == "cell":
+            return mt
+        elif integral_type == "exterior_facet":
+            return SingleValueRestricted(mt)
+        elif integral_type == "interial_facet":
+            return PositiveRestricted(mt)
+        else:
+            raise RuntimeError(f"Integral type {integral_type} not handled")
+
+
+def replace_to_be_restricted(integrals, domain_integral_type_map):
+    new_integrals = []
+    rule = ToBeRestrectedReplacer(domain_integral_type_map)
+    for integral in integrals:
+        #integrand = remove_indices(integrand)
+        integrand = map_expr_dag(rule, integral.integrand())
+        new_integrals.append(integral.reconstruct(integrand=integrand))
+    return new_integrals
+
+
 # apply_coefficient_split
 
 
