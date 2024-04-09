@@ -34,6 +34,8 @@ from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.domain import extract_unique_domain, extract_domains, MixedMesh
 from ufl.utils.sequences import max_degree
 from ufl.constantvalue import Zero
+from ufl.pullback import MixedPullback
+
 
 def _auto_select_degree(elements):
     """Automatically select degree for all elements of the form.
@@ -249,6 +251,7 @@ def compute_form_data(
     do_apply_geometry_lowering=False, preserve_geometry_types=(),
     do_apply_default_restrictions=True, do_apply_restrictions=True,
     do_estimate_degrees=True, do_append_everywhere_integrals=True,
+    do_split_mixed_coefficients=False,
     complex_mode=False,
 ):
     """Compute form data.
@@ -418,20 +421,22 @@ def compute_form_data(
     # remove this!
     self.preprocessed_form = preprocessed_form
 
-    if have_multiple_domains:
+    if do_split_mixed_coefficients:
         coefficient_split = {}
         for o in self.reduced_coefficients:
             c = self.function_replace_map[o]
             elem = c.ufl_element()
-            if elem.num_sub_elements > 1:
-                mesh = extract_unique_domain(c, expand_mixed_mesh=False)
-                assert isinstance(mesh, MixedMesh)
+            mesh = extract_unique_domain(c, expand_mixed_mesh=False)
+            # Use MixedMesh as an indicator for MixedElement.
+            # The followings are ambiguous:
+            # if elem.num_sub_elements > 1:
+            # if isinstance(elem.pullback, MixedPullback):
+            if isinstance(mesh, MixedMesh):
                 coefficient_split[c] = [Coefficient(FunctionSpace(m, e))
                                         for m, e in zip(mesh, elem.sub_elements, strict=True)]
         self.coefficient_split = coefficient_split
         for itg_data in self.integral_data:
             new_integrals = []
-            old_integrals = []
             for integral in itg_data.integrals:
                 integrand = replace(integral.integrand(), self.function_replace_map)
                 integrand = remove_component_and_list_tensors(integrand)
@@ -439,10 +444,14 @@ def compute_form_data(
                 integrand = remove_component_and_list_tensors(integrand)
                 if not isinstance(integrand, Zero):
                     new_integrals.append(integral.reconstruct(integrand=integrand))
-                    old_integrals.append(integral)
             itg_data.integrals = new_integrals
+    else:
+        self.coefficient_split = {}
+
+    if have_multiple_domains:
+        assert do_split_mixed_coefficients
+        for itg_data in self.integral_data:
             domain_restriction_map = make_domain_restriction_map(itg_data)
-            itg_data.integrals = old_integrals
             itg_data.domain_integral_type_map = make_domain_integral_type_map(domain_restriction_map, itg_data.domain, itg_data.integral_type)
     else:
         for itg_data in self.integral_data:
