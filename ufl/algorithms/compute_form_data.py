@@ -251,7 +251,7 @@ def compute_form_data(
     do_apply_geometry_lowering=False, preserve_geometry_types=(),
     do_apply_default_restrictions=True, do_apply_restrictions=True,
     do_estimate_degrees=True, do_append_everywhere_integrals=True,
-    do_split_mixed_coefficients=False,
+    do_split_coefficients=None,
     complex_mode=False,
 ):
     """Compute form data.
@@ -421,7 +421,7 @@ def compute_form_data(
     # remove this!
     self.preprocessed_form = preprocessed_form
 
-    if do_split_mixed_coefficients:
+    if do_split_coefficients is not None:
         coefficient_split = {}
         for o in self.reduced_coefficients:
             c = self.function_replace_map[o]
@@ -431,7 +431,7 @@ def compute_form_data(
             # The followings are ambiguous:
             # if elem.num_sub_elements > 1:
             # if isinstance(elem.pullback, MixedPullback):
-            if isinstance(mesh, MixedMesh):
+            if isinstance(mesh, MixedMesh) and o in do_split_coefficients:
                 coefficient_split[c] = [Coefficient(FunctionSpace(m, e))
                                         for m, e in zip(mesh, elem.sub_elements, strict=True)]
         self.coefficient_split = coefficient_split
@@ -449,7 +449,7 @@ def compute_form_data(
         self.coefficient_split = {}
 
     if have_multiple_domains:
-        assert do_split_mixed_coefficients
+        assert do_split_coefficients is not None
         for itg_data in self.integral_data:
             domain_restriction_map = make_domain_restriction_map(itg_data)
             itg_data.domain_integral_type_map = make_domain_integral_type_map(domain_restriction_map, itg_data.domain, itg_data.integral_type)
