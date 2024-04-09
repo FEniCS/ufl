@@ -18,7 +18,7 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions, make_domain_restriction_map, make_domain_integral_type_map
+from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions, make_domain_restriction_map, make_domain_integral_type_map, apply_coefficient_split, remove_component_and_list_tensors
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 # See TODOs at the call sites of these below:
@@ -255,8 +255,6 @@ def compute_form_data(
 
     The default arguments configured to behave the way old FFC expects.
     """
-    from ufl.algorithms.apply_coefficient_split import apply_coefficient_split, remove_component_and_list_tensors
-
     # TODO: Move this to the constructor instead
     self = FormData()
 
