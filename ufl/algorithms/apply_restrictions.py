@@ -26,6 +26,7 @@ from ufl.coefficient import Coefficient
 from ufl import indices
 from ufl.checks import is_cellwise_constant
 from ufl.tensors import as_tensor
+from ufl.restriction import NegativeRestricted, PositiveRestricted, SingleValueRestricted, ToBeRestricted
 
 
 class RestrictionPropagator(MultiFunction):
