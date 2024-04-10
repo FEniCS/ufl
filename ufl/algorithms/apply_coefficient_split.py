@@ -200,7 +200,7 @@ def remove_component_and_list_tensors(o):
     if isinstance(o, Form):
         integrals = []
         for integral in o.integrals():
-            integrand = remove_component_list_tensors(integral.integrand())
+            integrand = remove_component_and_list_tensors(integral.integrand())
             if not isinstance(integrand, Zero):
                 integrals.append(integral.reconstruct(integrand=integrand))
         return o._ufl_expr_reconstruct_(integrals)
