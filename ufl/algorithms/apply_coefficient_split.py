@@ -33,8 +33,6 @@ class CoefficientSplitter(MultiFunction):
         reference_value = False
         t = o
         while not t._ufl_is_terminal_:
-            print("")
-            print(repr(t))
             assert t._ufl_is_terminal_modifier_, f"Got {repr(t)}"
             if isinstance(t, ReferenceValue):
                 assert not reference_value, "Got twice pulled back terminal!"
