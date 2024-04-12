@@ -21,11 +21,12 @@ from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.ufl_type import UFLType, ufl_type
-from ufl.domain import extract_domains, sort_domains
+from ufl.domain import extract_domains, extract_unique_domain, sort_domains, MixedMesh
 from ufl.equation import Equation
 from ufl.integral import Integral
 from ufl.utils.counted import Counted
 from ufl.utils.sorting import sorted_by_count
+from ufl.corealg.traversal import traverse_unique_terminals
 
 # Export list for ufl.classes
 __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
@@ -589,17 +590,26 @@ class Form(BaseForm):
 
     def _analyze_domains(self):
         """Analyze domains."""
+        from ufl.argument import Argument
+        from ufl.coefficient import Coefficient
+        from ufl.geometry import GeometricQuantity
         from ufl.domain import join_domains, sort_domains
 
-        # Collect unique integration domains
-        integration_domains = join_domains([itg.ufl_domain() for itg in self._integrals])
-
-        # Make canonically ordered list of the domains
-        self._integration_domains = sort_domains(integration_domains)
-
-        # TODO: Not including domains from coefficients and arguments
-        # here, may need that later
-        self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
+        # Collect integration domains
+        self._integration_domains = join_domains([itg.ufl_domain() for itg in self._integrals])
+        # Collect domains in integrands systematically
+        domains_in_integrands = []
+        for integral in self._integrals:
+            integrand = integral.integrand()
+            for t in traverse_unique_terminals(integrand):
+                if isinstance(t, (Coefficient, Constant, Argument, GeometricQuantity)):
+                    domain = extract_unique_domain(t, expand_mixed_mesh=False)
+                    domains = domain._meshes if isinstance(domain, MixedMesh) else (domain, )
+                    for d in domains:
+                        if d not in domains_in_integrands:
+                            domains_in_integrands.append(d)
+        # Do not "sort_domains"
+        self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains + tuple(domains_in_integrands)))
 
     def _analyze_subdomain_data(self):
         """Analyze subdomain data."""
@@ -644,18 +654,11 @@ class Form(BaseForm):
 
     def _compute_renumbering(self):
         """Compute renumbering."""
-        # Include integration domains and coefficients in renumbering
         dn = self.domain_numbering()
         tn = self.terminal_numbering()
         renumbering = {}
         renumbering.update(dn)
         renumbering.update(tn)
-        k = len(dn)
-        ds = extract_domains(self)
-        for d in ds:
-            if d not in renumbering:
-                renumbering[d] = k
-                k += 1
         return renumbering
 
     def _compute_signature(self):

@@ -334,30 +334,14 @@ def extract_domains(expr, expand_mixed_mesh=True):
     """Return all domains expression is defined on."""
     from ufl.form import Form
 
-    domainlist = []
     if isinstance(expr, Form):
-        form = expr
-        # Add integration domains
-        domainlist.extend(expr.ufl_domains())
-        # Add domains of coefficients, these may include domains not
-        # among integration domains
-        for c in form.coefficients():
-            domainlist.extend(extract_domains(c))
-        # Add domains of arguments, these may include domains not
-        # among integration domains
-        for a in form._arguments:
-            domainlist.extend(extract_domains(a))
-        # Add domains of constants, these may include domains not
-        # among integration domains
-        for c in form._constants:
-            domainlist.extend(extract_domains(c))
-        # Add domains of geometric quantities
-        for gq in form._geometric_quantities:
-            domainlist.append(gq._domain)
+        # To be consistent with the numbering used in signature
+        return tuple(expr.domain_numbering().keys())
     else:
+        domainlist = []
         for t in traverse_unique_terminals(expr):
             domainlist.extend(t.ufl_domains())
-    return sort_domains(join_domains(domainlist, expand_mixed_mesh=expand_mixed_mesh))
+        return sort_domains(join_domains(domainlist, expand_mixed_mesh=expand_mixed_mesh))
 
 
 def extract_unique_domain(expr, expand_mixed_mesh=True):
