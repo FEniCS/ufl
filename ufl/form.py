@@ -596,7 +596,7 @@ class Form(BaseForm):
         from ufl.domain import join_domains, sort_domains
 
         # Collect integration domains
-        self._integration_domains = join_domains([itg.ufl_domain() for itg in self._integrals])
+        self._integration_domains = sort_domains(join_domains([itg.ufl_domain() for itg in self._integrals]))
         # Collect domains in integrands systematically
         domains_in_integrands = []
         for integral in self._integrals:
@@ -608,8 +608,8 @@ class Form(BaseForm):
                     for d in domains:
                         if d not in domains_in_integrands:
                             domains_in_integrands.append(d)
-        # Do not "sort_domains"
-        self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains + tuple(domains_in_integrands)))
+        all_domains = sort_domains(join_domains(self._integration_domains + tuple(domains_in_integrands)))
+        self._domain_numbering = dict((d, i) for i, d in enumerate(all_domains))
 
     def _analyze_subdomain_data(self):
         """Analyze subdomain data."""
