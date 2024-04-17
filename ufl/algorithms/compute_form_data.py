@@ -407,21 +407,6 @@ def compute_form_data(
     # compatible data structure.
     self.max_subdomain_ids = _compute_max_subdomain_ids(self.integral_data)
 
-    # --- Checks
-    _check_elements(self)
-    _check_facet_geometry(self.integral_data)
-
-    # TODO: This is a very expensive check... Replace with something
-    # faster!
-    preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
-
-    # TODO: Test how fast this is
-    check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)
-
-    # TODO: This member is used by unit tests, change the tests to
-    # remove this!
-    self.preprocessed_form = preprocessed_form
-
     if do_split_coefficients is not None:
         coefficient_split = {}
         for o in self.reduced_coefficients:
@@ -458,5 +443,20 @@ def compute_form_data(
     else:
         for itg_data in self.integral_data:
             itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
+
+    # --- Checks
+    _check_elements(self)
+    _check_facet_geometry(self.integral_data)
+
+    # TODO: This is a very expensive check... Replace with something
+    # faster!
+    preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
+
+    # TODO: Test how fast this is
+    check_form_arity(preprocessed_form, self.original_form.arguments(), complex_mode)
+
+    # TODO: This member is used by unit tests, change the tests to
+    # remove this!
+    self.preprocessed_form = preprocessed_form
 
     return self

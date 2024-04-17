@@ -4,6 +4,7 @@ from ufl.algorithms import compute_form_data
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback, contravariant_piola
 from ufl.sobolevspace import H1, HDiv, L2
+from ufl.domain import extract_domains
 
 
 def test_mixed_function_space_with_mixed_mesh_basic():
@@ -13,8 +14,8 @@ def test_mixed_function_space_with_mixed_mesh_basic():
     elem2 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
     elem = MixedElement([elem0, elem1, elem2])
     mesh0 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=100)
-    mesh1 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=200)
-    mesh2 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=300)
+    mesh1 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=101)
+    mesh2 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=102)
     domain = MixedMesh(mesh0, mesh1, mesh2)
     V = FunctionSpace(domain, elem)
     u = TrialFunction(V)
@@ -63,8 +64,8 @@ def test_mixed_function_space_with_mixed_mesh_restriction():
     elem2 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
     elem = MixedElement([elem0, elem1, elem2])
     mesh0 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=100)
-    mesh1 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=200)
-    mesh2 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=300)
+    mesh1 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=101)
+    mesh2 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=102)
     domain = MixedMesh(mesh0, mesh1, mesh2)
     V = FunctionSpace(domain, elem)
     V0 = FunctionSpace(mesh0, elem0)
@@ -97,14 +98,12 @@ def test_mixed_function_space_with_mixed_mesh_signature():
     cell = triangle
     mesh0 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=100)
     mesh1 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=101)
-    mesh2 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=102)
-    mesh3 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=103)
     dx0 = Measure("dx", mesh0)
     dx1 = Measure("dx", mesh1)
-    dx2 = Measure("dx", mesh2)
-    dx3 = Measure("dx", mesh3)
     n0 = FacetNormal(mesh0)
     n1 = FacetNormal(mesh1)
-    n2 = FacetNormal(mesh2)
-    n3 = FacetNormal(mesh3)
-    form_a = inner(n1, n1) * dx0(999) + Constant(1.) * dx1
+    form_a = inner(n1, n1) * dx0(999)
+    form_b = inner(n0, n0) * dx1(999)
+    assert form_a.signature() == form_b.signature()
+    assert extract_domains(form_a) == (mesh0, mesh1)
+    assert extract_domains(form_b) == (mesh1, mesh0)
