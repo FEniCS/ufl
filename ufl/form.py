@@ -606,9 +606,9 @@ class Form(BaseForm):
                     domain = extract_unique_domain(t, expand_mixed_mesh=False)
                     domains = domain._meshes if isinstance(domain, MixedMesh) else (domain, )
                     for d in domains:
-                        if d not in domains_in_integrands:
+                        if d not in self._integration_domains and d not in domains_in_integrands:
                             domains_in_integrands.append(d)
-        all_domains = sort_domains(join_domains(self._integration_domains + tuple(domains_in_integrands)))
+        all_domains = self._integration_domains + sort_domains(join_domains(domains_in_integrands))
         self._domain_numbering = dict((d, i) for i, d in enumerate(all_domains))
 
     def _analyze_subdomain_data(self):

@@ -1,5 +1,5 @@
-from ufl import (triangle, Mesh, MixedMesh, FunctionSpace, TestFunction, TrialFunction, Coefficient,
-                 Measure, SpatialCoordinate, CellVolume, FacetArea, inner, grad, div, split, )
+from ufl import (triangle, Mesh, MixedMesh, FunctionSpace, TestFunction, TrialFunction, Coefficient, Constant,
+                 Measure, SpatialCoordinate, FacetNormal, CellVolume, FacetArea, inner, grad, div, split, )
 from ufl.algorithms import compute_form_data
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback, contravariant_piola
@@ -91,3 +91,20 @@ def test_mixed_function_space_with_mixed_mesh_restriction():
     integral_data, = fd.integral_data
     assert integral_data.domain_integral_type_map[mesh1] == "interior_facet"
     assert integral_data.domain_integral_type_map[mesh2] == "exterior_facet"
+
+
+def test_mixed_function_space_with_mixed_mesh_signature():
+    cell = triangle
+    mesh0 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=100)
+    mesh1 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=101)
+    mesh2 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=102)
+    mesh3 = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1), ufl_id=103)
+    dx0 = Measure("dx", mesh0)
+    dx1 = Measure("dx", mesh1)
+    dx2 = Measure("dx", mesh2)
+    dx3 = Measure("dx", mesh3)
+    n0 = FacetNormal(mesh0)
+    n1 = FacetNormal(mesh1)
+    n2 = FacetNormal(mesh2)
+    n3 = FacetNormal(mesh3)
+    form_a = inner(n1, n1) * dx0(999) + Constant(1.) * dx1
