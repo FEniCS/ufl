@@ -252,6 +252,7 @@ def compute_form_data(
     do_apply_geometry_lowering=False, preserve_geometry_types=(),
     do_apply_default_restrictions=True, do_apply_restrictions=True,
     do_estimate_degrees=True, do_append_everywhere_integrals=True,
+    do_assume_single_integral_type=True,
     do_split_coefficients=None,
     complex_mode=False,
 ):
@@ -300,10 +301,17 @@ def compute_form_data(
     if do_apply_integral_scaling:
         form = apply_integral_scaling(form)
 
+    # Can allow for some simplifications if there indeed is only a single domain.
+    if not do_assume_single_integral_type:
+        have_single_domain = len(extract_domains(form)) == 1
+
     # Apply default restriction to fully continuous terminals
-    have_multiple_domains = len(extract_domains(form)) > 1
     if do_apply_default_restrictions:
-        form = apply_default_restrictions(form, have_multiple_domains=have_multiple_domains)
+        if do_assume_single_integral_type:
+            form = apply_default_restrictions(form)
+        else:
+            # Apply '?' restrictions in general multi-domain problems.
+            form = apply_default_restrictions(form, assume_single_integral_type=have_single_domain)
 
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller
@@ -329,7 +337,10 @@ def compute_form_data(
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
-        form = apply_restrictions(form, have_multiple_domains=have_multiple_domains)
+        if do_assume_single_integral_type:
+            form = apply_restrictions(form)
+        else:
+            form = apply_restrictions(form, assume_single_integral_type=have_single_domain)
 
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:
@@ -407,6 +418,8 @@ def compute_form_data(
     # compatible data structure.
     self.max_subdomain_ids = _compute_max_subdomain_ids(self.integral_data)
 
+    # Split coefficients in ``do_split_coefficients`` into components and
+    # store a map from each coefficient to its components in ``self.coefficient_split``.
     if do_split_coefficients is not None:
         coefficient_split = {}
         for o in self.reduced_coefficients:
@@ -434,15 +447,25 @@ def compute_form_data(
     else:
         self.coefficient_split = {}
 
-    if have_multiple_domains:
-        assert do_split_coefficients is not None
-        for itg_data in self.integral_data:
-            domain_restriction_map = make_domain_restriction_map(itg_data)
-            itg_data.domain_integral_type_map = make_domain_integral_type_map(domain_restriction_map, itg_data.domain, itg_data.integral_type)
-            itg_data.integrals = replace_to_be_restricted(itg_data.integrals, itg_data.domain_integral_type_map)
-    else:
+    # Make ``itg_data.domain_integral_type_map``; this is only significant
+    # when we handle general multi-domain problems.
+    if do_assume_single_integral_type:
         for itg_data in self.integral_data:
             itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
+    else:
+        if have_single_domain:
+            # Make a short-cut; there is no '?' restrictions by construction.
+            for itg_data in self.integral_data:
+                itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
+        else:
+            # Inspect the form and replacce all '?' restrictions with appropriate ones
+            # in general multi-domain problems;
+            # we must have split coefficients into components to simplify the DAG and facilitate the inspection.
+            assert do_split_coefficients is not None, "Need to set 'do_split_coefficients=True' for general multi-domain problems"
+            for itg_data in self.integral_data:
+                domain_restriction_map = make_domain_restriction_map(itg_data)
+                itg_data.domain_integral_type_map = make_domain_integral_type_map(domain_restriction_map, itg_data.domain, itg_data.integral_type)
+                itg_data.integrals = replace_to_be_restricted(itg_data.integrals, itg_data.domain_integral_type_map)
 
     # --- Checks
     _check_elements(self)
