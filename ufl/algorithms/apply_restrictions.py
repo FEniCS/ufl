@@ -32,20 +32,20 @@ from ufl.restriction import NegativeRestricted, PositiveRestricted, SingleValueR
 class RestrictionPropagator(MultiFunction):
     """Restriction propagator."""
 
-    def __init__(self, side=None, have_multiple_domains=False):
+    def __init__(self, side=None, assume_single_integral_type=True):
         """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
-        self.default_restriction = "?" if have_multiple_domains else "+"
+        self.default_restriction = "+" if assume_single_integral_type else "?"
         # Caches for propagating the restriction with map_expr_dag
         self.vcaches = {"+": {}, "-": {}, "|": {}, "?": {}}
         self.rcaches = {"+": {}, "-": {}, "|": {}, "?": {}}
         if self.current_restriction is None:
-            self._rp = {"+": RestrictionPropagator("+", have_multiple_domains),
-                        "-": RestrictionPropagator("-", have_multiple_domains),
-                        "|": RestrictionPropagator("|", have_multiple_domains),
-                        "?": RestrictionPropagator("?", have_multiple_domains)}
-        self.have_multiple_domains = have_multiple_domains
+            self._rp = {"+": RestrictionPropagator("+", assume_single_integral_type),
+                        "-": RestrictionPropagator("-", assume_single_integral_type),
+                        "|": RestrictionPropagator("|", assume_single_integral_type),
+                        "?": RestrictionPropagator("?", assume_single_integral_type)}
+        self.assume_single_integral_type = assume_single_integral_type
 
     def restricted(self, o):
         """When hitting a restricted quantity, visit child with a separate restriction algorithm."""
@@ -69,7 +69,7 @@ class RestrictionPropagator(MultiFunction):
         """Restrict a discontinuous quantity to current side, require a side to be set."""
         if self.current_restriction is not None:
             return o(self.current_restriction)
-        elif self.have_multiple_domains:
+        elif not self.assume_single_integral_type:
             return o
         else:
             raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
@@ -187,14 +187,14 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression, have_multiple_domains=False):
+def apply_restrictions(expression, assume_single_integral_type=True):
     """Propagate restriction nodes to wrap differential terminals directly."""
-    if have_multiple_domains:
-        integral_types = None
-    else:
+    if assume_single_integral_type:
         integral_types = [k for k in integral_type_to_measure_name.keys()
                           if k.startswith("interior_facet")]
-    rules = RestrictionPropagator(have_multiple_domains=have_multiple_domains)
+    else:
+        integral_types = None
+    rules = RestrictionPropagator(assume_single_integral_type=assume_single_integral_type)
     return map_integrand_dags(rules, expression,
                               only_integral_type=integral_types)
 
@@ -202,17 +202,11 @@ def apply_restrictions(expression, have_multiple_domains=False):
 class DefaultRestrictionApplier(MultiFunction):
     """Default restriction applier."""
 
-    def __init__(self, side=None, have_multiple_domains=False):
+    def __init__(self, side=None, assume_single_integral_type=True):
         """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
-        self.default_restriction = "?" if have_multiple_domains else "+"
-        if self.current_restriction is None:
-            self._rp = {"+": DefaultRestrictionApplier("+", have_multiple_domains),
-                        "-": DefaultRestrictionApplier("-", have_multiple_domains),
-                        "|": DefaultRestrictionApplier("|", have_multiple_domains),
-                        "?": DefaultRestrictionApplier("?", have_multiple_domains)}
-        self.have_multiple_domains = have_multiple_domains
+        self.default_restriction = "+" if assume_single_integral_type else "?"
 
     def terminal(self, o):
         """Apply to terminal."""
@@ -257,17 +251,17 @@ class DefaultRestrictionApplier(MultiFunction):
     facet_origin = _default_restricted  # FIXME: Is this valid for quads?
 
 
-def apply_default_restrictions(expression, have_multiple_domains=False):
+def apply_default_restrictions(expression, assume_single_integral_type=True):
     """Some terminals can be restricted from either side.
 
     This applies a default restriction to such terminals if unrestricted.
     """
-    if have_multiple_domains:
-        integral_types = None
-    else:
+    if assume_single_integral_type:
         integral_types = [k for k in integral_type_to_measure_name.keys()
                           if k.startswith("interior_facet")]
-    rules = DefaultRestrictionApplier(have_multiple_domains=have_multiple_domains)
+    else:
+        integral_types = None
+    rules = DefaultRestrictionApplier(assume_single_integral_type=assume_single_integral_type)
     return map_integrand_dags(rules, expression,
                               only_integral_type=integral_types)
 
