@@ -41,7 +41,7 @@ class BaseArgument(object):
         return (self._ufl_function_space, self._number, self._part)
 
     def __init__(self, function_space, number, part=None):
-        """initialise."""
+        """Initialise."""
         if not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace.")
 
