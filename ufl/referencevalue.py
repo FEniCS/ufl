@@ -46,7 +46,7 @@ class ReferenceValue(Operator):
 
         Propagates restrictions in a form towards the terminals.
         """
-        (f,) = self._ufl_operands_
+        (f,) = self.ufl_operands
         assert f._ufl_is_terminal_
         g = f.apply_restrictions(side)
         if isinstance(g, Restricted):
