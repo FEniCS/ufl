@@ -861,6 +861,28 @@ class FormSum(BaseForm):
         r = "FormSum([" + itgs + "])"
         return r
 
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        mapped_components = [i.apply_restrictions(side) for i in self.components()]
+        nonzero_components = [
+            (i, w) for i, w in zip(mapped_components, self.weights()) if not isinstance(i, Zero)
+        ]
+
+        # Simplify case with one nonzero component and the corresponding weight is 1
+        if len(nonzero_components) == 1 and nonzero_components[0][1] == 1:
+            return nonzero_components[0][0]
+
+        if all(not isinstance(component, BaseForm) for component, _ in nonzero_components):
+            # Simplification of `BaseForm` objects may turn `FormSum` into a sum of `Expr` objects
+            # that are not `BaseForm`, i.e. into a `Sum` object.
+            # Example: `Action(Adjoint(c*), u)` with `c*` a `Coargument` and u a `Coefficient`.
+            return sum([component for component, _ in nonzero_components])
+
+        return FormSum(*nonzero_components)
+
 
 @ufl_type()
 class ZeroBaseForm(BaseForm):
@@ -920,3 +942,11 @@ class ZeroBaseForm(BaseForm):
         if self._hash is None:
             self._hash = hash(("ZeroBaseForm", hash(self._arguments)))
         return self._hash
+
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return ZeroBaseForm(tuple(arg.apply_restrictions(side) for arg in self._arguments))
+

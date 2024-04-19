@@ -7,6 +7,8 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
+import typing
+from ufl.typing import Self
 from itertools import chain
 
 from ufl.algebra import Sum
@@ -149,6 +151,13 @@ class Action(BaseForm):
         if self._hash is None:
             self._hash = hash(("Action", hash(self._right), hash(self._left)))
         return self._hash
+
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return Action(self._left.apply_restrictions(side), self._right.apply_restrictions(side))
 
 
 def _check_function_spaces(left, right):

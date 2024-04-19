@@ -8,6 +8,8 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
+import typing
+from ufl.typing import Self
 from ufl.argument import Coargument
 from ufl.core.ufl_type import ufl_type
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
@@ -119,3 +121,10 @@ class Adjoint(BaseForm):
         if self._hash is None:
             self._hash = hash(("Adjoint", hash(self._form)))
         return self._hash
+
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return Adjoint(self._form.apply_restrictions(side))
