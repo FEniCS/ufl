@@ -82,6 +82,8 @@ def canonicalize_metadata(metadata):
             value = canonicalize_metadata(value)
         elif isinstance(value, (int, float, str)) or value is None:
             value = str(value)
+        elif hasattr(value, "ufl_signature"):
+            value = value.ufl_signature
         else:
             warnings.warn(
                 f"Applying str() to a metadata value of type {type(value).__name__}, "
