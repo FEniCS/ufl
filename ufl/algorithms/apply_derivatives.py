@@ -625,13 +625,12 @@ class GradRuleset(GenericDerivativeRuleset):
                 if esh == ():
                     esh = (1, )
                 rdim, gdim = K.ufl_shape
-                assert rdim == ref_dim
-                assert gdim == self._var_shape[0]
+                assert rdim == ref_dim, f"{rdim} != {ref_dim}"
+                assert gdim == self._var_shape[0], f"{gdim} != {self._var_shape[0]}"
                 for idx in range(int(numpy.prod(esh))):
                     for i in range(gdim):
                         temp = Zero()
                         for j in range(rdim):
-                            g[(dofoffset + idx, ) + (j, )]
                             temp += g[(dofoffset + idx, ) + (j, )] * K[j, i]
                         components.append(temp)
                 dofoffset += int(numpy.prod(esh))

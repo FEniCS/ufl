@@ -135,10 +135,15 @@ class MixedMesh(AbstractDomain, UFLObject):
         self._ufl_cargo = cargo
         if cargo is not None and cargo.ufl_id() != self._ufl_id:
             raise ValueError("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
-        coordinate_element = meshes[0]._ufl_coordinate_element
-        self._ufl_coordinate_element = coordinate_element
-        gdim, = coordinate_element.value_shape
-        tdim = coordinate_element.cell.topological_dimension()
+        if any(isinstance(m, MixedMesh) for m in meshes):
+            raise NotImplementedError("Currently component meshes can not include MixedMesh instances")
+        # TODO: Should make a "MixedCell" object here:
+        # currently only support single cell type.
+        self._ufl_cell, = set(m.ufl_cell() for m in meshes)
+        gdim, = set(m.geometric_dimension() for m in meshes)
+        # ReferenceGrad requires topological_dimension of the mixed mesh:
+        # set tdim to max topological dim for a general mixed mesh (currently not implemented).
+        tdim = max(m.topological_dimension() for m in meshes)
         AbstractDomain.__init__(self, tdim, gdim)
         self._meshes = tuple(meshes)
 
@@ -146,18 +151,9 @@ class MixedMesh(AbstractDomain, UFLObject):
         """Return carried object that will not be used by UFL."""
         return self._ufl_cargo
 
-    def ufl_coordinate_element(self):
-        """Get the coordinate element."""
-        return self._ufl_coordinate_element
-
     def ufl_cell(self):
         """Get the cell."""
-        return self._ufl_coordinate_element.cell
-
-    def is_piecewise_linear_simplex_domain(self):
-        """Check if the domain is a piecewise linear simplex."""
-        ce = self._ufl_coordinate_element
-        return ce.embedded_superdegree <= 1 and ce in H1 and self.ufl_cell().is_simplex()
+        return self._ufl_cell
 
     def __repr__(self):
         """Representation."""
@@ -170,7 +166,7 @@ class MixedMesh(AbstractDomain, UFLObject):
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
-        return (type(self), self._ufl_id, self._ufl_coordinate_element)
+        return ("MixedMesh", self._ufl_id)
 
     def _ufl_signature_data_(self, renumbering):
         """UFL signature data."""
@@ -178,7 +174,7 @@ class MixedMesh(AbstractDomain, UFLObject):
 
     def _ufl_sort_key_(self):
         """UFL sort key."""
-        typespecific = (self._ufl_id, self._ufl_coordinate_element)
+        typespecific = (self._ufl_id, )
         return (self.geometric_dimension(), self.topological_dimension(),
                 "MixedMesh", typespecific)
 
