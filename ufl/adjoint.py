@@ -9,10 +9,11 @@
 # Modified by Nacime Bouziani, 2021-2022.
 
 import typing
-from ufl.typing import Self
+
 from ufl.argument import Coargument
 from ufl.core.ufl_type import ufl_type
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
+from ufl.typing import Self
 
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---

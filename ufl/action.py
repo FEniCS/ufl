@@ -8,7 +8,6 @@
 # Modified by Nacime Bouziani, 2021-2022.
 
 import typing
-from ufl.typing import Self
 from itertools import chain
 
 from ufl.algebra import Sum
@@ -20,6 +19,7 @@ from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.matrix import Matrix
+from ufl.typing import Self
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---

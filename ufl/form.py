@@ -949,4 +949,3 @@ class ZeroBaseForm(BaseForm):
         Propagates restrictions in a form towards the terminals.
         """
         return ZeroBaseForm(tuple(arg.apply_restrictions(side) for arg in self._arguments))
-
