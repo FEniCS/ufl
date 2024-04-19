@@ -12,6 +12,7 @@
 # Modified by Jørgen S. Dokken 2023.
 
 import numbers
+import typing
 import warnings
 from collections import defaultdict
 from itertools import chain
@@ -24,6 +25,7 @@ from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.domain import extract_unique_domain, sort_domains
 from ufl.equation import Equation
 from ufl.integral import Integral
+from ufl.typing import Self
 from ufl.utils.counted import Counted
 from ufl.utils.sorting import sorted_by_count
 
@@ -696,6 +698,15 @@ class Form(BaseForm):
         from ufl.algorithms.signature import compute_form_signature
 
         self._signature = compute_form_signature(self, self._compute_renumbering())
+
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        mapped_integrals = [i.apply_restrictions(side) for i in self.integrals()]
+        nonzero_integrals = [i for i in mapped_integrals if not isinstance(i, Zero)]
+        return Form(nonzero_integrals)
 
 
 def as_form(form):

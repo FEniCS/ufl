@@ -1,9 +1,11 @@
 """Restriction operations."""
+
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+import typing
 
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -43,14 +45,14 @@ class Restricted(Operator):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)}({self._side})"
 
-    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
         """
         if side is not None:
             raise ValueError("Cannot restrict an expression twice.")
-        return self.__class__(self.ufl_operands[0].apply_restrictions(self._side))
+        return self.ufl_operands[0].apply_restrictions(self._side)
 
 
 @ufl_type(is_terminal_modifier=True)

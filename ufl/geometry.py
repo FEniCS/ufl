@@ -5,6 +5,7 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+import typing
 
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
@@ -129,13 +130,13 @@ class GeometricCellQuantity(GeometricQuantity):
 
     __slots__ = ()
 
-    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
         """
         if side is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+            raise ValueError(f"Discontinuous type {self.__class__.__name__} must be restricted.")
         return self(side)
 
 
@@ -145,13 +146,13 @@ class GeometricFacetQuantity(GeometricQuantity):
 
     __slots__ = ()
 
-    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
         """
         if side is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+            raise ValueError(f"Discontinuous type {self.__class__.__name__} must be restricted.")
         return self(side)
 
 
@@ -261,6 +262,13 @@ class FacetCoordinate(GeometricFacetQuantity):
         # (with a vertex facet).
         t = self._domain.topological_dimension()
         return t <= 1
+
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return self
 
 
 # --- Origin of coordinate systems in larger coordinate systems
@@ -715,6 +723,36 @@ class FacetNormal(GeometricFacetQuantity):
         is_piecewise_linear = ce.embedded_superdegree <= 1 and ce in H1
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        from ufl.algorithms.apply_restrictions import default_restriction
+
+        if side is None:
+            raise ValueError(f"Discontinuous type {self.__class__.__name__} must be restricted.")
+
+        domain = extract_unique_domain(self)
+        element = domain.ufl_coordinate_element()
+        gdim = domain.geometric_dimension()
+        tdim = domain.topological_dimension()
+
+        if element.embedded_superdegree <= 1 and element in H1 and gdim == tdim:
+            # For meshes with a continuous linear non-manifold
+            # coordinate field, the facet normal from side - points in
+            # the opposite direction of the one from side +.  We must
+            # still require a side to be chosen by the user but
+            # rewrite n- -> n+.  This is an optimization, possibly
+            # premature, however it's more difficult to do at a later
+            # stage.
+            if side == default_restriction:
+                return self(default_restriction)
+            else:
+                return -self(default_restriction)
+        else:
+            return self(side)
+
 
 @ufl_type()
 class CellNormal(GeometricCellQuantity):
@@ -764,6 +802,14 @@ class ReferenceCellVolume(GeometricCellQuantity):
     __slots__ = ()
     name = "reference_cell_volume"
 
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        # Assuming homogeneous mesh
+        return self
+
 
 @ufl_type()
 class ReferenceFacetVolume(GeometricFacetQuantity):
@@ -771,6 +817,14 @@ class ReferenceFacetVolume(GeometricFacetQuantity):
 
     __slots__ = ()
     name = "reference_facet_volume"
+
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        # Assuming homogeneous mesh
+        return self
 
 
 @ufl_type()
@@ -880,3 +934,10 @@ class QuadratureWeight(GeometricQuantity):
         """Return whether this expression is spatially constant over each cell."""
         # The weight usually varies with the quadrature points
         return False
+
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return self

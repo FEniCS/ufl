@@ -15,6 +15,7 @@ classes (functions), including TestFunction and TrialFunction.
 # Modified by Ignacia Fierro-Piccardo 2023.
 
 import numbers
+import typing
 
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
@@ -42,7 +43,7 @@ class BaseArgument(object):
         return (self._ufl_function_space, self._number, self._part)
 
     def __init__(self, function_space, number, part=None):
-        """initialise."""
+        """Initialise."""
         if not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace.")
 
@@ -190,13 +191,13 @@ class Argument(FormArgument, BaseArgument):
         """Representation."""
         return self._repr
 
-    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
         """
         if side is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+            raise ValueError(f"Discontinuous type {self.__class__.__name__} must be restricted.")
         return self(side)
 
 

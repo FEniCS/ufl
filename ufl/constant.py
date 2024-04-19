@@ -6,9 +6,12 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import typing
+
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain
+from ufl.typing import Self
 from ufl.utils.counted import Counted
 
 
@@ -76,6 +79,13 @@ class Constant(Terminal, Counted):
             repr(self._ufl_shape),
             repr(renumbering[self]),
         )
+
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return self
 
 
 def VectorConstant(domain, count=None):

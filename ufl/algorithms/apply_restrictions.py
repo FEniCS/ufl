@@ -9,157 +9,29 @@ restrictions in a form towards the terminals.
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+import typing
+import warnings
+from abc import abstractmethod
+from typing import Protocol
 
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Restricted
-from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.domain import extract_unique_domain
 from ufl.measure import integral_type_to_measure_name
-from ufl.sobolevspace import H1
 from ufl.typing import Self
-from typing import Protocol
-from abc import abstractmethod
-import warnings
 
 
 class ApplyRestrictions(Protocol):
     """Protocol for apply_restrictions."""
 
     @abstractmethod
-    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
         """
 
 
-default_restiction = "+"
-
-
-class RestrictionPropagator(MultiFunction):
-    """Restriction propagator."""
-
-    def __init__(self, side=None):
-        """Initialise."""
-        MultiFunction.__init__(self)
-        self.current_restriction = side
-        self.default_restriction = "+"
-        # Caches for propagating the restriction with map_expr_dag
-        self.vcaches = {"+": {}, "-": {}}
-        self.rcaches = {"+": {}, "-": {}}
-        if self.current_restriction is None:
-            self._rp = {"+": RestrictionPropagator("+"), "-": RestrictionPropagator("-")}
-
-    # --- Reusable rules
-
-    def _ignore_restriction(self, o):
-        """Ignore current restriction.
-
-        Quantity is independent of side also from a computational point
-        of view.
-        """
-        return o
-
-    def _require_restriction(self, o):
-        """Restrict a discontinuous quantity to current side, require a side to be set."""
-        if self.current_restriction is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-        return o(self.current_restriction)
-
-    def _default_restricted(self, o):
-        """Restrict a continuous quantity to default side if no current restriction is set."""
-        r = self.current_restriction
-        if r is None:
-            r = self.default_restriction
-        return o(r)
-
-    def _opposite(self, o):
-        """Restrict a quantity to default side.
-
-        If the current restriction is different swap the sign, require a side to be set.
-        """
-        if self.current_restriction is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-        elif self.current_restriction == self.default_restriction:
-            return o(self.default_restriction)
-        else:
-            return -o(self.default_restriction)
-
-    def _missing_rule(self, o):
-        """Raise an error."""
-        raise ValueError(f"Missing rule for {o._ufl_class_.__name__}")
-
-    # --- Rules for operators
-
-    def variable(self, o, op, label):
-        """Strip variable."""
-        return op
-
-    def reference_value(self, o):
-        """Reference value of something follows same restriction rule as the underlying object."""
-        (f,) = o.ufl_operands
-        assert f._ufl_is_terminal_
-        g = self(f)
-        if isinstance(g, Restricted):
-            side = g.side()
-            return o(side)
-        else:
-            return o
-
-    # --- Rules for terminals
-
-    # Require handlers to be specified for all terminals
-    terminal = _missing_rule
-
-    multi_index = _ignore_restriction
-    label = _ignore_restriction
-
-    # Default: Literals should ignore restriction
-    constant_value = _ignore_restriction
-    constant = _ignore_restriction
-
-    # Only a few geometric quantities are independent on the restriction:
-    facet_coordinate = _ignore_restriction
-    quadrature_weight = _ignore_restriction
-
-    # Assuming homogeoneous mesh
-    reference_cell_volume = _ignore_restriction
-    reference_facet_volume = _ignore_restriction
-
-    def coefficient(self, o):
-        """Restrict a coefficient.
-
-        Allow coefficients to be unrestricted (apply default if so) if
-        the values are fully continuous across the facet.
-        """
-        if o.ufl_element() in H1:
-            # If the coefficient _value_ is _fully_ continuous
-            # It must still be computed from one of the sides, we just don't care which
-            return self._default_restricted(o)
-        else:
-            return self._require_restriction(o)
-
-    def facet_normal(self, o):
-        """Restrict a facet_normal."""
-        D = extract_unique_domain(o)
-        e = D.ufl_coordinate_element()
-        gd = D.geometric_dimension()
-        td = D.topological_dimension()
-
-        if e.embedded_superdegree <= 1 and e in H1 and gd == td:
-            # For meshes with a continuous linear non-manifold
-            # coordinate field, the facet normal from side - points in
-            # the opposite direction of the one from side +.  We must
-            # still require a side to be chosen by the user but
-            # rewrite n- -> n+.  This is an optimization, possibly
-            # premature, however it's more difficult to do at a later
-            # stage.
-            return self._opposite(o)
-        else:
-            # For other meshes, we require a side to be
-            # chosen by the user and respect that
-            return self._require_restriction(o)
+default_restriction = "+"
 
 
 def apply_restrictions(expression: ApplyRestrictions):
@@ -170,12 +42,6 @@ def apply_restrictions(expression: ApplyRestrictions):
         FutureWarning,
     )
     return expression.apply_restrictions()
-
-    integral_types = [
-        k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
-    ]
-    rules = RestrictionPropagator()
-    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
 
 
 class DefaultRestrictionApplier(MultiFunction):
