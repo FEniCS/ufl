@@ -10,6 +10,7 @@
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 # Modified by Ignacia Fierro-Piccardo 2023.
+import functools
 import typing
 
 from ufl.argument import Argument
@@ -203,6 +204,7 @@ class Coefficient(FormArgument, BaseCoefficient):
         """Representation."""
         return self._repr
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

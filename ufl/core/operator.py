@@ -8,6 +8,7 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+import functools
 import typing
 
 from ufl.core.expr import Expr
@@ -49,6 +50,7 @@ class Operator(Expr):
         # This should work for most cases
         return f"{self._ufl_class_.__name__}({', '.join(repr(op) for op in self.ufl_operands)})"
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

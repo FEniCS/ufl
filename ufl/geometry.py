@@ -5,6 +5,7 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
+import functools
 import typing
 
 from ufl.core.terminal import Terminal
@@ -130,6 +131,7 @@ class GeometricCellQuantity(GeometricQuantity):
 
     __slots__ = ()
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -146,6 +148,7 @@ class GeometricFacetQuantity(GeometricQuantity):
 
     __slots__ = ()
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -263,6 +266,7 @@ class FacetCoordinate(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         return t <= 1
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -723,6 +727,7 @@ class FacetNormal(GeometricFacetQuantity):
         is_piecewise_linear = ce.embedded_superdegree <= 1 and ce in H1
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -802,6 +807,7 @@ class ReferenceCellVolume(GeometricCellQuantity):
     __slots__ = ()
     name = "reference_cell_volume"
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -818,6 +824,7 @@ class ReferenceFacetVolume(GeometricFacetQuantity):
     __slots__ = ()
     name = "reference_facet_volume"
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -935,6 +942,7 @@ class QuadratureWeight(GeometricQuantity):
         # The weight usually varies with the quadrature points
         return False
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

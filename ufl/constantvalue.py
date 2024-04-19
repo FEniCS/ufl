@@ -9,6 +9,7 @@
 # Modified by Anders Logg, 2011.
 # Modified by Massimiliano Leoni, 2016.
 
+import functools
 import typing
 from math import atan2
 
@@ -55,6 +56,7 @@ class ConstantValue(Terminal):
         """Return tuple of domains related to this terminal object."""
         return ()
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

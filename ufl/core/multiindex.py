@@ -8,6 +8,7 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
+import functools
 import typing
 
 from ufl.core.terminal import Terminal
@@ -258,6 +259,7 @@ class MultiIndex(Terminal):
         """Return iteratable."""
         return iter(self._indices)
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

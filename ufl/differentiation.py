@@ -6,6 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import functools
 import typing
 
 from ufl.argument import Argument, Coargument
@@ -297,6 +298,7 @@ class Grad(CompoundDerivative):
         """Format as a string."""
         return "grad(%s)" % self.ufl_operands[0]
 
+    @functools.lru_cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
