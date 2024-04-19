@@ -14,6 +14,7 @@ from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.utils.counted import Counted
+from ufl.typing import Self
 
 
 @ufl_type()
@@ -127,3 +128,10 @@ class Variable(Operator):
     def __str__(self):
         """Format as a string."""
         return "var%d(%s)" % (self.ufl_operands[1].count(), self.ufl_operands[0])
+
+    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return op  # TODO

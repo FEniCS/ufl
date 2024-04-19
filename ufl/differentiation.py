@@ -20,6 +20,7 @@ from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import BaseForm
 from ufl.precedence import parstr
 from ufl.variable import Variable
+from ufl.typing import Self
 
 # --- Basic differentiation objects ---
 
@@ -293,6 +294,15 @@ class Grad(CompoundDerivative):
     def __str__(self):
         """Format as a string."""
         return "grad(%s)" % self.ufl_operands[0]
+
+    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        if side is None:
+            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+        return self(side)
 
 
 @ufl_type(

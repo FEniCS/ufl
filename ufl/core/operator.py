@@ -10,6 +10,7 @@
 
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
+from ufl.typing import Self
 
 
 @ufl_type(is_abstract=True, is_terminal=False)
@@ -45,3 +46,14 @@ class Operator(Expr):
         """Default repr string construction for operators."""
         # This should work for most cases
         return f"{self._ufl_class_.__name__}({', '.join(repr(op) for op in self.ufl_operands)})"
+
+    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        ops = [i.apply_restrictions(side) for i in self.ufl_operands]
+        if all(a is b for a, b in zip(self.ufl_operands, ops)):
+            return self
+        else:
+            return self.__class__(*ops)

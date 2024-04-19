@@ -17,6 +17,24 @@ from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import extract_unique_domain
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
+from ufl.typing import Self
+from typing import Protocol
+from abc import abstractmethod
+import warnings
+
+
+class ApplyRestrictions(Protocol):
+    """Protocol for apply_restrictions."""
+
+    @abstractmethod
+    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+
+
+default_restiction = "+"
 
 
 class RestrictionPropagator(MultiFunction):
@@ -32,18 +50,6 @@ class RestrictionPropagator(MultiFunction):
         self.rcaches = {"+": {}, "-": {}}
         if self.current_restriction is None:
             self._rp = {"+": RestrictionPropagator("+"), "-": RestrictionPropagator("-")}
-
-    def restricted(self, o):
-        """When hitting a restricted quantity, visit child with a separate restriction algorithm."""
-        # Assure that we have only two levels here, inside or outside
-        # the Restricted node
-        if self.current_restriction is not None:
-            raise ValueError("Cannot restrict an expression twice.")
-        # Configure a propagator for this side and apply to subtree
-        side = o.side()
-        return map_expr_dag(
-            self._rp[side], o.ufl_operands[0], vcache=self.vcaches[side], rcache=self.rcaches[side]
-        )
 
     # --- Reusable rules
 
@@ -86,15 +92,6 @@ class RestrictionPropagator(MultiFunction):
 
     # --- Rules for operators
 
-    # Default: Operators should reconstruct only if subtrees are not touched
-    operator = MultiFunction.reuse_if_untouched
-
-    # Assuming apply_derivatives has been called,
-    # propagating Grad inside the Restricted nodes.
-    # Considering all grads to be discontinuous, may
-    # want something else for facet functions in future.
-    grad = _require_restriction
-
     def variable(self, o, op, label):
         """Strip variable."""
         return op
@@ -121,15 +118,6 @@ class RestrictionPropagator(MultiFunction):
     # Default: Literals should ignore restriction
     constant_value = _ignore_restriction
     constant = _ignore_restriction
-
-    # Even arguments with continuous elements such as Lagrange must be
-    # restricted to associate with the right part of the element
-    # matrix
-    argument = _require_restriction
-
-    # Defaults for geometric quantities
-    geometric_cell_quantity = _require_restriction
-    geometric_facet_quantity = _require_restriction
 
     # Only a few geometric quantities are independent on the restriction:
     facet_coordinate = _ignore_restriction
@@ -174,8 +162,15 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression):
+def apply_restrictions(expression: ApplyRestrictions):
     """Propagate restriction nodes to wrap differential terminals directly."""
+    warnings.warn(
+        "apply_restrictions(expression) is deprecated and will be removed "
+        "after December 2024. Please, use expression.apply_restrictions() instead",
+        FutureWarning,
+    )
+    return expression.apply_restrictions()
+
     integral_types = [
         k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
     ]

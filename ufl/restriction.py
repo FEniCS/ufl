@@ -8,6 +8,7 @@
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.precedence import parstr
+from ufl.typing import Self
 
 # --- Restriction operators ---
 
@@ -41,6 +42,15 @@ class Restricted(Operator):
     def __str__(self):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)}({self._side})"
+
+    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        if side is not None:
+            raise ValueError("Cannot restrict an expression twice.")
+        return self.__class__(self.ufl_operands[0].apply_restrictions(self._side))
 
 
 @ufl_type(is_terminal_modifier=True)

@@ -10,6 +10,7 @@ from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain, extract_unique_domain
 from ufl.sobolevspace import H1
+from ufl.typing import Self
 
 """
 Possible coordinate bootstrapping:
@@ -128,12 +129,30 @@ class GeometricCellQuantity(GeometricQuantity):
 
     __slots__ = ()
 
+    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        if side is None:
+            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+        return self(side)
+
 
 @ufl_type(is_abstract=True)
 class GeometricFacetQuantity(GeometricQuantity):
     """Geometric facet quantity."""
 
     __slots__ = ()
+
+    def apply_restrictions(self, side: typing.Optional[Str] = None) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        if side is None:
+            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+        return self(side)
 
 
 # --- Coordinate represented in different coordinate systems
