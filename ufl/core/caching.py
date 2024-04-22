@@ -2,6 +2,13 @@
 
 Custom caching function to be used with class methods.
 """
+
+# Copyright (C) 2024 Matthew Scroggs
+#
+# This file is part of UFL (https://www.fenicsproject.org)
+#
+# SPDX-License-Identifier:    LGPL-3.0-or-later
+
 import typing
 
 __cache: typing.Dict[str, typing.Dict[typing.Any, typing.Dict[str, typing.Any]]] = {}
