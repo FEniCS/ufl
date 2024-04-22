@@ -27,7 +27,7 @@ def initialise_cache(function_name: str):
     __cache[function_name] = {}
 
 
-def empty_cache(function_name: str):
+def clear_cache(function_name: str):
     """Remove the cache for a given function."""
     global __cache
     del __cache[function_name]
