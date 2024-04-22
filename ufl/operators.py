@@ -14,30 +14,67 @@ objects.
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Massimiliano Leoni, 2016.
 
-import warnings
 import operator
+import warnings
 
-from ufl.form import Form
-from ufl.constantvalue import Zero, RealValue, ComplexValue, as_ufl
-from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
-from ufl.tensoralgebra import (
-    Transposed, Inner, Outer, Dot, Cross, Perp,
-    Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym)
-from ufl.coefficient import Coefficient
-from ufl.variable import Variable
-from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
-from ufl.conditional import (
-    EQ, NE, AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue)
-from ufl.algebra import Conj, Real, Imag
-from ufl.mathfunctions import (
-    Sqrt, Exp, Ln, Erf, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,
-    BesselJ, BesselY, BesselI, BesselK)
-from ufl.averaging import CellAvg, FacetAvg
-from ufl.indexed import Indexed
-from ufl.geometry import SpatialCoordinate, FacetNormal
-from ufl.checks import is_cellwise_constant
-from ufl.domain import extract_domains
 from ufl import sobolevspace
+from ufl.algebra import Conj, Imag, Real
+from ufl.averaging import CellAvg, FacetAvg
+from ufl.checks import is_cellwise_constant
+from ufl.coefficient import Coefficient
+from ufl.conditional import (
+    EQ,
+    NE,
+    AndCondition,
+    Conditional,
+    MaxValue,
+    MinValue,
+    NotCondition,
+    OrCondition,
+)
+from ufl.constantvalue import ComplexValue, RealValue, Zero, as_ufl
+from ufl.differentiation import Curl, Div, Grad, NablaDiv, NablaGrad, VariableDerivative
+from ufl.domain import extract_domains
+from ufl.form import Form
+from ufl.geometry import FacetNormal, SpatialCoordinate
+from ufl.indexed import Indexed
+from ufl.mathfunctions import (
+    Acos,
+    Asin,
+    Atan,
+    Atan2,
+    BesselI,
+    BesselJ,
+    BesselK,
+    BesselY,
+    Cos,
+    Cosh,
+    Erf,
+    Exp,
+    Ln,
+    Sin,
+    Sinh,
+    Sqrt,
+    Tan,
+    Tanh,
+)
+from ufl.tensoralgebra import (
+    Cofactor,
+    Cross,
+    Determinant,
+    Deviatoric,
+    Dot,
+    Inner,
+    Inverse,
+    Outer,
+    Perp,
+    Skew,
+    Sym,
+    Trace,
+    Transposed,
+)
+from ufl.tensors import ListTensor, as_matrix, as_tensor, as_vector
+from ufl.variable import Variable
 
 # --- Basic operators ---
 
@@ -56,13 +93,15 @@ def shape(f):
 
 # --- Complex operators ---
 
+
 def conj(f):
     """The complex conjugate of f."""
     f = as_ufl(f)
     return Conj(f)
 
 
-# Alias because both conj and conjugate are in numpy and we wish to be consistent.
+# Alias because both conj and conjugate are in numpy and we wish to be
+# consistent.
 conjugate = conj
 
 
@@ -80,6 +119,7 @@ def imag(f):
 
 # --- Elementwise tensor operators ---
 
+
 def elem_op_items(op_ind, indices, *args):
     """Elem op items."""
     sh = args[0].ufl_shape
@@ -96,17 +136,22 @@ def elem_op_items(op_ind, indices, *args):
 
 
 def elem_op(op, *args):
-    """Take the elementwise application of operator op on scalar values from one or more tensor arguments."""
+    """Apply element-wise operations.
+
+    Take the element-wise application of operator op on scalar values
+    from one or more tensor arguments.
+    """
     args = [as_ufl(arg) for arg in args]
     sh = args[0].ufl_shape
     if not all(sh == x.ufl_shape for x in args):
-        raise ValueError("Cannot take elementwise operation with different shapes.")
+        raise ValueError("Cannot take element-wise operation with different shapes.")
 
     if sh == ():
         return op(*args)
 
     def op_ind(ind, *args):
         return op(*[x[ind] for x in args])
+
     return as_tensor(elem_op_items(op_ind, (), *args))
 
 
@@ -126,6 +171,7 @@ def elem_pow(A, B):
 
 
 # --- Tensor operators ---
+
 
 def transpose(A):
     """Take the transposed of tensor A."""
@@ -226,7 +272,10 @@ def tr(A):
 
 
 def diag(A):
-    """Take the diagonal part of rank 2 tensor A or make a diagonal rank 2 tensor from a rank 1 tensor.
+    """Diagonal ranl-2 tensor.
+
+    Take the diagonal part of rank 2 tensor A or make a diagonal rank 2
+    tensor from a rank 1 tensor.
 
     Always returns a rank 2 tensor. See also diag_vector.
     """
@@ -235,7 +284,7 @@ def diag(A):
     # Get and check dimensions
     r = len(A.ufl_shape)
     if r == 1:
-        n, = A.ufl_shape
+        (n,) = A.ufl_shape
     elif r == 2:
         m, n = A.ufl_shape
         if m != n:
@@ -290,6 +339,7 @@ def sym(A):
 
 # --- Differential operators
 
+
 def Dx(f, *i):
     """Take the partial derivative of f with respect to spatial variable number i.
 
@@ -318,6 +368,7 @@ def diff(f, v):
     # Apply to integrands
     if isinstance(f, Form):
         from ufl.algorithms.map_integrands import map_integrands
+
         return map_integrands(lambda e: diff(e, v), f)
 
     # Apply to expression
@@ -403,21 +454,24 @@ rot = curl
 
 # --- DG operators ---
 
+
 def jump(v, n=None):
     """Take the jump of v across a facet."""
     v = as_ufl(v)
     is_constant = len(extract_domains(v)) > 0
     if is_constant:
         if n is None:
-            return v('+') - v('-')
+            return v("+") - v("-")
         r = len(v.ufl_shape)
         if r == 0:
-            return v('+') * n('+') + v('-') * n('-')
+            return v("+") * n("+") + v("-") * n("-")
         else:
-            return dot(v('+'), n('+')) + dot(v('-'), n('-'))
+            return dot(v("+"), n("+")) + dot(v("-"), n("-"))
     else:
-        warnings.warn("Returning zero from jump of expression without a domain. "
-                      "This may be erroneous if a dolfin.Expression is involved.")
+        warnings.warn(
+            "Returning zero from jump of expression without a domain. "
+            "This may be erroneous if a dolfin.Expression is involved."
+        )
         # FIXME: Is this right? If v has no domain, it doesn't depend
         # on anything spatially variable or any form arguments, and
         # thus the jump is zero. In other words, I'm assuming that "v
@@ -430,7 +484,7 @@ def jump(v, n=None):
 def avg(v):
     """Take the average of v across a facet."""
     v = as_ufl(v)
-    return 0.5 * (v('+') + v('-'))
+    return 0.5 * (v("+") + v("-"))
 
 
 def cell_avg(f):
@@ -445,6 +499,7 @@ def facet_avg(f):
 
 # --- Other operators ---
 
+
 def variable(e):
     """Define a variable representing the given expression.
 
@@ -455,6 +510,7 @@ def variable(e):
 
 
 # --- Conditional expressions ---
+
 
 def conditional(condition, true_value, false_value):
     """A conditional expression.
@@ -535,6 +591,7 @@ def min_value(x, y):
 
 # --- Math functions ---
 
+
 def _mathfunction(f, cls):
     """A mat function."""
     f = as_ufl(f)
@@ -611,7 +668,7 @@ def atan2(f1, f2):
     f1 = as_ufl(f1)
     f2 = as_ufl(f2)
     if isinstance(f1, (ComplexValue, complex)) or isinstance(f2, (ComplexValue, complex)):
-        raise TypeError('atan2 is incompatible with complex numbers.')
+        raise TypeError("atan2 is incompatible with complex numbers.")
     r = Atan2(f1, f2)
     if isinstance(r, (RealValue, Zero, int, float)):
         return float(r)
@@ -655,6 +712,7 @@ def bessel_K(nu, f):
 
 # --- Special function for exterior_derivative
 
+
 def exterior_derivative(f):
     """Take the exterior derivative of f.
 
@@ -671,7 +729,12 @@ def exterior_derivative(f):
             raise NotImplementedError
         index = int(indices[0])
         element = expression.ufl_element()
-        element = element.extract_component(index)[1]
+        while index != 0:
+            for e in element.sub_elements:
+                if e.value_size > index:
+                    element = e
+                    break
+                index -= e.value_size
     elif isinstance(f, ListTensor):
         f0 = f.ufl_operands[0]
         f0expr, f0indices = f0.ufl_operands  # FIXME: Assumption on type of f0!!!
@@ -679,15 +742,22 @@ def exterior_derivative(f):
             raise NotImplementedError
         index = int(f0indices[0])
         element = f0expr.ufl_element()
-        element = element.extract_component(index)[1]
+        while index != 0:
+            for e in element.sub_elements:
+                if e.value_size > index:
+                    element = e
+                    break
+                index -= e.value_size
     else:
         try:
             element = f.ufl_element()
         except Exception:
             raise ValueError(f"Unable to determine element from {f}")
 
-    gdim = element.cell().geometric_dimension()
-    space = element.sobolev_space()
+    domain = f.ufl_domain()
+
+    gdim = domain.geometric_dimension()
+    space = element.sobolev_space
 
     if space == sobolevspace.L2:
         return f

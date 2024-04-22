@@ -12,13 +12,14 @@
 import io
 import os
 import re
-from ufl.utils.sorting import sorted_by_key
-from ufl.form import Form
-from ufl.finiteelement import FiniteElementBase
-from ufl.core.expr import Expr
-from ufl.constant import Constant
+
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
+from ufl.constant import Constant
+from ufl.core.expr import Expr
+from ufl.finiteelement import AbstractFiniteElement
+from ufl.form import Form
+from ufl.utils.sorting import sorted_by_key
 
 
 class FileData(object):
@@ -36,8 +37,15 @@ class FileData(object):
 
     def __bool__(self):
         """Convert to a bool."""
-        return bool(self.elements or self.coefficients or self.forms or self.expressions or  # noqa: W504
-                    self.object_names or self.object_by_name or self.reserved_objects)
+        return bool(
+            self.elements
+            or self.coefficients
+            or self.forms
+            or self.expressions
+            or self.object_names
+            or self.object_by_name
+            or self.reserved_objects
+        )
 
     __nonzero__ = __bool__
 
@@ -58,9 +66,9 @@ def read_lines_decoded(fn):
     for i in range(min(2, len(lines))):
         m = match(lines[i])
         if m:
-            encoding, = m.groups()
+            (encoding,) = m.groups()
             # Drop encoding line
-            lines = lines[:i] + lines[i + 1:]
+            lines = lines[:i] + lines[i + 1 :]
             break
     else:
         # Default to utf-8 (works for ascii files
@@ -93,7 +101,7 @@ def interpret_ufl_namespace(namespace):
     # Object to hold all returned data
     ufd = FileData()
 
-    # Extract object names for Form, Coefficient and FiniteElementBase objects
+    # Extract object names for Form, Coefficient and AbstractFiniteElement objects
     # The use of id(obj) as key in object_names is necessary
     # because we need to distinguish between instances,
     # and not just between objects with different values.
@@ -106,7 +114,9 @@ def interpret_ufl_namespace(namespace):
             # FIXME: Remove after FFC is updated to use reserved_objects:
             ufd.object_names[name] = value
             ufd.object_by_name[name] = value
-        elif isinstance(value, (FiniteElementBase, Coefficient, Constant, Argument, Form, Expr)):
+        elif isinstance(
+            value, (AbstractFiniteElement, Coefficient, Constant, Argument, Form, Expr)
+        ):
             # Store instance <-> name mappings for important objects
             # without a reserved name
             ufd.object_names[id(value)] = name
@@ -120,6 +130,7 @@ def interpret_ufl_namespace(namespace):
         def get_form(name):
             form = ufd.object_by_name.get(name)
             return form if isinstance(form, Form) else None
+
         a_form = get_form("a")
         L_form = get_form("L")
         M_form = get_form("M")
@@ -148,9 +159,11 @@ def interpret_ufl_namespace(namespace):
 
     # Validate types
     if not isinstance(ufd.elements, (list, tuple)):
-        raise ValueError(f"Expecting 'elements' to be a list or tuple, not '{type(ufd.elements)}''.")
-    if not all(isinstance(e, FiniteElementBase) for e in ufd.elements):
-        raise ValueError("Expecting 'elements' to be a list of FiniteElementBase instances.")
+        raise ValueError(
+            f"Expecting 'elements' to be a list or tuple, not '{type(ufd.elements)}''."
+        )
+    if not all(isinstance(e, AbstractFiniteElement) for e in ufd.elements):
+        raise ValueError("Expecting 'elements' to be a list of AbstractFiniteElement instances.")
 
     # Get list of exported coefficients
     functions = []
@@ -158,7 +171,9 @@ def interpret_ufl_namespace(namespace):
 
     # Validate types
     if not isinstance(ufd.coefficients, (list, tuple)):
-        raise ValueError(f"Expecting 'coefficients' to be a list or tuple, not '{type(ufd.coefficients)}'.")
+        raise ValueError(
+            f"Expecting 'coefficients' to be a list or tuple, not '{type(ufd.coefficients)}'."
+        )
     if not all(isinstance(e, Coefficient) for e in ufd.coefficients):
         raise ValueError("Expecting 'coefficients' to be a list of Coefficient instances.")
 
@@ -167,7 +182,9 @@ def interpret_ufl_namespace(namespace):
 
     # Validate types
     if not isinstance(ufd.expressions, (list, tuple)):
-        raise ValueError(f"Expecting 'expressions' to be a list or tuple, not '{type(ufd.expressions)}'.")
+        raise ValueError(
+            f"Expecting 'expressions' to be a list or tuple, not '{type(ufd.expressions)}'."
+        )
     if not all(isinstance(e[0], Expr) for e in ufd.expressions):
         raise ValueError("Expecting 'expressions' to be a list of Expr instances.")
 

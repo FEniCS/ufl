@@ -7,20 +7,22 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.utils.sequences import product
-from ufl.finiteelement import TensorElement
-from ufl.tensors import as_vector, as_matrix, ListTensor
+from ufl.functionspace import FunctionSpace
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
+from ufl.tensors import ListTensor, as_matrix, as_vector
 from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides
+from ufl.utils.sequences import product
 
 
 def split(v):
     """Split a coefficient or argument.
 
-    If v is a Coefficient or Argument in a mixed space, returns
-    a tuple with the function components corresponding to the subelements.
+    If v is a Coefficient or Argument in a mixed space, returns a tuple
+    with the function components corresponding to the subelements.
     """
+    domain = v.ufl_domain()
+
     # Default range is all of v
     begin = 0
     end = None
@@ -39,8 +41,8 @@ def split(v):
                 # Get innermost terminal here and its element
                 v = args[0]
                 # Get relevant range of v components
-                begin, = ops[0].ufl_operands[1]
-                end, = ops[-1].ufl_operands[1]
+                (begin,) = ops[0].ufl_operands[1]
+                (end,) = ops[-1].ufl_operands[1]
                 begin = int(begin)
                 end = int(end) + 1
             else:
@@ -50,19 +52,17 @@ def split(v):
 
     # Special case: simple element, just return function in a tuple
     element = v.ufl_element()
-    if element.num_sub_elements() == 0:
+    if element.num_sub_elements == 0:
         assert end is None
         return (v,)
 
-    if isinstance(element, TensorElement):
-        if element.symmetry():
-            raise ValueError("Split not implemented for symmetric tensor elements.")
-
     if len(v.ufl_shape) != 1:
-        raise ValueError("Don't know how to split tensor valued mixed functions without flattened index space.")
+        raise ValueError(
+            "Don't know how to split tensor valued mixed functions without flattened index space."
+        )
 
     # Compute value size and set default range end
-    value_size = product(element.value_shape())
+    value_size = v.ufl_function_space().value_size
     if end is None:
         end = value_size
     else:
@@ -70,42 +70,48 @@ def split(v):
         # corresponding to beginning of range
         j = begin
         while True:
-            sub_i, j = element.extract_subelement_component(j)
-            element = element.sub_elements()[sub_i]
+            for e in element.sub_elements:
+                if j < FunctionSpace(domain, e).value_size:
+                    element = e
+                    break
+                j -= FunctionSpace(domain, e).value_size
             # Then break when we find the subelement that covers the whole range
-            if product(element.value_shape()) == (end - begin):
+            if FunctionSpace(domain, element).value_size == (end - begin):
                 break
 
     # Build expressions representing the subfunction of v for each subelement
     offset = begin
     sub_functions = []
-    for i, e in enumerate(element.sub_elements()):
+    for i, e in enumerate(element.sub_elements):
         # Get shape, size, indices, and v components
         # corresponding to subelement value
-        shape = e.value_shape()
+        shape = FunctionSpace(domain, e).value_shape
         strides = shape_to_strides(shape)
         rank = len(shape)
         sub_size = product(shape)
-        subindices = [flatten_multiindex(c, strides)
-                      for c in compute_indices(shape)]
+        subindices = [flatten_multiindex(c, strides) for c in compute_indices(shape)]
         components = [v[k + offset] for k in subindices]
 
         # Shape components into same shape as subelement
         if rank == 0:
-            subv, = components
+            (subv,) = components
         elif rank <= 1:
             subv = as_vector(components)
         elif rank == 2:
-            subv = as_matrix([components[i * shape[1]: (i + 1) * shape[1]]
-                              for i in range(shape[0])])
+            subv = as_matrix(
+                [components[i * shape[1] : (i + 1) * shape[1]] for i in range(shape[0])]
+            )
         else:
-            raise ValueError(f"Don't know how to split functions with sub functions of rank {rank}.")
+            raise ValueError(
+                f"Don't know how to split functions with sub functions of rank {rank}."
+            )
 
         offset += sub_size
         sub_functions.append(subv)
 
     if end != offset:
         raise ValueError(
-            "Function splitting failed to extract components for whole intended range. Something is wrong.")
+            "Function splitting failed to extract components for whole intended range."
+        )
 
     return tuple(sub_functions)

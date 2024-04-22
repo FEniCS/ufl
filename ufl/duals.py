@@ -14,7 +14,7 @@ def is_primal(object):
     because a mixed function space containing both primal
     and dual components is neither primal nor dual.
     """
-    return hasattr(object, '_primal') and object._primal
+    return hasattr(object, "_primal") and object._primal
 
 
 def is_dual(object):
@@ -24,4 +24,4 @@ def is_dual(object):
     because a mixed function space containing both primal
     and dual components is neither primal nor dual.
     """
-    return hasattr(object, '_dual') and object._dual
+    return hasattr(object, "_dual") and object._dual

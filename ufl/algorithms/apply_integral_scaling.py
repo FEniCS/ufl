@@ -1,4 +1,4 @@
-"""Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
+"""Algorithm for replacing gradients in an expression."""
 
 # Copyright (C) 2013-2016 Martin Sandve Alnæs
 #
@@ -6,11 +6,17 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
-from ufl.measure import custom_integral_types, point_integral_types
-from ufl.differentiation import CoordinateDerivative
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
+from ufl.classes import (
+    FacetJacobianDeterminant,
+    Form,
+    Integral,
+    JacobianDeterminant,
+    QuadratureWeight,
+)
+from ufl.differentiation import CoordinateDerivative
+from ufl.measure import custom_integral_types, point_integral_types
 
 
 def compute_integrand_scaling_factor(integral):
@@ -52,7 +58,7 @@ def compute_integrand_scaling_factor(integral):
             # side and quadrature weight
             detFJ = FacetJacobianDeterminant(domain)
             degree = estimate_total_polynomial_degree(apply_geometry_lowering(detFJ))
-            scale = detFJ('+') * weight
+            scale = detFJ("+") * weight
         else:
             # No need to scale 'integral' over a vertex
             scale = 1
@@ -77,8 +83,7 @@ def apply_integral_scaling(form):
     # TODO: Consider adding an in_reference_frame property to Integral
     #       and checking it here and setting it in the returned form
     if isinstance(form, Form):
-        newintegrals = [apply_integral_scaling(integral)
-                        for integral in form.integrals()]
+        newintegrals = [apply_integral_scaling(integral) for integral in form.integrals()]
         return Form(newintegrals)
 
     elif isinstance(form, Integral):
@@ -107,9 +112,12 @@ def apply_integral_scaling(form):
             """Scale the coordinate derivative."""
             o_ = o.ufl_operands
             if isinstance(o, CoordinateDerivative):
-                return CoordinateDerivative(scale_coordinate_derivative(o_[0], scale), o_[1], o_[2], o_[3])
+                return CoordinateDerivative(
+                    scale_coordinate_derivative(o_[0], scale), o_[1], o_[2], o_[3]
+                )
             else:
                 return scale * o
+
         newintegrand = scale_coordinate_derivative(integrand, scale)
         return integral.reconstruct(integrand=newintegrand, metadata=md)
 

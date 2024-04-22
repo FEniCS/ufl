@@ -1,7 +1,7 @@
 """This module provides the compute_form_data function.
 
-Form compilers will typically call compute_form_dataprior to code generation to preprocess/simplify a
-raw input form given by a user.
+Form compilers will typically call compute_form_dataprior to code
+generation to preprocess/simplify a raw input form given by a user.
 """
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -11,30 +11,32 @@ raw input form given by a user.
 
 from itertools import chain
 
-from ufl.utils.sequences import max_degree
-
-from ufl.classes import GeometricFacetQuantity, Coefficient, Form, FunctionSpace
-from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
-from ufl.algorithms.formdata import FormData
-from ufl.algorithms.formtransformations import compute_form_arities
-from ufl.algorithms.check_arities import check_form_arity
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply_derivatives
 
 # These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
-from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
-from ufl.algorithms.apply_derivatives import apply_derivatives, apply_coordinate_derivatives
-from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
-from ufl.algorithms.apply_restrictions import apply_restrictions, apply_default_restrictions
-from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
-from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
+from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
+from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 
 # See TODOs at the call sites of these below:
-from ufl.algorithms.domain_analysis import build_integral_data
-from ufl.algorithms.domain_analysis import reconstruct_form_from_integral_data
-from ufl.algorithms.domain_analysis import group_form_integrals
+from ufl.algorithms.domain_analysis import (
+    build_integral_data,
+    group_form_integrals,
+    reconstruct_form_from_integral_data,
+)
+from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
+from ufl.algorithms.formdata import FormData
+from ufl.algorithms.formtransformations import compute_form_arities
+from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
+from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.domain import extract_unique_domain
+from ufl.utils.sequences import max_degree
 
 
 def _auto_select_degree(elements):
@@ -46,7 +48,7 @@ def _auto_select_degree(elements):
     """
     # Use max degree of all elements, at least 1 (to work with
     # Lagrange elements)
-    return max_degree({e.degree() for e in elements} - {None} | {1})
+    return max_degree({e.embedded_superdegree for e in elements} - {None} | {1})
 
 
 def _compute_element_mapping(form):
@@ -59,8 +61,7 @@ def _compute_element_mapping(form):
     #   worked around to drop this requirement
 
     # Extract all elements and include subelements of mixed elements
-    elements = [obj.ufl_element() for obj in chain(form.arguments(),
-                                                   form.coefficients())]
+    elements = [obj.ufl_element() for obj in chain(form.arguments(), form.coefficients())]
     elements = extract_sub_elements(elements)
 
     # Try to find a common degree for elements
@@ -69,22 +70,22 @@ def _compute_element_mapping(form):
     # Compute element map
     element_mapping = {}
     for element in elements:
-
         # Flag for whether element needs to be reconstructed
         reconstruct = False
 
         # Set cell
-        cell = element.cell()
+        cell = element.cell
         if cell is None:
             domains = form.ufl_domains()
-            if not all(domains[0].ufl_cell() == d.ufl_cell()
-                       for d in domains):
-                raise ValueError("Cannot replace unknown element cell without unique common cell in form.")
+            if not all(domains[0].ufl_cell() == d.ufl_cell() for d in domains):
+                raise ValueError(
+                    "Cannot replace unknown element cell without unique common cell in form."
+                )
             cell = domains[0].ufl_cell()
             reconstruct = True
 
         # Set degree
-        degree = element.degree()
+        degree = element.embedded_superdegree
         if degree is None:
             degree = common_degree
             reconstruct = True
@@ -136,9 +137,8 @@ def _compute_form_data_elements(self, arguments, coefficients, domains):
 
 def _check_elements(form_data):
     """Check elements."""
-    for element in chain(form_data.unique_elements,
-                         form_data.unique_sub_elements):
-        if element.cell() is None:
+    for element in chain(form_data.unique_elements, form_data.unique_sub_elements):
+        if element.cell is None:
             raise ValueError(f"Found element with undefined cell: {element}")
 
 
@@ -184,8 +184,9 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
-        if f.ufl_domain() is not None:
-            new_e = FunctionSpace(f.ufl_domain(), new_e)
+        domain = extract_unique_domain(f)
+        if domain is not None:
+            new_e = FunctionSpace(domain, new_e)
         new_f = Coefficient(new_e, count=i)
         new_coefficients.append(new_f)
         replace_map[f] = new_f
@@ -246,10 +247,15 @@ def preprocess_form(form, complex_mode):
 
 
 def compute_form_data(
-    form, do_apply_function_pullbacks=False, do_apply_integral_scaling=False,
-    do_apply_geometry_lowering=False, preserve_geometry_types=(),
-    do_apply_default_restrictions=True, do_apply_restrictions=True,
-    do_estimate_degrees=True, do_append_everywhere_integrals=True,
+    form,
+    do_apply_function_pullbacks=False,
+    do_apply_integral_scaling=False,
+    do_apply_geometry_lowering=False,
+    preserve_geometry_types=(),
+    do_apply_default_restrictions=True,
+    do_apply_restrictions=True,
+    do_estimate_degrees=True,
+    do_append_everywhere_integrals=True,
     complex_mode=False,
 ):
     """Compute form data.
@@ -275,8 +281,11 @@ def compute_form_data(
     # TODO: Refactor this, it's rather opaque what this does
     # TODO: Is self.original_form.ufl_domains() right here?
     #       It will matter when we start including 'num_domains' in ufc form.
-    form = group_form_integrals(form, self.original_form.ufl_domains(),
-                                do_append_everywhere_integrals=do_append_everywhere_integrals)
+    form = group_form_integrals(
+        form,
+        self.original_form.ufl_domains(),
+        do_append_everywhere_integrals=do_append_everywhere_integrals,
+    )
 
     # Estimate polynomial degree of integrands now, before applying
     # any pullbacks and geometric lowering.  Otherwise quad degrees
@@ -352,17 +361,18 @@ def compute_form_data(
     reduced_coefficients_set = set()
     for itg_data in self.integral_data:
         reduced_coefficients_set.update(itg_data.integral_coefficients)
-    self.reduced_coefficients = sorted(reduced_coefficients_set,
-                                       key=lambda c: c.count())
+    self.reduced_coefficients = sorted(reduced_coefficients_set, key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
-    self.original_coefficient_positions = [i for i, c in enumerate(self.original_form.coefficients())
-                                           if c in self.reduced_coefficients]
+    self.original_coefficient_positions = [
+        i for i, c in enumerate(self.original_form.coefficients()) if c in self.reduced_coefficients
+    ]
 
     # Store back into integral data which form coefficients are used
     # by each integral
     for itg_data in self.integral_data:
-        itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
-                                         for coeff in self.reduced_coefficients]
+        itg_data.enabled_coefficients = [
+            bool(coeff in itg_data.integral_coefficients) for coeff in self.reduced_coefficients
+        ]
 
     # --- Collect some trivial data
 
@@ -386,17 +396,19 @@ def compute_form_data(
     # Mappings from elements and coefficients that reside in form to
     # objects with canonical numbering as well as completed cells and
     # elements
-    renumbered_coefficients, function_replace_map = \
-        _build_coefficient_replace_map(self.reduced_coefficients,
-                                       self.element_replace_map)
+    renumbered_coefficients, function_replace_map = _build_coefficient_replace_map(
+        self.reduced_coefficients, self.element_replace_map
+    )
     self.function_replace_map = function_replace_map
 
     # --- Store various lists of elements and sub elements (adds
     #     members to self)
-    _compute_form_data_elements(self,
-                                self.original_form.arguments(),
-                                renumbered_coefficients,
-                                self.original_form.ufl_domains())
+    _compute_form_data_elements(
+        self,
+        self.original_form.arguments(),
+        renumbered_coefficients,
+        self.original_form.ufl_domains(),
+    )
 
     # --- Store number of domains for integral types
     # TODO: Group this by domain first. For now keep a backwards

@@ -6,13 +6,21 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import hashlib
-from ufl.classes import (Label,
-                         Index, MultiIndex,
-                         Coefficient, Argument,
-                         GeometricQuantity, ConstantValue, Constant,
-                         ExprList, ExprMapping)
-from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
+
 from ufl.algorithms.domain_analysis import canonicalize_metadata
+from ufl.classes import (
+    Argument,
+    Coefficient,
+    Constant,
+    ConstantValue,
+    ExprList,
+    ExprMapping,
+    GeometricQuantity,
+    Index,
+    Label,
+    MultiIndex,
+)
+from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
 
 
 def compute_multiindex_hashdata(expr, index_numbering):
@@ -45,7 +53,6 @@ def compute_terminal_hashdata(expressions, renumbering):
     index_numbering = {}
     for expression in expressions:
         for expr in traverse_unique_terminals(expression):
-
             if isinstance(expr, MultiIndex):
                 # Indices need a canonical numbering for a stable
                 # signature, thus this algorithm
@@ -133,8 +140,7 @@ def compute_form_signature(form, renumbering):  # FIXME: Fix callers
     hashdata = []
     for integral in integrals:
         # Compute hash data for expression, this is the expensive part
-        integrand_hashdata = compute_expression_hashdata(integral.integrand(),
-                                                         terminal_hashdata)
+        integrand_hashdata = compute_expression_hashdata(integral.integrand(), terminal_hashdata)
 
         domain_hashdata = integral.ufl_domain()._ufl_signature_data_(renumbering)
 

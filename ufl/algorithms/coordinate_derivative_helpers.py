@@ -1,4 +1,4 @@
-"""This module provides the necessary tools to strip away and reattach coordinate derivatives.
+"""Tools to strip away and reattach coordinate derivatives.
 
 This is used in compute_form_data.
 """
@@ -9,10 +9,10 @@ This is used in compute_form_data.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.differentiation import CoordinateDerivative
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dags
 from ufl.classes import Integral
+from ufl.corealg.map_dag import map_expr_dags
+from ufl.corealg.multifunction import MultiFunction
+from ufl.differentiation import CoordinateDerivative
 
 
 class CoordinateDerivativeIsOutermostChecker(MultiFunction):
@@ -64,7 +64,10 @@ def strip_coordinate_derivatives(integrals):
         coordinate_derivatives = []
 
         def take_top_coordinate_derivatives(o):
-            """Grab all coordinate derivatives and store them, so that we can apply them later again."""
+            """Get all coordinate derivatives and store them.
+
+            So we can apply them later again.
+            """
             o_ = o.ufl_operands
             if isinstance(o, CoordinateDerivative):
                 coordinate_derivatives.append((o_[1], o_[2], o_[3]))

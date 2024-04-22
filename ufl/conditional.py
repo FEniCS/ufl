@@ -7,13 +7,13 @@
 
 import warnings
 
-from ufl.core.expr import ufl_err_str
-from ufl.core.ufl_type import ufl_type
-from ufl.core.operator import Operator
-from ufl.constantvalue import as_ufl
-from ufl.precedence import parstr
-from ufl.exprequals import expr_equals
 from ufl.checks import is_true_ufl_scalar
+from ufl.constantvalue import as_ufl
+from ufl.core.expr import ufl_err_str
+from ufl.core.operator import Operator
+from ufl.core.ufl_type import ufl_type
+from ufl.exprequals import expr_equals
+from ufl.precedence import parstr
 
 # --- Condition classes ---
 
@@ -43,7 +43,7 @@ class Condition(Operator):
 class BinaryCondition(Condition):
     """Binary condition."""
 
-    __slots__ = ('_name',)
+    __slots__ = ("_name",)
 
     def __init__(self, name, left, right):
         """Initialise."""
@@ -54,13 +54,13 @@ class BinaryCondition(Condition):
 
         self._name = name
 
-        if name in ('!=', '=='):
+        if name in ("!=", "=="):
             # Since equals and not-equals are used for comparing
             # representations, we have to allow any shape here. The
             # scalar properties must be checked when used in
             # conditional instead!
             pass
-        elif name in ('&&', '||'):
+        elif name in ("&&", "||"):
             # Binary operators acting on boolean expressions allow
             # only conditions
             for arg in (left, right):
@@ -76,8 +76,11 @@ class BinaryCondition(Condition):
 
     def __str__(self):
         """Format as a string."""
-        return "%s %s %s" % (parstr(self.ufl_operands[0], self),
-                             self._name, parstr(self.ufl_operands[1], self))
+        return "%s %s %s" % (
+            parstr(self.ufl_operands[0], self),
+            self._name,
+            parstr(self.ufl_operands[1], self),
+        )
 
 
 # Not associating with __eq__, the concept of equality with == is
@@ -254,8 +257,7 @@ class NotCondition(Condition):
         return "!(%s)" % (str(self.ufl_operands[0]),)
 
 
-@ufl_type(num_ops=3, inherit_shape_from_operand=1,
-          inherit_indices_from_operand=1)
+@ufl_type(num_ops=3, inherit_shape_from_operand=1, inherit_indices_from_operand=1)
 class Conditional(Operator):
     """Conditional expression.
 
@@ -267,7 +269,7 @@ class Conditional(Operator):
     def __init__(self, condition, true_value, false_value):
         """Initialise."""
         if not isinstance(condition, Condition):
-            raise ValueError("Expectiong condition as first argument.")
+            raise ValueError("Expecting condition as first argument.")
         true_value = as_ufl(true_value)
         false_value = as_ufl(false_value)
         tsh = true_value.ufl_shape
@@ -279,10 +281,14 @@ class Conditional(Operator):
         if tfi != ffi:
             raise ValueError("Free index mismatch between conditional branches.")
         if isinstance(condition, (EQ, NE)):
-            if not all((condition.ufl_operands[0].ufl_shape == (),
-                        condition.ufl_operands[0].ufl_free_indices == (),
-                        condition.ufl_operands[1].ufl_shape == (),
-                        condition.ufl_operands[1].ufl_free_indices == ())):
+            if not all(
+                (
+                    condition.ufl_operands[0].ufl_shape == (),
+                    condition.ufl_operands[0].ufl_free_indices == (),
+                    condition.ufl_operands[1].ufl_shape == (),
+                    condition.ufl_operands[1].ufl_free_indices == (),
+                )
+            ):
                 raise ValueError("Non-scalar == or != is not allowed.")
 
         Operator.__init__(self, (condition, true_value, false_value))
@@ -302,6 +308,7 @@ class Conditional(Operator):
 
 
 # --- Specific functions higher level than a conditional ---
+
 
 @ufl_type(is_scalar=True, num_ops=1)
 class MinValue(Operator):
@@ -323,7 +330,7 @@ class MinValue(Operator):
         try:
             res = min(a, b)
         except ValueError:
-            warnings.warn('Value error in evaluation of min() of %s and %s.' % self.ufl_operands)
+            warnings.warn("Value error in evaluation of min() of %s and %s." % self.ufl_operands)
             raise
         return res
 
@@ -352,7 +359,7 @@ class MaxValue(Operator):
         try:
             res = max(a, b)
         except ValueError:
-            warnings.warn('Value error in evaluation of max() of %s and %s.' % self.ufl_operands)
+            warnings.warn("Value error in evaluation of max() of %s and %s." % self.ufl_operands)
             raise
         return res
 

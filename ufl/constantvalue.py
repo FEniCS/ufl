@@ -12,14 +12,13 @@
 from math import atan2
 
 import ufl
-from ufl.core.expr import Expr
-from ufl.core.terminal import Terminal
-from ufl.core.multiindex import Index, FixedIndex
-from ufl.core.ufl_type import ufl_type
 
 # --- Helper functions imported here for compatibility---
-from ufl.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar  # noqa: F401
-
+from ufl.checks import is_python_scalar, is_true_ufl_scalar, is_ufl_scalar  # noqa: F401
+from ufl.core.expr import Expr
+from ufl.core.multiindex import FixedIndex, Index
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
 
 # Precision for float formatting
 precision = None
@@ -34,6 +33,7 @@ def format_float(x):
 
 
 # --- Base classes for constant types ---
+
 
 @ufl_type(is_abstract=True)
 class ConstantValue(Terminal):
@@ -101,16 +101,23 @@ class Zero(ConstantValue):
             self.ufl_free_indices = ()
             self.ufl_index_dimensions = ()
         elif all(isinstance(i, Index) for i in free_indices):  # Handle old input format
-            if not isinstance(index_dimensions, dict) and all(isinstance(i, Index) for i in index_dimensions.keys()):
+            if not isinstance(index_dimensions, dict) and all(
+                isinstance(i, Index) for i in index_dimensions.keys()
+            ):
                 raise ValueError(f"Expecting tuple of index dimensions, not {index_dimensions}")
             self.ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
             self.ufl_index_dimensions = tuple(
-                d for i, d in sorted(index_dimensions.items(), key=lambda x: x[0].count()))
+                d for i, d in sorted(index_dimensions.items(), key=lambda x: x[0].count())
+            )
         else:  # Handle new input format
             if not all(isinstance(i, int) for i in free_indices):
                 raise ValueError(f"Expecting tuple of integer free index ids, not {free_indices}")
-            if not isinstance(index_dimensions, tuple) and all(isinstance(i, int) for i in index_dimensions):
-                raise ValueError(f"Expecting tuple of integer index dimensions, not {index_dimensions}")
+            if not isinstance(index_dimensions, tuple) and all(
+                isinstance(i, int) for i in index_dimensions
+            ):
+                raise ValueError(
+                    f"Expecting tuple of integer index dimensions, not {index_dimensions}"
+                )
 
             # Assuming sorted now to avoid this cost, enable for debugging:
             # if sorted(free_indices) != list(free_indices):
@@ -138,7 +145,8 @@ class Zero(ConstantValue):
         r = "Zero(%s, %s, %s)" % (
             repr(self.ufl_shape),
             repr(self.ufl_free_indices),
-            repr(self.ufl_index_dimensions))
+            repr(self.ufl_index_dimensions),
+        )
         return r
 
     def __eq__(self, other):
@@ -146,9 +154,11 @@ class Zero(ConstantValue):
         if isinstance(other, Zero):
             if self is other:
                 return True
-            return (self.ufl_shape == other.ufl_shape and  # noqa: W504
-                    self.ufl_free_indices == other.ufl_free_indices and  # noqa: W504
-                    self.ufl_index_dimensions == other.ufl_index_dimensions)
+            return (
+                self.ufl_shape == other.ufl_shape
+                and self.ufl_free_indices == other.ufl_free_indices
+                and self.ufl_index_dimensions == other.ufl_index_dimensions
+            )
         elif isinstance(other, (int, float)):
             return other == 0
         else:
@@ -190,6 +200,7 @@ def zero(*shape):
 
 
 # --- Scalar value types ---
+
 
 @ufl_type(is_abstract=True, is_scalar=True)
 class ScalarValue(ConstantValue):
@@ -347,6 +358,7 @@ class FloatValue(RealValue):
 @ufl_type(wraps_type=int, is_literal=True)
 class IntValue(RealValue):
     """Representation of a constant scalar integer value."""
+
     __slots__ = ()
 
     _cache = {}
@@ -389,9 +401,11 @@ class IntValue(RealValue):
 
 # --- Identity matrix ---
 
+
 @ufl_type()
 class Identity(ConstantValue):
     """Representation of an identity matrix."""
+
     __slots__ = ("_dim", "ufl_shape")
 
     def __init__(self, dim):
@@ -428,6 +442,7 @@ class Identity(ConstantValue):
 
 
 # --- Permutation symbol ---
+
 
 @ufl_type()
 class PermutationSymbol(ConstantValue):
@@ -499,4 +514,5 @@ def as_ufl(expression):
         return IntValue(expression)
     else:
         raise ValueError(
-            f"Invalid type conversion: {expression} can not be converted to any UFL type.")
+            f"Invalid type conversion: {expression} can not be converted to any UFL type."
+        )

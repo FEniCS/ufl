@@ -7,9 +7,9 @@
 
 from ufl.core.multiindex import FixedIndex, Index, indices
 
-
 # FIXME: Some of these might be merged into one function, some might
 # be optimized
+
 
 def unique_sorted_indices(indices):
     """Get unique sorted indices.
@@ -233,4 +233,9 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
     if len(free_indices) + 2 * len(repeated_indices) != an + bn:
         raise ValueError("Expecting only twice repeated indices.")
 
-    return tuple(free_indices), tuple(index_dimensions), tuple(repeated_indices), tuple(repeated_index_dimensions)
+    return (
+        tuple(free_indices),
+        tuple(index_dimensions),
+        tuple(repeated_indices),
+        tuple(repeated_index_dimensions),
+    )

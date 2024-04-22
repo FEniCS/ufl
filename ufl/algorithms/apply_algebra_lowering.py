@@ -1,4 +1,4 @@
-"""Algorithm for expanding compound expressions into equivalent representations using basic operators."""
+"""Algorithm for expanding compound expressions."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
 #
@@ -8,14 +8,12 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.classes import Product, Grad, Conj
-from ufl.core.multiindex import indices, Index
-from ufl.tensors import as_tensor, as_matrix, as_vector
-
-from ufl.compound_expressions import deviatoric_expr, determinant_expr, cofactor_expr, inverse_expr
-
-from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.classes import Conj, Grad, Product
+from ufl.compound_expressions import cofactor_expr, determinant_expr, deviatoric_expr, inverse_expr
+from ufl.core.multiindex import Index, indices
+from ufl.corealg.multifunction import MultiFunction
+from ufl.tensors import as_matrix, as_tensor, as_vector
 
 
 class LowerCompoundAlgebra(MultiFunction):
@@ -55,8 +53,10 @@ class LowerCompoundAlgebra(MultiFunction):
 
     def cross(self, o, a, b):
         """Lower a cross."""
+
         def c(i, j):
             return Product(a[i], b[j]) - Product(a[j], b[i])
+
         return as_vector((c(1, 2), c(2, 0), c(0, 1)))
 
     def perp(self, o, a):
@@ -127,12 +127,14 @@ class LowerCompoundAlgebra(MultiFunction):
 
     def curl(self, o, a):
         """Lower a curl."""
+
         # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.ufl_shape == ()
         # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.ufl_shape == (2,)
         # o = curl a = "cross(nabla, a)"              if a.ufl_shape == (3,)
         def c(i, j):
             """A component of curl."""
             return a[j].dx(i) - a[i].dx(j)
+
         sh = a.ufl_shape
         if sh == ():
             return as_vector((a.dx(1), -a.dx(0)))

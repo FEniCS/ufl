@@ -6,13 +6,13 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.argument import Argument, Coargument
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
-from ufl.argument import Argument, Coargument
 from ufl.constantvalue import Zero
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
-from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import extract_unique_domain, find_geometric_dimension
@@ -24,8 +24,7 @@ from ufl.variable import Variable
 # --- Basic differentiation objects ---
 
 
-@ufl_type(is_abstract=True,
-          is_differential=True)
+@ufl_type(is_abstract=True, is_differential=True)
 class Derivative(Operator):
     """Base class for all derivative types."""
 
@@ -36,15 +35,13 @@ class Derivative(Operator):
         Operator.__init__(self, operands)
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
+@ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class CoefficientDerivative(Derivative):
-    """Derivative of the integrand of a form w.r.t. the degrees of freedom in a discrete Coefficient."""
+    """Derivative of form integrand w.r.t. the degrees of freedom in a discrete Coefficient."""
 
     __slots__ = ()
 
-    def __new__(cls, integrand, coefficients, arguments,
-                coefficient_derivatives):
+    def __new__(cls, integrand, coefficients, arguments, coefficient_derivatives):
         """Create a new CoefficientDerivative."""
         if not isinstance(coefficients, ExprList):
             raise ValueError("Expecting ExprList instance with Coefficients.")
@@ -56,23 +53,23 @@ class CoefficientDerivative(Derivative):
             return integrand
         return Derivative.__new__(cls)
 
-    def __init__(self, integrand, coefficients, arguments,
-                 coefficient_derivatives):
+    def __init__(self, integrand, coefficients, arguments, coefficient_derivatives):
         """Initalise."""
         if not isinstance(coefficient_derivatives, ExprMapping):
             coefficient_derivatives = ExprMapping(coefficient_derivatives)
-        Derivative.__init__(self, (integrand, coefficients, arguments,
-                                   coefficient_derivatives))
+        Derivative.__init__(self, (integrand, coefficients, arguments, coefficient_derivatives))
 
     def __str__(self):
         """Format as a string."""
-        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coefficient derivatives %s"\
-            % (self.ufl_operands[0], self.ufl_operands[1],
-               self.ufl_operands[2], self.ufl_operands[3])
+        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coefficient derivatives %s" % (
+            self.ufl_operands[0],
+            self.ufl_operands[1],
+            self.ufl_operands[2],
+            self.ufl_operands[3],
+        )
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
+@ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class CoordinateDerivative(CoefficientDerivative):
     """Derivative of the integrand of a form w.r.t. the SpatialCoordinates."""
 
@@ -80,82 +77,92 @@ class CoordinateDerivative(CoefficientDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s"\
-            % (self.ufl_operands[0], self.ufl_operands[1],
-               self.ufl_operands[2], self.ufl_operands[3])
+        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s" % (
+            self.ufl_operands[0],
+            self.ufl_operands[1],
+            self.ufl_operands[2],
+            self.ufl_operands[3],
+        )
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
+@ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
     _ufl_noslots_ = True
 
-    def __init__(self, base_form, coefficients, arguments,
-                 coefficient_derivatives):
+    def __init__(self, base_form, coefficients, arguments, coefficient_derivatives):
         """Initalise."""
-        CoefficientDerivative.__init__(self, base_form, coefficients, arguments,
-                                       coefficient_derivatives)
+        CoefficientDerivative.__init__(
+            self, base_form, coefficients, arguments, coefficient_derivatives
+        )
         BaseForm.__init__(self)
 
     def _analyze_form_arguments(self):
         """Collect the arguments of the corresponding BaseForm."""
-        from ufl.algorithms.analysis import extract_type, extract_coefficients
+        from ufl.algorithms.analysis import extract_coefficients, extract_type
+
         base_form, _, arguments, _ = self.ufl_operands
 
         def arg_type(x):
             if isinstance(x, BaseForm):
                 return Coargument
             return Argument
+
         # Each derivative arguments can either be a:
         # - `ufl.BaseForm`: if it contains a `ufl.Coargument`
         # - or a `ufl.Expr`: if it contains a `ufl.Argument`
-        # When a `Coargument` is encountered, it is treated as an argument (i.e. as V* -> V* and not V* x V -> R)
-        # and should result in one single argument (in the dual space).
-        base_form_args = base_form.arguments() + tuple(arg for a in arguments.ufl_operands
-                                                       for arg in extract_type(a, arg_type(a)))
+        # When a `Coargument` is encountered, it is treated as an
+        # argument (i.e. as V* -> V* and not V* x V -> R) and should
+        # result in one single argument (in the dual space).
+        base_form_args = base_form.arguments() + tuple(
+            arg for a in arguments.ufl_operands for arg in extract_type(a, arg_type(a))
+        )
         # BaseFormDerivative's arguments don't necessarily contain BaseArgument objects only
         # -> e.g. `derivative(u ** 2, u, u)` with `u` a Coefficient.
-        base_form_coeffs = base_form.coefficients() + tuple(arg for a in arguments.ufl_operands
-                                                            for arg in extract_coefficients(a))
+        base_form_coeffs = base_form.coefficients() + tuple(
+            arg for a in arguments.ufl_operands for arg in extract_coefficients(a)
+        )
         # Reconstruct arguments for correct numbering
-        self._arguments = tuple(type(arg)(arg.ufl_function_space(), arg.number(), arg.part()) for arg in base_form_args)
+        self._arguments = tuple(
+            type(arg)(arg.ufl_function_space(), arg.number(), arg.part()) for arg in base_form_args
+        )
         self._coefficients = base_form_coeffs
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
+@ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
     """Derivative of a base form w.r.t. the SpatialCoordinates."""
 
     _ufl_noslots_ = True
 
-    def __init__(self, base_form, coefficients, arguments,
-                 coefficient_derivatives):
+    def __init__(self, base_form, coefficients, arguments, coefficient_derivatives):
         """Initalise."""
-        BaseFormDerivative.__init__(self, base_form, coefficients, arguments,
-                                    coefficient_derivatives)
+        BaseFormDerivative.__init__(
+            self, base_form, coefficients, arguments, coefficient_derivatives
+        )
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
+@ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     """Derivative of a base form operator w.r.t the degrees of freedom in a discrete Coefficient."""
+
     _ufl_noslots_ = True
 
     # BaseFormOperatorDerivative is only needed because of a different
     # differentiation procedure for BaseformOperator objects.
-    def __init__(self, base_form, coefficients, arguments,
-                 coefficient_derivatives):
+    def __init__(self, base_form, coefficients, arguments, coefficient_derivatives):
         """Initalise."""
-        BaseFormDerivative.__init__(self, base_form, coefficients, arguments,
-                                    coefficient_derivatives)
+        BaseFormDerivative.__init__(
+            self, base_form, coefficients, arguments, coefficient_derivatives
+        )
         self._argument_slots = base_form._argument_slots
 
-    # Enforce Operator reconstruction as Operator is a parent class of both: BaseFormDerivative and BaseFormOperator.
-    # Therfore the latter overwrites Operator reconstruction and we would have:
-    #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ = BaseFormOperator._ufl_expr_reconstruct_
+    # Enforce Operator reconstruction as Operator is a parent class of
+    # both: BaseFormDerivative and BaseFormOperator.
+    # Therefore the latter overwrites Operator reconstruction and we would have:
+    #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ =
+    #   BaseFormOperator._ufl_expr_reconstruct_
     _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
     # Set __repr__
     __repr__ = Operator.__repr__
@@ -163,23 +170,25 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     def argument_slots(self, outer_form=False):
         """Return a tuple of expressions containing argument and coefficient based expressions."""
         from ufl.algorithms.analysis import extract_arguments
+
         base_form, _, arguments, _ = self.ufl_operands
-        argument_slots = (base_form.argument_slots(outer_form)
-                          + tuple(arg for a in arguments for arg in extract_arguments(a)))
+        argument_slots = base_form.argument_slots(outer_form) + tuple(
+            arg for a in arguments for arg in extract_arguments(a)
+        )
         return argument_slots
 
 
-@ufl_type(num_ops=4, inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0)
+@ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):
     """Derivative of a base form operator w.r.t. the SpatialCoordinates."""
+
     _ufl_noslots_ = True
 
-    def __init__(self, base_form, coefficients, arguments,
-                 coefficient_derivatives):
+    def __init__(self, base_form, coefficients, arguments, coefficient_derivatives):
         """Initalise."""
-        BaseFormOperatorDerivative.__init__(self, base_form, coefficients, arguments,
-                                            coefficient_derivatives)
+        BaseFormOperatorDerivative.__init__(
+            self, base_form, coefficients, arguments, coefficient_derivatives
+        )
 
 
 @ufl_type(num_ops=2)
@@ -205,8 +214,7 @@ class VariableDerivative(Derivative):
         # Simplification
         # Return zero if expression is trivially independent of variable
         if f._ufl_is_terminal_ and f != v:
-            return Zero(f.ufl_shape + v.ufl_shape, f.ufl_free_indices,
-                        f.ufl_index_dimensions)
+            return Zero(f.ufl_shape + v.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
 
         # Construction
         return Derivative.__new__(cls)
@@ -222,11 +230,11 @@ class VariableDerivative(Derivative):
         """Format as a string."""
         if isinstance(self.ufl_operands[0], Terminal):
             return "d%s/d[%s]" % (self.ufl_operands[0], self.ufl_operands[1])
-        return "d/d[%s] %s" % (self.ufl_operands[1],
-                               parstr(self.ufl_operands[0], self))
+        return "d/d[%s] %s" % (self.ufl_operands[1], parstr(self.ufl_operands[0], self))
 
 
 # --- Compound differentiation objects ---
+
 
 @ufl_type(is_abstract=True)
 class CompoundDerivative(Derivative):
@@ -250,8 +258,7 @@ class Grad(CompoundDerivative):
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
             dim = find_geometric_dimension(f)
-            return Zero(f.ufl_shape + (dim,), f.ufl_free_indices,
-                        f.ufl_index_dimensions)
+            return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
@@ -266,17 +273,16 @@ class Grad(CompoundDerivative):
                 raise ValueError("Operand shape mismatch in Grad reconstruct.")
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
                 raise ValueError("Free index mismatch in Grad reconstruct.")
-            return Zero(self.ufl_shape, self.ufl_free_indices,
-                        self.ufl_index_dimensions)
+            return Zero(self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
         return self._ufl_class_(op)
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         """Get child from mapping and return the component asked for."""
         component, i = component[:-1], component[-1]
         derivatives = derivatives + (i,)
-        result = self.ufl_operands[0].evaluate(x, mapping, component,
-                                               index_values,
-                                               derivatives=derivatives)
+        result = self.ufl_operands[0].evaluate(
+            x, mapping, component, index_values, derivatives=derivatives
+        )
         return result
 
     @property
@@ -289,20 +295,20 @@ class Grad(CompoundDerivative):
         return "grad(%s)" % self.ufl_operands[0]
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True,
-          is_in_reference_frame=True)
+@ufl_type(
+    num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True, is_in_reference_frame=True
+)
 class ReferenceGrad(CompoundDerivative):
     """Reference grad."""
 
-    __slots__ = ("_dim", )
+    __slots__ = ("_dim",)
 
     def __new__(cls, f):
         """Create a new ReferenceGrad."""
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
             dim = extract_unique_domain(f).topological_dimension()
-            return Zero(f.ufl_shape + (dim,), f.ufl_free_indices,
-                        f.ufl_index_dimensions)
+            return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
@@ -317,17 +323,16 @@ class ReferenceGrad(CompoundDerivative):
                 raise ValueError("Operand shape mismatch in ReferenceGrad reconstruct.")
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
                 raise ValueError("Free index mismatch in ReferenceGrad reconstruct.")
-            return Zero(self.ufl_shape, self.ufl_free_indices,
-                        self.ufl_index_dimensions)
+            return Zero(self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
         return self._ufl_class_(op)
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         """Get child from mapping and return the component asked for."""
         component, i = component[:-1], component[-1]
         derivatives = derivatives + (i,)
-        result = self.ufl_operands[0].evaluate(x, mapping, component,
-                                               index_values,
-                                               derivatives=derivatives)
+        result = self.ufl_operands[0].evaluate(
+            x, mapping, component, index_values, derivatives=derivatives
+        )
         return result
 
     @property
@@ -371,8 +376,9 @@ class Div(CompoundDerivative):
         return "div(%s)" % self.ufl_operands[0]
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True,
-          is_in_reference_frame=True)
+@ufl_type(
+    num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True, is_in_reference_frame=True
+)
 class ReferenceDiv(CompoundDerivative):
     """Reference divergence."""
 
@@ -414,8 +420,7 @@ class NablaGrad(CompoundDerivative):
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
             dim = find_geometric_dimension(f)
-            return Zero((dim,) + f.ufl_shape, f.ufl_free_indices,
-                        f.ufl_index_dimensions)
+            return Zero((dim,) + f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
@@ -430,8 +435,7 @@ class NablaGrad(CompoundDerivative):
                 raise ValueError("Operand shape mismatch in NablaGrad reconstruct.")
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
                 raise ValueError("Free index mismatch in NablaGrad reconstruct.")
-            return Zero(self.ufl_shape, self.ufl_free_indices,
-                        self.ufl_index_dimensions)
+            return Zero(self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
         return self._ufl_class_(op)
 
     @property
@@ -509,8 +513,9 @@ class Curl(CompoundDerivative):
         return "curl(%s)" % self.ufl_operands[0]
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0,
-          is_terminal_modifier=True, is_in_reference_frame=True)
+@ufl_type(
+    num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True, is_in_reference_frame=True
+)
 class ReferenceCurl(CompoundDerivative):
     """Reference curl."""
 

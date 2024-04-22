@@ -5,11 +5,11 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.core.expr import Expr
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex
-from ufl.variable import Label, Variable
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.classes import Zero
+from ufl.core.expr import Expr
+from ufl.core.multiindex import FixedIndex, Index, MultiIndex
+from ufl.variable import Label, Variable
 
 
 class VariableRenumberingTransformer(ReuseTransformer):
@@ -35,7 +35,8 @@ class VariableRenumberingTransformer(ReuseTransformer):
 class IndexRenumberingTransformer(VariableRenumberingTransformer):
     """Index renumbering transformer.
 
-    This is a poorly designed algorithm. It is used in some tests, please do not use for anything else.
+    This is a poorly designed algorithm. It is used in some tests,
+    please do not use for anything else.
     """
 
     def __init__(self):
@@ -79,5 +80,8 @@ def renumber_indices(expr):
 
     if isinstance(expr, Expr):
         if num_free_indices != len(result.ufl_free_indices):
-            raise ValueError("The number of free indices left in expression should be invariant w.r.t. renumbering.")
+            raise ValueError(
+                "The number of free indices left in expression "
+                "should be invariant w.r.t. renumbering."
+            )
     return result

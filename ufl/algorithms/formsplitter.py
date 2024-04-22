@@ -8,12 +8,12 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.constantvalue import Zero
-from ufl.tensors import as_vector
 from ufl.argument import Argument
+from ufl.constantvalue import Zero
+from ufl.corealg.multifunction import MultiFunction
 from ufl.functionspace import FunctionSpace
+from ufl.tensors import as_vector
 
 
 class FormSplitter(MultiFunction):
@@ -27,11 +27,11 @@ class FormSplitter(MultiFunction):
 
     def argument(self, obj):
         """Apply to argument."""
-        if (obj.part() is not None):
+        if obj.part() is not None:
             # Mixed element built from MixedFunctionSpace,
             # whose sub-function spaces are indexed by obj.part()
             if len(obj.ufl_shape) == 0:
-                if (obj.part() == self.idx[obj.number()]):
+                if obj.part() == self.idx[obj.number()]:
                     return obj
                 else:
                     return Zero()
@@ -40,7 +40,7 @@ class FormSplitter(MultiFunction):
                 for m in obj.ufl_shape:
                     indices = [(k + (j,)) for k in indices for j in range(m)]
 
-                if (obj.part() == self.idx[obj.number()]):
+                if obj.part() == self.idx[obj.number()]:
                     return as_vector([obj[j] for j in indices])
                 else:
                     return as_vector([Zero() for j in indices])
@@ -52,7 +52,7 @@ class FormSplitter(MultiFunction):
             sub_elements = obj.ufl_element().sub_elements()
 
             # If not a mixed element, do nothing
-            if (len(sub_elements) == 0):
+            if len(sub_elements) == 0:
                 return obj
 
             args = []
@@ -64,7 +64,7 @@ class FormSplitter(MultiFunction):
                 for m in a.ufl_shape:
                     indices = [(k + (j,)) for k in indices for j in range(m)]
 
-                if (i == self.idx[obj.number()]):
+                if i == self.idx[obj.number()]:
                     args += [a[j] for j in indices]
                 else:
                     args += [Zero() for j in indices]
@@ -90,7 +90,7 @@ def extract_blocks(form, i=None, j=None):
     assert arity <= 2
 
     if arity == 0:
-        return (form, )
+        return (form,)
 
     for pi in parts:
         if arity > 1:
@@ -111,7 +111,7 @@ def extract_blocks(form, i=None, j=None):
         forms_tuple = tuple(forms)
     except TypeError:
         # Only one form returned
-        forms_tuple = (forms, )
+        forms_tuple = (forms,)
 
     if i is not None:
         if arity > 1 and j is not None:

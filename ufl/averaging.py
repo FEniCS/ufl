@@ -6,15 +6,14 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.constantvalue import ConstantValue
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.constantvalue import ConstantValue
 
 
-@ufl_type(inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0,
-          num_ops=1,
-          is_evaluation=True)
+@ufl_type(
+    inherit_shape_from_operand=0, inherit_indices_from_operand=0, num_ops=1, is_evaluation=True
+)
 class CellAvg(Operator):
     """Cell average."""
 
@@ -37,18 +36,16 @@ class CellAvg(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Performs an approximate symbolic evaluation, since we don't have a cell."""
-        return self.ufl_operands[0].evaluate(x, mapping, component,
-                                             index_values)
+        return self.ufl_operands[0].evaluate(x, mapping, component, index_values)
 
     def __str__(self):
         """Format as a string."""
         return f"cell_avg({self.ufl_operands[0]})"
 
 
-@ufl_type(inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0,
-          num_ops=1,
-          is_evaluation=True)
+@ufl_type(
+    inherit_shape_from_operand=0, inherit_indices_from_operand=0, num_ops=1, is_evaluation=True
+)
 class FacetAvg(Operator):
     """Facet average."""
 

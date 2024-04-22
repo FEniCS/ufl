@@ -8,9 +8,10 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
-from ufl.form import BaseForm, FormSum, ZeroBaseForm
 from ufl.argument import Coargument
 from ufl.core.ufl_type import ufl_type
+from ufl.form import BaseForm, FormSum, ZeroBaseForm
+
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
 
@@ -31,7 +32,8 @@ class Adjoint(BaseForm):
         "_coefficients",
         "_domains",
         "ufl_operands",
-        "_hash")
+        "_hash",
+    )
 
     def __new__(cls, *args, **kw):
         """Create a new Adjoint."""
@@ -45,15 +47,17 @@ class Adjoint(BaseForm):
             return form._form
         elif isinstance(form, FormSum):
             # Adjoint distributes over sums
-            return FormSum(*[(Adjoint(component), 1)
-                             for component in form.components()])
+            return FormSum(*[(Adjoint(component), 1) for component in form.components()])
         elif isinstance(form, Coargument):
-            # The adjoint of a coargument `c: V* -> V*` is the identity matrix mapping from V to V (i.e. V x V* -> R).
-            # Equivalently, the adjoint of `c` is its first argument, which is a ufl.Argument defined on the
-            # primal space of `c`.
+            # The adjoint of a coargument `c: V* -> V*` is the identity
+            # matrix mapping from V to V (i.e. V x V* -> R).
+            # Equivalently, the adjoint of `c` is its first argument,
+            # which is a ufl.Argument defined on the primal space of
+            # `c`.
             primal_arg, _ = form.arguments()
-            # Returning the primal argument avoids explicit argument reconstruction, making it
-            # a robust strategy for handling subclasses of `ufl.Coargument`.
+            # Returning the primal argument avoids explicit argument
+            # reconstruction, making it a robust strategy for handling
+            # subclasses of `ufl.Coargument`.
             return primal_arg
 
         return super(Adjoint, cls).__new__(cls)
@@ -87,6 +91,7 @@ class Adjoint(BaseForm):
     def _analyze_domains(self):
         """Analyze which domains can be found in Adjoint."""
         from ufl.domain import join_domains
+
         # Collect unique domains
         self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
 
@@ -96,8 +101,9 @@ class Adjoint(BaseForm):
             return False
         if self is other:
             return True
-        # Make sure we are returning a boolean as the equality can result in a `ufl.Equation`
-        # if the underlying objects are `ufl.BaseForm`.
+        # Make sure we are returning a boolean as the equality can
+        # result in a `ufl.Equation` if the underlying objects are
+        # `ufl.BaseForm`.
         return bool(self._form == other._form)
 
     def __str__(self):

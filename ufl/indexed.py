@@ -8,18 +8,16 @@
 
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.ufl_type import ufl_type
+from ufl.core.multiindex import FixedIndex, Index, MultiIndex
 from ufl.core.operator import Operator
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex
+from ufl.core.ufl_type import ufl_type
 from ufl.index_combination_utils import unique_sorted_indices
 from ufl.precedence import parstr
 
 
-# --- Indexed expression ---
-
 @ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
-    """Indexed."""
+    """Indexed expression."""
 
     __slots__ = (
         "ufl_free_indices",
@@ -65,10 +63,13 @@ class Indexed(Operator):
         if len(shape) != len(multiindex):
             raise ValueError(
                 f"Invalid number of indices ({len(multiindex)}) for tensor "
-                f"expression of rank {len(expression.ufl_shape)}:\n    {ufl_err_str(expression)}")
-        if any(int(di) >= int(si) or int(di) < 0
-               for si, di in zip(shape, multiindex)
-               if isinstance(di, FixedIndex)):
+                f"expression of rank {len(expression.ufl_shape)}:\n    {ufl_err_str(expression)}"
+            )
+        if any(
+            int(di) >= int(si) or int(di) < 0
+            for si, di in zip(shape, multiindex)
+            if isinstance(di, FixedIndex)
+        ):
             raise ValueError("Fixed index out of range!")
 
         # Build tuples of free index ids and dimensions
@@ -101,8 +102,7 @@ class Indexed(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "%s[%s]" % (parstr(self.ufl_operands[0], self),
-                           self.ufl_operands[1])
+        return "%s[%s]" % (parstr(self.ufl_operands[0], self), self.ufl_operands[1])
 
     def __getitem__(self, key):
         """Get an item."""
@@ -110,5 +110,7 @@ class Indexed(Operator):
             # So that one doesn't have to special case indexing of
             # expressions without shape.
             return self
-        raise ValueError(f"Attempting to index with {ufl_err_str(key)}, "
-                         f"but object is already indexed: {ufl_err_str(self)}")
+        raise ValueError(
+            f"Attempting to index with {ufl_err_str(key)}, "
+            f"but object is already indexed: {ufl_err_str(self)}"
+        )

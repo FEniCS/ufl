@@ -3,10 +3,28 @@ __date__ = "2009-02-17 -- 2014-10-14"
 
 import pytest
 
-from ufl import (Coefficient, FiniteElement, FunctionSpace, Mesh, SpatialCoordinate, VectorElement, as_vector, atan,
-                 cos, diff, exp, indices, ln, sin, tan, triangle, variable)
+from ufl import (
+    Coefficient,
+    FunctionSpace,
+    Mesh,
+    SpatialCoordinate,
+    as_vector,
+    atan,
+    cos,
+    diff,
+    exp,
+    indices,
+    ln,
+    sin,
+    tan,
+    triangle,
+    variable,
+)
 from ufl.algorithms import expand_derivatives
 from ufl.constantvalue import as_ufl
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 def get_variables():
@@ -43,6 +61,7 @@ def testVariable(v):
 
     def df(v):
         return as_ufl(1)
+
     _test(f, df)
 
 
@@ -52,6 +71,7 @@ def testSum(v):
 
     def df(v):
         return as_ufl(1)
+
     _test(f, df)
 
 
@@ -61,15 +81,17 @@ def testProduct(v):
 
     def df(v):
         return as_ufl(3)
+
     _test(f, df)
 
 
 def testPower(v):
     def f(v):
-        return v ** 3
+        return v**3
 
     def df(v):
-        return 3 * v ** 2
+        return 3 * v**2
+
     _test(f, df)
 
 
@@ -79,6 +101,7 @@ def testDivision(v):
 
     def df(v):
         return as_ufl(1.0 / 3.0)
+
     _test(f, df)
 
 
@@ -87,7 +110,8 @@ def testDivision2(v):
         return 3.0 / v
 
     def df(v):
-        return -3.0 / v ** 2
+        return -3.0 / v**2
+
     _test(f, df)
 
 
@@ -97,6 +121,7 @@ def testExp(v):
 
     def df(v):
         return exp(v)
+
     _test(f, df)
 
 
@@ -106,6 +131,7 @@ def testLn(v):
 
     def df(v):
         return 1.0 / v
+
     _test(f, df)
 
 
@@ -115,6 +141,7 @@ def testSin(v):
 
     def df(v):
         return cos(v)
+
     _test(f, df)
 
 
@@ -124,6 +151,7 @@ def testCos(v):
 
     def df(v):
         return -sin(v)
+
     _test(f, df)
 
 
@@ -133,7 +161,9 @@ def testTan(v):
 
     def df(v):
         return 2.0 / (cos(2.0 * v) + 1.0)
+
     _test(f, df)
+
 
 # TODO: Check the following tests. They run into strange math domain errors.
 # def testAsin(v):
@@ -152,37 +182,39 @@ def testAtan(v):
         return atan(v)
 
     def df(v):
-        return 1 / (1.0 + v ** 2)
+        return 1 / (1.0 + v**2)
+
     _test(f, df)
 
 
 def testIndexSum(v):
     def f(v):
         # 3*v + 4*v**2 + 5*v**3
-        a = as_vector((v, v ** 2, v ** 3))
+        a = as_vector((v, v**2, v**3))
         b = as_vector((3, 4, 5))
-        i, = indices(1)
+        (i,) = indices(1)
         return a[i] * b[i]
 
     def df(v):
-        return 3 + 4 * 2 * v + 5 * 3 * v ** 2
+        return 3 + 4 * 2 * v + 5 * 3 * v**2
+
     _test(f, df)
 
 
 def testCoefficient():
-    coord_elem = VectorElement("P", triangle, 1, dim=3)
+    coord_elem = FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1)
     mesh = Mesh(coord_elem)
-    V = FunctionSpace(mesh, FiniteElement("P", triangle, 1))
+    V = FunctionSpace(mesh, FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1))
     v = Coefficient(V)
-    assert round(expand_derivatives(diff(v, v))-1.0, 7) == 0
+    assert round(expand_derivatives(diff(v, v)) - 1.0, 7) == 0
 
 
 def testDiffX():
     cell = triangle
-    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
     x = SpatialCoordinate(domain)
     f = x[0] ** 2 * x[1] ** 2
-    i, = indices(1)
+    (i,) = indices(1)
     df1 = diff(f, x)
     df2 = as_vector(f.dx(i), i)
 
@@ -195,5 +227,6 @@ def testDiffX():
     assert round(df11 - df21, 7) == 0
     assert round(df10 - 2 * 2 * 9, 7) == 0
     assert round(df11 - 2 * 4 * 3, 7) == 0
+
 
 # TODO: More tests involving wrapper types and indices

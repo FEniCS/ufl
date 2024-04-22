@@ -8,15 +8,15 @@
 
 import warnings
 
-
 # FIXME: This code is crap...
+
 
 def parstr(child, parent, pre="(", post=")", format=str):
     """Parstr."""
     # Execute when needed instead of on import, which leads to all
     # kinds of circular trouble.  Fixing this could be an optimization
     # of str(expr) though.
-    if not hasattr(parent, '_precedence'):
+    if not hasattr(parent, "_precedence"):
         assign_precedences(build_precedence_list())
 
     # We want child to be evaluated fully first, and if the parent has
@@ -41,8 +41,19 @@ def parstr(child, parent, pre="(", post=")", format=str):
 
 def build_precedence_list():
     """Build precedence list."""
-    from ufl.classes import (Operator, Terminal, Sum, IndexSum, Product, Division, Power,
-                             MathFunction, BesselFunction, Abs, Indexed)
+    from ufl.classes import (
+        Abs,
+        BesselFunction,
+        Division,
+        Indexed,
+        IndexSum,
+        MathFunction,
+        Operator,
+        Power,
+        Product,
+        Sum,
+        Terminal,
+    )
 
     # TODO: Fill in other types...
     # Power <= Transposed
@@ -57,7 +68,12 @@ def build_precedence_list():
     # stronger than +, but weaker than product
     precedence_list.append((IndexSum,))
 
-    precedence_list.append((Product, Division,))
+    precedence_list.append(
+        (
+            Product,
+            Division,
+        )
+    )
 
     # NB! Depends on language!
     precedence_list.append((Power, MathFunction, BesselFunction, Abs))
@@ -74,7 +90,8 @@ def build_precedence_mapping(precedence_list):
 
     Utility function used by some external code.
     """
-    from ufl.classes import Expr, all_ufl_classes, abstract_classes
+    from ufl.classes import Expr, abstract_classes, all_ufl_classes
+
     pm = {}
     missing = set()
     # Assign integer values for each precedence level
@@ -103,4 +120,7 @@ def assign_precedences(precedence_list):
     for c, p in sorted(pm.items(), key=lambda x: x[0].__name__):
         c._precedence = p
     if missing:
-        warnings.warn("Missing precedence levels for classes:\n" + "\n".join(f"  {c}" for c in sorted(missing)))
+        warnings.warn(
+            "Missing precedence levels for classes:\n"
+            + "\n".join(f"  {c}" for c in sorted(missing))
+        )

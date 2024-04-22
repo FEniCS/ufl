@@ -1,8 +1,36 @@
-from ufl import (CellVolume, Coefficient, Constant, FacetNormal, FiniteElement, FunctionSpace, Identity, Mesh,
-                 SpatialCoordinate, TestFunction, VectorConstant, VectorElement, as_ufl, cos, derivative, diff, exp,
-                 grad, ln, sin, tan, triangle, variable, zero)
-from ufl.algorithms.apply_derivatives import GenericDerivativeRuleset, GradRuleset, apply_derivatives
+from ufl import (
+    CellVolume,
+    Coefficient,
+    Constant,
+    FacetNormal,
+    FunctionSpace,
+    Identity,
+    Mesh,
+    SpatialCoordinate,
+    TestFunction,
+    VectorConstant,
+    as_ufl,
+    cos,
+    derivative,
+    diff,
+    exp,
+    grad,
+    ln,
+    sin,
+    tan,
+    triangle,
+    variable,
+    zero,
+)
+from ufl.algorithms.apply_derivatives import (
+    GenericDerivativeRuleset,
+    GradRuleset,
+    apply_derivatives,
+)
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1, L2
 
 # Note: the old tests in test_automatic_differentiation.py are a bit messy
 #       but still cover many things that are not in here yet.
@@ -14,11 +42,11 @@ from ufl.algorithms.renumbering import renumber_indices
 
 def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     cell = triangle
-    d = cell.geometric_dimension()
-    V0 = FiniteElement("DG", cell, 0)
-    V1 = FiniteElement("Lagrange", cell, 1)
+    d = 2
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
 
-    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
 
@@ -47,7 +75,7 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
 
     # Expressions
     e0 = f0 + f1
-    e1 = v0 * (f1/3 - f0**2)
+    e1 = v0 * (f1 / 3 - f0**2)
     e2 = exp(sin(cos(tan(ln(x[0])))))
     expressions = [e0, e1, e2]
 
@@ -60,7 +88,7 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
 
 def test_literal_derivatives_are_zero():
     cell = triangle
-    d = cell.geometric_dimension()
+    d = 2
 
     # Literals
     one = as_ufl(1)
@@ -70,7 +98,7 @@ def test_literal_derivatives_are_zero():
 
     # Generic ruleset handles literals directly:
     for lit in literals:
-        for sh in [(), (d,), (d, d+1)]:
+        for sh in [(), (d,), (d, d + 1)]:
             assert GenericDerivativeRuleset(sh)(lit) == zero(lit.ufl_shape + sh)
 
     # Variables
@@ -84,9 +112,9 @@ def test_literal_derivatives_are_zero():
         for v in variables:
             assert apply_derivatives(diff(lit, v)) == zero(lit.ufl_shape + v.ufl_shape)
 
-    V0 = FiniteElement("DG", cell, 0)
-    V1 = FiniteElement("Lagrange", cell, 1)
-    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
     u0 = Coefficient(v0_space)
@@ -107,16 +135,16 @@ def test_literal_derivatives_are_zero():
 
 def test_grad_ruleset():
     cell = triangle
-    d = cell.geometric_dimension()
+    d = 2
 
-    V0 = FiniteElement("DG", cell, 0)
-    V1 = FiniteElement("Lagrange", cell, 1)
-    V2 = FiniteElement("Lagrange", cell, 2)
-    W0 = VectorElement("DG", cell, 0)
-    W1 = VectorElement("Lagrange", cell, 1)
-    W2 = VectorElement("Lagrange", cell, 2)
+    V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+    W0 = FiniteElement("Discontinuous Lagrange", cell, 0, (2,), identity_pullback, L2)
+    W1 = FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1)
+    W2 = FiniteElement("Lagrange", cell, 2, (d,), identity_pullback, H1)
 
-    domain = Mesh(VectorElement("Lagrange", cell, 1))
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
     v2_space = FunctionSpace(domain, V2)
@@ -194,10 +222,14 @@ def test_grad_ruleset():
     assert renumber_indices(apply_derivatives(grad(vf2[1])[0])) == renumber_indices(grad(vf2)[1, 0])
 
     # Grad of gradually more complex expressions
-    assert apply_derivatives(grad(2*f0)) == zero((d,))
-    assert renumber_indices(apply_derivatives(grad(2*f1))) == renumber_indices(2*grad(f1))
-    assert renumber_indices(apply_derivatives(grad(sin(f1)))) == renumber_indices(cos(f1) * grad(f1))
-    assert renumber_indices(apply_derivatives(grad(cos(f1)))) == renumber_indices(-sin(f1) * grad(f1))
+    assert apply_derivatives(grad(2 * f0)) == zero((d,))
+    assert renumber_indices(apply_derivatives(grad(2 * f1))) == renumber_indices(2 * grad(f1))
+    assert renumber_indices(apply_derivatives(grad(sin(f1)))) == renumber_indices(
+        cos(f1) * grad(f1)
+    )
+    assert renumber_indices(apply_derivatives(grad(cos(f1)))) == renumber_indices(
+        -sin(f1) * grad(f1)
+    )
 
 
 def test_variable_ruleset():

@@ -9,6 +9,7 @@
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain, extract_unique_domain
+from ufl.sobolevspace import H1
 
 """
 Possible coordinate bootstrapping:
@@ -73,6 +74,7 @@ Xf = CFK * (X - X0f)
 
 # --- Expression node types
 
+
 @ufl_type(is_abstract=True)
 class GeometricQuantity(Terminal):
     """Geometric quantity."""
@@ -135,6 +137,7 @@ class GeometricFacetQuantity(GeometricQuantity):
 
 
 # --- Coordinate represented in different coordinate systems
+
 
 @ufl_type()
 class SpatialCoordinate(GeometricCellQuantity):
@@ -243,6 +246,7 @@ class FacetCoordinate(GeometricFacetQuantity):
 
 # --- Origin of coordinate systems in larger coordinate systems
 
+
 @ufl_type()
 class CellOrigin(GeometricCellQuantity):
     """The spatial coordinate corresponding to origin of a reference cell."""
@@ -290,6 +294,7 @@ class CellFacetOrigin(GeometricFacetQuantity):
 
 
 # --- Jacobians of mappings between coordinate systems
+
 
 @ufl_type()
 class Jacobian(GeometricCellQuantity):
@@ -455,9 +460,10 @@ class CellVertices(GeometricCellQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        cell = extract_unique_domain(self).ufl_cell()
+        domain = extract_unique_domain(self)
+        cell = domain.ufl_cell()
         nv = cell.num_vertices()
-        g = cell.geometric_dimension()
+        g = domain.geometric_dimension()
         return (nv, g)
 
     def is_cellwise_constant(self):
@@ -483,9 +489,10 @@ class CellEdgeVectors(GeometricCellQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        cell = extract_unique_domain(self).ufl_cell()
+        domain = extract_unique_domain(self)
+        cell = domain.ufl_cell()
         ne = cell.num_edges()
-        g = cell.geometric_dimension()
+        g = domain.geometric_dimension()
         return (ne, g)
 
     def is_cellwise_constant(self):
@@ -511,7 +518,8 @@ class FacetEdgeVectors(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        cell = extract_unique_domain(self).ufl_cell()
+        domain = extract_unique_domain(self)
+        cell = domain.ufl_cell()
         facet_types = cell.facet_types()
 
         # Raise exception for cells with more than one facet type e.g. prisms
@@ -519,7 +527,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
             raise Exception(f"Cell type {cell} not supported.")
 
         nfe = facet_types[0].num_edges()
-        g = cell.geometric_dimension()
+        g = domain.geometric_dimension()
         return (nfe, g)
 
     def is_cellwise_constant(self):
@@ -530,11 +538,13 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
 # --- Determinants (signed or pseudo) of geometry mapping Jacobians
 
+
 @ufl_type()
 class JacobianDeterminant(GeometricCellQuantity):
     """The determinant of the Jacobian.
 
-    Represents the signed determinant of a square Jacobian or the pseudo-determinant of a non-square Jacobian.
+    Represents the signed determinant of a square Jacobian or the
+    pseudo-determinant of a non-square Jacobian.
     """
 
     __slots__ = ()
@@ -576,11 +586,13 @@ class CellFacetJacobianDeterminant(GeometricFacetQuantity):
 
 # --- Inverses (signed or pseudo) of geometry mapping Jacobians
 
+
 @ufl_type()
 class JacobianInverse(GeometricCellQuantity):
     """The inverse of the Jacobian.
 
-    Represents the inverse of a square Jacobian or the pseudo-inverse of a non-square Jacobian.
+    Represents the inverse of a square Jacobian or the pseudo-inverse of
+    a non-square Jacobian.
     """
 
     __slots__ = ()
@@ -612,7 +624,9 @@ class FacetJacobianInverse(GeometricFacetQuantity):
         GeometricFacetQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 2:
-            raise ValueError("FacetJacobianInverse is only defined for topological dimensions >= 2.")
+            raise ValueError(
+                "FacetJacobianInverse is only defined for topological dimensions >= 2."
+            )
 
     @property
     def ufl_shape(self):
@@ -640,7 +654,9 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
         GeometricFacetQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 2:
-            raise ValueError("CellFacetJacobianInverse is only defined for topological dimensions >= 2.")
+            raise ValueError(
+                "CellFacetJacobianInverse is only defined for topological dimensions >= 2."
+            )
 
     @property
     def ufl_shape(self):
@@ -655,6 +671,7 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
 
 
 # --- Types representing normal or tangent vectors
+
 
 @ufl_type()
 class FacetNormal(GeometricFacetQuantity):
@@ -675,7 +692,8 @@ class FacetNormal(GeometricFacetQuantity):
         # facets. Seems like too much work to fix right now.  Only
         # true for a piecewise linear coordinate field with simplex
         # _facets_.
-        is_piecewise_linear = self._domain.ufl_coordinate_element().degree() == 1
+        ce = self._domain.ufl_coordinate_element()
+        is_piecewise_linear = ce.embedded_superdegree <= 1 and ce in H1
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
 
@@ -713,7 +731,9 @@ class ReferenceNormal(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         return (t,)
 
-# --- Types representing measures of the cell and entities of the cell, typically used for stabilisation terms
+
+# --- Types representing measures of the cell and entities of the cell,
+# typically used for stabilisation terms
 
 # TODO: Clean up this set of types? Document!
 
@@ -799,6 +819,7 @@ class MaxFacetEdgeLength(GeometricFacetQuantity):
 
 
 # --- Types representing other stuff
+
 
 @ufl_type()
 class CellOrientation(GeometricCellQuantity):

@@ -3,11 +3,19 @@
 In the stripped version, any data-carrying objects have been extracted to a mapping.
 """
 
-from ufl.classes import Form, Integral
-from ufl.classes import Argument, Coefficient, Constant
-from ufl.classes import FunctionSpace, TensorProductFunctionSpace, MixedFunctionSpace
-from ufl.classes import Mesh, MeshView, TensorProductMesh
 from ufl.algorithms.replace import replace
+from ufl.classes import (
+    Argument,
+    Coefficient,
+    Constant,
+    Form,
+    FunctionSpace,
+    Integral,
+    Mesh,
+    MeshView,
+    MixedFunctionSpace,
+    TensorProductFunctionSpace,
+)
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 
@@ -22,20 +30,17 @@ class TerminalStripper(MultiFunction):
 
     def argument(self, o):
         """Apply to argument."""
-        o_new = Argument(strip_function_space(o.ufl_function_space()),
-                         o.number(), o.part())
+        o_new = Argument(strip_function_space(o.ufl_function_space()), o.number(), o.part())
         return self.mapping.setdefault(o, o_new)
 
     def coefficient(self, o):
         """Apply to coefficient."""
-        o_new = Coefficient(strip_function_space(o.ufl_function_space()),
-                            o.count())
+        o_new = Coefficient(strip_function_space(o.ufl_function_space()), o.count())
         return self.mapping.setdefault(o, o_new)
 
     def constant(self, o):
         """Apply to constant."""
-        o_new = Constant(strip_domain(o.ufl_domain()), o.ufl_shape,
-                         o.count())
+        o_new = Constant(strip_domain(o.ufl_domain()), o.ufl_shape, o.count())
         return self.mapping.setdefault(o, o_new)
 
     expr = MultiFunction.reuse_if_untouched
@@ -104,8 +109,9 @@ def replace_terminal_data(o, mapping):
 def strip_function_space(function_space):
     """Return a new function space with all non-UFL information removed."""
     if isinstance(function_space, FunctionSpace):
-        return FunctionSpace(strip_domain(function_space.ufl_domain()),
-                             function_space.ufl_element())
+        return FunctionSpace(
+            strip_domain(function_space.ufl_domain()), function_space.ufl_element()
+        )
     elif isinstance(function_space, TensorProductFunctionSpace):
         subspaces = [strip_function_space(sub) for sub in function_space.ufl_sub_spaces()]
         return TensorProductFunctionSpace(*subspaces)
@@ -121,10 +127,8 @@ def strip_domain(domain):
     if isinstance(domain, Mesh):
         return Mesh(domain.ufl_coordinate_element(), domain.ufl_id())
     elif isinstance(domain, MeshView):
-        return MeshView(strip_domain(domain.ufl_mesh()),
-                        domain.topological_dimension(), domain.ufl_id())
-    elif isinstance(domain, TensorProductMesh):
-        meshes = [strip_domain(mesh) for mesh in domain.ufl_meshes()]
-        return TensorProductMesh(meshes, domain.ufl_id())
+        return MeshView(
+            strip_domain(domain.ufl_mesh()), domain.topological_dimension(), domain.ufl_id()
+        )
     else:
         raise NotImplementedError(f"{type(domain)} cannot be stripped")

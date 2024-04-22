@@ -1,10 +1,10 @@
 """Algorithm to check for 'comparison' nodes in a form when the user is in 'complex mode'."""
 
-from ufl.corealg.multifunction import MultiFunction
-from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algebra import Real
-from ufl.constantvalue import RealValue, Zero
+from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.argument import Argument
+from ufl.constantvalue import RealValue, Zero
+from ufl.corealg.multifunction import MultiFunction
 from ufl.geometry import GeometricQuantity
 
 
@@ -83,19 +83,19 @@ class CheckComparisons(MultiFunction):
     def real(self, o, *ops):
         """Apply to real."""
         o = self.reuse_if_untouched(o, *ops)
-        self.nodetype[o] = 'real'
+        self.nodetype[o] = "real"
         return o
 
     def imag(self, o, *ops):
         """Apply to imag."""
         o = self.reuse_if_untouched(o, *ops)
-        self.nodetype[o] = 'real'
+        self.nodetype[o] = "real"
         return o
 
     def sqrt(self, o, *ops):
         """Apply to sqrt."""
         o = self.reuse_if_untouched(o, *ops)
-        self.nodetype[o] = 'complex'
+        self.nodetype[o] = "complex"
         return o
 
     def power(self, o, base, exponent):
@@ -104,28 +104,28 @@ class CheckComparisons(MultiFunction):
         try:
             # Attempt to diagnose circumstances in which the result must be real.
             exponent = float(exponent)
-            if self.nodetype[base] == 'real' and int(exponent) == exponent:
-                self.nodetype[o] = 'real'
+            if self.nodetype[base] == "real" and int(exponent) == exponent:
+                self.nodetype[o] = "real"
                 return o
         except TypeError:
             pass
 
-        self.nodetype[o] = 'complex'
+        self.nodetype[o] = "complex"
         return o
 
     def abs(self, o, *ops):
         """Apply to abs."""
         o = self.reuse_if_untouched(o, *ops)
-        self.nodetype[o] = 'real'
+        self.nodetype[o] = "real"
         return o
 
     def terminal(self, term, *ops):
         """Apply to terminal."""
         # default terminals to complex, except the ones we *know* are real
         if isinstance(term, (RealValue, Zero, Argument, GeometricQuantity)):
-            self.nodetype[term] = 'real'
+            self.nodetype[term] = "real"
         else:
-            self.nodetype[term] = 'complex'
+            self.nodetype[term] = "complex"
         return term
 
     def indexed(self, o, expr, multiindex):

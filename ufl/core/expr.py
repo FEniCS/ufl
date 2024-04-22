@@ -21,8 +21,6 @@ import warnings
 from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
 
 
-# --- The base object for all UFL expression tree nodes ---
-
 class Expr(object, metaclass=UFLType):
     """Base class for all UFL expression types.
 
@@ -171,13 +169,10 @@ class Expr(object, metaclass=UFLType):
     _ufl_required_properties_ = (
         # A tuple of operands, all of them Expr instances.
         "ufl_operands",
-
         # A tuple of ints, the value shape of the expression.
         "ufl_shape",
-
         # A tuple of free index counts.
         "ufl_free_indices",
-
         # A tuple providing the int dimension for each free index.
         "ufl_index_dimensions",
     )
@@ -188,30 +183,21 @@ class Expr(object, metaclass=UFLType):
     _ufl_required_methods_ = (
         # To compute the hash on demand, this method is called.
         "_ufl_compute_hash_",
-
         # The data returned from this method is used to compute the
         # signature of a form
         "_ufl_signature_data_",
-
         # The == operator must be implemented to compare for identical
         # representation, used by set() and dict(). The __hash__
         # operator is added by ufl_type.
         "__eq__",
-
         # To reconstruct an object of the same type with operands or
         # properties changed.
         "_ufl_expr_reconstruct_",  # Implemented in Operator and Terminal so this should never fail
-
         "ufl_domains",
         # "ufl_cell",
         # "ufl_domain",
-
         # "__str__",
         # "__repr__",
-
-        # TODO: Add checks for methods/properties of terminals only?
-        # Required for terminals:
-        # "is_cellwise_constant", # TODO: Rename to ufl_is_cellwise_constant?
     )
 
     # --- Global variables for collecting all types ---
@@ -265,16 +251,22 @@ class Expr(object, metaclass=UFLType):
 
     def ufl_domains(self):
         """Return all domains this expression is defined on."""
-        warnings.warn("Expr.ufl_domains() is deprecated, please "
-                      "use extract_domains(expr) instead.", DeprecationWarning)
+        warnings.warn(
+            "Expr.ufl_domains() is deprecated, please use extract_domains(expr) instead.",
+            DeprecationWarning,
+        )
         from ufl.domain import extract_domains
+
         return extract_domains(self)
 
     def ufl_domain(self):
         """Return the single unique domain this expression is defined on, or throw an error."""
-        warnings.warn("Expr.ufl_domain() is deprecated, please "
-                      "use extract_unique_domain(expr) instead.", DeprecationWarning)
+        warnings.warn(
+            "Expr.ufl_domain() is deprecated, please use extract_unique_domain(expr) instead.",
+            DeprecationWarning,
+        )
         from ufl.domain import extract_unique_domain
+
         return extract_unique_domain(self)
 
     # --- Functions for float evaluation ---

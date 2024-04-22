@@ -1,4 +1,4 @@
-"""Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
+"""Utility algorithms for inspection of and information extraction from UFL objects."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -11,20 +11,19 @@
 
 from itertools import chain
 
-from ufl.utils.sorting import sorted_by_count, topological_sorting
-
-from ufl.core.terminal import Terminal
-from ufl.core.base_form_operator import BaseFormOperator
+from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import BaseArgument, Coargument
 from ufl.coefficient import BaseCoefficient
 from ufl.constant import Constant
+from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.terminal import Terminal
+from ufl.corealg.traversal import traverse_unique_terminals, unique_pre_traversal
 from ufl.form import BaseForm, Form
-from ufl.algorithms.traversal import iter_expressions
-from ufl.corealg.traversal import unique_pre_traversal, traverse_unique_terminals
-
+from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 # TODO: Some of these can possibly be optimised by implementing
 # inlined stack based traversal algorithms
+
 
 def _sorted_by_number_and_part(seq):
     """Sort items by number and part."""
@@ -43,6 +42,7 @@ def unique_tuple(objects):
 
 
 # --- Utilities to extract information from an expression ---
+
 
 def extract_type(a, ufl_types):
     """Build a set of all objects found in a whose class is in ufl_types.
@@ -77,15 +77,22 @@ def extract_type(a, ufl_types):
 
     if all(issubclass(t, Terminal) for t in ufl_types):
         # Optimization
-        objects = set(o for e in iter_expressions(a)
-                      for o in traverse_unique_terminals(e)
-                      if any(isinstance(o, t) for t in ufl_types))
+        objects = set(
+            o
+            for e in iter_expressions(a)
+            for o in traverse_unique_terminals(e)
+            if any(isinstance(o, t) for t in ufl_types)
+        )
     else:
-        objects = set(o for e in iter_expressions(a)
-                      for o in unique_pre_traversal(e)
-                      if any(isinstance(o, t) for t in ufl_types))
+        objects = set(
+            o
+            for e in iter_expressions(a)
+            for o in unique_pre_traversal(e)
+            if any(isinstance(o, t) for t in ufl_types)
+        )
 
-    # Need to extract objects contained in base form operators whose type is in ufl_types
+    # Need to extract objects contained in base form operators whose
+    # type is in ufl_types
     base_form_ops = set(e for e in objects if isinstance(e, BaseFormOperator))
     ufl_types_no_args = tuple(t for t in ufl_types if not issubclass(t, BaseArgument))
     base_form_objects = ()
@@ -94,16 +101,19 @@ def extract_type(a, ufl_types):
         # `N(u; v*) * v * dx` <=> `action(v1 * v * dx, N(...; v*))`
         # where `v`, `v1` are `Argument`s and `v*` a `Coargument`.
         for ai in tuple(arg for arg in o.argument_slots(isinstance(a, Form))):
-            # Extracting BaseArguments of an object of which a Coargument is an argument,
-            # then we just return the dual argument of the Coargument and not its primal argument.
+            # Extracting BaseArguments of an object of which a
+            # Coargument is an argument, then we just return the dual
+            # argument of the Coargument and not its primal argument.
             if isinstance(ai, Coargument):
                 new_types = tuple(Coargument if t is BaseArgument else t for t in ufl_types)
                 base_form_objects += tuple(extract_type(ai, new_types))
             else:
                 base_form_objects += tuple(extract_type(ai, ufl_types))
-        # Look for BaseArguments in BaseFormOperator's argument slots only since that's where they are by definition.
-        # Don't look into operands, which is convenient for external operator composition, e.g. N1(N2; v*)
-        # where N2 is seen as an operator and not a form.
+        # Look for BaseArguments in BaseFormOperator's argument slots
+        # only since that's where they are by definition. Don't look
+        # into operands, which is convenient for external operator
+        # composition, e.g. N1(N2; v*) where N2 is seen as an operator
+        # and not a form.
         slots = o.ufl_operands
         for ai in slots:
             base_form_objects += tuple(extract_type(ai, ufl_types_no_args))
@@ -208,14 +218,16 @@ def extract_arguments_and_coefficients(a):
         raise ValueError(
             "Found different Arguments with same number and part.\n"
             "Did you combine test or trial functions from different spaces?\n"
-            "The Arguments found are:\n" + "\n".join(f"  {a}" for a in arguments))
+            "The Arguments found are:\n" + "\n".join(f"  {a}" for a in arguments)
+        )
 
     # Build count: instance mappings, should be one to one
     fcounts = dict((f, f.count()) for f in coefficients)
     if len(fcounts) != len(set(fcounts.values())):
         raise ValueError(
             "Found different coefficients with same counts.\n"
-            "The arguments found are:\n" + "\n".join(f"  {c}" for c in coefficients))
+            "The arguments found are:\n" + "\n".join(f"  {c}" for c in coefficients)
+        )
 
     # Passed checks, so we can safely sort the instances by count
     arguments = _sorted_by_number_and_part(arguments)
@@ -237,7 +249,7 @@ def extract_unique_elements(form):
 
 def extract_sub_elements(elements):
     """Build sorted tuple of all sub elements (including parent element)."""
-    sub_elements = tuple(chain(*[e.sub_elements() for e in elements]))
+    sub_elements = tuple(chain(*[e.sub_elements for e in elements]))
     if not sub_elements:
         return tuple(elements)
     return tuple(elements) + extract_sub_elements(sub_elements)
@@ -253,12 +265,12 @@ def sort_elements(elements):
     The ordering is based on sorting a directed acyclic graph.
     """
     # Set nodes
-    nodes = sorted(elements)
+    nodes = list(elements)
 
     # Set edges
     edges = dict((node, []) for node in nodes)
     for element in elements:
-        for sub_element in element.sub_elements():
+        for sub_element in element.sub_elements:
             edges[element].append(sub_element)
 
     # Sort graph

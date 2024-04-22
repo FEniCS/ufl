@@ -8,12 +8,12 @@ These are used to label expressions as variables for differentiation.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.utils.counted import Counted
-from ufl.core.expr import Expr
-from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import Terminal
-from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl
+from ufl.core.expr import Expr
+from ufl.core.operator import Operator
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import ufl_type
+from ufl.utils.counted import Counted
 
 
 @ufl_type()
@@ -118,10 +118,12 @@ class Variable(Operator):
 
     def __eq__(self, other):
         """Check equality."""
-        return (isinstance(other, Variable) and self.ufl_operands[1] == other.ufl_operands[1] and  # noqa: W504
-                self.ufl_operands[0] == other.ufl_operands[0])
+        return (
+            isinstance(other, Variable)
+            and self.ufl_operands[1] == other.ufl_operands[1]
+            and self.ufl_operands[0] == other.ufl_operands[0]
+        )
 
     def __str__(self):
         """Format as a string."""
-        return "var%d(%s)" % (self.ufl_operands[1].count(),
-                              self.ufl_operands[0])
+        return "var%d(%s)" % (self.ufl_operands[1].count(), self.ufl_operands[0])

@@ -3,14 +3,15 @@
 import numbers
 
 import ufl
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.core.multiindex import Index, FixedIndex
-from ufl.form import Form
 from ufl.algorithms import compute_form_data
+from ufl.core.multiindex import FixedIndex, Index
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.multifunction import MultiFunction
+from ufl.form import Form
 
 try:
     import colorama
+
     has_colorama = True
 except ImportError:
     has_colorama = False
@@ -26,6 +27,7 @@ class PrecedenceRules(MultiFunction):
     def highest(self, o):
         """Return the highest precendence."""
         return 0
+
     terminal = highest
     list_tensor = highest
     component_tensor = highest
@@ -33,12 +35,14 @@ class PrecedenceRules(MultiFunction):
     def restricted(self, o):
         """Return precedence of a restriced."""
         return 5
+
     cell_avg = restricted
     facet_avg = restricted
 
     def call(self, o):
         """Return precedence of a call."""
         return 10
+
     indexed = call
     min_value = call
     max_value = call
@@ -52,6 +56,7 @@ class PrecedenceRules(MultiFunction):
     def mathop(self, o):
         """Return precedence of a mathop."""
         return 15
+
     derivative = mathop
     trace = mathop
     deviatoric = mathop
@@ -66,6 +71,7 @@ class PrecedenceRules(MultiFunction):
     def product(self, o):
         """Return precedence of a product."""
         return 30
+
     division = product
     # mod = product
     dot = product
@@ -76,12 +82,14 @@ class PrecedenceRules(MultiFunction):
     def add(self, o):
         """Return precedence of an add."""
         return 40
+
     # sub = add
     index_sum = add
 
     def lt(self, o):
         """Return precedence of a lt."""
         return 50
+
     le = lt
     gt = lt
     ge = lt
@@ -89,6 +97,7 @@ class PrecedenceRules(MultiFunction):
     def eq(self, o):
         """Return precedence of an eq."""
         return 60
+
     ne = eq
 
     def and_condition(self, o):
@@ -106,6 +115,7 @@ class PrecedenceRules(MultiFunction):
     def lowest(self, o):
         """Return precedence of a lowest."""
         return 80
+
     operator = lowest
 
 
@@ -121,81 +131,81 @@ class UC:
     """An enum-like class for unicode characters."""
 
     # Letters in this alphabet have contiguous code point numbers
-    bold_math_a = u"𝐚"
-    bold_math_A = u"𝐀"
+    bold_math_a = "𝐚"
+    bold_math_A = "𝐀"
 
-    thin_space = u"\u2009"
+    thin_space = "\u2009"
 
-    superscript_plus = u"⁺"
-    superscript_minus = u"⁻"
-    superscript_equals = u"⁼"
-    superscript_left_paren = u"⁽"
-    superscript_right_paren = u"⁾"
+    superscript_plus = "⁺"
+    superscript_minus = "⁻"
+    superscript_equals = "⁼"
+    superscript_left_paren = "⁽"
+    superscript_right_paren = "⁾"
     superscript_digits = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]
 
-    subscript_plus = u"₊"
-    subscript_minus = u"₋"
-    subscript_equals = u"₌"
-    subscript_left_paren = u"₍"
-    subscript_right_paren = u"₎"
+    subscript_plus = "₊"
+    subscript_minus = "₋"
+    subscript_equals = "₌"
+    subscript_left_paren = "₍"
+    subscript_right_paren = "₎"
     subscript_digits = ["₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉"]
 
-    sqrt = u"√"
-    transpose = u"ᵀ"
+    sqrt = "√"
+    transpose = "ᵀ"
 
-    integral = u"∫"
-    integral_double = u"∬"
-    integral_triple = u"∭"
-    integral_contour = u"∮"
-    integral_surface = u"∯"
-    integral_volume = u"∰"
+    integral = "∫"
+    integral_double = "∬"
+    integral_triple = "∭"
+    integral_contour = "∮"
+    integral_surface = "∯"
+    integral_volume = "∰"
 
-    sum = u"∑"
+    sum = "∑"
     division_slash = "∕"
-    partial = u"∂"
-    epsilon = u"ε"
-    omega = u"ω"
-    Omega = u"Ω"
-    gamma = u"γ"
-    Gamma = u"Γ"
-    nabla = u"∇"
-    for_all = u"∀"
+    partial = "∂"
+    epsilon = "ε"
+    omega = "ω"
+    Omega = "Ω"
+    gamma = "γ"
+    Gamma = "Γ"
+    nabla = "∇"
+    for_all = "∀"
 
-    dot = u"⋅"
-    cross_product = u"⨯"
-    circled_times = u"⊗"
-    nary_product = u"∏"
+    dot = "⋅"
+    cross_product = "⨯"
+    circled_times = "⊗"
+    nary_product = "∏"
 
-    ne = u"≠"
-    lt = u"<"
-    le = u"≤"
-    gt = u">"
-    ge = u"≥"
+    ne = "≠"
+    lt = "<"
+    le = "≤"
+    gt = ">"
+    ge = "≥"
 
-    logical_and = u"∧"
-    logical_or = u"∨"
-    logical_not = u"¬"
+    logical_and = "∧"
+    logical_or = "∨"
+    logical_not = "¬"
 
-    element_of = u"∈"
-    not_element_of = u"∉"
+    element_of = "∈"
+    not_element_of = "∉"
 
-    left_white_square_bracket = u"⟦"
-    right_white_squared_bracket = u"⟧"
-    left_angled_bracket = u"⟨"
-    right_angled_bracket = u"⟩"
-    left_double_angled_bracket = u"⟪"
-    right_double_angled_bracket = u"⟫"
+    left_white_square_bracket = "⟦"
+    right_white_squared_bracket = "⟧"
+    left_angled_bracket = "⟨"
+    right_angled_bracket = "⟩"
+    left_double_angled_bracket = "⟪"
+    right_double_angled_bracket = "⟫"
 
-    combining_right_arrow_above = "\u20D7"
+    combining_right_arrow_above = "\u20d7"
     combining_overline = "\u0305"
 
 
 def bolden_letter(c):
     """Bolden a letter."""
     if ord("A") <= ord(c) <= ord("Z"):
-        c = chr(ord(c) - ord(u"A") + ord(UC.bold_math_A))
+        c = chr(ord(c) - ord("A") + ord(UC.bold_math_A))
     elif ord("a") <= ord(c) <= ord("z"):
-        c = chr(ord(c) - ord(u"a") + ord(UC.bold_math_a))
+        c = chr(ord(c) - ord("a") + ord(UC.bold_math_a))
     return c
 
 
@@ -211,12 +221,12 @@ def subscript_digit(digit):
 
 def bolden_string(s):
     """Bolden a string."""
-    return u"".join(bolden_letter(c) for c in s)
+    return "".join(bolden_letter(c) for c in s)
 
 
 def overline_string(f):
     """Overline a string."""
-    return u"".join(f"{c}{UC.combining_overline}" for c in f)
+    return "".join(f"{c}{UC.combining_overline}" for c in f)
 
 
 def subscript_number(number):
@@ -245,12 +255,7 @@ def measure_font(dx):
     return bolden_string(dx)
 
 
-integral_by_dim = {
-    3: UC.integral_triple,
-    2: UC.integral_double,
-    1: UC.integral,
-    0: UC.integral
-}
+integral_by_dim = {3: UC.integral_triple, 2: UC.integral_double, 1: UC.integral, 0: UC.integral}
 
 integral_type_to_codim = {
     "cell": 0,
@@ -300,14 +305,15 @@ def get_integral_symbol(integral_type, domain, subdomain_id):
 
     # TODO: Render domain description
 
-    if isinstance(subdomain_id, numbers.Integral):
-        istr += subscript_number(int(subdomain_id))
-    elif subdomain_id == "everywhere":
-        pass
-    elif subdomain_id == "otherwise":
-        istr += "[rest of domain]"
-    elif isinstance(subdomain_id, tuple):
-        istr += ",".join([subscript_number(int(i)) for i in subdomain_id])
+    subdomain_strs = []
+    for subdomain in subdomain_id:
+        if isinstance(subdomain, numbers.Integral):
+            subdomain_strs.append(subscript_number(int(subdomain)))
+        elif subdomain == "everywhere":
+            pass
+        elif subdomain == "otherwise":
+            subdomain_strs.append("[rest of domain]")
+    istr += ",".join(subdomain_strs)
 
     dxstr = ufl.measure.integral_type_to_measure_name[integral_type]
     dxstr = measure_font(dxstr)
@@ -365,8 +371,7 @@ def form2unicode(form, formdata):
     lines = []
     integrals = form.integrals()
     for itg in integrals:
-        integrand_string = expression2unicode(
-            itg.integrand(), argument_names, coefficient_names)
+        integrand_string = expression2unicode(itg.integrand(), argument_names, coefficient_names)
 
         istr, dxstr = get_integral_symbol(itg.integral_type(), itg.ufl_domain(), itg.subdomain_id())
 
@@ -782,7 +787,7 @@ class Expression2UnicodeHandler(MultiFunction):
         f = par(t)
         If = opfont("if")
         Else = opfont("else")
-        return " ".join((t, If, c, Else, f))
+        return f"{t} {If} {c} {Else} {f}"
 
     def min_value(self, o, a, b):
         """Format an min_value."""

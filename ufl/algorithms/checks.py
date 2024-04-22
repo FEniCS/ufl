@@ -9,21 +9,24 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Mehdi Nikbakht, 2010.
 
-# UFL classes
-from ufl.core.expr import ufl_err_str
-from ufl.form import Form
+from ufl.algorithms.check_restrictions import check_restrictions
+
+# UFL algorithms
+from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import is_true_ufl_scalar
 
-# UFL algorithms
-from ufl.algorithms.traversal import iter_expressions
+# UFL classes
+from ufl.core.expr import ufl_err_str
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.algorithms.check_restrictions import check_restrictions
 from ufl.domain import extract_unique_domain
+from ufl.form import Form
 
 
-def validate_form(form):  # TODO: Can we make this return a list of errors instead of raising exception?
+def validate_form(
+    form,
+):  # TODO: Can we make this return a list of errors instead of raising exception?
     """Performs all implemented validations on a form. Raises exception if something fails."""
     errors = []
 
@@ -38,9 +41,11 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     #     errors.append("Form is not multilinear in arguments.")
 
     # FIXME DOMAIN: Add check for consistency between domains somehow
-    domains = set(extract_unique_domain(t)
-                  for e in iter_expressions(form)
-                  for t in traverse_unique_terminals(e)) - {None}
+    domains = set(
+        extract_unique_domain(t)
+        for e in iter_expressions(form)
+        for t in traverse_unique_terminals(e)
+    ) - {None}
     if not domains:
         errors.append("Missing domain definition in form.")
 
@@ -62,8 +67,7 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
                 if c in coefficients:
                     g = coefficients[c]
                     if f is not g:
-                        errors.append("Found different Coefficients with "
-                                      f"same count: {f} and {g}.")
+                        errors.append(f"Found different Coefficients with same count: {f} and {g}.")
                 else:
                     coefficients[c] = f
 
@@ -102,4 +106,4 @@ def validate_form(form):  # TODO: Can we make this return a list of errors inste
     # TODO: Return errors list instead, need to collect messages from
     # all validations above first.
     if errors:
-        raise ValueError("Found errors in validation of form:\n" + '\n\n'.join(errors))
+        raise ValueError("Found errors in validation of form:\n" + "\n\n".join(errors))

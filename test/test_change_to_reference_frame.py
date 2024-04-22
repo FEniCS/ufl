@@ -1,7 +1,10 @@
 """Tests of the change to reference frame algorithm."""
 
-from ufl import Coefficient, FiniteElement, FunctionSpace, Mesh, TensorElement, VectorElement, triangle
+from ufl import Coefficient, FunctionSpace, Mesh, triangle
 from ufl.classes import Expr, ReferenceValue
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import contravariant_piola, identity_pullback
+from ufl.sobolevspace import H1, HDiv
 
 
 def change_to_reference_frame(expr):
@@ -10,11 +13,11 @@ def change_to_reference_frame(expr):
 
 
 def test_change_unmapped_form_arguments_to_reference_frame():
-    U = FiniteElement("CG", triangle, 1)
-    V = VectorElement("CG", triangle, 1)
-    T = TensorElement("CG", triangle, 1)
+    U = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    V = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    T = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
 
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     u_space = FunctionSpace(domain, U)
     v_space = FunctionSpace(domain, V)
     t_space = FunctionSpace(domain, T)
@@ -28,9 +31,9 @@ def test_change_unmapped_form_arguments_to_reference_frame():
 
 
 def test_change_hdiv_form_arguments_to_reference_frame():
-    V = FiniteElement("RT", triangle, 1)
+    V = FiniteElement("Raviart-Thomas", triangle, 1, (2,), contravariant_piola, HDiv)
 
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     v_space = FunctionSpace(domain, V)
 
     expr = Coefficient(v_space)
@@ -38,15 +41,15 @@ def test_change_hdiv_form_arguments_to_reference_frame():
 
 
 def test_change_hcurl_form_arguments_to_reference_frame():
-    V = FiniteElement("RT", triangle, 1)
+    V = FiniteElement("Raviart-Thomas", triangle, 1, (2,), contravariant_piola, HDiv)
 
-    domain = Mesh(VectorElement("Lagrange", triangle, 1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     v_space = FunctionSpace(domain, V)
 
     expr = Coefficient(v_space)
     assert change_to_reference_frame(expr) == ReferenceValue(expr)
 
-    '''
+    """
     # user input
     grad(f + g)('+')
     # change to reference frame
@@ -118,10 +121,10 @@ def test_change_hcurl_form_arguments_to_reference_frame():
     e = v | cell_avg(v) | facet_avg(v) | at_cell_midpoint(v) | at_facet_midpoint(v)
                                          # evaluated at point or averaged over cell entity
     m = e | indexed(e)                   # scalar component of
-    '''
+    """
 
 
-'''
+"""
 New form preprocessing pipeline:
 
 Preferably introduce these changes:
@@ -136,7 +139,8 @@ ii) process integrands:
     b) lower_compound_operators # expand_compounds
     c) change_to_reference_frame # change f->rv(f), m->M*rv(m),
                                           grad(f)->K*rgrad(rv(f)),
-                                          grad(grad(f))->K*rgrad(K*rgrad(rv(f))), grad(expr)->K*rgrad(expr)
+                                          grad(grad(f))->K*rgrad(K*rgrad(rv(f))),
+                                                grad(expr)->K*rgrad(expr)
                                  # if grad(expr)->K*rgrad(expr) should be valid,
                                    then rgrad must be applicable to quite generic expressions
     d) apply_derivatives         # one possibility is to add an apply_mapped_derivatives AD
@@ -144,4 +148,4 @@ ii) process integrands:
     e) apply_geometry_lowering
     f) apply_restrictions # requiring grad(f)('+') instead of grad(f('+')) would simplify a lot...
 iii) extract final metadata about elements and coefficient ordering
-'''
+"""
