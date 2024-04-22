@@ -2,11 +2,12 @@
 
 Custom caching function to be used with class methods.
 """
+import typing
 
-__cache = {}
+__cache: typing.Dict[str, typing.Dict[typing.Any, typing.Dict[str, typing.Any]]] = {}
 
 
-def cache(f):
+def cache(f: typing.Callable) -> typing.Callable:
     """Decorator for caching the result of a function."""
 
     def cached_f(self, *args, **kwargs):
@@ -18,6 +19,7 @@ def cache(f):
             __cache[f.__name__][self][key] = f(self, *args, **kwargs)
         return __cache[f.__name__][self][key]
 
+    cached_f.__doc__ = f.__doc__
     return cached_f
 
 
