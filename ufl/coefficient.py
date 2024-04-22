@@ -10,10 +10,10 @@
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 # Modified by Ignacia Fierro-Piccardo 2023.
-import functools
 import typing
 
 from ufl.argument import Argument
+from ufl.core.caching import cache
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual, is_primal
@@ -204,7 +204,7 @@ class Coefficient(FormArgument, BaseCoefficient):
         """Representation."""
         return self._repr
 
-    @functools.lru_cache
+    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

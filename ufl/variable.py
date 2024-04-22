@@ -8,10 +8,10 @@ These are used to label expressions as variables for differentiation.
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-import functools
 import typing
 
 from ufl.constantvalue import as_ufl
+from ufl.core.caching import cache
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
@@ -69,7 +69,7 @@ class Label(Terminal, Counted):
             return ("Label", self._count)
         return ("Label", renumbering[self])
 
-    @functools.lru_cache
+    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -140,7 +140,7 @@ class Variable(Operator):
         """Format as a string."""
         return "var%d(%s)" % (self.ufl_operands[1].count(), self.ufl_operands[0])
 
-    @functools.lru_cache
+    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

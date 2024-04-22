@@ -10,11 +10,11 @@ restrictions in a form towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 import typing
-import warnings
 from abc import abstractmethod
 from typing import Protocol
 
 from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.core import caching
 from ufl.corealg.multifunction import MultiFunction
 from ufl.measure import integral_type_to_measure_name
 from ufl.typing import Self
@@ -36,12 +36,10 @@ default_restriction = "+"
 
 def apply_restrictions(expression: ApplyRestrictions):
     """Propagate restriction nodes to wrap differential terminals directly."""
-    warnings.warn(
-        "apply_restrictions(expression) is deprecated and will be removed "
-        "after December 2024. Please, use expression.apply_restrictions() instead",
-        FutureWarning,
-    )
-    return expression.apply_restrictions()
+    caching.initialise_cache("apply_restrictions")
+    result = expression.apply_restrictions()
+    caching.clear_cache("apply_restrictions")
+    return result
 
 
 class DefaultRestrictionApplier(MultiFunction):

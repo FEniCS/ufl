@@ -5,9 +5,9 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-import functools
 import typing
 
+from ufl.core.caching import cache
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.precedence import parstr
@@ -46,7 +46,7 @@ class Restricted(Operator):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)}({self._side})"
 
-    @functools.lru_cache
+    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
