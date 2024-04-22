@@ -22,7 +22,7 @@ def cache(f):
 
 
 def initialise_cache(function_name: str):
-    """Initialise a cacge for a given function."""
+    """Initialise a cache for a given function."""
     global __cache
     __cache[function_name] = {}
 
