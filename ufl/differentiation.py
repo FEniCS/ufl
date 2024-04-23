@@ -13,7 +13,6 @@ from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
 from ufl.core.base_form_operator import BaseFormOperator
-from ufl.core.caching import cache
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
@@ -298,7 +297,7 @@ class Grad(CompoundDerivative):
         """Format as a string."""
         return "grad(%s)" % self.ufl_operands[0]
 
-    @cache
+
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

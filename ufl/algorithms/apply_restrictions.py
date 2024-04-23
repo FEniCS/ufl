@@ -10,11 +10,9 @@ restrictions in a form towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 import typing
-from abc import abstractmethod
 from typing import Protocol
 
-from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.core import caching
+from ufl.algorithms.map_integrands import map_integrand_dags, map_integrand_dags_legacy
 from ufl.corealg.multifunction import MultiFunction
 from ufl.measure import integral_type_to_measure_name
 from ufl.typing import Self
@@ -23,7 +21,6 @@ from ufl.typing import Self
 class ApplyRestrictions(Protocol):
     """Protocol for apply_restrictions."""
 
-    @abstractmethod
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -34,12 +31,13 @@ class ApplyRestrictions(Protocol):
 default_restriction = "+"
 
 
-def apply_restrictions(expression: ApplyRestrictions):
+def apply_restrictions(expression):
     """Propagate restriction nodes to wrap differential terminals directly."""
-    caching.initialise_cache("apply_restrictions")
-    result = expression.apply_restrictions()
-    caching.clear_cache("apply_restrictions")
-    return result
+    integral_types = [
+        k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
+    ]
+
+    return map_integrand_dags("apply_restrictions", (None, ), expression, only_integral_type=integral_types)
 
 
 class DefaultRestrictionApplier(MultiFunction):
@@ -105,4 +103,4 @@ def apply_default_restrictions(expression):
         k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
     ]
     rules = DefaultRestrictionApplier()
-    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
+    return map_integrand_dags_legacy(rules, expression, only_integral_type=integral_types)

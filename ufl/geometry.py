@@ -7,7 +7,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 import typing
 
-from ufl.core.caching import cache
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain, extract_unique_domain
@@ -131,7 +130,6 @@ class GeometricCellQuantity(GeometricQuantity):
 
     __slots__ = ()
 
-    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -148,7 +146,6 @@ class GeometricFacetQuantity(GeometricQuantity):
 
     __slots__ = ()
 
-    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -266,7 +263,6 @@ class FacetCoordinate(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         return t <= 1
 
-    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -727,7 +723,6 @@ class FacetNormal(GeometricFacetQuantity):
         is_piecewise_linear = ce.embedded_superdegree <= 1 and ce in H1
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
-    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -807,7 +802,6 @@ class ReferenceCellVolume(GeometricCellQuantity):
     __slots__ = ()
     name = "reference_cell_volume"
 
-    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -824,7 +818,6 @@ class ReferenceFacetVolume(GeometricFacetQuantity):
     __slots__ = ()
     name = "reference_facet_volume"
 
-    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 
@@ -942,7 +935,6 @@ class QuadratureWeight(GeometricQuantity):
         # The weight usually varies with the quadrature points
         return False
 
-    @cache
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

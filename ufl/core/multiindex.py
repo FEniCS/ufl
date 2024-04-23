@@ -10,7 +10,6 @@
 
 import typing
 
-from ufl.core.caching import cache
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.typing import Self
@@ -259,7 +258,7 @@ class MultiIndex(Terminal):
         """Return iteratable."""
         return iter(self._indices)
 
-    @cache
+
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

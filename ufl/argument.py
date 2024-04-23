@@ -17,7 +17,6 @@ classes (functions), including TestFunction and TrialFunction.
 import numbers
 import typing
 
-from ufl.core.caching import cache
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual, is_primal
@@ -192,7 +191,7 @@ class Argument(FormArgument, BaseArgument):
         """Representation."""
         return self._repr
 
-    @cache
+
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

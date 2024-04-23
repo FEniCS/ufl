@@ -3,7 +3,7 @@
 from itertools import chain
 
 from ufl.classes import Argument, Zero
-from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.map_dag import map_expr_dag_legacy
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.traversal import traverse_unique_terminals
 
@@ -189,7 +189,7 @@ def check_integrand_arity(expr, arguments, complex_mode=False):
     """Check the arity of an integrand."""
     arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), x.part())))
     rules = ArityChecker(arguments)
-    arg_tuples = map_expr_dag(rules, expr, compress=False)
+    arg_tuples = map_expr_dag_legacy(rules, expr, compress=False)
     args = tuple(a[0] for a in arg_tuples)
     if args != arguments:
         raise ArityMismatch(f"Integrand arguments {args} differ from form arguments {arguments}.")

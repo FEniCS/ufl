@@ -8,7 +8,7 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrand_dags_legacy
 from ufl.classes import Conj, Grad, Product
 from ufl.compound_expressions import cofactor_expr, determinant_expr, deviatoric_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
@@ -147,4 +147,4 @@ class LowerCompoundAlgebra(MultiFunction):
 
 def apply_algebra_lowering(expr):
     """Expands high level compound operators to equivalent representations using basic operators."""
-    return map_integrand_dags(LowerCompoundAlgebra(), expr)
+    return map_integrand_dags_legacy(LowerCompoundAlgebra(), expr)

@@ -8,7 +8,6 @@
 
 import typing
 
-from ufl.core.caching import cache
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain
@@ -81,7 +80,7 @@ class Constant(Terminal, Counted):
             repr(renumbering[self]),
         )
 
-    @cache
+
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

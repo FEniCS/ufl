@@ -8,7 +8,7 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrand_dags_legacy
 from ufl.argument import Argument
 from ufl.constantvalue import Zero
 from ufl.corealg.multifunction import MultiFunction
@@ -23,7 +23,7 @@ class FormSplitter(MultiFunction):
         """Split."""
         # Remember which block to extract
         self.idx = [ix, iy]
-        return map_integrand_dags(self, form)
+        return map_integrand_dags_legacy(self, form)
 
     def argument(self, obj):
         """Apply to argument."""

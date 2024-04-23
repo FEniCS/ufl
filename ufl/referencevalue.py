@@ -7,7 +7,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 import typing
 
-from ufl.core.caching import cache
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
@@ -40,7 +39,7 @@ class ReferenceValue(Operator):
         """Format as a string."""
         return f"reference_value({self.ufl_operands[0]})"
 
-    @cache
+
     def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
         """Apply restrictions.
 

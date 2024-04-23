@@ -9,7 +9,7 @@
 # Modified by Anders Logg, 2009-2010
 
 from ufl.algorithms.analysis import has_exact_type
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrand_dags_legacy
 from ufl.classes import CoefficientDerivative, Form
 from ufl.constantvalue import as_ufl
 from ufl.core.external_operator import ExternalOperator
@@ -93,4 +93,4 @@ def replace(e, mapping):
 
         e = expand_derivatives(e)
 
-    return map_integrand_dags(Replacer(mapping2), e)
+    return map_integrand_dags_legacy(Replacer(mapping2), e)

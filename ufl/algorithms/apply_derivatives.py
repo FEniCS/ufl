@@ -12,7 +12,7 @@ from math import pi
 
 from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrand_dags_legacy
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.argument import BaseArgument
 from ufl.checks import is_cellwise_constant
@@ -46,7 +46,7 @@ from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
 from ufl.core.terminal import Terminal
-from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.map_dag import map_expr_dag_legacy
 from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
@@ -1211,7 +1211,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     def coordinate_derivative(self, o):
         """Differentiate a coordinate_derivative."""
         o = o.ufl_operands
-        return CoordinateDerivative(map_expr_dag(self, o[0]), o[1], o[2], o[3])
+        return CoordinateDerivative(map_expr_dag_legacy(self, o[0]), o[1], o[2], o[3])
 
     def base_form_operator(self, o, *dfs):
         """Differentiate a base_form_operator.
@@ -1364,20 +1364,20 @@ class DerivativeRuleDispatcher(MultiFunction):
         """Apply to a grad."""
         rules = GradRuleset(o.ufl_shape[-1])
         key = (GradRuleset, o.ufl_shape[-1])
-        return map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        return map_expr_dag_legacy(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
 
     def reference_grad(self, o, f):
         """Apply to a reference_grad."""
         rules = ReferenceGradRuleset(o.ufl_shape[-1])  # FIXME: Look over this and test better.
         key = (ReferenceGradRuleset, o.ufl_shape[-1])
-        return map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        return map_expr_dag_legacy(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
 
     def variable_derivative(self, o, f, dummy_v):
         """Apply to a variable_derivative."""
         op = o.ufl_operands[1]
         rules = VariableRuleset(op)
         key = (VariableRuleset, op)
-        return map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        return map_expr_dag_legacy(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
 
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         """Apply to a coefficient_derivative."""
@@ -1389,7 +1389,9 @@ class DerivativeRuleDispatcher(MultiFunction):
         key = (GateauxDerivativeRuleset, w, v, cd)
         # We need to go through the dag first to record the pending
         # operations
-        mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        mapped_expr = map_expr_dag_legacy(
+            rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key]
+        )
         # Need to account for pending operations that have been stored
         # in other integrands
         self.pending_operations += pending_operations
@@ -1413,7 +1415,9 @@ class DerivativeRuleDispatcher(MultiFunction):
                 arguments += (arg,)
             return ZeroBaseForm(arguments)
         # We need to go through the dag first to record the pending operations
-        mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        mapped_expr = map_expr_dag_legacy(
+            rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key]
+        )
 
         mapped_f = rules.coefficient(f)
         if mapped_f != 0:
@@ -1429,7 +1433,7 @@ class DerivativeRuleDispatcher(MultiFunction):
         o_ = o.ufl_operands
         key = (CoordinateDerivative, o_[0])
         return CoordinateDerivative(
-            map_expr_dag(self, o_[0], vcache=self.vcaches[key], rcache=self.rcaches[key]),
+            map_expr_dag_legacy(self, o_[0], vcache=self.vcaches[key], rcache=self.rcaches[key]),
             o_[1],
             o_[2],
             o_[3],
@@ -1440,7 +1444,7 @@ class DerivativeRuleDispatcher(MultiFunction):
         o_ = o.ufl_operands
         key = (BaseFormCoordinateDerivative, o_[0])
         return BaseFormCoordinateDerivative(
-            map_expr_dag(self, o_[0], vcache=self.vcaches[key], rcache=self.rcaches[key]),
+            map_expr_dag_legacy(self, o_[0], vcache=self.vcaches[key], rcache=self.rcaches[key]),
             o_[1],
             o_[2],
             o_[3],
@@ -1561,7 +1565,7 @@ def apply_derivatives(expression):
     #    - 0.
     # Example:
     #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `∂F/∂u`.
-    dexpression_dvar = map_integrand_dags(rules, expression)
+    dexpression_dvar = map_integrand_dags_legacy(rules, expression)
 
     # Get the recorded delayed operations
     pending_operations = rules.pending_operations
@@ -1583,7 +1587,7 @@ def apply_derivatives(expression):
         # -- Replace dexpr/dvar by dexpr/dN -- #
         # We don't use `apply_derivatives` since the differentiation is
         # done via `\partial` and not `d`.
-        dexpr_dN = map_integrand_dags(
+        dexpr_dN = map_integrand_dags_legacy(
             rules, replace_derivative_nodes(expression, {var.ufl_operands[0]: N})
         )
         # -- Add the BaseFormOperatorDerivative node -- #
@@ -1767,10 +1771,10 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
         _, w, v, cd = o.ufl_operands
         rules = CoordinateDerivativeRuleset(w, v, cd)
         key = (CoordinateDerivativeRuleset, w, v, cd)
-        return map_expr_dag(rules, f, vcache=self.vcache[key], rcache=self.rcache[key])
+        return map_expr_dag_legacy(rules, f, vcache=self.vcache[key], rcache=self.rcache[key])
 
 
 def apply_coordinate_derivatives(expression):
     """Apply coordinate derivatives to an expression."""
     rules = CoordinateDerivativeRuleDispatcher()
-    return map_integrand_dags(rules, expression)
+    return map_integrand_dags_legacy(rules, expression)

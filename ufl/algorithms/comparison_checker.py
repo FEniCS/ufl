@@ -1,7 +1,7 @@
 """Algorithm to check for 'comparison' nodes in a form when the user is in 'complex mode'."""
 
 from ufl.algebra import Real
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrand_dags_legacy
 from ufl.argument import Argument
 from ufl.constantvalue import RealValue, Zero
 from ufl.corealg.multifunction import MultiFunction
@@ -137,7 +137,7 @@ class CheckComparisons(MultiFunction):
 
 def do_comparison_check(form):
     """Raises an error if invalid comparison nodes exist."""
-    return map_integrand_dags(CheckComparisons(), form)
+    return map_integrand_dags_legacy(CheckComparisons(), form)
 
 
 class ComplexComparisonError(BaseException):

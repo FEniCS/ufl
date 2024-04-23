@@ -15,7 +15,7 @@ algorithms.
 
 import inspect
 
-from ufl.algorithms.map_integrands import map_integrands
+from ufl.algorithms.map_integrands import map_integrands_legacy
 from ufl.classes import Variable, all_ufl_classes
 from ufl.core.ufl_type import UFLType
 
@@ -241,7 +241,7 @@ def apply_transformer(e, transformer, integral_type=None):
     Apply transformer.visit(expression) to each integrand expression in
     form, or to form if it is an Expr.
     """
-    return map_integrands(lambda expr: transformer.visit(expr), e, integral_type)
+    return map_integrands_legacy(lambda expr: transformer.visit(expr), e, integral_type)
 
 
 def strip_variables(e):

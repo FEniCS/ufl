@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrand_dags_legacy
 from ufl.classes import ReferenceValue
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 
@@ -58,4 +58,4 @@ def apply_function_pullbacks(expr):
     Args:
         expr: An Expression
     """
-    return map_integrand_dags(FunctionPullbackApplier(), expr)
+    return map_integrand_dags_legacy(FunctionPullbackApplier(), expr)

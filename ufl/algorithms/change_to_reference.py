@@ -11,7 +11,7 @@ from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.checks import is_cellwise_constant
 from ufl.classes import Grad, JacobianInverse, ReferenceGrad, ReferenceValue, Restricted
 from ufl.core.multiindex import indices
-from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.map_dag import map_expr_dag_legacy
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import extract_unique_domain
 from ufl.tensors import as_tensor
@@ -222,7 +222,7 @@ def change_to_reference_grad(e):
         e: An Expr or Form.
     """
     mf = ChangeToReferenceGrad()
-    return map_expr_dag(mf, e)
+    return map_expr_dag_legacy(mf, e)
 
 
 def change_integrand_geometry_representation(integrand, scale, integral_type):
