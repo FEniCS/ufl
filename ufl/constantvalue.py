@@ -9,7 +9,6 @@
 # Modified by Anders Logg, 2011.
 # Modified by Massimiliano Leoni, 2016.
 
-import typing
 from math import atan2
 
 import ufl
@@ -18,7 +17,7 @@ from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-from ufl.typing import Self
+from ufl.typing import Self, cutoff
 
 # Precision for float formatting
 precision = None
@@ -53,8 +52,8 @@ class ConstantValue(Terminal):
         """Return tuple of domains related to this terminal object."""
         return ()
 
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.

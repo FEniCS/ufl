@@ -9,13 +9,10 @@
 # Modified by Anders Logg, 2008-2009
 # Modified by Massimiliano Leoni, 2016.
 
-import typing
-
 import ufl
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.core.expr import Expr
 from ufl.protocols import id_or_none
-from ufl.typing import Self
 
 # Export list for ufl.classes
 __all_classes__ = ["Integral"]
@@ -155,13 +152,3 @@ class Integral(object):
             id_or_none(self._subdomain_data),
         )
         return hash(hashdata)
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
-        """Apply restrictions.
-
-        Propagates restrictions in a form towards the terminals.
-        """
-        if self.integral_type().startswith("interior_facet"):
-            return self.reconstruct(self.integrand().apply_restrictions(side))
-        else:
-            return self

@@ -128,7 +128,8 @@ def map_expr_dag(function, function_args, expression, compress=True, vcache=None
     the call, use the arguments vcache and rcache.
 
     Args:
-        function: The function
+        function: The function name
+        function_args: Arguments to pass to the function
         expression: An expression
         compress: If True (default), the output object from
             the function is cached in a dict and reused such that the
@@ -146,7 +147,9 @@ def map_expr_dag(function, function_args, expression, compress=True, vcache=None
     return result
 
 
-def map_expr_dags(function, function_args, expressions, compress=True, vcache=None, rcache=None):
+def map_expr_dags(
+    function, function_args, expressions, compress=True, vcache=None, rcache=None, cutoff=True
+):
     """Apply a function to each sub-expression node in an expression DAG.
 
     If *compress* is ``True`` (default) the output object from
@@ -158,13 +161,15 @@ def map_expr_dags(function, function_args, expressions, compress=True, vcache=No
     the call, use the arguments vcache and rcache.
 
     Args:
-        function: The function
+        function: The function name
+        function_args: Arguments to pass to the function
         expressions: An expression
         compress: If True (default), the output object from
             the function is cached in a dict and reused such that the
             resulting expression DAG does not contain duplicate objects
         vcache: Optional dict for caching results of intermediate transformations
         rcache: Optional dict for caching results for compression
+        cutoff: Should a traversal witha a cutoff be used?
 
     Returns:
         a list with the result of the final function call for each expression
@@ -176,19 +181,42 @@ def map_expr_dags(function, function_args, expressions, compress=True, vcache=No
     rcache = {} if rcache is None else rcache
 
     # Build mapping typecode:bool, for which types to skip the subtree of
-    if isinstance(function, MultiFunction):
-        cutoff_types = function._is_cutoff_type
-    else:
-        # Regular function: no skipping supported
-        cutoff_types = [False] * Expr._ufl_num_typecodes_
+    cutoff_types = [False] * Expr._ufl_num_typecodes_
+    for expression in expressions:
+        for v in unique_post_traversal(expression):
+            f = getattr(v, function)
+            if hasattr(f, "cutoff") and f.cutoff:
+                cutoff_types[v._ufl_typecode_] = True
 
     # Create visited set here to share between traversal calls
     visited = set()
 
     # Pick faster traversal algorithm if we have no cutoffs
-    if any(cutoff_types):
+    if cutoff:
 
-        def traversal(expression):
+        def traversal(expr):
+            """Yield ``o`` for each node ``o`` in *expr*, child before parent.
+
+            Never visit a node twice.
+            """
+            lifo = [(expr, list(reversed(expr.ufl_operands)))]
+            while lifo:
+                expr, deps = lifo[-1]
+                f = getattr(expr, function)
+                if hasattr(f, "cutoff") and f.cutoff:
+                    yield expr
+                    visited.add(expr)
+                    lifo.pop()
+                else:
+                    for i, dep in enumerate(deps):
+                        if dep is not None and dep not in visited:
+                            lifo.append((dep, list(reversed(dep.ufl_operands))))
+                            deps[i] = None
+                            break
+                    else:
+                        yield expr
+                        visited.add(expr)
+                        lifo.pop()
             return cutoff_unique_post_traversal(expression, cutoff_types, visited)
     else:
 
@@ -204,7 +232,7 @@ def map_expr_dags(function, function_args, expressions, compress=True, vcache=No
 
             # Cache miss: Get transformed operands, then apply transformation
             if cutoff_types[v._ufl_typecode_]:
-                r = getattr(v, function)(*function_args)
+                r = getattr(v, function)([], *function_args)
             else:
                 r = getattr(v, function)([vcache[u] for u in v.ufl_operands], *function_args)
 

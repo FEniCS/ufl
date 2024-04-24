@@ -5,13 +5,12 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-import typing
 
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain, extract_unique_domain
 from ufl.sobolevspace import H1
-from ufl.typing import Self
+from ufl.typing import Self, cutoff
 
 """
 Possible coordinate bootstrapping:
@@ -130,7 +129,8 @@ class GeometricCellQuantity(GeometricQuantity):
 
     __slots__ = ()
 
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
@@ -146,7 +146,8 @@ class GeometricFacetQuantity(GeometricQuantity):
 
     __slots__ = ()
 
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
@@ -263,7 +264,8 @@ class FacetCoordinate(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         return t <= 1
 
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
@@ -723,7 +725,8 @@ class FacetNormal(GeometricFacetQuantity):
         is_piecewise_linear = ce.embedded_superdegree <= 1 and ce in H1
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
@@ -802,7 +805,8 @@ class ReferenceCellVolume(GeometricCellQuantity):
     __slots__ = ()
     name = "reference_cell_volume"
 
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
@@ -818,7 +822,8 @@ class ReferenceFacetVolume(GeometricFacetQuantity):
     __slots__ = ()
     name = "reference_facet_volume"
 
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
@@ -935,7 +940,8 @@ class QuadratureWeight(GeometricQuantity):
         # The weight usually varies with the quadrature points
         return False
 
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.

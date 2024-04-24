@@ -96,7 +96,8 @@ def map_integrands(function, function_args, form, only_integral_type=None):
     """
     if isinstance(form, Form):
         mapped_integrals = [
-            map_integrands(function, function_args, itg, only_integral_type) for itg in form.integrals()
+            map_integrands(function, function_args, itg, only_integral_type)
+            for itg in form.integrals()
         ]
         nonzero_integrals = [
             itg for itg in mapped_integrals if not isinstance(itg.integrand(), Zero)
@@ -105,7 +106,7 @@ def map_integrands(function, function_args, form, only_integral_type=None):
     elif isinstance(form, Integral):
         itg = form
         if (only_integral_type is None) or (itg.integral_type() in only_integral_type):
-            return itg.reconstruct(function(itg.integrand(), *function_args))
+            return itg.reconstruct(function(itg.integrand(), function_args))
         else:
             return itg
     elif isinstance(form, FormSum):
@@ -140,18 +141,22 @@ def map_integrands(function, function_args, form, only_integral_type=None):
         return Action(left, right)
     elif isinstance(form, ZeroBaseForm):
         arguments = tuple(
-            map_integrands(function, function_args, arg, only_integral_type) for arg in form._arguments
+            map_integrands(function, function_args, arg, only_integral_type)
+            for arg in form._arguments
         )
         return ZeroBaseForm(arguments)
     elif isinstance(form, (Expr, BaseForm)):
         integrand = form
-        return function(integrand, *function_args)
+        return function(integrand, function_args)
     else:
         raise ValueError("Expecting Form, Integral or Expr.")
 
 
-def map_integrand_dags(function, form, only_integral_type=None, compress=True):
+def map_integrand_dags(function, function_args, form, only_integral_type=None, compress=True):
     """Map integrand dags."""
     return map_integrands(
-        lambda expr: map_expr_dag(function, expr, compress), form, only_integral_type
+        lambda expr, args: map_expr_dag(function, args, expr, compress),
+        function_args,
+        form,
+        only_integral_type,
     )

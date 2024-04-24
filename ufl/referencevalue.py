@@ -5,13 +5,12 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-import typing
 
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
 from ufl.restriction import Restricted
-from ufl.typing import Self
+from ufl.typing import Self, cutoff
 
 
 @ufl_type(num_ops=1, is_index_free=True, is_terminal_modifier=True, is_in_reference_frame=True)
@@ -39,17 +38,14 @@ class ReferenceValue(Operator):
         """Format as a string."""
         return f"reference_value({self.ufl_operands[0]})"
 
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
         """
-        (f,) = self.ufl_operands
-        assert f._ufl_is_terminal_
-        g = f.apply_restrictions(side)
+        g = mapped_operands[0]
         if isinstance(g, Restricted):
-            side = g.side()
-            return self(side)
+            return self(g.side())
         else:
             return self

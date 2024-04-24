@@ -6,12 +6,10 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-import typing
-
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain
-from ufl.typing import Self
+from ufl.typing import Self, cutoff
 from ufl.utils.counted import Counted
 
 
@@ -80,8 +78,8 @@ class Constant(Terminal, Counted):
             repr(renumbering[self]),
         )
 
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.

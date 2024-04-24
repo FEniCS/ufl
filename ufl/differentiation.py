@@ -6,8 +6,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-import typing
-
 from ufl.argument import Argument, Coargument
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
@@ -21,7 +19,7 @@ from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import BaseForm
 from ufl.precedence import parstr
-from ufl.typing import Self
+from ufl.typing import Self, cutoff
 from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
@@ -297,8 +295,8 @@ class Grad(CompoundDerivative):
         """Format as a string."""
         return "grad(%s)" % self.ufl_operands[0]
 
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.

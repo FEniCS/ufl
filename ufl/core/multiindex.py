@@ -8,11 +8,9 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-import typing
-
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-from ufl.typing import Self
+from ufl.typing import Self, cutoff
 from ufl.utils.counted import Counted
 
 # Export list for ufl.classes
@@ -258,8 +256,8 @@ class MultiIndex(Terminal):
         """Return iteratable."""
         return iter(self._indices)
 
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.

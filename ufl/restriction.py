@@ -5,12 +5,12 @@
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
-import typing
 
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
+from ufl.corealg.map_dag import map_expr_dag
 from ufl.precedence import parstr
-from ufl.typing import Self
+from ufl.typing import Self, cutoff
 
 # --- Restriction operators ---
 
@@ -45,15 +45,23 @@ class Restricted(Operator):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)}({self._side})"
 
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
         """
+        # When hitting a restricted quantity, visit child with a separate restriction algorithm
+        # Assure that we have only two levels here: inside or outside the Restricted node
         if side is not None:
             raise ValueError("Cannot restrict an expression twice.")
-        return self.ufl_operands[0].apply_restrictions(self._side)
+        # Configure a propagator for this side and apply to subtree
+        side = self._side
+        return map_expr_dag(
+            "apply_restrictions",
+            (side,),
+            self.ufl_operands[0],  # vcache=self.vcaches[side], rcache=self.rcaches[side]
+        )
 
 
 @ufl_type(is_terminal_modifier=True)

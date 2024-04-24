@@ -13,6 +13,7 @@ import typing
 from typing import Protocol
 
 from ufl.algorithms.map_integrands import map_integrand_dags, map_integrand_dags_legacy
+from ufl.core.ufl_type import UFLObject
 from ufl.corealg.multifunction import MultiFunction
 from ufl.measure import integral_type_to_measure_name
 from ufl.typing import Self
@@ -21,7 +22,9 @@ from ufl.typing import Self
 class ApplyRestrictions(Protocol):
     """Protocol for apply_restrictions."""
 
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    def apply_restrictions(
+        self, mapped_operators: typing.Tuple[UFLObject, ...], side: typing.Optional[str]
+    ) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
@@ -37,7 +40,9 @@ def apply_restrictions(expression):
         k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
     ]
 
-    return map_integrand_dags("apply_restrictions", (None, ), expression, only_integral_type=integral_types)
+    return map_integrand_dags(
+        "apply_restrictions", (None,), expression, only_integral_type=integral_types, cutoff=True
+    )
 
 
 class DefaultRestrictionApplier(MultiFunction):

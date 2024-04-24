@@ -10,7 +10,6 @@
 # Modified by Massimiliano Leoni, 2016.
 # Modified by Cecile Daversin-Catty, 2018.
 # Modified by Ignacia Fierro-Piccardo 2023.
-import typing
 
 from ufl.argument import Argument
 from ufl.core.terminal import FormArgument
@@ -20,7 +19,7 @@ from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.sobolevspace import H1
 from ufl.split_functions import split
-from ufl.typing import Self
+from ufl.typing import Self, cutoff
 from ufl.utils.counted import Counted
 
 # --- The Coefficient class represents a coefficient in a form ---
@@ -203,8 +202,8 @@ class Coefficient(FormArgument, BaseCoefficient):
         """Representation."""
         return self._repr
 
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
@@ -212,6 +211,8 @@ class Coefficient(FormArgument, BaseCoefficient):
         from ufl.algorithms.apply_restrictions import default_restriction
 
         if self.ufl_element() in H1:
+            # If the coefficient _value_ is _fully_ continuous
+            # It must still be computed from one of the sides, we just don't care which
             if side is None:
                 return self(default_restriction)
             else:

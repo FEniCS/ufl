@@ -15,7 +15,6 @@ classes (functions), including TestFunction and TrialFunction.
 # Modified by Ignacia Fierro-Piccardo 2023.
 
 import numbers
-import typing
 
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
@@ -23,7 +22,7 @@ from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
-from ufl.typing import Self
+from ufl.typing import Self, cutoff
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
@@ -191,8 +190,8 @@ class Argument(FormArgument, BaseArgument):
         """Representation."""
         return self._repr
 
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.

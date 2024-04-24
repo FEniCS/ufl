@@ -8,8 +8,6 @@
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-import typing
-
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 from ufl.typing import Self
@@ -49,14 +47,12 @@ class Operator(Expr):
         # This should work for most cases
         return f"{self._ufl_class_.__name__}({', '.join(repr(op) for op in self.ufl_operands)})"
 
-
-    def apply_restrictions(self, side: typing.Optional[str] = None) -> Self:
+    def apply_restrictions(self, mapped_operands, side) -> Self:
         """Apply restrictions.
 
         Propagates restrictions in a form towards the terminals.
         """
-        ops = [i.apply_restrictions(side) for i in self.ufl_operands]
-        if all(a is b for a, b in zip(self.ufl_operands, ops)):
+        if all(a is b for a, b in zip(self.ufl_operands, mapped_operands)):
             return self
         else:
-            return self.__class__(*ops)
+            return self.__class__(*mapped_operands)
