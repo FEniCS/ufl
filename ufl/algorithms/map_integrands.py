@@ -88,7 +88,7 @@ def map_integrand_dags_legacy(function, form, only_integral_type=None, compress=
     )
 
 
-def map_integrands(function, function_args, form, only_integral_type=None):
+def map_integrands(function, function_args, form, only_integral_type=None, cutoff=True):
     """Map integrands.
 
     Apply transform(expression) to each integrand expression in form, or
@@ -96,7 +96,7 @@ def map_integrands(function, function_args, form, only_integral_type=None):
     """
     if isinstance(form, Form):
         mapped_integrals = [
-            map_integrands(function, function_args, itg, only_integral_type)
+            map_integrands(function, function_args, itg, only_integral_type, cutoff=cutoff)
             for itg in form.integrals()
         ]
         nonzero_integrals = [
@@ -111,7 +111,7 @@ def map_integrands(function, function_args, form, only_integral_type=None):
             return itg
     elif isinstance(form, FormSum):
         mapped_components = [
-            map_integrands(function, function_args, component, only_integral_type)
+            map_integrands(function, function_args, component, only_integral_type, cutoff=cutoff)
             for component in form.components()
         ]
         nonzero_components = [
@@ -133,15 +133,21 @@ def map_integrands(function, function_args, form, only_integral_type=None):
         return FormSum(*nonzero_components)
     elif isinstance(form, Adjoint):
         # Zeros are caught inside `Adjoint.__new__`
-        return Adjoint(map_integrands(function, function_args, form._form, only_integral_type))
+        return Adjoint(
+            map_integrands(function, function_args, form._form, only_integral_type, cutoff=cutoff)
+        )
     elif isinstance(form, Action):
-        left = map_integrands(function, function_args, form._left, only_integral_type)
-        right = map_integrands(function, function_args, form._right, only_integral_type)
+        left = map_integrands(
+            function, function_args, form._left, only_integral_type, cutoff=cutoff
+        )
+        right = map_integrands(
+            function, function_args, form._right, only_integral_type, cutoff=cutoff
+        )
         # Zeros are caught inside `Action.__new__`
         return Action(left, right)
     elif isinstance(form, ZeroBaseForm):
         arguments = tuple(
-            map_integrands(function, function_args, arg, only_integral_type)
+            map_integrands(function, function_args, arg, only_integral_type, cutoff=cutoff)
             for arg in form._arguments
         )
         return ZeroBaseForm(arguments)
@@ -152,10 +158,12 @@ def map_integrands(function, function_args, form, only_integral_type=None):
         raise ValueError("Expecting Form, Integral or Expr.")
 
 
-def map_integrand_dags(function, function_args, form, only_integral_type=None, compress=True):
+def map_integrand_dags(
+    function, function_args, form, only_integral_type=None, compress=True, cutoff=True
+):
     """Map integrand dags."""
     return map_integrands(
-        lambda expr, args: map_expr_dag(function, args, expr, compress),
+        lambda expr, args: map_expr_dag(function, args, expr, compress=compress, cutoff=cutoff),
         function_args,
         form,
         only_integral_type,

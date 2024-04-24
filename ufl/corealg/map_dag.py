@@ -120,7 +120,9 @@ def map_expr_dags_legacy(function, expressions, compress=True, vcache=None, rcac
     return [vcache[expression] for expression in expressions]
 
 
-def map_expr_dag(function, function_args, expression, compress=True, vcache=None, rcache=None):
+def map_expr_dag(
+    function, function_args, expression, compress=True, vcache=None, rcache=None, cutoff=True
+):
     """Apply a function to each subexpression node in an expression DAG.
 
     If the same function is called multiple times in a transformation
@@ -137,12 +139,19 @@ def map_expr_dag(function, function_args, expression, compress=True, vcache=None
         vcache: Optional dict for caching results of intermediate
             transformations
         rcache: Optional dict for caching results for compression
+        cutoff: Should a traversal witha a cutoff be used?
 
     Returns:
         The result of the final function call
     """
     (result,) = map_expr_dags(
-        function, function_args, [expression], compress=compress, vcache=vcache, rcache=rcache
+        function,
+        function_args,
+        [expression],
+        compress=compress,
+        vcache=vcache,
+        rcache=rcache,
+        cutoff=cutoff,
     )
     return result
 
