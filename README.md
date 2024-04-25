@@ -11,12 +11,10 @@ https://www.fenicsproject.org
 
 [![UFL CI](https://github.com/FEniCS/ufl/workflows/UFL%20CI/badge.svg)](https://github.com/FEniCS/ufl/workflows/UFL%20CI)
 [![Coverage Status](https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=master)](https://coveralls.io/github/FEniCS/ufl?branch=master)
-[![Documentation Status](https://readthedocs.org/projects/fenics-ufl/badge/?version=latest)](https://fenics.readthedocs.io/projects/ufl/en/latest/?badge=latest)
 
 ## Documentation
 
-Documentation can be viewed at https://fenics-ufl.readthedocs.org/.
-
+Documentation can be viewed at https://docs.fenicsproject.org
 
 ## License
 
