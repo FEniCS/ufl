@@ -1,17 +1,17 @@
 [build-system]
-requires = ["setuptools>=62", "wheel", "pip>=22.3"]
+requires = ["setuptools>=62", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "fenics-ufl"
-version = "2023.3.0.dev0"
+version = "2024.2.0.dev0"
 authors = [{ name = "UFL contributors" }]
 maintainers = [
     { email = "fenics-steering-council@googlegroups.com" },
     { name = "FEniCS Steering Council" },
 ]
 description = "Unified Form Language"
-readme = "README.rst"
+readme = "README.md"
 license = { file = "COPYING.lesser" }
 requires-python = ">=3.8.0"
 dependencies = ["numpy"]
