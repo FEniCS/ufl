@@ -10,7 +10,7 @@
 
 from ufl.algorithms.analysis import has_exact_type
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import CoefficientDerivative, Form
+from ufl.classes import CoefficientDerivative, BaseForm
 from ufl.constantvalue import as_ufl
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
@@ -28,7 +28,7 @@ class Replacer(MultiFunction):
         # One can replace Coarguments by 1-Forms
         def get_shape(x):
             """Get the shape of an object."""
-            if isinstance(x, Form):
+            if isinstance(x, BaseForm):
                 return x.arguments()[0].ufl_shape
             return x.ufl_shape
 
