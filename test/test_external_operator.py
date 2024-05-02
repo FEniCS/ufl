@@ -7,8 +7,10 @@ import pytest
 
 from ufl import (
     Action,
+    Matrix,
     Argument,
     Coefficient,
+    Coargument,
     Constant,
     Form,
     FunctionSpace,
@@ -17,6 +19,7 @@ from ufl import (
     TrialFunction,
     action,
     adjoint,
+    replace,
     cos,
     derivative,
     dx,
@@ -487,3 +490,29 @@ def test_multiple_external_operators(V1, V2):
 
     dFdu = expand_derivatives(derivative(F, u))
     assert dFdu == dFdu_partial + Action(dFdN1_partial, dN1du) + Action(dFdN5_partial, dN5du)
+
+
+def test_replace(V1):
+    u = Coefficient(V1, count=0)
+    N = ExternalOperator(u, function_space=V1)
+
+    # dN(u; uhat, v*)
+    dN = expand_derivatives(derivative(N, u))
+    vstar, uhat = dN.arguments()
+    assert isinstance(vstar, Coargument)
+
+    # Replace v* by a Form
+    v = TestFunction(V1)
+    F = inner(u, v) * dx
+    G = replace(dN, {vstar: F})
+
+    dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(F, uhat))
+    assert G == dN_replaced
+
+    # Replace v* by an Action
+    M = Matrix(V1, V1)
+    A = Action(M, u)
+    G = replace(dN, {vstar: A})
+
+    dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(A, uhat))
+    assert G == dN_replaced
