@@ -10,7 +10,7 @@
 
 from ufl.algorithms.analysis import has_exact_type
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import CoefficientDerivative, BaseForm
+from ufl.classes import BaseForm, CoefficientDerivative
 from ufl.constantvalue import as_ufl
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
