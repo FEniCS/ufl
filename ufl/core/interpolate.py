@@ -8,13 +8,14 @@
 #
 # Modified by Nacime Bouziani, 2021-2022
 
+from ufl.action import Action
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
-from ufl.form import Form
+from ufl.form import BaseForm, Form
 from ufl.functionspace import AbstractFunctionSpace
 
 
@@ -35,7 +36,7 @@ class Interpolate(BaseFormOperator):
                 defined on the dual of the FunctionSpace to interpolate into.
         """
         # This check could be more rigorous.
-        dual_args = (Coargument, Cofunction, Form)
+        dual_args = (Coargument, Cofunction, Form, Action)
 
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
@@ -53,7 +54,7 @@ class Interpolate(BaseFormOperator):
         # Reversed order convention
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
-        vv = v if not isinstance(v, Form) else v.arguments()[0]
+        vv = v if not isinstance(v, BaseForm) else v.arguments()[0]
         function_space = vv.ufl_function_space().dual()
         # Set the operand as `expr` for DAG traversal purpose.
         operand = expr
