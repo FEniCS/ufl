@@ -133,14 +133,21 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     @property
     def ufl_shape(self):
         """Return the UFL shape of the coefficient.produced by the operator."""
-        return self.arguments()[0]._ufl_shape
+        arg, *_ = self.argument_slots()
+        if isinstance(arg, BaseForm):
+            arg, *_ = arg.arguments()
+        return arg._ufl_shape
 
     def ufl_function_space(self):
         """Return the function space associated to the operator.
 
         I.e. return the dual of the base form operator's Coargument.
         """
-        return self.arguments()[0]._ufl_function_space.dual()
+        arg, *_ = self.argument_slots()
+        if isinstance(arg, BaseForm):
+            arg, *_ = arg.arguments()
+            return arg._ufl_function_space
+        return arg._ufl_function_space.dual()
 
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None

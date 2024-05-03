@@ -36,7 +36,7 @@ class Interpolate(BaseFormOperator):
                 defined on the dual of the FunctionSpace to interpolate into.
         """
         # This check could be more rigorous.
-        dual_args = (Coargument, Cofunction, Form, Action)
+        dual_args = (Coargument, Cofunction, Form, Action, BaseFormOperator)
 
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
