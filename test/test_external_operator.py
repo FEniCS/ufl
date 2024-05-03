@@ -269,7 +269,7 @@ def get_external_operators(form_base):
     elif isinstance(form_base, BaseForm):
         return form_base.base_form_operators()
     else:
-        raise ValueError("Expecting FormBase argument!")
+        raise ValueError("Expecting BaseForm argument!")
 
 
 def test_adjoint_action_jacobian(V1, V2, V3):
@@ -343,16 +343,17 @@ def test_adjoint_action_jacobian(V1, V2, V3):
             dFdu_adj = adjoint(dFdu)
             dFdm_adj = adjoint(dFdm)
 
-            assert dFdu_adj.arguments() == (u_hat(n_arg),) + v_F
-            assert dFdm_adj.arguments() == (m_hat(n_arg),) + v_F
+            V = v_F[0].ufl_function_space()
+            assert dFdu_adj.arguments() == (TestFunction(V1), TrialFunction(V))
+            assert dFdm_adj.arguments() == (TestFunction(V2), TrialFunction(V))
 
             # Action of the adjoint
-            q = Coefficient(v_F[0].ufl_function_space())
+            q = Coefficient(V)
             action_dFdu_adj = action(dFdu_adj, q)
             action_dFdm_adj = action(dFdm_adj, q)
 
-            assert action_dFdu_adj.arguments() == (u_hat(n_arg),)
-            assert action_dFdm_adj.arguments() == (m_hat(n_arg),)
+            assert action_dFdu_adj.arguments() == (TestFunction(V1),)
+            assert action_dFdm_adj.arguments() == (TestFunction(V2),)
 
 
 def test_multiple_external_operators(V1, V2):

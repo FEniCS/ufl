@@ -123,7 +123,7 @@ class Action(BaseForm):
 
         # Collect domains
         self._domains = join_domains(
-            chain.from_iterable(e.ufl_domains() for e in self.ufl_operands)
+            chain.from_iterable(e.ufl_domain() for e in self.ufl_operands)
         )
 
     def equals(self, other):
