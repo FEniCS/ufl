@@ -56,9 +56,9 @@ class Interpolate(BaseFormOperator):
         # Get the primal space (V** = V)
         if isinstance(v, BaseForm):
             arg, *_ = v.arguments()
-            function_space = arg.function_space()
+            function_space = arg.ufl_function_space()
         else:
-            function_space = v.function_space().dual()
+            function_space = v.ufl_function_space().dual()
         # Set the operand as `expr` for DAG traversal purpose.
         operand = expr
         BaseFormOperator.__init__(
