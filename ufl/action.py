@@ -122,9 +122,7 @@ class Action(BaseForm):
         from ufl.domain import join_domains
 
         # Collect domains
-        self._domains = join_domains(
-            chain.from_iterable(e.ufl_domain() for e in self.ufl_operands)
-        )
+        self._domains = join_domains(chain.from_iterable(e.ufl_domain() for e in self.ufl_operands))
 
     def equals(self, other):
         """Check if two Actions are equal."""
