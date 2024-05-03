@@ -85,7 +85,11 @@ class Adjoint(BaseForm):
 
     def _analyze_form_arguments(self):
         """The arguments of adjoint are the reverse of the form arguments."""
-        self._arguments = self._form.arguments()[::-1]
+        reversed_args = self._form.arguments()[::-1]
+        # Canonical numbering for arguments that is consistent with other BaseForm objects.
+        self._arguments = tuple(
+            type(arg)(arg.ufl_function_space(), number=i) for i, arg in enumerate(reversed_args)
+        )
         self._coefficients = self._form.coefficients()
 
     def _analyze_domains(self):
