@@ -54,8 +54,11 @@ class Interpolate(BaseFormOperator):
         # Reversed order convention
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
-        vv = v if not isinstance(v, BaseForm) else v.arguments()[0]
-        function_space = vv.ufl_function_space().dual()
+        if isinstance(v, BaseForm):
+            arg, *_ = v.arguments()
+            function_space = arg.function_space()
+        else:
+            function_space = v.function_space().dual()
         # Set the operand as `expr` for DAG traversal purpose.
         operand = expr
         BaseFormOperator.__init__(
