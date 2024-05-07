@@ -87,8 +87,11 @@ def extract_blocks(form, i=None, j=None):
     forms = []
     numbers = tuple(sorted(set(a.number() for a in arguments)))
     arity = len(numbers)
-    parts = tuple(sorted(set(chain.from_iterable(
-        [range(a.ufl_element().num_sub_elements) for a in arguments]))))
+    parts = tuple(
+        sorted(
+            set(chain.from_iterable([range(a.ufl_element().num_sub_elements) for a in arguments]))
+        )
+    )
 
     assert arity <= 2
 
