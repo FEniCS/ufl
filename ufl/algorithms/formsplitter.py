@@ -8,6 +8,8 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
+from itertools import chain
+
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.argument import Argument
 from ufl.constantvalue import Zero
@@ -49,7 +51,7 @@ class FormSplitter(MultiFunction):
             # whose sub-elements need their function space to be created
             Q = obj.ufl_function_space()
             dom = Q.ufl_domain()
-            sub_elements = obj.ufl_element().sub_elements()
+            sub_elements = obj.ufl_element().sub_elements
 
             # If not a mixed element, do nothing
             if len(sub_elements) == 0:
@@ -83,10 +85,11 @@ def extract_blocks(form, i=None, j=None):
     fs = FormSplitter()
     arguments = form.arguments()
     forms = []
-
     numbers = tuple(sorted(set(a.number() for a in arguments)))
     arity = len(numbers)
-    parts = tuple(sorted(set(a.part() for a in arguments)))
+    parts = tuple(sorted(set(chain.from_iterable(
+        [range(a.ufl_element().num_sub_elements) for a in arguments]))))
+
     assert arity <= 2
 
     if arity == 0:
