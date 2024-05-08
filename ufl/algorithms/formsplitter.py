@@ -87,17 +87,18 @@ def extract_blocks(form, i=None, j=None):
     forms = []
     numbers = tuple(sorted(set(a.number() for a in arguments)))
     arity = len(numbers)
-    parts = tuple(
-        sorted(
-            set(chain.from_iterable([range(a.ufl_element().num_sub_elements) for a in arguments]))
-        )
-    )
-
     assert arity <= 2
-
     if arity == 0:
         return (form,)
 
+    parts = []
+    for a in (arguments):
+        if len(a.ufl_element().sub_elements)>0:
+            return fs.split(form, i,j)
+        else:
+            # If standard element, extract only part
+            parts.append(a.part())
+    parts = tuple(sorted(set(parts)))
     for pi in parts:
         if arity > 1:
             for pj in parts:
