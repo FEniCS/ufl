@@ -8,7 +8,6 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
-from itertools import chain
 
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.argument import Argument
@@ -92,9 +91,9 @@ def extract_blocks(form, i=None, j=None):
         return (form,)
 
     parts = []
-    for a in (arguments):
-        if len(a.ufl_element().sub_elements)>0:
-            return fs.split(form, i,j)
+    for a in arguments:
+        if len(a.ufl_element().sub_elements) > 0:
+            return fs.split(form, i, j)
         else:
             # If standard element, extract only part
             parts.append(a.part())
