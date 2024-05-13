@@ -1,6 +1,6 @@
 """Extract part of a form in a mixed FunctionSpace."""
 
-# Copyright (C) 2016 Chris Richardson and Lawrence Mitchell
+# Copyright (C) 2016-2024 Chris Richardson and Lawrence Mitchell
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
@@ -8,9 +8,9 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
-
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.argument import Argument
+from ufl.classes import FixedIndex, ListTensor
 from ufl.constantvalue import Zero
 from ufl.corealg.multifunction import MultiFunction
 from ufl.functionspace import FunctionSpace
@@ -71,6 +71,19 @@ class FormSplitter(MultiFunction):
                     args += [Zero() for j in indices]
 
             return as_vector(args)
+
+    def indexed(self, o, child, multiindex):
+        """Extract indexed entry if multindices are fixed.
+
+        This avoids tensors like (v_0, 0)[1] to be created.
+        """
+        indices = multiindex.indices()
+        if isinstance(child, ListTensor) and all(isinstance(i, FixedIndex) for i in indices):
+            if len(indices) == 1:
+                return child.ufl_operands[indices[0]._value]
+            else:
+                return ListTensor(*(child.ufl_operands[i._value] for i in multiindex.indices()))
+        return self.expr(o, child, multiindex)
 
     def multi_index(self, obj):
         """Apply to multi_index."""
