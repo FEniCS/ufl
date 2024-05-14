@@ -764,11 +764,10 @@ Basic nonlinear functions
 Some basic nonlinear functions are also available, their meaning mostly
 obvious.
 
-* ``abs(f)``: the absolute value of f.
+The following functions are defined and should be imported from `ufl`
+
 
 * ``sign(f)``: the sign of f (+1 or -1).
-
-* ``pow(f, g)`` or ``f**g``: f to the power g, :math:`f^g`
 
 * ``sqrt(f)``: square root, :math:`\sqrt{f}`
 
@@ -805,6 +804,14 @@ obvious.
 * ``bessel_I(nu, f)``: Modified Bessel function of the first kind, :math:`I_\nu(f)`
 
 * ``bessel_K(nu, f)``: Modified Bessel function of the second kind, :math:`K_\nu(f)`
+
+while the following Python built in functions can be used without an import statement
+
+* ``abs(f)``: the absolute value of f.
+
+
+* ``pow(f, g)`` or ``f**g``: f to the power g, :math:`f^g`
+
 
 These functions do not accept non-scalar operands or operands with free
 indices or ``Argument`` dependencies.
