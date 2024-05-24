@@ -17,7 +17,8 @@ class ArityMismatch(BaseException):
 
 def _afmt(atuple: Tuple[Argument, bool]) -> str:
     """Return a string representation of an arity tuple."""
-    return tuple(f"conj({arg})" if conj else str(arg) for arg, conj in atuple)
+    arg, conj = atuple
+    return f"conj({arg})" if conj else str(arg)
 
 
 class ArityChecker(MultiFunction):
