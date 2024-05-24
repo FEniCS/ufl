@@ -69,6 +69,7 @@ def test_complex_arities():
     with pytest.raises(ArityMismatch):
         compute_form_data(inner(conj(v), u) * dx, complex_mode=True)
 
+
 def test_product_arity():
     cell = tetrahedron
     D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
@@ -81,6 +82,5 @@ def test_product_arity():
         compute_form_data(F, complex_mode=True)
 
     with pytest.raises(ArityMismatch):
-        L = inner(v,v)*dx
+        L = inner(v, v) * dx
         compute_form_data(L, complex_mode=False)
-    
