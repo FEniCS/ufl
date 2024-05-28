@@ -86,4 +86,6 @@ jobs:
           python3 -m pip install --break-system-packages -r dolfinx/python/build-requirements.txt
           python3 -m pip -v install --break-system-packages --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" dolfinx/python/
       - name: Run DOLFINx unit tests
-        run: python3 -m pytest -n auto dolfinx/python/test/unit
+        run: |
+          python3 -m pip install --break-system-packages pytest
+          python3 -m pytest -n auto dolfinx/python/test/unit
