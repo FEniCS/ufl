@@ -7,6 +7,7 @@
 #
 # Modified by Anders Logg, 2008
 
+from ufl.domain import extract_unique_domain
 from ufl.functionspace import FunctionSpace
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
@@ -21,7 +22,7 @@ def split(v):
     If v is a Coefficient or Argument in a mixed space, returns a tuple
     with the function components corresponding to the subelements.
     """
-    domain = v.ufl_domain()
+    domain = extract_unique_domain(v)
 
     # Default range is all of v
     begin = 0

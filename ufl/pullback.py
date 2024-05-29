@@ -356,7 +356,7 @@ class MixedPullback(AbstractPullback):
 
         Returns: The function pulled back to the reference cell
         """
-        domain = expr.ufl_domain()
+        domain = extract_unique_domain(expr)
         space = FunctionSpace(domain, self._element)
         rflat = [expr[idx] for idx in np.ndindex(expr.ufl_shape)]
         g_components = []
@@ -435,7 +435,7 @@ class SymmetricPullback(AbstractPullback):
 
         Returns: The function pulled back to the reference cell
         """
-        domain = expr.ufl_domain()
+        domain = extract_unique_domain(expr)
         space = FunctionSpace(domain, self._element)
         rflat = [expr[idx] for idx in np.ndindex(expr.ufl_shape)]
         g_components = []
