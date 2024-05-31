@@ -1,4 +1,5 @@
 """Representation of the reference value of a function."""
+
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -8,6 +9,8 @@
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
+from ufl.restriction import Restricted
+from ufl.typing import Self
 
 
 @ufl_type(num_ops=1, is_index_free=True, is_terminal_modifier=True, is_in_reference_frame=True)
@@ -34,3 +37,14 @@ class ReferenceValue(Operator):
     def __str__(self):
         """Format as a string."""
         return f"reference_value({self.ufl_operands[0]})"
+
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        g = mapped_operands[0]
+        if isinstance(g, Restricted):
+            return self(g.side())
+        else:
+            return self

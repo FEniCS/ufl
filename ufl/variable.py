@@ -2,6 +2,7 @@
 
 These are used to label expressions as variables for differentiation.
 """
+
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -13,6 +14,7 @@ from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
+from ufl.typing import Self, cutoff
 from ufl.utils.counted import Counted
 
 
@@ -64,6 +66,14 @@ class Label(Terminal, Counted):
         if self not in renumbering:
             return ("Label", self._count)
         return ("Label", renumbering[self])
+
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return self
 
 
 @ufl_type(is_shaping=True, is_index_free=True, num_ops=1, inherit_shape_from_operand=0)
@@ -127,3 +137,10 @@ class Variable(Operator):
     def __str__(self):
         """Format as a string."""
         return "var%d(%s)" % (self.ufl_operands[1].count(), self.ufl_operands[0])
+
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return mapped_operands[0]

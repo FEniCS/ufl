@@ -1,6 +1,6 @@
 """Remove conj, real, and imag nodes from a form."""
 
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrand_dags_legacy
 from ufl.constantvalue import ComplexValue
 from ufl.corealg.multifunction import MultiFunction
 
@@ -37,4 +37,4 @@ def remove_complex_nodes(expr):
     compile real-valued forms. In essence this strips all trace of
     complex support from the preprocessed form.
     """
-    return map_integrand_dags(ComplexNodeRemoval(), expr)
+    return map_integrand_dags_legacy(ComplexNodeRemoval(), expr)

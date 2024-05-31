@@ -22,6 +22,7 @@ from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
+from ufl.typing import Self, cutoff
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
@@ -188,6 +189,16 @@ class Argument(FormArgument, BaseArgument):
     def __repr__(self):
         """Representation."""
         return self._repr
+
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        if side is None:
+            raise ValueError(f"Discontinuous type {self.__class__.__name__} must be restricted.")
+        return self(side)
 
 
 @ufl_type()

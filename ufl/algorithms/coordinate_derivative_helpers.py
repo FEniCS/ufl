@@ -10,7 +10,7 @@ This is used in compute_form_data.
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.classes import Integral
-from ufl.corealg.map_dag import map_expr_dags
+from ufl.corealg.map_dag import map_expr_dags_legacy
 from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import CoordinateDerivative
 
@@ -60,7 +60,7 @@ def strip_coordinate_derivatives(integrals):
         integral = integrals
         integrand = integral.integrand()
         checker = CoordinateDerivativeIsOutermostChecker()
-        map_expr_dags(checker, [integrand])
+        map_expr_dags_legacy(checker, [integrand])
         coordinate_derivatives = []
 
         def take_top_coordinate_derivatives(o):

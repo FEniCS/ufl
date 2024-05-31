@@ -41,7 +41,7 @@ from ufl.classes import (
 )
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
-from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.map_dag import map_expr_dag_legacy
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.domain import extract_unique_domain
 from ufl.measure import custom_integral_types, point_integral_types
@@ -485,13 +485,13 @@ def apply_geometry_lowering(form, preserve_types=()):
         preserve_types = set(preserve_types) | set(automatic_preserve_types)
 
         mf = GeometryLoweringApplier(preserve_types)
-        newintegrand = map_expr_dag(mf, integral.integrand())
+        newintegrand = map_expr_dag_legacy(mf, integral.integrand())
         return integral.reconstruct(integrand=newintegrand)
 
     elif isinstance(form, Expr):
         expr = form
         mf = GeometryLoweringApplier(preserve_types)
-        return map_expr_dag(mf, expr)
+        return map_expr_dag_legacy(mf, expr)
 
     else:
         raise ValueError(f"Invalid type {form.__class__.__name__}")

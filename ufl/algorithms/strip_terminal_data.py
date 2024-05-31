@@ -16,7 +16,7 @@ from ufl.classes import (
     MixedFunctionSpace,
     TensorProductFunctionSpace,
 )
-from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.map_dag import map_expr_dag_legacy
 from ufl.corealg.multifunction import MultiFunction
 
 
@@ -75,7 +75,7 @@ def strip_terminal_data(o):
         return Form(integrals), (expr_map, domain_map)
     elif isinstance(o, Integral):
         handler = TerminalStripper()
-        integrand = map_expr_dag(handler, o.integrand())
+        integrand = map_expr_dag_legacy(handler, o.integrand())
         domain = strip_domain(o.ufl_domain())
         # invert the mapping so it can be passed straight into replace_terminal_data
         expr_map = {v: k for k, v in handler.mapping.items()}

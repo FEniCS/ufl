@@ -2,7 +2,7 @@
 
 import ufl
 from ufl.algorithms.analysis import extract_arguments
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrand_dags_legacy
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
 from ufl.tensors import ListTensor
@@ -66,4 +66,4 @@ def replace_derivative_nodes(expr, mapping, **derivative_kwargs):
             derivative (i.e. `argument` and `coefficient_derivatives`).
     """
     mapping2 = dict((k, as_ufl(v)) for (k, v) in mapping.items())
-    return map_integrand_dags(DerivativeNodeReplacer(mapping2, **derivative_kwargs), expr)
+    return map_integrand_dags_legacy(DerivativeNodeReplacer(mapping2, **derivative_kwargs), expr)

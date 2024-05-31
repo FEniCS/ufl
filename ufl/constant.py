@@ -9,6 +9,7 @@
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain
+from ufl.typing import Self, cutoff
 from ufl.utils.counted import Counted
 
 
@@ -76,6 +77,14 @@ class Constant(Terminal, Counted):
             repr(self._ufl_shape),
             repr(renumbering[self]),
         )
+
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return self
 
 
 def VectorConstant(domain, count=None):

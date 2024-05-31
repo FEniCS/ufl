@@ -13,7 +13,7 @@ import warnings
 
 from ufl.checks import is_cellwise_constant
 from ufl.constantvalue import IntValue
-from ufl.corealg.map_dag import map_expr_dags
+from ufl.corealg.map_dag import map_expr_dags_legacy
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import extract_unique_domain
 from ufl.form import Form
@@ -382,10 +382,10 @@ def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}
     if isinstance(e, Form):
         if not e.integrals():
             raise ValueError("Form has no integrals.")
-        degrees = map_expr_dags(de, [it.integrand() for it in e.integrals()])
+        degrees = map_expr_dags_legacy(de, [it.integrand() for it in e.integrals()])
     elif isinstance(e, Integral):
-        degrees = map_expr_dags(de, [e.integrand()])
+        degrees = map_expr_dags_legacy(de, [e.integrand()])
     else:
-        degrees = map_expr_dags(de, [e])
+        degrees = map_expr_dags_legacy(de, [e])
     degree = max(degrees) if degrees else default_degree
     return degree

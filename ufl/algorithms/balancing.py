@@ -16,7 +16,7 @@ from ufl.classes import (
     ReferenceGrad,
     ReferenceValue,
 )
-from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.map_dag import map_expr_dag_legacy
 from ufl.corealg.multifunction import MultiFunction
 
 modifier_precedence = [
@@ -91,4 +91,4 @@ class BalanceModifiers(MultiFunction):
 def balance_modifiers(expr):
     """Balance modifiers."""
     mf = BalanceModifiers()
-    return map_expr_dag(mf, expr)
+    return map_expr_dag_legacy(mf, expr)

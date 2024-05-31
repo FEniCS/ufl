@@ -12,13 +12,12 @@
 from math import atan2
 
 import ufl
-
-# --- Helper functions imported here for compatibility---
 from ufl.checks import is_python_scalar, is_true_ufl_scalar, is_ufl_scalar  # noqa: F401
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
+from ufl.typing import Self, cutoff
 
 # Precision for float formatting
 precision = None
@@ -52,6 +51,14 @@ class ConstantValue(Terminal):
     def ufl_domains(self):
         """Return tuple of domains related to this terminal object."""
         return ()
+
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return self
 
 
 # TODO: Add geometric dimension/domain and Argument dependencies to Zero?

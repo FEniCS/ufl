@@ -17,7 +17,9 @@ from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
+from ufl.sobolevspace import H1
 from ufl.split_functions import split
+from ufl.typing import Self, cutoff
 from ufl.utils.counted import Counted
 
 # --- The Coefficient class represents a coefficient in a form ---
@@ -199,6 +201,28 @@ class Coefficient(FormArgument, BaseCoefficient):
     def __repr__(self):
         """Representation."""
         return self._repr
+
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        from ufl.algorithms.apply_restrictions import default_restriction
+
+        if self.ufl_element() in H1:
+            # If the coefficient _value_ is _fully_ continuous
+            # It must still be computed from one of the sides, we just don't care which
+            if side is None:
+                return self(default_restriction)
+            else:
+                return self(side)
+        else:
+            if side is None:
+                raise ValueError(
+                    f"Discontinuous type {self.__class__.__name__} must be restricted."
+                )
+            return self(side)
 
 
 # --- Helper functions for subfunctions on mixed elements ---

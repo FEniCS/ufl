@@ -16,7 +16,7 @@ from logging import debug
 from ufl.algebra import Conj
 
 # Other algorithms:
-from ufl.algorithms.map_integrands import map_integrands
+from ufl.algorithms.map_integrands import map_integrands_legacy
 from ufl.algorithms.replace import replace
 from ufl.algorithms.transformer import Transformer
 from ufl.argument import Argument
@@ -331,7 +331,7 @@ def compute_form_with_arity(form, arity, arguments=None):
             return e
         return Zero()
 
-    return map_integrands(_transform, form)
+    return map_integrands_legacy(_transform, form)
 
 
 def compute_form_arities(form):
@@ -487,4 +487,4 @@ def compute_form_adjoint(form, reordered_arguments=None):
     if reordered_v.ufl_function_space() != v.ufl_function_space():
         raise ValueError("Element mismatch between new and old arguments (test functions).")
 
-    return map_integrands(Conj, replace(form, {v: reordered_v, u: reordered_u}))
+    return map_integrands_legacy(Conj, replace(form, {v: reordered_v, u: reordered_u}))

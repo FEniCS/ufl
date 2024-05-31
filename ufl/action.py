@@ -18,6 +18,7 @@ from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.matrix import Matrix
+from ufl.typing import Self
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -149,6 +150,13 @@ class Action(BaseForm):
         if self._hash is None:
             self._hash = hash(("Action", hash(self._right), hash(self._left)))
         return self._hash
+
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return Action(mapped_operands[0], mapped_operands[1])
 
 
 def _check_function_spaces(left, right):

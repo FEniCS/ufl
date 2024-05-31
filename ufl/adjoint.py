@@ -11,6 +11,7 @@
 from ufl.argument import Coargument
 from ufl.core.ufl_type import ufl_type
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
+from ufl.typing import Self
 
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
@@ -119,3 +120,10 @@ class Adjoint(BaseForm):
         if self._hash is None:
             self._hash = hash(("Adjoint", hash(self._form)))
         return self._hash
+
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        return Adjoint(mapped_operands[0])

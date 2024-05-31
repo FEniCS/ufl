@@ -19,6 +19,7 @@ from ufl.core.ufl_type import ufl_type
 
 @ufl_type(is_abstract=True, is_terminal=True)
 class Terminal(Expr):
+    # class Terminal(Expr, ApplyRestrictions):
     """Base class for terminal objects.
 
     A terminal node in the UFL expression tree.

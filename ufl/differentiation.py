@@ -19,6 +19,7 @@ from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import BaseForm
 from ufl.precedence import parstr
+from ufl.typing import Self, cutoff
 from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
@@ -293,6 +294,16 @@ class Grad(CompoundDerivative):
     def __str__(self):
         """Format as a string."""
         return "grad(%s)" % self.ufl_operands[0]
+
+    @cutoff
+    def apply_restrictions(self, mapped_operands, side) -> Self:
+        """Apply restrictions.
+
+        Propagates restrictions in a form towards the terminals.
+        """
+        if side is None:
+            raise ValueError(f"Discontinuous type {self.__class__.__name__} must be restricted.")
+        return self(side)
 
 
 @ufl_type(

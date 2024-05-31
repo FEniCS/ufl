@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.corealg.map_dag import map_expr_dag
+from ufl.corealg.map_dag import map_expr_dag_legacy
 from ufl.corealg.multifunction import MultiFunction
 
 
@@ -54,4 +54,4 @@ class RestrictionChecker(MultiFunction):
 def check_restrictions(expression, require_restriction):
     """Check that types that must be restricted are restricted in expression."""
     rules = RestrictionChecker(require_restriction)
-    return map_expr_dag(rules, expression)
+    return map_expr_dag_legacy(rules, expression)
