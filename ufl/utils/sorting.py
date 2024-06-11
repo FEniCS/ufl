@@ -8,6 +8,8 @@
 
 import warnings
 
+import numpy as np
+
 
 def topological_sorting(nodes, edges):
     """Return a topologically sorted list of the nodes.
@@ -84,6 +86,8 @@ def canonicalize_metadata(metadata):
             value = str(value)
         elif hasattr(value, "ufl_signature"):
             value = value.ufl_signature
+        elif isinstance(value, np.ndarray):
+            value = np.array2string(value, separator=" ")
         else:
             warnings.warn(
                 f"Applying str() to a metadata value of type {type(value).__name__}, "
