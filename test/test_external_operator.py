@@ -275,7 +275,7 @@ def test_adjoint_action_jacobian(V1, V2, V3):
 
     # N(u, m; v*)
     N = ExternalOperator(u, m, function_space=V3)
-    (vstar_N,) = N.arguments()
+    # (vstar_N,) = N.arguments()
 
     # Arguments for the Gateaux-derivative
     def u_hat(number):
