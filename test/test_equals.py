@@ -1,10 +1,10 @@
 """Test of expression comparison."""
 
 from ufl import Coefficient, Cofunction, FunctionSpace, Mesh, triangle
+from ufl.exprcontainers import ExprList
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
-from ufl.exprcontainers import ExprList
 
 
 def test_comparison_of_coefficients():
