@@ -4,6 +4,7 @@ from ufl import Coefficient, Cofunction, FunctionSpace, Mesh, triangle
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
+from ufl.exprcontainers import ExprList
 
 
 def test_comparison_of_coefficients():
@@ -68,6 +69,10 @@ def test_comparison_of_cofunctions():
     assert not u1 == u2
     assert not v1 == u1
     assert not v2 == u2
+
+    # Objects in ExprList as happens when taking derivatives.
+    assert ExprList(v1, v1) == ExprList(v1, v1b)
+    assert not ExprList(v1, v2) == ExprList(v1, v1)
 
 
 def test_comparison_of_products():
