@@ -115,6 +115,7 @@ class Cofunction(BaseCoefficient, BaseForm):
     )
     _primal = False
     _dual = True
+    _ufl_is_terminal_ = True
 
     __eq__ = BaseForm.__eq__
 
