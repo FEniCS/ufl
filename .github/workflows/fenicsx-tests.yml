@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      CC: gcc-10
-      CXX: g++-10
       PETSC_ARCH: linux-gnu-real-64
 
     steps:
