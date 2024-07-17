@@ -8,10 +8,12 @@ import pytest
 from ufl import (
     Action,
     Argument,
+    Coargument,
     Coefficient,
     Constant,
     Form,
     FunctionSpace,
+    Matrix,
     Mesh,
     TestFunction,
     TrialFunction,
@@ -21,6 +23,7 @@ from ufl import (
     derivative,
     dx,
     inner,
+    replace,
     sin,
     triangle,
 )
@@ -266,7 +269,7 @@ def get_external_operators(form_base):
     elif isinstance(form_base, BaseForm):
         return form_base.base_form_operators()
     else:
-        raise ValueError("Expecting FormBase argument!")
+        raise ValueError("Expecting BaseForm argument!")
 
 
 def test_adjoint_action_jacobian(V1, V2, V3):
@@ -275,7 +278,6 @@ def test_adjoint_action_jacobian(V1, V2, V3):
 
     # N(u, m; v*)
     N = ExternalOperator(u, m, function_space=V3)
-    (vstar_N,) = N.arguments()
 
     # Arguments for the Gateaux-derivative
     def u_hat(number):
@@ -340,16 +342,17 @@ def test_adjoint_action_jacobian(V1, V2, V3):
             dFdu_adj = adjoint(dFdu)
             dFdm_adj = adjoint(dFdm)
 
-            assert dFdu_adj.arguments() == (u_hat(n_arg),) + v_F
-            assert dFdm_adj.arguments() == (m_hat(n_arg),) + v_F
+            V = v_F[0].ufl_function_space()
+            assert dFdu_adj.arguments() == (TestFunction(V1), TrialFunction(V))
+            assert dFdm_adj.arguments() == (TestFunction(V2), TrialFunction(V))
 
             # Action of the adjoint
-            q = Coefficient(v_F[0].ufl_function_space())
+            q = Coefficient(V)
             action_dFdu_adj = action(dFdu_adj, q)
             action_dFdm_adj = action(dFdm_adj, q)
 
-            assert action_dFdu_adj.arguments() == (u_hat(n_arg),)
-            assert action_dFdm_adj.arguments() == (m_hat(n_arg),)
+            assert action_dFdu_adj.arguments() == (TestFunction(V1),)
+            assert action_dFdm_adj.arguments() == (TestFunction(V2),)
 
 
 def test_multiple_external_operators(V1, V2):
@@ -487,3 +490,29 @@ def test_multiple_external_operators(V1, V2):
 
     dFdu = expand_derivatives(derivative(F, u))
     assert dFdu == dFdu_partial + Action(dFdN1_partial, dN1du) + Action(dFdN5_partial, dN5du)
+
+
+def test_replace(V1):
+    u = Coefficient(V1, count=0)
+    N = ExternalOperator(u, function_space=V1)
+
+    # dN(u; uhat, v*)
+    dN = expand_derivatives(derivative(N, u))
+    vstar, uhat = dN.arguments()
+    assert isinstance(vstar, Coargument)
+
+    # Replace v* by a Form
+    v = TestFunction(V1)
+    F = inner(u, v) * dx
+    G = replace(dN, {vstar: F})
+
+    dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(F, uhat))
+    assert G == dN_replaced
+
+    # Replace v* by an Action
+    M = Matrix(V1, V1)
+    A = Action(M, u)
+    G = replace(dN, {vstar: A})
+
+    dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(A, uhat))
+    assert G == dN_replaced
