@@ -481,9 +481,25 @@ class Expression2UnicodeHandler(MultiFunction):
             return f"{var}{subscript_number(i)}"
         return self.coefficient_names[o.count()]
 
+    def cofunction(self, o):
+        """Format a cofunction."""
+        if self.coefficient_names is None:
+            i = o.count()
+            var = "cofunction"
+            if len(o.ufl_shape) == 1:
+                var += UC.combining_right_arrow_above
+            elif len(o.ufl_shape) > 1 and self.colorama_bold:
+                var = f"{colorama.Style.BRIGHT}{var}{colorama.Style.RESET_ALL}"
+            return f"{var}{subscript_number(i)}"
+        return self.coefficient_names[o.count()]
+
     def base_form_operator(self, o):
         """Format a base_form_operator."""
         return "BaseFormOperator"
+
+    def action(self, o, a, b):
+        """Format an Action."""
+        return f"Action({a}, {b})"
 
     def constant(self, o):
         """Format a constant."""
