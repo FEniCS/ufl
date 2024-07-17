@@ -1,6 +1,6 @@
 """Extract part of a form in a mixed FunctionSpace."""
 
-# Copyright (C) 2016 Chris Richardson and Lawrence Mitchell
+# Copyright (C) 2016-2024 Chris Richardson and Lawrence Mitchell
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
@@ -10,6 +10,7 @@
 
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.argument import Argument
+from ufl.classes import FixedIndex, ListTensor
 from ufl.constantvalue import Zero
 from ufl.corealg.multifunction import MultiFunction
 from ufl.functionspace import FunctionSpace
@@ -49,7 +50,7 @@ class FormSplitter(MultiFunction):
             # whose sub-elements need their function space to be created
             Q = obj.ufl_function_space()
             dom = Q.ufl_domain()
-            sub_elements = obj.ufl_element().sub_elements()
+            sub_elements = obj.ufl_element().sub_elements
 
             # If not a mixed element, do nothing
             if len(sub_elements) == 0:
@@ -71,6 +72,19 @@ class FormSplitter(MultiFunction):
 
             return as_vector(args)
 
+    def indexed(self, o, child, multiindex):
+        """Extract indexed entry if multindices are fixed.
+
+        This avoids tensors like (v_0, 0)[1] to be created.
+        """
+        indices = multiindex.indices()
+        if isinstance(child, ListTensor) and all(isinstance(i, FixedIndex) for i in indices):
+            if len(indices) == 1:
+                return child.ufl_operands[indices[0]._value]
+            else:
+                return ListTensor(*(child.ufl_operands[i._value] for i in multiindex.indices()))
+        return self.expr(o, child, multiindex)
+
     def multi_index(self, obj):
         """Apply to multi_index."""
         return obj
@@ -83,15 +97,20 @@ def extract_blocks(form, i=None, j=None):
     fs = FormSplitter()
     arguments = form.arguments()
     forms = []
-
     numbers = tuple(sorted(set(a.number() for a in arguments)))
     arity = len(numbers)
-    parts = tuple(sorted(set(a.part() for a in arguments)))
     assert arity <= 2
-
     if arity == 0:
         return (form,)
 
+    parts = []
+    for a in arguments:
+        if len(a.ufl_element().sub_elements) > 0:
+            return fs.split(form, i, j)
+        else:
+            # If standard element, extract only part
+            parts.append(a.part())
+    parts = tuple(sorted(set(parts)))
     for pi in parts:
         if arity > 1:
             for pj in parts:

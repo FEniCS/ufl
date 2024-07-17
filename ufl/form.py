@@ -371,12 +371,6 @@ class Form(BaseForm):
             self._analyze_subdomain_data()
         return self._subdomain_data
 
-    def max_subdomain_ids(self):
-        """Returns a mapping on the form ``{domain:{integral_type:max_subdomain_id}}``."""
-        if self._max_subdomain_ids is None:
-            self._analyze_subdomain_data()
-        return self._max_subdomain_ids
-
     def coefficients(self):
         """Return all ``Coefficient`` objects found in form."""
         if self._coefficients is None:

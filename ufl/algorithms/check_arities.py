@@ -1,6 +1,7 @@
 """Check arities."""
 
 from itertools import chain
+from typing import Tuple
 
 from ufl.classes import Argument, Zero
 from ufl.corealg.map_dag import map_expr_dag
@@ -14,9 +15,10 @@ class ArityMismatch(BaseException):
     pass
 
 
-def _afmt(atuple):
+def _afmt(atuple: Tuple[Argument, bool]) -> str:
     """Return a string representation of an arity tuple."""
-    return tuple(f"conj({arg})" if conj else str(arg) for arg, conj in atuple)
+    arg, conj = atuple
+    return f"conj({arg})" if conj else str(arg)
 
 
 class ArityChecker(MultiFunction):
