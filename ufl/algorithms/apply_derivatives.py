@@ -9,6 +9,7 @@
 import warnings
 from collections import defaultdict
 from math import pi
+import numpy
 
 from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments
@@ -27,7 +28,7 @@ from ufl.core.terminal import Terminal
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import BaseFormCoordinateDerivative, BaseFormOperatorDerivative, CoordinateDerivative
-from ufl.domain import extract_unique_domain
+from ufl.domain import extract_unique_domain, MixedMesh
 from ufl.form import Form, ZeroBaseForm
 from ufl.operators import (bessel_I, bessel_J, bessel_K, bessel_Y, cell_avg, conditional, cos, cosh, exp, facet_avg, ln,
                            sign, sin, sinh, sqrt)
@@ -39,6 +40,17 @@ from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, u
 # - CurlRuleset
 # - ReferenceGradRuleset
 # - ReferenceDivRuleset
+
+
+def flatten_domain_element(domain, element):
+    """Return the flattened (domain, element) pairs for mixed domain problems."""
+    if not isinstance(domain, MixedMesh):
+        return ((domain, element), )
+    flattened = ()
+    assert len(domain) == len(element.sub_elements)
+    for d, e in zip(domain, element.sub_elements):
+        flattened += flatten_domain_element(d, e)
+    return flattened
 
 
 class GenericDerivativeRuleset(MultiFunction):
@@ -593,16 +605,51 @@ class GradRuleset(GenericDerivativeRuleset):
         """Differentiate a reference_value."""
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
-        if isinstance(f.ufl_element().pullback, PhysicalPullback):
-            # TODO: Do we need to be more careful for immersed things?
-            return ReferenceGrad(o)
-
         if not f._ufl_is_terminal_:
             raise ValueError("ReferenceValue can only wrap a terminal")
-        domain = extract_unique_domain(f)
-        K = JacobianInverse(domain)
-        Do = grad_to_reference_grad(o, K)
-        return Do
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        if isinstance(domain, MixedMesh):
+            element = f.ufl_function_space().ufl_element()
+            if element.num_sub_elements != len(domain):
+                raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
+            g = ReferenceGrad(o)
+            vsh = g.ufl_shape[:-1]
+            ref_dim = g.ufl_shape[-1]
+            components = []
+            dofoffset = 0
+            for d, e in flatten_domain_element(domain, element):
+                esh = e.reference_value_shape
+                if esh == ():
+                    esh = (1, )
+                if isinstance(e.pullback, PhysicalPullback):
+                    if ref_dim != self._var_shape[0]:
+                        raise NotImplementedError("""PhysicalPullback not handled for immersed domain :
+                            reference dim ({ref_dim}) != physical dim (self._var_shape[0])""")
+                    for idx in range(int(numpy.prod(esh))):
+                        for i in range(ref_dim):
+                            components.append(g[(dofoffset + idx, ) + (i, )])
+                else:
+                    K = JacobianInverse(d)
+                    rdim, gdim = K.ufl_shape
+                    if rdim != ref_dim:
+                        raise RuntimeError(f"{rdim} != {ref_dim}")
+                    if gdim != self._var_shape[0]:
+                        raise RuntimeError(f"{gdim} != {self._var_shape[0]}")
+                    for idx in range(int(numpy.prod(esh))):
+                        for i in range(gdim):
+                            temp = Zero()
+                            for j in range(rdim):
+                                temp += g[(dofoffset + idx, ) + (j, )] * K[j, i]
+                            components.append(temp)
+                dofoffset += int(numpy.prod(esh))
+            return as_tensor(numpy.asarray(components).reshape(vsh + self._var_shape))
+        else:
+            if isinstance(f.ufl_element().pullback, PhysicalPullback):
+                # TODO: Do we need to be more careful for immersed things?
+                return ReferenceGrad(o)
+            else:
+                K = JacobianInverse(domain)
+                return grad_to_reference_grad(o, K)
 
     def reference_grad(self, o):
         """Differentiate a reference_grad."""
@@ -612,10 +659,44 @@ class GradRuleset(GenericDerivativeRuleset):
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(f, (JacobianInverse, SpatialCoordinate))
         if not valid_operand:
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")
-        domain = extract_unique_domain(f)
-        K = JacobianInverse(domain)
-        Do = grad_to_reference_grad(o, K)
-        return Do
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        if isinstance(domain, MixedMesh):
+            if not f._ufl_is_in_reference_frame_:
+                raise RuntimeError("Expecting a reference frame type")
+            while not f._ufl_is_terminal_:
+                f, = f.ufl_operands
+            element = f.ufl_function_space().ufl_element()
+            if element.num_sub_elements != len(domain):
+                raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
+            g = ReferenceGrad(o)
+            vsh = g.ufl_shape[:-1]
+            ref_dim = g.ufl_shape[-1]
+            components = []
+            dofoffset = 0
+            for d, e in flatten_domain_element(domain, element):
+                esh = e.reference_value_shape
+                if esh == ():
+                    esh = (1, )
+                K = JacobianInverse(d)
+                rdim, gdim = K.ufl_shape
+                if rdim != ref_dim:
+                    raise RuntimeError(f"{rdim} != {ref_dim}")
+                if gdim != self._var_shape[0]:
+                    raise RuntimeError(f"{gdim} != {self._var_shape[0]}")
+                for idx in range(int(numpy.prod(esh))):
+                    for midx in numpy.ndindex(g.ufl_shape[1:-1]):
+                        for i in range(gdim):
+                            temp = Zero()
+                            for j in range(rdim):
+                                temp += g[(dofoffset + idx, ) + midx + (j, )] * K[j, i]
+                            components.append(temp)
+                dofoffset += int(numpy.prod(esh))
+            if g.ufl_shape[0] != dofoffset:
+                raise RuntimeError(f"{g.ufl_shape[0]} != {dofoffset}")
+            return as_tensor(numpy.asarray(components).reshape(vsh + self._var_shape))
+        else:
+            K = JacobianInverse(domain)
+            return grad_to_reference_grad(o, K)
 
     # --- Nesting of gradients
 

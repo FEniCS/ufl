@@ -188,8 +188,8 @@ def _get_action_form_arguments(left, right):
     elif isinstance(right, CoefficientDerivative):
         # Action differentiation pushes differentiation through
         # right as a consequence of Leibniz formula.
-        from ufl.algorithms.analysis import extract_arguments_and_coefficients
-        right_args, right_coeffs = extract_arguments_and_coefficients(right)
+        from ufl.algorithms.analysis import extract_arguments_and_coefficients_and_geometric_quantities
+        right_args, right_coeffs, _ = extract_arguments_and_coefficients_and_geometric_quantities(right)
         arguments = left_args + tuple(right_args)
         coefficients += tuple(right_coeffs)
     elif isinstance(right, (BaseCoefficient, Zero)):

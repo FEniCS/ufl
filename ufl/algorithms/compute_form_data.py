@@ -30,7 +30,7 @@ from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import extract_unique_domain
+from ufl.domain import extract_unique_domain, extract_domains, MixedMesh
 from ufl.utils.sequences import max_degree
 
 
@@ -181,7 +181,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
-        domain = extract_unique_domain(f)
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
         if domain is not None:
             new_e = FunctionSpace(domain, new_e)
         new_f = Coefficient(new_e, count=i)
