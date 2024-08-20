@@ -39,6 +39,7 @@ class IntegralData(object):
         "metadata",
         "integral_coefficients",
         "enabled_coefficients",
+        "domain_integral_type_map",
     )
 
     def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
@@ -60,6 +61,7 @@ class IntegralData(object):
         # this stage:
         self.integral_coefficients = None
         self.enabled_coefficients = None
+        self.domain_integral_type_map = None
 
         # TODO: I think we can get rid of this with some refactoring
         # in ffc:
