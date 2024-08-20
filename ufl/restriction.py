@@ -56,3 +56,19 @@ class NegativeRestricted(Restricted):
 
     __slots__ = ()
     _side = "-"
+
+
+@ufl_type(is_terminal_modifier=True)
+class SingleValueRestricted(Restricted):
+    """Single value restriction."""
+
+    __slots__ = ()
+    _side = "|"
+
+
+@ufl_type(is_terminal_modifier=True)
+class ToBeRestricted(Restricted):
+    """Single value restriction."""
+
+    __slots__ = ()
+    _side = "?"

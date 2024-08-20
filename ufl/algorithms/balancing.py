@@ -6,14 +6,15 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.classes import (CellAvg, FacetAvg, Grad, Indexed, NegativeRestricted, PositiveRestricted, ReferenceGrad,
-                         ReferenceValue)
+from ufl.classes import (CellAvg, FacetAvg, Grad, Indexed,
+                         NegativeRestricted, PositiveRestricted, SingleValueRestricted, ToBeRestricted,
+                         ReferenceGrad, ReferenceValue)
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 
 modifier_precedence = [
     ReferenceValue, ReferenceGrad, Grad, CellAvg, FacetAvg, PositiveRestricted,
-    NegativeRestricted, Indexed
+    NegativeRestricted, SingleValueRestricted, ToBeRestricted, Indexed
 ]
 
 modifier_precedence = {
@@ -76,6 +77,8 @@ class BalanceModifiers(MultiFunction):
     facet_avg = _modifier
     positive_restricted = _modifier
     negative_restricted = _modifier
+    single_value_restricted = _modifier
+    to_be_restricted = _modifier
 
 
 def balance_modifiers(expr):
