@@ -19,7 +19,9 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
+from ufl.algorithms.apply_restrictions import (apply_default_restrictions, apply_restrictions,
+                                               replace_to_be_restricted, make_domain_integral_type_map)
+from ufl.algorithms.apply_coefficient_split import apply_coefficient_split, remove_component_and_list_tensors
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 
@@ -33,10 +35,12 @@ from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.algorithms.replace import replace
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.domain import MixedMesh, extract_domains, extract_unique_domain
 from ufl.utils.sequences import max_degree
+from ufl.constantvalue import Zero
 
 
 def _auto_select_degree(elements):
@@ -256,6 +260,8 @@ def compute_form_data(
     do_apply_restrictions=True,
     do_estimate_degrees=True,
     do_append_everywhere_integrals=True,
+    do_assume_single_integral_type=True,
+    do_split_coefficients=None,
     complex_mode=False,
 ):
     """Compute form data.
@@ -314,9 +320,17 @@ def compute_form_data(
     if do_apply_integral_scaling:
         form = apply_integral_scaling(form)
 
+    # Can allow for some simplifications if there indeed is only a single domain
+    if not do_assume_single_integral_type:
+        have_single_domain = len(extract_domains(form)) == 1
+
     # Apply default restriction to fully continuous terminals
     if do_apply_default_restrictions:
-        form = apply_default_restrictions(form)
+        if do_assume_single_integral_type:
+            form = apply_default_restrictions(form)
+        else:
+            # Apply '?' restrictions in general multi-domain problems
+            form = apply_default_restrictions(form, assume_single_integral_type=have_single_domain)
 
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller
@@ -342,7 +356,10 @@ def compute_form_data(
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
-        form = apply_restrictions(form)
+        if do_assume_single_integral_type:
+            form = apply_restrictions(form)
+        else:
+            form = apply_restrictions(form, assume_single_integral_type=have_single_domain)
 
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:
@@ -422,6 +439,58 @@ def compute_form_data(
     # TODO: Group this by domain first. For now keep a backwards
     # compatible data structure.
     self.max_subdomain_ids = _compute_max_subdomain_ids(self.integral_data)
+
+    # Split coefficients that are contained in ``do_split_coefficients`` tuple
+    # into components and store a dict in ``self`` that maps
+    # each coefficient to its components
+    if do_split_coefficients is not None:
+        coefficient_split = {}
+        for o in self.reduced_coefficients:
+            c = self.function_replace_map[o]
+            elem = c.ufl_element()
+            mesh = extract_unique_domain(c, expand_mixed_mesh=False)
+            # Use MixedMesh as an indicator for MixedElement as
+            # the followings would be ambiguous:
+            # -- elem.num_sub_elements > 1
+            # -- isinstance(elem.pullback, MixedPullback)
+            if isinstance(mesh, MixedMesh) and o in do_split_coefficients:
+                assert len(mesh) == len(elem.sub_elements)
+                coefficient_split[c] = [Coefficient(FunctionSpace(m, e))
+                                        for m, e in zip(mesh, elem.sub_elements)]
+        self.coefficient_split = coefficient_split
+        for itg_data in self.integral_data:
+            new_integrals = []
+            for integral in itg_data.integrals:
+                integrand = replace(integral.integrand(), self.function_replace_map)
+                integrand = remove_component_and_list_tensors(integrand)
+                integrand = apply_coefficient_split(integrand, self.coefficient_split)
+                integrand = remove_component_and_list_tensors(integrand)
+                if not isinstance(integrand, Zero):
+                    new_integrals.append(integral.reconstruct(integrand=integrand))
+            itg_data.integrals = new_integrals
+    else:
+        self.coefficient_split = {}
+
+    # Make ``itg_data.domain_integral_type_map``; this is only significant
+    # when we handle general multi-domain problems
+    if do_assume_single_integral_type:
+        for itg_data in self.integral_data:
+            itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
+    else:
+        if have_single_domain:
+            # Make a short-cut; there is no '?' restrictions by construction
+            for itg_data in self.integral_data:
+                itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
+        else:
+            # Inspect the form and replacce all '?' restrictions with appropriate ones
+            # in general multi-domain problems; we must have split coefficients into components
+            # to simplify the DAG and facilitate this inspection
+            if do_split_coefficients is None:
+                raise ValueError("""Need to pass 'do_split_coefficients=tuple_of_coefficients_to_splilt'
+                    for general multi-domain problems""")
+            for itg_data in self.integral_data:
+                itg_data.domain_integral_type_map = make_domain_integral_type_map(itg_data)
+                itg_data.integrals = replace_to_be_restricted(itg_data)
 
     # --- Checks
     _check_elements(self)
