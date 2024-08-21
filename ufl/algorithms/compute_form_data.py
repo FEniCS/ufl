@@ -35,7 +35,7 @@ from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import extract_unique_domain
+from ufl.domain import MeshSequence, extract_domains, extract_unique_domain
 from ufl.utils.sequences import max_degree
 
 
@@ -184,7 +184,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
-        domain = extract_unique_domain(f)
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
         if domain is not None:
             new_e = FunctionSpace(domain, new_e)
         new_f = Coefficient(new_e, count=i)
@@ -262,6 +262,16 @@ def compute_form_data(
 
     The default arguments configured to behave the way old FFC expects.
     """
+    # Currently, only integral_type="cell" can be used with MeshSequence.
+    for integral in form.integrals():
+        if integral.integral_type() != "cell":
+            all_domains = extract_domains(integral.integrand(), expand_mixed_mesh=False)
+            if any(isinstance(m, MeshSequence) for m in all_domains):
+                raise NotImplementedError(f"""
+                    Only integral_type="cell" can be used with MeshSequence;
+                    got integral_type={integral.integral_type()}
+                """)
+
     # TODO: Move this to the constructor instead
     self = FormData()
 
