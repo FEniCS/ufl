@@ -32,6 +32,7 @@ class IntegralData:
 
     __slots__ = (
         "domain",
+        "domain_integral_type_map",
         "enabled_coefficients",
         "integral_coefficients",
         "integral_type",
@@ -40,7 +41,15 @@ class IntegralData:
         "subdomain_id",
     )
 
-    def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
+    def __init__(
+        self,
+        domain,
+        integral_type,
+        subdomain_id,
+        integrals,
+        metadata,
+        domain_integral_type_map=None,
+    ):
         """Initialise."""
         if 1 != len(set(itg.ufl_domain() for itg in integrals)):
             raise ValueError("Multiple domains mismatch in integral data.")
@@ -59,6 +68,11 @@ class IntegralData:
         # this stage:
         self.integral_coefficients = None
         self.enabled_coefficients = None
+        if domain_integral_type_map is None:
+            self.domain_integral_type_map = {}
+        else:
+            # This map must have been sorted by domains.
+            self.domain_integral_type_map = domain_integral_type_map
 
         # TODO: I think we can get rid of this with some refactoring
         # in ffc:
@@ -67,11 +81,22 @@ class IntegralData:
     def __lt__(self, other):
         """Check if self is less than other."""
         # To preserve behaviour of extract_integral_data:
-        return (self.integral_type, self.subdomain_id, self.integrals, self.metadata) < (
+        return (
+            self.integral_type,
+            self.subdomain_id,
+            self.integrals,
+            self.metadata,
+            tuple(
+                (d._ufl_sort_key_(), itype) for d, itype in self.domain_integral_type_map.items()
+            ),
+        ) < (
             other.integral_type,
             other.subdomain_id,
             other.integrals,
             other.metadata,
+            tuple(
+                (d._ufl_sort_key_(), itype) for d, itype in other.domain_integral_type_map.items()
+            ),
         )
 
     def __eq__(self, other):
@@ -82,6 +107,7 @@ class IntegralData:
             and self.subdomain_id == other.subdomain_id
             and self.integrals == other.integrals
             and self.metadata == other.metadata
+            and self.domain_integral_type_map == other.domain_integral_type_map
         )
 
     def __str__(self):
@@ -125,16 +151,17 @@ def group_integrals_by_domain_and_type(integrals, domains):
         domains: list of AbstractDomain objects from the parent Form
 
     Returns:
-        Dictionary mapping (domain, integral_type) to list(Integral)
+        Dictionary mapping (domain, integral_type) to a
+        dictionary mapping (extra_domain_integral_type_map, list(Integral)).
     """
-    integrals_by_domain_and_type = defaultdict(list)
+    integrals_by_domain_and_type = defaultdict(lambda: defaultdict(list))
     for itg in integrals:
         if itg.ufl_domain() is None:
             raise ValueError("Integral has no domain.")
-        key = (itg.ufl_domain(), itg.integral_type())
-
+        key0 = (itg.ufl_domain(), itg.integral_type())
+        key1 = tuple(itg.extra_domain_integral_type_map().items())
         # Append integral to list of integrals with shared key
-        integrals_by_domain_and_type[key].append(itg)
+        integrals_by_domain_and_type[key0][key1].append(itg)
 
     return integrals_by_domain_and_type
 
@@ -266,6 +293,7 @@ def build_integral_data(integrals):
         integral_type = integral.integral_type()
         ufl_domain = integral.ufl_domain()
         subdomain_ids = integral.subdomain_id()
+        extra_domain_integral_type_tuple = tuple(integral.extra_domain_integral_type_map().items())
         if "everywhere" in subdomain_ids:
             raise ValueError(
                 "'everywhere' not a valid subdomain id. "
@@ -274,18 +302,36 @@ def build_integral_data(integrals):
 
         # Group for integral data (One integral data object for all
         # integrals with same domain, itype, (but possibly different metadata).
-        itgs[(ufl_domain, integral_type, subdomain_ids)].append(integral)
+        itgs[(ufl_domain, integral_type, subdomain_ids, extra_domain_integral_type_tuple)].append(
+            integral
+        )
 
     # Build list with canonical ordering, iteration over dicts
     # is not deterministic across python versions
     def keyfunc(item):
-        (d, itype, sid), integrals = item
+        (d, itype, sid, extra_d_itype_tuple), integrals = item
         sid_int = tuple(-1 if i == "otherwise" else i for i in sid)
-        return (d._ufl_sort_key_(), itype, (type(sid).__name__,), sid_int)
+        return (
+            d._ufl_sort_key_(),
+            itype,
+            (type(sid).__name__,),
+            sid_int,
+            tuple((d_._ufl_sort_key_(), itype_) for d_, itype_ in extra_d_itype_tuple),
+        )
 
     integral_datas = []
-    for (d, itype, sid), integrals in sorted(itgs.items(), key=keyfunc):
-        integral_datas.append(IntegralData(d, itype, sid, integrals, {}))
+    for (d, itype, sid, extra_d_itype_tuple), integrals in sorted(itgs.items(), key=keyfunc):
+        d_itype_tuple = ((d, itype),) + extra_d_itype_tuple
+        integral_datas.append(
+            IntegralData(
+                d,
+                itype,
+                sid,
+                integrals,
+                {},
+                domain_integral_type_map=dict(d_itype_tuple),
+            )
+        )
     return integral_datas
 
 
@@ -309,56 +355,65 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
     for domain in domains:
         for integral_type in ufl.measure.integral_types():
             # Get integrals with this domain and type
-            ddt_integrals = integrals_by_domain_and_type.get((domain, integral_type))
-            if ddt_integrals is None:
+            ddt_integrals_map = integrals_by_domain_and_type.get((domain, integral_type))
+            if ddt_integrals_map is None:
                 continue
 
-            # Group integrals by subdomain id, after splitting e.g.
-            #   f*dx((1,2)) + g*dx((2,3)) -> f*dx(1) + (f+g)*dx(2) + g*dx(3)
-            # (note: before this call, 'everywhere' is a valid subdomain_id,
-            # and after this call, 'otherwise' is a valid subdomain_id)
-            single_subdomain_integrals = rearrange_integrals_by_single_subdomains(
-                ddt_integrals, do_append_everywhere_integrals
-            )
+            for extra_domain_integral_type_tuple, ddt_integrals in ddt_integrals_map.items():
+                # Group integrals by subdomain id, after splitting e.g.
+                #   f*dx((1,2)) + g*dx((2,3)) -> f*dx(1) + (f+g)*dx(2) + g*dx(3)
+                # (note: before this call, 'everywhere' is a valid subdomain_id,
+                # and after this call, 'otherwise' is a valid subdomain_id)
+                single_subdomain_integrals = rearrange_integrals_by_single_subdomains(
+                    ddt_integrals, do_append_everywhere_integrals
+                )
 
-            for subdomain_id, ss_integrals in sorted_by_key(single_subdomain_integrals):
-                # strip the coordinate derivatives from all integrals
-                # this yields a list of the form [(coordinate derivative, integral), ...]
-                stripped_integrals_and_coordderivs = strip_coordinate_derivatives(ss_integrals)
+                for subdomain_id, ss_integrals in sorted_by_key(single_subdomain_integrals):
+                    # strip the coordinate derivatives from all integrals
+                    # this yields a list of the form [(coordinate derivative, integral), ...]
+                    stripped_integrals_and_coordderivs = strip_coordinate_derivatives(ss_integrals)
 
-                # now group the integrals by the coordinate derivative
-                def calc_hash(cd):
-                    return sum(
-                        sum(tuple_elem._ufl_compute_hash_() for tuple_elem in tuple_)
-                        for tuple_ in cd
-                    )
-
-                coordderiv_integrals_dict = {}
-                for integral, coordderiv in stripped_integrals_and_coordderivs:
-                    coordderivhash = calc_hash(coordderiv)
-                    if coordderivhash in coordderiv_integrals_dict:
-                        coordderiv_integrals_dict[coordderivhash][1].append(integral)
-                    else:
-                        coordderiv_integrals_dict[coordderivhash] = (coordderiv, [integral])
-
-                # cd_integrals_dict is now a dict of the form
-                # { hash: (CoordinateDerivative, [integral, integral, ...]), ... }
-                # we can now put the integrals back together and then afterwards
-                # apply the CoordinateDerivative again
-
-                for cdhash, samecd_integrals in sorted_by_key(coordderiv_integrals_dict):
-                    # Accumulate integrands of integrals that share the
-                    # same compiler data
-                    integrands_and_cds = accumulate_integrands_with_same_metadata(
-                        samecd_integrals[1]
-                    )
-
-                    for integrand, metadata in integrands_and_cds:
-                        integral = Integral(
-                            integrand, integral_type, domain, subdomain_id, metadata, None
+                    # now group the integrals by the coordinate derivative
+                    def calc_hash(cd):
+                        return sum(
+                            sum(tuple_elem._ufl_compute_hash_() for tuple_elem in tuple_)
+                            for tuple_ in cd
                         )
-                        integral = attach_coordinate_derivatives(integral, samecd_integrals[0])
-                        integrals.append(integral)
+
+                    coordderiv_integrals_dict = {}
+                    for integral, coordderiv in stripped_integrals_and_coordderivs:
+                        coordderivhash = calc_hash(coordderiv)
+                        if coordderivhash in coordderiv_integrals_dict:
+                            coordderiv_integrals_dict[coordderivhash][1].append(integral)
+                        else:
+                            coordderiv_integrals_dict[coordderivhash] = (coordderiv, [integral])
+
+                    # cd_integrals_dict is now a dict of the form
+                    # { hash: (CoordinateDerivative, [integral, integral, ...]), ... }
+                    # we can now put the integrals back together and then afterwards
+                    # apply the CoordinateDerivative again
+
+                    for cdhash, samecd_integrals in sorted_by_key(coordderiv_integrals_dict):
+                        # Accumulate integrands of integrals that share the
+                        # same compiler data
+                        integrands_and_cds = accumulate_integrands_with_same_metadata(
+                            samecd_integrals[1]
+                        )
+
+                        for integrand, metadata in integrands_and_cds:
+                            integral = Integral(
+                                integrand,
+                                integral_type,
+                                domain,
+                                subdomain_id,
+                                metadata,
+                                None,
+                                extra_domain_integral_type_map=dict(
+                                    extra_domain_integral_type_tuple
+                                ),
+                            )
+                            integral = attach_coordinate_derivatives(integral, samecd_integrals[0])
+                            integrals.append(integral)
 
     # Group integrals by common integrand
     # u.dx(0)*dx(1) + u.dx(0)*dx(2) -> u.dx(0)*dx((1,2))
@@ -372,15 +427,29 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
         meta_hash = hash(canonicalize_metadata(metadata))
         subdomain_id = integral.subdomain_id()
         subdomain_data = id_or_none(integral.subdomain_data())
+        extra_domain_integral_type_tuple = tuple(integral.extra_domain_integral_type_map().items())
         integrand = renumber_indices(integral.integrand())
-        unique_integrals[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] += (
-            subdomain_id,
+        key = (
+            integral_type,
+            ufl_domain,
+            meta_hash,
+            integrand,
+            subdomain_data,
+            extra_domain_integral_type_tuple,
         )
-        metadata_table[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] = metadata
+        unique_integrals[key] += (subdomain_id,)
+        metadata_table[key] = metadata
 
     grouped_integrals = []
     for integral_data, subdomain_ids in unique_integrals.items():
-        (integral_type, ufl_domain, metadata, integrand, subdomain_data) = integral_data
+        (
+            integral_type,
+            ufl_domain,
+            metadata,
+            integrand,
+            subdomain_data,
+            extra_domain_integral_type_tuple,
+        ) = integral_data
         integral = Integral(
             integrand,
             integral_type,
@@ -388,6 +457,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
             subdomain_ids,
             metadata_table[integral_data],
             subdomain_data,
+            extra_domain_integral_type_map=dict(extra_domain_integral_type_tuple),
         )
         grouped_integrals.append(integral)
 

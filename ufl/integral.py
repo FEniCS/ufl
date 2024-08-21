@@ -12,6 +12,7 @@
 import ufl
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.core.expr import Expr
+from ufl.domain import sort_domains
 from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
@@ -22,6 +23,7 @@ class Integral:
     """An integral over a single domain."""
 
     __slots__ = (
+        "_extra_domain_integral_type_map",
         "_integral_type",
         "_integrand",
         "_metadata",
@@ -30,7 +32,16 @@ class Integral:
         "_ufl_domain",
     )
 
-    def __init__(self, integrand, integral_type, domain, subdomain_id, metadata, subdomain_data):
+    def __init__(
+        self,
+        integrand,
+        integral_type,
+        domain,
+        subdomain_id,
+        metadata,
+        subdomain_data,
+        extra_domain_integral_type_map=None,
+    ):
         """Initialise."""
         if not isinstance(integrand, Expr):
             raise ValueError("Expecting integrand to be an Expr instance.")
@@ -40,6 +51,13 @@ class Integral:
         self._subdomain_id = subdomain_id
         self._metadata = metadata
         self._subdomain_data = subdomain_data
+        if extra_domain_integral_type_map is None:
+            self._extra_domain_integral_type_map = {}
+        else:
+            self._extra_domain_integral_type_map = {
+                d: extra_domain_integral_type_map[d]
+                for d in sort_domains(extra_domain_integral_type_map.keys())
+            }
 
     def reconstruct(
         self,
@@ -49,6 +67,7 @@ class Integral:
         subdomain_id=None,
         metadata=None,
         subdomain_data=None,
+        extra_domain_integral_type_map=None,
     ):
         """Construct a new Integral object with some properties replaced with new values.
 
@@ -69,7 +88,17 @@ class Integral:
             metadata = self.metadata()
         if subdomain_data is None:
             subdomain_data = self._subdomain_data
-        return Integral(integrand, integral_type, domain, subdomain_id, metadata, subdomain_data)
+        if extra_domain_integral_type_map is None:
+            extra_domain_integral_type_map = self._extra_domain_integral_type_map
+        return Integral(
+            integrand,
+            integral_type,
+            domain,
+            subdomain_id,
+            metadata,
+            subdomain_data,
+            extra_domain_integral_type_map=extra_domain_integral_type_map,
+        )
 
     def integrand(self):
         """Return the integrand expression, which is an ``Expr`` instance."""
@@ -86,6 +115,10 @@ class Integral:
     def subdomain_id(self):
         """Return the subdomain id of this integral."""
         return self._subdomain_id
+
+    def extra_domain_integral_type_map(self):
+        """Return the extra domain-integral_type map."""
+        return self._extra_domain_integral_type_map
 
     def metadata(self):
         """Return the compiler metadata this integral has been annotated with."""
@@ -115,16 +148,22 @@ class Integral:
 
     def __str__(self):
         """Format as a string."""
-        fmt = "{ %s } * %s(%s[%s], %s)"
         mname = ufl.measure.integral_type_to_measure_name[self._integral_type]
-        s = fmt % (self._integrand, mname, self._ufl_domain, self._subdomain_id, self._metadata)
-        return s
+        temp = {
+            d: ufl.measure.integral_type_to_measure_name[itype]
+            for d, itype in self._extra_domain_integral_type_map.items()
+        }
+        return (
+            f"{{self._integrand}} * "
+            f"{mname}({self._ufl_domain}[{self._subdomain_id}], {self._metadata}, {temp})"
+        )
 
     def __repr__(self):
         """Representation."""
         return (
             f"Integral({self._integrand!r}, {self._integral_type!r}, {self._ufl_domain!r}, "
-            f"{self._subdomain_id!r}, {self._metadata!r}, {self._subdomain_data!r})"
+            f"{self._subdomain_id!r}, {self._metadata!r}, {self._subdomain_data!r}, "
+            f"extra_domain_integral_type_map={self._extra_domain_integral_type_map!r})"
         )
 
     def __eq__(self, other):
@@ -137,6 +176,7 @@ class Integral:
             and self._integrand == other._integrand
             and self._metadata == other._metadata
             and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
+            and self._extra_domain_integral_type_map == other._extra_domain_integral_type_map
         )
 
     def __hash__(self):
@@ -150,5 +190,6 @@ class Integral:
             hash(self._ufl_domain),
             self._subdomain_id,
             id_or_none(self._subdomain_data),
+            tuple((hash(d), itype) for d, itype in self._extra_domain_integral_type_map.items()),
         )
         return hash(hashdata)
