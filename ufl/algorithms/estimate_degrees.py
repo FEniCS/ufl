@@ -15,7 +15,7 @@ from ufl.checks import is_cellwise_constant
 from ufl.constantvalue import IntValue
 from ufl.corealg.map_dag import map_expr_dags
 from ufl.corealg.multifunction import MultiFunction
-from ufl.domain import extract_unique_domain
+from ufl.domain import extract_domains, extract_unique_domain
 from ufl.form import Form
 from ufl.integral import Integral
 
@@ -98,10 +98,9 @@ class SumDegreeEstimator(MultiFunction):
         This is used when derivatives are taken. It does not reduce the degree when
         TensorProduct elements or quadrilateral elements are involved.
         """
-        if isinstance(f, int) and extract_unique_domain(v).ufl_cell().cellname() not in [
-            "quadrilateral",
-            "hexahedron",
-        ]:
+        # Can have multiple domains of the same cell type.
+        (cell,) = set(d.ufl_cell() for d in extract_domains(v))
+        if isinstance(f, int) and cell.cellname() not in ["quadrilateral", "hexahedron"]:
             return max(f - 1, 0)
         else:
             return f
