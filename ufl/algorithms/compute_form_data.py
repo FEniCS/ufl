@@ -20,7 +20,7 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import apply_restrictions
+from ufl.algorithms.apply_restrictions import apply_restrictions, default_restriction_map
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 
@@ -39,7 +39,7 @@ from ufl.algorithms.replace import replace
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.constantvalue import Zero
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import MeshSequence, extract_domains, extract_unique_domain
+from ufl.domain import extract_domains, extract_unique_domain
 from ufl.utils.sequences import max_degree
 
 
@@ -262,6 +262,7 @@ def compute_form_data(
     do_append_everywhere_integrals=True,
     do_replace_functions=False,
     coefficients_to_split=None,
+    do_assume_single_integral_type=True,
     complex_mode=False,
     do_remove_component_tensors=False,
 ):
@@ -269,16 +270,6 @@ def compute_form_data(
 
     The default arguments configured to behave the way old FFC expects.
     """
-    # Currently, only integral_type="cell" can be used with MeshSequence.
-    for integral in form.integrals():
-        if integral.integral_type() != "cell":
-            all_domains = extract_domains(integral.integrand(), expand_mesh_sequence=False)
-            if any(isinstance(m, MeshSequence) for m in all_domains):
-                raise NotImplementedError(f"""
-                    Only integral_type="cell" can be used with MeshSequence;
-                    got integral_type={integral.integral_type()}
-                """)
-
     # TODO: Move this to the constructor instead
     self = FormData()
 
@@ -344,10 +335,6 @@ def compute_form_data(
             form = apply_derivatives(form)
 
     form = apply_coordinate_derivatives(form)
-
-    # Propagate restrictions to terminals
-    if do_apply_restrictions:
-        form = apply_restrictions(form, apply_default=do_apply_default_restrictions)
 
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:
@@ -447,6 +434,13 @@ def compute_form_data(
     else:
         if not do_replace_functions:
             raise ValueError("Must call with do_replace_functions=True")
+        for itg_data in self.integral_data:
+            new_integrals = []
+            for integral in itg_data.integrals:
+                # Propagate restrictions. Do not yet apply default restrictions.
+                new_integral = apply_restrictions(integral)
+                new_integrals.append(new_integral)
+            itg_data.integrals = new_integrals
         # Split coefficients that are contained in ``coefficients_to_split``
         # into components, and store a dict in ``self`` that maps
         # each coefficient to its components.
@@ -466,8 +460,40 @@ def compute_form_data(
             new_integrals = []
             for integral in itg_data.integrals:
                 integrand = coeff_splitter(integral.integrand())
+                # Potentially need to call `remove_component_tensors()` here, but
+                # early-simplifications of Indexed objects seem sufficient.
                 if not isinstance(integrand, Zero):
                     new_integrals.append(integral.reconstruct(integrand=integrand))
+            itg_data.integrals = new_integrals
+
+    # Propagate restrictions to terminals
+    if do_apply_restrictions:
+        for itg_data in self.integral_data:
+            if do_assume_single_integral_type:  # Conventional case
+                if not itg_data.integral_type.startswith("interior_facet"):
+                    continue
+            if do_apply_default_restrictions:
+                if do_assume_single_integral_type:  # Conventional case
+                    domains = set(
+                        domain
+                        for integral in itg_data.integrals
+                        for domain in extract_domains(integral)
+                    )
+                    default_restrictions = {domain: "+" for domain in domains}
+                else:
+                    default_restrictions = {
+                        domain: default_restriction_map[integral_type]
+                        for domain, integral_type in itg_data.domain_integral_type_map.items()
+                    }
+            else:
+                default_restrictions = None
+            new_integrals = []
+            for integral in itg_data.integrals:
+                new_integral = apply_restrictions(
+                    integral,
+                    default_restrictions=default_restrictions,
+                )
+                new_integrals.append(new_integral)
             itg_data.integrals = new_integrals
 
     # --- Checks
