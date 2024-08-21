@@ -102,7 +102,14 @@ class Measure:
     expression.
     """
 
-    __slots__ = ("_domain", "_integral_type", "_metadata", "_subdomain_data", "_subdomain_id")
+    __slots__ = (
+        "_domain",
+        "_integral_type",
+        "_intersect_measures",
+        "_metadata",
+        "_subdomain_data",
+        "_subdomain_id",
+    )
 
     def __init__(
         self,
@@ -111,6 +118,7 @@ class Measure:
         subdomain_id="everywhere",
         metadata=None,
         subdomain_data=None,
+        intersect_measures=None,
     ):
         """Initialise.
 
@@ -122,6 +130,11 @@ class Measure:
                 affecting how code is generated, including parameters
                 for optimization or debugging of generated code
             subdomain_data: object representing data to interpret subdomain_id with
+            intersect_measures: a `tuple` of extra measures that defines
+                domain-integral_type map for each domain in a multi-domain problem. For instance,
+                if integral_type="dS" on ``domain``, while integral_type="ds" on domainZ, say,
+                one must pass intersect_measures=(Measure("ds", domainZ),). Currently,
+                the extra measures must have "everywhere" subdomain_id.
         """
         # Map short name to long name and require a valid one
         self._integral_type = as_integral_type(integral_type)
@@ -156,6 +169,28 @@ class Measure:
             raise ValueError("Invalid metadata.")
         self._metadata = metadata or {}
 
+        if intersect_measures is None:
+            self._intersect_measures = ()
+        else:
+            if not all(m.subdomain_id() == "everywhere" for m in intersect_measures):
+                raise NotImplementedError(
+                    f"Currently, all extra measures must have 'everywhere' subdomain_id: "
+                    f"got {intersect_measures}"
+                )
+            if not all(m.intersect_measures() == () for m in intersect_measures):
+                raise ValueError(
+                    f"All extra measures must have empty intersect_measures: "
+                    f"got {intersect_measures}"
+                )
+            if not all(m.metadata() == {} for m in intersect_measures):
+                raise ValueError(
+                    f"All extra measures must have empty metadata: got {intersect_measures}"
+                )
+            _intersect_measures = {}
+            self._intersect_measures = tuple(
+                sorted(intersect_measures, key=lambda m: m.ufl_domain()._ufl_sort_key_())
+            )
+
     def integral_type(self):
         """Return the domain type.
 
@@ -174,6 +209,10 @@ class Measure:
         """Return the domain id of this measure (integer)."""
         return self._subdomain_id
 
+    def intersect_measures(self):
+        """Return the extra measures."""
+        return self._intersect_measures
+
     def metadata(self):
         """Return the integral metadata.
 
@@ -184,7 +223,13 @@ class Measure:
         return self._metadata
 
     def reconstruct(
-        self, integral_type=None, subdomain_id=None, domain=None, metadata=None, subdomain_data=None
+        self,
+        integral_type=None,
+        subdomain_id=None,
+        domain=None,
+        metadata=None,
+        subdomain_data=None,
+        intersect_measures=None,
     ):
         """Construct a new Measure object with some properties replaced with new values.
 
@@ -201,6 +246,8 @@ class Measure:
             subdomain_id = self.subdomain_id()
         if domain is None:
             domain = self.ufl_domain()
+        if intersect_measures is None:
+            intersect_measures = self.intersect_measures()
         if metadata is None:
             metadata = self.metadata()
         if subdomain_data is None:
@@ -211,6 +258,7 @@ class Measure:
             subdomain_id=subdomain_id,
             metadata=metadata,
             subdomain_data=subdomain_data,
+            intersect_measures=intersect_measures,
         )
 
     def subdomain_data(self):
@@ -281,6 +329,8 @@ class Measure:
             args.append(f"subdomain_id={self._subdomain_id}")
         if self._domain is not None:
             args.append(f"domain={self._domain}")
+        if self._intersect_measures:
+            args.append(f"intersect_measures={self._intersect_measures}")
         if self._metadata:  # Stored as {} if None
             args.append(f"metadata={self._metadata}")
         if self._subdomain_data is not None:
@@ -291,12 +341,14 @@ class Measure:
     def __repr__(self):
         """Return a repr string for this Measure."""
         args = []
-        args.append(repr(self._integral_type))
+        args.append(repr(integral_type_to_measure_name[self._integral_type]))
 
         if self._subdomain_id is not None:
             args.append(f"subdomain_id={self._subdomain_id!r}")
         if self._domain is not None:
             args.append(f"domain={self._domain!r}")
+        if self._intersect_measures:
+            args.append(f"intersect_measures={self._intersect_measures!r}")
         if self._metadata:  # Stored as {} if None
             args.append(f"metadata={self._metadata!r}")
         if self._subdomain_data is not None:
@@ -314,6 +366,7 @@ class Measure:
             hash(self._domain),
             metadata_hashdata,
             id_or_none(self._subdomain_data),
+            self._intersect_measures,
         )
         return hash(hashdata)
 
@@ -331,6 +384,7 @@ class Measure:
             and self._domain == other._domain
             and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
             and sorted_metadata == sorted_other_metadata
+            and self._intersect_measures == other._intersect_measures
         )
 
     def __add__(self, other):
@@ -435,6 +489,9 @@ class Measure:
             subdomain_id=subdomain_id,
             metadata=self.metadata(),
             subdomain_data=self.subdomain_data(),
+            extra_domain_integral_type_map={
+                m.ufl_domain(): m.integral_type() for m in self.intersect_measures()
+            },
         )
         return Form([integral])
 
