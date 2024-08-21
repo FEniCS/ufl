@@ -399,6 +399,7 @@ def extract_domains(expr: Union[Expr, Form], expand_mixed_mesh: bool = True):
 
     """
     from ufl.form import Form
+    from ufl.integral import Integral
 
     if isinstance(expr, Form):
         if not expand_mixed_mesh:
@@ -406,6 +407,10 @@ def extract_domains(expr: Union[Expr, Form], expand_mixed_mesh: bool = True):
                 Currently, can only extract domains from a Form with expand_mixed_mesh=True""")
         # Be consistent with the numbering used in signature.
         return tuple(expr.domain_numbering().keys())
+    elif isinstance(expr, Integral):
+        domainlist = [expr.ufl_domain()]
+        domainlist.extend(extract_domains(expr.integrand(), expand_mixed_mesh=expand_mixed_mesh))
+        return sort_domains(join_domains(domainlist, expand_mixed_mesh=expand_mixed_mesh))
     else:
         domainlist = []
         for t in traverse_unique_terminals(expr):
