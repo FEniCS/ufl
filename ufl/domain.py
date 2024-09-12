@@ -61,6 +61,14 @@ class AbstractDomain(object):
     def __iter__(self):
         return iter(self.meshes)
 
+    def iterable_like(self, element):
+        """Return iterable object that is iterable like ``element``."""
+        raise NotImplementedError("iterable_like() method not implemented")
+
+    def can_make_function_space(self, element):
+        """Check whether this mesh can make a function space with ``element``."""
+        raise NotImplementedError("check_compatibility() method not implemented")
+
 
 # TODO: Would it be useful to have a domain representing R^d? E.g. for
 # Expression.
@@ -142,6 +150,15 @@ class Mesh(AbstractDomain, UFLObject):
         """Return the component meshes."""
         return (self, )
 
+    def iterable_like(self, element):
+        """Return iterable object that is iterable like ``element``."""
+        return iter(self for _ in element.sub_elements)
+
+    def can_make_function_space(self, element):
+        """Check whether this mesh can make a function space with ``element``."""
+        # Can use with any element.
+        return True
+
 
 @attach_ufl_id
 class MixedMesh(AbstractDomain, UFLObject):
@@ -199,6 +216,20 @@ class MixedMesh(AbstractDomain, UFLObject):
     def meshes(self):
         """Return the component meshes."""
         return self._meshes
+
+    def iterable_like(self, element):
+        """Return iterable object that is iterable like ``element``."""
+        if len(self) != element.num_sub_elements:
+            raise RuntimeError(f"""len(self) ({len(self)}) !=
+                element.num_sub_elements ({element.num_sub_elements})""")
+        return self
+
+    def can_make_function_space(self, element):
+        """Check whether this mesh can make a function space with ``element``."""
+        if len(self) != element.num_sub_elements:
+            return False
+        else:
+            return all(d.can_make_function_space(e) for d, e in zip(self, element.sub_elements))
 
 
 @attach_ufl_id
@@ -335,6 +366,9 @@ def extract_domains(expr, expand_mixed_mesh=True):
     from ufl.form import Form
 
     if isinstance(expr, Form):
+        if not expand_mixed_mesh:
+            raise NotImplementedError("""
+                Currently, can only extract domains from a Form with expand_mixed_mesh=True""")
         # Be consistent with the numbering used in signature.
         return tuple(expr.domain_numbering().keys())
     else:
