@@ -147,7 +147,7 @@ class Mesh(AbstractDomain, UFLObject):
 class MixedMesh(AbstractDomain, UFLObject):
     """Symbolic representation of a mixed mesh."""
 
-    def __init__(self, *meshes, ufl_id=None, cargo=None):
+    def __init__(self, meshes, ufl_id=None, cargo=None):
         """Initialise."""
         self._ufl_id = self._init_ufl_id(ufl_id)
         # Store reference to object that will not be used by UFL
@@ -175,7 +175,7 @@ class MixedMesh(AbstractDomain, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return "MixedMesh(*%s, ufl_id=%s)" % (repr(self._meshes), repr(self._ufl_id))
+        return "MixedMesh(%s, ufl_id=%s)" % (repr(self._meshes), repr(self._ufl_id))
 
     def __str__(self):
         """Format as a string."""
