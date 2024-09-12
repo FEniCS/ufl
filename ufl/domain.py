@@ -167,6 +167,15 @@ class Mesh(AbstractDomain, UFLObject):
         # Can use with any element.
         return True
 
+    def iterable_like(self, element):
+        """Return iterable object that is iterable like ``element``."""
+        return iter(self for _ in element.sub_elements)
+
+    def can_make_function_space(self, element):
+        """Check whether this mesh can make a function space with ``element``."""
+        # Can use with any element.
+        return True
+
 
 @attach_ufl_id
 class MixedMesh(AbstractDomain, UFLObject):
