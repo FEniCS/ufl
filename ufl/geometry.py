@@ -83,8 +83,9 @@ class GeometricQuantity(Terminal):
     def __init__(self, domain):
         """Initialise."""
         Terminal.__init__(self)
-        if isinstance(domain, MixedMesh):
-            raise TypeError("Can not create a GeometricQuantity on a MixedMesh")
+        if isinstance(domain, MixedMesh) and len(set(domain)) > 1:
+            # Can not make GeometricQuantity if multiple domains exist.
+            raise TypeError(f"Can not create a GeometricQuantity on {domain}")
         self._domain = as_domain(domain)
 
     def ufl_domains(self):
