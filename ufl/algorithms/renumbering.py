@@ -48,7 +48,7 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
         """Apply to zero."""
         fi = o.ufl_free_indices
         fid = o.ufl_index_dimensions
-        if fi == () and fid ==():
+        if fi == () and fid == ():
             return o
         mapped_fi = tuple(self.index(Index(count=i)) for i in fi)
         paired_fid = [(mapped_fi[pos], fid[pos]) for pos, a in enumerate(fi)]
