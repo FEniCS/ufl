@@ -15,6 +15,7 @@ from ufl.algorithms.coordinate_derivative_helpers import (
     attach_coordinate_derivatives,
     strip_coordinate_derivatives,
 )
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.protocols import id_or_none
@@ -372,7 +373,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
         meta_hash = hash(canonicalize_metadata(metadata))
         subdomain_id = integral.subdomain_id()
         subdomain_data = id_or_none(integral.subdomain_data())
-        integrand = integral.integrand()
+        integrand = renumber_indices(integral.integrand())
         unique_integrals[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] += (
             subdomain_id,
         )
