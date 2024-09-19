@@ -267,12 +267,11 @@ def build_integral_data(integrals):
         ufl_domain = integral.ufl_domain()
         subdomain_ids = integral.subdomain_id()
         if "everywhere" in subdomain_ids:
- 
             raise ValueError(
                 "'everywhere' not a valid subdomain id. "
                 "Did you forget to call group_form_integrals?"
             )
-        
+
         # Group for integral data (One integral data object for all
         # integrals with same domain, itype, (but possibly different metadata).
         itgs[(ufl_domain, integral_type, subdomain_ids)].append(integral)
@@ -373,14 +372,22 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
         meta_hash = hash(canonicalize_metadata(metadata))
         subdomain_id = integral.subdomain_id()
         subdomain_data = id_or_none(integral.subdomain_data())
-        unique_integrals[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] += (subdomain_id,)
+        unique_integrals[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] += (
+            subdomain_id,
+        )
         metadata_table[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] = metadata
-    
+
     grouped_integrals = []
     for integral_data, subdomain_ids in unique_integrals.items():
         (integral_type, ufl_domain, metadata, integrand, subdomain_data) = integral_data
-        integral = Integral(integrand, integral_type, ufl_domain, subdomain_ids,
-                            metadata_table[integral_data], subdomain_data)
+        integral = Integral(
+            integrand,
+            integral_type,
+            ufl_domain,
+            subdomain_ids,
+            metadata_table[integral_data],
+            subdomain_data,
+        )
         grouped_integrals.append(integral)
 
     return Form(grouped_integrals)
