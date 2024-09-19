@@ -372,6 +372,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
         meta_hash = hash(canonicalize_metadata(metadata))
         subdomain_id = integral.subdomain_id()
         subdomain_data = id_or_none(integral.subdomain_data())
+        integrand = integral.integrand()
         unique_integrals[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] += (
             subdomain_id,
         )
