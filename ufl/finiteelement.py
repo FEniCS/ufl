@@ -15,8 +15,6 @@ from __future__ import annotations
 import abc as _abc
 import typing as _typing
 
-import numpy as np
-
 from ufl.cell import Cell as _Cell
 from ufl.pullback import AbstractPullback as _AbstractPullback
 from ufl.pullback import IdentityPullback as _IdentityPullback
