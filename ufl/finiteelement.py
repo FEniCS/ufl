@@ -148,10 +148,10 @@ class AbstractFiniteElement(_abc.ABC):
         offset = 0
         c_offset = 0
         for e in self.sub_elements:
-            for i, j in enumerate(np.ndindex(e.value_shape)):
+            for i, j in enumerate(np.ndindex(e.reference_value_shape)):
                 components[(offset + i,)] = c_offset + e.components[j]
             c_offset += max(e.components.values()) + 1
-            offset += e.value_size
+            offset += e.reference_value_size
         return components
 
     @property
