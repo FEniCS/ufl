@@ -270,7 +270,6 @@ class Grad(CompoundDerivative):
         """Return a new object of the same type with new operands."""
         if is_cellwise_constant(op):
             if op.ufl_shape != self.ufl_operands[0].ufl_shape:
-                from IPython import embed; embed()
                 raise ValueError("Operand shape mismatch in Grad reconstruct.")
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
                 raise ValueError("Free index mismatch in Grad reconstruct.")
