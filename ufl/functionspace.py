@@ -60,6 +60,32 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         self._ufl_domain = domain
         self._ufl_element = element
 
+    @property
+    def components(self) -> typing.Dict[typing.Tuple[int, ...], int]:
+        """Get the numbering of the components of the element of this space.
+
+        Returns:
+            A map from the components of the values on a physical cell (eg (0, 1))
+            to flat component numbers on the reference cell (eg 1)
+        """
+        from ufl.pullback import SymmetricPullback
+
+        if isinstance(self._ufl_element.pullback, SymmetricPullback):
+            return self._ufl_element.pullback._symmetry
+
+        if len(self._ufl_element.sub_elements) == 0:
+            return {(): 0}
+
+        components = {}
+        offset = 0
+        c_offset = 0
+        for s in self.ufl_sub_spaces():
+            for i, j in enumerate(np.ndindex(s.value_shape)):
+                components[(offset + i,)] = c_offset + s.components[j]
+            c_offset += max(s.components.values()) + 1
+            offset += s.value_size
+        return components
+
     def label(self):
         """Return label of boundary domains to differentiate restricted and unrestricted."""
         return self._label
