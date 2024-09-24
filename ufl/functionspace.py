@@ -11,6 +11,8 @@
 
 import typing
 
+import numpy as np
+
 from ufl.core.ufl_type import UFLObject
 from ufl.domain import join_domains
 from ufl.duals import is_dual, is_primal
