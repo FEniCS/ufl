@@ -363,7 +363,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
 
     # Group integrals by common subdomain id
     # u.dx(0)*dx(1) + u.dx(0)*dx(2) -> u.dx(0)*dx((1,2))
-    # to avoid duplicate kernels generated after geoemtry lowering
+    # to avoid duplicate kernels generated after geometry lowering
     unique_integrals = defaultdict(tuple)
     metadata_table = defaultdict(dict)
     for integral in integrals:
