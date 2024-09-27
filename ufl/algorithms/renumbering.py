@@ -1,5 +1,5 @@
 """Algorithms for renumbering of counted objects, currently variables and indices."""
-# Copyright (C) 2008-2024 Martin Sandve Alnæs, Anders Logg, Jø¶gen S. Dokken and Lawerence Mitchell
+# Copyright (C) 2008-2024 Martin Sandve Alnæs, Anders Logg, Jørgen S. Dokken and Lawerence Mitchell
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
