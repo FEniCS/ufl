@@ -98,6 +98,9 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
         i: Index of the block to extract. If set to ``None``, ``j`` must be None.
         j: Index of the block to extract.
     """
+    if i is None and j is not None:
+        raise RuntimeError(f"Cannot extract block with {j=} and {i=}.")
+
     fs = FormSplitter()
     arguments = form.arguments()
     numbers = tuple(sorted(set(a.number() for a in arguments)))
@@ -151,7 +154,13 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
         # Only one form returned
         forms_tuple = (forms,)
     if i is not None:
+        if (num_rows := len(forms_tuple)) <= i:
+            raise RuntimeError(f"Cannot extract block {i} from form with {num_rows} blocks.")
         if arity > 1 and j is not None:
+            if (num_cols := len(forms_tuple[i])) <= j:
+                raise RuntimeError(
+                    f"Cannot extract block {i},{j} from form with {num_rows}x{num_cols} blocks."
+                )
             return forms_tuple[i][j]
         else:
             return forms_tuple[i]
