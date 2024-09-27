@@ -96,7 +96,7 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
     Args:
         form: A form
         i: Index of the block to extract. If set to ``None``, ``j`` must be None.
-        j: Index of the block to extract. If set to ``None``, ``i`` must be None.
+        j: Index of the block to extract.
     """
     fs = FormSplitter()
     arguments = form.arguments()
