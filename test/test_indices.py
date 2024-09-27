@@ -15,6 +15,7 @@ from ufl import (
     exp,
     i,
     indices,
+    interval,
     j,
     k,
     l,
@@ -22,6 +23,9 @@ from ufl import (
     sin,
     triangle,
 )
+import ufl.algorithms
+import ufl.classes
+from ufl import indices
 from ufl.classes import IndexSum
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
@@ -305,4 +309,22 @@ def test_spatial_derivative(self):
 
 
 def test_renumbering(self):
-    pass
+    """Test that kernels with common integral data, but different index numbering, are correctly renumbered."""
+    cell = interval
+    mesh = Mesh(FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
+    V = FunctionSpace(mesh, FiniteElement("Lagrange", cell, 1, (2, ), identity_pullback, H1))
+    v = TestFunction(V)
+    u = TrialFunction(V)
+    i = indices(1)
+    a0 = u[i].dx(0)*v[i].dx(0) * ufl.dx((1))
+    a1 = u[i].dx(0)*v[i].dx(0) * ufl.dx((2,3,))
+    form_data = ufl.algorithms.compute_form_data(
+    a0+a1,
+    do_apply_function_pullbacks=True,
+    do_apply_integral_scaling=True,
+    do_apply_geometry_lowering=True,
+    preserve_geometry_types=(ufl.classes.Jacobian,),
+    do_apply_restrictions=True,
+    do_append_everywhere_integrals=False)
+    
+    assert len(form_data.integral_data) == 1

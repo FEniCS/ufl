@@ -1,89 +1,66 @@
 """Algorithms for renumbering of counted objects, currently variables and indices."""
-# Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
+# Copyright (C) 2008-2024 Martin Sandve Alnæs, Anders Logg, Jø¶gen S. Dokken and Lawerence Mitchell
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.classes import Zero
+from ufl.classes import Form, Integral
 from ufl.core.expr import Expr
-from ufl.core.multiindex import FixedIndex, Index, MultiIndex
-from ufl.variable import Label, Variable
+from ufl.corealg.map_dag import map_expr_dag
 
+from ufl.core.multiindex import Index
+from itertools import count as _count
+from ufl.corealg.multifunction import MultiFunction
+from collections import defaultdict
 
-class VariableRenumberingTransformer(ReuseTransformer):
-    """Variable renumbering transformer."""
-
+class IndexRelabeller(MultiFunction):
+    """Renumber indices to have a consistent index numbering starting from 0."""
     def __init__(self):
-        """Initialise."""
-        ReuseTransformer.__init__(self)
-        self.variable_map = {}
+        super().__init__()
+        count = _count()
+        self.index_cache = defaultdict(lambda: Index(next(count)))
 
-    def variable(self, o):
-        """Apply to variable."""
-        e, l = o.ufl_operands  # noqa: E741
-        v = self.variable_map.get(l)
-        if v is None:
-            e = self.visit(e)
-            l2 = Label(len(self.variable_map))
-            v = Variable(e, l2)
-            self.variable_map[l] = v
-        return v
-
-
-class IndexRenumberingTransformer(VariableRenumberingTransformer):
-    """Index renumbering transformer.
-
-    This is a poorly designed algorithm. It is used in some tests,
-    please do not use for anything else.
-    """
-
-    def __init__(self):
-        """Initialise."""
-        VariableRenumberingTransformer.__init__(self)
-        self.index_map = {}
+    expr = MultiFunction.reuse_if_untouched
+   
+    def multi_index(self, o):
+        """Apply to multi-indices."""
+        return type(o)(tuple(self.index_cache[i] if isinstance(i, Index) else i for i in o.indices()))
 
     def zero(self, o):
         """Apply to zero."""
         fi = o.ufl_free_indices
         fid = o.ufl_index_dimensions
+        new_indices = [self.index_cache[Index(i)].count() for i in fi]
         if fi == () and fid == ():
             return o
-        mapped_fi = tuple(self.index(Index(count=i)) for i in fi)
-        paired_fid = [(mapped_fi[pos], fid[pos]) for pos, a in enumerate(fi)]
-        new_fi, new_fid = zip(*tuple(sorted(paired_fid)))
-        return Zero(o.ufl_shape, new_fi, new_fid)
-
-    def index(self, o):
-        """Apply to index."""
-        if isinstance(o, FixedIndex):
-            return o
-        else:
-            c = o._count
-            i = self.index_map.get(c)
-            if i is None:
-                i = Index(count=len(self.index_map))
-                self.index_map[c] = i
-            return i
-
-    def multi_index(self, o):
-        """Apply to multi_index."""
-        new_indices = tuple(self.index(i) for i in o.indices())
-        return MultiIndex(new_indices)
+        new_fi, new_fid = zip(*sorted(zip(new_indices, fid), key=lambda x: x[0]))
+        return type(o)(o.ufl_shape, tuple(new_fi), tuple(new_fid))
 
 
-def renumber_indices(expr):
-    """Renumber indices."""
-    if isinstance(expr, Expr):
-        num_free_indices = len(expr.ufl_free_indices)
 
-    result = apply_transformer(expr, IndexRenumberingTransformer())
 
-    if isinstance(expr, Expr):
-        if num_free_indices != len(result.ufl_free_indices):
-            raise ValueError(
-                "The number of free indices left in expression "
-                "should be invariant w.r.t. renumbering."
-            )
-    return result
+def renumber_indices(form):
+    """Renumber indices to have a consistent index numbering starting from 0.
+
+    This is useful to avoid multiple kernels for the same integrand, but with different subdomain ids.
+
+    Args:
+        form: A UFL form, integral or expression.
+    Returns:
+        A new form, integral or expression with renumbered indices.    
+    """
+    if isinstance(form, Form):
+        new_integrals = [renumber_indices(itg) for itg in form.integrals()]
+        return Form(new_integrals)
+    elif isinstance(form, Integral):
+        integral = form
+        reindexer = IndexRelabeller()
+        new_integrand = map_expr_dag(reindexer, integral.integrand())
+        return integral.reconstruct(new_integrand)        
+    elif isinstance(form, Expr):
+        expr = form
+        reindexer = IndexRelabeller()
+        return map_expr_dag(reindexer, expr)
+    else:
+        raise ValueError(f"Invalid form type {form.__class__name}")
