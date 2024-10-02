@@ -10,6 +10,7 @@
 
 from typing import Optional
 
+from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.argument import Argument
 from ufl.classes import FixedIndex, ListTensor
@@ -139,7 +140,14 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
                 if f.empty():
                     form_i.append(None)
                 elif f.arguments() == ():
-                    form_i.append(None)
+                    # Restrict interior facet integrals to eliminate zeros
+                    f = apply_restrictions(f)
+                    if f.empty():
+                        form_i.append(None)
+                    else:
+                        raise RuntimeError(
+                            "Extracted form with no arguments that does not reduce to 0."
+                        )
                 else:
                     form_i.append(f)
             forms.append(tuple(form_i))

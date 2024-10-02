@@ -4,6 +4,7 @@ import ufl
 import ufl.algorithms
 from ufl.finiteelement import FiniteElement, MixedElement
 
+
 def epsilon(u):
     return ufl.sym(ufl.grad(u))
 
@@ -80,19 +81,23 @@ def test_extract_blocks(rank):
                 J_ij_ext = ufl.extract_blocks(J, i, j)
                 assert J_sub[2 * i + j].signature() == J_ij_ext.signature()
 
+
 def test_postive_restricted_extract_none():
     cell = ufl.triangle
     d = cell.topological_dimension()
     domain = ufl.Mesh(FiniteElement("Lagrange", cell, 1, (d,), ufl.identity_pullback, ufl.H1))
-    el_u = FiniteElement("Lagrange", cell, 2, (d, ), ufl.identity_pullback, ufl.H1)
-    el_p = FiniteElement(
-        "Lagrange", cell, 1, (), ufl.identity_pullback, ufl.H1)
+    el_u = FiniteElement("Lagrange", cell, 2, (d,), ufl.identity_pullback, ufl.H1)
+    el_p = FiniteElement("Lagrange", cell, 1, (), ufl.identity_pullback, ufl.H1)
     V = ufl.FunctionSpace(domain, el_u)
     Q = ufl.FunctionSpace(domain, el_p)
     W = ufl.MixedFunctionSpace(V, Q)
     u, p = ufl.TrialFunctions(W)
-    v, q = ufl.TestFunctions(W) 
-    a = ufl.inner(ufl.grad(u), ufl.grad(v))*ufl.dx + ufl.div(u)*q*ufl.dx + ufl.div(v)*p*ufl.dx
-    a += ufl.inner(u("+"),v("+")) * ufl.dS
+    v, q = ufl.TestFunctions(W)
+    a = (
+        ufl.inner(ufl.grad(u), ufl.grad(v)) * ufl.dx
+        + ufl.div(u) * q * ufl.dx
+        + ufl.div(v) * p * ufl.dx
+    )
+    a += ufl.inner(u("+"), v("+")) * ufl.dS
     a_blocks = ufl.extract_blocks(a)
     assert a_blocks[1][1] is None
