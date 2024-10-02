@@ -1139,6 +1139,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                             gprimesum = gprimesum + compute_gprimeterm(
                                 ngrads, vval, vcomp, wshape, wcomp
                             )
+                elif isinstance(v, Zero):
+                    pass
 
                 else:
                     if wshape != ():
