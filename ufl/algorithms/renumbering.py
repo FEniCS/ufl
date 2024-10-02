@@ -8,9 +8,10 @@
 from collections import defaultdict
 from itertools import count as _count
 
+from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.core.multiindex import Index
 from ufl.corealg.multifunction import MultiFunction
-from ufl.algorithms.map_integrands import map_integrand_dags
+
 
 class IndexRelabeller(MultiFunction):
     """Renumber indices to have a consistent index numbering starting from 0."""
@@ -52,6 +53,5 @@ def renumber_indices(form):
     Returns:
         A new form, integral or expression with renumbered indices.
     """
-
     reindexer = IndexRelabeller()
     return map_integrand_dags(reindexer, form)
