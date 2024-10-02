@@ -10,8 +10,7 @@
 
 from typing import Optional
 
-from ufl.algorithms.apply_restrictions import apply_restrictions
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_expr_dag, map_integrand_dags
 from ufl.argument import Argument
 from ufl.classes import FixedIndex, ListTensor
 from ufl.constantvalue import Zero
@@ -82,6 +81,15 @@ class FormSplitter(MultiFunction):
         """Apply to multi_index."""
         return obj
 
+    def restricted(self, o):
+        """Apply to a restricted function"""
+        # If we hit a restriction first apply form splitter to argument, then check for zero
+        op_split = map_expr_dag(self, o.ufl_operands[0])
+        if isinstance(op_split, Zero):
+            return op_split
+        else:
+            return op_split(o._side)
+
     expr = MultiFunction.reuse_if_untouched
 
 
@@ -139,16 +147,9 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
                 f = fs.split(form, pi, pj)
                 if f.empty():
                     form_i.append(None)
-                elif f.arguments() == ():
-                    # Restrict interior facet integrals to eliminate zeros
-                    f = apply_restrictions(f)
-                    if f.empty():
-                        form_i.append(None)
-                    else:
-                        raise RuntimeError(
-                            "Extracted form with no arguments that does not reduce to 0."
-                        )
                 else:
+                    if (num_args := len(f.arguments())) != 2:
+                        raise RuntimeError(f"Expected 2 arguments, got {num_args}")
                     form_i.append(f)
             forms.append(tuple(form_i))
         else:
