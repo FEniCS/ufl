@@ -361,7 +361,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
                         integral = attach_coordinate_derivatives(integral, samecd_integrals[0])
                         integrals.append(integral)
 
-    # Group integrals by common subdomain id
+    # Group integrals by common integrand
     # u.dx(0)*dx(1) + u.dx(0)*dx(2) -> u.dx(0)*dx((1,2))
     # to avoid duplicate kernels generated after geometry lowering
     unique_integrals = defaultdict(tuple)
