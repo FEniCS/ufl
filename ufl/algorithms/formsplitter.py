@@ -82,7 +82,7 @@ class FormSplitter(MultiFunction):
         return obj
 
     def restricted(self, o):
-        """Apply to a restricted function"""
+        """Apply to a restricted function."""
         # If we hit a restriction first apply form splitter to argument, then check for zero
         op_split = map_expr_dag(self, o.ufl_operands[0])
         if isinstance(op_split, Zero):
