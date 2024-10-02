@@ -8,12 +8,9 @@
 from collections import defaultdict
 from itertools import count as _count
 
-from ufl.classes import Form, Integral
-from ufl.core.expr import Expr
 from ufl.core.multiindex import Index
-from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-
+from ufl.algorithms.map_integrands import map_integrand_dags
 
 class IndexRelabeller(MultiFunction):
     """Renumber indices to have a consistent index numbering starting from 0."""
@@ -55,17 +52,6 @@ def renumber_indices(form):
     Returns:
         A new form, integral or expression with renumbered indices.
     """
-    if isinstance(form, Form):
-        new_integrals = [renumber_indices(itg) for itg in form.integrals()]
-        return Form(new_integrals)
-    elif isinstance(form, Integral):
-        integral = form
-        reindexer = IndexRelabeller()
-        new_integrand = map_expr_dag(reindexer, integral.integrand())
-        return integral.reconstruct(new_integrand)
-    elif isinstance(form, Expr):
-        expr = form
-        reindexer = IndexRelabeller()
-        return map_expr_dag(reindexer, expr)
-    else:
-        raise ValueError(f"Invalid form type {form.__class__name}")
+
+    reindexer = IndexRelabeller()
+    return map_integrand_dags(reindexer, form)
