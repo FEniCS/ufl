@@ -138,6 +138,8 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
                 f = fs.split(form, pi, pj)
                 if f.empty():
                     form_i.append(None)
+                elif f.arguments() == ():
+                    form_i.append(None)
                 else:
                     form_i.append(f)
             forms.append(tuple(form_i))
