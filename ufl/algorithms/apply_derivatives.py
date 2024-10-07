@@ -30,6 +30,8 @@ from ufl.classes import (
     Imag,
     Indexed,
     IndexSum,
+    Jacobian,
+    JacobianDeterminant,
     JacobianInverse,
     ListTensor,
     Product,
@@ -672,7 +674,7 @@ class GradRuleset(GenericDerivativeRuleset):
         f = o.ufl_operands[0]
 
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(
-            f, (JacobianInverse, SpatialCoordinate)
+            f, (JacobianInverse, SpatialCoordinate, Jacobian, JacobianDeterminant)
         )
         if not valid_operand:
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")
