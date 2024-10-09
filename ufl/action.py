@@ -126,6 +126,12 @@ class Action(BaseForm):
             chain.from_iterable(e.ufl_domains() for e in self.ufl_operands)
         )
 
+    def ufl_domains(self):
+        """Return all domains found in the base form."""
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
+
     def equals(self, other):
         """Check if two Actions are equal."""
         if type(other) is not Action:

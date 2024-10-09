@@ -113,13 +113,12 @@ class BaseForm(object, metaclass=UFLType):
 
         Fails if multiple domains are found.
         """
-        if self._domains is None:
-            self._analyze_domains()
-
-        if len(self._domains) > 1:
+        try:
+            (domain,) = set(self.ufl_domains())
+        except ValueError:
             raise ValueError("%s must have exactly one domain." % type(self).__name__)
-        # Return the single geometric domain
-        return self._domains[0]
+        # Return the one and only domain
+        return domain
 
     # --- Operator implementations ---
 
@@ -139,7 +138,7 @@ class BaseForm(object, metaclass=UFLType):
 
     def __add__(self, other):
         """Add."""
-        if isinstance(other, (int, float)) and other == 0:
+        if isinstance(other, numbers.Number) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
         elif isinstance(other, Zero):
@@ -329,26 +328,6 @@ class Form(BaseForm):
         """
         return self.ufl_domain().ufl_cell()
 
-    def ufl_domain(self):
-        """Return the single geometric integration domain occuring in the form.
-
-        Fails if multiple domains are found.
-
-        NB! This does not include domains of coefficients defined on
-        other meshes, look at form data for that additional information.
-        """
-        # Collect all domains
-        domains = self.ufl_domains()
-        # Check that all are equal TODO: don't return more than one if
-        # all are equal?
-        if not all(domain == domains[0] for domain in domains):
-            raise ValueError(
-                "Calling Form.ufl_domain() is only valid if all integrals share domain."
-            )
-
-        # Return the one and only domain
-        return domains[0]
-
     def geometric_dimension(self):
         """Return the geometric dimension shared by all domains and functions in this form."""
         gdims = tuple(set(domain.geometric_dimension() for domain in self.ufl_domains()))
@@ -370,12 +349,6 @@ class Form(BaseForm):
         if self._subdomain_data is None:
             self._analyze_subdomain_data()
         return self._subdomain_data
-
-    def max_subdomain_ids(self):
-        """Returns a mapping on the form ``{domain:{integral_type:max_subdomain_id}}``."""
-        if self._max_subdomain_ids is None:
-            self._analyze_subdomain_data()
-        return self._max_subdomain_ids
 
     def coefficients(self):
         """Return all ``Coefficient`` objects found in form."""
@@ -813,7 +786,15 @@ class FormSum(BaseForm):
         from ufl.domain import join_domains
 
         # Collect unique domains
-        self._domains = join_domains([component.ufl_domain() for component in self._components])
+        self._domains = join_domains(
+            chain.from_iterable(e.ufl_domains() for e in self.ufl_operands)
+        )
+
+    def ufl_domains(self):
+        """Return all domains found in the base form."""
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
 
     def __hash__(self):
         """Hash."""
@@ -863,6 +844,7 @@ class ZeroBaseForm(BaseForm):
         "_arguments",
         "_coefficients",
         "ufl_operands",
+        "_domains",
         "_hash",
         # Pyadjoint compatibility
         "form",
@@ -880,6 +862,21 @@ class ZeroBaseForm(BaseForm):
         """Analyze form arguments."""
         # `self._arguments` is already set in `BaseForm.__init__`
         self._coefficients = ()
+
+    def _analyze_domains(self):
+        """Analyze which domains can be found in ZeroBaseForm."""
+        from ufl.domain import join_domains
+
+        # Collect unique domains
+        self._domains = join_domains(
+            chain.from_iterable(e.ufl_domains() for e in self.ufl_operands)
+        )
+
+    def ufl_domains(self):
+        """Return all domains found in the base form."""
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
 
     def __ne__(self, other):
         """Overwrite BaseForm.__neq__ which relies on `equals`."""

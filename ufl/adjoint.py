@@ -8,6 +8,8 @@
 #
 # Modified by Nacime Bouziani, 2021-2022.
 
+from itertools import chain
+
 from ufl.argument import Coargument
 from ufl.core.ufl_type import ufl_type
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
@@ -85,7 +87,11 @@ class Adjoint(BaseForm):
 
     def _analyze_form_arguments(self):
         """The arguments of adjoint are the reverse of the form arguments."""
-        self._arguments = self._form.arguments()[::-1]
+        reversed_args = self._form.arguments()[::-1]
+        # Canonical numbering for arguments that is consistent with other BaseForm objects.
+        self._arguments = tuple(
+            type(arg)(arg.ufl_function_space(), number=i) for i, arg in enumerate(reversed_args)
+        )
         self._coefficients = self._form.coefficients()
 
     def _analyze_domains(self):
@@ -93,7 +99,15 @@ class Adjoint(BaseForm):
         from ufl.domain import join_domains
 
         # Collect unique domains
-        self._domains = join_domains([e.ufl_domain() for e in self.ufl_operands])
+        self._domains = join_domains(
+            chain.from_iterable(e.ufl_domains() for e in self.ufl_operands)
+        )
+
+    def ufl_domains(self):
+        """Return all domains found in the base form."""
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
 
     def equals(self, other):
         """Check if two Adjoints are equal."""

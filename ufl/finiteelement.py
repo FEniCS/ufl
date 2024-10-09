@@ -15,8 +15,6 @@ from __future__ import annotations
 import abc as _abc
 import typing as _typing
 
-import numpy as np
-
 from ufl.cell import Cell as _Cell
 from ufl.pullback import AbstractPullback as _AbstractPullback
 from ufl.pullback import IdentityPullback as _IdentityPullback
@@ -129,30 +127,6 @@ class AbstractFiniteElement(_abc.ABC):
     def _ufl_signature_data_(self) -> str:
         """Return UFL signature data."""
         return repr(self)
-
-    @property
-    def components(self) -> _typing.Dict[_typing.Tuple[int, ...], int]:
-        """Get the numbering of the components of the element.
-
-        Returns:
-            A map from the components of the values on a physical cell (eg (0, 1))
-            to flat component numbers on the reference cell (eg 1)
-        """
-        if isinstance(self.pullback, _SymmetricPullback):
-            return self.pullback._symmetry
-
-        if len(self.sub_elements) == 0:
-            return {(): 0}
-
-        components = {}
-        offset = 0
-        c_offset = 0
-        for e in self.sub_elements:
-            for i, j in enumerate(np.ndindex(e.value_shape)):
-                components[(offset + i,)] = c_offset + e.components[j]
-            c_offset += max(e.components.values()) + 1
-            offset += e.value_size
-        return components
 
     @property
     def reference_value_size(self) -> int:

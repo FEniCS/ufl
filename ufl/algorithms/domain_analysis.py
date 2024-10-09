@@ -15,6 +15,7 @@ from ufl.algorithms.coordinate_derivative_helpers import (
     attach_coordinate_derivatives,
     strip_coordinate_derivatives,
 )
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.protocols import id_or_none
@@ -262,37 +263,16 @@ def build_integral_data(integrals):
     itgs = defaultdict(list)
 
     # --- Merge integral data that has the same integrals,
-    unique_integrals = defaultdict(tuple)
-    metadata_table = defaultdict(dict)
     for integral in integrals:
-        integrand = integral.integrand()
         integral_type = integral.integral_type()
         ufl_domain = integral.ufl_domain()
-        metadata = integral.metadata()
-        meta_hash = hash(canonicalize_metadata(metadata))
-        subdomain_id = integral.subdomain_id()
-        subdomain_data = id_or_none(integral.subdomain_data())
-        if subdomain_id == "everywhere":
+        subdomain_ids = integral.subdomain_id()
+        if "everywhere" in subdomain_ids:
             raise ValueError(
                 "'everywhere' not a valid subdomain id. "
                 "Did you forget to call group_form_integrals?"
             )
-        unique_integrals[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] += (
-            subdomain_id,
-        )
-        metadata_table[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] = metadata
 
-    for integral_data, subdomain_ids in unique_integrals.items():
-        (integral_type, ufl_domain, metadata, integrand, subdomain_data) = integral_data
-
-        integral = Integral(
-            integrand,
-            integral_type,
-            ufl_domain,
-            subdomain_ids,
-            metadata_table[integral_data],
-            subdomain_data,
-        )
         # Group for integral data (One integral data object for all
         # integrals with same domain, itype, (but possibly different metadata).
         itgs[(ufl_domain, integral_type, subdomain_ids)].append(integral)
@@ -380,7 +360,39 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
                         )
                         integral = attach_coordinate_derivatives(integral, samecd_integrals[0])
                         integrals.append(integral)
-    return Form(integrals)
+
+    # Group integrals by common integrand
+    # u.dx(0)*dx(1) + u.dx(0)*dx(2) -> u.dx(0)*dx((1,2))
+    # to avoid duplicate kernels generated after geometry lowering
+    unique_integrals = defaultdict(tuple)
+    metadata_table = defaultdict(dict)
+    for integral in integrals:
+        integral_type = integral.integral_type()
+        ufl_domain = integral.ufl_domain()
+        metadata = integral.metadata()
+        meta_hash = hash(canonicalize_metadata(metadata))
+        subdomain_id = integral.subdomain_id()
+        subdomain_data = id_or_none(integral.subdomain_data())
+        integrand = renumber_indices(integral.integrand())
+        unique_integrals[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] += (
+            subdomain_id,
+        )
+        metadata_table[(integral_type, ufl_domain, meta_hash, integrand, subdomain_data)] = metadata
+
+    grouped_integrals = []
+    for integral_data, subdomain_ids in unique_integrals.items():
+        (integral_type, ufl_domain, metadata, integrand, subdomain_data) = integral_data
+        integral = Integral(
+            integrand,
+            integral_type,
+            ufl_domain,
+            subdomain_ids,
+            metadata_table[integral_data],
+            subdomain_data,
+        )
+        grouped_integrals.append(integral)
+
+    return Form(grouped_integrals)
 
 
 def reconstruct_form_from_integral_data(integral_data):
