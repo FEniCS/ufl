@@ -58,6 +58,9 @@ jobs:
     name: Upload to PyPI (optional)
     needs: [build]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -67,15 +70,15 @@ jobs:
       - name: Push to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         if: ${{ github.event.inputs.pypi_publish == 'true' }}
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
-          repository-url: https://upload.pypi.org/legacy/
+        environment:
+          name: pypi
+          url: https://pypi.org/p/fenics-ufl
 
       - name: Push to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         if: ${{ github.event.inputs.test_pypi_publish == 'true' }}
+        environment:
+          name: pypitest
+          url: https://test.pypi.org/p/fenics-ufl
         with:
-          user: __token__
-          password: ${{ secrets.PYPI_TEST_TOKEN }}
           repository-url: https://test.pypi.org/legacy/
