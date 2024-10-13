@@ -17,7 +17,7 @@ jobs:
       CXX: g++-10
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -28,7 +28,7 @@ jobs:
           pip3 install .
 
       - name: Clone tsfc
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./tsfc
           repository: firedrakeproject/tsfc
