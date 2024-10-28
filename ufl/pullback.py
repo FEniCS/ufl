@@ -31,6 +31,7 @@ __all_classes__ = [
     "L2Piola",
     "DoubleContravariantPiola",
     "DoubleCovariantPiola",
+    "CovariantContravariantPiola",
     "MixedPullback",
     "SymmetricPullback",
     "PhysicalPullback",
@@ -328,6 +329,51 @@ class DoubleCovariantPiola(AbstractPullback):
         return (gdim, gdim)
 
 
+class CovariantContravariantPiola(AbstractPullback):
+    """The covariant contravariant Piola pull back."""
+
+    def __repr__(self) -> str:
+        """Return a representation of the object."""
+        return "CovariantContravariantPiola()"
+
+    @property
+    def is_identity(self) -> bool:
+        """Is this pull back the identity (or the identity applied to mutliple components)."""
+        return False
+
+    def apply(self, expr):
+        """Apply the pull back.
+
+        Args:
+            expr: A function on a physical cell
+
+        Returns: The function pulled back to the reference cell
+        """
+        from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse
+
+        domain = extract_unique_domain(expr)
+        J = Jacobian(domain)
+        detJ = JacobianDeterminant(J)
+        K = JacobianInverse(domain)
+        # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
+        *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
+        kmn = (*k, m, n)
+        return as_tensor((1.0 / detJ) * K[m, i] * expr[kmn] * J[j, n], (*k, i, j))
+
+    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+        """Get the physical value shape when this pull back is applied to an element.
+
+        Args:
+            element: The element that the pull back is applied to
+            domain: The domain
+
+        Returns:
+            The value shape when the pull back is applied to the given element
+        """
+        gdim = domain.geometric_dimension()
+        return (gdim, gdim)
+
+
 class MixedPullback(AbstractPullback):
     """Pull back for a mixed element."""
 
@@ -589,6 +635,7 @@ contravariant_piola = ContravariantPiola()
 l2_piola = L2Piola()
 double_covariant_piola = DoubleCovariantPiola()
 double_contravariant_piola = DoubleContravariantPiola()
+covariant_contravariant_piola = CovariantContravariantPiola()
 physical_pullback = PhysicalPullback()
 custom_pullback = CustomPullback()
 undefined_pullback = UndefinedPullback()
