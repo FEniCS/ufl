@@ -74,6 +74,7 @@ A very brief overview of the language contents follows:
     -HCurl
     -HEin
     -HDivDiv
+    -HCurlDiv
 
 
 * Pull backs::
@@ -84,6 +85,7 @@ A very brief overview of the language contents follows:
     -l2_piola
     -double_contravariant_piola
     -double_covariant_piola
+    -covariant_contravariant_piola
 
 * Function spaces::
 
@@ -412,13 +414,14 @@ from ufl.pullback import (
     MixedPullback,
     SymmetricPullback,
     contravariant_piola,
+    covariant_contravariant_piola,
     covariant_piola,
     double_contravariant_piola,
     double_covariant_piola,
     identity_pullback,
     l2_piola,
 )
-from ufl.sobolevspace import H1, H2, L2, HCurl, HDiv, HDivDiv, HEin, HInf
+from ufl.sobolevspace import H1, H2, L2, HCurl, HCurlDiv, HDiv, HDivDiv, HEin, HInf
 from ufl.split_functions import split
 from ufl.tensors import (
     as_matrix,
@@ -448,12 +451,14 @@ __all__ = [
     "HInf",
     "HEin",
     "HDivDiv",
+    "HCurlDiv",
     "identity_pullback",
     "l2_piola",
     "contravariant_piola",
     "covariant_piola",
     "double_contravariant_piola",
     "double_covariant_piola",
+    "covariant_contravariant_piola",
     "l2_piola",
     "MixedPullback",
     "SymmetricPullback",
