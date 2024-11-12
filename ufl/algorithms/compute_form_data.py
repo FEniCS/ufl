@@ -324,14 +324,6 @@ def compute_form_data(
     if not do_assume_single_integral_type:
         have_single_domain = len(extract_domains(form)) == 1
 
-    # Apply default restriction to fully continuous terminals
-    if do_apply_default_restrictions:
-        if do_assume_single_integral_type:
-            form = apply_default_restrictions(form)
-        else:
-            # Apply '?' restrictions in general multi-domain problems
-            form = apply_default_restrictions(form, assume_single_integral_type=have_single_domain)
-
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller
     # set of types and treating geometric quantities like any other
@@ -353,6 +345,14 @@ def compute_form_data(
             form = apply_derivatives(form)
 
     form = apply_coordinate_derivatives(form)
+
+    # Apply default restriction to fully continuous terminals
+    if do_apply_default_restrictions:
+        if do_assume_single_integral_type:
+            form = apply_default_restrictions(form)
+        else:
+            # Apply '?' restrictions in general multi-domain problems
+            form = apply_default_restrictions(form, assume_single_integral_type=have_single_domain)
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
