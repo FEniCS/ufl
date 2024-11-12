@@ -346,6 +346,14 @@ def compute_form_data(
 
     form = apply_coordinate_derivatives(form)
 
+    # Apply default restriction to fully continuous terminals
+    if do_apply_default_restrictions:
+        if do_assume_single_integral_type:
+            form = apply_default_restrictions(form)
+        else:
+            # Apply '?' restrictions in general multi-domain problems
+            form = apply_default_restrictions(form, assume_single_integral_type=have_single_domain)
+
     # Propagate restrictions to terminals
     if do_apply_restrictions:
         if do_assume_single_integral_type:
