@@ -354,13 +354,6 @@ def compute_form_data(
             # Apply '?' restrictions in general multi-domain problems
             form = apply_default_restrictions(form, assume_single_integral_type=have_single_domain)
 
-    # Propagate restrictions to terminals
-    if do_apply_restrictions:
-        if do_assume_single_integral_type:
-            form = apply_restrictions(form)
-        else:
-            form = apply_restrictions(form, assume_single_integral_type=have_single_domain)
-
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:
         form = remove_complex_nodes(form)
@@ -368,6 +361,13 @@ def compute_form_data(
     # --- Group integrals into IntegralData objects
     # Most of the heavy lifting is done above in group_form_integrals.
     self.integral_data = build_integral_data(form.integrals())
+
+    # Propagate restrictions to terminals
+    if do_apply_restrictions:
+        if do_assume_single_integral_type:
+            apply_restrictions(self)
+        else:
+            apply_restrictions(self, assume_single_integral_type=have_single_domain)
 
     # --- Create replacements for arguments and coefficients
 
