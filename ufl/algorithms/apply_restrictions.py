@@ -10,11 +10,13 @@ restrictions in a form towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.algorithms.formdata import FormData
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import extract_unique_domain, MixedMesh
+from ufl.form import Form
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
 from ufl.classes import ReferenceGrad, ReferenceValue
@@ -213,7 +215,15 @@ def apply_restrictions(expression, assume_single_integral_type=True, apply_defau
         # ``exterior_facet`` and the latter ``interior_facet``.
         integral_types = None
     rules = RestrictionPropagator(assume_single_integral_type=assume_single_integral_type, apply_default=apply_default)
-    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
+    if isinstance(expression, FormData):
+        for integral_data in expression.integral_data:
+            integral_data.integrals = tuple(
+                map_integrand_dags(rules, integral, only_integral_type=integral_types)
+                for integral in integral_data.integrals
+            )
+        return expression
+    else:
+        return map_integrand_dags(rules, expression, only_integral_type=integral_types)
 
 
 class DomainRestrictionMapMaker(MultiFunction):
