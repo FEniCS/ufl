@@ -560,7 +560,7 @@ class PhysicalPullback(AbstractPullback):
         Returns:
             The value shape when the pull back is applied to the given element
         """
-        raise NotImplementedError()
+        return element.reference_value_shape
 
 
 class CustomPullback(AbstractPullback):
@@ -598,9 +598,7 @@ class CustomPullback(AbstractPullback):
         Returns:
             The value shape when the pull back is applied to the given element
         """
-        if element.reference_value_shape == ():
-            return ()
-        raise NotImplementedError()
+        return element.reference_value_shape
 
 
 class UndefinedPullback(AbstractPullback):
@@ -628,7 +626,7 @@ class UndefinedPullback(AbstractPullback):
         Returns:
             The value shape when the pull back is applied to the given element
         """
-        raise NotImplementedError()
+        return element.reference_value_shape
 
 
 identity_pullback = IdentityPullback()
