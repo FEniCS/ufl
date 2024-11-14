@@ -519,8 +519,10 @@ class SymmetricPullback(AbstractPullback):
         Returns:
             The value shape when the pull back is applied to the given element
         """
-        assert element == self._element
-        return tuple(i + 1 for i in max(self._symmetry.keys()))
+        assert isinstance(element, type(self._element))
+        subelem = element.sub_elements[0]
+        pvs = subelem.pullback.physical_value_shape(subelem, domain)
+        return tuple(i + 1 for i in max(self._symmetry.keys())) + pvs
 
 
 class PhysicalPullback(AbstractPullback):
