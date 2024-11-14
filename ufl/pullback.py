@@ -157,7 +157,7 @@ class ContravariantPiola(AbstractPullback):
             The value shape when the pull back is applied to the given element
         """
         gdim = domain.geometric_dimension()
-        return (gdim,) + element.reference_value_shape[1:]
+        return element.reference_value_shape[:-1] + (gdim,)
 
 
 class CovariantPiola(AbstractPullback):
@@ -200,7 +200,7 @@ class CovariantPiola(AbstractPullback):
             The value shape when the pull back is applied to the given element
         """
         gdim = domain.geometric_dimension()
-        return (gdim,) + element.reference_value_shape[1:]
+        return element.reference_value_shape[:-1] + (gdim,)
 
 
 class L2Piola(AbstractPullback):
@@ -283,7 +283,7 @@ class DoubleContravariantPiola(AbstractPullback):
             The value shape when the pull back is applied to the given element
         """
         gdim = domain.geometric_dimension()
-        return (gdim, gdim)
+        return element.reference_value_shape[:-2] + (gdim, gdim)
 
 
 class DoubleCovariantPiola(AbstractPullback):
@@ -326,7 +326,7 @@ class DoubleCovariantPiola(AbstractPullback):
             The value shape when the pull back is applied to the given element
         """
         gdim = domain.geometric_dimension()
-        return (gdim, gdim)
+        return element.reference_value_shape[:-2] + (gdim, gdim)
 
 
 class CovariantContravariantPiola(AbstractPullback):
@@ -371,7 +371,7 @@ class CovariantContravariantPiola(AbstractPullback):
             The value shape when the pull back is applied to the given element
         """
         gdim = domain.geometric_dimension()
-        return (gdim, gdim)
+        return element.reference_value_shape[:-2] + (gdim, gdim)
 
 
 class MixedPullback(AbstractPullback):
