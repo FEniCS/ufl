@@ -10,7 +10,7 @@
 
 from ufl.algorithms.analysis import has_exact_type
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import CoefficientDerivative, Form
+from ufl.classes import BaseForm, CoefficientDerivative
 from ufl.constantvalue import as_ufl
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
@@ -28,12 +28,14 @@ class Replacer(MultiFunction):
         # One can replace Coarguments by 1-Forms
         def get_shape(x):
             """Get the shape of an object."""
-            if isinstance(x, Form):
+            if isinstance(x, BaseForm):
                 return x.arguments()[0].ufl_shape
             return x.ufl_shape
 
         if not all(get_shape(k) == get_shape(v) for k, v in mapping.items()):
-            raise ValueError("Replacement expressions must have the same shape as what they replace.")
+            raise ValueError(
+                "Replacement expressions must have the same shape as what they replace."
+            )
 
     def ufl_type(self, o, *args):
         """Replace a ufl_type."""
@@ -88,6 +90,7 @@ def replace(e, mapping):
     if has_exact_type(e, CoefficientDerivative):
         # Hack to avoid circular dependencies
         from ufl.algorithms.ad import expand_derivatives
+
         e = expand_derivatives(e)
 
     return map_integrand_dags(Replacer(mapping2), e)

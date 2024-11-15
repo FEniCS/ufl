@@ -8,7 +8,6 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.utils.counted import Counted
@@ -19,6 +18,7 @@ __all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
 class IndexBase(object):
     """Base class for all indices."""
+
     __slots__ = ()
 
     def __init__(self):
@@ -27,6 +27,7 @@ class IndexBase(object):
 
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
+
     __slots__ = ("_value", "_hash")
 
     _cache = {}
@@ -112,6 +113,7 @@ class Index(IndexBase, Counted):
 @ufl_type()
 class MultiIndex(Terminal):
     """Represents a sequence of indices, either fixed or free."""
+
     __slots__ = ("_indices",)
 
     _cache = {}
@@ -164,8 +166,7 @@ class MultiIndex(Terminal):
 
     def __eq__(self, other):
         """Check equality."""
-        return isinstance(other, MultiIndex) and \
-            self._indices == other._indices
+        return isinstance(other, MultiIndex) and self._indices == other._indices
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate index."""

@@ -1,10 +1,10 @@
 """Test of expression comparison."""
 
 from ufl import Coefficient, Cofunction, FunctionSpace, Mesh, triangle
+from ufl.exprcontainers import ExprList
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
-from ufl.exprcontainers import ExprList
 
 
 def test_comparison_of_coefficients():
@@ -12,7 +12,7 @@ def test_comparison_of_coefficients():
     U = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
     Ub = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     v_space = FunctionSpace(domain, V)
     u_space = FunctionSpace(domain, U)
     ub_space = FunctionSpace(domain, Ub)
@@ -44,7 +44,7 @@ def test_comparison_of_cofunctions():
     U = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
     Ub = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     v_space = FunctionSpace(domain, V)
     u_space = FunctionSpace(domain, U)
     ub_space = FunctionSpace(domain, Ub)
@@ -77,7 +77,7 @@ def test_comparison_of_cofunctions():
 
 def test_comparison_of_products():
     V = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     v_space = FunctionSpace(domain, V)
     v = Coefficient(v_space)
     u = Coefficient(v_space)
@@ -91,7 +91,7 @@ def test_comparison_of_products():
 
 def test_comparison_of_sums():
     V = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     v_space = FunctionSpace(domain, V)
     v = Coefficient(v_space)
     u = Coefficient(v_space)
@@ -105,7 +105,7 @@ def test_comparison_of_sums():
 
 def test_comparison_of_deeply_nested_expression():
     V = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
     v_space = FunctionSpace(domain, V)
     v = Coefficient(v_space, count=1)
     u = Coefficient(v_space, count=1)
@@ -118,8 +118,9 @@ def test_comparison_of_deeply_nested_expression():
             elif i % 3 == 1:
                 a = a * i
             elif i % 3 == 2:
-                a = a ** i
+                a = a**i
         return a
+
     a = build_expr(u)
     b = build_expr(v)
     c = build_expr(w)

@@ -8,7 +8,6 @@ from ufl.algorithms import compute_form_data
 
 
 class Tester:
-
     def assertTrue(self, a):
         assert a
 

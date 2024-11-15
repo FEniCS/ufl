@@ -49,7 +49,7 @@ class IndexExpander(ReuseTransformer):
         if sh == ():
             return x
         else:
-            e = x.ufl_element()
+            space = x.ufl_function_space()
             r = len(sh)
 
             # Get component
@@ -58,8 +58,8 @@ class IndexExpander(ReuseTransformer):
                 raise ValueError("Component size mismatch.")
 
             # Map it through an eventual symmetry mapping
-            if len(e.components) > 1:
-                c = min(i for i, j in e.components.items() if j == e.components[c])
+            if len(space.components) > 1:
+                c = min(i for i, j in space.components.items() if j == space.components[c])
                 if r != len(c):
                     raise ValueError("Component size mismatch after symmetry mapping.")
 
@@ -133,7 +133,7 @@ class IndexExpander(ReuseTransformer):
         """Apply to index_sum."""
         ops = []
         summand, multiindex = x.ufl_operands
-        index, = multiindex
+        (index,) = multiindex
 
         # TODO: For the list tensor purging algorithm, do something like:
         # if index not in self._to_expand:
@@ -222,7 +222,7 @@ class IndexExpander(ReuseTransformer):
 
     def grad(self, x):
         """Apply to grad."""
-        f, = x.ufl_operands
+        (f,) = x.ufl_operands
         if not isinstance(f, (Terminal, Grad)):
             raise ValueError("Expecting expand_derivatives to have been applied.")
         # No need to visit child as long as it is on the form [Grad]([Grad](terminal))

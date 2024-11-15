@@ -20,17 +20,28 @@
 #
 # The linearised bilinear form a(u,v) and linear form L(v) for
 # the nonlinear equation - div (1+u) grad u = f (non-linear Poisson)
-from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, dot, dx, grad, i, triangle
+from ufl import (
+    Coefficient,
+    FunctionSpace,
+    Mesh,
+    TestFunction,
+    TrialFunction,
+    dot,
+    dx,
+    grad,
+    i,
+    triangle,
+)
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
 element = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2, ), identity_pullback, H1))
+domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
 space = FunctionSpace(domain, element)
 
 QE = FiniteElement("Quadrature", triangle, 2, (), identity_pullback, H1)
-sig = FiniteElement("Quadrature", triangle, 1, (2, ), identity_pullback, H1)
+sig = FiniteElement("Quadrature", triangle, 1, (2,), identity_pullback, H1)
 
 qe_space = FunctionSpace(domain, QE)
 sig_space = FunctionSpace(domain, sig)
@@ -42,5 +53,8 @@ C = Coefficient(qe_space)
 sig0 = Coefficient(sig_space)
 f = Coefficient(space)
 
-a = v.dx(i) * C * u.dx(i) * dx(metadata={"quadrature_degree": 2}) + v.dx(i) * 2 * u0 * u * u0.dx(i) * dx
+a = (
+    v.dx(i) * C * u.dx(i) * dx(metadata={"quadrature_degree": 2})
+    + v.dx(i) * 2 * u0 * u * u0.dx(i) * dx
+)
 L = v * f * dx - dot(grad(v), sig0) * dx(metadata={"quadrature_degree": 1})

@@ -85,9 +85,13 @@ Expr.__ge__ = _ge
 def _as_tensor(self, indices):
     """A^indices := as_tensor(A, indices)."""
     if not isinstance(indices, tuple):
-        raise ValueError("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
+        raise ValueError(
+            "Expecting a tuple of Index objects to A^indices := as_tensor(A, indices)."
+        )
     if not all(isinstance(i, Index) for i in indices):
-        raise ValueError("Expecting a tuple of Index objects to A^indices := as_tensor(A, indices).")
+        raise ValueError(
+            "Expecting a tuple of Index objects to A^indices := as_tensor(A, indices)."
+        )
     return as_tensor(self, indices)
 
 
@@ -95,6 +99,7 @@ Expr.__xor__ = _as_tensor
 
 
 # --- Helper functions for product handling ---
+
 
 def _mult(a, b):
     """Multiply."""
@@ -307,6 +312,7 @@ Expr.__abs__ = _abs
 
 # --- Extend Expr with restiction operators a("+"), a("-") ---
 
+
 def _restrict(self, side):
     """Restrict."""
     if side == "+":
@@ -324,6 +330,7 @@ def _eval(self, coord, mapping=None, component=()):
     """
     # Evaluate derivatives first
     from ufl.algorithms import expand_derivatives
+
     f = expand_derivatives(self)
 
     # Evaluate recursively
@@ -348,10 +355,12 @@ Expr.__call__ = _call
 
 # --- Extend Expr with the transpose operation A.T ---
 
+
 def _transpose(self):
     """Transpose a rank-2 tensor expression.
 
-    For more general transpose operations of higher order tensor expressions, use indexing and Tensor.
+    For more general transpose operations of higher order tensor
+    expressions, use indexing and Tensor.
     """
     return Transposed(self)
 
@@ -360,6 +369,7 @@ Expr.T = property(_transpose)
 
 
 # --- Extend Expr with indexing operator a[i] ---
+
 
 def _getitem(self, component):
     """Get an item."""
@@ -370,12 +380,16 @@ def _getitem(self, component):
     shape = self.ufl_shape
 
     # Analyse slices (:) and Ellipsis (...)
-    all_indices, slice_indices, repeated_indices = create_slice_indices(component, shape, self.ufl_free_indices)
+    all_indices, slice_indices, repeated_indices = create_slice_indices(
+        component, shape, self.ufl_free_indices
+    )
 
     # Check that we have the right number of indices for a tensor with
     # this shape
     if len(shape) != len(all_indices):
-        raise ValueError(f"Invalid number of indices {len(all_indices)} for expression of rank {len(shape)}.")
+        raise ValueError(
+            f"Invalid number of indices {len(all_indices)} for expression of rank {len(shape)}."
+        )
 
     # Special case for simplifying foo[...] => foo, foo[:] => foo or
     # similar
@@ -421,6 +435,7 @@ Expr.__getitem__ = _getitem
 
 
 # --- Extend Expr with spatial differentiation operator a.dx(i) ---
+
 
 def _dx(self, *ii):
     """Return the partial derivative with respect to spatial variable number *ii*."""

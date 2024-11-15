@@ -1,6 +1,8 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2011-04-14"
 
+import numpy as np
+
 from ufl import PermutationSymbol, as_matrix, as_vector, indices, product
 from ufl.classes import Indexed
 from ufl.constantvalue import ComplexValue, FloatValue, IntValue, Zero, as_ufl
@@ -16,7 +18,8 @@ def test_zero(self):
     self.assertNotEqual(z1, 1.0)
     self.assertFalse(z1)
 
-    # If zero() == 0 is to be allowed, it must not have the same hash or it will collide with 0 as key in dicts...
+    # If zero() == 0 is to be allowed, it must not have the same hash or
+    # it will collide with 0 as key in dicts...
     self.assertNotEqual(hash(z1), hash(0.0))
     self.assertNotEqual(hash(z1), hash(0))
 
@@ -28,6 +31,7 @@ def test_float(self):
     f4 = FloatValue(1.0)
     f5 = 3 - FloatValue(1) - 1
     f6 = 3 * FloatValue(2) / 6
+    f7 = as_ufl(np.ones((1,), dtype="d")[0])
 
     assert f1 == f1
     self.assertNotEqual(f1, f2)  # IntValue vs FloatValue, == compares representations!
@@ -35,6 +39,7 @@ def test_float(self):
     assert f2 == f4
     assert f2 == f5
     assert f2 == f6
+    assert f2 == f7
 
 
 def test_int(self):
@@ -44,6 +49,7 @@ def test_int(self):
     f4 = IntValue(1.0)
     f5 = 3 - IntValue(1) - 1
     f6 = 3 * IntValue(2) / 6
+    f7 = as_ufl(np.ones((1,), dtype="int")[0])
 
     assert f1 == f1
     self.assertNotEqual(f1, f2)  # IntValue vs FloatValue, == compares representations!
@@ -51,6 +57,7 @@ def test_int(self):
     assert f1 == f4
     assert f1 == f5
     assert f2 == f6  # Division produces a FloatValue
+    assert f1 == f7
 
 
 def test_complex(self):
@@ -61,6 +68,7 @@ def test_complex(self):
     f5 = ComplexValue(1.0 + 1.0j)
     f6 = as_ufl(1.0)
     f7 = as_ufl(1.0j)
+    f8 = as_ufl(np.array([1 + 1j], dtype="complex")[0])
 
     assert f1 == f1
     assert f1 == f4
@@ -70,6 +78,7 @@ def test_complex(self):
     assert f5 == f2 + f3
     assert f4 == f5
     assert f6 + f7 == f2 + f3
+    assert f4 == f8
 
 
 def test_scalar_sums(self):
@@ -77,7 +86,7 @@ def test_scalar_sums(self):
     s = [as_ufl(i) for i in range(n)]
 
     for i in range(n):
-        self.assertNotEqual(s[i], i+1)
+        self.assertNotEqual(s[i], i + 1)
 
     for i in range(n):
         assert s[i] == i
@@ -98,9 +107,9 @@ def test_scalar_sums(self):
     assert s[1] + s[2] == 3
     assert s[1] + s[2] + s[3] == s[6]
     assert s[5] - s[2] == 3
-    assert 1*s[5] == 5
-    assert 2*s[5] == 10
-    assert s[6]/3 == 2
+    assert 1 * s[5] == 5
+    assert 2 * s[5] == 10
+    assert s[6] / 3 == 2
 
 
 def test_identity(self):
@@ -114,7 +123,7 @@ def test_permutation_symbol_3(self):
     for i in range(3):
         for j in range(3):
             for k in range(3):
-                value = (j-i)*(k-i)*(k-j)/2
+                value = (j - i) * (k - i) * (k - j) / 2
                 self.assertEqual(e[i, j, k], value)
     i, j, k = indices(3)
     self.assertIsInstance(e[i, j, k], Indexed)
@@ -125,17 +134,18 @@ def test_permutation_symbol_3(self):
 def test_permutation_symbol_n(self):
     for n in range(2, 5):  # tested with upper limit 7, but evaluation is a bit slow then
         e = PermutationSymbol(n)
-        assert e.ufl_shape == (n,)*n
+        assert e.ufl_shape == (n,) * n
         assert eval(repr(e)) == e
 
         ii = indices(n)
-        x = (0,)*n
-        nfac = product(m for m in range(1, n+1))
+        x = (0,) * n
+        nfac = product(m for m in range(1, n + 1))
         assert (e[ii] * e[ii])(x) == nfac
 
 
 def test_unit_dyads(self):
     from ufl.tensors import unit_matrices, unit_vectors
+
     ei, ej = unit_vectors(2)
     self.assertEqual(as_vector((1, 0)), ei)
     self.assertEqual(as_vector((0, 1)), ej)

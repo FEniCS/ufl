@@ -11,17 +11,32 @@
 
 from ufl.action import Action
 from ufl.adjoint import Adjoint
-from ufl.algorithms import replace  # noqa: F401
-from ufl.algorithms import (compute_energy_norm, compute_form_action, compute_form_adjoint, compute_form_functional,
-                            compute_form_lhs, compute_form_rhs, expand_derivatives, extract_arguments, formsplitter)
+from ufl.algorithms import (
+    compute_energy_norm,
+    compute_form_action,
+    compute_form_adjoint,
+    compute_form_functional,
+    compute_form_lhs,
+    compute_form_rhs,
+    expand_derivatives,
+    extract_arguments,
+    formsplitter,
+    replace,  # noqa: F401
+)
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.constantvalue import as_ufl, is_true_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex
-from ufl.differentiation import (BaseFormCoordinateDerivative, BaseFormDerivative, BaseFormOperatorCoordinateDerivative,
-                                 BaseFormOperatorDerivative, CoefficientDerivative, CoordinateDerivative)
+from ufl.differentiation import (
+    BaseFormCoordinateDerivative,
+    BaseFormDerivative,
+    BaseFormOperatorCoordinateDerivative,
+    BaseFormOperatorDerivative,
+    CoefficientDerivative,
+    CoordinateDerivative,
+)
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.finiteelement import MixedElement
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm, as_form
@@ -107,8 +122,9 @@ def action(form, coefficient=None, derivatives_expanded=None):
     become expensive -> `derivatives_expanded` enables to use caching mechanisms to avoid that.
     """
     form = as_form(form)
-    is_coefficient_valid = (not isinstance(coefficient, BaseForm) or
-                            (isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1))
+    is_coefficient_valid = not isinstance(coefficient, BaseForm) or (
+        isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1
+    )
     # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
     if isinstance(form, (Form, BaseFormOperator)) and is_coefficient_valid:
         if not derivatives_expanded:
@@ -191,8 +207,12 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        if not all(isinstance(c, (Coefficient, Cofunction, BaseFormOperator)) for c in coefficients):
-            raise ValueError("Can only create arguments automatically for non-indexed coefficients.")
+        if not all(
+            isinstance(c, (Coefficient, Cofunction, BaseFormOperator)) for c in coefficients
+        ):
+            raise ValueError(
+                "Can only create arguments automatically for non-indexed coefficients."
+            )
 
         # Get existing arguments from form and position the new one
         # with the next argument number
@@ -241,7 +261,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     # Build mapping from coefficient to argument
     m = {}
-    for (c, a) in zip(coefficients, arguments):
+    for c, a in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             raise ValueError("Coefficient and argument shapes do not match!")
         if isinstance(c, (Coefficient, Cofunction, BaseFormOperator, SpatialCoordinate)):
@@ -297,12 +317,16 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     """
     if isinstance(form, FormSum):
         # Distribute derivative over FormSum components
-        return FormSum(*[(derivative(component, coefficient, argument, coefficient_derivatives), 1)
-                         for component in form.components()])
+        return FormSum(
+            *[
+                (derivative(component, coefficient, argument, coefficient_derivatives), 1)
+                for component in form.components()
+            ]
+        )
     elif isinstance(form, Adjoint):
         # Is `derivative(Adjoint(A), ...)` with A a 2-form even legal ?
         # -> If yes, what's the right thing to do here ?
-        raise NotImplementedError('Adjoint derivative is not supported.')
+        raise NotImplementedError("Adjoint derivative is not supported.")
     elif isinstance(form, Action):
         # Push derivative through Action slots
         left, right = form.ufl_operands
@@ -314,13 +338,15 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             dleft = derivative(left, coefficient, argument, coefficient_derivatives)
             dright = derivative(right, coefficient, argument, coefficient_derivatives)
             # Leibniz formula
-            return (action(adjoint(dleft, derivatives_expanded=True), right, derivatives_expanded=True)
-                    + action(left, dright, derivatives_expanded=True))
+            return action(
+                adjoint(dleft, derivatives_expanded=True), right, derivatives_expanded=True
+            ) + action(left, dright, derivatives_expanded=True)
         else:
-            raise NotImplementedError('Action derivative not supported when the left argument is not a 1-form.')
+            raise NotImplementedError(
+                "Action derivative not supported when the left argument is not a 1-form."
+            )
 
-    coefficients, arguments = _handle_derivative_arguments(form, coefficient,
-                                                           argument)
+    coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
     else:
@@ -334,38 +360,46 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         integrals = []
         for itg in form.integrals():
             if isinstance(coefficient, SpatialCoordinate):
-                fd = CoordinateDerivative(itg.integrand(), coefficients,
-                                          arguments, coefficient_derivatives)
-            elif isinstance(coefficient, BaseForm) and not isinstance(coefficient, BaseFormOperator):
+                fd = CoordinateDerivative(
+                    itg.integrand(), coefficients, arguments, coefficient_derivatives
+                )
+            elif isinstance(coefficient, BaseForm) and not isinstance(
+                coefficient, BaseFormOperator
+            ):
                 # Make the `ZeroBaseForm` arguments
                 arguments = form.arguments() + coefficient.arguments()
                 return ZeroBaseForm(arguments)
             else:
-                fd = CoefficientDerivative(itg.integrand(), coefficients,
-                                           arguments, coefficient_derivatives)
+                fd = CoefficientDerivative(
+                    itg.integrand(), coefficients, arguments, coefficient_derivatives
+                )
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
     elif isinstance(form, BaseFormOperator):
         if not isinstance(coefficient, SpatialCoordinate):
-            return BaseFormOperatorDerivative(form, coefficients, arguments, coefficient_derivatives)
+            return BaseFormOperatorDerivative(
+                form, coefficients, arguments, coefficient_derivatives
+            )
         else:
-            return BaseFormOperatorCoordinateDerivative(form, coefficients, arguments, coefficient_derivatives)
+            return BaseFormOperatorCoordinateDerivative(
+                form, coefficients, arguments, coefficient_derivatives
+            )
 
     elif isinstance(form, BaseForm):
         if not isinstance(coefficient, SpatialCoordinate):
             return BaseFormDerivative(form, coefficients, arguments, coefficient_derivatives)
         else:
-            return BaseFormCoordinateDerivative(form, coefficients, arguments, coefficient_derivatives)
+            return BaseFormCoordinateDerivative(
+                form, coefficients, arguments, coefficient_derivatives
+            )
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
         if not isinstance(coefficient, SpatialCoordinate):
-            return CoefficientDerivative(form, coefficients,
-                                         arguments, coefficient_derivatives)
+            return CoefficientDerivative(form, coefficients, arguments, coefficient_derivatives)
         else:
-            return CoordinateDerivative(form, coefficients,
-                                        arguments, coefficient_derivatives)
+            return CoordinateDerivative(form, coefficients, arguments, coefficient_derivatives)
 
     raise ValueError(f"Invalid argument type {type(form)}.")
 
@@ -397,8 +431,8 @@ def sensitivity_rhs(a, u, L, v):
     ::
 
         v = variable(v_expression)
-        L = IL(v)*dx
-        a = Ia(v)*dx
+        L = IL(v) * dx
+        a = Ia(v) * dx
 
     where ``IL`` and ``Ia`` are integrand expressions.
     Define a ``Coefficient u`` representing the solution
@@ -425,9 +459,17 @@ def sensitivity_rhs(a, u, L, v):
 
         dL = sensitivity_rhs(a, u, L, v)
     """
-    if not (isinstance(a, Form) and isinstance(u, Coefficient) and isinstance(L, Form) and isinstance(v, Variable)):
-        raise ValueError("Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable).")
+    if not (
+        isinstance(a, Form)
+        and isinstance(u, Coefficient)
+        and isinstance(L, Form)
+        and isinstance(v, Variable)
+    ):
+        raise ValueError(
+            "Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable)."
+        )
     if not is_true_ufl_scalar(v):
         raise ValueError("Expecting scalar variable.")
     from ufl.operators import diff
+
     return diff(L, v) - action(diff(a, v), u)

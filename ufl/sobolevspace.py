@@ -25,8 +25,9 @@ __all_classes__ = ["SobolevSpace", "DirectionalSobolevSpace"]
 class SobolevSpace(object):
     """Symbolic representation of a Sobolev space.
 
-    This implements a subset of the methods of a Python set so that finite elements and
-    other Sobolev spaces can be tested for inclusion.
+    This implements a subset of the methods of a Python set so that
+    finite elements and other Sobolev spaces can be tested for
+    inclusion.
     """
 
     def __init__(self, name, parents=None):
@@ -52,7 +53,8 @@ class SobolevSpace(object):
             "HCurl": 0,
             "HEin": 0,
             "HDivDiv": 0,
-            "DirectionalH": 0
+            "HCurlDiv": 0,
+            "DirectionalH": 0,
         }[self.name]
 
     def __str__(self):
@@ -82,11 +84,11 @@ class SobolevSpace(object):
     def __contains__(self, other):
         """Implement `fe in s` where `fe` is a FiniteElement and `s` is a SobolevSpace."""
         if isinstance(other, SobolevSpace):
-            raise TypeError("Unable to test for inclusion of a "
-                            "SobolevSpace in another SobolevSpace. "
-                            "Did you mean to use <= instead?")
-        return (other.sobolev_space == self or
-                self in other.sobolev_space.parents)
+            raise TypeError(
+                "Unable to test for inclusion of a SobolevSpace in another SobolevSpace. "
+                "Did you mean to use <= instead?"
+            )
+        return other.sobolev_space == self or self in other.sobolev_space.parents
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper subset of"."""
@@ -98,7 +100,7 @@ class DirectionalSobolevSpace(SobolevSpace):
     """Directional Sobolev space.
 
     Symbolic representation of a Sobolev space with varying smoothness
-    in differerent spatial directions.
+    in different spatial directions.
     """
 
     def __init__(self, orders):
@@ -110,8 +112,8 @@ class DirectionalSobolevSpace(SobolevSpace):
                 smoothness requirement is enforced.
         """
         assert all(
-            isinstance(x, int) or isinf(x)
-            for x in orders), "Order must be an integer or infinity."
+            isinstance(x, int) or isinf(x) for x in orders
+        ), "Order must be an integer or infinity."
         name = "DirectionalH"
         parents = [L2]
         super(DirectionalSobolevSpace, self).__init__(name, parents)
@@ -126,14 +128,19 @@ class DirectionalSobolevSpace(SobolevSpace):
         return spaces[self._orders[spatial_index]]
 
     def __contains__(self, other):
-        """Implement `fe in s` where `fe` is a FiniteElement and `s` is a DirectionalSobolevSpace."""
+        """Check if one space is contained in another.
+
+        Implement `fe in s` where `fe` is a FiniteElement and `s` is a
+        DirectionalSobolevSpace.
+        """
         if isinstance(other, SobolevSpace):
-            raise TypeError("Unable to test for inclusion of a "
-                            "SobolevSpace in another SobolevSpace. "
-                            "Did you mean to use <= instead?")
-        return (other.sobolev_space == self or
-                all(self[i] in other.sobolev_space.parents
-                    for i in self._spatial_indices))
+            raise TypeError(
+                "Unable to test for inclusion of a SobolevSpace in another SobolevSpace. "
+                "Did you mean to use <= instead?"
+            )
+        return other.sobolev_space == self or all(
+            self[i] in other.sobolev_space.parents for i in self._spatial_indices
+        )
 
     def __eq__(self, other):
         """Check equality."""
@@ -146,17 +153,15 @@ class DirectionalSobolevSpace(SobolevSpace):
         if isinstance(other, DirectionalSobolevSpace):
             if self._spatial_indices != other._spatial_indices:
                 return False
-            return any(self._orders[i] > other._orders[i]
-                       for i in self._spatial_indices)
+            return any(self._orders[i] > other._orders[i] for i in self._spatial_indices)
 
         if other in [HDiv, HCurl]:
             return all(self._orders[i] >= 1 for i in self._spatial_indices)
-        elif other.name in ["HDivDiv", "HEin"]:
+        elif other.name in ["HDivDiv", "HEin", "HCurlDiv"]:
             # Don't know how these spaces compare
             return NotImplementedError(f"Don't know how to compare with {other.name}")
         else:
-            return any(
-                self._orders[i] > other._order for i in self._spatial_indices)
+            return any(self._orders[i] > other._order for i in self._spatial_indices)
 
     def __str__(self):
         """Format as a string."""
@@ -171,3 +176,4 @@ H2 = SobolevSpace("H2", [H1, HDiv, HCurl, L2])
 HInf = SobolevSpace("HInf", [H2, H1, HDiv, HCurl, L2])
 HEin = SobolevSpace("HEin", [L2])
 HDivDiv = SobolevSpace("HDivDiv", [L2])
+HCurlDiv = SobolevSpace("HCurlDiv", [L2])

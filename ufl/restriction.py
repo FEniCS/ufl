@@ -12,11 +12,13 @@ from ufl.precedence import parstr
 # --- Restriction operators ---
 
 
-@ufl_type(is_abstract=True,
-          num_ops=1,
-          inherit_shape_from_operand=0,
-          inherit_indices_from_operand=0,
-          is_restriction=True)
+@ufl_type(
+    is_abstract=True,
+    num_ops=1,
+    inherit_shape_from_operand=0,
+    inherit_indices_from_operand=0,
+    is_restriction=True,
+)
 class Restricted(Operator):
     """Restriction."""
 
@@ -34,8 +36,7 @@ class Restricted(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
-        return self.ufl_operands[0].evaluate(x, mapping, component,
-                                             index_values)
+        return self.ufl_operands[0].evaluate(x, mapping, component, index_values)
 
     def __str__(self):
         """Format as a string."""

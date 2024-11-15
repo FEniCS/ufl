@@ -29,6 +29,7 @@ def memoized_handler(handler):
             r = handler(self, o)
             c[o] = r
         return r
+
     return _memoized_handler
 
 
@@ -76,8 +77,7 @@ class MultiFunction(object):
                     if hasattr(self, handler_name):
                         handler_names[classobject._ufl_typecode_] = handler_name
                         break
-            is_cutoff_type = [get_num_args(getattr(self, name)) == 2
-                              for name in handler_names]
+            is_cutoff_type = [get_num_args(getattr(self, name)) == 2 for name in handler_names]
             cache_data = (handler_names, is_cutoff_type)
             MultiFunction._handlers_cache[algorithm_class] = cache_data
 

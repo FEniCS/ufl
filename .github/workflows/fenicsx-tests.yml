@@ -22,7 +22,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: 3.12
 
       - name: Install test dependencies
         run: |
@@ -30,7 +30,7 @@ jobs:
 
       - name: Install UFL
         run: |
-          pip3 install .
+          pip3 install --break-system-packages .
 
       - name: Install Basix
         run: |
@@ -65,12 +65,12 @@ jobs:
 
       - name: Install UFL
         run: |
-          pip3 install .
+          pip3 install --break-system-packages .
 
       - name: Install Basix and FFCx
         run: |
-          python3 -m pip install git+https://github.com/FEniCS/basix.git
-          python3 -m pip install git+https://github.com/FEniCS/ffcx.git
+          python3 -m pip install --break-system-packages  git+https://github.com/FEniCS/basix.git
+          python3 -m pip install --break-system-packages  git+https://github.com/FEniCS/ffcx.git
 
       - name: Clone DOLFINx
         uses: actions/checkout@v4
@@ -83,6 +83,7 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
           cmake --build build
           cmake --install build
-          python3 -m pip -v install --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" dolfinx/python/
+          python3 -m pip install --break-system-packages -r dolfinx/python/build-requirements.txt
+          python3 -m pip -v install --break-system-packages --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" dolfinx/python/[ci]
       - name: Run DOLFINx unit tests
         run: python3 -m pytest -n auto dolfinx/python/test/unit

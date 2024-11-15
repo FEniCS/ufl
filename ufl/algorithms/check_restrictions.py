@@ -28,7 +28,7 @@ class RestrictionChecker(MultiFunction):
         if self.current_restriction is not None:
             raise ValueError("Not expecting twice restricted expression.")
         self.current_restriction = o._side
-        e, = o.ufl_operands
+        (e,) = o.ufl_operands
         self.visit(e)
         self.current_restriction = None
 
