@@ -783,11 +783,11 @@ class FormSum(BaseForm):
 
     def _analyze_domains(self):
         """Analyze which domains can be found in FormSum."""
-        from ufl.domain import join_domains
+        from ufl.domain import join_domains, sort_domains
 
         # Collect unique domains
-        self._domains = join_domains(
-            chain.from_iterable(e.ufl_domains() for e in self.ufl_operands)
+        self._domains = sort_domains(
+            join_domains(chain.from_iterable(e.ufl_domains() for e in self.ufl_operands))
         )
 
     def ufl_domains(self):
@@ -865,11 +865,11 @@ class ZeroBaseForm(BaseForm):
 
     def _analyze_domains(self):
         """Analyze which domains can be found in ZeroBaseForm."""
-        from ufl.domain import join_domains
+        from ufl.domain import join_domains, sort_domains
 
         # Collect unique domains
-        self._domains = join_domains(
-            chain.from_iterable(e.ufl_domains() for e in self.ufl_operands)
+        self._domains = sort_domains(
+            join_domains(chain.from_iterable(e.ufl_domains() for e in self.ufl_operands))
         )
 
     def ufl_domains(self):
