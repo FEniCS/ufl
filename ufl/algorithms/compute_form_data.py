@@ -268,14 +268,6 @@ def compute_form_data(
 
     The default arguments configured to behave the way old FFC expects.
     """
-    # Currently, only integral_type="cell" can be used with MixedMesh.
-    for integral in form.integrals():
-        if integral.integral_type() != "cell":
-            all_domains = extract_domains(integral.integrand(), expand_mixed_mesh=False)
-            if any(isinstance(m, MixedMesh) for m in all_domains):
-                raise NotImplementedError("""
-                    Only integral_type="cell" can be used with MixedMesh""")
-
     # TODO: Move this to the constructor instead
     self = FormData()
 
