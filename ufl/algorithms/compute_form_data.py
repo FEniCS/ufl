@@ -446,7 +446,6 @@ def compute_form_data(
             new_integrals = []
             for integral in itg_data.integrals:
                 integrand = replace(integral.integrand(), self.function_replace_map)
-                integrand = remove_component_and_list_tensors(integrand)
                 integrand = apply_coefficient_split(integrand, self.coefficient_split)
                 integrand = remove_component_and_list_tensors(integrand)
                 if not isinstance(integrand, Zero):
