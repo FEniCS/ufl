@@ -330,7 +330,7 @@ def compute_form_data(
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
-        form = apply_restrictions(form)
+        form = apply_restrictions(form, apply_default=do_apply_default_restrictions)
 
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:

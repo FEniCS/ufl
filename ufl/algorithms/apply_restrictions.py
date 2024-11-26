@@ -22,16 +22,20 @@ from ufl.sobolevspace import H1
 class RestrictionPropagator(MultiFunction):
     """Restriction propagator."""
 
-    def __init__(self, side=None):
+    def __init__(self, side=None, apply_default=True):
         """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
         self.default_restriction = "+"
+        self.apply_default = apply_default
         # Caches for propagating the restriction with map_expr_dag
         self.vcaches = {"+": {}, "-": {}}
         self.rcaches = {"+": {}, "-": {}}
         if self.current_restriction is None:
-            self._rp = {"+": RestrictionPropagator("+"), "-": RestrictionPropagator("-")}
+            self._rp = {
+                "+": RestrictionPropagator(side="+", apply_default=apply_default),
+                "-": RestrictionPropagator(side="-", apply_default=apply_default),
+            }
 
     def restricted(self, o):
         """When hitting a restricted quantity, visit child with a separate restriction algorithm."""
@@ -64,9 +68,12 @@ class RestrictionPropagator(MultiFunction):
     def _default_restricted(self, o):
         """Restrict a continuous quantity to default side if no current restriction is set."""
         r = self.current_restriction
-        if r is None:
-            r = self.default_restriction
-        return o(r)
+        if r is not None:
+            return o(r)
+        if self.apply_default:
+            return o(self.default_restriction)
+        else:
+            return o
 
     def _opposite(self, o):
         """Restrict a quantity to default side.
@@ -186,10 +193,10 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression):
+def apply_restrictions(expression, apply_default=True):
     """Propagate restriction nodes to wrap differential terminals directly."""
     integral_types = [
         k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
     ]
-    rules = RestrictionPropagator()
+    rules = RestrictionPropagator(apply_default=apply_default)
     return map_integrand_dags(rules, expression, only_integral_type=integral_types)
