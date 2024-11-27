@@ -81,7 +81,10 @@ class RestrictionPropagator(MultiFunction):
         if r is not None:
             return o(r)
         if self.apply_default:
-            return o(self.default_restriction)
+            domain = extract_unique_domain(o, expand_mixed_mesh=False)
+            if isinstance(domain, MixedMesh):
+                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
+            return o(self.default_restriction[domain])
         else:
             return o
 
