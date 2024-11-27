@@ -33,12 +33,12 @@ class IntegralData(object):
 
     __slots__ = (
         "domain",
+        "enabled_coefficients",
+        "integral_coefficients",
         "integral_type",
-        "subdomain_id",
         "integrals",
         "metadata",
-        "integral_coefficients",
-        "enabled_coefficients",
+        "subdomain_id",
     )
 
     def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
