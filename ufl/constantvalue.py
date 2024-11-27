@@ -63,7 +63,7 @@ class Zero(ConstantValue):
     Class for representing zero tensors of different shapes.
     """
 
-    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     _cache = {}
 
@@ -453,7 +453,7 @@ class PermutationSymbol(ConstantValue):
     or alternating symbol.
     """
 
-    __slots__ = ("ufl_shape", "_dim")
+    __slots__ = ("_dim", "ufl_shape")
 
     def __init__(self, dim):
         """Initialise."""

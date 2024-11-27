@@ -227,26 +227,26 @@ class Form(BaseForm):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
 
     __slots__ = (
+        "_arguments",
+        "_base_form_operators",
+        # --- Dict that external frameworks can place framework-specific
+        #     data in to be carried with the form
+        #     Never use this internally in ufl!
+        "_cache",
+        "_coefficient_numbering",
+        "_coefficients",
+        "_constant_numbering",
+        "_constants",
+        "_domain_numbering",
+        "_hash",
         # --- List of Integral objects (a Form is a sum of these
         # Integrals, everything else is derived)
         "_integrals",
         # --- Internal variables for caching various data
         "_integration_domains",
-        "_domain_numbering",
-        "_subdomain_data",
-        "_arguments",
-        "_base_form_operators",
-        "_coefficients",
-        "_coefficient_numbering",
-        "_constants",
-        "_constant_numbering",
-        "_terminal_numbering",
-        "_hash",
         "_signature",
-        # --- Dict that external frameworks can place framework-specific
-        #     data in to be carried with the form
-        #     Never use this internally in ufl!
-        "_cache",
+        "_subdomain_data",
+        "_terminal_numbering",
     )
 
     def __init__(self, integrals):
@@ -690,12 +690,12 @@ class FormSum(BaseForm):
     __slots__ = (
         "_arguments",
         "_coefficients",
-        "_weights",
         "_components",
-        "ufl_operands",
-        "_domains",
         "_domain_numbering",
+        "_domains",
         "_hash",
+        "_weights",
+        "ufl_operands",
     )
     _ufl_required_methods_ = "_analyze_form_arguments"
 
@@ -843,11 +843,11 @@ class ZeroBaseForm(BaseForm):
     __slots__ = (
         "_arguments",
         "_coefficients",
-        "ufl_operands",
         "_domains",
         "_hash",
         # Pyadjoint compatibility
         "form",
+        "ufl_operands",
     )
 
     def __init__(self, arguments):
