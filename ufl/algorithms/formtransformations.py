@@ -361,7 +361,7 @@ def compute_form_lhs(form):
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
     """
-    form_blocks = extract_blocks(form)
+    form_blocks = extract_blocks(form, arity=2)
     lhs = 0
     for bi in form_blocks:
       for bj in bi:
@@ -377,12 +377,10 @@ def compute_form_rhs(form):
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
     """
-    form_blocks = extract_blocks(form)
+    form_blocks = extract_blocks(form, arity=1)
     rhs = 0
     for bi in form_blocks:
-      for bj in bi:
-        if bj is not None:
-          rhs += compute_form_with_arity(bj, 1)
+      rhs += compute_form_with_arity(bi, 1)
     return -rhs
 
 
