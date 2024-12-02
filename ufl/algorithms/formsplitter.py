@@ -18,6 +18,7 @@ from ufl.corealg.multifunction import MultiFunction
 from ufl.functionspace import FunctionSpace
 from ufl.tensors import as_vector
 
+import warnings
 
 class FormSplitter(MultiFunction):
     """Form splitter."""
@@ -149,7 +150,8 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
                     form_i.append(None)
                 else:
                     if (num_args := len(f.arguments())) != 2:
-                        raise RuntimeError(f"Expected 2 arguments, got {num_args}")
+                        warnings.warn("ufl.extract_blocks: Skipping terms with arity=1 in a form of arity>1.")
+                        break
                     form_i.append(f)
             forms.append(tuple(form_i))
         else:

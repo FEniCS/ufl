@@ -22,6 +22,7 @@ from ufl.algorithms.transformer import Transformer
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
+from ufl.algorithms.formsplitter import extract_blocks
 
 # All classes:
 from ufl.core.expr import ufl_err_str
@@ -311,8 +312,6 @@ def compute_form_with_arity(form, arity, arguments=None):
         arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
-    if set(parts) - {None}:
-        raise ValueError("compute_form_with_arity cannot handle parts.")
 
     if len(arguments) < arity:
         warnings.warn(f"Form has no parts with arity {arity}.")
@@ -326,9 +325,9 @@ def compute_form_with_arity(form, arity, arguments=None):
     pe = PartExtracter(sub_arguments)
 
     def _transform(e):
-        e, provides = pe.visit(e)
+        e_visited, provides = pe.visit(e)
         if provides == sub_arguments:
-            return e
+            return e_visited
         return Zero()
 
     return map_integrands(_transform, form)
@@ -362,7 +361,13 @@ def compute_form_lhs(form):
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
     """
-    return compute_form_with_arity(form, 2)
+    form_blocks = extract_blocks(form)
+    lhs = 0
+    for bi in form_blocks:
+      for bj in bi:
+        if bj is not None:
+          lhs += compute_form_with_arity(bj, 2)
+    return lhs
 
 
 def compute_form_rhs(form):
@@ -372,7 +377,13 @@ def compute_form_rhs(form):
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
     """
-    return -compute_form_with_arity(form, 1)
+    form_blocks = extract_blocks(form)
+    rhs = 0
+    for bi in form_blocks:
+      for bj in bi:
+        if bj is not None:
+          rhs += compute_form_with_arity(bj, 1)
+    return -rhs
 
 
 def compute_form_functional(form):
