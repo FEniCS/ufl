@@ -359,6 +359,10 @@ def compute_form_lhs(form):
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
     """
+    parts = tuple(sorted(set(part for a in form.arguments() if (part := a.part()) is not None)))
+    if parts == ():
+        return compute_form_with_arity(form, 2)
+
     form_blocks = extract_blocks(form, arity=2)
     lhs = 0
     for bi in form_blocks:
@@ -375,10 +379,15 @@ def compute_form_rhs(form):
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
     """
+    parts = tuple(sorted(set(part for a in form.arguments() if (part := a.part()) is not None)))
+    if parts == ():
+        return -compute_form_with_arity(form, 1)
+
     form_blocks = extract_blocks(form, arity=1)
     rhs = 0
     for bi in form_blocks:
-        rhs += compute_form_with_arity(bi, 1)
+        if bi is not None:
+            rhs += compute_form_with_arity(bi, 1)
     return -rhs
 
 
