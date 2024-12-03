@@ -22,12 +22,12 @@ class Integral(object):
     """An integral over a single domain."""
 
     __slots__ = (
-        "_integrand",
         "_integral_type",
-        "_ufl_domain",
-        "_subdomain_id",
+        "_integrand",
         "_metadata",
         "_subdomain_data",
+        "_subdomain_id",
+        "_ufl_domain",
     )
 
     def __init__(self, integrand, integral_type, domain, subdomain_id, metadata, subdomain_data):

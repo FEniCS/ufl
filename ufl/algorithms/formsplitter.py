@@ -8,6 +8,7 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
+import warnings
 from typing import Optional
 
 from ufl.algorithms.map_integrands import map_expr_dag, map_integrand_dags
@@ -18,7 +19,6 @@ from ufl.corealg.multifunction import MultiFunction
 from ufl.functionspace import FunctionSpace
 from ufl.tensors import as_vector
 
-import warnings
 
 class FormSplitter(MultiFunction):
     """Form splitter."""
@@ -94,7 +94,8 @@ class FormSplitter(MultiFunction):
     expr = MultiFunction.reuse_if_untouched
 
 
-def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None, arity: Optional[int] = None):
+def extract_blocks(form, i: Optional[int] = None, j: Optional[int] = None,
+                   arity: Optional[int] = None):
     """Extract blocks of a form.
 
     If arity is 0, returns the form.
@@ -107,6 +108,7 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None, arit
         form: A form
         i: Index of the block to extract. If set to ``None``, ``j`` must be None.
         j: Index of the block to extract.
+        arity: Arity of the form. If not set, it will be inferred from the form.
     """
     if i is None and j is not None:
         raise RuntimeError(f"Cannot extract block with {j=} and {i=}.")
@@ -152,8 +154,8 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None, arit
                 if f.empty():
                     form_i.append(None)
                 else:
-                    if (num_args := len(f.arguments())) != 2:
-                        warnings.warn("ufl.extract_blocks: Skipping terms with arity=1 in a form of arity>1.")
+                    if (len(f.arguments())) != 2:
+                        warnings.warn("Skipping terms with arity=1.")
                         break
                     form_i.append(f)
             forms.append(tuple(form_i))

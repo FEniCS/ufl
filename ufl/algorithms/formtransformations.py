@@ -14,6 +14,7 @@ import warnings
 from logging import debug
 
 from ufl.algebra import Conj
+from ufl.algorithms.formsplitter import extract_blocks
 
 # Other algorithms:
 from ufl.algorithms.map_integrands import map_integrands
@@ -22,7 +23,6 @@ from ufl.algorithms.transformer import Transformer
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
-from ufl.algorithms.formsplitter import extract_blocks
 
 # All classes:
 from ufl.core.expr import ufl_err_str
@@ -310,8 +310,6 @@ def compute_form_with_arity(form, arity, arguments=None):
     # Extract all arguments in form
     if arguments is None:
         arguments = form.arguments()
-
-    parts = [arg.part() for arg in arguments]
 
     if len(arguments) < arity:
         warnings.warn(f"Form has no parts with arity {arity}.")
