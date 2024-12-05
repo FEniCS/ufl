@@ -168,6 +168,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def edge_jacobian(self, o):
+        """Apply to edge_jacobian."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -179,6 +180,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def edge_jacobian_inverse(self, o):
+        """Apply to edge_jacobian_inverse."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
@@ -188,6 +190,7 @@ class GeometryLoweringApplier(MultiFunction):
 
     @memoized_handler
     def edge_jacobian_determinant(self, o):
+        """Apply to edge_jacobian_determinant."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
