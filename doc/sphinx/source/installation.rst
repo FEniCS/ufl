@@ -30,8 +30,8 @@ Installation instructions
 =========================
 
 To install UFL, download the source code from the
-`UFL Bitbucket repository
-<https://bitbucket.org/fenics-project/ufl>`__,
+`UFL GitHub repository
+<https://github.com/FEniCS/ufl>`__,
 and run the following command:
 
 .. code-block:: console

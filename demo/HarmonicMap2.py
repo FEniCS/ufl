@@ -3,15 +3,19 @@
 # Author: Martin Alnes
 # Date: 2009-04-09
 #
-from ufl import (Coefficient, FiniteElement, VectorElement, derivative, dot,
-                 dx, grad, inner, split, triangle)
+from ufl import Coefficient, FunctionSpace, Mesh, derivative, dot, dx, grad, inner, split, triangle
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 cell = triangle
-X = VectorElement("Lagrange", cell, 1)
-Y = FiniteElement("Lagrange", cell, 1)
-M = X * Y
+X = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
+Y = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+M = MixedElement([X, Y])
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+space = FunctionSpace(domain, M)
 
-u = Coefficient(M)
+u = Coefficient(space)
 x, y = split(u)
 
 L = inner(grad(x), grad(x)) * dx + dot(x, x) * y * dx

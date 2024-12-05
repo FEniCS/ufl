@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
-"""This module defines the ``Expr`` class, the superclass
-for all expression tree node types in UFL.
+"""This module defines the ``Expr`` class, the superclass for all expression tree node types in UFL.
 
-NB! A note about other operators not implemented here:
+NB: A note about other operators not implemented here:
 
 More operators (special functions) on ``Expr`` instances are defined in
 ``exproperators.py``, as well as the transpose ``A.T`` and spatial derivative
 ``a.dx(i)``.
 This is to avoid circular dependencies between ``Expr`` and its subclasses.
 """
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -19,12 +16,12 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.log import error
+import warnings
+
+from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
 
 
-# --- The base object for all UFL expression tree nodes ---
-
-class Expr(object):
+class Expr(object, metaclass=UFLType):
     """Base class for all UFL expression types.
 
     *Instance properties*
@@ -86,14 +83,15 @@ class Expr(object):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = ("_hash",
-                 "__weakref__")
+    __slots__ = ("_hash", "__weakref__")
     # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
 
     def __getnewargs__(self):
-        """The tuple returned here is passed to as args to cls.__new__(cls, *args).
+        """Get newargs tuple.
+
+        The tuple returned here is passed to as args to cls.__new__(cls, *args).
 
         This implementation passes the operands, which is () for terminals.
 
@@ -102,6 +100,7 @@ class Expr(object):
         return self.ufl_operands
 
     def __init__(self):
+        """Initialise."""
         self._hash = None
 
     # This shows the principal behaviour of the hash function attached
@@ -128,21 +127,9 @@ class Expr(object):
     # implement for this type in a multifunction.
     _ufl_handler_name_ = "expr"
 
-    # The integer typecode, a contiguous index different for each
-    # type.  This is used for fast lookup into e.g. multifunction
-    # handler tables.
-    _ufl_typecode_ = 0
-
     # Number of operands, "varying" for some types, or None if not
     # applicable for abstract types.
     _ufl_num_ops_ = None
-
-    # Type trait: If the type is abstract.  An abstract class cannot
-    # be instantiated and does not need all properties specified.
-    _ufl_is_abstract_ = True
-
-    # Type trait: If the type is terminal.
-    _ufl_is_terminal_ = None
 
     # Type trait: If the type is a literal.
     _ufl_is_literal_ = None
@@ -182,13 +169,10 @@ class Expr(object):
     _ufl_required_properties_ = (
         # A tuple of operands, all of them Expr instances.
         "ufl_operands",
-
         # A tuple of ints, the value shape of the expression.
         "ufl_shape",
-
         # A tuple of free index counts.
         "ufl_free_indices",
-
         # A tuple providing the int dimension for each free index.
         "ufl_index_dimensions",
     )
@@ -199,42 +183,24 @@ class Expr(object):
     _ufl_required_methods_ = (
         # To compute the hash on demand, this method is called.
         "_ufl_compute_hash_",
-
         # The data returned from this method is used to compute the
         # signature of a form
         "_ufl_signature_data_",
-
         # The == operator must be implemented to compare for identical
         # representation, used by set() and dict(). The __hash__
         # operator is added by ufl_type.
         "__eq__",
-
         # To reconstruct an object of the same type with operands or
         # properties changed.
         "_ufl_expr_reconstruct_",  # Implemented in Operator and Terminal so this should never fail
-
         "ufl_domains",
         # "ufl_cell",
         # "ufl_domain",
-
         # "__str__",
         # "__repr__",
-
-        # TODO: Add checks for methods/properties of terminals only?
-        # Required for terminals:
-        # "is_cellwise_constant", # TODO: Rename to ufl_is_cellwise_constant?
     )
 
     # --- Global variables for collecting all types ---
-
-    # A global counter of the number of typecodes assigned
-    _ufl_num_typecodes_ = 1
-
-    # A global set of all handler names added
-    _ufl_all_handler_names_ = set()
-
-    # A global array of all Expr subclasses, indexed by typecode
-    _ufl_all_classes_ = []
 
     # A global dict mapping language_operator_name to the type it
     # produces
@@ -245,29 +211,21 @@ class Expr(object):
 
     # --- Mechanism for profiling object creation and deletion ---
 
-    # A global array of the number of initialized objects for each
-    # typecode
-    _ufl_obj_init_counts_ = [0]
-
-    # A global array of the number of deleted objects for each
-    # typecode
-    _ufl_obj_del_counts_ = [0]
-
     # Backup of default init and del
     _ufl_regular__init__ = __init__
 
     def _ufl_profiling__init__(self):
-        "Replacement constructor with object counting."
+        """Replacement constructor with object counting."""
         Expr._ufl_regular__init__(self)
         Expr._ufl_obj_init_counts_[self._ufl_typecode_] += 1
 
     def _ufl_profiling__del__(self):
-        "Replacement destructor with object counting."
+        """Replacement destructor with object counting."""
         Expr._ufl_obj_del_counts_[self._ufl_typecode_] -= 1
 
     @staticmethod
     def ufl_enable_profiling():
-        "Turn on the object counting mechanism and reset counts to zero."
+        """Turn on the object counting mechanism and reset counts to zero."""
         Expr.__init__ = Expr._ufl_profiling__init__
         setattr(Expr, "__del__", Expr._ufl_profiling__del__)
         for i in range(len(Expr._ufl_obj_init_counts_)):
@@ -276,7 +234,7 @@ class Expr(object):
 
     @staticmethod
     def ufl_disable_profiling():
-        "Turn off the object counting mechanism. Return object init and del counts."
+        """Turn off the object counting mechanism. Return object init and del counts."""
         Expr.__init__ = Expr._ufl_regular__init__
         delattr(Expr, "__del__")
         return (Expr._ufl_obj_init_counts_, Expr._ufl_obj_del_counts_)
@@ -286,26 +244,36 @@ class Expr(object):
     # --- Functions for reconstructing expression ---
 
     def _ufl_expr_reconstruct_(self, *operands):
-        "Return a new object of the same type with new operands."
+        """Return a new object of the same type with new operands."""
         raise NotImplementedError(self.__class__._ufl_expr_reconstruct_)
 
     # --- Functions for geometric properties of expression ---
 
-    def ufl_domains(self):  # TODO: Deprecate this and use extract_domains(expr)
-        "Return all domains this expression is defined on."
+    def ufl_domains(self):
+        """Return all domains this expression is defined on."""
+        warnings.warn(
+            "Expr.ufl_domains() is deprecated, please use extract_domains(expr) instead.",
+            DeprecationWarning,
+        )
         from ufl.domain import extract_domains
+
         return extract_domains(self)
 
-    def ufl_domain(self):  # TODO: Deprecate this and use extract_unique_domain(expr)
-        "Return the single unique domain this expression is defined on, or throw an error."
+    def ufl_domain(self):
+        """Return the single unique domain this expression is defined on, or throw an error."""
+        warnings.warn(
+            "Expr.ufl_domain() is deprecated, please use extract_unique_domain(expr) instead.",
+            DeprecationWarning,
+        )
         from ufl.domain import extract_unique_domain
+
         return extract_unique_domain(self)
 
     # --- Functions for float evaluation ---
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
+        raise ValueError(f"Symbolic evaluation of {self._ufl_class_.__name__} not available.")
 
     def _ufl_evaluate_scalar_(self):
         if self.ufl_shape or self.ufl_free_indices:
@@ -313,7 +281,7 @@ class Expr(object):
         return self(())  # No known x
 
     def __float__(self):
-        "Try to evaluate as scalar and cast to float."
+        """Try to evaluate as scalar and cast to float."""
         try:
             v = float(self._ufl_evaluate_scalar_())
         except Exception:
@@ -321,7 +289,7 @@ class Expr(object):
         return v
 
     def __complex__(self):
-        "Try to evaluate as scalar and cast to complex."
+        """Try to evaluate as scalar and cast to complex."""
         try:
             v = complex(self._ufl_evaluate_scalar_())
         except TypeError:
@@ -329,16 +297,16 @@ class Expr(object):
         return v
 
     def __bool__(self):
-        "By default, all Expr are nonzero/False."
+        """By default, all Expr are nonzero/False."""
         return True
 
     def __nonzero__(self):
-        "By default, all Expr are nonzero/False."
+        """By default, all Expr are nonzero/False."""
         return self.__bool__()
 
     @staticmethod
     def _ufl_coerce_(value):
-        "Convert any value to a UFL type."
+        """Convert any value to a UFL type."""
         # Quick skip for most types
         if isinstance(value, Expr):
             return value
@@ -357,53 +325,55 @@ class Expr(object):
 
     # All subclasses must implement _ufl_signature_data_
     def _ufl_signature_data_(self, renumbering):
-        "Return data that uniquely identifies form compiler relevant aspects of this object."
+        """Return data that uniquely identifies form compiler relevant aspects of this object."""
         raise NotImplementedError(self.__class__._ufl_signature_data_)
 
     # All subclasses must implement __repr__
     def __repr__(self):
-        "Return string representation this object can be reconstructed from."
+        """Return string representation this object can be reconstructed from."""
         raise NotImplementedError(self.__class__.__repr__)
 
     # All subclasses must implement __str__
     def __str__(self):
-        "Return pretty print string representation of this object."
+        """Return pretty print string representation of this object."""
         raise NotImplementedError(self.__class__.__str__)
 
     def _ufl_err_str_(self):
-        "Return a short string to represent this Expr in an error message."
-        return "<%s id=%d>" % (self._ufl_class_.__name__, id(self))
+        """Return a short string to represent this Expr in an error message."""
+        return f"<{self._ufl_class_.__name__} id={id(self)}>"
 
     # --- Special functions used for processing expressions ---
 
     def __eq__(self, other):
-        """Checks whether the two expressions are represented the
-        exact same way. This does not check if the expressions are
-        mathematically equal or equivalent! Used by sets and dicts."""
+        """Checks whether the two expressions are represented the exact same way.
+
+        This does not check if the expressions are
+        mathematically equal or equivalent! Used by sets and dicts.
+        """
         raise NotImplementedError(self.__class__.__eq__)
 
     def __len__(self):
-        "Length of expression. Used for iteration over vector expressions."
+        """Length of expression. Used for iteration over vector expressions."""
         s = self.ufl_shape
         if len(s) == 1:
             return s[0]
         raise NotImplementedError("Cannot take length of non-vector expression.")
 
     def __iter__(self):
-        "Iteration over vector expressions."
+        """Iteration over vector expressions."""
         for i in range(len(self)):
             yield self[i]
 
     def __floordiv__(self, other):
-        "UFL does not support integer division."
+        """UFL does not support integer division."""
         raise NotImplementedError(self.__class__.__floordiv__)
 
     def __pos__(self):
-        "Unary + is a no-op."
+        """Unary + is a no-op."""
         return self
 
     def __round__(self, n=None):
-        "Round to nearest integer or to nearest nth decimal."
+        """Round to nearest integer or to nearest nth decimal."""
         try:
             val = float(self._ufl_evaluate_scalar_())
             val = round(val, n)
@@ -414,22 +384,18 @@ class Expr(object):
             val = NotImplemented
         return val
 
-    # --- Deprecated functions
-
-    def geometric_dimension(self):
-        "Return the geometric dimension this expression lives in."
-        from ufl.domain import find_geometric_dimension
-        return find_geometric_dimension(self)
-
 
 # Initializing traits here because Expr is not defined in the class
 # declaration
 Expr._ufl_class_ = Expr
-Expr._ufl_all_handler_names_.add(Expr)
-Expr._ufl_all_classes_.append(Expr)
+
+# Update Expr with metaclass properties (e.g. typecode or handler name)
+# Explicitly done here instead of using `@ufl_type` to avoid circular imports.
+update_ufl_type_attributes(Expr)
 
 
 def ufl_err_str(expr):
+    """Return a UFL error string."""
     if hasattr(expr, "_ufl_err_str_"):
         return expr._ufl_err_str_()
     else:

@@ -1,12 +1,6 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
+"""Test internal utility functions."""
 
-"""
-Test internal utility functions.
-"""
-
-from ufl.utils.indexflattening import (shape_to_strides, flatten_multiindex,
-                                       unflatten_index)
+from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
 
 
 def test_shape_to_strides():
@@ -37,11 +31,14 @@ def test_indexing_to_component():
     for i in range(5):
         for j in range(3):
             for k in range(2):
-                assert 15*k+5*j+i == flatten_multiindex((k, j, i), shape_to_strides((2, 3, 5)))
+                assert 15 * k + 5 * j + i == flatten_multiindex(
+                    (k, j, i), shape_to_strides((2, 3, 5))
+                )
 
 
 def test_component_numbering():
     from ufl.permutation import build_component_numbering
+
     sh = (2, 2)
     sm = {(1, 0): (0, 1)}
     v, s = build_component_numbering(sh, sm)
@@ -51,15 +48,23 @@ def test_component_numbering():
     sh = (3, 3)
     sm = {(1, 0): (0, 1), (2, 0): (0, 2), (2, 1): (1, 2)}
     v, s = build_component_numbering(sh, sm)
-    assert v == {(0, 1): 1, (1, 2): 4, (0, 0): 0, (2, 1): 4, (1, 1): 3,
-                 (2, 0): 2, (2, 2): 5, (1, 0): 1, (0, 2): 2}
+    assert v == {
+        (0, 1): 1,
+        (1, 2): 4,
+        (0, 0): 0,
+        (2, 1): 4,
+        (1, 1): 3,
+        (2, 0): 2,
+        (2, 2): 5,
+        (1, 0): 1,
+        (0, 2): 2,
+    }
     assert s == [(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)]
 
 
 def test_index_flattening():
-    from ufl.utils.indexflattening import (shape_to_strides,
-                                           flatten_multiindex,
-                                           unflatten_index)
+    from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
+
     # Scalar shape
     s = ()
     st = shape_to_strides(s)
@@ -150,11 +155,12 @@ def test_index_flattening():
         i -= 0
         # map back to tensor component:
         c2 = unflatten_index(i, shape_to_strides(ts))
-        assert (k//2, k % 2) == c2
+        assert (k // 2, k % 2) == c2
 
 
 def test_stackdict():
     from ufl.utils.stacks import StackDict
+
     d = StackDict(a=1)
     assert d["a"] == 1
     d.push("a", 2)

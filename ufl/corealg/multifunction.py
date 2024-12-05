@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Base class for multifunctions with UFL ``Expr`` type dispatch."""
-
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -11,18 +9,18 @@
 
 import inspect
 
-from ufl.log import error
 from ufl.core.expr import Expr
+from ufl.core.ufl_type import UFLType
 
 
 def get_num_args(function):
-    "Return the number of arguments accepted by *function*."
+    """Return the number of arguments accepted by *function*."""
     sig = inspect.signature(function)
     return len(sig.parameters) + 1
 
 
 def memoized_handler(handler):
-    "Function decorator to memoize ``MultiFunction`` handlers."
+    """Function decorator to memoize ``MultiFunction`` handlers."""
 
     def _memoized_handler(self, o):
         c = getattr(self, "_memoized_handler_cache")
@@ -31,6 +29,7 @@ def memoized_handler(handler):
             r = handler(self, o)
             c[o] = r
         return r
+
     return _memoized_handler
 
 
@@ -50,6 +49,7 @@ class MultiFunction(object):
     _handlers_cache = {}
 
     def __init__(self):
+        """Initialise."""
         # Analyse class properties and cache handler data the
         # first time this is run for a particular class
         # (cached for each algorithm for performance)
@@ -66,12 +66,18 @@ class MultiFunction(object):
                 for c in classobject.mro():
                     # Register classobject with handler for the first
                     # encountered superclass
-                    handler_name = c._ufl_handler_name_
+                    try:
+                        handler_name = c._ufl_handler_name_
+                    except AttributeError as attribute_error:
+                        if type(classobject) is not UFLType:
+                            raise attribute_error
+                        # Default handler name for UFL types
+                        handler_name = UFLType._ufl_handler_name_
+
                     if hasattr(self, handler_name):
                         handler_names[classobject._ufl_typecode_] = handler_name
                         break
-            is_cutoff_type = [get_num_args(getattr(self, name)) == 2
-                              for name in handler_names]
+            is_cutoff_type = [get_num_args(getattr(self, name)) == 2 for name in handler_names]
             cache_data = (handler_names, is_cutoff_type)
             MultiFunction._handlers_cache[algorithm_class] = cache_data
 
@@ -85,12 +91,12 @@ class MultiFunction(object):
         self._memoized_handler_cache = {}
 
     def __call__(self, o, *args):
-        "Delegate to handler function based on typecode of first argument."
+        """Delegate to handler function based on typecode of first argument."""
         return self._handlers[o._ufl_typecode_](o, *args)
 
     def undefined(self, o, *args):
-        "Trigger error for types with missing handlers."
-        error("No handler defined for %s." % o._ufl_class_.__name__)
+        """Trigger error for types with missing handlers."""
+        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
 
     def reuse_if_untouched(self, o, *ops):
         """Reuse object if operands are the same objects.
@@ -107,5 +113,5 @@ class MultiFunction(object):
         else:
             return o._ufl_expr_reconstruct_(*ops)
 
-    # Set default behaviour for any Expr as undefined
-    expr = undefined
+    # Set default behaviour for any UFLType as undefined
+    ufl_type = undefined

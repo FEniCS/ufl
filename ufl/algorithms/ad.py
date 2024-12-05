@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Front-end for AD routines."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -9,7 +8,8 @@
 #
 # Modified by Anders Logg, 2009.
 
-from ufl.log import warning
+import warnings
+
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 
@@ -25,7 +25,7 @@ def expand_derivatives(form, **kwargs):
     # For a deprecation period (I see that dolfin-adjoint passes some
     # args here)
     if kwargs:
-        warning("Deprecation: expand_derivatives no longer takes any keyword arguments")
+        warnings("Deprecation: expand_derivatives no longer takes any keyword arguments")
 
     # Lower abstractions for tensor-algebra types into index notation
     form = apply_algebra_lowering(form)

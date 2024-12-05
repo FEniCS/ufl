@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+"""Protocols."""
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
@@ -15,16 +15,7 @@ def id_or_none(obj):
     """
     if obj is None:
         return None
-    elif hasattr(obj, 'ufl_id'):
+    elif hasattr(obj, "ufl_id"):
         return obj.ufl_id()
     else:
         return id(obj)
-
-
-def metadata_equal(a, b):
-    return (sorted((k, id(v)) for k, v in list(a.items())) ==
-            sorted((k, id(v)) for k, v in list(b.items())))
-
-
-def metadata_hashdata(md):
-    return tuple(sorted((k, id(v)) for k, v in list(md.items())))

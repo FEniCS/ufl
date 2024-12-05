@@ -23,19 +23,34 @@
 # a mixed formulation of Poisson's equation with BDM
 # (Brezzi-Douglas-Marini) elements.
 #
-from ufl import (Coefficient, FiniteElement, TestFunctions, TrialFunctions,
-                 div, dot, dx, triangle)
+from ufl import (
+    Coefficient,
+    FunctionSpace,
+    Mesh,
+    TestFunctions,
+    TrialFunctions,
+    div,
+    dot,
+    dx,
+    triangle,
+)
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pullback import contravariant_piola, identity_pullback
+from ufl.sobolevspace import H1, HDiv
 
 cell = triangle
-BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1)
-DG0 = FiniteElement("Discontinuous Lagrange", cell, 0)
+BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1, (2,), contravariant_piola, HDiv)
+DG0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, H1)
 
-element = BDM1 * DG0
+element = MixedElement([BDM1, DG0])
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+space = FunctionSpace(domain, element)
+dg0_space = FunctionSpace(domain, DG0)
 
-(tau, w) = TestFunctions(element)
-(sigma, u) = TrialFunctions(element)
+(tau, w) = TestFunctions(space)
+(sigma, u) = TrialFunctions(space)
 
-f = Coefficient(DG0)
+f = Coefficient(dg0_space)
 
 a = (dot(tau, sigma) - div(tau) * u + w * div(sigma)) * dx
 L = w * f * dx

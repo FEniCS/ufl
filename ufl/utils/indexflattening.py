@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"""This module contains a collection of utilities for mapping between multiindices and a flattened index space."""
+"""Collection of utilities for mapping between multiindices and a flattened index space."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #

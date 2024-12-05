@@ -1,22 +1,20 @@
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-28 -- 2008-09-28"
 
 import os
-import pytest
-from ufl.algorithms import load_ufl_file, compute_form_data, validate_form
 from glob import glob
 
+import pytest
+
+from ufl.algorithms import load_ufl_file, validate_form
 
 demodir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "demo"))
 
 
 def get_demo_filenames():
     filenames = sorted(
-        set(glob(os.path.join(demodir, "*.py")))
-        - set(glob(os.path.join(demodir, "_*.py")))
-        )
+        set(glob(os.path.join(demodir, "*.py"))) - set(glob(os.path.join(demodir, "_*.py")))
+    )
     return filenames
 
 

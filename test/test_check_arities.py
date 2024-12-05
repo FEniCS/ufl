@@ -1,16 +1,35 @@
-#!/usr/bin/env py.test
-# -*- coding: utf-8 -*-
 import pytest
-from ufl import *
-from ufl.algorithms.compute_form_data import compute_form_data
+
+from ufl import (
+    Coefficient,
+    FacetNormal,
+    FunctionSpace,
+    Mesh,
+    SpatialCoordinate,
+    TestFunction,
+    TrialFunction,
+    adjoint,
+    cofac,
+    conj,
+    derivative,
+    ds,
+    dx,
+    grad,
+    inner,
+    tetrahedron,
+)
 from ufl.algorithms.check_arities import ArityMismatch
+from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 
 def test_check_arities():
     # Code from bitbucket issue #49
     cell = tetrahedron
-    D = Mesh(cell)
-    V = FunctionSpace(D, VectorElement("P", cell, 2))
+    D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3,), identity_pullback, H1))
     dv = TestFunction(V)
     du = TrialFunction(V)
 
@@ -26,17 +45,15 @@ def test_check_arities():
     L = derivative(M, u, dv)
     a = derivative(L, u, du)
 
-    fd = compute_form_data(M)
-    fd = compute_form_data(L)
-    fd = compute_form_data(a)
-
-    assert True
+    compute_form_data(M)
+    compute_form_data(L)
+    compute_form_data(a)
 
 
 def test_complex_arities():
     cell = tetrahedron
-    D = Mesh(cell)
-    V = FunctionSpace(D, VectorElement("P", cell, 2))
+    D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3,), identity_pullback, H1))
     v = TestFunction(V)
     u = TrialFunction(V)
 
@@ -51,3 +68,19 @@ def test_complex_arities():
 
     with pytest.raises(ArityMismatch):
         compute_form_data(inner(conj(v), u) * dx, complex_mode=True)
+
+
+def test_product_arity():
+    cell = tetrahedron
+    D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3,), identity_pullback, H1))
+    v = TestFunction(V)
+    u = TrialFunction(V)
+
+    with pytest.raises(ArityMismatch):
+        F = inner(u, u) * dx
+        compute_form_data(F, complex_mode=True)
+
+    with pytest.raises(ArityMismatch):
+        L = inner(v, v) * dx
+        compute_form_data(L, complex_mode=False)

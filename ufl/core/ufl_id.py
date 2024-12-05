@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"Utilites for types with a globally counted unique id attached to each object."
+"""Utilites for types with a globally counted unique id attached to each object."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -40,11 +39,11 @@ def attach_ufl_id(cls):
     """
 
     def _get_ufl_id(self):
-        "Return the ufl_id of this object."
+        """Return the ufl_id of this object."""
         return self._ufl_id
 
     def _init_ufl_id(cls):
-        "Initialize new ufl_id for the object under construction."
+        """Initialize new ufl_id for the object under construction."""
         # Bind cls with closure here
 
         def init_ufl_id(self, ufl_id):
@@ -52,11 +51,10 @@ def attach_ufl_id(cls):
                 ufl_id = cls._ufl_global_id
             cls._ufl_global_id = max(ufl_id, cls._ufl_global_id) + 1
             return ufl_id
+
         return init_ufl_id
 
     # Modify class:
-    if hasattr(cls, "__slots__"):
-        assert "_ufl_id" in cls.__slots__
     cls._ufl_global_id = 0
     cls.ufl_id = _get_ufl_id
     cls._init_ufl_id = _init_ufl_id(cls)

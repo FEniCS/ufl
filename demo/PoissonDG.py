@@ -21,30 +21,53 @@
 # The bilinear form a(v, u) and linear form L(v) for
 # Poisson's equation in a discontinuous Galerkin (DG)
 # formulation.
-from ufl import (Coefficient, Constant, FacetNormal, FiniteElement,
-                 TestFunction, TrialFunction, avg, dot, dS, ds, dx, grad,
-                 inner, jump, triangle)
+from ufl import (
+    Coefficient,
+    Constant,
+    FacetNormal,
+    FunctionSpace,
+    Mesh,
+    TestFunction,
+    TrialFunction,
+    avg,
+    dot,
+    dS,
+    ds,
+    dx,
+    grad,
+    inner,
+    jump,
+    triangle,
+)
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1, L2
 
-element = FiniteElement("Discontinuous Lagrange", triangle, 1)
+cell = triangle
+element = FiniteElement("Discontinuous Lagrange", cell, 1, (), identity_pullback, L2)
+domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+space = FunctionSpace(domain, element)
 
-v = TestFunction(element)
-u = TrialFunction(element)
-f = Coefficient(element)
+v = TestFunction(space)
+u = TrialFunction(space)
+f = Coefficient(space)
 
-n = FacetNormal(triangle)
-h = Constant(triangle)
+n = FacetNormal(domain)
+h = Constant(domain)
 
-gN = Coefficient(element)
+gN = Coefficient(space)
 
 alpha = 4.0
 gamma = 8.0
 
-a = inner(grad(v), grad(u)) * dx \
-    - inner(avg(grad(v)), jump(u, n)) * dS \
-    - inner(jump(v, n), avg(grad(u))) * dS \
-    + alpha / h('+') * dot(jump(v, n), jump(u, n)) * dS \
-    - inner(grad(v), u * n) * ds \
-    - inner(v * n, grad(u)) * ds \
+a = (
+    inner(grad(v), grad(u)) * dx
+    - inner(avg(grad(v)), jump(u, n)) * dS
+    - inner(jump(v, n), avg(grad(u))) * dS
+    + alpha / h("+") * dot(jump(v, n), jump(u, n)) * dS
+    - inner(grad(v), u * n) * ds
+    - inner(v * n, grad(u)) * ds
     + gamma / h * v * u * ds
+)
 
 L = v * f * dx + v * gN * ds

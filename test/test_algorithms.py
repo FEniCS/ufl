@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
@@ -7,48 +5,82 @@ __date__ = "2008-03-12 -- 2009-01-28"
 # Modified by Garth N. Wells, 2009
 
 import pytest
-from pprint import *
 
-from ufl import (FiniteElement, TestFunction, TrialFunction, triangle,
-                 div, grad, Argument, dx, adjoint, Coefficient,
-                 FacetNormal, inner, dot, ds)
-from ufl.algorithms import (extract_arguments, expand_derivatives,
-                            expand_indices, extract_elements,
-                            extract_unique_elements, extract_coefficients)
-from ufl.corealg.traversal import (pre_traversal, post_traversal,
-                                   unique_pre_traversal, unique_post_traversal)
+from ufl import (
+    Argument,
+    Coefficient,
+    FacetNormal,
+    FunctionSpace,
+    Mesh,
+    TestFunction,
+    TrialFunction,
+    adjoint,
+    div,
+    dot,
+    ds,
+    dx,
+    grad,
+    inner,
+    triangle,
+)
+from ufl.algorithms import (
+    expand_derivatives,
+    expand_indices,
+    extract_arguments,
+    extract_coefficients,
+    extract_elements,
+    extract_unique_elements,
+)
+from ufl.corealg.traversal import (
+    post_traversal,
+    pre_traversal,
+    unique_post_traversal,
+    unique_pre_traversal,
+)
+from ufl.finiteelement import FiniteElement
+from ufl.pullback import identity_pullback
+from ufl.sobolevspace import H1
 
 # TODO: add more tests, covering all utility algorithms
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def element():
-    return FiniteElement("CG", triangle, 1)
+    return FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
 
 
-@pytest.fixture(scope='module')
-def arguments(element):
-    v = TestFunction(element)
-    u = TrialFunction(element)
+@pytest.fixture(scope="module")
+def domain():
+    return Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+
+
+@pytest.fixture(scope="module")
+def space(element, domain):
+    return FunctionSpace(domain, element)
+
+
+@pytest.fixture(scope="module")
+def arguments(space):
+    v = TestFunction(space)
+    u = TrialFunction(space)
     return (v, u)
 
 
-@pytest.fixture(scope='module')
-def coefficients(element):
-    c = Coefficient(element)
-    f = Coefficient(element)
+@pytest.fixture(scope="module")
+def coefficients(space):
+    c = Coefficient(space)
+    f = Coefficient(space)
     return (c, f)
 
 
 @pytest.fixture
-def forms(arguments, coefficients):
+def forms(arguments, coefficients, domain):
     v, u = arguments
     c, f = coefficients
-    n = FacetNormal(triangle)
+    n = FacetNormal(domain)
     a = u * v * dx
     L = f * v * dx
-    b = u * v * dx(0) + inner(c * grad(u), grad(v)) * \
-        dx(1) + dot(n, grad(u)) * v * ds + f * v * dx
+    b = u * v * dx(0) + inner(c * grad(u), grad(v)) * dx(1) + dot(n, grad(u)) * v * ds + f * v * dx
     return (a, L, b)
 
 
@@ -61,27 +93,29 @@ def test_extract_coefficients_vs_fixture(coefficients, forms):
     assert coefficients == tuple(extract_coefficients(forms[2]))
 
 
-def test_extract_elements_and_extract_unique_elements(forms):
+def test_extract_elements_and_extract_unique_elements(forms, element, domain):
     b = forms[2]
     integrals = b.integrals_by_type("cell")
-    integrand = integrals[0].integrand()
+    integrals[0].integrand()
 
-    element1 = FiniteElement("CG", triangle, 1)
-    element2 = FiniteElement("CG", triangle, 1)
+    element1 = element
+    element2 = element
 
-    v = TestFunction(element1)
-    u = TrialFunction(element2)
+    space1 = FunctionSpace(domain, element1)
+    space2 = FunctionSpace(domain, element2)
+
+    v = TestFunction(space1)
+    u = TrialFunction(space2)
 
     a = u * v * dx
     assert extract_elements(a) == (element1, element2)
     assert extract_unique_elements(a) == (element1,)
 
 
-def test_pre_and_post_traversal():
-    element = FiniteElement("CG", "triangle", 1)
-    v = TestFunction(element)
-    f = Coefficient(element)
-    g = Coefficient(element)
+def test_pre_and_post_traversal(space):
+    v = TestFunction(space)
+    f = Coefficient(space)
+    g = Coefficient(space)
     p1 = f * v
     p2 = g * v
     s = p1 + p2
@@ -95,13 +129,16 @@ def test_pre_and_post_traversal():
     assert list(unique_post_traversal(s)) == [v, f, p1, g, p2, s]
 
 
-def test_expand_indices():
-    element = FiniteElement("Lagrange", triangle, 2)
-    v = TestFunction(element)
-    u = TrialFunction(element)
+def test_expand_indices(domain):
+    element = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
+    space = FunctionSpace(domain, element)
+    v = TestFunction(space)
+    u = TrialFunction(space)
 
     def evaluate(form):
-        return form.cell_integral()[0].integrand()((), {v: 3, u: 5})  # TODO: How to define values of derivatives?
+        return form.cell_integral()[0].integrand()(
+            (), {v: 3, u: 5}
+        )  # TODO: How to define values of derivatives?
 
     a = div(grad(v)) * u * dx
     # a1 = evaluate(a)
@@ -113,32 +150,35 @@ def test_expand_indices():
     # TODO: Test something more
 
 
-def test_adjoint():
+def test_adjoint(domain):
     cell = triangle
 
-    V1 = FiniteElement("CG", cell, 1)
-    V2 = FiniteElement("CG", cell, 2)
+    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
 
-    u = TrialFunction(V1)
-    v = TestFunction(V2)
+    s1 = FunctionSpace(domain, V1)
+    s2 = FunctionSpace(domain, V2)
+
+    u = TrialFunction(s1)
+    v = TestFunction(s2)
     assert u.number() > v.number()
 
-    u2 = Argument(V1, 2)
-    v2 = Argument(V2, 3)
+    u2 = Argument(s1, 2)
+    v2 = Argument(s2, 3)
     assert u2.number() < v2.number()
 
     a = u * v * dx
-    a_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(a)]
+    a_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(a)]
     assert a_arg_degrees == [2, 1]
 
     b = adjoint(a)
-    b_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(b)]
+    b_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(b)]
     assert b_arg_degrees == [1, 2]
 
     c = adjoint(a, (u2, v2))
-    c_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(c)]
+    c_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(c)]
     assert c_arg_degrees == [1, 2]
 
     d = adjoint(b)
-    d_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(d)]
+    d_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(d)]
     assert d_arg_degrees == [2, 1]

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Algorithm for replacing terminals in an expression."""
 
 # Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg
@@ -9,38 +8,73 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.log import error
-from ufl.classes import CoefficientDerivative
-from ufl.constantvalue import as_ufl
-from ufl.corealg.multifunction import MultiFunction
-from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.analysis import has_exact_type
+from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.classes import BaseForm, CoefficientDerivative
+from ufl.constantvalue import as_ufl
+from ufl.core.external_operator import ExternalOperator
+from ufl.core.interpolate import Interpolate
+from ufl.corealg.multifunction import MultiFunction
 
 
 class Replacer(MultiFunction):
+    """Replacer."""
+
     def __init__(self, mapping):
+        """Initialize."""
         super().__init__()
         self.mapping = mapping
-        if not all(k.ufl_shape == v.ufl_shape for k, v in mapping.items()):
-            error("Replacement expressions must have the same shape as what they replace.")
 
-    def expr(self, o, *args):
+        # One can replace Coarguments by 1-Forms
+        def get_shape(x):
+            """Get the shape of an object."""
+            if isinstance(x, BaseForm):
+                return x.arguments()[0].ufl_shape
+            return x.ufl_shape
+
+        if not all(get_shape(k) == get_shape(v) for k, v in mapping.items()):
+            raise ValueError(
+                "Replacement expressions must have the same shape as what they replace."
+            )
+
+    def ufl_type(self, o, *args):
+        """Replace a ufl_type."""
         try:
             return self.mapping[o]
         except KeyError:
             return self.reuse_if_untouched(o, *args)
 
+    def external_operator(self, o):
+        """Replace an external_operator."""
+        o = self.mapping.get(o) or o
+        if isinstance(o, ExternalOperator):
+            new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
+            new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+            return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_args)
+        return o
+
+    def interpolate(self, o):
+        """Replace an interpolate."""
+        o = self.mapping.get(o) or o
+        if isinstance(o, Interpolate):
+            new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+            return o._ufl_expr_reconstruct_(*reversed(new_args))
+        return o
+
     def coefficient_derivative(self, o):
-        error("Derivatives should be applied before executing replace.")
+        """Replace a coefficient derivative."""
+        raise ValueError("Derivatives should be applied before executing replace.")
 
 
 def replace(e, mapping):
     """Replace subexpressions in expression.
 
-    @param e:
-        An Expr or Form.
-    @param mapping:
-        A dict with from:to replacements to perform.
+    Params:
+        e: An Expr or Form
+        mapping: A dict with from:to replacements to perform
+
+    Returns:
+        The expression with replacements performed
     """
     mapping2 = dict((k, as_ufl(v)) for (k, v) in mapping.items())
 
@@ -56,6 +90,7 @@ def replace(e, mapping):
     if has_exact_type(e, CoefficientDerivative):
         # Hack to avoid circular dependencies
         from ufl.algorithms.ad import expand_derivatives
+
         e = expand_derivatives(e)
 
     return map_integrand_dags(Replacer(mapping2), e)

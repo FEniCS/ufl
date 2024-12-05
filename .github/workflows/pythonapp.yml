@@ -9,7 +9,7 @@ on:
     branches:
       - "**"
     tags:
-      - "v*"
+      - "**"
   pull_request:
     branches:
       - main
@@ -20,40 +20,46 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        exclude:
+          - os: macos-latest
+            python-version: '3.8'
+          - os: macos-latest
+            python-version: '3.9'
+        include:
+          - os: windows-latest
+            python-version: '3.11'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Lint with flake8
+      - name: Lint with ruff
         run: |
-          python -m pip install flake8
-          flake8 --statistics .
-      - name: Check documentation style
-        run: |
-          python -m pip install pydocstyle
-          python -m pydocstyle .
+          pip install ruff
+          ruff check .
+          ruff format --check .
       - name: Install UFL
         run: python -m pip install .[ci]
       - name: Run unit tests
         run: |
           python -m pytest -n auto --cov=ufl/ --junitxml=junit/test-results-${{ matrix.os }}-${{ matrix.python-version }}.xml test/
       - name: Upload to Coveralls
-        if: ${{ github.repository == 'FEniCS/ufl' && github.head_ref == '' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8' }}
+        if: ${{ github.repository == 'FEniCS/ufl' && github.head_ref == '' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12' }}
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: coveralls
- 
+
       - name: Build documentation
         run: |
           cd doc/sphinx
           make html
 
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: doc-${{ matrix.os }}-${{ matrix.python-version }}
           path: doc/sphinx/build/html/
@@ -61,25 +67,25 @@ jobs:
           if-no-files-found: error
 
       - name: Checkout FEniCS/docs
-        if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.8 }}
-        uses: actions/checkout@v2
+        if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.12 }}
+        uses: actions/checkout@v4
         with:
           repository: "FEniCS/docs"
           path: "docs"
           ssh-key: "${{ secrets.SSH_GITHUB_DOCS_PRIVATE_KEY }}"
       - name: Set version name
-        if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.8 }}
+        if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.12 }}
         run: |
           echo "VERSION_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Copy documentation into repository
-        if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.8 }}
+        if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.12 }}
         run: |
           cd docs
           git rm -r --ignore-unmatch ufl/${{ env.VERSION_NAME }}
           mkdir -p ufl/${{ env.VERSION_NAME }}
           cp -r ../doc/sphinx/build/html/* ufl/${{ env.VERSION_NAME }}
       - name: Commit and push documentation to FEniCS/docs
-        if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.8 }}
+        if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.12 }}
         run: |
           cd docs
           git config --global user.email "fenics@github.com"

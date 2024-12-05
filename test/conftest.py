@@ -1,16 +1,13 @@
-# -*- coding: utf-8 -*-
+import os
 
 import pytest
 
-import os
-
 import ufl
-from ufl import as_ufl, inner, dx
+from ufl import as_ufl, dx, inner
 from ufl.algorithms import compute_form_data
 
 
 class Tester:
-
     def assertTrue(self, a):
         assert a
 
