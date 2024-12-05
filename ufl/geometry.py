@@ -93,13 +93,15 @@ Xf = FK * (x - x0f)
     FacetCoordinate = FacetJacobianInverse * (SpatialCoordinate - FacetOrigin)
 
 Xf = CFK * (X - X0f)
-    FacetCoordinate = CellFacetJacobianInverse * (CellCoordinate - CellFacetOrigin)
+    FacetCoordinate = CellFacetJacobianInverse * \
+        (CellCoordinate - CellFacetOrigin)
 
 Xe = EK * (x - x0e)
     EdgeCoordinate = EdgeJacobianInverse * (SpatialCoordinate - EdgeOrigin)
 
 Xe = CEK * (X - X0e)
-    EdgeCoordinate = CellEdgeJacobianInverse * (CellCoordinate - CellEdgeOrigin)
+    EdgeCoordinate = CellEdgeJacobianInverse * \
+        (CellCoordinate - CellEdgeOrigin)
 """
 
 # --- Expression node types
@@ -168,6 +170,8 @@ class GeometricFacetQuantity(GeometricQuantity):
 
 @ufl_type(is_abstract=True)
 class GeometricEdgeQuantity(GeometricQuantity):
+    """Geometric edge quantity."""
+
     __slots__ = ()
 
 
@@ -281,7 +285,7 @@ class FacetCoordinate(GeometricFacetQuantity):
 
 @ufl_type()
 class EdgeCoordinate(GeometricEdgeQuantity):
-    """UFL geometry representation: The coordinate in a reference cell of an edge.
+    """The coordinate in a reference cell of an edge.
 
     In the context of expression integration over an edge,
     represents the reference edge coordinate of each quadrature point.
@@ -294,13 +298,15 @@ class EdgeCoordinate(GeometricEdgeQuantity):
     name = "Xe"
 
     def __init__(self, domain):
+        """Initialise."""
         GeometricEdgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 3:
-            error("EdgeCoordinate is only defined for topological dimensions >= 3.")
+            raise ValueError("EdgeCoordinate is only defined for topological dimensions >= 3.")
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         t = self._domain.topological_dimension()
         return (t - 2,)
 
@@ -346,13 +352,14 @@ class FacetOrigin(GeometricFacetQuantity):
 
 @ufl_type()
 class EdgeOrigin(GeometricEdgeQuantity):
-    """UFL geometry representation: The spatial coordinate corresponding to origin of a reference edge."""
+    """The spatial coordinate corresponding to origin of a reference edge."""
 
     __slots__ = ()
     name = "x0e"
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         g = self._domain.geometric_dimension()
         return (g,)
 
@@ -373,13 +380,14 @@ class CellFacetOrigin(GeometricFacetQuantity):
 
 @ufl_type()
 class CellEdgeOrigin(GeometricEdgeQuantity):
-    """UFL geometry representation: The reference cell coordinate corresponding to origin of a reference edge."""
+    """The reference cell coordinate corresponding to origin of a reference edge."""
 
     __slots__ = ()
     name = "X0e"
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         t = self._domain.topological_dimension()
         return (t,)
 
@@ -447,7 +455,7 @@ class FacetJacobian(GeometricFacetQuantity):
 
 @ufl_type()
 class EdgeJacobian(GeometricEdgeQuantity):
-    """UFL geometry representation: The Jacobian of the mapping from reference edge to spatial coordinates.
+    """The Jacobian of the mapping from reference edge to spatial coordinates.
 
       EJ_ij = dx_i/dXe_j
 
@@ -461,13 +469,15 @@ class EdgeJacobian(GeometricEdgeQuantity):
     name = "EJ"
 
     def __init__(self, domain):
+        """Initialise."""
         GeometricEdgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 3:
-            error("EdgeJacobian is only defined for topological dimensions >= 3.")
+            raise ValueError("EdgeJacobian is only defined for topological dimensions >= 3.")
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
         return (g, t - 2)
@@ -511,7 +521,7 @@ class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
 
 @ufl_type()
 class CellEdgeJacobian(GeometricEdgeQuantity):  # dX/dXe
-    """UFL geometry representation: The Jacobian of the mapping from reference edge to reference cell coordinates.
+    """The Jacobian of the mapping from reference edge to reference cell coordinates.
 
     CEJ_ij = dX_i/dXe_j
     """
@@ -520,13 +530,15 @@ class CellEdgeJacobian(GeometricEdgeQuantity):  # dX/dXe
     name = "CEJ"
 
     def __init__(self, domain):
+        """Initialise."""
         GeometricEdgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 3:
-            error("CellEdgeJacobian is only defined for topological dimensions >= 3.")
+            raise ValueError("CellEdgeJacobian is only defined for topological dimensions >= 3.")
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         t = self._domain.topological_dimension()
         return (t, t - 2)
 
@@ -539,7 +551,7 @@ class CellEdgeJacobian(GeometricEdgeQuantity):  # dX/dXe
 
 @ufl_type()
 class FacetEdgeJacobian(GeometricEdgeQuantity):  # dXf/dXe
-    """UFL geometry representation: The Jacobian of the mapping from reference edge to reference facet coordinates.
+    """The Jacobian of the mapping from reference edge to reference facet coordinates.
 
     FEJ_ij = dXf_i/dXe_j
     """
@@ -548,13 +560,15 @@ class FacetEdgeJacobian(GeometricEdgeQuantity):  # dXf/dXe
     name = "FEJ"
 
     def __init__(self, domain):
+        """Initialise."""
         GeometricEdgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 3:
-            error("FacetEdgeJacobian is only defined for topological dimensions >= 3.")
+            raise ValueError("FacetEdgeJacobian is only defined for topological dimensions >= 3.")
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         t = self._domain.topological_dimension()
         return (t - 1, t - 2)
 
@@ -753,7 +767,7 @@ class FacetJacobianDeterminant(GeometricFacetQuantity):
 
 @ufl_type()
 class EdgeJacobianDeterminant(GeometricEdgeQuantity):
-    """UFL geometry representation: The pseudo-determinant of the EdgeJacobian."""
+    """The pseudo-determinant of the EdgeJacobian."""
 
     __slots__ = ()
     name = "detEJ"
@@ -780,7 +794,7 @@ class CellFacetJacobianDeterminant(GeometricFacetQuantity):
 
 @ufl_type()
 class CellEdgeJacobianDeterminant(GeometricEdgeQuantity):
-    """UFL geometry representation: The pseudo-determinant of the CellEdgeJacobian."""
+    """The pseudo-determinant of the CellEdgeJacobian."""
 
     __slots__ = ()
     name = "detCEJ"
@@ -852,19 +866,21 @@ class FacetJacobianInverse(GeometricFacetQuantity):
 
 @ufl_type()
 class EdgeJacobianInverse(GeometricEdgeQuantity):
-    """UFL geometry representation: The pseudo-inverse of the EdgeJacobian."""
+    """The pseudo-inverse of the EdgeJacobian."""
 
     __slots__ = ()
     name = "EK"
 
     def __init__(self, domain):
+        """Initialise."""
         GeometricEdgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 3:
-            error("EdgeJacobianInverse is only defined for topological dimensions >= 3.")
+            raise ValueError("EdgeJacobianInverse is only defined for topological dimensions >= 3.")
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
         return (t - 2, g)
@@ -906,19 +922,23 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
 
 @ufl_type()
 class CellEdgeJacobianInverse(GeometricEdgeQuantity):
-    """UFL geometry representation: The pseudo-inverse of the EdgeFacetJacobian."""
+    """The pseudo-inverse of the EdgeFacetJacobian."""
 
     __slots__ = ()
     name = "CEK"
 
     def __init__(self, domain):
+        """Initialise."""
         GeometricEdgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
         if t < 3:
-            error("CellEdgeJacobianInverse is only defined for topological dimensions >= 3.")
+            raise ValueError(
+                "CellEdgeJacobianInverse is only defined for topological dimensions >= 3."
+            )
 
     @property
     def ufl_shape(self):
+        """Get the UFL shape."""
         t = self._domain.topological_dimension()
         return (t - 2, t)
 
@@ -1014,7 +1034,7 @@ class ReferenceFacetVolume(GeometricFacetQuantity):
 
 @ufl_type()
 class ReferenceEdgeVolume(GeometricEdgeQuantity):
-    """UFL geometry representation: The volume of the reference cell of the current edge."""
+    """The volume of the reference cell of the current edge."""
 
     __slots__ = ()
     name = "reference_edge_volume"
@@ -1045,7 +1065,8 @@ class CellDiameter(GeometricCellQuantity):
 
 
 @ufl_type()
-class FacetArea(GeometricFacetQuantity):  # FIXME: Should this be allowed for interval domain?
+# FIXME: Should this be allowed for interval domain?
+class FacetArea(GeometricFacetQuantity):
     """The area of the facet."""
 
     __slots__ = ()

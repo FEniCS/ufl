@@ -251,8 +251,7 @@ class GeometryLoweringApplier(MultiFunction):
         if not domain.is_piecewise_linear_simplex_domain():
             # Don't lower for non-affine cells, instead leave it to
             # form compiler
-            warnings.warn(
-                "Only know how to compute the cell volume of an affine cell.")
+            warnings.warn("Only know how to compute the cell volume of an affine cell.")
             return o
 
         r = self.jacobian_determinant(JacobianDeterminant(domain))
@@ -270,8 +269,7 @@ class GeometryLoweringApplier(MultiFunction):
         if not domain.is_piecewise_linear_simplex_domain():
             # Don't lower for non-affine cells, instead leave it to
             # form compiler
-            warnings.warn(
-                "Only know how to compute the facet area of an affine cell.")
+            warnings.warn("Only know how to compute the facet area of an affine cell.")
             return o
 
         # Area of "facet" of interval (i.e. "area" of a vertex) is defined as 1.0
@@ -291,8 +289,7 @@ class GeometryLoweringApplier(MultiFunction):
         domain = extract_unique_domain(o)
 
         if not domain.is_piecewise_linear_simplex_domain():
-            raise ValueError(
-                "Circumradius only makes sense for affine simplex cells")
+            raise ValueError("Circumradius only makes sense for affine simplex cells")
 
         cellname = domain.ufl_cell().cellname()
         cellvolume = self.cell_volume(CellVolume(domain))
@@ -305,8 +302,7 @@ class GeometryLoweringApplier(MultiFunction):
         edges = CellEdgeVectors(domain)
         num_edges = edges.ufl_shape[0]
         j = Index()
-        elen = [real(sqrt(real(edges[e, j] * conj(edges[e, j]))))
-                for e in range(num_edges)]
+        elen = [real(sqrt(real(edges[e, j] * conj(edges[e, j])))) for e in range(num_edges)]
 
         if cellname == "triangle":
             return (elen[0] * elen[1] * elen[2]) / (4.0 * cellvolume)
@@ -344,8 +340,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         if domain.ufl_coordinate_element().embedded_subdegree > 1:
             # Don't lower bendy cells, instead leave it to form compiler
-            warnings.warn(
-                "Only know how to compute cell edge lengths of P1 or Q1 cell.")
+            warnings.warn("Only know how to compute cell edge lengths of P1 or Q1 cell.")
             return o
 
         elif domain.ufl_cell().cellname() == "interval":
@@ -357,8 +352,7 @@ class GeometryLoweringApplier(MultiFunction):
             edges = CellEdgeVectors(domain)
             num_edges = edges.ufl_shape[0]
             j = Index()
-            elen2 = [real(edges[e, j] * conj(edges[e, j]))
-                     for e in range(num_edges)]
+            elen2 = [real(edges[e, j] * conj(edges[e, j])) for e in range(num_edges)]
             return real(sqrt(reduce(reduction_op, elen2)))
 
     @memoized_handler
@@ -371,8 +365,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         if domain.ufl_coordinate_element().embedded_subdegree > 1:
             # Don't lower bendy cells, instead leave it to form compiler
-            warnings.warn(
-                "Only know how to compute cell diameter of P1 or Q1 cell.")
+            warnings.warn("Only know how to compute cell diameter of P1 or Q1 cell.")
             return o
 
         elif domain.is_piecewise_linear_simplex_domain():
@@ -384,8 +377,7 @@ class GeometryLoweringApplier(MultiFunction):
             verts = CellVertices(domain)
             verts = [verts[v, ...] for v in range(verts.ufl_shape[0])]
             j = Index()
-            elen2 = (real((v0 - v1)[j] * conj((v0 - v1)[j]))
-                     for v0, v1 in combinations(verts, 2))
+            elen2 = (real((v0 - v1)[j] * conj((v0 - v1)[j])) for v0, v1 in combinations(verts, 2))
             return real(sqrt(reduce(max_value, elen2)))
 
     @memoized_handler
@@ -406,13 +398,11 @@ class GeometryLoweringApplier(MultiFunction):
         domain = extract_unique_domain(o)
 
         if domain.ufl_cell().topological_dimension() < 3:
-            raise ValueError(
-                "Facet edge lengths only make sense for topological dimension >= 3.")
+            raise ValueError("Facet edge lengths only make sense for topological dimension >= 3.")
 
         elif domain.ufl_coordinate_element().embedded_subdegree > 1:
             # Don't lower bendy cells, instead leave it to form compiler
-            warnings.warn(
-                "Only know how to compute facet edge lengths of P1 or Q1 cell.")
+            warnings.warn("Only know how to compute facet edge lengths of P1 or Q1 cell.")
             return o
 
         else:
@@ -420,8 +410,7 @@ class GeometryLoweringApplier(MultiFunction):
             edges = FacetEdgeVectors(domain)
             num_edges = edges.ufl_shape[0]
             j = Index()
-            elen2 = [real(edges[e, j] * conj(edges[e, j]))
-                     for e in range(num_edges)]
+            elen2 = [real(edges[e, j] * conj(edges[e, j])) for e in range(num_edges)]
             return real(sqrt(reduce(reduction_op, elen2)))
 
     @memoized_handler
@@ -448,16 +437,14 @@ class GeometryLoweringApplier(MultiFunction):
                 # to the 'right')
                 cell_normal = as_vector((-J[1, 0], J[0, 0]))
             else:
-                raise ValueError(
-                    f"Cell normal not implemented for tdim {tdim}, gdim {gdim}")
+                raise ValueError(f"Cell normal not implemented for tdim {tdim}, gdim {gdim}")
 
             # Return normalized vector, sign corrected by cell
             # orientation
             co = CellOrientation(domain)
             return co * cell_normal / sqrt(cell_normal[i] * cell_normal[i])
         else:
-            raise ValueError(
-                f"Cell normal undefined for tdim {tdim}, gdim {gdim}")
+            raise ValueError(f"Cell normal undefined for tdim {tdim}, gdim {gdim}")
 
     @memoized_handler
     def facet_normal(self, o):

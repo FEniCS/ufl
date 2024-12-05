@@ -167,15 +167,6 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entity_types(tdim - 1)
 
-    def edge_types(self) -> typing.Tuple[AbstractCell, ...]:
-        """Get the unique edge types.
-
-        Edges are entities of dimension tdim-2.
-        """
-        tdim = self.topological_dimension()
-        assert tdim == 3, "Edges only make sense for cells of dimension 2 or higher."
-        return self.sub_entity_types(1)
-
     def ridge_types(self) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique ridge types.
 
