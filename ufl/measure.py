@@ -32,6 +32,8 @@ _integral_types = [
     # === Integration over topological dimension - 1:
     ("exterior_facet", "ds"),  # Over one-sided exterior facets of a mesh
     ("interior_facet", "dS"),  # Over two-sided facets between pairs of adjacent cells of a mesh
+    # === Integration over topological dimension - 2:
+    ("edge", "dl"),  # Over edges of a mesh
     # === Integration over topological dimension 0
     ("vertex", "dP"),  # Over vertices of a mesh
     # === Integration over custom domains
@@ -59,6 +61,7 @@ measure_name_to_integral_type = {s: i for i, s in _integral_types}
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
 point_integral_types = ("vertex",)  # "point")
 facet_integral_types = ("exterior_facet", "interior_facet")
+edge_integral_types = ("edge",)
 
 
 def register_integral_type(integral_type, measure_name):
@@ -99,7 +102,7 @@ class Measure(object):
     expression.
     """
 
-    __slots__ = ("_integral_type", "_domain", "_subdomain_id", "_metadata", "_subdomain_data")
+    __slots__ = ("_domain", "_integral_type", "_metadata", "_subdomain_data", "_subdomain_id")
 
     def __init__(
         self,

@@ -83,7 +83,7 @@ class Expr(object, metaclass=UFLType):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = ("_hash", "__weakref__")
+    __slots__ = ("__weakref__", "_hash")
     # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---

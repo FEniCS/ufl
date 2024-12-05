@@ -28,13 +28,13 @@ class Adjoint(BaseForm):
     """
 
     __slots__ = (
-        "_form",
-        "_repr",
         "_arguments",
         "_coefficients",
         "_domains",
-        "ufl_operands",
+        "_form",
         "_hash",
+        "_repr",
+        "ufl_operands",
     )
 
     def __new__(cls, *args, **kw):

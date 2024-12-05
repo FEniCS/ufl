@@ -106,15 +106,15 @@ class Cofunction(BaseCoefficient, BaseForm):
     """UFL form argument type: Representation of a form coefficient from a dual space."""
 
     __slots__ = (
-        "_count",
-        "_counted_class",
         "_arguments",
         "_coefficients",
-        "_ufl_function_space",
-        "ufl_operands",
-        "_repr",
-        "_ufl_shape",
+        "_count",
+        "_counted_class",
         "_hash",
+        "_repr",
+        "_ufl_function_space",
+        "_ufl_shape",
+        "ufl_operands",
     )
     _primal = False
     _dual = True

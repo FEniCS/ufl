@@ -9,6 +9,7 @@
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.classes import (
+    EdgeJacobianDeterminant,
     FacetJacobianDeterminant,
     Form,
     Integral,
@@ -61,6 +62,16 @@ def compute_integrand_scaling_factor(integral):
             scale = detFJ("+") * weight
         else:
             # No need to scale 'integral' over a vertex
+            scale = 1
+    elif integral_type.startswith("edge"):
+        if tdim > 2:
+            # Scaling integral by edge jacobian determinant from one
+            # side and quadrature weight
+            detEJ = EdgeJacobianDeterminant(domain)
+            degree = estimate_total_polynomial_degree(apply_geometry_lowering(detEJ))
+            scale = detEJ * weight
+        else:
+            # Edge integral doesnt make sense if tdim <= 2
             scale = 1
 
     elif integral_type in custom_integral_types:

@@ -38,14 +38,14 @@ class Action(BaseForm):
     """
 
     __slots__ = (
-        "_left",
-        "_right",
-        "ufl_operands",
-        "_repr",
         "_arguments",
         "_coefficients",
         "_domains",
         "_hash",
+        "_left",
+        "_repr",
+        "_right",
+        "ufl_operands",
     )
 
     def __new__(cls, *args, **kw):

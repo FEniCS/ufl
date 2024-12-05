@@ -11,6 +11,9 @@ from ufl import (
     Circumradius,
     Coefficient,
     Constant,
+    EdgeJacobian,
+    EdgeJacobianDeterminant,
+    EdgeJacobianInverse,
     FacetArea,
     FacetNormal,
     FunctionSpace,
@@ -292,9 +295,14 @@ def testAll(self):
     _test_object(g, (), ())
     g = FacetJacobianInverse(domain)
     _test_object(g, (dim - 1, dim), ())
-
-    g = FacetNormal(domain)
-    _test_object(g, (dim,), ())
+    g = EdgeJacobian(domain3D)
+    _test_object(g, (3, 1), ())
+    g = EdgeJacobianDeterminant(domain3D)
+    _test_object(g, (), ())
+    g = EdgeJacobianInverse(domain3D)
+    _test_object(g, (1, 3), ())
+    g = FacetNormal(domain3D)
+    _test_object(g, (3,), ())
     # g = CellNormal(domain)
     # _test_object(g, (dim,), ())
 
