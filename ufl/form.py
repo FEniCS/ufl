@@ -226,7 +226,7 @@ class BaseForm(object, metaclass=UFLType):
 class Form(BaseForm):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
 
-    __slots__ = (
+    __slots__ = (  # noqa: RUF023
         # --- List of Integral objects (a Form is a sum of these
         # Integrals, everything else is derived)
         "_integrals",
@@ -690,12 +690,12 @@ class FormSum(BaseForm):
     __slots__ = (
         "_arguments",
         "_coefficients",
-        "_weights",
         "_components",
-        "ufl_operands",
-        "_domains",
         "_domain_numbering",
+        "_domains",
         "_hash",
+        "_weights",
+        "ufl_operands",
     )
     _ufl_required_methods_ = "_analyze_form_arguments"
 
@@ -843,11 +843,11 @@ class ZeroBaseForm(BaseForm):
     __slots__ = (
         "_arguments",
         "_coefficients",
-        "ufl_operands",
         "_domains",
         "_hash",
         # Pyadjoint compatibility
         "form",
+        "ufl_operands",
     )
 
     def __init__(self, arguments):
