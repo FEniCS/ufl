@@ -338,13 +338,6 @@ def compute_form_data(
 
     form = apply_coordinate_derivatives(form)
 
-    # Propagate restrictions to terminals
-    if do_apply_restrictions:
-        if do_assume_single_integral_type:
-            form = apply_restrictions(form, apply_default=do_apply_default_restrictions)
-        else:
-            form = apply_restrictions(form, assume_single_integral_type=have_single_domain, apply_default=False)
-
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:
         form = remove_complex_nodes(form)
@@ -352,6 +345,38 @@ def compute_form_data(
     # --- Group integrals into IntegralData objects
     # Most of the heavy lifting is done above in group_form_integrals.
     self.integral_data = build_integral_data(form.integrals())
+
+    # Propagate restrictions to terminals
+    if do_apply_restrictions:
+        if do_assume_single_integral_type or have_single_domain:
+            for itg_data in self.integral_data:
+                new_integrals = []
+                for integral in itg_data.integrals:
+                    new_integral = apply_restrictions(
+                        integral,
+                        apply_default=do_apply_default_restrictions,
+                        default_restriction={
+                            itg_data.domain: {
+                                "cell": None,
+                                "exterior_facet": None,
+                                "interior_facet": "+",
+                            }[itg_data.integral_type]
+                        },
+                    )
+                    new_integrals.append(new_integral)
+                itg_data.integrals = new_integrals
+        else:
+            #form = apply_restrictions(form, assume_single_integral_type=have_single_domain, apply_default=False)
+            for itg_data in self.integral_data:
+                new_integrals = []
+                for integral in itg_data.integrals:
+                    new_integral = apply_restrictions(
+                        integral,
+                        assume_single_integral_type=have_single_domain,
+                        apply_default=False,
+                    )
+                    new_integrals.append(new_integral)
+                itg_data.integrals = new_integrals
 
     # --- Create replacements for arguments and coefficients
 
