@@ -395,7 +395,12 @@ def replace_to_be_restricted(integral_data):
             domain: {
                 "cell": None,
                 "exterior_facet": None,
+                "exterior_facet_top": None,
+                "exterior_facet_bottom": None,
+                "exterior_facet_vert": None,
                 "interior_facet": "+",
+                "interior_facet_horiz": "+",
+                "interior_facet_vert": "+",
             }[integral_type]
             for domain, integral_type in integral_data.domain_integral_type_map.items()
         },

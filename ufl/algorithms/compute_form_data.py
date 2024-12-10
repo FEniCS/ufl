@@ -359,7 +359,12 @@ def compute_form_data(
                             itg_data.domain: {
                                 "cell": None,
                                 "exterior_facet": None,
+                                "exterior_facet_top": None,
+                                "exterior_facet_bottom": None,
+                                "exterior_facet_vert": None,
                                 "interior_facet": "+",
+                                "interior_facet_horiz": "+",
+                                "interior_facet_vert": "+",
                             }[itg_data.integral_type]
                         },
                     )
