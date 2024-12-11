@@ -11,7 +11,7 @@ from ufl import (
     i,
     triangle,
 )
-from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
+from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
@@ -54,7 +54,7 @@ def test_apply_restrictions():
     assert apply_restrictions((grad(f) + grad(g))("-")) == (grad(f)("-") + grad(g)("-"))
 
     # x is the same from both sides but computed from one of them
-    assert apply_default_restrictions(x) == x("+")
+    assert apply_restrictions(x) == x("+")
 
     # n on a linear mesh is opposite pointing from the other side
     assert apply_restrictions(n("+")) == n("+")

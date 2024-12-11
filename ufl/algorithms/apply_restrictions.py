@@ -10,28 +10,39 @@ restrictions in a form towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.algorithms.formdata import FormData
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.domain import extract_unique_domain
+from ufl.domain import extract_unique_domain, MixedMesh
+from ufl.form import Form
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
+from ufl.classes import ReferenceGrad, ReferenceValue
+from ufl.restriction import PositiveRestricted
 
 
 class RestrictionPropagator(MultiFunction):
     """Restriction propagator."""
 
-    def __init__(self, side=None):
+    def __init__(self, side=None, assume_single_integral_type=True, apply_default=True, default_restriction=None):
         """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
-        self.default_restriction = "+"
+        if default_restriction is None:
+            default_restriction = "+" if assume_single_integral_type else "?"
+        self.default_restriction = default_restriction
+        self.apply_default = apply_default
         # Caches for propagating the restriction with map_expr_dag
-        self.vcaches = {"+": {}, "-": {}}
-        self.rcaches = {"+": {}, "-": {}}
+        self.vcaches = {"+": {}, "-": {},}
+        self.rcaches = {"+": {}, "-": {},}
         if self.current_restriction is None:
-            self._rp = {"+": RestrictionPropagator("+"), "-": RestrictionPropagator("-")}
+            self._rp = {
+                "+": RestrictionPropagator("+", assume_single_integral_type, apply_default, default_restriction),
+                "-": RestrictionPropagator("-", assume_single_integral_type, apply_default, default_restriction),
+            }
+        self.assume_single_integral_type = assume_single_integral_type
 
     def restricted(self, o):
         """When hitting a restricted quantity, visit child with a separate restriction algorithm."""
@@ -57,28 +68,66 @@ class RestrictionPropagator(MultiFunction):
 
     def _require_restriction(self, o):
         """Restrict a discontinuous quantity to current side, require a side to be set."""
-        if self.current_restriction is None:
+        if self.current_restriction is not None:
+            return o(self.current_restriction)
+        elif not self.assume_single_integral_type:
+            # If integration if over interior facet of meshA and exterior facet of meshB,
+            # arguments (say) on meshA must be restricted, but those on meshB do not
+            # need to be.
+            return o
+        else:
             raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-        return o(self.current_restriction)
 
     def _default_restricted(self, o):
         """Restrict a continuous quantity to default side if no current restriction is set."""
         r = self.current_restriction
-        if r is None:
-            r = self.default_restriction
-        return o(r)
+        if r is not None:
+            return o(r)
+        if self.apply_default:
+            domain = extract_unique_domain(o, expand_mixed_mesh=False)
+            if isinstance(domain, MixedMesh):
+                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
+            if isinstance(self.default_restriction, dict):
+                if domain not in self.default_restriction:
+                    raise RuntimeError(f"Integral type on {domain} not known")
+                r = self.default_restriction[domain]
+                if r is None:
+                    return o
+                elif r in ["+", "-"]:
+                    return o(r)
+                else:
+                    raise RuntimeError(f"Unknown default restriction {r} on domain {domain}")
+            else:
+                # conventional "+" default:
+                return o(self.default_restriction)
+        else:
+            return o
 
     def _opposite(self, o):
         """Restrict a quantity to default side.
 
         If the current restriction is different swap the sign, require a side to be set.
         """
-        if self.current_restriction is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-        elif self.current_restriction == self.default_restriction:
-            return o(self.default_restriction)
+        if isinstance(self.default_restriction, dict):
+            domain = extract_unique_domain(o, expand_mixed_mesh=False)
+            if isinstance(domain, MixedMesh):
+                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
+            if domain not in self.default_restriction:
+                raise RuntimeError(f"Integral type on {domain} not known")
+            r = self.default_restriction[domain]
         else:
-            return -o(self.default_restriction)
+            r = self.default_restriction
+        if r is None:
+            if self.current_restriction is not None:
+                raise ValueError(f"Expecting current_restriction None: got {self.current_restriction}")
+            return o
+        else:
+            if self.current_restriction is None:
+                raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+            elif self.current_restriction == r:
+                return o(self.default_restriction)
+            else:
+                return -o(self.default_restriction)
 
     def _missing_rule(self, o):
         """Raise an error."""
@@ -139,6 +188,18 @@ class RestrictionPropagator(MultiFunction):
     reference_cell_volume = _ignore_restriction
     reference_facet_volume = _ignore_restriction
 
+    # These are the same from either side but to compute them
+    # cell (or facet) data from one side must be selected:
+    spatial_coordinate = _default_restricted
+    # Depends on cell only to get to the facet:
+    facet_jacobian = _default_restricted
+    facet_jacobian_determinant = _default_restricted
+    facet_jacobian_inverse = _default_restricted
+    facet_area = _default_restricted
+    min_facet_edge_length = _default_restricted
+    max_facet_edge_length = _default_restricted
+    facet_origin = _default_restricted  # FIXME: Is this valid for quads?
+
     def coefficient(self, o):
         """Restrict a coefficient.
 
@@ -174,76 +235,144 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression):
+def apply_restrictions(expression, assume_single_integral_type=True, apply_default=True, default_restriction=None):
     """Propagate restriction nodes to wrap differential terminals directly."""
-    integral_types = [
-        k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
-    ]
-    rules = RestrictionPropagator()
-    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
+    if assume_single_integral_type:
+        integral_types = [
+            k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
+        ]
+    else:
+        # Integration type of the integral is not necessarily the same as
+        # the integral type of a given function; e.g., the former can be
+        # ``exterior_facet`` and the latter ``interior_facet``.
+        integral_types = None
+    rules = RestrictionPropagator(assume_single_integral_type=assume_single_integral_type, apply_default=apply_default, default_restriction=default_restriction)
+    if isinstance(expression, FormData):
+        for integral_data in expression.integral_data:
+            integral_data.integrals = tuple(
+                map_integrand_dags(rules, integral, only_integral_type=integral_types)
+                for integral in integral_data.integrals
+            )
+        return expression
+    else:
+        return map_integrand_dags(rules, expression, only_integral_type=integral_types)
 
 
-class DefaultRestrictionApplier(MultiFunction):
-    """Default restriction applier."""
+class DomainRestrictionMapMaker(MultiFunction):
+    """Make a map from domains to restriction(s).
 
-    def __init__(self, side=None):
-        """Initialise."""
-        MultiFunction.__init__(self)
-        self.current_restriction = side
-        self.default_restriction = "+"
-        if self.current_restriction is None:
-            self._rp = {"+": DefaultRestrictionApplier("+"), "-": DefaultRestrictionApplier("-")}
-
-    def terminal(self, o):
-        """Apply to terminal."""
-        # Most terminals are unchanged
-        return o
-
-    # Default: Operators should reconstruct only if subtrees are not touched
-    operator = MultiFunction.reuse_if_untouched
-
-    def restricted(self, o):
-        """Apply to restricted."""
-        # Don't restrict twice
-        return o
-
-    def derivative(self, o):
-        """Apply to derivative."""
-        # I don't think it's safe to just apply default restriction
-        # to the argument of any derivative, i.e. grad(cg1_function)
-        # is not continuous across cells even if cg1_function is.
-        return o
-
-    def _default_restricted(self, o):
-        """Restrict a continuous quantity to default side if no current restriction is set."""
-        r = self.current_restriction
-        if r is None:
-            r = self.default_restriction
-        return o(r)
-
-    # These are the same from either side but to compute them
-    # cell (or facet) data from one side must be selected:
-    spatial_coordinate = _default_restricted
-    # Depends on cell only to get to the facet:
-    facet_jacobian = _default_restricted
-    facet_jacobian_determinant = _default_restricted
-    facet_jacobian_inverse = _default_restricted
-    # facet_tangents = _default_restricted
-    # facet_midpoint = _default_restricted
-    facet_area = _default_restricted
-    # facet_diameter = _default_restricted
-    min_facet_edge_length = _default_restricted
-    max_facet_edge_length = _default_restricted
-    facet_origin = _default_restricted  # FIXME: Is this valid for quads?
-
-
-def apply_default_restrictions(expression):
-    """Some terminals can be restricted from either side.
-
-    This applies a default restriction to such terminals if unrestricted.
+    Inspect the DAG and collect domain-restrictions map.
+    This must be done per integral_data.
     """
-    integral_types = [
-        k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
-    ]
-    rules = DefaultRestrictionApplier()
-    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
+
+    def __init__(self, domain_restriction_map):
+        MultiFunction.__init__(self)
+        self._domain_restriction_map = domain_restriction_map
+
+    expr = MultiFunction.reuse_if_untouched
+
+    def _modifier(self, o):
+        restriction = None
+        local_derivatives = 0
+        reference_value = False
+        t = o
+        while not t._ufl_is_terminal_:
+            assert t._ufl_is_terminal_modifier_, f"Expecting a terminal modifier: got {repr(t)}"
+            if isinstance(t, ReferenceValue):
+                assert not reference_value, "Got twice pulled back terminal"
+                reference_value = True
+                t, = t.ufl_operands
+            elif isinstance(t, ReferenceGrad):
+                local_derivatives += 1
+                t, = t.ufl_operands
+            elif isinstance(t, Restricted):
+                assert restriction is None, "Got twice restricted terminal"
+                restriction = t._side
+                t, = t.ufl_operands
+            elif t._ufl_terminal_modifiers_:
+                raise ValueError("Missing handler for terminal modifier type %s, object is %s." % (type(t), repr(t)))
+            else:
+                raise ValueError("Unexpected type %s object %s." % (type(t), repr(t)))
+        domain = extract_unique_domain(t, expand_mixed_mesh=False)
+        if isinstance(domain, MixedMesh):
+            raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(t)}")
+        if domain is not None:
+            if domain not in self._domain_restriction_map:
+                self._domain_restriction_map[domain] = set()
+            if restriction in ['+', '-']:
+                self._domain_restriction_map[domain].add(restriction)
+            elif restriction is not None:
+                raise RuntimeError
+        return o
+
+    reference_value = _modifier
+    reference_grad = _modifier
+    positive_restricted = _modifier
+    negative_restricted = _modifier
+    single_value_restricted = _modifier
+    to_be_restricted = _modifier
+    terminal = _modifier
+
+
+def make_domain_restriction_map(integral_data):
+    """Make domain-restriction map for the given integral_data."""
+    domain_restriction_map = {}
+    rule = DomainRestrictionMapMaker(domain_restriction_map)
+    for integral in integral_data.integrals:
+        _ = map_expr_dag(rule, integral.integrand())
+    return domain_restriction_map
+
+
+def make_domain_integral_type_map(integral_data):
+    domain_restriction_map = make_domain_restriction_map(integral_data)
+    integration_domain = integral_data.domain
+    integration_type = integral_data.integral_type
+    domain_integral_type_dict = {}
+    for d, rs in domain_restriction_map.items():
+        if rs in [{'+'}, {'-'}, {'+', '-'}]:
+            domain_integral_type_dict[d] = "interior_facet"
+        elif rs == set():
+            if d.topological_dimension() == integration_domain.topological_dimension():
+                if integration_type == "cell":
+                    domain_integral_type_dict[d] = "cell"
+                elif integration_type in ["exterior_facet", "interior_facet"]:
+                    domain_integral_type_dict[d] = "exterior_facet"
+                else:
+                    raise NotImplementedError
+            else:
+                raise NotImplementedError
+        else:
+            raise RuntimeError(f"Found inconsistent restrictions {rs} for domain {d}")
+    if integration_domain in domain_integral_type_dict:
+        if domain_integral_type_dict[integration_domain] != integration_type:
+            raise RuntimeError(f"""Found inconsistent integral types for the integration domain ({integration_domain}) :
+                {domain_integral_type_dict[integration_domain]} != {integration_type}""")
+    else:
+        domain_integral_type_dict[integration_domain] = integration_type
+    return domain_integral_type_dict
+
+
+def replace_to_be_restricted(integral_data):
+    new_integrals = []
+    rule = RestrictionPropagator(
+        side=None,
+        assume_single_integral_type=False,
+        apply_default=True,
+        default_restriction={
+            domain: {
+                "cell": None,
+                "exterior_facet": None,
+                "exterior_facet_top": None,
+                "exterior_facet_bottom": None,
+                "exterior_facet_vert": None,
+                "interior_facet": "+",
+                "interior_facet_horiz": "+",
+                "interior_facet_vert": "+",
+            }[integral_type]
+            for domain, integral_type in integral_data.domain_integral_type_map.items()
+        },
+    )
+    for integral in integral_data.integrals:
+        integrand = map_expr_dag(rule, integral.integrand())
+        new_integrals.append(integral.reconstruct(integrand=integrand))
+    return new_integrals
