@@ -13,8 +13,6 @@ from ufl.classes import (
     Indexed,
     NegativeRestricted,
     PositiveRestricted,
-    SingleValueRestricted,
-    ToBeRestricted,
     ReferenceGrad,
     ReferenceValue,
 )
@@ -29,8 +27,6 @@ modifier_precedence = [
     FacetAvg,
     PositiveRestricted,
     NegativeRestricted,
-    SingleValueRestricted,
-    ToBeRestricted,
     Indexed,
 ]
 

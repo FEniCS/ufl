@@ -78,7 +78,7 @@ def test_mixed_function_space_with_mixed_mesh_restriction():
     g0, g1, g2 = split(g)
     dS1 = Measure("dS", mesh1)
     x2 = SpatialCoordinate(mesh2)
-    form = inner(x2, g1) * g2 * inner(u1('-'), grad(v2('|'))) * dS1(999)
+    form = inner(x2, g1) * g2 * inner(u1('-'), grad(v2)) * dS1(999)
     fd = compute_form_data(form,
                            do_apply_function_pullbacks=True,
                            do_apply_integral_scaling=True,

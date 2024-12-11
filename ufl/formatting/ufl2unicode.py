@@ -138,8 +138,6 @@ class UC:
 
     superscript_plus = "⁺"
     superscript_minus = "⁻"
-    superscript_vertical_bar = "|"
-    superscript_question_mark = "?"
     superscript_equals = "⁼"
     superscript_left_paren = "⁽"
     superscript_right_paren = "⁾"

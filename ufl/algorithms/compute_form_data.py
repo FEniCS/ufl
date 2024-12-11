@@ -491,17 +491,15 @@ def compute_form_data(
             itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
     else:
         if have_single_domain:
-            # Make a short-cut; there is no '?' restrictions by construction
             for itg_data in self.integral_data:
                 itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
         else:
-            # Inspect the form and replacce all '?' restrictions with appropriate ones
-            # in general multi-domain problems; we must have split coefficients into components
-            # to simplify the DAG and facilitate this inspection
+            # Inspect the form and apply default restrictions.
             if do_split_coefficients is None:
                 raise ValueError("""Need to pass 'do_split_coefficients=tuple_of_coefficients_to_splilt'
                     for general multi-domain problems""")
             for itg_data in self.integral_data:
+                # Must have split coefficients and removed component/list tensors.
                 itg_data.domain_integral_type_map = make_domain_integral_type_map(itg_data)
                 itg_data.integrals = replace_to_be_restricted(itg_data)
 

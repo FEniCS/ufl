@@ -20,7 +20,7 @@ from ufl.form import Form
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
 from ufl.classes import ReferenceGrad, ReferenceValue
-from ufl.restriction import PositiveRestricted, SingleValueRestricted
+from ufl.restriction import PositiveRestricted
 
 
 class RestrictionPropagator(MultiFunction):
@@ -35,14 +35,12 @@ class RestrictionPropagator(MultiFunction):
         self.default_restriction = default_restriction
         self.apply_default = apply_default
         # Caches for propagating the restriction with map_expr_dag
-        self.vcaches = {"+": {}, "-": {}, "|": {}, "?": {}}
-        self.rcaches = {"+": {}, "-": {}, "|": {}, "?": {}}
+        self.vcaches = {"+": {}, "-": {},}
+        self.rcaches = {"+": {}, "-": {},}
         if self.current_restriction is None:
             self._rp = {
                 "+": RestrictionPropagator("+", assume_single_integral_type, apply_default, default_restriction),
                 "-": RestrictionPropagator("-", assume_single_integral_type, apply_default, default_restriction),
-                "|": RestrictionPropagator("|", assume_single_integral_type, apply_default, default_restriction),
-                "?": RestrictionPropagator("?", assume_single_integral_type, apply_default, default_restriction),
             }
         self.assume_single_integral_type = assume_single_integral_type
 
@@ -301,9 +299,9 @@ class DomainRestrictionMapMaker(MultiFunction):
         if domain is not None:
             if domain not in self._domain_restriction_map:
                 self._domain_restriction_map[domain] = set()
-            if restriction in ['+', '-', '|']:
+            if restriction in ['+', '-']:
                 self._domain_restriction_map[domain].add(restriction)
-            elif restriction not in ['?', None]:
+            elif restriction is not None:
                 raise RuntimeError
         return o
 
@@ -333,8 +331,6 @@ def make_domain_integral_type_map(integral_data):
     for d, rs in domain_restriction_map.items():
         if rs in [{'+'}, {'-'}, {'+', '-'}]:
             domain_integral_type_dict[d] = "interior_facet"
-        elif rs == {'|'}:
-            domain_integral_type_dict[d] = "exterior_facet"
         elif rs == set():
             if d.topological_dimension() == integration_domain.topological_dimension():
                 if integration_type == "cell":
@@ -356,37 +352,8 @@ def make_domain_integral_type_map(integral_data):
     return domain_integral_type_dict
 
 
-class ToBeRestrectedReplacer(MultiFunction):
-    """Replace ``?`` restrictions."""
-
-    def __init__(self, domain_integral_type_map):
-        MultiFunction.__init__(self)
-        self.domain_integral_type_map = domain_integral_type_map
-
-    expr = MultiFunction.reuse_if_untouched
-
-    def to_be_restricted(self, o):
-        mt, = o.ufl_operands
-        domain = extract_unique_domain(mt)
-        if isinstance(domain, MixedMesh):
-            raise RuntimeError(f"""Not expecting a (modified) terminal object on a mixed mesh at this stage :
-                got {repr(o)}""")
-        if domain not in self.domain_integral_type_map:
-            raise RuntimeError(f"Integral type on {domain} not known")
-        integral_type = self.domain_integral_type_map[domain]
-        if integral_type == "cell":
-            return mt
-        elif integral_type == "exterior_facet":
-            return SingleValueRestricted(mt)
-        elif integral_type == "interior_facet":
-            return PositiveRestricted(mt)
-        else:
-            raise RuntimeError(f"Unknown integral type: {integral_type}")
-
-
 def replace_to_be_restricted(integral_data):
     new_integrals = []
-    #rule = ToBeRestrectedReplacer(integral_data.domain_integral_type_map)
     rule = RestrictionPropagator(
         side=None,
         assume_single_integral_type=False,

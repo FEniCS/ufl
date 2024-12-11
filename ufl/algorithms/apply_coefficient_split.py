@@ -11,7 +11,7 @@ from ufl.domain import extract_unique_domain
 from ufl.classes import (Coefficient, Form, ReferenceGrad, ReferenceValue,
                          Indexed, MultiIndex, Index, FixedIndex,
                          ComponentTensor, ListTensor, Zero,
-                         NegativeRestricted, PositiveRestricted, SingleValueRestricted, ToBeRestricted)
+                         NegativeRestricted, PositiveRestricted,)
 from ufl import indices
 from ufl.checks import is_cellwise_constant
 from ufl.tensors import as_tensor
@@ -76,10 +76,6 @@ class CoefficientSplitter(MultiFunction):
                 c = PositiveRestricted(c)
             elif restriction == '-':
                 c = NegativeRestricted(c)
-            elif restriction == '|':
-                c = SingleValueRestricted(c)
-            elif restriction == '?':
-                c = ToBeRestricted(c)
             elif restriction is not None:
                 raise RuntimeError(f"Got unknown restriction: {restriction}")
             # Collect components of the subcoefficient
