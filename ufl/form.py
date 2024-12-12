@@ -690,12 +690,12 @@ class FormSum(BaseForm):
     __slots__ = (
         "_arguments",
         "_coefficients",
-        "_weights",
         "_components",
-        "ufl_operands",
-        "_domains",
         "_domain_numbering",
+        "_domains",
         "_hash",
+        "_weights",
+        "ufl_operands",
     )
     _ufl_required_methods_ = "_analyze_form_arguments"
 
