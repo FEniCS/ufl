@@ -28,7 +28,7 @@ class IndexBase(object):
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
 
-    __slots__ = ("_value", "_hash")
+    __slots__ = ("_hash", "_value")
 
     _cache = {}
 

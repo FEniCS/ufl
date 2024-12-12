@@ -128,7 +128,7 @@ class ListTensor(Operator):
 class ComponentTensor(Operator):
     """Maps the free indices of a scalar valued expression to tensor axes."""
 
-    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     def __new__(cls, expression, indices):
         """Create a new ComponentTensor."""

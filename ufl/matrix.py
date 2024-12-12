@@ -21,16 +21,16 @@ class Matrix(BaseForm, Counted):
     """An assemble linear operator between two function spaces."""
 
     __slots__ = (
-        "_count",
-        "_counted_class",
-        "_ufl_function_spaces",
-        "ufl_operands",
-        "_repr",
-        "_hash",
-        "_ufl_shape",
         "_arguments",
         "_coefficients",
+        "_count",
+        "_counted_class",
         "_domains",
+        "_hash",
+        "_repr",
+        "_ufl_function_spaces",
+        "_ufl_shape",
+        "ufl_operands",
     )
 
     def __getnewargs__(self):
