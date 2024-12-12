@@ -16,6 +16,7 @@ from ufl.constantvalue import Zero
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
+from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.matrix import Matrix
 
@@ -159,6 +160,10 @@ class Action(BaseForm):
 
 def _check_function_spaces(left, right):
     """Check if the function spaces of left and right match."""
+    if is_primal(left) or is_dual(right):
+        # We can always assume action(dual, primal) since
+        # action(left, right) == action(right, left)
+        left, right = right, left
     if isinstance(right, CoefficientDerivative):
         # Action differentiation pushes differentiation through
         # right as a consequence of Leibniz formula.
