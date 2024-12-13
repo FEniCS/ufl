@@ -99,7 +99,7 @@ class Measure(object):
     expression.
     """
 
-    __slots__ = ("_integral_type", "_domain", "_subdomain_id", "_metadata", "_subdomain_data")
+    __slots__ = ("_domain", "_integral_type", "_metadata", "_subdomain_data", "_subdomain_id")
 
     def __init__(
         self,
