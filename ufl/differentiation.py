@@ -196,9 +196,9 @@ class VariableDerivative(Derivative):
     """Variable Derivative."""
 
     __slots__ = (
-        "ufl_shape",
         "ufl_free_indices",
         "ufl_index_dimensions",
+        "ufl_shape",
     )
 
     def __new__(cls, f, v):

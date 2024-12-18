@@ -243,11 +243,11 @@ class Cell(AbstractCell):
 
     __slots__ = (
         "_cellname",
-        "_tdim",
         "_num_cell_entities",
-        "_sub_entity_types",
         "_sub_entities",
         "_sub_entity_types",
+        "_sub_entity_types",
+        "_tdim",
     )
 
     def __init__(self, cellname: str):
