@@ -37,6 +37,8 @@ def test_mixed_function_space_with_mixed_mesh_basic():
                            preserve_geometry_types=(CellVolume, FacetArea),
                            do_apply_restrictions=True,
                            do_estimate_degrees=True,
+                           do_split_coefficients=(f, g),
+                           do_assume_single_integral_type=False,
                            complex_mode=False)
     id0, id1 = fd.integral_data
     assert fd.preprocessed_form.arguments() == (v, u)

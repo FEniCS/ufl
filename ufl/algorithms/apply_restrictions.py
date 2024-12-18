@@ -26,21 +26,18 @@ from ufl.restriction import PositiveRestricted
 class RestrictionPropagator(MultiFunction):
     """Restriction propagator."""
 
-    def __init__(self, side=None, assume_single_integral_type=True, apply_default=True, default_restriction=None):
+    def __init__(self, side=None, assume_single_integral_type=True, default_restriction=None):
         """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
-        if default_restriction is None:
-            assert not apply_default
         self.default_restriction = default_restriction
-        self.apply_default = apply_default
         # Caches for propagating the restriction with map_expr_dag
         self.vcaches = {"+": {}, "-": {},}
         self.rcaches = {"+": {}, "-": {},}
         if self.current_restriction is None:
             self._rp = {
-                "+": RestrictionPropagator("+", assume_single_integral_type, apply_default, default_restriction),
-                "-": RestrictionPropagator("-", assume_single_integral_type, apply_default, default_restriction),
+                "+": RestrictionPropagator("+", assume_single_integral_type, default_restriction),
+                "-": RestrictionPropagator("-", assume_single_integral_type, default_restriction),
             }
         self.assume_single_integral_type = assume_single_integral_type
 
@@ -83,7 +80,7 @@ class RestrictionPropagator(MultiFunction):
         r = self.current_restriction
         if r is not None:
             return o(r)
-        if self.apply_default:
+        if self.default_restriction is not None:
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
             if isinstance(domain, MixedMesh):
                 raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
@@ -125,9 +122,9 @@ class RestrictionPropagator(MultiFunction):
             if self.current_restriction is None:
                 raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
             elif self.current_restriction == r:
-                return o(self.default_restriction)
+                return o(r)
             else:
-                return -o(self.default_restriction)
+                return -o(r)
 
     def _missing_rule(self, o):
         """Raise an error."""
@@ -235,13 +232,21 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression, assume_single_integral_type=True, apply_default=True, default_restriction=None, domain_integral_type_map=None):
+def apply_restrictions(expression, assume_single_integral_type=True, domain_integral_type_map=None):
     """Propagate restriction nodes to wrap differential terminals directly."""
     if assume_single_integral_type:
+        # Hnadle the conventional single-domain case.
+        domain = extract_unique_domain(expression)
+        default_restriction = {domain: "+"}
         integral_types = [
             k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
         ]
-        if apply_default:
+    else:
+        if domain_integral_type_map is None:
+            # Do not apply default restrictions.
+            default_restriction = None
+        else:
+            # Apply default restriction depending on the integral type on each domain.
             default_restriction = {
                 domain: {
                     "cell": None,
@@ -254,13 +259,12 @@ def apply_restrictions(expression, assume_single_integral_type=True, apply_defau
                     "interior_facet_vert": "+",
                 }[integral_type]
                 for domain, integral_type in domain_integral_type_map.items()
-            },
-    else:
+            }
         # Integration type of the integral is not necessarily the same as
         # the integral type of a given function; e.g., the former can be
         # ``exterior_facet`` and the latter ``interior_facet``.
         integral_types = None
-    rules = RestrictionPropagator(assume_single_integral_type=assume_single_integral_type, apply_default=apply_default, default_restriction=default_restriction)
+    rules = RestrictionPropagator(assume_single_integral_type=assume_single_integral_type, default_restriction=default_restriction)
     if isinstance(expression, FormData):
         for integral_data in expression.integral_data:
             integral_data.integrals = tuple(
@@ -371,7 +375,6 @@ def replace_to_be_restricted(integral_data):
     rule = RestrictionPropagator(
         side=None,
         assume_single_integral_type=False,
-        apply_default=True,
         default_restriction={
             domain: {
                 "cell": None,

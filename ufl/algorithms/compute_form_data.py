@@ -350,24 +350,15 @@ def compute_form_data(
     if do_apply_restrictions:
         if do_assume_single_integral_type or have_single_domain:
             for itg_data in self.integral_data:
+                if do_apply_default_restrictions:
+                    domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
+                else:
+                    domain_integral_type_map = None  # Set None if not needed.
                 new_integrals = []
                 for integral in itg_data.integrals:
                     new_integral = apply_restrictions(
                         integral,
-                        apply_default=do_apply_default_restrictions,
-                        default_restriction={
-                            itg_data.domain: {
-                                "cell": None,
-                                "exterior_facet": None,
-                                "exterior_facet_top": None,
-                                "exterior_facet_bottom": None,
-                                "exterior_facet_vert": None,
-                                "interior_facet": "+",
-                                "interior_facet_horiz": "+",
-                                "interior_facet_vert": "+",
-                            }[itg_data.integral_type]
-                        },
-                        domain_integral_type_map={itg_data.domain: itg_data.integral_type},
+                        domain_integral_type_map=domain_integral_type_map,
                     )
                     new_integrals.append(new_integral)
                 itg_data.integrals = new_integrals
@@ -378,7 +369,7 @@ def compute_form_data(
                     new_integral = apply_restrictions(
                         integral,
                         assume_single_integral_type=have_single_domain,
-                        apply_default=False,
+                        domain_integral_type_map=None,  # We do not know this map yet.
                     )
                     new_integrals.append(new_integral)
                 itg_data.integrals = new_integrals
