@@ -11,7 +11,8 @@
 from ufl.core.expr import Expr
 from ufl.core.terminal import FormArgument
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.geometry import GeometricQuantity
+from ufl.domain import extract_unique_domain
+from ufl.geometry import GeometricQuantity, SpatialCoordinate
 from ufl.sobolevspace import H1
 
 
@@ -34,7 +35,20 @@ def is_true_ufl_scalar(expression):
 
 def is_cellwise_constant(expr):
     """Return whether expression is constant over a single cell."""
-    # TODO: Implement more accurately considering e.g. derivatives?
+    from ufl.coefficient import Coefficient
+    from ufl.differentiation import ReferenceGrad
+
+    if isinstance(expr, ReferenceGrad):
+        (expr,) = expr.ufl_operands
+        if is_cellwise_constant(expr):
+            return True
+        elif isinstance(expr, SpatialCoordinate):
+            domain = extract_unique_domain(expr)
+            return domain.is_piecewise_linear_simplex_domain()
+        elif isinstance(expr, Coefficient):
+            element = expr.ufl_element()
+            return element.embedded_superdegree <= 1
+
     return all(e.is_cellwise_constant() for e in traverse_unique_terminals(expr))
 
 
