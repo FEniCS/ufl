@@ -31,7 +31,7 @@ class RestrictionPropagator(MultiFunction):
         MultiFunction.__init__(self)
         self.current_restriction = side
         if default_restriction is None:
-            default_restriction = "+" if assume_single_integral_type else "?"
+            assert not apply_default
         self.default_restriction = default_restriction
         self.apply_default = apply_default
         # Caches for propagating the restriction with map_expr_dag
@@ -235,12 +235,26 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression, assume_single_integral_type=True, apply_default=True, default_restriction=None):
+def apply_restrictions(expression, assume_single_integral_type=True, apply_default=True, default_restriction=None, domain_integral_type_map=None):
     """Propagate restriction nodes to wrap differential terminals directly."""
     if assume_single_integral_type:
         integral_types = [
             k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
         ]
+        if apply_default:
+            default_restriction = {
+                domain: {
+                    "cell": None,
+                    "exterior_facet": None,
+                    "exterior_facet_top": None,
+                    "exterior_facet_bottom": None,
+                    "exterior_facet_vert": None,
+                    "interior_facet": "+",
+                    "interior_facet_horiz": "+",
+                    "interior_facet_vert": "+",
+                }[integral_type]
+                for domain, integral_type in domain_integral_type_map.items()
+            },
     else:
         # Integration type of the integral is not necessarily the same as
         # the integral type of a given function; e.g., the former can be

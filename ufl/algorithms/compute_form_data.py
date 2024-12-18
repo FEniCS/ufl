@@ -367,11 +367,11 @@ def compute_form_data(
                                 "interior_facet_vert": "+",
                             }[itg_data.integral_type]
                         },
+                        domain_integral_type_map={itg_data.domain: itg_data.integral_type},
                     )
                     new_integrals.append(new_integral)
                 itg_data.integrals = new_integrals
         else:
-            #form = apply_restrictions(form, assume_single_integral_type=have_single_domain, apply_default=False)
             for itg_data in self.integral_data:
                 new_integrals = []
                 for integral in itg_data.integrals:
