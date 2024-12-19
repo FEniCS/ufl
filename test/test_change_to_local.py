@@ -12,8 +12,8 @@ from ufl.sobolevspace import H1
 def test_change_to_reference_grad():
     cell = triangle
     domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
-    U = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1))
-    V = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    U = FunctionSpace(domain, FiniteElement("Lagrange", cell, 3, (), identity_pullback, H1))
+    V = FunctionSpace(domain, FiniteElement("Lagrange", cell, 3, (2,), identity_pullback, H1))
     u = Coefficient(U)
     v = Coefficient(V)
     Jinv = JacobianInverse(domain)
