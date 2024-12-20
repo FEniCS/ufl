@@ -67,13 +67,23 @@ class RestrictionPropagator(MultiFunction):
         """Restrict a discontinuous quantity to current side, require a side to be set."""
         if self.current_restriction is not None:
             return o(self.current_restriction)
-        elif not self.assume_single_integral_type:
-            # If integration if over interior facet of meshA and exterior facet of meshB,
-            # arguments (say) on meshA must be restricted, but those on meshB do not
-            # need to be.
-            return o
+        if self.default_restriction is not None:
+            domain = extract_unique_domain(o, expand_mixed_mesh=False)
+            if isinstance(domain, MixedMesh):
+                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
+            if isinstance(self.default_restriction, dict):
+                r = self.default_restriction[domain]
+            else:
+                r = self.default_restriction
+            if r is None:
+                # If integration if over interior facet of meshA and exterior facet of meshB,
+                # arguments (say) on meshA must be restricted, but those on meshB do not
+                # need to be.
+                return o
+            else:
+                raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
         else:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+            return o
 
     def _default_restricted(self, o):
         """Restrict a continuous quantity to default side if no current restriction is set."""
