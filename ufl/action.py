@@ -69,12 +69,21 @@ class Action(BaseForm):
         if isinstance(right, (Coargument, Argument)):
             return left
 
-        if isinstance(left, (FormSum, Sum)):
-            # Action distributes over sums on the LHS
-            return FormSum(*[(Action(component, right), 1) for component in left.ufl_operands])
-        if isinstance(right, (FormSum, Sum)):
-            # Action also distributes over sums on the RHS
-            return FormSum(*[(Action(left, component), 1) for component in right.ufl_operands])
+        # Action distributes over sums on the LHS
+        if isinstance(left, Sum):
+            return FormSum(*((Action(component, right), 1) for component in left.ufl_operands))
+        elif isinstance(left, FormSum):
+            return FormSum(
+                *((Action(c, right), w) for c, w in zip(left.components(), left.weights()))
+            )
+
+        # Action also distributes over sums on the RHS
+        if isinstance(right, Sum):
+            return FormSum(*((Action(left, component), 1) for component in right.ufl_operands))
+        elif isinstance(right, FormSum):
+            return FormSum(
+                *((Action(left, c), w) for c, w in zip(right.components(), right.weights()))
+            )
 
         return super(Action, cls).__new__(cls)
 
