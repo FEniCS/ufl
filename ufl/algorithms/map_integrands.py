@@ -59,7 +59,7 @@ def map_integrands(function, form, only_integral_type=None):
             # Simplification of `BaseForm` objects may turn `FormSum` into a sum of `Expr` objects
             # that are not `BaseForm`, i.e. into a `Sum` object.
             # Example: `Action(Adjoint(c*), u)` with `c*` a `Coargument` and u a `Coefficient`.
-            return sum([component for component, _ in nonzero_components])
+            return sum(component * w for component, w in nonzero_components)
         return FormSum(*nonzero_components)
     elif isinstance(form, Adjoint):
         # Zeros are caught inside `Adjoint.__new__`
