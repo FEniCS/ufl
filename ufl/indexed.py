@@ -26,13 +26,21 @@ class Indexed(Operator):
 
     def __new__(cls, expression, multiindex):
         """Create a new Indexed."""
+        from ufl.tensors import ListTensor
+
+        indices = multiindex._indices
+        while isinstance(expression, ListTensor) and isinstance(indices[0], FixedIndex):
+            # Simplify indexed ListTensor objects
+            expression = expression[indices[0]]
+            indices = indices[1:]
+
         if isinstance(expression, Zero):
             # Zero-simplify indexed Zero objects
             shape = expression.ufl_shape
             efi = expression.ufl_free_indices
             efid = expression.ufl_index_dimensions
             fi = list(zip(efi, efid))
-            for pos, ind in enumerate(multiindex._indices):
+            for pos, ind in enumerate(indices):
                 if isinstance(ind, Index):
                     fi.append((ind.count(), shape[pos]))
             fi = unique_sorted_indices(sorted(fi))
