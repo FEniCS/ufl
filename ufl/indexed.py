@@ -28,7 +28,7 @@ class Indexed(Operator):
         """Create a new Indexed."""
         from ufl.tensors import ListTensor
 
-        indices = multiindex._indices
+        indices = multiindex.indices()
         while isinstance(expression, ListTensor) and isinstance(indices[0], FixedIndex):
             # Simplify indexed ListTensor objects
             expression = expression[indices[0]]

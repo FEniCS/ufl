@@ -55,12 +55,12 @@ class FormSplitter(MultiFunction):
 
                 indices = [()]
                 for m in a.ufl_shape:
-                    indices = [(k + (j,)) for k in indices for j in range(m)]
+                    indices = [(*k, j) for k in indices for j in range(m)]
 
                 if i == self.idx[obj.number()]:
-                    args += [a[j] for j in indices]
+                    args.extend(a[j] for j in indices)
                 else:
-                    args += [Zero() for j in indices]
+                    args.extend(Zero() for j in indices)
 
             return as_vector(args)
 
@@ -72,9 +72,13 @@ class FormSplitter(MultiFunction):
         indices = multiindex.indices()
         if isinstance(child, ListTensor) and all(isinstance(i, FixedIndex) for i in indices):
             if len(indices) == 1:
-                return child.ufl_operands[indices[0]._value]
+                return child[indices[0]]
+            elif len(indices) == len(child.ufl_operands) and all(
+                k == i for k, i in enumerate(indices)
+            ):
+                return child
             else:
-                return ListTensor(*(child.ufl_operands[i._value] for i in multiindex.indices()))
+                return ListTensor(*(child[i] for i in indices))
         return self.expr(o, child, multiindex)
 
     def multi_index(self, obj):

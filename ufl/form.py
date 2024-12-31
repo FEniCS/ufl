@@ -50,7 +50,7 @@ def _sorted_integrals(integrals):
             )
         it = integral.integral_type()
         si = integral.subdomain_id()
-        integrals_dict[d][it][si] += [integral]
+        integrals_dict[d][it][si].append(integral)
 
     all_integrals = []
 
@@ -586,7 +586,7 @@ class Form(BaseForm):
 
         # TODO: Not including domains from coefficients and arguments
         # here, may need that later
-        self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
+        self._domain_numbering = {d: i for i, d in enumerate(self._integration_domains)}
 
     def _analyze_subdomain_data(self):
         """Analyze subdomain data."""
