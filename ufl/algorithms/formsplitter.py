@@ -74,7 +74,7 @@ class FormSplitter(MultiFunction):
             if len(indices) == 1:
                 return child[indices[0]]
             elif len(indices) == len(child.ufl_operands) and all(
-                k == i for k, i in enumerate(indices)
+                k == int(i) for k, i in enumerate(indices)
             ):
                 return child
             else:

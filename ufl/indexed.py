@@ -26,15 +26,30 @@ class Indexed(Operator):
 
     def __new__(cls, expression, multiindex):
         """Create a new Indexed."""
+        # cyclic import
         from ufl.tensors import ListTensor
 
+        simpler = False
         indices = multiindex.indices()
-        while isinstance(expression, ListTensor) and isinstance(indices[0], FixedIndex):
+        while (
+            len(indices) > 0
+            and isinstance(expression, ListTensor)
+            and isinstance(indices[0], FixedIndex)
+        ):
             # Simplify indexed ListTensor objects
             expression = expression[indices[0]]
             indices = indices[1:]
+            simpler = True
 
-        if isinstance(expression, Zero):
+        if isinstance(expression, Indexed):
+            # Simplify nested Indexed objects
+            indices = expression.ufl_operands[1].indices() + indices
+            expression = expression.ufl_operands[0]
+            simpler = True
+
+        if len(indices) == 0:
+            return expression
+        elif isinstance(expression, Zero):
             # Zero-simplify indexed Zero objects
             shape = expression.ufl_shape
             efi = expression.ufl_free_indices
@@ -49,8 +64,8 @@ class Indexed(Operator):
             else:
                 fi, fid = (), ()
             return Zero(shape=(), free_indices=fi, index_dimensions=fid)
-        elif expression.ufl_shape == () and multiindex == ():
-            return expression
+        elif simpler:
+            return Indexed(expression, MultiIndex(indices))
         else:
             return Operator.__new__(cls)
 

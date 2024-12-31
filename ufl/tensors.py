@@ -55,7 +55,7 @@ class ListTensor(Operator):
 
         # Simplify to Zero if possible
         if all(isinstance(e, Zero) for e in expressions):
-            shape = (len(expressions),) + sh
+            shape = (len(expressions), *sh)
             return Zero(shape, fi, fid)
 
         # Simplify [v[0], v[1], ..., v[k]] -> v
@@ -132,7 +132,7 @@ class ListTensor(Operator):
                 s = (",\n" + ind).join(substrings)
                 return "%s[\n%s%s\n%s]" % (ind, ind, s, ind)
             else:
-                s = ", ".join(str(e) for e in expressions)
+                s = ", ".join(map(str, expressions))
                 return "%s[%s]" % (ind, s)
 
         return substring(self.ufl_operands, 0)
