@@ -7,6 +7,8 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
+from itertools import chain
+
 from ufl.constantvalue import Zero, as_ufl
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
@@ -55,6 +57,18 @@ class ListTensor(Operator):
         if all(isinstance(e, Zero) for e in expressions):
             shape = (len(expressions),) + sh
             return Zero(shape, fi, fid)
+
+        # Simplify [v[0], v[1], ..., v[k]] -> v
+        if (
+            all(isinstance(e, Indexed) for e in expressions)
+            and e0.ufl_operands[0].ufl_shape == (len(expressions),)
+            and all(e.ufl_operands[0] == e0.ufl_operands[0] for e in expressions)
+        ):
+            indices = list(chain.from_iterable(e.ufl_operands[1].indices() for e in expressions))
+            if len(indices) == len(expressions) and all(
+                isinstance(i, FixedIndex) and k == int(i) for k, i in enumerate(indices)
+            ):
+                return e0.ufl_operands[0]
 
         return Operator.__new__(cls)
 
