@@ -29,8 +29,9 @@ class Indexed(Operator):
         # cyclic import
         from ufl.tensors import ListTensor
 
-        simpler = False
+        flattened = False
         indices = multiindex.indices()
+
         while (
             len(indices) > 0
             and isinstance(expression, ListTensor)
@@ -39,13 +40,13 @@ class Indexed(Operator):
             # Simplify indexed ListTensor objects
             expression = expression[indices[0]]
             indices = indices[1:]
-            simpler = True
+            flattened = True
 
         if isinstance(expression, Indexed):
             # Simplify nested Indexed objects
             indices = expression.ufl_operands[1].indices() + indices
             expression = expression.ufl_operands[0]
-            simpler = True
+            flattened = True
 
         if len(indices) == 0:
             return expression
@@ -64,7 +65,8 @@ class Indexed(Operator):
             else:
                 fi, fid = (), ()
             return Zero(shape=(), free_indices=fi, index_dimensions=fid)
-        elif simpler:
+        elif flattened:
+            # Simplified Indexed expression
             return Indexed(expression, MultiIndex(indices))
         else:
             return Operator.__new__(cls)
