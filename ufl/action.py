@@ -179,12 +179,16 @@ def _check_function_spaces(left, right):
     # `action(Coefficient(V), Cofunction(V.dual()))`.
     if isinstance(left, Coefficient):
         V_left = left.ufl_function_space()
-    else:
+    elif isinstance(left, BaseForm):
         V_left = left.arguments()[-1].ufl_function_space().dual()
+    else:
+        raise TypeError("Action left argument must be either Coefficient or BaseForm")
     if isinstance(right, Coefficient):
         V_right = right.ufl_function_space()
-    else:
+    elif isinstance(right, BaseForm):
         V_right = right.arguments()[0].ufl_function_space().dual()
+    else:
+        raise TypeError("Action right argument must be either Coefficient or BaseForm")
 
     if V_left.dual() != V_right:
         raise TypeError("Incompatible function spaces in Action")
