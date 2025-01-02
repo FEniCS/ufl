@@ -120,6 +120,10 @@ class BaseForm(object, metaclass=UFLType):
         # Return the one and only domain
         return domain
 
+    def empty(self):
+        """Returns whether the BaseForm has no components."""
+        return False
+
     # --- Operator implementations ---
 
     def __eq__(self, other):
@@ -307,7 +311,7 @@ class Form(BaseForm):
 
     def empty(self):
         """Returns whether the form has no integrals."""
-        return self.integrals() == ()
+        return len(self.integrals()) == 0
 
     def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
@@ -811,6 +815,10 @@ class FormSum(BaseForm):
         return len(self.components()) == len(other.components()) and all(
             a == b for a, b in zip(self.components(), other.components())
         )
+
+    def empty(self):
+        """Returns whether the FormSum has no components."""
+        return len(self.components()) == 0
 
     def __str__(self):
         """Compute shorter string representation of form. This can be huge for complicated forms."""

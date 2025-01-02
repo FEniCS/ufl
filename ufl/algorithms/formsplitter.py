@@ -10,6 +10,8 @@
 
 from typing import Optional
 
+import numpy as np
+
 from ufl.algorithms.map_integrands import map_expr_dag, map_integrand_dags
 from ufl.argument import Argument
 from ufl.classes import FixedIndex, ListTensor
@@ -53,14 +55,10 @@ class FormSplitter(MultiFunction):
                 Q_i = FunctionSpace(dom, sub_elem)
                 a = Argument(Q_i, obj.number(), part=obj.part())
 
-                indices = [()]
-                for m in a.ufl_shape:
-                    indices = [(*k, j) for k in indices for j in range(m)]
-
                 if i == self.idx[obj.number()]:
-                    args.extend(a[j] for j in indices)
+                    args.extend(a[j] for j in np.ndindex(a.ufl_shape))
                 else:
-                    args.extend(Zero() for j in indices)
+                    args.extend(Zero() for j in np.ndindex(a.ufl_shape))
 
             return as_vector(args)
 
