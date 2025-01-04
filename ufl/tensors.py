@@ -7,8 +7,6 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-from itertools import chain
-
 from ufl.constantvalue import Zero, as_ufl
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
@@ -58,17 +56,37 @@ class ListTensor(Operator):
             shape = (len(expressions), *sh)
             return Zero(shape, fi, fid)
 
-        # Simplify [v[0], v[1], ..., v[k]] -> v
+        def sub(e, *indices):
+            for i in indices:
+                e = e.ufl_operands[i]
+            return e
+
+        # Simplify [v[j,0], v[j,1], ...., v[j,k]] -> v[j,:]
         if (
             all(isinstance(e, Indexed) for e in expressions)
-            and e0.ufl_operands[0].ufl_shape == (len(expressions),)
-            and all(e.ufl_operands[0] == e0.ufl_operands[0] for e in expressions)
+            and sub(e0, 0).ufl_shape[-1] == len(expressions)
+            and all(sub(e, 0) == sub(e0, 0) for e in expressions[1:])
         ):
-            indices = list(chain.from_iterable(e.ufl_operands[1].indices() for e in expressions))
-            if len(indices) == len(expressions) and all(
-                isinstance(i, FixedIndex) and k == int(i) for k, i in enumerate(indices)
-            ):
-                return e0.ufl_operands[0]
+            indices = [sub(e, 1).indices() for e in expressions]
+            try:
+                (j,) = set(i[:-1] for i in indices)
+                if all(i[-1] == k for k, i in enumerate(indices)):
+                    return sub(e0, 0) if j == () else sub(e0, 0)[(*j, slice(None))]
+            except ValueError:
+                pass
+
+        # Simplify [v[0,:], v[1,:], ..., v[k,:]] -> v
+        if (
+            all(
+                isinstance(e, ComponentTensor) and isinstance(sub(e, 0), Indexed)
+                for e in expressions
+            )
+            and sub(e0, 0, 0).ufl_shape[0] == len(expressions)
+            and all(sub(e, 0, 0) == sub(e0, 0, 0) for e in expressions[1:])
+        ):
+            indices = [sub(e, 0, 1).indices() for e in expressions]
+            if all(i[0] == k for k, i in enumerate(indices)):
+                return sub(e0, 0, 0)
 
         return Operator.__new__(cls)
 

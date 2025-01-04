@@ -1,5 +1,8 @@
 import math
 
+import pytest
+from numpy import ndindex, reshape
+
 from ufl import (
     Coefficient,
     FunctionSpace,
@@ -162,3 +165,12 @@ def test_indexing(self):
     Bij2 = as_tensor(Bij, (i, j))[i, j]
     as_tensor(Bij, (i, j))
     assert Bij2 == Bij
+
+
+@pytest.mark.parametrize("shape", [(3,), (3, 2)], ids=("vector", "matrix"))
+def test_tensor_from_indexed(self, shape):
+    element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    space = FunctionSpace(domain, element)
+    f = Coefficient(space)
+    assert as_tensor(reshape([f[i] for i in ndindex(f.ufl_shape)], f.ufl_shape).tolist()) is f

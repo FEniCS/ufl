@@ -62,7 +62,9 @@ class FixedIndex(IndexBase):
 
     def __eq__(self, other):
         """Check equality."""
-        return isinstance(other, FixedIndex) and (self._value == other._value)
+        if isinstance(other, FixedIndex):
+            other = int(other)
+        return isinstance(other, int) and int(self) == other
 
     def __int__(self):
         """Convert to int."""
