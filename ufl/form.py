@@ -563,7 +563,7 @@ class Form(BaseForm):
         # warning("Calling str on form is potentially expensive and
         # should be avoided except during debugging.") Not caching this
         # because it can be huge
-        s = "\n  +  ".join(str(itg) for itg in self.integrals())
+        s = "\n  +  ".join(map(str, self.integrals()))
         return s or "<empty Form>"
 
     def __repr__(self):
@@ -572,7 +572,7 @@ class Form(BaseForm):
         # warning("Calling repr on form is potentially expensive and
         # should be avoided except during debugging.") Not caching this
         # because it can be huge
-        itgs = ", ".join(repr(itg) for itg in self.integrals())
+        itgs = ", ".join(map(repr, self.integrals()))
         r = "Form([" + itgs + "])"
         return r
 
@@ -864,6 +864,7 @@ class ZeroBaseForm(BaseForm):
         self._arguments = arguments
         self.ufl_operands = arguments
         self._hash = None
+        self._domains = None
         self.form = None
 
     def _analyze_form_arguments(self):
