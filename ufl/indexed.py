@@ -26,31 +26,10 @@ class Indexed(Operator):
 
     def __new__(cls, expression, multiindex):
         """Create a new Indexed."""
-        # cyclic import
-        from ufl.tensors import ListTensor
-
-        flattened = False
         indices = multiindex.indices()
-
-        while (
-            len(indices) > 0
-            and isinstance(expression, ListTensor)
-            and isinstance(indices[0], FixedIndex)
-        ):
-            # Simplify indexed ListTensor objects
-            expression = expression[indices[0]]
-            indices = indices[1:]
-            flattened = True
-
-        if isinstance(expression, Indexed):
-            # Simplify nested Indexed objects
-            indices = expression.ufl_operands[1].indices() + indices
-            expression = expression.ufl_operands[0]
-            flattened = True
-
         if len(indices) == 0:
             return expression
-        elif isinstance(expression, Zero):
+        if isinstance(expression, Zero):
             # Zero-simplify indexed Zero objects
             shape = expression.ufl_shape
             efi = expression.ufl_free_indices
@@ -65,10 +44,11 @@ class Indexed(Operator):
             else:
                 fi, fid = (), ()
             return Zero(shape=(), free_indices=fi, index_dimensions=fid)
-        elif flattened:
-            # Simplified Indexed expression
-            return Indexed(expression, MultiIndex(indices))
-        else:
+
+        try:
+            # Simplify indexed ListTensor
+            return expression[multiindex]
+        except ValueError:
             return Operator.__new__(cls)
 
     def __init__(self, expression, multiindex):
@@ -139,3 +119,11 @@ class Indexed(Operator):
             f"Attempting to index with {ufl_err_str(key)}, "
             f"but object is already indexed: {ufl_err_str(self)}"
         )
+
+    def _ufl_expr_reconstruct_(self, expression, multiindex):
+        """Reconstruct."""
+        try:
+            # Simplify indexed ListTensor
+            return expression[multiindex]
+        except ValueError:
+            return Operator._ufl_expr_reconstruct_(self, expression, multiindex)
