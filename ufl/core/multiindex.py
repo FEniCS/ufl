@@ -62,9 +62,7 @@ class FixedIndex(IndexBase):
 
     def __eq__(self, other):
         """Check equality."""
-        if isinstance(other, FixedIndex):
-            other = int(other)
-        return isinstance(other, int) and int(self) == other
+        return isinstance(other, (FixedIndex, int)) and int(self) == int(other)
 
     def __int__(self):
         """Convert to int."""
@@ -164,7 +162,7 @@ class MultiIndex(Terminal):
 
     def _ufl_compute_hash_(self):
         """Compute UFL hash."""
-        return hash(("MultiIndex",) + tuple(hash(ind) for ind in self._indices))
+        return hash(("MultiIndex", *map(hash, self._indices)))
 
     def __eq__(self, other):
         """Check equality."""
@@ -238,7 +236,7 @@ class MultiIndex(Terminal):
 
     def __str__(self):
         """Format as a string."""
-        return ", ".join(str(i) for i in self._indices)
+        return ", ".join(map(str, self._indices))
 
     def __repr__(self):
         """Return representation."""

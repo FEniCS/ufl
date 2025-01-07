@@ -47,7 +47,8 @@ class Indexed(Operator):
 
         try:
             # Simplify indexed ListTensor
-            return expression[multiindex]
+            c = expression[multiindex]
+            return Indexed(*c.ufl_operands) if isinstance(c, Indexed) else c
         except ValueError:
             return Operator.__new__(cls)
 

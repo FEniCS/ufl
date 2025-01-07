@@ -39,7 +39,7 @@ class Operator(Expr):
 
     def _ufl_compute_hash_(self):
         """Compute a hash code for this expression. Used by sets and dicts."""
-        return hash((self._ufl_typecode_,) + tuple(map(hash, self.ufl_operands)))
+        return hash((self._ufl_typecode_, *map(hash, self.ufl_operands)))
 
     def __repr__(self):
         """Default repr string construction for operators."""
