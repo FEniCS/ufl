@@ -26,8 +26,7 @@ class Indexed(Operator):
 
     def __new__(cls, expression, multiindex):
         """Create a new Indexed."""
-        indices = multiindex.indices()
-        if len(indices) == 0:
+        if len(multiindex) == 0:
             return expression
         if isinstance(expression, Zero):
             # Zero-simplify indexed Zero objects
@@ -35,7 +34,7 @@ class Indexed(Operator):
             efi = expression.ufl_free_indices
             efid = expression.ufl_index_dimensions
             fi = list(zip(efi, efid))
-            for pos, ind in enumerate(indices):
+            for pos, ind in enumerate(multiindex):
                 if isinstance(ind, Index):
                     fi.append((ind.count(), shape[pos]))
             fi = unique_sorted_indices(sorted(fi))
