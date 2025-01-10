@@ -1,3 +1,4 @@
+import pytest
 from ufl import (
     CellVolume,
     Coefficient,
@@ -10,6 +11,7 @@ from ufl import (
     SpatialCoordinate,
     TestFunction,
     TrialFunction,
+    div,
     grad,
     inner,
     split,
