@@ -454,11 +454,11 @@ def compute_form_data(
             c = self.function_replace_map[o]
             elem = c.ufl_element()
             mesh = extract_unique_domain(c, expand_mixed_mesh=False)
-            # Use MixedMesh as an indicator for MixedElement as
+            # Use MeshSequence as an indicator for MixedElement as
             # the followings would be ambiguous:
             # -- elem.num_sub_elements > 1
             # -- isinstance(elem.pullback, MixedPullback)
-            if isinstance(mesh, MixedMesh) and o in do_split_coefficients:
+            if isinstance(mesh, MeshSequence) and o in do_split_coefficients:
                 assert len(mesh) == len(elem.sub_elements)
                 coefficient_split[c] = [Coefficient(FunctionSpace(m, e))
                                         for m, e in zip(mesh, elem.sub_elements)]

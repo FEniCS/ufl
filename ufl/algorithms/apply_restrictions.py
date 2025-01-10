@@ -15,7 +15,7 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.domain import extract_unique_domain, MixedMesh
+from ufl.domain import MeshSequence, extract_unique_domain
 from ufl.form import Form
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
@@ -69,7 +69,7 @@ class RestrictionPropagator(MultiFunction):
             return o(self.current_restriction)
         if self.default_restriction is not None:
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
-            if isinstance(domain, MixedMesh):
+            if isinstance(domain, MeshSequence):
                 raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
             if isinstance(self.default_restriction, dict):
                 r = self.default_restriction[domain]
@@ -92,7 +92,7 @@ class RestrictionPropagator(MultiFunction):
             return o(r)
         if self.default_restriction is not None:
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
-            if isinstance(domain, MixedMesh):
+            if isinstance(domain, MeshSequence):
                 raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
             if isinstance(self.default_restriction, dict):
                 if domain not in self.default_restriction:
@@ -117,7 +117,7 @@ class RestrictionPropagator(MultiFunction):
         """
         if isinstance(self.default_restriction, dict):
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
-            if isinstance(domain, MixedMesh):
+            if isinstance(domain, MeshSequence):
                 raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
             if domain not in self.default_restriction:
                 raise RuntimeError(f"Integral type on {domain} not known")
@@ -322,7 +322,7 @@ class DomainRestrictionMapMaker(MultiFunction):
             else:
                 raise ValueError("Unexpected type %s object %s." % (type(t), repr(t)))
         domain = extract_unique_domain(t, expand_mixed_mesh=False)
-        if isinstance(domain, MixedMesh):
+        if isinstance(domain, MeshSequence):
             raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(t)}")
         if domain is not None:
             if domain not in self._domain_restriction_map:
