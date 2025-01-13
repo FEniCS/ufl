@@ -12,15 +12,12 @@ restrictions in a form towards the terminals.
 
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Restricted
+from ufl.classes import ReferenceGrad, ReferenceValue, Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import MeshSequence, extract_unique_domain
-from ufl.form import Form
 from ufl.measure import integral_type_to_measure_name
 from ufl.sobolevspace import H1
-from ufl.classes import ReferenceGrad, ReferenceValue
-from ufl.restriction import PositiveRestricted
 
 
 class RestrictionPropagator(MultiFunction):
@@ -70,7 +67,7 @@ class RestrictionPropagator(MultiFunction):
         if self.default_restriction is not None:
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
             if isinstance(domain, MeshSequence):
-                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
+                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}")
             if isinstance(self.default_restriction, dict):
                 r = self.default_restriction[domain]
             else:
@@ -93,7 +90,7 @@ class RestrictionPropagator(MultiFunction):
         if self.default_restriction is not None:
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
             if isinstance(domain, MeshSequence):
-                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
+                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}")
             if isinstance(self.default_restriction, dict):
                 if domain not in self.default_restriction:
                     raise RuntimeError(f"Integral type on {domain} not known")
@@ -118,7 +115,7 @@ class RestrictionPropagator(MultiFunction):
         if isinstance(self.default_restriction, dict):
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
             if isinstance(domain, MeshSequence):
-                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(o)}")
+                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}")
             if domain not in self.default_restriction:
                 raise RuntimeError(f"Integral type on {domain} not known")
             r = self.default_restriction[domain]
@@ -305,7 +302,7 @@ class DomainRestrictionMapMaker(MultiFunction):
         reference_value = False
         t = o
         while not t._ufl_is_terminal_:
-            assert t._ufl_is_terminal_modifier_, f"Expecting a terminal modifier: got {repr(t)}"
+            assert t._ufl_is_terminal_modifier_, f"Expecting a terminal modifier: got {t!r}"
             if isinstance(t, ReferenceValue):
                 assert not reference_value, "Got twice pulled back terminal"
                 reference_value = True
@@ -318,12 +315,12 @@ class DomainRestrictionMapMaker(MultiFunction):
                 restriction = t._side
                 t, = t.ufl_operands
             elif t._ufl_terminal_modifiers_:
-                raise ValueError(f"Missing handler for terminal modifier type {type(t)}, object is {repr(t)}.")
+                raise ValueError(f"Missing handler for terminal modifier type {type(t)}, object is {t!r}.")
             else:
-                raise ValueError(f"Unexpected type {type(t)} object {repr(t)}.")
+                raise ValueError(f"Unexpected type {type(t)} object {t!r}.")
         domain = extract_unique_domain(t, expand_mixed_mesh=False)
         if isinstance(domain, MeshSequence):
-            raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(t)}")
+            raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {t!r}")
         if domain is not None:
             if domain not in self._domain_restriction_map:
                 self._domain_restriction_map[domain] = set()
@@ -378,7 +375,8 @@ def make_domain_integral_type_map(integral_data):
     return domain_integral_type_dict
 
 
-def replace_to_be_restricted(integral_data):
+def apply_restrictions_with_domain_integral_type_map(integral_data):
+    """Apply restrictions using domain_integral_type_map."""
     new_integrals = []
     rule = RestrictionPropagator(
         side=None,
