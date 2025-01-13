@@ -13,15 +13,21 @@ from itertools import chain
 
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.algorithms.apply_coefficient_split import (
+    apply_coefficient_split,
+    remove_component_and_list_tensors,
+)
 from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply_derivatives
 
 # These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import (apply_restrictions,
-                                               replace_to_be_restricted, make_domain_integral_type_map)
-from ufl.algorithms.apply_coefficient_split import apply_coefficient_split, remove_component_and_list_tensors
+from ufl.algorithms.apply_restrictions import (
+    apply_restrictions,
+    apply_restrictions_with_domain_integral_type_map,
+    make_domain_integral_type_map,
+)
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 
@@ -37,10 +43,10 @@ from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace import replace
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
+from ufl.constantvalue import Zero
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.domain import MeshSequence, extract_domains, extract_unique_domain
 from ufl.utils.sequences import max_degree
-from ufl.constantvalue import Zero
 
 
 def _auto_select_degree(elements):
@@ -492,7 +498,7 @@ def compute_form_data(
             for itg_data in self.integral_data:
                 # Must have split coefficients and removed component/list tensors.
                 itg_data.domain_integral_type_map = make_domain_integral_type_map(itg_data)
-                itg_data.integrals = replace_to_be_restricted(itg_data)
+                itg_data.integrals = apply_restrictions_with_domain_integral_type_map(itg_data)
 
     # --- Checks
     _check_elements(self)
