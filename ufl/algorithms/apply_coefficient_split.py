@@ -3,7 +3,7 @@
 This module contains classes and functions to split coefficients defined on mixed function spaces.
 """
 
-import numpy
+import numpy as np
 
 from ufl import indices
 from ufl.checks import is_cellwise_constant
@@ -30,14 +30,22 @@ from ufl.tensors import as_tensor
 
 
 class CoefficientSplitter(MultiFunction):
+    """Split mixed coefficients into the components."""
 
-    def __init__(self, coefficient_split):
+    def __init__(self, coefficient_split: dict):
+        """Initialise.
+
+        Args:
+            coefficient_split: map from coefficients to the components.
+
+        """
         MultiFunction.__init__(self)
         self._coefficient_split = coefficient_split
 
     expr = MultiFunction.reuse_if_untouched
 
     def modified_terminal(self, o):
+        """Handle modified terminals."""
         restriction = None
         local_derivatives = 0
         reference_value = False
@@ -56,7 +64,9 @@ class CoefficientSplitter(MultiFunction):
                 restriction = t._side
                 t, = t.ufl_operands
             elif t._ufl_terminal_modifiers_:
-                raise ValueError(f"Missing handler for terminal modifier type {type(t)}, object is {t!r}.")
+                raise ValueError(
+                    f"Missing handler for terminal modifier type {type(t)}, object is {t!r}."
+                )
             else:
                 raise ValueError(f"Unexpected type {type(t)} object {t!r}.")
         if not isinstance(t, Coefficient):
@@ -92,7 +102,7 @@ class CoefficientSplitter(MultiFunction):
             elif restriction is not None:
                 raise RuntimeError(f"Got unknown restriction: {restriction}")
             # Collect components of the subcoefficient
-            for alpha in numpy.ndindex(subcoeff.ufl_element().reference_value_shape):
+            for alpha in np.ndindex(subcoeff.ufl_element().reference_value_shape):
                 # New modified terminal: component[alpha + beta]
                 components.append(c[alpha + beta])
         # Repack derivative indices to shape
@@ -107,12 +117,12 @@ class CoefficientSplitter(MultiFunction):
 
 
 def apply_coefficient_split(expr, coefficient_split):
-    """Split mixed coefficients, so mixed elements need not be
-    implemented.
+    """Split mixed coefficients, so mixed elements need not be implemented.
 
     :arg split: A :py:class:`dict` mapping each mixed coefficient to a
                 sequence of subcoefficients.  If None, calling this
                 function is a no-op.
+
     """
     if coefficient_split is None:
         return expr
@@ -121,8 +131,15 @@ def apply_coefficient_split(expr, coefficient_split):
 
 
 class FixedIndexRemover(MultiFunction):
+    """Handle FixedIndex."""
 
-    def __init__(self, fimap):
+    def __init__(self, fimap: dict):
+        """Initialise.
+
+        Args:
+           fimap: map for index replacements.
+
+        """
         MultiFunction.__init__(self)
         self.fimap = fimap
         self._object_cache = {}
@@ -131,6 +148,7 @@ class FixedIndexRemover(MultiFunction):
 
     @memoized_handler
     def zero(self, o):
+        """Handle Zero."""
         free_indices = []
         index_dimensions = []
         for i, d in zip(o.ufl_free_indices, o.ufl_index_dimensions):
@@ -142,10 +160,15 @@ class FixedIndexRemover(MultiFunction):
             else:
                 free_indices.append(i)
                 index_dimensions.append(d)
-        return Zero(shape=o.ufl_shape, free_indices=tuple(free_indices), index_dimensions=tuple(index_dimensions))
+        return Zero(
+            shape=o.ufl_shape,
+            free_indices=tuple(free_indices),
+            index_dimensions=tuple(index_dimensions)
+        )
 
     @memoized_handler
     def list_tensor(self, o):
+        """Handle ListTensor."""
         cc = []
         for o1 in o.ufl_operands:
             comp = map_expr_dag(self, o1)
@@ -154,12 +177,15 @@ class FixedIndexRemover(MultiFunction):
 
     @memoized_handler
     def multi_index(self, o):
+        """Handle MultiIndex."""
         return MultiIndex(tuple(self.fimap.get(i, i) for i in o.indices()))
 
 
 class IndexRemover(MultiFunction):
+    """Remove Indexed."""
 
     def __init__(self):
+        """Initialise."""
         MultiFunction.__init__(self)
         self._object_cache = {}
 
@@ -167,15 +193,21 @@ class IndexRemover(MultiFunction):
 
     @memoized_handler
     def _zero_simplify(self, o):
+        """Apply simplification for Zero()."""
         operand, = o.ufl_operands
         operand = map_expr_dag(self, operand)
         if isinstance(operand, Zero):
-            return Zero(shape=o.ufl_shape, free_indices=o.ufl_free_indices, index_dimensions=o.ufl_index_dimensions)
+            return Zero(
+                shape=o.ufl_shape,
+                free_indices=o.ufl_free_indices,
+                index_dimensions=o.ufl_index_dimensions
+            )
         else:
             return o._ufl_expr_reconstruct_(operand)
 
     @memoized_handler
     def indexed(self, o):
+        """Simplify indexed ComponentTensor and ListTensor."""
         o1, i1 = o.ufl_operands
         if isinstance(o1, ComponentTensor):
             o2, i2 = o1.ufl_operands
@@ -203,6 +235,7 @@ class IndexRemover(MultiFunction):
 
 
 def remove_component_and_list_tensors(o):
+    """Remove component and list tensors."""
     if isinstance(o, Form):
         integrals = []
         for integral in o.integrals():

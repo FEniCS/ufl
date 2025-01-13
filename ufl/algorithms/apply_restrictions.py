@@ -67,7 +67,9 @@ class RestrictionPropagator(MultiFunction):
         if self.default_restriction is not None:
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
             if isinstance(domain, MeshSequence):
-                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}")
+                raise RuntimeError(
+                    f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
+                )
             if isinstance(self.default_restriction, dict):
                 r = self.default_restriction[domain]
             else:
@@ -90,7 +92,9 @@ class RestrictionPropagator(MultiFunction):
         if self.default_restriction is not None:
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
             if isinstance(domain, MeshSequence):
-                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}")
+                raise RuntimeError(
+                    f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
+                )
             if isinstance(self.default_restriction, dict):
                 if domain not in self.default_restriction:
                     raise RuntimeError(f"Integral type on {domain} not known")
@@ -115,7 +119,9 @@ class RestrictionPropagator(MultiFunction):
         if isinstance(self.default_restriction, dict):
             domain = extract_unique_domain(o, expand_mixed_mesh=False)
             if isinstance(domain, MeshSequence):
-                raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}")
+                raise RuntimeError(
+                    f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
+                )
             if domain not in self.default_restriction:
                 raise RuntimeError(f"Integral type on {domain} not known")
             r = self.default_restriction[domain]
@@ -123,7 +129,9 @@ class RestrictionPropagator(MultiFunction):
             r = self.default_restriction
         if r is None:
             if self.current_restriction is not None:
-                raise ValueError(f"Expecting current_restriction None: got {self.current_restriction}")
+                raise ValueError(
+                    f"Expecting current_restriction None: got {self.current_restriction}"
+                )
             return o
         else:
             if self.current_restriction is None:
@@ -239,7 +247,11 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression, assume_single_integral_type=True, domain_integral_type_map=None):
+def apply_restrictions(
+    expression,
+    assume_single_integral_type=True,
+    domain_integral_type_map=None
+):
     """Propagate restriction nodes to wrap differential terminals directly."""
     if assume_single_integral_type:
         # Hnadle the conventional single-domain case.
@@ -271,7 +283,10 @@ def apply_restrictions(expression, assume_single_integral_type=True, domain_inte
         # the integral type of a given function; e.g., the former can be
         # ``exterior_facet`` and the latter ``interior_facet``.
         integral_types = None
-    rules = RestrictionPropagator(assume_single_integral_type=assume_single_integral_type, default_restriction=default_restriction)
+    rules = RestrictionPropagator(
+        assume_single_integral_type=assume_single_integral_type,
+        default_restriction=default_restriction
+    )
     if isinstance(expression, FormData):
         for integral_data in expression.integral_data:
             integral_data.integrals = tuple(
@@ -288,9 +303,15 @@ class DomainRestrictionMapMaker(MultiFunction):
 
     Inspect the DAG and collect domain-restrictions map.
     This must be done per integral_data.
-    """
 
-    def __init__(self, domain_restriction_map):
+    """
+    def __init__(self, domain_restriction_map: dict):
+        """Initialise.
+
+        Args:
+            domain_restriction_map: map from domains to the restrictions.
+
+        """
         MultiFunction.__init__(self)
         self._domain_restriction_map = domain_restriction_map
 
@@ -315,12 +336,16 @@ class DomainRestrictionMapMaker(MultiFunction):
                 restriction = t._side
                 t, = t.ufl_operands
             elif t._ufl_terminal_modifiers_:
-                raise ValueError(f"Missing handler for terminal modifier type {type(t)}, object is {t!r}.")
+                raise ValueError(
+                    f"Missing handler for terminal modifier type {type(t)}, object is {t!r}."
+                )
             else:
                 raise ValueError(f"Unexpected type {type(t)} object {t!r}.")
         domain = extract_unique_domain(t, expand_mixed_mesh=False)
         if isinstance(domain, MeshSequence):
-            raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {t!r}")
+            raise RuntimeError(
+                f"Not expecting a terminal object on a mixed mesh at this stage: found {t!r}"
+            )
         if domain is not None:
             if domain not in self._domain_restriction_map:
                 self._domain_restriction_map[domain] = set()
@@ -347,6 +372,7 @@ def make_domain_restriction_map(integral_data):
 
 
 def make_domain_integral_type_map(integral_data):
+    """Make a map from domains to the integral types."""
     domain_restriction_map = make_domain_restriction_map(integral_data)
     integration_domain = integral_data.domain
     integration_type = integral_data.integral_type
@@ -361,15 +387,21 @@ def make_domain_integral_type_map(integral_data):
                 elif integration_type in ["exterior_facet", "interior_facet"]:
                     domain_integral_type_dict[d] = "exterior_facet"
                 else:
-                    raise NotImplementedError(f"Not implemented for integration type {integration_type}")
+                    raise NotImplementedError(
+                        f"Not implemented for integration type {integration_type}"
+                    )
             else:
-                raise NotImplementedError("Not implemented for meshes of multiple topological dimensions")
+                raise NotImplementedError(
+                    "Not implemented for meshes of multiple topological dimensions"
+                )
         else:
             raise RuntimeError(f"Found inconsistent restrictions {rs} for domain {d}")
     if integration_domain in domain_integral_type_dict:
         if domain_integral_type_dict[integration_domain] != integration_type:
-            raise RuntimeError(f"""Found inconsistent integral types for the integration domain ({integration_domain}) :
-                {domain_integral_type_dict[integration_domain]} != {integration_type}""")
+            raise RuntimeError(f"""
+                Found inconsistent integral types for the integration domain ({integration_domain}):
+                {domain_integral_type_dict[integration_domain]} != {integration_type}
+            """)
     else:
         domain_integral_type_dict[integration_domain] = integration_type
     return domain_integral_type_dict

@@ -152,30 +152,30 @@ def test_mixed_function_space_with_mixed_mesh_raise():
     # Make sure that all mixed functions are split when applying default restrictions.
     form = div(g1('+')) * div(f1('-')) * dS1
     with pytest.raises(RuntimeError) as e_info:
-        fd = compute_form_data(form,
-                               do_apply_function_pullbacks=True,
-                               do_apply_integral_scaling=True,
-                               do_apply_geometry_lowering=True,
-                               preserve_geometry_types=(CellVolume, FacetArea),
-                               do_apply_restrictions=True,
-                               do_estimate_degrees=True,
-                               do_split_coefficients=(f,),
-                               do_assume_single_integral_type=False,
-                               complex_mode=False)
+        _ = compute_form_data(form,
+                              do_apply_function_pullbacks=True,
+                              do_apply_integral_scaling=True,
+                              do_apply_geometry_lowering=True,
+                              preserve_geometry_types=(CellVolume, FacetArea),
+                              do_apply_restrictions=True,
+                              do_estimate_degrees=True,
+                              do_split_coefficients=(f,),
+                              do_assume_single_integral_type=False,
+                              complex_mode=False)
     assert e_info.match("Not expecting a terminal object on a mixed mesh at this stage")
     # Make sure that g1 is restricted as f1.
     form = div(g1) * div(f1('-')) * dS1
     with pytest.raises(ValueError) as e_info:
-        fd = compute_form_data(form,
-                               do_apply_function_pullbacks=True,
-                               do_apply_integral_scaling=True,
-                               do_apply_geometry_lowering=True,
-                               preserve_geometry_types=(CellVolume, FacetArea),
-                               do_apply_restrictions=True,
-                               do_estimate_degrees=True,
-                               do_split_coefficients=(f, g),
-                               do_assume_single_integral_type=False,
-                               complex_mode=False)
+        _ = compute_form_data(form,
+                              do_apply_function_pullbacks=True,
+                              do_apply_integral_scaling=True,
+                              do_apply_geometry_lowering=True,
+                              preserve_geometry_types=(CellVolume, FacetArea),
+                              do_apply_restrictions=True,
+                              do_estimate_degrees=True,
+                              do_split_coefficients=(f, g),
+                              do_assume_single_integral_type=False,
+                              complex_mode=False)
     assert e_info.match("Discontinuous type Coefficient must be restricted.")
 
 
