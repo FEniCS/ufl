@@ -44,9 +44,9 @@ class CoefficientSplitter(MultiFunction):
                 restriction = t._side
                 t, = t.ufl_operands
             elif t._ufl_terminal_modifiers_:
-                raise ValueError("Missing handler for terminal modifier type %s, object is %s." % (type(t), repr(t)))
+                raise ValueError(f"Missing handler for terminal modifier type {type(t)}, object is {repr(t)}.")
             else:
-                raise ValueError("Unexpected type %s object %s." % (type(t), repr(t)))
+                raise ValueError(f"Unexpected type {type(t)} object {repr(t)}.")
         if not isinstance(t, Coefficient):
             # Only split coefficients
             return o
