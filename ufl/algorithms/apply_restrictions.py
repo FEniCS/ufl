@@ -318,9 +318,9 @@ class DomainRestrictionMapMaker(MultiFunction):
                 restriction = t._side
                 t, = t.ufl_operands
             elif t._ufl_terminal_modifiers_:
-                raise ValueError("Missing handler for terminal modifier type %s, object is %s." % (type(t), repr(t)))
+                raise ValueError(f"Missing handler for terminal modifier type {type(t)}, object is {repr(t)}.")
             else:
-                raise ValueError("Unexpected type %s object %s." % (type(t), repr(t)))
+                raise ValueError(f"Unexpected type {type(t)} object {repr(t)}.")
         domain = extract_unique_domain(t, expand_mixed_mesh=False)
         if isinstance(domain, MeshSequence):
             raise RuntimeError(f"Not expecting a terminal object on a mixed mesh at this stage: found {repr(t)}")
@@ -330,7 +330,7 @@ class DomainRestrictionMapMaker(MultiFunction):
             if restriction in ['+', '-']:
                 self._domain_restriction_map[domain].add(restriction)
             elif restriction is not None:
-                raise RuntimeError
+                raise RuntimeError(f"Got unknown restriction: {restriction}")
         return o
 
     reference_value = _modifier
@@ -364,9 +364,9 @@ def make_domain_integral_type_map(integral_data):
                 elif integration_type in ["exterior_facet", "interior_facet"]:
                     domain_integral_type_dict[d] = "exterior_facet"
                 else:
-                    raise NotImplementedError
+                    raise NotImplementedError(f"Not implemented for integration type {integration_type}")
             else:
-                raise NotImplementedError
+                raise NotImplementedError("Not implemented for meshes of multiple topological dimensions")
         else:
             raise RuntimeError(f"Found inconsistent restrictions {rs} for domain {d}")
     if integration_domain in domain_integral_type_dict:
