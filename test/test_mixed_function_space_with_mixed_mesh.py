@@ -1,4 +1,5 @@
 import pytest
+
 from ufl import (
     CellVolume,
     Coefficient,
@@ -18,10 +19,10 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import compute_form_data
-from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.pullback import identity_pullback, contravariant_piola
-from ufl.sobolevspace import H1, HDiv, L2
 from ufl.domain import extract_domains
+from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.pullback import contravariant_piola, identity_pullback
+from ufl.sobolevspace import H1, L2, HDiv
 
 
 def test_mixed_function_space_with_mixed_mesh_cell():

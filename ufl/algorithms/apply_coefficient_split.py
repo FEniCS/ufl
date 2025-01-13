@@ -4,16 +4,28 @@ This module contains classes and functions to split coefficients defined on mixe
 """
 
 import numpy
-from ufl.classes import Restricted
+
+from ufl import indices
+from ufl.checks import is_cellwise_constant
+from ufl.classes import (
+    Coefficient,
+    ComponentTensor,
+    FixedIndex,
+    Form,
+    Index,
+    Indexed,
+    ListTensor,
+    MultiIndex,
+    NegativeRestricted,
+    PositiveRestricted,
+    ReferenceGrad,
+    ReferenceValue,
+    Restricted,
+    Zero,
+)
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.domain import extract_unique_domain
-from ufl.classes import (Coefficient, Form, ReferenceGrad, ReferenceValue,
-                         Indexed, MultiIndex, Index, FixedIndex,
-                         ComponentTensor, ListTensor, Zero,
-                         NegativeRestricted, PositiveRestricted,)
-from ufl import indices
-from ufl.checks import is_cellwise_constant
 from ufl.tensors import as_tensor
 
 
@@ -31,7 +43,7 @@ class CoefficientSplitter(MultiFunction):
         reference_value = False
         t = o
         while not t._ufl_is_terminal_:
-            assert t._ufl_is_terminal_modifier_, f"Got {repr(t)}"
+            assert t._ufl_is_terminal_modifier_, f"Got {t!r}"
             if isinstance(t, ReferenceValue):
                 assert not reference_value, "Got twice pulled back terminal!"
                 reference_value = True
@@ -44,9 +56,9 @@ class CoefficientSplitter(MultiFunction):
                 restriction = t._side
                 t, = t.ufl_operands
             elif t._ufl_terminal_modifiers_:
-                raise ValueError(f"Missing handler for terminal modifier type {type(t)}, object is {repr(t)}.")
+                raise ValueError(f"Missing handler for terminal modifier type {type(t)}, object is {t!r}.")
             else:
-                raise ValueError(f"Unexpected type {type(t)} object {repr(t)}.")
+                raise ValueError(f"Unexpected type {type(t)} object {t!r}.")
         if not isinstance(t, Coefficient):
             # Only split coefficients
             return o
