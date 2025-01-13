@@ -54,7 +54,8 @@ class CoefficientSplitter(MultiFunction):
             # Only split mixed coefficients
             return o
         # Reference value expected
-        assert reference_value
+        if not reference_value:
+            raise RuntimeError(f"ReferenceValue expected: got {o}")
         # Derivative indices
         beta = indices(local_derivatives)
         components = []
