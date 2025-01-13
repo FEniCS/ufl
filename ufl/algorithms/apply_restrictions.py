@@ -337,8 +337,6 @@ class DomainRestrictionMapMaker(MultiFunction):
     reference_grad = _modifier
     positive_restricted = _modifier
     negative_restricted = _modifier
-    single_value_restricted = _modifier
-    to_be_restricted = _modifier
     terminal = _modifier
 
 

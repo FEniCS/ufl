@@ -180,14 +180,6 @@ class SumDegreeEstimator(MultiFunction):
         """Apply to negative_restricted."""
         return a
 
-    def single_value_restricted(self, v, a):
-        """Apply to single_value_restricted."""
-        return a
-
-    def to_be_restricted(self, v, a):
-        """Apply to to_be_restricted."""
-        return a
-
     def conj(self, v, a):
         """Apply to conj."""
         return a

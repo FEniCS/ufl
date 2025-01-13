@@ -88,8 +88,6 @@ class CoefficientSplitter(MultiFunction):
 
     positive_restricted = modified_terminal
     negative_restricted = modified_terminal
-    single_value_restricted = modified_terminal
-    to_be_restricted = modified_terminal
     reference_grad = modified_terminal
     reference_value = modified_terminal
     terminal = modified_terminal
@@ -187,8 +185,6 @@ class IndexRemover(MultiFunction):
     # Do something nicer
     positive_restricted = _zero_simplify
     negative_restricted = _zero_simplify
-    single_value_restricted = _zero_simplify
-    to_be_restricted = _zero_simplify
     reference_grad = _zero_simplify
     reference_value = _zero_simplify
 

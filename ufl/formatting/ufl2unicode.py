@@ -749,14 +749,6 @@ class Expression2UnicodeHandler(MultiFunction):
         """Format a negative_restriced."""
         return f"{par(f)}{UC.superscript_minus}"
 
-    def single_value_restricted(self, o, f):
-        """Format a sigle_value_restriced."""
-        return f"{par(f)}{UC.superscript_vertical_bar}"
-
-    def to_be_restricted(self, o, f):
-        """Format a to_be_restriced."""
-        return f"{par(f)}{UC.superscript_question_mark}"
-
     def cell_avg(self, o, f):
         """Format a cell_avg."""
         f = overline_string(f)
