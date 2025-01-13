@@ -493,8 +493,10 @@ def compute_form_data(
         else:
             # Inspect the form and apply default restrictions.
             if do_split_coefficients is None:
-                raise ValueError("""Need to pass 'do_split_coefficients=tuple_of_coefficients_to_splilt'
-                    for general multi-domain problems""")
+                raise ValueError("""
+                    Need to pass 'do_split_coefficients=tuple_of_coefficients_to_splilt'
+                    for general multi-domain problems
+                """)
             for itg_data in self.integral_data:
                 # Must have split coefficients and removed component/list tensors.
                 itg_data.domain_integral_type_map = make_domain_integral_type_map(itg_data)
