@@ -466,8 +466,9 @@ def compute_form_data(
             # -- isinstance(elem.pullback, MixedPullback)
             if isinstance(mesh, MeshSequence) and o in do_split_coefficients:
                 assert len(mesh) == len(elem.sub_elements)
-                coefficient_split[c] = [Coefficient(FunctionSpace(m, e))
-                                        for m, e in zip(mesh, elem.sub_elements)]
+                coefficient_split[c] = [
+                    Coefficient(FunctionSpace(m, e)) for m, e in zip(mesh, elem.sub_elements)
+                ]
         self.coefficient_split = coefficient_split
         for itg_data in self.integral_data:
             new_integrals = []

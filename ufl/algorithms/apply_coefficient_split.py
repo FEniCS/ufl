@@ -55,14 +55,14 @@ class CoefficientSplitter(MultiFunction):
             if isinstance(t, ReferenceValue):
                 assert not reference_value, "Got twice pulled back terminal!"
                 reference_value = True
-                t, = t.ufl_operands
+                (t,) = t.ufl_operands
             elif isinstance(t, ReferenceGrad):
                 local_derivatives += 1
-                t, = t.ufl_operands
+                (t,) = t.ufl_operands
             elif isinstance(t, Restricted):
                 assert restriction is None, "Got twice restricted terminal!"
                 restriction = t._side
-                t, = t.ufl_operands
+                (t,) = t.ufl_operands
             elif t._ufl_terminal_modifiers_:
                 raise ValueError(
                     f"Missing handler for terminal modifier type {type(t)}, object is {t!r}."
@@ -95,9 +95,9 @@ class CoefficientSplitter(MultiFunction):
                     c = Zero(c.ufl_shape + (dim,), c.ufl_free_indices, c.ufl_index_dimensions)
                 else:
                     c = ReferenceGrad(c)
-            if restriction == '+':
+            if restriction == "+":
                 c = PositiveRestricted(c)
-            elif restriction == '-':
+            elif restriction == "-":
                 c = NegativeRestricted(c)
             elif restriction is not None:
                 raise RuntimeError(f"Got unknown restriction: {restriction}")
@@ -106,7 +106,7 @@ class CoefficientSplitter(MultiFunction):
                 # New modified terminal: component[alpha + beta]
                 components.append(c[alpha + beta])
         # Repack derivative indices to shape
-        c, = indices(1)
+        (c,) = indices(1)
         return ComponentTensor(as_tensor(components)[c], MultiIndex((c,) + beta))
 
     positive_restricted = modified_terminal
@@ -163,7 +163,7 @@ class FixedIndexRemover(MultiFunction):
         return Zero(
             shape=o.ufl_shape,
             free_indices=tuple(free_indices),
-            index_dimensions=tuple(index_dimensions)
+            index_dimensions=tuple(index_dimensions),
         )
 
     @memoized_handler
@@ -194,13 +194,13 @@ class IndexRemover(MultiFunction):
     @memoized_handler
     def _zero_simplify(self, o):
         """Apply simplification for Zero()."""
-        operand, = o.ufl_operands
+        (operand,) = o.ufl_operands
         operand = map_expr_dag(self, operand)
         if isinstance(operand, Zero):
             return Zero(
                 shape=o.ufl_shape,
                 free_indices=o.ufl_free_indices,
-                index_dimensions=o.ufl_index_dimensions
+                index_dimensions=o.ufl_index_dimensions,
             )
         else:
             return o._ufl_expr_reconstruct_(operand)

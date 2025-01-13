@@ -29,8 +29,14 @@ class RestrictionPropagator(MultiFunction):
         self.current_restriction = side
         self.default_restriction = default_restriction
         # Caches for propagating the restriction with map_expr_dag
-        self.vcaches = {"+": {}, "-": {},}
-        self.rcaches = {"+": {}, "-": {},}
+        self.vcaches = {
+            "+": {},
+            "-": {},
+        }
+        self.rcaches = {
+            "+": {},
+            "-": {},
+        }
         if self.current_restriction is None:
             self._rp = {
                 "+": RestrictionPropagator("+", assume_single_integral_type, default_restriction),
@@ -247,11 +253,7 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(
-    expression,
-    assume_single_integral_type=True,
-    domain_integral_type_map=None
-):
+def apply_restrictions(expression, assume_single_integral_type=True, domain_integral_type_map=None):
     """Propagate restriction nodes to wrap differential terminals directly."""
     if assume_single_integral_type:
         # Hnadle the conventional single-domain case.
@@ -285,7 +287,7 @@ def apply_restrictions(
         integral_types = None
     rules = RestrictionPropagator(
         assume_single_integral_type=assume_single_integral_type,
-        default_restriction=default_restriction
+        default_restriction=default_restriction,
     )
     if isinstance(expression, FormData):
         for integral_data in expression.integral_data:
@@ -305,6 +307,7 @@ class DomainRestrictionMapMaker(MultiFunction):
     This must be done per integral_data.
 
     """
+
     def __init__(self, domain_restriction_map: dict):
         """Initialise.
 
@@ -327,14 +330,14 @@ class DomainRestrictionMapMaker(MultiFunction):
             if isinstance(t, ReferenceValue):
                 assert not reference_value, "Got twice pulled back terminal"
                 reference_value = True
-                t, = t.ufl_operands
+                (t,) = t.ufl_operands
             elif isinstance(t, ReferenceGrad):
                 local_derivatives += 1
-                t, = t.ufl_operands
+                (t,) = t.ufl_operands
             elif isinstance(t, Restricted):
                 assert restriction is None, "Got twice restricted terminal"
                 restriction = t._side
-                t, = t.ufl_operands
+                (t,) = t.ufl_operands
             elif t._ufl_terminal_modifiers_:
                 raise ValueError(
                     f"Missing handler for terminal modifier type {type(t)}, object is {t!r}."
@@ -349,7 +352,7 @@ class DomainRestrictionMapMaker(MultiFunction):
         if domain is not None:
             if domain not in self._domain_restriction_map:
                 self._domain_restriction_map[domain] = set()
-            if restriction in ['+', '-']:
+            if restriction in ["+", "-"]:
                 self._domain_restriction_map[domain].add(restriction)
             elif restriction is not None:
                 raise RuntimeError(f"Got unknown restriction: {restriction}")
@@ -378,7 +381,7 @@ def make_domain_integral_type_map(integral_data):
     integration_type = integral_data.integral_type
     domain_integral_type_dict = {}
     for d, rs in domain_restriction_map.items():
-        if rs in [{'+'}, {'-'}, {'+', '-'}]:
+        if rs in [{"+"}, {"-"}, {"+", "-"}]:
             domain_integral_type_dict[d] = "interior_facet"
         elif rs == set():
             if d.topological_dimension() == integration_domain.topological_dimension():
