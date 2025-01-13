@@ -86,8 +86,6 @@ class BalanceModifiers(MultiFunction):
     facet_avg = _modifier
     positive_restricted = _modifier
     negative_restricted = _modifier
-    single_value_restricted = _modifier
-    to_be_restricted = _modifier
 
 
 def balance_modifiers(expr):
