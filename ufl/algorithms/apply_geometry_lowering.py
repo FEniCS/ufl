@@ -16,14 +16,14 @@ from itertools import combinations
 
 from ufl.classes import (
     CellCoordinate,
-    CellEdgeJacobian,
+    CellRidgeJacobian,
     CellEdgeVectors,
     CellFacetJacobian,
     CellOrientation,
     CellOrigin,
     CellVertices,
     CellVolume,
-    EdgeJacobian,
+    RidgeJacobian,
     Expr,
     FacetEdgeVectors,
     FacetJacobian,
@@ -167,35 +167,35 @@ class GeometryLoweringApplier(MultiFunction):
         return detFJ
 
     @memoized_handler
-    def edge_jacobian(self, o):
-        """Apply to edge_jacobian."""
+    def ridge_jacobian(self, o):
+        """Apply to ridge_jacobian."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = o.ufl_domain()
         J = self.jacobian(Jacobian(domain))
-        REJ = CellEdgeJacobian(domain)
+        REJ = CellRidgeJacobian(domain)
         i, j, k = indices(3)
         return as_tensor(J[i, k] * REJ[k, j], (i, j))
 
     @memoized_handler
-    def edge_jacobian_inverse(self, o):
+    def ridge_jacobian_inverse(self, o):
         """Apply to edge_jacobian_inverse."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = o.ufl_domain()
-        EJ = self.edge_jacobian(EdgeJacobian(domain))
+        EJ = self.ridge_jacobian(RidgeJacobian(domain))
         return inverse_expr(EJ)
 
     @memoized_handler
-    def edge_jacobian_determinant(self, o):
+    def ridge_jacobian_determinant(self, o):
         """Apply to edge_jacobian_determinant."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = o.ufl_domain()
-        EJ = self.edge_jacobian(EdgeJacobian(domain))
+        EJ = self.ridge_jacobian(RidgeJacobian(domain))
         detEJ = determinant_expr(EJ)
         return detEJ
 

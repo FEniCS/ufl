@@ -29,9 +29,9 @@ from ufl import (
 from ufl.checks import is_cellwise_constant
 from ufl.classes import (
     CellCoordinate,
-    EdgeJacobian,
-    EdgeJacobianDeterminant,
-    EdgeJacobianInverse,
+    RidgeJacobian,
+    RidgeJacobianDeterminant,
+    RidgeJacobianInverse,
     FacetJacobian,
     FacetJacobianDeterminant,
     FacetJacobianInverse,
@@ -288,11 +288,11 @@ def mappings_are_cellwise_constant(domain, test):
         e = FacetJacobianInverse(domain)
         assert is_cellwise_constant(e) == test
     if domain.topological_dimension() > 2:
-        e = EdgeJacobian(domain)
+        e = RidgeJacobian(domain)
         assert is_cellwise_constant(e) == test
-        e = EdgeJacobianDeterminant(domain)
+        e = RidgeJacobianDeterminant(domain)
         assert is_cellwise_constant(e) == test
-        e = EdgeJacobianInverse(domain)
+        e = RidgeJacobianInverse(domain)
         assert is_cellwise_constant(e) == test
 
 

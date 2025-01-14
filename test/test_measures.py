@@ -16,7 +16,7 @@ def test_construct_forms_from_default_measures():
     ds = Measure("ds")
     dS = Measure("dS")
 
-    dl = Measure("dl")
+    dl = Measure("dr")
 
     dP = Measure("dP")
     # dV = Measure("dV")
@@ -39,7 +39,7 @@ def test_construct_forms_from_default_measures():
     assert ds.integral_type() == "exterior_facet"
     assert dS.integral_type() == "interior_facet"
 
-    assert dl.integral_type() == "edge"
+    assert dl.integral_type() == "ridge"
 
     assert dP.integral_type() == "vertex"
     # TODO: Change dP to dV:

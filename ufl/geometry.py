@@ -24,7 +24,7 @@ x = x[q]
     SpatialCoordinate = quadrature point from input array (dc)
 
 Xe = Xe[q]
-    EdgeCoordinate = quadrature point on edge (dl)
+    RidgeCoordinate = quadrature point on ridge (dr)
 
 Jacobians of mappings between coordinates:
 
@@ -37,18 +37,18 @@ Jxc = dx/dX = grad_X x(X)
 Jxf = dx/dXf = grad_Xf x(Xf)  =  Jxc Jcf = dx/dX dX/dXf = grad_X x(X) grad_Xf X(Xf)
     FacetJacobian = Jacobian * CellFacetJacobian
 
-Jce = dX/dXe = grad_Xe X(Xe)
-    CellEdgeJacobian
+Jcr = dX/dXe = grad_Xe X(Xe)
+    CellRidgeJacobian
 
 Jfe = dXf/dXe = grad_Xe Xf(Xe)
-    FacetEdgeJacobian
+    FacetRidgeJacobian
 
-Jxe = dx/dXe = grad_Xe x(Xe) = Jxc Jce = dx/dX dX/dXe =  grad_X x(X) grad_Xe X(Xe)
-    EdgeJacobian = Jacobian * CellEdgeJacobian
-# NOTE : Jxe could also be defined from CellFacetJacobian and FacetEdgeJacobian
+Jxe = dx/dXe = grad_Xe x(Xe) = Jxc Jcr = dx/dX dX/dXe =  grad_X x(X) grad_Xe X(Xe)
+    RidgeJacobian = Jacobian * CellRidgeJacobian
+# NOTE : Jxe could also be defined from CellFacetJacobian and FacetRidgeJacobian
 # Jxe(v2) =  dx/dXe = grad_Xe x(Xe) = Jxc Jcf Jfe = dx/dX dX/dXf dXf/dXe
 # = grad_X x(X) grad_Xf X(Xf) grad_Xe Xf(Xe)
-#    EdgeJacobian = Jacobian * CellFacetJacobian * FacetEdgeJacobian
+#    RidgeJacobian = Jacobian * CellFacetJacobian * FacetRidgeJacobian
 
 Possible computation of X from Xf:
 
@@ -57,11 +57,11 @@ X = Jcf Xf + X0f
 
 Possible computation of X and Xf from Xe:
 
-X = Jce Xe + X0e
-    CellCoordinate = CellEdgeJacobian * EdgeCoordinate + CellEdgeOrigin
+X = Jcr Xe + X0e
+    CellCoordinate = CellRidgeJacobian * RidgeCoordinate + CellRidgeOrigin
 
 Xf = Jfe Xe + X0e and X = Jcf (Jfe Xe + X0e) + X0f
-    FacetCoordinate = FacetEdgeJacobian * EdgeCoordinate + CellEdgeOrigin
+    FacetCoordinate = FacetRidgeJacobian * RidgeCoordinate + CellRidgeOrigin
 
 Possible computation of x from X:
 
@@ -82,7 +82,7 @@ x = Jxf Xf + x0f
 Possible computation of x from Xe:
 
 x = x(X(Xe)) = Jxe Xe + x0e
-    SpatialCoordinate = EdgeJacobian * EdgeCoordinate + EdgeOrigin
+    SpatialCoordinate = RidgeJacobian * RidgeCoordinate + RidgeOrigin
 
 Inverse relations:
 
@@ -97,11 +97,11 @@ Xf = CFK * (X - X0f)
         (CellCoordinate - CellFacetOrigin)
 
 Xe = EK * (x - x0e)
-    EdgeCoordinate = EdgeJacobianInverse * (SpatialCoordinate - EdgeOrigin)
+    RidgeCoordinate = RidgeJacobianInverse * (SpatialCoordinate - RidgeOrigin)
 
 Xe = CEK * (X - X0e)
-    EdgeCoordinate = CellEdgeJacobianInverse * \
-        (CellCoordinate - CellEdgeOrigin)
+    RidgeCoordinate = CellRidgeJacobianInverse * \
+        (CellCoordinate - CellRidgeOrigin)
 """
 
 # --- Expression node types
@@ -169,8 +169,8 @@ class GeometricFacetQuantity(GeometricQuantity):
 
 
 @ufl_type(is_abstract=True)
-class GeometricEdgeQuantity(GeometricQuantity):
-    """Geometric edge quantity."""
+class GeometricRidgeQuantity(GeometricQuantity):
+    """Geometric ridge quantity."""
 
     __slots__ = ()
 
@@ -284,14 +284,14 @@ class FacetCoordinate(GeometricFacetQuantity):
 
 
 @ufl_type()
-class EdgeCoordinate(GeometricEdgeQuantity):
-    """The coordinate in a reference cell of an edge.
+class RidgeCoordinate(GeometricRidgeQuantity):
+    """The coordinate in a reference cell of a ridge.
 
-    In the context of expression integration over an edge,
-    represents the reference edge coordinate of each quadrature point.
+    In the context of expression integration over a ridge,
+    represents the reference ridge coordinate of each quadrature point.
 
-    In the context of expression evaluation in a point on an edge,
-    represents that point in the reference coordinate system of the edge.
+    In the context of expression evaluation in a point on a ridge,
+    represents that point in the reference coordinate system of the ridge.
     """
 
     __slots__ = ()
@@ -299,10 +299,10 @@ class EdgeCoordinate(GeometricEdgeQuantity):
 
     def __init__(self, domain):
         """Initialise."""
-        GeometricEdgeQuantity.__init__(self, domain)
+        GeometricRidgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
-        if t < 3:
-            raise ValueError("EdgeCoordinate is only defined for topological dimensions >= 3.")
+        if t < 2:
+            raise ValueError("RidgeCoordinate is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -351,8 +351,8 @@ class FacetOrigin(GeometricFacetQuantity):
 
 
 @ufl_type()
-class EdgeOrigin(GeometricEdgeQuantity):
-    """The spatial coordinate corresponding to origin of a reference edge."""
+class RidgeOrigin(GeometricRidgeQuantity):
+    """The spatial coordinate corresponding to origin of a reference ridge."""
 
     __slots__ = ()
     name = "x0e"
@@ -379,8 +379,8 @@ class CellFacetOrigin(GeometricFacetQuantity):
 
 
 @ufl_type()
-class CellEdgeOrigin(GeometricEdgeQuantity):
-    """The reference cell coordinate corresponding to origin of a reference edge."""
+class CellRidgeOrigin(GeometricRidgeQuantity):
+    """The reference cell coordinate corresponding to origin of a reference ridge."""
 
     __slots__ = ()
     name = "X0e"
@@ -454,26 +454,26 @@ class FacetJacobian(GeometricFacetQuantity):
 
 
 @ufl_type()
-class EdgeJacobian(GeometricEdgeQuantity):
-    """The Jacobian of the mapping from reference edge to spatial coordinates.
+class RidgeJacobian(GeometricRidgeQuantity):
+    """The Jacobian of the mapping from reference ridge to spatial coordinates.
 
-      EJ_ij = dx_i/dXe_j
+      RJ_ij = dx_i/dXe_j
 
-    The EdgeJacobian is the product of the Jacobian and CellEdgeJacobian:
+    The RidgeJacobian is the product of the Jacobian and CellRidgeJacobian:
 
-      EJ = dx/dXe = dx/dX dX/dXe = J * CEJ
+      RJ = dx/dXe = dx/dX dX/dXe = J * CRJ
 
     """
 
     __slots__ = ()
-    name = "EJ"
+    name = "RJ"
 
     def __init__(self, domain):
         """Initialise."""
-        GeometricEdgeQuantity.__init__(self, domain)
+        GeometricRidgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
-        if t < 3:
-            raise ValueError("EdgeJacobian is only defined for topological dimensions >= 3.")
+        if t < 2:
+            raise ValueError("RidgeJacobian is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -520,21 +520,21 @@ class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
 
 
 @ufl_type()
-class CellEdgeJacobian(GeometricEdgeQuantity):  # dX/dXe
-    """The Jacobian of the mapping from reference edge to reference cell coordinates.
+class CellRidgeJacobian(GeometricRidgeQuantity):  # dX/dXe
+    """The Jacobian of the mapping from reference ridge to reference cell coordinates.
 
-    CEJ_ij = dX_i/dXe_j
+    CRJ_ij = dX_i/dXe_j
     """
 
     __slots__ = ()
-    name = "CEJ"
+    name = "CRJ"
 
     def __init__(self, domain):
         """Initialise."""
-        GeometricEdgeQuantity.__init__(self, domain)
+        GeometricRidgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
-        if t < 3:
-            raise ValueError("CellEdgeJacobian is only defined for topological dimensions >= 3.")
+        if t < 2:
+            raise ValueError("CellRidgeJacobian is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -550,21 +550,21 @@ class CellEdgeJacobian(GeometricEdgeQuantity):  # dX/dXe
 
 
 @ufl_type()
-class FacetEdgeJacobian(GeometricEdgeQuantity):  # dXf/dXe
-    """The Jacobian of the mapping from reference edge to reference facet coordinates.
+class FacetRidgeJacobian(GeometricRidgeQuantity):  # dXf/dXe
+    """The Jacobian of the mapping from reference ridge to reference facet coordinates.
 
-    FEJ_ij = dXf_i/dXe_j
+    FRJ_ij = dXf_i/dXe_j
     """
 
     __slots__ = ()
-    name = "FEJ"
+    name = "FRJ"
 
     def __init__(self, domain):
         """Initialise."""
-        GeometricEdgeQuantity.__init__(self, domain)
+        GeometricRidgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
-        if t < 3:
-            raise ValueError("FacetEdgeJacobian is only defined for topological dimensions >= 3.")
+        if t < 2:
+            raise ValueError("FacetRidgeJacobian is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
@@ -766,11 +766,11 @@ class FacetJacobianDeterminant(GeometricFacetQuantity):
 
 
 @ufl_type()
-class EdgeJacobianDeterminant(GeometricEdgeQuantity):
-    """The pseudo-determinant of the EdgeJacobian."""
+class RidgeJacobianDeterminant(GeometricRidgeQuantity):
+    """The pseudo-determinant of the RidgeJacobian."""
 
     __slots__ = ()
-    name = "detEJ"
+    name = "detRJ"
 
     def is_cellwise_constant(self):
         """Return whether this expression is spatially constant over each cell."""
@@ -793,11 +793,11 @@ class CellFacetJacobianDeterminant(GeometricFacetQuantity):
 
 
 @ufl_type()
-class CellEdgeJacobianDeterminant(GeometricEdgeQuantity):
-    """The pseudo-determinant of the CellEdgeJacobian."""
+class CellRidgeJacobianDeterminant(GeometricRidgeQuantity):
+    """The pseudo-determinant of the CellRidgeJacobian."""
 
     __slots__ = ()
-    name = "detCEJ"
+    name = "detCRJ"
 
     def is_cellwise_constant(self):
         """Return whether this expression is spatially constant over each cell."""
@@ -865,18 +865,20 @@ class FacetJacobianInverse(GeometricFacetQuantity):
 
 
 @ufl_type()
-class EdgeJacobianInverse(GeometricEdgeQuantity):
-    """The pseudo-inverse of the EdgeJacobian."""
+class RidgeJacobianInverse(GeometricRidgeQuantity):
+    """The pseudo-inverse of the RidgeJacobian."""
 
     __slots__ = ()
     name = "EK"
 
     def __init__(self, domain):
         """Initialise."""
-        GeometricEdgeQuantity.__init__(self, domain)
+        GeometricRidgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
-        if t < 3:
-            raise ValueError("EdgeJacobianInverse is only defined for topological dimensions >= 3.")
+        if t < 2:
+            raise ValueError(
+                "RidgeJacobianInverse is only defined for topological dimensions >= 2."
+            )
 
     @property
     def ufl_shape(self):
@@ -921,19 +923,19 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
 
 
 @ufl_type()
-class CellEdgeJacobianInverse(GeometricEdgeQuantity):
-    """The pseudo-inverse of the EdgeFacetJacobian."""
+class CellRidgeJacobianInverse(GeometricRidgeQuantity):
+    """The pseudo-inverse of the RidgeFacetJacobian."""
 
     __slots__ = ()
     name = "CEK"
 
     def __init__(self, domain):
         """Initialise."""
-        GeometricEdgeQuantity.__init__(self, domain)
+        GeometricRidgeQuantity.__init__(self, domain)
         t = self._domain.topological_dimension()
-        if t < 3:
+        if t < 2:
             raise ValueError(
-                "CellEdgeJacobianInverse is only defined for topological dimensions >= 3."
+                "CellRidgeJacobianInverse is only defined for topological dimensions >= 2."
             )
 
     @property
@@ -1033,11 +1035,11 @@ class ReferenceFacetVolume(GeometricFacetQuantity):
 
 
 @ufl_type()
-class ReferenceEdgeVolume(GeometricEdgeQuantity):
-    """The volume of the reference cell of the current edge."""
+class ReferenceRidgeVolume(GeometricRidgeQuantity):
+    """The volume of the reference cell of the current ridge."""
 
     __slots__ = ()
-    name = "reference_edge_volume"
+    name = "reference_ridge_volume"
 
 
 @ufl_type()

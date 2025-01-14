@@ -9,7 +9,7 @@
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.classes import (
-    EdgeJacobianDeterminant,
+    RidgeJacobianDeterminant,
     FacetJacobianDeterminant,
     Form,
     Integral,
@@ -63,15 +63,16 @@ def compute_integrand_scaling_factor(integral):
         else:
             # No need to scale 'integral' over a vertex
             scale = 1
-    elif integral_type.startswith("edge"):
+    elif integral_type.startswith("ridge"):
         if tdim > 2:
             # Scaling integral by edge jacobian determinant from one
             # side and quadrature weight
-            detEJ = EdgeJacobianDeterminant(domain)
+            detEJ = RidgeJacobianDeterminant(domain)
             degree = estimate_total_polynomial_degree(apply_geometry_lowering(detEJ))
             scale = detEJ * weight
+        elif tdim < 2:
+            raise RuntimeError(f"Ridge integral not supported for {tdim=}")
         else:
-            # Edge integral doesnt make sense if tdim <= 2
             scale = 1
 
     elif integral_type in custom_integral_types:
