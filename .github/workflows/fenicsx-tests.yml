@@ -10,11 +10,11 @@ on:
 jobs:
   ffcx-tests:
     name: Run FFCx tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
-      CC: gcc-10
-      CXX: g++-10
+      CC: gcc-12
+      CXX: g++-12
       PETSC_ARCH: linux-gnu-real-64
 
     steps:
