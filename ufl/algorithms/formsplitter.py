@@ -10,6 +10,8 @@
 
 from typing import Optional
 
+import numpy as np
+
 from ufl.algorithms.map_integrands import map_expr_dag, map_integrand_dags
 from ufl.argument import Argument
 from ufl.classes import FixedIndex, ListTensor
@@ -53,14 +55,10 @@ class FormSplitter(MultiFunction):
                 Q_i = FunctionSpace(dom, sub_elem)
                 a = Argument(Q_i, obj.number(), part=obj.part())
 
-                indices = [()]
-                for m in a.ufl_shape:
-                    indices = [(k + (j,)) for k in indices for j in range(m)]
-
                 if i == self.idx[obj.number()]:
-                    args += [a[j] for j in indices]
+                    args.extend(a[j] for j in np.ndindex(a.ufl_shape))
                 else:
-                    args += [Zero() for j in indices]
+                    args.extend(Zero() for j in np.ndindex(a.ufl_shape))
 
             return as_vector(args)
 
@@ -72,9 +70,13 @@ class FormSplitter(MultiFunction):
         indices = multiindex.indices()
         if isinstance(child, ListTensor) and all(isinstance(i, FixedIndex) for i in indices):
             if len(indices) == 1:
-                return child.ufl_operands[indices[0]._value]
+                return child[indices[0]]
+            elif len(indices) == len(child.ufl_operands) and all(
+                k == int(i) for k, i in enumerate(indices)
+            ):
+                return child
             else:
-                return ListTensor(*(child.ufl_operands[i._value] for i in multiindex.indices()))
+                return ListTensor(*(child[i] for i in indices))
         return self.expr(o, child, multiindex)
 
     def multi_index(self, obj):
