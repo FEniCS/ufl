@@ -787,7 +787,7 @@ class FormSum(BaseForm):
 
         # Collect unique domains
         self._domains = sort_domains(
-            join_domains(chain.from_iterable(e.ufl_domains() for e in self.ufl_operands))
+            join_domains(chain.from_iterable(c.ufl_domains() for c in self.components()))
         )
 
     def ufl_domains(self):
@@ -799,7 +799,9 @@ class FormSum(BaseForm):
     def __hash__(self):
         """Hash."""
         if self._hash is None:
-            self._hash = hash(tuple(hash(component) for component in self.components()))
+            self._hash = hash(
+                tuple((hash(c), hash(w)) for c, w in zip(self.components(), self.weights()))
+            )
         return self._hash
 
     def equals(self, other):
@@ -808,8 +810,10 @@ class FormSum(BaseForm):
             return False
         if self is other:
             return True
-        return len(self.components()) == len(other.components()) and all(
-            a == b for a, b in zip(self.components(), other.components())
+        return (
+            len(self.components()) == len(other.components())
+            and all(a == b for a, b in zip(self.components(), other.components()))
+            and all(a == b for a, b in zip(self.weights(), other.weights()))
         )
 
     def __str__(self):
@@ -818,7 +822,7 @@ class FormSum(BaseForm):
         # warning("Calling str on form is potentially expensive and
         # should be avoided except during debugging.")
         # Not caching this because it can be huge
-        s = "\n  +  ".join(str(component) for component in self.components())
+        s = "\n  +  ".join(f"{w}*{c}" for c, w in zip(self.components(), self.weights()))
         return s or "<empty FormSum>"
 
     def __repr__(self):
@@ -827,7 +831,7 @@ class FormSum(BaseForm):
         # warning("Calling repr on form is potentially expensive and
         # should be avoided except during debugging.")
         # Not caching this because it can be huge
-        itgs = ", ".join(repr(component) for component in self.components())
+        itgs = ", ".join(f"{w!r}*{c!r}" for c, w in zip(self.components(), self.weights()))
         r = "FormSum([" + itgs + "])"
         return r
 
