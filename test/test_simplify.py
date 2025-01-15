@@ -32,7 +32,9 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import compute_form_data
+from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.finiteelement import FiniteElement
+from ufl.indexed import Indexed
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -174,3 +176,20 @@ def test_tensor_from_indexed(self, shape):
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     assert as_tensor(reshape([f[i] for i in ndindex(f.ufl_shape)], f.ufl_shape).tolist()) is f
+
+
+def test_nested_indexed(self):
+    # Test that a nested Indexed expression simplifies to the existing Indexed object
+    shape = (2,)
+    element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    space = FunctionSpace(domain, element)
+    f = Coefficient(space)
+
+    comps = tuple(f[i] for i in range(2))
+    assert all(isinstance(c, Indexed) for c in comps)
+    expr = as_tensor(list(reversed(comps)))
+
+    multiindex = MultiIndex((FixedIndex(0),))
+    assert Indexed(expr, multiindex) is expr[0]
+    assert Indexed(expr, multiindex) is comps[1]

@@ -20,6 +20,7 @@ class Indexed(Operator):
     """Indexed expression."""
 
     __slots__ = (
+        "_initialised",
         "ufl_free_indices",
         "ufl_index_dimensions",
     )
@@ -46,13 +47,16 @@ class Indexed(Operator):
 
         try:
             # Simplify indexed ListTensor
-            c = expression[multiindex]
-            return Indexed(*c.ufl_operands) if isinstance(c, Indexed) else c
+            return expression[multiindex]
         except ValueError:
-            return Operator.__new__(cls)
+            self = Operator.__new__(cls)
+            self._initialised = False
+            return self
 
     def __init__(self, expression, multiindex):
         """Initialise."""
+        if self._initialised:
+            return
         # Store operands
         Operator.__init__(self, (expression, multiindex))
 
@@ -81,7 +85,7 @@ class Indexed(Operator):
         efi = expression.ufl_free_indices
         efid = expression.ufl_index_dimensions
         fi = list(zip(efi, efid))
-        for pos, ind in enumerate(multiindex._indices):
+        for pos, ind in enumerate(multiindex):
             if isinstance(ind, Index):
                 fi.append((ind.count(), shape[pos]))
         fi = unique_sorted_indices(sorted(fi))
@@ -93,6 +97,7 @@ class Indexed(Operator):
         # Cache free index and dimensions
         self.ufl_free_indices = fi
         self.ufl_index_dimensions = fid
+        self._initialised = True
 
     ufl_shape = ()
 
