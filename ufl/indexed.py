@@ -27,6 +27,9 @@ class Indexed(Operator):
 
     def __new__(cls, expression, multiindex):
         """Create a new Indexed."""
+        # Cyclic import
+        from ufl.tensors import ComponentTensor, ListTensor
+
         if len(multiindex) == 0:
             return expression
         if isinstance(expression, Zero):
@@ -45,17 +48,27 @@ class Indexed(Operator):
                 fi, fid = (), ()
             return Zero(shape=(), free_indices=fi, index_dimensions=fid)
 
-        try:
+        ii = tuple(multiindex)
+        if isinstance(expression, ListTensor) and isinstance(ii[0], FixedIndex):
             # Simplify indexed ListTensor
-            # The multiindex needs to be split to avoid
-            # Expr.__getitem__ contracting repeated indices
-            ii = tuple(multiindex)
-            e0 = expression[MultiIndex(ii[:1])]
-            return e0 if len(ii) == 1 else Indexed(e0, MultiIndex(ii[1:]))
-        except ValueError:
-            self = Operator.__new__(cls)
-            self._initialised = False
-            return self
+            C = expression.ufl_operands[int(ii[0])]
+            return C if len(ii) == 1 else Indexed(C, MultiIndex(ii[1:]))
+
+        if isinstance(expression, ComponentTensor):
+            # Untangle as_tensor(C[kk], jj)[ii] -> C[ll]
+            B, jj = expression.ufl_operands
+            if isinstance(B, Indexed):
+                C, kk = B.ufl_operands
+
+                kk = list(kk)
+                if all(j in kk for j in jj):
+                    rep = dict(zip(jj, ii))
+                    Cind = tuple(rep.get(k, k) for k in kk)
+                    return Indexed(C, MultiIndex(Cind))
+
+        self = Operator.__new__(cls)
+        self._initialised = False
+        return self
 
     def __init__(self, expression, multiindex):
         """Initialise."""
