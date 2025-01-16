@@ -22,7 +22,7 @@ from ufl.indexed import Indexed
 class ListTensor(Operator):
     """Wraps a list of expressions into a tensor valued expression of one higher rank."""
 
-    __slots__ = ()
+    __slots__ = ("_initialised",)
 
     def __new__(cls, *expressions):
         """Create a new ListTensor."""
@@ -88,10 +88,14 @@ class ListTensor(Operator):
             if all(i[0] == k for k, i in enumerate(indices)):
                 return sub(e0, 0, 0)
 
-        return Operator.__new__(cls)
+        self = Operator.__new__(cls)
+        self._initialised = False
+        return self
 
     def __init__(self, *expressions):
         """Initialise."""
+        if self._initialised:
+            return
         Operator.__init__(self, expressions)
 
         # Checks
@@ -100,6 +104,7 @@ class ListTensor(Operator):
             raise ValueError(
                 "Can't combine subtensor expressions with different sets of free indices."
             )
+        self._initialised = True
 
     @property
     def ufl_shape(self):
@@ -128,6 +133,8 @@ class ListTensor(Operator):
             key = key.indices()
         if not isinstance(key, tuple):
             key = (key,)
+        if len(key) == 0:
+            return self
         k = key[0]
         if isinstance(k, (int, FixedIndex)):
             sub = self.ufl_operands[int(k)]

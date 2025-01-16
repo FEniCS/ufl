@@ -100,7 +100,7 @@ def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None
             if cutoff_types[v._ufl_typecode_]:
                 r = handlers[v._ufl_typecode_](v)
             else:
-                r = handlers[v._ufl_typecode_](v, *[vcache[u] for u in v.ufl_operands])
+                r = handlers[v._ufl_typecode_](v, *(vcache[u] for u in v.ufl_operands))
 
             # Optionally check if r is in rcache, a memory optimization
             # to be able to keep representation of result compact

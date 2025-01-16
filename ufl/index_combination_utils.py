@@ -215,11 +215,9 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
 
     # Find repeated indices, brute force version
     for i0 in range(an):
-        for i1 in range(bn):
-            if afi[i0] == bfi[i1]:
-                repeated_indices.append(afi[i0])
-                repeated_index_dimensions.append(afid[i0])
-                break
+        if afi[i0] in bfi:
+            repeated_indices.append(afi[i0])
+            repeated_index_dimensions.append(afid[i0])
 
     # Collect only non-repeated indices, brute force version
     for i, d in sorted(zip(afi + bfi, afid + bfid)):

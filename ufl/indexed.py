@@ -47,7 +47,11 @@ class Indexed(Operator):
 
         try:
             # Simplify indexed ListTensor
-            return expression[multiindex]
+            # The multiindex needs to be split to avoid
+            # Expr.__getitem__ contracting repeated indices
+            ii = tuple(multiindex)
+            e0 = expression[MultiIndex(ii[:1])]
+            return e0 if len(ii) == 1 else Indexed(e0, MultiIndex(ii[1:]))
         except ValueError:
             self = Operator.__new__(cls)
             self._initialised = False
@@ -124,11 +128,3 @@ class Indexed(Operator):
             f"Attempting to index with {ufl_err_str(key)}, "
             f"but object is already indexed: {ufl_err_str(self)}"
         )
-
-    def _ufl_expr_reconstruct_(self, expression, multiindex):
-        """Reconstruct."""
-        try:
-            # Simplify indexed ListTensor
-            return expression[multiindex]
-        except ValueError:
-            return Operator._ufl_expr_reconstruct_(self, expression, multiindex)

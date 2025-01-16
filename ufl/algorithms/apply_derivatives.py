@@ -234,8 +234,8 @@ class GenericDerivativeRuleset(MultiFunction):
                 kk = list(kk)
                 if all(j in kk for j in jj):
                     rep = dict(zip(jj, ii))
-                    Cind = [rep.get(k, k) for k in kk]
-                    expr = Indexed(C, MultiIndex(tuple(Cind)))
+                    Cind = tuple(rep.get(k, k) for k in kk)
+                    expr = Indexed(C, MultiIndex(Cind))
                     assert expr.ufl_free_indices == o.ufl_free_indices
                     assert expr.ufl_shape == o.ufl_shape
                     return expr
@@ -1466,8 +1466,8 @@ class DerivativeRuleDispatcher(MultiFunction):
                 kk = list(kk)
                 if all(j in kk for j in jj):
                     rep = dict(zip(jj, ii))
-                    Cind = [rep.get(k, k) for k in kk]
-                    expr = Indexed(C, MultiIndex(tuple(Cind)))
+                    Cind = tuple(rep.get(k, k) for k in kk)
+                    expr = Indexed(C, MultiIndex(Cind))
                     assert expr.ufl_free_indices == o.ufl_free_indices
                     assert expr.ufl_shape == o.ufl_shape
                     return expr
@@ -1480,6 +1480,7 @@ class DerivativeRuleDispatcher(MultiFunction):
             op = as_tensor(op, kk)
         else:
             op = Indexed(Ap, ii)
+
         return op
 
 
