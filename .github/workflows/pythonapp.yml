@@ -13,6 +13,9 @@ on:
   pull_request:
     branches:
       - main
+  # Weekly build on Mondays at 8 am
+  schedule:
+    - cron: "0 8 * * 1"
 
 jobs:
   build:

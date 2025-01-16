@@ -50,7 +50,7 @@ def _sorted_integrals(integrals):
             )
         it = integral.integral_type()
         si = integral.subdomain_id()
-        integrals_dict[d][it][si] += [integral]
+        integrals_dict[d][it][si].append(integral)
 
     all_integrals = []
 
@@ -119,6 +119,10 @@ class BaseForm(object, metaclass=UFLType):
             raise ValueError("%s must have exactly one domain." % type(self).__name__)
         # Return the one and only domain
         return domain
+
+    def empty(self):
+        """Returns whether the BaseForm has no components."""
+        return False
 
     # --- Operator implementations ---
 
@@ -307,7 +311,7 @@ class Form(BaseForm):
 
     def empty(self):
         """Returns whether the form has no integrals."""
-        return self.integrals() == ()
+        return len(self.integrals()) == 0
 
     def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
@@ -559,7 +563,7 @@ class Form(BaseForm):
         # warning("Calling str on form is potentially expensive and
         # should be avoided except during debugging.") Not caching this
         # because it can be huge
-        s = "\n  +  ".join(str(itg) for itg in self.integrals())
+        s = "\n  +  ".join(map(str, self.integrals()))
         return s or "<empty Form>"
 
     def __repr__(self):
@@ -568,7 +572,7 @@ class Form(BaseForm):
         # warning("Calling repr on form is potentially expensive and
         # should be avoided except during debugging.") Not caching this
         # because it can be huge
-        itgs = ", ".join(repr(itg) for itg in self.integrals())
+        itgs = ", ".join(map(repr, self.integrals()))
         r = "Form([" + itgs + "])"
         return r
 
@@ -586,7 +590,7 @@ class Form(BaseForm):
 
         # TODO: Not including domains from coefficients and arguments
         # here, may need that later
-        self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
+        self._domain_numbering = {d: i for i, d in enumerate(self._integration_domains)}
 
     def _analyze_subdomain_data(self):
         """Analyze subdomain data."""
@@ -787,7 +791,7 @@ class FormSum(BaseForm):
 
         # Collect unique domains
         self._domains = sort_domains(
-            join_domains(chain.from_iterable(e.ufl_domains() for e in self.ufl_operands))
+            join_domains(chain.from_iterable(c.ufl_domains() for c in self.components()))
         )
 
     def ufl_domains(self):
@@ -799,7 +803,9 @@ class FormSum(BaseForm):
     def __hash__(self):
         """Hash."""
         if self._hash is None:
-            self._hash = hash(tuple(hash(component) for component in self.components()))
+            self._hash = hash(
+                tuple((hash(c), hash(w)) for c, w in zip(self.components(), self.weights()))
+            )
         return self._hash
 
     def equals(self, other):
@@ -808,9 +814,15 @@ class FormSum(BaseForm):
             return False
         if self is other:
             return True
-        return len(self.components()) == len(other.components()) and all(
-            a == b for a, b in zip(self.components(), other.components())
+        return (
+            len(self.components()) == len(other.components())
+            and all(a == b for a, b in zip(self.components(), other.components()))
+            and all(a == b for a, b in zip(self.weights(), other.weights()))
         )
+
+    def empty(self):
+        """Returns whether the FormSum has no components."""
+        return len(self.components()) == 0
 
     def __str__(self):
         """Compute shorter string representation of form. This can be huge for complicated forms."""
@@ -818,7 +830,7 @@ class FormSum(BaseForm):
         # warning("Calling str on form is potentially expensive and
         # should be avoided except during debugging.")
         # Not caching this because it can be huge
-        s = "\n  +  ".join(str(component) for component in self.components())
+        s = "\n  +  ".join(f"{w}*{c}" for c, w in zip(self.components(), self.weights()))
         return s or "<empty FormSum>"
 
     def __repr__(self):
@@ -827,7 +839,7 @@ class FormSum(BaseForm):
         # warning("Calling repr on form is potentially expensive and
         # should be avoided except during debugging.")
         # Not caching this because it can be huge
-        itgs = ", ".join(repr(component) for component in self.components())
+        itgs = ", ".join(f"{w!r}*{c!r}" for c, w in zip(self.components(), self.weights()))
         r = "FormSum([" + itgs + "])"
         return r
 
@@ -856,6 +868,7 @@ class ZeroBaseForm(BaseForm):
         self._arguments = arguments
         self.ufl_operands = arguments
         self._hash = None
+        self._domains = None
         self.form = None
 
     def _analyze_form_arguments(self):

@@ -7,14 +7,18 @@ on:
     branches:
       - main
 
+  # Weekly build on Mondays at 8 am
+  schedule:
+    - cron: "0 8 * * 1"
+
 jobs:
   ffcx-tests:
     name: Run FFCx tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
-      CC: gcc-10
-      CXX: g++-10
+      CC: gcc-12
+      CXX: g++-12
       PETSC_ARCH: linux-gnu-real-64
 
     steps:
@@ -26,7 +30,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          sudo apt-get install -y graphviz libgraphviz-dev ninja-build pkg-config
+          sudo apt-get install -y graphviz libgraphviz-dev ninja-build pkg-config libblas-dev liblapack-dev
 
       - name: Install UFL
         run: |

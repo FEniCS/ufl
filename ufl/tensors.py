@@ -53,8 +53,40 @@ class ListTensor(Operator):
 
         # Simplify to Zero if possible
         if all(isinstance(e, Zero) for e in expressions):
-            shape = (len(expressions),) + sh
+            shape = (len(expressions), *sh)
             return Zero(shape, fi, fid)
+
+        def sub(e, *indices):
+            for i in indices:
+                e = e.ufl_operands[i]
+            return e
+
+        # Simplify [v[j,0], v[j,1], ...., v[j,k]] -> v[j,:]
+        if (
+            all(isinstance(e, Indexed) for e in expressions)
+            and sub(e0, 0).ufl_shape[-1] == len(expressions)
+            and all(sub(e, 0) == sub(e0, 0) for e in expressions[1:])
+        ):
+            indices = [sub(e, 1).indices() for e in expressions]
+            try:
+                (j,) = set(i[:-1] for i in indices)
+                if all(i[-1] == k for k, i in enumerate(indices)):
+                    return sub(e0, 0) if j == () else sub(e0, 0)[(*j, slice(None))]
+            except ValueError:
+                pass
+
+        # Simplify [v[0,:], v[1,:], ..., v[k,:]] -> v
+        if (
+            all(
+                isinstance(e, ComponentTensor) and isinstance(sub(e, 0), Indexed)
+                for e in expressions
+            )
+            and sub(e0, 0, 0).ufl_shape[0] == len(expressions)
+            and all(sub(e, 0, 0) == sub(e0, 0, 0) for e in expressions[1:])
+        ):
+            indices = [sub(e, 0, 1).indices() for e in expressions]
+            if all(i[0] == k for k, i in enumerate(indices)):
+                return sub(e0, 0, 0)
 
         return Operator.__new__(cls)
 
@@ -118,7 +150,7 @@ class ListTensor(Operator):
                 s = (",\n" + ind).join(substrings)
                 return "%s[\n%s%s\n%s]" % (ind, ind, s, ind)
             else:
-                s = ", ".join(str(e) for e in expressions)
+                s = ", ".join(map(str, expressions))
                 return "%s[%s]" % (ind, s)
 
         return substring(self.ufl_operands, 0)
