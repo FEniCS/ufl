@@ -16,14 +16,13 @@ from itertools import combinations
 
 from ufl.classes import (
     CellCoordinate,
-    CellRidgeJacobian,
     CellEdgeVectors,
     CellFacetJacobian,
     CellOrientation,
     CellOrigin,
+    CellRidgeJacobian,
     CellVertices,
     CellVolume,
-    RidgeJacobian,
     Expr,
     FacetEdgeVectors,
     FacetJacobian,
@@ -39,6 +38,7 @@ from ufl.classes import (
     ReferenceFacetVolume,
     ReferenceGrad,
     ReferenceNormal,
+    RidgeJacobian,
     SpatialCoordinate,
 )
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr

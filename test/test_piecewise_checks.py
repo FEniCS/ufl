@@ -29,12 +29,12 @@ from ufl import (
 from ufl.checks import is_cellwise_constant
 from ufl.classes import (
     CellCoordinate,
-    RidgeJacobian,
-    RidgeJacobianDeterminant,
-    RidgeJacobianInverse,
     FacetJacobian,
     FacetJacobianDeterminant,
     FacetJacobianInverse,
+    RidgeJacobian,
+    RidgeJacobianDeterminant,
+    RidgeJacobianInverse,
 )
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
