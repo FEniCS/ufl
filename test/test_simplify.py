@@ -231,7 +231,7 @@ def test_untangle_indexed_component_tensor(self):
     B = as_tensor(Indexed(C, MultiIndex(kk)), kk)
     assert B is C
 
-    # Untangle as_tensor(C[kk], jj)[ii] -> C[kk]
+    # Untangle as_tensor(C[kk], jj)[ii] -> C[ll]
     jj = kk[2:]
     A = as_tensor(Indexed(C, MultiIndex(kk)), jj)
     assert A is not C
