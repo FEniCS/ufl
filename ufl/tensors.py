@@ -131,7 +131,7 @@ class ListTensor(Operator):
         k = multiindex[0]
         if isinstance(k, FixedIndex):
             sub = self.ufl_operands[int(k)]
-            return sub if len(multiindex) == 1 else Indexed(sub, MultiIndex(multiindex[1:]))
+            return Indexed(sub, MultiIndex(multiindex[1:]))
         return Operator._simplify_indexed(self, multiindex)
 
     def __getitem__(self, key):
