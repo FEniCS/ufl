@@ -18,7 +18,6 @@ from ufl.argument import BaseArgument
 from ufl.checks import is_cellwise_constant
 from ufl.classes import (
     Coefficient,
-    ComponentTensor,
     Conj,
     ConstantValue,
     ExprList,
@@ -219,28 +218,12 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # --- Indexing and component handling
 
-    def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in nesting rules
+    def indexed(self, o, Ap, ii):
         """Differentiate an indexed."""
         # Propagate zeros
         if isinstance(Ap, Zero):
             return self.independent_operator(o)
 
-        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify
-        # resulting expression
-        if isinstance(Ap, ComponentTensor):
-            B, jj = Ap.ufl_operands
-            if isinstance(B, Indexed):
-                C, kk = B.ufl_operands
-                kk = list(kk)
-                if all(j in kk for j in jj):
-                    rep = dict(zip(jj, ii))
-                    Cind = [rep.get(k, k) for k in kk]
-                    expr = Indexed(C, MultiIndex(tuple(Cind)))
-                    assert expr.ufl_free_indices == o.ufl_free_indices
-                    assert expr.ufl_shape == o.ufl_shape
-                    return expr
-
-        # Otherwise a more generic approach
         r = len(Ap.ufl_shape) - len(ii)
         if r:
             kk = indices(r)
@@ -1450,29 +1433,12 @@ class DerivativeRuleDispatcher(MultiFunction):
             o_[3],
         )
 
-    def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
+    def indexed(self, o, Ap, ii):
         """Apply to an indexed."""
         # Reuse if untouched
         if Ap is o.ufl_operands[0]:
             return o
 
-        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify
-        # resulting expression
-        if isinstance(Ap, ComponentTensor):
-            B, jj = Ap.ufl_operands
-            if isinstance(B, Indexed):
-                C, kk = B.ufl_operands
-
-                kk = list(kk)
-                if all(j in kk for j in jj):
-                    rep = dict(zip(jj, ii))
-                    Cind = [rep.get(k, k) for k in kk]
-                    expr = Indexed(C, MultiIndex(tuple(Cind)))
-                    assert expr.ufl_free_indices == o.ufl_free_indices
-                    assert expr.ufl_shape == o.ufl_shape
-                    return expr
-
-        # Otherwise a more generic approach
         r = len(Ap.ufl_shape) - len(ii)
         if r:
             kk = indices(r)

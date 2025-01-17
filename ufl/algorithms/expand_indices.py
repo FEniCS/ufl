@@ -137,7 +137,7 @@ class IndexExpander(ReuseTransformer):
 
         # TODO: For the list tensor purging algorithm, do something like:
         # if index not in self._to_expand:
-        #     return self.expr(x, *[self.visit(o) for o in x.ufl_operands])
+        #     return self.expr(x, *map(self.visit, x.ufl_operands))
 
         for value in range(x.dimension()):
             self._index2value.push(index, value)
