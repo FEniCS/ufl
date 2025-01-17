@@ -475,7 +475,6 @@ def compute_form_data(
             for integral in itg_data.integrals:
                 integrand = replace(integral.integrand(), self.function_replace_map)
                 integrand = apply_coefficient_split(integrand, self.coefficient_split)
-                integrand = remove_component_and_list_tensors(integrand)
                 if not isinstance(integrand, Zero):
                     new_integrals.append(integral.reconstruct(integrand=integrand))
             itg_data.integrals = new_integrals
