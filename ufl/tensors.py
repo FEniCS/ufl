@@ -125,6 +125,14 @@ class ListTensor(Operator):
         else:
             return a.evaluate(x, mapping, component, index_values)
 
+    def _simplify_indexed(self, multiindex):
+        """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""
+        k = multiindex[0]
+        if isinstance(k, FixedIndex):
+            sub = self.ufl_operands[int(k)]
+            return sub if len(multiindex) == 1 else Indexed(sub, MultiIndex(multiindex[1:]))
+        return Operator._simplify_indexed(self, multiindex)
+
     def __getitem__(self, key):
         """Get an item."""
         origkey = key
@@ -167,11 +175,11 @@ class ListTensor(Operator):
 class ComponentTensor(Operator):
     """Maps the free indices of a scalar valued expression to tensor axes."""
 
-    __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
+    __slots__ = ("_initialised", "ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     def __new__(cls, expression, indices):
         """Create a new ComponentTensor."""
-        # Simplify
+        # Zero-simplify
         if isinstance(expression, Zero):
             fi, fid, sh = remove_indices(
                 expression.ufl_free_indices,
@@ -180,11 +188,21 @@ class ComponentTensor(Operator):
             )
             return Zero(sh, fi, fid)
 
+        # Special case for simplification as_tensor(A[ii], ii) -> A
+        if isinstance(expression, Indexed):
+            A, ii = expression.ufl_operands
+            if indices == ii:
+                return A
+
         # Construct
-        return Operator.__new__(cls)
+        self = Operator.__new__(cls)
+        self._initialised = False
+        return self
 
     def __init__(self, expression, indices):
         """Initialise."""
+        if self._initialised:
+            return
         if not isinstance(expression, Expr):
             raise ValueError("Expecting ufl expression.")
         if expression.ufl_shape != ():
@@ -204,15 +222,21 @@ class ComponentTensor(Operator):
         self.ufl_free_indices = fi
         self.ufl_index_dimensions = fid
         self.ufl_shape = sh
+        self._initialised = True
 
-    def _ufl_expr_reconstruct_(self, expressions, indices):
-        """Reconstruct."""
-        # Special case for simplification as_tensor(A[ii], ii) -> A
-        if isinstance(expressions, Indexed):
-            A, ii = expressions.ufl_operands
-            if indices == ii:
-                return A
-        return Operator._ufl_expr_reconstruct_(self, expressions, indices)
+    def _simplify_indexed(self, multiindex):
+        """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""
+        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll]
+        B, jj = self.ufl_operands
+        if isinstance(B, Indexed):
+            C, kk = B.ufl_operands
+            if all(j in kk for j in jj):
+                ii = tuple(multiindex)
+                rep = dict(zip(jj, ii))
+                Cind = tuple(rep.get(k, k) for k in kk)
+                return Indexed(C, MultiIndex(Cind))
+
+        return Operator._simplify_indexed(self, multiindex)
 
     def indices(self):
         """Get indices."""
@@ -220,8 +244,7 @@ class ComponentTensor(Operator):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
-        indices = self.ufl_operands[1]
-        a = self.ufl_operands[0]
+        a, indices = self.ufl_operands
 
         if len(indices) != len(component):
             raise ValueError("Expecting a component matching the indices tuple.")

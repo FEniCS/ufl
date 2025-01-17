@@ -1480,7 +1480,6 @@ class DerivativeRuleDispatcher(MultiFunction):
             op = as_tensor(op, kk)
         else:
             op = Indexed(Ap, ii)
-
         return op
 
 
