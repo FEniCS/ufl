@@ -32,11 +32,13 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import compute_form_data
-from ufl.core.multiindex import FixedIndex, MultiIndex, indices
+from ufl.constantvalue import Zero
+from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
 from ufl.finiteelement import FiniteElement
 from ufl.indexed import Indexed
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
+from ufl.tensors import ComponentTensor, ListTensor
 
 
 def xtest_zero_times_argument(self):
@@ -205,7 +207,7 @@ def test_repeated_indexing(self):
     C = as_tensor([x, x])
 
     fi = FixedIndex(0)
-    (i,) = indices(1)
+    i = Index()
     ii = MultiIndex((fi, i, i))
     expr = Indexed(C, ii)
     assert i.count() in expr.ufl_free_indices
@@ -243,3 +245,26 @@ def test_untangle_indexed_component_tensor(self):
     rep = dict(zip(jj, ii))
     expected = tuple(rep.get(k, k) for k in kk)
     assert tuple(ll) == expected
+
+
+def test_simplify_indexed(self):
+    element = FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    space = FunctionSpace(domain, element)
+    u = Coefficient(space)
+    z = Zero(())
+    i = Index()
+    j = Index()
+    # ListTensor
+    lt = ListTensor(z, z, u[1])
+    assert Indexed(lt, MultiIndex((FixedIndex(2),))) == u[1]
+    # ListTensor -- nested
+    l0 = ListTensor(z, u[1], z)
+    l1 = ListTensor(z, z, u[2])
+    l2 = ListTensor(u[0], z, z)
+    ll = ListTensor(l0, l1, l2)
+    assert Indexed(ll, MultiIndex((FixedIndex(1), FixedIndex(2)))) == u[2]
+    assert Indexed(ll, MultiIndex((FixedIndex(2), i))) == l2[i]
+    # ComponentTensor + ListTensor
+    c = ComponentTensor(Indexed(ll, MultiIndex((i, j))), MultiIndex((j, i)))
+    assert Indexed(c, MultiIndex((FixedIndex(1), FixedIndex(2)))) == l2[1]
