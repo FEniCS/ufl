@@ -88,6 +88,7 @@ class ListTensor(Operator):
             if all(i[0] == k for k, i in enumerate(indices)):
                 return sub(e0, 0, 0)
 
+        # Construct a new instance to be initialised
         self = Operator.__new__(cls)
         self._initialised = False
         return self
@@ -194,7 +195,7 @@ class ComponentTensor(Operator):
             if indices == ii:
                 return A
 
-        # Construct
+        # Construct a new instance to be initialised
         self = Operator.__new__(cls)
         self._initialised = False
         return self

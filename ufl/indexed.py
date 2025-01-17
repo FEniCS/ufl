@@ -46,8 +46,10 @@ class Indexed(Operator):
             return Zero(shape=(), free_indices=fi, index_dimensions=fid)
 
         try:
+            # Simplify if possible
             return expression._simplify_indexed(multiindex)
         except NotImplementedError:
+            # Construct a new instance to be initialised
             self = Operator.__new__(cls)
             self._initialised = False
             return self
