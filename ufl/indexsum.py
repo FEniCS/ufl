@@ -11,6 +11,7 @@ from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import MultiIndex
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
+from ufl.indexed import Indexed
 from ufl.precedence import parstr
 
 # --- Sum over an index ---
@@ -68,6 +69,11 @@ class IndexSum(Operator):
     def ufl_shape(self):
         """Get UFL shape."""
         return self.ufl_operands[0].ufl_shape
+
+    def _simplify_indexed(self, multiindex):
+        """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""
+        A, i = self.ufl_operands
+        return IndexSum(Indexed(A, multiindex), i)
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
