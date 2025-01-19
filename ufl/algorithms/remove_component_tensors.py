@@ -8,6 +8,7 @@ This module contains classes and functions to remove component tensors.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.algorithms.estimate_degrees import SumDegreeEstimator
 from ufl.classes import (
     ComponentTensor,
     Form,
@@ -68,20 +69,25 @@ class IndexRemover(MultiFunction):
         """Initialise."""
         MultiFunction.__init__(self)
         self._object_cache = {}
+        self.degree_estimator = SumDegreeEstimator(1, {})
 
     expr = MultiFunction.reuse_if_untouched
 
     @memoized_handler
-    def _zero_simplify(self, o):
-        """Apply simplification for Zero()."""
+    def reference_grad(self, o):
+        """Simplify ReferenceGrad(Constant)."""
         (operand,) = o.ufl_operands
         operand = map_expr_dag(self, operand)
-        if isinstance(operand, Zero):
+        degree = map_expr_dag(self.degree_estimator, operand)
+        if degree == 0:
             return Zero(
                 shape=o.ufl_shape,
                 free_indices=o.ufl_free_indices,
                 index_dimensions=o.ufl_index_dimensions,
             )
+        if operand is o.ufl_operands[0]:
+            # Reuse if untouched
+            return o
         return o._ufl_expr_reconstruct_(operand)
 
     @memoized_handler
@@ -104,12 +110,6 @@ class IndexRemover(MultiFunction):
             # Reuse if untouched
             return o
         return o._ufl_expr_reconstruct_(expr, i1)
-
-    # Do something nicer
-    positive_restricted = _zero_simplify
-    negative_restricted = _zero_simplify
-    reference_grad = _zero_simplify
-    reference_value = _zero_simplify
 
 
 def remove_component_tensors(o):
