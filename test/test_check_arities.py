@@ -9,7 +9,9 @@ from ufl import (
     TestFunction,
     TrialFunction,
     adjoint,
+    as_tensor,
     cofac,
+    conditional,
     conj,
     derivative,
     ds,
@@ -84,3 +86,23 @@ def test_product_arity():
     with pytest.raises(ArityMismatch):
         L = inner(v, v) * dx
         compute_form_data(L, complex_mode=False)
+
+
+def test_zero_simplify_arity():
+    cell = tetrahedron
+    D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1))
+    v = TestFunction(V)
+    u = Coefficient(V)
+
+    zero = as_tensor([0, u])[0]
+    F = inner(u, v + zero) * dx
+    compute_form_data(F, complex_mode=False)
+
+    zero = conditional(u < 0, 0, 0)
+    F = inner(u, v + zero) * dx
+    compute_form_data(F, complex_mode=False)
+
+    zero = conditional(u < 0, 0, conditional(u == 0, 0, 0))
+    F = inner(u, v + zero) * dx
+    compute_form_data(F, complex_mode=False)
