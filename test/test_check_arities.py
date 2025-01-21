@@ -89,6 +89,10 @@ def test_product_arity():
 
 
 def test_zero_simplify_arity():
+    """
+    Test that adding verious zero-like expressions to a form is simplified,
+    such that one can compute form data for the integral.
+    """
     cell = tetrahedron
     D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
     V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1))
@@ -99,15 +103,24 @@ def test_zero_simplify_arity():
     with pytest.raises(ArityMismatch):
         F = inner(u, v + nonzero) * dx
         compute_form_data(F)
+    z = Coefficient(V)
 
-    zero = as_tensor([0, u])[0]
+    # Add a Zero-component (rank-0) of a tensor to a rank-1 tensor
+    zero = as_tensor([0, z])[0]
     F = inner(u, v + zero) * dx
-    compute_form_data(F)
+    fd = compute_form_data(F)
+    assert fd.num_coefficients == 1
 
-    zero = conditional(u < 0, 0, 0)
+    # Add a conditional that should have been simplified to zero (rank-0)
+    # to a rank-1 tensor
+    zero = conditional(z < 0, 0, 0)
     F = inner(u, v + zero) * dx
-    compute_form_data(F)
+    fd = compute_form_data(F)
+    assert fd.num_coefficients == 1
 
-    zero = conditional(u < 0, 0, conditional(u == 0, 0, 0))
+    # Check that nested zero conditionals are simplifed to zero (rank-0)
+    # and can be added to a rank-1 tensor
+    zero = conditional(z < 0, 0, conditional(z == 0, 0, 0))
     F = inner(u, v + zero) * dx
-    compute_form_data(F)
+    fd = compute_form_data(F)
+    assert fd.num_coefficients == 1
