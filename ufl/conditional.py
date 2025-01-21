@@ -264,10 +264,23 @@ class Conditional(Operator):
     In C++ these take the format `(condition ? true_value : false_value)`.
     """
 
-    __slots__ = ()
+    __slots__ = ("_initialised",)
+
+    def __new__(cls, condition, true_value, false_value):
+        """Create a new Conditional."""
+        # Simplify
+        if bool(true_value == false_value):
+            return true_value
+        # Construct a new instance to be initialised
+        self = Operator.__new__(cls)
+        self._initialised = False
+        return self
 
     def __init__(self, condition, true_value, false_value):
         """Initialise."""
+        if self._initialised:
+            return
+        # Checks
         if not isinstance(condition, Condition):
             raise ValueError("Expecting condition as first argument.")
         true_value = as_ufl(true_value)
@@ -290,8 +303,8 @@ class Conditional(Operator):
                 )
             ):
                 raise ValueError("Non-scalar == or != is not allowed.")
-
         Operator.__init__(self, (condition, true_value, false_value))
+        self._initialised = True
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
