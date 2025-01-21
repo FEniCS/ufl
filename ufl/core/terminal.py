@@ -13,6 +13,7 @@ Terminal the superclass for all types that are terminal nodes in an expression t
 
 import warnings
 
+import numpy as np
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -92,6 +93,47 @@ class Terminal(Expr):
         """Default comparison of terminals just compare repr strings."""
         return repr(self) == repr(other)
 
+    def traverse_dag_apply_coefficient_split(
+        self,
+        coefficient_split,
+        reference_value=False,
+        reference_grad=0,
+        restricted=None,
+        cache=None,
+    ):
+        from ufl.classes import (
+            ComponentTensor,
+            MultiIndex,
+            NegativeRestricted,
+            PositiveRestricted,
+            ReferenceGrad,
+            ReferenceValue,
+            Zero,
+        )
+        from ufl.core.multiindex import indices
+        from ufl.checks import is_cellwise_constant
+        from ufl.domain import extract_unique_domain
+        from ufl.tensors import as_tensor
+
+        c = self
+        if reference_value:
+            c = ReferenceValue(c)
+        for _ in range(reference_grad):
+            # Return zero if expression is trivially constant. This has to
+            # happen here because ReferenceGrad has no access to the
+            # topological dimension of a literal zero.
+            if is_cellwise_constant(c):
+                dim = extract_unique_domain(subcoeff).topological_dimension()
+                c = Zero(c.ufl_shape + (dim,), c.ufl_free_indices, c.ufl_index_dimensions)
+            else:
+                c = ReferenceGrad(c)
+        if restricted == "+":
+            c = PositiveRestricted(c)
+        elif restricted == "-":
+            c = NegativeRestricted(c)
+        elif restricted is not None:
+            raise RuntimeError(f"Got unknown restriction: {restricted}")
+        return c
 
 # --- Subgroups of terminals ---
 

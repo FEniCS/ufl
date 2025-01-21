@@ -479,7 +479,7 @@ def compute_form_data(
             new_integrals = []
             for integral in itg_data.integrals:
                 integrand = replace(integral.integrand(), self.function_replace_map)
-                integrand = apply_coefficient_split(integrand, self.coefficient_split)
+                integrand = integrand.traverse_dag_apply_coefficient_split(self.coefficient_split, cache={})
                 if not isinstance(integrand, Zero):
                     new_integrals.append(integral.reconstruct(integrand=integrand))
             itg_data.integrals = new_integrals
