@@ -95,14 +95,19 @@ def test_zero_simplify_arity():
     v = TestFunction(V)
     u = Coefficient(V)
 
+    nonzero = 1
+    with pytest.raises(ArityMismatch):
+        F = inner(u, v + nonzero) * dx
+        compute_form_data(F)
+
     zero = as_tensor([0, u])[0]
     F = inner(u, v + zero) * dx
-    compute_form_data(F, complex_mode=False)
+    compute_form_data(F)
 
     zero = conditional(u < 0, 0, 0)
     F = inner(u, v + zero) * dx
-    compute_form_data(F, complex_mode=False)
+    compute_form_data(F)
 
     zero = conditional(u < 0, 0, conditional(u == 0, 0, 0))
     F = inner(u, v + zero) * dx
-    compute_form_data(F, complex_mode=False)
+    compute_form_data(F)
