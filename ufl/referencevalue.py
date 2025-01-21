@@ -34,3 +34,24 @@ class ReferenceValue(Operator):
     def __str__(self):
         """Format as a string."""
         return f"reference_value({self.ufl_operands[0]})"
+
+    def traverse_dag_apply_coefficient_split(
+        self,
+        coefficient_split,
+        reference_value=False,
+        reference_grad=0,
+        restricted=None,
+        cache=None,
+    ):
+        if reference_value:
+            raise RuntimeError
+        op, = self.ufl_operands
+        if not op._ufl_terminal_modifiers_:
+            raise ValueError(f"Expecting a terminal modifier: got {op!r}.")
+        return op.traverse_dag_apply_coefficient_split(
+            coefficient_split,
+            reference_value=True,
+            reference_grad=reference_grad,
+            restricted=restricted,
+            cache=cache,
+        )
