@@ -32,6 +32,8 @@ _integral_types = [
     # === Integration over topological dimension - 1:
     ("exterior_facet", "ds"),  # Over one-sided exterior facets of a mesh
     ("interior_facet", "dS"),  # Over two-sided facets between pairs of adjacent cells of a mesh
+    # === Integration over topological dimension - 2:
+    ("ridge", "dr"),  # Over ridges of a mesh
     # === Integration over topological dimension 0
     ("vertex", "dP"),  # Over vertices of a mesh
     # === Integration over custom domains
@@ -59,6 +61,7 @@ measure_name_to_integral_type = {s: i for i, s in _integral_types}
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
 point_integral_types = ("vertex",)  # "point")
 facet_integral_types = ("exterior_facet", "interior_facet")
+ridge_integral_types = ("ridge",)
 
 
 def register_integral_type(integral_type, measure_name):
@@ -77,7 +80,7 @@ def as_integral_type(integral_type):
     integral_type = integral_type.replace(" ", "_")
     integral_type = measure_name_to_integral_type.get(integral_type, integral_type)
     if integral_type not in integral_type_to_measure_name:
-        raise ValueError("Invalid integral_type.")
+        raise ValueError(f"Invalid integral_type: {integral_type}.")
     return integral_type
 
 

@@ -20,6 +20,7 @@ from ufl.classes import (
     CellFacetJacobian,
     CellOrientation,
     CellOrigin,
+    CellRidgeJacobian,
     CellVertices,
     CellVolume,
     Expr,
@@ -37,6 +38,7 @@ from ufl.classes import (
     ReferenceFacetVolume,
     ReferenceGrad,
     ReferenceNormal,
+    RidgeJacobian,
     SpatialCoordinate,
 )
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
@@ -119,7 +121,6 @@ class GeometryLoweringApplier(MultiFunction):
         if domain.topological_dimension() < domain.geometric_dimension():
             co = CellOrientation(domain)
             detJ = co * detJ
-
         return detJ
 
     @memoized_handler
@@ -164,6 +165,39 @@ class GeometryLoweringApplier(MultiFunction):
         #     detFJ = co*detFJ
 
         return detFJ
+
+    @memoized_handler
+    def ridge_jacobian(self, o):
+        """Apply to ridge_jacobian."""
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
+        domain = o.ufl_domain()
+        J = self.jacobian(Jacobian(domain))
+        REJ = CellRidgeJacobian(domain)
+        i, j, k = indices(3)
+        return as_tensor(J[i, k] * REJ[k, j], (i, j))
+
+    @memoized_handler
+    def ridge_jacobian_inverse(self, o):
+        """Apply to edge_jacobian_inverse."""
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
+        domain = o.ufl_domain()
+        EJ = self.ridge_jacobian(RidgeJacobian(domain))
+        return inverse_expr(EJ)
+
+    @memoized_handler
+    def ridge_jacobian_determinant(self, o):
+        """Apply to edge_jacobian_determinant."""
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
+        domain = o.ufl_domain()
+        EJ = self.ridge_jacobian(RidgeJacobian(domain))
+        detEJ = determinant_expr(EJ)
+        return detEJ
 
     @memoized_handler
     def spatial_coordinate(self, o):
