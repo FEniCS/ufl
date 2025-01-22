@@ -8,14 +8,7 @@ This module contains classes and functions to remove component tensors.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.algorithms.estimate_degrees import SumDegreeEstimator
-from ufl.classes import (
-    ComponentTensor,
-    Form,
-    Index,
-    MultiIndex,
-    Zero,
-)
+from ufl.classes import ComponentTensor, Form, Index, MultiIndex, Zero
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 
@@ -42,13 +35,10 @@ class IndexReplacer(MultiFunction):
         free_indices = []
         index_dimensions = []
         for i, d in zip(o.ufl_free_indices, o.ufl_index_dimensions):
-            if Index(i) in self.fimap:
-                ind_j = self.fimap[Index(i)]
-                if isinstance(ind_j, Index):
-                    free_indices.append(ind_j.count())
-                    index_dimensions.append(d)
-            else:
-                free_indices.append(i)
+            k = Index(i)
+            j = self.fimap.get(k, k)
+            if isinstance(j, Index):
+                free_indices.append(j.count())
                 index_dimensions.append(d)
         return Zero(
             shape=o.ufl_shape,
@@ -69,26 +59,24 @@ class IndexRemover(MultiFunction):
         """Initialise."""
         MultiFunction.__init__(self)
         self._object_cache = {}
-        self.degree_estimator = SumDegreeEstimator(1, {})
 
     expr = MultiFunction.reuse_if_untouched
 
     @memoized_handler
-    def reference_grad(self, o):
-        """Simplify ReferenceGrad(Constant)."""
+    def _unary_operator(self, o):
+        """Simplify UnaryOperator(Zero)."""
         (operand,) = o.ufl_operands
-        operand = map_expr_dag(self, operand)
-        degree = map_expr_dag(self.degree_estimator, operand)
-        if degree == 0:
+        f = map_expr_dag(self, operand)
+        if isinstance(f, Zero):
             return Zero(
                 shape=o.ufl_shape,
                 free_indices=o.ufl_free_indices,
                 index_dimensions=o.ufl_index_dimensions,
             )
-        if operand is o.ufl_operands[0]:
+        if f is operand:
             # Reuse if untouched
             return o
-        return o._ufl_expr_reconstruct_(operand)
+        return o._ufl_expr_reconstruct_(f)
 
     @memoized_handler
     def indexed(self, o):
@@ -110,6 +98,9 @@ class IndexRemover(MultiFunction):
             # Reuse if untouched
             return o
         return o._ufl_expr_reconstruct_(expr, i1)
+
+    reference_grad = _unary_operator
+    reference_value = _unary_operator
 
 
 def remove_component_tensors(o):
