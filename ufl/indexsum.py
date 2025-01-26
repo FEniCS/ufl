@@ -6,6 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.algebra import Product
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import MultiIndex
@@ -21,7 +22,7 @@ from ufl.precedence import parstr
 class IndexSum(Operator):
     """Index sum."""
 
-    __slots__ = ("_dimension", "ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = ("_dimension", "_initialised", "ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, summand, index):
         """Create a new IndexSum."""
@@ -33,10 +34,10 @@ class IndexSum(Operator):
         if len(index) != 1:
             raise ValueError(f"Expecting a single Index but got {len(index)}.")
 
+        (j,) = index
         # Simplification to zero
         if isinstance(summand, Zero):
             sh = summand.ufl_shape
-            (j,) = index
             fi = summand.ufl_free_indices
             fid = summand.ufl_index_dimensions
             pos = fi.index(j.count())
@@ -44,10 +45,22 @@ class IndexSum(Operator):
             fid = fid[:pos] + fid[pos + 1 :]
             return Zero(sh, fi, fid)
 
-        return Operator.__new__(cls)
+        # Factor out common factors
+        if isinstance(summand, Product):
+            a, b = summand.ufl_operands
+            if j.count() not in a.ufl_free_indices:
+                return Product(a, IndexSum(b, index))
+            elif j.count() not in b.ufl_free_indices:
+                return Product(b, IndexSum(a, index))
+
+        self = Operator.__new__(cls)
+        self._initialised = False
+        return self
 
     def __init__(self, summand, index):
         """Initialise."""
+        if self._initialised:
+            return
         (j,) = index
         fi = summand.ufl_free_indices
         fid = summand.ufl_index_dimensions
@@ -56,6 +69,7 @@ class IndexSum(Operator):
         self.ufl_free_indices = fi[:pos] + fi[pos + 1 :]
         self.ufl_index_dimensions = fid[:pos] + fid[pos + 1 :]
         Operator.__init__(self, (summand, index))
+        self._initialised = True
 
     def index(self):
         """Get index."""
