@@ -406,19 +406,16 @@ def _getitem(self, component):
     mi = MultiIndex(all_indices)
     a = Indexed(self, mi)
 
-    # TODO: I think applying as_tensor after index sums results in
-    # cleaner expression graphs.
-
-    # If the Ellipsis or any slices were found, wrap as tensor valued
-    # with the slice indices created at the top here
-    if slice_indices:
-        a = as_tensor(a, slice_indices)
-
     # If any repeated indices were found, apply implicit summation
     # over those
     for i in repeated_indices:
         mi = MultiIndex((i,))
         a = IndexSum(a, mi)
+
+    # If the Ellipsis or any slices were found, wrap as tensor valued
+    # with the slice indices created at the top here
+    if slice_indices:
+        a = as_tensor(a, slice_indices)
 
     # Check for zero (last so we can get indices etc from a, could
     # possibly be done faster by checking early instead)
