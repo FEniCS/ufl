@@ -71,18 +71,18 @@ class DAGTraverser:
         """
         raise AssertionError(f"Rule not set for {type(o)}")
 
-    def reuse_if_untouched(self, o: Expr) -> Expr:
+    def reuse_if_untouched(self, o: Expr, *args) -> Expr:
         """Reuse if touched.
 
         Args:
             o: `Expr` to start DAG traversal from.
-            new_ufl_operands: new ufl_operands of ``o``.
+            args: arguments to the ``process`` singledispatchmethod.
 
         Returns:
             Processed `Expr`.
 
         """
-        new_ufl_operands = [self(operand) for operand in o.ufl_operands]
+        new_ufl_operands = [self(operand, *args) for operand in o.ufl_operands]
         if all(nc == c for nc, c in zip(new_ufl_operands, o.ufl_operands)):
             return o
         else:
@@ -103,7 +103,7 @@ class DAGTraverser:
 
         @wraps(method)
         def wrapper(self, o, *args):
-            processed_operands = [self(operand) for operand in o.ufl_operands]
+            processed_operands = [self(operand, *args) for operand in o.ufl_operands]
             return method(self, o, *processed_operands, *args)
 
         return wrapper
@@ -120,9 +120,27 @@ class DAGTraverser:
         def postorder(method):
             @wraps(method)
             def wrapper(self, o, *args):
-                processed_operands = [self(o.ufl_operands[i]) for i in indices]
+                processed_operands = [self(o.ufl_operands[i], *args) for i in indices]
                 return method(self, o, *processed_operands, *args)
 
             return wrapper
 
         return postorder
+
+    @staticmethod
+    def preorder(method):
+        """Preorder decorator.
+
+        The wrappee takes ``(o_in, *args_in)``, processes them first, and
+        returns ``(o_out, *args_out)``. The wrapper then takes the output,
+        performs recursion based on the type of ``o_out`` using ``args_out``,
+        and returns the result.
+
+        """
+
+        @wraps(method)
+        def wrapper(self, o_in, *args_in):
+            o_out, *args_out = method(self, o_in, *args_in)
+            return self(o_out, *args_out)
+
+        return wrapper
