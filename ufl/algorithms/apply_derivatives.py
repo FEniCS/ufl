@@ -8,6 +8,7 @@
 
 import warnings
 from collections import defaultdict
+from functools import singledispatchmethod
 from math import pi
 
 import numpy as np
@@ -16,17 +17,25 @@ from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
-from ufl.argument import BaseArgument
+from ufl.argument import Argument, BaseArgument
+from ufl.averaging import CellAvg, FacetAvg
 from ufl.checks import is_cellwise_constant
 from ufl.classes import (
+    Abs,
+    CellCoordinate,
     Coefficient,
+    ComponentTensor,
     Conj,
+    Constant,
     ConstantValue,
+    Division,
+    Expr,
     ExprList,
     ExprMapping,
     FacetNormal,
     FloatValue,
     FormArgument,
+    GeometricQuantity,
     Grad,
     Identity,
     Imag,
@@ -35,7 +44,9 @@ from ufl.classes import (
     Jacobian,
     JacobianDeterminant,
     JacobianInverse,
+    Label,
     ListTensor,
+    Power,
     Product,
     Real,
     ReferenceGrad,
@@ -45,21 +56,47 @@ from ufl.classes import (
     Variable,
     Zero,
 )
+from ufl.conditional import BinaryCondition, Conditional, NotCondition
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
 from ufl.core.terminal import Terminal
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
     BaseFormOperatorDerivative,
     CoordinateDerivative,
+    Derivative,
 )
 from ufl.domain import MeshSequence, extract_unique_domain
 from ufl.form import Form, ZeroBaseForm
+from ufl.mathfunctions import (
+    Acos,
+    Asin,
+    Atan,
+    Atan2,
+    BesselI,
+    BesselJ,
+    BesselK,
+    BesselY,
+    Cos,
+    Cosh,
+    Erf,
+    Exp,
+    Ln,
+    MathFunction,
+    Sin,
+    Sinh,
+    Sqrt,
+    Tan,
+    Tanh,
+)
 from ufl.operators import (
+    MaxValue,
+    MinValue,
     bessel_I,
     bessel_J,
     bessel_K,
@@ -77,6 +114,7 @@ from ufl.operators import (
     sqrt,
 )
 from ufl.pullback import CustomPullback, PhysicalPullback
+from ufl.restriction import Restricted
 from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, unwrap_list_tensor
 
 # TODO: Add more rulesets?
@@ -107,7 +145,8 @@ def flatten_domain_element(domain, element):
     return flattened
 
 
-class GenericDerivativeRuleset(MultiFunction):
+# TODO: Use GenericDerivativeRuleset everywhere and remove this.
+class GenericDerivativeRulesetMultiFunction(MultiFunction):
     """A generic derivative."""
 
     def __init__(self, var_shape):
@@ -579,17 +618,590 @@ class GenericDerivativeRuleset(MultiFunction):
         return dc * df + (1.0 - dc) * dg
 
 
+class GenericDerivativeRuleset(DAGTraverser):
+    """A generic derivative."""
+
+    def __init__(self, var_shape: tuple, compress=True, vcache=None, rcache=None) -> None:
+        """Initialise."""
+        super().__init__(compress=compress, vcache=vcache, rcache=rcache)
+        self._var_shape = var_shape
+
+    def unexpected(self, o):
+        """Raise error about unexpected type."""
+        raise ValueError(f"Unexpected type {o._ufl_class_.__name__} in AD rules.")
+
+    def override(self, o):
+        """Raise error about overriding."""
+        raise ValueError(
+            f"Type {o._ufl_class_.__name__} must be overridden in specialized AD rule set."
+        )
+
+    # --- Some types just don't have any derivative, this is just to
+    # --- make algorithm structure generic
+
+    def non_differentiable_terminal(self, o):
+        """Return the non-differentiated object.
+
+        Labels and indices are not differentiable: it's convenient to
+        return the non-differentiated object.
+        """
+        return o
+
+    # --- Helper functions for creating zeros with the right shapes
+
+    def independent_terminal(self, o):
+        """A zero with correct shape for terminals independent of diff. variable."""
+        return Zero(o.ufl_shape + self._var_shape)
+
+    def independent_operator(self, o):
+        """A zero with correct shape and indices for operators independent of diff. variable."""
+        return Zero(o.ufl_shape + self._var_shape, o.ufl_free_indices, o.ufl_index_dimensions)
+
+    # --- Error checking for missing handlers and unexpected types
+
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
+
+        Args:
+            o: `Expr` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        raise AssertionError(f"UFL expression expected: got {o}")
+
+    @process.register(Expr)
+    def _(self, o: Expr) -> Expr:
+        """Raise error."""
+        raise ValueError(
+            f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
+            "Have you added a new type?"
+        )
+
+    @process.register(Derivative)
+    def _(self, o: Expr) -> Expr:
+        """Raise error."""
+        raise ValueError(
+            f"Unhandled derivative type {o._ufl_class_.__name__}, "
+            "nested differentiation has failed."
+        )
+
+    @process.register(Label)
+    @process.register(MultiIndex)
+    def _(self, o: Expr) -> Expr:
+        return self.non_differentiable_terminal(o)
+
+    # --- All derivatives need to define grad and averaging
+
+    @process.register(Grad)
+    @process.register(CellAvg)
+    @process.register(FacetAvg)
+    def _(self, o: Expr) -> Expr:
+        return self.override(o)
+
+    # --- Default rules for terminals
+
+    # Literals are by definition independent of any differentiation variable
+    @process.register(ConstantValue)
+    # Constants are independent of any differentiation
+    @process.register(Constant)
+    def _(self, o: Expr) -> Expr:
+        return self.independent_terminal(o)
+
+    # Rules for form arguments must be specified in specialized rule set
+    @process.register(FormArgument)
+    # Rules for geometric quantities must be specified in specialized rule set
+    @process.register(GeometricQuantity)
+    def _(self, o: Expr) -> Expr:
+        return self.override(o)
+
+    # These types are currently assumed independent, but for non-affine domains
+    # this no longer holds and we want to implement rules for them.
+    # facet_normal = independent_terminal
+    # spatial_coordinate = independent_terminal
+    # cell_coordinate = independent_terminal
+
+    # Measures of cell entities, assuming independent although
+    # this will not be true for all of these for non-affine domains
+    # cell_volume = independent_terminal
+    # circumradius = independent_terminal
+    # facet_area = independent_terminal
+    # cell_surface_area = independent_terminal
+    # min_cell_edge_length = independent_terminal
+    # max_cell_edge_length = independent_terminal
+    # min_facet_edge_length = independent_terminal
+    # max_facet_edge_length = independent_terminal
+
+    # Other stuff
+    # cell_orientation = independent_terminal
+    # quadrature_weigth = independent_terminal
+
+    # These types are currently not expected to show up in AD pass.
+    # To make some of these available to the end-user, they need to be
+    # implemented here.
+    # facet_coordinate = unexpected
+    # cell_origin = unexpected
+    # facet_origin = unexpected
+    # cell_facet_origin = unexpected
+    # jacobian = unexpected
+    # jacobian_determinant = unexpected
+    # jacobian_inverse = unexpected
+    # facet_jacobian = unexpected
+    # facet_jacobian_determinant = unexpected
+    # facet_jacobian_inverse = unexpected
+    # cell_facet_jacobian = unexpected
+    # cell_facet_jacobian_determinant = unexpected
+    # cell_facet_jacobian_inverse = unexpected
+    # cell_vertices = unexpected
+    # cell_edge_vectors = unexpected
+    # facet_edge_vectors = unexpected
+    # reference_cell_edge_vectors = unexpected
+    # reference_facet_edge_vectors = unexpected
+    # cell_normal = unexpected # TODO: Expecting rename
+    # cell_normals = unexpected
+    # facet_tangents = unexpected
+    # cell_tangents = unexpected
+    # cell_midpoint = unexpected
+    # facet_midpoint = unexpected
+
+    # --- Default rules for operators
+
+    @process.register(Variable)
+    def _(self, o: Expr) -> Expr:
+        """Differentiate a variable."""
+        op, _ = o.ufl_operands
+        return self(op)
+
+    # --- Indexing and component handling
+
+    @process.register(Indexed)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, Ap, ii) -> Expr:
+        """Differentiate an indexed."""
+        # Propagate zeros
+        if isinstance(Ap, Zero):
+            return self.independent_operator(o)
+        r = len(Ap.ufl_shape) - len(ii)
+        if r:
+            kk = indices(r)
+            op = Indexed(Ap, MultiIndex(ii.indices() + kk))
+            op = as_tensor(op, kk)
+        else:
+            op = Indexed(Ap, ii)
+        return op
+
+    @process.register(ListTensor)
+    def _(self, o: Expr) -> Expr:
+        """Differentiate a list_tensor."""
+        return ListTensor(*(self(op) for op in o.ufl_operands))
+
+    @process.register(ComponentTensor)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, Ap, ii) -> Expr:
+        """Differentiate a component_tensor."""
+        if isinstance(Ap, Zero):
+            op = self.independent_operator(o)
+        else:
+            Ap, jj = as_scalar(Ap)
+            op = as_tensor(Ap, ii.indices() + jj)
+        return op
+
+    # --- Algebra operators
+
+    @process.register(IndexSum)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, Ap, ii) -> Expr:
+        """Differentiate an index_sum."""
+        return IndexSum(Ap, ii)
+
+    @process.register(Sum)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, da, db) -> Expr:
+        """Differentiate a sum."""
+        return da + db
+
+    @process.register(Product)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, da, db) -> Expr:
+        """Differentiate a product."""
+        # Even though arguments to o are scalar, da and db may be
+        # tensor valued
+        a, b = o.ufl_operands
+        (da, db), ii = as_scalars(da, db)
+        pa = Product(da, b)
+        pb = Product(a, db)
+        s = Sum(pa, pb)
+        if ii:
+            s = as_tensor(s, ii)
+        return s
+
+    @process.register(Division)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp, gp) -> Expr:
+        """Differentiate a division."""
+        f, g = o.ufl_operands
+        if not is_ufl_scalar(f):
+            raise ValueError("Not expecting nonscalar nominator")
+        if not is_true_ufl_scalar(g):
+            raise ValueError("Not expecting nonscalar denominator")
+        # do_df = 1/g
+        # do_dg = -h/g
+        # op = do_df*fp + do_df*gp
+        # op = (fp - o*gp) / g
+        # Get o and gp as scalars, multiply, then wrap as a tensor
+        # again
+        so, oi = as_scalar(o)
+        sgp, gi = as_scalar(gp)
+        o_gp = so * sgp
+        if oi or gi:
+            o_gp = as_tensor(o_gp, oi + gi)
+        op = (fp - o_gp) / g
+        return op
+
+    @process.register(Power)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp, gp) -> Expr:
+        """Differentiate a power."""
+        f, g = o.ufl_operands
+        if not is_true_ufl_scalar(f):
+            raise ValueError("Expecting scalar expression f in f**g.")
+        if not is_true_ufl_scalar(g):
+            raise ValueError("Expecting scalar expression g in f**g.")
+        # Derivation of the general case: o = f(x)**g(x)
+        # do/df  = g * f**(g-1) = g / f * o
+        # do/dg  = ln(f) * f**g = ln(f) * o
+        # do/df * df + do/dg * dg = o * (g / f * df + ln(f) * dg)
+        if isinstance(gp, Zero):
+            # This probably produces better results for the common
+            # case of f**constant
+            op = fp * g * f ** (g - 1)
+        else:
+            # Note: This produces expressions like (1/w)*w**5 instead of w**4
+            # op = o * (fp * g / f + gp * ln(f)) # This reuses o
+            op = f ** (g - 1) * (
+                g * fp + f * ln(f) * gp
+            )  # This gives better accuracy in dolfin integration test
+        # Example: d/dx[x**(x**3)]:
+        # f = x
+        # g = x**3
+        # df = 1
+        # dg = 3*x**2
+        # op1 = o * (fp * g / f + gp * ln(f))
+        #     = x**(x**3)   * (x**3/x + 3*x**2*ln(x))
+        # op2 = f**(g-1) * (g*fp + f*ln(f)*gp)
+        #     = x**(x**3-1) * (x**3 + x*3*x**2*ln(x))
+        return op
+
+    @process.register(Abs)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df) -> Expr:
+        """Differentiate an abs."""
+        (f,) = o.ufl_operands
+        # return conditional(eq(f, 0), 0, Product(sign(f), df)) abs is
+        # not complex differentiable, so we workaround the case of a
+        # real F in complex mode by defensively casting to real inside
+        # the sign.
+        return sign(Real(f)) * df
+
+    # --- Complex algebra
+
+    @process.register(Conj)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df) -> Expr:
+        """Differentiate a conj."""
+        return Conj(df)
+
+    @process.register(Real)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df) -> Expr:
+        """Differentiate a real."""
+        return Real(df)
+
+    @process.register(Imag)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df) -> Expr:
+        """Differentiate a imag."""
+        return Imag(df)
+
+    # --- Mathfunctions
+
+    @process.register(MathFunction)
+    def _(self, o: Expr) -> Expr:
+        """Differentiate a math_function."""
+        # FIXME: Introduce a UserOperator type instead of this hack
+        # and define user derivative() function properly
+        if hasattr(o, "derivative"):
+            (f,) = o.ufl_operands
+            df = self(f)
+            return df * o.derivative()
+        raise ValueError("Unknown math function.")
+
+    @process.register(Sqrt)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate a sqrt."""
+        return fp / (2 * o)
+
+    @process.register(Exp)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate an exp."""
+        return fp * o
+
+    @process.register(Ln)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate a ln."""
+        (f,) = o.ufl_operands
+        if isinstance(f, Zero):
+            raise ZeroDivisionError()
+        return fp / f
+
+    @process.register(Cos)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate a cos."""
+        (f,) = o.ufl_operands
+        return fp * -sin(f)
+
+    @process.register(Sin)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate a sin."""
+        (f,) = o.ufl_operands
+        return fp * cos(f)
+
+    @process.register(Tan)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate a tan."""
+        (f,) = o.ufl_operands
+        return 2.0 * fp / (cos(2.0 * f) + 1.0)
+
+    @process.register(Cosh)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate a cosh."""
+        (f,) = o.ufl_operands
+        return fp * sinh(f)
+
+    @process.register(Sinh)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate a sinh."""
+        (f,) = o.ufl_operands
+        return fp * cosh(f)
+
+    @process.register(Tanh)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate a tanh."""
+        (f,) = o.ufl_operands
+
+        def sech(y):
+            return (2.0 * cosh(y)) / (cosh(2.0 * y) + 1.0)
+
+        return fp * sech(f) ** 2
+
+    @process.register(Acos)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate an acos."""
+        (f,) = o.ufl_operands
+        return -fp / sqrt(1.0 - f**2)
+
+    @process.register(Asin)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate an asin."""
+        (f,) = o.ufl_operands
+        return fp / sqrt(1.0 - f**2)
+
+    @process.register(Atan)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate an atan."""
+        (f,) = o.ufl_operands
+        return fp / (1.0 + f**2)
+
+    @process.register(Atan2)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp, gp) -> Expr:
+        """Differentiate an atan2."""
+        f, g = o.ufl_operands
+        return (g * fp - f * gp) / (f**2 + g**2)
+
+    @process.register(Erf)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate an erf."""
+        (f,) = o.ufl_operands
+        return fp * (2.0 / sqrt(pi) * exp(-(f**2)))
+
+    # --- Bessel functions
+
+    @process.register(BesselJ)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, nup, fp) -> Expr:
+        """Differentiate a bessel_j."""
+        nu, f = o.ufl_operands
+        if not (nup is None or isinstance(nup, Zero)):
+            raise NotImplementedError(
+                "Differentiation of bessel function w.r.t. nu is not supported."
+            )
+
+        if isinstance(nu, Zero):
+            op = -bessel_J(1, f)
+        else:
+            op = 0.5 * (bessel_J(nu - 1, f) - bessel_J(nu + 1, f))
+        return op * fp
+
+    @process.register(BesselY)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, nup, fp) -> Expr:
+        """Differentiate a bessel_y."""
+        nu, f = o.ufl_operands
+        if not (nup is None or isinstance(nup, Zero)):
+            raise NotImplementedError(
+                "Differentiation of bessel function w.r.t. nu is not supported."
+            )
+
+        if isinstance(nu, Zero):
+            op = -bessel_Y(1, f)
+        else:
+            op = 0.5 * (bessel_Y(nu - 1, f) - bessel_Y(nu + 1, f))
+        return op * fp
+
+    @process.register(BesselI)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, nup, fp) -> Expr:
+        """Differentiate a bessel_i."""
+        nu, f = o.ufl_operands
+        if not (nup is None or isinstance(nup, Zero)):
+            raise NotImplementedError(
+                "Differentiation of bessel function w.r.t. nu is not supported."
+            )
+
+        if isinstance(nu, Zero):
+            op = bessel_I(1, f)
+        else:
+            op = 0.5 * (bessel_I(nu - 1, f) + bessel_I(nu + 1, f))
+        return op * fp
+
+    @process.register(BesselK)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, nup, fp) -> Expr:
+        """Differentiate a bessel_k."""
+        nu, f = o.ufl_operands
+        if not (nup is None or isinstance(nup, Zero)):
+            raise NotImplementedError(
+                "Differentiation of bessel function w.r.t. nu is not supported."
+            )
+
+        if isinstance(nu, Zero):
+            op = -bessel_K(1, f)
+        else:
+            op = -0.5 * (bessel_K(nu - 1, f) + bessel_K(nu + 1, f))
+        return op * fp
+
+    # --- Restrictions
+
+    @process.register(Restricted)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
+        """Differentiate a restricted."""
+        (f,) = o.ufl_operands
+        # Restriction and differentiation commutes
+        if isinstance(fp, ConstantValue):
+            return fp  # TODO: Add simplification to Restricted instead?
+        else:
+            return fp(o._side)  # (f+-)' == (f')+-
+
+    # --- Conditionals
+
+    @process.register(BinaryCondition)
+    def _(self, o: Expr) -> Expr:
+        """Differentiate a binary_condition."""
+        # Should not be used anywhere...
+        return None
+
+    @process.register(NotCondition)
+    def _(self, o: Expr) -> Expr:
+        """Differentiate a not_condition."""
+        # Should not be used anywhere...
+        return None
+
+    @process.register(Conditional)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, unused_dc, dt, df) -> Expr:
+        """Differentiate a conditional."""
+        if isinstance(dt, Zero) and isinstance(df, Zero):
+            # Assuming dt and df have the same indices here, which
+            # should be the case
+            return dt
+        else:
+            # Not placing t[1],f[1] outside, allowing arguments inside
+            # conditionals.  This will make legacy ffc fail, but
+            # should work with uflacs.
+            c = o.ufl_operands[0]
+            return conditional(c, dt, df)
+
+    @process.register(MaxValue)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df, dg) -> Expr:
+        """Differentiate a max_value."""
+        # d/dx max(f, g) =
+        # f > g: df/dx
+        # f < g: dg/dx
+        # Placing df,dg outside here to avoid getting arguments inside
+        # conditionals
+        f, g = o.ufl_operands
+        dc = conditional(f > g, 1, 0)
+        return dc * df + (1.0 - dc) * dg
+
+    @process.register(MinValue)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df, dg) -> Expr:
+        """Differentiate a min_value."""
+        # d/dx min(f, g) =
+        #  f < g: df/dx
+        #  else: dg/dx
+        #  Placing df,dg outside here to avoid getting arguments
+        #  inside conditionals
+        f, g = o.ufl_operands
+        dc = conditional(f < g, 1, 0)
+        return dc * df + (1.0 - dc) * dg
+
+
 class GradRuleset(GenericDerivativeRuleset):
     """Take the grad derivative."""
 
-    def __init__(self, geometric_dimension):
+    def __init__(self, geometric_dimension, compress=True, vcache=None, rcache=None):
         """Initialise."""
-        GenericDerivativeRuleset.__init__(self, var_shape=(geometric_dimension,))
+        super().__init__((geometric_dimension,), compress=compress, vcache=vcache, rcache=rcache)
         self._Id = Identity(geometric_dimension)
+
+    # Work around singledispatchmethod inheritance issue;
+    # see https://bugs.python.org/issue36457.
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
+
+        Args:
+            o: `Expr` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        return super().process(o)
 
     # --- Specialized rules for geometric quantities
 
-    def geometric_quantity(self, o):
+    @process.register(GeometricQuantity)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a geometric_quantity.
 
         Default for geometric quantities is do/dx = 0 if piecewise constant,
@@ -604,7 +1216,8 @@ class GradRuleset(GenericDerivativeRuleset):
             Do = grad_to_reference_grad(o, K)
             return Do
 
-    def jacobian_inverse(self, o):
+    @process.register(JacobianInverse)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a jacobian_inverse."""
         # grad(K) == K_ji rgrad(K)_rj
         if is_cellwise_constant(o):
@@ -617,14 +1230,16 @@ class GradRuleset(GenericDerivativeRuleset):
     # TODO: Add more explicit geometry type handlers here, with
     # non-affine domains several should be non-zero.
 
-    def spatial_coordinate(self, o):
+    @process.register(SpatialCoordinate)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a spatial_coordinate.
 
         dx/dx = I.
         """
         return self._Id
 
-    def cell_coordinate(self, o):
+    @process.register(CellCoordinate)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a cell_coordinate.
 
         dX/dx = inv(dx/dX) = inv(J) = K.
@@ -634,7 +1249,8 @@ class GradRuleset(GenericDerivativeRuleset):
 
     # --- Specialized rules for form arguments
 
-    def base_form_operator(self, o):
+    @process.register(BaseFormOperator)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a base_form_operator."""
         # Push the grad through the operator is not legal in most cases:
         #    -> Not enouth regularity for chain rule to hold!
@@ -642,13 +1258,15 @@ class GradRuleset(GenericDerivativeRuleset):
         # been assembled and substituted by its output.
         return Grad(o)
 
-    def coefficient(self, o):
+    @process.register(Coefficient)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a coefficient."""
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
         return Grad(o)
 
-    def argument(self, o):
+    @process.register(Argument)
+    def _(self, o: Expr) -> Expr:
         """Differentiate an argument."""
         # TODO: Enable this after fixing issue#13, unless we move
         # simplificat ion to a separate stage?
@@ -660,7 +1278,8 @@ class GradRuleset(GenericDerivativeRuleset):
 
     # --- Rules for values or derivatives in reference frame
 
-    def reference_value(self, o):
+    @process.register(ReferenceValue)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
@@ -717,7 +1336,8 @@ class GradRuleset(GenericDerivativeRuleset):
                 K = JacobianInverse(domain)
                 return grad_to_reference_grad(o, K)
 
-    def reference_grad(self, o):
+    @process.register(ReferenceGrad)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a reference_grad."""
         if is_cellwise_constant(o):
             return self.independent_terminal(o)
@@ -775,7 +1395,8 @@ class GradRuleset(GenericDerivativeRuleset):
 
     # --- Nesting of gradients
 
-    def grad(self, o):
+    @process.register(Grad)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a grad.
 
         Represent grad(grad(f)) as Grad(Grad(f)).
@@ -797,8 +1418,10 @@ class GradRuleset(GenericDerivativeRuleset):
         # 1) n = count number of Grads, get f
         # 2) if not f.has_derivatives(n): return zero(...)
 
-    cell_avg = GenericDerivativeRuleset.independent_operator
-    facet_avg = GenericDerivativeRuleset.independent_operator
+    @process.register(CellAvg)
+    @process.register(FacetAvg)
+    def _(self, o: Expr) -> Expr:
+        return self.independent_operator(o)
 
 
 def grad_to_reference_grad(o, K):
@@ -820,14 +1443,30 @@ def grad_to_reference_grad(o, K):
 class ReferenceGradRuleset(GenericDerivativeRuleset):
     """Apply the reference grad derivative."""
 
-    def __init__(self, topological_dimension):
+    def __init__(self, topological_dimension, compress=True, vcache=None, rcache=None):
         """Initialise."""
-        GenericDerivativeRuleset.__init__(self, var_shape=(topological_dimension,))
+        super().__init__((topological_dimension,), compress=compress, vcache=vcache, rcache=rcache)
         self._Id = Identity(topological_dimension)
+
+    # Work around singledispatchmethod inheritance issue;
+    # see https://bugs.python.org/issue36457.
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
+
+        Args:
+            o: `Expr` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        return super().process(o)
 
     # --- Specialized rules for geometric quantities
 
-    def geometric_quantity(self, o):
+    @process.register(GeometricQuantity)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a geometric_quantity.
 
         dg/dX = 0 if piecewise constant, otherwise ReferenceGrad(g).
@@ -839,7 +1478,8 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
             # form compilers will handle this.
             return ReferenceGrad(o)
 
-    def spatial_coordinate(self, o):
+    @process.register(SpatialCoordinate)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a spatial_coordinate.
 
         dx/dX = J.
@@ -847,7 +1487,8 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         # Don't convert back to J, otherwise we get in a loop
         return ReferenceGrad(o)
 
-    def cell_coordinate(self, o):
+    @process.register(CellCoordinate)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a cell_coordinate.
 
         dX/dX = I.
@@ -859,54 +1500,55 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
     # --- Specialized rules for form arguments
 
-    def reference_value(self, o):
+    @process.register(ReferenceValue)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
         if not o.ufl_operands[0]._ufl_is_terminal_:
             raise ValueError("ReferenceValue can only wrap a terminal")
         return ReferenceGrad(o)
 
-    def coefficient(self, o):
+    @process.register(Coefficient)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a coefficient."""
         raise ValueError("Coefficient should be wrapped in ReferenceValue by now")
 
-    def argument(self, o):
+    @process.register(Argument)
+    def _(self, o: Expr) -> Expr:
         """Differentiate an argument."""
         raise ValueError("Argument should be wrapped in ReferenceValue by now")
 
     # --- Nesting of gradients
 
-    def grad(self, o):
+    @process.register(Grad)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a grad."""
         raise ValueError(
             f"Grad should have been transformed by this point, but got {type(o).__name__}."
         )
 
-    def reference_grad(self, o):
+    @process.register(ReferenceGrad)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a reference_grad.
 
         Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f)).
         """
-        # Check that f is a "differential terminal"
-        (f,) = o.ufl_operands
-        if not isinstance(f, (ReferenceGrad, ReferenceValue, Terminal)):
+        # Check that o is a "differential terminal"
+        if not isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue, Terminal)):
             raise ValueError("Expecting only grads applied to a terminal.")
-
-        # The Jacobian of a piecewise linear mesh is piecewise constant.
-        if isinstance(f, SpatialCoordinate) and f._domain.is_piecewise_linear_simplex_domain():
-            return self.independent_terminal(o)
-
         return ReferenceGrad(o)
 
-    cell_avg = GenericDerivativeRuleset.independent_operator
-    facet_avg = GenericDerivativeRuleset.independent_operator
+    @process.register(CellAvg)
+    @process.register(FacetAvg)
+    def _(self, o: Expr) -> Expr:
+        return self.independent_operator(o)
 
 
-class VariableRuleset(GenericDerivativeRuleset):
+class VariableRuleset(GenericDerivativeRulesetMultiFunction):
     """Differentiate with respect to a variable."""
 
     def __init__(self, var):
         """Initialise."""
-        GenericDerivativeRuleset.__init__(self, var_shape=var.ufl_shape)
+        GenericDerivativeRulesetMultiFunction.__init__(self, var_shape=var.ufl_shape)
         if var.ufl_free_indices:
             raise ValueError("Differentiation variable cannot have free indices.")
         self._variable = var
@@ -943,10 +1585,10 @@ class VariableRuleset(GenericDerivativeRuleset):
         return fp
 
     # Explicitly defining dg/dw == 0
-    geometric_quantity = GenericDerivativeRuleset.independent_terminal
+    geometric_quantity = GenericDerivativeRulesetMultiFunction.independent_terminal
 
     # Explicitly defining da/dw == 0
-    argument = GenericDerivativeRuleset.independent_terminal
+    argument = GenericDerivativeRulesetMultiFunction.independent_terminal
 
     def coefficient(self, o):
         """Differentiate a coefficient.
@@ -1015,11 +1657,11 @@ class VariableRuleset(GenericDerivativeRuleset):
             raise ValueError("Unexpected argument to reference_grad.")
         return self.independent_terminal(o)
 
-    cell_avg = GenericDerivativeRuleset.independent_operator
-    facet_avg = GenericDerivativeRuleset.independent_operator
+    cell_avg = GenericDerivativeRulesetMultiFunction.independent_operator
+    facet_avg = GenericDerivativeRulesetMultiFunction.independent_operator
 
 
-class GateauxDerivativeRuleset(GenericDerivativeRuleset):
+class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
     """Apply AFD (Automatic Functional Differentiation) to expression.
 
     Implements rules for the Gateaux derivative D_w[v](...) defined as
@@ -1028,7 +1670,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     def __init__(self, coefficients, arguments, coefficient_derivatives, pending_operations):
         """Initialise."""
-        GenericDerivativeRuleset.__init__(self, var_shape=())
+        GenericDerivativeRulesetMultiFunction.__init__(self, var_shape=())
 
         # Type checking
         if not isinstance(coefficients, ExprList):
@@ -1054,7 +1696,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         self.pending_operations = pending_operations
 
     # Explicitly defining dg/dw == 0
-    geometric_quantity = GenericDerivativeRuleset.independent_terminal
+    geometric_quantity = GenericDerivativeRulesetMultiFunction.independent_terminal
 
     def cell_avg(self, o, fp):
         """Differentiate a cell_avg."""
@@ -1069,7 +1711,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return facet_avg(fp)
 
     # Explicitly defining da/dw == 0
-    argument = GenericDerivativeRuleset.independent_terminal
+    argument = GenericDerivativeRulesetMultiFunction.independent_terminal
 
     def coefficient(self, o):
         """Differentiate a coefficient."""
@@ -1448,6 +2090,9 @@ class DerivativeRuleDispatcher(MultiFunction):
         # Record the operations delayed to the derivative expansion phase:
         # Example: dN(u)/du where `N` is a BaseFormOperator and `u` a Coefficient
         self.pending_operations = ()
+        # Create DAGTraverser caches.
+        self._grad_ruleset_dict = {}
+        self._reference_grad_ruleset_dict = {}
 
     def terminal(self, o):
         """Apply to a terminal."""
@@ -1461,15 +2106,17 @@ class DerivativeRuleDispatcher(MultiFunction):
 
     def grad(self, o, f):
         """Apply to a grad."""
-        rules = GradRuleset(o.ufl_shape[-1])
-        key = (GradRuleset, o.ufl_shape[-1])
-        return map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        gdim = o.ufl_shape[-1]
+        dag_traverser = self._grad_ruleset_dict.setdefault(gdim, GradRuleset(gdim))
+        return dag_traverser(f)
 
     def reference_grad(self, o, f):
         """Apply to a reference_grad."""
-        rules = ReferenceGradRuleset(o.ufl_shape[-1])  # FIXME: Look over this and test better.
-        key = (ReferenceGradRuleset, o.ufl_shape[-1])
-        return map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        tdim = o.ufl_shape[-1]
+        dag_traverser = self._reference_grad_ruleset_dict.setdefault(
+            tdim, ReferenceGradRuleset(tdim)
+        )
+        return dag_traverser(f)
 
     def variable_derivative(self, o, f, dummy_v):
         """Apply to a variable_derivative."""
@@ -1699,7 +2346,7 @@ def apply_derivatives(expression):
     return sum(dexpression_dvar)
 
 
-class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
+class CoordinateDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
     """Apply AFD (Automatic Functional Differentiation) to expression.
 
     Implements rules for the Gateaux derivative D_w[v](...) defined as
@@ -1709,7 +2356,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
 
     def __init__(self, coefficients, arguments, coefficient_derivatives):
         """Initialise."""
-        GenericDerivativeRuleset.__init__(self, var_shape=())
+        GenericDerivativeRulesetMultiFunction.__init__(self, var_shape=())
 
         # Type checking
         if not isinstance(coefficients, ExprList):
@@ -1731,10 +2378,10 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         self._cd = {cd[2 * i]: cd[2 * i + 1] for i in range(len(cd) // 2)}
 
     # Explicitly defining dg/dw == 0
-    geometric_quantity = GenericDerivativeRuleset.independent_terminal
+    geometric_quantity = GenericDerivativeRulesetMultiFunction.independent_terminal
 
     # Explicitly defining da/dw == 0
-    argument = GenericDerivativeRuleset.independent_terminal
+    argument = GenericDerivativeRulesetMultiFunction.independent_terminal
 
     def coefficient(self, o):
         """Differentiate a coefficient."""
