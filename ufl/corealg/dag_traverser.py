@@ -71,18 +71,18 @@ class DAGTraverser:
         """
         raise AssertionError(f"Rule not set for {type(o)}")
 
-    def reuse_if_untouched(self, o: Expr) -> Expr:
+    def reuse_if_untouched(self, o: Expr, *args) -> Expr:
         """Reuse if touched.
 
         Args:
             o: `Expr` to start DAG traversal from.
-            new_ufl_operands: new ufl_operands of ``o``.
+            args: arguments to the ``process`` singledispatchmethod.
 
         Returns:
             Processed `Expr`.
 
         """
-        new_ufl_operands = [self(operand) for operand in o.ufl_operands]
+        new_ufl_operands = [self(operand, *args) for operand in o.ufl_operands]
         if all(nc == c for nc, c in zip(new_ufl_operands, o.ufl_operands)):
             return o
         else:
