@@ -151,8 +151,8 @@ def test_apply_single_function_pullbacks_triangle3d():
         vc: as_vector(Jinv[j, i] * rvc[j], i),
         t: rt,
         s: as_tensor([[rs[0], rs[1], rs[2]], [rs[1], rs[3], rs[4]], [rs[2], rs[4], rs[5]]]),
-        cov2t: as_tensor(Jinv[k, i] * rcov2t[k, l] * Jinv[l, j], (i, j)),
-        contra2t: as_tensor((1.0 / detJ) ** 2 * J[i, k] * rcontra2t[k, l] * J[j, l], (i, j)),
+        cov2t: as_tensor(Jinv[k, i] * (rcov2t[k, l] * Jinv[l, j]), (i, j)),
+        contra2t: (1.0 / detJ) ** 2 * as_tensor(J[i, k] * (rcontra2t[k, l] * J[j, l]), (i, j)),
         # Mixed elements become a bit more complicated
         uml2: as_vector([ruml2[0] / detJ, ruml2[1] / detJ]),
         um: rum,
