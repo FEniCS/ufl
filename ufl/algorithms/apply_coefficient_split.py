@@ -1,4 +1,9 @@
-#  using code from TSFC.
+"""Apply coefficient split.
+
+This module contains the apply_coefficient_split function that
+decomposes mixed coefficients in the given Expr into components.
+
+"""
 
 from functools import singledispatchmethod
 
@@ -22,39 +27,46 @@ from ufl.tensors import as_tensor
 
 
 class CoefficientSplitter(DAGVisitor):
+    """DAG Visitor to split mixed coefficients."""
 
     def __init__(self, coefficient_split):
-        """Split mixed coefficients.
+        """Initialise.
 
         Args:
             coefficient_split: `dict` that maps mixed coefficients to their components.
-            reference_value: If `ReferenceValue` has been applied.
-            reference_grad: Number of `ReferenceGrad`s that have been applied.
-            restricted: '+', '-', or None.
-            cache: `dict` for caching DAG nodes.
-
-        Returns:
-            This node wrapped with `ReferenceValue` (if ``reference_value``),
-            `ReferenceGrad` (``reference_grad`` times), and `Restricted` (if
-            ``restricted`` is '+' or '-'). The underlying terminal will be
-            decomposed into components according to ``coefficient_split``.
 
         """
         super().__init__()
         self._coefficient_split = coefficient_split
 
     @singledispatchmethod
-    def process(self, node, *args):
-        """Handle base case."""
+    def process(
+        self, node: Expr, reference_value: bool, reference_grad: int, restricted: str
+    ) -> Expr:
+        """Split mixed coefficients.
+
+        Args:
+            node: `Expr` to be processed.
+            reference_value: Whether `ReferenceValue` has been applied or not.
+            reference_grad: Number of `ReferenceGrad`s that have been applied.
+            restricted: '+', '-', or None.
+
+        Returns:
+            This node wrapped with `ReferenceValue` (if ``reference_value``),
+            `ReferenceGrad` (``reference_grad`` times), and `Restricted` (if
+            ``restricted`` is '+' or '-'). The underlying terminal will be
+            decomposed into components according to ``self._coefficient_split``.
+
+        """
         raise AssertionError(f"UFL node expected: got {node}")
 
     @process.register(Expr)
-    def _(self, node, *args):
+    def _(self, node: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle Expr."""
-        return self.reuse_if_untouched(node, *args)
+        return self.reuse_if_untouched(node, reference_value, reference_grad, restricted)
 
     @process.register(ReferenceValue)
-    def _(self, node, reference_value: bool, reference_grad: int, restricted: str):
+    def _(self, node: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle ReferenceValue."""
         if reference_value:
             raise RuntimeError(f"Can not apply ReferenceValue on a ReferenceValue: got {node}")
@@ -64,7 +76,7 @@ class CoefficientSplitter(DAGVisitor):
         return self(op, True, reference_grad, restricted)
 
     @process.register(ReferenceGrad)
-    def _(self, node, reference_value: bool, reference_grad: int, restricted: str):
+    def _(self, node: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle ReferenceGrad."""
         op, = node.ufl_operands
         if not op._ufl_terminal_modifiers_:
@@ -72,7 +84,7 @@ class CoefficientSplitter(DAGVisitor):
         return self(op, reference_value, reference_grad + 1, restricted)
 
     @process.register(Restricted)
-    def _(self, node, reference_value: bool, reference_grad: int, restricted: str):
+    def _(self, node: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle Restricted."""
         if restricted is not None:
             raise RuntimeError(f"Can not apply Restricted on a Restricted: got {node}")
@@ -82,28 +94,29 @@ class CoefficientSplitter(DAGVisitor):
         return self(op, reference_value, reference_grad, node._side)
 
     @process.register(Terminal)
-    def _(self, node, reference_value: bool, reference_grad: int, restricted: str):
+    def _(self, node: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle Terminal."""
         return self._handle_terminal(node, reference_value, reference_grad, restricted)
 
     @process.register(Coefficient)
-    def _(self, node, reference_value: bool, reference_grad: int, restricted: str):
+    def _(self, node: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle Coefficient."""
         if node not in self._coefficient_split:
             return self._handle_terminal(node, reference_value, reference_grad, restricted)
         if not reference_value:
-            raise RuntimeError(f"ReferenceValue expected: got {o}")
+            raise RuntimeError("ReferenceValue expected")
         beta = indices(reference_grad)
         components = []
         for coeff in self._coefficient_split[node]:
             c = self._handle_terminal(coeff, reference_value, reference_grad, restricted)
             for alpha in np.ndindex(coeff.ufl_element().reference_value_shape):
                 components.append(c[alpha + beta])
-        # Repack derivative indices to shape
         i, = indices(1)
         return ComponentTensor(as_tensor(components)[i], MultiIndex((i,) + beta))
 
-    def _handle_terminal(self, node, reference_value: bool, reference_grad: int, restricted: str):
+    def _handle_terminal(
+        self, node: Expr, reference_value: bool, reference_grad: int, restricted: str
+    ) -> Expr:
         c = node
         if reference_value:
             c = ReferenceValue(c)
@@ -118,7 +131,7 @@ class CoefficientSplitter(DAGVisitor):
         return c
 
 
-def apply_coefficient_split(expr: Expr, coefficient_split: dict):
+def apply_coefficient_split(expr: Expr, coefficient_split: dict) -> Expr:
     """Split mixed coefficients.
 
     Args:

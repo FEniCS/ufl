@@ -14,10 +14,11 @@ class DAGVisitor(ABC):
         self.cache = {}
 
     def __call__(self, node: Expr, *args) -> Expr:
-        """Perform memoised DAG traversal.
+        """Perform memoised DAG traversal with ``process`` singledispatch method.
 
         Args:
             node: `Expr` to start DAG traversal from.
+            args: `Sequence` of arguments to be passed to ``process``.
 
         Returns:
             Processed `Expr`.
@@ -34,10 +35,28 @@ class DAGVisitor(ABC):
     @singledispatchmethod
     @abstractmethod
     def process(self, node: Expr, *args) -> Expr:
-        """Process node by type."""
+        """Process node by type.
+
+        Args:
+            node: `Expr` to start DAG traversal from.
+            args: `Sequence` of arguments to be passed to ``process``.
+
+        Returns:
+            Processed `Expr`.
+
+        """
 
     def reuse_if_untouched(self, node: Expr, *args) -> Expr:
-        """Reuse if touched."""
+        """Reuse if touched.
+
+        Args:
+            node: `Expr` to start DAG traversal from.
+            args: `Sequence` of arguments to be passed to ``process``.
+
+        Returns:
+            Processed `Expr`.
+
+        """
         new_ops = [self(child, *args) for child in node.ufl_operands]
         if all(nc == c for nc, c in zip(new_ops, node.ufl_operands)):
             return node
