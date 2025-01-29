@@ -1,7 +1,9 @@
 #  using code from TSFC.
 
 from functools import singledispatchmethod
+
 import numpy as np
+
 from ufl.classes import (
     Coefficient,
     ComponentTensor,
@@ -13,10 +15,9 @@ from ufl.classes import (
     ReferenceValue,
     Restricted,
     Terminal,
-    Zero,
 )
-from ufl.corealg.dag_visitor import DAGVisitor
 from ufl.core.multiindex import indices
+from ufl.corealg.dag_visitor import DAGVisitor
 from ufl.tensors import as_tensor
 
 

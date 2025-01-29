@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from functools import singledispatchmethod
+
 from ufl.classes import Expr
 
 
