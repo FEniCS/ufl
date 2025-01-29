@@ -70,7 +70,7 @@ class CoefficientSplitter(DAGVisitor):
         """Handle ReferenceValue."""
         if reference_value:
             raise RuntimeError(f"Can not apply ReferenceValue on a ReferenceValue: got {node}")
-        op, = node.ufl_operands
+        (op,) = node.ufl_operands
         if not op._ufl_terminal_modifiers_:
             raise ValueError(f"Must be a terminal modifier: {op!r}.")
         return self(op, True, reference_grad, restricted)
@@ -78,7 +78,7 @@ class CoefficientSplitter(DAGVisitor):
     @process.register(ReferenceGrad)
     def _(self, node: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle ReferenceGrad."""
-        op, = node.ufl_operands
+        (op,) = node.ufl_operands
         if not op._ufl_terminal_modifiers_:
             raise ValueError(f"Must be a terminal modifier: {op!r}.")
         return self(op, reference_value, reference_grad + 1, restricted)
@@ -88,7 +88,7 @@ class CoefficientSplitter(DAGVisitor):
         """Handle Restricted."""
         if restricted is not None:
             raise RuntimeError(f"Can not apply Restricted on a Restricted: got {node}")
-        op, = node.ufl_operands
+        (op,) = node.ufl_operands
         if not op._ufl_terminal_modifiers_:
             raise ValueError(f"Must be a terminal modifier: {op!r}.")
         return self(op, reference_value, reference_grad, node._side)
@@ -111,7 +111,7 @@ class CoefficientSplitter(DAGVisitor):
             c = self._handle_terminal(coeff, reference_value, reference_grad, restricted)
             for alpha in np.ndindex(coeff.ufl_element().reference_value_shape):
                 components.append(c[alpha + beta])
-        i, = indices(1)
+        (i,) = indices(1)
         return ComponentTensor(as_tensor(components)[i], MultiIndex((i,) + beta))
 
     def _handle_terminal(
