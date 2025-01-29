@@ -1,14 +1,27 @@
-"""Base class for dag visitors with UFL ``Expr`` type dispatch."""
+"""Base class for dag visitors with UFL Expr type dispatch."""
+
 from abc import ABC, abstractmethod
 from functools import singledispatchmethod
+from ufl.classes import Expr
 
 
 class DAGVisitor(ABC):
+    """Base class for dag visitors with UFL `Expr` type dispatch."""
 
     def __init__(self):
+        """Initialise."""
         self.cache = {}
 
-    def __call__(self, node, *args):
+    def __call__(self, node: Expr, *args) -> Expr:
+        """Perform memoised DAG traversal.
+
+        Args:
+            node: `Expr` to start DAG traversal from.
+
+        Returns:
+            Processed `Expr`.
+
+        """
         cache_key = (node, *args)
         try:
             return self.cache[cache_key]
@@ -19,10 +32,10 @@ class DAGVisitor(ABC):
 
     @singledispatchmethod
     @abstractmethod
-    def process(self, node, *args):
+    def process(self, node: Expr, *args) -> Expr:
         """Process node by type."""
 
-    def reuse_if_untouched(self, node, *args):
+    def reuse_if_untouched(self, node: Expr, *args) -> Expr:
         """Reuse if touched."""
         new_ops = [self(child, *args) for child in node.ufl_operands]
         if all(nc == c for nc, c in zip(new_ops, node.ufl_operands)):
