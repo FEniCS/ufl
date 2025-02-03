@@ -253,15 +253,7 @@ class Division(Operator):
         a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
-        # Cast into python types as float(np.complex) only throws a warning
-        a = complex(a)
-        b = complex(b)
-        # Avoiding integer division by casting to float
-        try:
-            e = float(a) / float(b)
-        except TypeError:
-            e = a / b
-        return e
+        return a / b
 
     def __str__(self):
         """Format as a string."""
