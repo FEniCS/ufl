@@ -3,6 +3,8 @@ __date__ = "2009-02-13 -- 2009-02-13"
 
 import math
 
+import numpy as np
+
 from ufl import (
     Argument,
     Coefficient,
@@ -33,10 +35,26 @@ from ufl import (
     tr,
     triangle,
 )
-from ufl.constantvalue import as_ufl
+from ufl.constantvalue import ConstantValue, as_ufl
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
+
+
+class CustomConstant(ConstantValue):
+    def __init__(self, value):
+        super().__init__()
+        self._value = value
+
+    @property
+    def ufl_shape(self):
+        return ()
+
+    def evaluate(self, x, mapping, component, index_values):
+        return self._value
+
+    def __repr__(self):
+        return f"CustomConstant({self._value})"
 
 
 def testScalars():
@@ -130,6 +148,21 @@ def testAlgebra():
     e = s((5, 7))
     v = 3 * (5.0 + 7.0) - 7 + 5.0 ** (7.0 / 2)
     assert e == v
+
+
+def testConstant():
+    """Test that constant division doesn't discard the complex type in the case the value is
+    a numpy complex type, not a native python complex type.
+    """
+    _a = np.complex128(1 + 1j)
+    _b = np.complex128(-3 + 2j)
+    a = CustomConstant(_a)
+    b = CustomConstant(_b)
+    expr = a / b
+    e = expr(())
+
+    expected = complex(_a) / complex(_b)
+    assert e == expected
 
 
 def testIndexSum():
