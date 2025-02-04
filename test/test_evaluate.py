@@ -2,8 +2,9 @@ __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-13 -- 2009-02-13"
 
 import math
+
 import numpy as np
-from ufl.constantvalue import ConstantValue
+
 from ufl import (
     Argument,
     Coefficient,
@@ -34,7 +35,7 @@ from ufl import (
     tr,
     triangle,
 )
-from ufl.constantvalue import as_ufl
+from ufl.constantvalue import ConstantValue, as_ufl
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
@@ -150,6 +151,9 @@ def testAlgebra():
 
 
 def testConstant():
+    """Test that constant division doesn't discard the complex type in the case the value is
+    a numpy complex type, not a native python complex type.
+    """
     _a = np.complex128(1 + 1j)
     _b = np.complex128(-3 + 2j)
     a = CustomConstant(_a)
