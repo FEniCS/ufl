@@ -7,9 +7,9 @@ from ufl.classes import Expr
 
 
 class DAGVisitor(ABC):
-    """Base class for dag visitors with UFL `Expr` type dispatch."""
+    """Base class for dag visitors with UFL-type dispatch."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise."""
         self.cache = {}
 
@@ -18,7 +18,7 @@ class DAGVisitor(ABC):
 
         Args:
             node: `Expr` to start DAG traversal from.
-            args: `Sequence` of arguments to be passed to ``process``.
+            args: arguments to the ``process`` singledispatchmethod.
 
         Returns:
             Processed `Expr`.
@@ -39,26 +39,25 @@ class DAGVisitor(ABC):
 
         Args:
             node: `Expr` to start DAG traversal from.
-            args: `Sequence` of arguments to be passed to ``process``.
+            args: arguments to the ``process`` singledispatchmethod.
 
         Returns:
             Processed `Expr`.
 
         """
 
-    def reuse_if_untouched(self, node: Expr, *args) -> Expr:
+    def reuse_if_untouched(self, node: Expr, *new_ufl_operands) -> Expr:
         """Reuse if touched.
 
         Args:
             node: `Expr` to start DAG traversal from.
-            args: `Sequence` of arguments to be passed to ``process``.
+            new_ufl_operands: new ufl_operands of ``node``.
 
         Returns:
             Processed `Expr`.
 
         """
-        new_ops = [self(child, *args) for child in node.ufl_operands]
-        if all(nc == c for nc, c in zip(new_ops, node.ufl_operands)):
+        if all(nc == c for nc, c in zip(new_ufl_operands, node.ufl_operands)):
             return node
         else:
-            return node._ufl_expr_reconstruct_(*new_ops)
+            return node._ufl_expr_reconstruct_(*new_ufl_operands)

@@ -29,7 +29,7 @@ from ufl.tensors import as_tensor
 class CoefficientSplitter(DAGVisitor):
     """DAG Visitor to split mixed coefficients."""
 
-    def __init__(self, coefficient_split):
+    def __init__(self, coefficient_split) -> None:
         """Initialise.
 
         Args:
@@ -63,7 +63,10 @@ class CoefficientSplitter(DAGVisitor):
     @process.register(Expr)
     def _(self, node: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle Expr."""
-        return self.reuse_if_untouched(node, reference_value, reference_grad, restricted)
+        new_ufl_operands = [
+            self(child, reference_value, reference_grad, restricted) for child in node.ufl_operands
+        ]
+        return self.reuse_if_untouched(node, *new_ufl_operands)
 
     @process.register(ReferenceValue)
     def _(self, node: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
@@ -117,6 +120,7 @@ class CoefficientSplitter(DAGVisitor):
     def _handle_terminal(
         self, node: Expr, reference_value: bool, reference_grad: int, restricted: str
     ) -> Expr:
+        """Wrap terminal as needed."""
         c = node
         if reference_value:
             c = ReferenceValue(c)
@@ -142,6 +146,8 @@ def apply_coefficient_split(expr: Expr, coefficient_split: dict) -> Expr:
         ``expr`` with uderlying mixed coefficients split according to ``coefficient_split``.
 
     """
+    if not coefficient_split:
+        return expr
     reference_value = False
     reference_grad = 0
     restricted = None
