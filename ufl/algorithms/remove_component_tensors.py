@@ -88,6 +88,8 @@ class IndexRemover(MultiFunction):
             # Replace inner indices first
             v = map_expr_dag(self, o2)
             # Replace outer indices
+            # NOTE: Replace with `fimap = dict(zip(i2, i1, strict=True))` when
+            # Python>=3.10
             assert len(i2) == len(i1)
             fimap = dict(zip(i2, i1))
             rule = IndexReplacer(fimap)
