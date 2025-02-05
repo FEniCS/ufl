@@ -270,7 +270,7 @@ class DoubleContravariantPiola(AbstractPullback):
         # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
         *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
         kmn = (*k, m, n)
-        return as_tensor((1.0 / detJ) ** 2 * J[i, m] * expr[kmn] * J[j, n], (*k, i, j))
+        return (1.0 / detJ) ** 2 * as_tensor(J[i, m] * (expr[kmn] * J[j, n]), (*k, i, j))
 
     def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
@@ -313,7 +313,7 @@ class DoubleCovariantPiola(AbstractPullback):
         # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
         *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
         kmn = (*k, m, n)
-        return as_tensor(K[m, i] * expr[kmn] * K[n, j], (*k, i, j))
+        return as_tensor(K[m, i] * (expr[kmn] * K[n, j]), (*k, i, j))
 
     def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
@@ -358,7 +358,7 @@ class CovariantContravariantPiola(AbstractPullback):
         # Apply transform "row-wise" to TensorElement(PiolaMapped, ...)
         *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
         kmn = (*k, m, n)
-        return as_tensor((1.0 / detJ) * K[m, i] * expr[kmn] * J[j, n], (*k, i, j))
+        return (1.0 / detJ) * as_tensor(K[m, i] * (expr[kmn] * J[j, n]), (*k, i, j))
 
     def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element.
