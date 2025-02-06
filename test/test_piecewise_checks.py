@@ -32,6 +32,9 @@ from ufl.classes import (
     FacetJacobian,
     FacetJacobianDeterminant,
     FacetJacobianInverse,
+    RidgeJacobian,
+    RidgeJacobianDeterminant,
+    RidgeJacobianInverse,
 )
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
@@ -283,6 +286,13 @@ def mappings_are_cellwise_constant(domain, test):
         e = FacetJacobianDeterminant(domain)
         assert is_cellwise_constant(e) == test
         e = FacetJacobianInverse(domain)
+        assert is_cellwise_constant(e) == test
+    if domain.topological_dimension() > 2:
+        e = RidgeJacobian(domain)
+        assert is_cellwise_constant(e) == test
+        e = RidgeJacobianDeterminant(domain)
+        assert is_cellwise_constant(e) == test
+        e = RidgeJacobianInverse(domain)
         assert is_cellwise_constant(e) == test
 
 

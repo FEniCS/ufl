@@ -24,6 +24,9 @@ from ufl import (
     Not,
     Or,
     PermutationSymbol,
+    RidgeJacobian,
+    RidgeJacobianDeterminant,
+    RidgeJacobianInverse,
     SpatialCoordinate,
     TensorConstant,
     VectorConstant,
@@ -292,9 +295,14 @@ def testAll(self):
     _test_object(g, (), ())
     g = FacetJacobianInverse(domain)
     _test_object(g, (dim - 1, dim), ())
-
-    g = FacetNormal(domain)
-    _test_object(g, (dim,), ())
+    g = RidgeJacobian(domain3D)
+    _test_object(g, (3, 1), ())
+    g = RidgeJacobianDeterminant(domain3D)
+    _test_object(g, (), ())
+    g = RidgeJacobianInverse(domain3D)
+    _test_object(g, (1, 3), ())
+    g = FacetNormal(domain3D)
+    _test_object(g, (3,), ())
     # g = CellNormal(domain)
     # _test_object(g, (dim,), ())
 
