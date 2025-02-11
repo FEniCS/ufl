@@ -1,6 +1,6 @@
 """UFL test utils."""
 
-from ufl.cell import Cell
+from ufl.cell import AbstractCell, Cell, CellSequence
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.pullback import (
     AbstractPullback,
@@ -18,7 +18,7 @@ class FiniteElement(AbstractFiniteElement):
     def __init__(
         self,
         family: str,
-        cell: Cell,
+        cell: AbstractCell,
         degree: int,
         reference_value_shape: tuple[int, ...],
         pullback: AbstractPullback,
@@ -134,7 +134,7 @@ class FiniteElement(AbstractFiniteElement):
         return self._subdegree
 
     @property
-    def cell(self) -> Cell:
+    def cell(self) -> AbstractCell:
         """Return the cell of the finite element."""
         return self._cell
 
@@ -212,21 +212,27 @@ class SymmetricElement(FiniteElement):
 class MixedElement(FiniteElement):
     """A mixed element."""
 
-    def __init__(self, sub_elements):
+    def __init__(self, sub_elements, make_cell_sequence=False):
         """Initialise a mixed element.
 
         This class should only be used for testing
 
         Args:
             sub_elements: Sub-elements of this element
+            make_cell_sequence: If True, make a CellSequence
         """
         sub_elements = [MixedElement(e) if isinstance(e, list) else e for e in sub_elements]
-        cell = sub_elements[0].cell
-        for e in sub_elements:
-            assert e.cell == cell
+        if make_cell_sequence:
+            cell = CellSequence(tuple(e.cell for e in sub_elements))
+        else:
+            cell = sub_elements[0].cell
+            for e in sub_elements:
+                assert e.cell == cell
         degree = max(e.embedded_superdegree for e in sub_elements)
         reference_value_shape = (sum(e.reference_value_size for e in sub_elements),)
-        if all(isinstance(e.pullback, IdentityPullback) for e in sub_elements):
+        if not make_cell_sequence and all(
+            isinstance(e.pullback, IdentityPullback) for e in sub_elements
+        ):
             pullback = IdentityPullback()
         else:
             pullback = MixedPullback(self)

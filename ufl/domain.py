@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from ufl.core.expr import Expr
     from ufl.finiteelement import AbstractFiniteElement  # To avoid cyclic import when type-hinting.
     from ufl.form import Form
-from ufl.cell import AbstractCell
+from ufl.cell import AbstractCell, CellSequence
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -217,17 +217,14 @@ class MeshSequence(AbstractDomain, UFLObject):
         if any(isinstance(m, MeshSequence) for m in meshes):
             raise NotImplementedError("""
                 Currently component meshes can not include MeshSequence instances""")
-        # currently only support single cell type.
-        (self._ufl_cell,) = set(m.ufl_cell() for m in meshes)
+        self._ufl_cell = CellSequence(tuple(m.ufl_cell() for m in meshes))
         (gdim,) = set(m.geometric_dimension for m in meshes)
-        # TODO: Need to change for more general mixed meshes.
-        (tdim,) = set(m.topological_dimension for m in meshes)
+        tdim = self._ufl_cell.topological_dimension
         AbstractDomain.__init__(self, tdim, gdim)
         self._meshes = tuple(meshes)
 
     def ufl_cell(self):
         """Get the cell."""
-        # TODO: Might need MixedCell class for more general mixed meshes.
         return self._ufl_cell
 
     def __repr__(self):
