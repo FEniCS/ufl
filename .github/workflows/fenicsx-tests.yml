@@ -53,6 +53,8 @@ jobs:
           pip install .[ci]
       - name: Run FFCx unit tests
         run: python3 -m pytest -n auto ffcx/test
+      - name: Run FFCx demos
+        run: python3 -m pytest -n auto ffcx/demo/test_demos.py
 
   dolfinx-tests:
     name: Run DOLFINx tests
