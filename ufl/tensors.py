@@ -84,8 +84,10 @@ class ListTensor(Operator):
             and all(sub(e, 0, 0) == sub(e0, 0, 0) for e in expressions[1:])
         ):
             indices = [sub(e, 0, 1).indices() for e in expressions]
-            if all(i[0] == k and all(isinstance(subindex, Index) for subindex in i[1:])
-                   for k, i in enumerate(indices)):
+            if all(
+                i[0] == k and all(isinstance(subindex, Index) for subindex in i[1:])
+                for k, i in enumerate(indices)
+            ):
                 return sub(e0, 0, 0)
 
         # Construct a new instance to be initialised
