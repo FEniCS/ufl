@@ -85,8 +85,6 @@ class ListTensor(Operator):
         ):
             indices = [sub(e, 0, 1).indices() for e in expressions]
             if all(i[0] == k for k, i in enumerate(indices)):
-                from IPython import embed; embed()
-                raise ValueError()
                 return sub(e0, 0, 0)
 
         # Construct a new instance to be initialised
