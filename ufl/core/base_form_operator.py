@@ -147,7 +147,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         arg, *_ = self.argument_slots()
         if not isinstance(arg, BaseCoefficient) and isinstance(arg, (BaseForm, Coargument)):
             arg, *_ = arg.arguments()
-        return arg._ufl_function_space
+        return arg.ufl_function_space()
 
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None
