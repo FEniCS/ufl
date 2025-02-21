@@ -17,36 +17,44 @@ jobs:
       # Github hosted runners require running as root user:
       # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem
       options: --user root
+    defaults:
+      run:
+        working-directory: /home/firedrake
     steps:
-      - name: Fix HOME
-        # For unknown reasons GitHub actions overwrite HOME to /github/home
-        # which will break everything unless fixed
-        # (https://github.com/actions/runner/issues/863)
-        run: echo "HOME=/home/firedrake" >> "$GITHUB_ENV"
+      # - name: Fix HOME
+      #   # For unknown reasons GitHub actions overwrite HOME to /github/home
+      #   # which will break everything unless fixed
+      #   # (https://github.com/actions/runner/issues/863)
+      #   run: echo "HOME=/home/firedrake" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
         with:
           # Download UFL into a subdirectory not called 'ufl' to make sure
           # that the package installs correctly. Otherwise 'import ufl' may
           # work even if the installation failed because it is a subdirectory.
-          path: ufl-repo
+          path: /home/firedrake/ufl-repo
 
       - name: Create virtual environment
         # Pass '--system-site-packages' so Firedrake is found
-        run: python3 -m venv --system-site-packages venv-ufl
+        run: |
+          su firedrake
+          python3 -m venv --system-site-packages venv-ufl
 
       - name: Install UFL
         run: |
+          su firedrake
           . venv-ufl/bin/activate
           pip install ./ufl-repo
           pip list
 
       - name: Run firedrake-check
         run: |
+          su firedrake
           . venv-ufl/bin/activate
           firedrake-check
 
       - name: Run TSFC tests
         run: |
+          su firedrake
           . venv-ufl/bin/activate
           python -m pytest /home/firedrake/firedrake/tests/tsfc
