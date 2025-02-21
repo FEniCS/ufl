@@ -149,11 +149,11 @@ class Argument(FormArgument, BaseArgument):
     """UFL value: Representation of an argument to a form."""
 
     __slots__ = (
-        "_ufl_function_space",
-        "_ufl_shape",
         "_number",
         "_part",
         "_repr",
+        "_ufl_function_space",
+        "_ufl_shape",
     )
 
     _primal = True
@@ -195,15 +195,15 @@ class Coargument(BaseForm, BaseArgument):
     """UFL value: Representation of an argument to a form in a dual space."""
 
     __slots__ = (
-        "_ufl_function_space",
-        "_ufl_shape",
         "_arguments",
         "_coefficients",
-        "ufl_operands",
+        "_hash",
         "_number",
         "_part",
         "_repr",
-        "_hash",
+        "_ufl_function_space",
+        "_ufl_shape",
+        "ufl_operands",
     )
 
     _primal = False

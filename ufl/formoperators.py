@@ -319,8 +319,8 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         # Distribute derivative over FormSum components
         return FormSum(
             *[
-                (derivative(component, coefficient, argument, coefficient_derivatives), 1)
-                for component in form.components()
+                (derivative(component, coefficient, argument, coefficient_derivatives), w)
+                for component, w in zip(form.components(), form.weights())
             ]
         )
     elif isinstance(form, Adjoint):

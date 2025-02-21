@@ -49,7 +49,7 @@ class IndexExpander(ReuseTransformer):
         if sh == ():
             return x
         else:
-            e = x.ufl_element()
+            space = x.ufl_function_space()
             r = len(sh)
 
             # Get component
@@ -58,8 +58,8 @@ class IndexExpander(ReuseTransformer):
                 raise ValueError("Component size mismatch.")
 
             # Map it through an eventual symmetry mapping
-            if len(e.components) > 1:
-                c = min(i for i, j in e.components.items() if j == e.components[c])
+            if len(space.components) > 1:
+                c = min(i for i, j in space.components.items() if j == space.components[c])
                 if r != len(c):
                     raise ValueError("Component size mismatch after symmetry mapping.")
 
@@ -137,7 +137,7 @@ class IndexExpander(ReuseTransformer):
 
         # TODO: For the list tensor purging algorithm, do something like:
         # if index not in self._to_expand:
-        #     return self.expr(x, *[self.visit(o) for o in x.ufl_operands])
+        #     return self.expr(x, *map(self.visit, x.ufl_operands))
 
         for value in range(x.dimension()):
             self._index2value.push(index, value)

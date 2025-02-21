@@ -9,6 +9,7 @@
 # Modified by Anders Logg, 2011.
 # Modified by Massimiliano Leoni, 2016.
 
+import numbers
 from math import atan2
 
 import ufl
@@ -62,7 +63,7 @@ class Zero(ConstantValue):
     Class for representing zero tensors of different shapes.
     """
 
-    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     _cache = {}
 
@@ -452,7 +453,7 @@ class PermutationSymbol(ConstantValue):
     or alternating symbol.
     """
 
-    __slots__ = ("ufl_shape", "_dim")
+    __slots__ = ("_dim", "ufl_shape")
 
     def __init__(self, dim):
         """Initialise."""
@@ -506,12 +507,12 @@ def as_ufl(expression):
     """Converts expression to an Expr if possible."""
     if isinstance(expression, (Expr, ufl.BaseForm)):
         return expression
-    elif isinstance(expression, complex):
-        return ComplexValue(expression)
-    elif isinstance(expression, float):
-        return FloatValue(expression)
-    elif isinstance(expression, int):
+    elif isinstance(expression, numbers.Integral):
         return IntValue(expression)
+    elif isinstance(expression, numbers.Real):
+        return FloatValue(expression)
+    elif isinstance(expression, numbers.Complex):
+        return ComplexValue(expression)
     else:
         raise ValueError(
             f"Invalid type conversion: {expression} can not be converted to any UFL type."

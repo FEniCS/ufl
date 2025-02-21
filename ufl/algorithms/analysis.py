@@ -69,33 +69,25 @@ def extract_type(a, ufl_types):
         objects = set()
         arg_types = tuple(t for t in ufl_types if issubclass(t, BaseArgument))
         if arg_types:
-            objects.update([e for e in a.arguments() if isinstance(e, arg_types)])
+            objects.update(e for e in a.arguments() if isinstance(e, arg_types))
         coeff_types = tuple(t for t in ufl_types if issubclass(t, BaseCoefficient))
         if coeff_types:
-            objects.update([e for e in a.coefficients() if isinstance(e, coeff_types)])
+            objects.update(e for e in a.coefficients() if isinstance(e, coeff_types))
         return objects
 
     if all(issubclass(t, Terminal) for t in ufl_types):
         # Optimization
-        objects = set(
-            o
-            for e in iter_expressions(a)
-            for o in traverse_unique_terminals(e)
-            if any(isinstance(o, t) for t in ufl_types)
-        )
+        traversal = traverse_unique_terminals
     else:
-        objects = set(
-            o
-            for e in iter_expressions(a)
-            for o in unique_pre_traversal(e)
-            if any(isinstance(o, t) for t in ufl_types)
-        )
+        traversal = unique_pre_traversal
+
+    objects = set(o for e in iter_expressions(a) for o in traversal(e) if isinstance(o, ufl_types))
 
     # Need to extract objects contained in base form operators whose
     # type is in ufl_types
     base_form_ops = set(e for e in objects if isinstance(e, BaseFormOperator))
     ufl_types_no_args = tuple(t for t in ufl_types if not issubclass(t, BaseArgument))
-    base_form_objects = ()
+    base_form_objects = []
     for o in base_form_ops:
         # This accounts for having BaseFormOperator in Forms: if N is a BaseFormOperator
         # `N(u; v*) * v * dx` <=> `action(v1 * v * dx, N(...; v*))`
@@ -106,9 +98,9 @@ def extract_type(a, ufl_types):
             # argument of the Coargument and not its primal argument.
             if isinstance(ai, Coargument):
                 new_types = tuple(Coargument if t is BaseArgument else t for t in ufl_types)
-                base_form_objects += tuple(extract_type(ai, new_types))
+                base_form_objects.extend(extract_type(ai, new_types))
             else:
-                base_form_objects += tuple(extract_type(ai, ufl_types))
+                base_form_objects.extend(extract_type(ai, ufl_types))
         # Look for BaseArguments in BaseFormOperator's argument slots
         # only since that's where they are by definition. Don't look
         # into operands, which is convenient for external operator
@@ -116,7 +108,7 @@ def extract_type(a, ufl_types):
         # and not a form.
         slots = o.ufl_operands
         for ai in slots:
-            base_form_objects += tuple(extract_type(ai, ufl_types_no_args))
+            base_form_objects.extend(extract_type(ai, ufl_types_no_args))
     objects.update(base_form_objects)
 
     # `Remove BaseFormOperator` objects if there were initially not in `ufl_types`
@@ -213,7 +205,7 @@ def extract_arguments_and_coefficients(a):
     coefficients = [f for f in base_coeff_and_args if isinstance(f, BaseCoefficient)]
 
     # Build number,part: instance mappings, should be one to one
-    bfnp = dict((f, (f.number(), f.part())) for f in arguments)
+    bfnp = {f: (f.number(), f.part()) for f in arguments}
     if len(bfnp) != len(set(bfnp.values())):
         raise ValueError(
             "Found different Arguments with same number and part.\n"
@@ -222,7 +214,7 @@ def extract_arguments_and_coefficients(a):
         )
 
     # Build count: instance mappings, should be one to one
-    fcounts = dict((f, f.count()) for f in coefficients)
+    fcounts = {f: f.count() for f in coefficients}
     if len(fcounts) != len(set(fcounts.values())):
         raise ValueError(
             "Found different coefficients with same counts.\n"
@@ -249,10 +241,10 @@ def extract_unique_elements(form):
 
 def extract_sub_elements(elements):
     """Build sorted tuple of all sub elements (including parent element)."""
-    sub_elements = tuple(chain(*[e.sub_elements for e in elements]))
+    sub_elements = tuple(chain(*(e.sub_elements for e in elements)))
     if not sub_elements:
         return tuple(elements)
-    return tuple(elements) + extract_sub_elements(sub_elements)
+    return (*elements, *extract_sub_elements(sub_elements))
 
 
 def sort_elements(elements):
@@ -268,7 +260,7 @@ def sort_elements(elements):
     nodes = list(elements)
 
     # Set edges
-    edges = dict((node, []) for node in nodes)
+    edges = {node: [] for node in nodes}
     for element in elements:
         for sub_element in element.sub_elements:
             edges[element].append(sub_element)

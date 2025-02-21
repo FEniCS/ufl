@@ -50,7 +50,7 @@ def _sorted_integrals(integrals):
             )
         it = integral.integral_type()
         si = integral.subdomain_id()
-        integrals_dict[d][it][si] += [integral]
+        integrals_dict[d][it][si].append(integral)
 
     all_integrals = []
 
@@ -113,13 +113,16 @@ class BaseForm(object, metaclass=UFLType):
 
         Fails if multiple domains are found.
         """
-        if self._domains is None:
-            self._analyze_domains()
-
-        if len(self._domains) > 1:
+        try:
+            (domain,) = set(self.ufl_domains())
+        except ValueError:
             raise ValueError("%s must have exactly one domain." % type(self).__name__)
-        # Return the single geometric domain
-        return self._domains[0]
+        # Return the one and only domain
+        return domain
+
+    def empty(self):
+        """Returns whether the BaseForm has no components."""
+        return False
 
     # --- Operator implementations ---
 
@@ -139,7 +142,7 @@ class BaseForm(object, metaclass=UFLType):
 
     def __add__(self, other):
         """Add."""
-        if isinstance(other, (int, float)) and other == 0:
+        if isinstance(other, numbers.Number) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
         elif isinstance(other, Zero):
@@ -228,26 +231,26 @@ class Form(BaseForm):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
 
     __slots__ = (
+        "_arguments",
+        "_base_form_operators",
+        # --- Dict that external frameworks can place framework-specific
+        #     data in to be carried with the form
+        #     Never use this internally in ufl!
+        "_cache",
+        "_coefficient_numbering",
+        "_coefficients",
+        "_constant_numbering",
+        "_constants",
+        "_domain_numbering",
+        "_hash",
         # --- List of Integral objects (a Form is a sum of these
         # Integrals, everything else is derived)
         "_integrals",
         # --- Internal variables for caching various data
         "_integration_domains",
-        "_domain_numbering",
-        "_subdomain_data",
-        "_arguments",
-        "_base_form_operators",
-        "_coefficients",
-        "_coefficient_numbering",
-        "_constants",
-        "_constant_numbering",
-        "_terminal_numbering",
-        "_hash",
         "_signature",
-        # --- Dict that external frameworks can place framework-specific
-        #     data in to be carried with the form
-        #     Never use this internally in ufl!
-        "_cache",
+        "_subdomain_data",
+        "_terminal_numbering",
     )
 
     def __init__(self, integrals):
@@ -308,7 +311,7 @@ class Form(BaseForm):
 
     def empty(self):
         """Returns whether the form has no integrals."""
-        return self.integrals() == ()
+        return len(self.integrals()) == 0
 
     def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
@@ -328,26 +331,6 @@ class Form(BaseForm):
         Fails if multiple cells are found.
         """
         return self.ufl_domain().ufl_cell()
-
-    def ufl_domain(self):
-        """Return the single geometric integration domain occuring in the form.
-
-        Fails if multiple domains are found.
-
-        NB! This does not include domains of coefficients defined on
-        other meshes, look at form data for that additional information.
-        """
-        # Collect all domains
-        domains = self.ufl_domains()
-        # Check that all are equal TODO: don't return more than one if
-        # all are equal?
-        if not all(domain == domains[0] for domain in domains):
-            raise ValueError(
-                "Calling Form.ufl_domain() is only valid if all integrals share domain."
-            )
-
-        # Return the one and only domain
-        return domains[0]
 
     def geometric_dimension(self):
         """Return the geometric dimension shared by all domains and functions in this form."""
@@ -580,7 +563,7 @@ class Form(BaseForm):
         # warning("Calling str on form is potentially expensive and
         # should be avoided except during debugging.") Not caching this
         # because it can be huge
-        s = "\n  +  ".join(str(itg) for itg in self.integrals())
+        s = "\n  +  ".join(map(str, self.integrals()))
         return s or "<empty Form>"
 
     def __repr__(self):
@@ -589,7 +572,7 @@ class Form(BaseForm):
         # warning("Calling repr on form is potentially expensive and
         # should be avoided except during debugging.") Not caching this
         # because it can be huge
-        itgs = ", ".join(repr(itg) for itg in self.integrals())
+        itgs = ", ".join(map(repr, self.integrals()))
         r = "Form([" + itgs + "])"
         return r
 
@@ -607,7 +590,7 @@ class Form(BaseForm):
 
         # TODO: Not including domains from coefficients and arguments
         # here, may need that later
-        self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
+        self._domain_numbering = {d: i for i, d in enumerate(self._integration_domains)}
 
     def _analyze_subdomain_data(self):
         """Analyze subdomain data."""
@@ -711,12 +694,12 @@ class FormSum(BaseForm):
     __slots__ = (
         "_arguments",
         "_coefficients",
-        "_weights",
         "_components",
-        "ufl_operands",
-        "_domains",
         "_domain_numbering",
+        "_domains",
         "_hash",
+        "_weights",
+        "ufl_operands",
     )
     _ufl_required_methods_ = "_analyze_form_arguments"
 
@@ -804,15 +787,25 @@ class FormSum(BaseForm):
 
     def _analyze_domains(self):
         """Analyze which domains can be found in FormSum."""
-        from ufl.domain import join_domains
+        from ufl.domain import join_domains, sort_domains
 
         # Collect unique domains
-        self._domains = join_domains([component.ufl_domain() for component in self._components])
+        self._domains = sort_domains(
+            join_domains(chain.from_iterable(c.ufl_domains() for c in self.components()))
+        )
+
+    def ufl_domains(self):
+        """Return all domains found in the base form."""
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
 
     def __hash__(self):
         """Hash."""
         if self._hash is None:
-            self._hash = hash(tuple(hash(component) for component in self.components()))
+            self._hash = hash(
+                tuple((hash(c), hash(w)) for c, w in zip(self.components(), self.weights()))
+            )
         return self._hash
 
     def equals(self, other):
@@ -821,9 +814,15 @@ class FormSum(BaseForm):
             return False
         if self is other:
             return True
-        return len(self.components()) == len(other.components()) and all(
-            a == b for a, b in zip(self.components(), other.components())
+        return (
+            len(self.components()) == len(other.components())
+            and all(a == b for a, b in zip(self.components(), other.components()))
+            and all(a == b for a, b in zip(self.weights(), other.weights()))
         )
+
+    def empty(self):
+        """Returns whether the FormSum has no components."""
+        return len(self.components()) == 0
 
     def __str__(self):
         """Compute shorter string representation of form. This can be huge for complicated forms."""
@@ -831,7 +830,7 @@ class FormSum(BaseForm):
         # warning("Calling str on form is potentially expensive and
         # should be avoided except during debugging.")
         # Not caching this because it can be huge
-        s = "\n  +  ".join(str(component) for component in self.components())
+        s = "\n  +  ".join(f"{w}*{c}" for c, w in zip(self.components(), self.weights()))
         return s or "<empty FormSum>"
 
     def __repr__(self):
@@ -840,7 +839,7 @@ class FormSum(BaseForm):
         # warning("Calling repr on form is potentially expensive and
         # should be avoided except during debugging.")
         # Not caching this because it can be huge
-        itgs = ", ".join(repr(component) for component in self.components())
+        itgs = ", ".join(f"{w!r}*{c!r}" for c, w in zip(self.components(), self.weights()))
         r = "FormSum([" + itgs + "])"
         return r
 
@@ -856,10 +855,11 @@ class ZeroBaseForm(BaseForm):
     __slots__ = (
         "_arguments",
         "_coefficients",
-        "ufl_operands",
+        "_domains",
         "_hash",
         # Pyadjoint compatibility
         "form",
+        "ufl_operands",
     )
 
     def __init__(self, arguments):
@@ -868,12 +868,28 @@ class ZeroBaseForm(BaseForm):
         self._arguments = arguments
         self.ufl_operands = arguments
         self._hash = None
+        self._domains = None
         self.form = None
 
     def _analyze_form_arguments(self):
         """Analyze form arguments."""
         # `self._arguments` is already set in `BaseForm.__init__`
         self._coefficients = ()
+
+    def _analyze_domains(self):
+        """Analyze which domains can be found in ZeroBaseForm."""
+        from ufl.domain import join_domains, sort_domains
+
+        # Collect unique domains
+        self._domains = sort_domains(
+            join_domains(chain.from_iterable(e.ufl_domains() for e in self.ufl_operands))
+        )
+
+    def ufl_domains(self):
+        """Return all domains found in the base form."""
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
 
     def __ne__(self, other):
         """Overwrite BaseForm.__neq__ which relies on `equals`."""

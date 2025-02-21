@@ -5,6 +5,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.constantvalue import ConstantValue
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.precedence import parstr
@@ -24,7 +25,12 @@ class Restricted(Operator):
 
     __slots__ = ()
 
-    # TODO: Add __new__ operator here, e.g. restricted(literal) == literal
+    def __new__(cls, expression):
+        """Create a new Restricted."""
+        if isinstance(expression, ConstantValue):
+            return expression
+        else:
+            return Operator.__new__(cls)
 
     def __init__(self, f):
         """Initialise."""

@@ -17,29 +17,29 @@ jobs:
       CXX: g++-10
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: 3.12
 
       - name: Install UFL
         run: |
           pip3 install .
 
       - name: Clone tsfc
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./tsfc
           repository: firedrakeproject/tsfc
-          ref: mscroggs/gdim
+          ref: master
       - name: Install tsfc
         run: |
           cd tsfc
           pip install -r requirements-ext.txt
           pip install git+https://github.com/coneoproject/COFFEE.git#egg=coffee
           pip install git+https://github.com/firedrakeproject/fiat.git#egg=fenics-fiat
-          pip install git+https://github.com/FInAT/FInAT.git@mscroggs/gdim#egg=finat
+          pip install git+https://github.com/FInAT/FInAT.git#egg=finat
           pip install git+https://github.com/firedrakeproject/loopy.git#egg=loopy
           pip install .[ci]
           pip install pytest
