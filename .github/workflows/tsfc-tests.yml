@@ -22,6 +22,13 @@ jobs:
       # packages
       PYTHONPATH: /home/firedrake/firedrake:/home/firedrake/.local/lib/python3.12/site-packages
     steps:
+      - name: Fix HOME
+        run: |
+          : # For unknown reasons GitHub actions overwrite HOME to /github/home
+          : # which will break everything unless fixed
+          : # (https://github.com/actions/runner/issues/863)
+          echo "HOME=/home/firedrake" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
         with:
           # Download UFL into a subdirectory not called 'ufl' to make sure
@@ -31,7 +38,7 @@ jobs:
 
       - name: Uninstall existing UFL
         run: |
-          python3 -m pip uninstall -y ufl
+          python3 -m pip uninstall --break-system-packages -y ufl
 
       - name: Create virtual environment
         run: |
