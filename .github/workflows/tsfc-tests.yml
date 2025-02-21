@@ -18,22 +18,20 @@ jobs:
       # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem
       options: --user root
     env:
+      # Since we are running as root we need to set PYTHONPATH to be able to find the installed
+      # packages
       PYTHONPATH: /home/firedrake/firedrake:/home/firedrake/.local/lib/python3.12/site-packages
     steps:
-      - name: Fix HOME and PATH
-        # For unknown reasons GitHub actions overwrite HOME to /github/home
-        # which will break everything unless fixed
-        # (https://github.com/actions/runner/issues/863)
-        run: |
-          echo "HOME=/home/firedrake" >> "$GITHUB_ENV"
-          echo "/home/firedrake/.local/bin" >> "$GITHUB_PATH"
-
       - uses: actions/checkout@v4
         with:
           # Download UFL into a subdirectory not called 'ufl' to make sure
           # that the package installs correctly. Otherwise 'import ufl' may
           # work even if the installation failed because it is a subdirectory.
           path: ufl-repo
+
+      - name: Uninstall existing UFL
+        run: |
+          python3 -m pip uninstall -y ufl
 
       - name: Create virtual environment
         run: |
@@ -44,11 +42,6 @@ jobs:
           . venv-ufl/bin/activate
           pip install ./ufl-repo
           pip list
-
-      - name: Run firedrake-check
-        run: |
-          . venv-ufl/bin/activate
-          firedrake-check
 
       - name: Run TSFC tests
         run: |
