@@ -18,13 +18,15 @@ jobs:
       # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem
       options: --user root
     env:
-      PYTHONPATH: /home/firedrake/.local/lib/python3.12/site-packages
+      PYTHONPATH: /home/firedrake/firedrake:/home/firedrake/.local/lib/python3.12/site-packages
     steps:
-      - name: Fix HOME
+      - name: Fix HOME and PATH
         # For unknown reasons GitHub actions overwrite HOME to /github/home
         # which will break everything unless fixed
         # (https://github.com/actions/runner/issues/863)
-        run: echo "HOME=/home/firedrake" >> "$GITHUB_ENV"
+        run: |
+          echo "HOME=/home/firedrake" >> "$GITHUB_ENV"
+          echo "/home/firedrake/.local/bin" >> "$GITHUB_PATH"
 
       - uses: actions/checkout@v4
         with:
