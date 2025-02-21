@@ -1,6 +1,5 @@
-# This workflow will install tsfc and run its unit tests
-
-name: tsfc integration
+# This workflow will test the UFL branch against the latest Firedrake container
+name: TSFC integration
 
 on:
   pull_request:
@@ -11,37 +10,40 @@ jobs:
   tsfc-tests:
     name: Run TSFC tests
     runs-on: ubuntu-latest
-
-    env:
-      CC: gcc-10
-      CXX: g++-10
-
+    container:
+      # UNDO ME
+      # image: firedrakeproject/firedrake-vanilla-default:latest
+      image: firedrakeproject/firedrake-vanilla-default:pip
     steps:
+      - name: Fix HOME
+        # For unknown reasons GitHub actions overwrite HOME to /github/home
+        # which will break everything unless fixed
+        # (https://github.com/actions/runner/issues/863)
+        run: echo "HOME=/home/firedrake" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          # Download UFL into a subdirectory not called 'ufl' to make sure
+          # that the package installs correctly. Otherwise 'import ufl' may
+          # work even if the installation failed because it is a subdirectory.
+          path: ufl-repo
+
+      - name: Create virtual environment
+        # Pass '--system-site-packages' so Firedrake is found
+        run: python3 -m venv --system-site-packages venv-ufl
 
       - name: Install UFL
         run: |
-          pip3 install .
+          . venv-ufl/bin/activate
+          pip install ./ufl-repo
+          pip list
 
-      - name: Clone tsfc
-        uses: actions/checkout@v4
-        with:
-          path: ./tsfc
-          repository: firedrakeproject/tsfc
-          ref: master
-      - name: Install tsfc
+      - name: Run firedrake-check
         run: |
-          cd tsfc
-          pip install -r requirements-ext.txt
-          pip install git+https://github.com/coneoproject/COFFEE.git#egg=coffee
-          pip install git+https://github.com/firedrakeproject/fiat.git#egg=fenics-fiat
-          pip install git+https://github.com/FInAT/FInAT.git#egg=finat
-          pip install git+https://github.com/firedrakeproject/loopy.git#egg=loopy
-          pip install .[ci]
-          pip install pytest
-      - name: Run tsfc unit tests
-        run: python3 -m pytest tsfc/tests
+          . venv-ufl/bin/activate
+          firedrake-check
+
+      - name: Run TSFC tests
+        run: |
+          . venv-ufl/bin/activate
+          python -m pytest /home/firedrake/firedrake/tests/tsfc
