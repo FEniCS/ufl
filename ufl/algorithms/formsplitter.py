@@ -8,7 +8,6 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
-import warnings
 from typing import Optional
 
 import numpy as np
@@ -25,8 +24,8 @@ from ufl.tensors import as_vector
 class FormSplitter(MultiFunction):
     """Form splitter."""
 
-    def split(self, form, ix, iy=0):
-        """Split."""
+    def split(self, form, ix, iy=None):
+        """Split form based on the arugment part/number."""
         # Remember which block to extract
         self.idx = [ix, iy]
         return map_integrand_dags(self, form)
@@ -36,6 +35,8 @@ class FormSplitter(MultiFunction):
         if obj.part() is not None:
             # Mixed element built from MixedFunctionSpace,
             # whose sub-function spaces are indexed by obj.part()
+            if self.idx[obj.number()] is None:
+                return Zero(obj.ufl_shape)
             if obj.part() == self.idx[obj.number()]:
                 return obj
             else:
@@ -154,17 +155,16 @@ def extract_blocks(
         if arity > 1:
             for pj in range(num_parts):
                 f = fs.split(form, pi, pj)
-                if f.empty():
+                # Ignore empty forms and linear forms
+                if f.empty() or len(f.arguments()) != 2:
                     form_i.append(None)
                 else:
-                    if (len(f.arguments())) != 2:
-                        warnings.warn("Skipping terms with arity=1.")
-                        break
                     form_i.append(f)
             forms.append(tuple(form_i))
         else:
             f = fs.split(form, pi)
-            if f.empty():
+            # Ignore empty forms and bilinear forms
+            if f.empty() or len(f.arguments()) != 1:
                 forms.append(None)
             else:
                 forms.append(f)
