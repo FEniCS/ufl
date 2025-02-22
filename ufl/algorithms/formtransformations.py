@@ -1,6 +1,6 @@
 """Utilities for transforming complete Forms into new related Forms."""
 
-# Copyright (C) 2008-2016 Martin Sandve Alnæs
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
@@ -9,6 +9,7 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
+# Modified by Jørgen S. Dokken, 2025.
 
 import warnings
 from logging import debug
@@ -416,7 +417,26 @@ def compute_form_action(form, coefficient):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        raise ValueError("compute_form_action cannot handle parts.")
+        # We assume that for MixedFunctionSpace that the max arity can be two
+        highest_arity_form = compute_form_lhs(form)
+        if highest_arity_form == 0 or highest_arity_form.empty():
+            highest_arity_form = compute_form_rhs(form)
+        if highest_arity_form == 0 or highest_arity_form.empty():
+            raise ValueError("No arguments to replace in form.")
+        arguments = highest_arity_form.arguments()
+        numbers = [a.number() for a in arguments]
+        max_number = max(numbers)
+        if coefficient is None:
+            replacement_map = {
+                a: Coefficient(a.ufl_function_space())
+                for a in arguments
+                if a.number() == max_number
+            }
+        else:
+            replacement_map = {
+                a: coefficient[a.part()] for a in arguments if a.number() == max_number
+            }
+        return replace(form, replacement_map)
 
     # Pick last argument (will be replaced)
     u = arguments[-1]

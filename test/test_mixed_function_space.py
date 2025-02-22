@@ -2,6 +2,7 @@ __authors__ = "Cecile Daversin Catty"
 __date__ = "2019-03-26 -- 2019-03-26"
 
 from ufl import (
+    Coefficient,
     Constant,
     FunctionSpace,
     Measure,
@@ -9,11 +10,13 @@ from ufl import (
     MixedFunctionSpace,
     TestFunctions,
     TrialFunctions,
+    action,
     dx,
     grad,
     inner,
     interval,
     lhs,
+    replace,
     rhs,
     tetrahedron,
     triangle,
@@ -146,3 +149,51 @@ def test_lhs_rhs():
 
     assert L_blocked[0] == -source1(f, v)
     assert L_blocked[1] == -source2(g, q)
+
+
+def test_action():
+    V = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
+    space0 = FunctionSpace(domain, V)
+    space1 = FunctionSpace(domain, V)
+    mixed_space = MixedFunctionSpace(space0, space1)
+
+    def mass(u, v):
+        return inner(u, v) * dx
+
+    def stiffness(u, v):
+        return inner(grad(u), grad(v)) * dx
+
+    def source1(f, v):
+        return inner(f, v) * dx
+
+    def source2(f, v):
+        return inner(f, v.dx(0)) * dx
+
+    u, _ = TrialFunctions(mixed_space)
+    v, q = TestFunctions(mixed_space)
+    f = Constant(domain)
+    g = Constant(domain)
+    F = mass(u, v) + stiffness(u, q) + source1(f, v) + source2(g, q)
+    assert len(F.coefficients()) == 0
+    F_reduced = action(F)
+    F_reduced_renumbered = renumbering.renumber_indices(expand_derivatives(F_reduced))
+    assert len(F_reduced_renumbered.coefficients()) == 1
+    inserted_coeff = F_reduced_renumbered.coefficients()[0]
+
+    # Create reference solution
+    Fh = mass(inserted_coeff, v) + stiffness(inserted_coeff, q) + source1(f, v) + source2(g, q)
+
+    Fr1 = renumbering.renumber_indices(expand_derivatives(Fh))
+    assert Fr1 == F_reduced_renumbered
+
+    # Repeat action, reduce to scalar
+    coefficients = [Coefficient(space0), Coefficient(space1)]
+    J = action(F_reduced, coefficients)
+    J_renumbered = renumbering.renumber_indices(expand_derivatives(J))
+
+    # Reference J
+    J_exp = renumbering.renumber_indices(expand_derivatives((F)))
+    J_ref = replace(J_exp, {u: inserted_coeff, v: coefficients[0], q: coefficients[1]})
+    # Verify
+    assert J_renumbered == J_ref
