@@ -8,7 +8,7 @@
 
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-from ufl.domain import as_domain, extract_unique_domain
+from ufl.domain import MeshSequence, as_domain, extract_unique_domain
 from ufl.sobolevspace import H1
 
 """
@@ -84,6 +84,9 @@ class GeometricQuantity(Terminal):
     def __init__(self, domain):
         """Initialise."""
         Terminal.__init__(self)
+        if isinstance(domain, MeshSequence) and len(set(domain)) > 1:
+            # Can not make GeometricQuantity if multiple domains exist.
+            raise TypeError(f"Can not create a GeometricQuantity on {domain}")
         self._domain = as_domain(domain)
 
     def ufl_domains(self):

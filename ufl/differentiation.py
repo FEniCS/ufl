@@ -307,14 +307,16 @@ class ReferenceGrad(CompoundDerivative):
         """Create a new ReferenceGrad."""
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
-            dim = extract_unique_domain(f).topological_dimension()
+            # TODO: Use max topological dimension if there are multiple topological dimensions.
+            dim = extract_unique_domain(f, expand_mixed_mesh=False).topological_dimension()
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         """Initalise."""
         CompoundDerivative.__init__(self, (f,))
-        self._dim = extract_unique_domain(f).topological_dimension()
+        # TODO: Use max topological dimension if there are multiple topological dimensions.
+        self._dim = extract_unique_domain(f, expand_mixed_mesh=False).topological_dimension()
 
     def _ufl_expr_reconstruct_(self, op):
         """Return a new object of the same type with new operands."""
@@ -344,6 +346,24 @@ class ReferenceGrad(CompoundDerivative):
         """Format as a string."""
         return "reference_grad(%s)" % self.ufl_operands[0]
 
+    def traverse_dag_apply_coefficient_split(
+        self,
+        coefficient_split,
+        reference_value=False,
+        reference_grad=0,
+        restricted=None,
+        cache=None,
+    ):
+        op, = self.ufl_operands
+        if not op._ufl_terminal_modifiers_:
+            raise ValueError(f"Expecting a terminal modifier: got {op!r}.")
+        return op.traverse_dag_apply_coefficient_split(
+            coefficient_split,
+            reference_value=reference_value,
+            reference_grad=reference_grad + 1,
+            restricted=restricted,
+            cache=cache,
+        )
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Div(CompoundDerivative):
