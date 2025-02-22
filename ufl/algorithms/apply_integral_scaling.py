@@ -14,6 +14,7 @@ from ufl.classes import (
     Integral,
     JacobianDeterminant,
     QuadratureWeight,
+    RidgeJacobianDeterminant,
 )
 from ufl.differentiation import CoordinateDerivative
 from ufl.measure import custom_integral_types, point_integral_types
@@ -61,6 +62,17 @@ def compute_integrand_scaling_factor(integral):
             scale = detFJ("+") * weight
         else:
             # No need to scale 'integral' over a vertex
+            scale = 1
+    elif integral_type.startswith("ridge"):
+        if tdim > 2:
+            # Scaling integral by edge jacobian determinant from one
+            # side and quadrature weight
+            detEJ = RidgeJacobianDeterminant(domain)
+            degree = estimate_total_polynomial_degree(apply_geometry_lowering(detEJ))
+            scale = detEJ * weight
+        elif tdim < 2:
+            raise RuntimeError(f"Ridge integral not supported for {tdim=}")
+        else:
             scale = 1
 
     elif integral_type in custom_integral_types:

@@ -209,7 +209,7 @@ A very brief overview of the language contents follows:
 
 * Integral measures::
 
-    -dx, ds, dS, dP
+    -dx, ds, dS, dP, dl
     -dc, dC, dO, dI, dX
     -ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
 
@@ -296,6 +296,9 @@ from ufl.geometry import (
     MaxFacetEdgeLength,
     MinCellEdgeLength,
     MinFacetEdgeLength,
+    RidgeJacobian,
+    RidgeJacobianDeterminant,
+    RidgeJacobianInverse,
     SpatialCoordinate,
 )
 from ufl.integral import Integral
@@ -307,6 +310,7 @@ from ufl.objects import (
     dI,
     dO,
     dP,
+    dr,
     dS,
     ds,
     ds_b,
@@ -492,6 +496,9 @@ __all__ = [
     "Not",
     "Or",
     "PermutationSymbol",
+    "RidgeJacobian",
+    "RidgeJacobianDeterminant",
+    "RidgeJacobianInverse",
     "SpatialCoordinate",
     "SymmetricPullback",
     "TensorConstant",
@@ -549,6 +556,7 @@ __all__ = [
     "dot",
     "double_contravariant_piola",
     "double_covariant_piola",
+    "dr",
     "ds",
     "ds_b",
     "ds_t",
