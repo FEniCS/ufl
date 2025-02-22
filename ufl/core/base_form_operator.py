@@ -16,6 +16,7 @@ ExternalOperator or Interpolate.
 from collections import OrderedDict
 
 from ufl.argument import Argument, Coargument
+from ufl.coefficient import BaseCoefficient
 from ufl.constantvalue import as_ufl
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -134,20 +135,19 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     def ufl_shape(self):
         """Return the UFL shape of the coefficient.produced by the operator."""
         arg, *_ = self.argument_slots()
-        if isinstance(arg, BaseForm):
+        if not isinstance(arg, BaseCoefficient) and isinstance(arg, (BaseForm, Coargument)):
             arg, *_ = arg.arguments()
         return arg._ufl_shape
 
     def ufl_function_space(self):
         """Return the function space associated to the operator.
 
-        I.e. return the dual of the base form operator's Coargument.
+        I.e. return the dual of the base form operator's Coargument space.
         """
         arg, *_ = self.argument_slots()
-        if isinstance(arg, BaseForm):
+        if not isinstance(arg, BaseCoefficient) and isinstance(arg, (BaseForm, Coargument)):
             arg, *_ = arg.arguments()
-            return arg._ufl_function_space
-        return arg._ufl_function_space.dual()
+        return arg.ufl_function_space()
 
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None

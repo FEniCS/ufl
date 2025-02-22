@@ -32,11 +32,13 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import compute_form_data
-from ufl.core.multiindex import FixedIndex, MultiIndex
+from ufl.constantvalue import Zero
+from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
 from ufl.finiteelement import FiniteElement
 from ufl.indexed import Indexed
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
+from ufl.tensors import ComponentTensor, ListTensor
 
 
 def xtest_zero_times_argument(self):
@@ -193,3 +195,76 @@ def test_nested_indexed(self):
     multiindex = MultiIndex((FixedIndex(0),))
     assert Indexed(expr, multiindex) is expr[0]
     assert Indexed(expr, multiindex) is comps[1]
+
+
+def test_repeated_indexing(self):
+    # Test that an Indexed with repeated indices does not contract indices
+    shape = (2, 2)
+    element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    space = FunctionSpace(domain, element)
+    x = Coefficient(space)
+    C = as_tensor([x, x])
+
+    fi = FixedIndex(0)
+    i = Index()
+    ii = MultiIndex((fi, i, i))
+    expr = Indexed(C, ii)
+    assert i.count() in expr.ufl_free_indices
+    assert isinstance(expr, Indexed)
+    B, jj = expr.ufl_operands
+    assert B is x
+    assert tuple(jj) == tuple(ii[1:])
+
+
+def test_untangle_indexed_component_tensor(self):
+    shape = (2, 2, 2, 2)
+    element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    space = FunctionSpace(domain, element)
+    C = Coefficient(space)
+
+    r = len(shape)
+    kk = indices(r)
+
+    # Untangle as_tensor(C[kk], kk) -> C
+    B = as_tensor(Indexed(C, MultiIndex(kk)), kk)
+    assert B is C
+
+    # Untangle as_tensor(C[kk], jj)[ii] -> C[ll]
+    jj = kk[2:]
+    A = as_tensor(Indexed(C, MultiIndex(kk)), jj)
+    assert A is not C
+
+    ii = kk
+    expr = Indexed(A, MultiIndex(ii))
+    assert isinstance(expr, Indexed)
+    B, ll = expr.ufl_operands
+    assert B is C
+
+    rep = dict(zip(jj, ii))
+    expected = tuple(rep.get(k, k) for k in kk)
+    assert tuple(ll) == expected
+
+
+def test_simplify_indexed(self):
+    element = FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    space = FunctionSpace(domain, element)
+    u = Coefficient(space)
+    z = Zero(())
+    i = Index()
+    j = Index()
+    # ListTensor
+    lt = ListTensor(z, z, u[1])
+    assert Indexed(lt, MultiIndex((FixedIndex(2),))) == u[1]
+    # ListTensor -- nested
+    l0 = ListTensor(z, u[1], z)
+    l1 = ListTensor(z, z, u[2])
+    l2 = ListTensor(u[0], z, z)
+    ll = ListTensor(l0, l1, l2)
+    assert Indexed(ll, MultiIndex((FixedIndex(1), FixedIndex(2)))) == u[2]
+    assert Indexed(ll, MultiIndex((FixedIndex(2), i))) == l2[i]
+    # ComponentTensor + ListTensor
+    c = ComponentTensor(Indexed(ll, MultiIndex((i, j))), MultiIndex((j, i)))
+    assert Indexed(c, MultiIndex((FixedIndex(1), FixedIndex(2)))) == l2[1]
