@@ -25,7 +25,7 @@ class FormSplitter(MultiFunction):
     """Form splitter."""
 
     def split(self, form, ix, iy=None):
-        """Split form based on the arugment part/number."""
+        """Split form based on the argument part/number."""
         # Remember which block to extract
         self.idx = [ix, iy]
         return map_integrand_dags(self, form)
