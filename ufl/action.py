@@ -9,15 +9,14 @@
 
 from itertools import chain
 
+from ufl import matrix  # noqa 401
 from ufl.algebra import Sum
 from ufl.argument import Argument, Coargument
-from ufl.coefficient import BaseCoefficient, Coefficient, Cofunction
+from ufl.coefficient import BaseCoefficient, Coefficient
 from ufl.constantvalue import Zero
-from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
-from ufl.matrix import Matrix
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -70,12 +69,21 @@ class Action(BaseForm):
         if isinstance(right, (Coargument, Argument)):
             return left
 
-        if isinstance(left, (FormSum, Sum)):
-            # Action distributes over sums on the LHS
-            return FormSum(*[(Action(component, right), 1) for component in left.ufl_operands])
-        if isinstance(right, (FormSum, Sum)):
-            # Action also distributes over sums on the RHS
-            return FormSum(*[(Action(left, component), 1) for component in right.ufl_operands])
+        # Action distributes over sums on the LHS
+        if isinstance(left, Sum):
+            return FormSum(*((Action(component, right), 1) for component in left.ufl_operands))
+        elif isinstance(left, FormSum):
+            return FormSum(
+                *((Action(c, right), w) for c, w in zip(left.components(), left.weights()))
+            )
+
+        # Action also distributes over sums on the RHS
+        if isinstance(right, Sum):
+            return FormSum(*((Action(left, component), 1) for component in right.ufl_operands))
+        elif isinstance(right, FormSum):
+            return FormSum(
+                *((Action(left, c), w) for c, w in zip(right.components(), right.weights()))
+            )
 
         return super(Action, cls).__new__(cls)
 
@@ -159,20 +167,13 @@ class Action(BaseForm):
 
 def _check_function_spaces(left, right):
     """Check if the function spaces of left and right match."""
+    # Action differentiation pushes differentiation through
+    # right as a consequence of Leibniz formula.
     if isinstance(right, CoefficientDerivative):
-        # Action differentiation pushes differentiation through
-        # right as a consequence of Leibniz formula.
         right, *_ = right.ufl_operands
+    if isinstance(left, CoefficientDerivative):
+        left, *_ = left.ufl_operands
 
-    # `left` can also be a Coefficient in V (= V**), e.g.
-    # `action(Coefficient(V), Cofunction(V.dual()))`.
-    left_arg = left.arguments()[-1] if not isinstance(left, Coefficient) else left
-    if isinstance(right, (Form, Action, Matrix, ZeroBaseForm)):
-        if left_arg.ufl_function_space().dual() != right.arguments()[0].ufl_function_space():
-            raise TypeError("Incompatible function spaces in Action")
-    elif isinstance(right, (Coefficient, Cofunction, Argument, BaseFormOperator)):
-        if left_arg.ufl_function_space() != right.ufl_function_space():
-            raise TypeError("Incompatible function spaces in Action")
     # `Zero` doesn't contain any information about the function space.
     # -> Not a problem since Action will get simplified with a
     #    `ZeroBaseForm` which won't take into account the arguments on
@@ -180,8 +181,26 @@ def _check_function_spaces(left, right):
     # This occurs for:
     # `derivative(Action(A, B), u)` with B is an `Expr` such that dB/du == 0
     # -> `derivative(B, u)` becomes `Zero` when expanding derivatives since B is an Expr.
-    elif not isinstance(right, Zero):
-        raise TypeError("Incompatible argument in Action: %s" % type(right))
+    if isinstance(left, Zero) or isinstance(right, Zero):
+        return
+
+    # `left` can also be a Coefficient in V (= V**), e.g.
+    # `action(Coefficient(V), Cofunction(V.dual()))`.
+    if isinstance(left, Coefficient):
+        V_left = left.ufl_function_space()
+    elif isinstance(left, BaseForm):
+        V_left = left.arguments()[-1].ufl_function_space().dual()
+    else:
+        raise TypeError("Action left argument must be either Coefficient or BaseForm")
+    if isinstance(right, Coefficient):
+        V_right = right.ufl_function_space()
+    elif isinstance(right, BaseForm):
+        V_right = right.arguments()[0].ufl_function_space().dual()
+    else:
+        raise TypeError("Action right argument must be either Coefficient or BaseForm")
+
+    if V_left.dual() != V_right:
+        raise TypeError("Incompatible function spaces in Action")
 
 
 def _get_action_form_arguments(left, right):

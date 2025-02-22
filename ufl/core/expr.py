@@ -342,6 +342,10 @@ class Expr(object, metaclass=UFLType):
         """Return a short string to represent this Expr in an error message."""
         return f"<{self._ufl_class_.__name__} id={id(self)}>"
 
+    def _simplify_indexed(self, multiindex):
+        """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""
+        raise NotImplementedError(self.__class__._simplify_indexed)
+
     # --- Special functions used for processing expressions ---
 
     def __eq__(self, other):

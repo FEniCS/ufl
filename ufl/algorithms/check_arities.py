@@ -57,7 +57,8 @@ class ArityChecker(MultiFunction):
         """Apply to sum."""
         if a != b:
             raise ArityMismatch(
-                f"Adding expressions with non-matching form arguments {_afmt(a)} vs {_afmt(b)}."
+                f"Adding expressions with non-matching form arguments "
+                f"{tuple(map(_afmt, a))} vs {tuple(map(_afmt, b))}."
             )
         return a
 
@@ -86,7 +87,7 @@ class ArityChecker(MultiFunction):
             if len(c) != len(a) + len(b) or len(c) != len({x[0] for x in c}):
                 raise ArityMismatch(
                     "Multiplying expressions with overlapping form arguments "
-                    f"{_afmt(a)} vs {_afmt(b)}."
+                    f"{tuple(map(_afmt, a))} vs {tuple(map(_afmt, b))}."
                 )
             # It's fine for argument parts to overlap
             return c
@@ -138,7 +139,7 @@ class ArityChecker(MultiFunction):
     def conditional(self, o, c, a, b):
         """Apply to conditional."""
         if c:
-            raise ArityMismatch(f"Condition cannot depend on form arguments ({_afmt(a)}).")
+            raise ArityMismatch("Condition cannot depend on form arguments.")
         if a and isinstance(o.ufl_operands[2], Zero):
             # Allow conditional(c, arg, 0)
             return a
@@ -153,7 +154,7 @@ class ArityChecker(MultiFunction):
             # conditional(c, test, nonzeroconstant)
             raise ArityMismatch(
                 "Conditional subexpressions with non-matching form arguments "
-                f"{_afmt(a)} vs {_afmt(b)}."
+                f"{tuple(map(_afmt, a))} vs {tuple(map(_afmt, b))}."
             )
 
     def linear_indexed_type(self, o, a, i):
