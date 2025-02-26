@@ -11,6 +11,7 @@ from ufl import (
     TestFunctions,
     TrialFunctions,
     action,
+    conj,
     dx,
     grad,
     inner,
@@ -23,6 +24,7 @@ from ufl import (
 )
 from ufl.algorithms import expand_derivatives, renumbering
 from ufl.algorithms.formsplitter import extract_blocks
+from ufl.algorithms.formtransformations import compute_form_adjoint
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
@@ -134,7 +136,6 @@ def test_lhs_rhs():
     f = Constant(domain)
     g = Constant(domain)
     F = mass(u, v) + mixed(u, q) + stiffness(p, q) + source1(f, v) + source2(g, q)
-
     a = lhs(F)
     a_blocked = extract_blocks(a)
     L = rhs(F)
@@ -180,7 +181,6 @@ def test_action():
     F_reduced_renumbered = renumbering.renumber_indices(expand_derivatives(F_reduced))
     assert len(F_reduced_renumbered.coefficients()) == 1
     inserted_coeff = F_reduced_renumbered.coefficients()[0]
-
     # Create reference solution
     Fh = mass(inserted_coeff, v) + stiffness(inserted_coeff, q) + source1(f, v) + source2(g, q)
 
@@ -197,3 +197,32 @@ def test_action():
     J_ref = replace(J_exp, {u: inserted_coeff, v: coefficients[0], q: coefficients[1]})
     # Verify
     assert J_renumbered == J_ref
+
+
+def test_adjoint():
+    V = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    space0 = FunctionSpace(domain, V)
+    space1 = FunctionSpace(domain, V)
+    mixed_space = MixedFunctionSpace(space0, space1)
+
+    u, p = TrialFunctions(mixed_space)
+    du, dp = TestFunctions(mixed_space)
+    c = Coefficient(space0)
+    Jh = (
+        inner(grad(u), grad(du)) * dx
+        + inner(c * dp.dx(0), u) * dx
+        - inner(du.dx(0), p.dx(1)) * dx
+        + inner(p, dp) * dx
+    )
+    Jh_adj = compute_form_adjoint(Jh)
+    blocked_adj = extract_blocks(Jh_adj)
+
+    ref_adj = [
+        [conj(inner(grad(du), grad(u))) * dx, conj(-inner(p.dx(0), du.dx(1))) * dx],
+        [conj(inner(c * u.dx(0), dp)) * dx, conj(inner(dp, p)) * dx],
+    ]
+
+    for i in range(2):
+        for j in range(2):
+            assert ref_adj[i][j] == blocked_adj[i][j]

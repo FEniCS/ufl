@@ -496,7 +496,39 @@ def compute_form_adjoint(form, reordered_arguments=None):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        raise ValueError("compute_form_adjoint cannot handle parts.")
+        J = extract_blocks(form, arity=2)
+        num_blocks = len(J)
+        J_adj = 0
+        for i in range(num_blocks):
+            for j in range(num_blocks):
+                if J[i][j] is None:
+                    continue
+                v, u = J[i][j].arguments()
+                if reordered_arguments is None:
+                    reordered_u = Argument(u.ufl_function_space(), number=v.number(), part=v.part())
+                    reordered_v = Argument(v.ufl_function_space(), number=u.number(), part=u.part())
+                else:
+                    reordered_u, reordered_v = reordered_arguments[i]
+
+                if reordered_u.number() >= reordered_v.number():
+                    raise ValueError("Ordering of new arguments is the same as the old arguments!")
+
+                if reordered_u.part() != v.part():
+                    raise ValueError("Ordering of new arguments is the same as the old arguments!")
+                if reordered_v.part() != u.part():
+                    raise ValueError("Ordering of new arguments is the same as the old arguments!")
+
+                if reordered_u.ufl_function_space() != u.ufl_function_space():
+                    raise ValueError(
+                        "Element mismatch between new and old arguments (trial functions)."
+                    )
+                if reordered_v.ufl_function_space() != v.ufl_function_space():
+                    raise ValueError(
+                        "Element mismatch between new and old arguments (test functions)."
+                    )
+
+                J_adj += map_integrands(Conj, replace(J[i][j], {v: reordered_v, u: reordered_u}))
+        return J_adj
 
     if len(arguments) != 2:
         raise ValueError("Expecting bilinear form.")
