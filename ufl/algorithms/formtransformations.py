@@ -421,8 +421,8 @@ def compute_form_action(form, coefficient):
         highest_arity_form = compute_form_lhs(form)
         if highest_arity_form == 0 or highest_arity_form.empty():
             highest_arity_form = compute_form_rhs(form)
-        if highest_arity_form == 0 or highest_arity_form.empty():
-            raise ValueError("No arguments to replace in form.")
+            if highest_arity_form == 0 or highest_arity_form.empty():
+                raise ValueError("No arguments to replace in form.")
         arguments = highest_arity_form.arguments()
         numbers = [a.number() for a in arguments]
         max_number = max(numbers)
