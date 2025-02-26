@@ -74,7 +74,6 @@ class ListTensor(Operator):
                     return sub(e0, 0) if j == () else sub(e0, 0)[(*j, slice(None))]
             except ValueError:
                 pass
-
         # Simplify [v[0,:], v[1,:], ..., v[k,:]] -> v
         if (
             all(
@@ -85,7 +84,10 @@ class ListTensor(Operator):
             and all(sub(e, 0, 0) == sub(e0, 0, 0) for e in expressions[1:])
         ):
             indices = [sub(e, 0, 1).indices() for e in expressions]
-            if all(i[0] == k for k, i in enumerate(indices)):
+            if all(
+                i[0] == k and all(isinstance(subindex, Index) for subindex in i[1:])
+                for k, i in enumerate(indices)
+            ):
                 return sub(e0, 0, 0)
 
         # Construct a new instance to be initialised

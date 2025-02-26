@@ -10,6 +10,7 @@ from ufl import (
     Adjoint,
     Argument,
     Coefficient,
+    Cofunction,
     FunctionSpace,
     Mesh,
     TestFunction,
@@ -66,6 +67,20 @@ def test_symbolic(V1, V2):
     assert Iu.ufl_function_space() == V2
     assert Iu.argument_slots() == (vstar, u)
     assert Iu.arguments() == (vstar,)
+    assert Iu.ufl_operands == (u,)
+
+
+def test_symbolic_adjoint(V1, V2):
+    # Set dual of V2
+    V2_dual = V2.dual()
+
+    u = Argument(V1, 1)
+    vstar = Cofunction(V2_dual)
+    Iu = Interpolate(u, vstar)
+
+    assert Iu.ufl_function_space() == V2_dual
+    assert Iu.argument_slots() == (vstar, u)
+    assert Iu.arguments() == (u,)
     assert Iu.ufl_operands == (u,)
 
 
