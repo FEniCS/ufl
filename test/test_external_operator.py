@@ -31,7 +31,7 @@ from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.core.external_operator import ExternalOperator
 from ufl.finiteelement import FiniteElement
-from ufl.form import BaseForm
+from ufl.form import BaseForm, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -516,3 +516,10 @@ def test_replace(V1):
 
     dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(A, uhat))
     assert G == dN_replaced
+
+
+def test_ZeroDerivative(V1):
+    u = Coefficient(V1, count=1)
+    N = ExternalOperator(Coefficient(V1, count=0), function_space=V1)
+    dN1 = expand_derivatives(derivative(N, u))
+    assert isinstance(dN1, ZeroBaseForm)
