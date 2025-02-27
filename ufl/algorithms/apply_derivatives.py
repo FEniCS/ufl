@@ -1401,6 +1401,7 @@ class DerivativeRuleDispatcher(MultiFunction):
             return ZeroBaseForm(arguments)
         # We need to go through the dag first to record the pending operations
         mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+
         mapped_f = rules.coefficient(f)
         if mapped_f != 0:
             # If dN/dN needs to return an Argument in N space
