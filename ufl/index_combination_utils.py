@@ -161,7 +161,7 @@ def create_slice_indices(component, shape, fi):
             slice_indices.extend(ii)
             all_indices.extend(ii)
         else:
-            raise ValueError(f"Not expecting {ind}.")
+            raise ValueError(f"Not expecting {ind} [type {type(ind)}].")
 
     if len(all_indices) != len(shape):
         raise ValueError("Component and shape length don't match.")
