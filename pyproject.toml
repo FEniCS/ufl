@@ -90,7 +90,6 @@ disable_error_code = [
     "arg-type",
     "assignment",
     "attr-defined",
-    "import-not-found",
     "misc",
     "operator",
     "type-var",
