@@ -24,7 +24,7 @@ issues = "https://github.com/FEniCS/ufl/issues"
 funding = "https://numfocus.org/donate"
 
 [project.optional-dependencies]
-lint = ["ruff"]
+lint = ["mypy", "ruff"]
 docs = ["sphinx", "sphinx_rtd_theme"]
 test = ["pytest"]
 ci = [
