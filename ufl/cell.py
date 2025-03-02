@@ -184,7 +184,7 @@ class AbstractCell(UFLObject):
         return self.sub_entity_types(tdim - 3)
 
 
-_sub_entity_celltypes = {
+_sub_entity_celltypes: typing.Dict[str, list[tuple[str, ...]]] = {
     "vertex": [("vertex",)],
     "interval": [tuple("vertex" for i in range(2)), ("interval",)],
     "triangle": [

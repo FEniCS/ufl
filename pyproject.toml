@@ -91,7 +91,6 @@ disable_error_code = [
     "has-type",
     "import-not-found",
     "import-untyped",
-    "index",
     "method-assign",
     "misc",
     "name-defined",
