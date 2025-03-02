@@ -32,7 +32,7 @@ class FixedIndex(IndexBase):
 
     __slots__ = ("_hash", "_value")
 
-    _cache: typing.Dict[int, typing.Self] = {}
+    _cache: typing.Dict[int, 'FixedIndex'] = {}
 
     def __getnewargs__(self):
         """Get new args."""
@@ -118,7 +118,7 @@ class MultiIndex(Terminal):
 
     __slots__ = ("_indices",)
 
-    _cache: typing.Dict[typing.Tuple[int], typing.Self] = {}
+    _cache: typing.Dict[typing.Tuple[int], 'MultiIndex'] = {}
 
     def __getnewargs__(self):
         """Get new args."""
