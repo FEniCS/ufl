@@ -93,7 +93,6 @@ disable_error_code = [
     "import-untyped",
     "method-assign",
     "misc",
-    "name-defined",
     "operator",
     "override",
     "return-value",
