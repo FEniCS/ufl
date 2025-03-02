@@ -95,5 +95,4 @@ disable_error_code = [
     "misc",
     "operator",
     "type-var",
-    "var-annotated",
 ]
