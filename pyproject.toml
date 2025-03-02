@@ -25,6 +25,7 @@ funding = "https://numfocus.org/donate"
 
 [project.optional-dependencies]
 lint = ["mypy", "ruff"]
+typing = ["types-colorama"]
 docs = ["sphinx", "sphinx_rtd_theme"]
 test = ["pytest"]
 ci = [
@@ -35,6 +36,7 @@ ci = [
     "fenics-ufl[docs]",
     "fenics-ufl[lint]",
     "fenics-ufl[test]",
+    "fenics-ufl[typing]",
 ]
 
 [tool.setuptools]
