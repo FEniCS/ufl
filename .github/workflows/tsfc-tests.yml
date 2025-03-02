@@ -11,9 +11,7 @@ jobs:
     name: Run TSFC tests
     runs-on: ubuntu-latest
     container:
-      # UNDO ME
-      # image: firedrakeproject/firedrake-vanilla-default:latest
-      image: firedrakeproject/firedrake-vanilla-default:pip
+      image: firedrakeproject/firedrake-vanilla-default:latest
       # Github hosted runners require running as root user:
       # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem
       options: --user root
@@ -22,13 +20,6 @@ jobs:
       # packages
       PYTHONPATH: /home/firedrake/firedrake:/home/firedrake/.local/lib/python3.12/site-packages
     steps:
-      - name: Fix HOME
-        run: |
-          : # For unknown reasons GitHub actions overwrite HOME to /github/home
-          : # which will break everything unless fixed
-          : # (https://github.com/actions/runner/issues/863)
-          echo "HOME=/home/firedrake" >> "$GITHUB_ENV"
-
       - uses: actions/checkout@v4
         with:
           # Download UFL into a subdirectory not called 'ufl' to make sure
