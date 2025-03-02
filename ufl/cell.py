@@ -340,7 +340,7 @@ class Cell(AbstractCell):
         return Cell(self._cellname)
 
 
-class TensorProductCell(AbstractCell):
+class TensorProductCell(Cell):
     """Tensor product cell."""
 
     __slots__ = ("_cells", "_tdim")
@@ -434,7 +434,7 @@ class TensorProductCell(AbstractCell):
         """UFL hash data."""
         return tuple(c._ufl_hash_data_() for c in self._cells)
 
-    def reconstruct(self, **kwargs: typing.Any) -> Cell | TensorProductCell:
+    def reconstruct(self, **kwargs: typing.Any) -> Cell:
         """Reconstruct this cell, overwriting properties by those in kwargs."""
         for key, value in kwargs.items():
             raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
