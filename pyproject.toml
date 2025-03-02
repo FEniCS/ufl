@@ -94,7 +94,6 @@ disable_error_code = [
     "method-assign",
     "misc",
     "operator",
-    "override",
     "type-var",
     "var-annotated",
 ]
