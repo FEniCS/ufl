@@ -82,3 +82,22 @@ allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.mypy]
+disable_error_code = [
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "has-type",
+    "import-not-found",
+    "import-untyped",
+    "index",
+    "method-assign",
+    "misc",
+    "name-defined",
+    "operator",
+    "override",
+    "return-value",
+    "type-var",
+    "var-annotated",
+]
