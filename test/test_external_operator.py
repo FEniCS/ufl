@@ -205,10 +205,10 @@ def test_differentiation_procedure_action(V1, V2):
 def test_extractions(domain_2d, V1):
     from ufl.algorithms.analysis import (
         extract_arguments,
-        extract_arguments_and_coefficients,
         extract_base_form_operators,
         extract_coefficients,
         extract_constants,
+        extract_terminals_with_domain,
     )
 
     u = Coefficient(V1)
@@ -219,7 +219,7 @@ def test_extractions(domain_2d, V1):
 
     assert extract_coefficients(e) == [u]
     assert extract_arguments(e) == [vstar_e]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e], [u])
+    assert extract_terminals_with_domain(e) == ([vstar_e], [u], [])
     assert extract_constants(e) == [c]
     assert extract_base_form_operators(e) == [e]
 
@@ -227,7 +227,7 @@ def test_extractions(domain_2d, V1):
 
     assert extract_coefficients(F) == [u]
     assert extract_arguments(e) == [vstar_e]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e], [u])
+    assert extract_terminals_with_domain(e) == ([vstar_e], [u], [])
     assert extract_constants(F) == [c]
     assert F.base_form_operators() == (e,)
 
@@ -236,14 +236,14 @@ def test_extractions(domain_2d, V1):
 
     assert extract_coefficients(e) == [u]
     assert extract_arguments(e) == [vstar_e, u_hat]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u])
+    assert extract_terminals_with_domain(e) == ([vstar_e, u_hat], [u], [])
     assert extract_base_form_operators(e) == [e]
 
     F = e * dx
 
     assert extract_coefficients(F) == [u]
     assert extract_arguments(e) == [vstar_e, u_hat]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u])
+    assert extract_terminals_with_domain(e) == ([vstar_e, u_hat], [u], [])
     assert F.base_form_operators() == (e,)
 
     w = Coefficient(V1)
@@ -252,14 +252,14 @@ def test_extractions(domain_2d, V1):
 
     assert extract_coefficients(e2) == [u, w]
     assert extract_arguments(e2) == [vstar_e2, u_hat]
-    assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, w])
+    assert extract_terminals_with_domain(e2) == ([vstar_e2, u_hat], [u, w], [])
     assert extract_base_form_operators(e2) == [e, e2]
 
     F = e2 * dx
 
     assert extract_coefficients(e2) == [u, w]
     assert extract_arguments(e2) == [vstar_e2, u_hat]
-    assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, w])
+    assert extract_terminals_with_domain(e2) == ([vstar_e2, u_hat], [u, w], [])
     assert F.base_form_operators() == (e, e2)
 
 
