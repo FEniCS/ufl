@@ -62,6 +62,7 @@ A very brief overview of the language contents follows:
 
     -AbstractDomain
     -Mesh
+    -MeshSequence
     -MeshView
 
 * Sobolev spaces::
@@ -209,7 +210,7 @@ A very brief overview of the language contents follows:
 
 * Integral measures::
 
-    -dx, ds, dS, dP
+    -dx, ds, dS, dP, dl
     -dc, dC, dO, dI, dX
     -ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
 
@@ -265,7 +266,7 @@ from ufl.constantvalue import Identity, PermutationSymbol, as_ufl, zero
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate, interpolate
 from ufl.core.multiindex import Index, indices
-from ufl.domain import AbstractDomain, Mesh, MeshView
+from ufl.domain import AbstractDomain, Mesh, MeshSequence, MeshView
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.formoperators import (
@@ -296,6 +297,9 @@ from ufl.geometry import (
     MaxFacetEdgeLength,
     MinCellEdgeLength,
     MinFacetEdgeLength,
+    RidgeJacobian,
+    RidgeJacobianDeterminant,
+    RidgeJacobianInverse,
     SpatialCoordinate,
 )
 from ufl.integral import Integral
@@ -307,6 +311,7 @@ from ufl.objects import (
     dI,
     dO,
     dP,
+    dr,
     dS,
     ds,
     ds_b,
@@ -484,6 +489,7 @@ __all__ = [
     "MaxFacetEdgeLength",
     "Measure",
     "Mesh",
+    "MeshSequence",
     "MeshView",
     "MinCellEdgeLength",
     "MinFacetEdgeLength",
@@ -492,6 +498,9 @@ __all__ = [
     "Not",
     "Or",
     "PermutationSymbol",
+    "RidgeJacobian",
+    "RidgeJacobianDeterminant",
+    "RidgeJacobianInverse",
     "SpatialCoordinate",
     "SymmetricPullback",
     "TensorConstant",
@@ -549,6 +558,7 @@ __all__ = [
     "dot",
     "double_contravariant_piola",
     "double_covariant_piola",
+    "dr",
     "ds",
     "ds_b",
     "ds_t",

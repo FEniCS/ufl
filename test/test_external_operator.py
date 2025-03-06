@@ -31,7 +31,7 @@ from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.core.external_operator import ExternalOperator
 from ufl.finiteelement import FiniteElement
-from ufl.form import BaseForm
+from ufl.form import BaseForm, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -205,10 +205,10 @@ def test_differentiation_procedure_action(V1, V2):
 def test_extractions(domain_2d, V1):
     from ufl.algorithms.analysis import (
         extract_arguments,
-        extract_arguments_and_coefficients,
         extract_base_form_operators,
         extract_coefficients,
         extract_constants,
+        extract_terminals_with_domain,
     )
 
     u = Coefficient(V1)
@@ -219,7 +219,7 @@ def test_extractions(domain_2d, V1):
 
     assert extract_coefficients(e) == [u]
     assert extract_arguments(e) == [vstar_e]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e], [u])
+    assert extract_terminals_with_domain(e) == ([vstar_e], [u], [])
     assert extract_constants(e) == [c]
     assert extract_base_form_operators(e) == [e]
 
@@ -227,7 +227,7 @@ def test_extractions(domain_2d, V1):
 
     assert extract_coefficients(F) == [u]
     assert extract_arguments(e) == [vstar_e]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e], [u])
+    assert extract_terminals_with_domain(e) == ([vstar_e], [u], [])
     assert extract_constants(F) == [c]
     assert F.base_form_operators() == (e,)
 
@@ -236,14 +236,14 @@ def test_extractions(domain_2d, V1):
 
     assert extract_coefficients(e) == [u]
     assert extract_arguments(e) == [vstar_e, u_hat]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u])
+    assert extract_terminals_with_domain(e) == ([vstar_e, u_hat], [u], [])
     assert extract_base_form_operators(e) == [e]
 
     F = e * dx
 
     assert extract_coefficients(F) == [u]
     assert extract_arguments(e) == [vstar_e, u_hat]
-    assert extract_arguments_and_coefficients(e) == ([vstar_e, u_hat], [u])
+    assert extract_terminals_with_domain(e) == ([vstar_e, u_hat], [u], [])
     assert F.base_form_operators() == (e,)
 
     w = Coefficient(V1)
@@ -252,14 +252,14 @@ def test_extractions(domain_2d, V1):
 
     assert extract_coefficients(e2) == [u, w]
     assert extract_arguments(e2) == [vstar_e2, u_hat]
-    assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, w])
+    assert extract_terminals_with_domain(e2) == ([vstar_e2, u_hat], [u, w], [])
     assert extract_base_form_operators(e2) == [e, e2]
 
     F = e2 * dx
 
     assert extract_coefficients(e2) == [u, w]
     assert extract_arguments(e2) == [vstar_e2, u_hat]
-    assert extract_arguments_and_coefficients(e2) == ([vstar_e2, u_hat], [u, w])
+    assert extract_terminals_with_domain(e2) == ([vstar_e2, u_hat], [u, w], [])
     assert F.base_form_operators() == (e, e2)
 
 
@@ -516,3 +516,10 @@ def test_replace(V1):
 
     dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(A, uhat))
     assert G == dN_replaced
+
+
+def test_ZeroDerivative(V1):
+    u = Coefficient(V1, count=1)
+    N = ExternalOperator(Coefficient(V1, count=0), function_space=V1)
+    dN1 = expand_derivatives(derivative(N, u))
+    assert isinstance(dN1, ZeroBaseForm)

@@ -57,6 +57,8 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
             else:
                 if element.cell != domain_cell:
                     raise ValueError("Non-matching cell of finite element and domain.")
+            if not domain.can_make_function_space(element):
+                raise ValueError(f"Mismatching domain ({domain}) and element ({element}).")
         AbstractFunctionSpace.__init__(self)
         self._label = label
         self._ufl_domain = domain
