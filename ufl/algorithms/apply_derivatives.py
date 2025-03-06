@@ -1420,7 +1420,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
                     *N.ufl_operands, derivatives=derivatives, argument_slots=new_args
                 )
             elif df == 0:
-                extop = Zero(N.ufl_shape)
+                extop = ZeroBaseForm(N.arguments())
             else:
                 raise NotImplementedError(
                     "Frechet derivative of external operators need to be provided!"
