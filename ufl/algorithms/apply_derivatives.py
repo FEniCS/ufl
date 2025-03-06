@@ -10,6 +10,8 @@ import warnings
 from collections import defaultdict
 from math import pi
 
+import numpy as np
+
 from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -54,7 +56,7 @@ from ufl.differentiation import (
     BaseFormOperatorDerivative,
     CoordinateDerivative,
 )
-from ufl.domain import extract_unique_domain
+from ufl.domain import MeshSequence, extract_unique_domain
 from ufl.form import Form, ZeroBaseForm
 from ufl.operators import (
     bessel_I,
@@ -81,6 +83,27 @@ from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, u
 # - CurlRuleset
 # - ReferenceGradRuleset
 # - ReferenceDivRuleset
+
+
+def flatten_domain_element(domain, element):
+    """Return the flattened (domain, element) pairs for mixed domain problems.
+
+    Args:
+        domain: `Mesh` or `MeshSequence`.
+        element: `FiniteElement`.
+
+    Returns:
+        Nested tuples of (domain, element) pairs; just ((domain, element),)
+        if domain is a `Mesh` (and not a `MeshSequence`).
+
+    """
+    if not isinstance(domain, MeshSequence):
+        return ((domain, element),)
+    flattened = ()
+    assert len(domain) == len(element.sub_elements)
+    for d, e in zip(domain, element.sub_elements):
+        flattened += flatten_domain_element(d, e)
+    return flattened
 
 
 class GenericDerivativeRuleset(MultiFunction):
@@ -640,16 +663,58 @@ class GradRuleset(GenericDerivativeRuleset):
         """Differentiate a reference_value."""
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
-        if isinstance(f.ufl_element().pullback, PhysicalPullback):
-            # TODO: Do we need to be more careful for immersed things?
-            return ReferenceGrad(o)
-
         if not f._ufl_is_terminal_:
             raise ValueError("ReferenceValue can only wrap a terminal")
-        domain = extract_unique_domain(f)
-        K = JacobianInverse(domain)
-        Do = grad_to_reference_grad(o, K)
-        return Do
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        if isinstance(domain, MeshSequence):
+            element = f.ufl_function_space().ufl_element()
+            if element.num_sub_elements != len(domain):
+                raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
+            # Get monolithic representation of rgrad(o); o might live in a mixed space.
+            rgrad = ReferenceGrad(o)
+            ref_dim = rgrad.ufl_shape[-1]
+            # Apply K_ji(d) to the corresponding components of rgrad, store them in a list,
+            # and put them back together at the end using as_tensor().
+            components = []
+            dofoffset = 0
+            for d, e in flatten_domain_element(domain, element):
+                esh = e.reference_value_shape
+                ndof = int(np.prod(esh))
+                assert ndof > 0
+                if isinstance(e.pullback, PhysicalPullback):
+                    if ref_dim != self._var_shape[0]:
+                        raise NotImplementedError("""
+                            PhysicalPullback not handled for immersed domain :
+                            reference dim ({ref_dim}) != physical dim (self._var_shape[0])""")
+                    for idx in range(ndof):
+                        for i in range(ref_dim):
+                            components.append(rgrad[(dofoffset + idx,) + (i,)])
+                else:
+                    K = JacobianInverse(d)
+                    rdim, gdim = K.ufl_shape
+                    if rdim != ref_dim:
+                        raise RuntimeError(f"{rdim} != {ref_dim}")
+                    if gdim != self._var_shape[0]:
+                        raise RuntimeError(f"{gdim} != {self._var_shape[0]}")
+                    # Note that rgrad[dofoffset + [0,ndof), [0,rdim)] are the components
+                    # corresponding to (d, e).
+                    # For each row, rgrad[dofoffset + idx, [0,rdim)], we apply
+                    # K_ji(d)[[0,rdim), [0,gdim)].
+                    for idx in range(ndof):
+                        for i in range(gdim):
+                            temp = Zero()
+                            for j in range(rdim):
+                                temp += rgrad[(dofoffset + idx,) + (j,)] * K[j, i]
+                            components.append(temp)
+                dofoffset += ndof
+            return as_tensor(np.asarray(components).reshape(rgrad.ufl_shape[:-1] + self._var_shape))
+        else:
+            if isinstance(f.ufl_element().pullback, PhysicalPullback):
+                # TODO: Do we need to be more careful for immersed things?
+                return ReferenceGrad(o)
+            else:
+                K = JacobianInverse(domain)
+                return grad_to_reference_grad(o, K)
 
     def reference_grad(self, o):
         """Differentiate a reference_grad."""
@@ -661,10 +726,50 @@ class GradRuleset(GenericDerivativeRuleset):
         )
         if not valid_operand:
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")
-        domain = extract_unique_domain(f)
-        K = JacobianInverse(domain)
-        Do = grad_to_reference_grad(o, K)
-        return Do
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        if isinstance(domain, MeshSequence):
+            if not f._ufl_is_in_reference_frame_:
+                raise RuntimeError("Expecting a reference frame type")
+            while not f._ufl_is_terminal_:
+                (f,) = f.ufl_operands
+            element = f.ufl_function_space().ufl_element()
+            if element.num_sub_elements != len(domain):
+                raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
+            # Get monolithic representation of rgrad(o); o might live in a mixed space.
+            rgrad = ReferenceGrad(o)
+            ref_dim = rgrad.ufl_shape[-1]
+            # Apply K_ji(d) to the corresponding components of rgrad, store them in a list,
+            # and put them back together at the end using as_tensor().
+            components = []
+            dofoffset = 0
+            for d, e in flatten_domain_element(domain, element):
+                esh = e.reference_value_shape
+                ndof = int(np.prod(esh))
+                assert ndof > 0
+                K = JacobianInverse(d)
+                rdim, gdim = K.ufl_shape
+                if rdim != ref_dim:
+                    raise RuntimeError(f"{rdim} != {ref_dim}")
+                if gdim != self._var_shape[0]:
+                    raise RuntimeError(f"{gdim} != {self._var_shape[0]}")
+                # Note that rgrad[dofoffset + [0,ndof), [0,rdim), [0,rdim)] are the components
+                # corresponding to (d, e).
+                # For each row, rgrad[dofoffset + idx, [0,rdim), [0,rdim)], we apply
+                # K_ji(d)[[0,rdim), [0,gdim)].
+                for idx in range(ndof):
+                    for midx in np.ndindex(rgrad.ufl_shape[1:-1]):
+                        for i in range(gdim):
+                            temp = Zero()
+                            for j in range(rdim):
+                                temp += rgrad[(dofoffset + idx,) + midx + (j,)] * K[j, i]
+                            components.append(temp)
+                dofoffset += ndof
+            if rgrad.ufl_shape[0] != dofoffset:
+                raise RuntimeError(f"{rgrad.ufl_shape[0]} != {dofoffset}")
+            return as_tensor(np.asarray(components).reshape(rgrad.ufl_shape[:-1] + self._var_shape))
+        else:
+            K = JacobianInverse(domain)
+            return grad_to_reference_grad(o, K)
 
     # --- Nesting of gradients
 
@@ -1314,7 +1419,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
                     *N.ufl_operands, derivatives=derivatives, argument_slots=new_args
                 )
             elif df == 0:
-                extop = Zero(N.ufl_shape)
+                extop = ZeroBaseForm(N.arguments())
             else:
                 raise NotImplementedError(
                     "Frechet derivative of external operators need to be provided!"
