@@ -24,6 +24,7 @@ from ufl.classes import (
     ConstantValue,
     ExprList,
     ExprMapping,
+    FacetNormal,
     FloatValue,
     FormArgument,
     Grad,
@@ -722,7 +723,7 @@ class GradRuleset(GenericDerivativeRuleset):
         f = o.ufl_operands[0]
 
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(
-            f, (JacobianInverse, SpatialCoordinate, Jacobian, JacobianDeterminant)
+            f, (JacobianInverse, SpatialCoordinate, Jacobian, JacobianDeterminant, FacetNormal)
         )
         if not valid_operand:
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")

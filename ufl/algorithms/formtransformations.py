@@ -1,6 +1,6 @@
 """Utilities for transforming complete Forms into new related Forms."""
 
-# Copyright (C) 2008-2016 Martin Sandve Alnæs
+# Copyright (C) 2008-2025 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
@@ -9,11 +9,13 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
+# Modified by Jørgen S. Dokken, 2025.
 
 import warnings
 from logging import debug
 
 from ufl.algebra import Conj
+from ufl.algorithms.formsplitter import extract_blocks
 
 # Other algorithms:
 from ufl.algorithms.map_integrands import map_integrands
@@ -310,10 +312,6 @@ def compute_form_with_arity(form, arity, arguments=None):
     if arguments is None:
         arguments = form.arguments()
 
-    parts = [arg.part() for arg in arguments]
-    if set(parts) - {None}:
-        raise ValueError("compute_form_with_arity cannot handle parts.")
-
     if len(arguments) < arity:
         warnings.warn(f"Form has no parts with arity {arity}.")
         return 0 * form
@@ -326,9 +324,9 @@ def compute_form_with_arity(form, arity, arguments=None):
     pe = PartExtracter(sub_arguments)
 
     def _transform(e):
-        e, provides = pe.visit(e)
+        e_visited, provides = pe.visit(e)
         if provides == sub_arguments:
-            return e
+            return e_visited
         return Zero()
 
     return map_integrands(_transform, form)
@@ -362,7 +360,18 @@ def compute_form_lhs(form):
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
     """
-    return compute_form_with_arity(form, 2)
+    parts = tuple(sorted(set(part for a in form.arguments() if (part := a.part()) is not None)))
+    # If Arguments are stemming from a MixedFunctionSpace, we have to compute this per block
+    if parts == ():
+        return compute_form_with_arity(form, 2)
+
+    form_blocks = extract_blocks(form, arity=2)
+    lhs = 0
+    for bi in form_blocks:
+        for bj in bi:
+            if bj is not None:
+                lhs += compute_form_with_arity(bj, 2)
+    return lhs
 
 
 def compute_form_rhs(form):
@@ -372,7 +381,16 @@ def compute_form_rhs(form):
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
     """
-    return -compute_form_with_arity(form, 1)
+    parts = tuple(sorted(set(part for a in form.arguments() if (part := a.part()) is not None)))
+    if parts == ():
+        return -compute_form_with_arity(form, 1)
+
+    form_blocks = extract_blocks(form, arity=1)
+    rhs = 0
+    for bi in form_blocks:
+        if bi is not None:
+            rhs += compute_form_with_arity(bi, 1)
+    return -rhs
 
 
 def compute_form_functional(form):
@@ -399,7 +417,26 @@ def compute_form_action(form, coefficient):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        raise ValueError("compute_form_action cannot handle parts.")
+        # We assume that for MixedFunctionSpace that the max arity can be two
+        highest_arity_form = compute_form_lhs(form)
+        if highest_arity_form == 0 or highest_arity_form.empty():
+            highest_arity_form = compute_form_rhs(form)
+            if highest_arity_form == 0 or highest_arity_form.empty():
+                raise ValueError("No arguments to replace in form.")
+        arguments = highest_arity_form.arguments()
+        numbers = [a.number() for a in arguments]
+        max_number = max(numbers)
+        if coefficient is None:
+            replacement_map = {
+                a: Coefficient(a.ufl_function_space())
+                for a in arguments
+                if a.number() == max_number
+            }
+        else:
+            replacement_map = {
+                a: coefficient[a.part()] for a in arguments if a.number() == max_number
+            }
+        return replace(form, replacement_map)
 
     # Pick last argument (will be replaced)
     u = arguments[-1]
