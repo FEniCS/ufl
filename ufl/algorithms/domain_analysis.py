@@ -33,6 +33,7 @@ class IntegralData(object):
 
     __slots__ = (
         "domain",
+        "domain_integral_type_map",
         "enabled_coefficients",
         "integral_coefficients",
         "integral_type",
@@ -60,6 +61,7 @@ class IntegralData(object):
         # this stage:
         self.integral_coefficients = None
         self.enabled_coefficients = None
+        self.domain_integral_type_map = None
 
         # TODO: I think we can get rid of this with some refactoring
         # in ffc:
