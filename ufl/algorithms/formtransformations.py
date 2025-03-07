@@ -361,7 +361,7 @@ def compute_form_lhs(form):
         a = lhs(a) -> u*v*dx
     """
     parts = tuple(sorted(set(part for a in form.arguments() if (part := a.part()) is not None)))
-    # If Arguments are stemming from a MixedFucntionSpace, we have to compute this per block
+    # If Arguments are stemming from a MixedFunctionSpace, we have to compute this per block
     if parts == ():
         return compute_form_with_arity(form, 2)
 

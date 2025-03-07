@@ -155,7 +155,7 @@ def extract_blocks(
         if arity > 1:
             for pj in range(num_parts):
                 f = fs.split(form, pi, pj)
-                # Ignore empty forms and linear forms
+                # Ignore empty forms and rank 0 or 1 forms
                 if f.empty() or len(f.arguments()) != 2:
                     form_i.append(None)
                 else:

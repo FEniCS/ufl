@@ -8,7 +8,7 @@
 
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-from ufl.domain import as_domain, extract_unique_domain
+from ufl.domain import MeshSequence, as_domain, extract_unique_domain
 from ufl.sobolevspace import H1
 
 """
@@ -23,6 +23,8 @@ X = X[q]
 x = x[q]
     SpatialCoordinate = quadrature point from input array (dc)
 
+Xe = Xe[q]
+    RidgeCoordinate = quadrature point on ridge (dr)
 
 Jacobians of mappings between coordinates:
 
@@ -35,12 +37,31 @@ Jxc = dx/dX = grad_X x(X)
 Jxf = dx/dXf = grad_Xf x(Xf)  =  Jxc Jcf = dx/dX dX/dXf = grad_X x(X) grad_Xf X(Xf)
     FacetJacobian = Jacobian * CellFacetJacobian
 
+Jcr = dX/dXe = grad_Xe X(Xe)
+    CellRidgeJacobian
+
+Jfe = dXf/dXe = grad_Xe Xf(Xe)
+    FacetRidgeJacobian
+
+Jxe = dx/dXe = grad_Xe x(Xe) = Jxc Jcr = dx/dX dX/dXe =  grad_X x(X) grad_Xe X(Xe)
+    RidgeJacobian = Jacobian * CellRidgeJacobian
+# NOTE : Jxe could also be defined from CellFacetJacobian and FacetRidgeJacobian
+# Jxe(v2) =  dx/dXe = grad_Xe x(Xe) = Jxc Jcf Jfe = dx/dX dX/dXf dXf/dXe
+# = grad_X x(X) grad_Xf X(Xf) grad_Xe Xf(Xe)
+#    RidgeJacobian = Jacobian * CellFacetJacobian * FacetRidgeJacobian
 
 Possible computation of X from Xf:
 
 X = Jcf Xf + X0f
     CellCoordinate = CellFacetJacobian * FacetCoordinate + CellFacetOrigin
 
+Possible computation of X and Xf from Xe:
+
+X = Jcr Xe + X0e
+    CellCoordinate = CellRidgeJacobian * RidgeCoordinate + CellRidgeOrigin
+
+Xf = Jfe Xe + X0e and X = Jcf (Jfe Xe + X0e) + X0f
+    FacetCoordinate = FacetRidgeJacobian * RidgeCoordinate + CellRidgeOrigin
 
 Possible computation of x from X:
 
@@ -58,6 +79,10 @@ x = x(X(Xf))
 x = Jxf Xf + x0f
     SpatialCoordinate = FacetJacobian * FacetCoordinate + FacetOrigin
 
+Possible computation of x from Xe:
+
+x = x(X(Xe)) = Jxe Xe + x0e
+    SpatialCoordinate = RidgeJacobian * RidgeCoordinate + RidgeOrigin
 
 Inverse relations:
 
@@ -68,9 +93,16 @@ Xf = FK * (x - x0f)
     FacetCoordinate = FacetJacobianInverse * (SpatialCoordinate - FacetOrigin)
 
 Xf = CFK * (X - X0f)
-    FacetCoordinate = CellFacetJacobianInverse * (CellCoordinate - CellFacetOrigin)
-"""
+    FacetCoordinate = CellFacetJacobianInverse * \
+        (CellCoordinate - CellFacetOrigin)
 
+Xe = EK * (x - x0e)
+    RidgeCoordinate = RidgeJacobianInverse * (SpatialCoordinate - RidgeOrigin)
+
+Xe = CEK * (X - X0e)
+    RidgeCoordinate = CellRidgeJacobianInverse * \
+        (CellCoordinate - CellRidgeOrigin)
+"""
 
 # --- Expression node types
 
@@ -84,6 +116,9 @@ class GeometricQuantity(Terminal):
     def __init__(self, domain):
         """Initialise."""
         Terminal.__init__(self)
+        if isinstance(domain, MeshSequence) and len(set(domain)) > 1:
+            # Can not make GeometricQuantity if multiple domains exist.
+            raise TypeError(f"Can not create a GeometricQuantity on {domain}")
         self._domain = as_domain(domain)
 
     def ufl_domains(self):
@@ -132,6 +167,13 @@ class GeometricCellQuantity(GeometricQuantity):
 @ufl_type(is_abstract=True)
 class GeometricFacetQuantity(GeometricQuantity):
     """Geometric facet quantity."""
+
+    __slots__ = ()
+
+
+@ufl_type(is_abstract=True)
+class GeometricRidgeQuantity(GeometricQuantity):
+    """Geometric ridge quantity."""
 
     __slots__ = ()
 
@@ -244,6 +286,38 @@ class FacetCoordinate(GeometricFacetQuantity):
         return t <= 1
 
 
+@ufl_type()
+class RidgeCoordinate(GeometricRidgeQuantity):
+    """The coordinate in a reference cell of a ridge.
+
+    In the context of expression integration over a ridge,
+    represents the reference ridge coordinate of each quadrature point.
+
+    In the context of expression evaluation in a point on a ridge,
+    represents that point in the reference coordinate system of the ridge.
+    """
+
+    __slots__ = ()
+    name = "Xe"
+
+    def __init__(self, domain):
+        """Initialise."""
+        GeometricRidgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 2:
+            raise ValueError("RidgeCoordinate is only defined for topological dimensions >= 2.")
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        t = self._domain.topological_dimension()
+        return (t - 2,)
+
+    def is_cellwise_constant(self):
+        """Return whether this expression is spatially constant over each cell."""
+        return False
+
+
 # --- Origin of coordinate systems in larger coordinate systems
 
 
@@ -280,11 +354,39 @@ class FacetOrigin(GeometricFacetQuantity):
 
 
 @ufl_type()
+class RidgeOrigin(GeometricRidgeQuantity):
+    """The spatial coordinate corresponding to origin of a reference ridge."""
+
+    __slots__ = ()
+    name = "x0e"
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        g = self._domain.geometric_dimension()
+        return (g,)
+
+
+@ufl_type()
 class CellFacetOrigin(GeometricFacetQuantity):
     """The reference cell coordinate corresponding to origin of a reference facet."""
 
     __slots__ = ()
     name = "X0f"
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        t = self._domain.topological_dimension()
+        return (t,)
+
+
+@ufl_type()
+class CellRidgeOrigin(GeometricRidgeQuantity):
+    """The reference cell coordinate corresponding to origin of a reference ridge."""
+
+    __slots__ = ()
+    name = "X0e"
 
     @property
     def ufl_shape(self):
@@ -355,6 +457,42 @@ class FacetJacobian(GeometricFacetQuantity):
 
 
 @ufl_type()
+class RidgeJacobian(GeometricRidgeQuantity):
+    """The Jacobian of the mapping from reference ridge to spatial coordinates.
+
+      RJ_ij = dx_i/dXe_j
+
+    The RidgeJacobian is the product of the Jacobian and CellRidgeJacobian:
+
+      RJ = dx/dXe = dx/dX dX/dXe = J * CRJ
+
+    """
+
+    __slots__ = ()
+    name = "RJ"
+
+    def __init__(self, domain):
+        """Initialise."""
+        GeometricRidgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 2:
+            raise ValueError("RidgeJacobian is only defined for topological dimensions >= 2.")
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        g = self._domain.geometric_dimension()
+        t = self._domain.topological_dimension()
+        return (g, t - 2)
+
+    def is_cellwise_constant(self):
+        """Return whether this expression is spatially constant over each cell."""
+        # Only true for a piecewise linear coordinate field in simplex
+        # cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+@ufl_type()
 class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
     """The Jacobian of the mapping from reference facet to reference cell coordinates.
 
@@ -376,6 +514,66 @@ class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
         """Get the UFL shape."""
         t = self._domain.topological_dimension()
         return (t, t - 1)
+
+    def is_cellwise_constant(self):
+        """Return whether this expression is spatially constant over each cell."""
+        # This is always a constant mapping between two reference
+        # coordinate systems.
+        return True
+
+
+@ufl_type()
+class CellRidgeJacobian(GeometricRidgeQuantity):  # dX/dXe
+    """The Jacobian of the mapping from reference ridge to reference cell coordinates.
+
+    CRJ_ij = dX_i/dXe_j
+    """
+
+    __slots__ = ()
+    name = "CRJ"
+
+    def __init__(self, domain):
+        """Initialise."""
+        GeometricRidgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 2:
+            raise ValueError("CellRidgeJacobian is only defined for topological dimensions >= 2.")
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        t = self._domain.topological_dimension()
+        return (t, t - 2)
+
+    def is_cellwise_constant(self):
+        """Return whether this expression is spatially constant over each cell."""
+        # This is always a constant mapping between two reference
+        # coordinate systems.
+        return True
+
+
+@ufl_type()
+class FacetRidgeJacobian(GeometricRidgeQuantity):  # dXf/dXe
+    """The Jacobian of the mapping from reference ridge to reference facet coordinates.
+
+    FRJ_ij = dXf_i/dXe_j
+    """
+
+    __slots__ = ()
+    name = "FRJ"
+
+    def __init__(self, domain):
+        """Initialise."""
+        GeometricRidgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 2:
+            raise ValueError("FacetRidgeJacobian is only defined for topological dimensions >= 2.")
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        t = self._domain.topological_dimension()
+        return (t - 1, t - 2)
 
     def is_cellwise_constant(self):
         """Return whether this expression is spatially constant over each cell."""
@@ -571,11 +769,38 @@ class FacetJacobianDeterminant(GeometricFacetQuantity):
 
 
 @ufl_type()
+class RidgeJacobianDeterminant(GeometricRidgeQuantity):
+    """The pseudo-determinant of the RidgeJacobian."""
+
+    __slots__ = ()
+    name = "detRJ"
+
+    def is_cellwise_constant(self):
+        """Return whether this expression is spatially constant over each cell."""
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+@ufl_type()
 class CellFacetJacobianDeterminant(GeometricFacetQuantity):
     """The pseudo-determinant of the CellFacetJacobian."""
 
     __slots__ = ()
     name = "detCFJ"
+
+    def is_cellwise_constant(self):
+        """Return whether this expression is spatially constant over each cell."""
+        # Only true for a piecewise linear coordinate field in simplex
+        # cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+@ufl_type()
+class CellRidgeJacobianDeterminant(GeometricRidgeQuantity):
+    """The pseudo-determinant of the CellRidgeJacobian."""
+
+    __slots__ = ()
+    name = "detCRJ"
 
     def is_cellwise_constant(self):
         """Return whether this expression is spatially constant over each cell."""
@@ -643,6 +868,36 @@ class FacetJacobianInverse(GeometricFacetQuantity):
 
 
 @ufl_type()
+class RidgeJacobianInverse(GeometricRidgeQuantity):
+    """The pseudo-inverse of the RidgeJacobian."""
+
+    __slots__ = ()
+    name = "EK"
+
+    def __init__(self, domain):
+        """Initialise."""
+        GeometricRidgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 2:
+            raise ValueError(
+                "RidgeJacobianInverse is only defined for topological dimensions >= 2."
+            )
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        g = self._domain.geometric_dimension()
+        t = self._domain.topological_dimension()
+        return (t - 2, g)
+
+    def is_cellwise_constant(self):
+        """Return whether this expression is spatially constant over each cell."""
+        # Only true for a piecewise linear coordinate field in simplex
+        # cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+@ufl_type()
 class CellFacetJacobianInverse(GeometricFacetQuantity):
     """The pseudo-inverse of the CellFacetJacobian."""
 
@@ -663,6 +918,34 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
         """Get the UFL shape."""
         t = self._domain.topological_dimension()
         return (t - 1, t)
+
+    def is_cellwise_constant(self):
+        """Return whether this expression is spatially constant over each cell."""
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+@ufl_type()
+class CellRidgeJacobianInverse(GeometricRidgeQuantity):
+    """The pseudo-inverse of the RidgeFacetJacobian."""
+
+    __slots__ = ()
+    name = "CEK"
+
+    def __init__(self, domain):
+        """Initialise."""
+        GeometricRidgeQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        if t < 2:
+            raise ValueError(
+                "CellRidgeJacobianInverse is only defined for topological dimensions >= 2."
+            )
+
+    @property
+    def ufl_shape(self):
+        """Get the UFL shape."""
+        t = self._domain.topological_dimension()
+        return (t - 2, t)
 
     def is_cellwise_constant(self):
         """Return whether this expression is spatially constant over each cell."""
@@ -755,6 +1038,14 @@ class ReferenceFacetVolume(GeometricFacetQuantity):
 
 
 @ufl_type()
+class ReferenceRidgeVolume(GeometricRidgeQuantity):
+    """The volume of the reference cell of the current ridge."""
+
+    __slots__ = ()
+    name = "reference_ridge_volume"
+
+
+@ufl_type()
 class CellVolume(GeometricCellQuantity):
     """The volume of the cell."""
 
@@ -779,7 +1070,8 @@ class CellDiameter(GeometricCellQuantity):
 
 
 @ufl_type()
-class FacetArea(GeometricFacetQuantity):  # FIXME: Should this be allowed for interval domain?
+# FIXME: Should this be allowed for interval domain?
+class FacetArea(GeometricFacetQuantity):
     """The area of the facet."""
 
     __slots__ = ()
