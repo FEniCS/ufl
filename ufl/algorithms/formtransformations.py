@@ -1,6 +1,6 @@
 """Utilities for transforming complete Forms into new related Forms."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnæs
+# Copyright (C) 2008-2025 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
@@ -361,7 +361,7 @@ def compute_form_lhs(form):
         a = lhs(a) -> u*v*dx
     """
     parts = tuple(sorted(set(part for a in form.arguments() if (part := a.part()) is not None)))
-    # If Arguments are stemming from a MixedFucntionSpace, we have to compute this per block
+    # If Arguments are stemming from a MixedFunctionSpace, we have to compute this per block
     if parts == ():
         return compute_form_with_arity(form, 2)
 
@@ -421,8 +421,8 @@ def compute_form_action(form, coefficient):
         highest_arity_form = compute_form_lhs(form)
         if highest_arity_form == 0 or highest_arity_form.empty():
             highest_arity_form = compute_form_rhs(form)
-        if highest_arity_form == 0 or highest_arity_form.empty():
-            raise ValueError("No arguments to replace in form.")
+            if highest_arity_form == 0 or highest_arity_form.empty():
+                raise ValueError("No arguments to replace in form.")
         arguments = highest_arity_form.arguments()
         numbers = [a.number() for a in arguments]
         max_number = max(numbers)
