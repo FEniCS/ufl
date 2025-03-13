@@ -12,7 +12,6 @@ from math import pi
 
 from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments
-from ufl.algorithms.estimate_degrees import SumDegreeEstimator
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.argument import BaseArgument
@@ -563,14 +562,6 @@ class GradRuleset(GenericDerivativeRuleset):
         """Initialise."""
         GenericDerivativeRuleset.__init__(self, var_shape=(geometric_dimension,))
         self._Id = Identity(geometric_dimension)
-        self.degree_estimator = SumDegreeEstimator(1, {})
-
-    def is_cellwise_constant(self, o):
-        """More precise checks for cellwise constants."""
-        if is_cellwise_constant(o):
-            return True
-        degree = map_expr_dag(self.degree_estimator, o)
-        return degree == 0
 
     # --- Specialized rules for geometric quantities
 
@@ -581,7 +572,7 @@ class GradRuleset(GenericDerivativeRuleset):
         otherwise transform derivatives to reference derivatives.
         Override for specific types if other behaviour is needed.
         """
-        if self.is_cellwise_constant(o):
+        if is_cellwise_constant(o):
             return self.independent_terminal(o)
         else:
             domain = extract_unique_domain(o)
@@ -592,7 +583,7 @@ class GradRuleset(GenericDerivativeRuleset):
     def jacobian_inverse(self, o):
         """Differentiate a jacobian_inverse."""
         # grad(K) == K_ji rgrad(K)_rj
-        if self.is_cellwise_constant(o):
+        if is_cellwise_constant(o):
             return self.independent_terminal(o)
         if not o._ufl_is_terminal_:
             raise ValueError("ReferenceValue can only wrap a terminal")
@@ -662,7 +653,7 @@ class GradRuleset(GenericDerivativeRuleset):
 
     def reference_grad(self, o):
         """Differentiate a reference_grad."""
-        if self.is_cellwise_constant(o):
+        if is_cellwise_constant(o):
             return self.independent_terminal(o)
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
@@ -789,9 +780,15 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
         Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f)).
         """
-        # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue, Terminal)):
+        # Check that f is a "differential terminal"
+        (f,) = o.ufl_operands
+        if not isinstance(f, (ReferenceGrad, ReferenceValue, Terminal)):
             raise ValueError("Expecting only grads applied to a terminal.")
+
+        # The Jacobian of a piecewise linear mesh is piecewise constant.
+        if isinstance(f, SpatialCoordinate) and f._domain.is_piecewise_linear_simplex_domain():
+            return self.independent_terminal(o)
+
         return ReferenceGrad(o)
 
     cell_avg = GenericDerivativeRuleset.independent_operator

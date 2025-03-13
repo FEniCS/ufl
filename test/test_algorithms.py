@@ -197,20 +197,3 @@ def test_remove_component_tensors(domain):
     fd = compute_form_data(form)
 
     assert "ComponentTensor" not in repr(fd.preprocessed_form)
-
-
-def test_grad_cellwise_constant(domain):
-    element = FiniteElement("Lagrange", triangle, 3, (), identity_pullback, H1)
-    space = FunctionSpace(domain, element)
-    u = Coefficient(space)
-
-    # Applying four derivatives to a cubic should simplify to zero
-    f = div(grad(div(grad(u))))
-    form = f * dx
-
-    fd = compute_form_data(
-        form,
-        do_apply_function_pullbacks=True,
-    )
-    assert fd.preprocessed_form.empty()
-    assert fd.num_coefficients == 0
