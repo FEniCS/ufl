@@ -445,7 +445,7 @@ def compute_form_action(form, coefficient):
     if coefficient is None:
         coefficient = Coefficient(fs)
     elif coefficient.ufl_function_space() != fs:
-        debug("Computing action of form on a coefficient in a different function space.")
+        debug("Computing action of form on a coefficient in a different function space.")  # noqa: LOG015
     return replace(form, {u: coefficient})
 
 
