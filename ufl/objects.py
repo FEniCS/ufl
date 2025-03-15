@@ -20,10 +20,10 @@ for integral_type, measure_name in integral_type_to_measure_name.items():
     globals()[measure_name] = Measure(integral_type)
 
 # TODO: Firedrake hack, remove later
-ds_tb = ds_b + ds_t  # noqa: F821
+ds_tb = ds_b + ds_t  # type: ignore # noqa: F821
 
 # Default measure dX including both uncut and cut cells
-dX = dx + dC  # noqa: F821
+dX = dx + dC  # type: ignore # noqa: F821
 
 # Create objects for builtin known cell types
 vertex = Cell("vertex")
