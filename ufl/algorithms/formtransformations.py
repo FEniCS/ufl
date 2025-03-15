@@ -11,8 +11,8 @@
 # Modified by Marie E. Rognes, 2010.
 # Modified by Jørgen S. Dokken, 2025.
 
+import logging
 import warnings
-from logging import debug
 
 from ufl.algebra import Conj
 from ufl.algorithms.formsplitter import extract_blocks
@@ -27,6 +27,8 @@ from ufl.constantvalue import Zero
 
 # All classes:
 from ufl.core.expr import ufl_err_str
+
+logger = logging.getLogger("ufl")
 
 
 # FIXME: Don't use this below, it makes partextracter more expensive than necessary
@@ -445,7 +447,7 @@ def compute_form_action(form, coefficient):
     if coefficient is None:
         coefficient = Coefficient(fs)
     elif coefficient.ufl_function_space() != fs:
-        debug("Computing action of form on a coefficient in a different function space.")
+        logger.debug("Computing action of form on a coefficient in a different function space.")
     return replace(form, {u: coefficient})
 
 
