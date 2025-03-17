@@ -24,8 +24,8 @@ from ufl.tensors import as_vector
 class FormSplitter(MultiFunction):
     """Form splitter."""
 
-    def split(self, form, ix, iy=0):
-        """Split."""
+    def split(self, form, ix, iy=None):
+        """Split form based on the argument part/number."""
         # Remember which block to extract
         self.idx = [ix, iy]
         return map_integrand_dags(self, form)
@@ -35,6 +35,8 @@ class FormSplitter(MultiFunction):
         if obj.part() is not None:
             # Mixed element built from MixedFunctionSpace,
             # whose sub-function spaces are indexed by obj.part()
+            if self.idx[obj.number()] is None:
+                return Zero(obj.ufl_shape)
             if obj.part() == self.idx[obj.number()]:
                 return obj
             else:
@@ -95,7 +97,9 @@ class FormSplitter(MultiFunction):
     expr = MultiFunction.reuse_if_untouched
 
 
-def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
+def extract_blocks(
+    form, i: Optional[int] = None, j: Optional[int] = None, arity: Optional[int] = None
+):
     """Extract blocks of a form.
 
     If arity is 0, returns the form.
@@ -108,14 +112,18 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
         form: A form
         i: Index of the block to extract. If set to ``None``, ``j`` must be None.
         j: Index of the block to extract.
+        arity: Arity of the form. If not set, it will be inferred from the form.
     """
     if i is None and j is not None:
         raise RuntimeError(f"Cannot extract block with {j=} and {i=}.")
 
     fs = FormSplitter()
     arguments = form.arguments()
-    numbers = tuple(sorted(set(a.number() for a in arguments)))
-    arity = len(numbers)
+
+    if arity is None:
+        numbers = tuple(sorted(set(a.number() for a in arguments)))
+        arity = len(numbers)
+
     assert arity <= 2
     if arity == 0:
         return (form,)
@@ -147,16 +155,16 @@ def extract_blocks(form, i: Optional[int] = None, j: Optional[None] = None):
         if arity > 1:
             for pj in range(num_parts):
                 f = fs.split(form, pi, pj)
-                if f.empty():
+                # Ignore empty forms and rank 0 or 1 forms
+                if f.empty() or len(f.arguments()) != 2:
                     form_i.append(None)
                 else:
-                    if (num_args := len(f.arguments())) != 2:
-                        raise RuntimeError(f"Expected 2 arguments, got {num_args}")
                     form_i.append(f)
             forms.append(tuple(form_i))
         else:
             f = fs.split(form, pi)
-            if f.empty():
+            # Ignore empty forms and bilinear forms
+            if f.empty() or len(f.arguments()) != 1:
                 forms.append(None)
             else:
                 forms.append(f)

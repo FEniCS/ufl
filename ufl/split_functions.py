@@ -22,8 +22,6 @@ def split(v):
     If v is a Coefficient or Argument in a mixed space, returns a tuple
     with the function components corresponding to the subelements.
     """
-    domain = extract_unique_domain(v)
-
     # Default range is all of v
     begin = 0
     end = None
@@ -62,6 +60,8 @@ def split(v):
             "Don't know how to split tensor valued mixed functions without flattened index space."
         )
 
+    domain = extract_unique_domain(v, expand_mixed_mesh=False)
+
     # Compute value size and set default range end
     value_size = v.ufl_function_space().value_size
     if end is None:
@@ -71,11 +71,13 @@ def split(v):
         # corresponding to beginning of range
         j = begin
         while True:
-            for e in element.sub_elements:
-                if j < FunctionSpace(domain, e).value_size:
+            domains = domain.iterable_like(element)
+            for d, e in zip(domains, element.sub_elements):
+                if j < FunctionSpace(d, e).value_size:
+                    domain = d
                     element = e
                     break
-                j -= FunctionSpace(domain, e).value_size
+                j -= FunctionSpace(d, e).value_size
             # Then break when we find the subelement that covers the whole range
             if FunctionSpace(domain, element).value_size == (end - begin):
                 break
@@ -83,10 +85,11 @@ def split(v):
     # Build expressions representing the subfunction of v for each subelement
     offset = begin
     sub_functions = []
-    for i, e in enumerate(element.sub_elements):
+    domains = domain.iterable_like(element)
+    for i, (d, e) in enumerate(zip(domains, element.sub_elements)):
         # Get shape, size, indices, and v components
         # corresponding to subelement value
-        shape = FunctionSpace(domain, e).value_shape
+        shape = FunctionSpace(d, e).value_shape
         strides = shape_to_strides(shape)
         rank = len(shape)
         sub_size = product(shape)
