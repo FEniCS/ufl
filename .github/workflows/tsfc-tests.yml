@@ -15,6 +15,10 @@ jobs:
       # image: firedrakeproject/firedrake-vanilla-default:latest
       image: firedrakeproject/firedrake-vanilla-default:roottest
     steps:
+      - name: Uninstall existing UFL
+        run: |
+          python3 -m pip uninstall -y fenics-ufl
+
       - uses: actions/checkout@v4
         with:
           # Download UFL into a subdirectory not called 'ufl' to make sure
@@ -22,13 +26,9 @@ jobs:
           # work even if the installation failed because it is a subdirectory.
           path: ufl-repo
 
-      - name: Uninstall existing UFL
-        run: |
-          python3 -m pip uninstall --break-system-packages -y ufl
-
       - name: Create virtual environment
         run: |
-          python3 -m venv venv-ufl
+          python3 -m venv --system-site-packages venv-ufl
 
       - name: Install UFL
         run: |
@@ -39,4 +39,4 @@ jobs:
       - name: Run TSFC tests
         run: |
           . venv-ufl/bin/activate
-          python -m pytest /home/firedrake/firedrake/tests/tsfc
+          python -m pytest /opt/firedrake/tests/tsfc
