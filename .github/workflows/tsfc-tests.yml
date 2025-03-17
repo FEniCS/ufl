@@ -11,14 +11,9 @@ jobs:
     name: Run TSFC tests
     runs-on: ubuntu-latest
     container:
-      image: firedrakeproject/firedrake-vanilla-default:latest
-      # Github hosted runners require running as root user:
-      # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem
-      options: --user root
-    env:
-      # Since we are running as root we need to set PYTHONPATH to be able to find the installed
-      # packages
-      PYTHONPATH: /home/firedrake/firedrake:/home/firedrake/.local/lib/python3.12/site-packages
+      # UNDO ME
+      # image: firedrakeproject/firedrake-vanilla-default:latest
+      image: firedrakeproject/firedrake-vanilla-default:roottest
     steps:
       - uses: actions/checkout@v4
         with:
