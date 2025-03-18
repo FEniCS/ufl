@@ -346,6 +346,24 @@ class ReferenceGrad(CompoundDerivative):
         """Format as a string."""
         return "reference_grad(%s)" % self.ufl_operands[0]
 
+    def traverse_dag_apply_coefficient_split(
+        self,
+        coefficient_split,
+        reference_value=False,
+        reference_grad=0,
+        restricted=None,
+        cache=None,
+    ):
+        op, = self.ufl_operands
+        if not op._ufl_terminal_modifiers_:
+            raise ValueError(f"Expecting a terminal modifier: got {op!r}.")
+        return op.traverse_dag_apply_coefficient_split(
+            coefficient_split,
+            reference_value=reference_value,
+            reference_grad=reference_grad + 1,
+            restricted=restricted,
+            cache=cache,
+        )
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Div(CompoundDerivative):
