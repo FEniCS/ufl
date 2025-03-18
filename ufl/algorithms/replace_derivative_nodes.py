@@ -17,7 +17,7 @@ class DerivativeNodeReplacer(MultiFunction):
         self.mapping = mapping
         self.der_kwargs = derivative_kwargs
 
-    expr = MultiFunction.reuse_if_untouched
+    ufl_type = MultiFunction.reuse_if_untouched
 
     def coefficient_derivative(self, cd, o, coefficients, arguments, coefficient_derivatives):
         """Apply to coefficient_derivative."""
