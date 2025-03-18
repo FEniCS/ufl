@@ -10,6 +10,7 @@ from ufl import (
     Adjoint,
     Argument,
     Coefficient,
+    Cofunction,
     FunctionSpace,
     Mesh,
     TestFunction,
@@ -26,9 +27,9 @@ from ufl import (
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.analysis import (
     extract_arguments,
-    extract_arguments_and_coefficients,
     extract_base_form_operators,
     extract_coefficients,
+    extract_terminals_with_domain,
 )
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.core.interpolate import Interpolate
@@ -66,6 +67,20 @@ def test_symbolic(V1, V2):
     assert Iu.ufl_function_space() == V2
     assert Iu.argument_slots() == (vstar, u)
     assert Iu.arguments() == (vstar,)
+    assert Iu.ufl_operands == (u,)
+
+
+def test_symbolic_adjoint(V1, V2):
+    # Set dual of V2
+    V2_dual = V2.dual()
+
+    u = Argument(V1, 1)
+    vstar = Cofunction(V2_dual)
+    Iu = Interpolate(u, vstar)
+
+    assert Iu.ufl_function_space() == V2_dual
+    assert Iu.argument_slots() == (vstar, u)
+    assert Iu.arguments() == (u,)
     assert Iu.ufl_operands == (u,)
 
 
@@ -157,12 +172,12 @@ def test_extract_base_form_operators(V1, V2):
     # -- Interpolate(u, V2) -- #
     Iu = Interpolate(u, V2)
     assert extract_arguments(Iu) == [vstar]
-    assert extract_arguments_and_coefficients(Iu) == ([vstar], [u])
+    assert extract_terminals_with_domain(Iu) == ([vstar], [u], [])
 
     F = Iu * dx
     # Form composition: Iu * dx <=> Action(v * dx, Iu(u; v*))
     assert extract_arguments(F) == []
-    assert extract_arguments_and_coefficients(F) == ([], [u])
+    assert extract_terminals_with_domain(F) == ([], [u], [])
 
     for e in [Iu, F]:
         assert extract_coefficients(e) == [u]
@@ -171,7 +186,7 @@ def test_extract_base_form_operators(V1, V2):
     # -- Interpolate(u, V2) -- #
     Iv = Interpolate(uhat, V2)
     assert extract_arguments(Iv) == [vstar, uhat]
-    assert extract_arguments_and_coefficients(Iv) == ([vstar, uhat], [])
+    assert extract_terminals_with_domain(Iv) == ([vstar, uhat], [], [])
     assert extract_coefficients(Iv) == []
     assert extract_base_form_operators(Iv) == [Iv]
 

@@ -1,6 +1,6 @@
 """Utilities for transforming complete Forms into new related Forms."""
 
-# Copyright (C) 2008-2016 Martin Sandve Alnæs
+# Copyright (C) 2008-2025 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
@@ -9,11 +9,13 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
+# Modified by Jørgen S. Dokken, 2025.
 
+import logging
 import warnings
-from logging import debug
 
 from ufl.algebra import Conj
+from ufl.algorithms.formsplitter import extract_blocks
 
 # Other algorithms:
 from ufl.algorithms.map_integrands import map_integrands
@@ -25,6 +27,8 @@ from ufl.constantvalue import Zero
 
 # All classes:
 from ufl.core.expr import ufl_err_str
+
+logger = logging.getLogger("ufl")
 
 
 # FIXME: Don't use this below, it makes partextracter more expensive than necessary
@@ -310,10 +314,6 @@ def compute_form_with_arity(form, arity, arguments=None):
     if arguments is None:
         arguments = form.arguments()
 
-    parts = [arg.part() for arg in arguments]
-    if set(parts) - {None}:
-        raise ValueError("compute_form_with_arity cannot handle parts.")
-
     if len(arguments) < arity:
         warnings.warn(f"Form has no parts with arity {arity}.")
         return 0 * form
@@ -326,9 +326,9 @@ def compute_form_with_arity(form, arity, arguments=None):
     pe = PartExtracter(sub_arguments)
 
     def _transform(e):
-        e, provides = pe.visit(e)
+        e_visited, provides = pe.visit(e)
         if provides == sub_arguments:
-            return e
+            return e_visited
         return Zero()
 
     return map_integrands(_transform, form)
@@ -362,7 +362,18 @@ def compute_form_lhs(form):
         a = u*v*dx + f*v*dx
         a = lhs(a) -> u*v*dx
     """
-    return compute_form_with_arity(form, 2)
+    parts = tuple(sorted(set(part for a in form.arguments() if (part := a.part()) is not None)))
+    # If Arguments are stemming from a MixedFunctionSpace, we have to compute this per block
+    if parts == ():
+        return compute_form_with_arity(form, 2)
+
+    form_blocks = extract_blocks(form, arity=2)
+    lhs = 0
+    for bi in form_blocks:
+        for bj in bi:
+            if bj is not None:
+                lhs += compute_form_with_arity(bj, 2)
+    return lhs
 
 
 def compute_form_rhs(form):
@@ -372,7 +383,16 @@ def compute_form_rhs(form):
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
     """
-    return -compute_form_with_arity(form, 1)
+    parts = tuple(sorted(set(part for a in form.arguments() if (part := a.part()) is not None)))
+    if parts == ():
+        return -compute_form_with_arity(form, 1)
+
+    form_blocks = extract_blocks(form, arity=1)
+    rhs = 0
+    for bi in form_blocks:
+        if bi is not None:
+            rhs += compute_form_with_arity(bi, 1)
+    return -rhs
 
 
 def compute_form_functional(form):
@@ -399,7 +419,26 @@ def compute_form_action(form, coefficient):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        raise ValueError("compute_form_action cannot handle parts.")
+        # We assume that for MixedFunctionSpace that the max arity can be two
+        highest_arity_form = compute_form_lhs(form)
+        if highest_arity_form == 0 or highest_arity_form.empty():
+            highest_arity_form = compute_form_rhs(form)
+            if highest_arity_form == 0 or highest_arity_form.empty():
+                raise ValueError("No arguments to replace in form.")
+        arguments = highest_arity_form.arguments()
+        numbers = [a.number() for a in arguments]
+        max_number = max(numbers)
+        if coefficient is None:
+            replacement_map = {
+                a: Coefficient(a.ufl_function_space())
+                for a in arguments
+                if a.number() == max_number
+            }
+        else:
+            replacement_map = {
+                a: coefficient[a.part()] for a in arguments if a.number() == max_number
+            }
+        return replace(form, replacement_map)
 
     # Pick last argument (will be replaced)
     u = arguments[-1]
@@ -408,7 +447,7 @@ def compute_form_action(form, coefficient):
     if coefficient is None:
         coefficient = Coefficient(fs)
     elif coefficient.ufl_function_space() != fs:
-        debug("Computing action of form on a coefficient in a different function space.")
+        logger.debug("Computing action of form on a coefficient in a different function space.")
     return replace(form, {u: coefficient})
 
 
@@ -459,7 +498,39 @@ def compute_form_adjoint(form, reordered_arguments=None):
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
-        raise ValueError("compute_form_adjoint cannot handle parts.")
+        J = extract_blocks(form, arity=2)
+        num_blocks = len(J)
+        J_adj = 0
+        for i in range(num_blocks):
+            for j in range(num_blocks):
+                if J[i][j] is None:
+                    continue
+                v, u = J[i][j].arguments()
+                if reordered_arguments is None:
+                    reordered_u = Argument(u.ufl_function_space(), number=v.number(), part=v.part())
+                    reordered_v = Argument(v.ufl_function_space(), number=u.number(), part=u.part())
+                else:
+                    reordered_u, reordered_v = reordered_arguments[i]
+
+                if reordered_u.number() >= reordered_v.number():
+                    raise ValueError("Ordering of new arguments is the same as the old arguments!")
+
+                if reordered_u.part() != v.part():
+                    raise ValueError("Ordering of new arguments is the same as the old arguments!")
+                if reordered_v.part() != u.part():
+                    raise ValueError("Ordering of new arguments is the same as the old arguments!")
+
+                if reordered_u.ufl_function_space() != u.ufl_function_space():
+                    raise ValueError(
+                        "Element mismatch between new and old arguments (trial functions)."
+                    )
+                if reordered_v.ufl_function_space() != v.ufl_function_space():
+                    raise ValueError(
+                        "Element mismatch between new and old arguments (test functions)."
+                    )
+
+                J_adj += map_integrands(Conj, replace(J[i][j], {v: reordered_v, u: reordered_u}))
+        return J_adj
 
     if len(arguments) != 2:
         raise ValueError("Expecting bilinear form.")
