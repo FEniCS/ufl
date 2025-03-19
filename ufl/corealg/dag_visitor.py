@@ -11,7 +11,7 @@ class DAGVisitor(ABC):
 
     def __init__(self) -> None:
         """Initialise."""
-        self.cache = {}
+        self._cache = {}
 
     def __call__(self, node: Expr, *args) -> Expr:
         """Perform memoised DAG traversal with ``process`` singledispatch method.
@@ -26,10 +26,10 @@ class DAGVisitor(ABC):
         """
         cache_key = (node, *args)
         try:
-            return self.cache[cache_key]
+            return self._cache[cache_key]
         except KeyError:
             result = self.process(node, *args)
-            self.cache[cache_key] = result
+            self._cache[cache_key] = result
             return result
 
     @singledispatchmethod
