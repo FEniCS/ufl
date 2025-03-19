@@ -47,9 +47,13 @@ def test_apply_coefficient_split(self):
     assert isinstance(expr_split, ComponentTensor)
     op, (idx0, idx1) = expr_split.ufl_operands
     assert isinstance(op, Indexed)
-    op, (idx2,) = op.ufl_operands
-    assert isinstance(op, ListTensor)
-    op0, op1 = op.ufl_operands
-    op, (i,) = op0.ufl_operands
-    assert op == PositiveRestricted(ReferenceGrad(ReferenceValue(f0)))
-    import pdb;pdb.set_trace()
+    op_, (idx0_,) = op.ufl_operands
+    assert isinstance(op_, ListTensor)
+    assert idx0_ == idx0
+    op0, op1 = op_.ufl_operands
+    op0_, (idx1_,) = op0.ufl_operands
+    assert op0_ == PositiveRestricted(ReferenceGrad(ReferenceValue(f0)))
+    assert idx1_ == idx1
+    op1_, (idx1_,) = op1.ufl_operands
+    assert op1_ == PositiveRestricted(ReferenceGrad(ReferenceValue(f1)))
+    assert idx1_ == idx1
