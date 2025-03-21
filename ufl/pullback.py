@@ -348,17 +348,18 @@ class CovariantContravariantPiola(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return False
 
-    def apply(self, expr):
+    def apply(self, expr, domain=None):
         """Apply the pull back.
 
         Args:
             expr: A function on a physical cell
+            domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
         """
         from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse
 
-        domain = extract_unique_domain(expr)
+        domain = domain or extract_unique_domain(expr)
         J = Jacobian(domain)
         detJ = JacobianDeterminant(J)
         K = JacobianInverse(domain)
