@@ -184,7 +184,7 @@ class AbstractCell(UFLObject):
         return self.sub_entity_types(tdim - 3)
 
 
-_sub_entity_celltypes = {
+_sub_entity_celltypes: typing.Dict[str, list[tuple[str, ...]]] = {
     "vertex": [("vertex",)],
     "interval": [tuple("vertex" for i in range(2)), ("interval",)],
     "triangle": [
@@ -340,7 +340,7 @@ class Cell(AbstractCell):
         return Cell(self._cellname)
 
 
-class TensorProductCell(AbstractCell):
+class TensorProductCell(Cell):
     """Tensor product cell."""
 
     __slots__ = ("_cells", "_tdim")
@@ -358,7 +358,7 @@ class TensorProductCell(AbstractCell):
         if not isinstance(self._tdim, numbers.Integral):
             raise ValueError("Expecting integer topological_dimension.")
 
-    def sub_cells(self) -> typing.List[AbstractCell]:
+    def sub_cells(self) -> typing.Tuple[AbstractCell, ...]:
         """Return list of cell factors."""
         return self._cells
 
@@ -398,21 +398,21 @@ class TensorProductCell(AbstractCell):
     def sub_entities(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the sub-entities of the given dimension."""
         if dim < 0 or dim > self._tdim:
-            return []
+            return ()
         if dim == 0:
-            return [Cell("vertex") for i in range(self.num_sub_entities(0))]
+            return tuple(Cell("vertex") for i in range(self.num_sub_entities(0)))
         if dim == self._tdim:
-            return [self]
+            return (self,)
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
     def sub_entity_types(self, dim: int) -> typing.Tuple[AbstractCell, ...]:
         """Get the unique sub-entity types of the given dimension."""
         if dim < 0 or dim > self._tdim:
-            return []
+            return ()
         if dim == 0:
-            return [Cell("vertex")]
+            return (Cell("vertex"),)
         if dim == self._tdim:
-            return [self]
+            return (self,)
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
     def _lt(self, other) -> bool:

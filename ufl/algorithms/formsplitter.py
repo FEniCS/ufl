@@ -8,6 +8,7 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
+import typing
 from typing import Optional
 
 import numpy as np
@@ -135,7 +136,7 @@ def extract_blocks(
             num_sub_elements = arguments[0].ufl_element().num_sub_elements
             forms = []
             for pi in range(num_sub_elements):
-                form_i = []
+                form_i: typing.List[typing.Optional[object]] = []
                 for pj in range(num_sub_elements):
                     f = fs.split(form, pi, pj)
                     if f.empty():
