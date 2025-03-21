@@ -12,14 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: firedrakeproject/firedrake-vanilla-default:latest
-      # Github hosted runners require running as root user:
-      # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem
-      options: --user root
-    env:
-      # Since we are running as root we need to set PYTHONPATH to be able to find the installed
-      # packages
-      PYTHONPATH: /home/firedrake/firedrake:/home/firedrake/.local/lib/python3.12/site-packages
     steps:
+      - name: Uninstall existing UFL
+        run: |
+          python3 -m pip uninstall -y fenics-ufl
+
       - uses: actions/checkout@v4
         with:
           # Download UFL into a subdirectory not called 'ufl' to make sure
@@ -27,13 +24,9 @@ jobs:
           # work even if the installation failed because it is a subdirectory.
           path: ufl-repo
 
-      - name: Uninstall existing UFL
-        run: |
-          python3 -m pip uninstall --break-system-packages -y ufl
-
       - name: Create virtual environment
         run: |
-          python3 -m venv venv-ufl
+          python3 -m venv --system-site-packages venv-ufl
 
       - name: Install UFL
         run: |
@@ -44,4 +37,4 @@ jobs:
       - name: Run TSFC tests
         run: |
           . venv-ufl/bin/activate
-          python -m pytest /home/firedrake/firedrake/tests/tsfc
+          python -m pytest /opt/firedrake/tests/tsfc
