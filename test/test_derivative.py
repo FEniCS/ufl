@@ -665,7 +665,7 @@ def test_vector_coefficient_scalar_derivatives(self):
     integrand = inner(f, g)
 
     i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
-    expected = as_tensor(df[i1] * dv, (i1,))[i0] * g[i0]
+    expected = as_tensor(df[i1], (i1,))[i0] * dv * g[i0]
 
     F = integrand * dx
     J = derivative(F, u, dv, cd)
@@ -693,7 +693,7 @@ def test_vector_coefficient_derivatives(self):
     integrand = inner(f, g)
 
     i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
-    expected = as_tensor(df[i2, i1] * dv[i1], (i2,))[i0] * g[i0]
+    expected = as_tensor(df[i2, i1], (i2,))[i0] * dv[i1] * g[i0]
 
     F = integrand * dx
     J = derivative(F, u, dv, cd)
