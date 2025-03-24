@@ -284,18 +284,8 @@ def apply_restrictions(expression, assume_single_integral_type=True, domain_inte
         # the integral type of a given function; e.g., the former can be
         # ``exterior_facet`` and the latter ``interior_facet``.
         integral_types = None
-    rules = RestrictionPropagator(
-        default_restriction=default_restriction,
-    )
-    if isinstance(expression, FormData):
-        for integral_data in expression.integral_data:
-            integral_data.integrals = tuple(
-                map_integrand_dags(rules, integral, only_integral_type=integral_types)
-                for integral in integral_data.integrals
-            )
-        return expression
-    else:
-        return map_integrand_dags(rules, expression, only_integral_type=integral_types)
+    rules = RestrictionPropagator(default_restriction=default_restriction)
+    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
 
 
 class DomainRestrictionMapMaker(MultiFunction):
@@ -411,23 +401,11 @@ def make_domain_integral_type_map(integral_data):
 def apply_restrictions_with_domain_integral_type_map(integral_data):
     """Apply restrictions using domain_integral_type_map."""
     new_integrals = []
-    rule = RestrictionPropagator(
-        side=None,
-        default_restriction={
-            domain: {
-                "cell": None,
-                "exterior_facet": None,
-                "exterior_facet_top": None,
-                "exterior_facet_bottom": None,
-                "exterior_facet_vert": None,
-                "interior_facet": "+",
-                "interior_facet_horiz": "+",
-                "interior_facet_vert": "+",
-            }[integral_type]
-            for domain, integral_type in integral_data.domain_integral_type_map.items()
-        },
-    )
     for integral in integral_data.integrals:
-        integrand = map_expr_dag(rule, integral.integrand())
-        new_integrals.append(integral.reconstruct(integrand=integrand))
+        new_integral = apply_restrictions(
+            integral,
+            assume_single_integral_type=False,
+            domain_integral_type_map=integral_data.domain_integral_type_map,
+        )
+        new_integrals.append(new_integral)
     return new_integrals
