@@ -23,7 +23,7 @@ from ufl.sobolevspace import H1
 class RestrictionPropagator(MultiFunction):
     """Restriction propagator."""
 
-    def __init__(self, side=None, assume_single_integral_type=True, default_restriction=None):
+    def __init__(self, side=None, default_restriction=None):
         """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
@@ -39,10 +39,9 @@ class RestrictionPropagator(MultiFunction):
         }
         if self.current_restriction is None:
             self._rp = {
-                "+": RestrictionPropagator("+", assume_single_integral_type, default_restriction),
-                "-": RestrictionPropagator("-", assume_single_integral_type, default_restriction),
+                "+": RestrictionPropagator("+", default_restriction),
+                "-": RestrictionPropagator("-", default_restriction),
             }
-        self.assume_single_integral_type = assume_single_integral_type
 
     def restricted(self, o):
         """When hitting a restricted quantity, visit child with a separate restriction algorithm."""
@@ -286,7 +285,6 @@ def apply_restrictions(expression, assume_single_integral_type=True, domain_inte
         # ``exterior_facet`` and the latter ``interior_facet``.
         integral_types = None
     rules = RestrictionPropagator(
-        assume_single_integral_type=assume_single_integral_type,
         default_restriction=default_restriction,
     )
     if isinstance(expression, FormData):
@@ -415,7 +413,6 @@ def apply_restrictions_with_domain_integral_type_map(integral_data):
     new_integrals = []
     rule = RestrictionPropagator(
         side=None,
-        assume_single_integral_type=False,
         default_restriction={
             domain: {
                 "cell": None,
