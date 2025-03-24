@@ -25,7 +25,6 @@ from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_restrictions import (
     apply_restrictions,
-    apply_restrictions_with_domain_integral_type_map,
     make_domain_integral_type_map,
 )
 from ufl.algorithms.check_arities import check_form_arity
@@ -499,9 +498,17 @@ def compute_form_data(
                 """)
             for itg_data in self.integral_data:
                 # Must have split coefficients and removed component/list tensors.
-                itg_data.domain_integral_type_map = make_domain_integral_type_map(itg_data)
-                itg_data.integrals = apply_restrictions_with_domain_integral_type_map(itg_data)
-
+                domain_integral_type_map = make_domain_integral_type_map(itg_data)
+                new_integrals = []
+                for integral in itg_data.integrals:
+                    new_integral = apply_restrictions(
+                        integral,
+                        assume_single_integral_type=False,
+                        domain_integral_type_map=domain_integral_type_map,
+                    )
+                    new_integrals.append(new_integral)
+                itg_data.domain_integral_type_map = domain_integral_type_map
+                itg_data.integrals = new_integrals
     # --- Checks
     _check_elements(self)
     _check_facet_geometry(self.integral_data)

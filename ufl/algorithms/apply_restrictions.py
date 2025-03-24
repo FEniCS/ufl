@@ -396,16 +396,3 @@ def make_domain_integral_type_map(integral_data):
     else:
         domain_integral_type_dict[integration_domain] = integration_type
     return domain_integral_type_dict
-
-
-def apply_restrictions_with_domain_integral_type_map(integral_data):
-    """Apply restrictions using domain_integral_type_map."""
-    new_integrals = []
-    for integral in integral_data.integrals:
-        new_integral = apply_restrictions(
-            integral,
-            assume_single_integral_type=False,
-            domain_integral_type_map=integral_data.domain_integral_type_map,
-        )
-        new_integrals.append(new_integral)
-    return new_integrals
