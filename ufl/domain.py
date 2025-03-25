@@ -10,7 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Optional, Any
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
@@ -29,45 +29,38 @@ __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
 class AbstractDomain(object):
     """Symbolic representation of a geometric domain.
 
-    Domain has only a geometric and a topological dimension.
+    Domain has only a geometric dimension.
     """
-
-    def __init__(self, topological_dimension, geometric_dimension):
+    _geometric_dimension: int
+    _meshes: Sequence[AbstractDomain]
+    def __init__(self, geometric_dimension):
         """Initialise."""
         # Validate dimensions
         if not isinstance(geometric_dimension, numbers.Integral):
             raise ValueError(
                 f"Expecting integer geometric dimension, not {geometric_dimension.__class__}"
             )
-        if not isinstance(topological_dimension, numbers.Integral):
-            raise ValueError(
-                f"Expecting integer topological dimension, not {topological_dimension.__class__}"
-            )
-        if topological_dimension > geometric_dimension:
-            raise ValueError("Topological dimension cannot be larger than geometric dimension.")
 
         # Store validated dimensions
-        self._topological_dimension = topological_dimension
         self._geometric_dimension = geometric_dimension
 
+    @property
     def geometric_dimension(self):
         """Return the dimension of the space this domain is embedded in."""
         return self._geometric_dimension
 
-    def topological_dimension(self):
-        """Return the dimension of the topology of this domain."""
-        return self._topological_dimension
-
+ 
     @property
     def meshes(self):
         """Return the component meshes."""
-        raise NotImplementedError("meshes() method not implemented")
+        assert self.meshes is not None
+        return self._meshes
 
     def __len__(self):
         """Return number of component meshes."""
         return len(self.meshes)
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: int) -> AbstractDomain:
         """Return i-th component mesh."""
         if i >= len(self):
             raise ValueError(f"index ({i}) >= num. component meshes ({len(self)})")
@@ -79,7 +72,7 @@ class AbstractDomain(object):
 
     def iterable_like(
         self, element: AbstractFiniteElement
-    ) -> Union[Iterable["Mesh"], "MeshSequence"]:
+    ) -> Union[Iterable[Mesh], MeshSequence]:
         """Return iterable object that is iterable like ``element``."""
         raise NotImplementedError("iterable_like() method not implemented")
 
@@ -98,8 +91,10 @@ class AbstractDomain(object):
 @attach_ufl_id
 class Mesh(AbstractDomain, UFLObject):
     """Symbolic representation of a mesh."""
+    _ufl_id: int
+    _ufl_coordinate_elements: tuple[AbstractFiniteElement,...]
 
-    def __init__(self, coordinate_element, ufl_id=None, cargo=None):
+    def __init__(self, coordinate_element: Union[Sequence[AbstractFiniteElement], AbstractFiniteElement], ufl_id:Optional[int]=None, cargo:Any=None):
         """Initialise."""
         self._ufl_id = self._init_ufl_id(ufl_id)
 
@@ -110,17 +105,23 @@ class Mesh(AbstractDomain, UFLObject):
 
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
-
-        if isinstance(coordinate_element, (Coefficient, AbstractCell)):
-            raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
-
+        try:
+            self. _ufl_coordinate_elements = tuple(coordinate_element) 
+        except TypeError:
+            if isinstance(coordinate_element, (Coefficient, AbstractCell)):
+                raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
+            self. _ufl_coordinate_elements = tuple((coordinate_element, ))
+                
+ 
         # Store coordinate element
-        self._ufl_coordinate_element = coordinate_element
+        self._ufl_coordinate_elements = tuple(coordinate_element)
 
         # Derive dimensions from element
-        (gdim,) = coordinate_element.reference_value_shape
-        tdim = coordinate_element.cell.topological_dimension()
-        AbstractDomain.__init__(self, tdim, gdim)
+        (gdim,) = self._ufl_coordinate_elements[0].reference_value_shape
+        for c_el in self._ufl_coordinate_elements:
+            if c_el.reference_value_shape != (gdim,):
+                raise ValueError("Coordinate elements must have the same reference value shape.")
+        AbstractDomain.__init__(self, gdim)
 
     def ufl_cargo(self):
         """Return carried object that will not be used by UFL."""
@@ -128,20 +129,35 @@ class Mesh(AbstractDomain, UFLObject):
 
     def ufl_coordinate_element(self):
         """Get the coordinate element."""
+        if len(self._ufl_coordinate_elements) != 1:
+            raise ValueError("Cannot determine coordinate element from multiple coordinate elements.")
         return self._ufl_coordinate_element
+
+    def ufl_coordinate_elements(self):
+        """Get the coordinate element."""
+        return self._ufl_coordinate_elements
 
     def ufl_cell(self):
         """Get the cell."""
+        if len(self._ufl_coordinate_elements) != 1:
+            raise ValueError("Cannot determine cell type from multiple coordinate elements.")
         return self._ufl_coordinate_element.cell
+
+    def ufl_cells(self):
+        """Get the cell."""
+        return tuple(c_el.cell for c_el in self._ufl_coordinate_elements)
 
     def is_piecewise_linear_simplex_domain(self):
         """Check if the domain is a piecewise linear simplex."""
-        ce = self._ufl_coordinate_element
-        return ce.embedded_superdegree <= 1 and ce in H1 and self.ufl_cell().is_simplex()
+        
+        def simplex_check(c_el):
+            return c_el.embedded_superdegree <=1 and c_el in H1 and c_el.cell.is_simplex()
+
+        return all(simplex_check(c_el) for c_el in self._ufl_coordinate_elements)
 
     def __repr__(self):
         """Representation."""
-        r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_element), repr(self._ufl_id))
+        r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_elements), repr(self._ufl_id))
         return r
 
     def __str__(self):
@@ -150,18 +166,18 @@ class Mesh(AbstractDomain, UFLObject):
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
-        return (self._ufl_id, self._ufl_coordinate_element)
+        return (self._ufl_id, self._ufl_coordinate_elements)
 
     def _ufl_signature_data_(self, renumbering):
         """UFL signature data."""
-        return ("Mesh", renumbering[self], self._ufl_coordinate_element)
+        return ("Mesh", renumbering[self], self._ufl_coordinate_elements)
 
     # NB! Dropped __lt__ here, don't want users to write 'mesh1 <
     # mesh2'.
     def _ufl_sort_key_(self):
         """UFL sort key."""
-        typespecific = (self._ufl_id, self._ufl_coordinate_element)
-        return (self.geometric_dimension(), self.topological_dimension(), "Mesh", typespecific)
+        typespecific = (self._ufl_id, self._ufl_coordinate_elements)
+        return (self.geometric_dimension(), "Mesh", typespecific)
 
     @property
     def meshes(self):
