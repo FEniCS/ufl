@@ -345,7 +345,7 @@ class TensorProductCell(AbstractCell):
 
     __slots__ = ("_cells", "_tdim")
 
-    def __init__(self, *cells: Cell):
+    def __init__(self, *cells: AbstractCell):
         """Initialise.
 
         Args:
@@ -481,6 +481,6 @@ def as_cell(cell: typing.Union[AbstractCell, str, typing.Tuple[AbstractCell, ...
     elif isinstance(cell, str):
         return Cell(cell)
     elif isinstance(cell, tuple):
-        return TensorProductCell(cell)
+        return TensorProductCell(*cell)
     else:
         raise ValueError(f"Invalid cell {cell}.")

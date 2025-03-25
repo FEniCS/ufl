@@ -65,7 +65,7 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the pullback for this element."""
 
     @_abc.abstractproperty
-    def embedded_superdegree(self) -> _typing.Union[int, None]:
+    def embedded_superdegree(self) -> int:
         """Degree of the minimum degree Lagrange space that spans this element.
 
         This returns the degree of the lowest degree Lagrange space such
@@ -244,7 +244,7 @@ class FiniteElement(AbstractFiniteElement):
         return self._pullback
 
     @property
-    def embedded_superdegree(self) -> _typing.Union[int, None]:
+    def embedded_superdegree(self) -> int:
         """Degree of the minimum degree Lagrange space that spans this element.
 
         This returns the degree of the lowest degree Lagrange space such
