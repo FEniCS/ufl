@@ -33,6 +33,7 @@ from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.algorithms.remove_component_tensors import remove_component_tensors
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.domain import MeshSequence, extract_domains, extract_unique_domain
@@ -337,6 +338,9 @@ def compute_form_data(
             form = apply_derivatives(form)
 
     form = apply_coordinate_derivatives(form)
+
+    # Remove component tensors
+    form = remove_component_tensors(form)
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:

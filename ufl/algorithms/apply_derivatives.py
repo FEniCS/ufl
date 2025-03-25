@@ -719,9 +719,10 @@ class GradRuleset(GenericDerivativeRuleset):
 
     def reference_grad(self, o):
         """Differentiate a reference_grad."""
+        if is_cellwise_constant(o):
+            return self.independent_terminal(o)
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
-
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(
             f, (JacobianInverse, SpatialCoordinate, Jacobian, JacobianDeterminant, FacetNormal)
         )
@@ -782,7 +783,6 @@ class GradRuleset(GenericDerivativeRuleset):
         # Check that o is a "differential terminal"
         if not isinstance(o.ufl_operands[0], (Grad, Terminal)):
             raise ValueError("Expecting only grads applied to a terminal.")
-
         return Grad(o)
 
     def _grad(self, o):
@@ -886,9 +886,15 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
         Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f)).
         """
-        # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue, Terminal)):
+        # Check that f is a "differential terminal"
+        (f,) = o.ufl_operands
+        if not isinstance(f, (ReferenceGrad, ReferenceValue, Terminal)):
             raise ValueError("Expecting only grads applied to a terminal.")
+
+        # The Jacobian of a piecewise linear mesh is piecewise constant.
+        if isinstance(f, SpatialCoordinate) and f._domain.is_piecewise_linear_simplex_domain():
+            return self.independent_terminal(o)
+
         return ReferenceGrad(o)
 
     cell_avg = GenericDerivativeRuleset.independent_operator
