@@ -23,7 +23,7 @@ from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.sobolevspace import H1
 
 # Export list for ufl.classes
-__all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
+__all_classes__ = ["AbstractDomain", "Mesh"]
 
 
 class AbstractDomain(object):
@@ -118,9 +118,6 @@ class Mesh(AbstractDomain, UFLObject):
                 raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
             self._ufl_coordinate_elements = tuple((coordinate_element,))
 
-        # Store coordinate element
-        self._ufl_coordinate_elements = tuple(coordinate_element)
-
         # Derive dimensions from element
         (gdim,) = self._ufl_coordinate_elements[0].reference_value_shape
         for c_el in self._ufl_coordinate_elements:
@@ -138,7 +135,7 @@ class Mesh(AbstractDomain, UFLObject):
             raise ValueError(
                 "Cannot determine coordinate element from multiple coordinate elements."
             )
-        return self._ufl_coordinate_element
+        return self._ufl_coordinate_elements[0]
 
     def ufl_coordinate_elements(self):
         """Get the coordinate element."""
@@ -148,7 +145,7 @@ class Mesh(AbstractDomain, UFLObject):
         """Get the cell."""
         if len(self._ufl_coordinate_elements) != 1:
             raise ValueError("Cannot determine cell type from multiple coordinate elements.")
-        return self._ufl_coordinate_element.cell
+        return self._ufl_coordinate_elements[0].cell
 
     def ufl_cells(self):
         """Get the cell."""
@@ -184,7 +181,7 @@ class Mesh(AbstractDomain, UFLObject):
     def _ufl_sort_key_(self):
         """UFL sort key."""
         typespecific = (self._ufl_id, self._ufl_coordinate_elements)
-        return (self.geometric_dimension(), "Mesh", typespecific)
+        return (self.geometric_dimension, "Mesh", typespecific)
 
     @property
     def meshes(self):
@@ -238,7 +235,7 @@ class MeshSequence(AbstractDomain, UFLObject):
                 Currently component meshes can not include MeshSequence instances""")
         # currently only support single cell type.
         (self._ufl_cell,) = set(m.ufl_cell() for m in meshes)
-        (gdim,) = set(m.geometric_dimension() for m in meshes)
+        (gdim,) = set(m.geometric_dimension for m in meshes)
         # TODO: Need to change for more general mixed meshes.
         (tdim,) = set(m.topological_dimension() for m in meshes)
         AbstractDomain.__init__(self, tdim, gdim)
@@ -287,65 +284,6 @@ class MeshSequence(AbstractDomain, UFLObject):
             return False
         else:
             return all(d.can_make_function_space(e) for d, e in zip(self, element.sub_elements))
-
-
-@attach_ufl_id
-class MeshView(AbstractDomain, UFLObject):
-    """Symbolic representation of a mesh."""
-
-    def __init__(self, mesh, topological_dimension, ufl_id=None):
-        """Initialise."""
-        self._ufl_id = self._init_ufl_id(ufl_id)
-
-        # Store mesh
-        self._ufl_mesh = mesh
-
-        # Derive dimensions from element
-        coordinate_element = mesh.ufl_coordinate_element()
-        (gdim,) = coordinate_element.value_shape
-        tdim = coordinate_element.cell.topological_dimension()
-        AbstractDomain.__init__(self, tdim, gdim)
-
-    def ufl_mesh(self):
-        """Get the mesh."""
-        return self._ufl_mesh
-
-    def ufl_cell(self):
-        """Get the cell."""
-        return self._ufl_mesh.ufl_cell()
-
-    def is_piecewise_linear_simplex_domain(self):
-        """Check if the domain is a piecewise linear simplex."""
-        return self._ufl_mesh.is_piecewise_linear_simplex_domain()
-
-    def __repr__(self):
-        """Representation."""
-        tdim = self.topological_dimension()
-        r = "MeshView(%s, %s, %s)" % (repr(self._ufl_mesh), repr(tdim), repr(self._ufl_id))
-        return r
-
-    def __str__(self):
-        """Format as a string."""
-        return "<MeshView #%s of dimension %d over mesh %s>" % (
-            self._ufl_id,
-            self.topological_dimension(),
-            self._ufl_mesh,
-        )
-
-    def _ufl_hash_data_(self):
-        """UFL hash data."""
-        return (self._ufl_id,) + self._ufl_mesh._ufl_hash_data_()
-
-    def _ufl_signature_data_(self, renumbering):
-        """UFL signature data."""
-        return ("MeshView", renumbering[self], self._ufl_mesh._ufl_signature_data_(renumbering))
-
-    # NB! Dropped __lt__ here, don't want users to write 'mesh1 <
-    # mesh2'.
-    def _ufl_sort_key_(self):
-        """UFL sort key."""
-        typespecific = (self._ufl_id, self._ufl_mesh)
-        return (self.geometric_dimension(), self.topological_dimension(), "MeshView", typespecific)
 
 
 def as_domain(domain):
@@ -400,7 +338,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mixed_mesh: bool = Tr
     # Check geometric dimension compatibility
     gdims = set()
     for domain in domains:
-        gdims.add(domain.geometric_dimension())
+        gdims.add(domain.geometric_dimension)
     if len(gdims) != 1:
         raise ValueError("Found domains with different geometric dimensions.")
 
@@ -463,7 +401,7 @@ def find_geometric_dimension(expr):
         # Can have multiple domains of the same cell type.
         domains = extract_domains(t)
         if len(domains) > 0:
-            (gdim,) = set(domain.geometric_dimension() for domain in domains)
+            (gdim,) = set(domain.geometric_dimension for domain in domains)
             gdims.add(gdim)
 
     if len(gdims) != 1:

@@ -24,10 +24,9 @@ def compute_integrand_scaling_factor(integral):
     """Change integrand geometry to the right representations."""
     domain = integral.ufl_domain()
     integral_type = integral.integral_type()
-    # co = CellOrientation(domain)
     weight = QuadratureWeight(domain)
-    tdim = domain.topological_dimension()
-    # gdim = domain.geometric_dimension()
+    assert len(domain.ufl_coordinate_elements()) == 1  # TODO: remove this assumption
+    tdim = domain.ufl_coordinate_elements()[0].cell.topological_dimension()
 
     # Polynomial degree of integrand scaling
     degree = 0
