@@ -10,7 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Union, Optional, Any
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
@@ -31,8 +31,10 @@ class AbstractDomain(object):
 
     Domain has only a geometric dimension.
     """
+
     _geometric_dimension: int
     _meshes: Sequence[AbstractDomain]
+
     def __init__(self, geometric_dimension):
         """Initialise."""
         # Validate dimensions
@@ -49,7 +51,6 @@ class AbstractDomain(object):
         """Return the dimension of the space this domain is embedded in."""
         return self._geometric_dimension
 
- 
     @property
     def meshes(self):
         """Return the component meshes."""
@@ -70,9 +71,7 @@ class AbstractDomain(object):
         """Return iterable component meshes."""
         return iter(self.meshes)
 
-    def iterable_like(
-        self, element: AbstractFiniteElement
-    ) -> Union[Iterable[Mesh], MeshSequence]:
+    def iterable_like(self, element: AbstractFiniteElement) -> Union[Iterable[Mesh], MeshSequence]:
         """Return iterable object that is iterable like ``element``."""
         raise NotImplementedError("iterable_like() method not implemented")
 
@@ -91,10 +90,16 @@ class AbstractDomain(object):
 @attach_ufl_id
 class Mesh(AbstractDomain, UFLObject):
     """Symbolic representation of a mesh."""
-    _ufl_id: int
-    _ufl_coordinate_elements: tuple[AbstractFiniteElement,...]
 
-    def __init__(self, coordinate_element: Union[Sequence[AbstractFiniteElement], AbstractFiniteElement], ufl_id:Optional[int]=None, cargo:Any=None):
+    _ufl_id: int
+    _ufl_coordinate_elements: tuple[AbstractFiniteElement, ...]
+
+    def __init__(
+        self,
+        coordinate_element: Union[Sequence[AbstractFiniteElement], AbstractFiniteElement],
+        ufl_id: Optional[int] = None,
+        cargo: Any = None,
+    ):
         """Initialise."""
         self._ufl_id = self._init_ufl_id(ufl_id)
 
@@ -105,14 +110,14 @@ class Mesh(AbstractDomain, UFLObject):
 
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
+
         try:
-            self. _ufl_coordinate_elements = tuple(coordinate_element) 
+            self._ufl_coordinate_elements = tuple(coordinate_element)
         except TypeError:
             if isinstance(coordinate_element, (Coefficient, AbstractCell)):
                 raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
-            self. _ufl_coordinate_elements = tuple((coordinate_element, ))
-                
- 
+            self._ufl_coordinate_elements = tuple((coordinate_element,))
+
         # Store coordinate element
         self._ufl_coordinate_elements = tuple(coordinate_element)
 
@@ -130,7 +135,9 @@ class Mesh(AbstractDomain, UFLObject):
     def ufl_coordinate_element(self):
         """Get the coordinate element."""
         if len(self._ufl_coordinate_elements) != 1:
-            raise ValueError("Cannot determine coordinate element from multiple coordinate elements.")
+            raise ValueError(
+                "Cannot determine coordinate element from multiple coordinate elements."
+            )
         return self._ufl_coordinate_element
 
     def ufl_coordinate_elements(self):
@@ -149,9 +156,9 @@ class Mesh(AbstractDomain, UFLObject):
 
     def is_piecewise_linear_simplex_domain(self):
         """Check if the domain is a piecewise linear simplex."""
-        
+
         def simplex_check(c_el):
-            return c_el.embedded_superdegree <=1 and c_el in H1 and c_el.cell.is_simplex()
+            return c_el.embedded_superdegree <= 1 and c_el in H1 and c_el.cell.is_simplex()
 
         return all(simplex_check(c_el) for c_el in self._ufl_coordinate_elements)
 
