@@ -1,11 +1,11 @@
 """UFL test utils."""
 
 import typing
-from ufl.pullback import AbstractPullback, IdentityPullback, MixedPullback, SymmetricPullback
-from ufl.sobolevspace import SobolevSpace
 
 from ufl.cell import Cell
 from ufl.finiteelement import AbstractFiniteElement
+from ufl.pullback import AbstractPullback, IdentityPullback, MixedPullback, SymmetricPullback
+from ufl.sobolevspace import SobolevSpace
 
 
 class FiniteElement(AbstractFiniteElement):

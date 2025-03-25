@@ -1,9 +1,9 @@
 import numpy as np
+from utils import FiniteElement, MixedElement, SymmetricElement
 
 from ufl import Cell, Coefficient, FunctionSpace, Mesh, as_tensor, as_vector, dx, indices, triangle
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
-from utils import FiniteElement, MixedElement, SymmetricElement
 from ufl.pullback import (
     contravariant_piola,
     covariant_piola,

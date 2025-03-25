@@ -2,6 +2,7 @@ __authors__ = "India Marsden"
 __date__ = "2020-12-28"
 
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     Action,
@@ -29,7 +30,6 @@ from ufl import (
 from ufl.algorithms.ad import expand_derivatives
 from ufl.constantvalue import Zero
 from ufl.duals import is_dual, is_primal
-from utils import FiniteElement
 from ufl.form import ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1

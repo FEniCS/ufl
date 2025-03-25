@@ -4,6 +4,7 @@ __authors__ = "Nacime Bouziani"
 __date__ = "2019-03-26"
 
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     Action,
@@ -30,7 +31,6 @@ from ufl import (
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.core.external_operator import ExternalOperator
-from utils import FiniteElement
 from ufl.form import BaseForm, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1

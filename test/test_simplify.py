@@ -2,6 +2,7 @@ import math
 
 import pytest
 from numpy import ndindex, reshape
+from utils import FiniteElement
 
 from ufl import (
     Coefficient,
@@ -34,7 +35,6 @@ from ufl import (
 from ufl.algorithms import compute_form_data
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
-from utils import FiniteElement
 from ufl.indexed import Indexed
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1

@@ -1,7 +1,7 @@
 import pytest
+from utils import FiniteElement
 
 from ufl import Argument, Coefficient, FunctionSpace, Mesh, triangle
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

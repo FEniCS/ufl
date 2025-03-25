@@ -2,6 +2,7 @@ __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2014-10-14"
 
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     Coefficient,
@@ -22,7 +23,6 @@ from ufl import (
 )
 from ufl.algorithms import expand_derivatives
 from ufl.constantvalue import as_ufl
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

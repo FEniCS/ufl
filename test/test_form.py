@@ -1,4 +1,5 @@
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     Coefficient,
@@ -20,7 +21,6 @@ from ufl import (
     nabla_grad,
     triangle,
 )
-from utils import FiniteElement
 from ufl.form import BaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1

@@ -1,3 +1,5 @@
+from utils import FiniteElement
+
 from ufl import (
     Identity,
     Mesh,
@@ -13,7 +15,6 @@ from ufl import (
     triangle,
 )
 from ufl.classes import ComplexValue, Division, FloatValue, IntValue
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

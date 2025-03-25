@@ -2,10 +2,10 @@ __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-08-20 -- 2012-11-30"
 
 import pytest
+from utils import FiniteElement
 
 from ufl import Coefficient, FunctionSpace, Mesh, conditional, eq, ge, gt, le, lt, ne, triangle
 from ufl.classes import EQ, GE, GT, LE, LT, NE
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

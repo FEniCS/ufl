@@ -8,6 +8,8 @@ Next look at the TODO markers below for places to edit.
 
 import warnings
 
+from utils import FiniteElement
+
 from ufl import (
     Coefficient,
     FunctionSpace,
@@ -25,7 +27,6 @@ from ufl import (
     triangle,
 )
 from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor

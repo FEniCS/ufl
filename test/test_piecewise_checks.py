@@ -1,6 +1,7 @@
 """Test the is_cellwise_constant function on all relevant terminal types."""
 
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     Cell,
@@ -36,7 +37,6 @@ from ufl.classes import (
     RidgeJacobianDeterminant,
     RidgeJacobianInverse,
 )
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2, HInf
 

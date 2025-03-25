@@ -1,6 +1,8 @@
 __authors__ = "Cecile Daversin Catty"
 __date__ = "2019-03-26 -- 2019-03-26"
 
+from utils import FiniteElement
+
 from ufl import (
     Coefficient,
     Constant,
@@ -25,7 +27,6 @@ from ufl import (
 from ufl.algorithms import expand_derivatives, renumbering
 from ufl.algorithms.formsplitter import extract_blocks
 from ufl.algorithms.formtransformations import compute_form_adjoint
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

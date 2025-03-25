@@ -1,6 +1,7 @@
 """Test tensor algebra operators."""
 
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     FacetNormal,
@@ -27,7 +28,6 @@ from ufl import (
     zero,
 )
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

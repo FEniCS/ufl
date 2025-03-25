@@ -1,4 +1,5 @@
 import pytest
+from utils import FiniteElement
 
 import ufl.algorithms
 import ufl.classes
@@ -26,7 +27,6 @@ from ufl import (
     triangle,
 )
 from ufl.classes import IndexSum
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

@@ -1,6 +1,8 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
+from utils import FiniteElement, MixedElement
+
 from ufl import (
     Argument,
     Coefficient,
@@ -22,7 +24,6 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import estimate_total_polynomial_degree
-from utils import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

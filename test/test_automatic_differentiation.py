@@ -6,6 +6,7 @@ Other tests check for mathematical correctness of diff and derivative.
 """
 
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     And,
@@ -80,7 +81,6 @@ from ufl import (
 from ufl.algorithms import expand_derivatives
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2
 

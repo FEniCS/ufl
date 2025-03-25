@@ -5,6 +5,7 @@ __date__ = "2008-03-12 -- 2009-01-28"
 # Modified by Garth N. Wells, 2009
 
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     Argument,
@@ -40,7 +41,6 @@ from ufl.corealg.traversal import (
     unique_post_traversal,
     unique_pre_traversal,
 )
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

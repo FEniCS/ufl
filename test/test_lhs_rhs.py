@@ -3,6 +3,8 @@ __authors__ = "Marie E. Rognes"
 # First added: 2011-11-09
 # Last changed: 2011-11-09
 
+from utils import FiniteElement
+
 from ufl import (
     Argument,
     Coefficient,
@@ -20,7 +22,6 @@ from ufl import (
     interval,
     system,
 )
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

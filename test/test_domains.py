@@ -1,8 +1,8 @@
 """Tests of domain language and attaching domains to forms."""
 
-import utils
 import pytest
 from mockobjects import MockMesh
+from utils import FiniteElement
 
 import ufl  # noqa: F401
 from ufl import (
@@ -24,7 +24,6 @@ from ufl import (
 )
 from ufl.algorithms import compute_form_data
 from ufl.domain import extract_domains
-from utils import FiniteElement
 from ufl.pullback import (
     IdentityPullback,  # noqa: F401
     identity_pullback,

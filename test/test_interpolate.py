@@ -4,6 +4,7 @@ __authors__ = "Nacime Bouziani"
 __date__ = "2021-11-19"
 
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     Action,
@@ -33,7 +34,6 @@ from ufl.algorithms.analysis import (
 )
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.core.interpolate import Interpolate
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

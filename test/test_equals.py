@@ -1,8 +1,9 @@
 """Test of expression comparison."""
 
+from utils import FiniteElement
+
 from ufl import Coefficient, Cofunction, FunctionSpace, Mesh, triangle
 from ufl.exprcontainers import ExprList
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

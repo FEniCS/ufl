@@ -4,6 +4,7 @@ __date__ = "2009-02-13 -- 2009-02-13"
 import math
 
 import numpy as np
+from utils import FiniteElement
 
 from ufl import (
     Argument,
@@ -36,7 +37,6 @@ from ufl import (
     triangle,
 )
 from ufl.constantvalue import ConstantValue, as_ufl
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

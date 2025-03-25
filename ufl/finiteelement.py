@@ -17,9 +17,6 @@ import typing as _typing
 
 from ufl.cell import Cell as _Cell
 from ufl.pullback import AbstractPullback as _AbstractPullback
-from ufl.pullback import IdentityPullback as _IdentityPullback
-from ufl.pullback import MixedPullback as _MixedPullback
-from ufl.pullback import SymmetricPullback as _SymmetricPullback
 from ufl.sobolevspace import SobolevSpace as _SobolevSpace
 from ufl.utils.sequences import product
 

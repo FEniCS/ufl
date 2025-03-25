@@ -1,8 +1,8 @@
 import pytest
+from utils import FiniteElement, MixedElement
 
 import ufl
 import ufl.algorithms
-from utils import FiniteElement, MixedElement
 
 
 def epsilon(u):

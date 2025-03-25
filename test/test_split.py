@@ -1,8 +1,9 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-03-14 -- 2009-03-14"
 
-from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, as_vector, product, split, triangle
 from utils import FiniteElement, MixedElement, SymmetricElement
+
+from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, as_vector, product, split, triangle
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

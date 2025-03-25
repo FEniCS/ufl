@@ -1,10 +1,11 @@
 """Tests of the change to local representaiton algorithms."""
 
+from utils import FiniteElement
+
 from ufl import Coefficient, FunctionSpace, Mesh, as_tensor, grad, indices, triangle
 from ufl.algorithms import change_to_reference_grad
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import JacobianInverse, ReferenceGrad
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

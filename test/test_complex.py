@@ -1,6 +1,7 @@
 import cmath
 
 import pytest
+from utils import FiniteElement
 
 from ufl import (
     Coefficient,
@@ -41,7 +42,6 @@ from ufl.algorithms.comparison_checker import ComplexComparisonError, do_compari
 from ufl.algorithms.formtransformations import compute_form_adjoint
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.constantvalue import ComplexValue, Zero
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

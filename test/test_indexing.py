@@ -1,8 +1,8 @@
 import pytest
+from utils import FiniteElement
 
 from ufl import Index, Mesh, SpatialCoordinate, outer, triangle
 from ufl.classes import FixedIndex, Indexed, MultiIndex, Outer, Zero
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

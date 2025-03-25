@@ -1,6 +1,8 @@
 import gc
 import sys
 
+from utils import FiniteElement
+
 from ufl import (
     Coefficient,
     Constant,
@@ -16,7 +18,6 @@ from ufl import (
 from ufl.algorithms import replace_terminal_data, strip_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

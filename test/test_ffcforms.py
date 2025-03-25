@@ -13,6 +13,8 @@ __license__ = "GNU GPL version 3 or any later version"
 # Examples copied from the FFC demo directory, examples contributed
 # by Johan Jansson, Kristian Oelgaard, Marie Rognes, and Garth Wells.
 
+from utils import FiniteElement, MixedElement
+
 from ufl import (
     Coefficient,
     Constant,
@@ -43,7 +45,6 @@ from ufl import (
     tetrahedron,
     triangle,
 )
-from utils import FiniteElement, MixedElement
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
 from ufl.sobolevspace import H1, L2, HCurl, HDiv
 

@@ -3,6 +3,8 @@ __date__ = "2009-02-17 -- 2009-02-17"
 
 from itertools import chain
 
+from utils import FiniteElement, MixedElement
+
 from ufl import (
     CellDiameter,
     CellVolume,
@@ -62,7 +64,6 @@ from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.classes import Indexed, MultiIndex, ReferenceGrad
 from ufl.constantvalue import as_ufl
 from ufl.domain import extract_unique_domain
-from utils import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2
 
