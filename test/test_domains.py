@@ -71,18 +71,18 @@ def test_domains_sort_by_name():
         )
         for cell in sorted(all_cells)
     ]
-    sdomains = sorted(domains1, key=lambda D: (D.topological_dimension(), D.ufl_cell(), D.ufl_id()))
+    sdomains = sorted(domains1, key=lambda D: (D.ufl_cell().topological_dimension(), D.ufl_cell(), D.ufl_id()))
     assert sdomains != domains1
     assert sdomains == domains2
 
 
 def test_topdomain_creation():
     D = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
-    assert D.geometric_dimension() == 1
+    assert D.geometric_dimension == 1
     D = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
-    assert D.geometric_dimension() == 2
+    assert D.geometric_dimension == 2
     D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
-    assert D.geometric_dimension() == 3
+    assert D.geometric_dimension == 3
 
 
 def test_cell_legacy_case():
