@@ -12,6 +12,7 @@ from ufl import (
     FacetNormal,
     FunctionSpace,
     Mesh,
+    SpatialCoordinate,
     TestFunction,
     TrialFunction,
     adjoint,
@@ -21,9 +22,11 @@ from ufl import (
     dx,
     grad,
     inner,
+    sin,
     triangle,
 )
 from ufl.algorithms import (
+    compute_form_data,
     expand_derivatives,
     expand_indices,
     extract_arguments,
@@ -182,3 +185,15 @@ def test_adjoint(domain):
     d = adjoint(b)
     d_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(d)]
     assert d_arg_degrees == [2, 1]
+
+
+def test_remove_component_tensors(domain):
+    x = SpatialCoordinate(domain)
+    u = sin(x[0])
+
+    f = div(grad(div(grad(u))))
+    form = f * dx
+
+    fd = compute_form_data(form)
+
+    assert "ComponentTensor" not in repr(fd.preprocessed_form)
