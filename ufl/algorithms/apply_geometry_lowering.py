@@ -118,7 +118,7 @@ class GeometryLoweringApplier(MultiFunction):
         # TODO: Is "signing" the determinant for manifolds the
         #       cleanest approach?  The alternative is to have a
         #       specific type for the unsigned pseudo-determinant.
-        if domain.ufl_coordinate_element().cell.topological_dimension() < domain.geometric_dimension:
+        if domain.ufl_cell().topological_dimension() < domain.geometric_dimension:
             co = CellOrientation(domain)
             detJ = co * detJ
         return detJ
@@ -265,7 +265,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = extract_unique_domain(o)
-        tdim = domain.topological_dimension()
+        tdim = domain.ufl_cell().topological_dimension()
         if not domain.is_piecewise_linear_simplex_domain():
             # Don't lower for non-affine cells, instead leave it to
             # form compiler
@@ -420,8 +420,8 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = extract_unique_domain(o)
-        gdim = domain.geometric_dimension()
-        tdim = domain.topological_dimension()
+        gdim = domain.geometric_dimension
+        tdim = domain.ufl_cell().topological_dimension()
 
         if tdim == gdim - 1:  # n-manifold embedded in n-1 space
             i = Index()
@@ -453,7 +453,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = extract_unique_domain(o)
-        tdim = domain.topological_dimension()
+        tdim = domain.ufl_cell().topological_dimension()
 
         if tdim == 1:
             # Special-case 1D (possibly immersed), for which we say
@@ -461,7 +461,7 @@ class GeometryLoweringApplier(MultiFunction):
             J = self.jacobian(Jacobian(domain))  # dx/dX
             ndir = J[:, 0]
 
-            gdim = domain.geometric_dimension()
+            gdim = domain.geometric_dimension
             if gdim == 1:
                 nlen = abs(ndir[0])
             else:
