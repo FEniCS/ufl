@@ -236,9 +236,7 @@ class MeshSequence(AbstractDomain, UFLObject):
         # currently only support single cell type.
         (self._ufl_cell,) = set(m.ufl_cell() for m in meshes)
         (gdim,) = set(m.geometric_dimension for m in meshes)
-        # TODO: Need to change for more general mixed meshes.
-        (tdim,) = set(m.topological_dimension() for m in meshes)
-        AbstractDomain.__init__(self, tdim, gdim)
+        AbstractDomain.__init__(self, gdim)
         self._meshes = tuple(meshes)
 
     def ufl_cell(self):

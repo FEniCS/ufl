@@ -175,8 +175,8 @@ class RestrictionPropagator(MultiFunction):
         """Restrict a facet_normal."""
         D = extract_unique_domain(o)
         e = D.ufl_coordinate_element()
-        gd = D.geometric_dimension()
-        td = D.topological_dimension()
+        gd = D.geometric_dimension
+        td = D.ufl_cell().topological_dimension()
 
         if e.embedded_superdegree <= 1 and e in H1 and gd == td:
             # For meshes with a continuous linear non-manifold
