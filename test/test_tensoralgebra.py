@@ -27,7 +27,7 @@ from ufl import (
     zero,
 )
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

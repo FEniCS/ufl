@@ -22,7 +22,7 @@ from ufl import (
 )
 from ufl.algorithms.check_arities import ArityMismatch
 from ufl.algorithms.compute_form_data import compute_form_data
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

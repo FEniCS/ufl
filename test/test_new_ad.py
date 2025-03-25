@@ -28,7 +28,7 @@ from ufl.algorithms.apply_derivatives import (
     apply_derivatives,
 )
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2
 

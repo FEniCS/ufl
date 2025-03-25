@@ -17,7 +17,7 @@ from ufl import (
 )
 from ufl.algorithms import compute_form_data
 from ufl.domain import extract_domains
-from ufl.finiteelement import FiniteElement, MixedElement
+from utils import FiniteElement, MixedElement
 from ufl.pullback import contravariant_piola, identity_pullback
 from ufl.sobolevspace import H1, L2, HDiv
 

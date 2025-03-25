@@ -17,7 +17,7 @@ from ufl import (
     tetrahedron,
     triangle,
 )
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -135,8 +135,5 @@ def test_str_list_matrix_with_zero():
 
 def test_str_element():
     elem = FiniteElement("Q", quadrilateral, 1, (), identity_pullback, H1)
-    assert (
-        repr(elem)
-        == 'ufl.finiteelement.FiniteElement("Q", quadrilateral, 1, (), IdentityPullback(), H1)'
-    )
+    assert repr(elem) == 'utils.FiniteElement("Q", quadrilateral, 1, (), IdentityPullback(), H1)'
     assert str(elem) == "<Q1 on a quadrilateral>"

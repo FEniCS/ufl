@@ -29,7 +29,7 @@ from ufl import (
 )
 from ufl.algorithms.signature import compute_multiindex_hashdata, compute_terminal_hashdata
 from ufl.classes import FixedIndex, MultiIndex
-from ufl.finiteelement import FiniteElement, SymmetricElement
+from utils import FiniteElement, SymmetricElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2
 

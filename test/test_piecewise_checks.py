@@ -36,7 +36,7 @@ from ufl.classes import (
     RidgeJacobianDeterminant,
     RidgeJacobianInverse,
 )
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2, HInf
 

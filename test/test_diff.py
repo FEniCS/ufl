@@ -22,7 +22,7 @@ from ufl import (
 )
 from ufl.algorithms import expand_derivatives
 from ufl.constantvalue import as_ufl
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

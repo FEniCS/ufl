@@ -29,7 +29,7 @@ from ufl import (
 from ufl.algorithms.ad import expand_derivatives
 from ufl.constantvalue import Zero
 from ufl.duals import is_dual, is_primal
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.form import ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1

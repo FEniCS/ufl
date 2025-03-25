@@ -20,7 +20,7 @@ from ufl import (
     interval,
     system,
 )
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

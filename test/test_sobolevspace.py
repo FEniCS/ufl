@@ -4,7 +4,7 @@ __date__ = "2014-03-04"
 from math import inf
 
 from ufl import H1, H2, L2, HCurl, HDiv, HInf, triangle
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
 from ufl.sobolevspace import (
     DirectionalSobolevSpace,

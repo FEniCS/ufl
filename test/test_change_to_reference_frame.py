@@ -2,7 +2,7 @@
 
 from ufl import Coefficient, FunctionSpace, Mesh, triangle
 from ufl.classes import Expr, ReferenceValue
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import contravariant_piola, identity_pullback
 from ufl.sobolevspace import H1, HDiv
 

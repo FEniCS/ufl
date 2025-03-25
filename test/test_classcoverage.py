@@ -1,6 +1,7 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-06 -- 2009-02-10"
 
+import utils
 import ufl
 from ufl import *  # noqa: F403
 from ufl import (
@@ -112,7 +113,7 @@ from ufl.classes import (
     Tanh,
     all_ufl_classes,
 )
-from ufl.finiteelement import FiniteElement, MixedElement
+from utils import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

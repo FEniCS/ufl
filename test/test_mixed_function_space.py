@@ -25,7 +25,7 @@ from ufl import (
 from ufl.algorithms import expand_derivatives, renumbering
 from ufl.algorithms.formsplitter import extract_blocks
 from ufl.algorithms.formtransformations import compute_form_adjoint
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

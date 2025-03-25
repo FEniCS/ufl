@@ -40,7 +40,7 @@ from ufl.corealg.traversal import (
     unique_post_traversal,
     unique_pre_traversal,
 )
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

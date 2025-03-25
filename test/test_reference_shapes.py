@@ -1,5 +1,5 @@
 from ufl import Cell, Mesh
-from ufl.finiteelement import FiniteElement, MixedElement, SymmetricElement
+from utils import FiniteElement, MixedElement, SymmetricElement
 from ufl.functionspace import FunctionSpace
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
 from ufl.sobolevspace import H1, HCurl, HDiv

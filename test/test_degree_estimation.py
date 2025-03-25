@@ -22,7 +22,7 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import estimate_total_polynomial_degree
-from ufl.finiteelement import FiniteElement, MixedElement
+from utils import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

@@ -34,7 +34,7 @@ from ufl import (
 from ufl.algorithms import compute_form_data
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.indexed import Indexed
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1

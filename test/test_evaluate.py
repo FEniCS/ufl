@@ -36,7 +36,7 @@ from ufl import (
     triangle,
 )
 from ufl.constantvalue import ConstantValue, as_ufl
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

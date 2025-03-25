@@ -3,7 +3,7 @@ import pytest
 from ufl import Coefficient, FunctionSpace, Index, Mesh, as_tensor, interval, sqrt, triangle
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
