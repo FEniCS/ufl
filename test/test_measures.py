@@ -1,11 +1,9 @@
 """Tests of the various ways Measure objects can be created and used."""
 
 from mockobjects import MockMesh, MockMeshFunction
-from utils import FiniteElement, LagrangeElement
+from utils import LagrangeElement
 
 from ufl import Cell, Coefficient, FunctionSpace, Measure, Mesh, as_ufl, dC, dI, dO, triangle
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 def test_construct_forms_from_default_measures():
@@ -73,9 +71,7 @@ def test_foo():
     tdim = 2
     cell = Cell("triangle")
     mymesh = MockMesh(9)
-    mydomain = Mesh(
-        FiniteElement("Lagrange", cell, 1, (gdim,), identity_pullback, H1), ufl_id=9, cargo=mymesh
-    )
+    mydomain = Mesh(LagrangeElement(cell, 1, (gdim,)), ufl_id=9, cargo=mymesh)
 
     assert cell.topological_dimension() == tdim
     assert cell.cellname() == "triangle"

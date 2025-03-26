@@ -37,13 +37,13 @@ all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 def test_construct_domains_from_cells():
     for cell in all_cells:
         d = cell.topological_dimension()
-        Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+        Mesh(LagrangeElement(cell, 1, (d,)))
 
 
 def test_construct_domains_with_names():
     for cell in all_cells:
         d = cell.topological_dimension()
-        e = FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1)
+        e = LagrangeElement(cell, 1, (d,))
         D2 = Mesh(e, ufl_id=2)
         D3 = Mesh(e, ufl_id=3)
         D3b = Mesh(e, ufl_id=3)
@@ -387,8 +387,8 @@ def test_extract_domains():
     gdim = 2
     cell_type_0 = triangle
     cell_type_1 = interval
-    dom_0 = Mesh(FiniteElement("Lagrange", cell_type_0, 1, (gdim,), identity_pullback, H1))
-    dom_1 = Mesh(FiniteElement("Lagrange", cell_type_1, 1, (gdim,), identity_pullback, H1))
+    dom_0 = Mesh(LagrangeElement(cell_type_0, 1, (gdim,)))
+    dom_1 = Mesh(LagrangeElement(cell_type_1, 1, (gdim,)))
 
     # Define some finite element spaces
     k = 1

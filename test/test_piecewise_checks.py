@@ -333,9 +333,7 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
         "Discontinuous Lagrange", domains_not_linear.ufl_cell(), 0, (), identity_pullback, L2
     )
     d = domains_not_linear.ufl_cell().topological_dimension()
-    domain = Mesh(
-        FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d,), identity_pullback, H1)
-    )
+    domain = Mesh(LagrangeElement(domains_not_linear.ufl_cell(), 1, (d,)))
     space = FunctionSpace(domain, V)
     e = Coefficient(space)
     assert is_cellwise_constant(e)
@@ -358,9 +356,7 @@ def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
         "Discontinuous Lagrange", domains_not_linear.ufl_cell(), 1, (), identity_pullback, L2
     )
     d = domains_not_linear.ufl_cell().topological_dimension()
-    domain = Mesh(
-        FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d,), identity_pullback, H1)
-    )
+    domain = Mesh(LagrangeElement(domains_not_linear.ufl_cell(), 1, (d,)))
     space = FunctionSpace(domain, V)
     e = Coefficient(space)
     assert not is_cellwise_constant(e)

@@ -11,7 +11,7 @@ from ufl.sobolevspace import H1
 def test_split(self):
     cell = triangle
     d = cell.topological_dimension()
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (d,)))
     f = LagrangeElement(cell, 1)
     v = FiniteElement(
         "Lagrange", cell, 1, (d,), identity_pullback, H1, sub_elements=[f for _ in range(d)]

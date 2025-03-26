@@ -214,7 +214,7 @@ def testAll(self):
 
     e13D = LagrangeElement(tetrahedron, 1, (3,))
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (dim,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (dim,)))
     domain3D = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     e0_space = FunctionSpace(domain, e0)
     e1_space = FunctionSpace(domain, e1)

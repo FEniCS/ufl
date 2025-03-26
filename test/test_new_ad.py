@@ -31,7 +31,7 @@ from ufl.algorithms.apply_derivatives import (
 )
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1, L2
+from ufl.sobolevspace import L2
 
 # Note: the old tests in test_automatic_differentiation.py are a bit messy
 #       but still cover many things that are not in here yet.
@@ -47,7 +47,7 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
     V1 = LagrangeElement(cell, 1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (d,)))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
 
@@ -115,7 +115,7 @@ def test_literal_derivatives_are_zero():
 
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
     V1 = LagrangeElement(cell, 1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (d,)))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
     u0 = Coefficient(v0_space)
@@ -142,10 +142,10 @@ def test_grad_ruleset():
     V1 = LagrangeElement(cell, 1)
     V2 = LagrangeElement(cell, 2)
     W0 = FiniteElement("Discontinuous Lagrange", cell, 0, (2,), identity_pullback, L2)
-    W1 = FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1)
-    W2 = FiniteElement("Lagrange", cell, 2, (d,), identity_pullback, H1)
+    W1 = LagrangeElement(cell, 1, (d,))
+    W2 = LagrangeElement(cell, 2, (d,))
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (d,)))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
     v2_space = FunctionSpace(domain, V2)
