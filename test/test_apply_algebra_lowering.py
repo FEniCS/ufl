@@ -4,8 +4,6 @@ from utils import LagrangeElement
 from ufl import Coefficient, FunctionSpace, Index, Mesh, as_tensor, interval, sqrt, triangle
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 @pytest.fixture
@@ -72,8 +70,7 @@ def A31(request):
 def A32(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(LagrangeElement(triangle, 1, (2,))),
-            LagrangeElement(triangle, 1, (3, 2))
+            Mesh(LagrangeElement(triangle, 1, (2,))), LagrangeElement(triangle, 1, (3, 2))
         )
     )
 

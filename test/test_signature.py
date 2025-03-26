@@ -1,6 +1,6 @@
 """Test the computation of form signatures."""
 
-from utils import FiniteElement, SymmetricElement
+from utils import FiniteElement, LagrangeElement, SymmetricElement
 
 from ufl import (
     Argument,
@@ -248,7 +248,7 @@ def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_orde
                     FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=i
                 )
                 for k in counts:
-                    V = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+                    V = LagrangeElement(cell, 2)
                     space = FunctionSpace(domain, V)
                     f = Coefficient(space, count=k)
                     g = Coefficient(space, count=k + 2)
@@ -289,7 +289,7 @@ def test_terminal_hashdata_does_depend_on_argument_number_values(self):
                     FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=i
                 )
                 for k in counts:
-                    V = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+                    V = LagrangeElement(cell, 2)
                     space = FunctionSpace(domain, V)
                     f = Argument(space, k)
                     g = Argument(space, k + 2)
@@ -359,7 +359,7 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
             for domain in domains:
                 V = FunctionSpace(
                     domain,
-                    FiniteElement("Lagrange", domain.ufl_cell(), 2, (), identity_pullback, H1),
+                    LagrangeElement(domain.ufl_cell(), 2),
                 )
                 f = Coefficient(V, count=0)
                 v = TestFunction(V)
@@ -533,7 +533,7 @@ def test_signature_is_affected_by_domains(self):
             for di in (1, 2):
                 for dj in (1, 2):
                     for dk in (1, 2):
-                        V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+                        V = LagrangeElement(cell, 1)
                         space = FunctionSpace(domain, V)
                         u = Coefficient(space)
                         a = u * dx(di) + 2 * u * dx(dj) + 3 * u * ds(dk)
@@ -549,7 +549,7 @@ def test_signature_of_forms_with_diff(self):
             domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=i)
             for k in (1, 2, 3):
                 d = cell.topological_dimension()
-                V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+                V = LagrangeElement(cell, 1)
                 W = FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1)
                 v_space = FunctionSpace(domain, V)
                 w_space = FunctionSpace(domain, W)
@@ -568,8 +568,8 @@ def test_signature_of_forms_with_diff(self):
 
 def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self):
     cell = triangle
-    V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    V = LagrangeElement(cell, 1)
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     space = FunctionSpace(domain, V)
     f = Coefficient(space)
     g = Coefficient(space)
@@ -585,7 +585,7 @@ def test_signature_of_forms_change_with_operators(self):
     def forms():
         for cell in (triangle, tetrahedron):
             d = cell.topological_dimension()
-            V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+            V = LagrangeElement(cell, 1)
             domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
             space = FunctionSpace(domain, V)
             u = Coefficient(space)

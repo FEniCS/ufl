@@ -1,6 +1,6 @@
 """Tests of the change to reference frame algorithm."""
 
-from utils import FiniteElement
+from utils import FiniteElement, LagrangeElement
 
 from ufl import Coefficient, FunctionSpace, Mesh, triangle
 from ufl.classes import Expr, ReferenceValue
@@ -14,11 +14,11 @@ def change_to_reference_frame(expr):
 
 
 def test_change_unmapped_form_arguments_to_reference_frame():
-    U = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    V = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    U = LagrangeElement(triangle, 1)
+    V = LagrangeElement(triangle, 1, (2,))
     T = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     u_space = FunctionSpace(domain, U)
     v_space = FunctionSpace(domain, V)
     t_space = FunctionSpace(domain, T)
@@ -34,7 +34,7 @@ def test_change_unmapped_form_arguments_to_reference_frame():
 def test_change_hdiv_form_arguments_to_reference_frame():
     V = FiniteElement("Raviart-Thomas", triangle, 1, (2,), contravariant_piola, HDiv)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     v_space = FunctionSpace(domain, V)
 
     expr = Coefficient(v_space)
@@ -44,7 +44,7 @@ def test_change_hdiv_form_arguments_to_reference_frame():
 def test_change_hcurl_form_arguments_to_reference_frame():
     V = FiniteElement("Raviart-Thomas", triangle, 1, (2,), contravariant_piola, HDiv)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     v_space = FunctionSpace(domain, V)
 
     expr = Coefficient(v_space)

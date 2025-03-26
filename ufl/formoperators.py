@@ -9,6 +9,8 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
+import typing
+
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algorithms import (
@@ -24,6 +26,7 @@ from ufl.algorithms import (
     replace,  # noqa: F401
 )
 from ufl.argument import Argument
+from ufl.cell import Cell
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.constantvalue import as_ufl, is_true_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
@@ -43,23 +46,20 @@ from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm, as_form
 from ufl.functionspace import FunctionSpace
 from ufl.geometry import SpatialCoordinate
 from ufl.indexed import Indexed
+from ufl.pullback import AbstractPullback, IdentityPullback, MixedPullback
+from ufl.sobolevspace import SobolevSpace
 from ufl.sorting import sorted_expr
 from ufl.split_functions import split
 from ufl.tensors import ListTensor, as_tensor
 from ufl.variable import Variable
 
-import typing
-from ufl.cell import Cell
-from ufl.finiteelement import AbstractFiniteElement
-from ufl.pullback import AbstractPullback, IdentityPullback, MixedPullback, SymmetricPullback
-from ufl.sobolevspace import SobolevSpace
 
 class _MixedElement(AbstractFiniteElement):
     """A mixed element."""
 
     def __init__(self, sub_elements):
         """Initialise a mixed element."""
-        sub_elements = [MixedElement(e) if isinstance(e, list) else e for e in sub_elements]
+        sub_elements = [_MixedElement(e) if isinstance(e, list) else e for e in sub_elements]
         cell = sub_elements[0].cell
         for e in sub_elements:
             assert e.cell == cell
@@ -70,8 +70,8 @@ class _MixedElement(AbstractFiniteElement):
         else:
             pullback = MixedPullback(self)
         self._sobolev_space = max(e.sobolev_space for e in sub_elements)
-        self._repr=f"utils.MixedElement({sub_elements!r})"
-        self._str=f"<MixedElement with {len(sub_elements)} sub-element(s)>"
+        self._repr = f"utils.MixedElement({sub_elements!r})"
+        self._str = f"<MixedElement with {len(sub_elements)} sub-element(s)>"
         self._subdegree = degree
         self._cell = cell
         self._degree = degree
@@ -129,7 +129,6 @@ class _MixedElement(AbstractFiniteElement):
     def sub_elements(self) -> typing.List:
         """Return list of sub-elements."""
         return self._sub_elements
-
 
 
 def extract_blocks(form, i=None, j=None):

@@ -3,7 +3,7 @@ __date__ = "2009-02-17 -- 2009-02-17"
 
 from itertools import chain
 
-from utils import FiniteElement, MixedElement
+from utils import FiniteElement, LagrangeElement, MixedElement
 
 from ufl import (
     CellDiameter,
@@ -131,8 +131,8 @@ def assertEqualBySampling(actual, expected):
 
 def _test(self, f, df):
     cell = triangle
-    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(cell, 1)
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -199,8 +199,8 @@ def testArgument(self):
     def f(w):
         return TestFunction(
             FunctionSpace(
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-                FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1),
+                Mesh(LagrangeElement(triangle, 1, (2,))),
+                LagrangeElement(triangle, 1),
             )
         )
 
@@ -215,9 +215,7 @@ def testArgument(self):
 
 def testSpatialCoordinate(self):
     def f(w):
-        return SpatialCoordinate(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
-        )[0]
+        return SpatialCoordinate(Mesh(LagrangeElement(triangle, 1, (2,))))[0]
 
     def df(w, v):
         return zero()
@@ -227,9 +225,7 @@ def testSpatialCoordinate(self):
 
 def testFacetNormal(self):
     def f(w):
-        return FacetNormal(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
-        )[0]
+        return FacetNormal(Mesh(LagrangeElement(triangle, 1, (2,))))[0]
 
     def df(w, v):
         return zero()
@@ -239,7 +235,7 @@ def testFacetNormal(self):
 
 def testFacetArea(self):
     def f(w):
-        return FacetArea(Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)))
+        return FacetArea(Mesh(LagrangeElement(triangle, 1, (2,))))
 
     def df(w, v):
         return zero()
@@ -249,9 +245,7 @@ def testFacetArea(self):
 
 def testCellDiameter(self):
     def f(w):
-        return CellDiameter(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
-        )
+        return CellDiameter(Mesh(LagrangeElement(triangle, 1, (2,))))
 
     def df(w, v):
         return zero()
@@ -261,9 +255,7 @@ def testCellDiameter(self):
 
 def testCircumradius(self):
     def f(w):
-        return Circumradius(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
-        )
+        return Circumradius(Mesh(LagrangeElement(triangle, 1, (2,))))
 
     def df(w, v):
         return zero()
@@ -273,7 +265,7 @@ def testCircumradius(self):
 
 def testCellVolume(self):
     def f(w):
-        return CellVolume(Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)))
+        return CellVolume(Mesh(LagrangeElement(triangle, 1, (2,))))
 
     def df(w, v):
         return zero()
@@ -490,8 +482,8 @@ def testListTensor(self):
 
 def test_single_scalar_coefficient_derivative(self):
     cell = triangle
-    V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    V = LagrangeElement(cell, 1)
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     space = FunctionSpace(domain, V)
     u = Coefficient(space)
     v = TestFunction(space)
@@ -502,8 +494,8 @@ def test_single_scalar_coefficient_derivative(self):
 
 def test_single_vector_coefficient_derivative(self):
     cell = triangle
-    V = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    V = LagrangeElement(cell, 1, (2,))
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     space = FunctionSpace(domain, V)
     u = Coefficient(space)
     v = TestFunction(space)
@@ -515,10 +507,10 @@ def test_single_vector_coefficient_derivative(self):
 
 def test_multiple_coefficient_derivative(self):
     cell = triangle
-    V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    W = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
+    V = LagrangeElement(cell, 1)
+    W = LagrangeElement(cell, 1, (2,))
     M = MixedElement([V, W])
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     v_space = FunctionSpace(domain, V)
     w_space = FunctionSpace(domain, W)
     m_space = FunctionSpace(domain, M)
@@ -541,9 +533,9 @@ def test_multiple_coefficient_derivative(self):
 def test_indexed_coefficient_derivative(self):
     cell = triangle
     ident = Identity(2)
-    V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    W = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    V = LagrangeElement(cell, 1)
+    W = LagrangeElement(cell, 1, (2,))
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     v_space = FunctionSpace(domain, V)
     w_space = FunctionSpace(domain, W)
     u = Coefficient(w_space)
@@ -563,10 +555,10 @@ def test_indexed_coefficient_derivative(self):
 
 def test_multiple_indexed_coefficient_derivative(self):
     cell = tetrahedron
-    V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = LagrangeElement(cell, 1)
     V2 = MixedElement([V, V])
-    W = FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+    W = LagrangeElement(cell, 1, (3,))
+    domain = Mesh(LagrangeElement(cell, 1, (3,)))
     v2_space = FunctionSpace(domain, V2)
     w_space = FunctionSpace(domain, W)
     u = Coefficient(w_space)
@@ -582,10 +574,10 @@ def test_multiple_indexed_coefficient_derivative(self):
 
 def test_segregated_derivative_of_convection(self):
     cell = tetrahedron
-    V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    W = FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1)
+    V = LagrangeElement(cell, 1)
+    W = LagrangeElement(cell, 1, (3,))
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (3,)))
     v_space = FunctionSpace(domain, V)
     w_space = FunctionSpace(domain, W)
 
@@ -622,9 +614,9 @@ def test_segregated_derivative_of_convection(self):
 
 
 def test_coefficient_derivatives(self):
-    V = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    V = LagrangeElement(triangle, 1)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, V)
 
     dv = TestFunction(space)
@@ -648,10 +640,10 @@ def test_coefficient_derivatives(self):
 
 
 def test_vector_coefficient_scalar_derivatives(self):
-    V = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    V = LagrangeElement(triangle, 1)
     VV = FiniteElement("vector Lagrange", triangle, 1, (2,), identity_pullback, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     v_space = FunctionSpace(domain, V)
     vv_space = FunctionSpace(domain, VV)
 
@@ -676,10 +668,10 @@ def test_vector_coefficient_scalar_derivatives(self):
 
 
 def test_vector_coefficient_derivatives(self):
-    V = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    V = LagrangeElement(triangle, 1, (2,))
     VV = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     v_space = FunctionSpace(domain, V)
     vv_space = FunctionSpace(domain, VV)
 
@@ -705,10 +697,10 @@ def test_vector_coefficient_derivatives(self):
 
 
 def test_vector_coefficient_derivatives_of_product(self):
-    V = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    V = LagrangeElement(triangle, 1, (2,))
     VV = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     v_space = FunctionSpace(domain, V)
     vv_space = FunctionSpace(domain, VV)
 
@@ -749,8 +741,8 @@ def test_vector_coefficient_derivatives_of_product(self):
 
 def testHyperElasticity(self):
     cell = interval
-    element = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (1,), identity_pullback, H1))
+    element = LagrangeElement(cell, 2)
+    domain = Mesh(LagrangeElement(cell, 1, (1,)))
     space = FunctionSpace(domain, element)
     w = Coefficient(space)
     v = TestFunction(space)
@@ -827,9 +819,9 @@ def testHyperElasticity(self):
 
 def test_mass_derived_from_functional(self):
     cell = triangle
-    V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = LagrangeElement(cell, 1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     space = FunctionSpace(domain, V)
 
     v = TestFunction(space)
@@ -850,9 +842,9 @@ def test_mass_derived_from_functional(self):
 
 def test_derivative_replace_works_together(self):
     cell = triangle
-    V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = LagrangeElement(cell, 1)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     space = FunctionSpace(domain, V)
 
     v = TestFunction(space)
@@ -875,7 +867,7 @@ def test_derivative_replace_works_together(self):
 
 
 def test_index_simplification_handles_repeated_indices(self):
-    mesh = Mesh(FiniteElement("Lagrange", quadrilateral, 1, (2,), identity_pullback, H1))
+    mesh = Mesh(LagrangeElement(quadrilateral, 1, (2,)))
     V = FunctionSpace(mesh, FiniteElement("DQ", quadrilateral, 0, (2, 2), identity_pullback, L2))
     K = JacobianInverse(mesh)
     G = outer(Identity(2), Identity(2))
@@ -894,7 +886,7 @@ def test_index_simplification_handles_repeated_indices(self):
 
 
 def test_index_simplification_reference_grad(self):
-    mesh = Mesh(FiniteElement("Lagrange", quadrilateral, 1, (2,), identity_pullback, H1))
+    mesh = Mesh(LagrangeElement(quadrilateral, 1, (2,)))
     (i,) = indices(1)
     A = as_tensor(Indexed(Jacobian(mesh), MultiIndex((i, i))), (i,))
     expr = apply_derivatives(apply_geometry_lowering(apply_algebra_lowering(A[0])))
@@ -907,8 +899,8 @@ def test_index_simplification_reference_grad(self):
 
 
 def test_foobar(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1, (2,))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     du = TrialFunction(space)

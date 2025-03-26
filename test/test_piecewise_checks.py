@@ -1,7 +1,7 @@
 """Test the is_cellwise_constant function on all relevant terminal types."""
 
 import pytest
-from utils import FiniteElement
+from utils import FiniteElement, LagrangeElement
 
 from ufl import (
     Cell,
@@ -265,7 +265,7 @@ def test_coordinates_never_cellwise_constant(domains):
 
 def test_coordinates_never_cellwise_constant_vertex():
     # The only exception here:
-    domains = Mesh(FiniteElement("Lagrange", Cell("vertex"), 1, (3,), identity_pullback, H1))
+    domains = Mesh(LagrangeElement(Cell("vertex"), 1, (3,)))
     assert domains.ufl_cell().cellname() == "vertex"
     e = SpatialCoordinate(domains)
     assert is_cellwise_constant(e)

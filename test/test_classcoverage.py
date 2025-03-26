@@ -1,9 +1,8 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-06 -- 2009-02-10"
 
-from utils import FiniteElement, MixedElement
-
 import utils  # noqa: F401
+from utils import FiniteElement, LagrangeElement, MixedElement
 
 import ufl
 from ufl import *  # noqa: F403
@@ -208,15 +207,15 @@ def testAll(self):
     cell = triangle
     dim = 2
 
-    e0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    e1 = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
+    e0 = LagrangeElement(cell, 1)
+    e1 = LagrangeElement(cell, 1, (2,))
     e2 = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pullback, H1)
     e3 = MixedElement([e0, e1, e2])
 
-    e13D = FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1)
+    e13D = LagrangeElement(tetrahedron, 1, (3,))
 
     domain = Mesh(FiniteElement("Lagrange", cell, 1, (dim,), identity_pullback, H1))
-    domain3D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    domain3D = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     e0_space = FunctionSpace(domain, e0)
     e1_space = FunctionSpace(domain, e1)
     e2_space = FunctionSpace(domain, e2)

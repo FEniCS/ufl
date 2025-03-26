@@ -1,7 +1,7 @@
 """Tests of the various ways Measure objects can be created and used."""
 
 from mockobjects import MockMesh, MockMeshFunction
-from utils import FiniteElement
+from utils import FiniteElement, LagrangeElement
 
 from ufl import Cell, Coefficient, FunctionSpace, Measure, Mesh, as_ufl, dC, dI, dO, triangle
 from ufl.pullback import identity_pullback
@@ -64,7 +64,7 @@ def test_construct_forms_from_default_measures():
 
     # Check that we can create a basic form with default measure
     one = as_ufl(1)
-    one * dx(Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)))
+    one * dx(Mesh(LagrangeElement(triangle, 1, (2,))))
 
 
 def test_foo():
@@ -86,7 +86,7 @@ def test_foo():
     assert mydomain.ufl_cargo() == mymesh
 
     # Define a coefficient for use in tests below
-    V = FunctionSpace(mydomain, FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1))
+    V = FunctionSpace(mydomain, LagrangeElement(cell, 1))
     f = Coefficient(V)
 
     # Test definition of a custom measure with explicit parameters

@@ -1,4 +1,4 @@
-from utils import FiniteElement
+from utils import FiniteElement, LagrangeElement
 
 from ufl import (
     CellVolume,
@@ -45,7 +45,7 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     cell = triangle
     d = 2
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
-    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V1 = LagrangeElement(cell, 1)
 
     domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
     v0_space = FunctionSpace(domain, V0)
@@ -114,7 +114,7 @@ def test_literal_derivatives_are_zero():
             assert apply_derivatives(diff(lit, v)) == zero(lit.ufl_shape + v.ufl_shape)
 
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
-    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V1 = LagrangeElement(cell, 1)
     domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
@@ -139,8 +139,8 @@ def test_grad_ruleset():
     d = 2
 
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
-    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+    V1 = LagrangeElement(cell, 1)
+    V2 = LagrangeElement(cell, 2)
     W0 = FiniteElement("Discontinuous Lagrange", cell, 0, (2,), identity_pullback, L2)
     W1 = FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1)
     W2 = FiniteElement("Lagrange", cell, 2, (d,), identity_pullback, H1)

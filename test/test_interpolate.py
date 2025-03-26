@@ -4,7 +4,7 @@ __authors__ = "Nacime Bouziani"
 __date__ = "2021-11-19"
 
 import pytest
-from utils import FiniteElement
+from utils import FiniteElement, LagrangeElement
 
 from ufl import (
     Action,
@@ -40,7 +40,7 @@ from ufl.sobolevspace import H1
 
 @pytest.fixture
 def domain_2d():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    return Mesh(LagrangeElement(triangle, 1, (2,)))
 
 
 @pytest.fixture

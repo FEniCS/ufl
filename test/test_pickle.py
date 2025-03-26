@@ -10,7 +10,7 @@ __license__ = "GNU GPL version 3 or any later version"
 
 import pickle
 
-from utils import FiniteElement, MixedElement
+from utils import FiniteElement, LagrangeElement, MixedElement
 
 from ufl import (
     Coefficient,
@@ -51,8 +51,8 @@ p = pickle.HIGHEST_PROTOCOL
 
 
 def testConstant():
-    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -76,8 +76,8 @@ def testConstant():
 
 
 def testElasticity():
-    element = FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    element = LagrangeElement(tetrahedron, 1, (3,))
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -97,8 +97,8 @@ def testElasticity():
 
 
 def testEnergyNorm():
-    element = FiniteElement("Lagrange", tetrahedron, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    element = LagrangeElement(tetrahedron, 1)
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     space = FunctionSpace(domain, element)
 
     v = Coefficient(space)
@@ -111,8 +111,8 @@ def testEnergyNorm():
 
 
 def testEquation():
-    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     k = 0.1
@@ -136,8 +136,8 @@ def testEquation():
 
 
 def testFunctionOperators():
-    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -156,8 +156,8 @@ def testFunctionOperators():
 
 
 def testHeat():
-    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -180,8 +180,8 @@ def testHeat():
 
 
 def testMass():
-    element = FiniteElement("Lagrange", tetrahedron, 3, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    element = LagrangeElement(tetrahedron, 3)
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -196,7 +196,7 @@ def testMass():
 
 
 def testMixedMixedElement():
-    P3 = FiniteElement("Lagrange", triangle, 3, (), identity_pullback, H1)
+    P3 = LagrangeElement(triangle, 3)
 
     element = MixedElement([[P3, P3], [P3, P3]])
 
@@ -213,7 +213,7 @@ def testMixedPoisson():
     DG = FiniteElement("Discontinuous Lagrange", triangle, q - 1, (), identity_pullback, L2)
 
     mixed_element = MixedElement([BDM, DG])
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     mixed_space = FunctionSpace(domain, mixed_element)
     dg_space = FunctionSpace(domain, DG)
 
@@ -235,8 +235,8 @@ def testMixedPoisson():
 
 
 def testNavierStokes():
-    element = FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    element = LagrangeElement(tetrahedron, 1, (3,))
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -254,8 +254,8 @@ def testNavierStokes():
 
 
 def testNeumannProblem():
-    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1, (2,))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -279,8 +279,8 @@ def testNeumannProblem():
 
 
 def testOptimization():
-    element = FiniteElement("Lagrange", triangle, 3, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 3)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -300,7 +300,7 @@ def testOptimization():
 
 
 def testP5tet():
-    element = FiniteElement("Lagrange", tetrahedron, 5, (), identity_pullback, H1)
+    element = LagrangeElement(tetrahedron, 5)
 
     element_pickle = pickle.dumps(element, p)
     element_restore = pickle.loads(element_pickle)
@@ -309,7 +309,7 @@ def testP5tet():
 
 
 def testP5tri():
-    element = FiniteElement("Lagrange", triangle, 5, (), identity_pullback, H1)
+    element = LagrangeElement(triangle, 5)
 
     element_pickle = pickle.dumps(element, p)
     pickle.loads(element_pickle)
@@ -317,7 +317,7 @@ def testP5tri():
 
 def testPoissonDG():
     element = FiniteElement("Discontinuous Lagrange", triangle, 1, (), identity_pullback, L2)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -365,8 +365,8 @@ def testPoissonDG():
 
 
 def testPoisson():
-    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -387,8 +387,8 @@ def testPoisson():
 
 
 def testPoissonSystem():
-    element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1, (2,))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -411,7 +411,7 @@ def testPoissonSystem():
 
 
 def testQuadratureElement():
-    element = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
+    element = LagrangeElement(triangle, 2)
 
     # FFC notation:
     # QE = QuadratureElement(triangle, 3)
@@ -420,7 +420,7 @@ def testQuadratureElement():
     QE = FiniteElement("Quadrature", triangle, 3, (), identity_pullback, L2)
     sig = FiniteElement("Quadrature", triangle, 3, (2,), identity_pullback, L2)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     qe_space = FunctionSpace(domain, QE)
     sig_space = FunctionSpace(domain, sig)
@@ -447,11 +447,11 @@ def testQuadratureElement():
 def testStokes():
     # UFLException: Shape mismatch in sum.
 
-    P2 = FiniteElement("Lagrange", triangle, 2, (2,), identity_pullback, H1)
-    P1 = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    P2 = LagrangeElement(triangle, 2, (2,))
+    P1 = LagrangeElement(triangle, 1)
     TH = MixedElement([P2, P1])
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     th_space = FunctionSpace(domain, TH)
     p2_space = FunctionSpace(domain, P2)
 
@@ -476,8 +476,8 @@ def testStokes():
 
 
 def testSubDomain():
-    element = FiniteElement("Lagrange", tetrahedron, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    element = LagrangeElement(tetrahedron, 1)
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     space = FunctionSpace(domain, element)
 
     f = Coefficient(space)
@@ -491,8 +491,8 @@ def testSubDomain():
 
 
 def testSubDomains():
-    element = FiniteElement("Lagrange", tetrahedron, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    element = LagrangeElement(tetrahedron, 1)
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)
@@ -531,10 +531,10 @@ def testTensorWeightedPoisson():
     #
     # a = dot(grad(v), mult(C, grad(u)))*dx
 
-    P1 = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    P1 = LagrangeElement(triangle, 1)
     P0 = FiniteElement("Discontinuous Lagrange", triangle, 0, (2, 2), identity_pullback, L2)
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     p1_space = FunctionSpace(domain, P1)
     p0_space = FunctionSpace(domain, P0)
 
@@ -579,7 +579,7 @@ def testVectorLaplaceGradCurl():
     CURL = FiniteElement("N1curl", shape, order, (3,), covariant_piola, HCurl)
 
     VectorLagrange = FiniteElement("Lagrange", shape, order + 1, (3,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", shape, 1, (3,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(shape, 1, (3,)))
 
     [a, L] = HodgeLaplaceGradCurl(
         FunctionSpace(domain, MixedElement([GRAD, CURL])), FunctionSpace(domain, VectorLagrange)
@@ -602,8 +602,8 @@ def testIdentity():
 
 
 def testFormData():
-    element = FiniteElement("Lagrange", tetrahedron, 3, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    element = LagrangeElement(tetrahedron, 3)
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     space = FunctionSpace(domain, element)
 
     v = TestFunction(space)

@@ -41,8 +41,6 @@ from ufl.corealg.traversal import (
     unique_post_traversal,
     unique_pre_traversal,
 )
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 # TODO: add more tests, covering all utility algorithms
 

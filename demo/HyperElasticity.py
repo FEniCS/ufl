@@ -3,6 +3,8 @@
 # Date: 2008-12-22
 #
 
+from utils import FiniteElement, LagrangeElement
+
 from ufl import (
     Coefficient,
     Constant,
@@ -27,7 +29,6 @@ from ufl import (
     tr,
     variable,
 )
-from utils import FiniteElement
 
 # Modified by Garth N. Wells, 2009
 from ufl.pullback import identity_pullback
@@ -35,14 +36,14 @@ from ufl.sobolevspace import H1
 
 # Cell and its properties
 cell = tetrahedron
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+domain = Mesh(LagrangeElement(cell, 1, (3,)))
 d = 3
 N = FacetNormal(domain)
 x = SpatialCoordinate(domain)
 
 # Elements
-u_element = FiniteElement("Lagrange", cell, 2, (3,), identity_pullback, H1)
-p_element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+u_element = LagrangeElement(cell, 2, (3,))
+p_element = LagrangeElement(cell, 1)
 A_element = FiniteElement("Lagrange", cell, 1, (3, 3), identity_pullback, H1)
 
 # Spaces

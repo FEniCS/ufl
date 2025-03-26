@@ -2,7 +2,7 @@ import math
 
 import pytest
 from numpy import ndindex, reshape
-from utils import FiniteElement
+from utils import FiniteElement, LagrangeElement
 
 from ufl import (
     Coefficient,
@@ -43,8 +43,8 @@ from ufl.tensors import ComponentTensor, ListTensor
 
 def xtest_zero_times_argument(self):
     # FIXME: Allow zero forms
-    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -57,8 +57,8 @@ def xtest_zero_times_argument(self):
 
 
 def test_divisions(self):
-    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
 
@@ -84,8 +84,8 @@ def test_divisions(self):
 
 
 def test_products(self):
-    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     g = Coefficient(space)
@@ -106,8 +106,8 @@ def test_products(self):
 
 
 def test_sums(self):
-    element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     g = Coefficient(space)
@@ -157,7 +157,7 @@ def test_mathfunctions(self):
 
 
 def test_indexing(self):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     u = VectorConstant(domain)
     v = VectorConstant(domain)
 
@@ -174,7 +174,7 @@ def test_indexing(self):
 @pytest.mark.parametrize("shape", [(3,), (3, 2)], ids=("vector", "matrix"))
 def test_tensor_from_indexed(self, shape):
     element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
     assert as_tensor(reshape([f[i] for i in ndindex(f.ufl_shape)], f.ufl_shape).tolist()) is f
@@ -184,7 +184,7 @@ def test_nested_indexed(self):
     # Test that a nested Indexed expression simplifies to the existing Indexed object
     shape = (2,)
     element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
 
@@ -201,7 +201,7 @@ def test_repeated_indexing(self):
     # Test that an Indexed with repeated indices does not contract indices
     shape = (2, 2)
     element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     x = Coefficient(space)
     C = as_tensor([x, x])
@@ -220,7 +220,7 @@ def test_repeated_indexing(self):
 def test_untangle_indexed_component_tensor(self):
     shape = (2, 2, 2, 2)
     element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     C = Coefficient(space)
 
@@ -248,8 +248,8 @@ def test_untangle_indexed_component_tensor(self):
 
 
 def test_simplify_indexed(self):
-    element = FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    element = LagrangeElement(triangle, 1, (3,))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     u = Coefficient(space)
     z = Zero(())

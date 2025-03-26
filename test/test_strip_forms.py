@@ -1,7 +1,7 @@
 import gc
 import sys
 
-from utils import FiniteElement
+from utils import LagrangeElement
 
 from ufl import (
     Coefficient,
@@ -18,8 +18,6 @@ from ufl import (
 from ufl.algorithms import replace_terminal_data, strip_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 MIN_REF_COUNT = 2
 """The minimum value returned by sys.getrefcount."""
@@ -63,10 +61,8 @@ def test_strip_form_arguments_strips_data_refs():
     assert sys.getrefcount(const_data) == MIN_REF_COUNT
 
     cell = triangle
-    domain = AugmentedMesh(
-        FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1), data=mesh_data
-    )
-    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    domain = AugmentedMesh(LagrangeElement(cell, 1, (2,)), data=mesh_data)
+    element = LagrangeElement(cell, 1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)
@@ -102,10 +98,8 @@ def test_strip_form_arguments_does_not_change_form():
     const_data = object()
 
     cell = triangle
-    domain = AugmentedMesh(
-        FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1), data=mesh_data
-    )
-    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    domain = AugmentedMesh(LagrangeElement(cell, 1, (2,)), data=mesh_data)
+    element = LagrangeElement(cell, 1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)

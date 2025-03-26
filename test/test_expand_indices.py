@@ -7,7 +7,7 @@ __date__ = "2009-03-19 -- 2012-03-20"
 import math
 
 import pytest
-from utils import FiniteElement
+from utils import FiniteElement, LagrangeElement
 
 from ufl import (
     Coefficient,
@@ -46,10 +46,10 @@ from ufl.sobolevspace import H1
 class Fixture:
     def __init__(self):
         cell = triangle
-        element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-        velement = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
+        element = LagrangeElement(cell, 1)
+        velement = LagrangeElement(cell, 1, (2,))
         telement = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pullback, H1)
-        domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+        domain = Mesh(LagrangeElement(cell, 1, (2,)))
         space = FunctionSpace(domain, element)
         vspace = FunctionSpace(domain, velement)
         tspace = FunctionSpace(domain, telement)

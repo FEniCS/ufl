@@ -17,6 +17,8 @@
 #
 # First added:  2012-08-16
 # Last changed: 2012-08-16
+from utils import FiniteElement, LagrangeElement
+
 from ufl import (
     FunctionSpace,
     Mesh,
@@ -28,11 +30,10 @@ from ufl import (
     tetrahedron,
     triangle,
 )
-from utils import FiniteElement
 from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1, L2
+from ufl.sobolevspace import L2
 
-V0 = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+V0 = LagrangeElement(triangle, 1)
 V1 = FiniteElement("DG", interval, 0, (), identity_pullback, L2)
 V2 = FiniteElement("DG", tetrahedron, 0, (), identity_pullback, L2)
 
