@@ -59,33 +59,21 @@ class _MixedElement(AbstractFiniteElement):
 
     def __init__(self, sub_elements):
         """Initialise a mixed element."""
-        sub_elements = [_MixedElement(e) if isinstance(e, list) else e for e in sub_elements]
-        cell = sub_elements[0].cell
         for e in sub_elements:
-            assert e.cell == cell
-        degree = max(e.embedded_superdegree for e in sub_elements)
-        reference_value_shape = (sum(e.reference_value_size for e in sub_elements),)
+            assert e.cell == sub_elements[0].cell
         if all(isinstance(e.pullback, IdentityPullback) for e in sub_elements):
-            pullback = IdentityPullback()
+            self._pullback = IdentityPullback()
         else:
-            pullback = MixedPullback(self)
-        self._sobolev_space = max(e.sobolev_space for e in sub_elements)
-        self._repr = f"utils.MixedElement({sub_elements!r})"
-        self._str = f"<MixedElement with {len(sub_elements)} sub-element(s)>"
-        self._subdegree = degree
-        self._cell = cell
-        self._degree = degree
-        self._reference_value_shape = reference_value_shape
-        self._pullback = pullback
+            self._pullback = MixedPullback(self)
         self._sub_elements = sub_elements
 
     def __repr__(self) -> str:
         """Format as string for evaluation as Python object."""
-        return self._repr
+        return f"ufl.formoperators._MixedElement({sub_elements!r})"
 
     def __str__(self) -> str:
         """Format as string for nice printing."""
-        return self._str
+        return f"<MixedElement with {len(sub_elements)} sub-element(s)>"
 
     def __hash__(self) -> int:
         """Return a hash."""
@@ -98,7 +86,7 @@ class _MixedElement(AbstractFiniteElement):
     @property
     def sobolev_space(self) -> SobolevSpace:
         """Return the underlying Sobolev space."""
-        return self._sobolev_space
+        return max(e.sobolev_space for e in self._sub_elements)
 
     @property
     def pullback(self) -> AbstractPullback:
@@ -108,22 +96,22 @@ class _MixedElement(AbstractFiniteElement):
     @property
     def embedded_superdegree(self) -> typing.Union[int, None]:
         """Degree of the minimum degree Lagrange space that spans this element."""
-        return self._degree
+        return max(e.embedded_superdegree for e in self._sub_elements)
 
     @property
     def embedded_subdegree(self) -> int:
         """Degree of the maximum degree Lagrange space that is spanned by this element."""
-        return self._subdegree
+        return min(e.embedded_subdegree for e in self._sub_elements)
 
     @property
     def cell(self) -> Cell:
         """Return the cell of the finite element."""
-        return self._cell
+        return sub_elements[0].cell
 
     @property
     def reference_value_shape(self) -> typing.Tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
-        return self._reference_value_shape
+        return (sum(e.reference_value_size for e in self._sub_elements),)
 
     @property
     def sub_elements(self) -> typing.List:
