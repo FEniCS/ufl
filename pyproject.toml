@@ -91,5 +91,4 @@ disable_error_code = [
     "attr-defined",
     "misc",
     "operator",
-    "type-var",
 ]

@@ -1363,6 +1363,31 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return ZeroBaseForm(M.arguments() + self._v)
 
 
+# TODO: as soon as Python > 3.9 - move as staticmethod back into BaseFormOperatorDerivativeRuleset
+def pending_operations_recording(base_form_operator_handler):
+    """Decorate a function to record pending operations."""
+
+    def wrapper(self, base_form_op, *dfs):
+        """Decorate."""
+        # Get the outer `BaseFormOperator` expression, i.e. the
+        # operator that is being differentiated.
+        expression = self.outer_base_form_op
+        # If the base form operator we observe is different from the
+        # outer `BaseFormOperator`:
+        # -> Record that `BaseFormOperator` so that
+        # `d(expression)/d(base_form_op)` can then be computed
+        # later.
+        # Else:
+        # -> Compute the Gateaux derivative of `base_form_ops` by
+        # calling the appropriate handler.
+        if expression != base_form_op:
+            self.pending_operations += (base_form_op,)
+            return self.coefficient(base_form_op)
+        return base_form_operator_handler(self, base_form_op, *dfs)
+
+    return wrapper
+
+
 class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to BaseFormOperator.
 
@@ -1374,30 +1399,6 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
         """Initialise."""
         GateauxDerivativeRuleset.__init__(self, coefficients, arguments, coefficient_derivatives)
         self.outer_base_form_op = outer_base_form_op
-
-    @staticmethod
-    def pending_operations_recording(base_form_operator_handler):
-        """Decorate a function to record pending operations."""
-
-        def wrapper(self, base_form_op, *dfs):
-            """Decorate."""
-            # Get the outer `BaseFormOperator` expression, i.e. the
-            # operator that is being differentiated.
-            expression = self.outer_base_form_op
-            # If the base form operator we observe is different from the
-            # outer `BaseFormOperator`:
-            # -> Record that `BaseFormOperator` so that
-            # `d(expression)/d(base_form_op)` can then be computed
-            # later.
-            # Else:
-            # -> Compute the Gateaux derivative of `base_form_ops` by
-            # calling the appropriate handler.
-            if expression != base_form_op:
-                self.pending_operations += (base_form_op,)
-                return self.coefficient(base_form_op)
-            return base_form_operator_handler(self, base_form_op, *dfs)
-
-        return wrapper
 
     @pending_operations_recording
     def interpolate(self, i_op, dw):
