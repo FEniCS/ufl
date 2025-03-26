@@ -69,11 +69,11 @@ class _MixedElement(AbstractFiniteElement):
 
     def __repr__(self) -> str:
         """Format as string for evaluation as Python object."""
-        return f"ufl.formoperators._MixedElement({sub_elements!r})"
+        return f"ufl.formoperators._MixedElement({self._sub_elements!r})"
 
     def __str__(self) -> str:
         """Format as string for nice printing."""
-        return f"<MixedElement with {len(sub_elements)} sub-element(s)>"
+        return f"<MixedElement with {len(self._sub_elements)} sub-element(s)>"
 
     def __hash__(self) -> int:
         """Return a hash."""
@@ -106,7 +106,7 @@ class _MixedElement(AbstractFiniteElement):
     @property
     def cell(self) -> Cell:
         """Return the cell of the finite element."""
-        return sub_elements[0].cell
+        return self._sub_elements[0].cell
 
     @property
     def reference_value_shape(self) -> typing.Tuple[int, ...]:
