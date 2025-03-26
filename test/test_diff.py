@@ -2,6 +2,7 @@ __authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2014-10-14"
 
 import pytest
+from utils import LagrangeElement
 
 from ufl import (
     Coefficient,
@@ -22,9 +23,6 @@ from ufl import (
 )
 from ufl.algorithms import expand_derivatives
 from ufl.constantvalue import as_ufl
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 def get_variables():
@@ -202,16 +200,16 @@ def testIndexSum(v):
 
 
 def testCoefficient():
-    coord_elem = FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1)
+    coord_elem = LagrangeElement(triangle, 1, (3,))
     mesh = Mesh(coord_elem)
-    V = FunctionSpace(mesh, FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1))
+    V = FunctionSpace(mesh, LagrangeElement(triangle, 1))
     v = Coefficient(V)
     assert round(expand_derivatives(diff(v, v)) - 1.0, 7) == 0
 
 
 def testDiffX():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     x = SpatialCoordinate(domain)
     f = x[0] ** 2 * x[1] ** 2
     (i,) = indices(1)

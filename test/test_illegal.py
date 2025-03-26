@@ -1,26 +1,24 @@
 import pytest
+from utils import LagrangeElement
 
 from ufl import Argument, Coefficient, FunctionSpace, Mesh, triangle
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 # TODO: Add more illegal expressions to check!
 
 
 @pytest.fixture
 def selement():
-    return FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    return LagrangeElement(triangle, 1)
 
 
 @pytest.fixture
 def velement():
-    return FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    return LagrangeElement(triangle, 1, (2,))
 
 
 @pytest.fixture
 def domain():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    return Mesh(LagrangeElement(triangle, 1, (2,)))
 
 
 @pytest.fixture

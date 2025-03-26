@@ -3,13 +3,12 @@
 # Modified by: Martin Sandve Alnes
 # Date: 2009-01-12
 #
-from ufl import FunctionSpace, Mesh, TestFunction, TrialFunction, dx, grad, inner, tetrahedron
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
+from utils import LagrangeElement
 
-element = FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+from ufl import FunctionSpace, Mesh, TestFunction, TrialFunction, dx, grad, inner, tetrahedron
+
+element = LagrangeElement(tetrahedron, 1, (3,))
+domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)
