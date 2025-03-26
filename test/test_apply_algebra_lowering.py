@@ -1,5 +1,5 @@
 import pytest
-from utils import FiniteElement
+from utils import LagrangeElement
 
 from ufl import Coefficient, FunctionSpace, Index, Mesh, as_tensor, interval, sqrt, triangle
 from ufl.algorithms.renumbering import renumber_indices
@@ -12,8 +12,8 @@ from ufl.sobolevspace import H1
 def A0(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1)),
-            FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1),
+            Mesh(LagrangeElement(interval, 1, (1,))),
+            LagrangeElement(interval, 1),
         )
     )
 
@@ -22,8 +22,8 @@ def A0(request):
 def A1(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1)),
-            FiniteElement("Lagrange", interval, 1, (1, 1), identity_pullback, H1),
+            Mesh(LagrangeElement(interval, 1, (1,))),
+            LagrangeElement(interval, 1, (1, 1)),
         )
     )
 
@@ -32,8 +32,8 @@ def A1(request):
 def A2(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))),
+            LagrangeElement(triangle, 1, (2, 2)),
         )
     )
 
@@ -42,8 +42,8 @@ def A2(request):
 def A3(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (3, 3), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (3,))),
+            LagrangeElement(triangle, 1, (3, 3)),
         )
     )
 
@@ -52,8 +52,8 @@ def A3(request):
 def A21(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (2, 1), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))),
+            LagrangeElement(triangle, 1, (2, 1)),
         )
     )
 
@@ -62,8 +62,8 @@ def A21(request):
 def A31(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (3, 1), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))),
+            LagrangeElement(triangle, 1, (3, 1)),
         )
     )
 
@@ -72,8 +72,8 @@ def A31(request):
 def A32(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (3, 2), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))),
+            LagrangeElement(triangle, 1, (3, 2))
         )
     )
 

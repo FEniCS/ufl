@@ -4,8 +4,8 @@ import typing
 
 from ufl.cell import Cell
 from ufl.finiteelement import AbstractFiniteElement
-from ufl.pullback import AbstractPullback, IdentityPullback, MixedPullback, SymmetricPullback
-from ufl.sobolevspace import SobolevSpace
+from ufl.pullback import AbstractPullback, IdentityPullback, MixedPullback, SymmetricPullback, identity_pullback
+from ufl.sobolevspace import SobolevSpace, H1
 
 
 class FiniteElement(AbstractFiniteElement):
@@ -147,6 +147,21 @@ class FiniteElement(AbstractFiniteElement):
         sub-elements of sub-elements.
         """
         return self._sub_elements
+
+
+class LagrangeElement(FiniteElement):
+    """A Lagrange element."""
+
+    def __init__(self, cell: Cell, degree: int, shape: typing.Tuple[int, ...] = ()):
+        """Initialise."""
+        super().__init__(
+            "Lagrange",
+            cell,
+            degree,
+            shape,
+            identity_pullback,
+            H1,
+        )
 
 
 class SymmetricElement(FiniteElement):
