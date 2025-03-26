@@ -30,7 +30,7 @@ from ufl import (
     inner,
     tetrahedron,
 )
-from ufl.finiteelement import FiniteElement, MixedElement
+from utils import FiniteElement, MixedElement
 from ufl.pullback import covariant_piola, identity_pullback
 from ufl.sobolevspace import H1, HCurl
 

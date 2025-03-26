@@ -4,7 +4,7 @@
 # Date: 2009-04-09
 #
 from ufl import Coefficient, FunctionSpace, Mesh, derivative, dot, dx, grad, inner, triangle
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

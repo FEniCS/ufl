@@ -11,19 +11,6 @@ from ufl.sobolevspace import SobolevSpace
 class FiniteElement(AbstractFiniteElement):
     """A directly defined finite element."""
 
-    __slots__ = (
-        "_cell",
-        "_degree",
-        "_family",
-        "_pullback",
-        "_reference_value_shape",
-        "_repr",
-        "_sobolev_space",
-        "_str",
-        "_sub_elements",
-        "_subdegree",
-    )
-
     def __init__(
         self,
         family: str,

@@ -27,7 +27,7 @@ from ufl import (
     tr,
     variable,
 )
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 
 # Modified by Garth N. Wells, 2009
 from ufl.pullback import identity_pullback

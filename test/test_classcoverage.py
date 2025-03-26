@@ -3,6 +3,8 @@ __date__ = "2008-09-06 -- 2009-02-10"
 
 from utils import FiniteElement, MixedElement
 
+import utils  # noqa: F401
+
 import ufl
 from ufl import *  # noqa: F403
 from ufl import (

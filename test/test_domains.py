@@ -4,6 +4,8 @@ import pytest
 from mockobjects import MockMesh
 from utils import FiniteElement
 
+import utils  # noqa: F401
+
 import ufl  # noqa: F401
 from ufl import (
     Cell,

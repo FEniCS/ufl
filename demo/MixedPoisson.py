@@ -34,7 +34,7 @@ from ufl import (
     dx,
     triangle,
 )
-from ufl.finiteelement import FiniteElement, MixedElement
+from utils import FiniteElement, MixedElement
 from ufl.pullback import contravariant_piola, identity_pullback
 from ufl.sobolevspace import H1, HDiv
 

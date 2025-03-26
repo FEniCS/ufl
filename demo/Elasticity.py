@@ -4,7 +4,7 @@
 # Date: 2009-01-12
 #
 from ufl import FunctionSpace, Mesh, TestFunction, TrialFunction, dx, grad, inner, tetrahedron
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

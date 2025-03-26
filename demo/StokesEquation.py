@@ -34,7 +34,7 @@ from ufl import (
     rhs,
     triangle,
 )
-from ufl.finiteelement import FiniteElement, MixedElement
+from utils import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

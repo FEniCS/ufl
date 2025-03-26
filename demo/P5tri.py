@@ -17,7 +17,7 @@
 #
 # A fifth degree Lagrange finite element on a triangle
 from ufl import triangle
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 

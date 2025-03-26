@@ -1,5 +1,5 @@
 from ufl import Coefficient, FunctionSpace, Mesh, TestFunction, TrialFunction, dx, triangle
-from ufl.finiteelement import FiniteElement
+from utils import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
