@@ -20,7 +20,7 @@ from ufl.pullback import AbstractPullback as _AbstractPullback
 from ufl.sobolevspace import SobolevSpace as _SobolevSpace
 from ufl.utils.sequences import product
 
-__all_classes__ = ["AbstractFiniteElement", "FiniteElement", "MixedElement", "SymmetricElement"]
+__all_classes__ = ["AbstractFiniteElement"]
 
 
 class AbstractFiniteElement(_abc.ABC):
