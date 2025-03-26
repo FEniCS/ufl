@@ -7,7 +7,7 @@ __date__ = "2009-03-19 -- 2012-03-20"
 import math
 
 import pytest
-from utils import FiniteElement, LagrangeElement
+from utils import LagrangeElement
 
 from ufl import (
     Coefficient,
@@ -36,8 +36,6 @@ from ufl import (
 )
 from ufl.algorithms import compute_form_data, expand_derivatives, expand_indices
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 # TODO: Test expand_indices2 throuroughly for correctness, then efficiency:
 # expand_indices, expand_indices2 = expand_indices2, expand_indices
@@ -48,7 +46,7 @@ class Fixture:
         cell = triangle
         element = LagrangeElement(cell, 1)
         velement = LagrangeElement(cell, 1, (2,))
-        telement = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pullback, H1)
+        telement = LagrangeElement(cell, 1, (2, 2))
         domain = Mesh(LagrangeElement(cell, 1, (2,)))
         space = FunctionSpace(domain, element)
         vspace = FunctionSpace(domain, velement)

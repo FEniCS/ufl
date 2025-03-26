@@ -669,7 +669,7 @@ def test_vector_coefficient_scalar_derivatives(self):
 
 def test_vector_coefficient_derivatives(self):
     V = LagrangeElement(triangle, 1, (2,))
-    VV = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
+    VV = LagrangeElement(triangle, 1, (2, 2))
 
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     v_space = FunctionSpace(domain, V)
@@ -698,7 +698,7 @@ def test_vector_coefficient_derivatives(self):
 
 def test_vector_coefficient_derivatives_of_product(self):
     V = LagrangeElement(triangle, 1, (2,))
-    VV = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
+    VV = LagrangeElement(triangle, 1, (2, 2))
 
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     v_space = FunctionSpace(domain, V)

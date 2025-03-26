@@ -12,7 +12,7 @@ from ufl.pullback import (
     identity_pullback,
     l2_piola,
 )
-from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
+from ufl.sobolevspace import L2, HCurl, HDiv, HDivDiv, HEin
 
 
 def check_single_function_pullback(g, mappings):
@@ -48,7 +48,7 @@ def test_apply_single_function_pullbacks_triangle3d():
     V = LagrangeElement(cell, 1, (3,))
     Vd = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
     Vc = FiniteElement("N1curl", cell, 1, (2,), covariant_piola, HCurl)
-    T = FiniteElement("Lagrange", cell, 1, (3, 3), identity_pullback, H1)
+    T = LagrangeElement(cell, 1, (3, 3))
     S = SymmetricElement(
         {
             (0, 0): 0,
@@ -312,7 +312,7 @@ def test_apply_single_function_pullbacks_triangle():
     V = LagrangeElement(cell, 1, (2,))
     Vd = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
     Vc = FiniteElement("N1curl", cell, 1, (2,), covariant_piola, HCurl)
-    T = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pullback, H1)
+    T = LagrangeElement(cell, 1, (2, 2))
     S = SymmetricElement(
         {(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2},
         [LagrangeElement(cell, 1) for i in range(3)],

@@ -56,18 +56,14 @@ def test_domains_sort_by_name():
     # working
     domains1 = [
         Mesh(
-            FiniteElement(
-                "Lagrange", cell, 1, (cell.topological_dimension(),), identity_pullback, H1
-            ),
+            LagrangeElement(cell, 1, (cell.topological_dimension(),)),
             ufl_id=hash(cell.cellname()),
         )
         for cell in all_cells
     ]
     domains2 = [
         Mesh(
-            FiniteElement(
-                "Lagrange", cell, 1, (cell.topological_dimension(),), identity_pullback, H1
-            ),
+            LagrangeElement(cell, 1, (cell.topological_dimension(),)),
             ufl_id=hash(cell.cellname()),
         )
         for cell in sorted(all_cells)
@@ -102,7 +98,7 @@ def test_simple_domain_case():
     # Creating domain from just cell with label like new dolfin will do
     D = Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=3)
 
-    V = FunctionSpace(D, FiniteElement("Lagrange", D.ufl_cell(), 1, (), identity_pullback, "H1"))
+    V = FunctionSpace(D, LagrangeElement(D.ufl_cell(), 1))
     f = Coefficient(V)
     assert f.ufl_domains() == (D,)
 

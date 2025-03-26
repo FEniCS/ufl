@@ -45,7 +45,7 @@ from ufl import (
 )
 from ufl.algorithms import compute_form_data
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
-from ufl.sobolevspace import H1, L2, HCurl, HDiv
+from ufl.sobolevspace import L2, HCurl, HDiv
 
 p = pickle.HIGHEST_PROTOCOL
 
@@ -515,7 +515,7 @@ def testSubDomains():
 
 def testTensorWeightedPoisson():
     # FFC notation:
-    # P1 = FiniteElement("Lagrange", triangle, 1)
+    # P1 = LagrangeElement(triangle, 1)
     # P0 = FiniteElement("Discontinuous Lagrange", triangle, 0)
     #
     # v = TestFunction(P1)
@@ -573,12 +573,12 @@ def testVectorLaplaceGradCurl():
     shape = tetrahedron
     order = 1
 
-    GRAD = FiniteElement("Lagrange", shape, order, (), identity_pullback, H1)
+    GRAD = LagrangeElement(shape, order, ())
 
     # FFC notation: CURL = FiniteElement("Nedelec", shape, order-1)
     CURL = FiniteElement("N1curl", shape, order, (3,), covariant_piola, HCurl)
 
-    VectorLagrange = FiniteElement("Lagrange", shape, order + 1, (3,), identity_pullback, H1)
+    VectorLagrange = LagrangeElement(shape, order + 1, (3,))
     domain = Mesh(LagrangeElement(shape, 1, (3,)))
 
     [a, L] = HodgeLaplaceGradCurl(

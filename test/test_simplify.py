@@ -2,7 +2,7 @@ import math
 
 import pytest
 from numpy import ndindex, reshape
-from utils import FiniteElement, LagrangeElement
+from utils import LagrangeElement
 
 from ufl import (
     Coefficient,
@@ -36,8 +36,6 @@ from ufl.algorithms import compute_form_data
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
 from ufl.indexed import Indexed
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 from ufl.tensors import ComponentTensor, ListTensor
 
 
@@ -173,7 +171,7 @@ def test_indexing(self):
 
 @pytest.mark.parametrize("shape", [(3,), (3, 2)], ids=("vector", "matrix"))
 def test_tensor_from_indexed(self, shape):
-    element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
+    element = LagrangeElement(triangle, 1, shape)
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
@@ -183,7 +181,7 @@ def test_tensor_from_indexed(self, shape):
 def test_nested_indexed(self):
     # Test that a nested Indexed expression simplifies to the existing Indexed object
     shape = (2,)
-    element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
+    element = LagrangeElement(triangle, 1, shape)
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     f = Coefficient(space)
@@ -200,7 +198,7 @@ def test_nested_indexed(self):
 def test_repeated_indexing(self):
     # Test that an Indexed with repeated indices does not contract indices
     shape = (2, 2)
-    element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
+    element = LagrangeElement(triangle, 1, shape)
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     x = Coefficient(space)
@@ -219,7 +217,7 @@ def test_repeated_indexing(self):
 
 def test_untangle_indexed_component_tensor(self):
     shape = (2, 2, 2, 2)
-    element = FiniteElement("Lagrange", triangle, 1, shape, identity_pullback, H1)
+    element = LagrangeElement(triangle, 1, shape)
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     C = Coefficient(space)

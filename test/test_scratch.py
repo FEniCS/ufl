@@ -8,7 +8,7 @@ Next look at the TODO markers below for places to edit.
 
 import warnings
 
-from utils import FiniteElement, LagrangeElement
+from utils import LagrangeElement
 
 from ufl import (
     Coefficient,
@@ -27,8 +27,6 @@ from ufl import (
     triangle,
 )
 from ufl.classes import FixedIndex, FormArgument, Grad, Indexed, ListTensor, Zero
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 
 
@@ -407,7 +405,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
 
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
-    W = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
+    W = LagrangeElement(triangle, 1, (2, 2))
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, W)
     w = Coefficient(space)
@@ -433,7 +431,7 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
 
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_variation(self):
-    W = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
+    W = LagrangeElement(triangle, 1, (2, 2))
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, W)
     w = Coefficient(space)

@@ -2,8 +2,8 @@ from utils import FiniteElement, LagrangeElement, MixedElement, SymmetricElement
 
 from ufl import Cell, Mesh
 from ufl.functionspace import FunctionSpace
-from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
-from ufl.sobolevspace import H1, HCurl, HDiv
+from ufl.pullback import contravariant_piola, covariant_piola
+from ufl.sobolevspace import HCurl, HDiv
 
 
 def test_reference_shapes():
@@ -31,7 +31,7 @@ def test_reference_shapes():
     assert Qspace.value_shape == (3,)
     assert Q.reference_value_shape == (3,)
 
-    T = FiniteElement("Lagrange", cell, 1, (3, 3), identity_pullback, H1)
+    T = LagrangeElement(cell, 1, (3, 3))
     Tspace = FunctionSpace(domain, T)
     assert Tspace.value_shape == (3, 3)
     assert T.reference_value_shape == (3, 3)

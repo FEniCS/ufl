@@ -4,8 +4,8 @@ from utils import FiniteElement, LagrangeElement
 
 from ufl import Coefficient, FunctionSpace, Mesh, triangle
 from ufl.classes import Expr, ReferenceValue
-from ufl.pullback import contravariant_piola, identity_pullback
-from ufl.sobolevspace import H1, HDiv
+from ufl.pullback import contravariant_piola
+from ufl.sobolevspace import HDiv
 
 
 def change_to_reference_frame(expr):
@@ -16,7 +16,7 @@ def change_to_reference_frame(expr):
 def test_change_unmapped_form_arguments_to_reference_frame():
     U = LagrangeElement(triangle, 1)
     V = LagrangeElement(triangle, 1, (2,))
-    T = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
+    T = LagrangeElement(triangle, 1, (2, 2))
 
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     u_space = FunctionSpace(domain, U)

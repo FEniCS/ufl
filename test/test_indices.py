@@ -1,5 +1,5 @@
 import pytest
-from utils import FiniteElement, LagrangeElement
+from utils import LagrangeElement
 
 import ufl.algorithms
 import ufl.classes
@@ -27,8 +27,6 @@ from ufl import (
     triangle,
 )
 from ufl.classes import IndexSum
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 # TODO: add more expressions to test as many possible combinations of
 # index notation as feasible...
@@ -45,7 +43,7 @@ def test_vector_indices(self):
 
 
 def test_tensor_indices(self):
-    element = FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1)
+    element = LagrangeElement(triangle, 1, (2, 2))
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
     u = Argument(space, 2)

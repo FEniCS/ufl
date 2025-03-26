@@ -2,7 +2,7 @@ __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-06 -- 2009-02-10"
 
 import utils  # noqa: F401
-from utils import FiniteElement, LagrangeElement, MixedElement
+from utils import LagrangeElement, MixedElement
 
 import ufl
 from ufl import *  # noqa: F403
@@ -115,8 +115,6 @@ from ufl.classes import (
     Tanh,
     all_ufl_classes,
 )
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 has_repr = set()
 has_dict = set()
@@ -209,7 +207,7 @@ def testAll(self):
 
     e0 = LagrangeElement(cell, 1)
     e1 = LagrangeElement(cell, 1, (2,))
-    e2 = FiniteElement("Lagrange", cell, 1, (2, 2), identity_pullback, H1)
+    e2 = LagrangeElement(cell, 1, (2, 2))
     e3 = MixedElement([e0, e1, e2])
 
     e13D = LagrangeElement(tetrahedron, 1, (3,))
