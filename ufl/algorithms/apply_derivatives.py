@@ -17,13 +17,14 @@ from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
-from ufl.argument import Argument, BaseArgument
+from ufl.argument import Argument, BaseArgument, Coargument
 from ufl.averaging import CellAvg, FacetAvg
 from ufl.checks import is_cellwise_constant
 from ufl.classes import (
     Abs,
     CellCoordinate,
     Coefficient,
+    Cofunction,
     ComponentTensor,
     Conj,
     Constant,
@@ -60,6 +61,8 @@ from ufl.conditional import BinaryCondition, Conditional, NotCondition
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import ufl_err_str
+from ufl.core.external_operator import ExternalOperator
+from ufl.core.interpolate import Interpolate
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
 from ufl.core.terminal import Terminal
 from ufl.corealg.dag_traverser import DAGTraverser
@@ -94,6 +97,7 @@ from ufl.mathfunctions import (
     Tan,
     Tanh,
 )
+from ufl.matrix import Matrix
 from ufl.operators import (
     MaxValue,
     MinValue,
@@ -1688,17 +1692,25 @@ class VariableRuleset(GenericDerivativeRuleset):
         return self.independent_operator(o)
 
 
-class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
+class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to expression.
 
     Implements rules for the Gateaux derivative D_w[v](...) defined as
     D_w[v](e) = d/dtau e(w+tau v)|tau=0.
     """
 
-    def __init__(self, coefficients, arguments, coefficient_derivatives, pending_operations):
+    def __init__(
+        self,
+        coefficients,
+        arguments,
+        coefficient_derivatives,
+        pending_operations,
+        compress=True,
+        vcache=None,
+        rcache=None,
+    ):
         """Initialise."""
-        GenericDerivativeRulesetMultiFunction.__init__(self, var_shape=())
-
+        super().__init__((), compress=compress, vcache=vcache, rcache=rcache)
         # Type checking
         if not isinstance(coefficients, ExprList):
             raise ValueError("Expecting a ExprList of coefficients.")
@@ -1706,41 +1718,70 @@ class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
             raise ValueError("Expecting a ExprList of arguments.")
         if not isinstance(coefficient_derivatives, ExprMapping):
             raise ValueError("Expecting a coefficient-coefficient ExprMapping.")
-
         # The coefficient(s) to differentiate w.r.t. and the
         # argument(s) s.t. D_w[v](e) = d/dtau e(w+tau v)|tau=0
         self._w = coefficients.ufl_operands
         self._v = arguments.ufl_operands
         self._w2v = {w: v for w, v in zip(self._w, self._v)}
-
         # Build more convenient dict {f: df/dw} for each coefficient f
         # where df/dw is nonzero
         cd = coefficient_derivatives.ufl_operands
         self._cd = {cd[2 * i]: cd[2 * i + 1] for i in range(len(cd) // 2)}
-
         # Record the operations delayed to the derivative expansion phase:
         # Example: dN(u)/du where `N` is an ExternalOperator and `u` a Coefficient
         self.pending_operations = pending_operations
 
-    # Explicitly defining dg/dw == 0
-    geometric_quantity = GenericDerivativeRulesetMultiFunction.independent_terminal
+    # Work around singledispatchmethod inheritance issue;
+    # see https://bugs.python.org/issue36457.
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
 
-    def cell_avg(self, o, fp):
+        Args:
+            o: `Expr` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        return super().process(o)
+
+    # --- Specialized rules for geometric quantities
+
+    @process.register(GeometricQuantity)
+    def _(self, o: Expr) -> Expr:
+        # Explicitly defining dg/dw == 0
+        return self.independent_terminal(o)
+
+    @process.register(CellAvg)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
         """Differentiate a cell_avg."""
         # Cell average of a single function and differentiation
         # commutes, D_f[v](cell_avg(f)) = cell_avg(v)
         return cell_avg(fp)
 
-    def facet_avg(self, o, fp):
+    @process.register(FacetAvg)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, fp) -> Expr:
         """Differentiate a facet_avg."""
         # Facet average of a single function and differentiation
         # commutes, D_f[v](facet_avg(f)) = facet_avg(v)
         return facet_avg(fp)
 
-    # Explicitly defining da/dw == 0
-    argument = GenericDerivativeRulesetMultiFunction.independent_terminal
+    @process.register(Argument)
+    def _(self, o: Expr) -> Expr:
+        # Explicitly defining da/dw == 0
+        return self._process_argument(o)
 
-    def coefficient(self, o):
+    def _process_argument(self, o: Expr) -> Expr:
+        return self.independent_terminal(o)
+
+    @process.register(Coefficient)
+    def _(self, o: Expr) -> Expr:
+        return self._process_coefficient(o)
+
+    def _process_coefficient(self, o: Expr) -> Expr:
         """Differentiate a coefficient."""
         # Define dw/dw := d/ds [w + s v] = v
 
@@ -1788,7 +1829,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
                     dosum += prod
             return dosum
 
-    def reference_value(self, o):
+    @process.register(ReferenceValue)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
         raise NotImplementedError(
             "Currently no support for ReferenceValue in CoefficientDerivative."
@@ -1808,7 +1850,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
         # else:
         #     return self.independent_terminal(o)
 
-    def reference_grad(self, o):
+    @process.register(ReferenceGrad)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a reference_grad."""
         raise NotImplementedError(
             "Currently no support for ReferenceGrad in CoefficientDerivative."
@@ -1819,7 +1862,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
         #       this to allow the user to write
         #       derivative(...ReferenceValue...,...).
 
-    def grad(self, g):
+    @process.register(Grad)
+    def _(self, g: Expr) -> Expr:
         """Differentiate a grad."""
         # If we hit this type, it has already been propagated to a
         # coefficient (or grad of a coefficient) or a base form operator, # FIXME: Assert
@@ -1976,12 +2020,15 @@ class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
 
         return gprimesum
 
-    def coordinate_derivative(self, o):
+    @process.register(CoordinateDerivative)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a coordinate_derivative."""
         o = o.ufl_operands
         return CoordinateDerivative(map_expr_dag(self, o[0]), o[1], o[2], o[3])
 
-    def base_form_operator(self, o, *dfs):
+    @process.register(BaseFormOperator)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *dfs) -> Expr:
         """Differentiate a base_form_operator.
 
         If d_coeff = 0 => BaseFormOperator's derivative is taken wrt a
@@ -1989,7 +2036,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
         differentiation done wrt the BaseFormOperator (dF/dN[Nhat]) =>
         we treat o as a Coefficient.
         """
-        d_coeff = self.coefficient(o)
+        d_coeff = self._process_coefficient(o)
         # It also handles the non-scalar case
         if d_coeff == 0:
             self.pending_operations += (o,)
@@ -1997,27 +2044,30 @@ class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
 
     # -- Handlers for BaseForm objects -- #
 
-    def cofunction(self, o):
+    @process.register(Cofunction)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a cofunction."""
         # Same rule than for Coefficient except that we use a Coargument.
         # The coargument is already attached to the class (self._v)
         # which `self.coefficient` relies on.
-        dc = self.coefficient(o)
+        dc = self._process_coefficient(o)
         if dc == 0:
             # Convert ufl.Zero into ZeroBaseForm
             return ZeroBaseForm(o.arguments() + self._v)
         return dc
 
-    def coargument(self, o):
+    @process.register(Coargument)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a coargument."""
         # Same rule than for Argument (da/dw == 0).
-        dc = self.argument(o)
+        dc = self._process_argument(o)
         if dc == 0:
             # Convert ufl.Zero into ZeroBaseForm
             return ZeroBaseForm(o.arguments() + self._v)
         return dc
 
-    def matrix(self, M):
+    @process.register(Matrix)
+    def _(self, M: Expr) -> Expr:
         """Differentiate a matrix."""
         # Matrix rule: D_w[v](M) = v if M == w else 0
         # We can't differentiate wrt a matrix so always return zero in
@@ -2032,10 +2082,25 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     D_w[v](B) = d/dtau B(w+tau v)|tau=0 where B is a ufl.BaseFormOperator.
     """
 
-    def __init__(self, coefficients, arguments, coefficient_derivatives, pending_operations):
+    def __init__(
+        self,
+        coefficients,
+        arguments,
+        coefficient_derivatives,
+        pending_operations,
+        compress=True,
+        vcache=None,
+        rcache=None,
+    ):
         """Initialise."""
-        GateauxDerivativeRuleset.__init__(
-            self, coefficients, arguments, coefficient_derivatives, pending_operations
+        super().__init__(
+            coefficients,
+            arguments,
+            coefficient_derivatives,
+            pending_operations,
+            compress=compress,
+            vcache=vcache,
+            rcache=rcache,
         )
 
     def pending_operations_recording(base_form_operator_handler):
@@ -2056,13 +2121,30 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
             # calling the appropriate handler.
             if expression != base_form_op:
                 self.pending_operations += (base_form_op,)
-                return self.coefficient(base_form_op)
+                return self._process_coefficient(base_form_op)
             return base_form_operator_handler(self, base_form_op, *dfs)
 
         return wrapper
 
+    # Work around singledispatchmethod inheritance issue;
+    # see https://bugs.python.org/issue36457.
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
+
+        Args:
+            o: `Expr` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        return super().process(o)
+
+    @process.register(Interpolate)
+    @DAGTraverser.postorder
     @pending_operations_recording
-    def interpolate(self, i_op, dw):
+    def _(self, i_op, dw):
         """Differentiate an interpolate."""
         # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
         if not dw:
@@ -2072,6 +2154,8 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
             return ZeroBaseForm(i_op.arguments() + self._v)
         return i_op._ufl_expr_reconstruct_(expr=dw)
 
+    @process.register(ExternalOperator)
+    @DAGTraverser.postorder
     @pending_operations_recording
     def external_operator(self, N, *dfs):
         """Differentiate an external_operator."""
@@ -2121,6 +2205,7 @@ class DerivativeRuleDispatcher(MultiFunction):
         self._grad_ruleset_dict = {}
         self._reference_grad_ruleset_dict = {}
         self._variable_ruleset_dict = {}
+        self._dag_traverser_dict = {}
 
     def terminal(self, o):
         """Apply to a terminal."""
@@ -2158,11 +2243,16 @@ class DerivativeRuleDispatcher(MultiFunction):
         pending_operations = BaseFormOperatorDerivativeRecorder(
             f, w, arguments=v, coefficient_derivatives=cd
         )
-        rules = GateauxDerivativeRuleset(w, v, cd, pending_operations)
-        key = (GateauxDerivativeRuleset, w, v, cd)
+        key = (GateauxDerivativeRuleset, w, v, cd, f)
         # We need to go through the dag first to record the pending
         # operations
-        mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        dag_traverser = self._dag_traverser_dict.setdefault(
+            key,
+            GateauxDerivativeRuleset(w, v, cd, pending_operations),
+        )
+        # If f has been seen by the traverser, it immediately returns
+        # the cached value.
+        mapped_expr = dag_traverser(f)
         # Need to account for pending operations that have been stored
         # in other integrands
         self.pending_operations += pending_operations
@@ -2171,11 +2261,6 @@ class DerivativeRuleDispatcher(MultiFunction):
     def base_form_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         """Apply to a base_form_operator_derivative."""
         dummy, w, v, cd = o.ufl_operands
-        pending_operations = BaseFormOperatorDerivativeRecorder(
-            f, w, arguments=v, coefficient_derivatives=cd
-        )
-        rules = BaseFormOperatorDerivativeRuleset(w, v, cd, pending_operations=pending_operations)
-        key = (BaseFormOperatorDerivativeRuleset, w, v, cd)
         if isinstance(f, ZeroBaseForm):
             (arg,) = v.ufl_operands
             arguments = f.arguments()
@@ -2185,10 +2270,19 @@ class DerivativeRuleDispatcher(MultiFunction):
             if isinstance(arg, BaseArgument):
                 arguments += (arg,)
             return ZeroBaseForm(arguments)
+        pending_operations = BaseFormOperatorDerivativeRecorder(
+            f, w, arguments=v, coefficient_derivatives=cd
+        )
+        key = (BaseFormOperatorDerivativeRuleset, w, v, cd, f)
         # We need to go through the dag first to record the pending operations
-        mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
-
-        mapped_f = rules.coefficient(f)
+        dag_traverser = self._dag_traverser_dict.setdefault(
+            key,
+            BaseFormOperatorDerivativeRuleset(w, v, cd, pending_operations),
+        )
+        # If f has been seen by the traverser, it immediately returns
+        # the cached value.
+        mapped_expr = dag_traverser(f)
+        mapped_f = dag_traverser._process_coefficient(f)
         if mapped_f != 0:
             # If dN/dN needs to return an Argument in N space
             # with N a BaseFormOperator.
