@@ -1543,12 +1543,12 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         return self.independent_operator(o)
 
 
-class VariableRuleset(GenericDerivativeRulesetMultiFunction):
+class VariableRuleset(GenericDerivativeRuleset):
     """Differentiate with respect to a variable."""
 
-    def __init__(self, var):
+    def __init__(self, var, compress=True, vcache=None, rcache=None):
         """Initialise."""
-        GenericDerivativeRulesetMultiFunction.__init__(self, var_shape=var.ufl_shape)
+        super().__init__(var.ufl_shape, compress=compress, vcache=vcache, rcache=rcache)
         if var.ufl_free_indices:
             raise ValueError("Differentiation variable cannot have free indices.")
         self._variable = var
@@ -1584,13 +1584,33 @@ class VariableRuleset(GenericDerivativeRulesetMultiFunction):
             fp = as_tensor(res, ind1 + ind2)
         return fp
 
-    # Explicitly defining dg/dw == 0
-    geometric_quantity = GenericDerivativeRulesetMultiFunction.independent_terminal
+    # Work around singledispatchmethod inheritance issue;
+    # see https://bugs.python.org/issue36457.
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
 
-    # Explicitly defining da/dw == 0
-    argument = GenericDerivativeRulesetMultiFunction.independent_terminal
+        Args:
+            o: `Expr` to be processed.
 
-    def coefficient(self, o):
+        Returns:
+            Processed object.
+
+        """
+        return super().process(o)
+
+    @process.register(GeometricQuantity)
+    def _(self, o: Expr) -> Expr:
+        # Explicitly defining dg/dw == 0
+        return self.independent_terminal(o)
+
+    @process.register(Argument)
+    def _(self, o: Expr) -> Expr:
+        # Explicitly defining da/dw == 0
+        return self.independent_terminal(o)
+
+    @process.register(Coefficient)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a coefficient.
 
         df/dv = Id if v is f else 0.
@@ -1607,7 +1627,9 @@ class VariableRuleset(GenericDerivativeRulesetMultiFunction):
             # df/v = 0
             return self.independent_terminal(o)
 
-    def variable(self, o, df, a):
+    @process.register(Variable)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df, a) -> Expr:
         """Differentiate a variable."""
         v = self._variable
         if isinstance(v, Variable) and v.label() == a:
@@ -1617,7 +1639,8 @@ class VariableRuleset(GenericDerivativeRulesetMultiFunction):
             # df/v = df
             return df
 
-    def grad(self, o):
+    @process.register(Grad)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a grad.
 
         Variable derivative of a gradient of a terminal must be 0.
@@ -1629,7 +1652,8 @@ class VariableRuleset(GenericDerivativeRulesetMultiFunction):
 
     # --- Rules for values or derivatives in reference frame
 
-    def reference_value(self, o):
+    @process.register(ReferenceValue)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
         # d/dv(o) == d/dv(rv(f)) = 0 if v is not f, or rv(dv/df)
         v = self._variable
@@ -1648,7 +1672,8 @@ class VariableRuleset(GenericDerivativeRulesetMultiFunction):
             # df/v = 0
             return self.independent_terminal(o)
 
-    def reference_grad(self, o):
+    @process.register(ReferenceGrad)
+    def _(self, o: Expr) -> Expr:
         """Differentiate a reference_grad.
 
         Variable derivative of a gradient of a terminal must be 0.
@@ -1657,8 +1682,10 @@ class VariableRuleset(GenericDerivativeRulesetMultiFunction):
             raise ValueError("Unexpected argument to reference_grad.")
         return self.independent_terminal(o)
 
-    cell_avg = GenericDerivativeRulesetMultiFunction.independent_operator
-    facet_avg = GenericDerivativeRulesetMultiFunction.independent_operator
+    @process.register(CellAvg)
+    @process.register(FacetAvg)
+    def _(self, o: Expr) -> Expr:
+        return self.independent_operator(o)
 
 
 class GateauxDerivativeRuleset(GenericDerivativeRulesetMultiFunction):
@@ -2093,6 +2120,7 @@ class DerivativeRuleDispatcher(MultiFunction):
         # Create DAGTraverser caches.
         self._grad_ruleset_dict = {}
         self._reference_grad_ruleset_dict = {}
+        self._variable_ruleset_dict = {}
 
     def terminal(self, o):
         """Apply to a terminal."""
@@ -2121,9 +2149,8 @@ class DerivativeRuleDispatcher(MultiFunction):
     def variable_derivative(self, o, f, dummy_v):
         """Apply to a variable_derivative."""
         op = o.ufl_operands[1]
-        rules = VariableRuleset(op)
-        key = (VariableRuleset, op)
-        return map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
+        dag_traverser = self._variable_ruleset_dict.setdefault(op, VariableRuleset(op))
+        return dag_traverser(f)
 
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         """Apply to a coefficient_derivative."""
