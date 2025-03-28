@@ -2135,8 +2135,7 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
     def __init__(self):
         """Initialise."""
         MultiFunction.__init__(self)
-        self.vcache = defaultdict(dict)
-        self.rcache = defaultdict(dict)
+        self._dag_traverser_dict = {}
 
     def terminal(self, o):
         """Apply to a terminal."""
@@ -2171,9 +2170,11 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
                 )
 
         _, w, v, cd = o.ufl_operands
-        rules = CoordinateDerivativeRuleset(w, v, cd)
         key = (CoordinateDerivativeRuleset, w, v, cd)
-        return map_expr_dag(rules, f, vcache=self.vcache[key], rcache=self.rcache[key])
+        dag_traverser = self._dag_traverser_dict.setdefault(
+            key, CoordinateDerivativeRuleset(w, v, cd)
+        )
+        return dag_traverser(f)
 
 
 def apply_coordinate_derivatives(expression):
