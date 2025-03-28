@@ -2021,10 +2021,11 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return gprimesum
 
     @process.register(CoordinateDerivative)
-    def _(self, o: Expr) -> Expr:
+    @DAGTraverser.postorder_only_children([0])
+    def _(self, o: Expr, o0) -> Expr:
         """Differentiate a coordinate_derivative."""
-        o = o.ufl_operands
-        return CoordinateDerivative(map_expr_dag(self, o[0]), o[1], o[2], o[3])
+        _, o1, o2, o3 = o.ufl_operands
+        return CoordinateDerivative(o0, o1, o2, o3)
 
     @process.register(BaseFormOperator)
     @DAGTraverser.postorder
