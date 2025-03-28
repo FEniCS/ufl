@@ -15,7 +15,7 @@ import numpy as np
 
 from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments
-from ufl.algorithms.map_integrands import map_integrand_dags, map_integrands
+from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.argument import Argument, BaseArgument, Coargument
 from ufl.averaging import CellAvg, FacetAvg
@@ -66,7 +66,6 @@ from ufl.core.interpolate import Interpolate
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
 from ufl.core.terminal import Terminal
 from ufl.corealg.dag_traverser import DAGTraverser
-from ufl.corealg.multifunction import MultiFunction
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
     BaseFormOperatorDerivative,
@@ -1952,7 +1951,7 @@ def apply_derivatives(expression):
     # If we hit a base form operator (bfo), then if `var` is:
     #    - a BaseFormOperator → Return `d(expression)/dw` where `w` is
     #      the coefficient produced by the bfo `var`.
-    #    - else → Record the bfo on the MultiFunction object and returns
+    #    - else → Record the bfo on the DAGTraverser object and returns
     #    - 0.
     # Example:
     #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `∂F/∂u`.
@@ -2148,37 +2147,61 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         return self.independent_terminal(o)
 
 
-class CoordinateDerivativeRuleDispatcher(MultiFunction):
+class CoordinateDerivativeRuleDispatcher(DAGTraverser):
     """Dispatcher."""
 
-    def __init__(self):
+    def __init__(self, compress=True, vcache=None, rcache=None) -> None:
         """Initialise."""
-        MultiFunction.__init__(self)
+        super().__init__(compress=compress, vcache=vcache, rcache=rcache)
         self._dag_traverser_dict = {}
 
-    def terminal(self, o):
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
+
+        Args:
+            o: `Expr` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        raise AssertionError(f"UFL expression expected: got {o}")
+
+    @process.register(Expr)
+    @process.register(BaseForm)
+    def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+        """Apply to expr and base form."""
+        return self.reuse_if_untouched(o)
+
+    @process.register(Terminal)
+    def _(self, o: Expr) -> Expr:
         """Apply to a terminal."""
         return o
 
-    def derivative(self, o):
+    @process.register(Derivative)
+    def _(self, o: Expr) -> Expr:
         """Apply to a derivative."""
         raise NotImplementedError(f"Missing derivative handler for {type(o).__name__}.")
 
-    expr = MultiFunction.reuse_if_untouched
-
-    def grad(self, o):
+    @process.register(Grad)
+    def _(self, o: Expr) -> Expr:
         """Apply to a grad."""
         return o
 
-    def reference_grad(self, o):
+    @process.register(ReferenceGrad)
+    def _(self, o: Expr) -> Expr:
         """Apply to a reference_grad."""
         return o
 
-    def coefficient_derivative(self, o):
+    @process.register(CoefficientDerivative)
+    def _(self, o: Expr) -> Expr:
         """Apply to a coefficient_derivative."""
         return o
 
-    def coordinate_derivative(self, o, f, w, v, cd):
+    @process.register(CoordinateDerivative)
+    @DAGTraverser.postorder_only_children([0])
+    def _(self, o: Expr, f: Expr) -> Expr:
         """Apply to a coordinate_derivative."""
         from ufl.algorithms import extract_unique_elements
 
@@ -2187,7 +2210,6 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
                 raise NotImplementedError(
                     "CoordinateDerivative is not supported for elements with custom pull back."
                 )
-
         _, w, v, cd = o.ufl_operands
         key = (CoordinateDerivativeRuleset, w, v, cd)
         dag_traverser = self._dag_traverser_dict.setdefault(
@@ -2198,5 +2220,5 @@ class CoordinateDerivativeRuleDispatcher(MultiFunction):
 
 def apply_coordinate_derivatives(expression):
     """Apply coordinate derivatives to an expression."""
-    rules = CoordinateDerivativeRuleDispatcher()
-    return map_integrand_dags(rules, expression)
+    dag_traverser = CoordinateDerivativeRuleDispatcher()
+    return map_integrands(dag_traverser, expression)
