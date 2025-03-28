@@ -91,10 +91,12 @@ class DAGTraverser(ABC):
         ``o.ufl_operands`` behind the users.
 
         """
+
         @wraps(method)
         def wrapper(self, o, *args):
             processed_operands = [self(operand) for operand in o.ufl_operands]
             return method(self, o, *processed_operands, *args)
+
         return wrapper
 
     @staticmethod
@@ -105,10 +107,13 @@ class DAGTraverser(ABC):
         decorated method only takes processed operands corresponding to ``indices``.
 
         """
+
         def postorder(method):
             @wraps(method)
             def wrapper(self, o, *args):
                 processed_operands = [self(o.ufl_operands[i]) for i in indices]
                 return method(self, o, *processed_operands, *args)
+
             return wrapper
+
         return postorder

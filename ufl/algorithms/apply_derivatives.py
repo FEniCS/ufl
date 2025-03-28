@@ -1746,27 +1746,21 @@ class DerivativeRuleDispatcher(MultiFunction):
         """Apply to a grad."""
         gdim = o.ufl_shape[-1]
         key = (GradRuleset, gdim)
-        dag_traverser = self._dag_traverser_dict.setdefault(
-            key, GradRuleset(gdim)
-        )
+        dag_traverser = self._dag_traverser_dict.setdefault(key, GradRuleset(gdim))
         return dag_traverser(f)
 
     def reference_grad(self, o, f):
         """Apply to a reference_grad."""
         tdim = o.ufl_shape[-1]
         key = (ReferenceGradRuleset, tdim)
-        dag_traverser = self._dag_traverser_dict.setdefault(
-            key, ReferenceGradRuleset(tdim)
-        )
+        dag_traverser = self._dag_traverser_dict.setdefault(key, ReferenceGradRuleset(tdim))
         return dag_traverser(f)
 
     def variable_derivative(self, o, f, dummy_v):
         """Apply to a variable_derivative."""
         op = o.ufl_operands[1]
         key = (VariableRuleset, op)
-        dag_traverser = self.__dag_traverser_dict.setdefault(
-            key, VariableRuleset(op)
-        )
+        dag_traverser = self._dag_traverser_dict.setdefault(key, VariableRuleset(op))
         return dag_traverser(f)
 
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
