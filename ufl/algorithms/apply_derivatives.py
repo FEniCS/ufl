@@ -1138,8 +1138,8 @@ class GenericDerivativeRuleset(DAGTraverser):
         return None
 
     @process.register(Conditional)
-    @DAGTraverser.postorder
-    def _(self, o: Expr, unused_dc, dt, df) -> Expr:
+    @DAGTraverser.postorder_only_children([1, 2])
+    def _(self, o: Expr, dt, df) -> Expr:
         """Differentiate a conditional."""
         if isinstance(dt, Zero) and isinstance(df, Zero):
             # Assuming dt and df have the same indices here, which
