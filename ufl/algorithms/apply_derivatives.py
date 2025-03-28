@@ -459,15 +459,15 @@ class GenericDerivativeRuleset(DAGTraverser):
     # --- Mathfunctions
 
     @process.register(MathFunction)
-    def _(self, o: Expr) -> Expr:
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df: Expr) -> Expr:
         """Differentiate a math_function."""
         # FIXME: Introduce a UserOperator type instead of this hack
         # and define user derivative() function properly
         if hasattr(o, "derivative"):
-            (f,) = o.ufl_operands
-            df = self(f)
             return df * o.derivative()
-        raise ValueError("Unknown math function.")
+        else:
+            raise ValueError("Unknown math function.")
 
     @process.register(Sqrt)
     @DAGTraverser.postorder
@@ -1730,9 +1730,6 @@ class DerivativeRuleDispatcher(MultiFunction):
         # Example: dN(u)/du where `N` is a BaseFormOperator and `u` a Coefficient
         self.pending_operations = ()
         # Create DAGTraverser caches.
-        self._grad_ruleset_dict = {}
-        self._reference_grad_ruleset_dict = {}
-        self._variable_ruleset_dict = {}
         self._dag_traverser_dict = {}
 
     def terminal(self, o):
@@ -1748,21 +1745,28 @@ class DerivativeRuleDispatcher(MultiFunction):
     def grad(self, o, f):
         """Apply to a grad."""
         gdim = o.ufl_shape[-1]
-        dag_traverser = self._grad_ruleset_dict.setdefault(gdim, GradRuleset(gdim))
+        key = (GradRuleset, gdim)
+        dag_traverser = self._dag_traverser_dict.setdefault(
+            key, GradRuleset(gdim)
+        )
         return dag_traverser(f)
 
     def reference_grad(self, o, f):
         """Apply to a reference_grad."""
         tdim = o.ufl_shape[-1]
-        dag_traverser = self._reference_grad_ruleset_dict.setdefault(
-            tdim, ReferenceGradRuleset(tdim)
+        key = (ReferenceGradRuleset, tdim)
+        dag_traverser = self._dag_traverser_dict.setdefault(
+            key, ReferenceGradRuleset(tdim)
         )
         return dag_traverser(f)
 
     def variable_derivative(self, o, f, dummy_v):
         """Apply to a variable_derivative."""
         op = o.ufl_operands[1]
-        dag_traverser = self._variable_ruleset_dict.setdefault(op, VariableRuleset(op))
+        key = (VariableRuleset, op)
+        dag_traverser = self.__dag_traverser_dict.setdefault(
+            key, VariableRuleset(op)
+        )
         return dag_traverser(f)
 
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):

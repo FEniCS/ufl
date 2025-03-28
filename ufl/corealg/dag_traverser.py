@@ -81,37 +81,34 @@ class DAGTraverser(ABC):
 
     @staticmethod
     def postorder(method):
-        """Insert processed operands after ``o`` and before ``*args``.
+        """Suppress processed operands in arguments.
 
-        Users can write a post-order singledispatch method that takes
-        ``o``, processed operands, and additional arguments ``*args`` (if any),
-        wrappong them in this decorator.
+        It is more natural for users to write a post-order singledispatchmethod
+        whose arguments are ``(self, o, *processed_operands, *additional_args)``,
+        while `DAGTraverser` expects one whose arguments are
+        ``(self, o, *additional_args)``.
+        This decorator takes the former and converts the latter, processing
+        ``o.ufl_operands`` behind the users.
 
         """
-
         @wraps(method)
         def wrapper(self, o, *args):
             processed_operands = [self(operand) for operand in o.ufl_operands]
             return method(self, o, *processed_operands, *args)
-
         return wrapper
 
     @staticmethod
     def postorder_only_children(indices):
-        """Insert processed operands after ``o`` and before ``*args``.
+        """Suppress processed operands corresponding to ``indices`` in arguments.
 
-        Users can write a post-order singledispatch method that takes
-        ``o``, processed operands, and additional arguments ``*args`` (if any),
-        wrappong them in this decorator.
+        This decorator is the same as `DAGTraverser.postorder` except that the
+        decorated method only takes processed operands corresponding to ``indices``.
 
         """
-
         def postorder(method):
             @wraps(method)
             def wrapper(self, o, *args):
                 processed_operands = [self(o.ufl_operands[i]) for i in indices]
                 return method(self, o, *processed_operands, *args)
-
             return wrapper
-
         return postorder
