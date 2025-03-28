@@ -63,21 +63,22 @@ class DAGTraverser(ABC):
 
         """
 
-    def reuse_if_untouched(self, node: Expr, *new_ufl_operands) -> Expr:
+    def reuse_if_untouched(self, o: Expr) -> Expr:
         """Reuse if touched.
 
         Args:
-            node: `Expr` to start DAG traversal from.
-            new_ufl_operands: new ufl_operands of ``node``.
+            o: `Expr` to start DAG traversal from.
+            new_ufl_operands: new ufl_operands of ``o``.
 
         Returns:
             Processed `Expr`.
 
         """
-        if all(nc == c for nc, c in zip(new_ufl_operands, node.ufl_operands)):
-            return node
+        new_ufl_operands = [self(operand) for operand in o.ufl_operands]
+        if all(nc == c for nc, c in zip(new_ufl_operands, o.ufl_operands)):
+            return o
         else:
-            return node._ufl_expr_reconstruct_(*new_ufl_operands)
+            return o._ufl_expr_reconstruct_(*new_ufl_operands)
 
     @staticmethod
     def postorder(method):
