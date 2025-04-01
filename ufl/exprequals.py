@@ -48,7 +48,7 @@ def expr_equals(self, other):
                 if s._ufl_typecode_ != o._ufl_typecode_:
                     return False
                 # Skip subtree if objects are the same
-                if s is o:
+                if s is o or s.ufl_operands is o.ufl_operands:
                     continue
                 if (s, o) in equal_pairs:
                     continue

@@ -58,7 +58,7 @@ class IndexReplacer(MultiFunction):
         """Handle MultiIndex."""
         if any(i in self.fimap for i in o):
             indices = tuple(self.fimap.get(i, i) for i in o)
-            key = tuple((type(j), j.count() if isinstance(j, Index) else int(j)) for j in indices)
+            key = _cache_key(indices)
             r = self._object_cache.get(key)
             if r is None:
                 r = MultiIndex(indices)
@@ -92,29 +92,25 @@ class IndexRemover(MultiFunction):
 
             # Remove inner indices first
             key = (IndexRemover, o2)
-            v = map_expr_dag(self, o2, self.vcaches[key], self.rcaches[key])
+            v = map_expr_dag(self, o2, vcache=self.vcaches[key], rcache=self.rcaches[key])
 
             # Replace outer indices
-            # NOTE: Replace with `fimap = dict(zip(i2, i1, strict=True))` when
-            # Python>=3.10
-            assert len(i2) == len(i1)
-
-            def mkey(m):
-                return tuple((type(j), j.count() if isinstance(j, Index) else int(j)) for j in m)
-
-            key = (IndexReplacer, mkey(i2), mkey(i1))
+            rkey = (IndexReplacer, _cache_key(i2), _cache_key(i1))
             try:
-                rule = self.rules[key]
+                rule = self.rules[rkey]
             except KeyError:
+                # NOTE: Replace with `fimap = dict(zip(i2, i1, strict=True))` when
+                # Python>=3.10
+                assert len(i2) == len(i1)
                 fimap = dict(zip(i2, i1))
                 rule = IndexReplacer(fimap)
-                self.rules.setdefault(key, rule)
+                self.rules.setdefault(rkey, rule)
 
-            key = (*key, o2)
-            return map_expr_dag(rule, v, self.vcaches[key], self.rcaches[key])
+            key = (*rkey, v)
+            return map_expr_dag(rule, v, vcache=self.vcaches[key], rcache=self.rcaches[key])
 
         key = (IndexRemover, o1)
-        expr = map_expr_dag(self, o1, self.vcaches[key], self.rcaches[key])
+        expr = map_expr_dag(self, o1, vcache=self.vcaches[key], rcache=self.rcaches[key])
         if expr is o1:
             # Reuse if untouched
             return o
@@ -124,4 +120,10 @@ class IndexRemover(MultiFunction):
 def remove_component_tensors(o):
     """Remove component tensors."""
     rule = IndexRemover()
-    return map_integrand_dags(rule, o)
+    o = map_integrand_dags(rule, o)
+    return o
+
+
+def _cache_key(multiindex):
+    """Return a cache key for a MultiIndex."""
+    return tuple((type(j), j.count() if isinstance(j, Index) else int(j)) for j in multiindex)
