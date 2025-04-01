@@ -270,7 +270,7 @@ class Conditional(Operator):
     def __new__(cls, condition, true_value, false_value):
         """Create a new Conditional."""
         # Simplify
-        if (true_value is false_value) or bool(true_value == false_value):
+        if bool(true_value == false_value):
             return true_value
         # Construct a new instance to be initialised
         self = Operator.__new__(cls)
