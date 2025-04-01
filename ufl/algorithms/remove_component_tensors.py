@@ -8,6 +8,8 @@ This module contains classes and functions to remove component tensors.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from collections import defaultdict
+
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import ComponentTensor, Index, MultiIndex, Zero
 from ufl.corealg.map_dag import map_expr_dag
@@ -33,11 +35,15 @@ class IndexReplacer(MultiFunction):
     @memoized_handler
     def zero(self, o):
         """Handle Zero."""
+        indices = tuple(map(Index, o.ufl_free_indices))
+        if not any(i in self.fimap for i in indices):
+            # Reuse if untouched
+            return o
+
         free_indices = []
         index_dimensions = []
-        for i, d in zip(o.ufl_free_indices, o.ufl_index_dimensions):
-            k = Index(i)
-            j = self.fimap.get(k, k)
+        for i, d in zip(indices, o.ufl_index_dimensions):
+            j = self.fimap.get(i, i)
             if isinstance(j, Index):
                 free_indices.append(j.count())
                 index_dimensions.append(d)
@@ -50,7 +56,17 @@ class IndexReplacer(MultiFunction):
     @memoized_handler
     def multi_index(self, o):
         """Handle MultiIndex."""
-        return MultiIndex(tuple(self.fimap.get(i, i) for i in o.indices()))
+        if any(i in self.fimap for i in o):
+            indices = tuple(self.fimap.get(i, i) for i in o)
+            key = tuple((type(j), j.count() if isinstance(j, Index) else int(j)) for j in indices)
+            r = self._object_cache.get(key)
+            if r is None:
+                r = MultiIndex(indices)
+                self._object_cache[key] = r
+            return r
+
+        # Reuse if untouched
+        return o
 
 
 class IndexRemover(MultiFunction):
@@ -59,25 +75,12 @@ class IndexRemover(MultiFunction):
     def __init__(self):
         """Initialise."""
         MultiFunction.__init__(self)
-        self._object_cache = {}
+        # caches for reuse in the dispatched transformers
+        self.vcaches = defaultdict(dict)
+        self.rcaches = defaultdict(dict)
+        self.rules = {}
 
-    expr = MultiFunction.reuse_if_untouched
-
-    @memoized_handler
-    def _unary_operator(self, o):
-        """Simplify UnaryOperator(Zero)."""
-        (operand,) = o.ufl_operands
-        f = map_expr_dag(self, operand)
-        if isinstance(f, Zero):
-            return Zero(
-                shape=o.ufl_shape,
-                free_indices=o.ufl_free_indices,
-                index_dimensions=o.ufl_index_dimensions,
-            )
-        if f is operand:
-            # Reuse if untouched
-            return o
-        return o._ufl_expr_reconstruct_(f)
+    ufl_type = MultiFunction.reuse_if_untouched
 
     @memoized_handler
     def indexed(self, o):
@@ -86,24 +89,36 @@ class IndexRemover(MultiFunction):
         if isinstance(o1, ComponentTensor):
             # Simplify Indexed ComponentTensor
             o2, i2 = o1.ufl_operands
-            # Replace inner indices first
-            v = map_expr_dag(self, o2)
+
+            # Remove inner indices first
+            key = (IndexRemover, o2)
+            v = map_expr_dag(self, o2, self.vcaches[key], self.rcaches[key])
+
             # Replace outer indices
             # NOTE: Replace with `fimap = dict(zip(i2, i1, strict=True))` when
             # Python>=3.10
             assert len(i2) == len(i1)
-            fimap = dict(zip(i2, i1))
-            rule = IndexReplacer(fimap)
-            return map_expr_dag(rule, v)
 
-        expr = map_expr_dag(self, o1)
+            def mkey(m):
+                return tuple((type(j), j.count() if isinstance(j, Index) else int(j)) for j in m)
+
+            key = (IndexReplacer, mkey(i2), mkey(i1))
+            try:
+                rule = self.rules[key]
+            except KeyError:
+                fimap = dict(zip(i2, i1))
+                rule = IndexReplacer(fimap)
+                self.rules.setdefault(key, rule)
+
+            key = (*key, o2)
+            return map_expr_dag(rule, v, self.vcaches[key], self.rcaches[key])
+
+        key = (IndexRemover, o1)
+        expr = map_expr_dag(self, o1, self.vcaches[key], self.rcaches[key])
         if expr is o1:
             # Reuse if untouched
             return o
         return o._ufl_expr_reconstruct_(expr, i1)
-
-    reference_grad = _unary_operator
-    reference_value = _unary_operator
 
 
 def remove_component_tensors(o):

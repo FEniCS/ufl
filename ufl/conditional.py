@@ -13,6 +13,7 @@ from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.exprequals import expr_equals
+from ufl.indexed import Indexed
 from ufl.precedence import parstr
 
 # --- Condition classes ---
@@ -269,7 +270,7 @@ class Conditional(Operator):
     def __new__(cls, condition, true_value, false_value):
         """Create a new Conditional."""
         # Simplify
-        if bool(true_value == false_value):
+        if (true_value is false_value) or bool(true_value == false_value):
             return true_value
         # Construct a new instance to be initialised
         self = Operator.__new__(cls)
@@ -291,7 +292,7 @@ class Conditional(Operator):
             raise ValueError("Shape mismatch between conditional branches.")
         tfi = true_value.ufl_free_indices
         ffi = false_value.ufl_free_indices
-        if tfi != ffi:
+        if tuple(sorted(tfi)) != tuple(sorted(ffi)):
             raise ValueError("Free index mismatch between conditional branches.")
         if isinstance(condition, (EQ, NE)):
             if not all(
@@ -305,6 +306,10 @@ class Conditional(Operator):
                 raise ValueError("Non-scalar == or != is not allowed.")
         Operator.__init__(self, (condition, true_value, false_value))
         self._initialised = True
+
+    def _simplify_indexed(self, multiindex):
+        (c, a, b) = self.ufl_operands
+        return Conditional(c, Indexed(a, multiindex), Indexed(b, multiindex))
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
