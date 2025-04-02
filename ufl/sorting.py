@@ -149,7 +149,7 @@ def cmp_expr(a, b):
                 # Skip subtree if objects are the same
                 if r is s:
                     continue
-                if (r, s) in equal_pairs:
+                if (id(r), id(s)) in equal_pairs:
                     continue
                 # Append subtree for further inspection
                 left.append((r, s))
@@ -165,7 +165,7 @@ def cmp_expr(a, b):
                 return -1 if x < y else 1
 
         # Keep track of equal subexpressions
-        equal_pairs.add(pair)
+        equal_pairs.add((id(pair[0]), id(pair[1])))
 
     # Equal if we get out of the above loop!
     return 0

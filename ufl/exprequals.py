@@ -50,13 +50,13 @@ def expr_equals(self, other):
                 # Skip subtree if objects are the same
                 if s is o or s.ufl_operands is o.ufl_operands:
                     continue
-                if (s, o) in equal_pairs:
+                if (id(s), id(o)) in equal_pairs:
                     continue
                 # Append subtree for further inspection
                 left.append((s, o))
 
         # Keep track of equal subexpressions
-        equal_pairs.add(pair)
+        equal_pairs.add((id(pair[0]), id(pair[1])))
 
     # Equal if we get out of the above loop!
     # Eagerly DAGify to reduce the size of the tree.
