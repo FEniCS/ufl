@@ -106,12 +106,15 @@ _terminal_cmps[Label._ufl_typecode_] = _cmp_label
 
 def cmp_expr(a, b):
     """Replacement for cmp(a, b), removed in Python 3, for Expr objects."""
+    if a is b:
+        return 0
     # Modelled after pre_traversal to avoid recursion:
     left = [(a, b)]
     equal_pairs = set()
     while left:
         pair = left.pop()
         a, b = pair
+
         # First sort quickly by type code
         x, y = a._ufl_typecode_, b._ufl_typecode_
         if x != y:
@@ -151,6 +154,7 @@ def cmp_expr(a, b):
                     continue
                 if (id(r), id(s)) in equal_pairs:
                     continue
+
                 # Append subtree for further inspection
                 left.append((r, s))
 
