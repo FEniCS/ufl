@@ -20,14 +20,15 @@ def expr_equals(self, other):
         return False
 
     # Large objects are costly to compare with themselves
-    if self is other:
+    if self is other or self.ufl_operands is other.ufl_operands:
         return True
 
     # Modelled after pre_traversal to avoid recursion:
     left = [(self, other)]
+    equal_pairs = set()
     while left:
-        s, o = left.pop()
-
+        pair = left.pop()
+        s, o = pair
         if s._ufl_is_terminal_:
             # Compare terminals
             if not s == o:
@@ -36,6 +37,9 @@ def expr_equals(self, other):
             # Delve into subtrees
             so = s.ufl_operands
             oo = o.ufl_operands
+            # Skip subtrees if operands are the same
+            if so is oo:
+                continue
             if len(so) != len(oo):
                 return False
 
@@ -44,10 +48,15 @@ def expr_equals(self, other):
                 if s._ufl_typecode_ != o._ufl_typecode_:
                     return False
                 # Skip subtree if objects are the same
-                if s is o:
+                if s is o or s.ufl_operands is o.ufl_operands:
+                    continue
+                if (id(s), id(o)) in equal_pairs:
                     continue
                 # Append subtree for further inspection
                 left.append((s, o))
+
+        # Keep track of equal subexpressions
+        equal_pairs.add((id(pair[0]), id(pair[1])))
 
     # Equal if we get out of the above loop!
     # Eagerly DAGify to reduce the size of the tree.
