@@ -342,6 +342,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                 adjoint(dleft, derivatives_expanded=True), right, derivatives_expanded=True
             ) + action(left, dright, derivatives_expanded=True)
         else:
+            return ZeroBaseForm(())
             raise NotImplementedError(
                 "Action derivative not supported when the left argument is not a 1-form."
             )

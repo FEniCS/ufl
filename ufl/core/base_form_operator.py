@@ -182,4 +182,5 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def __eq__(self, other):
         """Check for equality."""
+        return self is other
         raise NotImplementedError()
