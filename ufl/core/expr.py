@@ -388,6 +388,16 @@ class Expr(object, metaclass=UFLType):
             val = NotImplemented
         return val
 
+    def traverse_dag_apply_coefficient_split(self, *args, **kwargs):
+        ops = [
+            op.traverse_dag_apply_coefficient_split(*args, **kwargs)
+            for op in self.ufl_operands
+        ]
+        if all(a is b for a, b in zip(self.ufl_operands, ops)):
+            return self
+        else:
+            return self._ufl_expr_reconstruct_(*ops)
+
 
 # Initializing traits here because Expr is not defined in the class
 # declaration
