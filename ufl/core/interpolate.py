@@ -79,16 +79,6 @@ class Interpolate(BaseFormOperator):
         s += f"; {self.ufl_function_space()})"
         return s
 
-    def __eq__(self, other):
-        """Check for equality."""
-        if self is other:
-            return True
-        return (
-            type(self) is type(other)
-            and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
-            and self.ufl_function_space() == other.ufl_function_space()
-        )
-
 
 # Helper function
 def interpolate(expr, v):

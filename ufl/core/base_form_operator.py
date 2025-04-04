@@ -182,5 +182,14 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def __eq__(self, other):
         """Check for equality."""
-        return self is other
-        raise NotImplementedError()
+        if self is other:
+            return True
+        return (
+            type(self) is type(other)
+            and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
+            and self.ufl_function_space() == other.ufl_function_space()
+        )
+
+    def __rmul__(self, scalar):
+        """Multiply this BaseFormOperator with constant scalar value."""
+        return BaseForm.__rmul__(self, scalar)
