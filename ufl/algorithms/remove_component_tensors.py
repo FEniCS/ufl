@@ -26,7 +26,6 @@ class IndexReplacer(MultiFunction):
         """
         MultiFunction.__init__(self)
         self.fimap = fimap
-        self._object_cache = {}
 
     expr = MultiFunction.reuse_if_untouched
 
@@ -59,7 +58,6 @@ class IndexRemover(MultiFunction):
     def __init__(self):
         """Initialise."""
         MultiFunction.__init__(self)
-        self._object_cache = {}
 
     expr = MultiFunction.reuse_if_untouched
 

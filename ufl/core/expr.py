@@ -16,9 +16,10 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+import typing
 import warnings
 
-from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
+from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
 
 
 class Expr(object, metaclass=UFLType):
@@ -204,10 +205,10 @@ class Expr(object, metaclass=UFLType):
 
     # A global dict mapping language_operator_name to the type it
     # produces
-    _ufl_language_operators_ = {}
+    _ufl_language_operators_: typing.Dict[str, object] = {}
 
     # List of all terminal modifier types
-    _ufl_terminal_modifiers_ = []
+    _ufl_terminal_modifiers_: typing.List[UFLObject] = []
 
     # --- Mechanism for profiling object creation and deletion ---
 
