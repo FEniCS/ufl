@@ -190,6 +190,4 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             and self.ufl_function_space() == other.ufl_function_space()
         )
 
-    def __rmul__(self, scalar):
-        """Multiply this BaseFormOperator with constant scalar value."""
-        return BaseForm.__rmul__(self, scalar)
+    __rmul__ = BaseForm.__rmul__
