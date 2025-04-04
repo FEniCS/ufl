@@ -389,6 +389,71 @@ class Expr(object, metaclass=UFLType):
             val = NotImplemented
         return val
 
+    # For definitions see exproperators.py
+    def __ne__(self, other):
+        """Negate."""
+        pass
+
+    def __lt__(self, other):
+        """A boolean expresion (left < right) for use with conditional."""
+        pass
+
+    def __gt__(self, other):
+        """A boolean expresion (left > right) for use with conditional."""
+        pass
+
+    def __le__(self, other):
+        """A boolean expresion (left <= right) for use with conditional."""
+        pass
+
+    def __ge__(self, other):
+        """A boolean expresion (left >= right) for use with conditional."""
+        pass
+
+    def __xor__(self, other):
+        """A^indices := as_tensor(A, indices)."""
+        pass
+
+    def __mul__(self, other):
+        """Multiply."""
+        pass
+
+    def __rmul__(self, other):
+        """Multiply."""
+        pass
+
+    def __add__(self, other):
+        """Add."""
+        pass
+
+    def __sub__(self, other):
+        """Subtract."""
+        pass
+
+    def __rsub__(self, other):
+        """Subtract."""
+        pass
+
+    def __div__(self, other):
+        """Divide."""
+        pass
+
+    def __truediv__(self, other):
+        """Divide."""
+        pass
+
+    def __pow__(self, other):
+        """Raise to a power."""
+        pass
+
+    def __rpow__(self, other):
+        """Raise to a power."""
+        pass
+
+    def __neg__(self, other):
+        """Negate."""
+        pass
+
 
 # Initializing traits here because Expr is not defined in the class
 # declaration
