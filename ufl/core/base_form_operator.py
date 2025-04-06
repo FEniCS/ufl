@@ -20,6 +20,7 @@ from ufl.coefficient import BaseCoefficient
 from ufl.constantvalue import as_ufl
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
+from ufl.duals import is_dual
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
@@ -190,5 +191,23 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             and self.ufl_function_space() == other.ufl_function_space()
         )
 
-    __add__ = BaseForm.__add__
-    __rmul__ = BaseForm.__rmul__
+    @property
+    def _parent_type(self):
+        """Is this a primal or dual expression?"""
+        return BaseForm if is_dual(self.ufl_function_space()) else Operator
+
+    def __add__(self, other):
+        """Add."""
+        return self._parent_type.__add__(self, other)
+
+    def __radd__(self, other):
+        """Add."""
+        return self._parent_type.__radd__(self, other)
+
+    def __mul__(self, other):
+        """Multiply if primal or take the action if dual."""
+        return self._parent_type.__mul__(self, other)
+
+    def __rmul__(self, scalar):
+        """Multiply times a scalar."""
+        return self._parent_type.__rmul__(self, scalar)
