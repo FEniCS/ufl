@@ -5,6 +5,7 @@ __date__ = "2008-03-12 -- 2009-01-28"
 # Modified by Garth N. Wells, 2009
 
 import pytest
+from utils import LagrangeElement
 
 from ufl import (
     Argument,
@@ -40,21 +41,18 @@ from ufl.corealg.traversal import (
     unique_post_traversal,
     unique_pre_traversal,
 )
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 # TODO: add more tests, covering all utility algorithms
 
 
 @pytest.fixture(scope="module")
 def element():
-    return FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    return LagrangeElement(triangle, 1)
 
 
 @pytest.fixture(scope="module")
 def domain():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    return Mesh(LagrangeElement(triangle, 1, (2,)))
 
 
 @pytest.fixture(scope="module")
@@ -133,7 +131,7 @@ def test_pre_and_post_traversal(space):
 
 
 def test_expand_indices(domain):
-    element = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
+    element = LagrangeElement(triangle, 2)
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -156,8 +154,8 @@ def test_expand_indices(domain):
 def test_adjoint(domain):
     cell = triangle
 
-    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+    V1 = LagrangeElement(cell, 1)
+    V2 = LagrangeElement(cell, 2)
 
     s1 = FunctionSpace(domain, V1)
     s2 = FunctionSpace(domain, V2)

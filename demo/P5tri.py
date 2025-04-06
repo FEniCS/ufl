@@ -16,9 +16,8 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # A fifth degree Lagrange finite element on a triangle
-from ufl import triangle
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
+from utils import LagrangeElement
 
-element = FiniteElement("Lagrange", triangle, 5, (), identity_pullback, H1)
+from ufl import triangle
+
+element = LagrangeElement(triangle, 5)
