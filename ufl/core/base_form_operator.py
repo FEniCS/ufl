@@ -190,4 +190,5 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             and self.ufl_function_space() == other.ufl_function_space()
         )
 
+    __add__ = BaseForm.__add__
     __rmul__ = BaseForm.__rmul__

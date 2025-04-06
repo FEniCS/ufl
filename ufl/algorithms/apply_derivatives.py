@@ -58,7 +58,7 @@ from ufl.differentiation import (
     CoordinateDerivative,
 )
 from ufl.domain import MeshSequence, extract_unique_domain
-from ufl.form import Form, ZeroBaseForm
+from ufl.form import BaseForm, Form, ZeroBaseForm
 from ufl.operators import (
     bessel_I,
     bessel_J,
@@ -1492,6 +1492,17 @@ class DerivativeRuleDispatcher(MultiFunction):
         # Need to account for pending operations that have been stored
         # in other integrands
         self.pending_operations += pending_operations
+
+        if isinstance(o, BaseForm) and mapped_expr == 0:
+            (arg,) = v.ufl_operands
+            arguments = f.arguments()
+            # derivative(F, u, du) with `du` a Coefficient
+            # is equivalent to taking the action of the derivative.
+            # In that case, we don't add arguments to `ZeroBaseForm`.
+            if isinstance(arg, BaseArgument):
+                arguments += (arg,)
+            return ZeroBaseForm(arguments)
+
         return mapped_expr
 
     def base_form_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
@@ -1644,6 +1655,13 @@ def apply_derivatives(expression):
     # Example:
     #    → If derivative(F(u, N(u); v), u) was taken the following line would compute `∂F/∂u`.
     dexpression_dvar = map_integrand_dags(rules, expression)
+    if (
+        isinstance(expression, BaseForm)
+        and isinstance(dexpression_dvar, int)
+        and dexpression_dvar == 0
+    ):
+        # The arguments got lost, just keep an empty Form
+        dexpression_dvar = Form([])
 
     # Get the recorded delayed operations
     pending_operations = rules.pending_operations
@@ -1651,10 +1669,10 @@ def apply_derivatives(expression):
         return dexpression_dvar
 
     # Don't take into account empty Forms
-    if not (isinstance(dexpression_dvar, Form) and len(dexpression_dvar.integrals()) == 0):
-        dexpression_dvar = (dexpression_dvar,)
+    if not (isinstance(dexpression_dvar, Form) and dexpression_dvar.empty()):
+        dexpression_dvar = [dexpression_dvar]
     else:
-        dexpression_dvar = ()
+        dexpression_dvar = []
 
     # Retrieve the base form operators, var, and the argument and
     # coefficient_derivatives for `derivative`
@@ -1695,7 +1713,7 @@ def apply_derivatives(expression):
         if not (isinstance(dexpr_dN, Form) and len(dexpr_dN.integrals()) == 0):
             # In this case: Action <=> ufl.action since `dN_var` has 2 arguments.
             # We use Action to handle the trivial case `dN_dvar` = 0.
-            dexpression_dvar += (Action(dexpr_dN, dN_dvar),)
+            dexpression_dvar.append(Action(dexpr_dN, dN_dvar))
     return sum(dexpression_dvar)
 
 
