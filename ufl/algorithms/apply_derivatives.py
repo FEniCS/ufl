@@ -1491,7 +1491,7 @@ class DerivativeRuleDispatcher(MultiFunction):
         mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
         # Need to account for pending operations that have been stored
         # in other integrands
-        self.pending_operations += pending_operations
+        self.pending_operations += rules.pending_operations
 
         if isinstance(o, BaseForm) and mapped_expr == 0:
             (arg,) = v.ufl_operands
