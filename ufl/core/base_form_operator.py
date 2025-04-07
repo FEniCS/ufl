@@ -205,9 +205,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         return self._parent_type.__radd__(self, other)
 
     def __mul__(self, other):
-        """Multiply if primal or take the action if dual."""
+        """Multiply."""
         return self._parent_type.__mul__(self, other)
 
-    def __rmul__(self, scalar):
-        """Multiply times a scalar."""
-        return self._parent_type.__rmul__(self, scalar)
+    __rmul__ = BaseForm.__rmul__
