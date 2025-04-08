@@ -194,6 +194,6 @@ def test_remove_component_tensors(domain):
     f = div(grad(div(grad(u))))
     form = f * dx
 
-    fd = compute_form_data(form)
+    fd = compute_form_data(form, do_remove_component_tensors=True)
 
     assert "ComponentTensor" not in repr(fd.preprocessed_form)
