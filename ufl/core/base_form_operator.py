@@ -208,4 +208,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """Multiply."""
         return self._parent_type.__mul__(self, other)
 
-    __rmul__ = BaseForm.__rmul__
+    def __rmul__(self, other):
+        """Multiply."""
+        return self._parent_type.__rmul__(self, other)
