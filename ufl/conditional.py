@@ -292,7 +292,7 @@ class Conditional(Operator):
             raise ValueError("Shape mismatch between conditional branches.")
         tfi = true_value.ufl_free_indices
         ffi = false_value.ufl_free_indices
-        if tuple(sorted(tfi)) != tuple(sorted(ffi)):
+        if tfi != ffi:
             raise ValueError("Free index mismatch between conditional branches.")
         if isinstance(condition, (EQ, NE)):
             if not all(
@@ -306,10 +306,6 @@ class Conditional(Operator):
                 raise ValueError("Non-scalar == or != is not allowed.")
         Operator.__init__(self, (condition, true_value, false_value))
         self._initialised = True
-
-    def _simplify_indexed(self, multiindex):
-        (c, a, b) = self.ufl_operands
-        return Conditional(c, Indexed(a, multiindex), Indexed(b, multiindex))
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""

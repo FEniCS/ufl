@@ -925,3 +925,19 @@ def test_foobar(self):
     L = NS_a(U, v) * dx
     _ = derivative(L, U, du)
     # TODO: assert something
+
+
+def test_product_rule_conditional(self):
+    cell = triangle
+    P1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    V = FunctionSpace(domain, P1)
+    u = Coefficient(V)
+
+    k = conditional(u < 1, 0, u)
+    F = (u * k).dx(0) * dx
+    a = derivative(F, u)
+
+    expr = apply_derivatives(apply_geometry_lowering(apply_algebra_lowering(a)))
+    assert not expr.empty()
+    # TODO: assert something better
