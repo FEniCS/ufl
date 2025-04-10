@@ -14,6 +14,7 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import ComponentTensor, Index, MultiIndex, Zero
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
+from ufl.index_combination_utils import unique_sorted_indices
 
 
 class IndexReplacer(MultiFunction):
@@ -38,18 +39,19 @@ class IndexReplacer(MultiFunction):
             # Reuse if untouched
             return o
 
-        free_indices = []
-        index_dimensions = []
+        fi = []
         for i, d in zip(indices, o.ufl_index_dimensions):
             j = self.fimap.get(i, i)
             if isinstance(j, Index):
-                free_indices.append(j.count())
-                index_dimensions.append(d)
+                fi.append((j.count(), d))
+
+        fi = unique_sorted_indices(sorted(fi))
+        free_indices, index_dimensions = zip(*fi)
 
         return Zero(
             shape=o.ufl_shape,
-            free_indices=tuple(free_indices),
-            index_dimensions=tuple(index_dimensions),
+            free_indices=free_indices,
+            index_dimensions=index_dimensions,
         )
 
     def multi_index(self, o):
