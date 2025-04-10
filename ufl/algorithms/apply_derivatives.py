@@ -179,6 +179,9 @@ class GenericDerivativeRuleset(MultiFunction):
     # Constants are independent of any differentiation
     constant = independent_terminal
 
+    # Zero may have free indices
+    zero = independent_operator
+
     # Rules for form arguments must be specified in specialized rule set
     form_argument = override
 
@@ -548,15 +551,11 @@ class GenericDerivativeRuleset(MultiFunction):
         if isinstance(dt, Zero) and isinstance(df, Zero):
             # Assuming dt and df have the same indices here, which
             # should be the case
-            return self.independent_operator(o)
+            return dt
         else:
             # Not placing t[1],f[1] outside, allowing arguments inside
             # conditionals.  This will make legacy ffc fail, but
             # should work with uflacs.
-            if isinstance(dt, Zero):
-                dt = self.independent_operator(o)
-            if isinstance(df, Zero):
-                df = self.independent_operator(o)
             c = o.ufl_operands[0]
             return conditional(c, dt, df)
 
