@@ -20,7 +20,7 @@ def expr_equals(self, other):
         return False
 
     # Large objects are costly to compare with themselves
-    if self is other or self.ufl_operands is other.ufl_operands:
+    if (self is other) or (self.ufl_operands is other.ufl_operands):
         return True
 
     # Modelled after pre_traversal to avoid recursion:
@@ -37,9 +37,6 @@ def expr_equals(self, other):
             # Delve into subtrees
             so = s.ufl_operands
             oo = o.ufl_operands
-            # Skip subtrees if operands are the same
-            if so is oo:
-                continue
             if len(so) != len(oo):
                 return False
 
@@ -48,7 +45,7 @@ def expr_equals(self, other):
                 if s._ufl_typecode_ != o._ufl_typecode_:
                     return False
                 # Skip subtree if objects are the same
-                if s is o or s.ufl_operands is o.ufl_operands:
+                if s is o:
                     continue
                 if (id(s), id(o)) in equal_pairs:
                     continue
