@@ -13,7 +13,6 @@ from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.exprequals import expr_equals
-from ufl.indexed import Indexed
 from ufl.precedence import parstr
 
 # --- Condition classes ---
