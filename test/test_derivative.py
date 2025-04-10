@@ -934,7 +934,7 @@ def test_product_rule_conditional(self):
     V = FunctionSpace(domain, P1)
     u = Coefficient(V)
 
-    k = conditional(u < 1, 0, u)
+    k = conditional(u < 1, zero(), u)
     F = (u * k).dx(0) * dx
     a = derivative(F, u)
 
