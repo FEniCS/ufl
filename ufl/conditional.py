@@ -13,7 +13,6 @@ from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.exprequals import expr_equals
-from ufl.indexed import Indexed
 from ufl.precedence import parstr
 
 # --- Condition classes ---
@@ -284,7 +283,6 @@ class Conditional(Operator):
         # Checks
         if not isinstance(condition, Condition):
             raise ValueError("Expecting condition as first argument.")
-
         true_value = as_ufl(true_value)
         false_value = as_ufl(false_value)
         tsh = true_value.ufl_shape
@@ -307,10 +305,6 @@ class Conditional(Operator):
                 raise ValueError("Non-scalar == or != is not allowed.")
         Operator.__init__(self, (condition, true_value, false_value))
         self._initialised = True
-
-    def _simplify_indexed(self, multiindex):
-        (c, a, b) = self.ufl_operands
-        return Conditional(c, Indexed(a, multiindex), Indexed(b, multiindex))
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
