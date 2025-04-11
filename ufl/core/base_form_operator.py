@@ -20,6 +20,7 @@ from ufl.coefficient import BaseCoefficient
 from ufl.constantvalue import as_ufl
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
+from ufl.duals import is_dual
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
@@ -182,4 +183,31 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def __eq__(self, other):
         """Check for equality."""
-        raise NotImplementedError()
+        if self is other:
+            return True
+        return (
+            type(self) is type(other)
+            and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
+            and self.ufl_function_space() == other.ufl_function_space()
+        )
+
+    @property
+    def _parent_type(self):
+        """Is this a primal or dual expression?"""
+        return BaseForm if is_dual(self.ufl_function_space()) else Operator
+
+    def __add__(self, other):
+        """Add."""
+        return self._parent_type.__add__(self, other)
+
+    def __radd__(self, other):
+        """Add."""
+        return self._parent_type.__radd__(self, other)
+
+    def __mul__(self, other):
+        """Multiply."""
+        return self._parent_type.__mul__(self, other)
+
+    def __rmul__(self, other):
+        """Multiply."""
+        return self._parent_type.__rmul__(self, other)
