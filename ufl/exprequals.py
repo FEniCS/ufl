@@ -37,6 +37,9 @@ def expr_equals(self, other):
             # Delve into subtrees
             so = s.ufl_operands
             oo = o.ufl_operands
+            # Skip subtree if operands are the same
+            if so is oo:
+                continue
             if len(so) != len(oo):
                 return False
 

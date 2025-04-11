@@ -143,6 +143,9 @@ def cmp_expr(a, b):
             # Delve into subtrees
             aops = a.ufl_operands
             bops = b.ufl_operands
+            # Skip subtree if operands are the same
+            if aops is bops:
+                continue
 
             # Sort by children in natural order
             for r, s in zip(aops, bops):
