@@ -345,9 +345,6 @@ def compute_form_data(
 
     form = apply_coordinate_derivatives(form)
 
-    # Remove component tensors
-    form = remove_component_tensors(form)
-
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:
         form = remove_complex_nodes(form)
