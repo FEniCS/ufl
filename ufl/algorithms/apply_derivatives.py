@@ -179,6 +179,9 @@ class GenericDerivativeRuleset(MultiFunction):
     # Constants are independent of any differentiation
     constant = independent_terminal
 
+    # Zero may have free indices
+    zero = independent_operator
+
     # Rules for form arguments must be specified in specialized rule set
     form_argument = override
 
