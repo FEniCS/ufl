@@ -258,6 +258,7 @@ def compute_form_data(
     do_estimate_degrees=True,
     do_append_everywhere_integrals=True,
     complex_mode=False,
+    do_remove_component_tensors=False,
 ):
     """Compute form data.
 
@@ -339,9 +340,6 @@ def compute_form_data(
 
     form = apply_coordinate_derivatives(form)
 
-    # Remove component tensors
-    form = remove_component_tensors(form)
-
     # Propagate restrictions to terminals
     if do_apply_restrictions:
         form = apply_restrictions(form, apply_default=do_apply_default_restrictions)
@@ -349,6 +347,10 @@ def compute_form_data(
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:
         form = remove_complex_nodes(form)
+
+    # Remove component tensors
+    if do_remove_component_tensors:
+        form = remove_component_tensors(form)
 
     # --- Group integrals into IntegralData objects
     # Most of the heavy lifting is done above in group_form_integrals.
