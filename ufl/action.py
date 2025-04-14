@@ -14,7 +14,7 @@ from ufl.algebra import Sum
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient
 from ufl.constantvalue import Zero
-from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.interpolate import Interpolate
 from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
@@ -69,6 +69,17 @@ class Action(BaseForm):
             return right
         if isinstance(right, (Coargument, Argument)):
             return left
+
+        # Simplify Action(Interpolate(Argument, Coargument), BaseForm)
+        # -> Interpolate(Argument, BaseForm)
+        if (
+            isinstance(left, Interpolate)
+            and len(left.arguments()) == 2
+            and isinstance(right, BaseForm)
+            and len(right.arguments()) == 1
+        ):
+            _, operand = left.argument_slots()
+            return left._ufl_expr_reconstruct_(operand, right)
 
         # Action distributes over sums on the LHS
         if isinstance(left, Sum):
@@ -187,7 +198,7 @@ def _check_function_spaces(left, right):
 
     # `left` can also be a Coefficient in V (= V**), e.g.
     # `action(Coefficient(V), Cofunction(V.dual()))`.
-    if isinstance(left, (Coefficient, BaseFormOperator)):
+    if isinstance(left, Coefficient):
         V_left = left.ufl_function_space()
     elif isinstance(left, BaseForm):
         V_left = left.arguments()[-1].ufl_function_space().dual()
