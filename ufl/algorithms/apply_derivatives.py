@@ -1495,17 +1495,6 @@ class DerivativeRuleDispatcher(MultiFunction):
         # Need to account for pending operations that have been stored
         # in other integrands
         self.pending_operations += rules.pending_operations
-
-        if isinstance(o, BaseForm) and mapped_expr == 0:
-            (arg,) = v.ufl_operands
-            arguments = f.arguments()
-            # derivative(F, u, du) with `du` a Coefficient
-            # is equivalent to taking the action of the derivative.
-            # In that case, we don't add arguments to `ZeroBaseForm`.
-            if isinstance(arg, BaseArgument):
-                arguments += (arg,)
-            return ZeroBaseForm(arguments)
-
         return mapped_expr
 
     def base_form_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
