@@ -421,7 +421,7 @@ class BesselFunction(Operator):
         """Evaluate."""
         a = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         try:
-            import scipy.special
+            import scipy.special  # type: ignore
         except ImportError:
             raise ValueError(
                 "You must have scipy installed to evaluate bessel functions in python."
