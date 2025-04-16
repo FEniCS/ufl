@@ -450,8 +450,12 @@ class Expr(object, metaclass=UFLType):
         """Raise to a power."""
         pass
 
-    def __neg__(self, other):
+    def __neg__(self):
         """Negate."""
+        pass
+
+    def __getitem__(self, index):
+        """Get item."""
         pass
 
 
