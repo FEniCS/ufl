@@ -94,7 +94,7 @@ def measure_names():
     return tuple(sorted(measure_name_to_integral_type.keys()))
 
 
-class Measure(object):
+class Measure:
     """Representation of an integration measure.
 
     The Measure object holds information about integration properties
@@ -440,7 +440,7 @@ class Measure(object):
         return Form([integral])
 
 
-class MeasureSum(object):
+class MeasureSum:
     """Represents a sum of measures.
 
     This is a notational intermediate object to translate the notation
@@ -473,7 +473,7 @@ class MeasureSum(object):
         return "{\n    " + "\n  + ".join(map(str, self._measures)) + "\n}"
 
 
-class MeasureProduct(object):
+class MeasureProduct:
     """Represents a product of measures.
 
     This is a notational intermediate object to handle the notation

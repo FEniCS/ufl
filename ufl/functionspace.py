@@ -28,7 +28,7 @@ __all_classes__ = [
 ]
 
 
-class AbstractFunctionSpace(object):
+class AbstractFunctionSpace:
     """Abstract function space."""
 
     def ufl_sub_spaces(self):

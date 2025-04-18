@@ -80,7 +80,7 @@ def _sorted_integrals(integrals):
 
 
 @ufl_type()
-class BaseForm(object, metaclass=UFLType):
+class BaseForm(metaclass=UFLType):
     """Description of an object containing arguments."""
 
     # Slots is kept empty to enable multiple inheritance with other

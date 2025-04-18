@@ -23,7 +23,7 @@ from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
 
 
-class IntegralData(object):
+class IntegralData:
     """Utility class.
 
     This class has members (domain, integral_type, subdomain_id,
@@ -94,7 +94,7 @@ class IntegralData(object):
         return s
 
 
-class ExprTupleKey(object):
+class ExprTupleKey:
     """Tuple comparison helper."""
 
     __slots__ = ("x",)
@@ -238,7 +238,7 @@ def accumulate_integrands_with_same_metadata(integrals):
     for cdid in by_cdid:
         integrals, cd = by_cdid[cdid]
         # Ensure canonical sorting of more than two integrands
-        integrands = sorted_expr((itg.integrand() for itg in integrals))
+        integrands = sorted_expr(itg.integrand() for itg in integrals)
         integrands_sum = sum(integrands[1:], integrands[0])
         by_cdid[cdid] = (integrands_sum, cd)
 

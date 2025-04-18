@@ -30,7 +30,7 @@ def format_float(x):
     if precision:
         return "{:.{prec}}".format(float(x), prec=precision)
     else:
-        return "{}".format(float(x))
+        return f"{float(x)}"
 
 
 # --- Base classes for constant types ---

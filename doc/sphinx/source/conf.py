@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Unified Form Language (UFL) documentation build configuration file, created by
 # sphinx-quickstart on Tue Nov  3 11:05:14 2015.

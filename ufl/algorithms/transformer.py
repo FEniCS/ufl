@@ -28,7 +28,7 @@ def is_post_handler(function):
     return visit_children_first
 
 
-class Transformer(object):
+class Transformer:
     """Transformer.
 
     Base class for a visitor-like algorithm design pattern used to

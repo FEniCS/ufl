@@ -30,7 +30,7 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 # --- Class representing an argument (basis function) in a form ---
 
 
-class BaseArgument(object):
+class BaseArgument:
     """UFL value: Representation of an argument to a form."""
 
     __slots__ = ()

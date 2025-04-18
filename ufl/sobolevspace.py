@@ -22,7 +22,7 @@ __all_classes__ = ["SobolevSpace", "DirectionalSobolevSpace"]
 
 
 @total_ordering
-class SobolevSpace(object):
+class SobolevSpace:
     """Symbolic representation of a Sobolev space.
 
     This implements a subset of the methods of a Python set so that

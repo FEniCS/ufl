@@ -106,7 +106,7 @@ def test_pseudo_determinant21(A21):
 def test_pseudo_determinant31(A31):
     i = Index()
     assert renumber_indices(determinant_expr(A31)) == renumber_indices(
-        sqrt((A31[i, 0] * A31[i, 0]))
+        sqrt(A31[i, 0] * A31[i, 0])
     )
 
 

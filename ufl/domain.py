@@ -26,7 +26,7 @@ from ufl.sobolevspace import H1
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
 
 
-class AbstractDomain(object):
+class AbstractDomain:
     """Symbolic representation of a geometric domain.
 
     Domain has only a geometric and a topological dimension.
@@ -79,7 +79,7 @@ class AbstractDomain(object):
 
     def iterable_like(
         self, element: AbstractFiniteElement
-    ) -> Union[Iterable["Mesh"], "MeshSequence"]:
+    ) -> Union[Iterable[Mesh], MeshSequence]:
         """Return iterable object that is iterable like ``element``."""
         raise NotImplementedError("iterable_like() method not implemented")
 
@@ -168,7 +168,7 @@ class Mesh(AbstractDomain, UFLObject):
         """Return the component meshes."""
         return (self,)
 
-    def iterable_like(self, element: AbstractFiniteElement) -> Iterable["Mesh"]:
+    def iterable_like(self, element: AbstractFiniteElement) -> Iterable[Mesh]:
         """Return iterable object that is iterable like ``element``."""
         return iter(self for _ in range(element.num_sub_elements))
 
@@ -251,7 +251,7 @@ class MeshSequence(AbstractDomain, UFLObject):
         """Return the component meshes."""
         return self._meshes
 
-    def iterable_like(self, element: AbstractFiniteElement) -> "MeshSequence":
+    def iterable_like(self, element: AbstractFiniteElement) -> MeshSequence:
         """Return iterable object that is iterable like ``element``."""
         if len(self) != element.num_sub_elements:
             raise RuntimeError(f"""len(self) ({len(self)}) !=

@@ -59,11 +59,11 @@ class MockForwardAD:
 
         def apply_grads(f):
             if not isinstance(f, FormArgument):
-                print(("," * 60))
+                print("," * 60)
                 print(f)
                 print(o)
                 print(g)
-                print(("," * 60))
+                print("," * 60)
                 raise ValueError("What?")
             for i in range(ngrads):
                 f = Grad(f)

@@ -21,7 +21,7 @@ import warnings
 from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
 
 
-class Expr(object, metaclass=UFLType):
+class Expr(metaclass=UFLType):
     """Base class for all UFL expression types.
 
     *Instance properties*
@@ -313,7 +313,7 @@ class Expr(object, metaclass=UFLType):
 
         # Conversion from non-ufl types
         # (the _ufl_from_*_ functions are attached to Expr by ufl_type)
-        ufl_from_type = "_ufl_from_{0}_".format(value.__class__.__name__)
+        ufl_from_type = f"_ufl_from_{value.__class__.__name__}_"
         return getattr(Expr, ufl_from_type)(value)
 
         # if hasattr(Expr, ufl_from_type):
