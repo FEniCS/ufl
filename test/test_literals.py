@@ -28,7 +28,7 @@ def test_zero(self):
     self.assertNotEqual(z1, 1.0)
     self.assertFalse(z1)
 
-    # If zero() == 0 is to be allowed, it must not have the same hash or
+    # If Zero() == 0 is to be allowed, it must not have the same hash or
     # it will collide with 0 as key in dicts...
     self.assertNotEqual(hash(z1), hash(0.0))
     self.assertNotEqual(hash(z1), hash(0))

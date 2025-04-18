@@ -7,7 +7,7 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.constantvalue import Zero, zero
+from ufl.constantvalue import Zero
 from ufl.core.multiindex import Index, indices
 from ufl.operators import sqrt
 from ufl.tensors import as_matrix, as_tensor, as_vector
@@ -82,7 +82,7 @@ def determinant_expr(A):
     """Compute the (pseudo-)determinant of A."""
     sh = A.ufl_shape
     if isinstance(A, Zero):
-        return zero()
+        return Zero()
     elif sh == ():
         return A
     elif sh[0] == sh[1]:

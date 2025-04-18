@@ -9,6 +9,7 @@ from ufl import (
     SpatialCoordinate,
     TestFunction,
     VectorConstant,
+    Zero,
     as_ufl,
     cos,
     derivative,
@@ -20,7 +21,6 @@ from ufl import (
     tan,
     triangle,
     variable,
-    zero,
 )
 from ufl.algorithms.apply_derivatives import (
     GenericDerivativeRuleset,
@@ -51,7 +51,7 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     v1_space = FunctionSpace(domain, V1)
 
     # Literals
-    z = zero((3, 2))
+    z = Zero((3, 2))
     one = as_ufl(1)
     two = as_ufl(2.0)
     ident = Identity(d)
@@ -99,18 +99,18 @@ def test_literal_derivatives_are_zero():
     # Generic ruleset handles literals directly:
     for lit in literals:
         for sh in [(), (d,), (d, d + 1)]:
-            assert GenericDerivativeRuleset(sh)(lit) == zero(lit.ufl_shape + sh)
+            assert GenericDerivativeRuleset(sh)(lit) == Zero(lit.ufl_shape + sh)
 
     # Variables
     v0 = variable(one)
-    v1 = variable(zero((d,)))
+    v1 = variable(Zero((d,)))
     v2 = variable(ident)
     variables = [v0, v1, v2]
 
     # Test literals via apply_derivatives and variable ruleset:
     for lit in literals:
         for v in variables:
-            assert apply_derivatives(diff(lit, v)) == zero(lit.ufl_shape + v.ufl_shape)
+            assert apply_derivatives(diff(lit, v)) == Zero(lit.ufl_shape + v.ufl_shape)
 
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
     V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
@@ -126,11 +126,11 @@ def test_literal_derivatives_are_zero():
     # Test literals via apply_derivatives and variable ruleset:
     for lit in literals:
         for u, v in args:
-            assert apply_derivatives(derivative(lit, u, v)) == zero(lit.ufl_shape + v.ufl_shape)
+            assert apply_derivatives(derivative(lit, u, v)) == Zero(lit.ufl_shape + v.ufl_shape)
 
     # Test grad ruleset directly since grad(literal) is invalid:
-    assert GradRuleset(d)(one) == zero((d,))
-    assert GradRuleset(d)(one) == zero((d,))
+    assert GradRuleset(d)(one) == Zero((d,))
+    assert GradRuleset(d)(one) == Zero((d,))
 
 
 def test_grad_ruleset():
@@ -180,13 +180,13 @@ def test_grad_ruleset():
     rules = GradRuleset(d)
 
     # Literals
-    assert rules(one) == zero((d,))
-    assert rules(two) == zero((d,))
-    assert rules(ident) == zero((d, d, d))
+    assert rules(one) == Zero((d,))
+    assert rules(two) == Zero((d,))
+    assert rules(ident) == Zero((d, d, d))
 
     # Assumed piecewise constant geometry
     for g in [n, volume]:
-        assert rules(g) == zero(g.ufl_shape + (d,))
+        assert rules(g) == Zero(g.ufl_shape + (d,))
 
     # Non-constant geometry
     assert rules(x) == ident
@@ -196,22 +196,22 @@ def test_grad_ruleset():
         assert rules(u) == grad(u)
 
     # Piecewise constant coefficients (Constant)
-    assert rules(r) == zero((d,))
-    assert rules(vr) == zero((d, d))
-    assert rules(grad(r)) == zero((d, d))
-    assert rules(grad(vr)) == zero((d, d, d))
+    assert rules(r) == Zero((d,))
+    assert rules(vr) == Zero((d, d))
+    assert rules(grad(r)) == Zero((d, d))
+    assert rules(grad(vr)) == Zero((d, d, d))
 
     # Piecewise constant coefficients (DG0)
-    assert rules(f0) == zero((d,))
-    assert rules(vf0) == zero((d, d))
-    assert rules(grad(f0)) == zero((d, d))
-    assert rules(grad(vf0)) == zero((d, d, d))
+    assert rules(f0) == Zero((d,))
+    assert rules(vf0) == Zero((d, d))
+    assert rules(grad(f0)) == Zero((d, d))
+    assert rules(grad(vf0)) == Zero((d, d, d))
 
     # Piecewise linear coefficients
     assert rules(f1) == grad(f1)
     assert rules(vf1) == grad(vf1)
-    # assert rules(grad(f1)) == zero((d,d)) # TODO: Use degree to make this work
-    # assert rules(grad(vf1)) == zero((d,d,d))
+    # assert rules(grad(f1)) == Zero((d,d)) # TODO: Use degree to make this work
+    # assert rules(grad(vf1)) == Zero((d,d,d))
 
     # Piecewise quadratic coefficients
     assert rules(grad(f2)) == grad(grad(f2))
@@ -222,7 +222,7 @@ def test_grad_ruleset():
     assert renumber_indices(apply_derivatives(grad(vf2[1])[0])) == renumber_indices(grad(vf2)[1, 0])
 
     # Grad of gradually more complex expressions
-    assert apply_derivatives(grad(2 * f0)) == zero((d,))
+    assert apply_derivatives(grad(2 * f0)) == Zero((d,))
     assert renumber_indices(apply_derivatives(grad(2 * f1))) == renumber_indices(2 * grad(f1))
     assert renumber_indices(apply_derivatives(grad(sin(f1)))) == renumber_indices(
         cos(f1) * grad(f1)

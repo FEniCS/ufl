@@ -55,7 +55,6 @@ from ufl import (
     tetrahedron,
     triangle,
     variable,
-    zero,
 )
 from ufl.algorithms import compute_form_data, expand_indices, strip_variables
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
@@ -167,7 +166,7 @@ def testScalarLiteral(self):
         return as_ufl(1)
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -177,7 +176,7 @@ def testIdentityLiteral(self):
         return Identity(2)[i, i]
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -205,7 +204,7 @@ def testArgument(self):
         )
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -220,7 +219,7 @@ def testSpatialCoordinate(self):
         )[0]
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -232,7 +231,7 @@ def testFacetNormal(self):
         )[0]
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -242,7 +241,7 @@ def testFacetArea(self):
         return FacetArea(Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)))
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -254,7 +253,7 @@ def testCellDiameter(self):
         )
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -266,7 +265,7 @@ def testCircumradius(self):
         )
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -276,7 +275,7 @@ def testCellVolume(self):
         return CellVolume(Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)))
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -914,7 +913,7 @@ def test_zero_shape(self):
     w = Coefficient(V)
 
     (i,) = indices(1)
-    z = zero(shape)
+    z = Zero(shape)
     zi = z[:, i, :]
     wi = w[:, i, :]
     assert isinstance(zi, Zero)
