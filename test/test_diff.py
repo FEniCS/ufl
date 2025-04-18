@@ -8,6 +8,7 @@ from ufl import (
     FunctionSpace,
     Mesh,
     SpatialCoordinate,
+    as_ufl,
     as_vector,
     atan,
     cos,
@@ -21,7 +22,6 @@ from ufl import (
     variable,
 )
 from ufl.algorithms import expand_derivatives
-from ufl.constantvalue import as_ufl
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1

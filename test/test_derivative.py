@@ -20,9 +20,11 @@ from ufl import (
     SpatialCoordinate,
     TestFunction,
     TrialFunction,
+    Zero,
     acos,
     as_matrix,
     as_tensor,
+    as_ufl,
     as_vector,
     asin,
     atan,
@@ -60,7 +62,6 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.classes import Indexed, MultiIndex, ReferenceGrad
-from ufl.constantvalue import Zero, as_ufl
 from ufl.domain import extract_unique_domain
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback

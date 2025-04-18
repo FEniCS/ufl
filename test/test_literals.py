@@ -3,9 +3,19 @@ __date__ = "2011-04-14"
 
 import numpy as np
 
-from ufl import PermutationSymbol, as_matrix, as_vector, indices, product
+from ufl import (
+    ComplexValue,
+    FloatValue,
+    IntValue,
+    PermutationSymbol,
+    Zero,
+    as_matrix,
+    as_ufl,
+    as_vector,
+    indices,
+    product,
+)
 from ufl.classes import Indexed
-from ufl.constantvalue import ComplexValue, FloatValue, IntValue, Zero, as_ufl
 
 
 def test_zero(self):

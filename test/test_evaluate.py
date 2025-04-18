@@ -13,6 +13,7 @@ from ufl import (
     Mesh,
     SpatialCoordinate,
     as_matrix,
+    as_ufl,
     as_vector,
     cos,
     cross,
@@ -35,7 +36,7 @@ from ufl import (
     tr,
     triangle,
 )
-from ufl.constantvalue import ConstantValue, as_ufl
+from ufl.constantvalue import ConstantValue
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
