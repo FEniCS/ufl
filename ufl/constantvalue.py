@@ -21,18 +21,6 @@ from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 
-# Precision for float formatting
-precision = None
-
-
-def format_float(x):
-    """Format float value based on global UFL precision."""
-    if precision:
-        return "{:.{prec}}".format(float(x), prec=precision)
-    else:
-        return "{}".format(float(x))
-
-
 # --- Base classes for constant types ---
 
 
@@ -352,8 +340,7 @@ class FloatValue(RealValue):
 
     def __repr__(self):
         """Representation."""
-        r = "%s(%s)" % (type(self).__name__, format_float(self._value))
-        return r
+        return "%s(%s)" % (type(self).__name__, float(self._value))
 
 
 @ufl_type(wraps_type=int, is_literal=True)
