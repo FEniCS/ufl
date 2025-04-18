@@ -71,7 +71,7 @@ class Constant(Terminal, Counted):
         """Signature data for constant depends on renumbering."""
         return (
             f"Constant({self._ufl_domain._ufl_signature_data_(renumbering)}, "
-            + f"{self._ufl_shape!r}, {renumbering[self]!r})"
+            f"{self._ufl_shape!r}, {renumbering[self]!r})"
         )
 
 

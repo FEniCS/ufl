@@ -342,7 +342,7 @@ class MinValue(Operator):
         except ValueError:
             warnings.warn(
                 f"Value error in evaluation of min() of {self.ufl_operands[0]} and"
-                + "{self.ufl_operands[1]}."
+                f"{self.ufl_operands[1]}."
             )
             raise
         return res
