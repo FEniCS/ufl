@@ -101,4 +101,4 @@ class IndexSum(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "sum_{%s} %s " % (str(self.ufl_operands[1]), parstr(self.ufl_operands[0], self))
+        return f"sum_{{{self.ufl_operands[1]!s}}} {parstr(self.ufl_operands[0], self)} "

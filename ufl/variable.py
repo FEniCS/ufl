@@ -29,12 +29,11 @@ class Label(Terminal, Counted):
 
     def __str__(self):
         """Format as a string."""
-        return "Label(%d)" % self._count
+        return f"Label({self._count})"
 
     def __repr__(self):
         """Representation."""
-        r = "Label(%d)" % self._count
-        return r
+        return f"Label({self._count})"
 
     @property
     def ufl_shape(self):
@@ -126,4 +125,4 @@ class Variable(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "var%d(%s)" % (self.ufl_operands[1].count(), self.ufl_operands[0])
+        return f"var{self.ufl_operands[1].count()}({self.ufl_operands[0]})"

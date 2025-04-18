@@ -13,7 +13,6 @@
 from __future__ import annotations
 
 import abc as _abc
-import typing as _typing
 
 from ufl.cell import Cell as _Cell
 from ufl.pullback import AbstractPullback as _AbstractPullback
@@ -65,7 +64,7 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the pullback for this element."""
 
     @_abc.abstractproperty
-    def embedded_superdegree(self) -> _typing.Union[int, None]:
+    def embedded_superdegree(self) -> int | None:
         """Degree of the minimum degree Lagrange space that spans this element.
 
         This returns the degree of the lowest degree Lagrange space such
@@ -101,11 +100,11 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the cell of the finite element."""
 
     @_abc.abstractproperty
-    def reference_value_shape(self) -> _typing.Tuple[int, ...]:
+    def reference_value_shape(self) -> tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
 
     @_abc.abstractproperty
-    def sub_elements(self) -> _typing.List:
+    def sub_elements(self) -> list:
         """Return list of sub-elements.
 
         This function does not recurse: ie it does not extract the sub-elements
@@ -164,13 +163,13 @@ class FiniteElement(AbstractFiniteElement):
         family: str,
         cell: _Cell,
         degree: int,
-        reference_value_shape: _typing.Tuple[int, ...],
+        reference_value_shape: tuple[int, ...],
         pullback: _AbstractPullback,
         sobolev_space: _SobolevSpace,
         sub_elements=[],
-        _repr: _typing.Optional[str] = None,
-        _str: _typing.Optional[str] = None,
-        subdegree: _typing.Optional[int] = None,
+        _repr: str | None = None,
+        _str: str | None = None,
+        subdegree: int | None = None,
     ):
         """Initialise a finite element.
 
@@ -244,7 +243,7 @@ class FiniteElement(AbstractFiniteElement):
         return self._pullback
 
     @property
-    def embedded_superdegree(self) -> _typing.Union[int, None]:
+    def embedded_superdegree(self) -> int | None:
         """Degree of the minimum degree Lagrange space that spans this element.
 
         This returns the degree of the lowest degree Lagrange space such
@@ -283,12 +282,12 @@ class FiniteElement(AbstractFiniteElement):
         return self._cell
 
     @property
-    def reference_value_shape(self) -> _typing.Tuple[int, ...]:
+    def reference_value_shape(self) -> tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
         return self._reference_value_shape
 
     @property
-    def sub_elements(self) -> _typing.List:
+    def sub_elements(self) -> list:
         """Return list of sub-elements.
 
         This function does not recurse: ie it does not extract the
@@ -302,8 +301,8 @@ class SymmetricElement(FiniteElement):
 
     def __init__(
         self,
-        symmetry: _typing.Dict[_typing.Tuple[int, ...], int],
-        sub_elements: _typing.List[AbstractFiniteElement],
+        symmetry: dict[tuple[int, ...], int],
+        sub_elements: list[AbstractFiniteElement],
     ):
         """Initialise a symmetric element.
 
