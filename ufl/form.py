@@ -122,7 +122,7 @@ class BaseForm(metaclass=UFLType):
         try:
             (domain,) = set(self.ufl_domains())
         except ValueError:
-            raise ValueError("%s must have exactly one domain." % type(self).__name__)
+            raise ValueError(f"{type(self).__name__} must have exactly one domain.")
         # Return the one and only domain
         return domain
 
@@ -552,7 +552,7 @@ class Form(BaseForm):
                 if f in coeffs:
                     repdict[f] = coefficients[f]
                 else:
-                    warnings.warn("Coefficient %s is not in form." % ufl_err_str(f))
+                    warnings.warn(f"Coefficient {ufl_err_str(f)} is not in form.")
         if repdict:
             from ufl.formoperators import replace
 
@@ -705,7 +705,7 @@ class FormSum(BaseForm):
             arguments = arg.arguments()
             return ZeroBaseForm(arguments)
 
-        return super(FormSum, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, *components):
         """Initialise."""
@@ -896,11 +896,11 @@ class ZeroBaseForm(BaseForm):
 
     def __str__(self):
         """Format as a string."""
-        return "ZeroBaseForm(%s)" % (", ".join(str(arg) for arg in self._arguments))
+        return "ZeroBaseForm({})".format(", ".join(str(arg) for arg in self._arguments))
 
     def __repr__(self):
         """Representation."""
-        return "ZeroBaseForm(%s)" % (", ".join(repr(arg) for arg in self._arguments))
+        return "ZeroBaseForm({})".format(", ".join(repr(arg) for arg in self._arguments))
 
     def __hash__(self):
         """Hash."""

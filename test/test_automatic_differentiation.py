@@ -534,7 +534,7 @@ def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes
             # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
             if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
                 if debug:
-                    print("Depends on %s :: %s" % (str(var), str(t)))
+                    print(f"Depends on {var!s} :: {t!s}")
                 continue
 
             if debug:
@@ -579,7 +579,7 @@ def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self,
             # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
             if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
                 if debug:
-                    print("Depends on %s :: %s" % (str(var), str(t)))
+                    print(f"Depends on {var!s} :: {t!s}")
                 continue
 
             before = diff(t, var)

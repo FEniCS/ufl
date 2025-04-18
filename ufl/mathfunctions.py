@@ -75,14 +75,14 @@ class MathFunction(Operator):
                 res = getattr(cmath, self._name)(a)
         except ValueError:
             warnings.warn(
-                "Value error in evaluation of function %s with argument %s." % (self._name, a)
+                f"Value error in evaluation of function {self._name} with argument {a}."
             )
             raise
         return res
 
     def __str__(self):
         """Format as a string."""
-        return "%s(%s)" % (self._name, self.ufl_operands[0])
+        return f"{self._name}({self.ufl_operands[0]})"
 
 
 @ufl_type()
@@ -358,14 +358,14 @@ class Atan2(Operator):
             raise ValueError("Atan2 does not support complex numbers.")
         except ValueError:
             warnings.warn(
-                "Value error in evaluation of function atan2 with arguments %s, %s." % (a, b)
+                f"Value error in evaluation of function atan2 with arguments {a}, {b}."
             )
             raise
         return res
 
     def __str__(self):
         """Format as a string."""
-        return "atan2(%s,%s)" % (self.ufl_operands[0], self.ufl_operands[1])
+        return f"atan2({self.ufl_operands[0]},{self.ufl_operands[1]})"
 
 
 @ufl_type()
@@ -438,7 +438,7 @@ class BesselFunction(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "%s(%s, %s)" % (self._name, self.ufl_operands[0], self.ufl_operands[1])
+        return f"{self._name}({self.ufl_operands[0]}, {self.ufl_operands[1]})"
 
 
 @ufl_type()

@@ -76,11 +76,7 @@ class BinaryCondition(Condition):
 
     def __str__(self):
         """Format as a string."""
-        return "%s %s %s" % (
-            parstr(self.ufl_operands[0], self),
-            self._name,
-            parstr(self.ufl_operands[1], self),
-        )
+        return f"{parstr(self.ufl_operands[0], self)} {self._name} {parstr(self.ufl_operands[1], self)}"
 
 
 # Not associating with __eq__, the concept of equality with == is
@@ -254,7 +250,7 @@ class NotCondition(Condition):
 
     def __str__(self):
         """Format as a string."""
-        return "!(%s)" % (str(self.ufl_operands[0]),)
+        return f"!({self.ufl_operands[0]!s})"
 
 
 @ufl_type(num_ops=3, inherit_shape_from_operand=1, inherit_indices_from_operand=1)
@@ -317,7 +313,7 @@ class Conditional(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "%s ? %s : %s" % tuple(parstr(o, self) for o in self.ufl_operands)
+        return "{} ? {} : {}".format(*tuple(parstr(o, self) for o in self.ufl_operands))
 
 
 # --- Specific functions higher level than a conditional ---
@@ -343,13 +339,13 @@ class MinValue(Operator):
         try:
             res = min(a, b)
         except ValueError:
-            warnings.warn("Value error in evaluation of min() of %s and %s." % self.ufl_operands)
+            warnings.warn("Value error in evaluation of min() of {} and {}.".format(*self.ufl_operands))
             raise
         return res
 
     def __str__(self):
         """Format as a string."""
-        return "min_value(%s, %s)" % self.ufl_operands
+        return "min_value({}, {})".format(*self.ufl_operands)
 
 
 @ufl_type(is_scalar=True, num_ops=1)
@@ -372,10 +368,10 @@ class MaxValue(Operator):
         try:
             res = max(a, b)
         except ValueError:
-            warnings.warn("Value error in evaluation of max() of %s and %s." % self.ufl_operands)
+            warnings.warn("Value error in evaluation of max() of {} and {}.".format(*self.ufl_operands))
             raise
         return res
 
     def __str__(self):
         """Format as a string."""
-        return "max_value(%s, %s)" % self.ufl_operands
+        return "max_value({}, {})".format(*self.ufl_operands)

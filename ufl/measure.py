@@ -278,15 +278,15 @@ class Measure:
         args = []
 
         if self._subdomain_id is not None:
-            args.append("subdomain_id=%s" % (self._subdomain_id,))
+            args.append(f"subdomain_id={self._subdomain_id}")
         if self._domain is not None:
-            args.append("domain=%s" % (self._domain,))
+            args.append(f"domain={self._domain}")
         if self._metadata:  # Stored as {} if None
-            args.append("metadata=%s" % (self._metadata,))
+            args.append(f"metadata={self._metadata}")
         if self._subdomain_data is not None:
-            args.append("subdomain_data=%s" % (self._subdomain_data,))
+            args.append(f"subdomain_data={self._subdomain_data}")
 
-        return "%s(%s)" % (name, ", ".join(args))
+        return "{}({})".format(name, ", ".join(args))
 
     def __repr__(self):
         """Return a repr string for this Measure."""
@@ -294,15 +294,15 @@ class Measure:
         args.append(repr(self._integral_type))
 
         if self._subdomain_id is not None:
-            args.append("subdomain_id=%s" % repr(self._subdomain_id))
+            args.append(f"subdomain_id={self._subdomain_id!r}")
         if self._domain is not None:
-            args.append("domain=%s" % repr(self._domain))
+            args.append(f"domain={self._domain!r}")
         if self._metadata:  # Stored as {} if None
-            args.append("metadata=%s" % repr(self._metadata))
+            args.append(f"metadata={self._metadata!r}")
         if self._subdomain_data is not None:
-            args.append("subdomain_data=%s" % repr(self._subdomain_data))
+            args.append(f"subdomain_data={self._subdomain_data!r}")
 
-        r = "%s(%s)" % (type(self).__name__, ", ".join(args))
+        r = "{}({})".format(type(self).__name__, ", ".join(args))
         return r
 
     def __hash__(self):

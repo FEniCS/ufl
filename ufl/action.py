@@ -85,7 +85,7 @@ class Action(BaseForm):
                 *((Action(left, c), w) for c, w in zip(right.components(), right.weights()))
             )
 
-        return super(Action, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, left, right):
         """Initialise."""
@@ -99,7 +99,7 @@ class Action(BaseForm):
         # Check compatibility of function spaces
         _check_function_spaces(left, right)
 
-        self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
+        self._repr = f"Action({self._left!r}, {self._right!r})"
         self._hash = None
 
     def ufl_function_spaces(self):

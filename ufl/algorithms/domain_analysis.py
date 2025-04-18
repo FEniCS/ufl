@@ -7,7 +7,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import numbers
-import typing
 from collections import defaultdict
 
 import ufl
@@ -157,8 +156,8 @@ def integral_subdomain_ids(integral):
 
 
 def rearrange_integrals_by_single_subdomains(
-    integrals: typing.List[Integral], do_append_everywhere_integrals: bool
-) -> typing.Dict[int, typing.List[Integral]]:
+    integrals: list[Integral], do_append_everywhere_integrals: bool
+) -> dict[int, list[Integral]]:
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
     Args:

@@ -10,7 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
@@ -79,7 +79,7 @@ class AbstractDomain:
 
     def iterable_like(
         self, element: AbstractFiniteElement
-    ) -> Union[Iterable[Mesh], MeshSequence]:
+    ) -> Iterable[Mesh] | MeshSequence:
         """Return iterable object that is iterable like ``element``."""
         raise NotImplementedError("iterable_like() method not implemented")
 
@@ -141,12 +141,12 @@ class Mesh(AbstractDomain, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_element), repr(self._ufl_id))
+        r = f"Mesh({self._ufl_coordinate_element!r}, {self._ufl_id!r})"
         return r
 
     def __str__(self):
         """Format as a string."""
-        return "<Mesh #%s>" % (self._ufl_id,)
+        return f"<Mesh #{self._ufl_id}>"
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -228,11 +228,11 @@ class MeshSequence(AbstractDomain, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return "MeshSequence(%s)" % (repr(self._meshes),)
+        return f"MeshSequence({self._meshes!r})"
 
     def __str__(self):
         """Format as a string."""
-        return "<MeshSequence #%s>" % (self._meshes,)
+        return f"<MeshSequence #{self._meshes}>"
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -298,7 +298,7 @@ class MeshView(AbstractDomain, UFLObject):
     def __repr__(self):
         """Representation."""
         tdim = self.topological_dimension()
-        r = "MeshView(%s, %s, %s)" % (repr(self._ufl_mesh), repr(tdim), repr(self._ufl_id))
+        r = f"MeshView({self._ufl_mesh!r}, {tdim!r}, {self._ufl_id!r})"
         return r
 
     def __str__(self):
@@ -387,7 +387,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mixed_mesh: bool = Tr
 # TODO: Move these to an analysis module?
 
 
-def extract_domains(expr: Union[Expr, Form], expand_mixed_mesh: bool = True):
+def extract_domains(expr: Expr | Form, expand_mixed_mesh: bool = True):
     """Return all domains expression is defined on.
 
     Args:

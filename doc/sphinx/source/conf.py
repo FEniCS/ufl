@@ -52,7 +52,7 @@ master_doc = "index"
 # General information about the project.
 project = "Unified Form Language (UFL)"
 this_year = datetime.date.today().year
-copyright = "%s, FEniCS Project" % this_year
+copyright = f"{this_year}, FEniCS Project"
 author = "FEniCS Project"
 
 version = importlib.metadata.version("fenics-ufl")

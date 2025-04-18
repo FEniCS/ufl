@@ -116,7 +116,7 @@ class DirectionalSobolevSpace(SobolevSpace):
         )
         name = "DirectionalH"
         parents = [L2]
-        super(DirectionalSobolevSpace, self).__init__(name, parents)
+        super().__init__(name, parents)
         self._orders = tuple(orders)
         self._spatial_indices = range(len(self._orders))
 

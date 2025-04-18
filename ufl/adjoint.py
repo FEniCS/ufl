@@ -62,7 +62,7 @@ class Adjoint(BaseForm):
             # subclasses of `ufl.Coargument`.
             return primal_arg
 
-        return super(Adjoint, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, form):
         """Initialise."""
@@ -75,7 +75,7 @@ class Adjoint(BaseForm):
         self.ufl_operands = (self._form,)
         self._domains = None
         self._hash = None
-        self._repr = "Adjoint(%s)" % repr(self._form)
+        self._repr = f"Adjoint({self._form!r})"
 
     def ufl_function_spaces(self):
         """Get the tuple of function spaces of the underlying form."""
