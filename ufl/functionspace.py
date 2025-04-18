@@ -9,7 +9,6 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-
 import numpy as np
 
 from ufl.core.ufl_type import UFLObject

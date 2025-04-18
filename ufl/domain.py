@@ -77,9 +77,7 @@ class AbstractDomain:
         """Return iterable component meshes."""
         return iter(self.meshes)
 
-    def iterable_like(
-        self, element: AbstractFiniteElement
-    ) -> Iterable[Mesh] | MeshSequence:
+    def iterable_like(self, element: AbstractFiniteElement) -> Iterable[Mesh] | MeshSequence:
         """Return iterable object that is iterable like ``element``."""
         raise NotImplementedError("iterable_like() method not implemented")
 
@@ -303,10 +301,9 @@ class MeshView(AbstractDomain, UFLObject):
 
     def __str__(self):
         """Format as a string."""
-        return "<MeshView #%s of dimension %d over mesh %s>" % (
-            self._ufl_id,
-            self.topological_dimension(),
-            self._ufl_mesh,
+        return (
+            f"<MeshView #{self._ufl_id} of dimension {self.topological_dimension()} over"
+            f" mesh {self._ufl_mesh}>"
         )
 
     def _ufl_hash_data_(self):

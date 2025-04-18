@@ -63,7 +63,7 @@ select = [
     "F",   # pyflakes
     "I",   # isort
     "RUF", # Ruff-specific rules
-    # "UP",  # pyupgrade
+    "UP",  # pyupgrade
     "ICN", # flake8-import-conventions
     "NPY", # numpy-specific rules
     "FLY", # use f-string not static joins

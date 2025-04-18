@@ -74,9 +74,7 @@ class MathFunction(Operator):
             else:
                 res = getattr(cmath, self._name)(a)
         except ValueError:
-            warnings.warn(
-                f"Value error in evaluation of function {self._name} with argument {a}."
-            )
+            warnings.warn(f"Value error in evaluation of function {self._name} with argument {a}.")
             raise
         return res
 
@@ -357,9 +355,7 @@ class Atan2(Operator):
         except TypeError:
             raise ValueError("Atan2 does not support complex numbers.")
         except ValueError:
-            warnings.warn(
-                f"Value error in evaluation of function atan2 with arguments {a}, {b}."
-            )
+            warnings.warn(f"Value error in evaluation of function atan2 with arguments {a}, {b}.")
             raise
         return res
 

@@ -61,7 +61,10 @@ class CoefficientDerivative(Derivative):
 
     def __str__(self):
         """Format as a string."""
-        return f"d/dfj {{ {self.ufl_operands[0]} }}, with fh={self.ufl_operands[1]}, dfh/dfj = {self.ufl_operands[2]}, and coefficient derivatives {self.ufl_operands[3]}"
+        return (
+            f"d/dfj {{ {self.ufl_operands[0]} }}, with fh={self.ufl_operands[1]}, dfh/dfj = "
+            + f"{self.ufl_operands[2]}, and coefficient derivatives {self.ufl_operands[3]}"
+        )
 
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
@@ -72,7 +75,10 @@ class CoordinateDerivative(CoefficientDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return f"d/dfj {{ {self.ufl_operands[0]} }}, with fh={self.ufl_operands[1]}, dfh/dfj = {self.ufl_operands[2]}, and coordinate derivatives {self.ufl_operands[3]}"
+        return (
+            f"d/dfj {{ {self.ufl_operands[0]} }}, with fh={self.ufl_operands[1]}, dfh/dfj = "
+            + f"{self.ufl_operands[2]}, and coordinate derivatives {self.ufl_operands[3]}"
+        )
 
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)

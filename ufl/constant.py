@@ -69,7 +69,10 @@ class Constant(Terminal, Counted):
 
     def _ufl_signature_data_(self, renumbering):
         """Signature data for constant depends on renumbering."""
-        return f"Constant({self._ufl_domain._ufl_signature_data_(renumbering)}, {self._ufl_shape!r}, {renumbering[self]!r})"
+        return (
+            f"Constant({self._ufl_domain._ufl_signature_data_(renumbering)}, "
+            + f"{self._ufl_shape!r}, {renumbering[self]!r})"
+        )
 
 
 def VectorConstant(domain, count=None):

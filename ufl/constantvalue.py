@@ -430,8 +430,7 @@ class Identity(ConstantValue):
 
     def __repr__(self):
         """Representation."""
-        r = "Identity(%d)" % self._dim
-        return r
+        return f"Identity({self._dim})"
 
     def __eq__(self, other):
         """Check equalty."""
@@ -475,8 +474,7 @@ class PermutationSymbol(ConstantValue):
 
     def __repr__(self):
         """Representation."""
-        r = "PermutationSymbol(%d)" % self._dim
-        return r
+        return f"PermutationSymbol({self._dim})"
 
     def __eq__(self, other):
         """Check equalty."""

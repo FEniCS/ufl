@@ -76,7 +76,8 @@ class BinaryCondition(Condition):
 
     def __str__(self):
         """Format as a string."""
-        return f"{parstr(self.ufl_operands[0], self)} {self._name} {parstr(self.ufl_operands[1], self)}"
+        a, b = self.ufl_operands
+        return f"{parstr(a, self)} {self._name} {parstr(b, self)}"
 
 
 # Not associating with __eq__, the concept of equality with == is
@@ -339,7 +340,10 @@ class MinValue(Operator):
         try:
             res = min(a, b)
         except ValueError:
-            warnings.warn("Value error in evaluation of min() of {} and {}.".format(*self.ufl_operands))
+            warnings.warn(
+                f"Value error in evaluation of min() of {self.ufl_operands[0]} and"
+                + "{self.ufl_operands[1]}."
+            )
             raise
         return res
 
@@ -368,7 +372,9 @@ class MaxValue(Operator):
         try:
             res = max(a, b)
         except ValueError:
-            warnings.warn("Value error in evaluation of max() of {} and {}.".format(*self.ufl_operands))
+            warnings.warn(
+                "Value error in evaluation of max() of {} and {}.".format(*self.ufl_operands)
+            )
             raise
         return res
 
