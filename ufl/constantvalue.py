@@ -10,6 +10,7 @@
 # Modified by Massimiliano Leoni, 2016.
 
 import numbers
+import warnings
 from math import atan2
 
 import ufl
@@ -182,6 +183,7 @@ class Zero(ConstantValue):
 
 def zero(*shape):
     """UFL literal constant: Return a zero tensor with the given shape."""
+    warnings.warn("ufl.zero is deprecated. Use ufl.Zero instead.", DeprecationWarning)
     if len(shape) == 1 and isinstance(shape[0], tuple):
         return Zero(shape[0])
     else:
