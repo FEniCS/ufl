@@ -28,13 +28,13 @@ class Adjoint(BaseForm):
     """
 
     __slots__ = (
-        "_form",
-        "_repr",
         "_arguments",
         "_coefficients",
         "_domains",
-        "ufl_operands",
+        "_form",
         "_hash",
+        "_repr",
+        "ufl_operands",
     )
 
     def __new__(cls, *args, **kw):
@@ -49,7 +49,7 @@ class Adjoint(BaseForm):
             return form._form
         elif isinstance(form, FormSum):
             # Adjoint distributes over sums
-            return FormSum(*[(Adjoint(component), 1) for component in form.components()])
+            return FormSum(*((Adjoint(c), w) for c, w in zip(form.components(), form.weights())))
         elif isinstance(form, Coargument):
             # The adjoint of a coargument `c: V* -> V*` is the identity
             # matrix mapping from V to V (i.e. V x V* -> R).

@@ -20,19 +20,22 @@ class Indexed(Operator):
     """Indexed expression."""
 
     __slots__ = (
+        "_initialised",
         "ufl_free_indices",
         "ufl_index_dimensions",
     )
 
     def __new__(cls, expression, multiindex):
         """Create a new Indexed."""
+        if len(multiindex) == 0:
+            return expression
         if isinstance(expression, Zero):
             # Zero-simplify indexed Zero objects
             shape = expression.ufl_shape
             efi = expression.ufl_free_indices
             efid = expression.ufl_index_dimensions
             fi = list(zip(efi, efid))
-            for pos, ind in enumerate(multiindex._indices):
+            for pos, ind in enumerate(multiindex):
                 if isinstance(ind, Index):
                     fi.append((ind.count(), shape[pos]))
             fi = unique_sorted_indices(sorted(fi))
@@ -41,13 +44,20 @@ class Indexed(Operator):
             else:
                 fi, fid = (), ()
             return Zero(shape=(), free_indices=fi, index_dimensions=fid)
-        elif expression.ufl_shape == () and multiindex == ():
-            return expression
-        else:
-            return Operator.__new__(cls)
+
+        try:
+            # Simplify if possible
+            return expression._simplify_indexed(multiindex)
+        except NotImplementedError:
+            # Construct a new instance to be initialised
+            self = Operator.__new__(cls)
+            self._initialised = False
+            return self
 
     def __init__(self, expression, multiindex):
         """Initialise."""
+        if self._initialised:
+            return
         # Store operands
         Operator.__init__(self, (expression, multiindex))
 
@@ -76,7 +86,7 @@ class Indexed(Operator):
         efi = expression.ufl_free_indices
         efid = expression.ufl_index_dimensions
         fi = list(zip(efi, efid))
-        for pos, ind in enumerate(multiindex._indices):
+        for pos, ind in enumerate(multiindex):
             if isinstance(ind, Index):
                 fi.append((ind.count(), shape[pos]))
         fi = unique_sorted_indices(sorted(fi))
@@ -88,6 +98,7 @@ class Indexed(Operator):
         # Cache free index and dimensions
         self.ufl_free_indices = fi
         self.ufl_index_dimensions = fid
+        self._initialised = True
 
     ufl_shape = ()
 

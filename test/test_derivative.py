@@ -60,7 +60,7 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.classes import Indexed, MultiIndex, ReferenceGrad
-from ufl.constantvalue import as_ufl
+from ufl.constantvalue import Zero, as_ufl
 from ufl.domain import extract_unique_domain
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback
@@ -900,6 +900,39 @@ def test_index_simplification_reference_grad(self):
     assert expr == ReferenceGrad(SpatialCoordinate(mesh))[0, 0]
     assert expr.ufl_free_indices == ()
     assert expr.ufl_shape == ()
+
+
+def test_zero_shape(self):
+    cell = triangle
+    shape = (2, 3, 4)
+    P1 = FiniteElement("Lagrange", cell, 1, shape, identity_pullback, H1)
+    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    V = FunctionSpace(domain, P1)
+    v = TestFunction(V)
+    u = Coefficient(V)
+    w = Coefficient(V)
+
+    (i,) = indices(1)
+    z = zero(shape)
+    zi = z[:, i, :]
+    wi = w[:, i, :]
+    assert isinstance(zi, Zero)
+    assert wi.ufl_shape == (shape[0], shape[-1])
+    assert wi.ufl_shape == zi.ufl_shape
+
+    a = derivative(conditional(u[0, 0, 0] < 1, zi, wi), u, v)
+    assert not isinstance(a, Zero)
+
+    assert a.ufl_shape == zi.ufl_shape
+    assert a.ufl_free_indices == zi.ufl_free_indices
+    assert a.ufl_index_dimensions == zi.ufl_index_dimensions
+
+    expr = apply_derivatives(apply_geometry_lowering(apply_algebra_lowering(a)))
+
+    assert isinstance(expr, Zero)
+    assert expr.ufl_shape == a.ufl_shape
+    assert expr.ufl_free_indices == a.ufl_free_indices
+    assert expr.ufl_index_dimensions == a.ufl_index_dimensions
 
 
 # --- Scratch space

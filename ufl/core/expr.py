@@ -83,7 +83,7 @@ class Expr(object, metaclass=UFLType):
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
 
-    __slots__ = ("_hash", "__weakref__")
+    __slots__ = ("__weakref__", "_hash")
     # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
@@ -341,6 +341,10 @@ class Expr(object, metaclass=UFLType):
     def _ufl_err_str_(self):
         """Return a short string to represent this Expr in an error message."""
         return f"<{self._ufl_class_.__name__} id={id(self)}>"
+
+    def _simplify_indexed(self, multiindex):
+        """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""
+        raise NotImplementedError(self.__class__._simplify_indexed)
 
     # --- Special functions used for processing expressions ---
 

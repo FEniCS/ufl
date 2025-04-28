@@ -10,19 +10,21 @@ import warnings
 from collections import defaultdict
 from math import pi
 
+import numpy as np
+
 from ufl.action import Action
-from ufl.algorithms.analysis import extract_arguments
+from ufl.algorithms.analysis import extract_arguments, extract_coefficients
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.argument import BaseArgument
 from ufl.checks import is_cellwise_constant
 from ufl.classes import (
     Coefficient,
-    ComponentTensor,
     Conj,
     ConstantValue,
     ExprList,
     ExprMapping,
+    FacetNormal,
     FloatValue,
     FormArgument,
     Grad,
@@ -55,7 +57,7 @@ from ufl.differentiation import (
     BaseFormOperatorDerivative,
     CoordinateDerivative,
 )
-from ufl.domain import extract_unique_domain
+from ufl.domain import MeshSequence, extract_unique_domain
 from ufl.form import Form, ZeroBaseForm
 from ufl.operators import (
     bessel_I,
@@ -82,6 +84,27 @@ from ufl.tensors import as_scalar, as_scalars, as_tensor, unit_indexed_tensor, u
 # - CurlRuleset
 # - ReferenceGradRuleset
 # - ReferenceDivRuleset
+
+
+def flatten_domain_element(domain, element):
+    """Return the flattened (domain, element) pairs for mixed domain problems.
+
+    Args:
+        domain: `Mesh` or `MeshSequence`.
+        element: `FiniteElement`.
+
+    Returns:
+        Nested tuples of (domain, element) pairs; just ((domain, element),)
+        if domain is a `Mesh` (and not a `MeshSequence`).
+
+    """
+    if not isinstance(domain, MeshSequence):
+        return ((domain, element),)
+    flattened = ()
+    assert len(domain) == len(element.sub_elements)
+    for d, e in zip(domain, element.sub_elements):
+        flattened += flatten_domain_element(d, e)
+    return flattened
 
 
 class GenericDerivativeRuleset(MultiFunction):
@@ -156,6 +179,9 @@ class GenericDerivativeRuleset(MultiFunction):
     # Constants are independent of any differentiation
     constant = independent_terminal
 
+    # Zero may have free indices
+    zero = independent_operator
+
     # Rules for form arguments must be specified in specialized rule set
     form_argument = override
 
@@ -219,28 +245,12 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # --- Indexing and component handling
 
-    def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in nesting rules
+    def indexed(self, o, Ap, ii):
         """Differentiate an indexed."""
         # Propagate zeros
         if isinstance(Ap, Zero):
             return self.independent_operator(o)
 
-        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify
-        # resulting expression
-        if isinstance(Ap, ComponentTensor):
-            B, jj = Ap.ufl_operands
-            if isinstance(B, Indexed):
-                C, kk = B.ufl_operands
-                kk = list(kk)
-                if all(j in kk for j in jj):
-                    rep = dict(zip(jj, ii))
-                    Cind = [rep.get(k, k) for k in kk]
-                    expr = Indexed(C, MultiIndex(tuple(Cind)))
-                    assert expr.ufl_free_indices == o.ufl_free_indices
-                    assert expr.ufl_shape == o.ufl_shape
-                    return expr
-
-        # Otherwise a more generic approach
         r = len(Ap.ufl_shape) - len(ii)
         if r:
             kk = indices(r)
@@ -657,31 +667,114 @@ class GradRuleset(GenericDerivativeRuleset):
         """Differentiate a reference_value."""
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
-        if isinstance(f.ufl_element().pullback, PhysicalPullback):
-            # TODO: Do we need to be more careful for immersed things?
-            return ReferenceGrad(o)
-
         if not f._ufl_is_terminal_:
             raise ValueError("ReferenceValue can only wrap a terminal")
-        domain = extract_unique_domain(f)
-        K = JacobianInverse(domain)
-        Do = grad_to_reference_grad(o, K)
-        return Do
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        if isinstance(domain, MeshSequence):
+            element = f.ufl_function_space().ufl_element()
+            if element.num_sub_elements != len(domain):
+                raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
+            # Get monolithic representation of rgrad(o); o might live in a mixed space.
+            rgrad = ReferenceGrad(o)
+            ref_dim = rgrad.ufl_shape[-1]
+            # Apply K_ji(d) to the corresponding components of rgrad, store them in a list,
+            # and put them back together at the end using as_tensor().
+            components = []
+            dofoffset = 0
+            for d, e in flatten_domain_element(domain, element):
+                esh = e.reference_value_shape
+                ndof = int(np.prod(esh))
+                assert ndof > 0
+                if isinstance(e.pullback, PhysicalPullback):
+                    if ref_dim != self._var_shape[0]:
+                        raise NotImplementedError("""
+                            PhysicalPullback not handled for immersed domain :
+                            reference dim ({ref_dim}) != physical dim (self._var_shape[0])""")
+                    for idx in range(ndof):
+                        for i in range(ref_dim):
+                            components.append(rgrad[(dofoffset + idx,) + (i,)])
+                else:
+                    K = JacobianInverse(d)
+                    rdim, gdim = K.ufl_shape
+                    if rdim != ref_dim:
+                        raise RuntimeError(f"{rdim} != {ref_dim}")
+                    if gdim != self._var_shape[0]:
+                        raise RuntimeError(f"{gdim} != {self._var_shape[0]}")
+                    # Note that rgrad[dofoffset + [0,ndof), [0,rdim)] are the components
+                    # corresponding to (d, e).
+                    # For each row, rgrad[dofoffset + idx, [0,rdim)], we apply
+                    # K_ji(d)[[0,rdim), [0,gdim)].
+                    for idx in range(ndof):
+                        for i in range(gdim):
+                            temp = Zero()
+                            for j in range(rdim):
+                                temp += rgrad[(dofoffset + idx,) + (j,)] * K[j, i]
+                            components.append(temp)
+                dofoffset += ndof
+            return as_tensor(np.asarray(components).reshape(rgrad.ufl_shape[:-1] + self._var_shape))
+        else:
+            if isinstance(f.ufl_element().pullback, PhysicalPullback):
+                # TODO: Do we need to be more careful for immersed things?
+                return ReferenceGrad(o)
+            else:
+                K = JacobianInverse(domain)
+                return grad_to_reference_grad(o, K)
 
     def reference_grad(self, o):
         """Differentiate a reference_grad."""
+        if is_cellwise_constant(o):
+            return self.independent_terminal(o)
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
-
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(
-            f, (JacobianInverse, SpatialCoordinate, Jacobian, JacobianDeterminant)
+            f, (JacobianInverse, SpatialCoordinate, Jacobian, JacobianDeterminant, FacetNormal)
         )
         if not valid_operand:
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")
-        domain = extract_unique_domain(f)
-        K = JacobianInverse(domain)
-        Do = grad_to_reference_grad(o, K)
-        return Do
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        if isinstance(domain, MeshSequence):
+            if not f._ufl_is_in_reference_frame_:
+                raise RuntimeError("Expecting a reference frame type")
+            while not f._ufl_is_terminal_:
+                (f,) = f.ufl_operands
+            element = f.ufl_function_space().ufl_element()
+            if element.num_sub_elements != len(domain):
+                raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
+            # Get monolithic representation of rgrad(o); o might live in a mixed space.
+            rgrad = ReferenceGrad(o)
+            ref_dim = rgrad.ufl_shape[-1]
+            # Apply K_ji(d) to the corresponding components of rgrad, store them in a list,
+            # and put them back together at the end using as_tensor().
+            components = []
+            dofoffset = 0
+            for d, e in flatten_domain_element(domain, element):
+                esh = e.reference_value_shape
+                ndof = int(np.prod(esh))
+                assert ndof > 0
+                K = JacobianInverse(d)
+                rdim, gdim = K.ufl_shape
+                if rdim != ref_dim:
+                    raise RuntimeError(f"{rdim} != {ref_dim}")
+                if gdim != self._var_shape[0]:
+                    raise RuntimeError(f"{gdim} != {self._var_shape[0]}")
+                # Note that rgrad[dofoffset + [0,ndof), [0,rdim), [0,rdim)] are the components
+                # corresponding to (d, e).
+                # For each row, rgrad[dofoffset + idx, [0,rdim), [0,rdim)], we apply
+                # K_ji(d)[[0,rdim), [0,gdim)].
+                for idx in range(ndof):
+                    for midx in np.ndindex(rgrad.ufl_shape[1:-1]):
+                        for i in range(gdim):
+                            temp = Zero()
+                            for j in range(rdim):
+                                temp += rgrad[(dofoffset + idx,) + midx + (j,)] * K[j, i]
+                            components.append(temp)
+                dofoffset += ndof
+            if rgrad.ufl_shape[0] != dofoffset:
+                raise RuntimeError(f"{rgrad.ufl_shape[0]} != {dofoffset}")
+            return as_tensor(np.asarray(components).reshape(rgrad.ufl_shape[:-1] + self._var_shape))
+        else:
+            K = JacobianInverse(domain)
+            return grad_to_reference_grad(o, K)
 
     # --- Nesting of gradients
 
@@ -693,7 +786,6 @@ class GradRuleset(GenericDerivativeRuleset):
         # Check that o is a "differential terminal"
         if not isinstance(o.ufl_operands[0], (Grad, Terminal)):
             raise ValueError("Expecting only grads applied to a terminal.")
-
         return Grad(o)
 
     def _grad(self, o):
@@ -797,9 +889,15 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
         Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f)).
         """
-        # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue, Terminal)):
+        # Check that f is a "differential terminal"
+        (f,) = o.ufl_operands
+        if not isinstance(f, (ReferenceGrad, ReferenceValue, Terminal)):
             raise ValueError("Expecting only grads applied to a terminal.")
+
+        # The Jacobian of a piecewise linear mesh is piecewise constant.
+        if isinstance(f, SpatialCoordinate) and f._domain.is_piecewise_linear_simplex_domain():
+            return self.independent_terminal(o)
+
         return ReferenceGrad(o)
 
     cell_avg = GenericDerivativeRuleset.independent_operator
@@ -931,7 +1029,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     D_w[v](e) = d/dtau e(w+tau v)|tau=0.
     """
 
-    def __init__(self, coefficients, arguments, coefficient_derivatives, pending_operations):
+    def __init__(self, coefficients, arguments, coefficient_derivatives):
         """Initialise."""
         GenericDerivativeRuleset.__init__(self, var_shape=())
 
@@ -956,7 +1054,11 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
         # Record the operations delayed to the derivative expansion phase:
         # Example: dN(u)/du where `N` is an ExternalOperator and `u` a Coefficient
-        self.pending_operations = pending_operations
+        self.pending_operations = BaseFormOperatorDerivativeRecorder(
+            coefficients,
+            arguments=arguments,
+            coefficient_derivatives=coefficient_derivatives,
+        )
 
     # Explicitly defining dg/dw == 0
     geometric_quantity = GenericDerivativeRuleset.independent_terminal
@@ -1046,9 +1148,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     def reference_grad(self, o):
         """Differentiate a reference_grad."""
-        raise NotImplementedError(
-            "Currently no support for ReferenceGrad in CoefficientDerivative."
-        )
+        if len(extract_coefficients(o)) > 0:
+            raise NotImplementedError(
+                "Currently no support for ReferenceGrad in CoefficientDerivative."
+            )
+        else:
+            return Zero(o.ufl_shape)
         # TODO: This is implementable for regular derivative(M(f),f,v)
         #       but too messy if customized coefficient derivative
         #       relations are given by the user.  We would only need
@@ -1268,11 +1373,10 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     D_w[v](B) = d/dtau B(w+tau v)|tau=0 where B is a ufl.BaseFormOperator.
     """
 
-    def __init__(self, coefficients, arguments, coefficient_derivatives, pending_operations):
+    def __init__(self, coefficients, arguments, coefficient_derivatives, outer_base_form_op):
         """Initialise."""
-        GateauxDerivativeRuleset.__init__(
-            self, coefficients, arguments, coefficient_derivatives, pending_operations
-        )
+        GateauxDerivativeRuleset.__init__(self, coefficients, arguments, coefficient_derivatives)
+        self.outer_base_form_op = outer_base_form_op
 
     def pending_operations_recording(base_form_operator_handler):
         """Decorate a function to record pending operations."""
@@ -1281,7 +1385,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
             """Decorate."""
             # Get the outer `BaseFormOperator` expression, i.e. the
             # operator that is being differentiated.
-            expression = self.pending_operations.expression
+            expression = self.outer_base_form_op
             # If the base form operator we observe is different from the
             # outer `BaseFormOperator`:
             # -> Record that `BaseFormOperator` so that
@@ -1331,7 +1435,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
                     *N.ufl_operands, derivatives=derivatives, argument_slots=new_args
                 )
             elif df == 0:
-                extop = Zero(N.ufl_shape)
+                extop = ZeroBaseForm(N.arguments())
             else:
                 raise NotImplementedError(
                     "Frechet derivative of external operators need to be provided!"
@@ -1386,27 +1490,23 @@ class DerivativeRuleDispatcher(MultiFunction):
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         """Apply to a coefficient_derivative."""
         dummy, w, v, cd = o.ufl_operands
-        pending_operations = BaseFormOperatorDerivativeRecorder(
-            f, w, arguments=v, coefficient_derivatives=cd
-        )
-        rules = GateauxDerivativeRuleset(w, v, cd, pending_operations)
+        rules = GateauxDerivativeRuleset(w, v, cd)
         key = (GateauxDerivativeRuleset, w, v, cd)
         # We need to go through the dag first to record the pending
         # operations
         mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
         # Need to account for pending operations that have been stored
         # in other integrands
-        self.pending_operations += pending_operations
+        self.pending_operations += rules.pending_operations
         return mapped_expr
 
     def base_form_operator_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
         """Apply to a base_form_operator_derivative."""
         dummy, w, v, cd = o.ufl_operands
-        pending_operations = BaseFormOperatorDerivativeRecorder(
-            f, w, arguments=v, coefficient_derivatives=cd
-        )
-        rules = BaseFormOperatorDerivativeRuleset(w, v, cd, pending_operations=pending_operations)
-        key = (BaseFormOperatorDerivativeRuleset, w, v, cd)
+        # Need a BaseFormOperatorDerivativeRuleset object
+        # for each outer_base_form_op (= f).
+        rules = BaseFormOperatorDerivativeRuleset(w, v, cd, f)
+        key = (BaseFormOperatorDerivativeRuleset, w, v, cd, f)
         if isinstance(f, ZeroBaseForm):
             (arg,) = v.ufl_operands
             arguments = f.arguments()
@@ -1418,14 +1518,13 @@ class DerivativeRuleDispatcher(MultiFunction):
             return ZeroBaseForm(arguments)
         # We need to go through the dag first to record the pending operations
         mapped_expr = map_expr_dag(rules, f, vcache=self.vcaches[key], rcache=self.rcaches[key])
-
         mapped_f = rules.coefficient(f)
         if mapped_f != 0:
             # If dN/dN needs to return an Argument in N space
             # with N a BaseFormOperator.
             return mapped_f
         # Need to account for pending operations that have been stored in other integrands
-        self.pending_operations += pending_operations
+        self.pending_operations += rules.pending_operations
         return mapped_expr
 
     def coordinate_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
@@ -1450,29 +1549,12 @@ class DerivativeRuleDispatcher(MultiFunction):
             o_[3],
         )
 
-    def indexed(self, o, Ap, ii):  # TODO: (Partially) duplicated in generic rules
+    def indexed(self, o, Ap, ii):
         """Apply to an indexed."""
         # Reuse if untouched
         if Ap is o.ufl_operands[0]:
             return o
 
-        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify
-        # resulting expression
-        if isinstance(Ap, ComponentTensor):
-            B, jj = Ap.ufl_operands
-            if isinstance(B, Indexed):
-                C, kk = B.ufl_operands
-
-                kk = list(kk)
-                if all(j in kk for j in jj):
-                    rep = dict(zip(jj, ii))
-                    Cind = [rep.get(k, k) for k in kk]
-                    expr = Indexed(C, MultiIndex(tuple(Cind)))
-                    assert expr.ufl_free_indices == o.ufl_free_indices
-                    assert expr.ufl_shape == o.ufl_shape
-                    return expr
-
-        # Otherwise a more generic approach
         r = len(Ap.ufl_shape) - len(ii)
         if r:
             kk = indices(r)
@@ -1486,7 +1568,7 @@ class DerivativeRuleDispatcher(MultiFunction):
 class BaseFormOperatorDerivativeRecorder:
     """A derivative recorded for a base form operator."""
 
-    def __init__(self, expression, var, **kwargs):
+    def __init__(self, var, **kwargs):
         """Initialise."""
         base_form_ops = kwargs.pop("base_form_ops", ())
 
@@ -1496,7 +1578,6 @@ class BaseFormOperatorDerivativeRecorder:
                 "allowed as derivative arguments."
             )
 
-        self.expression = expression
         self.var = var
         self.der_kwargs = kwargs
         self.base_form_ops = base_form_ops
@@ -1525,7 +1606,7 @@ class BaseFormOperatorDerivativeRecorder:
             )
 
         return BaseFormOperatorDerivativeRecorder(
-            self.expression, self.var, base_form_ops=base_form_ops, **self.der_kwargs
+            self.var, base_form_ops=base_form_ops, **self.der_kwargs
         )
 
     def __radd__(self, other):

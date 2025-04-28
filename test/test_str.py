@@ -97,8 +97,8 @@ def test_str_scalar_argument(self):
 def test_str_list_vector():
     domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
     x, y, z = SpatialCoordinate(domain)
-    v = as_vector((x, y, z))
-    assert str(v) == ("[%s, %s, %s]" % (x, y, z))
+    v = as_vector((z, y, x))
+    assert str(v) == ("[%s, %s, %s]" % (z, y, x))
 
 
 def test_str_list_vector_with_zero():

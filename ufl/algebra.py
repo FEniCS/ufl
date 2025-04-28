@@ -13,6 +13,7 @@ from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.index_combination_utils import merge_unique_indices
+from ufl.indexed import Indexed
 from ufl.precedence import parstr
 from ufl.sorting import sorted_expr
 
@@ -88,6 +89,11 @@ class Sum(Operator):
     def __init__(self, a, b):
         """Initialise."""
         Operator.__init__(self)
+
+    def _simplify_indexed(self, multiindex):
+        """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""
+        a, b = self.ufl_operands
+        return Sum(Indexed(a, multiindex), Indexed(b, multiindex))
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate."""
@@ -253,12 +259,7 @@ class Division(Operator):
         a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
-        # Avoiding integer division by casting to float
-        try:
-            e = float(a) / float(b)
-        except TypeError:
-            e = complex(a) / complex(b)
-        return e
+        return a / b
 
     def __str__(self):
         """Format as a string."""

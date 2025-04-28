@@ -19,7 +19,7 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import apply_default_restrictions, apply_restrictions
+from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 
@@ -33,9 +33,10 @@ from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.algorithms.remove_component_tensors import remove_component_tensors
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import extract_unique_domain
+from ufl.domain import MeshSequence, extract_domains, extract_unique_domain
 from ufl.utils.sequences import max_degree
 
 
@@ -184,7 +185,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
-        domain = extract_unique_domain(f)
+        domain = extract_unique_domain(f, expand_mixed_mesh=False)
         if domain is not None:
             new_e = FunctionSpace(domain, new_e)
         new_f = Coefficient(new_e, count=i)
@@ -257,11 +258,22 @@ def compute_form_data(
     do_estimate_degrees=True,
     do_append_everywhere_integrals=True,
     complex_mode=False,
+    do_remove_component_tensors=False,
 ):
     """Compute form data.
 
     The default arguments configured to behave the way old FFC expects.
     """
+    # Currently, only integral_type="cell" can be used with MeshSequence.
+    for integral in form.integrals():
+        if integral.integral_type() != "cell":
+            all_domains = extract_domains(integral.integrand(), expand_mixed_mesh=False)
+            if any(isinstance(m, MeshSequence) for m in all_domains):
+                raise NotImplementedError(f"""
+                    Only integral_type="cell" can be used with MeshSequence;
+                    got integral_type={integral.integral_type()}
+                """)
+
     # TODO: Move this to the constructor instead
     self = FormData()
 
@@ -306,10 +318,6 @@ def compute_form_data(
     if do_apply_integral_scaling:
         form = apply_integral_scaling(form)
 
-    # Apply default restriction to fully continuous terminals
-    if do_apply_default_restrictions:
-        form = apply_default_restrictions(form)
-
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller
     # set of types and treating geometric quantities like any other
@@ -334,11 +342,15 @@ def compute_form_data(
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
-        form = apply_restrictions(form)
+        form = apply_restrictions(form, apply_default=do_apply_default_restrictions)
 
     # If in real mode, remove any complex nodes introduced during form processing.
     if not complex_mode:
         form = remove_complex_nodes(form)
+
+    # Remove component tensors
+    if do_remove_component_tensors:
+        form = remove_component_tensors(form)
 
     # --- Group integrals into IntegralData objects
     # Most of the heavy lifting is done above in group_form_integrals.

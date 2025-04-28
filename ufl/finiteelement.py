@@ -147,14 +147,14 @@ class FiniteElement(AbstractFiniteElement):
     """A directly defined finite element."""
 
     __slots__ = (
-        "_repr",
-        "_str",
-        "_family",
         "_cell",
         "_degree",
-        "_reference_value_shape",
+        "_family",
         "_pullback",
+        "_reference_value_shape",
+        "_repr",
         "_sobolev_space",
+        "_str",
         "_sub_elements",
         "_subdegree",
     )

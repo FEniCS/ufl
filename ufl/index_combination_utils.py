@@ -161,7 +161,7 @@ def create_slice_indices(component, shape, fi):
             slice_indices.extend(ii)
             all_indices.extend(ii)
         else:
-            raise ValueError(f"Not expecting {ind}.")
+            raise ValueError(f"Not expecting {ind} [type {type(ind)}].")
 
     if len(all_indices) != len(shape):
         raise ValueError("Component and shape length don't match.")
@@ -215,11 +215,9 @@ def merge_overlapping_indices(afi, afid, bfi, bfid):
 
     # Find repeated indices, brute force version
     for i0 in range(an):
-        for i1 in range(bn):
-            if afi[i0] == bfi[i1]:
-                repeated_indices.append(afi[i0])
-                repeated_index_dimensions.append(afid[i0])
-                break
+        if afi[i0] in bfi:
+            repeated_indices.append(afi[i0])
+            repeated_index_dimensions.append(afid[i0])
 
     # Collect only non-repeated indices, brute force version
     for i, d in sorted(zip(afi + bfi, afid + bfid)):
