@@ -13,7 +13,7 @@ from math import pi
 import numpy as np
 
 from ufl.action import Action
-from ufl.algorithms.analysis import extract_arguments
+from ufl.algorithms.analysis import extract_arguments, extract_coefficients
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.argument import BaseArgument
@@ -1148,9 +1148,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     def reference_grad(self, o):
         """Differentiate a reference_grad."""
-        raise NotImplementedError(
-            "Currently no support for ReferenceGrad in CoefficientDerivative."
-        )
+        if len(extract_coefficients(o)) > 0:
+            raise NotImplementedError(
+                "Currently no support for ReferenceGrad in CoefficientDerivative."
+            )
+        else:
+            return Zero(o.ufl_shape)
         # TODO: This is implementable for regular derivative(M(f),f,v)
         #       but too messy if customized coefficient derivative
         #       relations are given by the user.  We would only need
