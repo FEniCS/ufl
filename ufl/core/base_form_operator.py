@@ -14,6 +14,7 @@ ExternalOperator or Interpolate.
 # Modified by Nacime Bouziani, 2021-2022
 
 from collections import OrderedDict
+from numbers import Number
 
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient
@@ -183,13 +184,9 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def __eq__(self, other):
         """Check for equality."""
-        if self is other:
-            return True
-        return (
-            type(self) is type(other)
-            and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
-            and self.ufl_function_space() == other.ufl_function_space()
-        )
+        if isinstance(other, Number) and other == 0:
+            return self.empty()
+        raise NotImplementedError()
 
     @property
     def _parent_type(self):
