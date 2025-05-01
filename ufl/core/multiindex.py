@@ -16,7 +16,7 @@ from ufl.utils.counted import Counted
 __all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
 
-class IndexBase(object):
+class IndexBase:
     """Base class for all indices."""
 
     __slots__ = ()
