@@ -11,6 +11,7 @@
 from itertools import chain
 
 from ufl.argument import Coargument
+from ufl.core.interpolate import Interpolate
 from ufl.core.ufl_type import ufl_type
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
 
@@ -61,6 +62,15 @@ class Adjoint(BaseForm):
             # reconstruction, making it a robust strategy for handling
             # subclasses of `ufl.Coargument`.
             return primal_arg
+        elif isinstance(form, Interpolate):
+            from ufl.algorithms.replace import replace
+
+            v, u = form.arguments()
+            mapping = {
+                v: type(v)(v.ufl_function_space(), number=1, part=v.part()),
+                u: type(u)(u.ufl_function_space(), number=0, part=u.part()),
+            }
+            return replace(form, mapping)
 
         return super(Adjoint, cls).__new__(cls)
 

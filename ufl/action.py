@@ -72,14 +72,12 @@ class Action(BaseForm):
 
         # Simplify Action(Interpolate(Argument, Coargument), BaseForm)
         # -> Interpolate(Argument, BaseForm)
-        if (
-            isinstance(left, Interpolate)
-            and len(left.arguments()) == 2
-            and isinstance(right, BaseForm)
-            and len(right.arguments()) == 1
-        ):
-            _, operand = left.argument_slots()
-            return left._ufl_expr_reconstruct_(operand, right)
+        if isinstance(left, Interpolate):
+            v, operand = left.argument_slots()
+            if v.number() == 1:
+                if v.ufl_function_space() != right.ufl_function_space():
+                    raise TypeError("Incompatible function spaces in Action")
+                return left._ufl_expr_reconstruct_(operand, v=right)
 
         # Action distributes over sums on the LHS
         if isinstance(left, Sum):
