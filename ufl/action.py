@@ -70,15 +70,6 @@ class Action(BaseForm):
         if isinstance(right, (Coargument, Argument)):
             return left
 
-        # Simplify Action(Interpolate(Argument, Coargument), BaseForm)
-        # -> Interpolate(Argument, BaseForm)
-        if isinstance(left, Interpolate):
-            v, operand = left.argument_slots()
-            if v.number() == 1:
-                if v.ufl_function_space() != right.ufl_function_space():
-                    raise TypeError("Incompatible function spaces in Action")
-                return left._ufl_expr_reconstruct_(operand, v=right)
-
         # Action distributes over sums on the LHS
         if isinstance(left, Sum):
             return FormSum(*((Action(component, right), 1) for component in left.ufl_operands))
@@ -95,6 +86,31 @@ class Action(BaseForm):
                 *((Action(left, c), w) for c, w in zip(right.components(), right.weights()))
             )
 
+        # Check compatibility of function spaces
+        _check_function_spaces(left, right)
+
+        # Simplify Action(BaseForm, Interpolate(Expr, Coargument))
+        # -> Interpolate(Expr, BaseForm)
+        if (
+            isinstance(right, Interpolate)
+            and isinstance(left, BaseForm)
+            and len(left.arguments()) == 1
+        ):
+            v, operand = right.argument_slots()
+            if v.number() == 0:
+                return right._ufl_expr_reconstruct_(operand, v=left)
+
+        # Simplify Action(Interpolate(Expr, Coargument), BaseForm)
+        # -> Interpolate(Expr, BaseForm)
+        if (
+            isinstance(left, Interpolate)
+            and isinstance(right, BaseForm)
+            and len(right.arguments()) == 1
+        ):
+            v, operand = left.argument_slots()
+            if v.number() == len(left.arguments()) - 1:
+                return left._ufl_expr_reconstruct_(operand, v=right)
+
         return super(Action, cls).__new__(cls)
 
     def __init__(self, left, right):
@@ -105,9 +121,6 @@ class Action(BaseForm):
         self._right = right
         self.ufl_operands = (self._left, self._right)
         self._domains = None
-
-        # Check compatibility of function spaces
-        _check_function_spaces(left, right)
 
         self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
         self._hash = None
