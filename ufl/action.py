@@ -97,7 +97,7 @@ class Action(BaseForm):
             and len(left.arguments()) == 1
         ):
             v, operand = right.argument_slots()
-            if v.number() == 0:
+            if v == right.arguments()[0]:
                 return right._ufl_expr_reconstruct_(operand, v=left)
 
         # Simplify Action(Interpolate(Expr, Coargument), BaseForm)
@@ -108,7 +108,7 @@ class Action(BaseForm):
             and len(right.arguments()) == 1
         ):
             v, operand = left.argument_slots()
-            if v.number() == len(left.arguments()) - 1:
+            if v == left.arguments()[-1]:
                 return left._ufl_expr_reconstruct_(operand, v=right)
 
         return super(Action, cls).__new__(cls)
