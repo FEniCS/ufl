@@ -20,6 +20,8 @@
 # The bilinear form a(v, u1) and linear form L(v) for
 # one backward Euler step with the heat equation.
 #
+from utils import LagrangeElement
+
 from ufl import (
     Coefficient,
     Constant,
@@ -32,13 +34,10 @@ from ufl import (
     grad,
     triangle,
 )
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 cell = triangle
-element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+element = LagrangeElement(cell, 1)
+domain = Mesh(LagrangeElement(cell, 1, (2,)))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)  # Test function
