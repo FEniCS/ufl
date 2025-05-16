@@ -11,6 +11,7 @@
 # Modified by Cecile Daversin-Catty, 2018.
 # Modified by Ignacia Fierro-Piccardo 2023.
 
+import numpy as np
 from ufl.argument import Argument
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
@@ -19,6 +20,7 @@ from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import Counted
+
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -200,6 +202,82 @@ class Coefficient(FormArgument, BaseCoefficient):
     def __repr__(self):
         """Representation."""
         return self._repr
+
+    def traverse_dag_apply_coefficient_split(
+        self,
+        coefficient_split,
+        reference_value=False,
+        reference_grad=0,
+        restricted=None,
+        cache=None,
+    ):
+        from ufl.classes import (
+            ComponentTensor,
+            MultiIndex,
+            NegativeRestricted,
+            PositiveRestricted,
+            ReferenceGrad,
+            ReferenceValue,
+            Zero,
+        )
+        from ufl.core.multiindex import indices
+        from ufl.checks import is_cellwise_constant
+        from ufl.domain import extract_unique_domain
+        from ufl.tensors import as_tensor
+
+        if self not in coefficient_split:
+            c = self
+            if reference_value:
+                c = ReferenceValue(c)
+            for _ in range(reference_grad):
+                # Return zero if expression is trivially constant. This has to
+                # happen here because ReferenceGrad has no access to the
+                # topological dimension of a literal zero.
+                if is_cellwise_constant(c):
+                    dim = extract_unique_domain(subcoeff).topological_dimension()
+                    c = Zero(c.ufl_shape + (dim,), c.ufl_free_indices, c.ufl_index_dimensions)
+                else:
+                    c = ReferenceGrad(c)
+            if restricted == "+":
+                c = PositiveRestricted(c)
+            elif restricted == "-":
+                c = NegativeRestricted(c)
+            elif restricted is not None:
+                raise RuntimeError(f"Got unknown restriction: {restricted}")
+            return c
+        # Reference value expected
+        if not reference_value:
+            raise RuntimeError(f"ReferenceValue expected: got {o}")
+        # Derivative indices
+        beta = indices(reference_grad)
+        components = []
+        for subcoeff in coefficient_split[self]:
+            c = subcoeff
+            # Apply terminal modifiers onto the subcoefficient
+            if reference_value:
+                c = ReferenceValue(c)
+            for _ in range(reference_grad):
+                # Return zero if expression is trivially constant. This has to
+                # happen here because ReferenceGrad has no access to the
+                # topological dimension of a literal zero.
+                if is_cellwise_constant(c):
+                    dim = extract_unique_domain(subcoeff).topological_dimension()
+                    c = Zero(c.ufl_shape + (dim,), c.ufl_free_indices, c.ufl_index_dimensions)
+                else:
+                    c = ReferenceGrad(c)
+            if restricted == "+":
+                c = PositiveRestricted(c)
+            elif restricted == "-":
+                c = NegativeRestricted(c)
+            elif restricted is not None:
+                raise RuntimeError(f"Got unknown restriction: {restricted}")
+            # Collect components of the subcoefficient
+            for alpha in np.ndindex(subcoeff.ufl_element().reference_value_shape):
+                # New modified terminal: component[alpha + beta]
+                components.append(c[alpha + beta])
+        # Repack derivative indices to shape
+        i, = indices(1)
+        return ComponentTensor(as_tensor(components)[i], MultiIndex((i,) + beta))
 
 
 # --- Helper functions for subfunctions on mixed elements ---
