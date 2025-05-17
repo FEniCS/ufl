@@ -20,9 +20,11 @@ from ufl import (
     SpatialCoordinate,
     TestFunction,
     TrialFunction,
+    Zero,
     acos,
     as_matrix,
     as_tensor,
+    as_ufl,
     as_vector,
     asin,
     atan,
@@ -53,14 +55,12 @@ from ufl import (
     tetrahedron,
     triangle,
     variable,
-    zero,
 )
 from ufl.algorithms import compute_form_data, expand_indices, strip_variables
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.classes import Indexed, MultiIndex, ReferenceGrad
-from ufl.constantvalue import Zero, as_ufl
 from ufl.domain import extract_unique_domain
 from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback
@@ -166,7 +166,7 @@ def testScalarLiteral(self):
         return as_ufl(1)
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -176,7 +176,7 @@ def testIdentityLiteral(self):
         return Identity(2)[i, i]
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -204,7 +204,7 @@ def testArgument(self):
         )
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -219,7 +219,7 @@ def testSpatialCoordinate(self):
         )[0]
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -231,7 +231,7 @@ def testFacetNormal(self):
         )[0]
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -241,7 +241,7 @@ def testFacetArea(self):
         return FacetArea(Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)))
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -253,7 +253,7 @@ def testCellDiameter(self):
         )
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -265,7 +265,7 @@ def testCircumradius(self):
         )
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -275,7 +275,7 @@ def testCellVolume(self):
         return CellVolume(Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)))
 
     def df(w, v):
-        return zero()
+        return Zero()
 
     _test(self, f, df)
 
@@ -913,7 +913,7 @@ def test_zero_shape(self):
     w = Coefficient(V)
 
     (i,) = indices(1)
-    z = zero(shape)
+    z = Zero(shape)
     zi = z[:, i, :]
     wi = w[:, i, :]
     assert isinstance(zi, Zero)
