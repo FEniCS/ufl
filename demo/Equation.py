@@ -34,6 +34,8 @@
 # the unknown u to the right-hand side, all terms may
 # be listed on one line and left- and right-hand sides
 # extracted by lhs() and rhs().
+from utils import LagrangeElement
+
 from ufl import (
     Coefficient,
     FunctionSpace,
@@ -47,12 +49,9 @@ from ufl import (
     rhs,
     triangle,
 )
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
-element = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+element = LagrangeElement(triangle, 1)
+domain = Mesh(LagrangeElement(triangle, 1, (2,)))
 space = FunctionSpace(domain, element)
 
 k = 0.1
