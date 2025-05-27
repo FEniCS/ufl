@@ -14,12 +14,13 @@ ExternalOperator or Interpolate.
 # Modified by Nacime Bouziani, 2021-2022
 
 from collections import OrderedDict
+from numbers import Number
 
 from ufl.argument import Argument, Coargument
-from ufl.coefficient import BaseCoefficient
 from ufl.constantvalue import as_ufl
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
+from ufl.duals import is_dual
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
@@ -136,10 +137,10 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     @property
     def ufl_shape(self):
-        """Return the UFL shape of the coefficient.produced by the operator."""
-        arg, *_ = self.argument_slots()
-        if not isinstance(arg, BaseCoefficient) and isinstance(arg, (BaseForm, Coargument)):
-            arg, *_ = arg.arguments()
+        """Return the UFL shape of the coefficient produced by the operator."""
+        if len(self.arguments()) == 0:
+            return ()
+        arg, *_ = self.arguments()
         return arg._ufl_shape
 
     def ufl_function_space(self):
@@ -147,10 +148,10 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
         I.e. return the dual of the base form operator's Coargument space.
         """
-        arg, *_ = self.argument_slots()
-        if not isinstance(arg, BaseCoefficient) and isinstance(arg, (BaseForm, Coargument)):
-            arg, *_ = arg.arguments()
-        return arg.ufl_function_space()
+        if len(self.arguments()) == 0:
+            return None
+        arg, *_ = self.arguments()
+        return arg.ufl_function_space().dual()
 
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None
@@ -185,4 +186,27 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def __eq__(self, other):
         """Check for equality."""
+        if isinstance(other, Number) and other == 0:
+            return self.empty()
         raise NotImplementedError()
+
+    @property
+    def _parent_type(self):
+        """Is this a primal or dual expression?"""
+        return BaseForm if is_dual(self.ufl_function_space()) else Operator
+
+    def __add__(self, other):
+        """Add."""
+        return self._parent_type.__add__(self, other)
+
+    def __radd__(self, other):
+        """Add."""
+        return self._parent_type.__radd__(self, other)
+
+    def __mul__(self, other):
+        """Multiply."""
+        return self._parent_type.__mul__(self, other)
+
+    def __rmul__(self, other):
+        """Multiply."""
+        return self._parent_type.__rmul__(self, other)
