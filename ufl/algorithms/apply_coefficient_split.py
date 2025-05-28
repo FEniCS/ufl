@@ -41,6 +41,9 @@ class CoefficientSplitter(DAGTraverser):
 
         Args:
             coefficient_split: `dict` that maps mixed coefficients to their components.
+            compress: If True, ``result_cache`` will be used.
+            visited_cache: cache of intermediate results; expr -> r = self.process(expr, ...).
+            result_cache: cache of result objects for memory reuse, r -> r.
 
         """
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)

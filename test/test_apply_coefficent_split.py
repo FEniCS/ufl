@@ -39,8 +39,12 @@ def test_apply_coefficient_split(self):
     # expr_split = ComponentTensor(
     #     Indexed(
     #         ListTensor(
-    #             Indexed(PositiveRestricted(ReferenceGrad(ReferenceValue(f0))), MultiIndex((idx1,))),
-    #             Indexed(PositiveRestricted(ReferenceGrad(ReferenceValue(f1))), MultiIndex((idx1,)))
+    #             Indexed(
+    #                 PositiveRestricted(ReferenceGrad(ReferenceValue(f0))), MultiIndex((idx1,))
+    #             ),
+    #             Indexed(
+    #                 PositiveRestricted(ReferenceGrad(ReferenceValue(f1))), MultiIndex((idx1,))
+    #             ),
     #         ),
     #         MultiIndex((idx0,))
     #     ),
