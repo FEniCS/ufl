@@ -9,7 +9,7 @@
 import warnings
 from functools import singledispatchmethod
 from math import pi
-from typing import Union
+from typing import Type, Union
 
 import numpy as np
 
@@ -1346,14 +1346,14 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Explicitly defining da/dw == 0
         return self._process_argument(o)
 
-    def _process_argument(self, o: [Argument, Coargument]) -> Zero:
+    def _process_argument(self, o: Union[Argument, Coargument]) -> Zero:
         return self.independent_terminal(o)
 
     @process.register(Coefficient)
     def _(self, o: Expr) -> Expr:
         return self._process_coefficient(o)
 
-    def _process_coefficient(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _process_coefficient(self, o: Union[Expr]) -> Union[Expr]:
         """Differentiate an Expr or a BaseForm."""
         # Define dw/dw := d/ds [w + s v] = v
 
@@ -1781,7 +1781,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
         # Example: dN(u)/du where `N` is a BaseFormOperator and `u` a Coefficient
         self.pending_operations = ()
         # Create DAGTraverser caches.
-        self._dag_traverser_cache = {}
+        self._dag_traverser_cache: dict[tuple[Type, *Expr], DAGTraverser] = {}
 
     @singledispatchmethod
     def process(self, o: Expr) -> Expr:
@@ -1814,7 +1814,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(Grad)
     @DAGTraverser.postorder
-    def _(self, o: Union[Expr, BaseForm], f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Expr:
         """Apply to a grad."""
         gdim = o.ufl_shape[-1]
         key = (GradRuleset, gdim)
@@ -1823,7 +1823,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(ReferenceGrad)
     @DAGTraverser.postorder
-    def _(self, o: Union[Expr, BaseForm], f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a reference_grad."""
         tdim = o.ufl_shape[-1]
         key = (ReferenceGradRuleset, tdim)
@@ -1832,7 +1832,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(VariableDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Union[Expr, BaseForm], f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a variable_derivative."""
         _, op = o.ufl_operands
         key = (VariableRuleset, op)
@@ -1841,7 +1841,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(CoefficientDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Union[Expr, BaseForm], f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a coefficient_derivative."""
         _, w, v, cd = o.ufl_operands
         key = (GateauxDerivativeRuleset, w, v, cd)
@@ -1861,7 +1861,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Union[Expr, BaseForm], f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a base_form_operator_derivative."""
         _, w, v, cd = o.ufl_operands
         if isinstance(f, ZeroBaseForm):
@@ -1895,21 +1895,21 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(CoordinateDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Union[Expr, BaseForm], f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> CoordinateDerivative:
         """Apply to a coordinate_derivative."""
         _, o1, o2, o3 = o.ufl_operands
         return CoordinateDerivative(f, o1, o2, o3)
 
     @process.register(BaseFormCoordinateDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Union[Expr, BaseForm], f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> BaseFormCoordinateDerivative:
         """Apply to a base_form_coordinate_derivative."""
         _, o1, o2, o3 = o.ufl_operands
         return BaseFormCoordinateDerivative(f, o1, o2, o3)
 
     @process.register(Indexed)
     @DAGTraverser.postorder
-    def _(self, o: Union[Expr, BaseForm], Ap: Expr, ii: Expr) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, Ap: Expr, ii: Expr) -> Union[Expr, BaseForm]:
         """Apply to an indexed."""
         # Reuse if untouched
         if Ap is o.ufl_operands[0]:
@@ -2220,7 +2220,7 @@ class CoordinateDerivativeRuleDispatcher(DAGTraverser):
     ) -> None:
         """Initialise."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
-        self._dag_traverser_cache = {}
+        self._dag_traverser_cache: dict[tuple[Type, *Expr], DAGTraverser] = {}
 
     @singledispatchmethod
     def process(self, o: Expr) -> Expr:
