@@ -1670,7 +1670,7 @@ def pending_operations_recording(base_form_operator_handler):
         # calling the appropriate handler.
         if expression != base_form_op:
             self.pending_operations += (base_form_op,)
-            return self.coefficient(base_form_op)
+            return self._process_coefficient(base_form_op)
         return base_form_operator_handler(self, base_form_op, *dfs)
 
     return wrapper
