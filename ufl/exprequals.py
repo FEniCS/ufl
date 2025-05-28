@@ -1,12 +1,5 @@
 """Expr equals."""
 
-from collections import defaultdict
-
-hash_total = defaultdict(int)
-hash_collisions = defaultdict(int)
-hash_equals = defaultdict(int)
-hash_notequals = defaultdict(int)
-
 
 def expr_equals(self, other):
     """Checks whether the two expressions are represented the exact same way.
