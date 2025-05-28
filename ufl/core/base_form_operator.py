@@ -33,9 +33,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
     _ufl_noslots_ = True
-    _ufl_required_methods_: tuple[str, ...] = (
-        Operator._ufl_required_methods_ + BaseForm._ufl_required_methods_
-    )
 
     def __init__(self, *operands, function_space, derivatives=None, argument_slots=()):
         """Initialise.
