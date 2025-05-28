@@ -174,7 +174,7 @@ def extract_blocks(
         forms_tuple = tuple(forms)
     except TypeError:
         # Only one form returned
-        forms_tuple = (forms,)
+        forms_tuple = (forms,)  # type: ignore
     if i is not None:
         if (num_rows := len(forms_tuple)) <= i:
             raise RuntimeError(f"Cannot extract block {i} from form with {num_rows} blocks.")

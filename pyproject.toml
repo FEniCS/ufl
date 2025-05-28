@@ -87,6 +87,5 @@ convention = "google"
 
 [tool.mypy]
 disable_error_code = [
-    "assignment",
     "attr-defined",
 ]

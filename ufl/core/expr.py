@@ -181,7 +181,7 @@ class Expr(object, metaclass=UFLType):
     # Each subclass of Expr is checked to have these methods in
     # ufl_type
     # FIXME: Add more and enable all
-    _ufl_required_methods_ = (
+    _ufl_required_methods_: tuple[str, ...] = (
         # To compute the hash on demand, this method is called.
         "_ufl_compute_hash_",
         # The data returned from this method is used to compute the
@@ -461,7 +461,7 @@ class Expr(object, metaclass=UFLType):
 
 # Initializing traits here because Expr is not defined in the class
 # declaration
-Expr._ufl_class_ = Expr
+Expr._ufl_class_ = Expr  # type: ignore
 
 # Update Expr with metaclass properties (e.g. typecode or handler name)
 # Explicitly done here instead of using `@ufl_type` to avoid circular imports.

@@ -90,7 +90,7 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
     _ufl_noslots_ = True
-    _ufl_required_methods_: tuple[str] = (
+    _ufl_required_methods_: tuple[str, ...] = (
         CoefficientDerivative._ufl_required_methods_ + BaseForm._ufl_required_methods_
     )
 

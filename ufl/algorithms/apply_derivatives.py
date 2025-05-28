@@ -1737,7 +1737,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     @pending_operations_recording
     def external_operator(self, N: Expr, *dfs) -> Expr:
         """Differentiate an external_operator."""
-        result = ()
+        result: tuple[Expr, ...] = ()
         for i, df in enumerate(dfs):
             derivatives = tuple(dj + int(i == j) for j, dj in enumerate(N.derivatives))
             if len(extract_arguments(df)) != 0:
