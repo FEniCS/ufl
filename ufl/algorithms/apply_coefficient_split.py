@@ -28,7 +28,7 @@ from ufl.tensors import as_tensor
 
 
 class CoefficientSplitter(DAGTraverser):
-    """DAG Visitor to split mixed coefficients."""
+    """DAGTraverser to split mixed coefficients."""
 
     def __init__(
         self,

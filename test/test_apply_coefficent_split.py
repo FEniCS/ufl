@@ -1,23 +1,22 @@
 from ufl import (
     Coefficient,
     FunctionSpace,
-    Measure,
     Mesh,
     MeshSequence,
-    MixedFunctionSpace,
-    TestFunctions,
-    TrialFunctions,
-    interval,
-    tetrahedron,
     triangle,
 )
-from ufl.classes import ComponentTensor, Index, Indexed, ListTensor, MultiIndex, NegativeRestricted, PositiveRestricted, ReferenceGrad, ReferenceValue
-from ufl.algorithms.formsplitter import extract_blocks
 from ufl.algorithms.apply_coefficient_split import apply_coefficient_split
-from ufl.finiteelement import FiniteElement
+from ufl.classes import (
+    ComponentTensor,
+    Indexed,
+    ListTensor,
+    PositiveRestricted,
+    ReferenceGrad,
+    ReferenceValue,
+)
+from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
-from ufl.finiteelement import FiniteElement, MixedElement
 
 
 def test_apply_coefficient_split(self):
