@@ -50,9 +50,7 @@ class CoefficientSplitter(DAGTraverser):
         self._coefficient_split = coefficient_split
 
     @singledispatchmethod
-    def process(
-        self, o: Expr, reference_value: bool, reference_grad: int, restricted: str
-    ) -> Expr:
+    def process(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Split mixed coefficients.
 
         Args:
