@@ -103,7 +103,7 @@ class DAGTraverser:
 
         @wraps(method)
         def wrapper(self, o, *args):
-            processed_operands = [self(operand) for operand in o.ufl_operands]
+            processed_operands = [self(operand, *args) for operand in o.ufl_operands]
             return method(self, o, *processed_operands, *args)
 
         return wrapper
