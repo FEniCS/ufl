@@ -73,6 +73,7 @@ class CoefficientSplitter(DAGTraverser):
         return self.reuse_if_untouched(o, reference_value, reference_grad, restricted)
 
     @process.register(ReferenceValue)
+    @DAGTraverser.preorder
     def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle ReferenceValue."""
         if reference_value:
@@ -80,17 +81,19 @@ class CoefficientSplitter(DAGTraverser):
         (op,) = o.ufl_operands
         if not op._ufl_terminal_modifiers_:
             raise ValueError(f"Must be a terminal modifier: {op!r}.")
-        return self(op, True, reference_grad, restricted)
+        return (op,), True, reference_grad, restricted
 
     @process.register(ReferenceGrad)
+    @DAGTraverser.preorder
     def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle ReferenceGrad."""
         (op,) = o.ufl_operands
         if not op._ufl_terminal_modifiers_:
             raise ValueError(f"Must be a terminal modifier: {op!r}.")
-        return self(op, reference_value, reference_grad + 1, restricted)
+        return (op,), reference_value, reference_grad + 1, restricted
 
     @process.register(Restricted)
+    @DAGTraverser.preorder
     def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
         """Handle Restricted."""
         if restricted is not None:
@@ -98,7 +101,7 @@ class CoefficientSplitter(DAGTraverser):
         (op,) = o.ufl_operands
         if not op._ufl_terminal_modifiers_:
             raise ValueError(f"Must be a terminal modifier: {op!r}.")
-        return self(op, reference_value, reference_grad, o._side)
+        return (op,), reference_value, reference_grad, o._side
 
     @process.register(Terminal)
     def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
