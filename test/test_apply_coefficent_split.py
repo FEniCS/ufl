@@ -3,6 +3,7 @@ from ufl import (
     FunctionSpace,
     Measure,
     Mesh,
+    MeshSequence,
     MixedFunctionSpace,
     TestFunctions,
     TrialFunctions,
@@ -21,15 +22,17 @@ from ufl.finiteelement import FiniteElement, MixedElement
 
 def test_apply_coefficient_split(self):
     cell = triangle
-    mesh = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    mesh0 = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    mesh1 = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
     elem0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     elem1 = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
-    elem = MixedElement([elem0, elem1])
-    V0 = FunctionSpace(mesh, elem0)
-    V1 = FunctionSpace(mesh, elem1)
-    V = FunctionSpace(mesh, elem)
+    V0 = FunctionSpace(mesh0, elem0)
+    V1 = FunctionSpace(mesh1, elem1)
     f0 = Coefficient(V0)
     f1 = Coefficient(V1)
+    mesh = MeshSequence([mesh0, mesh1])
+    elem = MixedElement([elem0, elem1])
+    V = FunctionSpace(mesh, elem)
     f = Coefficient(V)
     coefficient_split = {f: (f0, f1)}
     expr = PositiveRestricted(ReferenceGrad(ReferenceValue(f)))
