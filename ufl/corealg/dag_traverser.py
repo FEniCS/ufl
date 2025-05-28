@@ -120,7 +120,7 @@ class DAGTraverser:
         def postorder(method):
             @wraps(method)
             def wrapper(self, o, *args):
-                processed_operands = [self(o.ufl_operands[i]) for i in indices]
+                processed_operands = [self(o.ufl_operands[i], *args) for i in indices]
                 return method(self, o, *processed_operands, *args)
 
             return wrapper
@@ -131,20 +131,16 @@ class DAGTraverser:
     def preorder(method):
         """Preorder decorator.
 
-        It is more natural for users to write a post-order singledispatchmethod
-        whose arguments are ``(self, o, *processed_operands, *additional_args)``,
-        while `DAGTraverser` expects one whose arguments are
-        ``(self, o, *additional_args)``.
-        This decorator takes the former and converts the latter, processing
-        ``o.ufl_operands`` behind the users.
+        The wrappee takes ``(o_in, *args_in)``, processes them first, and
+        returns ``(o_out, *args_out)``. The wrapper then takes the output,
+        performs recursion based on the type of ``o_out`` using ``args_out``,
+        and returns the result.
 
         """
 
         @wraps(method)
-        def wrapper(self, o, *args):
-            if len(o.ufl_operands) > 1:
-                raise NotImplementedError(f"Unable to use preorder on o = {o} (len(o.ufl_operands) > 1)")
-            unprocessed_operands, *processed_args = method(self, o, *args)
-            return self(unprocessed_operands[0], *processed_args)
+        def wrapper(self, o_in, *args_in):
+            o_out, *args_out = method(self, o_in, *args_in)
+            return self(o_out, *args_out)
 
         return wrapper
