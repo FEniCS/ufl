@@ -1781,7 +1781,14 @@ class DerivativeRuleDispatcher(DAGTraverser):
         # Example: dN(u)/du where `N` is a BaseFormOperator and `u` a Coefficient
         self.pending_operations = ()
         # Create DAGTraverser caches.
-        self._dag_traverser_cache: dict[tuple[Type, *Expr], DAGTraverser] = {}
+        self._dag_traverser_cache: dict[
+            Union[
+                tuple[Type, Expr],
+                tuple[Type, Expr, Expr, Expr],
+                tuple[Type, Expr, Expr, Expr, Expr],
+            ],
+            DAGTraverser,
+        ] = {}
 
     @singledispatchmethod
     def process(self, o: Expr) -> Expr:
@@ -2220,7 +2227,7 @@ class CoordinateDerivativeRuleDispatcher(DAGTraverser):
     ) -> None:
         """Initialise."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
-        self._dag_traverser_cache: dict[tuple[Type, *Expr], DAGTraverser] = {}
+        self._dag_traverser_cache: dict[tuple[Type, Expr, Expr, Expr], DAGTraverser] = {}
 
     @singledispatchmethod
     def process(self, o: Expr) -> Expr:
