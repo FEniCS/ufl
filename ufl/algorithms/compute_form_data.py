@@ -461,7 +461,7 @@ def compute_form_data(
         for o in self.reduced_coefficients:
             c = self.function_replace_map[o]
             elem = c.ufl_element()
-            mesh = extract_unique_domain(c, expand_mixed_mesh=False)
+            mesh = extract_unique_domain(c, expand_mesh_sequence=False)
             # Use MeshSequence as an indicator for MixedElement as
             # the followings would be ambiguous:
             # -- elem.num_sub_elements > 1

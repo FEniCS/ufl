@@ -70,7 +70,7 @@ class RestrictionPropagator(MultiFunction):
         if self.current_restriction is not None:
             return o(self.current_restriction)
         if self.default_restriction is not None:
-            domain = extract_unique_domain(o, expand_mixed_mesh=False)
+            domain = extract_unique_domain(o, expand_mesh_sequence=False)
             if isinstance(domain, MeshSequence):
                 raise RuntimeError(
                     f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
@@ -95,7 +95,7 @@ class RestrictionPropagator(MultiFunction):
         if r is not None:
             return o(r)
         if self.default_restriction is not None:
-            domain = extract_unique_domain(o, expand_mixed_mesh=False)
+            domain = extract_unique_domain(o, expand_mesh_sequence=False)
             if isinstance(domain, MeshSequence):
                 raise RuntimeError(
                     f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
@@ -122,7 +122,7 @@ class RestrictionPropagator(MultiFunction):
         If the current restriction is different swap the sign, require a side to be set.
         """
         if isinstance(self.default_restriction, dict):
-            domain = extract_unique_domain(o, expand_mixed_mesh=False)
+            domain = extract_unique_domain(o, expand_mesh_sequence=False)
             if isinstance(domain, MeshSequence):
                 raise RuntimeError(
                     f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
@@ -332,7 +332,7 @@ class DomainRestrictionMapMaker(MultiFunction):
                 )
             else:
                 raise ValueError(f"Unexpected type {type(t)} object {t!r}.")
-        domain = extract_unique_domain(t, expand_mixed_mesh=False)
+        domain = extract_unique_domain(t, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
             raise RuntimeError(
                 f"Not expecting a terminal object on a mixed mesh at this stage: found {t!r}"
