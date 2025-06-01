@@ -50,7 +50,13 @@ class CoefficientSplitter(DAGTraverser):
         self._coefficient_split = coefficient_split
 
     @singledispatchmethod
-    def process(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
+    def process(
+        self,
+        o: Expr,
+        reference_value: Union[bool, None] = False,
+        reference_grad: Union[int, None] = 0,
+        restricted: Union[str, None] = None,
+    ) -> Expr:
         """Split mixed coefficients.
 
         Args:
@@ -60,7 +66,7 @@ class CoefficientSplitter(DAGTraverser):
             restricted: '+', '-', or None.
 
         Returns:
-            This o wrapped with `ReferenceValue` (if ``reference_value``),
+            This ``o`` wrapped with `ReferenceValue` (if ``reference_value``),
             `ReferenceGrad` (``reference_grad`` times), and `Restricted` (if
             ``restricted`` is '+' or '-'). The underlying terminal will be
             decomposed into components according to ``self._coefficient_split``.
@@ -69,64 +75,136 @@ class CoefficientSplitter(DAGTraverser):
         return super().process(o)
 
     @process.register(Expr)
-    def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
+    def _(
+        self,
+        o: Expr,
+        reference_value: Union[bool, None] = False,
+        reference_grad: Union[int, None] = 0,
+        restricted: Union[str, None] = None,
+    ) -> Expr:
         """Handle Expr."""
-        return self.reuse_if_untouched(o, reference_value, reference_grad, restricted)
+        return self.reuse_if_untouched(
+            o,
+            reference_value=reference_value,
+            reference_grad=reference_grad,
+            restricted=restricted,
+        )
 
     @process.register(ReferenceValue)
-    @DAGTraverser.preorder
-    def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
+    def _(
+        self,
+        o: Expr,
+        reference_value: Union[bool, None] = False,
+        reference_grad: Union[int, None] = 0,
+        restricted: Union[str, None] = None,
+    ) -> Expr:
         """Handle ReferenceValue."""
         if reference_value:
             raise RuntimeError(f"Can not apply ReferenceValue on a ReferenceValue: got {o}")
         (op,) = o.ufl_operands
         if not op._ufl_terminal_modifiers_:
             raise ValueError(f"Must be a terminal modifier: {op!r}.")
-        return op, True, reference_grad, restricted
+        return self(
+            op,
+            reference_value=True,
+            reference_grad=reference_grad,
+            restricted=restricted,
+        )
 
     @process.register(ReferenceGrad)
-    @DAGTraverser.preorder
-    def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
+    def _(
+        self,
+        o: Expr,
+        reference_value: Union[bool, None] = False,
+        reference_grad: Union[int, None] = 0,
+        restricted: Union[str, None] = None,
+    ) -> Expr:
         """Handle ReferenceGrad."""
         (op,) = o.ufl_operands
         if not op._ufl_terminal_modifiers_:
             raise ValueError(f"Must be a terminal modifier: {op!r}.")
-        return op, reference_value, reference_grad + 1, restricted
+        return self(
+            op,
+            reference_value=reference_value,
+            reference_grad=reference_grad + 1,
+            restricted=restricted,
+        )
 
     @process.register(Restricted)
-    @DAGTraverser.preorder
-    def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
+    def _(
+        self,
+        o: Expr,
+        reference_value: Union[bool, None] = False,
+        reference_grad: Union[int, None] = 0,
+        restricted: Union[str, None] = None,
+    ) -> Expr:
         """Handle Restricted."""
         if restricted is not None:
             raise RuntimeError(f"Can not apply Restricted on a Restricted: got {o}")
         (op,) = o.ufl_operands
         if not op._ufl_terminal_modifiers_:
             raise ValueError(f"Must be a terminal modifier: {op!r}.")
-        return op, reference_value, reference_grad, o._side
+        return self(
+            op,
+            reference_value=reference_value,
+            reference_grad=reference_grad,
+            restricted=o._side,
+        )
 
     @process.register(Terminal)
-    def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
+    def _(
+        self,
+        o: Expr,
+        reference_value: Union[bool, None] = False,
+        reference_grad: Union[int, None] = 0,
+        restricted: Union[str, None] = None,
+    ) -> Expr:
         """Handle Terminal."""
-        return self._handle_terminal(o, reference_value, reference_grad, restricted)
+        return self._handle_terminal(
+            o,
+            reference_value=reference_value,
+            reference_grad=reference_grad,
+            restricted=restricted,
+        )
 
     @process.register(Coefficient)
-    def _(self, o: Expr, reference_value: bool, reference_grad: int, restricted: str) -> Expr:
+    def _(
+        self,
+        o: Expr,
+        reference_value: Union[bool, None] = False,
+        reference_grad: Union[int, None] = 0,
+        restricted: Union[str, None] = None,
+    ) -> Expr:
         """Handle Coefficient."""
         if o not in self._coefficient_split:
-            return self._handle_terminal(o, reference_value, reference_grad, restricted)
+            return self._handle_terminal(
+                o,
+                reference_value=reference_value,
+                reference_grad=reference_grad,
+                restricted=restricted,
+            )
         if not reference_value:
             raise RuntimeError("ReferenceValue expected")
         beta = indices(reference_grad)
         components = []
         for coeff in self._coefficient_split[o]:
-            c = self._handle_terminal(coeff, reference_value, reference_grad, restricted)
+            c = self._handle_terminal(
+                coeff,
+                reference_value=reference_value,
+                reference_grad=reference_grad,
+                restricted=restricted,
+            )
             for alpha in np.ndindex(coeff.ufl_element().reference_value_shape):
                 components.append(c[alpha + beta])
         (i,) = indices(1)
         return ComponentTensor(as_tensor(components)[i], MultiIndex((i,) + beta))
 
     def _handle_terminal(
-        self, o: Expr, reference_value: bool, reference_grad: int, restricted: str
+        self,
+        o: Expr,
+        reference_value: Union[bool, None] = False,
+        reference_grad: Union[int, None] = 0,
+        restricted: Union[str, None] = None,
     ) -> Expr:
         """Wrap terminal as needed."""
         c = o
@@ -156,7 +234,4 @@ def apply_coefficient_split(expr: Expr, coefficient_split: dict) -> Expr:
     """
     if not coefficient_split:
         return expr
-    reference_value = False
-    reference_grad = 0
-    restricted = None
-    return CoefficientSplitter(coefficient_split)(expr, reference_value, reference_grad, restricted)
+    return CoefficientSplitter(coefficient_split)(expr)
