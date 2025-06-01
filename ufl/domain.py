@@ -409,8 +409,8 @@ def extract_domains(expr: Union[Expr, Form], expand_mesh_sequence: bool = True):
         return tuple(expr.domain_numbering().keys())
     elif isinstance(expr, Integral):
         domainlist = [expr.ufl_domain()]
-        domainlist.extend(extract_domains(expr.integrand(), expand_mixed_mesh=expand_mixed_mesh))
-        return sort_domains(join_domains(domainlist, expand_mixed_mesh=expand_mixed_mesh))
+        domainlist.extend(extract_domains(expr.integrand(), expand_mesh_sequence=expand_mesh_sequence))
+        return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
     else:
         domainlist = []
         for t in traverse_unique_terminals(expr):
