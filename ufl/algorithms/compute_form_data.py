@@ -185,7 +185,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
-        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        domain = extract_unique_domain(f, expand_mesh_sequence=False)
         if domain is not None:
             new_e = FunctionSpace(domain, new_e)
         new_f = Coefficient(new_e, count=i)
@@ -267,7 +267,7 @@ def compute_form_data(
     # Currently, only integral_type="cell" can be used with MeshSequence.
     for integral in form.integrals():
         if integral.integral_type() != "cell":
-            all_domains = extract_domains(integral.integrand(), expand_mixed_mesh=False)
+            all_domains = extract_domains(integral.integrand(), expand_mesh_sequence=False)
             if any(isinstance(m, MeshSequence) for m in all_domains):
                 raise NotImplementedError(f"""
                     Only integral_type="cell" can be used with MeshSequence;
