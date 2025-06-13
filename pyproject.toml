@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fenics-ufl"
-version = "2024.3.0.dev0"
+version = "2025.2.0.dev0"
 authors = [{ name = "UFL contributors" }]
 maintainers = [
     { email = "fenics-steering-council@googlegroups.com" },

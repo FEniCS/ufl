@@ -349,12 +349,12 @@ def sort_domains(domains: Sequence[AbstractDomain]):
     return tuple(sorted(domains, key=lambda domain: domain._ufl_sort_key_()))
 
 
-def join_domains(domains: Sequence[AbstractDomain], expand_mixed_mesh: bool = True):
+def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool = True):
     """Take a list of domains and return a set with only unique domain objects.
 
     Args:
         domains: Sequence of domains.
-        expand_mixed_mesh: If True, MeshSequence components are expanded.
+        expand_mesh_sequence: If True, MeshSequence components are expanded.
 
     Returns:
         `set` of domains.
@@ -362,7 +362,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mixed_mesh: bool = Tr
     """
     # Use hashing to join domains, ignore None
     domains_ = set(domains) - set((None,))
-    if expand_mixed_mesh:
+    if expand_mesh_sequence:
         domains = set()
         for domain in domains_:
             domains.update(domain.meshes)
@@ -384,12 +384,12 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mixed_mesh: bool = Tr
 # TODO: Move these to an analysis module?
 
 
-def extract_domains(expr: Expr | Form, expand_mixed_mesh: bool = True):
+def extract_domains(expr: Union[Expr, Form], expand_mesh_sequence: bool = True):
     """Return all domains expression is defined on.
 
     Args:
         expr: Expr or Form.
-        expand_mixed_mesh: If True, MeshSequence components are expanded.
+        expand_mesh_sequence: If True, MeshSequence components are expanded.
 
     Returns:
         `tuple` of domains.
@@ -398,30 +398,30 @@ def extract_domains(expr: Expr | Form, expand_mixed_mesh: bool = True):
     from ufl.form import Form
 
     if isinstance(expr, Form):
-        if not expand_mixed_mesh:
+        if not expand_mesh_sequence:
             raise NotImplementedError("""
-                Currently, can only extract domains from a Form with expand_mixed_mesh=True""")
+                Currently, can only extract domains from a Form with expand_mesh_sequence=True""")
         # Be consistent with the numbering used in signature.
         return tuple(expr.domain_numbering().keys())
     else:
         domainlist = []
         for t in traverse_unique_terminals(expr):
             domainlist.extend(t.ufl_domains())
-        return sort_domains(join_domains(domainlist, expand_mixed_mesh=expand_mixed_mesh))
+        return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
 
 
-def extract_unique_domain(expr, expand_mixed_mesh: bool = True):
+def extract_unique_domain(expr, expand_mesh_sequence: bool = True):
     """Return the single unique domain expression is defined on or throw an error.
 
     Args:
         expr: Expr or Form.
-        expand_mixed_mesh: If True, MeshSequence components are expanded.
+        expand_mesh_sequence: If True, MeshSequence components are expanded.
 
     Returns:
         domain.
 
     """
-    domains = extract_domains(expr, expand_mixed_mesh=expand_mixed_mesh)
+    domains = extract_domains(expr, expand_mesh_sequence=expand_mesh_sequence)
     if len(domains) == 1:
         return domains[0]
     elif domains:

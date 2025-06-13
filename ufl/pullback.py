@@ -415,7 +415,7 @@ class MixedPullback(AbstractPullback):
         g_components = []
         offset = 0
         # For each unique piece in reference space, apply the appropriate pullback
-        domain = domain or extract_unique_domain(expr, expand_mixed_mesh=False)
+        domain = domain or extract_unique_domain(expr, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
             if len(domain) != self._element.num_sub_elements:
                 raise ValueError(f"""num. component meshes ({len(domain)}) !=
@@ -507,7 +507,7 @@ class SymmetricPullback(AbstractPullback):
         for subelem in self._element.sub_elements:
             offsets.append(offsets[-1] + subelem.reference_value_size)
         # For each unique piece in reference space, apply the appropriate pullback
-        domain = domain or extract_unique_domain(expr, expand_mixed_mesh=False)
+        domain = domain or extract_unique_domain(expr, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
             if len(domain) != self._element.num_sub_elements:
                 raise ValueError(f"""num. component meshes ({len(domain)}) !=

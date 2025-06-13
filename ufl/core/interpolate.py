@@ -35,18 +35,22 @@ class Interpolate(BaseFormOperator):
         """
         dual_args = (Coargument, BaseForm)
 
+        expr = as_ufl(expr)
+        if isinstance(expr, dual_args):
+            raise ValueError("Expecting the first argument to be primal.")
+
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
                 raise ValueError("Expecting a primal function space.")
-            v = Argument(v.dual(), 0)
+            from ufl.algorithms import extract_arguments
+
+            expr_args = extract_arguments(expr)
+            is_adjoint = len(expr_args) and expr_args[0].number() == 0
+            v = Argument(v.dual(), 1 if is_adjoint else 0)
         elif not isinstance(v, dual_args):
             raise ValueError(
                 "Expecting the second argument to be FunctionSpace, Coargument, or BaseForm."
             )
-
-        expr = as_ufl(expr)
-        if isinstance(expr, dual_args):
-            raise ValueError("Expecting the first argument to be primal.")
 
         # Reversed order convention
         argument_slots = (v, expr)
