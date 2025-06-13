@@ -384,7 +384,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
 # TODO: Move these to an analysis module?
 
 
-def extract_domains(expr: Union[Expr, Form], expand_mesh_sequence: bool = True):
+def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
     """Return all domains expression is defined on.
 
     Args:
