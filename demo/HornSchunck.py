@@ -3,6 +3,8 @@
 #  http://code.google.com/p/debiosee/wiki/DemosOptiocFlowHornSchunck
 # but not tested so this could contain errors!
 #
+from utils import LagrangeElement
+
 from ufl import (
     Coefficient,
     Constant,
@@ -15,15 +17,12 @@ from ufl import (
     inner,
     triangle,
 )
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 # Finite element spaces for scalar and vector fields
 cell = triangle
-S = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-V = FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+S = LagrangeElement(cell, 1)
+V = LagrangeElement(cell, 1, (2,))
+domain = Mesh(LagrangeElement(cell, 1, (2,)))
 S_space = FunctionSpace(domain, S)
 V_space = FunctionSpace(domain, V)
 
