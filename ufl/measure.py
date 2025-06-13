@@ -319,12 +319,14 @@ class Measure(object):
 
     def __eq__(self, other):
         """Checks if two Measures are equal."""
+        if not isinstance(other, Measure):
+            return False
+
         sorted_metadata = sorted((k, id(v)) for k, v in list(self._metadata.items()))
         sorted_other_metadata = sorted((k, id(v)) for k, v in list(other._metadata.items()))
 
         return (
-            isinstance(other, Measure)
-            and self._integral_type == other._integral_type
+            self._integral_type == other._integral_type
             and self._subdomain_id == other._subdomain_id
             and self._domain == other._domain
             and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
