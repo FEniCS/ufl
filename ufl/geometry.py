@@ -145,7 +145,7 @@ class GeometricQuantity(Terminal):
 
     def __repr__(self):
         """Representation."""
-        r = "%s(%s)" % (self._ufl_class_.__name__, repr(self._domain))
+        r = f"{self._ufl_class_.__name__}({self._domain!r})"
         return r
 
     def _ufl_compute_hash_(self):

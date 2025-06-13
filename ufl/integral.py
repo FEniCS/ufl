@@ -18,7 +18,7 @@ from ufl.protocols import id_or_none
 __all_classes__ = ["Integral"]
 
 
-class Integral(object):
+class Integral:
     """An integral over a single domain."""
 
     __slots__ = (

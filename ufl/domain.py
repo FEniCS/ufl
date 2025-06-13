@@ -10,7 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
@@ -26,7 +26,7 @@ from ufl.sobolevspace import H1
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
 
 
-class AbstractDomain(object):
+class AbstractDomain:
     """Symbolic representation of a geometric domain.
 
     Domain has only a geometric and a topological dimension.
@@ -77,9 +77,7 @@ class AbstractDomain(object):
         """Return iterable component meshes."""
         return iter(self.meshes)
 
-    def iterable_like(
-        self, element: AbstractFiniteElement
-    ) -> Union[Iterable["Mesh"], "MeshSequence"]:
+    def iterable_like(self, element: AbstractFiniteElement) -> Iterable[Mesh] | MeshSequence:
         """Return iterable object that is iterable like ``element``."""
         raise NotImplementedError("iterable_like() method not implemented")
 
@@ -141,12 +139,12 @@ class Mesh(AbstractDomain, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_element), repr(self._ufl_id))
+        r = f"Mesh({self._ufl_coordinate_element!r}, {self._ufl_id!r})"
         return r
 
     def __str__(self):
         """Format as a string."""
-        return "<Mesh #%s>" % (self._ufl_id,)
+        return f"<Mesh #{self._ufl_id}>"
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -168,7 +166,7 @@ class Mesh(AbstractDomain, UFLObject):
         """Return the component meshes."""
         return (self,)
 
-    def iterable_like(self, element: AbstractFiniteElement) -> Iterable["Mesh"]:
+    def iterable_like(self, element: AbstractFiniteElement) -> Iterable[Mesh]:
         """Return iterable object that is iterable like ``element``."""
         return iter(self for _ in range(element.num_sub_elements))
 
@@ -228,11 +226,11 @@ class MeshSequence(AbstractDomain, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return "MeshSequence(%s)" % (repr(self._meshes),)
+        return f"MeshSequence({self._meshes!r})"
 
     def __str__(self):
         """Format as a string."""
-        return "<MeshSequence #%s>" % (self._meshes,)
+        return f"<MeshSequence #{self._meshes}>"
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -251,7 +249,7 @@ class MeshSequence(AbstractDomain, UFLObject):
         """Return the component meshes."""
         return self._meshes
 
-    def iterable_like(self, element: AbstractFiniteElement) -> "MeshSequence":
+    def iterable_like(self, element: AbstractFiniteElement) -> MeshSequence:
         """Return iterable object that is iterable like ``element``."""
         if len(self) != element.num_sub_elements:
             raise RuntimeError(f"""len(self) ({len(self)}) !=
@@ -298,15 +296,14 @@ class MeshView(AbstractDomain, UFLObject):
     def __repr__(self):
         """Representation."""
         tdim = self.topological_dimension()
-        r = "MeshView(%s, %s, %s)" % (repr(self._ufl_mesh), repr(tdim), repr(self._ufl_id))
+        r = f"MeshView({self._ufl_mesh!r}, {tdim!r}, {self._ufl_id!r})"
         return r
 
     def __str__(self):
         """Format as a string."""
-        return "<MeshView #%s of dimension %d over mesh %s>" % (
-            self._ufl_id,
-            self.topological_dimension(),
-            self._ufl_mesh,
+        return (
+            f"<MeshView #{self._ufl_id} of dimension {self.topological_dimension()} over"
+            f" mesh {self._ufl_mesh}>"
         )
 
     def _ufl_hash_data_(self):
@@ -387,7 +384,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
 # TODO: Move these to an analysis module?
 
 
-def extract_domains(expr: Union[Expr, Form], expand_mesh_sequence: bool = True):
+def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
     """Return all domains expression is defined on.
 
     Args:

@@ -30,7 +30,7 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 # --- Class representing an argument (basis function) in a form ---
 
 
-class BaseArgument(object):
+class BaseArgument:
     """UFL value: Representation of an argument to a form."""
 
     __slots__ = ()
@@ -107,15 +107,15 @@ class BaseArgument(object):
         """Format as a string."""
         number = str(self._number)
         if len(number) == 1:
-            s = "v_%s" % number
+            s = f"v_{number}"
         else:
-            s = "v_{%s}" % number
+            s = f"v_{{{number}}}"
         if self._part is not None:
             part = str(self._part)
             if len(part) == 1:
-                s = "%s^%s" % (s, part)
+                s = f"{s}^{part}"
             else:
-                s = "%s^{%s}" % (s, part)
+                s = f"{s}^{{{part}}}"
         return s
 
     def __repr__(self):
@@ -175,11 +175,7 @@ class Argument(FormArgument, BaseArgument):
         FormArgument.__init__(self)
         BaseArgument.__init__(self, function_space, number, part)
 
-        self._repr = "Argument(%s, %s, %s)" % (
-            repr(self._ufl_function_space),
-            repr(self._number),
-            repr(self._part),
-        )
+        self._repr = f"Argument({self._ufl_function_space!r}, {self._number!r}, {self._part!r})"
 
     def ufl_domains(self):
         """Return UFL domains."""
@@ -225,11 +221,7 @@ class Coargument(BaseForm, BaseArgument):
 
         self.ufl_operands = ()
         self._hash = None
-        self._repr = "Coargument(%s, %s, %s)" % (
-            repr(self._ufl_function_space),
-            repr(self._number),
-            repr(self._part),
-        )
+        self._repr = f"Coargument({self._ufl_function_space!r}, {self._number!r}, {self._part!r})"
 
     def arguments(self, outer_form=None):
         """Return all Argument objects found in form."""

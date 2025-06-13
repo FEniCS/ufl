@@ -28,9 +28,7 @@ class Constant(Terminal, Counted):
 
         # Repr string is build in such way, that reconstruction
         # with eval() is possible
-        self._repr = "Constant({}, {}, {})".format(
-            repr(self._ufl_domain), repr(self._ufl_shape), repr(self._count)
-        )
+        self._repr = f"Constant({self._ufl_domain!r}, {self._ufl_shape!r}, {self._count!r})"
 
     @property
     def ufl_shape(self):
@@ -71,10 +69,9 @@ class Constant(Terminal, Counted):
 
     def _ufl_signature_data_(self, renumbering):
         """Signature data for constant depends on renumbering."""
-        return "Constant({}, {}, {})".format(
-            self._ufl_domain._ufl_signature_data_(renumbering),
-            repr(self._ufl_shape),
-            repr(renumbering[self]),
+        return (
+            f"Constant({self._ufl_domain._ufl_signature_data_(renumbering)}, "
+            f"{self._ufl_shape!r}, {renumbering[self]!r})"
         )
 
 
