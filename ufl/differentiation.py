@@ -6,6 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from typing import Any
 from ufl.argument import Argument, Coargument
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
@@ -166,7 +167,11 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     # Therefore the latter overwrites Operator reconstruction and we would have:
     #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ =
     #   BaseFormOperator._ufl_expr_reconstruct_
-    _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
+    def _ufl_expr_reconstruct_(
+        self, *operands, function_space=None, derivatives=None, argument_slots=None
+    ):
+        return Operator._ufl_expr_reconstruct_(*operands)
+
     # Set __repr__
     __repr__ = Operator.__repr__
 
