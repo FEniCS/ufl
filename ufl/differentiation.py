@@ -6,7 +6,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from typing import Any
 from ufl.argument import Argument, Coargument
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
