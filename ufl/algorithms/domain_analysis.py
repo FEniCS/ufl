@@ -92,6 +92,7 @@ class IntegralData(object):
 
     def __eq__(self, other):
         """Check for equality."""
+        raise NotImplementedError
         # Currently only used for tests:
         return (
             self.integral_type == other.integral_type
