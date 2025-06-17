@@ -27,22 +27,22 @@ class DAGTraverser:
         self._visited_cache = {} if visited_cache is None else visited_cache
         self._result_cache = {} if result_cache is None else result_cache
 
-    def __call__(self, node: Expr, *args) -> Expr:
+    def __call__(self, node: Expr, **kwargs) -> Expr:
         """Perform memoised DAG traversal with ``process`` singledispatch method.
 
         Args:
             node: `Expr` to start DAG traversal from.
-            args: arguments to the ``process`` singledispatchmethod.
+            **kwargs: keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
             Processed `Expr`.
 
         """
-        cache_key = (node, *args)
+        cache_key = (node, tuple((k, v) for k, v in kwargs.items()))
         try:
             return self._visited_cache[cache_key]
         except KeyError:
-            result = self.process(node, *args)
+            result = self.process(node, **kwargs)
             # Optionally check if r is in result_cache, a memory optimization
             # to be able to keep representation of result compact
             if self._compress:
@@ -58,12 +58,12 @@ class DAGTraverser:
             return result
 
     @singledispatchmethod
-    def process(self, o: Expr, *args) -> Expr:
+    def process(self, o: Expr, **kwargs) -> Expr:
         """Process node by type.
 
         Args:
             o: `Expr` to start DAG traversal from.
-            args: arguments to the ``process`` singledispatchmethod.
+            **kwargs: keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
             Processed `Expr`.
@@ -71,18 +71,18 @@ class DAGTraverser:
         """
         raise AssertionError(f"Rule not set for {type(o)}")
 
-    def reuse_if_untouched(self, o: Expr) -> Expr:
+    def reuse_if_untouched(self, o: Expr, **kwargs) -> Expr:
         """Reuse if touched.
 
         Args:
             o: `Expr` to start DAG traversal from.
-            new_ufl_operands: new ufl_operands of ``o``.
+            **kwargs: keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
             Processed `Expr`.
 
         """
-        new_ufl_operands = [self(operand) for operand in o.ufl_operands]
+        new_ufl_operands = [self(operand, **kwargs) for operand in o.ufl_operands]
         if all(nc == c for nc, c in zip(new_ufl_operands, o.ufl_operands)):
             return o
         else:
@@ -93,18 +93,18 @@ class DAGTraverser:
         """Postorder decorator.
 
         It is more natural for users to write a post-order singledispatchmethod
-        whose arguments are ``(self, o, *processed_operands, *additional_args)``,
+        whose arguments are ``(self, o, *processed_operands, **kwargs)``,
         while `DAGTraverser` expects one whose arguments are
-        ``(self, o, *additional_args)``.
-        This decorator takes the former and converts the latter, processing
+        ``(self, o, **kwargs)``.
+        This decorator takes the former and converts to the latter, processing
         ``o.ufl_operands`` behind the users.
 
         """
 
         @wraps(method)
-        def wrapper(self, o, *args):
-            processed_operands = [self(operand) for operand in o.ufl_operands]
-            return method(self, o, *processed_operands, *args)
+        def wrapper(self, o, **kwargs):
+            processed_operands = [self(operand, **kwargs) for operand in o.ufl_operands]
+            return method(self, o, *processed_operands, **kwargs)
 
         return wrapper
 
@@ -119,9 +119,9 @@ class DAGTraverser:
 
         def postorder(method):
             @wraps(method)
-            def wrapper(self, o, *args):
-                processed_operands = [self(o.ufl_operands[i]) for i in indices]
-                return method(self, o, *processed_operands, *args)
+            def wrapper(self, o, **kwargs):
+                processed_operands = [self(o.ufl_operands[i], **kwargs) for i in indices]
+                return method(self, o, *processed_operands, **kwargs)
 
             return wrapper
 
