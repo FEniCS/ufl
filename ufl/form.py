@@ -41,7 +41,9 @@ def _sorted_integrals(integrals):
     """
     # Group integrals in multilevel dict by keys
     # [domain][integral_type][subdomain_id]
-    integrals_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list))))
+    integrals_dict = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    )
     for integral in integrals:
         d = integral.ufl_domain()
         if d is None:
@@ -601,11 +603,7 @@ class Form(BaseForm):
         )
         # Collect domains in additional_domain_integral_type_map.
         domains_in_additional_domain_integral_type_map = join_domains(
-            [
-                d
-                for itg in self._integrals
-                for d in itg.additional_domain_integral_type_map()
-            ]
+            [d for itg in self._integrals for d in itg.additional_domain_integral_type_map()]
         )
         domains_in_additional_domain_integral_type_map -= set(self._integration_domains)
         # Collect domains in integrands.
@@ -616,11 +614,9 @@ class Form(BaseForm):
             domain = extract_unique_domain(o, expand_mesh_sequence=False)
             domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
-        all_domains = \
-            self._integration_domains + \
-            sort_domains(
-                join_domains(domains_in_additional_domain_integral_type_map | domains_in_integrands)
-            )
+        all_domains = self._integration_domains + sort_domains(
+            join_domains(domains_in_additional_domain_integral_type_map | domains_in_integrands)
+        )
         # Let problem solving environments access all domains via
         # self._domain_numbering.keys() (wrapped in extract_domains()).
         self._domain_numbering = {d: i for i, d in enumerate(all_domains)}
