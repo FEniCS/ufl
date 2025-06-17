@@ -42,7 +42,15 @@ class IntegralData(object):
         "subdomain_id",
     )
 
-    def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
+    def __init__(
+        self,
+        domain,
+        integral_type,
+        subdomain_id,
+        integrals,
+        metadata,
+        domain_integral_type_map=None,
+    ):
         """Initialise."""
         if 1 != len(set(itg.ufl_domain() for itg in integrals)):
             raise ValueError("Multiple domains mismatch in integral data.")
@@ -61,7 +69,11 @@ class IntegralData(object):
         # this stage:
         self.integral_coefficients = None
         self.enabled_coefficients = None
-        self.domain_integral_type_map = None
+        if domain_integral_type_map is None:
+            self.domain_integral_type_map = {}
+        else:
+            # This map must have been sorted by domains.
+            self.domain_integral_type_map = domain_integral_type_map
 
         # TODO: I think we can get rid of this with some refactoring
         # in ffc:
@@ -69,6 +81,7 @@ class IntegralData(object):
 
     def __lt__(self, other):
         """Check if self is less than other."""
+        raise NotImplementedError
         # To preserve behaviour of extract_integral_data:
         return (self.integral_type, self.subdomain_id, self.integrals, self.metadata) < (
             other.integral_type,
