@@ -89,7 +89,7 @@ def assertEqualBySampling(actual, expected):
         if c.ufl_shape == ():
             return z * (0.1 + 0.9 * m / n)
         elif len(c.ufl_shape) == 1:
-            return tuple((z * (j + 0.1 + 0.9 * m / n) for j in range(c.ufl_shape[0])))
+            return tuple(z * (j + 0.1 + 0.9 * m / n) for j in range(c.ufl_shape[0]))
         else:
             raise NotImplementedError("Tensor valued expressions not supported here.")
 
@@ -118,10 +118,10 @@ def assertEqualBySampling(actual, expected):
     if not av == bv:
         print("Tried to sample expressions to compare but failed:")
         print()
-        print((str(a)))
+        print(str(a))
         print(av)
         print()
-        print((str(b)))
+        print(str(b))
         print(bv)
         print()
 

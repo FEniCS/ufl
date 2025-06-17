@@ -9,7 +9,7 @@
 __all_classes__ = ["Equation"]
 
 
-class Equation(object):
+class Equation:
     """Equation.
 
     This class is used to represent equations expressed by the "=="

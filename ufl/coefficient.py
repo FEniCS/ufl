@@ -47,7 +47,7 @@ class BaseCoefficient(Counted):
         self._ufl_function_space = function_space
         self._ufl_shape = function_space.value_shape
 
-        self._repr = "BaseCoefficient(%s, %s)" % (repr(self._ufl_function_space), repr(self._count))
+        self._repr = f"BaseCoefficient({self._ufl_function_space!r}, {self._count!r})"
 
     @property
     def ufl_shape(self):
@@ -138,7 +138,7 @@ class Cofunction(BaseCoefficient, BaseForm):
 
         self.ufl_operands = ()
         self._hash = None
-        self._repr = "Cofunction(%s, %s)" % (repr(self._ufl_function_space), repr(self._count))
+        self._repr = f"Cofunction({self._ufl_function_space!r}, {self._count!r})"
 
     def equals(self, other):
         """Check equality."""
@@ -183,7 +183,7 @@ class Coefficient(FormArgument, BaseCoefficient):
         FormArgument.__init__(self)
         BaseCoefficient.__init__(self, function_space, count)
 
-        self._repr = "Coefficient(%s, %s)" % (repr(self._ufl_function_space), repr(self._count))
+        self._repr = f"Coefficient({self._ufl_function_space!r}, {self._count!r})"
 
     def ufl_domains(self):
         """Get the UFL domains."""

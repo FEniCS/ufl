@@ -111,7 +111,7 @@ class Action(BaseForm):
             if v == left.arguments()[-1]:
                 return left._ufl_expr_reconstruct_(operand, v=right)
 
-        return super(Action, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, left, right):
         """Initialise."""
@@ -122,7 +122,8 @@ class Action(BaseForm):
         self.ufl_operands = (self._left, self._right)
         self._domains = None
 
-        self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
+        self._repr = f"Action({self._left!r}, {self._right!r})"
+
         self._hash = None
 
     def ufl_function_spaces(self):
