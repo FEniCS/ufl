@@ -372,7 +372,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
     else:
         domains = domains_
     if not domains:
-        return ()
+        return set()
 
     # Check geometric dimension compatibility
     gdims = set()
