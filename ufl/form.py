@@ -618,7 +618,9 @@ class Form(BaseForm):
         domains_in_integrands -= set(self._integration_domains)
         all_domains = \
             self._integration_domains + \
-            sort_domains(join_domains(domains_in_additional_domain_integral_type_map | domains_in_integrands))
+            sort_domains(
+                join_domains(domains_in_additional_domain_integral_type_map | domains_in_integrands)
+            )
         # Let problem solving environments access all domains via
         # self._domain_numbering.keys() (wrapped in extract_domains()).
         self._domain_numbering = {d: i for i, d in enumerate(all_domains)}

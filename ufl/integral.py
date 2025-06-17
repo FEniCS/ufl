@@ -153,7 +153,10 @@ class Integral(object):
             d: ufl.measure.integral_type_to_measure_name[it]
             for d, it in self._additional_domain_integral_type_map.items()
         }
-        return f"{{self._integrand}} * {mname}({self._ufl_domain}[{self._subdomain_id}], {self._metadata}, {temp})"
+        return (
+            f"{{self._integrand}} * "
+            f"{mname}({self._ufl_domain}[{self._subdomain_id}], {self._metadata}, {temp})"
+        )
 
     def __repr__(self):
         """Representation."""
