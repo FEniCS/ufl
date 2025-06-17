@@ -150,7 +150,7 @@ def group_integrals_by_domain_and_type(integrals, domains):
         if itg.ufl_domain() is None:
             raise ValueError("Integral has no domain.")
         key = (itg.ufl_domain(), itg.integral_type())
-        key2 = tuple(itg.additional_domain_integral_type_map())
+        key2 = tuple(itg.additional_domain_integral_type_map().items())
         # Append integral to list of integrals with shared key
         integrals_by_domain_and_type[key][key2].append(itg)
 
@@ -285,7 +285,7 @@ def build_integral_data(integrals):
         ufl_domain = integral.ufl_domain()
         subdomain_ids = integral.subdomain_id()
         additional_domain_integral_type_tuple = tuple(
-            integral.additional_domain_integral_type_map()
+            integral.additional_domain_integral_type_map().items()
         )
         if "everywhere" in subdomain_ids:
             raise ValueError(
@@ -423,7 +423,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
         subdomain_id = integral.subdomain_id()
         subdomain_data = id_or_none(integral.subdomain_data())
         additional_domain_integral_type_tuple = tuple(
-            integral.additional_domain_integral_type_map()
+            integral.additional_domain_integral_type_map().items()
         )
         integrand = renumber_indices(integral.integrand())
         key = (
