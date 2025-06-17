@@ -4,10 +4,12 @@ import pytest
 
 from ufl import (
     Coefficient,
+    ComplexValue,
     FunctionSpace,
     Mesh,
     TestFunction,
     TrialFunction,
+    Zero,
     as_tensor,
     as_ufl,
     atan,
@@ -40,7 +42,6 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.comparison_checker import ComplexComparisonError, do_comparison_check
 from ufl.algorithms.formtransformations import compute_form_adjoint
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
-from ufl.constantvalue import ComplexValue, Zero
 from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
