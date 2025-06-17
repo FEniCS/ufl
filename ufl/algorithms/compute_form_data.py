@@ -511,6 +511,12 @@ def compute_form_data(
             for itg_data in self.integral_data:
                 # Must have split coefficients and removed component/list tensors.
                 domain_integral_type_map = make_domain_integral_type_map(itg_data)
+                print("fetched:")
+                for k,v in domain_integral_type_map.items():
+                    print(k ,v)
+                print("given:")
+                for k,v in itg_data.domain_integral_type_map.items():
+                    print(k ,v)
                 new_integrals = []
                 for integral in itg_data.integrals:
                     new_integral = apply_restrictions(
