@@ -15,7 +15,7 @@ from itertools import chain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
-from ufl.domain import AbstractDomain, as_domain, extract_domains
+from ufl.domain import AbstractDomain, as_domain, extract_domains, sort_domains
 from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
@@ -102,7 +102,14 @@ class Measure(object):
     expression.
     """
 
-    __slots__ = ("_domain", "_integral_type", "_metadata", "_subdomain_data", "_subdomain_id")
+    __slots__ = (
+        "_additional_domain_integral_type_map",
+        "_domain",
+        "_integral_type",
+        "_metadata",
+        "_subdomain_data",
+        "_subdomain_id",
+    )
 
     def __init__(
         self,
@@ -111,6 +118,7 @@ class Measure(object):
         subdomain_id="everywhere",
         metadata=None,
         subdomain_data=None,
+        additional_domain_integral_type_map=None,
     ):
         """Initialise.
 
@@ -122,6 +130,8 @@ class Measure(object):
                 affecting how code is generated, including parameters
                 for optimization or debugging of generated code
             subdomain_data: object representing data to interpret subdomain_id with
+            additional_domain_integral_type_map: additional domain-integral_type map
+                for multi-domain problems
         """
         # Map short name to long name and require a valid one
         self._integral_type = as_integral_type(integral_type)
@@ -156,6 +166,15 @@ class Measure(object):
             raise ValueError("Invalid metadata.")
         self._metadata = metadata or {}
 
+        if additional_domain_integral_type_map is None:
+            self._additional_domain_integral_type_map = {}
+        else:
+            _additional_domain_integral_type_map = {}
+            for d in sort_domains(additional_domain_integral_type_map.keys()):
+                it = additional_domain_integral_type_map[d]
+                _additional_domain_integral_type_map[as_domain(d)] = as_integral_type(it)
+            self._additional_domain_integral_type_map = _additional_domain_integral_type_map
+
     def integral_type(self):
         """Return the domain type.
 
@@ -174,6 +193,17 @@ class Measure(object):
         """Return the domain id of this measure (integer)."""
         return self._subdomain_id
 
+    def additional_domain_integral_type_map(self):
+        """Return the additional domain-integral_type map."""
+        return self._additional_domain_integral_type_map
+
+    def additional_domain_measure_name_map(self):
+        """Return the additional domain-measure_name map."""
+        return {
+            d: integral_type_to_measure_name[it]
+            for d, it in self._additional_domain_integral_type_map.items()
+        }
+
     def metadata(self):
         """Return the integral metadata.
 
@@ -184,7 +214,13 @@ class Measure(object):
         return self._metadata
 
     def reconstruct(
-        self, integral_type=None, subdomain_id=None, domain=None, metadata=None, subdomain_data=None
+        self,
+        integral_type=None,
+        subdomain_id=None,
+        domain=None,
+        metadata=None,
+        subdomain_data=None,
+        additional_domain_integral_type_map=None,
     ):
         """Construct a new Measure object with some properties replaced with new values.
 
@@ -201,6 +237,8 @@ class Measure(object):
             subdomain_id = self.subdomain_id()
         if domain is None:
             domain = self.ufl_domain()
+        if additional_domain_integral_type_map is None:
+            additional_domain_integral_type_map = self.additional_domain_measure_name_map()
         if metadata is None:
             metadata = self.metadata()
         if subdomain_data is None:
@@ -211,6 +249,7 @@ class Measure(object):
             subdomain_id=subdomain_id,
             metadata=metadata,
             subdomain_data=subdomain_data,
+            additional_domain_integral_type_map=additional_domain_integral_type_map,
         )
 
     def subdomain_data(self):
@@ -281,6 +320,10 @@ class Measure(object):
             args.append("subdomain_id=%s" % (self._subdomain_id,))
         if self._domain is not None:
             args.append("domain=%s" % (self._domain,))
+        if self._additional_domain_integral_type_map:
+            args.append(
+                f"additional_domain_integral_type_map={self.additional_domain_measure_name_map()}"
+            )
         if self._metadata:  # Stored as {} if None
             args.append("metadata=%s" % (self._metadata,))
         if self._subdomain_data is not None:
@@ -291,12 +334,16 @@ class Measure(object):
     def __repr__(self):
         """Return a repr string for this Measure."""
         args = []
-        args.append(repr(self._integral_type))
+        args.append(repr(integral_type_to_measure_name[self._integral_type]))
 
         if self._subdomain_id is not None:
             args.append("subdomain_id=%s" % repr(self._subdomain_id))
         if self._domain is not None:
             args.append("domain=%s" % repr(self._domain))
+        if self._additional_domain_integral_type_map:
+            args.append(
+                f"additional_domain_integral_type_map={self.additional_domain_measure_name_map()!r}"
+            )
         if self._metadata:  # Stored as {} if None
             args.append("metadata=%s" % repr(self._metadata))
         if self._subdomain_data is not None:
@@ -314,6 +361,7 @@ class Measure(object):
             hash(self._domain),
             metadata_hashdata,
             id_or_none(self._subdomain_data),
+            tuple((hash(d), it) for d, it in self._additional_domain_integral_type_map.items()),
         )
         return hash(hashdata)
 
@@ -329,6 +377,8 @@ class Measure(object):
             and self._domain == other._domain
             and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
             and sorted_metadata == sorted_other_metadata
+            and self._additional_domain_integral_type_map
+            == other._additional_domain_integral_type_map
         )
 
     def __add__(self, other):
@@ -436,6 +486,7 @@ class Measure(object):
             subdomain_id=subdomain_id,
             metadata=self.metadata(),
             subdomain_data=self.subdomain_data(),
+            additional_domain_integral_type_map=self.additional_domain_integral_type_map(),
         )
         return Form([integral])
 
