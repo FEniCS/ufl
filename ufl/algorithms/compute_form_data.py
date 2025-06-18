@@ -517,6 +517,10 @@ def compute_form_data(
                 print("given:")
                 for k,v in itg_data.domain_integral_type_map.items():
                     print(k ,v)
+                for k,v in domain_integral_type_map.items():
+                    assert k in itg_data.domain_integral_type_map, f"{k} not in {itg_data.domain_integral_type_map}"
+                    assert v == itg_data.domain_integral_type_map[k], f"{v} != {domain_integral_type_map[k]}"
+                domain_integral_type_map = itg_data.domain_integral_type_map
                 new_integrals = []
                 for integral in itg_data.integrals:
                     new_integral = apply_restrictions(
