@@ -197,7 +197,7 @@ class Measure:
         """Return the additional domain-integral_type map."""
         return self._extra_measures
 
-    def additional_domain_measure_name_map(self):
+    def extra_measures_with_measure_names(self):
         """Return the additional domain-measure_name map."""
         return {d: integral_type_to_measure_name[it] for d, it in self._extra_measures.items()}
 
@@ -235,7 +235,7 @@ class Measure:
         if domain is None:
             domain = self.ufl_domain()
         if extra_measures is None:
-            extra_measures = self.additional_domain_measure_name_map()
+            extra_measures = self.extra_measures_with_measure_names()
         if metadata is None:
             metadata = self.metadata()
         if subdomain_data is None:
@@ -318,7 +318,7 @@ class Measure:
         if self._domain is not None:
             args.append(f"domain={self._domain}")
         if self._extra_measures:
-            args.append(f"extra_measures={self.additional_domain_measure_name_map()}")
+            args.append(f"extra_measures={self.extra_measures_with_measure_names()}")
         if self._metadata:  # Stored as {} if None
             args.append(f"metadata={self._metadata}")
         if self._subdomain_data is not None:
@@ -336,7 +336,7 @@ class Measure:
         if self._domain is not None:
             args.append(f"domain={self._domain!r}")
         if self._extra_measures:
-            args.append(f"extra_measures={self.additional_domain_measure_name_map()!r}")
+            args.append(f"extra_measures={self.extra_measures_with_measure_names()!r}")
         if self._metadata:  # Stored as {} if None
             args.append(f"metadata={self._metadata!r}")
         if self._subdomain_data is not None:
