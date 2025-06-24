@@ -28,14 +28,8 @@ class RestrictionPropagator(MultiFunction):
         self.current_restriction = side
         self.default_restriction = default_restriction
         # Caches for propagating the restriction with map_expr_dag
-        self.vcaches = {
-            "+": {},
-            "-": {},
-        }
-        self.rcaches = {
-            "+": {},
-            "-": {},
-        }
+        self.vcaches = {"+": {}, "-": {}}
+        self.rcaches = {"+": {}, "-": {}}
         if self.current_restriction is None:
             self._rp = {
                 "+": RestrictionPropagator("+", default_restriction),
