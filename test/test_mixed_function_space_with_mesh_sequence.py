@@ -26,7 +26,7 @@ from ufl.pullback import contravariant_piola, identity_pullback
 from ufl.sobolevspace import L2, HDiv
 
 
-def test_mixed_function_space_with_mixed_mesh_cell():
+def test_mixed_function_space_with_mesh_sequence_cell():
     cell = triangle
     elem0 = LagrangeElement(cell, 1)
     elem1 = FiniteElement("Brezzi-Douglas-Marini", cell, 2, (2,), contravariant_piola, HDiv)
@@ -85,7 +85,7 @@ def test_mixed_function_space_with_mixed_mesh_cell():
     assert id0.enabled_coefficients == [True, True]
 
 
-def test_mixed_function_space_with_mixed_mesh_facet():
+def test_mixed_function_space_with_mesh_sequence_facet():
     cell = triangle
     elem0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     elem1 = FiniteElement("Brezzi-Douglas-Marini", cell, 2, (2,), contravariant_piola, HDiv)
@@ -202,7 +202,7 @@ def test_mixed_function_space_with_mesh_sequence_hash():
     assert u_ == u
 
 
-def test_mixed_function_space_with_mixed_mesh_raise():
+def test_mixed_function_space_with_mesh_sequence_raise():
     cell = triangle
     elem0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
     elem1 = FiniteElement("Brezzi-Douglas-Marini", cell, 2, (2,), contravariant_piola, HDiv)
