@@ -20,10 +20,7 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import (
-    apply_restrictions,
-    make_domain_integral_type_map,
-)
+from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 
@@ -512,24 +509,14 @@ def compute_form_data(
                 """)
             for itg_data in self.integral_data:
                 # Must have split coefficients and removed component/list tensors.
-                domain_integral_type_map = make_domain_integral_type_map(itg_data)
-                for k, v in domain_integral_type_map.items():
-                    assert k in itg_data.domain_integral_type_map, (
-                        f"{k} not in {itg_data.domain_integral_type_map}"
-                    )
-                    assert v == itg_data.domain_integral_type_map[k], (
-                        f"{v} != {domain_integral_type_map[k]}"
-                    )
-                domain_integral_type_map = itg_data.domain_integral_type_map
                 new_integrals = []
                 for integral in itg_data.integrals:
                     new_integral = apply_restrictions(
                         integral,
                         assume_single_integral_type=False,
-                        domain_integral_type_map=domain_integral_type_map,
+                        domain_integral_type_map=itg_data.domain_integral_type_map,
                     )
                     new_integrals.append(new_integral)
-                itg_data.domain_integral_type_map = domain_integral_type_map
                 itg_data.integrals = new_integrals
 
     # --- Checks

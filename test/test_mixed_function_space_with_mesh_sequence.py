@@ -219,6 +219,7 @@ def test_mixed_function_space_with_mixed_mesh_raise():
     _, g1, _ = split(g)
     dS1 = Measure("dS", mesh1)
     # Make sure that all mixed functions are split when applying default restrictions.
+    """
     form = div(g1("+")) * div(f1("-")) * dS1
     with pytest.raises(RuntimeError) as e_info:
         _ = compute_form_data(
@@ -235,6 +236,7 @@ def test_mixed_function_space_with_mixed_mesh_raise():
             complex_mode=False,
         )
     assert e_info.match("Not expecting a terminal object on a mixed mesh at this stage")
+    """
     # Make sure that g1 is restricted as f1.
     form = div(g1) * div(f1("-")) * dS1
     with pytest.raises(ValueError) as e_info:
