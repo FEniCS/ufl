@@ -50,7 +50,7 @@ class AbstractFiniteElement(_abc.ABC):
         """Return a hash."""
 
     @_abc.abstractmethod
-    def __eq__(self, other: AbstractFiniteElement) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check if this element is equal to another element."""
 
     @_abc.abstractproperty
@@ -62,7 +62,7 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the pullback for this element."""
 
     @_abc.abstractproperty
-    def embedded_superdegree(self) -> _typing.Union[int, None]:
+    def embedded_superdegree(self) -> int:
         """Degree of the minimum degree Lagrange space that spans this element.
 
         This returns the degree of the lowest degree Lagrange space such
@@ -109,7 +109,7 @@ class AbstractFiniteElement(_abc.ABC):
         of sub-elements.
         """
 
-    def __ne__(self, other: AbstractFiniteElement) -> bool:
+    def __ne__(self, other: object) -> bool:
         """Check if this element is different to another element."""
         return not self.__eq__(other)
 

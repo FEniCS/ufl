@@ -56,11 +56,8 @@ def V2(domain_2d):
 
 
 def test_symbolic(V1, V2):
-    # Set dual of V2
-    V2_dual = V2.dual()
-
     u = Coefficient(V1)
-    vstar = Argument(V2_dual, 0)
+    vstar = Argument(V2.dual(), 0)
     Iu = Interpolate(u, vstar)
 
     assert Iu == Interpolate(u, V2)
@@ -71,17 +68,17 @@ def test_symbolic(V1, V2):
 
 
 def test_symbolic_adjoint(V1, V2):
-    # Set dual of V2
-    V2_dual = V2.dual()
-
     u = Argument(V1, 1)
-    vstar = Cofunction(V2_dual)
-    Iu = Interpolate(u, vstar)
+    form = inner(1, Argument(V2, 0)) * dx
+    cofun = Cofunction(V2.dual())
 
-    assert Iu.ufl_function_space() == V2_dual
-    assert Iu.argument_slots() == (vstar, u)
-    assert Iu.arguments() == (u,)
-    assert Iu.ufl_operands == (u,)
+    for vstar in (form, cofun):
+        Iu = Interpolate(u, vstar)
+
+        assert Iu.ufl_function_space() == V1.dual()
+        assert Iu.argument_slots() == (vstar, u)
+        assert Iu.arguments() == (u,)
+        assert Iu.ufl_operands == (u,)
 
 
 def test_action_adjoint(V1, V2):

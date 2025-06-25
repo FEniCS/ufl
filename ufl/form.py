@@ -87,7 +87,11 @@ class BaseForm(object, metaclass=UFLType):
     # classes
     __slots__ = ()
     _ufl_is_abstract_ = True
-    _ufl_required_methods_ = ("_analyze_form_arguments", "_analyze_domains", "ufl_domains")
+    _ufl_required_methods_: tuple[str, ...] = (
+        "_analyze_form_arguments",
+        "_analyze_domains",
+        "ufl_domains",
+    )
 
     def __init__(self):
         """Initialise."""
@@ -598,7 +602,7 @@ class Form(BaseForm):
         for o in chain(
             self.arguments(), self.coefficients(), self.constants(), self.geometric_quantities()
         ):
-            domain = extract_unique_domain(o, expand_mixed_mesh=False)
+            domain = extract_unique_domain(o, expand_mesh_sequence=False)
             domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
         all_domains = self._integration_domains + sort_domains(join_domains(domains_in_integrands))
@@ -689,7 +693,7 @@ class FormSum(BaseForm):
         "_weights",
         "ufl_operands",
     )
-    _ufl_required_methods_ = "_analyze_form_arguments"
+    _ufl_required_methods_ = "_analyze_form_arguments"  # type: ignore
 
     def __new__(cls, *args, **kwargs):
         """Create a new FormSum."""

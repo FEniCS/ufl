@@ -90,6 +90,9 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
     _ufl_noslots_ = True
+    _ufl_required_methods_: tuple[str, ...] = (
+        CoefficientDerivative._ufl_required_methods_ + BaseForm._ufl_required_methods_
+    )
 
     def __init__(self, base_form, coefficients, arguments, coefficient_derivatives):
         """Initalise."""
@@ -163,7 +166,11 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     # Therefore the latter overwrites Operator reconstruction and we would have:
     #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ =
     #   BaseFormOperator._ufl_expr_reconstruct_
-    _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
+    def _ufl_expr_reconstruct_(
+        self, *operands, function_space=None, derivatives=None, argument_slots=None
+    ):
+        return Operator._ufl_expr_reconstruct_(*operands)
+
     # Set __repr__
     __repr__ = Operator.__repr__
 
@@ -308,7 +315,7 @@ class ReferenceGrad(CompoundDerivative):
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
             # TODO: Use max topological dimension if there are multiple topological dimensions.
-            dim = extract_unique_domain(f, expand_mixed_mesh=False).topological_dimension()
+            dim = extract_unique_domain(f, expand_mesh_sequence=False).topological_dimension()
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
@@ -316,7 +323,7 @@ class ReferenceGrad(CompoundDerivative):
         """Initalise."""
         CompoundDerivative.__init__(self, (f,))
         # TODO: Use max topological dimension if there are multiple topological dimensions.
-        self._dim = extract_unique_domain(f, expand_mixed_mesh=False).topological_dimension()
+        self._dim = extract_unique_domain(f, expand_mesh_sequence=False).topological_dimension()
 
     def _ufl_expr_reconstruct_(self, op):
         """Return a new object of the same type with new operands."""
