@@ -10,9 +10,8 @@
 # Modified by Massimiliano Leoni, 2016.
 
 import numbers
-import warnings
 import typing
-
+import warnings
 from math import atan2
 
 import ufl
