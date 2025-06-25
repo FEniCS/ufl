@@ -74,7 +74,11 @@ select = [
     # "B", # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
     # "A", # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
 ]
-ignore = ["RUF005", "RUF012"]
+ignore = [
+    "RUF005",
+    "RUF012",
+    "UP045", # Ractivate once Python 3.9 EoL
+]
 allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
 [tool.ruff.lint.per-file-ignores]

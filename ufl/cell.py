@@ -184,7 +184,7 @@ class AbstractCell(UFLObject):
         return self.sub_entity_types(tdim - 3)
 
 
-_sub_entity_celltypes: typing.Dict[str, list[tuple[str, ...]]] = {
+_sub_entity_celltypes: dict[str, list[tuple[str, ...]]] = {
     "vertex": [("vertex",)],
     "interval": [tuple("vertex" for i in range(2)), ("interval",)],
     "triangle": [
@@ -358,7 +358,7 @@ class TensorProductCell(AbstractCell):
         if not isinstance(self._tdim, numbers.Integral):
             raise ValueError("Expecting integer topological_dimension.")
 
-    def sub_cells(self) -> typing.Tuple[AbstractCell, ...]:
+    def sub_cells(self) -> tuple[AbstractCell, ...]:
         """Return list of cell factors."""
         return self._cells
 

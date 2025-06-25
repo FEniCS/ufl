@@ -8,8 +8,6 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
-import typing
-
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.utils.counted import Counted
@@ -32,7 +30,7 @@ class FixedIndex(IndexBase):
 
     __slots__ = ("_hash", "_value")
 
-    _cache: typing.Dict[int, "FixedIndex"] = {}
+    _cache: dict[int, "FixedIndex"] = {}
 
     def __getnewargs__(self):
         """Get new args."""
@@ -118,7 +116,7 @@ class MultiIndex(Terminal):
 
     __slots__ = ("_indices",)
 
-    _cache: typing.Dict[typing.Tuple[int], "MultiIndex"] = {}
+    _cache: dict[tuple[int], "MultiIndex"] = {}
 
     def __getnewargs__(self):
         """Get new args."""

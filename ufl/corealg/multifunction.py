@@ -7,7 +7,6 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-import typing
 from inspect import signature
 
 from ufl.core.expr import Expr
@@ -47,7 +46,7 @@ class MultiFunction:
     algorithm object. Of course Python's function call overhead still applies.
     """
 
-    _handlers_cache: typing.Dict[type, typing.Tuple[typing.List[str], bool]] = {}
+    _handlers_cache: dict[type, tuple[list[str], bool]] = {}
 
     def __init__(self):
         """Initialise."""

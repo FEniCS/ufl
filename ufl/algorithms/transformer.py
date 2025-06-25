@@ -14,7 +14,6 @@ algorithms.
 # Modified by Anders Logg, 2009-2010
 
 import inspect
-import typing
 
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.classes import Variable, all_ufl_classes
@@ -36,7 +35,7 @@ class Transformer:
     transform expression trees from one representation to another.
     """
 
-    _handlers_cache: typing.Dict[type, typing.Tuple[str, bool]] = {}
+    _handlers_cache: dict[type, tuple[str, bool]] = {}
 
     def __init__(self, variable_cache=None):
         """Initialise."""
