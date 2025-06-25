@@ -490,27 +490,13 @@ def compute_form_data(
                     new_integrals.append(new_integral)
                 itg_data.integrals = new_integrals
         else:
-            for itg_data in self.integral_data:
-                new_integrals = []
-                for integral in itg_data.integrals:
-                    new_integral = apply_restrictions(
-                        integral,
-                        assume_single_integral_type=have_single_domain,
-                        domain_integral_type_map=None,  # We do not know this map yet.
-                    )
-                    new_integrals.append(new_integral)
-                itg_data.integrals = new_integrals
-
-    if not do_assume_single_integral_type:
-        if not have_single_domain:
-            # Inspect the form and apply default restrictions.
+            # Must have split coefficients and removed component/list tensors.
             if coefficients_to_split is None:
                 raise ValueError("""
                     Need to pass 'coefficients_to_split=tuple_of_coefficients_to_splilt'
                     for general multi-domain problems
                 """)
             for itg_data in self.integral_data:
-                # Must have split coefficients and removed component/list tensors.
                 new_integrals = []
                 for integral in itg_data.integrals:
                     new_integral = apply_restrictions(
