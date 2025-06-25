@@ -16,9 +16,7 @@ from ufl.classes import (
     ReferenceGrad,
     ReferenceValue,
 )
-from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
+from ufl.finiteelement import MixedElement
 
 
 def test_apply_coefficient_split(self):
