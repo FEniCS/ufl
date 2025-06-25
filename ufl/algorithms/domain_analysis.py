@@ -283,7 +283,7 @@ def build_integral_data(integrals):
         integral_type = integral.integral_type()
         ufl_domain = integral.ufl_domain()
         subdomain_ids = integral.subdomain_id()
-        additional_domain_integral_type_tuple = tuple(integral.extra_measures().items())
+        extra_measures_tuple = tuple(integral.extra_measures().items())
         if "everywhere" in subdomain_ids:
             raise ValueError(
                 "'everywhere' not a valid subdomain id. "
@@ -293,7 +293,7 @@ def build_integral_data(integrals):
         # Group for integral data (One integral data object for all
         # integrals with same domain, itype, (but possibly different metadata).
         itgs[
-            (ufl_domain, integral_type, subdomain_ids, additional_domain_integral_type_tuple)
+            (ufl_domain, integral_type, subdomain_ids, extra_measures_tuple)
         ].append(integral)
 
     # Build list with canonical ordering, iteration over dicts
@@ -351,7 +351,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
             if ddt_integrals_map is None:
                 continue
 
-            for additional_domain_integral_type_tuple, ddt_integrals in ddt_integrals_map.items():
+            for extra_measures_tuple, ddt_integrals in ddt_integrals_map.items():
                 # Group integrals by subdomain id, after splitting e.g.
                 #   f*dx((1,2)) + g*dx((2,3)) -> f*dx(1) + (f+g)*dx(2) + g*dx(3)
                 # (note: before this call, 'everywhere' is a valid subdomain_id,
@@ -400,7 +400,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
                                 subdomain_id,
                                 metadata,
                                 None,
-                                extra_measures=dict(additional_domain_integral_type_tuple),
+                                extra_measures=dict(extra_measures_tuple),
                             )
                             integral = attach_coordinate_derivatives(integral, samecd_integrals[0])
                             integrals.append(integral)
@@ -417,7 +417,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
         meta_hash = hash(canonicalize_metadata(metadata))
         subdomain_id = integral.subdomain_id()
         subdomain_data = id_or_none(integral.subdomain_data())
-        additional_domain_integral_type_tuple = tuple(integral.extra_measures().items())
+        extra_measures_tuple = tuple(integral.extra_measures().items())
         integrand = renumber_indices(integral.integrand())
         key = (
             integral_type,
@@ -425,7 +425,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
             meta_hash,
             integrand,
             subdomain_data,
-            additional_domain_integral_type_tuple,
+            extra_measures_tuple,
         )
         unique_integrals[key] += (subdomain_id,)
         metadata_table[key] = metadata
@@ -438,7 +438,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
             metadata,
             integrand,
             subdomain_data,
-            additional_domain_integral_type_tuple,
+            extra_measures_tuple,
         ) = integral_data
         integral = Integral(
             integrand,
@@ -447,7 +447,7 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
             subdomain_ids,
             metadata_table[integral_data],
             subdomain_data,
-            extra_measures=dict(additional_domain_integral_type_tuple),
+            extra_measures=dict(extra_measures_tuple),
         )
         grouped_integrals.append(integral)
 
