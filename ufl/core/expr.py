@@ -16,13 +16,12 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
-import typing
 import warnings
 
 from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
 
 
-class Expr(object, metaclass=UFLType):
+class Expr(metaclass=UFLType):
     """Base class for all UFL expression types.
 
     *Instance properties*
@@ -205,10 +204,10 @@ class Expr(object, metaclass=UFLType):
 
     # A global dict mapping language_operator_name to the type it
     # produces
-    _ufl_language_operators_: typing.Dict[str, object] = {}
+    _ufl_language_operators_: dict[str, object] = {}
 
     # List of all terminal modifier types
-    _ufl_terminal_modifiers_: typing.List[UFLObject] = []
+    _ufl_terminal_modifiers_: list[UFLObject] = []
 
     # --- Mechanism for profiling object creation and deletion ---
 
@@ -314,7 +313,7 @@ class Expr(object, metaclass=UFLType):
 
         # Conversion from non-ufl types
         # (the _ufl_from_*_ functions are attached to Expr by ufl_type)
-        ufl_from_type = "_ufl_from_{0}_".format(value.__class__.__name__)
+        ufl_from_type = f"_ufl_from_{value.__class__.__name__}_"
         return getattr(Expr, ufl_from_type)(value)
 
         # if hasattr(Expr, ufl_from_type):

@@ -54,15 +54,15 @@ class MockForwardAD:
             (o,) = o.ufl_operands
             ngrads += 1
         if not isinstance(o, FormArgument):
-            raise ValueError("Expecting gradient of a FormArgument, not %s" % repr(o))
+            raise ValueError(f"Expecting gradient of a FormArgument, not {o!r}")
 
         def apply_grads(f):
             if not isinstance(f, FormArgument):
-                print(("," * 60))
+                print("," * 60)
                 print(f)
                 print(o)
                 print(g)
-                print(("," * 60))
+                print("," * 60)
                 raise ValueError("What?")
             for i in range(ngrads):
                 f = Grad(f)
@@ -163,7 +163,7 @@ class MockForwardAD:
                 if self._cd._data:
                     # TODO: Make it possible to silence this message in particular?
                     #       It may be good to have for debugging...
-                    warnings.warn("Assuming d{%s}/d{%s} = 0." % (o, self._w))
+                    warnings.warn(f"Assuming d{{{o}}}/d{{{self._w}}} = 0.")
             else:
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):

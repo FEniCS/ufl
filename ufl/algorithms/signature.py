@@ -6,7 +6,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import hashlib
-import typing
 
 from ufl.algorithms.domain_analysis import canonicalize_metadata
 from ufl.classes import (
@@ -96,7 +95,7 @@ def compute_terminal_hashdata(expressions, renumbering):
 
 def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
     """Compute expression hashdata."""
-    cache: typing.Dict[UFLObject, bytes] = {}
+    cache: dict[UFLObject, bytes] = {}
 
     for expr in unique_post_traversal(expression):
         # Uniquely traverse tree and hash each node

@@ -41,11 +41,11 @@ class ExprList(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "ExprList(*(%s,))" % ", ".join(str(i) for i in self.ufl_operands)
+        return "ExprList(*({},))".format(", ".join(str(i) for i in self.ufl_operands))
 
     def __repr__(self):
         """Representation."""
-        r = "ExprList(*%s)" % repr(self.ufl_operands)
+        r = f"ExprList(*{self.ufl_operands!r})"
         return r
 
     @property
@@ -95,11 +95,11 @@ class ExprMapping(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "ExprMapping(*%s)" % repr(self.ufl_operands)
+        return f"ExprMapping(*{self.ufl_operands!r})"
 
     def __repr__(self):
         """Representation."""
-        r = "ExprMapping(*%s)" % repr(self.ufl_operands)
+        r = f"ExprMapping(*{self.ufl_operands!r})"
         return r
 
     @property

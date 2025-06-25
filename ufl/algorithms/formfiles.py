@@ -9,7 +9,6 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Marie E. Rognes, 2011.
 
-import io
 import os
 import re
 
@@ -22,7 +21,7 @@ from ufl.form import Form
 from ufl.utils.sorting import sorted_by_key
 
 
-class FileData(object):
+class FileData:
     """File data."""
 
     def __init__(self):
@@ -59,7 +58,7 @@ def read_lines_decoded(fn):
         return r.match(line, re.ASCII)
 
     # First read lines as bytes
-    with io.open(fn, "rb") as f:
+    with open(fn, "rb") as f:
         lines = f.readlines()
 
     # Check for coding: in the first two lines

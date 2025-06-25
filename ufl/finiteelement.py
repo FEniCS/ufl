@@ -13,7 +13,6 @@
 from __future__ import annotations
 
 import abc as _abc
-import typing as _typing
 
 from ufl.cell import Cell as _Cell
 from ufl.pullback import AbstractPullback as _AbstractPullback
@@ -98,11 +97,11 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the cell of the finite element."""
 
     @_abc.abstractproperty
-    def reference_value_shape(self) -> _typing.Tuple[int, ...]:
+    def reference_value_shape(self) -> tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
 
     @_abc.abstractproperty
-    def sub_elements(self) -> _typing.List:
+    def sub_elements(self) -> list:
         """Return list of sub-elements.
 
         This function does not recurse: ie it does not extract the sub-elements

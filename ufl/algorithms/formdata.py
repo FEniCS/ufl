@@ -11,7 +11,7 @@
 from ufl.utils.formatting import estr, lstr, tstr
 
 
-class FormData(object):
+class FormData:
     """Class collecting various information extracted from a Form by calling preprocess."""
 
     def __init__(self):
