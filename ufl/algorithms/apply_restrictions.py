@@ -32,18 +32,18 @@ default_restriction_map = {
 class RestrictionPropagator(MultiFunction):
     """Restriction propagator."""
 
-    def __init__(self, side=None, default_restriction=None):
+    def __init__(self, side=None, default_restrictions=None):
         """Initialise."""
         MultiFunction.__init__(self)
         self.current_restriction = side
-        self.default_restriction = default_restriction
+        self.default_restrictions = default_restrictions
         # Caches for propagating the restriction with map_expr_dag
         self.vcaches = {"+": {}, "-": {}}
         self.rcaches = {"+": {}, "-": {}}
         if self.current_restriction is None:
             self._rp = {
-                "+": RestrictionPropagator("+", default_restriction),
-                "-": RestrictionPropagator("-", default_restriction),
+                "+": RestrictionPropagator("+", default_restrictions),
+                "-": RestrictionPropagator("-", default_restrictions),
             }
 
     def restricted(self, o):
@@ -72,16 +72,16 @@ class RestrictionPropagator(MultiFunction):
         """Restrict a discontinuous quantity to current side, require a side to be set."""
         if self.current_restriction is not None:
             return o(self.current_restriction)
-        if self.default_restriction is not None:
+        if self.default_restrictions is not None:
             domain = extract_unique_domain(o, expand_mesh_sequence=False)
             if isinstance(domain, MeshSequence):
                 raise RuntimeError(
                     f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
                 )
-            if isinstance(self.default_restriction, dict):
-                r = self.default_restriction[domain]
+            if isinstance(self.default_restrictions, dict):
+                r = self.default_restrictions[domain]
             else:
-                r = self.default_restriction
+                r = self.default_restrictions
             if r is None:
                 # If integration if over interior facet of meshA and exterior facet of meshB,
                 # arguments (say) on meshA must be restricted, but those on meshB do not
@@ -97,16 +97,16 @@ class RestrictionPropagator(MultiFunction):
         r = self.current_restriction
         if r is not None:
             return o(r)
-        if self.default_restriction is not None:
+        if self.default_restrictions is not None:
             domain = extract_unique_domain(o, expand_mesh_sequence=False)
             if isinstance(domain, MeshSequence):
                 raise RuntimeError(
                     f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
                 )
-            if isinstance(self.default_restriction, dict):
-                if domain not in self.default_restriction:
+            if isinstance(self.default_restrictions, dict):
+                if domain not in self.default_restrictions:
                     raise RuntimeError(f"Integral type on {domain} not known")
-                r = self.default_restriction[domain]
+                r = self.default_restrictions[domain]
                 if r is None:
                     return o
                 elif r in ["+", "-"]:
@@ -115,7 +115,7 @@ class RestrictionPropagator(MultiFunction):
                     raise RuntimeError(f"Unknown default restriction {r} on domain {domain}")
             else:
                 # conventional "+" default:
-                return o(self.default_restriction)
+                return o(self.default_restrictions)
         else:
             return o
 
@@ -124,17 +124,17 @@ class RestrictionPropagator(MultiFunction):
 
         If the current restriction is different swap the sign, require a side to be set.
         """
-        if isinstance(self.default_restriction, dict):
+        if isinstance(self.default_restrictions, dict):
             domain = extract_unique_domain(o, expand_mesh_sequence=False)
             if isinstance(domain, MeshSequence):
                 raise RuntimeError(
                     f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
                 )
-            if domain not in self.default_restriction:
+            if domain not in self.default_restrictions:
                 raise RuntimeError(f"Integral type on {domain} not known")
-            r = self.default_restriction[domain]
+            r = self.default_restrictions[domain]
         else:
-            r = self.default_restriction
+            r = self.default_restrictions
         if r is None:
             if self.current_restriction is not None:
                 raise ValueError(
@@ -257,5 +257,5 @@ class RestrictionPropagator(MultiFunction):
 
 def apply_restrictions(expression, default_restrictions=None):
     """Propagate restriction nodes to wrap differential terminals directly."""
-    rules = RestrictionPropagator(default_restriction=default_restrictions)
+    rules = RestrictionPropagator(default_restrictions=default_restrictions)
     return map_integrand_dags(rules, expression)
