@@ -501,12 +501,7 @@ def compute_form_data(
                     new_integrals.append(new_integral)
                 itg_data.integrals = new_integrals
 
-    # Make ``itg_data.domain_integral_type_map``; this is only significant
-    # when we handle general multi-domain problems
-    if do_assume_single_integral_type:
-        for itg_data in self.integral_data:
-            itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
-    else:
+    if not do_assume_single_integral_type:
         if have_single_domain:
             for itg_data in self.integral_data:
                 itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
