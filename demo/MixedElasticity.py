@@ -17,6 +17,8 @@
 #
 # First added:  2008-10-03
 # Last changed: 2011-07-22
+from utils import FiniteElement, LagrangeElement, MixedElement
+
 from ufl import (
     FunctionSpace,
     Mesh,
@@ -31,9 +33,8 @@ from ufl import (
     tetrahedron,
     tr,
 )
-from ufl.finiteelement import FiniteElement, MixedElement
 from ufl.pullback import contravariant_piola, identity_pullback
-from ufl.sobolevspace import H1, L2, HDiv
+from ufl.sobolevspace import L2, HDiv
 
 
 def skw(tau):
@@ -53,7 +54,7 @@ Q = FiniteElement("Discontinuous Lagrange", cell, r - 1, (3,), identity_pullback
 
 W = MixedElement([S, V, Q])
 
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+domain = Mesh(LagrangeElement(cell, 1, (3,)))
 space = FunctionSpace(domain, W)
 
 (sigma, u, gamma) = TrialFunctions(space)

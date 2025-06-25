@@ -1,3 +1,5 @@
+from utils import LagrangeElement, MixedElement
+
 from ufl import (
     Coefficient,
     FunctionSpace,
@@ -14,17 +16,14 @@ from ufl.classes import (
     ReferenceGrad,
     ReferenceValue,
 )
-from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 def test_apply_coefficient_split(self):
     cell = triangle
-    mesh0 = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
-    mesh1 = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
-    elem0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    elem1 = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+    mesh0 = Mesh(LagrangeElement(cell, 1, (2,)))
+    mesh1 = Mesh(LagrangeElement(cell, 1, (2,)))
+    elem0 = LagrangeElement(cell, 1)
+    elem1 = LagrangeElement(cell, 2)
     V0 = FunctionSpace(mesh0, elem0)
     V1 = FunctionSpace(mesh1, elem1)
     f0 = Coefficient(V0)

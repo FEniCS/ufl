@@ -18,6 +18,8 @@
 # The bilinear form a(v, u) and linear form L(v) for the Hodge Laplace
 # problem using 0- and 1-forms. Intended to demonstrate use of Nedelec
 # elements.
+from utils import FiniteElement, LagrangeElement, MixedElement
+
 from ufl import (
     Coefficient,
     FunctionSpace,
@@ -30,9 +32,8 @@ from ufl import (
     inner,
     tetrahedron,
 )
-from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.pullback import covariant_piola, identity_pullback
-from ufl.sobolevspace import H1, HCurl
+from ufl.pullback import covariant_piola
+from ufl.sobolevspace import HCurl
 
 
 def HodgeLaplaceGradCurl(space, fspace):
@@ -51,12 +52,12 @@ def HodgeLaplaceGradCurl(space, fspace):
 cell = tetrahedron
 order = 1
 
-GRAD = FiniteElement("Lagrange", cell, order, (), identity_pullback, H1)
+GRAD = LagrangeElement(cell, order)
 CURL = FiniteElement("N1curl", cell, order, (3,), covariant_piola, HCurl)
 
-VectorLagrange = FiniteElement("Lagrange", cell, order + 1, (3,), identity_pullback, H1)
+VectorLagrange = LagrangeElement(cell, order + 1, (3,))
 
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+domain = Mesh(LagrangeElement(cell, 1, (3,)))
 space = FunctionSpace(domain, MixedElement([GRAD, CURL]))
 fspace = FunctionSpace(domain, VectorLagrange)
 

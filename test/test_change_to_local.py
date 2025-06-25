@@ -1,19 +1,18 @@
 """Tests of the change to local representaiton algorithms."""
 
+from utils import LagrangeElement
+
 from ufl import Coefficient, FunctionSpace, Mesh, as_tensor, grad, indices, triangle
 from ufl.algorithms import change_to_reference_grad
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import JacobianInverse, ReferenceGrad
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 def test_change_to_reference_grad():
     cell = triangle
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
-    U = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1))
-    V = FunctionSpace(domain, FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    U = FunctionSpace(domain, LagrangeElement(cell, 1))
+    V = FunctionSpace(domain, LagrangeElement(cell, 1, (2,)))
     u = Coefficient(U)
     v = Coefficient(V)
     Jinv = JacobianInverse(domain)

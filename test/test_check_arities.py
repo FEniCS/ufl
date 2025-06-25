@@ -1,4 +1,5 @@
 import pytest
+from utils import LagrangeElement
 
 from ufl import (
     Coefficient,
@@ -22,16 +23,13 @@ from ufl import (
 )
 from ufl.algorithms.check_arities import ArityMismatch
 from ufl.algorithms.compute_form_data import compute_form_data
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 def test_check_arities():
     # Code from bitbucket issue #49
     cell = tetrahedron
-    D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
-    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3,), identity_pullback, H1))
+    D = Mesh(LagrangeElement(cell, 1, (3,)))
+    V = FunctionSpace(D, LagrangeElement(cell, 2, (3,)))
     dv = TestFunction(V)
     du = TrialFunction(V)
 
@@ -54,8 +52,8 @@ def test_check_arities():
 
 def test_complex_arities():
     cell = tetrahedron
-    D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
-    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3,), identity_pullback, H1))
+    D = Mesh(LagrangeElement(cell, 1, (3,)))
+    V = FunctionSpace(D, LagrangeElement(cell, 2, (3,)))
     v = TestFunction(V)
     u = TrialFunction(V)
 
@@ -74,8 +72,8 @@ def test_complex_arities():
 
 def test_product_arity():
     cell = tetrahedron
-    D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
-    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (3,), identity_pullback, H1))
+    D = Mesh(LagrangeElement(cell, 1, (3,)))
+    V = FunctionSpace(D, LagrangeElement(cell, 2, (3,)))
     v = TestFunction(V)
     u = TrialFunction(V)
 
@@ -94,8 +92,8 @@ def test_zero_simplify_arity():
     such that one can compute form data for the integral.
     """
     cell = tetrahedron
-    D = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
-    V = FunctionSpace(D, FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1))
+    D = Mesh(LagrangeElement(cell, 1, (3,)))
+    V = FunctionSpace(D, LagrangeElement(cell, 2))
     v = TestFunction(V)
     u = Coefficient(V)
 

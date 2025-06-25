@@ -3,8 +3,9 @@ __date__ = "2014-03-04"
 
 from math import inf
 
+from utils import FiniteElement, LagrangeElement
+
 from ufl import H1, H2, L2, HCurl, HDiv, HInf, triangle
-from ufl.finiteelement import FiniteElement
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
 from ufl.sobolevspace import (
     DirectionalSobolevSpace,
@@ -83,8 +84,8 @@ def test_contains_l2():
 def test_contains_h1():
     h1_elements = [
         # Standard Lagrange elements:
-        FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1),
-        FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1),
+        LagrangeElement(triangle, 1),
+        LagrangeElement(triangle, 2),
         # Some special elements:
         FiniteElement("MTW", triangle, 3, (2,), contravariant_piola, H1),
         FiniteElement("Hermite", triangle, 3, (), "custom", H1),
