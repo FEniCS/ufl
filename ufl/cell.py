@@ -37,7 +37,6 @@ class AbstractCell(UFLObject):
     def has_simplex_facets(self) -> bool:
         """Return True if all the facets of this cell are simplex cells."""
 
-    @property
     @abstractmethod
     def _lt(self, other) -> bool:
         """Less than operator.
@@ -46,7 +45,6 @@ class AbstractCell(UFLObject):
         instances of this type with the same dimensions.
         """
 
-    @property
     @abstractmethod
     def num_sub_entities(self, dim: int) -> int:
         """Get the number of sub-entities of the given dimension."""
@@ -71,8 +69,8 @@ class AbstractCell(UFLObject):
     def __lt__(self, other: AbstractCell) -> bool:
         """Define an arbitrarily chosen but fixed sort order for all cells."""
         if type(self) is type(other):
-            s = self.topological_dimension()
-            o = other.topological_dimension()
+            s = self.topological_dimension
+            o = other.topological_dimension
             if s != o:
                 return s < o
             return self._lt(other)
@@ -102,7 +100,7 @@ class AbstractCell(UFLObject):
 
         Facets are entities of dimension tdim-1.
         """
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         return self.num_sub_entities(tdim - 1)
 
     @property
@@ -111,7 +109,7 @@ class AbstractCell(UFLObject):
 
         Ridges are entities of dimension tdim-2.
         """
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         return self.num_sub_entities(tdim - 2)
 
     @property
@@ -120,7 +118,7 @@ class AbstractCell(UFLObject):
 
         Peaks are entities of dimension tdim-3.
         """
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         return self.num_sub_entities(tdim - 3)
 
     @property
@@ -144,7 +142,7 @@ class AbstractCell(UFLObject):
 
         Facets are entities of dimension tdim-1.
         """
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         return self.sub_entities(tdim - 1)
 
     @property
@@ -153,7 +151,7 @@ class AbstractCell(UFLObject):
 
         Ridges are entities of dimension tdim-2.
         """
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         return self.sub_entities(tdim - 2)
 
     @property
@@ -162,7 +160,7 @@ class AbstractCell(UFLObject):
 
         Peaks are entities of dimension tdim-3.
         """
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         return self.sub_entities(tdim - 3)
 
     @property
@@ -186,7 +184,7 @@ class AbstractCell(UFLObject):
 
         Facets are entities of dimension tdim-1.
         """
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         return self.sub_entity_types(tdim - 1)
 
     @property
@@ -195,7 +193,7 @@ class AbstractCell(UFLObject):
 
         Ridges are entities of dimension tdim-2.
         """
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         return self.sub_entity_types(tdim - 2)
 
     @property
@@ -204,7 +202,7 @@ class AbstractCell(UFLObject):
 
         Peaks are entities of dimension tdim-3.
         """
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         return self.sub_entity_types(tdim - 3)
 
 
@@ -299,14 +297,17 @@ class Cell(AbstractCell):
         if not isinstance(self._tdim, numbers.Integral):
             raise ValueError("Expecting integer topological_dimension.")
 
+    @property
     def topological_dimension(self) -> int:
         """Return the dimension of the topology of this cell."""
         return self._tdim
 
+    @property
     def is_simplex(self) -> bool:
         """Return True if this is a simplex cell."""
         return self._cellname in ["vertex", "interval", "triangle", "tetrahedron"]
 
+    @property
     def has_simplex_facets(self) -> bool:
         """Return True if all the facets of this cell are simplex cells."""
         return self._cellname in ["interval", "triangle", "quadrilateral", "tetrahedron"]
@@ -341,6 +342,7 @@ class Cell(AbstractCell):
     def _lt(self, other) -> bool:
         return self._cellname < other._cellname
 
+    @property
     def cellname(self) -> str:
         """Return the cellname of the cell."""
         return self._cellname
@@ -377,29 +379,33 @@ class TensorProductCell(AbstractCell):
         """
         self._cells = tuple(as_cell(cell) for cell in cells)
 
-        self._tdim = sum([cell.topological_dimension() for cell in self._cells])
+        self._tdim = sum([cell.topological_dimension for cell in self._cells])
 
         if not isinstance(self._tdim, numbers.Integral):
             raise ValueError("Expecting integer topological_dimension.")
 
+    @property
     def sub_cells(self) -> tuple[AbstractCell, ...]:
         """Return list of cell factors."""
         return self._cells
 
+    @property
     def topological_dimension(self) -> int:
         """Return the dimension of the topology of this cell."""
         return self._tdim
 
+    @property
     def is_simplex(self) -> bool:
         """Return True if this is a simplex cell."""
         if len(self._cells) == 1:
-            return self._cells[0].is_simplex()
+            return self._cells[0].is_simplex
         return False
 
+    @property
     def has_simplex_facets(self) -> bool:
         """Return True if all the facets of this cell are simplex cells."""
         if len(self._cells) == 1:
-            return self._cells[0].has_simplex_facets()
+            return self._cells[0].has_simplex_facets
         if self._tdim == 1:
             return True
         return False
@@ -414,7 +420,7 @@ class TensorProductCell(AbstractCell):
             # Note: This is not the number of facets that the cell has,
             # but I'm leaving it here for now to not change past
             # behaviour
-            return sum(c.num_facets for c in self._cells if c.topological_dimension() > 0)
+            return sum(c.num_facets for c in self._cells if c.topological_dimension > 0)
         if dim == self._tdim:
             return 1
         raise NotImplementedError(f"TensorProductCell.num_sub_entities({dim}) is not implemented.")
@@ -442,9 +448,10 @@ class TensorProductCell(AbstractCell):
     def _lt(self, other) -> bool:
         return self._ufl_hash_data_() < other._ufl_hash_data_()
 
+    @property
     def cellname(self) -> str:
         """Return the cellname of the cell."""
-        return " * ".join([cell.cellname() for cell in self._cells])
+        return " * ".join([cell.cellname for cell in self._cells])
 
     def __str__(self) -> str:
         """Format as a string."""
