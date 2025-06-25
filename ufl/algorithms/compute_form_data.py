@@ -20,7 +20,7 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-from ufl.algorithms.apply_restrictions import apply_restrictions
+from ufl.algorithms.apply_restrictions import apply_restrictions, default_restriction_map
 from ufl.algorithms.check_arities import check_form_arity
 from ufl.algorithms.comparison_checker import do_comparison_check
 
@@ -314,10 +314,6 @@ def compute_form_data(
     if do_apply_integral_scaling:
         form = apply_integral_scaling(form)
 
-    # Can allow for some simplifications if there indeed is only a single domain
-    if not do_assume_single_integral_type:
-        have_single_domain = len(extract_domains(form)) == 1
-
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller
     # set of types and treating geometric quantities like any other
@@ -441,11 +437,8 @@ def compute_form_data(
         for itg_data in self.integral_data:
             new_integrals = []
             for integral in itg_data.integrals:
-                new_integral = apply_restrictions(
-                    integral,
-                    assume_single_integral_type=False,
-                    domain_integral_type_map=None,
-                )
+                # Propagate restrictions. Do not yet apply default restrictions.
+                new_integral = apply_restrictions(integral)
                 new_integrals.append(new_integral)
             itg_data.integrals = new_integrals
         # Split coefficients that are contained in ``coefficients_to_split``
@@ -475,37 +468,33 @@ def compute_form_data(
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:
-        if do_assume_single_integral_type or have_single_domain:
-            for itg_data in self.integral_data:
-                if do_apply_default_restrictions:
-                    domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
+        for itg_data in self.integral_data:
+            if do_assume_single_integral_type:  # Conventional case
+                if not itg_data.integral_type.startswith("interior_facet"):
+                    continue
+            if do_apply_default_restrictions:
+                if do_assume_single_integral_type:  # Conventional case
+                    domains = set(
+                        domain
+                        for integral in itg_data.integrals
+                        for domain in extract_domains(integral)
+                    )
+                    default_restrictions = {domain: "+" for domain in domains}
                 else:
-                    domain_integral_type_map = None  # Set None if not needed.
-                new_integrals = []
-                for integral in itg_data.integrals:
-                    new_integral = apply_restrictions(
-                        integral,
-                        domain_integral_type_map=domain_integral_type_map,
-                    )
-                    new_integrals.append(new_integral)
-                itg_data.integrals = new_integrals
-        else:
-            # Must have split coefficients and removed component/list tensors.
-            if coefficients_to_split is None:
-                raise ValueError("""
-                    Need to pass 'coefficients_to_split=tuple_of_coefficients_to_splilt'
-                    for general multi-domain problems
-                """)
-            for itg_data in self.integral_data:
-                new_integrals = []
-                for integral in itg_data.integrals:
-                    new_integral = apply_restrictions(
-                        integral,
-                        assume_single_integral_type=False,
-                        domain_integral_type_map=itg_data.domain_integral_type_map,
-                    )
-                    new_integrals.append(new_integral)
-                itg_data.integrals = new_integrals
+                    default_restrictions = {
+                        domain: default_restriction_map[integral_type]
+                        for domain, integral_type in itg_data.domain_integral_type_map.items()
+                    }
+            else:
+                default_restrictions = None
+            new_integrals = []
+            for integral in itg_data.integrals:
+                new_integral = apply_restrictions(
+                    integral,
+                    default_restrictions=default_restrictions,
+                )
+                new_integrals.append(new_integral)
+            itg_data.integrals = new_integrals
 
     # --- Checks
     _check_elements(self)

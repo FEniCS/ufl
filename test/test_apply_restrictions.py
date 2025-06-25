@@ -35,32 +35,39 @@ def test_apply_restrictions():
     n = FacetNormal(domain)
     x = SpatialCoordinate(domain)
 
-    assert raises(BaseException, lambda: apply_restrictions(f0))
-    assert raises(BaseException, lambda: apply_restrictions(grad(f)))
-    assert raises(BaseException, lambda: apply_restrictions(n))
+    assert raises(BaseException, lambda: apply_restrictions(f0, default_restrictions={domain: "+"}))
+    assert raises(
+        BaseException, lambda: apply_restrictions(grad(f), default_restrictions={domain: "+"})
+    )
+    assert raises(BaseException, lambda: apply_restrictions(n, default_restrictions={domain: "+"}))
 
     # Continuous function gets default restriction if none
     # provided otherwise the user choice is respected
-    assert apply_restrictions(f) == f("+")
-    assert apply_restrictions(f("-")) == f("-")
-    assert apply_restrictions(f("+")) == f("+")
+    assert apply_restrictions(f, default_restrictions={domain: "+"}) == f("+")
+    assert apply_restrictions(f("-"), default_restrictions={domain: "+"}) == f("-")
+    assert apply_restrictions(f("+"), default_restrictions={domain: "+"}) == f("+")
 
     # Propagation to terminals
-    assert apply_restrictions((f + f0)("+")) == f("+") + f0("+")
+    assert apply_restrictions((f + f0)("+"), default_restrictions={domain: "+"}) == f("+") + f0("+")
 
     # Propagation stops at grad
-    assert apply_restrictions(grad(f)("-")) == grad(f)("-")
-    assert apply_restrictions((grad(f) ** 2)("+")) == grad(f)("+") ** 2
-    assert apply_restrictions((grad(f) + grad(g))("-")) == (grad(f)("-") + grad(g)("-"))
+    assert apply_restrictions(grad(f)("-"), default_restrictions={domain: "+"}) == grad(f)("-")
+    assert (
+        apply_restrictions((grad(f) ** 2)("+"), default_restrictions={domain: "+"})
+        == grad(f)("+") ** 2
+    )
+    assert apply_restrictions((grad(f) + grad(g))("-"), default_restrictions={domain: "+"}) == (
+        grad(f)("-") + grad(g)("-")
+    )
 
     # x is the same from both sides but computed from one of them
-    assert apply_restrictions(x) == x("+")
+    assert apply_restrictions(x, default_restrictions={domain: "+"}) == x("+")
 
     # n on a linear mesh is opposite pointing from the other side
-    assert apply_restrictions(n("+")) == n("+")
-    assert renumber_indices(apply_restrictions(n("-"))) == renumber_indices(
-        as_tensor(-1 * n("+")[i], i)
-    )
+    assert apply_restrictions(n("+"), default_restrictions={domain: "+"}) == n("+")
+    assert renumber_indices(
+        apply_restrictions(n("-"), default_restrictions={domain: "+"})
+    ) == renumber_indices(as_tensor(-1 * n("+")[i], i))
     # This would be nicer, but -f is translated to -1*f which is
     # translated to as_tensor(-1*f[i], i). assert
-    # apply_restrictions(n('-')) == -n('+')
+    # apply_restrictions(n('-'), default_restrictions={domain: '+'}) == -n('+')

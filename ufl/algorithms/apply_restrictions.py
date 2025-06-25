@@ -14,9 +14,19 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.domain import MeshSequence, extract_domains, extract_unique_domain
-from ufl.measure import integral_type_to_measure_name
+from ufl.domain import MeshSequence, extract_unique_domain
 from ufl.sobolevspace import H1
+
+default_restriction_map = {
+    "cell": None,
+    "exterior_facet": None,
+    "exterior_facet_top": None,
+    "exterior_facet_bottom": None,
+    "exterior_facet_vert": None,
+    "interior_facet": "+",
+    "interior_facet_horiz": "+",
+    "interior_facet_vert": "+",
+}
 
 
 class RestrictionPropagator(MultiFunction):
@@ -245,37 +255,7 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression, assume_single_integral_type=True, domain_integral_type_map=None):
+def apply_restrictions(expression, default_restrictions=None):
     """Propagate restriction nodes to wrap differential terminals directly."""
-    if assume_single_integral_type:
-        # Hnadle the conventional single-domain case.
-        domains = extract_domains(expression)
-        default_restriction = {domain: "+" for domain in domains}
-        integral_types = [
-            k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
-        ]
-    else:
-        if domain_integral_type_map is None:
-            # Do not apply default restrictions.
-            default_restriction = None
-        else:
-            # Apply default restriction depending on the integral type on each domain.
-            default_restriction = {
-                domain: {
-                    "cell": None,
-                    "exterior_facet": None,
-                    "exterior_facet_top": None,
-                    "exterior_facet_bottom": None,
-                    "exterior_facet_vert": None,
-                    "interior_facet": "+",
-                    "interior_facet_horiz": "+",
-                    "interior_facet_vert": "+",
-                }[integral_type]
-                for domain, integral_type in domain_integral_type_map.items()
-            }
-        # Integration type of the integral is not necessarily the same as
-        # the integral type of a given function; e.g., the former can be
-        # ``exterior_facet`` and the latter ``interior_facet``.
-        integral_types = None
-    rules = RestrictionPropagator(default_restriction=default_restriction)
-    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
+    rules = RestrictionPropagator(default_restriction=default_restrictions)
+    return map_integrand_dags(rules, expression)
