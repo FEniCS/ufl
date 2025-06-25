@@ -75,18 +75,22 @@ class AbstractCell(UFLObject):
                 raise ValueError("Cannot order cell types with the same name")
             return type(self).__name__ < type(other).__name__
 
+    @property
     def num_vertices(self) -> int:
         """Get the number of vertices."""
         return self.num_sub_entities(0)
 
+    @property
     def num_edges(self) -> int:
         """Get the number of edges."""
         return self.num_sub_entities(1)
 
+    @property
     def num_faces(self) -> int:
         """Get the number of faces."""
         return self.num_sub_entities(2)
 
+    @property
     def num_facets(self) -> int:
         """Get the number of facets.
 
@@ -95,6 +99,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.num_sub_entities(tdim - 1)
 
+    @property
     def num_ridges(self) -> int:
         """Get the number of ridges.
 
@@ -103,6 +108,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.num_sub_entities(tdim - 2)
 
+    @property
     def num_peaks(self) -> int:
         """Get the number of peaks.
 
@@ -111,18 +117,22 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.num_sub_entities(tdim - 3)
 
+    @property
     def vertices(self) -> tuple[AbstractCell, ...]:
         """Get the vertices."""
         return self.sub_entities(0)
 
+    @property
     def edges(self) -> tuple[AbstractCell, ...]:
         """Get the edges."""
         return self.sub_entities(1)
 
+    @property
     def faces(self) -> tuple[AbstractCell, ...]:
         """Get the faces."""
         return self.sub_entities(2)
 
+    @property
     def facets(self) -> tuple[AbstractCell, ...]:
         """Get the facets.
 
@@ -131,6 +141,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entities(tdim - 1)
 
+    @property
     def ridges(self) -> tuple[AbstractCell, ...]:
         """Get the ridges.
 
@@ -139,6 +150,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entities(tdim - 2)
 
+    @property
     def peaks(self) -> tuple[AbstractCell, ...]:
         """Get the peaks.
 
@@ -147,18 +159,22 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entities(tdim - 3)
 
+    @property
     def vertex_types(self) -> tuple[AbstractCell, ...]:
         """Get the unique vertices types."""
         return self.sub_entity_types(0)
 
+    @property
     def edge_types(self) -> tuple[AbstractCell, ...]:
         """Get the unique edge types."""
         return self.sub_entity_types(1)
 
+    @property
     def face_types(self) -> tuple[AbstractCell, ...]:
         """Get the unique face types."""
         return self.sub_entity_types(2)
 
+    @property
     def facet_types(self) -> tuple[AbstractCell, ...]:
         """Get the unique facet types.
 
@@ -167,6 +183,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entity_types(tdim - 1)
 
+    @property
     def ridge_types(self) -> tuple[AbstractCell, ...]:
         """Get the unique ridge types.
 
@@ -175,6 +192,7 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension()
         return self.sub_entity_types(tdim - 2)
 
+    @property
     def peak_types(self) -> tuple[AbstractCell, ...]:
         """Get the unique peak types.
 
