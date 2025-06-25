@@ -12,7 +12,6 @@
 # Modified by Jørgen S. Dokken, 2025.
 
 import logging
-import warnings
 
 from ufl.algebra import Conj
 from ufl.algorithms.formsplitter import extract_blocks
