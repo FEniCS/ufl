@@ -20,6 +20,8 @@
 #
 # The bilinear form a(v, u) and Linear form L(v) for the Stokes
 # equations using a mixed formulation (Taylor-Hood elements).
+from utils import LagrangeElement, MixedElement
+
 from ufl import (
     Coefficient,
     FunctionSpace,
@@ -33,15 +35,12 @@ from ufl import (
     inner,
     triangle,
 )
-from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 cell = triangle
-P2 = FiniteElement("Lagrange", cell, 2, (2,), identity_pullback, H1)
-P1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+P2 = LagrangeElement(cell, 2, (2,))
+P1 = LagrangeElement(cell, 1)
 TH = MixedElement([P2, P1])
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+domain = Mesh(LagrangeElement(cell, 1, (2,)))
 space = FunctionSpace(domain, TH)
 p2_space = FunctionSpace(domain, P2)
 

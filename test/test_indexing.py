@@ -1,15 +1,13 @@
 import pytest
+from utils import LagrangeElement
 
 from ufl import Index, Mesh, SpatialCoordinate, outer, triangle
 from ufl.classes import FixedIndex, Indexed, MultiIndex, Outer, Zero
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def domain():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    return Mesh(LagrangeElement(triangle, 1, (2,)))
 
 
 @pytest.fixture

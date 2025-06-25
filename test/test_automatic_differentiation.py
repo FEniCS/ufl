@@ -6,6 +6,7 @@ Other tests check for mathematical correctness of diff and derivative.
 """
 
 import pytest
+from utils import FiniteElement, LagrangeElement
 
 from ufl import (
     And,
@@ -80,16 +81,15 @@ from ufl import (
 from ufl.algorithms import expand_derivatives
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal
-from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1, L2
+from ufl.sobolevspace import L2
 
 
 class ExpressionCollection(object):
     def __init__(self, cell):
         self.cell = cell
         d = cell.topological_dimension()
-        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+        domain = Mesh(LagrangeElement(cell, 1, (d,)))
 
         x = SpatialCoordinate(domain)
         n = FacetNormal(domain)
