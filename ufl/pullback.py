@@ -462,9 +462,7 @@ class MixedPullback(AbstractPullback):
 class SymmetricPullback(AbstractPullback):
     """Pull back for an element with symmetry."""
 
-    def __init__(
-        self, element: _AbstractFiniteElement, symmetry: dict[tuple[int, ...], int]
-    ):
+    def __init__(self, element: _AbstractFiniteElement, symmetry: dict[tuple[int, ...], int]):
         """Initalise.
 
         Args:
