@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import abc as _abc
+from collections.abc import Sequence
 
 from ufl.cell import Cell as _Cell
 from ufl.pullback import AbstractPullback as _AbstractPullback
@@ -101,7 +102,7 @@ class AbstractFiniteElement(_abc.ABC):
         """Return the shape of the value space on the reference cell."""
 
     @_abc.abstractproperty
-    def sub_elements(self) -> list:
+    def sub_elements(self) -> Sequence:
         """Return list of sub-elements.
 
         This function does not recurse: ie it does not extract the sub-elements
