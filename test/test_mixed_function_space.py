@@ -192,7 +192,7 @@ def test_action():
     J_renumbered = renumbering.renumber_indices(expand_derivatives(J))
 
     # Reference J
-    J_exp = renumbering.renumber_indices(expand_derivatives((F)))
+    J_exp = renumbering.renumber_indices(expand_derivatives(F))
     J_ref = replace(J_exp, {u: inserted_coeff, v: coefficients[0], q: coefficients[1]})
     # Verify
     assert J_renumbered == J_ref

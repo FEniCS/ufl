@@ -95,14 +95,14 @@ def test_str_list_vector():
     domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     x, y, z = SpatialCoordinate(domain)
     v = as_vector((z, y, x))
-    assert str(v) == ("[%s, %s, %s]" % (z, y, x))
+    assert str(v) == (f"[{z}, {y}, {x}]")
 
 
 def test_str_list_vector_with_zero():
     domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     x, y, z = SpatialCoordinate(domain)
     v = as_vector((x, 0, 0))
-    assert str(v) == ("[%s, 0, 0]" % (x,))
+    assert str(v) == (f"[{x}, 0, 0]")
 
 
 def test_str_list_matrix():
@@ -113,7 +113,7 @@ def test_str_list_matrix():
     b = str(3 * y)
     c = str(4 * x)
     d = str(5 * y)
-    assert str(v) == ("[\n  [%s, %s],\n  [%s, %s]\n]" % (a, b, c, d))
+    assert str(v) == (f"[\n  [{a}, {b}],\n  [{c}, {d}]\n]")
 
 
 def test_str_list_matrix_with_zero():
@@ -123,7 +123,7 @@ def test_str_list_matrix_with_zero():
     a = str(2 * x)
     b = str(3 * y)
     c = str(as_vector((0, 0)))
-    assert str(v) == ("[\n  [%s, %s],\n%s\n]" % (a, b, c))
+    assert str(v) == (f"[\n  [{a}, {b}],\n{c}\n]")
 
 
 # FIXME: Add more tests for tensors collapsing

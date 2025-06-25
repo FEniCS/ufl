@@ -314,7 +314,7 @@ def test_renumbering(self):
     v = TestFunction(V)
     u = TrialFunction(V)
     i = indices(1)
-    a0 = u[i].dx(0) * v[i].dx(0) * ufl.dx((1))
+    a0 = u[i].dx(0) * v[i].dx(0) * ufl.dx(1)
     a1 = (
         u[i].dx(0)
         * v[i].dx(0)

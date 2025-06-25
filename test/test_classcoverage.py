@@ -194,7 +194,7 @@ def testExports(self):
     )
     if missing_classes:
         print("The following subclasses of Expr were not exported from ufl.classes:")
-        print(("\n".join(sorted(missing_classes))))
+        print("\n".join(sorted(missing_classes)))
     assert missing_classes == set()
 
 
@@ -736,20 +736,20 @@ def testAll(self):
     if unused:
         print()
         print("The following classes were never instantiated in class coverage test:")
-        print(("\n".join(sorted(map(str, unused)))))
+        print("\n".join(sorted(map(str, unused))))
         print()
 
     # --- Check which classes had certain member variables
     if has_repr:
         print()
         print("The following classes contain a _repr member:")
-        print(("\n".join(sorted(map(str, has_repr)))))
+        print("\n".join(sorted(map(str, has_repr))))
         print()
 
     if has_dict:
         print()
         print("The following classes contain a __dict__ member:")
-        print(("\n".join(sorted(map(str, has_dict)))))
+        print("\n".join(sorted(map(str, has_dict))))
         print()
 
     # TODO: Add tests for bessel functions:

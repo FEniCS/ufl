@@ -170,10 +170,10 @@ class ListTensor(Operator):
                     else:
                         substrings.append(str(e))
                 s = (",\n" + ind).join(substrings)
-                return "%s[\n%s%s\n%s]" % (ind, ind, s, ind)
+                return f"{ind}[\n{ind}{s}\n{ind}]"
             else:
                 s = ", ".join(map(str, expressions))
-                return "%s[%s]" % (ind, s)
+                return f"{ind}[{s}]"
 
         return substring(self.ufl_operands, 0)
 
@@ -269,7 +269,7 @@ class ComponentTensor(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "{ A | A_{%s} = %s }" % (self.ufl_operands[1], self.ufl_operands[0])
+        return f"{{ A | A_{{{self.ufl_operands[1]}}} = {self.ufl_operands[0]} }}"
 
 
 # --- User-level functions to wrap expressions in the correct way ---

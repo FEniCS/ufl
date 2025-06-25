@@ -9,7 +9,7 @@
 import warnings
 from functools import singledispatchmethod
 from math import pi
-from typing import Type, Union
+from typing import Union
 
 import numpy as np
 
@@ -1783,9 +1783,9 @@ class DerivativeRuleDispatcher(DAGTraverser):
         # Create DAGTraverser caches.
         self._dag_traverser_cache: dict[
             Union[
-                tuple[Type, Expr],
-                tuple[Type, Expr, Expr, Expr],
-                tuple[Type, Expr, Expr, Expr, Expr],
+                tuple[type, Expr],
+                tuple[type, Expr, Expr, Expr],
+                tuple[type, Expr, Expr, Expr, Expr],
             ],
             DAGTraverser,
         ] = {}
@@ -2227,7 +2227,7 @@ class CoordinateDerivativeRuleDispatcher(DAGTraverser):
     ) -> None:
         """Initialise."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
-        self._dag_traverser_cache: dict[tuple[Type, Expr, Expr, Expr], DAGTraverser] = {}
+        self._dag_traverser_cache: dict[tuple[type, Expr, Expr, Expr], DAGTraverser] = {}
 
     @singledispatchmethod
     def process(self, o: Expr) -> Expr:
