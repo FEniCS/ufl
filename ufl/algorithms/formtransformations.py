@@ -315,7 +315,6 @@ def compute_form_with_arity(form, arity, arguments=None):
         arguments = form.arguments()
 
     if len(arguments) < arity:
-        warnings.warn(f"Form has no parts with arity {arity}.")
         return 0 * form
 
     # Assuming that the form is not a sum of terms
