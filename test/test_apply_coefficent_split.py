@@ -1,4 +1,4 @@
-from utils import LagrangeElement
+from utils import LagrangeElement, MixedElement
 
 from ufl import (
     Coefficient,
@@ -16,7 +16,6 @@ from ufl.classes import (
     ReferenceGrad,
     ReferenceValue,
 )
-from ufl.finiteelement import MixedElement
 
 
 def test_apply_coefficient_split(self):
