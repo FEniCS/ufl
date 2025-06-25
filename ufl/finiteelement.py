@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import abc as _abc
+from typing import Optional
 
 from ufl.cell import Cell as _Cell
 from ufl.pullback import AbstractPullback as _AbstractPullback
@@ -167,9 +168,9 @@ class FiniteElement(AbstractFiniteElement):
         pullback: _AbstractPullback,
         sobolev_space: _SobolevSpace,
         sub_elements=[],
-        _repr: str | None = None,
-        _str: str | None = None,
-        subdegree: int | None = None,
+        _repr: Optional[str] = None,
+        _str: Optional[str] = None,
+        subdegree: Optional[int] = None,
     ):
         """Initialise a finite element.
 
