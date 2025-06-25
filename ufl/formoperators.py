@@ -109,12 +109,12 @@ class _MixedElement(AbstractFiniteElement):
         return self._sub_elements[0].cell
 
     @property
-    def reference_value_shape(self) -> typing.Tuple[int, ...]:
+    def reference_value_shape(self) -> tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
         return (sum(e.reference_value_size for e in self._sub_elements),)
 
     @property
-    def sub_elements(self) -> typing.List:
+    def sub_elements(self) -> list:
         """Return list of sub-elements."""
         return self._sub_elements
 

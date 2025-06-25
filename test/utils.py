@@ -22,7 +22,7 @@ class FiniteElement(AbstractFiniteElement):
         family: str,
         cell: Cell,
         degree: int,
-        reference_value_shape: typing.Tuple[int, ...],
+        reference_value_shape: tuple[int, ...],
         pullback: AbstractPullback,
         sobolev_space: SobolevSpace,
         sub_elements=[],
@@ -141,12 +141,12 @@ class FiniteElement(AbstractFiniteElement):
         return self._cell
 
     @property
-    def reference_value_shape(self) -> typing.Tuple[int, ...]:
+    def reference_value_shape(self) -> tuple[int, ...]:
         """Return the shape of the value space on the reference cell."""
         return self._reference_value_shape
 
     @property
-    def sub_elements(self) -> typing.List:
+    def sub_elements(self) -> list:
         """Return list of sub-elements.
 
         This function does not recurse: ie it does not extract the
@@ -158,7 +158,7 @@ class FiniteElement(AbstractFiniteElement):
 class LagrangeElement(FiniteElement):
     """A Lagrange element."""
 
-    def __init__(self, cell: Cell, degree: int, shape: typing.Tuple[int, ...] = ()):
+    def __init__(self, cell: Cell, degree: int, shape: tuple[int, ...] = ()):
         """Initialise."""
         super().__init__(
             "Lagrange",
@@ -175,8 +175,8 @@ class SymmetricElement(FiniteElement):
 
     def __init__(
         self,
-        symmetry: typing.Dict[typing.Tuple[int, ...], int],
-        sub_elements: typing.List[AbstractFiniteElement],
+        symmetry: dict[tuple[int, ...], int],
+        sub_elements: list[AbstractFiniteElement],
     ):
         """Initialise a symmetric element.
 

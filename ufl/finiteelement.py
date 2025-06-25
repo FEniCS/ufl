@@ -13,7 +13,6 @@
 from __future__ import annotations
 
 import abc as _abc
-from typing import Optional
 
 from ufl.cell import Cell as _Cell
 from ufl.pullback import AbstractPullback as _AbstractPullback
