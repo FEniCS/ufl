@@ -72,59 +72,10 @@ class RestrictionPropagator(MultiFunction):
         """Restrict a discontinuous quantity to current side, require a side to be set."""
         if self.current_restriction is not None:
             return o(self.current_restriction)
-        if self.default_restrictions is not None:
-            domain = extract_unique_domain(o, expand_mesh_sequence=False)
-            if isinstance(domain, MeshSequence):
-                raise RuntimeError(
-                    f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
-                )
-            if isinstance(self.default_restrictions, dict):
-                r = self.default_restrictions[domain]
-            else:
-                r = self.default_restrictions
-            if r is None:
-                # If integration if over interior facet of meshA and exterior facet of meshB,
-                # arguments (say) on meshA must be restricted, but those on meshB do not
-                # need to be.
-                return o
-            else:
-                raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-        else:
+        if self.default_restrictions is None:
+            # Do not check further.
             return o
-
-    def _default_restricted(self, o):
-        """Restrict a continuous quantity to default side if no current restriction is set."""
-        r = self.current_restriction
-        if r is not None:
-            return o(r)
-        if self.default_restrictions is not None:
-            domain = extract_unique_domain(o, expand_mesh_sequence=False)
-            if isinstance(domain, MeshSequence):
-                raise RuntimeError(
-                    f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
-                )
-            if isinstance(self.default_restrictions, dict):
-                if domain not in self.default_restrictions:
-                    raise RuntimeError(f"Integral type on {domain} not known")
-                r = self.default_restrictions[domain]
-                if r is None:
-                    return o
-                elif r in ["+", "-"]:
-                    return o(r)
-                else:
-                    raise RuntimeError(f"Unknown default restriction {r} on domain {domain}")
-            else:
-                # conventional "+" default:
-                return o(self.default_restrictions)
         else:
-            return o
-
-    def _opposite(self, o):
-        """Restrict a quantity to default side.
-
-        If the current restriction is different swap the sign, require a side to be set.
-        """
-        if isinstance(self.default_restrictions, dict):
             domain = extract_unique_domain(o, expand_mesh_sequence=False)
             if isinstance(domain, MeshSequence):
                 raise RuntimeError(
@@ -133,8 +84,50 @@ class RestrictionPropagator(MultiFunction):
             if domain not in self.default_restrictions:
                 raise RuntimeError(f"Integral type on {domain} not known")
             r = self.default_restrictions[domain]
+            if r is None:
+                # If integration if over interior facet of meshA and exterior facet of meshB,
+                # arguments (say) on meshA must be restricted, but those on meshB do not
+                # need to be.
+                return o
+            else:
+                raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+
+    def _default_restricted(self, o):
+        """Restrict a continuous quantity to default side if no current restriction is set."""
+        if self.current_restriction is not None:
+            return o(self.current_restriction)
+        if self.default_restrictions is None:
+            # Do not apply default.
+            return o
         else:
-            r = self.default_restrictions
+            domain = extract_unique_domain(o, expand_mesh_sequence=False)
+            if isinstance(domain, MeshSequence):
+                raise RuntimeError(
+                    f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
+                )
+            if domain not in self.default_restrictions:
+                raise RuntimeError(f"Integral type on {domain} not known")
+            r = self.default_restrictions[domain]
+            if r is None:
+                return o
+            elif r in ["+", "-"]:
+                return o(r)
+            else:
+                raise RuntimeError(f"Unknown default restriction {r} on domain {domain}")
+
+    def _opposite(self, o):
+        """Restrict a quantity to default side.
+
+        If the current restriction is different swap the sign, require a side to be set.
+        """
+        domain = extract_unique_domain(o, expand_mesh_sequence=False)
+        if isinstance(domain, MeshSequence):
+            raise RuntimeError(
+                f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
+            )
+        if domain not in self.default_restrictions:
+            raise RuntimeError(f"Integral type on {domain} not known")
+        r = self.default_restrictions[domain]
         if r is None:
             if self.current_restriction is not None:
                 raise ValueError(
