@@ -71,7 +71,7 @@ def testZero():
 
 def testIdentity():
     cell = triangle
-    ident = Identity(cell.topological_dimension())
+    ident = Identity(cell.topological_dimension)
 
     s = 123 * ident[0, 0]
     e = s((5, 7))
@@ -178,7 +178,7 @@ def testIndexSum2():
     cell = triangle
     domain = Mesh(LagrangeElement(cell, 1, (2,)))
     x = SpatialCoordinate(domain)
-    ident = Identity(cell.topological_dimension())
+    ident = Identity(cell.topological_dimension)
     i, j = indices(2)
     s = (x[i] * x[j]) * ident[i, j]
     e = s((5, 7))

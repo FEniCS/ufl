@@ -88,7 +88,7 @@ from ufl.sobolevspace import L2
 class ExpressionCollection:
     def __init__(self, cell):
         self.cell = cell
-        d = cell.topological_dimension()
+        d = cell.topological_dimension
         domain = Mesh(LagrangeElement(cell, 1, (d,)))
 
         x = SpatialCoordinate(domain)

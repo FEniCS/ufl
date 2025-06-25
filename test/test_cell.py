@@ -83,5 +83,5 @@ def test_cells_4d(cell):
 def test_tensorproductcell():
     orig = ufl.TensorProductCell(ufl.interval, ufl.interval)
     cell = orig.reconstruct()
-    assert cell.sub_cells() == orig.sub_cells()
-    assert cell.topological_dimension() == orig.topological_dimension()
+    assert cell.sub_cells == orig.sub_cells
+    assert cell.topological_dimension == orig.topological_dimension
