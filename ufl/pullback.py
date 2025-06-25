@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import typing
 from abc import ABC, abstractmethod, abstractproperty
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 
@@ -69,7 +69,7 @@ class AbstractPullback(ABC):
     def is_identity(self) -> bool:
         """Is this pull back the identity (or the identity applied to mutliple components)."""
 
-    def apply(self, expr: Expr, domain: AbstractDomain = None) -> Expr:
+    def apply(self, expr: Expr, domain: Optional[AbstractDomain] = None) -> Expr:
         """Apply the pull back.
 
         Args:
@@ -463,7 +463,7 @@ class SymmetricPullback(AbstractPullback):
     """Pull back for an element with symmetry."""
 
     def __init__(
-        self, element: _AbstractFiniteElement, symmetry: typing.Dict[typing.tuple[int, ...], int]
+        self, element: _AbstractFiniteElement, symmetry: typing.Dict[typing.Tuple[int, ...], int]
     ):
         """Initalise.
 
