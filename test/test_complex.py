@@ -43,10 +43,6 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.comparison_checker import ComplexComparisonError, do_comparison_check
 from ufl.algorithms.formtransformations import compute_form_adjoint
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
-from ufl.constantvalue import ComplexValue, Zero
 
 
 def test_conj(self):

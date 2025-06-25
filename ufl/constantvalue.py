@@ -10,9 +10,7 @@
 # Modified by Massimiliano Leoni, 2016.
 
 import numbers
-import typing
 import warnings
-
 from math import atan2
 
 import ufl
@@ -23,7 +21,6 @@ from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-
 
 # --- Base classes for constant types ---
 
@@ -341,7 +338,7 @@ class FloatValue(RealValue):
 
     def __repr__(self):
         """Representation."""
-        return "%s(%s)" % (type(self).__name__, float(self._value))
+        return f"{type(self).__name__}({float(self._value)})"
 
 
 @ufl_type(wraps_type=int, is_literal=True)
