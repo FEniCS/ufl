@@ -11,6 +11,8 @@
 
 import numbers
 import warnings
+import typing
+
 from math import atan2
 
 import ufl
@@ -54,7 +56,7 @@ class Zero(ConstantValue):
 
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
-    _cache = {}
+    _cache: typing.Dict[typing.Tuple[int], "Zero"] = {}
 
     def __getnewargs__(self):
         """Get new args."""
@@ -351,7 +353,7 @@ class IntValue(RealValue):
 
     __slots__ = ()
 
-    _cache = {}
+    _cache: typing.Dict[int, "IntValue"] = {}
 
     def __getnewargs__(self):
         """Get new args."""
