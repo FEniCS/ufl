@@ -16,9 +16,10 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+import typing
 import warnings
 
-from ufl.core.ufl_type import UFLType, update_ufl_type_attributes
+from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
 
 
 class Expr(metaclass=UFLType):
@@ -180,7 +181,7 @@ class Expr(metaclass=UFLType):
     # Each subclass of Expr is checked to have these methods in
     # ufl_type
     # FIXME: Add more and enable all
-    _ufl_required_methods_ = (
+    _ufl_required_methods_: tuple[str, ...] = (
         # To compute the hash on demand, this method is called.
         "_ufl_compute_hash_",
         # The data returned from this method is used to compute the
@@ -204,10 +205,10 @@ class Expr(metaclass=UFLType):
 
     # A global dict mapping language_operator_name to the type it
     # produces
-    _ufl_language_operators_ = {}
+    _ufl_language_operators_: typing.Dict[str, object] = {}
 
     # List of all terminal modifier types
-    _ufl_terminal_modifiers_ = []
+    _ufl_terminal_modifiers_: typing.List[UFLObject] = []
 
     # --- Mechanism for profiling object creation and deletion ---
 
@@ -388,10 +389,79 @@ class Expr(metaclass=UFLType):
             val = NotImplemented
         return val
 
+    # For definitions see exproperators.py
+    def __ne__(self, other):
+        """Negate."""
+        pass
+
+    def __lt__(self, other):
+        """A boolean expresion (left < right) for use with conditional."""
+        pass
+
+    def __gt__(self, other):
+        """A boolean expresion (left > right) for use with conditional."""
+        pass
+
+    def __le__(self, other):
+        """A boolean expresion (left <= right) for use with conditional."""
+        pass
+
+    def __ge__(self, other):
+        """A boolean expresion (left >= right) for use with conditional."""
+        pass
+
+    def __xor__(self, other):
+        """A^indices := as_tensor(A, indices)."""
+        pass
+
+    def __mul__(self, other):
+        """Multiply."""
+        pass
+
+    def __rmul__(self, other):
+        """Multiply."""
+        pass
+
+    def __add__(self, other):
+        """Add."""
+        pass
+
+    def __sub__(self, other):
+        """Subtract."""
+        pass
+
+    def __rsub__(self, other):
+        """Subtract."""
+        pass
+
+    def __div__(self, other):
+        """Divide."""
+        pass
+
+    def __truediv__(self, other):
+        """Divide."""
+        pass
+
+    def __pow__(self, other):
+        """Raise to a power."""
+        pass
+
+    def __rpow__(self, other):
+        """Raise to a power."""
+        pass
+
+    def __neg__(self):
+        """Negate."""
+        pass
+
+    def __getitem__(self, index):
+        """Get item."""
+        pass
+
 
 # Initializing traits here because Expr is not defined in the class
 # declaration
-Expr._ufl_class_ = Expr
+Expr._ufl_class_ = Expr  # type: ignore
 
 # Update Expr with metaclass properties (e.g. typecode or handler name)
 # Explicitly done here instead of using `@ufl_type` to avoid circular imports.

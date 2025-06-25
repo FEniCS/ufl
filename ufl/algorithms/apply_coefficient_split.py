@@ -115,8 +115,8 @@ class CoefficientSplitter(DAGTraverser):
     def _(
         self,
         o: Expr,
-        reference_value: Union[bool, None] = False,
-        reference_grad: Union[int, None] = 0,
+        reference_value: bool = False,
+        reference_grad: int = 0,
         restricted: Union[str, None] = None,
     ) -> Expr:
         """Handle ReferenceGrad."""
@@ -156,7 +156,7 @@ class CoefficientSplitter(DAGTraverser):
         self,
         o: Expr,
         reference_value: Union[bool, None] = False,
-        reference_grad: Union[int, None] = 0,
+        reference_grad: int = 0,
         restricted: Union[str, None] = None,
     ) -> Expr:
         """Handle Terminal."""
@@ -172,7 +172,7 @@ class CoefficientSplitter(DAGTraverser):
         self,
         o: Expr,
         reference_value: Union[bool, None] = False,
-        reference_grad: Union[int, None] = 0,
+        reference_grad: int = 0,
         restricted: Union[str, None] = None,
     ) -> Expr:
         """Handle Coefficient."""
@@ -203,7 +203,7 @@ class CoefficientSplitter(DAGTraverser):
         self,
         o: Expr,
         reference_value: Union[bool, None] = False,
-        reference_grad: Union[int, None] = 0,
+        reference_grad: int = 0,
         restricted: Union[str, None] = None,
     ) -> Expr:
         """Wrap terminal as needed."""

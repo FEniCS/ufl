@@ -361,24 +361,24 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
 
     """
     # Use hashing to join domains, ignore None
-    domains_ = set(domains) - set((None,))
+    joined_domains = set(domains) - set((None,))
     if expand_mesh_sequence:
-        domains = set()
-        for domain in domains_:
-            domains.update(domain.meshes)
-    else:
-        domains = domains_
-    if not domains:
+        unrolled_joined_domains = set()
+        for domain in joined_domains:
+            unrolled_joined_domains.update(domain.meshes)
+        joined_domains = unrolled_joined_domains
+
+    if not joined_domains:
         return ()
 
     # Check geometric dimension compatibility
     gdims = set()
-    for domain in domains:
+    for domain in joined_domains:
         gdims.add(domain.geometric_dimension())
     if len(gdims) != 1:
         raise ValueError("Found domains with different geometric dimensions.")
 
-    return domains
+    return joined_domains
 
 
 # TODO: Move these to an analysis module?

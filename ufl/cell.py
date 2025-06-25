@@ -59,7 +59,7 @@ class AbstractCell(UFLObject):
         """Return the cellname of the cell."""
 
     @abstractmethod
-    def reconstruct(self, **kwargs: typing.Any) -> Cell:
+    def reconstruct(self, **kwargs: typing.Any) -> AbstractCell:
         """Reconstruct this cell, overwriting properties by those in kwargs."""
 
     def __lt__(self, other: AbstractCell) -> bool:
@@ -184,7 +184,7 @@ class AbstractCell(UFLObject):
         return self.sub_entity_types(tdim - 3)
 
 
-_sub_entity_celltypes = {
+_sub_entity_celltypes: typing.Dict[str, list[tuple[str, ...]]] = {
     "vertex": [("vertex",)],
     "interval": [tuple("vertex" for i in range(2)), ("interval",)],
     "triangle": [
@@ -345,7 +345,7 @@ class TensorProductCell(AbstractCell):
 
     __slots__ = ("_cells", "_tdim")
 
-    def __init__(self, *cells: Cell):
+    def __init__(self, *cells: AbstractCell):
         """Initialise.
 
         Args:
@@ -358,7 +358,7 @@ class TensorProductCell(AbstractCell):
         if not isinstance(self._tdim, numbers.Integral):
             raise ValueError("Expecting integer topological_dimension.")
 
-    def sub_cells(self) -> list[AbstractCell]:
+    def sub_cells(self) -> typing.Tuple[AbstractCell, ...]:
         """Return list of cell factors."""
         return self._cells
 
@@ -398,21 +398,21 @@ class TensorProductCell(AbstractCell):
     def sub_entities(self, dim: int) -> tuple[AbstractCell, ...]:
         """Get the sub-entities of the given dimension."""
         if dim < 0 or dim > self._tdim:
-            return []
+            return ()
         if dim == 0:
-            return [Cell("vertex") for i in range(self.num_sub_entities(0))]
+            return tuple(Cell("vertex") for i in range(self.num_sub_entities(0)))
         if dim == self._tdim:
-            return [self]
+            return (self,)
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
     def sub_entity_types(self, dim: int) -> tuple[AbstractCell, ...]:
         """Get the unique sub-entity types of the given dimension."""
         if dim < 0 or dim > self._tdim:
-            return []
+            return ()
         if dim == 0:
-            return [Cell("vertex")]
+            return (Cell("vertex"),)
         if dim == self._tdim:
-            return [self]
+            return (self,)
         raise NotImplementedError(f"TensorProductCell.sub_entities({dim}) is not implemented.")
 
     def _lt(self, other) -> bool:
@@ -434,7 +434,7 @@ class TensorProductCell(AbstractCell):
         """UFL hash data."""
         return tuple(c._ufl_hash_data_() for c in self._cells)
 
-    def reconstruct(self, **kwargs: typing.Any) -> Cell:
+    def reconstruct(self, **kwargs: typing.Any) -> AbstractCell:
         """Reconstruct this cell, overwriting properties by those in kwargs."""
         for key, value in kwargs.items():
             raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
@@ -481,6 +481,6 @@ def as_cell(cell: AbstractCell | str | tuple[AbstractCell, ...]) -> AbstractCell
     elif isinstance(cell, str):
         return Cell(cell)
     elif isinstance(cell, tuple):
-        return TensorProductCell(cell)
+        return TensorProductCell(*cell)
     else:
         raise ValueError(f"Invalid cell {cell}.")

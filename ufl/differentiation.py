@@ -86,6 +86,9 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
     _ufl_noslots_ = True
+    _ufl_required_methods_: tuple[str, ...] = (
+        CoefficientDerivative._ufl_required_methods_ + BaseForm._ufl_required_methods_
+    )
 
     def __init__(self, base_form, coefficients, arguments, coefficient_derivatives):
         """Initalise."""
@@ -159,7 +162,11 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     # Therefore the latter overwrites Operator reconstruction and we would have:
     #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ =
     #   BaseFormOperator._ufl_expr_reconstruct_
-    _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
+    def _ufl_expr_reconstruct_(
+        self, *operands, function_space=None, derivatives=None, argument_slots=None
+    ):
+        return Operator._ufl_expr_reconstruct_(*operands)
+
     # Set __repr__
     __repr__ = Operator.__repr__
 

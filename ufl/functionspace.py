@@ -78,7 +78,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         if len(self._ufl_element.sub_elements) == 0:
             return {(): 0}
 
-        components = {}
+        components: dict[typing.Tuple[int, ...], int] = {}
         offset = 0
         c_offset = 0
         for s in self.ufl_sub_spaces():
