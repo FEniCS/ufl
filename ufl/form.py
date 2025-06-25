@@ -53,10 +53,10 @@ def _sorted_integrals(integrals):
         it = integral.integral_type()
         si = integral.subdomain_id()
         # Make a sortable key.
-        additional_d_itype_tuple = tuple(
+        extra_measures_sortable = tuple(
             (d_._ufl_sort_key_(), it_) for d_, it_ in integral.extra_measures().items()
         )
-        integrals_dict[d][it][additional_d_itype_tuple][si].append(integral)
+        integrals_dict[d][it][extra_measures_sortable][si].append(integral)
 
     all_integrals = []
 
@@ -71,9 +71,9 @@ def _sorted_integrals(integrals):
     # Order integrals canonically to increase signature stability
     for d in sort_domains(integrals_dict):
         for it in sorted(integrals_dict[d]):  # str is sortable
-            for additional_d_itype_tuple in sorted(integrals_dict[d][it]):
-                for si in sorted(integrals_dict[d][it][additional_d_itype_tuple], key=keyfunc):
-                    unsorted_integrals = integrals_dict[d][it][additional_d_itype_tuple][si]
+            for extra_meas_sortable in sorted(integrals_dict[d][it]):
+                for si in sorted(integrals_dict[d][it][extra_meas_sortable], key=keyfunc):
+                    unsorted_integrals = integrals_dict[d][it][extra_meas_sortable][si]
                     # TODO: At this point we could order integrals by
                     #       metadata and integrand, or even add the
                     #       integrands with the same metadata. This is done
@@ -81,7 +81,7 @@ def _sorted_integrals(integrals):
                     #       algorithms/domain_analysis.py and would further
                     #       increase the signature stability.
                     all_integrals.extend(unsorted_integrals)
-                    # integrals_dict[d][it][additional_d_itype_tuple][si] = unsorted_integrals
+                    # integrals_dict[d][it][extra_meas_sortable][si] = unsorted_integrals
 
     return tuple(all_integrals)  # integrals_dict
 

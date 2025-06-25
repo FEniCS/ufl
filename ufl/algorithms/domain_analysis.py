@@ -299,7 +299,7 @@ def build_integral_data(integrals):
     # Build list with canonical ordering, iteration over dicts
     # is not deterministic across python versions
     def keyfunc(item):
-        (d, itype, sid, additional_d_itype_tuple), integrals = item
+        (d, itype, sid, extra_meas_tuple), integrals = item
         sid_int = tuple(-1 if i == "otherwise" else i for i in sid)
         return (
             d._ufl_sort_key_(),
@@ -307,13 +307,13 @@ def build_integral_data(integrals):
             (type(sid).__name__,),
             sid_int,
             tuple(
-                (add_d._ufl_sort_key_(), add_itype) for add_d, add_itype in additional_d_itype_tuple
+                (d_._ufl_sort_key_(), itype_) for d_, itype_ in extra_meas_tuple
             ),
         )
 
     integral_datas = []
-    for (d, itype, sid, additional_d_itype_tuple), integrals in sorted(itgs.items(), key=keyfunc):
-        domain_integral_type_tuple = ((d, itype),) + additional_d_itype_tuple
+    for (d, itype, sid, extra_meas_tuple), integrals in sorted(itgs.items(), key=keyfunc):
+        domain_integral_type_tuple = ((d, itype),) + extra_meas_tuple
         integral_datas.append(
             IntegralData(
                 d,
