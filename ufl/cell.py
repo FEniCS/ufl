@@ -22,18 +22,22 @@ __all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 class AbstractCell(UFLObject):
     """A base class for all cells."""
 
+    @property
     @abstractmethod
     def topological_dimension(self) -> int:
         """Return the dimension of the topology of this cell."""
 
+    @property
     @abstractmethod
     def is_simplex(self) -> bool:
         """Return True if this is a simplex cell."""
 
+    @property
     @abstractmethod
     def has_simplex_facets(self) -> bool:
         """Return True if all the facets of this cell are simplex cells."""
 
+    @property
     @abstractmethod
     def _lt(self, other) -> bool:
         """Less than operator.
@@ -42,6 +46,7 @@ class AbstractCell(UFLObject):
         instances of this type with the same dimensions.
         """
 
+    @property
     @abstractmethod
     def num_sub_entities(self, dim: int) -> int:
         """Get the number of sub-entities of the given dimension."""
@@ -54,6 +59,7 @@ class AbstractCell(UFLObject):
     def sub_entity_types(self, dim: int) -> tuple[AbstractCell, ...]:
         """Get the unique sub-entity types of the given dimension."""
 
+    @property
     @abstractmethod
     def cellname(self) -> str:
         """Return the cellname of the cell."""
@@ -403,12 +409,12 @@ class TensorProductCell(AbstractCell):
         if dim < 0 or dim > self._tdim:
             return 0
         if dim == 0:
-            return functools.reduce(lambda x, y: x * y, [c.num_vertices() for c in self._cells])
+            return functools.reduce(lambda x, y: x * y, [c.num_vertices for c in self._cells])
         if dim == self._tdim - 1:
             # Note: This is not the number of facets that the cell has,
             # but I'm leaving it here for now to not change past
             # behaviour
-            return sum(c.num_facets() for c in self._cells if c.topological_dimension() > 0)
+            return sum(c.num_facets for c in self._cells if c.topological_dimension() > 0)
         if dim == self._tdim:
             return 1
         raise NotImplementedError(f"TensorProductCell.num_sub_entities({dim}) is not implemented.")
