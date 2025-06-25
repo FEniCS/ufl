@@ -502,10 +502,7 @@ def compute_form_data(
                 itg_data.integrals = new_integrals
 
     if not do_assume_single_integral_type:
-        if have_single_domain:
-            for itg_data in self.integral_data:
-                itg_data.domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
-        else:
+        if not have_single_domain:
             # Inspect the form and apply default restrictions.
             if coefficients_to_split is None:
                 raise ValueError("""
