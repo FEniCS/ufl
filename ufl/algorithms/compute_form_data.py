@@ -352,34 +352,6 @@ def compute_form_data(
     # Most of the heavy lifting is done above in group_form_integrals.
     self.integral_data = build_integral_data(form.integrals())
 
-    # Propagate restrictions to terminals
-    if do_apply_restrictions:
-        if do_assume_single_integral_type or have_single_domain:
-            for itg_data in self.integral_data:
-                if do_apply_default_restrictions:
-                    domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
-                else:
-                    domain_integral_type_map = None  # Set None if not needed.
-                new_integrals = []
-                for integral in itg_data.integrals:
-                    new_integral = apply_restrictions(
-                        integral,
-                        domain_integral_type_map=domain_integral_type_map,
-                    )
-                    new_integrals.append(new_integral)
-                itg_data.integrals = new_integrals
-        else:
-            for itg_data in self.integral_data:
-                new_integrals = []
-                for integral in itg_data.integrals:
-                    new_integral = apply_restrictions(
-                        integral,
-                        assume_single_integral_type=have_single_domain,
-                        domain_integral_type_map=None,  # We do not know this map yet.
-                    )
-                    new_integrals.append(new_integral)
-                itg_data.integrals = new_integrals
-
     # --- Create replacements for arguments and coefficients
 
     # Figure out which form coefficients each integral should enable
@@ -466,6 +438,16 @@ def compute_form_data(
     else:
         if not do_replace_functions:
             raise ValueError("Must call with do_replace_functions=True")
+        for itg_data in self.integral_data:
+            new_integrals = []
+            for integral in itg_data.integrals:
+                new_integral = apply_restrictions(
+                    integral,
+                    assume_single_integral_type=False,
+                    domain_integral_type_map=None,
+                )
+                new_integrals.append(new_integral)
+            itg_data.integrals = new_integrals
         # Split coefficients that are contained in ``coefficients_to_split``
         # into components, and store a dict in ``self`` that maps
         # each coefficient to its components.
@@ -490,6 +472,34 @@ def compute_form_data(
                 if not isinstance(integrand, Zero):
                     new_integrals.append(integral.reconstruct(integrand=integrand))
             itg_data.integrals = new_integrals
+
+    # Propagate restrictions to terminals
+    if do_apply_restrictions:
+        if do_assume_single_integral_type or have_single_domain:
+            for itg_data in self.integral_data:
+                if do_apply_default_restrictions:
+                    domain_integral_type_map = {itg_data.domain: itg_data.integral_type}
+                else:
+                    domain_integral_type_map = None  # Set None if not needed.
+                new_integrals = []
+                for integral in itg_data.integrals:
+                    new_integral = apply_restrictions(
+                        integral,
+                        domain_integral_type_map=domain_integral_type_map,
+                    )
+                    new_integrals.append(new_integral)
+                itg_data.integrals = new_integrals
+        else:
+            for itg_data in self.integral_data:
+                new_integrals = []
+                for integral in itg_data.integrals:
+                    new_integral = apply_restrictions(
+                        integral,
+                        assume_single_integral_type=have_single_domain,
+                        domain_integral_type_map=None,  # We do not know this map yet.
+                    )
+                    new_integrals.append(new_integral)
+                itg_data.integrals = new_integrals
 
     # Make ``itg_data.domain_integral_type_map``; this is only significant
     # when we handle general multi-domain problems
