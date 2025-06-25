@@ -10,8 +10,10 @@ restrictions in a form towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from typing import Union
+
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Restricted
+from ufl.classes import Expr, Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import MeshSequence, extract_unique_domain
@@ -248,7 +250,17 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression, default_restrictions=None):
-    """Propagate restriction nodes to wrap differential terminals directly."""
+def apply_restrictions(expression: Expr, default_restrictions: Union[dict, None] = None) -> Expr:
+    """Propagate restriction nodes to wrap differential terminals directly.
+
+    Args:
+        expression: UFL expression.
+        default_restrictions: domain-default_restriction map. If `None`,
+            default restrictions are not applied.
+
+    Returns:
+        expression with restriction nodes propagated.
+
+    """
     rules = RestrictionPropagator(default_restrictions=default_restrictions)
     return map_integrand_dags(rules, expression)
