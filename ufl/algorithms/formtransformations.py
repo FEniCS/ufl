@@ -308,7 +308,11 @@ class PartExtracter(Transformer):
 
 
 def compute_form_with_arity(form, arity, arguments=None):
-    """Compute parts of form of given arity."""
+    """Compute parts of form of given arity.
+
+    Note:
+        If the form has no parts of the specified arity, this will return 0*form.
+    """
     # Extract all arguments in form
     if arguments is None:
         arguments = form.arguments()
