@@ -1,9 +1,6 @@
 """Classes.
 
-This file is useful for external code like tests and form compilers,
-since it enables the syntax "from ufl.classes import CellFacetooBar" for getting
-implementation details not exposed through the default ufl namespace.
-It also contains functionality used by algorithms for dealing with groups
+It contains functionality used by algorithms for dealing with groups
 of classes, and for mapping types to different handler functions.
 """
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
@@ -17,40 +14,7 @@ of classes, and for mapping types to different handler functions.
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Paul T. Kühner, 2025
 
-# Import all submodules, triggering execution of the ufl_type class
-# decorator for each Expr class.
-
-import ufl.algebra
-import ufl.argument
-import ufl.averaging
-import ufl.cell
-import ufl.coefficient
-import ufl.conditional
-import ufl.constantvalue
 import ufl.core.expr
-import ufl.core.multiindex
-import ufl.core.operator
-import ufl.core.terminal
-import ufl.differentiation
-import ufl.domain
-import ufl.equation
-import ufl.exprcontainers
-import ufl.finiteelement
-import ufl.form
-import ufl.functionspace
-import ufl.geometry
-import ufl.indexed
-import ufl.indexsum
-import ufl.integral
-import ufl.mathfunctions
-import ufl.measure
-import ufl.pullback
-import ufl.referencevalue
-import ufl.restriction
-import ufl.sobolevspace
-import ufl.tensoralgebra
-import ufl.tensors
-import ufl.variable
 from ufl import exproperators as __exproperators
 from ufl.action import Action
 from ufl.adjoint import Adjoint
