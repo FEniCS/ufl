@@ -223,15 +223,6 @@ terminal_classes = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
 nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
 
 __all__ += [
-    "__exproperators",
-    "abstract_classes",
-    "all_ufl_classes",
-    "nonterminal_classes",
-    "terminal_classes",
-    "ufl_classes",
-]
-
-__all__ += [
     "EQ",
     "GE",
     "GT",
@@ -399,6 +390,12 @@ __all__ += [
     "VariableDerivative",
     "Zero",
     "ZeroBaseForm",
+    "__exproperators",
+    "abstract_classes",
+    "all_ufl_classes",
+    "nonterminal_classes",
+    "terminal_classes",
+    "ufl_classes",
 ]
 
 
