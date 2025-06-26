@@ -57,8 +57,16 @@ from ufl import exproperators as __exproperators
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algebra import Abs, Conj, Division, Imag, Power, Product, Real, Sum
-from ufl.argument import Argument, Coargument
+from ufl.argument import (
+    Argument,
+    Coargument,
+    TestFunction,
+    TestFunctions,
+    TrialFunction,
+    TrialFunctions,
+)
 from ufl.averaging import CellAvg, FacetAvg
+from ufl.cell import AbstractCell, Cell, TensorProductCell
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.conditional import (
     EQ,
@@ -92,7 +100,7 @@ from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
-from ufl.core.multiindex import MultiIndex
+from ufl.core.multiindex import FixedIndex, Index, IndexBase, MultiIndex
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument, Terminal
 from ufl.differentiation import (
@@ -114,8 +122,18 @@ from ufl.differentiation import (
     ReferenceGrad,
     VariableDerivative,
 )
+from ufl.domain import AbstractDomain, Mesh, MeshView
+from ufl.equation import Equation
 from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
+from ufl.functionspace import (
+    AbstractFunctionSpace,
+    DualSpace,
+    FunctionSpace,
+    MixedFunctionSpace,
+    TensorProductFunctionSpace,
+)
 from ufl.geometry import (
     CellCoordinate,
     CellDiameter,
@@ -171,6 +189,7 @@ from ufl.geometry import (
 )
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
+from ufl.integral import Integral
 from ufl.mathfunctions import (
     Acos,
     Asin,
@@ -194,8 +213,26 @@ from ufl.mathfunctions import (
     Tanh,
 )
 from ufl.matrix import Matrix
+from ufl.measure import Measure, MeasureProduct, MeasureSum
+from ufl.pullback import (
+    AbstractPullback,
+    ContravariantPiola,
+    CovariantContravariantPiola,
+    CovariantPiola,
+    CustomPullback,
+    DoubleContravariantPiola,
+    DoubleCovariantPiola,
+    IdentityPullback,
+    L2Piola,
+    MixedPullback,
+    NonStandardPullbackException,
+    PhysicalPullback,
+    SymmetricPullback,
+    UndefinedPullback,
+)
 from ufl.referencevalue import ReferenceValue
 from ufl.restriction import NegativeRestricted, PositiveRestricted, Restricted
+from ufl.sobolevspace import DirectionalSobolevSpace, SobolevSpace
 from ufl.tensoralgebra import (
     Cofactor,
     CompoundTensorOperator,
@@ -215,13 +252,6 @@ from ufl.tensoralgebra import (
 from ufl.tensors import ComponentTensor, ListTensor
 from ufl.variable import Label, Variable
 
-# Collect all classes in sets automatically classified by some properties
-all_ufl_classes = set(ufl.core.expr.Expr._ufl_all_classes_)
-abstract_classes = set(c for c in all_ufl_classes if c._ufl_is_abstract_)
-ufl_classes = set(c for c in all_ufl_classes if not c._ufl_is_abstract_)
-terminal_classes = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
-nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
-
 __all__ += [
     "EQ",
     "GE",
@@ -230,6 +260,11 @@ __all__ += [
     "LT",
     "NE",
     "Abs",
+    "AbstractCell",
+    "AbstractDomain",
+    "AbstractFiniteElement",
+    "AbstractFunctionSpace",
+    "AbstractPullback",
     "Acos",
     "Action",
     "Adjoint",
@@ -238,6 +273,7 @@ __all__ += [
     "Asin",
     "Atan",
     "Atan2",
+    "BaseForm",
     "BaseForm",
     "BaseFormCoordinateDerivative",
     "BaseFormDerivative",
@@ -250,6 +286,7 @@ __all__ += [
     "BesselK",
     "BesselY",
     "BinaryCondition",
+    "Cell",
     "CellAvg",
     "CellCoordinate",
     "CellDiameter",
@@ -282,17 +319,26 @@ __all__ += [
     "Conj",
     "Constant",
     "ConstantValue",
+    "ContravariantPiola",
     "CoordinateDerivative",
     "Cos",
     "Cosh",
+    "CovariantContravariantPiola",
+    "CovariantPiola",
     "Cross",
     "Curl",
+    "CustomPullback",
     "Derivative",
     "Determinant",
     "Deviatoric",
+    "DirectionalSobolevSpace",
     "Div",
     "Division",
     "Dot",
+    "DoubleContravariantPiola",
+    "DoubleCovariantPiola",
+    "DualSpace",
+    "Equation",
     "Erf",
     "Exp",
     "Expr",
@@ -310,26 +356,34 @@ __all__ += [
     "FacetOrientation",
     "FacetOrigin",
     "FacetRidgeJacobian",
+    "FixedIndex",
     "FloatValue",
+    "Form",
     "Form",
     "FormArgument",
     "FormSum",
+    "FunctionSpace",
     "GeometricCellQuantity",
     "GeometricFacetQuantity",
     "GeometricQuantity",
     "GeometricRidgeQuantity",
     "Grad",
     "Identity",
+    "IdentityPullback",
     "Imag",
+    "Index",
+    "IndexBase",
     "IndexSum",
     "Indexed",
     "Inner",
     "IntValue",
+    "Integral",
     "Interpolate",
     "Inverse",
     "Jacobian",
     "JacobianDeterminant",
     "JacobianInverse",
+    "L2Piola",
     "Label",
     "ListTensor",
     "Ln",
@@ -338,19 +392,28 @@ __all__ += [
     "MaxCellEdgeLength",
     "MaxFacetEdgeLength",
     "MaxValue",
+    "Measure",
+    "MeasureProduct",
+    "MeasureSum",
+    "Mesh",
+    "MeshView",
     "MinCellEdgeLength",
     "MinFacetEdgeLength",
     "MinValue",
+    "MixedFunctionSpace",
+    "MixedPullback",
     "MultiIndex",
     "NablaDiv",
     "NablaGrad",
     "NegativeRestricted",
+    "NonStandardPullbackException",
     "NotCondition",
     "Operator",
     "OrCondition",
     "Outer",
     "PermutationSymbol",
     "Perp",
+    "PhysicalPullback",
     "PositiveRestricted",
     "Power",
     "Product",
@@ -377,18 +440,28 @@ __all__ += [
     "Sin",
     "Sinh",
     "Skew",
+    "SobolevSpace",
     "SpatialCoordinate",
     "Sqrt",
     "Sum",
     "Sym",
+    "SymmetricPullback",
     "Tan",
     "Tanh",
+    "TensorProductCell",
+    "TensorProductFunctionSpace",
     "Terminal",
+    "TestFunction",
+    "TestFunctions",
     "Trace",
     "Transposed",
+    "TrialFunction",
+    "TrialFunctions",
+    "UndefinedPullback",
     "Variable",
     "VariableDerivative",
     "Zero",
+    "ZeroBaseForm",
     "ZeroBaseForm",
     "__exproperators",
     "abstract_classes",
@@ -398,27 +471,9 @@ __all__ += [
     "ufl_classes",
 ]
 
-
-# Semi-automated imports of non-expr classes:
-
-
-def populate_namespace_with_module_classes(mod, loc):
-    """Export the classes that submodules list in __all_classes__."""
-    names = mod.__all_classes__
-    for name in names:
-        loc[name] = getattr(mod, name)
-    return names
-
-
-__all__ += populate_namespace_with_module_classes(ufl.cell, locals())
-__all__ += populate_namespace_with_module_classes(ufl.finiteelement, locals())
-__all__ += populate_namespace_with_module_classes(ufl.domain, locals())
-__all__ += populate_namespace_with_module_classes(ufl.functionspace, locals())
-__all__ += populate_namespace_with_module_classes(ufl.core.multiindex, locals())
-__all__ += populate_namespace_with_module_classes(ufl.argument, locals())
-__all__ += populate_namespace_with_module_classes(ufl.measure, locals())
-__all__ += populate_namespace_with_module_classes(ufl.integral, locals())
-__all__ += populate_namespace_with_module_classes(ufl.form, locals())
-__all__ += populate_namespace_with_module_classes(ufl.equation, locals())
-__all__ += populate_namespace_with_module_classes(ufl.pullback, locals())
-__all__ += populate_namespace_with_module_classes(ufl.sobolevspace, locals())
+# Collect all classes in sets automatically classified by some properties
+all_ufl_classes = set(ufl.core.expr.Expr._ufl_all_classes_)
+abstract_classes = set(c for c in all_ufl_classes if c._ufl_is_abstract_)
+ufl_classes = set(c for c in all_ufl_classes if not c._ufl_is_abstract_)
+terminal_classes = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
+nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
