@@ -15,9 +15,7 @@ of classes, and for mapping types to different handler functions.
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Andrew T. T. McRae, 2014
-
-# This will be populated part by part below
-__all__ = []
+# Modified by Paul T. Kühner, 2025
 
 # Import all submodules, triggering execution of the ufl_type class
 # decorator for each Expr class.
@@ -252,7 +250,7 @@ from ufl.tensoralgebra import (
 from ufl.tensors import ComponentTensor, ListTensor
 from ufl.variable import Label, Variable
 
-__all__ += [
+__all__ = [
     "EQ",
     "GE",
     "GT",
