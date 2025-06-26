@@ -10,7 +10,6 @@ restrictions in a form towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from functools import wraps
 from typing import Union
 
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -19,7 +18,6 @@ from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import MeshSequence, extract_unique_domain
 from ufl.sobolevspace import H1
-
 
 default_restriction_map = {
     "cell": None,
