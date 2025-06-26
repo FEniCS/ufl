@@ -10,6 +10,7 @@ restrictions in a form towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from functools import wraps
 from typing import Union
 
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -18,6 +19,7 @@ from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import MeshSequence, extract_unique_domain
 from ufl.sobolevspace import H1
+
 
 default_restriction_map = {
     "cell": None,
@@ -62,6 +64,20 @@ class RestrictionPropagator(MultiFunction):
 
     # --- Reusable rules
 
+    def _check_domain(self, o):
+        domain = extract_unique_domain(o, expand_mesh_sequence=False)
+        if isinstance(domain, MeshSequence):
+            try:
+                domain, = set(domain.meshes)
+            except ValueError:
+                raise RuntimeError(
+                    f"Not expecting a MeshSequence composed of "
+                    f"multiple domains at this stage: found {domain}"
+                )
+        if domain not in self.default_restrictions:
+            raise RuntimeError(f"Integral type on {domain} not known")
+        return domain
+
     def _ignore_restriction(self, o):
         """Ignore current restriction.
 
@@ -78,13 +94,7 @@ class RestrictionPropagator(MultiFunction):
             # Do not check further.
             return o
         else:
-            domain = extract_unique_domain(o, expand_mesh_sequence=False)
-            if isinstance(domain, MeshSequence):
-                raise RuntimeError(
-                    f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
-                )
-            if domain not in self.default_restrictions:
-                raise RuntimeError(f"Integral type on {domain} not known")
+            domain = self._check_domain(o)
             r = self.default_restrictions[domain]
             if r is None:
                 # If integration if over interior facet of meshA and exterior facet of meshB,
@@ -102,13 +112,7 @@ class RestrictionPropagator(MultiFunction):
             # Do not apply default.
             return o
         else:
-            domain = extract_unique_domain(o, expand_mesh_sequence=False)
-            if isinstance(domain, MeshSequence):
-                raise RuntimeError(
-                    f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
-                )
-            if domain not in self.default_restrictions:
-                raise RuntimeError(f"Integral type on {domain} not known")
+            domain = self._check_domain(o)
             r = self.default_restrictions[domain]
             if r is None:
                 return o
@@ -122,13 +126,7 @@ class RestrictionPropagator(MultiFunction):
 
         If the current restriction is different swap the sign, require a side to be set.
         """
-        domain = extract_unique_domain(o, expand_mesh_sequence=False)
-        if isinstance(domain, MeshSequence):
-            raise RuntimeError(
-                f"Not expecting a terminal object on a mixed mesh at this stage: found {o!r}"
-            )
-        if domain not in self.default_restrictions:
-            raise RuntimeError(f"Integral type on {domain} not known")
+        domain = self._check_domain(o)
         r = self.default_restrictions[domain]
         if r is None:
             if self.current_restriction is not None:
