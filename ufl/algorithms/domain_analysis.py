@@ -292,9 +292,7 @@ def build_integral_data(integrals):
 
         # Group for integral data (One integral data object for all
         # integrals with same domain, itype, (but possibly different metadata).
-        itgs[
-            (ufl_domain, integral_type, subdomain_ids, extra_measures_tuple)
-        ].append(integral)
+        itgs[(ufl_domain, integral_type, subdomain_ids, extra_measures_tuple)].append(integral)
 
     # Build list with canonical ordering, iteration over dicts
     # is not deterministic across python versions
@@ -306,9 +304,7 @@ def build_integral_data(integrals):
             itype,
             (type(sid).__name__,),
             sid_int,
-            tuple(
-                (d_._ufl_sort_key_(), itype_) for d_, itype_ in extra_meas_tuple
-            ),
+            tuple((d_._ufl_sort_key_(), itype_) for d_, itype_ in extra_meas_tuple),
         )
 
     integral_datas = []

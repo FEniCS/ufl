@@ -66,7 +66,7 @@ class RestrictionPropagator(MultiFunction):
         domain = extract_unique_domain(o, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
             try:
-                domain, = set(domain.meshes)
+                (domain,) = set(domain.meshes)
             except ValueError:
                 raise RuntimeError(
                     f"Not expecting a MeshSequence composed of "
