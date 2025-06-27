@@ -88,8 +88,3 @@ allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[tool.mypy]
-disable_error_code = [
-    "attr-defined",
-]

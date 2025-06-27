@@ -652,7 +652,7 @@ class GenericDerivativeRuleset(DAGTraverser):
 
     @process.register(Restricted)
     @DAGTraverser.postorder
-    def _(self, o: Expr, fp: Expr) -> Expr:
+    def _(self, o: Restricted, fp: Expr) -> Expr:
         """Differentiate a restricted."""
         # Restriction and differentiation commutes
         if isinstance(fp, ConstantValue):

@@ -183,6 +183,7 @@ class Expr(metaclass=UFLType):
 
     ufl_operands: tuple["FormArgument", ...]
     ufl_shape: tuple[int, ...]
+    _ufl_typecode_: int
 
     # Each subclass of Expr is checked to have these methods in
     # ufl_type
@@ -396,6 +397,11 @@ class Expr(metaclass=UFLType):
         return val
 
     # For definitions see exproperators.py
+    T: property
+
+    def dx(self, *ii):
+        """Integral."""
+        pass
 
     def __call__(self, other):
         """Evaluate."""
@@ -437,6 +443,10 @@ class Expr(metaclass=UFLType):
         """Add."""
         pass
 
+    def __radd__(self, other):
+        """Add."""
+        pass
+
     def __sub__(self, other):
         """Subtract."""
         pass
@@ -449,7 +459,15 @@ class Expr(metaclass=UFLType):
         """Divide."""
         pass
 
+    def __rdiv__(self, other):
+        """Divide."""
+        pass
+
     def __truediv__(self, other):
+        """Divide."""
+        pass
+
+    def __rtruediv__(self, other):
         """Divide."""
         pass
 
