@@ -267,8 +267,8 @@ def _rdiv(self, o):
     return Division(o, self)
 
 
-Expr.__rdiv__ = _rdiv
-Expr.__rtruediv__ = _rdiv
+Expr.__rdiv__ = _rdiv  # type: ignore
+Expr.__rtruediv__ = _rdiv  # type: ignore
 
 
 def _pow(self, o):

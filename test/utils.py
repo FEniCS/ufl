@@ -102,7 +102,7 @@ class FiniteElement(AbstractFiniteElement):
         return self._pullback
 
     @property
-    def embedded_superdegree(self) -> typing.Union[int, None]:
+    def embedded_superdegree(self) -> int:
         """Degree of the minimum degree Lagrange space that spans this element.
 
         This returns the degree of the lowest degree Lagrange space such

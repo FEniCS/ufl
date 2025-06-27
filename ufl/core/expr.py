@@ -389,6 +389,10 @@ class Expr(metaclass=UFLType):
         return val
 
     # For definitions see exproperators.py
+    def __call__(self, other):
+        """Evaluate."""
+        pass
+
     def __ne__(self, other):
         """Negate."""
         pass
@@ -421,6 +425,14 @@ class Expr(metaclass=UFLType):
         """Multiply."""
         pass
 
+    def __truediv__(self, other):
+        """Divide."""
+        pass
+
+    def __rtruediv__(self, other):
+        """Divide."""
+        pass
+
     def __add__(self, other):
         """Add."""
         pass
@@ -437,7 +449,7 @@ class Expr(metaclass=UFLType):
         """Divide."""
         pass
 
-    def __truediv__(self, other):
+    def __rdiv__(self, other):
         """Divide."""
         pass
 
