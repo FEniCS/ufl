@@ -39,9 +39,9 @@ V2 = FiniteElement("DG", tetrahedron, 0, (), identity_pullback, L2)
 
 V = TensorProductElement(V0, V1, V2)
 
-c0 = FiniteElement("CG", triangle, 1)
-c1 = FiniteElement("CG", interval, 1)
-c2 = FiniteElement("CG", tetrahedron, 1)
+c0 = FiniteElement("CG", triangle, 1, (), identity_pullback, L2)
+c1 = FiniteElement("CG", interval, 1, (), identity_pullback, L2)
+c2 = FiniteElement("CG", tetrahedron, 1, (), identity_pullback, L2)
 domain = Mesh(TensorProductElement(c0, c1, c2))
 space = FunctionSpace(domain, V)
 

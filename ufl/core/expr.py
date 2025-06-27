@@ -389,6 +389,10 @@ class Expr(metaclass=UFLType):
         return val
 
     # For definitions see exproperators.py
+    def __call__(self, other):
+        """Evaluate."""
+        pass
+
     def __ne__(self, other):
         """Negate."""
         pass
