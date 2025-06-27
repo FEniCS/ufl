@@ -202,8 +202,8 @@ def test_mixed_function_space_with_mesh_sequence_hash():
 def test_mixed_function_space_with_mesh_sequence_raise():
     cell = triangle
     elem0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    elem1 = FiniteElement("Brezzi-Douglas-Marini", cell, 2, (2,), contravariant_piola, HDiv)
-    elem2 = FiniteElement("Discontinuous Lagrange", cell, 1, (), identity_pullback, L2)
+    elem1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1, (2,), contravariant_piola, HDiv)
+    elem2 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
     elem = MixedElement([elem0, elem1, elem2])
     mesh0 = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1), ufl_id=100)
     mesh1 = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1), ufl_id=101)

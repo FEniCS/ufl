@@ -150,8 +150,8 @@ class Integral:
         """Format as a string."""
         mname = ufl.measure.integral_type_to_measure_name[self._integral_type]
         temp = {
-            d: ufl.measure.integral_type_to_measure_name[it]
-            for d, it in self._extra_domain_integral_type_map.items()
+            d: ufl.measure.integral_type_to_measure_name[itype]
+            for d, itype in self._extra_domain_integral_type_map.items()
         }
         return (
             f"{{self._integrand}} * "
@@ -190,6 +190,6 @@ class Integral:
             hash(self._ufl_domain),
             self._subdomain_id,
             id_or_none(self._subdomain_data),
-            tuple((hash(d), it) for d, it in self._extra_domain_integral_type_map.items()),
+            tuple((hash(d), itype) for d, itype in self._extra_domain_integral_type_map.items()),
         )
         return hash(hashdata)

@@ -62,7 +62,7 @@ class RestrictionPropagator(MultiFunction):
 
     # --- Reusable rules
 
-    def _check_domain(self, o):
+    def _extract_and_check_domain(self, o):
         domain = extract_unique_domain(o, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
             try:
@@ -94,7 +94,7 @@ class RestrictionPropagator(MultiFunction):
                 return o(self.current_restriction)
         else:
             # Propagate restriction while checking validity.
-            domain = self._check_domain(o)
+            domain = self._extract_and_check_domain(o)
             r = self.default_restrictions[domain]
             if self.current_restriction is None:
                 if r is None:
@@ -124,7 +124,7 @@ class RestrictionPropagator(MultiFunction):
                 return o(self.current_restriction)
         else:
             # Propagate restriction while applying default.
-            domain = self._check_domain(o)
+            domain = self._extract_and_check_domain(o)
             r = self.default_restrictions[domain]
             if self.current_restriction is None:
                 if r is None:
@@ -156,7 +156,7 @@ class RestrictionPropagator(MultiFunction):
             else:
                 return o(self.current_restriction)
         else:
-            domain = self._check_domain(o)
+            domain = self._extract_and_check_domain(o)
             r = self.default_restrictions[domain]
             if self.current_restriction is None:
                 if r is None:
@@ -291,11 +291,12 @@ def apply_restrictions(expression: Expr, default_restrictions: Union[dict, None]
 
     Args:
         expression: UFL expression.
-        default_restrictions: domain-default_restriction map. If `None`,
-            default restrictions are not applied.
+        default_restrictions: domain-default_restriction map.
+            If `None`, just propagate restrictions without
+            applying the default restrictions.
 
     Returns:
-        expression with restriction nodes propagated.
+        expression with the restriction nodes propagated.
 
     """
     rules = RestrictionPropagator(default_restrictions=default_restrictions)

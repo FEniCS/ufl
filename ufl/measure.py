@@ -133,8 +133,8 @@ class Measure:
             extra_measures: a `tuple` of extra measures that defines
                 domain-integral_type map for each domain in a multi-domain problem. For instance,
                 if integral_type="dS" on ``domain``, while integral_type="ds" on domainZ, say,
-                we should pass extra_measures=(Measure("ds", domainZ),). Currently,
-                the extra measures must always have "everywhere" subdomain_id.
+                one must pass extra_measures=(Measure("ds", domainZ),). Currently,
+                the extra measures must have "everywhere" subdomain_id.
         """
         # Map short name to long name and require a valid one
         self._integral_type = as_integral_type(integral_type)
