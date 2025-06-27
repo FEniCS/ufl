@@ -16,9 +16,12 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+import typing
 import warnings
 
-from ufl.core.terminal import FormArgument
+if typing.TYPE_CHECKING:
+    from ufl.core.terminal import FormArgument
+
 from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
 
 
@@ -178,7 +181,7 @@ class Expr(metaclass=UFLType):
         "ufl_index_dimensions",
     )
 
-    ufl_operands: tuple[FormArgument, ...]
+    ufl_operands: tuple["FormArgument", ...]
     ufl_shape: tuple[int, ...]
 
     # Each subclass of Expr is checked to have these methods in
