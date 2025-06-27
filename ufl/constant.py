@@ -78,12 +78,12 @@ class Constant(Terminal, Counted):
 def VectorConstant(domain, count=None):
     """Vector constant."""
     domain = as_domain(domain)
-    return Constant(domain, shape=(domain.geometric_dimension(),), count=count)
+    return Constant(domain, shape=(domain.geometric_dimension,), count=count)
 
 
 def TensorConstant(domain, count=None):
     """Tensor constant."""
     domain = as_domain(domain)
     return Constant(
-        domain, shape=(domain.geometric_dimension(), domain.geometric_dimension()), count=count
+        domain, shape=(domain.geometric_dimension, domain.geometric_dimension), count=count
     )
