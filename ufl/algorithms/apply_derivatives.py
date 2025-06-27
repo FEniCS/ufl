@@ -1625,7 +1625,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     # -- Handlers for BaseForm objects -- #
 
     @process.register(Cofunction)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: Cofunction) -> Expr:
         """Differentiate a cofunction."""
         # Same rule than for Coefficient except that we use a Coargument.
         # The coargument is already attached to the class (self._v)
@@ -1637,7 +1637,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return dc
 
     @process.register(Coargument)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: Coargument) -> Union[Expr, BaseForm]:
         """Differentiate a coargument."""
         # Same rule than for Argument (da/dw == 0).
         dc = self._process_argument(o)
@@ -1647,7 +1647,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return dc
 
     @process.register(Matrix)
-    def _(self, M: Expr) -> Expr:
+    def _(self, M: Expr) -> BaseForm:
         """Differentiate a matrix."""
         # Matrix rule: D_w[v](M) = v if M == w else 0
         # We can't differentiate wrt a matrix so always return zero in
@@ -1689,9 +1689,9 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
 
     def __init__(
         self,
-        coefficients: ExprList,
-        arguments: ExprList,
-        coefficient_derivatives: ExprMapping,
+        coefficients: FormArgument,
+        arguments: FormArgument,
+        coefficient_derivatives: FormArgument,
         outer_base_form_op: Union[Expr, BaseForm],
         compress: Union[bool, None] = True,
         visited_cache: Union[dict[tuple, Expr], None] = None,
@@ -1809,12 +1809,12 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(Expr)
     @process.register(BaseForm)
-    def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr) -> Expr:
         """Apply to expr and base form."""
         return self.reuse_if_untouched(o)
 
     @process.register(Terminal)
-    def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Terminal) -> Expr:
         """Apply to a terminal."""
         return o
 
@@ -2248,7 +2248,7 @@ class CoordinateDerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(Expr)
     @process.register(BaseForm)
-    def _(self, o: Union[Expr, BaseForm]) -> Expr:
+    def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to expr and base form."""
         return self.reuse_if_untouched(o)
 

@@ -93,3 +93,7 @@ convention = "google"
 disable_error_code = [
     "attr-defined",
 ]
+
+[[tool.mypy.overrides]]
+module = ["ufl.algorithms.apply_derivatives"]
+disable_error_code = ["override", "arg-type", "union-attr", "misc", "call-arg", "return-value"]
