@@ -1692,7 +1692,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
         coefficients: ExprList,
         arguments: ExprList,
         coefficient_derivatives: ExprMapping,
-        outer_base_form_op: Expr,
+        outer_base_form_op: Union[Expr, BaseForm],
         compress: Union[bool, None] = True,
         visited_cache: Union[dict[tuple, Expr], None] = None,
         result_cache: Union[dict[Expr, Expr], None] = None,
@@ -1726,7 +1726,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     @process.register(Interpolate)
     @DAGTraverser.postorder
     @pending_operations_recording
-    def _(self, i_op: Expr, dw: Expr) -> Expr:
+    def _(self, i_op: Interpolate, dw: Expr) -> Union[Expr, BaseForm]:
         """Differentiate an interpolate."""
         # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
         if not dw:
@@ -1872,7 +1872,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: BaseFormOperatorDerivative, f: Union[Expr, BaseForm]) -> Expr:
+    def _(self, o: BaseFormOperatorDerivative, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a base_form_operator_derivative."""
         _, w, v, cd = o.ufl_operands
         if isinstance(f, ZeroBaseForm):

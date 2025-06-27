@@ -18,6 +18,7 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 
 import warnings
 
+from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
 
 
@@ -77,10 +78,6 @@ class Expr(metaclass=UFLType):
 
         Giving a list of creation and deletion counts for each typecode.
     """
-
-    # TODO: not sure
-    # ufl_operands : tuple[FormArgument, ...]
-    # ufl_shape : tuple[int, ...]
 
     # --- Each Expr subclass must define __slots__ or _ufl_noslots_ at
     # --- the top ---
@@ -180,6 +177,9 @@ class Expr(metaclass=UFLType):
         # A tuple providing the int dimension for each free index.
         "ufl_index_dimensions",
     )
+
+    ufl_operands: tuple[FormArgument, ...]
+    ufl_shape: tuple[int, ...]
 
     # Each subclass of Expr is checked to have these methods in
     # ufl_type
