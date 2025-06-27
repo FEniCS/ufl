@@ -9,7 +9,6 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algorithms import (
