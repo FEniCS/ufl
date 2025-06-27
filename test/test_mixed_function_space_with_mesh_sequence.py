@@ -1,5 +1,4 @@
 import pytest
-
 from utils import FiniteElement, LagrangeElement, MixedElement
 
 from ufl import (
@@ -23,7 +22,7 @@ from ufl import (
 from ufl.algorithms import compute_form_data
 from ufl.domain import extract_domains
 from ufl.pullback import contravariant_piola, identity_pullback
-from ufl.sobolevspace import L2, HDiv
+from ufl.sobolevspace import H1, L2, HDiv
 
 
 def test_mixed_function_space_with_mesh_sequence_cell():
