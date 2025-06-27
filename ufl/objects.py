@@ -10,7 +10,7 @@
 
 from ufl.cell import Cell
 from ufl.core.multiindex import indices
-from ufl.measure import Measure, integral_type_to_measure_name
+from ufl.measure import Measure
 
 # Default indices
 i, j, k, l = indices(4)  # noqa: E741
@@ -36,10 +36,10 @@ dS_v = Measure("interior_facet_vert")
 
 
 # TODO: Firedrake hack, remove later
-ds_tb = ds_b + ds_t  # type: ignore # noqa: F821
+ds_tb = ds_b + ds_t  # type: ignore
 
 # Default measure dX including both uncut and cut cells
-dX = dx + dC  # type: ignore # noqa: F821
+dX = dx + dC  # type: ignore
 
 # Create objects for builtin known cell types
 vertex = Cell("vertex")
