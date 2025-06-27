@@ -42,7 +42,8 @@ jobs:
         run: |
           mypy -p ufl
           mypy test/
-          mypy demo/
+          cd test/
+          mypy ../demo/
 
       - name: Run unit tests
         # Run tests twice, coverage raises warnings, thus does not pass with -W error

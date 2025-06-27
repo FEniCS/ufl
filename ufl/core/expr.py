@@ -421,6 +421,14 @@ class Expr(metaclass=UFLType):
         """Multiply."""
         pass
 
+    def __truediv__(self, other):
+        """Divide."""
+        pass
+
+    def __rtruediv__(self, other):
+        """Divide."""
+        pass
+
     def __add__(self, other):
         """Add."""
         pass
