@@ -47,10 +47,10 @@ def test_mixed_function_space_with_mesh_sequence_cell():
     dx2 = Measure(
         "dx",
         mesh2,
-        extra_measures={
-            mesh0: "dx",
-            mesh1: "dx",
-        },
+        extra_measures=(
+            Measure("dx", mesh0),
+            Measure("dx", mesh1),
+        ),
     )
     x1 = SpatialCoordinate(mesh1)
     # Assemble (0, 1)-block.
@@ -106,17 +106,17 @@ def test_mixed_function_space_with_mesh_sequence_facet():
     dS1 = Measure(
         "dS",
         mesh1,
-        extra_measures={
-            mesh2: "ds",
-        },
+        extra_measures=(
+            Measure("ds", mesh2),
+        ),
     )
     ds2 = Measure(
         "ds",
         mesh2,
-        extra_measures={
-            mesh0: "dS",
-            mesh1: "ds",
-        },
+        extra_measures=(
+            Measure("dS", mesh0),
+            Measure("ds", mesh1),
+        ),
     )
     x2 = SpatialCoordinate(mesh2)
     # Assemble (2, 1)-block.

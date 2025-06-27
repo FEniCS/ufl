@@ -23,7 +23,7 @@ class Integral:
     """An integral over a single domain."""
 
     __slots__ = (
-        "_extra_measures",
+        "_extra_domain_integral_type_map",
         "_integral_type",
         "_integrand",
         "_metadata",
@@ -40,7 +40,7 @@ class Integral:
         subdomain_id,
         metadata,
         subdomain_data,
-        extra_measures=None,
+        extra_domain_integral_type_map=None,
     ):
         """Initialise."""
         if not isinstance(integrand, Expr):
@@ -51,11 +51,12 @@ class Integral:
         self._subdomain_id = subdomain_id
         self._metadata = metadata
         self._subdomain_data = subdomain_data
-        if extra_measures is None:
-            self._extra_measures = {}
+        if extra_domain_integral_type_map is None:
+            self._extra_domain_integral_type_map = {}
         else:
-            self._extra_measures = {
-                d: extra_measures[d] for d in sort_domains(extra_measures.keys())
+            self._extra_domain_integral_type_map = {
+                d: extra_domain_integral_type_map[d]
+                for d in sort_domains(extra_domain_integral_type_map.keys())
             }
 
     def reconstruct(
@@ -66,7 +67,7 @@ class Integral:
         subdomain_id=None,
         metadata=None,
         subdomain_data=None,
-        extra_measures=None,
+        extra_domain_integral_type_map=None,
     ):
         """Construct a new Integral object with some properties replaced with new values.
 
@@ -87,8 +88,8 @@ class Integral:
             metadata = self.metadata()
         if subdomain_data is None:
             subdomain_data = self._subdomain_data
-        if extra_measures is None:
-            extra_measures = self._extra_measures
+        if extra_domain_integral_type_map is None:
+            extra_domain_integral_type_map = self._extra_domain_integral_type_map
         return Integral(
             integrand,
             integral_type,
@@ -96,7 +97,7 @@ class Integral:
             subdomain_id,
             metadata,
             subdomain_data,
-            extra_measures=extra_measures,
+            extra_domain_integral_type_map=extra_domain_integral_type_map,
         )
 
     def integrand(self):
@@ -115,9 +116,9 @@ class Integral:
         """Return the subdomain id of this integral."""
         return self._subdomain_id
 
-    def extra_measures(self):
-        """Return the additional domain-integral_type map."""
-        return self._extra_measures
+    def extra_domain_integral_type_map(self):
+        """Return the extra domain-integral_type map."""
+        return self._extra_domain_integral_type_map
 
     def metadata(self):
         """Return the compiler metadata this integral has been annotated with."""
@@ -150,7 +151,7 @@ class Integral:
         mname = ufl.measure.integral_type_to_measure_name[self._integral_type]
         temp = {
             d: ufl.measure.integral_type_to_measure_name[it]
-            for d, it in self._extra_measures.items()
+            for d, it in self._extra_domain_integral_type_map.items()
         }
         return (
             f"{{self._integrand}} * "
@@ -162,7 +163,7 @@ class Integral:
         return (
             f"Integral({self._integrand!r}, {self._integral_type!r}, {self._ufl_domain!r}, "
             f"{self._subdomain_id!r}, {self._metadata!r}, {self._subdomain_data!r}, "
-            f"extra_measures={self._extra_measures!r})"
+            f"extra_domain_integral_type_map={self._extra_domain_integral_type_map!r})"
         )
 
     def __eq__(self, other):
@@ -175,7 +176,7 @@ class Integral:
             and self._integrand == other._integrand
             and self._metadata == other._metadata
             and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
-            and self._extra_measures == other._extra_measures
+            and self._extra_domain_integral_type_map == other._extra_domain_integral_type_map
         )
 
     def __hash__(self):
@@ -189,6 +190,6 @@ class Integral:
             hash(self._ufl_domain),
             self._subdomain_id,
             id_or_none(self._subdomain_data),
-            tuple((hash(d), it) for d, it in self._extra_measures.items()),
+            tuple((hash(d), it) for d, it in self._extra_domain_integral_type_map.items()),
         )
         return hash(hashdata)

@@ -15,7 +15,7 @@ from itertools import chain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
-from ufl.domain import AbstractDomain, as_domain, extract_domains, sort_domains
+from ufl.domain import AbstractDomain, as_domain, extract_domains
 from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
@@ -130,8 +130,11 @@ class Measure:
                 affecting how code is generated, including parameters
                 for optimization or debugging of generated code
             subdomain_data: object representing data to interpret subdomain_id with
-            extra_measures: additional domain-integral_type map
-                for multi-domain problems
+            extra_measures: a `tuple` of extra measures that defines
+                domain-integral_type map for each domain in a multi-domain problem. For instance,
+                if integral_type="dS" on ``domain``, while integral_type="ds" on domainZ, say,
+                we should pass extra_measures=(Measure("ds", domainZ),). Currently,
+                the extra measures must always have "everywhere" subdomain_id.
         """
         # Map short name to long name and require a valid one
         self._integral_type = as_integral_type(integral_type)
@@ -167,13 +170,25 @@ class Measure:
         self._metadata = metadata or {}
 
         if extra_measures is None:
-            self._extra_measures = {}
+            self._extra_measures = ()
         else:
+            if not all(m.subdomain_id() == "everywhere" for m in extra_measures):
+                raise NotImplementedError(
+                    f"Currently, all extra measures must have 'everywhere' subdomain_id: "
+                    f"got {extra_measures}"
+                )
+            if not all(m.extra_measures() == () for m in extra_measures):
+                raise ValueError(
+                    f"All extra measures must have empty extra_measures: got {extra_measures}"
+                )
+            if not all(m.metadata() == {} for m in extra_measures):
+                raise ValueError(
+                    f"All extra measures must have empty metadata: got {extra_measures}"
+                )
             _extra_measures = {}
-            for d in sort_domains(extra_measures.keys()):
-                it = extra_measures[d]
-                _extra_measures[as_domain(d)] = as_integral_type(it)
-            self._extra_measures = _extra_measures
+            self._extra_measures = tuple(
+                sorted(extra_measures, key=lambda m: m.ufl_domain()._ufl_sort_key_())
+            )
 
     def integral_type(self):
         """Return the domain type.
@@ -194,12 +209,8 @@ class Measure:
         return self._subdomain_id
 
     def extra_measures(self):
-        """Return the additional domain-integral_type map."""
+        """Return the extra measures."""
         return self._extra_measures
-
-    def extra_measures_with_measure_names(self):
-        """Return the additional domain-measure_name map."""
-        return {d: integral_type_to_measure_name[it] for d, it in self._extra_measures.items()}
 
     def metadata(self):
         """Return the integral metadata.
@@ -235,7 +246,7 @@ class Measure:
         if domain is None:
             domain = self.ufl_domain()
         if extra_measures is None:
-            extra_measures = self.extra_measures_with_measure_names()
+            extra_measures = self.extra_measures()
         if metadata is None:
             metadata = self.metadata()
         if subdomain_data is None:
@@ -318,7 +329,7 @@ class Measure:
         if self._domain is not None:
             args.append(f"domain={self._domain}")
         if self._extra_measures:
-            args.append(f"extra_measures={self.extra_measures_with_measure_names()}")
+            args.append(f"extra_measures={self._extra_measures}")
         if self._metadata:  # Stored as {} if None
             args.append(f"metadata={self._metadata}")
         if self._subdomain_data is not None:
@@ -336,7 +347,7 @@ class Measure:
         if self._domain is not None:
             args.append(f"domain={self._domain!r}")
         if self._extra_measures:
-            args.append(f"extra_measures={self.extra_measures_with_measure_names()!r}")
+            args.append(f"extra_measures={self._extra_measures!r}")
         if self._metadata:  # Stored as {} if None
             args.append(f"metadata={self._metadata!r}")
         if self._subdomain_data is not None:
@@ -354,7 +365,7 @@ class Measure:
             hash(self._domain),
             metadata_hashdata,
             id_or_none(self._subdomain_data),
-            tuple((hash(d), it) for d, it in self._extra_measures.items()),
+            self._extra_measures,
         )
         return hash(hashdata)
 
@@ -480,7 +491,9 @@ class Measure:
             subdomain_id=subdomain_id,
             metadata=self.metadata(),
             subdomain_data=self.subdomain_data(),
-            extra_measures=self.extra_measures(),
+            extra_domain_integral_type_map={
+                m.ufl_domain(): m.integral_type() for m in self.extra_measures()
+            },
         )
         return Form([integral])
 

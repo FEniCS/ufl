@@ -53,10 +53,11 @@ def _sorted_integrals(integrals):
         it = integral.integral_type()
         si = integral.subdomain_id()
         # Make a sortable key.
-        extra_measures_sortable = tuple(
-            (d_._ufl_sort_key_(), it_) for d_, it_ in integral.extra_measures().items()
+        extra_sortable = tuple(
+            (d_._ufl_sort_key_(), it_)
+            for d_, it_ in integral.extra_domain_integral_type_map().items()
         )
-        integrals_dict[d][it][extra_measures_sortable][si].append(integral)
+        integrals_dict[d][it][extra_sortable][si].append(integral)
 
     all_integrals = []
 
@@ -604,11 +605,11 @@ class Form(BaseForm):
         self._integration_domains = sort_domains(
             join_domains([itg.ufl_domain() for itg in self._integrals])
         )
-        # Collect domains in extra_measures.
-        domains_in_extra_measures = join_domains(
-            [d for itg in self._integrals for d in itg.extra_measures()]
+        # Collect domains in extra_domain_integral_type_map.
+        domains_in_extra_domain_integral_type_map = join_domains(
+            [d for itg in self._integrals for d in itg.extra_domain_integral_type_map()]
         )
-        domains_in_extra_measures -= set(self._integration_domains)
+        domains_in_extra_domain_integral_type_map -= set(self._integration_domains)
         # Collect domains in integrands.
         domains_in_integrands = set()
         for o in chain(
@@ -618,7 +619,7 @@ class Form(BaseForm):
             domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
         all_domains = self._integration_domains + sort_domains(
-            join_domains(domains_in_extra_measures | domains_in_integrands)
+            join_domains(domains_in_extra_domain_integral_type_map | domains_in_integrands)
         )
         # Let problem solving environments access all domains via
         # self._domain_numbering.keys() (wrapped in extract_domains()).
