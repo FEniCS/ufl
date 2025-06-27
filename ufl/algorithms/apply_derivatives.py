@@ -6,10 +6,12 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+# mypy: ignore-errors
+
 import warnings
 from functools import singledispatchmethod
 from math import pi
-from typing import Union, overload
+from typing import Union
 
 import numpy as np
 
@@ -1351,13 +1353,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     def _(self, o: Coefficient) -> Expr:
         return self._process_coefficient(o)
 
-    @overload
-    def _process_coefficient(self, o: Expr) -> Expr: ...
-
-    @overload
-    def _process_coefficient(self, o: BaseForm) -> BaseForm: ...
-
-    def _process_coefficient(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _process_coefficient(self, o: Union[Expr]) -> Union[Expr]:
         """Differentiate an Expr or a BaseForm."""
         # Define dw/dw := d/ds [w + s v] = v
 
@@ -1637,7 +1633,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return dc
 
     @process.register(Coargument)
-    def _(self, o: Coargument) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr) -> Expr:
         """Differentiate a coargument."""
         # Same rule than for Argument (da/dw == 0).
         dc = self._process_argument(o)
@@ -1689,10 +1685,10 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
 
     def __init__(
         self,
-        coefficients: FormArgument,
-        arguments: FormArgument,
-        coefficient_derivatives: FormArgument,
-        outer_base_form_op: Union[Expr, BaseForm],
+        coefficients: ExprList,
+        arguments: ExprList,
+        coefficient_derivatives: ExprMapping,
+        outer_base_form_op: Expr,
         compress: Union[bool, None] = True,
         visited_cache: Union[dict[tuple, Expr], None] = None,
         result_cache: Union[dict[Expr, Expr], None] = None,
@@ -1726,7 +1722,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     @process.register(Interpolate)
     @DAGTraverser.postorder
     @pending_operations_recording
-    def _(self, i_op: Interpolate, dw: Expr) -> Union[Expr, BaseForm]:
+    def _(self, i_op: Interpolate, dw: Expr) -> Expr:
         """Differentiate an interpolate."""
         # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
         if not dw:
@@ -1809,12 +1805,12 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(Expr)
     @process.register(BaseForm)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to expr and base form."""
         return self.reuse_if_untouched(o)
 
     @process.register(Terminal)
-    def _(self, o: Terminal) -> Expr:
+    def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a terminal."""
         return o
 
@@ -1852,7 +1848,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(CoefficientDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: CoefficientDerivative, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a coefficient_derivative."""
         _, w, v, cd = o.ufl_operands
         key = (GateauxDerivativeRuleset, w, v, cd)
@@ -1872,7 +1868,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: BaseFormOperatorDerivative, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a base_form_operator_derivative."""
         _, w, v, cd = o.ufl_operands
         if isinstance(f, ZeroBaseForm):
@@ -1906,7 +1902,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(CoordinateDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: CoordinateDerivative, f: Union[Expr, BaseForm]) -> CoordinateDerivative:
+    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> CoordinateDerivative:
         """Apply to a coordinate_derivative."""
         _, o1, o2, o3 = o.ufl_operands
         return CoordinateDerivative(f, o1, o2, o3)
@@ -2082,7 +2078,6 @@ def apply_derivatives(expression):
     return sum(dexpression_dvar)
 
 
-# mypy: ignore-errors
 class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to expression.
 

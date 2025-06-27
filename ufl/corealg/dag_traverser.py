@@ -1,10 +1,9 @@
 """Base class for dag traversers."""
 
 from functools import singledispatchmethod, wraps
-from typing import Union, overload
+from typing import Union
 
 from ufl.classes import Expr
-from ufl.form import BaseForm
 
 
 class DAGTraverser:
@@ -28,7 +27,7 @@ class DAGTraverser:
         self._visited_cache = {} if visited_cache is None else visited_cache
         self._result_cache = {} if result_cache is None else result_cache
 
-    def __call__(self, node: Union[Expr, BaseForm], **kwargs) -> Expr:
+    def __call__(self, node: Expr, **kwargs) -> Expr:
         """Perform memoised DAG traversal with ``process`` singledispatch method.
 
         Args:
@@ -72,13 +71,7 @@ class DAGTraverser:
         """
         raise AssertionError(f"Rule not set for {type(o)}")
 
-    @overload
-    def reuse_if_untouched(self, o: Expr, **kwargs) -> Expr: ...
-
-    @overload
-    def reuse_if_untouched(self, o: BaseForm, **kwargs) -> BaseForm: ...
-
-    def reuse_if_untouched(self, o: Union[Expr, BaseForm], **kwargs) -> Union[Expr, BaseForm]:
+    def reuse_if_untouched(self, o: Expr, **kwargs) -> Expr:
         """Reuse if touched.
 
         Args:
