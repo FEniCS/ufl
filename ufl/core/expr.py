@@ -18,7 +18,6 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 
 import warnings
 
-from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
 
 
