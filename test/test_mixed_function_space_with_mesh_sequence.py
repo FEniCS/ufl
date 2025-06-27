@@ -106,9 +106,7 @@ def test_mixed_function_space_with_mesh_sequence_facet():
     dS1 = Measure(
         "dS",
         mesh1,
-        extra_measures=(
-            Measure("ds", mesh2),
-        ),
+        extra_measures=(Measure("ds", mesh2),),
     )
     ds2 = Measure(
         "ds",
