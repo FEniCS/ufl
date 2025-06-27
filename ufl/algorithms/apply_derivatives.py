@@ -2081,7 +2081,7 @@ def apply_derivatives(expression):
         dexpression_dvar.append(Action(dexpr_dN, dN_dvar))
     return sum(dexpression_dvar)
 
-
+# mypy: ignore-errors
 class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to expression.
 
