@@ -1,9 +1,10 @@
 """Base class for dag traversers."""
 
 from functools import singledispatchmethod, wraps
-from typing import Union
+from typing import Optional, Union
 
 from ufl.classes import Expr
+from ufl.form import BaseForm
 
 
 class DAGTraverser:

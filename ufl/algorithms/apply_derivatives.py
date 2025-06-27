@@ -9,7 +9,7 @@
 import warnings
 from functools import singledispatchmethod
 from math import pi
-from typing import Union
+from typing import Union, overload
 
 import numpy as np
 
@@ -663,16 +663,14 @@ class GenericDerivativeRuleset(DAGTraverser):
     # --- Conditionals
 
     @process.register(BinaryCondition)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: BinaryCondition) -> Expr:
         """Differentiate a binary_condition."""
-        # Should not be used anywhere...
-        return None
+        raise RuntimeError("Can not differentiate a binary_condition.")
 
     @process.register(NotCondition)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: NotCondition) -> Expr:
         """Differentiate a not_condition."""
-        # Should not be used anywhere...
-        return None
+        raise RuntimeError("Can not differentiate a not_condition.")
 
     @process.register(Conditional)
     @DAGTraverser.postorder_only_children([1, 2])
@@ -1342,7 +1340,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return facet_avg(fp)
 
     @process.register(Argument)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: Argument) -> Expr:
         # Explicitly defining da/dw == 0
         return self._process_argument(o)
 
@@ -1350,20 +1348,26 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return self.independent_terminal(o)
 
     @process.register(Coefficient)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: Coefficient) -> Expr:
         return self._process_coefficient(o)
 
-    def _process_coefficient(self, o: Union[Expr]) -> Union[Expr]:
+    @overload
+    def _process_coefficient(self, o: Expr) -> Expr: ...
+
+    @overload
+    def _process_coefficient(self, o: BaseForm) -> BaseForm: ...
+
+    def _process_coefficient(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Differentiate an Expr or a BaseForm."""
         # Define dw/dw := d/ds [w + s v] = v
 
         # Return corresponding argument if we can find o among w
-        do = self._w2v.get(o)
+        do = self._w2v.get(o)  # type: ignore
         if do is not None:
             return do
 
         # Look for o among coefficient derivatives
-        dos = self._cd.get(o)
+        dos = self._cd.get(o)  # type: ignore
         if dos is None:
             # If o is not among coefficient derivatives, return
             # do/dw=0
@@ -1848,7 +1852,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(CoefficientDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: CoefficientDerivative, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a coefficient_derivative."""
         _, w, v, cd = o.ufl_operands
         key = (GateauxDerivativeRuleset, w, v, cd)
@@ -1868,7 +1872,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: BaseFormOperatorDerivative, f: Union[Expr, BaseForm]) -> Expr:
         """Apply to a base_form_operator_derivative."""
         _, w, v, cd = o.ufl_operands
         if isinstance(f, ZeroBaseForm):
@@ -1902,7 +1906,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(CoordinateDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> CoordinateDerivative:
+    def _(self, o: CoordinateDerivative, f: Union[Expr, BaseForm]) -> CoordinateDerivative:
         """Apply to a coordinate_derivative."""
         _, o1, o2, o3 = o.ufl_operands
         return CoordinateDerivative(f, o1, o2, o3)
@@ -2156,7 +2160,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     @process.register(SpatialCoordinate)
     def _(self, o: Expr) -> Expr:
         """Differentiate a spatial_coordinate."""
-        do = self._w2v.get(o)
+        do = self._w2v.get(o)  # type: ignore
         # d x /d x => Argument(x.function_space())
         if do is not None:
             return do
@@ -2169,7 +2173,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     @process.register(ReferenceValue)
     def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
-        do = self._cd.get(o)
+        do = self._cd.get(o)  # type: ignore
         if do is not None:
             return do
         else:
@@ -2244,7 +2248,7 @@ class CoordinateDerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(Expr)
     @process.register(BaseForm)
-    def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Union[Expr, BaseForm]) -> Expr:
         """Apply to expr and base form."""
         return self.reuse_if_untouched(o)
 
