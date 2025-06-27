@@ -86,59 +86,99 @@ class RestrictionPropagator(MultiFunction):
 
     def _require_restriction(self, o):
         """Restrict a discontinuous quantity to current side, require a side to be set."""
-        if self.current_restriction is not None:
-            return o(self.current_restriction)
         if self.default_restrictions is None:
-            # Do not check further.
-            return o
-        else:
-            domain = self._check_domain(o)
-            r = self.default_restrictions[domain]
-            if r is None:
-                # If integration if over interior facet of meshA and exterior facet of meshB,
-                # arguments (say) on meshA must be restricted, but those on meshB do not
-                # need to be.
+            # Just propagate restrictions.
+            if self.current_restriction is None:
                 return o
             else:
-                raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+                return o(self.current_restriction)
+        else:
+            # Propagate restriction while checking validity.
+            domain = self._check_domain(o)
+            r = self.default_restrictions[domain]
+            if self.current_restriction is None:
+                if r is None:
+                    return o
+                else:
+                    raise ValueError(
+                        f"Discontinuous type {o._ufl_class_.__name__} must be restricted."
+                    )
+            elif self.current_restriction in ["+", "-"]:
+                if r not in ["+", "-"]:
+                    raise ValueError(
+                        f"Inconsistent restrictions: "
+                        f"current restriction = {self.current_restriction}, while "
+                        f"default restriction = {r}"
+                    )
+                return o(self.current_restriction)
+            else:
+                raise ValueError(f"Unknown restriction: {self.current_restriction}")
 
     def _default_restricted(self, o):
         """Restrict a continuous quantity to default side if no current restriction is set."""
-        if self.current_restriction is not None:
-            return o(self.current_restriction)
         if self.default_restrictions is None:
-            # Do not apply default.
-            return o
+            # Just propagate restrictions.
+            if self.current_restriction is None:
+                return o
+            else:
+                return o(self.current_restriction)
         else:
+            # Propagate restriction while applying default.
             domain = self._check_domain(o)
             r = self.default_restrictions[domain]
-            if r is None:
-                return o
-            elif r in ["+", "-"]:
-                return o(r)
+            if self.current_restriction is None:
+                if r is None:
+                    return o
+                elif r in ["+", "-"]:
+                    return o(r)
+                else:
+                    raise RuntimeError(f"Unknown default restriction {r} on domain {domain}")
+            elif self.current_restriction in ["+", "-"]:
+                if r not in ["+", "-"]:
+                    raise ValueError(
+                        f"Inconsistent restrictions: "
+                        f"current restriction = {self.current_restriction}, while "
+                        f"default restriction = {r}"
+                    )
+                return o(self.current_restriction)
             else:
-                raise RuntimeError(f"Unknown default restriction {r} on domain {domain}")
+                raise ValueError(f"Unknown restriction: {self.current_restriction}")
 
     def _opposite(self, o):
         """Restrict a quantity to default side.
 
         If the current restriction is different swap the sign, require a side to be set.
         """
-        domain = self._check_domain(o)
-        r = self.default_restrictions[domain]
-        if r is None:
-            if self.current_restriction is not None:
-                raise ValueError(
-                    f"Expecting current_restriction None: got {self.current_restriction}"
-                )
-            return o
-        else:
+        if self.default_restrictions is None:
+            # Just propagate restrictions.
             if self.current_restriction is None:
-                raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-            elif self.current_restriction == r:
-                return o(r)
+                return o
             else:
-                return -o(r)
+                return o(self.current_restriction)
+        else:
+            domain = self._check_domain(o)
+            r = self.default_restrictions[domain]
+            if self.current_restriction is None:
+                if r is None:
+                    return o
+                else:
+                    raise ValueError(
+                        f"Discontinuous type {o._ufl_class_.__name__} must be restricted."
+                    )
+            elif self.current_restriction in ["+", "-"]:
+                if r is None:
+                    raise ValueError(
+                        f"Inconsistent restrictions: "
+                        f"current restriction = {self.current_restriction}, while "
+                        f"default restriction = {r}"
+                    )
+                else:
+                    if self.current_restriction == r:
+                        return o(r)
+                    else:
+                        return -o(r)
+            else:
+                raise ValueError(f"Unknown restriction: {self.current_restriction}")
 
     def _missing_rule(self, o):
         """Raise an error."""
