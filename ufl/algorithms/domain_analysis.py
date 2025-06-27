@@ -80,24 +80,34 @@ class IntegralData:
 
     def __lt__(self, other):
         """Check if self is less than other."""
-        raise NotImplementedError
         # To preserve behaviour of extract_integral_data:
-        return (self.integral_type, self.subdomain_id, self.integrals, self.metadata) < (
+        return (
+            self.integral_type,
+            self.subdomain_id,
+            self.integrals,
+            self.metadata,
+            tuple(
+                (d._ufl_sort_key_(), itype) for d, itype in self.domain_integral_type_map.items()
+            ),
+        ) < (
             other.integral_type,
             other.subdomain_id,
             other.integrals,
             other.metadata,
+            tuple(
+                (d._ufl_sort_key_(), itype) for d, itype in other.domain_integral_type_map.items()
+            ),
         )
 
     def __eq__(self, other):
         """Check for equality."""
-        raise NotImplementedError
         # Currently only used for tests:
         return (
             self.integral_type == other.integral_type
             and self.subdomain_id == other.subdomain_id
             and self.integrals == other.integrals
             and self.metadata == other.metadata
+            and self.domain_integral_type_map == other.domain_integral_type_map
         )
 
     def __str__(self):
