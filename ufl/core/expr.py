@@ -16,7 +16,11 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+import typing
 import warnings
+
+if typing.TYPE_CHECKING:
+    from ufl.core.terminal import FormArgument
 
 from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
 
@@ -176,6 +180,10 @@ class Expr(metaclass=UFLType):
         # A tuple providing the int dimension for each free index.
         "ufl_index_dimensions",
     )
+
+    ufl_operands: tuple["FormArgument", ...]
+    ufl_shape: tuple[int, ...]
+    _ufl_typecode_: int
 
     # Each subclass of Expr is checked to have these methods in
     # ufl_type
@@ -389,6 +397,16 @@ class Expr(metaclass=UFLType):
         return val
 
     # For definitions see exproperators.py
+    T: property
+
+    def dx(self, *ii):
+        """Integral."""
+        pass
+
+    def __call__(self, other):
+        """Evaluate."""
+        pass
+
     def __ne__(self, other):
         """Negate."""
         pass
@@ -425,6 +443,10 @@ class Expr(metaclass=UFLType):
         """Add."""
         pass
 
+    def __radd__(self, other):
+        """Add."""
+        pass
+
     def __sub__(self, other):
         """Subtract."""
         pass
@@ -437,7 +459,15 @@ class Expr(metaclass=UFLType):
         """Divide."""
         pass
 
+    def __rdiv__(self, other):
+        """Divide."""
+        pass
+
     def __truediv__(self, other):
+        """Divide."""
+        pass
+
+    def __rtruediv__(self, other):
         """Divide."""
         pass
 

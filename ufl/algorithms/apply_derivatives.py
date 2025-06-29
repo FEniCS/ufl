@@ -6,6 +6,8 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+# mypy: ignore-errors
+
 import warnings
 from functools import singledispatchmethod
 from math import pi
@@ -652,7 +654,7 @@ class GenericDerivativeRuleset(DAGTraverser):
 
     @process.register(Restricted)
     @DAGTraverser.postorder
-    def _(self, o: Expr, fp: Expr) -> Expr:
+    def _(self, o: Restricted, fp: Expr) -> Expr:
         """Differentiate a restricted."""
         # Restriction and differentiation commutes
         if isinstance(fp, ConstantValue):
@@ -663,16 +665,14 @@ class GenericDerivativeRuleset(DAGTraverser):
     # --- Conditionals
 
     @process.register(BinaryCondition)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: BinaryCondition) -> Expr:
         """Differentiate a binary_condition."""
-        # Should not be used anywhere...
-        return None
+        raise RuntimeError("Can not differentiate a binary_condition.")
 
     @process.register(NotCondition)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: NotCondition) -> Expr:
         """Differentiate a not_condition."""
-        # Should not be used anywhere...
-        return None
+        raise RuntimeError("Can not differentiate a not_condition.")
 
     @process.register(Conditional)
     @DAGTraverser.postorder_only_children([1, 2])
@@ -1342,7 +1342,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return facet_avg(fp)
 
     @process.register(Argument)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: Argument) -> Expr:
         # Explicitly defining da/dw == 0
         return self._process_argument(o)
 
@@ -1350,7 +1350,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return self.independent_terminal(o)
 
     @process.register(Coefficient)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: Coefficient) -> Expr:
         return self._process_coefficient(o)
 
     def _process_coefficient(self, o: Union[Expr]) -> Union[Expr]:
@@ -1358,12 +1358,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Define dw/dw := d/ds [w + s v] = v
 
         # Return corresponding argument if we can find o among w
-        do = self._w2v.get(o)
+        do = self._w2v.get(o)  # type: ignore
         if do is not None:
             return do
 
         # Look for o among coefficient derivatives
-        dos = self._cd.get(o)
+        dos = self._cd.get(o)  # type: ignore
         if dos is None:
             # If o is not among coefficient derivatives, return
             # do/dw=0
@@ -1621,7 +1621,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     # -- Handlers for BaseForm objects -- #
 
     @process.register(Cofunction)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: Cofunction) -> Expr:
         """Differentiate a cofunction."""
         # Same rule than for Coefficient except that we use a Coargument.
         # The coargument is already attached to the class (self._v)
@@ -1643,7 +1643,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return dc
 
     @process.register(Matrix)
-    def _(self, M: Expr) -> Expr:
+    def _(self, M: Expr) -> BaseForm:
         """Differentiate a matrix."""
         # Matrix rule: D_w[v](M) = v if M == w else 0
         # We can't differentiate wrt a matrix so always return zero in
@@ -1722,7 +1722,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     @process.register(Interpolate)
     @DAGTraverser.postorder
     @pending_operations_recording
-    def _(self, i_op: Expr, dw: Expr) -> Expr:
+    def _(self, i_op: Interpolate, dw: Expr) -> Expr:
         """Differentiate an interpolate."""
         # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
         if not dw:
@@ -2156,7 +2156,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     @process.register(SpatialCoordinate)
     def _(self, o: Expr) -> Expr:
         """Differentiate a spatial_coordinate."""
-        do = self._w2v.get(o)
+        do = self._w2v.get(o)  # type: ignore
         # d x /d x => Argument(x.function_space())
         if do is not None:
             return do
@@ -2169,7 +2169,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     @process.register(ReferenceValue)
     def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
-        do = self._cd.get(o)
+        do = self._cd.get(o)  # type: ignore
         if do is not None:
             return do
         else:
