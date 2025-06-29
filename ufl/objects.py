@@ -16,9 +16,6 @@ from ufl.measure import Measure
 i, j, k, l = indices(4)  # noqa: E741
 p, q, r, s = indices(4)
 
-# Former:
-# for integral_type, measure_name in integral_type_to_measure_name.items():
-#     globals()[measure_name] = Measure(integral_type)
 dx = Measure("cell")
 ds = Measure("exterior_facet")
 dS = Measure("interior_facet")
