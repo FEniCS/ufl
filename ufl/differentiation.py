@@ -165,7 +165,7 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None
     ):
-        return Operator._ufl_expr_reconstruct_(*operands)
+        return Operator._ufl_expr_reconstruct_(self, *operands)
 
     # Set __repr__
     __repr__ = Operator.__repr__
