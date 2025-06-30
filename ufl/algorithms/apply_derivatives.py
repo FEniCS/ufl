@@ -1358,12 +1358,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Define dw/dw := d/ds [w + s v] = v
 
         # Return corresponding argument if we can find o among w
-        do = self._w2v.get(o)  # type: ignore
+        do = self._w2v.get(o)
         if do is not None:
             return do
 
         # Look for o among coefficient derivatives
-        dos = self._cd.get(o)  # type: ignore
+        dos = self._cd.get(o)
         if dos is None:
             # If o is not among coefficient derivatives, return
             # do/dw=0
@@ -2156,7 +2156,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     @process.register(SpatialCoordinate)
     def _(self, o: Expr) -> Expr:
         """Differentiate a spatial_coordinate."""
-        do = self._w2v.get(o)  # type: ignore
+        do = self._w2v.get(o)
         # d x /d x => Argument(x.function_space())
         if do is not None:
             return do
@@ -2169,7 +2169,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     @process.register(ReferenceValue)
     def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
-        do = self._cd.get(o)  # type: ignore
+        do = self._cd.get(o)
         if do is not None:
             return do
         else:
