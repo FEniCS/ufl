@@ -32,6 +32,7 @@ _integral_types = [
     # === Integration over topological dimension - 1:
     ("exterior_facet", "ds"),  # Over one-sided exterior facets of a mesh
     ("interior_facet", "dS"),  # Over two-sided facets between pairs of adjacent cells of a mesh
+    ("interior_facet_interface", "dSI"),
     # === Integration over topological dimension - 2:
     ("ridge", "dr"),  # Over ridges of a mesh
     # === Integration over topological dimension 0
@@ -60,7 +61,7 @@ measure_name_to_integral_type = {s: i for i, s in _integral_types}
 
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
 point_integral_types = ("vertex",)  # "point")
-facet_integral_types = ("exterior_facet", "interior_facet")
+facet_integral_types = ("exterior_facet", "interior_facet", "interior_facet_interface")
 ridge_integral_types = ("ridge",)
 
 
