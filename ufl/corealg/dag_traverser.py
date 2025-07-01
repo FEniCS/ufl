@@ -78,7 +78,7 @@ class DAGTraverser:
     @overload
     def reuse_if_untouched(self, o: BaseForm, **kwargs) -> BaseForm: ...
 
-    def reuse_if_untouched(self, o: Union[Expr | BaseForm], **kwargs) -> Union[Expr | BaseForm]:
+    def reuse_if_untouched(self, o: Union[Expr, BaseForm], **kwargs) -> Union[Expr, BaseForm]:
         """Reuse if touched.
 
         Args:
