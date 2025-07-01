@@ -837,7 +837,7 @@ class GradRuleset(GenericDerivativeRuleset):
             raise ValueError("ReferenceValue can only wrap a terminal")
         domain = extract_unique_domain(f, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
-            element = f.ufl_function_space().ufl_element()
+            element = f.ufl_function_space().ufl_element()  # type: ignore
             if element.num_sub_elements != len(domain):
                 raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
             # Get monolithic representation of rgrad(o); o might live in a mixed space.
@@ -879,7 +879,7 @@ class GradRuleset(GenericDerivativeRuleset):
                 dofoffset += ndof
             return as_tensor(np.asarray(components).reshape(rgrad.ufl_shape[:-1] + self._var_shape))
         else:
-            if isinstance(f.ufl_element().pullback, PhysicalPullback):
+            if isinstance(f.ufl_element().pullback, PhysicalPullback):  # type: ignore
                 # TODO: Do we need to be more careful for immersed things?
                 return ReferenceGrad(o)
             else:
@@ -1356,12 +1356,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Define dw/dw := d/ds [w + s v] = v
 
         # Return corresponding argument if we can find o among w
-        do = self._w2v.get(o)
+        do = self._w2v.get(o)  # type: ignore
         if do is not None:
             return do
 
         # Look for o among coefficient derivatives
-        dos = self._cd.get(o)
+        dos = self._cd.get(o)  # type: ignore
         if dos is None:
             # If o is not among coefficient derivatives, return
             # do/dw=0
@@ -1624,10 +1624,10 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Same rule than for Coefficient except that we use a Coargument.
         # The coargument is already attached to the class (self._v)
         # which `self.coefficient` relies on.
-        dc = self._process_coefficient(o)
+        dc = self._process_coefficient(o)  # type: ignore
         if dc == 0:
             # Convert ufl.Zero into ZeroBaseForm
-            return ZeroBaseForm(o.arguments() + self._v)
+            return ZeroBaseForm(o.arguments() + self._v)  # type: ignore
         return dc
 
     @process.register(Coargument)
@@ -1637,10 +1637,10 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         dc = self._process_argument(o)
         if dc == 0:
             # Convert ufl.Zero into ZeroBaseForm
-            return ZeroBaseForm(o.arguments() + self._v)
+            return ZeroBaseForm(o.arguments() + self._v)  # type: ignore
         return dc
 
-    @process.register(Matrix)
+    @process.register(Matrix)  # type: ignore
     def _(self, M: Matrix) -> BaseForm:
         """Differentiate a matrix."""
         # Matrix rule: D_w[v](M) = v if M == w else 0
@@ -1727,7 +1727,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
             # i_op doesn't depend on w:
             #  -> It also covers the Hessian case since Interpolate is linear,
             #     e.g. D_w[v](D_w[v](i_op(w, v*))) = D_w[v](i_op(v, v*)) = 0 (since w not found).
-            return ZeroBaseForm(i_op.arguments() + self._v)
+            return ZeroBaseForm(i_op.arguments() + self._v)  # type: ignore
         return i_op._ufl_expr_reconstruct_(expr=dw)
 
     @process.register(ExternalOperator)
@@ -1761,7 +1761,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
                     "Frechet derivative of external operators need to be provided!"
                 )
             result += (extop,)
-        return sum(result)
+        return sum(result)  # type: ignore
 
 
 class DerivativeRuleDispatcher(DAGTraverser):
@@ -1802,38 +1802,38 @@ class DerivativeRuleDispatcher(DAGTraverser):
         return super().process(o)
 
     @process.register(Expr)
-    @process.register(BaseForm)
+    @process.register(BaseForm)  # type: ignore
     def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to expr and base form."""
         return self.reuse_if_untouched(o)
 
     @process.register(Terminal)
-    def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Terminal) -> Terminal:
         """Apply to a terminal."""
         return o
 
     @process.register(Derivative)
-    def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: Derivative) -> Expr:
         """Apply to a derivative."""
         raise NotImplementedError(f"Missing derivative handler for {type(o).__name__}.")
 
     @process.register(Grad)
     @DAGTraverser.postorder
-    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Expr:
+    def _(self, o: Grad, f: Union[Expr, BaseForm]) -> Expr:
         """Apply to a grad."""
         gdim = o.ufl_shape[-1]
         key = (GradRuleset, gdim)
         dag_traverser = self._dag_traverser_cache.setdefault(key, GradRuleset(gdim))
-        return dag_traverser(f)
+        return dag_traverser(f)  # type: ignore
 
     @process.register(ReferenceGrad)
     @DAGTraverser.postorder
-    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: ReferenceGrad, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a reference_grad."""
         tdim = o.ufl_shape[-1]
         key = (ReferenceGradRuleset, tdim)
         dag_traverser = self._dag_traverser_cache.setdefault(key, ReferenceGradRuleset(tdim))
-        return dag_traverser(f)
+        return dag_traverser(f)  # type: ignore
 
     @process.register(VariableDerivative)
     @DAGTraverser.postorder_only_children([0])
@@ -1842,11 +1842,11 @@ class DerivativeRuleDispatcher(DAGTraverser):
         _, op = o.ufl_operands
         key = (VariableRuleset, op)
         dag_traverser = self._dag_traverser_cache.setdefault(key, VariableRuleset(op))
-        return dag_traverser(f)
+        return dag_traverser(f)  # type: ignore
 
     @process.register(CoefficientDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: CoefficientDerivative, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a coefficient_derivative."""
         _, w, v, cd = o.ufl_operands
         key = (GateauxDerivativeRuleset, w, v, cd)
@@ -1854,23 +1854,23 @@ class DerivativeRuleDispatcher(DAGTraverser):
         # operations
         dag_traverser = self._dag_traverser_cache.setdefault(
             key,
-            GateauxDerivativeRuleset(w, v, cd),
+            GateauxDerivativeRuleset(w, v, cd),  # type: ignore
         )
         # If f has been seen by the traverser, it immediately returns
         # the cached value.
-        mapped_expr = dag_traverser(f)
+        mapped_expr = dag_traverser(f)  # type: ignore
         # Need to account for pending operations that have been stored
         # in other integrands
-        self.pending_operations += dag_traverser.pending_operations
+        self.pending_operations += dag_traverser.pending_operations  # type: ignore
         return mapped_expr
 
     @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Expr, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
+    def _(self, o: BaseFormOperatorDerivative, f: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to a base_form_operator_derivative."""
         _, w, v, cd = o.ufl_operands
         if isinstance(f, ZeroBaseForm):
-            (arg,) = v.ufl_operands
+            (arg,) = v.ufl_operands  # type: ignore
             arguments = f.arguments()
             # derivative(F, u, du) with `du` a Coefficient
             # is equivalent to taking the action of the derivative.
@@ -1883,19 +1883,19 @@ class DerivativeRuleDispatcher(DAGTraverser):
         key = (BaseFormOperatorDerivativeRuleset, w, v, cd, f)
         # We need to go through the dag first to record the pending operations
         dag_traverser = self._dag_traverser_cache.setdefault(
-            key,
-            BaseFormOperatorDerivativeRuleset(w, v, cd, f),
+            key,  # type: ignore
+            BaseFormOperatorDerivativeRuleset(w, v, cd, f),  # type: ignore
         )
         # If f has been seen by the traverser, it immediately returns
         # the cached value.
-        mapped_expr = dag_traverser(f)
-        mapped_f = dag_traverser._process_coefficient(f)
+        mapped_expr = dag_traverser(f)  # type: ignore
+        mapped_f = dag_traverser._process_coefficient(f)  # type: ignore
         if mapped_f != 0:
             # If dN/dN needs to return an Argument in N space
             # with N a BaseFormOperator.
             return mapped_f
         # Need to account for pending operations that have been stored in other integrands
-        self.pending_operations += dag_traverser.pending_operations
+        self.pending_operations += dag_traverser.pending_operations  # type: ignore
         return mapped_expr
 
     @process.register(CoordinateDerivative)
@@ -1914,7 +1914,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
 
     @process.register(Indexed)
     @DAGTraverser.postorder
-    def _(self, o: Expr, Ap: Expr, ii: Expr) -> Union[Expr, BaseForm]:
+    def _(self, o: Indexed, Ap: Expr, ii: MultiIndex) -> Union[Expr, BaseForm]:
         """Apply to an indexed."""
         # Reuse if untouched
         if Ap is o.ufl_operands[0]:
@@ -2154,7 +2154,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     @process.register(SpatialCoordinate)
     def _(self, o: Expr) -> Expr:
         """Differentiate a spatial_coordinate."""
-        do = self._w2v.get(o)
+        do = self._w2v.get(o)  # type: ignore
         # d x /d x => Argument(x.function_space())
         if do is not None:
             return do
@@ -2167,7 +2167,7 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     @process.register(ReferenceValue)
     def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
-        do = self._cd.get(o)
+        do = self._cd.get(o)  # type: ignore
         if do is not None:
             return do
         else:
@@ -2208,7 +2208,8 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         # d (grad_X(x))/d x => grad_X(Argument(x.function_space())
         for w, v in zip(self._w, self._v):
             if extract_unique_domain(o) == extract_unique_domain(w) and isinstance(
-                v.ufl_operands[0], FormArgument
+                v.ufl_operands[0],  # type: ignore
+                FormArgument,
             ):
                 return ReferenceGrad(v)
         return self.independent_terminal(o)
@@ -2241,7 +2242,7 @@ class CoordinateDerivativeRuleDispatcher(DAGTraverser):
         return super().process(o)
 
     @process.register(Expr)
-    @process.register(BaseForm)
+    @process.register(BaseForm)  # type: ignore
     def _(self, o: Union[Expr, BaseForm]) -> Union[Expr, BaseForm]:
         """Apply to expr and base form."""
         return self.reuse_if_untouched(o)
@@ -2285,7 +2286,8 @@ class CoordinateDerivativeRuleDispatcher(DAGTraverser):
         _, w, v, cd = o.ufl_operands
         key = (CoordinateDerivativeRuleset, w, v, cd)
         dag_traverser = self._dag_traverser_cache.setdefault(
-            key, CoordinateDerivativeRuleset(w, v, cd)
+            key,
+            CoordinateDerivativeRuleset(w, v, cd),  # type: ignore
         )
         return dag_traverser(f)
 
