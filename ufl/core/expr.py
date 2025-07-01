@@ -125,7 +125,7 @@ class Expr(metaclass=UFLType):
     # A reference to the UFL class itself.  This makes it possible to
     # do type(f)._ufl_class_ and be sure you get the actual UFL class
     # instead of a subclass from another library.
-    _ufl_class_ = None
+    _ufl_class_: type
 
     # The handler name.  This is the name of the handler function you
     # implement for this type in a multifunction.
@@ -137,6 +137,8 @@ class Expr(metaclass=UFLType):
 
     # Type trait: If the type is a literal.
     _ufl_is_literal_ = None
+
+    _ufl_is_terminal_: bool = False
 
     # Type trait: If the type is classified as a 'terminal modifier',
     # for form compiler use.
@@ -184,6 +186,7 @@ class Expr(metaclass=UFLType):
     ufl_operands: tuple["FormArgument", ...]
     ufl_shape: tuple[int, ...]
     _ufl_typecode_: int
+    ufl_free_indices: tuple[int, ...]
 
     # Each subclass of Expr is checked to have these methods in
     # ufl_type

@@ -6,8 +6,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-# mypy: ignore-errors
-
 import warnings
 from functools import singledispatchmethod
 from math import pi
@@ -322,7 +320,7 @@ class GenericDerivativeRuleset(DAGTraverser):
 
     @process.register(Indexed)
     @DAGTraverser.postorder
-    def _(self, o: Expr, Ap: Expr, ii: Expr) -> Expr:
+    def _(self, o: Indexed, Ap: Expr, ii: MultiIndex) -> Expr:
         """Differentiate an indexed."""
         # Propagate zeros
         if isinstance(Ap, Zero):
@@ -343,7 +341,7 @@ class GenericDerivativeRuleset(DAGTraverser):
 
     @process.register(ComponentTensor)
     @DAGTraverser.postorder
-    def _(self, o: Expr, Ap: Expr, ii: Expr) -> Expr:
+    def _(self, o: ComponentTensor, Ap: Expr, ii: MultiIndex) -> Expr:
         """Differentiate a component_tensor."""
         if isinstance(Ap, Zero):
             op = self.independent_operator(o)
@@ -769,7 +767,7 @@ class GradRuleset(GenericDerivativeRuleset):
             return Do
 
     @process.register(JacobianInverse)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: JacobianInverse) -> Expr:
         """Differentiate a jacobian_inverse."""
         # grad(K) == K_ji rgrad(K)_rj
         if is_cellwise_constant(o):
@@ -831,7 +829,7 @@ class GradRuleset(GenericDerivativeRuleset):
     # --- Rules for values or derivatives in reference frame
 
     @process.register(ReferenceValue)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: ReferenceValue) -> Expr:
         """Differentiate a reference_value."""
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
@@ -1604,7 +1602,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     @process.register(BaseFormOperator)
     @DAGTraverser.postorder
-    def _(self, o: Expr, *dfs) -> Expr:
+    def _(self, o: BaseFormOperator, *dfs) -> Expr:
         """Differentiate a base_form_operator.
 
         If d_coeff = 0 => BaseFormOperator's derivative is taken wrt a
@@ -1633,7 +1631,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return dc
 
     @process.register(Coargument)
-    def _(self, o: Expr) -> Expr:
+    def _(self, o: Coargument) -> Expr:
         """Differentiate a coargument."""
         # Same rule than for Argument (da/dw == 0).
         dc = self._process_argument(o)
@@ -1643,7 +1641,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return dc
 
     @process.register(Matrix)
-    def _(self, M: Expr) -> BaseForm:
+    def _(self, M: Matrix) -> BaseForm:
         """Differentiate a matrix."""
         # Matrix rule: D_w[v](M) = v if M == w else 0
         # We can't differentiate wrt a matrix so always return zero in
@@ -1735,7 +1733,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     @process.register(ExternalOperator)
     @DAGTraverser.postorder
     @pending_operations_recording
-    def external_operator(self, N: Expr, *dfs) -> Expr:
+    def external_operator(self, N: ExternalOperator, *dfs) -> Expr:
         """Differentiate an external_operator."""
         result: tuple[Expr, ...] = ()
         for i, df in enumerate(dfs):
