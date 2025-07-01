@@ -269,7 +269,7 @@ def update_ufl_type_attributes(cls):
 
 def ufl_type(
     is_abstract=False,
-    is_terminal=False,
+    is_terminal=None,
     is_scalar=False,
     is_index_free=False,
     is_shaping=False,
@@ -437,4 +437,4 @@ class UFLType(type):
     _ufl_is_abstract_ = True
 
     # Type trait: If the type is terminal.
-    _ufl_is_terminal_: bool = False
+    _ufl_is_terminal_: bool = None  # type: ignore
