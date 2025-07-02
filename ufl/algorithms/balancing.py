@@ -20,7 +20,7 @@ from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 
 modifier_precedence = {
-    m._ufl_handler_name_: i
+    m._ufl_handler_name_: i  # type: ignore
     for i, m in enumerate(
         [
             ReferenceValue,

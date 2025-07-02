@@ -13,7 +13,7 @@
 
 from ufl.argument import Argument
 from ufl.core.terminal import FormArgument
-from ufl.core.ufl_type import ufl_type
+from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
@@ -23,7 +23,7 @@ from ufl.utils.counted import Counted
 # --- The Coefficient class represents a coefficient in a form ---
 
 
-class BaseCoefficient(Counted):
+class BaseCoefficient(UFLType, Counted):
     """UFL form argument type: Parent Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN

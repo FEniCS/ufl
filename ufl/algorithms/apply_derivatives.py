@@ -320,7 +320,7 @@ class GenericDerivativeRuleset(DAGTraverser):
 
     @process.register(Indexed)
     @DAGTraverser.postorder
-    def _(self, o: Indexed, Ap: Expr, ii: MultiIndex) -> Expr:
+    def _(self, o: Indexed, Ap: Expr, ii: MultiIndex) -> Indexed:
         """Differentiate an indexed."""
         # Propagate zeros
         if isinstance(Ap, Zero):
@@ -903,8 +903,8 @@ class GradRuleset(GenericDerivativeRuleset):
             if not f._ufl_is_in_reference_frame_:
                 raise RuntimeError("Expecting a reference frame type")
             while not f._ufl_is_terminal_:
-                (f,) = f.ufl_operands
-            element = f.ufl_function_space().ufl_element()
+                (f,) = f.ufl_operands  # type: ignore
+            element = f.ufl_function_space().ufl_element()  # type: ignore
             if element.num_sub_elements != len(domain):
                 raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
             # Get monolithic representation of rgrad(o); o might live in a mixed space.
