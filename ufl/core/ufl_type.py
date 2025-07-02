@@ -140,7 +140,6 @@ def check_type_traits_consistency(cls):
     """Execute a variety of consistency checks on the ufl type traits."""
     # Check for consistency in global type collection sizes
     Expr = core.expr.Expr
-    assert UFLRegistry().number_registered_classes == len(Expr._ufl_all_handler_names_)
     assert UFLRegistry().number_registered_classes == len(UFLRegistry().all_classes)
     assert UFLRegistry().number_registered_classes == len(Expr._ufl_obj_init_counts_)
     assert UFLRegistry().number_registered_classes == len(Expr._ufl_obj_del_counts_)
@@ -255,7 +254,6 @@ def update_ufl_type_attributes(cls):
 
     # Determine handler name by a mapping from "TypeName" to "type_name"
     cls._ufl_handler_name_ = camel2underscore(cls.__name__)
-    UFLType._ufl_all_handler_names_.add(cls._ufl_handler_name_)
 
     # Append space for counting object creation and destriction of
     # this this type.
@@ -444,12 +442,6 @@ class UFLType(type):
 
     # TODO: do not attach to every type
     # ---- global ----
-    # Set the handler name for UFLType
-    _ufl_handler_name_ = "ufl_type"
-
-    # A global set of all handler names added
-    _ufl_all_handler_names_: set[str] = set()
-
     # A global array of the number of initialized objects for each
     # typecode
     _ufl_obj_init_counts_: list[int] = []
@@ -459,6 +451,8 @@ class UFLType(type):
     _ufl_obj_del_counts_: list[int] = []
 
     # ---- per type ----
+    # Set the handler name for UFLType
+    _ufl_handler_name_ = "ufl_type"
     # Type trait: If the type is abstract.  An abstract class cannot
     # be instantiated and does not need all properties specified.
     _ufl_is_abstract_: bool = True
