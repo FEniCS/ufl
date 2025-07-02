@@ -217,8 +217,6 @@ def update_ufl_type_attributes(cls):
 
 
 def ufl_type(
-    is_abstract=False,
-    is_scalar=False,
     is_index_free=False,
     use_default_hash=True,
     inherit_shape_from_operand=None,
@@ -247,7 +245,7 @@ def ufl_type(
             return cls
 
         # is_scalar implies is_index_freeg
-        if is_scalar:
+        if cls._ufl_is_scalar_:
             _is_index_free = True
         else:
             _is_index_free = is_index_free
@@ -257,7 +255,6 @@ def ufl_type(
 
         # because we have no real inheritance yet
 
-        set_trait(cls, "is_scalar", is_scalar, inherit=True)
         set_trait(cls, "is_index_free", _is_index_free, inherit=True)
 
         # Attach builtin type wrappers to Expr
@@ -408,6 +405,8 @@ class UFLType(ABC):
     _ufl_is_restriction_: bool = False
     _ufl_is_evaluation_: bool = False
     _ufl_is_differential_: bool = False
+
+    # Note: is_scalar implies is_index_free
     _ufl_is_scalar_: bool = False
     _ufl_is_index_free_: bool = False
 

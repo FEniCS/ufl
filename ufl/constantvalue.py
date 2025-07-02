@@ -200,10 +200,12 @@ def zero(*shape):
 # --- Scalar value types ---
 
 
-@ufl_type(is_scalar=True)
+@ufl_type()
 class ScalarValue(ConstantValue):
     """A constant scalar value."""
 
+    _ufl_is_scalar_ = True
+    _ufl_is_index_free_ = True
     __slots__ = ("_value",)
 
     def __init__(self, value):
@@ -320,10 +322,12 @@ class ComplexValue(ScalarValue):
         raise TypeError("ComplexValues cannot be cast to int")
 
 
-@ufl_type(is_scalar=True)
+@ufl_type()
 class RealValue(ScalarValue):
     """Abstract class used to differentiate real values from complex ones."""
 
+    _ufl_is_scalar_ = True
+    _ufl_is_index_free_ = True
     __slots__ = ()
 
 

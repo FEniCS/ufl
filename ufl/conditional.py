@@ -21,10 +21,12 @@ from ufl.precedence import parstr
 # is a boolean type not a float type
 
 
-@ufl_type(is_scalar=True)
+@ufl_type()
 class Condition(Operator):
     """Condition."""
 
+    _ufl_is_scalar_ = True
+    _ufl_is_index_free_ = True
     __slots__ = ()
 
     def __init__(self, operands):
@@ -320,10 +322,12 @@ class Conditional(Operator):
 # --- Specific functions higher level than a conditional ---
 
 
-@ufl_type(is_scalar=True)
+@ufl_type()
 class MinValue(Operator):
     """Take the minimum of two values."""
 
+    _ufl_is_scalar_ = True
+    _ufl_is_index_free_ = True
     __slots__ = ()
 
     def __init__(self, left, right):
@@ -352,10 +356,12 @@ class MinValue(Operator):
         return "min_value({}, {})".format(*self.ufl_operands)
 
 
-@ufl_type(is_scalar=True)
+@ufl_type()
 class MaxValue(Operator):
     """Take the maximum of two values."""
 
+    _ufl_is_scalar_ = True
+    _ufl_is_index_free_ = True
     __slots__ = ()
 
     def __init__(self, left, right):
