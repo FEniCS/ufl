@@ -723,15 +723,14 @@ def testAll(self):
     # e = action(b)
 
     # --- Check which classes have been created
-    ic, dc = Expr.ufl_disable_profiling()
-
+    Expr.ufl_disable_profiling()
+    ic = UFLRegistry().object_tracking
     constructed = set()
     unused = set(UFLRegistry().all_classes)
-    for cls in UFLRegistry().all_classes:
-        tc = cls._ufl_typecode_
-        if ic[tc]:
+    for cls in ic.keys():
+        if ic[cls][0] > 0:
             constructed.add(cls)
-        if cls._ufl_is_abstract_:
+        else:
             unused.remove(cls)
 
     if unused:
