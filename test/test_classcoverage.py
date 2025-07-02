@@ -115,6 +115,7 @@ from ufl.classes import (
     Tanh,
     all_ufl_classes,
 )
+from ufl.core.ufl_type import UFLRegistry
 
 has_repr = set()
 has_dict = set()
@@ -725,8 +726,8 @@ def testAll(self):
     ic, dc = Expr.ufl_disable_profiling()
 
     constructed = set()
-    unused = set(Expr._ufl_all_classes_)
-    for cls in Expr._ufl_all_classes_:
+    unused = set(UFLRegistry().all_classes)
+    for cls in UFLRegistry().all_classes:
         tc = cls._ufl_typecode_
         if ic[tc]:
             constructed.add(cls)
