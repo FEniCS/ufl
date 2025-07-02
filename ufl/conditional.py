@@ -21,7 +21,7 @@ from ufl.precedence import parstr
 # is a boolean type not a float type
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type(is_scalar=True)
 class Condition(Operator):
     """Condition."""
 
@@ -39,7 +39,7 @@ class Condition(Operator):
     __nonzero__ = __bool__
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class BinaryCondition(Condition):
     """Binary condition."""
 

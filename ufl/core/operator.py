@@ -12,7 +12,7 @@ from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class Operator(Expr):
     """Base class for all operators, i.e. non-terminal expression types."""
 

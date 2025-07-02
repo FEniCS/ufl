@@ -14,7 +14,6 @@ from ufl.precedence import parstr
 
 
 @ufl_type(
-    is_abstract=True,
     inherit_shape_from_operand=0,
     inherit_indices_from_operand=0,
 )

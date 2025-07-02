@@ -24,6 +24,8 @@ if typing.TYPE_CHECKING:
 class UFLObject(ABC):
     """A UFL Object."""
 
+    _ufl_is_terminal_: bool
+
     @abstractmethod
     def _ufl_hash_data_(self) -> typing.Hashable:
         """Return hashable data that uniquely defines this object."""
@@ -94,7 +96,7 @@ def check_abstract_trait_consistency(cls):
     for base in cls.mro():
         if base is core.expr.Expr:
             break
-        if not issubclass(base, core.expr.Expr) and base._ufl_is_abstract_:
+        if not issubclass(base, core.expr.Expr) and (ABC in base.__base__):
             msg = (
                 "Base class {0.__name__} of class {1.__name__} "
                 "is not an abstract subclass of {2.__name__}."
@@ -135,26 +137,27 @@ def check_type_traits_consistency(cls):
 
 def check_implements_required_methods(cls):
     """Check if type implements the required methods."""
-    if not cls._ufl_is_abstract_:
-        for attr in core.expr.Expr._ufl_required_methods_:
-            if not hasattr(cls, attr):
-                msg = "Class {0.__name__} has no {1} method."
-                raise TypeError(msg.format(cls, attr))
-            elif not callable(getattr(cls, attr)):
-                msg = "Required method {1} of class {0.__name__} is not callable."
-                raise TypeError(msg.format(cls, attr))
+    # if not cls._ufl_is_abstract_:
+    # if ABC not in cls.__base__:
+    #     for attr in core.expr.Expr._ufl_required_methods_:
+    #         if not hasattr(cls, attr):
+    #             msg = "Class {0.__name__} has no {1} method."
+    #             raise TypeError(msg.format(cls, attr))
+    #         elif not callable(getattr(cls, attr)):
+    #             msg = "Required method {1} of class {0.__name__} is not callable."
+    #             raise TypeError(msg.format(cls, attr))
 
 
 def check_implements_required_properties(cls):
     """Check if type implements the required properties."""
-    if not cls._ufl_is_abstract_:
-        for attr in core.expr.Expr._ufl_required_properties_:
-            if not hasattr(cls, attr):
-                msg = "Class {0.__name__} has no {1} property."
-                raise TypeError(msg.format(cls, attr))
-            elif callable(getattr(cls, attr)):
-                msg = "Required property {1} of class {0.__name__} is a callable method."
-                raise TypeError(msg.format(cls, attr))
+    # if not cls._ufl_is_abstract_:
+    #     for attr in core.expr.Expr._ufl_required_properties_:
+    #         if not hasattr(cls, attr):
+    #             msg = "Class {0.__name__} has no {1} property."
+    #             raise TypeError(msg.format(cls, attr))
+    #         elif callable(getattr(cls, attr)):
+    #             msg = "Required property {1} of class {0.__name__} is a callable method."
+    #             raise TypeError(msg.format(cls, attr))
 
 
 def attach_implementations_of_indexing_interface(
@@ -200,14 +203,6 @@ def update_global_expr_attributes(cls):
     """
     if cls._ufl_is_terminal_modifier_:
         core.expr.Expr._ufl_terminal_modifiers_.append(cls)
-
-    # Add to collection of language operators.  This collection is
-    # used later to populate the official language namespace.
-    # TODO: I don't think this functionality is fully completed, check
-    # it out later.
-    if not cls._ufl_is_abstract_ and hasattr(cls, "_ufl_function_"):
-        cls._ufl_function_.__func__.__doc__ = cls.__doc__
-        core.expr.Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
 
 
 def update_ufl_type_attributes(cls):
@@ -259,7 +254,6 @@ def ufl_type(
 
         # Store type traits
         cls._ufl_class_ = cls
-        set_trait(cls, "is_abstract", is_abstract, inherit=False)
 
         # because we have no real inheritance yet
 
@@ -401,7 +395,6 @@ class UFLType(ABC):
     __slots__: tuple[str, ...] = ()
 
     _ufl_handler_name_: str = "ufl_type"
-    _ufl_is_abstract_: bool = True
     _ufl_is_terminal_: bool = False
     _ufl_is_literal_: bool = False
 

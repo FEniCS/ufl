@@ -24,7 +24,7 @@ from ufl.variable import Variable
 # --- Basic differentiation objects ---
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class Derivative(Operator):
     """Base class for all derivative types."""
 
@@ -247,7 +247,7 @@ class VariableDerivative(Derivative):
 # --- Compound differentiation objects ---
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class CompoundDerivative(Derivative):
     """Base class for all compound derivative types."""
 

@@ -17,7 +17,7 @@ from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class Terminal(Expr):
     """Base class for terminal objects.
 
@@ -97,7 +97,7 @@ class Terminal(Expr):
 # --- Subgroups of terminals ---
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class FormArgument(Terminal):
     """An abstract class for a form argument (a thing in a primal finite element space)."""
 

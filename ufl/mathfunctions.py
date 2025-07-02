@@ -51,7 +51,7 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 # --- Function representations ---
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type(is_scalar=True)
 class MathFunction(Operator):
     """Base class for all unary scalar math functions."""
 
@@ -388,7 +388,7 @@ class Erf(MathFunction):
         return math.erf(a)
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type(is_scalar=True)
 class BesselFunction(Operator):
     """Base class for all bessel functions."""
 

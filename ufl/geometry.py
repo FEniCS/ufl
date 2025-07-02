@@ -107,7 +107,7 @@ Xe = CEK * (X - X0e)
 # --- Expression node types
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class GeometricQuantity(Terminal):
     """Geometric quantity."""
 
@@ -157,21 +157,21 @@ class GeometricQuantity(Terminal):
         return isinstance(other, self._ufl_class_) and other._domain == self._domain
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class GeometricCellQuantity(GeometricQuantity):
     """Geometric cell quantity."""
 
     __slots__ = ()
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class GeometricFacetQuantity(GeometricQuantity):
     """Geometric facet quantity."""
 
     __slots__ = ()
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class GeometricRidgeQuantity(GeometricQuantity):
     """Geometric ridge quantity."""
 
