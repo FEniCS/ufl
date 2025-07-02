@@ -22,7 +22,7 @@ import warnings
 if typing.TYPE_CHECKING:
     from ufl.core.terminal import FormArgument
 
-from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
+from ufl.core.ufl_type import UFLObject, UFLRegistry, UFLType, update_ufl_type_attributes
 
 
 class Expr(metaclass=UFLType):
@@ -228,27 +228,24 @@ class Expr(metaclass=UFLType):
     def _ufl_profiling__init__(self):
         """Replacement constructor with object counting."""
         Expr._ufl_regular__init__(self)
-        Expr._ufl_obj_init_counts_[self._ufl_typecode_] += 1
+        UFLRegistry().register_object_creation(type(self))
 
     def _ufl_profiling__del__(self):
         """Replacement destructor with object counting."""
-        Expr._ufl_obj_del_counts_[self._ufl_typecode_] -= 1
+        UFLRegistry().register_object_destruction(type(self))
 
     @staticmethod
     def ufl_enable_profiling():
         """Turn on the object counting mechanism and reset counts to zero."""
         Expr.__init__ = Expr._ufl_profiling__init__
         setattr(Expr, "__del__", Expr._ufl_profiling__del__)
-        for i in range(len(Expr._ufl_obj_init_counts_)):
-            Expr._ufl_obj_init_counts_[i] = 0
-            Expr._ufl_obj_del_counts_[i] = 0
+        UFLRegistry().reset_object_tracking()
 
     @staticmethod
     def ufl_disable_profiling():
         """Turn off the object counting mechanism. Return object init and del counts."""
         Expr.__init__ = Expr._ufl_regular__init__
         delattr(Expr, "__del__")
-        return (Expr._ufl_obj_init_counts_, Expr._ufl_obj_del_counts_)
 
     # === Abstract functions that must be implemented by subclasses ===
 

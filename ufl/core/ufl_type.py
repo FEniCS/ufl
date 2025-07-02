@@ -139,10 +139,7 @@ def check_has_slots(cls):
 def check_type_traits_consistency(cls):
     """Execute a variety of consistency checks on the ufl type traits."""
     # Check for consistency in global type collection sizes
-    Expr = core.expr.Expr
     assert UFLRegistry().number_registered_classes == len(UFLRegistry().all_classes)
-    assert UFLRegistry().number_registered_classes == len(Expr._ufl_obj_init_counts_)
-    assert UFLRegistry().number_registered_classes == len(Expr._ufl_obj_del_counts_)
 
     # Check that non-abstract types always specify num_ops
     if not cls._ufl_is_abstract_:
@@ -254,11 +251,6 @@ def update_ufl_type_attributes(cls):
 
     # Determine handler name by a mapping from "TypeName" to "type_name"
     cls._ufl_handler_name_ = camel2underscore(cls.__name__)
-
-    # Append space for counting object creation and destriction of
-    # this this type.
-    UFLType._ufl_obj_init_counts_.append(0)
-    UFLType._ufl_obj_del_counts_.append(0)
 
 
 def ufl_type(
@@ -411,11 +403,15 @@ class UFLRegistry:
     _instance: typing.Optional[UFLRegistry] = None
     _all_classes: list[type]
 
+    # TODO: profiling should be maintained in an own profiling class/registry
+    _obj_tracking: dict[type, tuple[int, int]]
+
     def __new__(cls) -> UFLRegistry:
         """Create singleton UFLRegistry."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._all_classes = []
+            cls._instance._obj_tracking = {}
         return cls._instance
 
     @property
@@ -433,22 +429,31 @@ class UFLRegistry:
         """Return number of registered classes."""
         return len(self._all_classes)
 
+    def register_object_creation(self, c: type) -> None:
+        """Profiling."""
+        data = self._obj_tracking.get(c, (0, 0))
+        self._obj_tracking[c] = (data[0] + 1, data[1])
+
+    def register_object_destruction(self, c: type) -> None:
+        """Profiling."""
+        data = self._obj_tracking.get(c, (0, 0))
+        self._obj_tracking[c] = (data[0], data[1] - 1)
+
+    def reset_object_tracking(self) -> None:
+        """Profiling."""
+        self._obj_tracking = {}
+
+    @property
+    def object_tracking(self) -> dict[type, tuple[int, int]]:
+        """Profiling."""
+        return self._obj_tracking
+
 
 class UFLType(type):
     """Base class for all UFL types.
 
     Equip UFL types with some ufl specific properties.
     """
-
-    # TODO: do not attach to every type
-    # ---- global ----
-    # A global array of the number of initialized objects for each
-    # typecode
-    _ufl_obj_init_counts_: list[int] = []
-
-    # A global array of the number of deleted objects for each
-    # typecode
-    _ufl_obj_del_counts_: list[int] = []
 
     # ---- per type ----
     # Set the handler name for UFLType
