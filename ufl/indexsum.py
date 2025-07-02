@@ -18,7 +18,7 @@ from ufl.precedence import parstr
 # --- Sum over an index ---
 
 
-@ufl_type(num_ops=2)
+@ufl_type()
 class IndexSum(Operator):
     """Index sum."""
 

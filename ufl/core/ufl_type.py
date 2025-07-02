@@ -71,24 +71,6 @@ def set_trait(cls, basename, value, inherit=False):
     setattr(cls, name, value)
 
 
-def determine_num_ops(cls, num_ops, unop, binop, rbinop):
-    """Determine number of operands for this type."""
-    # Try to determine num_ops from other traits or baseclass, or
-    # require num_ops to be set for non-abstract classes if it cannot
-    # be determined automatically
-    if num_ops is not None:
-        return num_ops
-    elif cls._ufl_is_terminal_:
-        return 0
-    elif unop:
-        return 1
-    elif binop or rbinop:
-        return 2
-    else:
-        # Determine from base class
-        return get_base_attr(cls, "_ufl_num_ops_")
-
-
 def check_is_terminal_consistency(cls):
     """Check for consistency in ``is_terminal`` trait among superclasses."""
     if cls._ufl_is_terminal_ is None:
@@ -143,23 +125,6 @@ def check_type_traits_consistency(cls):
     """Execute a variety of consistency checks on the ufl type traits."""
     # Check for consistency in global type collection sizes
     assert UFLRegistry().number_registered_classes == len(UFLRegistry().all_classes)
-
-    # Check that non-abstract types always specify num_ops
-    if not cls._ufl_is_abstract_:
-        if cls._ufl_num_ops_ is None:
-            msg = "Class {0.__name__} has not specified num_ops."
-            raise TypeError(msg.format(cls))
-
-    # Check for non-abstract types that num_ops has the right type
-    if not cls._ufl_is_abstract_:
-        if not (isinstance(cls._ufl_num_ops_, int) or cls._ufl_num_ops_ == "varying"):
-            msg = 'Class {0.__name__} has invalid num_ops value {1} (integer or "varying").'
-            raise TypeError(msg.format(cls, cls._ufl_num_ops_))
-
-    # Check that num_ops is not set to nonzero for a terminal
-    if cls._ufl_is_terminal_ and cls._ufl_num_ops_ != 0:
-        msg = "Class {0.__name__} has num_ops > 0 but is terminal."
-        raise TypeError(msg.format(cls))
 
     # Check that a non-scalar type doesn't have a scalar base class.
     if not cls._ufl_is_scalar_:
@@ -262,7 +227,6 @@ def ufl_type(
     is_scalar=False,
     is_index_free=False,
     use_default_hash=True,
-    num_ops=None,
     inherit_shape_from_operand=None,
     inherit_indices_from_operand=None,
     wraps_type=None,
@@ -306,10 +270,6 @@ def ufl_type(
 
         set_trait(cls, "is_scalar", is_scalar, inherit=True)
         set_trait(cls, "is_index_free", _is_index_free, inherit=True)
-
-        # Number of operands can often be determined automatically
-        _num_ops = determine_num_ops(cls, num_ops, unop, binop, rbinop)
-        set_trait(cls, "num_ops", _num_ops)
 
         # Attach builtin type wrappers to Expr
         """# These are currently handled in the as_ufl implementation in constantvalue.py
@@ -462,10 +422,6 @@ class UFLType(ABC):
     _ufl_is_differential_: bool = False
     _ufl_is_scalar_: bool = False
     _ufl_is_index_free_: bool = False
-
-    # Number of operands, "varying" for some types, or None if not
-    # applicable for abstract types.
-    _ufl_num_ops_: typing.Optional[int] = None
 
     ufl_operands: tuple[FormArgument, ...]
     ufl_shape: tuple[int, ...]

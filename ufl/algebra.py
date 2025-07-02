@@ -21,7 +21,6 @@ from ufl.sorting import sorted_expr
 
 
 @ufl_type(
-    num_ops=2,
     inherit_shape_from_operand=0,
     inherit_indices_from_operand=0,
     binop="__add__",
@@ -104,7 +103,7 @@ class Sum(Operator):
         return " + ".join([parstr(o, self) for o in self.ufl_operands])
 
 
-@ufl_type(num_ops=2, binop="__mul__", rbinop="__rmul__")
+@ufl_type(binop="__mul__", rbinop="__rmul__")
 class Product(Operator):
     """The product of two or more UFL objects."""
 
@@ -201,7 +200,7 @@ class Product(Operator):
         return " * ".join((parstr(a, self), parstr(b, self)))
 
 
-@ufl_type(num_ops=2, inherit_indices_from_operand=0, binop="__div__", rbinop="__rdiv__")
+@ufl_type(inherit_indices_from_operand=0, binop="__div__", rbinop="__rdiv__")
 class Division(Operator):
     """Division."""
 
@@ -266,7 +265,7 @@ class Division(Operator):
         return f"{parstr(self.ufl_operands[0], self)} / {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(num_ops=2, inherit_indices_from_operand=0, binop="__pow__", rbinop="__rpow__")
+@ufl_type(inherit_indices_from_operand=0, binop="__pow__", rbinop="__rpow__")
 class Power(Operator):
     """Power."""
 
@@ -328,7 +327,7 @@ class Power(Operator):
         return f"{parstr(a, self)} ** {parstr(b, self)}"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0, unop="__abs__")
+@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0, unop="__abs__")
 class Abs(Operator):
     """Absolute value."""
 
@@ -363,7 +362,7 @@ class Abs(Operator):
         return f"|{parstr(a, self)}|"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Conj(Operator):
     """Complex conjugate."""
 
@@ -398,7 +397,7 @@ class Conj(Operator):
         return f"conj({parstr(a, self)})"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Real(Operator):
     """Real part."""
 
@@ -435,7 +434,7 @@ class Real(Operator):
         return f"Re[{parstr(a, self)}]"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Imag(Operator):
     """Imaginary part."""
 

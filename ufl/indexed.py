@@ -15,7 +15,7 @@ from ufl.index_combination_utils import unique_sorted_indices
 from ufl.precedence import parstr
 
 
-@ufl_type(num_ops=2)
+@ufl_type()
 class Indexed(Operator):
     """Indexed expression."""
 

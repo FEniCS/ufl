@@ -18,7 +18,7 @@ from ufl.indexed import Indexed
 # --- Classes representing tensors of UFL expressions ---
 
 
-@ufl_type(num_ops="varying", inherit_indices_from_operand=0)
+@ufl_type(inherit_indices_from_operand=0)
 class ListTensor(Operator):
     """Wraps a list of expressions into a tensor valued expression of one higher rank."""
 
@@ -179,7 +179,7 @@ class ListTensor(Operator):
         return substring(self.ufl_operands, 0)
 
 
-@ufl_type(num_ops="varying")
+@ufl_type()
 class ComponentTensor(Operator):
     """Maps the free indices of a scalar valued expression to tensor axes."""
 
