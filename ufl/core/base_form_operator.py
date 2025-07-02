@@ -26,7 +26,7 @@ from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
 
 
-@ufl_type(num_ops="varying")
+@ufl_type()
 class BaseFormOperator(Operator, BaseForm, Counted):
     """Base form operator."""
 

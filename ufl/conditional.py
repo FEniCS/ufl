@@ -39,7 +39,7 @@ class Condition(Operator):
     __nonzero__ = __bool__
 
 
-@ufl_type(is_abstract=True, num_ops=2)
+@ufl_type(is_abstract=True)
 class BinaryCondition(Condition):
     """Binary condition."""
 
@@ -232,7 +232,7 @@ class OrCondition(BinaryCondition):
         return bool(a or b)
 
 
-@ufl_type(num_ops=1)
+@ufl_type()
 class NotCondition(Condition):
     """Not condition."""
 
@@ -254,7 +254,7 @@ class NotCondition(Condition):
         return f"!({self.ufl_operands[0]!s})"
 
 
-@ufl_type(num_ops=3, inherit_shape_from_operand=1, inherit_indices_from_operand=1)
+@ufl_type(inherit_shape_from_operand=1, inherit_indices_from_operand=1)
 class Conditional(Operator):
     """Conditional expression.
 
@@ -320,7 +320,7 @@ class Conditional(Operator):
 # --- Specific functions higher level than a conditional ---
 
 
-@ufl_type(is_scalar=True, num_ops=1)
+@ufl_type(is_scalar=True)
 class MinValue(Operator):
     """Take the minimum of two values."""
 
@@ -352,7 +352,7 @@ class MinValue(Operator):
         return "min_value({}, {})".format(*self.ufl_operands)
 
 
-@ufl_type(is_scalar=True, num_ops=1)
+@ufl_type(is_scalar=True)
 class MaxValue(Operator):
     """Take the maximum of two values."""
 

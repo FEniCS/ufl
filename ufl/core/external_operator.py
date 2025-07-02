@@ -17,7 +17,7 @@ from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(num_ops="varying")
+@ufl_type()
 class ExternalOperator(BaseFormOperator):
     """External operator."""
 

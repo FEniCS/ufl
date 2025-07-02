@@ -17,7 +17,7 @@ from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 
 
-@ufl_type(num_ops="varying")
+@ufl_type()
 class Interpolate(BaseFormOperator):
     """Symbolic representation of the interpolation operator."""
 

@@ -86,7 +86,7 @@ class CompoundTensorOperator(Operator):
 #     pass
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0)
+@ufl_type(inherit_indices_from_operand=0)
 class Transposed(CompoundTensorOperator):
     """Transposed tensor."""
 
@@ -117,7 +117,7 @@ class Transposed(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)}^T"
 
 
-@ufl_type(num_ops=2)
+@ufl_type()
 class Outer(CompoundTensorOperator):
     """Outer."""
 
@@ -150,7 +150,7 @@ class Outer(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)} (X) {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(num_ops=2)
+@ufl_type()
 class Inner(CompoundTensorOperator):
     """Inner."""
 
@@ -192,7 +192,7 @@ class Inner(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)} : {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(num_ops=2)
+@ufl_type()
 class Dot(CompoundTensorOperator):
     """Dot."""
 
@@ -241,7 +241,7 @@ class Dot(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)} . {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(is_index_free=True, num_ops=1)
+@ufl_type(is_index_free=True)
 class Perp(CompoundTensorOperator):
     """Perp."""
 
@@ -274,7 +274,7 @@ class Perp(CompoundTensorOperator):
         return f"perp({self.ufl_operands[0]})"
 
 
-@ufl_type(num_ops=2)
+@ufl_type()
 class Cross(CompoundTensorOperator):
     """Cross."""
 
@@ -313,7 +313,7 @@ class Cross(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)} x {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0)
+@ufl_type(inherit_indices_from_operand=0)
 class Trace(CompoundTensorOperator):
     """Trace."""
 
@@ -342,7 +342,7 @@ class Trace(CompoundTensorOperator):
         return f"tr({self.ufl_operands[0]})"
 
 
-@ufl_type(is_scalar=True, num_ops=1)
+@ufl_type(is_scalar=True)
 class Determinant(CompoundTensorOperator):
     """Determinant."""
 
@@ -381,7 +381,7 @@ class Determinant(CompoundTensorOperator):
 
 # TODO: Drop Inverse and represent it as product of Determinant and
 # Cofactor?
-@ufl_type(is_index_free=True, num_ops=1)
+@ufl_type(is_index_free=True)
 class Inverse(CompoundTensorOperator):
     """Inverse."""
 
@@ -424,7 +424,7 @@ class Inverse(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)}^-1"
 
 
-@ufl_type(is_index_free=True, num_ops=1)
+@ufl_type(is_index_free=True)
 class Cofactor(CompoundTensorOperator):
     """Cofactor."""
 
@@ -455,7 +455,7 @@ class Cofactor(CompoundTensorOperator):
         return f"cofactor({self.ufl_operands[0]})"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Deviatoric(CompoundTensorOperator):
     """Deviatoric."""
 
@@ -490,7 +490,7 @@ class Deviatoric(CompoundTensorOperator):
         return f"dev({self.ufl_operands[0]})"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Skew(CompoundTensorOperator):
     """Skew."""
 
@@ -524,7 +524,7 @@ class Skew(CompoundTensorOperator):
         return f"skew({self.ufl_operands[0]})"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Sym(CompoundTensorOperator):
     """Sym."""
 

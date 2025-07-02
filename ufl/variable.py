@@ -65,7 +65,7 @@ class Label(Terminal, Counted):
         return ("Label", renumbering[self])
 
 
-@ufl_type(is_index_free=True, num_ops=1, inherit_shape_from_operand=0)
+@ufl_type(is_index_free=True, inherit_shape_from_operand=0)
 class Variable(Operator):
     """A Variable is a representative for another expression.
 
