@@ -316,7 +316,6 @@ def ufl_type(
         set_trait(cls, "is_shaping", is_shaping, inherit=True)
         set_trait(cls, "is_in_reference_frame", is_in_reference_frame, inherit=True)
         set_trait(cls, "is_evaluation", is_evaluation, inherit=True)
-        set_trait(cls, "is_differential", is_differential, inherit=True)
 
         set_trait(cls, "is_scalar", is_scalar, inherit=True)
         set_trait(cls, "is_index_free", _is_index_free, inherit=True)

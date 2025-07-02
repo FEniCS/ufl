@@ -26,9 +26,11 @@ from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
 
 
-@ufl_type(num_ops="varying", is_differential=True)
+@ufl_type(num_ops="varying")
 class BaseFormOperator(Operator, BaseForm, Counted):
     """Base form operator."""
+
+    _ufl_is_differential_ = True
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:

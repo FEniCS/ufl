@@ -17,9 +17,11 @@ from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(num_ops="varying", is_differential=True)
+@ufl_type(num_ops="varying")
 class ExternalOperator(BaseFormOperator):
     """External operator."""
+
+    _ufl_is_differential_ = True
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
