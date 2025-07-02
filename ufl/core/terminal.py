@@ -17,13 +17,14 @@ from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(is_abstract=True, is_terminal=True)
+@ufl_type(is_abstract=True)
 class Terminal(Expr):
     """Base class for terminal objects.
 
     A terminal node in the UFL expression tree.
     """
 
+    _ufl_is_terminal_ = True
     __slots__ = ()
 
     def __init__(self):

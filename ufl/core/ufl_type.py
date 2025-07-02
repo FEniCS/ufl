@@ -223,7 +223,6 @@ def update_ufl_type_attributes(cls):
 
 def ufl_type(
     is_abstract=False,
-    is_terminal=False,
     is_scalar=False,
     is_index_free=False,
     use_default_hash=True,
@@ -263,10 +262,6 @@ def ufl_type(
         set_trait(cls, "is_abstract", is_abstract, inherit=False)
 
         # because we have no real inheritance yet
-        # cls._ufl_is_terminal_ =  get_base_attr(cls, "_ufl_is_terminal_")
-        cls._ufl_is_terminal_ = (
-            get_base_attr(cls, "_ufl_is_terminal_") if not is_terminal else is_terminal
-        )
 
         set_trait(cls, "is_scalar", is_scalar, inherit=True)
         set_trait(cls, "is_index_free", _is_index_free, inherit=True)
