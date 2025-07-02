@@ -86,10 +86,11 @@ class CompoundTensorOperator(Operator):
 #     pass
 
 
-@ufl_type(is_shaping=True, num_ops=1, inherit_indices_from_operand=0)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class Transposed(CompoundTensorOperator):
     """Transposed tensor."""
 
+    _ufl_is_shaping_ = True
     __slots__ = ()
 
     def __new__(cls, A):

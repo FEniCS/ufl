@@ -18,10 +18,11 @@ from ufl.indexed import Indexed
 # --- Classes representing tensors of UFL expressions ---
 
 
-@ufl_type(is_shaping=True, num_ops="varying", inherit_indices_from_operand=0)
+@ufl_type(num_ops="varying", inherit_indices_from_operand=0)
 class ListTensor(Operator):
     """Wraps a list of expressions into a tensor valued expression of one higher rank."""
 
+    _ufl_is_shaping_ = True
     __slots__ = ("_initialised",)
 
     def __new__(cls, *expressions):
@@ -178,10 +179,11 @@ class ListTensor(Operator):
         return substring(self.ufl_operands, 0)
 
 
-@ufl_type(is_shaping=True, num_ops="varying")
+@ufl_type(num_ops="varying")
 class ComponentTensor(Operator):
     """Maps the free indices of a scalar valued expression to tensor axes."""
 
+    _ufl_is_shaping_ = True
     __slots__ = ("_initialised", "ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     def __new__(cls, expression, indices):
