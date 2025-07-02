@@ -61,18 +61,6 @@ def get_base_attr(cls, name):
     return None
 
 
-def set_trait(cls, basename, value, inherit=False):
-    """Assign a trait to class with namespacing ``_ufl_basename_`` applied.
-
-    If trait value is ``None``, optionally inherit it from the closest
-    base class that has it.
-    """
-    name = "_ufl_" + basename + "_"
-    if value is None and inherit:
-        value = get_base_attr(cls, name)
-    setattr(cls, name, value)
-
-
 def check_is_terminal_consistency(cls):
     """Check for consistency in ``is_terminal`` trait among superclasses."""
     if cls._ufl_is_terminal_ is None:
@@ -195,16 +183,6 @@ def attach_implementations_of_indexing_interface(
         cls.ufl_index_dimensions = property(_inherited_ufl_index_dimensions)
 
 
-def update_global_expr_attributes(cls):
-    """Update global attributres.
-
-    Update global ``Expr`` attributes, mainly by adding *cls* to global
-    collections of ufl types.
-    """
-    if cls._ufl_is_terminal_modifier_:
-        core.expr.Expr._ufl_terminal_modifiers_.append(cls)
-
-
 def update_ufl_type_attributes(cls):
     """Update UFL type attributes."""
     # Determine integer typecode by incrementally counting all types
@@ -302,9 +280,6 @@ def ufl_type(
             cls, inherit_shape_from_operand, inherit_indices_from_operand
         )
 
-        # Update Expr
-        update_global_expr_attributes(cls)
-
         # Apply a range of consistency checks to detect bugs in type
         # implementations that Python doesn't check for us, including
         # some checks that a static language compiler would do for us
@@ -384,13 +359,9 @@ class UFLType(ABC):
     _ufl_is_terminal_: bool = False
     _ufl_is_literal_: bool = False
 
-    # Type trait: If the type is classified as a 'terminal modifier',
-    # for form compiler use.
     _ufl_is_terminal_modifier_: bool = False
     _ufl_is_shaping_: bool = False
     _ufl_is_in_reference_frame_: bool = False
-
-    # Is a restriction to a geometric entity.
     _ufl_is_restriction_: bool = False
     _ufl_is_evaluation_: bool = False
     _ufl_is_differential_: bool = False
