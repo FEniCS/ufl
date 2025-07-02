@@ -17,9 +17,11 @@ from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 
 
-@ufl_type(num_ops="varying", is_differential=True)
+@ufl_type(num_ops="varying")
 class Interpolate(BaseFormOperator):
     """Symbolic representation of the interpolation operator."""
+
+    _ufl_is_differential_ = True
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:

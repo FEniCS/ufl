@@ -24,10 +24,11 @@ from ufl.variable import Variable
 # --- Basic differentiation objects ---
 
 
-@ufl_type(is_abstract=True, is_differential=True)
+@ufl_type(is_abstract=True)
 class Derivative(Operator):
     """Base class for all derivative types."""
 
+    _ufl_is_differential_ = True
     __slots__ = ()
 
     def __init__(self, operands):
