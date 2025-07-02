@@ -140,10 +140,10 @@ def check_type_traits_consistency(cls):
     """Execute a variety of consistency checks on the ufl type traits."""
     # Check for consistency in global type collection sizes
     Expr = core.expr.Expr
-    assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_handler_names_)
-    assert Expr._ufl_num_typecodes_ == len(UFLRegistry().all_classes)
-    assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_init_counts_)
-    assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_del_counts_)
+    assert UFLRegistry().number_registered_classes == len(Expr._ufl_all_handler_names_)
+    assert UFLRegistry().number_registered_classes == len(UFLRegistry().all_classes)
+    assert UFLRegistry().number_registered_classes == len(Expr._ufl_obj_init_counts_)
+    assert UFLRegistry().number_registered_classes == len(Expr._ufl_obj_del_counts_)
 
     # Check that non-abstract types always specify num_ops
     if not cls._ufl_is_abstract_:
@@ -249,9 +249,8 @@ def update_global_expr_attributes(cls):
 def update_ufl_type_attributes(cls):
     """Update UFL type attributes."""
     # Determine integer typecode by incrementally counting all types
-    cls._ufl_typecode_ = UFLType._ufl_num_typecodes_
-    UFLType._ufl_num_typecodes_ += 1
-
+    # TODO: improve this implict post increment
+    cls._ufl_typecode_ = UFLRegistry().number_registered_classes
     UFLRegistry().register_class(cls)
 
     # Determine handler name by a mapping from "TypeName" to "type_name"
@@ -430,7 +429,11 @@ class UFLRegistry:
         """Register an UFLType with the registry."""
         assert c not in self.all_classes
         self._all_classes.append(c)
-        print(f"appending {c}")
+
+    @property
+    def number_registered_classes(self) -> int:
+        """Return number of registered classes."""
+        return len(self._all_classes)
 
 
 class UFLType(type):
@@ -441,9 +444,6 @@ class UFLType(type):
 
     # TODO: do not attach to every type
     # ---- global ----
-    # A global counter of the number of typecodes assigned.
-    _ufl_num_typecodes_ = 0
-
     # Set the handler name for UFLType
     _ufl_handler_name_ = "ufl_type"
 
