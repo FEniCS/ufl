@@ -299,12 +299,11 @@ class Grad(CompoundDerivative):
         return f"grad({self.ufl_operands[0]})"
 
 
-@ufl_type(
-    num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True, is_in_reference_frame=True
-)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class ReferenceGrad(CompoundDerivative):
     """Reference grad."""
 
+    _ufl_is_in_reference_frame_ = True
     __slots__ = ("_dim",)
 
     def __new__(cls, f):
@@ -382,12 +381,11 @@ class Div(CompoundDerivative):
         return f"div({self.ufl_operands[0]})"
 
 
-@ufl_type(
-    num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True, is_in_reference_frame=True
-)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class ReferenceDiv(CompoundDerivative):
     """Reference divergence."""
 
+    _ufl_is_in_reference_frame_ = True
     __slots__ = ()
 
     def __new__(cls, f):
@@ -519,12 +517,11 @@ class Curl(CompoundDerivative):
         return f"curl({self.ufl_operands[0]})"
 
 
-@ufl_type(
-    num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True, is_in_reference_frame=True
-)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class ReferenceCurl(CompoundDerivative):
     """Reference curl."""
 
+    _ufl_is_in_reference_frame_ = True
     __slots__ = ("ufl_shape",)
 
     def __new__(cls, f):
