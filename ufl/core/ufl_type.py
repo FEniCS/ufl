@@ -315,7 +315,6 @@ def ufl_type(
         set_trait(cls, "is_terminal_modifier", is_terminal_modifier, inherit=True)
         set_trait(cls, "is_shaping", is_shaping, inherit=True)
         set_trait(cls, "is_in_reference_frame", is_in_reference_frame, inherit=True)
-        set_trait(cls, "is_restriction", is_restriction, inherit=True)
         set_trait(cls, "is_evaluation", is_evaluation, inherit=True)
         set_trait(cls, "is_differential", is_differential, inherit=True)
 

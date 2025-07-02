@@ -18,11 +18,11 @@ from ufl.precedence import parstr
     num_ops=1,
     inherit_shape_from_operand=0,
     inherit_indices_from_operand=0,
-    is_restriction=True,
 )
 class Restricted(Operator):
     """Restriction."""
 
+    _ufl_is_restriction_ = True
     __slots__ = ()
     _side: str
 
