@@ -141,7 +141,7 @@ def check_type_traits_consistency(cls):
     # Check for consistency in global type collection sizes
     Expr = core.expr.Expr
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_handler_names_)
-    assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_classes_)
+    assert Expr._ufl_num_typecodes_ == len(UFLRegistry().all_classes)
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_init_counts_)
     assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_del_counts_)
 
@@ -252,7 +252,7 @@ def update_ufl_type_attributes(cls):
     cls._ufl_typecode_ = UFLType._ufl_num_typecodes_
     UFLType._ufl_num_typecodes_ += 1
 
-    UFLType._ufl_all_classes_.append(cls)
+    UFLRegistry().register_class(cls)
 
     # Determine handler name by a mapping from "TypeName" to "type_name"
     cls._ufl_handler_name_ = camel2underscore(cls.__name__)
@@ -408,6 +408,31 @@ def ufl_type(
     return _ufl_type_decorator_
 
 
+class UFLRegistry:
+    """Maintains global informations of the registered types."""
+
+    _instance: typing.Optional[UFLRegistry] = None
+    _all_classes: list[type]
+
+    def __new__(cls) -> UFLRegistry:
+        """Create singleton UFLRegistry."""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._all_classes = []
+        return cls._instance
+
+    @property
+    def all_classes(self) -> list[type]:  # list[UFLType]
+        """Return list of all Expr and BaseForm subclasses, indexed by typecode."""
+        return self._all_classes
+
+    def register_class(self, c: type) -> None:
+        """Register an UFLType with the registry."""
+        assert c not in self.all_classes
+        self._all_classes.append(c)
+        print(f"appending {c}")
+
+
 class UFLType(type):
     """Base class for all UFL types.
 
@@ -421,9 +446,6 @@ class UFLType(type):
 
     # Set the handler name for UFLType
     _ufl_handler_name_ = "ufl_type"
-
-    # A global array of all Expr and BaseForm subclasses, indexed by typecode
-    _ufl_all_classes_: list[UFLType] = []
 
     # A global set of all handler names added
     _ufl_all_handler_names_: set[str] = set()
