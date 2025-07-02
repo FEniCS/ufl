@@ -217,7 +217,6 @@ def update_ufl_type_attributes(cls):
 
 
 def ufl_type(
-    is_index_free=False,
     use_default_hash=True,
     inherit_shape_from_operand=None,
     inherit_indices_from_operand=None,
@@ -244,18 +243,8 @@ def ufl_type(
             # Don't need anything else for non Expr subclasses
             return cls
 
-        # is_scalar implies is_index_freeg
-        if cls._ufl_is_scalar_:
-            _is_index_free = True
-        else:
-            _is_index_free = is_index_free
-
         # Store type traits
         cls._ufl_class_ = cls
-
-        # because we have no real inheritance yet
-
-        set_trait(cls, "is_index_free", _is_index_free, inherit=True)
 
         # Attach builtin type wrappers to Expr
         """# These are currently handled in the as_ufl implementation in constantvalue.py

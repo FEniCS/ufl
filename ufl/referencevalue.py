@@ -10,10 +10,11 @@ from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(is_index_free=True)
+@ufl_type()
 class ReferenceValue(Operator):
     """Representation of the reference cell value of a form argument."""
 
+    _ufl_is_index_free_ = True
     _ufl_is_terminal_modifier_ = True
     _ufl_is_in_reference_frame_ = True
     __slots__ = ()
