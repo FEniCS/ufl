@@ -22,7 +22,7 @@ import warnings
 if typing.TYPE_CHECKING:
     from ufl.core.terminal import FormArgument
 
-from ufl.core.ufl_type import UFLObject, UFLRegistry, UFLType, update_ufl_type_attributes
+from ufl.core.ufl_type import UFLRegistry, UFLType, update_ufl_type_attributes
 
 
 class Expr(UFLType):
@@ -189,7 +189,6 @@ class Expr(UFLType):
     _ufl_language_operators_: dict[str, object] = {}
 
     # List of all terminal modifier types
-    _ufl_terminal_modifiers_: list[UFLObject] = []
 
     # --- Mechanism for profiling object creation and deletion ---
 
