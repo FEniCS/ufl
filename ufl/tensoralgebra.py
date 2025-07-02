@@ -241,10 +241,11 @@ class Dot(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)} . {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(is_index_free=True)
+@ufl_type()
 class Perp(CompoundTensorOperator):
     """Perp."""
 
+    _ufl_is_index_free_ = True
     __slots__ = ()
 
     def __new__(cls, A):
@@ -383,10 +384,11 @@ class Determinant(CompoundTensorOperator):
 
 # TODO: Drop Inverse and represent it as product of Determinant and
 # Cofactor?
-@ufl_type(is_index_free=True)
+@ufl_type()
 class Inverse(CompoundTensorOperator):
     """Inverse."""
 
+    _ufl_is_index_free_ = True
     __slots__ = ()
 
     def __new__(cls, A):
@@ -426,10 +428,11 @@ class Inverse(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)}^-1"
 
 
-@ufl_type(is_index_free=True)
+@ufl_type()
 class Cofactor(CompoundTensorOperator):
     """Cofactor."""
 
+    _ufl_is_index_free_ = True
     __slots__ = ()
 
     def __init__(self, A):
