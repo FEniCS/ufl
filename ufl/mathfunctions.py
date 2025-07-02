@@ -51,10 +51,12 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 # --- Function representations ---
 
 
-@ufl_type(is_scalar=True)
+@ufl_type()
 class MathFunction(Operator):
     """Base class for all unary scalar math functions."""
 
+    _ufl_is_scalar_ = True
+    _ufl_is_index_free_ = True
     # Freeze member variables for objects in this class
     __slots__ = ("_name",)
 
@@ -322,10 +324,12 @@ class Atan(MathFunction):
         MathFunction.__init__(self, "atan", argument)
 
 
-@ufl_type(is_scalar=True)
+@ufl_type()
 class Atan2(Operator):
     """Inverse tangent with two inputs."""
 
+    _ufl_is_scalar_ = True
+    _ufl_is_index_free_ = True
     __slots__ = ()
 
     def __new__(cls, arg1, arg2):
@@ -388,10 +392,12 @@ class Erf(MathFunction):
         return math.erf(a)
 
 
-@ufl_type(is_scalar=True)
+@ufl_type()
 class BesselFunction(Operator):
     """Base class for all bessel functions."""
 
+    _ufl_is_scalar_ = True
+    _ufl_is_index_free_ = True
     __slots__ = "_name"
 
     def __init__(self, name, nu, argument):

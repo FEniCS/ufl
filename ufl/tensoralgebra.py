@@ -342,10 +342,12 @@ class Trace(CompoundTensorOperator):
         return f"tr({self.ufl_operands[0]})"
 
 
-@ufl_type(is_scalar=True)
+@ufl_type()
 class Determinant(CompoundTensorOperator):
     """Determinant."""
 
+    _ufl_is_scalar_ = True
+    _ufl_is_index_free_ = True
     __slots__ = ()
 
     def __new__(cls, A):
