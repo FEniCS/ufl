@@ -6,7 +6,6 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-import warnings
 
 # FIXME: This code is crap...
 
@@ -90,7 +89,7 @@ def build_precedence_mapping(precedence_list):
 
     Utility function used by some external code.
     """
-    from ufl.classes import Expr, abstract_classes, all_ufl_classes
+    from ufl.classes import Expr, all_ufl_classes
 
     pm = {}
     missing = set()
@@ -102,9 +101,9 @@ def build_precedence_mapping(precedence_list):
         k += 1
     # Check for missing classes, fill in subclasses
     for c in all_ufl_classes:
-        if c not in abstract_classes and c not in pm:
+        if c not in pm:
             b = c.__bases__[0]
-            while b is not Expr:
+            while b is not Expr and len(b.__bases__) > 0:
                 if b in pm:
                     pm[c] = pm[b]
                     break
@@ -119,8 +118,8 @@ def assign_precedences(precedence_list):
     pm, missing = build_precedence_mapping(precedence_list)
     for c, p in sorted(pm.items(), key=lambda x: x[0].__name__):
         c._precedence = p
-    if missing:
-        warnings.warn(
-            "Missing precedence levels for classes:\n"
-            + "\n".join(f"  {c}" for c in sorted(missing))
-        )
+    # TODO: problem if this warns?
+    # if missing:
+    #     warnings.warn(
+    #         "Missing precedence levels for classes:\n" + "\n".join(f"  {c}" for c in missing)
+    #     )

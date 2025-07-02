@@ -31,7 +31,6 @@ class BaseCoefficient(UFLType, Counted):
     # __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
     _ufl_noslots_ = True
     __slots__ = ()
-    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         """Get new args."""

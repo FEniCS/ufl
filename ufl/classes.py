@@ -426,16 +426,12 @@ __all__ = [
     "ZeroBaseForm",
     "ZeroBaseForm",
     "__exproperators",
-    "abstract_classes",
     "all_ufl_classes",
     "nonterminal_classes",
     "terminal_classes",
-    "ufl_classes",
 ]
 
 # Collect all classes in sets automatically classified by some properties
 all_ufl_classes = set(UFLRegistry().all_classes)
-abstract_classes = set(c for c in all_ufl_classes if c._ufl_is_abstract_)  # type: ignore
-ufl_classes = set(c for c in all_ufl_classes if not c._ufl_is_abstract_)  # type: ignore
 terminal_classes = set(c for c in all_ufl_classes if c._ufl_is_terminal_)  # type: ignore
 nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)  # type: ignore

@@ -15,6 +15,7 @@ classes (functions), including TestFunction and TrialFunction.
 # Modified by Ignacia Fierro-Piccardo 2023.
 
 import numbers
+from abc import ABC
 
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
@@ -30,11 +31,10 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 # --- Class representing an argument (basis function) in a form ---
 
 
-class BaseArgument:
+class BaseArgument(ABC):
     """UFL value: Representation of an argument to a form."""
 
     __slots__ = ()
-    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         """Get new args."""

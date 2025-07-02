@@ -36,7 +36,7 @@ def format_float(x):
 # --- Base classes for constant types ---
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class ConstantValue(Terminal):
     """Constant value."""
 
@@ -200,7 +200,7 @@ def zero(*shape):
 # --- Scalar value types ---
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type(is_scalar=True)
 class ScalarValue(ConstantValue):
     """A constant scalar value."""
 
@@ -320,7 +320,7 @@ class ComplexValue(ScalarValue):
         raise TypeError("ComplexValues cannot be cast to int")
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type(is_scalar=True)
 class RealValue(ScalarValue):
     """Abstract class used to differentiate real values from complex ones."""
 

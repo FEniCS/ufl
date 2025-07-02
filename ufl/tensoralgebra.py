@@ -42,7 +42,7 @@ from ufl.sorting import sorted_expr
 # --- Classes representing compound tensor algebra operations ---
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class CompoundTensorOperator(Operator):
     """Compount tensor operator."""
 
