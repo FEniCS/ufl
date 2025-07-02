@@ -266,7 +266,7 @@ def update_ufl_type_attributes(cls):
 
 def ufl_type(
     is_abstract=False,
-    is_terminal=None,
+    is_terminal=False,
     is_scalar=False,
     is_index_free=False,
     is_shaping=False,
@@ -313,7 +313,12 @@ def ufl_type(
         cls._ufl_class_ = cls
         set_trait(cls, "is_abstract", is_abstract, inherit=False)
 
-        set_trait(cls, "is_terminal", is_terminal, inherit=True)
+        # because we have no real inheritance yet
+        # cls._ufl_is_terminal_ =  get_base_attr(cls, "_ufl_is_terminal_")
+        cls._ufl_is_terminal_ = (
+            get_base_attr(cls, "_ufl_is_terminal_") if not is_terminal else is_terminal
+        )
+
         set_trait(cls, "is_literal", is_literal, inherit=True)
         set_trait(cls, "is_terminal_modifier", is_terminal_modifier, inherit=True)
         set_trait(cls, "is_shaping", is_shaping, inherit=True)
@@ -409,6 +414,8 @@ class UFLType(type):
     Equip UFL types with some ufl specific properties.
     """
 
+    # TODO: do not attach to every type
+    # ---- global ----
     # A global counter of the number of typecodes assigned.
     _ufl_num_typecodes_ = 0
 
@@ -429,9 +436,12 @@ class UFLType(type):
     # typecode
     _ufl_obj_del_counts_: list[int] = []
 
+    # ---- per type ----
     # Type trait: If the type is abstract.  An abstract class cannot
     # be instantiated and does not need all properties specified.
-    _ufl_is_abstract_ = True
+    _ufl_is_abstract_: bool = True
 
     # Type trait: If the type is terminal.
-    _ufl_is_terminal_: bool = None  # type: ignore
+    _ufl_is_terminal_: bool = False
+
+    # TODO: complete list of properties currently set in `ufl_type`.
