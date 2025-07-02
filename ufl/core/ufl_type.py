@@ -264,10 +264,6 @@ def ufl_type(
     is_shaping=False,
     is_literal=False,
     is_terminal_modifier=False,
-    is_in_reference_frame=False,
-    is_restriction=False,
-    is_evaluation=False,
-    is_differential=None,
     use_default_hash=True,
     num_ops=None,
     inherit_shape_from_operand=None,
@@ -313,7 +309,6 @@ def ufl_type(
 
         set_trait(cls, "is_literal", is_literal, inherit=True)
         set_trait(cls, "is_terminal_modifier", is_terminal_modifier, inherit=True)
-        set_trait(cls, "is_shaping", is_shaping, inherit=True)
 
         set_trait(cls, "is_scalar", is_scalar, inherit=True)
         set_trait(cls, "is_index_free", _is_index_free, inherit=True)
