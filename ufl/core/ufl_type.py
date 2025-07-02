@@ -455,14 +455,16 @@ class UFLType(type):
     Equip UFL types with some ufl specific properties.
     """
 
-    # ---- per type ----
-    # Set the handler name for UFLType
     _ufl_handler_name_ = "ufl_type"
-    # Type trait: If the type is abstract.  An abstract class cannot
-    # be instantiated and does not need all properties specified.
     _ufl_is_abstract_: bool = True
-
-    # Type trait: If the type is terminal.
     _ufl_is_terminal_: bool = False
-
-    # TODO: complete list of properties currently set in `ufl_type`.
+    _ufl_is_literal_: bool = False
+    _ufl_is_terminal_modifier_: bool = False
+    _ufl_is_shaping_: bool = False
+    _ufl_is_in_reference_frame_: bool = False
+    _ufl_is_restriction_: bool = False
+    _ufl_is_evaluation_: bool = False
+    _ufl_is_differential_: bool = False
+    _ufl_is_scalar_: bool = False
+    _ufl_is_index_free_: bool = False
+    _ufl_num_ops_: int = 0
