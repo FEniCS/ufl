@@ -25,7 +25,7 @@ if typing.TYPE_CHECKING:
 from ufl.core.ufl_type import UFLObject, UFLRegistry, UFLType, update_ufl_type_attributes
 
 
-class Expr(metaclass=UFLType):
+class Expr(UFLType):
     """Base class for all UFL expression types.
 
     *Instance properties*
@@ -131,39 +131,10 @@ class Expr(metaclass=UFLType):
     # implement for this type in a multifunction.
     _ufl_handler_name_ = "expr"
 
-    # Number of operands, "varying" for some types, or None if not
-    # applicable for abstract types.
-    _ufl_num_ops_ = None
-
-    # Type trait: If the type is a literal.
-    _ufl_is_literal_ = None
-
-    _ufl_is_terminal_: bool
-
-    # Type trait: If the type is classified as a 'terminal modifier',
-    # for form compiler use.
-    _ufl_is_terminal_modifier_ = None
-
     # Type trait: If the type is a shaping operator.  Shaping
     # operations include indexing, slicing, transposing, i.e. not
     # introducing computation of a new value.
     _ufl_is_shaping_ = False
-
-    # Type trait: If the type is in reference frame.
-    _ufl_is_in_reference_frame_ = None
-
-    # Type trait: If the type is a restriction to a geometric entity.
-    _ufl_is_restriction_ = None
-
-    # Type trait: If the type is evaluation in a particular way.
-    _ufl_is_evaluation_ = None
-
-    # Type trait: If the type is a differential operator.
-    _ufl_is_differential_ = None
-
-    # Type trait: If the type is purely scalar, having no shape or
-    # indices.
-    _ufl_is_scalar_ = None
 
     # Type trait: If the type never has free indices.
     _ufl_is_index_free_ = False

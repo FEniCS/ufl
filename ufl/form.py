@@ -80,16 +80,13 @@ def _sorted_integrals(integrals):
     return tuple(all_integrals)  # integrals_dict
 
 
-@ufl_type()
-class BaseForm(metaclass=UFLType):
+class BaseForm(UFLType):
     """Description of an object containing arguments."""
 
     ufl_operands: tuple[FormArgument, ...]
 
     # Slots is kept empty to enable multiple inheritance with other
     # classes
-    __slots__ = ()
-    _ufl_is_abstract_ = True
     _ufl_required_methods_: tuple[str, ...] = (
         "_analyze_form_arguments",
         "_analyze_domains",
