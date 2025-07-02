@@ -15,10 +15,11 @@ from ufl.index_combination_utils import unique_sorted_indices
 from ufl.precedence import parstr
 
 
-@ufl_type(num_ops=2, is_terminal_modifier=True)
+@ufl_type(num_ops=2)
 class Indexed(Operator):
     """Indexed expression."""
 
+    _ufl_is_terminal_modifier_ = True
     _ufl_is_shaping_ = True
     __slots__ = (
         "_initialised",

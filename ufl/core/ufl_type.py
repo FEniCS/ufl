@@ -261,9 +261,6 @@ def ufl_type(
     is_terminal=False,
     is_scalar=False,
     is_index_free=False,
-    is_shaping=False,
-    is_literal=False,
-    is_terminal_modifier=False,
     use_default_hash=True,
     num_ops=None,
     inherit_shape_from_operand=None,
@@ -306,8 +303,6 @@ def ufl_type(
         cls._ufl_is_terminal_ = (
             get_base_attr(cls, "_ufl_is_terminal_") if not is_terminal else is_terminal
         )
-
-        set_trait(cls, "is_terminal_modifier", is_terminal_modifier, inherit=True)
 
         set_trait(cls, "is_scalar", is_scalar, inherit=True)
         set_trait(cls, "is_index_free", _is_index_free, inherit=True)

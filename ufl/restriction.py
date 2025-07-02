@@ -50,17 +50,19 @@ class Restricted(Operator):
         return f"{parstr(self.ufl_operands[0], self)}({self._side})"
 
 
-@ufl_type(is_terminal_modifier=True)
+@ufl_type()
 class PositiveRestricted(Restricted):
     """Positive restriction."""
 
+    _ufl_is_terminal_modifier_ = True
     __slots__ = ()
     _side = "+"
 
 
-@ufl_type(is_terminal_modifier=True)
+@ufl_type()
 class NegativeRestricted(Restricted):
     """Negative restriction."""
 
+    _ufl_is_terminal_modifier_ = True
     __slots__ = ()
     _side = "-"
