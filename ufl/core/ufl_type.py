@@ -307,7 +307,6 @@ def ufl_type(
             get_base_attr(cls, "_ufl_is_terminal_") if not is_terminal else is_terminal
         )
 
-        set_trait(cls, "is_literal", is_literal, inherit=True)
         set_trait(cls, "is_terminal_modifier", is_terminal_modifier, inherit=True)
 
         set_trait(cls, "is_scalar", is_scalar, inherit=True)

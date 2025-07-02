@@ -56,13 +56,14 @@ class ConstantValue(Terminal):
 
 
 # TODO: Add geometric dimension/domain and Argument dependencies to Zero?
-@ufl_type(is_literal=True)
+@ufl_type()
 class Zero(ConstantValue):
     """Representation of a zero valued expression.
 
     Class for representing zero tensors of different shapes.
     """
 
+    _ufl_is_literal_ = True
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     _cache: dict[tuple[int], "Zero"] = {}
@@ -272,10 +273,11 @@ class ScalarValue(ConstantValue):
         return self._value.imag
 
 
-@ufl_type(wraps_type=complex, is_literal=True)
+@ufl_type(wraps_type=complex)
 class ComplexValue(ScalarValue):
     """Representation of a constant, complex scalar."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     def __getnewargs__(self):
@@ -325,10 +327,11 @@ class RealValue(ScalarValue):
     __slots__ = ()
 
 
-@ufl_type(wraps_type=float, is_literal=True)
+@ufl_type(wraps_type=float)
 class FloatValue(RealValue):
     """Representation of a constant scalar floating point value."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     def __getnewargs__(self):
@@ -352,10 +355,11 @@ class FloatValue(RealValue):
         return r
 
 
-@ufl_type(wraps_type=int, is_literal=True)
+@ufl_type(wraps_type=int)
 class IntValue(RealValue):
     """Representation of a constant scalar integer value."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     _cache: dict[int, "IntValue"] = {}
