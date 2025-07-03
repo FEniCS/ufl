@@ -94,7 +94,7 @@ class _MixedElement(AbstractFiniteElement):
         return self._pullback
 
     @property
-    def embedded_superdegree(self) -> typing.Union[int, None]:
+    def embedded_superdegree(self) -> typing.Optional[int]:
         """Degree of the minimum degree Lagrange space that spans this element."""
         return max(e.embedded_superdegree for e in self._sub_elements)
 
