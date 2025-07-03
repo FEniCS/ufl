@@ -21,9 +21,6 @@ from ufl.utils.formatting import camel2underscore
 class UFLObject(ABC):
     """A UFL Object."""
 
-    _ufl_is_abstract_: bool
-    _ufl_is_terminal_: bool
-
     @abstractmethod
     def _ufl_hash_data_(self) -> typing.Hashable:
         """Return hashable data that uniquely defines this object."""
@@ -419,7 +416,7 @@ class UFLType(type):
     _ufl_handler_name_ = "ufl_type"
 
     # A global array of all Expr and BaseForm subclasses, indexed by typecode
-    _ufl_all_classes_: list[UFLObject] = []
+    _ufl_all_classes_: list[UFLType] = []
 
     # A global set of all handler names added
     _ufl_all_handler_names_: set[str] = set()
