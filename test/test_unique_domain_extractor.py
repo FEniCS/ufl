@@ -8,6 +8,8 @@ from ufl import (
     MeshSequence,
     SpatialCoordinate,
     Measure,
+    Argument,
+    Interpolate,
     TrialFunction,
     split,
     triangle,
@@ -262,3 +264,33 @@ def test_extract_unique_domain_repeated_meshes():
     # Expressions combining components on different meshes should fail
     with pytest.raises(ValueError, match="Cannot extract unique domain"):
         extract_unique_domain_dag(u1 + u2)  # mesh1 + mesh2
+
+
+def test_extract_unique_domain_interpolate():
+    cell = triangle
+    mesh1 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=400)
+    mesh2 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=401)
+    mesh3 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=402)
+    domain = MeshSequence([mesh1, mesh2, mesh3])
+    scalar_elem = LagrangeElement(cell, 1)                   # 1 component
+    vector_elem = LagrangeElement(cell, 1, (2,))             # 2 components
+    tensor_elem = LagrangeElement(cell, 1, (2, 2))           # 4 components
+    mixed_elem = MixedElement([scalar_elem, vector_elem, tensor_elem])
+    V = FunctionSpace(domain, mixed_elem)
+
+    u = TrialFunction(V)
+    f = Coefficient(V)
+
+    u1, u2, u3 = split(u)
+    f1, f2, f3 = split(f)
+
+    # Interpolate a function on the mixed space
+    x1, y1 = SpatialCoordinate(mesh1)
+    x2, y2 = SpatialCoordinate(mesh2)
+    x3, y3 = SpatialCoordinate(mesh3)
+    interp_expr = x1 + cos(u1) * y1
+    coarg = Argument(V.dual(), 0)
+    vstar = split(coarg)
+    Iu1 = Interpolate(interp_expr, vstar[0])
+    expr = Iu1 + f1 * y1
+    assert extract_unique_domain_dag(expr) == mesh1
