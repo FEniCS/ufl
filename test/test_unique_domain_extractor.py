@@ -10,6 +10,7 @@ from ufl import (
     Measure,
     Argument,
     Interpolate,
+    Constant,
     TrialFunction,
     split,
     triangle,
@@ -47,6 +48,9 @@ def test_extract_unique_domain():
     x1, y1 = SpatialCoordinate(mesh1)
     expr = u1 + x1 * cos(x1)
     assert extract_unique_domain_dag(expr) == mesh1
+
+    expr2 = u1 * Constant(mesh1) + x1
+    assert extract_unique_domain_dag(expr2) == mesh1
 
     x2, y2 = SpatialCoordinate(mesh2)
     with pytest.raises(ValueError) as e_info:
