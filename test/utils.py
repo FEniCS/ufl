@@ -102,7 +102,7 @@ class FiniteElement(AbstractFiniteElement):
         return self._pullback
 
     @property
-    def embedded_superdegree(self) -> int:
+    def embedded_superdegree(self) -> typing.Optional[int]:
         """Degree of the minimum degree Lagrange space that spans this element.
 
         This returns the degree of the lowest degree Lagrange space such
@@ -189,7 +189,9 @@ class SymmetricElement(FiniteElement):
         self._sub_elements = sub_elements
         pullback = SymmetricPullback(self, symmetry)
         reference_value_shape = (sum(e.reference_value_size for e in sub_elements),)
-        degree = max(e.embedded_superdegree for e in sub_elements)
+        degree = max(
+            e.embedded_superdegree for e in sub_elements if e.embedded_superdegree is not None
+        )
         cell = sub_elements[0].cell
         for e in sub_elements:
             if e.cell != cell:
