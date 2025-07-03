@@ -11,7 +11,6 @@
 from ufl.core.expr import Expr
 from ufl.core.terminal import FormArgument
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.geometry import GeometricQuantity
 from ufl.sobolevspace import H1
 
 
@@ -40,6 +39,7 @@ def is_cellwise_constant(expr):
 
 def is_scalar_constant_expression(expr):
     """Check if an expression is a globally constant scalar expression."""
+    from ufl.geometry import GeometricQuantity
     if is_python_scalar(expr):
         return True
     if expr.ufl_shape:
