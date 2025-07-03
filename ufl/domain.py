@@ -585,7 +585,7 @@ def extract_unique_domain_dag(expr: Union[Expr, Form]) -> AbstractDomain:
         if len(domains) == 0:
             return None
         elif len(domains) == 1:
-            return domains[0]
+            return domains.pop()
         else:
             raise ValueError(f"Form has multiple domains: {domains}")
     elif isinstance(expr, Expr):
