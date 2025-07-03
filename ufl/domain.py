@@ -10,7 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
@@ -21,6 +21,7 @@ from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.sobolevspace import H1
+from ufl.corealg.dag_traverser import DAGTraverser
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
@@ -444,3 +445,21 @@ def find_geometric_dimension(expr):
         raise ValueError("Cannot determine geometric dimension from expression.")
     (gdim,) = gdims
     return gdim
+
+
+class UniqueDomainExtractor(DAGTraverser):
+    # Terminals: Arg or Coeff or constant. constant has no domain. 
+    # Operators: 1) Children match domain, return that. 2) Differing domains, raise error. 3) Different domains, return A or B
+
+    # ExternalOperator or Interpolate: Domain is where we are mapping into. These are both BaseFormOperators.
+    def __init__(
+        self,
+        compress: Union[bool, None] = True,
+        visited_cache: Union[dict[tuple, Expr], None] = None,
+        result_cache: Union[dict[Expr, Expr], None] = None,
+    ) -> None:
+        """Initialise."""
+        self._compress = compress
+        self._visited_cache = {} if visited_cache is None else visited_cache
+        self._result_cache = {} if result_cache is None else result_cache
+        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
