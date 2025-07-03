@@ -474,14 +474,6 @@ class Expr(metaclass=UFLType):
         """Divide."""
         pass
 
-    def __truediv__(self, other):
-        """Divide."""
-        pass
-
-    def __rtruediv__(self, other):
-        """Divide."""
-        pass
-
     def __pow__(self, other):
         """Raise to a power."""
         pass
