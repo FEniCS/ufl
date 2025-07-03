@@ -463,3 +463,39 @@ class UniqueDomainExtractor(DAGTraverser):
         self._visited_cache = {} if visited_cache is None else visited_cache
         self._result_cache = {} if result_cache is None else result_cache
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+
+def extract_unique_domain_dag(expr: Union[Expr, Form]) -> AbstractDomain:
+    """Extract the single unique domain from an expression.
+    
+    This works for expressions containing Indexed Arguments and Coefficients from
+    split functions on mixed function spaces.
+    
+    Args:
+        expr: Expr or Form to extract domain from
+        
+    Returns:
+        AbstractDomain: The unique domain extracted from the expression.
+    """
+    from ufl.form import Form
+    from ufl.core.expr import Expr
+    
+    if isinstance(expr, Form):
+        # For forms, we extract domains from integrals
+        domains = set()
+        for integral in expr.integrals():
+            domain = extract_unique_domain_dag(integral.integrand())
+            if domain is not None:
+                domains.add(domain)
+        
+        if len(domains) == 0:
+            return None
+        elif len(domains) == 1:
+            return domains[0]
+        else:
+            raise ValueError(f"Form has multiple domains: {domains}")
+    elif isinstance(expr, Expr):
+        # For expressions, use the DAG traverser
+        extractor = UniqueDomainExtractor()
+        return extractor(expr)
+    else:
+        raise TypeError(f"Unsupported type for domain extraction: {type(expr)}. Expected Expr or Form.")
