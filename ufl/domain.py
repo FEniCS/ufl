@@ -11,6 +11,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 import numbers
 from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Union
+from functools import singledispatchmethod
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
@@ -22,6 +23,9 @@ from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.sobolevspace import H1
 from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.core.operator import Operator
+from ufl.core.terminal import Terminal
+from ufl.indexed import Indexed
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
@@ -463,6 +467,97 @@ class UniqueDomainExtractor(DAGTraverser):
         self._visited_cache = {} if visited_cache is None else visited_cache
         self._result_cache = {} if result_cache is None else result_cache
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
+
+        Args:
+            o: `Expr` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        return super().process(o)
+    
+    @process.register(Indexed)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operand_results) -> AbstractDomain:
+        """Process Indexed object by extracting the domain corresponding to the index."""
+        from ufl.functionspace import FunctionSpace
+        # Get the indexed expression and the multiindex
+        expression, multiindex = o.ufl_operands
+        
+        # Get the domain from the first operand (the expression being indexed)
+        expression_domain = operand_results[0]
+        
+        # If the expression domain is a MeshSequence, extract the specific mesh
+        if isinstance(expression_domain, MeshSequence):
+            index = multiindex[0]._value
+            # For mixed function spaces with MeshSequence, we need to determine
+            # which component mesh this index corresponds to
+            # This requires understanding the mixed element structure
+            element = expression.ufl_element()
+            if hasattr(element, 'sub_elements'):
+                # Calculate which sub-element (and thus which mesh) this index belongs to
+                offset = 0
+                for i, sub_element in enumerate(element.sub_elements):
+                    # Get the value size for this sub-element on its corresponding mesh
+                    mesh_for_element = expression_domain.meshes[i]
+                    sub_element_fs = FunctionSpace(mesh_for_element, sub_element)
+                    sub_element_size = sub_element_fs.value_size
+                    
+                    if index < offset + sub_element_size:
+                        # This index belongs to mesh i
+                        return mesh_for_element
+                    offset += sub_element_size
+                raise ValueError(f"Index {index} out of range for mixed function space")
+            else:
+                # Simple case: direct indexing into MeshSequence
+                if 0 <= index < len(expression_domain.meshes):
+                    return expression_domain.meshes[index]
+        
+        # If it's not a MeshSequence, just return the expression domain
+        return expression_domain
+
+    @process.register(Terminal)
+    def _(self, o: Expr) -> AbstractDomain:
+        from ufl.coefficient import Coefficient
+        from ufl.argument import Argument
+        if isinstance(o, (Coefficient, Argument)):
+            fs = o.ufl_function_space()
+            return fs.ufl_domain()
+        try:
+            return o.ufl_domain()
+        except AttributeError:
+            # If the terminal does not have a domain, return None
+            return None
+    
+    @process.register(Operator)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operand_results) -> AbstractDomain:
+        """Process Operator."""
+        # Filter out None results (from operands that don't have domains)
+        domains = [d for d in operand_results if d is not None]
+        
+        if not domains:
+            # No operands have domains
+            return None
+        elif len(domains) == 1:
+            # Only one operand has a domain
+            return domains[0]
+        else:
+            # Multiple operands have domains - they should all be the same
+            first_domain = domains[0]
+            if all(d == first_domain for d in domains):
+                return first_domain
+            else:
+                # If domains are not none and differ, raise error
+                raise ValueError(
+                    f"Cannot extract unique domain from expression {o!r} with differing domains: {domains!r}"
+                )
+
 
 def extract_unique_domain_dag(expr: Union[Expr, Form]) -> AbstractDomain:
     """Extract the single unique domain from an expression.
