@@ -33,10 +33,10 @@ dS_v = Measure("interior_facet_vert")
 
 
 # TODO: Firedrake hack, remove later
-ds_tb = ds_b + ds_t  # type: ignore
+ds_tb = ds_b + ds_t
 
 # Default measure dX including both uncut and cut cells
-dX = dx + dC  # type: ignore
+dX = dx + dC
 
 # Create objects for builtin known cell types
 vertex = Cell("vertex")

@@ -24,8 +24,6 @@ if typing.TYPE_CHECKING:
 class UFLObject(ABC):
     """A UFL Object."""
 
-    _ufl_is_terminal_: bool
-
     @abstractmethod
     def _ufl_hash_data_(self) -> typing.Hashable:
         """Return hashable data that uniquely defines this object."""

@@ -11,14 +11,7 @@ from ufl.algorithms import load_ufl_file, validate_form
 demodir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "demo"))
 
 
-def get_demo_filenames():
-    filenames = sorted(
-        set(glob(os.path.join(demodir, "*.py"))) - set(glob(os.path.join(demodir, "_*.py")))
-    )
-    return filenames
-
-
-@pytest.mark.parametrize("filename", get_demo_filenames())
+@pytest.mark.parametrize("filename", sorted(glob(os.path.join(demodir, "*.py"))))
 def test_demo_files(filename):
     "Check each form in each file with validate_form."
     data = load_ufl_file(filename)
