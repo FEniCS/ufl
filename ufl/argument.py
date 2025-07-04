@@ -21,7 +21,6 @@ from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
-from ufl.split_functions import split
 
 # Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
 __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
@@ -285,6 +284,7 @@ def Arguments(function_space, number):
 
     Returns a tuple with the function components corresponding to the subelements.
     """
+    from ufl.split_functions import split
     if isinstance(function_space, MixedFunctionSpace):
         return [
             Argument(function_space.ufl_sub_space(i), number, i)

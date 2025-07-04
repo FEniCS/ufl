@@ -22,7 +22,6 @@ from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLType, ufl_type
-from ufl.domain import extract_unique_domain, sort_domains
 from ufl.equation import Equation
 from ufl.integral import Integral
 from ufl.utils.counted import Counted
@@ -40,6 +39,7 @@ def _sorted_integrals(integrals):
     Sort integrals by domain id, integral type, subdomain id for a more
     stable signature computation.
     """
+    from ufl.domain import sort_domains
     # Group integrals in multilevel dict by keys
     # [domain][integral_type][subdomain_id]
     integrals_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
@@ -594,7 +594,7 @@ class Form(BaseForm):
 
     def _analyze_domains(self):
         """Analyze domains."""
-        from ufl.domain import join_domains, sort_domains
+        from ufl.domain import join_domains, sort_domains, extract_unique_domain
 
         # Collect integration domains.
         self._integration_domains = sort_domains(
