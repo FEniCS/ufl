@@ -8,7 +8,6 @@
 
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-from ufl.domain import as_domain
 from ufl.utils.counted import Counted
 
 
@@ -20,6 +19,7 @@ class Constant(Terminal, Counted):
 
     def __init__(self, domain, shape=(), count=None):
         """Initalise."""
+        from ufl.domain import as_domain
         Terminal.__init__(self)
         Counted.__init__(self, count, Constant)
 
