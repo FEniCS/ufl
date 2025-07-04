@@ -20,6 +20,7 @@ class Constant(Terminal, Counted):
 
     def __init__(self, domain, shape=(), count=None):
         """Initalise."""
+        from ufl.domain import as_domain
         Terminal.__init__(self)
         Counted.__init__(self, count, Constant)
 
