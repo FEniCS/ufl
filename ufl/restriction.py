@@ -24,6 +24,7 @@ class Restricted(Operator):
     """Restriction."""
 
     __slots__ = ()
+    _side: str
 
     def __new__(cls, expression):
         """Create a new Restricted."""
