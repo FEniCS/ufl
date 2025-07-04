@@ -579,6 +579,9 @@ def extract_unique_domain_dag(expr: Union[Expr, Form]) -> AbstractDomain:
     Returns:
         AbstractDomain: The unique domain extracted from the expression.
     """
+    # TODO: make this work for BaseForm
+    # Action - Domain of 0th Argument in result
+    # Leave AssembledMatrix and Adjoint for now
     from ufl.form import Form
     from ufl.core.expr import Expr
     
