@@ -26,6 +26,7 @@ from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
 from ufl.indexed import Indexed
+from ufl.core.interpolate import Interpolate
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
@@ -334,8 +335,8 @@ def as_domain(domain):
         (domain,) = set(domain.meshes)
         return domain
     try:
-        return extract_unique_domain(domain)
-    except AttributeError:
+        return extract_unique_domain_dag(domain)
+    except (AttributeError, TypeError):
         domain = domain.ufl_domain()
         (domain,) = set(domain.meshes)
         return domain
@@ -557,6 +558,13 @@ class UniqueDomainExtractor(DAGTraverser):
                 raise ValueError(
                     f"Cannot extract unique domain from expression {o!r} with differing domains: {domains!r}"
                 )
+            
+    @process.register(Interpolate)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operand_results) -> AbstractDomain:
+        """Process Interpolate."""
+        fs = o.ufl_function_space()
+        return fs.ufl_domain() 
 
 
 def extract_unique_domain_dag(expr: Union[Expr, Form]) -> AbstractDomain:
