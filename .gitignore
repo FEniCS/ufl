@@ -1,7 +1,7 @@
 *.pyc
 *.py~
 build/
-doc/sphinx/source/api-doc
+doc/source/api-doc
 test/*_debug.py
 test/UFL.log
 test/.pytest_cache
