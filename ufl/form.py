@@ -17,7 +17,7 @@ from collections import defaultdict
 from itertools import chain
 
 from ufl.checks import is_scalar_constant_expression
-from ufl.constant import Constant
+
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.terminal import FormArgument
@@ -399,6 +399,7 @@ class Form(BaseForm):
 
     def constant_numbering(self):
         """Return a contiguous numbering of constants in a mapping ``{constant:number}``."""
+        from ufl.constant import Constant
         if self._constant_numbering is None:
             self._constant_numbering = {
                 expr: num
