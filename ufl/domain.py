@@ -526,13 +526,16 @@ class UniqueDomainExtractor(DAGTraverser):
     def _(self, o: Expr) -> AbstractDomain:
         from ufl.coefficient import Coefficient
         from ufl.argument import Argument
+        from ufl.geometry import GeometricQuantity
+        from ufl.constant import Constant
         if isinstance(o, (Coefficient, Argument)):
             fs = o.ufl_function_space()
             return fs.ufl_domain()
-        try:
-            return o.ufl_domain()
-        except AttributeError:
-            # If the terminal does not have a domain, return None
+        elif isinstance(o, GeometricQuantity):
+            return o._domain
+        elif isinstance(o, Constant):
+            return o._ufl_domain
+        else:
             return None
     
     @process.register(Operator)
