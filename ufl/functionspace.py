@@ -18,6 +18,7 @@ from ufl.domain import AbstractDomain, join_domains
 from ufl.duals import is_dual, is_primal
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.utils.sequences import product
+from typing import Union
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -45,7 +46,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     def __init__(
         self,
         domain: AbstractDomain,
-        element: Sequence[AbstractFiniteElement] | AbstractFiniteElement,
+        element: Union[Sequence[AbstractFiniteElement], AbstractFiniteElement],
         label: str = "",
     ):
         """Initialise."""
