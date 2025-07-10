@@ -418,10 +418,7 @@ def test_hybrid_mesh():
         ]
     )
 
-    elements = {
-        triangle: LagrangeElement(triangle, 1),
-        quadrilateral: LagrangeElement(quadrilateral, 1),
-    }
+    elements = [LagrangeElement(triangle, 1), LagrangeElement(quadrilateral, 1)]
 
     space = FunctionSpace(domain, elements)
 

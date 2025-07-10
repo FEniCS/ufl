@@ -9,23 +9,24 @@
 from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
+from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
     from ufl.form import Form
-from ufl.finiteelement import AbstractFiniteElement
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.sobolevspace import H1
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh"]
 
 
-class AbstractDomain:
+class AbstractDomain(ABC):
     """Symbolic representation of a geometric domain.
 
     Domain has only a geometric dimension.
@@ -70,13 +71,13 @@ class AbstractDomain:
         """Return iterable component meshes."""
         return iter(self.meshes)
 
+    @abstractmethod
     def iterable_like(self, element: AbstractFiniteElement) -> Iterable[Mesh] | MeshSequence:
         """Return iterable object that is iterable like ``element``."""
-        raise NotImplementedError("iterable_like() method not implemented")
 
+    @abstractmethod
     def can_make_function_space(self, element: AbstractFiniteElement) -> bool:
         """Check whether this mesh can make a function space with ``element``."""
-        raise NotImplementedError("can_make_function_space() method not implemented")
 
 
 # TODO: Would it be useful to have a domain representing R^d? E.g. for
@@ -186,9 +187,20 @@ class Mesh(AbstractDomain, UFLObject):
         """Return iterable object that is iterable like ``element``."""
         return iter(self for _ in range(element.num_sub_elements))
 
-    def can_make_function_space(self, element: AbstractFiniteElement) -> bool:
+    def can_make_function_space(
+        self,
+        element: Sequence[AbstractFiniteElement] | AbstractFiniteElement,
+    ) -> bool:
         """Check whether this mesh can make a function space with ``element``."""
-        # Can use with any element.
+        if isinstance(element, AbstractFiniteElement):
+            if len(self._ufl_coordinate_elements) != 1:
+                return False
+            if self._ufl_coordinate_elements[0].cell != element.cell:
+                return False
+        else:
+            for ce, e in zip(self._ufl_coordinate_elements, element):
+                if ce.cell != e.cell:
+                    return False
         return True
 
 

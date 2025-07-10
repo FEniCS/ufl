@@ -9,15 +9,15 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
+from collections.abc import Sequence
+
 import numpy as np
 
-from ufl.cell import AbstractCell
 from ufl.core.ufl_type import UFLObject
-from ufl.domain import join_domains, AbstractDomain
+from ufl.domain import AbstractDomain, join_domains
 from ufl.duals import is_dual, is_primal
-from ufl.utils.sequences import product
-from typing import Sequence, TYPE_CHECKING
 from ufl.finiteelement import AbstractFiniteElement
+from ufl.utils.sequences import product
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -27,13 +27,6 @@ __all_classes__ = [
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
 ]
-
-
-def first(values):
-    """Get the first item from dictionary values."""
-    for i in values:
-        return i
-    raise ValueError("Empty values")
 
 
 class AbstractFunctionSpace:
@@ -52,28 +45,18 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     def __init__(
         self,
         domain: AbstractDomain,
-        element: dict[AbstractCell, AbstractFiniteElement] | AbstractFiniteElement,
+        element: Sequence[AbstractFiniteElement] | AbstractFiniteElement,
         label: str = "",
     ):
         """Initialise."""
+        if not domain.can_make_function_space(element):
+            raise ValueError(
+                f"Mismatching cell types in domain ({domain}) and element ({element})."
+            )
         if isinstance(element, AbstractFiniteElement):
-            try:
-                domain_cell = domain.ufl_cell()
-            except AttributeError:
-                raise ValueError(
-                    "Expected non-abstract domain for initalization of function space."
-                )
-            else:
-                if element.cell != domain_cell:
-                    raise ValueError("Non-matching cell of finite element and domain.")
-            if not domain.can_make_function_space(element):
-                raise ValueError(f"Mismatching domain ({domain}) and element ({element}).")
-            self._ufl_elements = {domain_cell: element}
+            self._ufl_elements = [element]
         else:
-            if not domain.can_make_function_space(element):
-                raise ValueError(f"Mismatching domain ({domain}) and element ({element}).")
             self._ufl_elements = element
-
         AbstractFunctionSpace.__init__(self)
         self._ufl_domain = domain
         self._label = label
@@ -88,7 +71,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         """
         from ufl.pullback import SymmetricPullback
 
-        e = first(self._ufl_elements.values())
+        e = self._ufl_elements[0]
         if isinstance(e.pullback, SymmetricPullback):
             return e.pullback._symmetry
 
@@ -121,7 +104,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         """Return ufl element."""
         if len(self._ufl_elements) > 1:
             raise ValueError("Cannot get the element of a function space with multiple elements.")
-        return first(self._ufl_elements.values())
+        return self._ufl_elements[0]
 
     def ufl_elements(self):
         """Return ufl elements."""
@@ -172,8 +155,8 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     @property
     def value_shape(self) -> tuple[int, ...]:
         """Return the shape of the value space on a physical domain."""
-        return first(self._ufl_elements.values()).pullback.physical_value_shape(
-            first(self._ufl_elements.values()), self._ufl_domain
+        return self._ufl_elements[0].pullback.physical_value_shape(
+            self._ufl_elements[0], self._ufl_domain
         )
 
     @property
@@ -326,7 +309,7 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
     def ufl_element(self):
         """Return ufl element."""
         if len(self._ufl_elements) == 1:
-            return first(self._ufl_elements.values())
+            return self._ufl_elements[0]
         else:
             raise ValueError(
                 "Found multiple elements. Cannot return only one. "
