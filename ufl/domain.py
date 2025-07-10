@@ -96,7 +96,7 @@ class Mesh(AbstractDomain, UFLObject):
 
     def __init__(
         self,
-        coordinate_element: Sequence[AbstractFiniteElement | AbstractFiniteElement,
+        coordinate_element: Sequence[AbstractFiniteElement] | AbstractFiniteElement,
         ufl_id: Optional[int] = None,
         cargo: Any = None,
     ):
