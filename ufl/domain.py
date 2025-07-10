@@ -76,7 +76,9 @@ class AbstractDomain(ABC):
         """Return iterable object that is iterable like ``element``."""
 
     @abstractmethod
-    def can_make_function_space(self, element: AbstractFiniteElement) -> bool:
+    def can_make_function_space(
+        self, element: Sequence[AbstractFiniteElement] | AbstractFiniteElement
+    ) -> bool:
         """Check whether this mesh can make a function space with ``element``."""
 
 
@@ -282,8 +284,13 @@ class MeshSequence(AbstractDomain, UFLObject):
                 element.num_sub_elements ({element.num_sub_elements})""")
         return self
 
-    def can_make_function_space(self, element: AbstractFiniteElement) -> bool:
+    def can_make_function_space(
+        self, element: Sequence[AbstractFiniteElement] | AbstractFiniteElement
+    ) -> bool:
         """Check whether this mesh can make a function space with ``element``."""
+        # TODO: remove this assumption
+        assert isinstance(element, AbstractFiniteElement)
+
         if len(self) != element.num_sub_elements:
             return False
         else:

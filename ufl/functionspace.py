@@ -54,9 +54,9 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
                 f"Mismatching cell types in domain ({domain}) and element ({element})."
             )
         if isinstance(element, AbstractFiniteElement):
-            self._ufl_elements = [element]
+            self._ufl_elements: tuple[AbstractFiniteElement, ...] = (element,)
         else:
-            self._ufl_elements = element
+            self._ufl_elements = tuple(element)
         AbstractFunctionSpace.__init__(self)
         self._ufl_domain = domain
         self._label = label
