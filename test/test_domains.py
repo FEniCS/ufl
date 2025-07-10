@@ -378,7 +378,7 @@ def test_merge_sort_integral_data():
 
 
 def test_extract_domains():
-    "Test that the domains are extracted properly from a mixed-domain expression"
+    """Test that the domains are extracted properly from a mixed-domain expression."""
 
     # Create domains of different topological dimensions
     gdim = 2
@@ -407,3 +407,30 @@ def test_extract_domains():
 
     assert domains[0] == dom_0
     assert domains[1] == dom_1
+
+
+def test_hybrid_mesh():
+    """Test meshes with multiple cell types."""
+    domain = Mesh(
+        [
+            LagrangeElement(triangle, 1, (2,)),
+            LagrangeElement(quadrilateral, 1, (2,)),
+        ]
+    )
+
+    elements = {
+        triangle: LagrangeElement(triangle, 1),
+        quadrilateral: LagrangeElement(quadrilateral, 1),
+    }
+
+    space = FunctionSpace(domain, elements)
+
+    # Create test and trial functions
+    u = TrialFunction(space)
+    v = TestFunction(space)
+
+    # Create an expression
+    expr = u * v
+
+    # Create an integral
+    expr * dx

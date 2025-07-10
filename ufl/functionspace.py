@@ -11,10 +11,13 @@
 
 import numpy as np
 
+from ufl.cell import AbstractCell
 from ufl.core.ufl_type import UFLObject
-from ufl.domain import join_domains
+from ufl.domain import join_domains, AbstractDomain
 from ufl.duals import is_dual, is_primal
 from ufl.utils.sequences import product
+from typing import Sequence, TYPE_CHECKING
+from ufl.finiteelement import AbstractFiniteElement
 
 # Export list for ufl.classes
 __all_classes__ = [
@@ -24,6 +27,13 @@ __all_classes__ = [
     "MixedFunctionSpace",
     "TensorProductFunctionSpace",
 ]
+
+
+def first(values):
+    """Get the first item from dictionary values."""
+    for i in values:
+        return i
+    raise ValueError("Empty values")
 
 
 class AbstractFunctionSpace:
@@ -39,13 +49,14 @@ class AbstractFunctionSpace:
 class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     """Base function space."""
 
-    def __init__(self, domain, element, label=""):
+    def __init__(
+        self,
+        domain: AbstractDomain,
+        element: dict[AbstractCell, AbstractFiniteElement] | AbstractFiniteElement,
+        label: str = "",
+    ):
         """Initialise."""
-        if domain is None:
-            # DOLFIN hack
-            # TODO: Is anything expected from element.cell in this case?
-            pass
-        else:
+        if isinstance(element, AbstractFiniteElement):
             try:
                 domain_cell = domain.ufl_cell()
             except AttributeError:
@@ -57,10 +68,15 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
                     raise ValueError("Non-matching cell of finite element and domain.")
             if not domain.can_make_function_space(element):
                 raise ValueError(f"Mismatching domain ({domain}) and element ({element}).")
+            self._ufl_elements = {domain_cell: element}
+        else:
+            if not domain.can_make_function_space(element):
+                raise ValueError(f"Mismatching domain ({domain}) and element ({element}).")
+            self._ufl_elements = element
+
         AbstractFunctionSpace.__init__(self)
-        self._label = label
         self._ufl_domain = domain
-        self._ufl_element = element
+        self._label = label
 
     @property
     def components(self) -> dict[tuple[int, ...], int]:
@@ -72,10 +88,11 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         """
         from ufl.pullback import SymmetricPullback
 
-        if isinstance(self._ufl_element.pullback, SymmetricPullback):
-            return self._ufl_element.pullback._symmetry
+        e = first(self._ufl_elements.values())
+        if isinstance(e.pullback, SymmetricPullback):
+            return e.pullback._symmetry
 
-        if len(self._ufl_element.sub_elements) == 0:
+        if len(e.sub_elements) == 0:
             return {(): 0}
 
         components: dict[tuple[int, ...], int] = {}
@@ -102,7 +119,13 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def ufl_element(self):
         """Return ufl element."""
-        return self._ufl_element
+        if len(self._ufl_elements) > 1:
+            raise ValueError("Cannot get the element of a function space with multiple elements.")
+        return first(self._ufl_elements.values())
+
+    def ufl_elements(self):
+        """Return ufl elements."""
+        return self._ufl_elements
 
     def ufl_domains(self):
         """Return ufl domains."""
@@ -144,12 +167,14 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return f"BaseFunctionSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+        return f"BaseFunctionSpace({self._ufl_domain!r}, {self._ufl_elements!r})"
 
     @property
     def value_shape(self) -> tuple[int, ...]:
         """Return the shape of the value space on a physical domain."""
-        return self._ufl_element.pullback.physical_value_shape(self._ufl_element, self._ufl_domain)
+        return first(self._ufl_elements.values()).pullback.physical_value_shape(
+            first(self._ufl_elements.values()), self._ufl_domain
+        )
 
     @property
     def value_size(self) -> int:
@@ -165,7 +190,7 @@ class FunctionSpace(BaseFunctionSpace, UFLObject):
 
     def dual(self):
         """Get the dual of the space."""
-        return DualSpace(self._ufl_domain, self._ufl_element, label=self.label())
+        return DualSpace(self._ufl_domain, self._ufl_elements, label=self.label())
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -177,11 +202,11 @@ class FunctionSpace(BaseFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return f"FunctionSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+        return f"FunctionSpace({self._ufl_domain!r}, {self._ufl_elements!r})"
 
     def __str__(self):
         """String."""
-        return f"FunctionSpace({self._ufl_domain}, {self._ufl_element})"
+        return f"FunctionSpace({self._ufl_domain}, {self._ufl_elements})"
 
 
 class DualSpace(BaseFunctionSpace, UFLObject):
@@ -196,7 +221,7 @@ class DualSpace(BaseFunctionSpace, UFLObject):
 
     def dual(self):
         """Get the dual of the space."""
-        return FunctionSpace(self._ufl_domain, self._ufl_element, label=self.label())
+        return FunctionSpace(self._ufl_domain, self._ufl_elements, label=self.label())
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -208,11 +233,11 @@ class DualSpace(BaseFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return f"DualSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+        return f"DualSpace({self._ufl_domain!r}, {self._ufl_elements!r})"
 
     def __str__(self):
         """String."""
-        return f"DualSpace({self._ufl_domain}, {self._ufl_element})"
+        return f"DualSpace({self._ufl_domain}, {self._ufl_elements})"
 
 
 class TensorProductFunctionSpace(AbstractFunctionSpace, UFLObject):
@@ -301,7 +326,7 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
     def ufl_element(self):
         """Return ufl element."""
         if len(self._ufl_elements) == 1:
-            return self._ufl_elements[0]
+            return first(self._ufl_elements.values())
         else:
             raise ValueError(
                 "Found multiple elements. Cannot return only one. "

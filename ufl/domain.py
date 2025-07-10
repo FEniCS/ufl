@@ -14,8 +14,8 @@ from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
-    from ufl.finiteelement import AbstractFiniteElement  # To avoid cyclic import when type-hinting.
     from ufl.form import Form
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals
@@ -106,8 +106,6 @@ class Mesh(AbstractDomain, UFLObject):
         self._ufl_cargo = cargo
         if cargo is not None and cargo.ufl_id() != self._ufl_id:
             raise ValueError("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
-
-        from ufl.finiteelement import AbstractFiniteElement
 
         if isinstance(coordinate_element, AbstractFiniteElement):
             self._ufl_coordinate_elements = (coordinate_element,)
