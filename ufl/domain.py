@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from ufl.core.expr import Expr
     from ufl.finiteelement import AbstractFiniteElement  # To avoid cyclic import when type-hinting.
     from ufl.form import Form
-from ufl.cell import AbstractCell
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals
