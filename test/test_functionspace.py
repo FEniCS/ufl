@@ -1,35 +1,9 @@
 """Tests of function spaces."""
 
 import pytest
-import utils  # noqa: F401
-from mockobjects import MockMesh
 from utils import FiniteElement, LagrangeElement
 
-import ufl  # noqa: F401
-from ufl import (
-    Cell,
-    Coefficient,
-    Constant,
-    FunctionSpace,
-    Mesh,
-    TestFunction,
-    TrialFunction,
-    dS,
-    ds,
-    dx,
-    hexahedron,
-    interval,
-    quadrilateral,
-    tetrahedron,
-    triangle,
-)
-from ufl.algorithms import compute_form_data
-from ufl.domain import extract_domains
-from ufl.pullback import (
-    IdentityPullback,  # noqa: F401
-    identity_pullback,
-)
-from ufl.sobolevspace import H1
+from ufl import Mesh, FunctionSpace, quadrilateral, triangle
 
 
 def test_cell_mismatch():
@@ -37,7 +11,7 @@ def test_cell_mismatch():
     elements = LagrangeElement(quadrilateral, 1)
 
     with pytest.raises(ValueError):
-        space = FunctionSpace(domain, elements)
+        FunctionSpace(domain, elements)
 
 
 def test_wrong_order():
@@ -50,4 +24,4 @@ def test_wrong_order():
     elements = [LagrangeElement(triangle, 1), LagrangeElement(quadrilateral, 1)]
 
     with pytest.raises(ValueError):
-        space = FunctionSpace(domain, elements)
+        FunctionSpace(domain, elements)
