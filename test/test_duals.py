@@ -67,6 +67,18 @@ def test_mixed_functionspace(self):
     assert is_dual(V_mixed_dual)
 
 
+def test_empty_adjoint():
+    domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
+    f_2d = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+    u = Coefficient(V)
+    f = Coefficient(V)
+    J = inner(u, f) * dx
+    d2Jdu2 = derivative(derivative(J, u), u)
+    d2Jdu2_adj = adjoint(d2Jdu2)
+    assert d2Jdu2_adj.empty()
+
+
 def test_dual_coefficients():
     domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
     f_2d = LagrangeElement(triangle, 1)
