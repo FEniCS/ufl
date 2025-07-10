@@ -10,7 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
@@ -96,7 +96,7 @@ class Mesh(AbstractDomain, UFLObject):
 
     def __init__(
         self,
-        coordinate_element: Union[Sequence[AbstractFiniteElement], AbstractFiniteElement],
+        coordinate_element: Sequence[AbstractFiniteElement | AbstractFiniteElement,
         ufl_id: Optional[int] = None,
         cargo: Any = None,
     ):
