@@ -108,9 +108,6 @@ class Mesh(AbstractDomain, UFLObject):
         if cargo is not None and cargo.ufl_id() != self._ufl_id:
             raise ValueError("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
 
-        # No longer accepting coordinates provided as a Coefficient
-        from ufl.coefficient import Coefficient
-
         if isinstance(coordinate_element, AbstractFiniteElement):
             self._ufl_coordinate_elements = (coordinate_element,)
         else:
