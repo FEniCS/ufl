@@ -111,12 +111,10 @@ class Mesh(AbstractDomain, UFLObject):
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
 
-        try:
+        if isinstance(coordinate_element, AbstractFiniteElement):
             self._ufl_coordinate_elements = (coordinate_element,)
-        except TypeError:
-            if isinstance(coordinate_element, (Coefficient, AbstractCell)):
-                raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
-            self._ufl_coordinate_elements = (coordinate_element,)
+        else:
+            self._ufl_coordinate_elements = tuple(coordinate_element)
 
         # Derive dimensions from element
         (gdim,) = self._ufl_coordinate_elements[0].reference_value_shape
