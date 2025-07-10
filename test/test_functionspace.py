@@ -3,7 +3,7 @@
 import pytest
 from utils import LagrangeElement
 
-from ufl import Mesh, FunctionSpace, quadrilateral, triangle
+from ufl import FunctionSpace, Mesh, quadrilateral, triangle
 
 
 def test_cell_mismatch():
