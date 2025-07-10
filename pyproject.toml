@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fenics-ufl"
-version = "2024.3.0.dev0"
+version = "2025.2.0.dev0"
 authors = [{ name = "UFL contributors" }]
 maintainers = [
     { email = "fenics-steering-council@googlegroups.com" },
@@ -13,7 +13,7 @@ maintainers = [
 description = "Unified Form Language"
 readme = "README.md"
 license = { file = "COPYING.lesser" }
-requires-python = ">=3.8.0"
+requires-python = ">=3.9.0"
 dependencies = ["numpy"]
 
 [project.urls]
@@ -24,7 +24,8 @@ issues = "https://github.com/FEniCS/ufl/issues"
 funding = "https://numfocus.org/donate"
 
 [project.optional-dependencies]
-lint = ["ruff"]
+lint = ["mypy", "ruff"]
+typing = ["types-colorama"]
 docs = ["sphinx", "sphinx_rtd_theme"]
 test = ["pytest"]
 ci = [
@@ -35,6 +36,7 @@ ci = [
     "fenics-ufl[docs]",
     "fenics-ufl[lint]",
     "fenics-ufl[test]",
+    "fenics-ufl[typing]",
 ]
 
 [tool.setuptools]
@@ -63,16 +65,20 @@ select = [
     "F",   # pyflakes
     "I",   # isort
     "RUF", # Ruff-specific rules
-    # "UP",  # pyupgrade
+    "UP",  # pyupgrade
     "ICN", # flake8-import-conventions
     "NPY", # numpy-specific rules
     "FLY", # use f-string not static joins
     "LOG", # https://docs.astral.sh/ruff/rules/#flake8-logging-log
-    # "ISC", # https://docs.astral.sh/ruff/rules/#flake8-implicit-str-concat-isc
+    "ISC", # https://docs.astral.sh/ruff/rules/#flake8-implicit-str-concat-isc
     # "B", # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
     # "A", # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
 ]
-ignore = ["RUF005", "RUF012"]
+ignore = [
+    "RUF005",
+    "RUF012",
+    "UP045", # Ractivate once Python 3.9 EoL
+]
 allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
 [tool.ruff.lint.per-file-ignores]
@@ -82,3 +88,8 @@ allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.mypy]
+disable_error_code = [
+    "attr-defined",
+]

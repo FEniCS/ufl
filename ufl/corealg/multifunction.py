@@ -33,7 +33,7 @@ def memoized_handler(handler):
     return _memoized_handler
 
 
-class MultiFunction(object):
+class MultiFunction:
     """Base class for collections of non-recursive expression node handlers.
 
     Subclass this (remember to call the ``__init__`` method of this class),
@@ -46,7 +46,7 @@ class MultiFunction(object):
     algorithm object. Of course Python's function call overhead still applies.
     """
 
-    _handlers_cache = {}
+    _handlers_cache: dict[type, tuple[list[str], bool]] = {}
 
     def __init__(self):
         """Initialise."""

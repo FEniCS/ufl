@@ -6,6 +6,7 @@ Other tests check for mathematical correctness of diff and derivative.
 """
 
 import pytest
+from utils import FiniteElement, LagrangeElement
 
 from ufl import (
     And,
@@ -80,16 +81,15 @@ from ufl import (
 from ufl.algorithms import expand_derivatives
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal
-from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1, L2
+from ufl.sobolevspace import L2
 
 
-class ExpressionCollection(object):
+class ExpressionCollection:
     def __init__(self, cell):
         self.cell = cell
         d = cell.topological_dimension()
-        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+        domain = Mesh(LagrangeElement(cell, 1, (d,)))
 
         x = SpatialCoordinate(domain)
         n = FacetNormal(domain)
@@ -125,7 +125,7 @@ class ExpressionCollection(object):
         dv = Argument(v_space, 1)
         dw = Argument(w_space, 2)
 
-        class ObjectCollection(object):
+        class ObjectCollection:
             pass
 
         self.shared_objects = ObjectCollection()
@@ -534,7 +534,7 @@ def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes
             # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
             if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
                 if debug:
-                    print(("Depends on %s :: %s" % (str(var), str(t))))
+                    print(f"Depends on {var!s} :: {t!s}")
                 continue
 
             if debug:
@@ -579,7 +579,7 @@ def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self,
             # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
             if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
                 if debug:
-                    print(("Depends on %s :: %s" % (str(var), str(t))))
+                    print(f"Depends on {var!s} :: {t!s}")
                 continue
 
             before = diff(t, var)

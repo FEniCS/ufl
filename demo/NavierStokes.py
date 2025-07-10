@@ -21,6 +21,8 @@
 #
 # The bilinear form for the nonlinear term in the
 # Navier-Stokes equations with fixed convective velocity.
+from utils import LagrangeElement
+
 from ufl import (
     Coefficient,
     FunctionSpace,
@@ -32,13 +34,10 @@ from ufl import (
     grad,
     tetrahedron,
 )
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 cell = tetrahedron
-element = FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1))
+element = LagrangeElement(cell, 1, (3,))
+domain = Mesh(LagrangeElement(cell, 1, (3,)))
 space = FunctionSpace(domain, element)
 
 v = TestFunction(space)

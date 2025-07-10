@@ -1,8 +1,8 @@
 import pytest
+from utils import LagrangeElement, MixedElement
 
 import ufl
 import ufl.algorithms
-from ufl.finiteelement import FiniteElement, MixedElement
 
 
 def epsilon(u):
@@ -17,9 +17,9 @@ def sigma(u, p):
 def test_extract_blocks(rank):
     """Test extractions of blocks from mixed function space."""
     cell = ufl.triangle
-    domain = ufl.Mesh(FiniteElement("Lagrange", cell, 1, (2,), ufl.identity_pullback, ufl.H1))
-    fe_scalar = FiniteElement("Lagrange", cell, 1, (), ufl.identity_pullback, ufl.H1)
-    fe_vector = FiniteElement("Lagrange", cell, 1, (2,), ufl.identity_pullback, ufl.H1)
+    domain = ufl.Mesh(LagrangeElement(cell, 1, (2,)))
+    fe_scalar = LagrangeElement(cell, 1)
+    fe_vector = LagrangeElement(cell, 1, (2,))
 
     me = MixedElement([fe_vector, fe_scalar])
 
@@ -85,9 +85,9 @@ def test_extract_blocks(rank):
 def test_postive_restricted_extract_none():
     cell = ufl.triangle
     d = cell.topological_dimension()
-    domain = ufl.Mesh(FiniteElement("Lagrange", cell, 1, (d,), ufl.identity_pullback, ufl.H1))
-    el_u = FiniteElement("Lagrange", cell, 2, (d,), ufl.identity_pullback, ufl.H1)
-    el_p = FiniteElement("Lagrange", cell, 1, (), ufl.identity_pullback, ufl.H1)
+    domain = ufl.Mesh(LagrangeElement(cell, 1, (d,)))
+    el_u = LagrangeElement(cell, 2, (d,))
+    el_p = LagrangeElement(cell, 1)
     V = ufl.FunctionSpace(domain, el_u)
     Q = ufl.FunctionSpace(domain, el_p)
     W = ufl.MixedFunctionSpace(V, Q)

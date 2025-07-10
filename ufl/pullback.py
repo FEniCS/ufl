@@ -7,9 +7,8 @@
 
 from __future__ import annotations
 
-import typing
 from abc import ABC, abstractmethod, abstractproperty
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 
@@ -54,7 +53,7 @@ class AbstractPullback(ABC):
         """Return a representation of the object."""
 
     @abstractmethod
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -69,7 +68,7 @@ class AbstractPullback(ABC):
     def is_identity(self) -> bool:
         """Is this pull back the identity (or the identity applied to mutliple components)."""
 
-    def apply(self, expr: Expr, domain: AbstractDomain = None) -> Expr:
+    def apply(self, expr: Expr, domain: Optional[AbstractDomain] = None) -> Expr:
         """Apply the pull back.
 
         Args:
@@ -104,7 +103,7 @@ class IdentityPullback(AbstractPullback):
         """
         return expr
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -149,7 +148,7 @@ class ContravariantPiola(AbstractPullback):
         kj = (*k, j)
         return as_tensor(transform[i, j] * expr[kj], (*k, i))
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -193,7 +192,7 @@ class CovariantPiola(AbstractPullback):
         kj = (*k, j)
         return as_tensor(K[j, i] * expr[kj], (*k, i))
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -234,7 +233,7 @@ class L2Piola(AbstractPullback):
         detJ = JacobianDeterminant(domain)
         return expr / detJ
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -278,7 +277,7 @@ class DoubleContravariantPiola(AbstractPullback):
         kmn = (*k, m, n)
         return as_tensor((1.0 / detJ) ** 2 * J[i, m] * expr[kmn] * J[j, n], (*k, i, j))
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -322,7 +321,7 @@ class DoubleCovariantPiola(AbstractPullback):
         kmn = (*k, m, n)
         return as_tensor(K[m, i] * expr[kmn] * K[n, j], (*k, i, j))
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -368,7 +367,7 @@ class CovariantContravariantPiola(AbstractPullback):
         kmn = (*k, m, n)
         return as_tensor((1.0 / detJ) * K[m, i] * expr[kmn] * J[j, n], (*k, i, j))
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element.
 
         Args:
@@ -415,7 +414,7 @@ class MixedPullback(AbstractPullback):
         g_components = []
         offset = 0
         # For each unique piece in reference space, apply the appropriate pullback
-        domain = domain or extract_unique_domain(expr, expand_mixed_mesh=False)
+        domain = domain or extract_unique_domain(expr, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
             if len(domain) != self._element.num_sub_elements:
                 raise ValueError(f"""num. component meshes ({len(domain)}) !=
@@ -441,7 +440,7 @@ class MixedPullback(AbstractPullback):
             )
         return f
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -462,9 +461,7 @@ class MixedPullback(AbstractPullback):
 class SymmetricPullback(AbstractPullback):
     """Pull back for an element with symmetry."""
 
-    def __init__(
-        self, element: _AbstractFiniteElement, symmetry: typing.Dict[typing.tuple[int, ...], int]
-    ):
+    def __init__(self, element: _AbstractFiniteElement, symmetry: dict[tuple[int, ...], int]):
         """Initalise.
 
         Args:
@@ -507,7 +504,7 @@ class SymmetricPullback(AbstractPullback):
         for subelem in self._element.sub_elements:
             offsets.append(offsets[-1] + subelem.reference_value_size)
         # For each unique piece in reference space, apply the appropriate pullback
-        domain = domain or extract_unique_domain(expr, expand_mixed_mesh=False)
+        domain = domain or extract_unique_domain(expr, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
             if len(domain) != self._element.num_sub_elements:
                 raise ValueError(f"""num. component meshes ({len(domain)}) !=
@@ -533,7 +530,7 @@ class SymmetricPullback(AbstractPullback):
             )
         return f
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -575,7 +572,7 @@ class PhysicalPullback(AbstractPullback):
         """
         return expr
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -614,7 +611,7 @@ class CustomPullback(AbstractPullback):
         """
         return expr
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:
@@ -642,7 +639,7 @@ class UndefinedPullback(AbstractPullback):
         """Is this pull back the identity (or the identity applied to mutliple components)."""
         return True
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
         Args:

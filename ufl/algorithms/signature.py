@@ -20,6 +20,7 @@ from ufl.classes import (
     Label,
     MultiIndex,
 )
+from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
 
 
@@ -94,7 +95,7 @@ def compute_terminal_hashdata(expressions, renumbering):
 
 def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
     """Compute expression hashdata."""
-    cache = {}
+    cache: dict[UFLObject, bytes] = {}
 
     for expr in unique_post_traversal(expression):
         # Uniquely traverse tree and hash each node

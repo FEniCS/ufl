@@ -23,7 +23,7 @@ class CellAvg(Operator):
         """Create a new CellAvg."""
         if isinstance(f, ConstantValue):
             return f
-        return super(CellAvg, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, f):
         """Initialise."""
@@ -55,7 +55,7 @@ class FacetAvg(Operator):
         """Create a new FacetAvg."""
         if isinstance(f, ConstantValue):
             return f
-        return super(FacetAvg, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, f):
         """Initialise."""

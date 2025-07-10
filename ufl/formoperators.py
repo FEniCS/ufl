@@ -9,6 +9,8 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
+import typing
+
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algorithms import (
@@ -24,6 +26,7 @@ from ufl.algorithms import (
     replace,  # noqa: F401
 )
 from ufl.argument import Argument
+from ufl.cell import Cell
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.constantvalue import as_ufl, is_true_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
@@ -38,15 +41,82 @@ from ufl.differentiation import (
     CoordinateDerivative,
 )
 from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.finiteelement import MixedElement
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm, as_form
 from ufl.functionspace import FunctionSpace
 from ufl.geometry import SpatialCoordinate
 from ufl.indexed import Indexed
+from ufl.pullback import AbstractPullback, IdentityPullback, MixedPullback
+from ufl.sobolevspace import SobolevSpace
 from ufl.sorting import sorted_expr
 from ufl.split_functions import split
 from ufl.tensors import ListTensor, as_tensor
 from ufl.variable import Variable
+
+
+class _MixedElement(AbstractFiniteElement):
+    """A mixed element."""
+
+    def __init__(self, sub_elements):
+        """Initialise a mixed element."""
+        for e in sub_elements:
+            assert e.cell == sub_elements[0].cell
+        if all(isinstance(e.pullback, IdentityPullback) for e in sub_elements):
+            self._pullback = IdentityPullback()
+        else:
+            self._pullback = MixedPullback(self)
+        self._sub_elements = sub_elements
+
+    def __repr__(self) -> str:
+        """Format as string for evaluation as Python object."""
+        return f"ufl.formoperators._MixedElement({self._sub_elements!r})"
+
+    def __str__(self) -> str:
+        """Format as string for nice printing."""
+        return f"<MixedElement with {len(self._sub_elements)} sub-element(s)>"
+
+    def __hash__(self) -> int:
+        """Return a hash."""
+        return hash(f"{self!r}")
+
+    def __eq__(self, other) -> bool:
+        """Check if this element is equal to another element."""
+        return type(self) is type(other) and repr(self) == repr(other)
+
+    @property
+    def sobolev_space(self) -> SobolevSpace:
+        """Return the underlying Sobolev space."""
+        return max(e.sobolev_space for e in self._sub_elements)
+
+    @property
+    def pullback(self) -> AbstractPullback:
+        """Return the pullback for this element."""
+        return self._pullback
+
+    @property
+    def embedded_superdegree(self) -> typing.Optional[int]:
+        """Degree of the minimum degree Lagrange space that spans this element."""
+        return max(e.embedded_superdegree for e in self._sub_elements)
+
+    @property
+    def embedded_subdegree(self) -> int:
+        """Degree of the maximum degree Lagrange space that is spanned by this element."""
+        return min(e.embedded_subdegree for e in self._sub_elements)
+
+    @property
+    def cell(self) -> Cell:
+        """Return the cell of the finite element."""
+        return self._sub_elements[0].cell
+
+    @property
+    def reference_value_shape(self) -> tuple[int, ...]:
+        """Return the shape of the value space on the reference cell."""
+        return (sum(e.reference_value_size for e in self._sub_elements),)
+
+    @property
+    def sub_elements(self) -> list:
+        """Return list of sub-elements."""
+        return self._sub_elements
 
 
 def extract_blocks(form, i=None, j=None):
@@ -242,7 +312,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
             domains = [fs.ufl_domain() for fs in function_spaces]
             elements = [fs.ufl_element() for fs in function_spaces]
             assert all(fs.ufl_domain() == domains[0] for fs in function_spaces)
-            elm = MixedElement(elements)
+            elm = _MixedElement(elements)
             fs = FunctionSpace(domains[0], elm)
             arguments = split(Argument(fs, number, part))
     else:

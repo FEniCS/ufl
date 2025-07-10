@@ -1,6 +1,7 @@
 """Test tensor algebra operators."""
 
 import pytest
+from utils import LagrangeElement
 
 from ufl import (
     FacetNormal,
@@ -27,9 +28,6 @@ from ufl import (
     zero,
 )
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 @pytest.fixture(scope="module")
@@ -88,7 +86,7 @@ def test_inner(self, A, B, u, v):
 
 
 def test_pow2_inner(self, A, u):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     f = FacetNormal(domain)[0]
     f2 = f * f
     assert f2 == remove_complex_nodes(inner(f, f))

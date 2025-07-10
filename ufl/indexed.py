@@ -113,7 +113,7 @@ class Indexed(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "%s[%s]" % (parstr(self.ufl_operands[0], self), self.ufl_operands[1])
+        return f"{parstr(self.ufl_operands[0], self)}[{self.ufl_operands[1]}]"
 
     def __getitem__(self, key):
         """Get an item."""

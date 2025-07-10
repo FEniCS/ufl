@@ -1,6 +1,7 @@
 """Test the is_cellwise_constant function on all relevant terminal types."""
 
 import pytest
+from utils import FiniteElement, LagrangeElement
 
 from ufl import (
     Cell,
@@ -36,7 +37,6 @@ from ufl.classes import (
     RidgeJacobianDeterminant,
     RidgeJacobianInverse,
 )
-from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2, HInf
 
@@ -265,7 +265,7 @@ def test_coordinates_never_cellwise_constant(domains):
 
 def test_coordinates_never_cellwise_constant_vertex():
     # The only exception here:
-    domains = Mesh(FiniteElement("Lagrange", Cell("vertex"), 1, (3,), identity_pullback, H1))
+    domains = Mesh(LagrangeElement(Cell("vertex"), 1, (3,)))
     assert domains.ufl_cell().cellname() == "vertex"
     e = SpatialCoordinate(domains)
     assert is_cellwise_constant(e)
@@ -333,9 +333,7 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
         "Discontinuous Lagrange", domains_not_linear.ufl_cell(), 0, (), identity_pullback, L2
     )
     d = domains_not_linear.ufl_cell().topological_dimension()
-    domain = Mesh(
-        FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d,), identity_pullback, H1)
-    )
+    domain = Mesh(LagrangeElement(domains_not_linear.ufl_cell(), 1, (d,)))
     space = FunctionSpace(domain, V)
     e = Coefficient(space)
     assert is_cellwise_constant(e)
@@ -358,9 +356,7 @@ def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
         "Discontinuous Lagrange", domains_not_linear.ufl_cell(), 1, (), identity_pullback, L2
     )
     d = domains_not_linear.ufl_cell().topological_dimension()
-    domain = Mesh(
-        FiniteElement("Lagrange", domains_not_linear.ufl_cell(), 1, (d,), identity_pullback, H1)
-    )
+    domain = Mesh(LagrangeElement(domains_not_linear.ufl_cell(), 1, (d,)))
     space = FunctionSpace(domain, V)
     e = Coefficient(space)
     assert not is_cellwise_constant(e)
