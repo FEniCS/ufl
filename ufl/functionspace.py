@@ -10,6 +10,7 @@
 # Modified by Cecile Daversin-Catty, 2018
 
 from collections.abc import Sequence
+from typing import Union
 
 import numpy as np
 
@@ -18,7 +19,6 @@ from ufl.domain import AbstractDomain, join_domains
 from ufl.duals import is_dual, is_primal
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.utils.sequences import product
-from typing import Union
 
 # Export list for ufl.classes
 __all_classes__ = [
