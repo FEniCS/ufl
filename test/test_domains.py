@@ -403,5 +403,5 @@ def test_extract_domains():
 
     domains = extract_domains(expr)
 
-    assert domains[0] == dom_1
-    assert domains[1] == dom_0
+    assert domains[0] == dom_0
+    assert domains[1] == dom_1

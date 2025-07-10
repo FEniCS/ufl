@@ -138,7 +138,7 @@ class Mesh(AbstractDomain, UFLObject):
         return self._ufl_coordinate_elements[0]
 
     def ufl_coordinate_elements(self):
-        """Get the coordinate element."""
+        """Get the coordinate elements."""
         return self._ufl_coordinate_elements
 
     def ufl_cell(self):
@@ -282,6 +282,10 @@ class MeshSequence(AbstractDomain, UFLObject):
             return False
         else:
             return all(d.can_make_function_space(e) for d, e in zip(self, element.sub_elements))
+
+    def ufl_coordinate_elements(self):
+        """Get the coordinate elements."""
+        return [e for m in self.meshes for e in m.ufl_coordinate_elements()]
 
 
 def as_domain(domain):

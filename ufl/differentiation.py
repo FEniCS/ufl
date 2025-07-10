@@ -318,7 +318,9 @@ class ReferenceGrad(CompoundDerivative):
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
             # TODO: Use max topological dimension if there are multiple topological dimensions.
-            domain_elements = extract_unique_domain(f, expand_mesh_sequence=False).ufl_coordinate_elements()
+            domain_elements = extract_unique_domain(
+                f, expand_mesh_sequence=False
+            ).ufl_coordinate_elements()
             dim = domain_elements[0].cell.topological_dimension()
             for e in domain_elements:
                 # TODO: remove this assumption
@@ -331,7 +333,8 @@ class ReferenceGrad(CompoundDerivative):
         CompoundDerivative.__init__(self, (f,))
         self._dim = max(
             e.cell.topological_dimension()
-            for e in extract_unique_domain(f, expand_mesh_sequence=False).ufl_coordinate_elements())
+            for e in extract_unique_domain(f, expand_mesh_sequence=False).ufl_coordinate_elements()
+        )
 
     def _ufl_expr_reconstruct_(self, op):
         """Return a new object of the same type with new operands."""
