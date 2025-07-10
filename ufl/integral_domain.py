@@ -59,7 +59,7 @@ class DsIntegralDomain(AbstractIntegralDomain):
 
 
 class DSIntegralDomain(AbstractIntegralDomain):
-    """Integral domain for ds."""
+    """Integral domain for dS."""
 
     def __init__(
         self,
