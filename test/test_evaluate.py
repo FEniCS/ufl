@@ -14,6 +14,7 @@ from ufl import (
     Mesh,
     SpatialCoordinate,
     as_matrix,
+    as_ufl,
     as_vector,
     cos,
     cross,
@@ -36,7 +37,7 @@ from ufl import (
     tr,
     triangle,
 )
-from ufl.constantvalue import ConstantValue, as_ufl
+from ufl.constantvalue import ConstantValue
 
 
 class CustomConstant(ConstantValue):
