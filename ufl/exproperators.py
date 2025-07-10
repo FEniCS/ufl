@@ -60,7 +60,7 @@ def _gt(left, right):
 # forms. Replacing a==b with equiv(a,b) all over the code could be one
 # way to reduce such a performance hit, but we cannot do anything
 # about dict and set calling __eq__...
-Expr.__eq__ = expr_equals
+Expr.__eq__ = expr_equals  # type: ignore
 
 
 # != is used at least by tests, possibly in code as well, and must
@@ -70,11 +70,11 @@ def _ne(self, other):
     return not self.__eq__(other)
 
 
-Expr.__ne__ = _ne
-Expr.__lt__ = _lt
-Expr.__gt__ = _gt
-Expr.__le__ = _le
-Expr.__ge__ = _ge
+Expr.__ne__ = _ne  # type: ignore
+Expr.__lt__ = _lt  # type: ignore
+Expr.__gt__ = _gt  # type: ignore
+Expr.__le__ = _le  # type: ignore
+Expr.__ge__ = _ge  # type: ignore
 
 # Python operators 'and'/'or' cannot be overloaded, and bitwise
 # operators &/| don't have the right precedence levels
@@ -95,7 +95,7 @@ def _as_tensor(self, indices):
     return as_tensor(self, indices)
 
 
-Expr.__xor__ = _as_tensor
+Expr.__xor__ = _as_tensor  # type: ignore
 
 
 # --- Helper functions for product handling ---
@@ -186,7 +186,7 @@ def _mul(self, o):
     return _mult(self, o)
 
 
-Expr.__mul__ = _mul
+Expr.__mul__ = _mul  # type: ignore
 
 
 def _rmul(self, o):
@@ -197,7 +197,7 @@ def _rmul(self, o):
     return _mult(o, self)
 
 
-Expr.__rmul__ = _rmul
+Expr.__rmul__ = _rmul  # type: ignore
 
 
 def _add(self, o):
@@ -207,7 +207,7 @@ def _add(self, o):
     return Sum(self, o)
 
 
-Expr.__add__ = _add
+Expr.__add__ = _add  # type: ignore
 
 
 def _radd(self, o):
@@ -231,7 +231,7 @@ def _sub(self, o):
     return Sum(self, -o)
 
 
-Expr.__sub__ = _sub
+Expr.__sub__ = _sub  # type: ignore
 
 
 def _rsub(self, o):
@@ -241,7 +241,7 @@ def _rsub(self, o):
     return Sum(o, -self)
 
 
-Expr.__rsub__ = _rsub
+Expr.__rsub__ = _rsub  # type: ignore
 
 
 def _div(self, o):
@@ -256,8 +256,8 @@ def _div(self, o):
     return Division(self, o)
 
 
-Expr.__div__ = _div
-Expr.__truediv__ = _div
+Expr.__div__ = _div  # type: ignore
+Expr.__truediv__ = _div  # type: ignore
 
 
 def _rdiv(self, o):
@@ -267,8 +267,8 @@ def _rdiv(self, o):
     return Division(o, self)
 
 
-Expr.__rdiv__ = _rdiv
-Expr.__rtruediv__ = _rdiv
+Expr.__rdiv__ = _rdiv  # type: ignore
+Expr.__rtruediv__ = _rdiv  # type: ignore
 
 
 def _pow(self, o):
@@ -280,7 +280,7 @@ def _pow(self, o):
     return Power(self, o)
 
 
-Expr.__pow__ = _pow
+Expr.__pow__ = _pow  # type: ignore
 
 
 def _rpow(self, o):
@@ -290,7 +290,7 @@ def _rpow(self, o):
     return Power(o, self)
 
 
-Expr.__rpow__ = _rpow
+Expr.__rpow__ = _rpow  # type: ignore
 
 
 # TODO: Add Negated class for this? Might simplify reductions in Add.
@@ -299,7 +299,7 @@ def _neg(self):
     return -1 * self
 
 
-Expr.__neg__ = _neg
+Expr.__neg__ = _neg  # type: ignore
 
 
 def _abs(self):
@@ -307,7 +307,7 @@ def _abs(self):
     return Abs(self)
 
 
-Expr.__abs__ = _abs
+Expr.__abs__ = _abs  # type: ignore
 
 
 # --- Extend Expr with restiction operators a("+"), a("-") ---
@@ -350,7 +350,7 @@ def _call(self, arg, mapping=None, component=()):
         return _eval(self, arg, mapping, component)
 
 
-Expr.__call__ = _call
+Expr.__call__ = _call  # type: ignore
 
 
 # --- Extend Expr with the transpose operation A.T ---
@@ -406,19 +406,16 @@ def _getitem(self, component):
     mi = MultiIndex(all_indices)
     a = Indexed(self, mi)
 
-    # TODO: I think applying as_tensor after index sums results in
-    # cleaner expression graphs.
-
-    # If the Ellipsis or any slices were found, wrap as tensor valued
-    # with the slice indices created at the top here
-    if slice_indices:
-        a = as_tensor(a, slice_indices)
-
     # If any repeated indices were found, apply implicit summation
     # over those
     for i in repeated_indices:
         mi = MultiIndex((i,))
         a = IndexSum(a, mi)
+
+    # If the Ellipsis or any slices were found, wrap as tensor valued
+    # with the slice indices created at the top here
+    if slice_indices:
+        a = as_tensor(a, slice_indices)
 
     # Check for zero (last so we can get indices etc from a, could
     # possibly be done faster by checking early instead)
@@ -431,7 +428,7 @@ def _getitem(self, component):
     return a
 
 
-Expr.__getitem__ = _getitem
+Expr.__getitem__ = _getitem  # type: ignore
 
 
 # --- Extend Expr with spatial differentiation operator a.dx(i) ---

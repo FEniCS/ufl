@@ -1,19 +1,17 @@
 import pytest
+from utils import LagrangeElement
 
 from ufl import Coefficient, FunctionSpace, Index, Mesh, as_tensor, interval, sqrt, triangle
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 @pytest.fixture
 def A0(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1)),
-            FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1),
+            Mesh(LagrangeElement(interval, 1, (1,))),
+            LagrangeElement(interval, 1),
         )
     )
 
@@ -22,8 +20,8 @@ def A0(request):
 def A1(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1)),
-            FiniteElement("Lagrange", interval, 1, (1, 1), identity_pullback, H1),
+            Mesh(LagrangeElement(interval, 1, (1,))),
+            LagrangeElement(interval, 1, (1, 1)),
         )
     )
 
@@ -32,8 +30,8 @@ def A1(request):
 def A2(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (2, 2), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))),
+            LagrangeElement(triangle, 1, (2, 2)),
         )
     )
 
@@ -42,8 +40,8 @@ def A2(request):
 def A3(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (3, 3), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (3,))),
+            LagrangeElement(triangle, 1, (3, 3)),
         )
     )
 
@@ -52,8 +50,8 @@ def A3(request):
 def A21(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (2, 1), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))),
+            LagrangeElement(triangle, 1, (2, 1)),
         )
     )
 
@@ -62,8 +60,8 @@ def A21(request):
 def A31(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (3, 1), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))),
+            LagrangeElement(triangle, 1, (3, 1)),
         )
     )
 
@@ -72,8 +70,7 @@ def A31(request):
 def A32(request):
     return Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (3, 2), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))), LagrangeElement(triangle, 1, (3, 2))
         )
     )
 
@@ -105,9 +102,7 @@ def test_pseudo_determinant21(A21):
 
 def test_pseudo_determinant31(A31):
     i = Index()
-    assert renumber_indices(determinant_expr(A31)) == renumber_indices(
-        sqrt((A31[i, 0] * A31[i, 0]))
-    )
+    assert renumber_indices(determinant_expr(A31)) == renumber_indices(sqrt(A31[i, 0] * A31[i, 0]))
 
 
 def test_pseudo_determinant32(A32):

@@ -1,4 +1,5 @@
 from pytest import raises
+from utils import FiniteElement, LagrangeElement
 
 from ufl import (
     Coefficient,
@@ -13,18 +14,17 @@ from ufl import (
 )
 from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1, L2
+from ufl.sobolevspace import L2
 
 
 def test_apply_restrictions():
     cell = triangle
     V0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
-    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+    V1 = LagrangeElement(cell, 1)
+    V2 = LagrangeElement(cell, 2)
 
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     v0_space = FunctionSpace(domain, V0)
     v1_space = FunctionSpace(domain, V1)
     v2_space = FunctionSpace(domain, V2)

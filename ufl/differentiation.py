@@ -61,11 +61,9 @@ class CoefficientDerivative(Derivative):
 
     def __str__(self):
         """Format as a string."""
-        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coefficient derivatives %s" % (
-            self.ufl_operands[0],
-            self.ufl_operands[1],
-            self.ufl_operands[2],
-            self.ufl_operands[3],
+        return (
+            f"d/dfj {{ {self.ufl_operands[0]} }}, with fh={self.ufl_operands[1]}, dfh/dfj = "
+            f"{self.ufl_operands[2]}, and coefficient derivatives {self.ufl_operands[3]}"
         )
 
 
@@ -77,11 +75,9 @@ class CoordinateDerivative(CoefficientDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coordinate derivatives %s" % (
-            self.ufl_operands[0],
-            self.ufl_operands[1],
-            self.ufl_operands[2],
-            self.ufl_operands[3],
+        return (
+            f"d/dfj {{ {self.ufl_operands[0]} }}, with fh={self.ufl_operands[1]}, dfh/dfj = "
+            f"{self.ufl_operands[2]}, and coordinate derivatives {self.ufl_operands[3]}"
         )
 
 
@@ -90,6 +86,9 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
     _ufl_noslots_ = True
+    _ufl_required_methods_: tuple[str, ...] = (
+        CoefficientDerivative._ufl_required_methods_ + BaseForm._ufl_required_methods_
+    )
 
     def __init__(self, base_form, coefficients, arguments, coefficient_derivatives):
         """Initalise."""
@@ -163,7 +162,18 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     # Therefore the latter overwrites Operator reconstruction and we would have:
     #   -> BaseFormOperatorDerivative._ufl_expr_reconstruct_ =
     #   BaseFormOperator._ufl_expr_reconstruct_
-    _ufl_expr_reconstruct_ = Operator._ufl_expr_reconstruct_
+    def _ufl_expr_reconstruct_(
+        self, *operands, function_space=None, derivatives=None, argument_slots=None
+    ):
+        if (
+            (function_space is not None)
+            or (derivatives is not None)
+            or (argument_slots is not None)
+        ):
+            raise ValueError("_ufl_expr_reconstruct_ invoked with unused argument(s).")
+
+        return Operator._ufl_expr_reconstruct_(self, *operands)
+
     # Set __repr__
     __repr__ = Operator.__repr__
 
@@ -229,8 +239,8 @@ class VariableDerivative(Derivative):
     def __str__(self):
         """Format as a string."""
         if isinstance(self.ufl_operands[0], Terminal):
-            return "d%s/d[%s]" % (self.ufl_operands[0], self.ufl_operands[1])
-        return "d/d[%s] %s" % (self.ufl_operands[1], parstr(self.ufl_operands[0], self))
+            return f"d{self.ufl_operands[0]}/d[{self.ufl_operands[1]}]"
+        return f"d/d[{self.ufl_operands[1]}] {parstr(self.ufl_operands[0], self)}"
 
 
 # --- Compound differentiation objects ---
@@ -292,7 +302,7 @@ class Grad(CompoundDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "grad(%s)" % self.ufl_operands[0]
+        return f"grad({self.ufl_operands[0]})"
 
 
 @ufl_type(
@@ -308,7 +318,7 @@ class ReferenceGrad(CompoundDerivative):
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
             # TODO: Use max topological dimension if there are multiple topological dimensions.
-            domain_elements = extract_unique_domain(f, expand_mixed_mesh=False).ufl_coordinate_elements()
+            domain_elements = extract_unique_domain(f, expand_mesh_sequence=False).ufl_coordinate_elements()
             dim = domain_elements[0].cell.topological_dimension()
             for e in domain_elements:
                 # TODO: remove this assumption
@@ -321,7 +331,7 @@ class ReferenceGrad(CompoundDerivative):
         CompoundDerivative.__init__(self, (f,))
         self._dim = max(
             e.cell.topological_dimension()
-            for e in extract_unique_domain(f, expand_mixed_mesh=False).ufl_coordinate_elements())
+            for e in extract_unique_domain(f, expand_mesh_sequence=False).ufl_coordinate_elements())
 
     def _ufl_expr_reconstruct_(self, op):
         """Return a new object of the same type with new operands."""
@@ -349,7 +359,7 @@ class ReferenceGrad(CompoundDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "reference_grad(%s)" % self.ufl_operands[0]
+        return f"reference_grad({self.ufl_operands[0]})"
 
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
@@ -380,7 +390,7 @@ class Div(CompoundDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "div(%s)" % self.ufl_operands[0]
+        return f"div({self.ufl_operands[0]})"
 
 
 @ufl_type(
@@ -413,7 +423,7 @@ class ReferenceDiv(CompoundDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "reference_div(%s)" % self.ufl_operands[0]
+        return f"reference_div({self.ufl_operands[0]})"
 
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
@@ -452,7 +462,7 @@ class NablaGrad(CompoundDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "nabla_grad(%s)" % self.ufl_operands[0]
+        return f"nabla_grad({self.ufl_operands[0]})"
 
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
@@ -483,7 +493,7 @@ class NablaDiv(CompoundDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "nabla_div(%s)" % self.ufl_operands[0]
+        return f"nabla_div({self.ufl_operands[0]})"
 
 
 _curl_shapes = {(): (2,), (2,): (), (3,): (3,)}
@@ -517,7 +527,7 @@ class Curl(CompoundDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "curl(%s)" % self.ufl_operands[0]
+        return f"curl({self.ufl_operands[0]})"
 
 
 @ufl_type(
@@ -550,4 +560,4 @@ class ReferenceCurl(CompoundDerivative):
 
     def __str__(self):
         """Format as a string."""
-        return "reference_curl(%s)" % self.ufl_operands[0]
+        return f"reference_curl({self.ufl_operands[0]})"

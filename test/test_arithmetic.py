@@ -1,3 +1,5 @@
+from utils import LagrangeElement
+
 from ufl import (
     Identity,
     Mesh,
@@ -13,9 +15,6 @@ from ufl import (
     triangle,
 )
 from ufl.classes import ComplexValue, Division, FloatValue, IntValue
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 def test_scalar_casting(self):
@@ -31,13 +30,13 @@ def test_scalar_casting(self):
 
 
 def test_ufl_float_division(self):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     d = SpatialCoordinate(domain)[0] / 10.0  # TODO: Use mock instead of x
     self.assertIsInstance(d, Division)
 
 
 def test_float_ufl_division(self):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     d = 3.14 / SpatialCoordinate(domain)[0]  # TODO: Use mock instead of x
     self.assertIsInstance(d, Division)
 
@@ -80,7 +79,7 @@ def test_elem_mult(self):
 
 
 def test_elem_mult_on_matrices(self):
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
 
     A = as_matrix(((1, 2), (3, 4)))
     B = as_matrix(((4, 5), (6, 7)))
@@ -98,7 +97,7 @@ def test_elem_mult_on_matrices(self):
 
 
 def test_elem_div(self):
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     x, y, z = SpatialCoordinate(domain)
     A = as_matrix(((x, y, z), (3, 4, 5)))
     B = as_matrix(((7, 8, 9), (z, x, y)))
@@ -106,7 +105,7 @@ def test_elem_div(self):
 
 
 def test_elem_op(self):
-    domain = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     x, y, z = SpatialCoordinate(domain)
     A = as_matrix(((x, y, z), (3, 4, 5)))
     self.assertEqual(

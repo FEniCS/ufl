@@ -94,7 +94,7 @@ def measure_names():
     return tuple(sorted(measure_name_to_integral_type.keys()))
 
 
-class Measure(object):
+class Measure:
     """Representation of an integration measure.
 
     The Measure object holds information about integration properties
@@ -278,15 +278,15 @@ class Measure(object):
         args = []
 
         if self._subdomain_id is not None:
-            args.append("subdomain_id=%s" % (self._subdomain_id,))
+            args.append(f"subdomain_id={self._subdomain_id}")
         if self._domain is not None:
-            args.append("domain=%s" % (self._domain,))
+            args.append(f"domain={self._domain}")
         if self._metadata:  # Stored as {} if None
-            args.append("metadata=%s" % (self._metadata,))
+            args.append(f"metadata={self._metadata}")
         if self._subdomain_data is not None:
-            args.append("subdomain_data=%s" % (self._subdomain_data,))
+            args.append(f"subdomain_data={self._subdomain_data}")
 
-        return "%s(%s)" % (name, ", ".join(args))
+        return "{}({})".format(name, ", ".join(args))
 
     def __repr__(self):
         """Return a repr string for this Measure."""
@@ -294,15 +294,15 @@ class Measure(object):
         args.append(repr(self._integral_type))
 
         if self._subdomain_id is not None:
-            args.append("subdomain_id=%s" % repr(self._subdomain_id))
+            args.append(f"subdomain_id={self._subdomain_id!r}")
         if self._domain is not None:
-            args.append("domain=%s" % repr(self._domain))
+            args.append(f"domain={self._domain!r}")
         if self._metadata:  # Stored as {} if None
-            args.append("metadata=%s" % repr(self._metadata))
+            args.append(f"metadata={self._metadata!r}")
         if self._subdomain_data is not None:
-            args.append("subdomain_data=%s" % repr(self._subdomain_data))
+            args.append(f"subdomain_data={self._subdomain_data!r}")
 
-        r = "%s(%s)" % (type(self).__name__, ", ".join(args))
+        r = "{}({})".format(type(self).__name__, ", ".join(args))
         return r
 
     def __hash__(self):
@@ -319,12 +319,14 @@ class Measure(object):
 
     def __eq__(self, other):
         """Checks if two Measures are equal."""
+        if not isinstance(other, Measure):
+            return False
+
         sorted_metadata = sorted((k, id(v)) for k, v in list(self._metadata.items()))
         sorted_other_metadata = sorted((k, id(v)) for k, v in list(other._metadata.items()))
 
         return (
-            isinstance(other, Measure)
-            and self._integral_type == other._integral_type
+            self._integral_type == other._integral_type
             and self._subdomain_id == other._subdomain_id
             and self._domain == other._domain
             and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
@@ -440,7 +442,7 @@ class Measure(object):
         return Form([integral])
 
 
-class MeasureSum(object):
+class MeasureSum:
     """Represents a sum of measures.
 
     This is a notational intermediate object to translate the notation
@@ -473,7 +475,7 @@ class MeasureSum(object):
         return "{\n    " + "\n  + ".join(map(str, self._measures)) + "\n}"
 
 
-class MeasureProduct(object):
+class MeasureProduct:
     """Represents a product of measures.
 
     This is a notational intermediate object to handle the notation

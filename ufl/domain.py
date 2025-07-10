@@ -26,7 +26,7 @@ from ufl.sobolevspace import H1
 __all_classes__ = ["AbstractDomain", "Mesh"]
 
 
-class AbstractDomain(object):
+class AbstractDomain:
     """Symbolic representation of a geometric domain.
 
     Domain has only a geometric dimension.
@@ -71,7 +71,7 @@ class AbstractDomain(object):
         """Return iterable component meshes."""
         return iter(self.meshes)
 
-    def iterable_like(self, element: AbstractFiniteElement) -> Union[Iterable[Mesh], MeshSequence]:
+    def iterable_like(self, element: AbstractFiniteElement) -> Iterable[Mesh] | MeshSequence:
         """Return iterable object that is iterable like ``element``."""
         raise NotImplementedError("iterable_like() method not implemented")
 
@@ -161,12 +161,12 @@ class Mesh(AbstractDomain, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        r = "Mesh(%s, %s)" % (repr(self._ufl_coordinate_elements), repr(self._ufl_id))
+        r = f"Mesh({self._ufl_coordinate_elements!r}, {self._ufl_id!r})"
         return r
 
     def __str__(self):
         """Format as a string."""
-        return "<Mesh #%s>" % (self._ufl_id,)
+        return f"<Mesh #{self._ufl_id}>"
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -188,7 +188,7 @@ class Mesh(AbstractDomain, UFLObject):
         """Return the component meshes."""
         return (self,)
 
-    def iterable_like(self, element: AbstractFiniteElement) -> Iterable["Mesh"]:
+    def iterable_like(self, element: AbstractFiniteElement) -> Iterable[Mesh]:
         """Return iterable object that is iterable like ``element``."""
         return iter(self for _ in range(element.num_sub_elements))
 
@@ -246,11 +246,11 @@ class MeshSequence(AbstractDomain, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return "MeshSequence(%s)" % (repr(self._meshes),)
+        return f"MeshSequence({self._meshes!r})"
 
     def __str__(self):
         """Format as a string."""
-        return "<MeshSequence #%s>" % (self._meshes,)
+        return f"<MeshSequence #{self._meshes}>"
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -269,7 +269,7 @@ class MeshSequence(AbstractDomain, UFLObject):
         """Return the component meshes."""
         return self._meshes
 
-    def iterable_like(self, element: AbstractFiniteElement) -> "MeshSequence":
+    def iterable_like(self, element: AbstractFiniteElement) -> MeshSequence:
         """Return iterable object that is iterable like ``element``."""
         if len(self) != element.num_sub_elements:
             raise RuntimeError(f"""len(self) ({len(self)}) !=
@@ -311,47 +311,47 @@ def sort_domains(domains: Sequence[AbstractDomain]):
     return tuple(sorted(domains, key=lambda domain: domain._ufl_sort_key_()))
 
 
-def join_domains(domains: Sequence[AbstractDomain], expand_mixed_mesh: bool = True):
+def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool = True):
     """Take a list of domains and return a set with only unique domain objects.
 
     Args:
         domains: Sequence of domains.
-        expand_mixed_mesh: If True, MeshSequence components are expanded.
+        expand_mesh_sequence: If True, MeshSequence components are expanded.
 
     Returns:
         `set` of domains.
 
     """
     # Use hashing to join domains, ignore None
-    domains_ = set(domains) - set((None,))
-    if expand_mixed_mesh:
-        domains = set()
-        for domain in domains_:
-            domains.update(domain.meshes)
-    else:
-        domains = domains_
-    if not domains:
+    joined_domains = set(domains) - set((None,))
+    if expand_mesh_sequence:
+        unrolled_joined_domains = set()
+        for domain in joined_domains:
+            unrolled_joined_domains.update(domain.meshes)
+        joined_domains = unrolled_joined_domains
+
+    if not joined_domains:
         return ()
 
     # Check geometric dimension compatibility
     gdims = set()
-    for domain in domains:
+    for domain in joined_domains:
         gdims.add(domain.geometric_dimension)
     if len(gdims) != 1:
         raise ValueError("Found domains with different geometric dimensions.")
 
-    return domains
+    return joined_domains
 
 
 # TODO: Move these to an analysis module?
 
 
-def extract_domains(expr: Union[Expr, Form], expand_mixed_mesh: bool = True):
+def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
     """Return all domains expression is defined on.
 
     Args:
         expr: Expr or Form.
-        expand_mixed_mesh: If True, MeshSequence components are expanded.
+        expand_mesh_sequence: If True, MeshSequence components are expanded.
 
     Returns:
         `tuple` of domains.
@@ -360,30 +360,30 @@ def extract_domains(expr: Union[Expr, Form], expand_mixed_mesh: bool = True):
     from ufl.form import Form
 
     if isinstance(expr, Form):
-        if not expand_mixed_mesh:
+        if not expand_mesh_sequence:
             raise NotImplementedError("""
-                Currently, can only extract domains from a Form with expand_mixed_mesh=True""")
+                Currently, can only extract domains from a Form with expand_mesh_sequence=True""")
         # Be consistent with the numbering used in signature.
         return tuple(expr.domain_numbering().keys())
     else:
         domainlist = []
         for t in traverse_unique_terminals(expr):
             domainlist.extend(t.ufl_domains())
-        return sort_domains(join_domains(domainlist, expand_mixed_mesh=expand_mixed_mesh))
+        return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
 
 
-def extract_unique_domain(expr, expand_mixed_mesh: bool = True):
+def extract_unique_domain(expr, expand_mesh_sequence: bool = True):
     """Return the single unique domain expression is defined on or throw an error.
 
     Args:
         expr: Expr or Form.
-        expand_mixed_mesh: If True, MeshSequence components are expanded.
+        expand_mesh_sequence: If True, MeshSequence components are expanded.
 
     Returns:
         domain.
 
     """
-    domains = extract_domains(expr, expand_mixed_mesh=expand_mixed_mesh)
+    domains = extract_domains(expr, expand_mesh_sequence=expand_mesh_sequence)
     if len(domains) == 1:
         return domains[0]
     elif domains:

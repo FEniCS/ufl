@@ -16,7 +16,7 @@ from ufl.utils.counted import Counted
 __all_classes__ = ["IndexBase", "FixedIndex", "Index"]
 
 
-class IndexBase(object):
+class IndexBase:
     """Base class for all indices."""
 
     __slots__ = ()
@@ -30,7 +30,7 @@ class FixedIndex(IndexBase):
 
     __slots__ = ("_hash", "_value")
 
-    _cache = {}
+    _cache: dict[int, "FixedIndex"] = {}
 
     def __getnewargs__(self):
         """Get new args."""
@@ -116,7 +116,7 @@ class MultiIndex(Terminal):
 
     __slots__ = ("_indices",)
 
-    _cache = {}
+    _cache: dict[tuple[int], "MultiIndex"] = {}
 
     def __getnewargs__(self):
         """Get new args."""

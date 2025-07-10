@@ -13,9 +13,10 @@ from itertools import chain
 
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
-from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply_derivatives
 
 # These are the main symbolic processing steps:
+from ufl.algorithms.apply_coefficient_split import CoefficientSplitter
+from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply_derivatives
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
@@ -33,7 +34,10 @@ from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
+from ufl.algorithms.remove_component_tensors import remove_component_tensors
+from ufl.algorithms.replace import replace
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
+from ufl.constantvalue import Zero
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.domain import MeshSequence, extract_domains, extract_unique_domain
 from ufl.utils.sequences import max_degree
@@ -184,7 +188,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
-        domain = extract_unique_domain(f, expand_mixed_mesh=False)
+        domain = extract_unique_domain(f, expand_mesh_sequence=False)
         if domain is not None:
             new_e = FunctionSpace(domain, new_e)
         new_f = Coefficient(new_e, count=i)
@@ -256,7 +260,10 @@ def compute_form_data(
     do_apply_restrictions=True,
     do_estimate_degrees=True,
     do_append_everywhere_integrals=True,
+    do_replace_functions=False,
+    coefficients_to_split=None,
     complex_mode=False,
+    do_remove_component_tensors=False,
 ):
     """Compute form data.
 
@@ -265,7 +272,7 @@ def compute_form_data(
     # Currently, only integral_type="cell" can be used with MeshSequence.
     for integral in form.integrals():
         if integral.integral_type() != "cell":
-            all_domains = extract_domains(integral.integrand(), expand_mixed_mesh=False)
+            all_domains = extract_domains(integral.integrand(), expand_mesh_sequence=False)
             if any(isinstance(m, MeshSequence) for m in all_domains):
                 raise NotImplementedError(f"""
                     Only integral_type="cell" can be used with MeshSequence;
@@ -346,6 +353,10 @@ def compute_form_data(
     if not complex_mode:
         form = remove_complex_nodes(form)
 
+    # Remove component tensors
+    if do_remove_component_tensors:
+        form = remove_component_tensors(form)
+
     # --- Group integrals into IntegralData objects
     # Most of the heavy lifting is done above in group_form_integrals.
     self.integral_data = build_integral_data(form.integrals())
@@ -420,6 +431,44 @@ def compute_form_data(
     # TODO: Group this by domain first. For now keep a backwards
     # compatible data structure.
     self.max_subdomain_ids = _compute_max_subdomain_ids(self.integral_data)
+
+    # --- Apply replace(integrand, self.function_replace_map)
+    if do_replace_functions:
+        for itg_data in self.integral_data:
+            new_integrals = []
+            for integral in itg_data.integrals:
+                integrand = replace(integral.integrand(), self.function_replace_map)
+                new_integrals.append(integral.reconstruct(integrand=integrand))
+            itg_data.integrals = new_integrals
+
+    # --- Split mixed coefficients with their components
+    if coefficients_to_split is None:
+        self.coefficient_split = {}
+    else:
+        if not do_replace_functions:
+            raise ValueError("Must call with do_replace_functions=True")
+        # Split coefficients that are contained in ``coefficients_to_split``
+        # into components, and store a dict in ``self`` that maps
+        # each coefficient to its components.
+        coefficient_split = {}
+        for o in self.reduced_coefficients:
+            if o in coefficients_to_split:
+                c = self.function_replace_map[o]
+                mesh = extract_unique_domain(c, expand_mesh_sequence=False)
+                elem = c.ufl_element()
+                coefficient_split[c] = [
+                    Coefficient(FunctionSpace(m, e))
+                    for m, e in zip(mesh.iterable_like(elem), elem.sub_elements)
+                ]
+        self.coefficient_split = coefficient_split
+        coeff_splitter = CoefficientSplitter(self.coefficient_split)
+        for itg_data in self.integral_data:
+            new_integrals = []
+            for integral in itg_data.integrals:
+                integrand = coeff_splitter(integral.integrand())
+                if not isinstance(integrand, Zero):
+                    new_integrals.append(integral.reconstruct(integrand=integrand))
+            itg_data.integrals = new_integrals
 
     # --- Checks
     _check_elements(self)

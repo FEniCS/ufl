@@ -61,11 +61,15 @@ class ListTensor(Operator):
                 e = e.ufl_operands[i]
             return e
 
+        def sub_equals(exprs, *indices):
+            sube0 = sub(exprs[0], *indices)
+            return all(sub(e, *indices) is sube0 for e in exprs[1:])
+
         # Simplify [v[j,0], v[j,1], ...., v[j,k]] -> v[j,:]
         if (
             all(isinstance(e, Indexed) for e in expressions)
             and sub(e0, 0).ufl_shape[-1] == len(expressions)
-            and all(sub(e, 0) == sub(e0, 0) for e in expressions[1:])
+            and sub_equals(expressions, 0)
         ):
             indices = [sub(e, 1).indices() for e in expressions]
             try:
@@ -81,7 +85,7 @@ class ListTensor(Operator):
                 for e in expressions
             )
             and sub(e0, 0, 0).ufl_shape[0] == len(expressions)
-            and all(sub(e, 0, 0) == sub(e0, 0, 0) for e in expressions[1:])
+            and sub_equals(expressions, 0, 0)
         ):
             indices = [sub(e, 0, 1).indices() for e in expressions]
             if all(
@@ -166,10 +170,10 @@ class ListTensor(Operator):
                     else:
                         substrings.append(str(e))
                 s = (",\n" + ind).join(substrings)
-                return "%s[\n%s%s\n%s]" % (ind, ind, s, ind)
+                return f"{ind}[\n{ind}{s}\n{ind}]"
             else:
                 s = ", ".join(map(str, expressions))
-                return "%s[%s]" % (ind, s)
+                return f"{ind}[{s}]"
 
         return substring(self.ufl_operands, 0)
 
@@ -265,7 +269,7 @@ class ComponentTensor(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "{ A | A_{%s} = %s }" % (self.ufl_operands[1], self.ufl_operands[0])
+        return f"{{ A | A_{{{self.ufl_operands[1]}}} = {self.ufl_operands[0]} }}"
 
 
 # --- User-level functions to wrap expressions in the correct way ---

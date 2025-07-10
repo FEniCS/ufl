@@ -80,14 +80,18 @@ def _sorted_integrals(integrals):
 
 
 @ufl_type()
-class BaseForm(object, metaclass=UFLType):
+class BaseForm(metaclass=UFLType):
     """Description of an object containing arguments."""
 
     # Slots is kept empty to enable multiple inheritance with other
     # classes
     __slots__ = ()
     _ufl_is_abstract_ = True
-    _ufl_required_methods_ = ("_analyze_form_arguments", "_analyze_domains", "ufl_domains")
+    _ufl_required_methods_: tuple[str, ...] = (
+        "_analyze_form_arguments",
+        "_analyze_domains",
+        "ufl_domains",
+    )
 
     def __init__(self):
         """Initialise."""
@@ -122,7 +126,7 @@ class BaseForm(object, metaclass=UFLType):
         try:
             (domain,) = set(self.ufl_domains())
         except ValueError:
-            raise ValueError("%s must have exactly one domain." % type(self).__name__)
+            raise ValueError(f"{type(self).__name__} must have exactly one domain.")
         # Return the one and only domain
         return domain
 
@@ -552,7 +556,7 @@ class Form(BaseForm):
                 if f in coeffs:
                     repdict[f] = coefficients[f]
                 else:
-                    warnings.warn("Coefficient %s is not in form." % ufl_err_str(f))
+                    warnings.warn(f"Coefficient {ufl_err_str(f)} is not in form.")
         if repdict:
             from ufl.formoperators import replace
 
@@ -598,7 +602,7 @@ class Form(BaseForm):
         for o in chain(
             self.arguments(), self.coefficients(), self.constants(), self.geometric_quantities()
         ):
-            domain = extract_unique_domain(o, expand_mixed_mesh=False)
+            domain = extract_unique_domain(o, expand_mesh_sequence=False)
             domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
         all_domains = self._integration_domains + sort_domains(join_domains(domains_in_integrands))
@@ -689,7 +693,7 @@ class FormSum(BaseForm):
         "_weights",
         "ufl_operands",
     )
-    _ufl_required_methods_ = "_analyze_form_arguments"
+    _ufl_required_methods_ = "_analyze_form_arguments"  # type: ignore
 
     def __new__(cls, *args, **kwargs):
         """Create a new FormSum."""
@@ -705,7 +709,7 @@ class FormSum(BaseForm):
             arguments = arg.arguments()
             return ZeroBaseForm(arguments)
 
-        return super(FormSum, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, *components):
         """Initialise."""
@@ -896,11 +900,11 @@ class ZeroBaseForm(BaseForm):
 
     def __str__(self):
         """Format as a string."""
-        return "ZeroBaseForm(%s)" % (", ".join(str(arg) for arg in self._arguments))
+        return "ZeroBaseForm({})".format(", ".join(str(arg) for arg in self._arguments))
 
     def __repr__(self):
         """Representation."""
-        return "ZeroBaseForm(%s)" % (", ".join(repr(arg) for arg in self._arguments))
+        return "ZeroBaseForm({})".format(", ".join(repr(arg) for arg in self._arguments))
 
     def __hash__(self):
         """Hash."""

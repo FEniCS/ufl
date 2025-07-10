@@ -5,6 +5,7 @@ __date__ = "2008-03-12 -- 2009-01-28"
 # Modified by Garth N. Wells, 2009
 
 import pytest
+from utils import LagrangeElement
 
 from ufl import (
     Argument,
@@ -12,6 +13,7 @@ from ufl import (
     FacetNormal,
     FunctionSpace,
     Mesh,
+    SpatialCoordinate,
     TestFunction,
     TrialFunction,
     adjoint,
@@ -21,9 +23,11 @@ from ufl import (
     dx,
     grad,
     inner,
+    sin,
     triangle,
 )
 from ufl.algorithms import (
+    compute_form_data,
     expand_derivatives,
     expand_indices,
     extract_arguments,
@@ -37,21 +41,18 @@ from ufl.corealg.traversal import (
     unique_post_traversal,
     unique_pre_traversal,
 )
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 # TODO: add more tests, covering all utility algorithms
 
 
 @pytest.fixture(scope="module")
 def element():
-    return FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    return LagrangeElement(triangle, 1)
 
 
 @pytest.fixture(scope="module")
 def domain():
-    return Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    return Mesh(LagrangeElement(triangle, 1, (2,)))
 
 
 @pytest.fixture(scope="module")
@@ -130,7 +131,7 @@ def test_pre_and_post_traversal(space):
 
 
 def test_expand_indices(domain):
-    element = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
+    element = LagrangeElement(triangle, 2)
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
@@ -153,8 +154,8 @@ def test_expand_indices(domain):
 def test_adjoint(domain):
     cell = triangle
 
-    V1 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    V2 = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+    V1 = LagrangeElement(cell, 1)
+    V2 = LagrangeElement(cell, 2)
 
     s1 = FunctionSpace(domain, V1)
     s2 = FunctionSpace(domain, V2)
@@ -182,3 +183,15 @@ def test_adjoint(domain):
     d = adjoint(b)
     d_arg_degrees = [arg.ufl_element().embedded_superdegree for arg in extract_arguments(d)]
     assert d_arg_degrees == [2, 1]
+
+
+def test_remove_component_tensors(domain):
+    x = SpatialCoordinate(domain)
+    u = sin(x[0])
+
+    f = div(grad(div(grad(u))))
+    form = f * dx
+
+    fd = compute_form_data(form, do_remove_component_tensors=True)
+
+    assert "ComponentTensor" not in repr(fd.preprocessed_form)

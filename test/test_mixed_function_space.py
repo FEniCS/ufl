@@ -1,6 +1,8 @@
 __authors__ = "Cecile Daversin Catty"
 __date__ = "2019-03-26 -- 2019-03-26"
 
+from utils import LagrangeElement
+
 from ufl import (
     Coefficient,
     Constant,
@@ -25,20 +27,17 @@ from ufl import (
 from ufl.algorithms import expand_derivatives, renumbering
 from ufl.algorithms.formsplitter import extract_blocks
 from ufl.algorithms.formtransformations import compute_form_adjoint
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 def test_mixed_functionspace(self):
     # Domains
-    domain_3d = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
-    domain_2d = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
-    domain_1d = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
+    domain_3d = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
+    domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
+    domain_1d = Mesh(LagrangeElement(interval, 1, (1,)))
     # Finite elements
-    f_1d = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
-    f_2d = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    f_3d = FiniteElement("Lagrange", tetrahedron, 1, (), identity_pullback, H1)
+    f_1d = LagrangeElement(interval, 1)
+    f_2d = LagrangeElement(triangle, 1)
+    f_3d = LagrangeElement(tetrahedron, 1)
     # Function spaces
     V_3d = FunctionSpace(domain_3d, f_3d)
     V_2d = FunctionSpace(domain_2d, f_2d)
@@ -110,8 +109,8 @@ def test_mixed_functionspace(self):
 
 
 def test_lhs_rhs():
-    V = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
+    V = LagrangeElement(interval, 1)
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
     space0 = FunctionSpace(domain, V)
     space1 = FunctionSpace(domain, V)
     mixed_space = MixedFunctionSpace(space0, space1)
@@ -153,8 +152,8 @@ def test_lhs_rhs():
 
 
 def test_action():
-    V = FiniteElement("Lagrange", interval, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
+    V = LagrangeElement(interval, 1)
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
     space0 = FunctionSpace(domain, V)
     space1 = FunctionSpace(domain, V)
     mixed_space = MixedFunctionSpace(space0, space1)
@@ -193,15 +192,15 @@ def test_action():
     J_renumbered = renumbering.renumber_indices(expand_derivatives(J))
 
     # Reference J
-    J_exp = renumbering.renumber_indices(expand_derivatives((F)))
+    J_exp = renumbering.renumber_indices(expand_derivatives(F))
     J_ref = replace(J_exp, {u: inserted_coeff, v: coefficients[0], q: coefficients[1]})
     # Verify
     assert J_renumbered == J_ref
 
 
 def test_adjoint():
-    V = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    V = LagrangeElement(triangle, 1)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space0 = FunctionSpace(domain, V)
     space1 = FunctionSpace(domain, V)
     mixed_space = MixedFunctionSpace(space0, space1)

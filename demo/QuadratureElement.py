@@ -20,6 +20,8 @@
 #
 # The linearised bilinear form a(u,v) and linear form L(v) for
 # the nonlinear equation - div (1+u) grad u = f (non-linear Poisson)
+from utils import FiniteElement, LagrangeElement
+
 from ufl import (
     Coefficient,
     FunctionSpace,
@@ -32,12 +34,11 @@ from ufl import (
     i,
     triangle,
 )
-from ufl.finiteelement import FiniteElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
-element = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
-domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+element = LagrangeElement(triangle, 2)
+domain = Mesh(LagrangeElement(triangle, 1, (2,)))
 space = FunctionSpace(domain, element)
 
 QE = FiniteElement("Quadrature", triangle, 2, (), identity_pullback, H1)
