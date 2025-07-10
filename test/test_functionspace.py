@@ -1,7 +1,7 @@
 """Tests of function spaces."""
 
 import pytest
-from utils import FiniteElement, LagrangeElement
+from utils import LagrangeElement
 
 from ufl import Mesh, FunctionSpace, quadrilateral, triangle
 
