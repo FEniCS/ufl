@@ -112,11 +112,11 @@ class Mesh(AbstractDomain, UFLObject):
         from ufl.coefficient import Coefficient
 
         try:
-            self._ufl_coordinate_elements = tuple(coordinate_element)
+            self._ufl_coordinate_elements = (coordinate_element,)
         except TypeError:
             if isinstance(coordinate_element, (Coefficient, AbstractCell)):
                 raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
-            self._ufl_coordinate_elements = tuple((coordinate_element,))
+            self._ufl_coordinate_elements = (coordinate_element,)
 
         # Derive dimensions from element
         (gdim,) = self._ufl_coordinate_elements[0].reference_value_shape
