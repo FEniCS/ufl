@@ -606,7 +606,7 @@ class Form(BaseForm):
         for o in chain(
             self.arguments(), self.coefficients(), self.constants(), self.geometric_quantities()
         ):
-            domain = extract_unique_domain(o, expand_mesh_sequence=False)
+            domain = extract_unique_domain(o)
             domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
         all_domains = self._integration_domains + sort_domains(join_domains(domains_in_integrands))
