@@ -335,7 +335,7 @@ def as_domain(domain):
         (domain,) = set(domain.meshes)
         return domain
     try:
-        return extract_unique_domain_dag(domain)
+        return extract_unique_domain(domain)
     except (AttributeError, TypeError):
         domain = domain.ufl_domain()
         (domain,) = set(domain.meshes)
@@ -414,26 +414,6 @@ def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
         for t in traverse_unique_terminals(expr):
             domainlist.extend(t.ufl_domains())
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
-
-
-def extract_unique_domain(expr, expand_mesh_sequence: bool = True):
-    """Return the single unique domain expression is defined on or throw an error.
-
-    Args:
-        expr: Expr or Form.
-        expand_mesh_sequence: If True, MeshSequence components are expanded.
-
-    Returns:
-        domain.
-
-    """
-    domains = extract_domains(expr, expand_mesh_sequence=expand_mesh_sequence)
-    if len(domains) == 1:
-        return domains[0]
-    elif domains:
-        raise ValueError("Found multiple domains, cannot return just one.")
-    else:
-        return None
 
 
 def find_geometric_dimension(expr):
@@ -570,7 +550,7 @@ class UniqueDomainExtractor(DAGTraverser):
         return fs.ufl_domain() 
 
 
-def extract_unique_domain_dag(expr: Union[Expr, Form]) -> AbstractDomain:
+def extract_unique_domain(expr: Union[Expr, Form]) -> AbstractDomain:
     """Extract the single unique domain from an expression.
     
     This works for expressions containing Indexed Arguments and Coefficients from
@@ -592,7 +572,7 @@ def extract_unique_domain_dag(expr: Union[Expr, Form]) -> AbstractDomain:
         # For forms, we extract domains from integrals
         domains = set()
         for integral in expr.integrals():
-            domain = extract_unique_domain_dag(integral.integrand())
+            domain = extract_unique_domain(integral.integrand())
             if domain is not None:
                 domains.add(domain)
         
