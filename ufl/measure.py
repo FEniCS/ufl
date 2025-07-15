@@ -15,7 +15,7 @@ from itertools import chain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
-from ufl.domain import AbstractDomain, as_domain, extract_domains, extract_unique_domain_dag
+from ufl.domain import AbstractDomain, as_domain, extract_unique_domain
 from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
@@ -417,16 +417,7 @@ class Measure:
         # integrand
         domain = self.ufl_domain()
         if domain is None:
-            domain = extract_unique_domain_dag(integrand)
-            # domains = extract_domains(integrand)
-            # if len(domains) == 1:
-            #     (domain,) = domains
-            # elif len(domains) == 0:
-            #     raise ValueError("This integral is missing an integration domain.")
-            # else:
-            #     raise ValueError(
-            #         "Multiple domains found, making the choice of integration domain ambiguous."
-            #     )
+            domain = extract_unique_domain(integrand)
 
         # Otherwise create and return a one-integral form
         integral = Integral(
