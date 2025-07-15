@@ -433,9 +433,6 @@ def find_geometric_dimension(expr):
 
 
 class UniqueDomainExtractor(DAGTraverser):
-    # Terminals: Arg or Coeff or constant. constant has no domain. 
-    # Operators: 1) Children match domain, return that. 2) Differing domains, raise error. 3) Different domains, return A or B
-
     # ExternalOperator or Interpolate: Domain is where we are mapping into. These are both BaseFormOperators.
     def __init__(
         self,
@@ -473,31 +470,26 @@ class UniqueDomainExtractor(DAGTraverser):
         # Get the domain from the first operand (the expression being indexed)
         expression_domain = operand_results[0]
         
-        # If the expression domain is a MeshSequence, extract the specific mesh
         if isinstance(expression_domain, MeshSequence):
             index = multiindex[0]._value
-            # For mixed function spaces with MeshSequence, we need to determine
-            # which component mesh this index corresponds to
-            # This requires understanding the mixed element structure
             element = expression.ufl_element()
             if hasattr(element, 'sub_elements'):
-                # Calculate which sub-element (and thus which mesh) this index belongs to
+                # Need to do this in case we have sub elements which are vector or tensor valued
                 offset = 0
                 for i, sub_element in enumerate(element.sub_elements):
                     # Get the value size for this sub-element on its corresponding mesh
-                    mesh_for_element = expression_domain.meshes[i]
-                    sub_element_fs = FunctionSpace(mesh_for_element, sub_element)
+                    sub_element_mesh = expression_domain.meshes[i]
+                    sub_element_fs = FunctionSpace(sub_element_mesh, sub_element)
                     sub_element_size = sub_element_fs.value_size
                     
                     if index < offset + sub_element_size:
                         # This index belongs to mesh i
-                        return mesh_for_element
+                        return sub_element_mesh
                     offset += sub_element_size
                 raise ValueError(f"Index {index} out of range for mixed function space")
             else:
-                # Simple case: direct indexing into MeshSequence
-                if 0 <= index < len(expression_domain.meshes):
-                    return expression_domain.meshes[index]
+                # If no sub elements we just grab the mesh
+                return expression_domain.meshes[index]
         
         # If it's not a MeshSequence, just return the expression domain
         return expression_domain
@@ -537,7 +529,7 @@ class UniqueDomainExtractor(DAGTraverser):
             if all(d == first_domain for d in domains):
                 return first_domain
             else:
-                # If domains are not none and differ, raise error
+                # If domains are not none and differ, then we don't have a unique domain
                 raise ValueError(
                     f"Cannot extract unique domain from expression {o!r} with differing domains: {domains!r}"
                 )
@@ -569,7 +561,6 @@ def extract_unique_domain(expr: Union[Expr, Form]) -> AbstractDomain:
     from ufl.core.expr import Expr
     
     if isinstance(expr, Form):
-        # For forms, we extract domains from integrals
         domains = set()
         for integral in expr.integrals():
             domain = extract_unique_domain(integral.integrand())
@@ -583,8 +574,7 @@ def extract_unique_domain(expr: Union[Expr, Form]) -> AbstractDomain:
         else:
             raise ValueError(f"Form has multiple domains: {domains}")
     elif isinstance(expr, Expr):
-        # For expressions, use the DAG traverser
         extractor = UniqueDomainExtractor()
         return extractor(expr)
     else:
-        raise TypeError(f"Unsupported type for domain extraction: {type(expr)}. Expected Expr or Form.")
+        raise TypeError(f"Unsupported type for domain extraction: {type(expr).__name__}. Expected Expr or Form.")
