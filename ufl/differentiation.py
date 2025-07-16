@@ -165,6 +165,13 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None
     ):
+        if (
+            (function_space is not None)
+            or (derivatives is not None)
+            or (argument_slots is not None)
+        ):
+            raise ValueError("_ufl_expr_reconstruct_ invoked with unused argument(s).")
+
         return Operator._ufl_expr_reconstruct_(self, *operands)
 
     # Set __repr__
