@@ -18,6 +18,7 @@ from ufl import (
     MixedFunctionSpace,
     TestFunction,
     TrialFunction,
+    Zero,
     action,
     adjoint,
     derivative,
@@ -28,7 +29,6 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms.ad import expand_derivatives
-from ufl.constantvalue import Zero
 from ufl.duals import is_dual, is_primal
 from ufl.form import ZeroBaseForm
 
