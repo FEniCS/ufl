@@ -7,7 +7,6 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.domain import extract_unique_domain
 from ufl.functionspace import FunctionSpace
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
