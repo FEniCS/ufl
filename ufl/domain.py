@@ -557,7 +557,7 @@ def extract_unique_domain(expr: Union[Expr, Form]) -> AbstractDomain:
     # TODO: make this work for BaseForm
     # Action - Domain of 0th Argument in result
     # Leave AssembledMatrix and Adjoint for now
-    from ufl.form import Form
+    from ufl.form import Form, BaseForm
     from ufl.core.expr import Expr
 
     if isinstance(expr, Form):
@@ -573,6 +573,8 @@ def extract_unique_domain(expr: Union[Expr, Form]) -> AbstractDomain:
             return domains.pop()
         else:
             raise ValueError(f"Form has multiple domains: {domains}")
+    elif isinstance(expr, BaseForm):
+        return extract_unique_domain(expr.arguments()[0])
     elif isinstance(expr, Expr):
         extractor = UniqueDomainExtractor()
         return extractor(expr)
