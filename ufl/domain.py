@@ -458,7 +458,7 @@ class UniqueDomainExtractor(DAGTraverser):
 
         """
         return super().process(o)
-    
+
     @process.register(Indexed)
     @DAGTraverser.postorder
     def _(self, o: Expr, *operand_results) -> AbstractDomain:
@@ -466,10 +466,10 @@ class UniqueDomainExtractor(DAGTraverser):
         from ufl.functionspace import FunctionSpace
         # Get the indexed expression and the multiindex
         expression, multiindex = o.ufl_operands
-        
+
         # Get the domain from the first operand (the expression being indexed)
         expression_domain = operand_results[0]
-        
+
         if isinstance(expression_domain, MeshSequence):
             index = multiindex[0]._value
             element = expression.ufl_element()
@@ -481,7 +481,7 @@ class UniqueDomainExtractor(DAGTraverser):
                     sub_element_mesh = expression_domain.meshes[i]
                     sub_element_fs = FunctionSpace(sub_element_mesh, sub_element)
                     sub_element_size = sub_element_fs.value_size
-                    
+
                     if index < offset + sub_element_size:
                         # This index belongs to mesh i
                         return sub_element_mesh
@@ -490,7 +490,7 @@ class UniqueDomainExtractor(DAGTraverser):
             else:
                 # If no sub elements we just grab the mesh
                 return expression_domain.meshes[index]
-        
+
         # If it's not a MeshSequence, just return the expression domain
         return expression_domain
 
@@ -509,14 +509,14 @@ class UniqueDomainExtractor(DAGTraverser):
             return o._ufl_domain
         else:
             return None
-    
+
     @process.register(Operator)
     @DAGTraverser.postorder
     def _(self, o: Expr, *operand_results) -> AbstractDomain:
         """Process Operator."""
         # Filter out None results (from operands that don't have domains)
         domains = [d for d in operand_results if d is not None]
-        
+
         if not domains:
             # No operands have domains
             return None
@@ -533,24 +533,24 @@ class UniqueDomainExtractor(DAGTraverser):
                 raise ValueError(
                     f"Cannot extract unique domain from expression {o!r} with differing domains: {domains!r}"
                 )
-            
+
     @process.register(Interpolate)
     @DAGTraverser.postorder
     def _(self, o: Expr, *operand_results) -> AbstractDomain:
         """Process Interpolate."""
         fs = o.ufl_function_space()
-        return fs.ufl_domain() 
+        return fs.ufl_domain()
 
 
 def extract_unique_domain(expr: Union[Expr, Form]) -> AbstractDomain:
     """Extract the single unique domain from an expression.
-    
+
     This works for expressions containing Indexed Arguments and Coefficients from
     split functions on mixed function spaces.
-    
+
     Args:
         expr: Expr or Form to extract domain from
-        
+
     Returns:
         AbstractDomain: The unique domain extracted from the expression.
     """
@@ -559,14 +559,14 @@ def extract_unique_domain(expr: Union[Expr, Form]) -> AbstractDomain:
     # Leave AssembledMatrix and Adjoint for now
     from ufl.form import Form
     from ufl.core.expr import Expr
-    
+
     if isinstance(expr, Form):
         domains = set()
         for integral in expr.integrals():
             domain = extract_unique_domain(integral.integrand())
             if domain is not None:
                 domains.add(domain)
-        
+
         if len(domains) == 0:
             return None
         elif len(domains) == 1:
@@ -577,4 +577,4 @@ def extract_unique_domain(expr: Union[Expr, Form]) -> AbstractDomain:
         extractor = UniqueDomainExtractor()
         return extractor(expr)
     else:
-        raise TypeError(f"Unsupported type for domain extraction: {type(expr).__name__}. Expected Expr or Form.")
+        raise TypeError(f"Expected an Expr or Form, not a {type(expr).__name__}.")
