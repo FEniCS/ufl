@@ -84,7 +84,7 @@ def test_extract_blocks(rank):
 
 def test_postive_restricted_extract_none():
     cell = ufl.triangle
-    d = cell.topological_dimension()
+    d = cell.topological_dimension
     domain = ufl.Mesh(LagrangeElement(cell, 1, (d,)))
     el_u = LagrangeElement(cell, 2, (d,))
     el_p = LagrangeElement(cell, 1)
