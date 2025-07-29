@@ -19,6 +19,7 @@ from ufl.algorithms import replace_terminal_data, strip_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
 
+
 @attach_ufl_id
 class AugmentedMesh(Mesh, UFLObject):
     def __init__(self, *args, data):
