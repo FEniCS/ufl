@@ -298,19 +298,45 @@ def test_extract_unique_domain_interpolate():
     cell = triangle
     mesh1 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=400)
     mesh2 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=401)
-    mesh3 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=402)
-    scalar_elem = LagrangeElement(cell, 1)
     vector_elem = LagrangeElement(cell, 1, (2,))
     tensor_elem = LagrangeElement(cell, 1, (2, 2))
 
-    V_1 = FunctionSpace(mesh1, scalar_elem)
-    V_2 = FunctionSpace(mesh2, vector_elem)
-    V_3 = FunctionSpace(mesh3, tensor_elem)
+    U = FunctionSpace(mesh1, vector_elem)
+    V = FunctionSpace(mesh2, tensor_elem)
 
     # # MixedFunctionSpace = V_3d x V_2d x V_1d
     # V = MixedFunctionSpace(V_1, V_2, V_3)
 
-    u = Coefficient(V_1)
-    vstar = Argument(V_2.dual(), 0)
+    u = Coefficient(U)
+    vstar = Argument(V.dual(), 0)
     Iu = Interpolate(u, vstar)
+    assert extract_unique_domain(Iu) == mesh2
+
+    v = Coefficient(V)
+    v_test = Argument(V, 0)
+    u_test = Argument(U, 0)
+    form = inner(v_test, v) * Measure("ds", mesh2)
+    adjoint_I = Interpolate(u_test, form)  # adjoint interpolation
+    assert extract_unique_domain(adjoint_I) == mesh1
+
+
+def test_extract_unique_domain_interpolate_meshsequence():
+    cell = triangle
+    mesh1 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=400)
+    mesh2 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=401)
+    mesh3 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=402)
+    domain = MeshSequence([mesh1, mesh2, mesh3])
+
+    scalar_elem = LagrangeElement(cell, 1)
+    vector_elem = LagrangeElement(cell, 1, (2,))
+    tensor_elem = LagrangeElement(cell, 1, (2, 2))
+    mixed_elem = MixedElement([scalar_elem, vector_elem, tensor_elem])
+
+    V = FunctionSpace(domain, mixed_elem)
+
+    u1, u2, u3 = split(TestFunction(V))
+    f1, f2, f3 = split(Coefficient(V))
+    form = inner(u1, f1) * Measure("dx", mesh1)
+
+    Iu = Interpolate(u2, form)  # adjoint interpolation
     assert extract_unique_domain(Iu) == mesh2
