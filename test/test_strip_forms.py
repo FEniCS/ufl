@@ -19,9 +19,6 @@ from ufl.algorithms import replace_terminal_data, strip_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
 
-MIN_REF_COUNT = 2
-"""The minimum value returned by sys.getrefcount."""
-
 
 @attach_ufl_id
 class AugmentedMesh(Mesh, UFLObject):
@@ -49,6 +46,16 @@ class AugmentedConstant(Constant):
 
 
 def test_strip_form_arguments_strips_data_refs():
+    # The minimum value returned by sys.getrefcount.
+    # Python 3.14 introduced borrowing references https://docs.python.org/3.14/glossary.html#term-borrowed-reference.
+    # This changed the output of
+    #
+    #   a = object()
+    #   sys.getrefcount(a)
+    #
+    # from 2 to 1. Avoiding the additional temporary reference increase to pass a to getrefcount.
+    MIN_REF_COUNT = 1 if sys.version_info >= (3, 14) else 2
+
     mesh_data = object()
     fs_data = object()
     coeff_data = object()
