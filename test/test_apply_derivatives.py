@@ -12,6 +12,7 @@ from ufl import (
     FunctionSpace,
     Jacobian,
     Mesh,
+    SpatialCoordinate,
     diff,
     grad,
     interval,
@@ -71,3 +72,54 @@ def test_diff_grad_jacobian_zero(cell, gdim, order, lower_alg, lower_geo, apply_
 
     assert δF_u == 0
     assert δF_u.ufl_shape == (gdim, tdim, gdim)
+
+
+@pytest.mark.parametrize(
+    "cell,gdim",
+    [
+        (interval, 1),
+        (interval, 2),
+        (interval, 3),
+        (triangle, 2),
+        (triangle, 3),
+        (tetrahedron, 3),
+    ],
+)
+@pytest.mark.parametrize("order", [2, 3])  # TODO: 1
+@pytest.mark.parametrize("lower_alg", [True, False])
+@pytest.mark.parametrize("lower_geo", [True, False])
+@pytest.mark.parametrize("apply_deriv", [True, False])
+def test_diff_grad_jacobian_x(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
+    tdim = cell.topological_dimension()
+
+    domain = Mesh(LagrangeElement(cell, order, (gdim,)))
+
+    J = Jacobian(domain)
+    assert J.ufl_shape == (gdim, tdim)
+
+    F = grad(J)
+    if lower_alg:
+        F = apply_algebra_lowering(F)
+
+    if lower_geo:
+        F = apply_geometry_lowering(F)
+
+    if apply_deriv:
+        F = apply_derivatives(F)
+
+    assert F.ufl_shape == (gdim, tdim, gdim)
+
+    x = SpatialCoordinate(domain)
+
+    grad_F = diff(F, x)
+
+    if lower_alg:
+        grad_F = apply_algebra_lowering(grad_F)
+
+    if lower_geo:
+        grad_F = apply_geometry_lowering(grad_F)
+
+    grad_F = apply_derivatives(grad_F)
+
+    assert grad_F[:, :, :, :] != 0
+    assert grad_F.ufl_shape == (gdim, tdim, gdim, gdim)
