@@ -24,29 +24,30 @@ from ufl.algorithms.apply_derivatives import apply_derivatives
 @pytest.mark.parametrize(
     "cell,gdim",
     [
-        (interval, (1,)),
-        (interval, (2,)),
-        (interval, (3,)),
-        (triangle, (2,)),
-        (triangle, (3,)),
-        (tetrahedron, (3,)),
+        (interval, 1),
+        (interval, 2),
+        (interval, 3),
+        (triangle, 2),
+        (triangle, 3),
+        (tetrahedron, 3),
     ],
 )
 @pytest.mark.parametrize("order", [1, 2, 3])
 def test_diff_grad_jacobian_zero(cell, gdim, order):
     tdim = cell.topological_dimension()
 
-    domain = Mesh(LagrangeElement(cell, order, gdim))
+    domain = Mesh(LagrangeElement(cell, order, (gdim,)))
 
     J0 = Jacobian(domain)
-    assert J0.ufl_shape == (gdim[0], tdim)
+    assert J0.ufl_shape == (gdim, tdim)
 
     J = grad(J0)
 
     V = FunctionSpace(domain, LagrangeElement(cell, 1))
     u = Coefficient(V)
 
-    expr = apply_derivatives(diff(J, u))
+    δJ_u = diff(J, u)
+    δJ_u = apply_derivatives(δJ_u)
 
-    assert expr == 0
-    assert expr.ufl_shape == (gdim[0], tdim, gdim[0])
+    assert δJ_u == 0
+    assert δJ_u.ufl_shape == (gdim, tdim, gdim)
