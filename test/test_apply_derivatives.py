@@ -46,19 +46,24 @@ def test_diff_grad_jacobian_zero(cell, gdim, order, lower_alg, lower_geo):
     assert J.ufl_shape == (gdim, tdim)
 
     F = grad(J)
+    if lower_alg:
+        F = apply_algebra_lowering(F)
+
+    if lower_geo:
+        F = apply_geometry_lowering(F)
 
     V = FunctionSpace(domain, LagrangeElement(cell, 1))
     u = Coefficient(V)
 
-    δJ_u = diff(F, u)
+    δF_u = diff(F, u)
 
     if lower_alg:
-        δJ_u = apply_algebra_lowering(δJ_u)
+        δF_u = apply_algebra_lowering(δF_u)
 
     if lower_geo:
-        δJ_u = apply_geometry_lowering(δJ_u)
+        δF_u = apply_geometry_lowering(δF_u)
 
-    δJ_u = apply_derivatives(δJ_u)
+    δF_u = apply_derivatives(δF_u)
 
-    assert δJ_u == 0
-    assert δJ_u.ufl_shape == (gdim, tdim, gdim)
+    assert δF_u == 0
+    assert δF_u.ufl_shape == (gdim, tdim, gdim)
