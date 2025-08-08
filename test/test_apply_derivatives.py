@@ -12,7 +12,6 @@ from ufl import (
     FunctionSpace,
     Jacobian,
     Mesh,
-    SpatialCoordinate,
     diff,
     grad,
     interval,
@@ -39,7 +38,7 @@ from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 @pytest.mark.parametrize("lower_alg", [True, False])
 @pytest.mark.parametrize("lower_geo", [True, False])
 @pytest.mark.parametrize("apply_deriv", [True, False])
-def test_diff_grad_jacobian_zero(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
+def test_diff_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
     tdim = cell.topological_dimension()
 
     domain = Mesh(LagrangeElement(cell, order, (gdim,)))
@@ -89,7 +88,7 @@ def test_diff_grad_jacobian_zero(cell, gdim, order, lower_alg, lower_geo, apply_
 @pytest.mark.parametrize("lower_alg", [True, False])
 @pytest.mark.parametrize("lower_geo", [True, False])
 @pytest.mark.parametrize("apply_deriv", [True, False])
-def test_diff_grad_jacobian_x(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
+def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
     tdim = cell.topological_dimension()
 
     domain = Mesh(LagrangeElement(cell, order, (gdim,)))
@@ -97,7 +96,8 @@ def test_diff_grad_jacobian_x(cell, gdim, order, lower_alg, lower_geo, apply_der
     J = Jacobian(domain)
     assert J.ufl_shape == (gdim, tdim)
 
-    F = grad(J)
+    F = grad(grad(J))
+
     if lower_alg:
         F = apply_algebra_lowering(F)
 
@@ -107,19 +107,21 @@ def test_diff_grad_jacobian_x(cell, gdim, order, lower_alg, lower_geo, apply_der
     if apply_deriv:
         F = apply_derivatives(F)
 
-    assert F.ufl_shape == (gdim, tdim, gdim)
+    assert F[:, :, :, :] != 0
+    assert F.ufl_shape == (gdim, tdim, gdim, gdim)
 
-    x = SpatialCoordinate(domain)
+    V = FunctionSpace(domain, LagrangeElement(cell, 1))
+    u = Coefficient(V)
 
-    grad_F = diff(F, x)
+    δF_u = diff(F, u)
 
     if lower_alg:
-        grad_F = apply_algebra_lowering(grad_F)
+        δF_u = apply_algebra_lowering(δF_u)
 
     if lower_geo:
-        grad_F = apply_geometry_lowering(grad_F)
+        δF_u = apply_geometry_lowering(δF_u)
 
-    grad_F = apply_derivatives(grad_F)
+    δF_u = apply_derivatives(δF_u)
 
-    assert grad_F[:, :, :, :] != 0
-    assert grad_F.ufl_shape == (gdim, tdim, gdim, gdim)
+    assert δF_u == 0
+    assert δF_u.ufl_shape == (gdim, tdim, gdim, gdim)
