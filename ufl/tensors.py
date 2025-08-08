@@ -235,14 +235,24 @@ class ComponentTensor(Operator):
         """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""
         # Untangle as_tensor(C[kk], jj)[ii] -> C[ll]
         B, jj = self.ufl_operands
+        if len(multiindex) != len(jj):
+            raise ValueError(f"len(multiindex) ({len(multiindex)}) != len(jj) ({len(jj)})")
+        rep = dict(zip(jj, multiindex))
+        # Avoid recursion and just attempt to simplify some common patterns
+        # as the result of this method is not cached.
+        if isinstance(B, Indexed):
+            C, kk = B.ufl_operands
+            if isinstance(C, ListTensor) and len(kk) == 1 and isinstance(rep[kk[0]], FixedIndex):
+                (k,) = kk
+                B = C.ufl_operands[int(rep[k])]
+                jj = MultiIndex(tuple(j for j in jj if j != k))
+                multiindex = MultiIndex(tuple(rep[j] for j in jj if j != k))
+                rep = dict(zip(jj, multiindex))
         if isinstance(B, Indexed):
             C, kk = B.ufl_operands
             if all(j in kk for j in jj):
-                ii = tuple(multiindex)
-                rep = dict(zip(jj, ii))
                 Cind = tuple(rep.get(k, k) for k in kk)
                 return Indexed(C, MultiIndex(Cind))
-
         return Operator._simplify_indexed(self, multiindex)
 
     def indices(self):
