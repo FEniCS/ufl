@@ -118,7 +118,7 @@ class GeometryLoweringApplier(MultiFunction):
         # TODO: Is "signing" the determinant for manifolds the
         #       cleanest approach?  The alternative is to have a
         #       specific type for the unsigned pseudo-determinant.
-        if domain.topological_dimension() < domain.geometric_dimension():
+        if domain.topological_dimension < domain.geometric_dimension:
             co = CellOrientation(domain)
             detJ = co * detJ
         return detJ
