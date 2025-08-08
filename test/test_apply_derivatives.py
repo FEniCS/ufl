@@ -86,11 +86,11 @@ def test_diff_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv
         (tetrahedron, 3),
     ],
 )
-@pytest.mark.parametrize("order", [2, 3])  # TODO: 1
+@pytest.mark.parametrize("order", [2, 3])
 @pytest.mark.parametrize("lower_alg", [True, False])
 @pytest.mark.parametrize("lower_geo", [True, False])
 @pytest.mark.parametrize("apply_deriv", [True, False])
-@pytest.mark.skipif(sys.version_info >= (3, 14), "Hits recursion error on Python 3.14.0rc1 ")
+@pytest.mark.skipif(sys.version_info >= (3, 14), reason="Hits recursion error on Python 3.14.0rc1 ")
 def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
     tdim = cell.topological_dimension()
 
