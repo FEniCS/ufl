@@ -91,7 +91,7 @@ def test_diff_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv
 @pytest.mark.parametrize("lower_geo", [True, False])
 @pytest.mark.parametrize("apply_deriv", [True, False])
 def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
-    if sys.version >= 3.14:
+    if sys.version_info >= (3, 14):
         sys.setrecursionlimit(sys.getrecursionlimit() * 10)
 
     tdim = cell.topological_dimension()
