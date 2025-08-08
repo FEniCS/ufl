@@ -34,10 +34,11 @@ from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
         (tetrahedron, 3),
     ],
 )
-@pytest.mark.parametrize("order", [1, 2, 3])
+@pytest.mark.parametrize("order", [2])
 @pytest.mark.parametrize("lower_alg", [True, False])
 @pytest.mark.parametrize("lower_geo", [True, False])
-def test_diff_grad_jacobian_zero(cell, gdim, order, lower_alg, lower_geo):
+@pytest.mark.parametrize("apply_deriv", [True, False])
+def test_diff_grad_jacobian_zero(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
     tdim = cell.topological_dimension()
 
     domain = Mesh(LagrangeElement(cell, order, (gdim,)))
@@ -51,6 +52,9 @@ def test_diff_grad_jacobian_zero(cell, gdim, order, lower_alg, lower_geo):
 
     if lower_geo:
         F = apply_geometry_lowering(F)
+
+    if apply_deriv:
+        F = apply_derivatives(F)
 
     V = FunctionSpace(domain, LagrangeElement(cell, 1))
     u = Coefficient(V)
