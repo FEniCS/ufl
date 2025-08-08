@@ -38,15 +38,15 @@ def test_diff_grad_jacobian_zero(cell, gdim, order):
 
     domain = Mesh(LagrangeElement(cell, order, (gdim,)))
 
-    J0 = Jacobian(domain)
-    assert J0.ufl_shape == (gdim, tdim)
+    J = Jacobian(domain)
+    assert J.ufl_shape == (gdim, tdim)
 
-    J = grad(J0)
+    F = grad(J)
 
     V = FunctionSpace(domain, LagrangeElement(cell, 1))
     u = Coefficient(V)
 
-    δJ_u = diff(J, u)
+    δJ_u = diff(F, u)
     δJ_u = apply_derivatives(δJ_u)
 
     assert δJ_u == 0
