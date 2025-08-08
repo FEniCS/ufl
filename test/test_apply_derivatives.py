@@ -34,7 +34,7 @@ from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
         (tetrahedron, 3),
     ],
 )
-@pytest.mark.parametrize("order", [2])
+@pytest.mark.parametrize("order", [1, 2, 3])
 @pytest.mark.parametrize("lower_alg", [True, False])
 @pytest.mark.parametrize("lower_geo", [True, False])
 @pytest.mark.parametrize("apply_deriv", [True, False])
