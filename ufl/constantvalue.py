@@ -275,7 +275,7 @@ class ScalarValue(ConstantValue):
         return self._value.imag
 
 
-@ufl_type(wraps_type=complex)
+@ufl_type()
 class ComplexValue(ScalarValue):
     """Representation of a constant, complex scalar."""
 
@@ -331,7 +331,7 @@ class RealValue(ScalarValue):
     __slots__ = ()
 
 
-@ufl_type(wraps_type=float)
+@ufl_type()
 class FloatValue(RealValue):
     """Representation of a constant scalar floating point value."""
 
@@ -359,7 +359,7 @@ class FloatValue(RealValue):
         return r
 
 
-@ufl_type(wraps_type=int)
+@ufl_type()
 class IntValue(RealValue):
     """Representation of a constant scalar integer value."""
 

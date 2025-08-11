@@ -198,7 +198,6 @@ def ufl_type(
     use_default_hash=True,
     inherit_shape_from_operand=None,
     inherit_indices_from_operand=None,
-    wraps_type=None,
     unop=None,
     binop=None,
     rbinop=None,
@@ -223,20 +222,6 @@ def ufl_type(
 
         # Store type traits
         cls._ufl_class_ = cls
-
-        # Attach builtin type wrappers to Expr
-        """# These are currently handled in the as_ufl implementation in constantvalue.py
-        if wraps_type is not None:
-            if not isinstance(wraps_type, type):
-                msg = "Expecting a type, not a {0.__name__} for the
-                wraps_type argument in definition of {1.__name__}."
-                raise TypeError(msg.format(type(wraps_type), cls))
-
-            def _ufl_from_type_(value):
-                return cls(value)
-            from_type_name = "_ufl_from_{0}_".format(wraps_type.__name__)
-            setattr(Expr, from_type_name, staticmethod(_ufl_from_type_))
-        """
 
         # Attach special function to Expr.
         # Avoids the circular dependency problem of making
