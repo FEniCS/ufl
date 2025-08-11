@@ -30,8 +30,6 @@ from ufl.utils.counted import Counted
 class BaseFormOperator(Operator, BaseForm, Counted):
     """Base form operator."""
 
-    _ufl_is_differential_ = True
-
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
     _ufl_noslots_ = True

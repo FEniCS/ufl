@@ -21,8 +21,6 @@ from ufl.core.ufl_type import ufl_type
 class ExternalOperator(BaseFormOperator):
     """External operator."""
 
-    _ufl_is_differential_ = True
-
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
     _ufl_noslots_ = True

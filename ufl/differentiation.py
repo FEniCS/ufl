@@ -28,7 +28,6 @@ from ufl.variable import Variable
 class Derivative(Operator):
     """Base class for all derivative types."""
 
-    _ufl_is_differential_ = True
     __slots__ = ()
 
     def __init__(self, operands):

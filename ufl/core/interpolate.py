@@ -21,8 +21,6 @@ from ufl.functionspace import AbstractFunctionSpace
 class Interpolate(BaseFormOperator):
     """Symbolic representation of the interpolation operator."""
 
-    _ufl_is_differential_ = True
-
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
     _ufl_noslots_ = True
