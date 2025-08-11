@@ -22,7 +22,6 @@ from ufl.indexed import Indexed
 class ListTensor(Operator):
     """Wraps a list of expressions into a tensor valued expression of one higher rank."""
 
-    _ufl_is_shaping_ = True
     __slots__ = ("_initialised",)
 
     def __new__(cls, *expressions):
@@ -193,7 +192,6 @@ class ListTensor(Operator):
 class ComponentTensor(Operator):
     """Maps the free indices of a scalar valued expression to tensor axes."""
 
-    _ufl_is_shaping_ = True
     __slots__ = ("_initialised", "ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     def __new__(cls, expression, indices):

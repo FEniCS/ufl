@@ -81,7 +81,6 @@ class Variable(Operator):
 
     ufl_free_indices = ()
     ufl_index_dimensions = ()
-    _ufl_is_shaping_ = True
     __slots__ = ()
 
     def __init__(self, expression, label=None):

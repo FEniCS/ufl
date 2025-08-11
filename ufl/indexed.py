@@ -20,7 +20,6 @@ class Indexed(Operator):
     """Indexed expression."""
 
     _ufl_is_terminal_modifier_ = True
-    _ufl_is_shaping_ = True
     __slots__ = (
         "_initialised",
         "ufl_free_indices",

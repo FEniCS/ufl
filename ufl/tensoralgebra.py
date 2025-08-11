@@ -90,7 +90,6 @@ class CompoundTensorOperator(Operator):
 class Transposed(CompoundTensorOperator):
     """Transposed tensor."""
 
-    _ufl_is_shaping_ = True
     __slots__ = ()
 
     def __new__(cls, A):

@@ -126,11 +126,6 @@ class Expr(UFLType):
     # implement for this type in a multifunction.
     _ufl_handler_name_ = "expr"
 
-    # Type trait: If the type is a shaping operator.  Shaping
-    # operations include indexing, slicing, transposing, i.e. not
-    # introducing computation of a new value.
-    _ufl_is_shaping_ = False
-
     # --- All subclasses must define these object attributes ---
 
     # Each subclass of Expr is checked to have these properties in
