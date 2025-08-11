@@ -13,9 +13,7 @@ from ufl.precedence import parstr
 # --- Restriction operators ---
 
 
-@ufl_type(
-    inherit_indices_from_operand=0,
-)
+@ufl_type()
 class Restricted(Operator):
     """Restriction."""
 
@@ -50,6 +48,16 @@ class Restricted(Operator):
     def ufl_shape(self):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
+
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
 
 @ufl_type()

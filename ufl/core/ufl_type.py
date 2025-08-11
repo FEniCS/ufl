@@ -148,7 +148,7 @@ def check_implements_required_properties(cls):
     #             raise TypeError(msg.format(cls, attr))
 
 
-def attach_implementations_of_indexing_interface(cls, inherit_indices_from_operand):
+def attach_implementations_of_indexing_interface(cls):
     """Attach implementations of indexing interface."""
     # Scalar or index-free? Then we can simplify the implementation of
     # tensor properties by attaching them here.
@@ -158,17 +158,6 @@ def attach_implementations_of_indexing_interface(cls, inherit_indices_from_opera
     if cls._ufl_is_scalar_ or cls._ufl_is_index_free_:
         cls.ufl_free_indices = ()
         cls.ufl_index_dimensions = ()
-
-    if inherit_indices_from_operand is not None:
-
-        def _inherited_ufl_free_indices(self):
-            return self.ufl_operands[inherit_indices_from_operand].ufl_free_indices
-
-        def _inherited_ufl_index_dimensions(self):
-            return self.ufl_operands[inherit_indices_from_operand].ufl_index_dimensions
-
-        cls.ufl_free_indices = property(_inherited_ufl_free_indices)
-        cls.ufl_index_dimensions = property(_inherited_ufl_index_dimensions)
 
 
 def update_ufl_type_attributes(cls):
@@ -184,7 +173,6 @@ def update_ufl_type_attributes(cls):
 
 def ufl_type(
     use_default_hash=True,
-    inherit_indices_from_operand=None,
 ):
     """Decorator to apply to every subclass in the UFL ``Expr`` and ``BaseForm`` hierarchy.
 
@@ -219,7 +207,7 @@ def ufl_type(
         # class!  This approach significantly reduces the amount of
         # small functions to implement across all the types but of
         # course it's a bit more opaque.
-        attach_implementations_of_indexing_interface(cls, inherit_indices_from_operand)
+        attach_implementations_of_indexing_interface(cls)
 
         # Apply a range of consistency checks to detect bugs in type
         # implementations that Python doesn't check for us, including

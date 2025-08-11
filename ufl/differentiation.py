@@ -36,7 +36,7 @@ class Derivative(Operator):
         Operator.__init__(self, operands)
 
 
-@ufl_type(inherit_indices_from_operand=0)
+@ufl_type()
 class CoefficientDerivative(Derivative):
     """Derivative of form integrand w.r.t. the degrees of freedom in a discrete Coefficient."""
 
@@ -72,8 +72,18 @@ class CoefficientDerivative(Derivative):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class CoordinateDerivative(CoefficientDerivative):
     """Derivative of the integrand of a form w.r.t. the SpatialCoordinates."""
 
@@ -91,8 +101,18 @@ class CoordinateDerivative(CoefficientDerivative):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
@@ -144,8 +164,18 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
     """Derivative of a base form w.r.t. the SpatialCoordinates."""
 
@@ -162,8 +192,18 @@ class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     """Derivative of a base form operator w.r.t the degrees of freedom in a discrete Coefficient."""
 
@@ -213,8 +253,18 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):
     """Derivative of a base form operator w.r.t. the SpatialCoordinates."""
 
@@ -230,6 +280,16 @@ class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, Coordinat
     def ufl_shape(self):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
+
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
 
 @ufl_type()
@@ -288,7 +348,7 @@ class CompoundDerivative(Derivative):
         Derivative.__init__(self, operands)
 
 
-@ufl_type(inherit_indices_from_operand=0)
+@ufl_type()
 class Grad(CompoundDerivative):
     """Grad."""
 
@@ -336,8 +396,18 @@ class Grad(CompoundDerivative):
         """Format as a string."""
         return f"grad({self.ufl_operands[0]})"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class ReferenceGrad(CompoundDerivative):
     """Reference grad."""
 
@@ -388,8 +458,18 @@ class ReferenceGrad(CompoundDerivative):
         """Format as a string."""
         return f"reference_grad({self.ufl_operands[0]})"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class Div(CompoundDerivative):
     """Div."""
 
@@ -420,8 +500,18 @@ class Div(CompoundDerivative):
         """Format as a string."""
         return f"div({self.ufl_operands[0]})"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class ReferenceDiv(CompoundDerivative):
     """Reference divergence."""
 
@@ -453,8 +543,18 @@ class ReferenceDiv(CompoundDerivative):
         """Format as a string."""
         return f"reference_div({self.ufl_operands[0]})"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class NablaGrad(CompoundDerivative):
     """Nabla grad."""
 
@@ -492,8 +592,18 @@ class NablaGrad(CompoundDerivative):
         """Format as a string."""
         return f"nabla_grad({self.ufl_operands[0]})"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class NablaDiv(CompoundDerivative):
     """Nabla div."""
 
@@ -523,11 +633,21 @@ class NablaDiv(CompoundDerivative):
         """Format as a string."""
         return f"nabla_div({self.ufl_operands[0]})"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
 
 _curl_shapes = {(): (2,), (2,): (), (3,): (3,)}
 
 
-@ufl_type(inherit_indices_from_operand=0)
+@ufl_type()
 class Curl(CompoundDerivative):
     """Compound derivative."""
 
@@ -558,8 +678,18 @@ class Curl(CompoundDerivative):
         """Format as a string."""
         return f"curl({self.ufl_operands[0]})"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class ReferenceCurl(CompoundDerivative):
     """Reference curl."""
 
@@ -590,3 +720,13 @@ class ReferenceCurl(CompoundDerivative):
     def __str__(self):
         """Format as a string."""
         return f"reference_curl({self.ufl_operands[0]})"
+
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions

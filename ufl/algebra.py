@@ -20,7 +20,7 @@ from ufl.sorting import sorted_expr
 # --- Algebraic operators ---
 
 
-@ufl_type(inherit_indices_from_operand=0)
+@ufl_type()
 class Sum(Operator):
     """Sum."""
 
@@ -101,6 +101,16 @@ class Sum(Operator):
     def ufl_shape(self):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
+
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
 
 
 @ufl_type()
@@ -200,7 +210,7 @@ class Product(Operator):
         return " * ".join((parstr(a, self), parstr(b, self)))
 
 
-@ufl_type(inherit_indices_from_operand=0)
+@ufl_type()
 class Division(Operator):
     """Division."""
 
@@ -264,8 +274,18 @@ class Division(Operator):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)} / {parstr(self.ufl_operands[1], self)}"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class Power(Operator):
     """Power."""
 
@@ -326,8 +346,18 @@ class Power(Operator):
         a, b = self.ufl_operands
         return f"{parstr(a, self)} ** {parstr(b, self)}"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class Abs(Operator):
     """Absolute value."""
 
@@ -366,8 +396,18 @@ class Abs(Operator):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class Conj(Operator):
     """Complex conjugate."""
 
@@ -406,8 +446,18 @@ class Conj(Operator):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class Real(Operator):
     """Real part."""
 
@@ -448,8 +498,18 @@ class Real(Operator):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(inherit_indices_from_operand=0)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class Imag(Operator):
     """Imaginary part."""
 
@@ -487,3 +547,13 @@ class Imag(Operator):
     def ufl_shape(self):
         """Return shape."""
         return self.ufl_operands[0].ufl_shape
+
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions

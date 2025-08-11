@@ -256,7 +256,7 @@ class NotCondition(Condition):
         return f"!({self.ufl_operands[0]!s})"
 
 
-@ufl_type(inherit_indices_from_operand=1)
+@ufl_type()
 class Conditional(Operator):
     """Conditional expression.
 
@@ -322,6 +322,16 @@ class Conditional(Operator):
     def ufl_shape(self):
         """Return shape."""
         return self.ufl_operands[1].ufl_shape
+
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[1].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[1].ufl_index_dimensions
 
 
 # --- Specific functions higher level than a conditional ---
