@@ -104,8 +104,8 @@ from ufl.classes import (
     FacetJacobian,
     FacetJacobianDeterminant,
     FacetJacobianInverse,
-    FloatValue,
-    IntValue,
+    FloatValue,  # type: ignore
+    IntValue,  # type: ignore
     Ln,
     Outer,
     Sin,
