@@ -25,7 +25,7 @@ from ufl.precedence import parstr
 class Condition(Operator):
     """Condition."""
 
-    _ufl_is_scalar_ = True
+    ufl_shape = ()
     _ufl_is_index_free_ = True
     __slots__ = ()
 
@@ -341,7 +341,7 @@ class Conditional(Operator):
 class MinValue(Operator):
     """Take the minimum of two values."""
 
-    _ufl_is_scalar_ = True
+    ufl_shape = ()
     _ufl_is_index_free_ = True
     __slots__ = ()
 
@@ -375,7 +375,7 @@ class MinValue(Operator):
 class MaxValue(Operator):
     """Take the maximum of two values."""
 
-    _ufl_is_scalar_ = True
+    ufl_shape = ()
     _ufl_is_index_free_ = True
     __slots__ = ()
 

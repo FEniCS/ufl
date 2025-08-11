@@ -367,7 +367,7 @@ class Trace(CompoundTensorOperator):
 class Determinant(CompoundTensorOperator):
     """Determinant."""
 
-    _ufl_is_scalar_ = True
+    ufl_shape = ()
     _ufl_is_index_free_ = True
     __slots__ = ()
 

@@ -204,7 +204,7 @@ def zero(*shape):
 class ScalarValue(ConstantValue):
     """A constant scalar value."""
 
-    _ufl_is_scalar_ = True
+    ufl_shape = ()
     _ufl_is_index_free_ = True
     __slots__ = ("_value",)
 
@@ -326,7 +326,7 @@ class ComplexValue(ScalarValue):
 class RealValue(ScalarValue):
     """Abstract class used to differentiate real values from complex ones."""
 
-    _ufl_is_scalar_ = True
+    ufl_shape = ()
     _ufl_is_index_free_ = True
     __slots__ = ()
 

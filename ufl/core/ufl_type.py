@@ -116,12 +116,6 @@ def check_type_traits_consistency(cls):
     # Check for consistency in global type collection sizes
     assert UFLRegistry().number_registered_classes == len(UFLRegistry().all_classes)
 
-    # Check that a non-scalar type doesn't have a scalar base class.
-    if not cls._ufl_is_scalar_:
-        if get_base_attr(cls, "_ufl_is_scalar_"):
-            msg = "Non-scalar class {0.__name__} is has a scalar base class."
-            raise TypeError(msg.format(cls))
-
 
 def check_implements_required_methods(cls):
     """Check if type implements the required methods."""
@@ -152,10 +146,8 @@ def attach_implementations_of_indexing_interface(cls):
     """Attach implementations of indexing interface."""
     # Scalar or index-free? Then we can simplify the implementation of
     # tensor properties by attaching them here.
-    if cls._ufl_is_scalar_:
-        cls.ufl_shape = ()
 
-    if cls._ufl_is_scalar_ or cls._ufl_is_index_free_:
+    if cls._ufl_is_index_free_:
         cls.ufl_free_indices = ()
         cls.ufl_index_dimensions = ()
 
@@ -295,8 +287,6 @@ class UFLType(ABC):
     _ufl_is_evaluation_: bool = False
     _ufl_is_differential_: bool = False
 
-    # Note: is_scalar implies is_index_free
-    _ufl_is_scalar_: bool = False
     _ufl_is_index_free_: bool = False
 
     ufl_operands: tuple[FormArgument, ...]

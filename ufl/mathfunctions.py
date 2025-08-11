@@ -55,7 +55,7 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 class MathFunction(Operator):
     """Base class for all unary scalar math functions."""
 
-    _ufl_is_scalar_ = True
+    ufl_shape = ()
     _ufl_is_index_free_ = True
     # Freeze member variables for objects in this class
     __slots__ = ("_name",)
@@ -328,7 +328,7 @@ class Atan(MathFunction):
 class Atan2(Operator):
     """Inverse tangent with two inputs."""
 
-    _ufl_is_scalar_ = True
+    ufl_shape = ()
     _ufl_is_index_free_ = True
     __slots__ = ()
 
@@ -396,7 +396,7 @@ class Erf(MathFunction):
 class BesselFunction(Operator):
     """Base class for all bessel functions."""
 
-    _ufl_is_scalar_ = True
+    ufl_shape = ()
     _ufl_is_index_free_ = True
     __slots__ = "_name"
 
