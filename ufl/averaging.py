@@ -15,7 +15,6 @@ from ufl.core.ufl_type import ufl_type
 class CellAvg(Operator):
     """Cell average."""
 
-    _ufl_is_evaluation_ = True
     __slots__ = ()
 
     def __new__(cls, f):
@@ -56,7 +55,6 @@ class CellAvg(Operator):
 class FacetAvg(Operator):
     """Facet average."""
 
-    _ufl_is_evaluation_ = True
     __slots__ = ()
 
     def __new__(cls, f):
