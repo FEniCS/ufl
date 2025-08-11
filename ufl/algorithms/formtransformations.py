@@ -497,7 +497,8 @@ def compute_form_adjoint(form, reordered_arguments=None):
     but keeping their elements and places in the integrand expressions.
     """
     arguments = form.arguments()
-
+    if form.empty():
+        return form
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
         J = extract_blocks(form, arity=2)
