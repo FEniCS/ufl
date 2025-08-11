@@ -137,15 +137,15 @@ class GeometricQuantity(Terminal):
 
     def _ufl_signature_data_(self, renumbering):
         """Signature data of geometric quantities depend on the domain numbering."""
-        return (self._ufl_class_.__name__,) + self._domain._ufl_signature_data_(renumbering)
+        return (type(self).__name__,) + self._domain._ufl_signature_data_(renumbering)
 
     def __str__(self):
         """Format as a string."""
-        return self._ufl_class_.name
+        return type(self).name
 
     def __repr__(self):
         """Representation."""
-        r = f"{self._ufl_class_.__name__}({self._domain!r})"
+        r = f"{type(self).__name__}({self._domain!r})"
         return r
 
     def _ufl_compute_hash_(self):
@@ -154,7 +154,7 @@ class GeometricQuantity(Terminal):
 
     def __eq__(self, other):
         """Check equality."""
-        return isinstance(other, self._ufl_class_) and other._domain == self._domain
+        return isinstance(other, type(self)) and other._domain == self._domain
 
 
 @ufl_type()

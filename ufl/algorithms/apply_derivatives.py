@@ -165,13 +165,11 @@ class GenericDerivativeRuleset(DAGTraverser):
 
     def unexpected(self, o):
         """Raise error about unexpected type."""
-        raise ValueError(f"Unexpected type {o._ufl_class_.__name__} in AD rules.")
+        raise ValueError(f"Unexpected type {type(o).__name__} in AD rules.")
 
     def override(self, o):
         """Raise error about overriding."""
-        raise ValueError(
-            f"Type {o._ufl_class_.__name__} must be overridden in specialized AD rule set."
-        )
+        raise ValueError(f"Type {type(o).__name__} must be overridden in specialized AD rule set.")
 
     # --- Some types just don't have any derivative, this is just to
     # --- make algorithm structure generic
@@ -213,7 +211,7 @@ class GenericDerivativeRuleset(DAGTraverser):
     def _(self, o: Expr) -> Expr:
         """Raise error."""
         raise ValueError(
-            f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
+            f"Missing differentiation handler for type {type(o).__name__}. "
             "Have you added a new type?"
         )
 
@@ -221,8 +219,7 @@ class GenericDerivativeRuleset(DAGTraverser):
     def _(self, o: Expr) -> Expr:
         """Raise error."""
         raise ValueError(
-            f"Unhandled derivative type {o._ufl_class_.__name__}, "
-            "nested differentiation has failed."
+            f"Unhandled derivative type {type(o).__name__}, nested differentiation has failed."
         )
 
     @process.register(Label)

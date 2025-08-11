@@ -376,7 +376,7 @@ class Grad(CompoundDerivative):
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
                 raise ValueError("Free index mismatch in Grad reconstruct.")
             return Zero(self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
-        return self._ufl_class_(op)
+        return type(self)(op)
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         """Get child from mapping and return the component asked for."""
@@ -438,7 +438,7 @@ class ReferenceGrad(CompoundDerivative):
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
                 raise ValueError("Free index mismatch in ReferenceGrad reconstruct.")
             return Zero(self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
-        return self._ufl_class_(op)
+        return type(self)(op)
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         """Get child from mapping and return the component asked for."""
@@ -581,7 +581,7 @@ class NablaGrad(CompoundDerivative):
             if self.ufl_operands[0].ufl_free_indices != op.ufl_free_indices:
                 raise ValueError("Free index mismatch in NablaGrad reconstruct.")
             return Zero(self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
-        return self._ufl_class_(op)
+        return type(self)(op)
 
     @property
     def ufl_shape(self):

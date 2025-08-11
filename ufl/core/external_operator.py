@@ -81,9 +81,7 @@ class ExternalOperator(BaseFormOperator):
 
     def assemble(self, *args, **kwargs):
         """Assemble the external operator."""
-        raise NotImplementedError(
-            f"Symbolic evaluation of {self._ufl_class_.__name__} not available."
-        )
+        raise NotImplementedError(f"Symbolic evaluation of {type(self).__name__} not available.")
 
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None, add_kwargs={}

@@ -95,7 +95,7 @@ class MultiFunction:
 
     def undefined(self, o, *args):
         """Trigger error for types with missing handlers."""
-        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
+        raise ValueError(f"No handler defined for {type(o).__name__}.")
 
     def reuse_if_untouched(self, o, *ops):
         """Reuse object if operands are the same objects.

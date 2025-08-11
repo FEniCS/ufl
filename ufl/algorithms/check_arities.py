@@ -45,7 +45,7 @@ class ArityChecker(MultiFunction):
         for t in traverse_unique_terminals(o):
             if t._ufl_typecode_ == Argument._ufl_typecode_:
                 raise ArityMismatch(
-                    f"Applying nonlinear operator {o._ufl_class_.__name__} to "
+                    f"Applying nonlinear operator {type(o).__name__} to "
                     f"expression depending on form argument {t}."
                 )
         return self._et

@@ -234,7 +234,7 @@ class ScalarValue(ConstantValue):
         can still succeed. These will however not have the same
         hash value and therefore not collide in a dict.
         """
-        if isinstance(other, self._ufl_class_):
+        if isinstance(other, type(self)):
             return self._value == other._value
         elif isinstance(other, (int, float)):
             # FIXME: Disallow this, require explicit 'expr ==

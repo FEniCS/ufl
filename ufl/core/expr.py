@@ -122,11 +122,6 @@ class Expr(UFLType):
     # type traits that categorize types are mostly set to None for
     # Expr but should be True or False for any non-abstract type.
 
-    # A reference to the UFL class itself.  This makes it possible to
-    # do type(f)._ufl_class_ and be sure you get the actual UFL class
-    # instead of a subclass from another library.
-    _ufl_class_: type = None  # type: ignore
-
     # The handler name.  This is the name of the handler function you
     # implement for this type in a multifunction.
     _ufl_handler_name_ = "expr"
@@ -248,7 +243,7 @@ class Expr(UFLType):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        raise ValueError(f"Symbolic evaluation of {self._ufl_class_.__name__} not available.")
+        raise ValueError(f"Symbolic evaluation of {type(self).__name__} not available.")
 
     def _ufl_evaluate_scalar_(self):
         if self.ufl_shape or self.ufl_free_indices:
@@ -315,7 +310,7 @@ class Expr(UFLType):
 
     def _ufl_err_str_(self):
         """Return a short string to represent this Expr in an error message."""
-        return f"<{self._ufl_class_.__name__} id={id(self)}>"
+        return f"<{type(self).__name__} id={id(self)}>"
 
     def _simplify_indexed(self, multiindex):
         """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""
@@ -454,10 +449,6 @@ class Expr(UFLType):
         """Get item."""
         pass
 
-
-# Initializing traits here because Expr is not defined in the class
-# declaration
-Expr._ufl_class_ = Expr  # type: ignore
 
 # Update Expr with metaclass properties (e.g. typecode or handler name)
 # Explicitly done here instead of using `@ufl_type` to avoid circular imports.

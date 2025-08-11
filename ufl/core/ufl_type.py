@@ -149,9 +149,6 @@ def ufl_type(
             # Don't need anything else for non Expr subclasses
             return cls
 
-        # Store type traits
-        cls._ufl_class_ = cls
-
         # Make sure every non-abstract class has its own __hash__ and
         # __eq__.  Python 3 will set __hash__ to None if cls has
         # __eq__, but we've implemented it in a separate function and

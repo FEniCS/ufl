@@ -126,14 +126,14 @@ class SumDegreeEstimator(MultiFunction):
 
     def _not_handled(self, v, *args):
         """Apply to _not_handled."""
-        raise ValueError(f"Missing degree handler for type {v._ufl_class_.__name__}")
+        raise ValueError(f"Missing degree handler for type {type(v).__name__}")
 
     def expr(self, v, *ops):
         """Apply to expr.
 
         For most operators we take the max degree of its operands.
         """
-        warnings.warn(f"Missing degree estimation handler for type {v._ufl_class_.__name__}")
+        warnings.warn(f"Missing degree estimation handler for type {type(v).__name__}")
         return self._add_degrees(v, *ops)
 
     # Utility types with no degree concept

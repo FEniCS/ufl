@@ -62,7 +62,7 @@ class RestrictionPropagator(MultiFunction):
     def _require_restriction(self, o):
         """Restrict a discontinuous quantity to current side, require a side to be set."""
         if self.current_restriction is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+            raise ValueError(f"Discontinuous type {type(o).__name__} must be restricted.")
         return o(self.current_restriction)
 
     def _default_restricted(self, o):
@@ -81,7 +81,7 @@ class RestrictionPropagator(MultiFunction):
         If the current restriction is different swap the sign, require a side to be set.
         """
         if self.current_restriction is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
+            raise ValueError(f"Discontinuous type {type(o).__name__} must be restricted.")
         elif self.current_restriction == self.default_restriction:
             return o(self.default_restriction)
         else:
@@ -89,7 +89,7 @@ class RestrictionPropagator(MultiFunction):
 
     def _missing_rule(self, o):
         """Raise an error."""
-        raise ValueError(f"Missing rule for {o._ufl_class_.__name__}")
+        raise ValueError(f"Missing rule for {type(o).__name__}")
 
     # --- Rules for operators
 
