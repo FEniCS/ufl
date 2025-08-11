@@ -232,7 +232,6 @@ class UFLType(ABC):
 
     _ufl_handler_name_: str = "ufl_type"
     _ufl_is_terminal_: bool = False
-    _ufl_is_literal_: bool = False
 
     _ufl_is_terminal_modifier_: bool = False
     _ufl_is_in_reference_frame_: bool = False
