@@ -198,7 +198,6 @@ def ufl_type(
     use_default_hash=True,
     inherit_shape_from_operand=None,
     inherit_indices_from_operand=None,
-    binop=None,
     rbinop=None,
 ):
     """Decorator to apply to every subclass in the UFL ``Expr`` and ``BaseForm`` hierarchy.
@@ -226,14 +225,6 @@ def ufl_type(
         # Avoids the circular dependency problem of making
         # Expr.__foo__ return a Foo that is a subclass of Expr.
         """# These are currently attached in exproperators.py
-        if binop:
-            def _ufl_expr_binop_(self, other):
-                try:
-                    other = Expr._ufl_coerce_(other)
-                except:
-                    return NotImplemented
-                return cls(self, other)
-            setattr(Expr, binop, _ufl_expr_binop_)
         if rbinop:
             def _ufl_expr_rbinop_(self, other):
                 try:

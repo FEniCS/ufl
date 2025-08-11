@@ -132,7 +132,7 @@ class NE(BinaryCondition):
     __nonzero__ = __bool__
 
 
-@ufl_type(binop="__le__")
+@ufl_type()
 class LE(BinaryCondition):
     """Less than or equal condition."""
 
@@ -149,7 +149,7 @@ class LE(BinaryCondition):
         return bool(a <= b)
 
 
-@ufl_type(binop="__ge__")
+@ufl_type()
 class GE(BinaryCondition):
     """Greater than or equal to condition."""
 
@@ -166,7 +166,7 @@ class GE(BinaryCondition):
         return bool(a >= b)
 
 
-@ufl_type(binop="__lt__")
+@ufl_type()
 class LT(BinaryCondition):
     """Less than condition."""
 
@@ -183,7 +183,7 @@ class LT(BinaryCondition):
         return bool(a < b)
 
 
-@ufl_type(binop="__gt__")
+@ufl_type()
 class GT(BinaryCondition):
     """Greater than condition."""
 
