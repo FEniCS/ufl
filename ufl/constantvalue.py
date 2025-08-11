@@ -205,7 +205,8 @@ class ScalarValue(ConstantValue):
     """A constant scalar value."""
 
     ufl_shape = ()
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ("_value",)
 
     def __init__(self, value):
@@ -327,7 +328,8 @@ class RealValue(ScalarValue):
     """Abstract class used to differentiate real values from complex ones."""
 
     ufl_shape = ()
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
 

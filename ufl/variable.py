@@ -79,7 +79,8 @@ class Variable(Operator):
       df = diff(f, e)
     """
 
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     _ufl_is_shaping_ = True
     __slots__ = ()
 

@@ -136,9 +136,6 @@ class Expr(UFLType):
     # introducing computation of a new value.
     _ufl_is_shaping_ = False
 
-    # Type trait: If the type never has free indices.
-    _ufl_is_index_free_ = False
-
     # --- All subclasses must define these object attributes ---
 
     # Each subclass of Expr is checked to have these properties in

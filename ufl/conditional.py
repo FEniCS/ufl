@@ -26,7 +26,8 @@ class Condition(Operator):
     """Condition."""
 
     ufl_shape = ()
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __init__(self, operands):
@@ -342,7 +343,8 @@ class MinValue(Operator):
     """Take the minimum of two values."""
 
     ufl_shape = ()
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __init__(self, left, right):
@@ -376,7 +378,8 @@ class MaxValue(Operator):
     """Take the maximum of two values."""
 
     ufl_shape = ()
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __init__(self, left, right):

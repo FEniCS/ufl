@@ -142,16 +142,6 @@ def check_implements_required_properties(cls):
     #             raise TypeError(msg.format(cls, attr))
 
 
-def attach_implementations_of_indexing_interface(cls):
-    """Attach implementations of indexing interface."""
-    # Scalar or index-free? Then we can simplify the implementation of
-    # tensor properties by attaching them here.
-
-    if cls._ufl_is_index_free_:
-        cls.ufl_free_indices = ()
-        cls.ufl_index_dimensions = ()
-
-
 def update_ufl_type_attributes(cls):
     """Update UFL type attributes."""
     # Determine integer typecode by incrementally counting all types
@@ -286,8 +276,6 @@ class UFLType(ABC):
     _ufl_is_restriction_: bool = False
     _ufl_is_evaluation_: bool = False
     _ufl_is_differential_: bool = False
-
-    _ufl_is_index_free_: bool = False
 
     ufl_operands: tuple[FormArgument, ...]
     ufl_shape: tuple[int, ...]

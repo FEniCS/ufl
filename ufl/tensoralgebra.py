@@ -255,7 +255,8 @@ class Dot(CompoundTensorOperator):
 class Perp(CompoundTensorOperator):
     """Perp."""
 
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __new__(cls, A):
@@ -368,7 +369,8 @@ class Determinant(CompoundTensorOperator):
     """Determinant."""
 
     ufl_shape = ()
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __new__(cls, A):
@@ -408,7 +410,8 @@ class Determinant(CompoundTensorOperator):
 class Inverse(CompoundTensorOperator):
     """Inverse."""
 
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __new__(cls, A):
@@ -452,7 +455,8 @@ class Inverse(CompoundTensorOperator):
 class Cofactor(CompoundTensorOperator):
     """Cofactor."""
 
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __init__(self, A):

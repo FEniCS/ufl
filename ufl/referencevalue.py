@@ -14,7 +14,8 @@ from ufl.core.ufl_type import ufl_type
 class ReferenceValue(Operator):
     """Representation of the reference cell value of a form argument."""
 
-    _ufl_is_index_free_ = True
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     _ufl_is_terminal_modifier_ = True
     _ufl_is_in_reference_frame_ = True
     __slots__ = ()
