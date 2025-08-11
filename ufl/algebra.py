@@ -20,11 +20,7 @@ from ufl.sorting import sorted_expr
 # --- Algebraic operators ---
 
 
-@ufl_type(
-    inherit_shape_from_operand=0,
-    inherit_indices_from_operand=0,
-    rbinop="__radd__",
-)
+@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Sum(Operator):
     """Sum."""
 
@@ -102,7 +98,7 @@ class Sum(Operator):
         return " + ".join([parstr(o, self) for o in self.ufl_operands])
 
 
-@ufl_type(rbinop="__rmul__")
+@ufl_type()
 class Product(Operator):
     """The product of two or more UFL objects."""
 
@@ -199,7 +195,7 @@ class Product(Operator):
         return " * ".join((parstr(a, self), parstr(b, self)))
 
 
-@ufl_type(inherit_indices_from_operand=0, rbinop="__rdiv__")
+@ufl_type(inherit_indices_from_operand=0)
 class Division(Operator):
     """Division."""
 
@@ -264,7 +260,7 @@ class Division(Operator):
         return f"{parstr(self.ufl_operands[0], self)} / {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(inherit_indices_from_operand=0, rbinop="__rpow__")
+@ufl_type(inherit_indices_from_operand=0)
 class Power(Operator):
     """Power."""
 
