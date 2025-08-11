@@ -185,12 +185,6 @@ def ufl_type(
         if use_default_hash:
             cls.__hash__ = compute_expr_hash
 
-        # NB! This function conditionally adds some methods to the
-        # class!  This approach significantly reduces the amount of
-        # small functions to implement across all the types but of
-        # course it's a bit more opaque.
-        attach_implementations_of_indexing_interface(cls)
-
         # Apply a range of consistency checks to detect bugs in type
         # implementations that Python doesn't check for us, including
         # some checks that a static language compiler would do for us
