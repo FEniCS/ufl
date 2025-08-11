@@ -92,7 +92,7 @@ from ufl import (
 )
 from ufl.algorithms import *  # noqa: F403
 from ufl.classes import *  # noqa: F403
-from ufl.classes import (
+from ufl.classes import (  # type: ignore
     Acos,
     Asin,
     Atan,
@@ -104,8 +104,8 @@ from ufl.classes import (
     FacetJacobian,
     FacetJacobianDeterminant,
     FacetJacobianInverse,
-    FloatValue,  # type: ignore
-    IntValue,  # type: ignore
+    FloatValue,
+    IntValue,
     Ln,
     Outer,
     Sin,
