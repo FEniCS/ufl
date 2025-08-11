@@ -198,7 +198,6 @@ def ufl_type(
     use_default_hash=True,
     inherit_shape_from_operand=None,
     inherit_indices_from_operand=None,
-    unop=None,
     binop=None,
     rbinop=None,
 ):
@@ -227,10 +226,6 @@ def ufl_type(
         # Avoids the circular dependency problem of making
         # Expr.__foo__ return a Foo that is a subclass of Expr.
         """# These are currently attached in exproperators.py
-        if unop:
-            def _ufl_expr_unop_(self):
-                return cls(self)
-            setattr(Expr, unop, _ufl_expr_unop_)
         if binop:
             def _ufl_expr_binop_(self, other):
                 try:

@@ -327,7 +327,7 @@ class Power(Operator):
         return f"{parstr(a, self)} ** {parstr(b, self)}"
 
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0, unop="__abs__")
+@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Abs(Operator):
     """Absolute value."""
 
