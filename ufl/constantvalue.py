@@ -63,6 +63,7 @@ class Zero(ConstantValue):
     Class for representing zero tensors of different shapes.
     """
 
+    _ufl_is_literal_ = True
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     _cache: dict[tuple[int], "Zero"] = {}
@@ -279,6 +280,7 @@ class ScalarValue(ConstantValue):
 class ComplexValue(ScalarValue):
     """Representation of a constant, complex scalar."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     def __getnewargs__(self):
@@ -335,6 +337,7 @@ class RealValue(ScalarValue):
 class FloatValue(RealValue):
     """Representation of a constant scalar floating point value."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     def __getnewargs__(self):
@@ -362,6 +365,7 @@ class FloatValue(RealValue):
 class IntValue(RealValue):
     """Representation of a constant scalar integer value."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     _cache: dict[int, "IntValue"] = {}
