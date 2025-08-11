@@ -20,7 +20,7 @@ from ufl.sorting import sorted_expr
 # --- Algebraic operators ---
 
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_indices_from_operand=0)
 class Sum(Operator):
     """Sum."""
 
@@ -96,6 +96,11 @@ class Sum(Operator):
     def __str__(self):
         """Format as a string."""
         return " + ".join([parstr(o, self) for o in self.ufl_operands])
+
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
 
 @ufl_type()
@@ -322,7 +327,7 @@ class Power(Operator):
         return f"{parstr(a, self)} ** {parstr(b, self)}"
 
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_indices_from_operand=0)
 class Abs(Operator):
     """Absolute value."""
 
@@ -356,8 +361,13 @@ class Abs(Operator):
         (a,) = self.ufl_operands
         return f"|{parstr(a, self)}|"
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class Conj(Operator):
     """Complex conjugate."""
 
@@ -391,8 +401,13 @@ class Conj(Operator):
         (a,) = self.ufl_operands
         return f"conj({parstr(a, self)})"
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class Real(Operator):
     """Real part."""
 
@@ -428,8 +443,13 @@ class Real(Operator):
         (a,) = self.ufl_operands
         return f"Re[{parstr(a, self)}]"
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class Imag(Operator):
     """Imaginary part."""
 
@@ -462,3 +482,8 @@ class Imag(Operator):
         """Format as a string."""
         (a,) = self.ufl_operands
         return f"Im[{parstr(a, self)}]"
+
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape

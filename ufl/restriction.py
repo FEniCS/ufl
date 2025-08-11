@@ -14,7 +14,6 @@ from ufl.precedence import parstr
 
 
 @ufl_type(
-    inherit_shape_from_operand=0,
     inherit_indices_from_operand=0,
 )
 class Restricted(Operator):
@@ -46,6 +45,11 @@ class Restricted(Operator):
     def __str__(self):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)}({self._side})"
+
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
 
 @ufl_type()

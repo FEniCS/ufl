@@ -256,7 +256,7 @@ class NotCondition(Condition):
         return f"!({self.ufl_operands[0]!s})"
 
 
-@ufl_type(inherit_shape_from_operand=1, inherit_indices_from_operand=1)
+@ufl_type(inherit_indices_from_operand=1)
 class Conditional(Operator):
     """Conditional expression.
 
@@ -317,6 +317,11 @@ class Conditional(Operator):
     def __str__(self):
         """Format as a string."""
         return "{} ? {} : {}".format(*tuple(parstr(o, self) for o in self.ufl_operands))
+
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[1].ufl_shape
 
 
 # --- Specific functions higher level than a conditional ---

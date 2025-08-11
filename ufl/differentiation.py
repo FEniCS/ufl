@@ -36,7 +36,7 @@ class Derivative(Operator):
         Operator.__init__(self, operands)
 
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_indices_from_operand=0)
 class CoefficientDerivative(Derivative):
     """Derivative of form integrand w.r.t. the degrees of freedom in a discrete Coefficient."""
 
@@ -67,8 +67,13 @@ class CoefficientDerivative(Derivative):
             f"{self.ufl_operands[2]}, and coefficient derivatives {self.ufl_operands[3]}"
         )
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class CoordinateDerivative(CoefficientDerivative):
     """Derivative of the integrand of a form w.r.t. the SpatialCoordinates."""
 
@@ -81,8 +86,13 @@ class CoordinateDerivative(CoefficientDerivative):
             f"{self.ufl_operands[2]}, and coordinate derivatives {self.ufl_operands[3]}"
         )
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
@@ -129,8 +139,13 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
         )
         self._coefficients = base_form_coeffs
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
     """Derivative of a base form w.r.t. the SpatialCoordinates."""
 
@@ -142,8 +157,13 @@ class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
             self, base_form, coefficients, arguments, coefficient_derivatives
         )
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     """Derivative of a base form operator w.r.t the degrees of freedom in a discrete Coefficient."""
 
@@ -188,8 +208,13 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
         )
         return argument_slots
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):
     """Derivative of a base form operator w.r.t. the SpatialCoordinates."""
 
@@ -200,6 +225,11 @@ class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, Coordinat
         BaseFormOperatorDerivative.__init__(
             self, base_form, coefficients, arguments, coefficient_derivatives
         )
+
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
 
 @ufl_type()

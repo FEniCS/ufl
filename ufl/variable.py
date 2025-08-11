@@ -65,7 +65,7 @@ class Label(Terminal, Counted):
         return ("Label", renumbering[self])
 
 
-@ufl_type(inherit_shape_from_operand=0)
+@ufl_type()
 class Variable(Operator):
     """A Variable is a representative for another expression.
 
@@ -128,3 +128,8 @@ class Variable(Operator):
     def __str__(self):
         """Format as a string."""
         return f"var{self.ufl_operands[1].count()}({self.ufl_operands[0]})"
+
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape

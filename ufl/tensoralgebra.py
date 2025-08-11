@@ -460,7 +460,7 @@ class Cofactor(CompoundTensorOperator):
         return f"cofactor({self.ufl_operands[0]})"
 
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(inherit_indices_from_operand=0)
 class Deviatoric(CompoundTensorOperator):
     """Deviatoric."""
 
@@ -494,8 +494,13 @@ class Deviatoric(CompoundTensorOperator):
         """Format as a string."""
         return f"dev({self.ufl_operands[0]})"
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class Skew(CompoundTensorOperator):
     """Skew."""
 
@@ -528,8 +533,13 @@ class Skew(CompoundTensorOperator):
         """Format as a string."""
         return f"skew({self.ufl_operands[0]})"
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+
+@ufl_type(inherit_indices_from_operand=0)
 class Sym(CompoundTensorOperator):
     """Sym."""
 
@@ -563,3 +573,8 @@ class Sym(CompoundTensorOperator):
     def __str__(self):
         """Format as a string."""
         return f"sym({self.ufl_operands[0]})"
+
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
