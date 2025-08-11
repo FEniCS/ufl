@@ -236,7 +236,6 @@ class UFLType(ABC):
 
     _ufl_is_terminal_modifier_: bool = False
     _ufl_is_in_reference_frame_: bool = False
-    _ufl_is_restriction_: bool = False
     _ufl_is_evaluation_: bool = False
     _ufl_is_differential_: bool = False
 

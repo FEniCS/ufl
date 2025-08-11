@@ -17,7 +17,6 @@ from ufl.precedence import parstr
 class Restricted(Operator):
     """Restriction."""
 
-    _ufl_is_restriction_ = True
     __slots__ = ()
     _side: str
 
