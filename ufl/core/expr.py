@@ -88,16 +88,16 @@ class Expr(UFLType):
     # --- the top ---
     # This is to freeze member variables for objects of this class and
     # save memory by skipping the per-instance dict.
-
-    __slots__ = ("__weakref__", "_hash")
-    # _ufl_noslots_ = True
-    _ufl_is_terminal_modifier_: bool = False
-    _ufl_is_in_reference_frame_: bool = False
-
     ufl_operands: tuple["FormArgument", ...]
     ufl_shape: tuple[int, ...]
     ufl_free_indices: tuple[int, ...]
     ufl_index_dimensions: tuple
+
+    _ufl_is_terminal_modifier_: bool = False
+    _ufl_is_in_reference_frame_: bool = False
+    # _ufl_noslots_ = True
+
+    __slots__ = ("__weakref__", "_hash")
 
     # --- Basic object behaviour ---
 
@@ -115,63 +115,6 @@ class Expr(UFLType):
     def __init__(self):
         """Initialise."""
         self._hash = None
-
-    # --- Type traits are added to subclasses by the ufl_type class
-    # --- decorator ---
-
-    # Note: Some of these are modified after the Expr class definition
-    # because Expr is not defined yet at this point.  Note: Boolean
-    # type traits that categorize types are mostly set to None for
-    # Expr but should be True or False for any non-abstract type.
-
-    # --- All subclasses must define these object attributes ---
-
-    # Each subclass of Expr is checked to have these properties in
-    # ufl_type
-    _ufl_required_properties_ = (
-        # A tuple of operands, all of them Expr instances.
-        "ufl_operands",
-        # A tuple of ints, the value shape of the expression.
-        "ufl_shape",
-        # A tuple of free index counts.
-        "ufl_free_indices",
-        # A tuple providing the int dimension for each free index.
-        "ufl_index_dimensions",
-    )
-
-    ufl_operands: tuple["FormArgument", ...]
-    ufl_shape: tuple[int, ...]
-    _ufl_typecode_: int
-    ufl_free_indices: tuple[int, ...]
-
-    # Each subclass of Expr is checked to have these methods in
-    # ufl_type
-    # FIXME: Add more and enable all
-    _ufl_required_methods_: tuple[str, ...] = (
-        # To compute the hash on demand, this method is called.
-        "_ufl_compute_hash_",
-        # The data returned from this method is used to compute the
-        # signature of a form
-        "_ufl_signature_data_",
-        # The == operator must be implemented to compare for identical
-        # representation, used by set() and dict(). The __hash__
-        # operator is added by ufl_type.
-        "__eq__",
-        # To reconstruct an object of the same type with operands or
-        # properties changed.
-        "_ufl_expr_reconstruct_",  # Implemented in Operator and Terminal so this should never fail
-        "ufl_domains",
-        # "ufl_cell",
-        # "ufl_domain",
-        # "__str__",
-        # "__repr__",
-    )
-
-    # --- Global variables for collecting all types ---
-
-    # A global dict mapping language_operator_name to the type it
-    # produces
-    _ufl_language_operators_: dict[str, object] = {}
 
     # List of all terminal modifier types
 

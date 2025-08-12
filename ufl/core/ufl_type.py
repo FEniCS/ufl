@@ -124,6 +124,9 @@ class UFLType:
     Equip UFL types with some ufl specific properties.
     """
 
+    # TODO: can we move this assignment into __new__?
+    _ufl_typecode_: int
+
     __slots__: tuple[str, ...] = ()
 
     # TODO: ufl_handler_name type name -> remove
