@@ -10,13 +10,13 @@ restrictions in a form towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from typing import Union
+from typing import Union, Optional, Literal
 
 from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.classes import Expr, Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.domain import MeshSequence, extract_unique_domain
+from ufl.domain import MeshSequence, extract_unique_domain, Mesh
 from ufl.sobolevspace import H1
 
 default_restriction_map = {
@@ -34,8 +34,17 @@ default_restriction_map = {
 class RestrictionPropagator(MultiFunction):
     """Restriction propagator."""
 
-    def __init__(self, side=None, default_restrictions=None):
-        """Initialise."""
+    def __init__(
+        self,
+        side: Optional[Literal["+", "-"]] = None,
+        default_restrictions: Optional[dict[Mesh, Optional[Literal["+", "-"]]]] = None,
+    ):
+        """Initialise a restriction propagator.
+
+        Args:
+            side: The side of the mesh to restrict to, if `None`, no restriction.
+            default_restrictions: A map between meshes and certain restrictions set by the integration measure.
+        """
         MultiFunction.__init__(self)
         self.current_restriction = side
         self.default_restrictions = default_restrictions
@@ -63,15 +72,8 @@ class RestrictionPropagator(MultiFunction):
     # --- Reusable rules
 
     def _extract_and_check_domain(self, o):
-        domain = extract_unique_domain(o, expand_mesh_sequence=False)
-        if isinstance(domain, MeshSequence):
-            try:
-                (domain,) = set(domain.meshes)
-            except ValueError:
-                raise RuntimeError(
-                    f"Not expecting a MeshSequence composed of "
-                    f"multiple domains at this stage: found {domain}"
-                )
+        """Extract single domain from a ufl"""
+        domain = extract_unique_domain(o, expand_mesh_sequence=True)
         if domain not in self.default_restrictions:
             raise RuntimeError(f"Integral type on {domain} not known")
         return domain
