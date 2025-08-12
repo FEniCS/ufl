@@ -23,9 +23,10 @@ if typing.TYPE_CHECKING:
     from ufl.core.terminal import FormArgument
 
 from ufl.core.compute_expr_hash import compute_expr_hash
-from ufl.core.ufl_type import UFLRegistry, UFLType, update_ufl_type_attributes
+from ufl.core.ufl_type import UFLRegistry, UFLType, ufl_type
 
 
+@ufl_type()
 class Expr(UFLType):
     """Base class for all UFL expression types.
 
@@ -441,11 +442,6 @@ class Expr(UFLType):
     def __getitem__(self, index):
         """Get item."""
         pass
-
-
-# Update Expr with metaclass properties (e.g. typecode or handler name)
-# Explicitly done here instead of using `@ufl_type` to avoid circular imports.
-update_ufl_type_attributes(Expr)
 
 
 def ufl_err_str(expr):
