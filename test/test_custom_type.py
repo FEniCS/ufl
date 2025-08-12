@@ -9,9 +9,12 @@ from utils import LagrangeElement
 
 from ufl import Mesh, triangle
 from ufl.algebra import Product
+from ufl.algorithms.analysis import extract_constants, has_exact_type
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.constant import Constant
 from ufl.core.ufl_type import ufl_type
+from ufl.geometry import SpatialCoordinate
+from ufl.operators import diff
 
 
 @ufl_type()
@@ -38,3 +41,14 @@ def test():
     assert ab.ufl_operands == (a, b)
 
     assert apply_algebra_lowering(ab) == ab
+
+    x = SpatialCoordinate(domain)
+
+    a_dx = diff(a, x)
+    assert a_dx == 0
+    assert a_dx.ufl_shape == (2,)
+
+    # TODO: expression does not get simplified, so can't check here for ax_dx == a
+    ax_dx = diff(a * x, x)
+    assert has_exact_type(ax_dx, LabeledConstant)
+    assert extract_constants(ax_dx)[0].label == "a"
