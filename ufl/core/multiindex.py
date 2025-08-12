@@ -8,6 +8,7 @@
 #
 # Modified by Massimiliano Leoni, 2016.
 
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.utils.counted import Counted
@@ -178,6 +179,10 @@ class MultiIndex(Terminal):
             elif isinstance(i, Index):
                 component.append(index_values[i])
         return tuple(component)
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     @property
     def ufl_shape(self):

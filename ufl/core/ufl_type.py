@@ -14,7 +14,6 @@ import typing
 from abc import ABC, abstractmethod
 
 import ufl.core as core
-from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.utils.formatting import camel2underscore
 
 if typing.TYPE_CHECKING:
@@ -128,9 +127,7 @@ def update_ufl_type_attributes(cls):
     cls._ufl_handler_name_ = camel2underscore(cls.__name__)
 
 
-def ufl_type(
-    use_default_hash=True,
-):
+def ufl_type():
     """Decorator to apply to every subclass in the UFL ``Expr`` and ``BaseForm`` hierarchy.
 
     This decorator contains a number of checks that are intended to
@@ -148,14 +145,6 @@ def ufl_type(
         if not issubclass(cls, core.expr.Expr):
             # Don't need anything else for non Expr subclasses
             return cls
-
-        # Make sure every non-abstract class has its own __hash__ and
-        # __eq__.  Python 3 will set __hash__ to None if cls has
-        # __eq__, but we've implemented it in a separate function and
-        # want to inherit/use that for all types. Allow overriding by
-        # setting use_default_hash=False.
-        if use_default_hash:
-            cls.__hash__ = compute_expr_hash
 
         # Apply a range of consistency checks to detect bugs in type
         # implementations that Python doesn't check for us, including

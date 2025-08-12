@@ -6,6 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import MeshSequence, as_domain, extract_unique_domain
@@ -155,6 +156,10 @@ class GeometricQuantity(Terminal):
     def __eq__(self, other):
         """Check equality."""
         return isinstance(other, type(self)) and other._domain == self._domain
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
 
 @ufl_type()

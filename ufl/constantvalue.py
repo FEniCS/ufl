@@ -16,6 +16,7 @@ import ufl
 
 # --- Helper functions imported here for compatibility---
 from ufl.checks import is_python_scalar, is_true_ufl_scalar, is_ufl_scalar  # noqa: F401
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal
@@ -162,6 +163,10 @@ class Zero(ConstantValue):
         else:
             return False
 
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
+
     def __neg__(self):
         """Negate."""
         return self
@@ -242,6 +247,10 @@ class ScalarValue(ConstantValue):
             return other == self._value
         else:
             return False
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __str__(self):
         """Format as a string."""
@@ -446,6 +455,10 @@ class Identity(ConstantValue):
         """Check equalty."""
         return isinstance(other, Identity) and self._dim == other._dim
 
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
+
 
 # --- Permutation symbol ---
 
@@ -489,6 +502,10 @@ class PermutationSymbol(ConstantValue):
     def __eq__(self, other):
         """Check equalty."""
         return isinstance(other, PermutationSymbol) and self._dim == other._dim
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __eps(self, x):
         """Get eps.

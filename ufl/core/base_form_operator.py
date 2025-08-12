@@ -18,6 +18,7 @@ from numbers import Number
 
 from ufl.argument import Argument, Coargument
 from ufl.constantvalue import as_ufl
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
@@ -171,15 +172,20 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         return r
 
     def __hash__(self):
-        """Hash code for use in dicts."""
-        hashdata = (
-            type(self),
-            tuple(hash(op) for op in self.ufl_operands),
-            tuple(hash(arg) for arg in self._argument_slots),
-            self.derivatives,
-            hash(self.ufl_function_space()),
-        )
-        return hash(hashdata)
+        """Return hash."""
+        return compute_expr_hash(self)
+
+    # TODO: is this not needed?
+    # def __hash__(self):
+    #     """Hash code for use in dicts."""
+    #     hashdata = (
+    #         type(self),
+    #         tuple(hash(op) for op in self.ufl_operands),
+    #         tuple(hash(arg) for arg in self._argument_slots),
+    #         self.derivatives,
+    #         hash(self.ufl_function_space()),
+    #     )
+    #     return hash(hashdata)
 
     def __eq__(self, other):
         """Check for equality."""

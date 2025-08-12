@@ -12,6 +12,7 @@
 # Modified by Ignacia Fierro-Piccardo 2023.
 
 from ufl.argument import Argument
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.duals import is_dual, is_primal
@@ -98,6 +99,10 @@ class BaseCoefficient(UFLType, Counted):
         if self is other:
             return True
         return self._count == other._count and self._ufl_function_space == other._ufl_function_space
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
 
 @ufl_type()
@@ -195,6 +200,10 @@ class Coefficient(FormArgument, BaseCoefficient):
         if self is other:
             return True
         return self._count == other._count and self._ufl_function_space == other._ufl_function_space
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __repr__(self):
         """Representation."""

@@ -17,6 +17,7 @@ classes (functions), including TestFunction and TrialFunction.
 import numbers
 from abc import ABC
 
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual, is_primal
@@ -184,6 +185,10 @@ class Argument(FormArgument, BaseArgument):
     def __repr__(self):
         """Representation."""
         return self._repr
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
 
 @ufl_type()

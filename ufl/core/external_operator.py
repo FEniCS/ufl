@@ -14,6 +14,7 @@ be evaluated as well as its derivatives from a given set of operands.
 # Modified by Nacime Bouziani, 2023
 
 from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.ufl_type import ufl_type
 
 
@@ -116,3 +117,7 @@ class ExternalOperator(BaseFormOperator):
             and self.derivatives == other.derivatives
             and self.ufl_function_space() == other.ufl_function_space()
         )
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)

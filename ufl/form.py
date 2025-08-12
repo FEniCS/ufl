@@ -19,6 +19,7 @@ from itertools import chain
 from ufl.checks import is_scalar_constant_expression
 from ufl.constant import Constant
 from ufl.constantvalue import Zero
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLType, ufl_type
@@ -144,6 +145,10 @@ class BaseForm(UFLType):
         to lhs_form.equals(rhs_form).
         """
         return Equation(self, other)
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __radd__(self, other):
         """Add."""
@@ -898,6 +903,12 @@ class ZeroBaseForm(BaseForm):
         else:
             return False
 
+    def __hash__(self):
+        """Hash."""
+        if self._hash is None:
+            self._hash = hash(("ZeroBaseForm", hash(self._arguments)))
+        return self._hash
+
     def __str__(self):
         """Format as a string."""
         return "ZeroBaseForm({})".format(", ".join(str(arg) for arg in self._arguments))
@@ -905,9 +916,3 @@ class ZeroBaseForm(BaseForm):
     def __repr__(self):
         """Representation."""
         return "ZeroBaseForm({})".format(", ".join(repr(arg) for arg in self._arguments))
-
-    def __hash__(self):
-        """Hash."""
-        if self._hash is None:
-            self._hash = hash(("ZeroBaseForm", hash(self._arguments)))
-        return self._hash

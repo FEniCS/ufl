@@ -9,6 +9,7 @@ These are used to label expressions as variables for differentiation.
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.constantvalue import as_ufl
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
@@ -124,6 +125,10 @@ class Variable(Operator):
             and self.ufl_operands[1] == other.ufl_operands[1]
             and self.ufl_operands[0] == other.ufl_operands[0]
         )
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __str__(self):
         """Format as a string."""

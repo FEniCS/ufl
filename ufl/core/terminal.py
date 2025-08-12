@@ -13,6 +13,7 @@ Terminal the superclass for all types that are terminal nodes in an expression t
 
 import warnings
 
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -92,6 +93,10 @@ class Terminal(Expr):
     def __eq__(self, other):
         """Default comparison of terminals just compare repr strings."""
         return repr(self) == repr(other)
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
 
 # --- Subgroups of terminals ---

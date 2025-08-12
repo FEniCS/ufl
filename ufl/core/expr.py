@@ -22,6 +22,7 @@ import warnings
 if typing.TYPE_CHECKING:
     from ufl.core.terminal import FormArgument
 
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.ufl_type import UFLRegistry, UFLType, update_ufl_type_attributes
 
 
@@ -106,13 +107,6 @@ class Expr(UFLType):
     def __init__(self):
         """Initialise."""
         self._hash = None
-
-    # This shows the principal behaviour of the hash function attached
-    # in ufl_type:
-    # def __hash__(self):
-    #     if self._hash is None:
-    #         self._hash = self._ufl_compute_hash_()
-    #     return self._hash
 
     # --- Type traits are added to subclasses by the ufl_type class
     # --- decorator ---
@@ -320,6 +314,10 @@ class Expr(UFLType):
         mathematically equal or equivalent! Used by sets and dicts.
         """
         raise NotImplementedError(self.__class__.__eq__)
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __len__(self):
         """Length of expression. Used for iteration over vector expressions."""
