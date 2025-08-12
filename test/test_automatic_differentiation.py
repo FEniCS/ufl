@@ -413,13 +413,11 @@ def _test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, colle
             before = diff(t, var)  # This will often get preliminary simplified to zero
             after = expand_derivatives(before)
             expected = 0 * outer(t, var)
-            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
             before = diff(c * t, var)  # This will usually not get simplified to zero
             after = expand_derivatives(before)
             expected = 0 * outer(t, var)
-            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
 
@@ -429,33 +427,17 @@ def test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(sel
 
 
 def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
-    debug = 0
-
     u = Coefficient(collection.shared_objects.u_space)
     v = Coefficient(collection.shared_objects.v_space)
     w = Coefficient(collection.shared_objects.w_space)
 
     # for t in chain(collection.noncompounds, collection.compounds):
-    # debug = True
     for t in collection.noncompounds:
         for var in (u, v, w):
-            if debug:
-                print("\n", "shapes:   ", t.ufl_shape, var.ufl_shape, "\n")
-            if debug:
-                print("\n", "t:        ", str(t), "\n")
-            if debug:
-                print("\n", "t ind:    ", str(t.ufl_free_indices), "\n")
-            if debug:
-                print("\n", "var:      ", str(var), "\n")
             before = derivative(t, var)
-            if debug:
-                print("\n", "before:   ", str(before), "\n")
             after = expand_derivatives(before)
-            if debug:
-                print("\n", "after:    ", str(after), "\n")
             expected = 0 * t
-            if debug:
-                print("\n", "expected: ", str(expected), "\n")
+
             assert after == expected
 
 
@@ -465,8 +447,6 @@ def test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, d_e
 
 
 def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
-    debug = 0
-
     u = Coefficient(collection.shared_objects.u_space)
     v = Coefficient(collection.shared_objects.v_space)
     w = Coefficient(collection.shared_objects.w_space)
@@ -479,15 +459,9 @@ def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, co
     for t in collection.noncompounds:
         for var in (vu, vv, vw):
             before = diff(t, var)
-            if debug:
-                print("\n", "before:   ", str(before), "\n")
             after = expand_derivatives(before)
-            if debug:
-                print("\n", "after:    ", str(after), "\n")
             expected = 0 * outer(t, var)
-            if debug:
-                print("\n", "expected: ", str(expected), "\n")
-            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+
             assert after == expected
 
 
@@ -497,8 +471,6 @@ def test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(
 
 
 def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
-    debug = 0
-
     u = collection.shared_objects.u
     v = collection.shared_objects.v
     w = collection.shared_objects.w
@@ -508,22 +480,11 @@ def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes
         for var in (u, v, w):
             # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
             if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
-                if debug:
-                    print(f"Depends on {var!s} :: {t!s}")
                 continue
 
-            if debug:
-                print(("\n", "...:   ", t.ufl_shape, var.ufl_shape, "\n"))
             before = derivative(t, var)
-            if debug:
-                print(("\n", "before:   ", str(before), "\n"))
             after = expand_derivatives(before)
-            if debug:
-                print(("\n", "after:    ", str(after), "\n"))
             expected_shape = 0 * t
-            if debug:
-                print(("\n", "expected_shape: ", str(expected_shape), "\n"))
-            # print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
             if var in unique_post_traversal(t):
                 self.assertEqualTotalShape(after, expected_shape)
@@ -538,7 +499,6 @@ def test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, 
 
 
 def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
-    debug = 0
     u = collection.shared_objects.u
     v = collection.shared_objects.v
     w = collection.shared_objects.w
@@ -553,20 +513,11 @@ def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self,
         for var in (vu, vv, vw):
             # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
             if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
-                if debug:
-                    print(f"Depends on {var!s} :: {t!s}")
                 continue
 
             before = diff(t, var)
-            if debug:
-                print(("\n", "before:   ", str(before), "\n"))
             after = expand_derivatives(before)
-            if debug:
-                print(("\n", "after:    ", str(after), "\n"))
             expected_shape = 0 * outer(t, var)  # expected shape, not necessarily value
-            if debug:
-                print(("\n", "expected_shape: ", str(expected_shape), "\n"))
-            # print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
             if var in unique_post_traversal(t):
                 self.assertEqualTotalShape(after, expected_shape)
@@ -584,10 +535,6 @@ def test_grad_coeff(self, d_expr):
     for f in (u, v, w):
         before = grad(f)
         after = expand_derivatives(before)
-
-        if before.ufl_shape != after.ufl_shape:
-            print(("\n", "shapes:", before.ufl_shape, after.ufl_shape))
-            print(("\n", str(before), "\n", str(after), "\n"))
 
         self.assertEqualTotalShape(before, after)
         if f is u:  # Differing by being wrapped in indexing types
@@ -625,10 +572,6 @@ def test_derivative_grad_coeff(self, d_expr):
         after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
-        if 0:
-            print()
-            print(("B", f, "::", before))
-            print(("A", f, "::", after))
 
 
 def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
@@ -658,7 +601,3 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
         after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
-        if 0:
-            print()
-            print(("B", f, "::", before))
-            print(("A", f, "::", after))
