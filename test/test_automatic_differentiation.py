@@ -329,54 +329,10 @@ def d_expr(request):
     return cell, expr
 
 
-def ad_algorithm(expr):
-    # alt = 1
-    # alt = 4
-    # alt = 6
-    alt = 0
-    if alt == 0:
-        return expand_derivatives(expr)
-    elif alt == 1:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=True,
-            apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=True,
-        )
-    elif alt == 2:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=False,
-            apply_expand_compounds_after=True,
-            use_alternative_wrapper_algorithm=False,
-        )
-    elif alt == 3:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=False,
-            apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=False,
-        )
-    elif alt == 4:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=False,
-            apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=True,
-        )
-    elif alt == 5:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=False,
-            apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=False,
-        )
-
-
 def _test_no_derivatives_no_change(self, collection):
     for expr in collection:
         before = expr
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         # print '\n', str(before), '\n', str(after), '\n'
         self.assertEqualTotalShape(before, after)
         assert before == after
@@ -386,7 +342,7 @@ def _test_no_derivatives_but_still_changed(self, collection):
     # Planning to fix these:
     for expr in collection:
         before = expr
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         # print '\n', str(before), '\n', str(after), '\n'
         self.assertEqualTotalShape(before, after)
         # assert before == after # Without expand_compounds
@@ -425,13 +381,13 @@ def _test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(self,
     for t in collection.terminals:
         for var in (u, v, w):
             before = derivative(t, var)  # This will often get preliminary simplified to zero
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             expected = 0 * t
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
             before = derivative(c * t, var)  # This will usually not get simplified to zero
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             expected = 0 * t
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
@@ -455,13 +411,13 @@ def _test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, colle
     for t in collection.terminals:
         for var in (vu, vv, vw):
             before = diff(t, var)  # This will often get preliminary simplified to zero
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             expected = 0 * outer(t, var)
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
             before = diff(c * t, var)  # This will usually not get simplified to zero
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             expected = 0 * outer(t, var)
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
@@ -494,7 +450,7 @@ def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(se
             before = derivative(t, var)
             if debug:
                 print("\n", "before:   ", str(before), "\n")
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             if debug:
                 print("\n", "after:    ", str(after), "\n")
             expected = 0 * t
@@ -525,7 +481,7 @@ def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, co
             before = diff(t, var)
             if debug:
                 print("\n", "before:   ", str(before), "\n")
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             if debug:
                 print("\n", "after:    ", str(after), "\n")
             expected = 0 * outer(t, var)
@@ -561,7 +517,7 @@ def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes
             before = derivative(t, var)
             if debug:
                 print(("\n", "before:   ", str(before), "\n"))
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             if debug:
                 print(("\n", "after:    ", str(after), "\n"))
             expected_shape = 0 * t
@@ -604,7 +560,7 @@ def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self,
             before = diff(t, var)
             if debug:
                 print(("\n", "before:   ", str(before), "\n"))
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             if debug:
                 print(("\n", "after:    ", str(after), "\n"))
             expected_shape = 0 * outer(t, var)  # expected shape, not necessarily value
@@ -627,7 +583,7 @@ def test_grad_coeff(self, d_expr):
     w = collection.shared_objects.w
     for f in (u, v, w):
         before = grad(f)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
 
         if before.ufl_shape != after.ufl_shape:
             print(("\n", "shapes:", before.ufl_shape, after.ufl_shape))
@@ -638,12 +594,12 @@ def test_grad_coeff(self, d_expr):
             assert before == after
 
         before = grad(grad(f))
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert before == after # Differing by being wrapped in indexing types
 
         before = grad(grad(grad(f)))
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert before == after # Differing by being wrapped in indexing types
 
@@ -656,17 +612,17 @@ def test_derivative_grad_coeff(self, d_expr):
     w = collection.shared_objects.w
     for f in (u, v, w):
         before = derivative(grad(f), f)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
 
         before = derivative(grad(grad(f)), f)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
 
         before = derivative(grad(grad(grad(f))), f)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
         if 0:
@@ -689,17 +645,17 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
         df = dg[ii]
 
         before = derivative(grad(g), f, df)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
 
         before = derivative(grad(grad(g)), f, df)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
 
         before = derivative(grad(grad(grad(g))), f, df)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
         if 0:
