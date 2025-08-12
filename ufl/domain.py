@@ -10,7 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
@@ -336,7 +336,7 @@ def as_domain(domain):
         return domain
 
 
-def sort_domains(domains: Sequence[AbstractDomain]) -> Tuple[AbstractDomain, ...]:
+def sort_domains(domains: Sequence[AbstractDomain]) -> tuple[AbstractDomain, ...]:
     """Sort domains in a canonical ordering.
 
     Args:
@@ -384,7 +384,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
 # TODO: Move these to an analysis module?
 
 
-def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True) -> Tuple[AbstractDomain]:
+def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True) -> tuple[AbstractDomain]:
     """Return all domains expression is defined on.
 
     Args:
