@@ -1,7 +1,8 @@
 """Base class for dag traversers."""
 
+from __future__ import annotations
+
 from functools import singledispatchmethod, wraps
-from typing import Union
 
 from ufl.classes import Expr
 
@@ -18,9 +19,9 @@ class DAGTraverser:
 
     def __init__(
         self,
-        compress: Union[bool, None] = True,
-        visited_cache: Union[dict[tuple, Expr], None] = None,
-        result_cache: Union[dict[Expr, Expr], None] = None,
+        compress: bool | None = True,
+        visited_cache: dict[tuple, Expr] | None = None,
+        result_cache: dict[Expr, Expr] | None = None,
     ) -> None:
         """Initialise."""
         self._compress = compress

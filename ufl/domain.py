@@ -10,7 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
@@ -419,7 +419,7 @@ def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True) -> tup
 
 def extract_unique_domain(
     expr: Expr | Form, expand_mesh_sequence: bool = True
-) -> Union[AbstractDomain, None]:
+) -> AbstractDomain| None:
     """Return the single unique domain expression is defined on or throw an error.
 
     Args:
