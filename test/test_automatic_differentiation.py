@@ -86,10 +86,9 @@ from ufl.sobolevspace import L2
 
 
 class ExpressionCollection:
-    def __init__(self, cell):
+    def __init__(self, cell, geometry_degree, gdim):
         self.cell = cell
-        d = cell.topological_dimension()
-        domain = Mesh(LagrangeElement(cell, 1, (d,)))
+        domain = Mesh(LagrangeElement(cell, geometry_degree, (gdim,)))
 
         x = SpatialCoordinate(domain)
         n = FacetNormal(domain)
@@ -107,12 +106,12 @@ class ExpressionCollection:
         invJ = JacobianInverse(domain)
         # FIXME: Add all new geometry types here!
 
-        ident = Identity(d)
-        eps = PermutationSymbol(d)
+        ident = Identity(gdim)
+        eps = PermutationSymbol(gdim)
 
         U = FiniteElement("Undefined", cell, None, (), identity_pullback, L2)
-        V = FiniteElement("Undefined", cell, None, (d,), identity_pullback, L2)
-        W = FiniteElement("Undefined", cell, None, (d, d), identity_pullback, L2)
+        V = FiniteElement("Undefined", cell, None, (gdim,), identity_pullback, L2)
+        W = FiniteElement("Undefined", cell, None, (gdim, gdim), identity_pullback, L2)
 
         u_space = FunctionSpace(domain, U)
         v_space = FunctionSpace(domain, V)
@@ -180,18 +179,18 @@ class ExpressionCollection:
             3 * variable(w * u),
         ]
 
-        if d == 1:
+        if gdim == 1:
             w2 = as_matrix(((u**2,),))
-        if d == 2:
+        if gdim == 2:
             w2 = as_matrix(((u**2, u**3), (u**4, u**5)))
-        if d == 3:
+        if gdim == 3:
             w2 = as_matrix(((u**2, u**3, u**4), (u**4, u**5, u**6), (u**6, u**7, u**8)))
 
         # Indexed,  ListTensor, ComponentTensor, IndexSum
         i, j, k, l = indices(4)  # noqa: E741
         self.indexing = [
             v[0],
-            w[d - 1, 0],
+            w[gdim - 1, 0],
             v[i],
             w[i, j],
             v[:],
@@ -202,11 +201,11 @@ class ExpressionCollection:
             w[..., 0],
             v[i] * v[j],
             w[i, 0] * v[j],
-            w[d - 1, j] * v[i],
+            w[gdim - 1, j] * v[i],
             v[i] * v[i],
             w[i, 0] * w[0, i],
             v[i] * w[0, i],
-            v[j] * w[d - 1, j],
+            v[j] * w[gdim - 1, j],
             w[i, i],
             w[i, j] * w[j, i],
             as_tensor(v[i] * w[k, 0], (k, i)),
@@ -234,7 +233,7 @@ class ExpressionCollection:
             conditional(le(u, 0.0), u**3, ln(u)),
         ]
         self.restrictions = [u("+"), u("-"), v("+"), v("-"), w("+"), w("-")]
-        if d > 1:
+        if gdim > 1:
             i, j = indices(2)
             self.restrictions += [
                 v("+")[i] * v("+")[i],
@@ -251,7 +250,7 @@ class ExpressionCollection:
         self.noncompounds += self.conditionals
         self.noncompounds += self.restrictions
 
-        if d == 1:
+        if gdim == 1:
             self.tensorproducts = []
         else:
             self.tensorproducts = [
@@ -266,7 +265,7 @@ class ExpressionCollection:
                 outer(w, w),
             ]
 
-        if d == 1:
+        if gdim == 1:
             self.tensoralgebra = []
         else:
             self.tensoralgebra = [
@@ -280,7 +279,7 @@ class ExpressionCollection:
                 inv(w),
             ]
 
-        if d != 3:
+        if gdim != 3:
             self.crossproducts = []
         else:
             self.crossproducts = [
@@ -302,12 +301,32 @@ class ExpressionCollection:
         self.all_expressions += self.compounds
 
 
-@pytest.fixture(params=(1, 2, 3))
+@pytest.fixture(
+    params=[
+        (interval, 1, 1),
+        (interval, 2, 1),
+        (interval, 3, 1),
+        (interval, 1, 2),
+        (interval, 2, 2),
+        (interval, 3, 2),
+        (interval, 1, 3),
+        (interval, 2, 3),
+        (interval, 3, 3),
+        (triangle, 1, 2),
+        (triangle, 2, 2),
+        (triangle, 3, 2),
+        (triangle, 1, 3),
+        (triangle, 2, 3),
+        (triangle, 3, 3),
+        (tetrahedron, 1, 3),
+        (tetrahedron, 2, 3),
+        (tetrahedron, 3, 3),
+    ]
+)
 def d_expr(request):
-    d = request.param
-    cell = {1: interval, 2: triangle, 3: tetrahedron}[d]
-    expr = ExpressionCollection(cell)
-    return d, expr
+    cell, geometry_degree, gdim = request.param
+    expr = ExpressionCollection(cell, geometry_degree, gdim)
+    return cell, expr
 
 
 def ad_algorithm(expr):
