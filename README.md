@@ -1,6 +1,6 @@
 # UFL - Unified Form Language
 
-[![UFL CI](https://github.com/FEniCS/ufl/workflows/UFL%20CI/badge.svg)](https://github.com/FEniCS/ufl/workflows/UFL%20CI)
+[![UFL CI](https://github.com/FEniCS/ufl/actions/workflows/pythonapp.yml/badge.svg)](https://github.com/FEniCS/ufl/actions/workflows/pythonapp.yml)
 [![Coverage Status](https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=master)](https://coveralls.io/github/FEniCS/ufl?branch=master)
 
 The Unified Form Language (UFL) is a domain specific language for
