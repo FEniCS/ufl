@@ -11,8 +11,10 @@ from ufl import Mesh, triangle
 from ufl.algebra import Product
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.constant import Constant
+from ufl.core.ufl_type import ufl_type
 
 
+@ufl_type()
 class LabeledConstant(Constant):
     def __init__(self, domain, shape=(), count=None, label: str = "c"):
         Constant.__init__(self, domain, shape, count)

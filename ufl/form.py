@@ -86,14 +86,6 @@ class BaseForm(UFLType):
 
     ufl_operands: tuple[FormArgument, ...]
 
-    # Slots is kept empty to enable multiple inheritance with other
-    # classes
-    _ufl_required_methods_: tuple[str, ...] = (
-        "_analyze_form_arguments",
-        "_analyze_domains",
-        "ufl_domains",
-    )
-
     def __init__(self):
         """Initialise."""
         # Internal variables for caching form argument/coefficient data
@@ -698,7 +690,6 @@ class FormSum(BaseForm):
         "_weights",
         "ufl_operands",
     )
-    _ufl_required_methods_ = "_analyze_form_arguments"  # type: ignore
 
     def __new__(cls, *args, **kwargs):
         """Create a new FormSum."""
