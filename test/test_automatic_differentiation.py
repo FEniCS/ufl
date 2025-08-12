@@ -1,9 +1,17 @@
+# Copyright (C) 2014-2025 Martin Sandve Alnæs and Paul T. Kühner
+#
+# This file is part of UFL (https://www.fenicsproject.org)
+#
+# SPDX-License-Identifier:    LGPL-3.0-or-later
+
 """Automatic differentiation tests.
 
 These tests should cover the behaviour of the automatic differentiation
 algorithm at a technical level, and are thus implementation specific.
 Other tests check for mathematical correctness of diff and derivative.
 """
+
+import sys
 
 import pytest
 from utils import FiniteElement, LagrangeElement
@@ -79,6 +87,9 @@ from ufl import (
     variable,
 )
 from ufl.algorithms import expand_derivatives
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal
 from ufl.pullback import identity_pullback
@@ -601,3 +612,108 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
         after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
+
+
+@pytest.mark.parametrize(
+    "cell,gdim",
+    [
+        (interval, 1),
+        (interval, 2),
+        (interval, 3),
+        (triangle, 2),
+        (triangle, 3),
+        (tetrahedron, 3),
+    ],
+)
+@pytest.mark.parametrize("order", [1, 2, 3])
+@pytest.mark.parametrize("lower_alg", [True, False])
+@pytest.mark.parametrize("lower_geo", [True, False])
+@pytest.mark.parametrize("apply_deriv", [True, False])
+def test_diff_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
+    tdim = cell.topological_dimension()
+
+    domain = Mesh(LagrangeElement(cell, order, (gdim,)))
+
+    J = Jacobian(domain)
+    assert J.ufl_shape == (gdim, tdim)
+
+    F = grad(J)
+    if lower_alg:
+        F = apply_algebra_lowering(F)
+
+    if lower_geo:
+        F = apply_geometry_lowering(F)
+
+    if apply_deriv:
+        F = apply_derivatives(F)
+
+    V = FunctionSpace(domain, LagrangeElement(cell, 1))
+    u = Coefficient(V)
+
+    δF_u = diff(F, u)
+
+    if lower_alg:
+        δF_u = apply_algebra_lowering(δF_u)
+
+    if lower_geo:
+        δF_u = apply_geometry_lowering(δF_u)
+
+    δF_u = apply_derivatives(δF_u)
+
+    assert δF_u == 0
+    assert δF_u.ufl_shape == (gdim, tdim, gdim)
+
+
+@pytest.mark.parametrize(
+    "cell,gdim",
+    [
+        (interval, 1),
+        (interval, 2),
+        (interval, 3),
+        (triangle, 2),
+        (triangle, 3),
+        (tetrahedron, 3),
+    ],
+)
+@pytest.mark.parametrize("order", [2, 3])
+@pytest.mark.parametrize("lower_alg", [True, False])
+@pytest.mark.parametrize("lower_geo", [True, False])
+@pytest.mark.parametrize("apply_deriv", [True, False])
+@pytest.mark.skipif(sys.version_info >= (3, 14), reason="Hits recursion error on Python 3.14.0rc1 ")
+def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
+    tdim = cell.topological_dimension()
+
+    domain = Mesh(LagrangeElement(cell, order, (gdim,)))
+
+    J = Jacobian(domain)
+    assert J.ufl_shape == (gdim, tdim)
+
+    F = grad(grad(J))
+
+    if lower_alg:
+        F = apply_algebra_lowering(F)
+
+    if lower_geo:
+        F = apply_geometry_lowering(F)
+
+    if apply_deriv:
+        F = apply_derivatives(F)
+
+    assert F[:, :, :, :] != 0
+    assert F.ufl_shape == (gdim, tdim, gdim, gdim)
+
+    V = FunctionSpace(domain, LagrangeElement(cell, 1))
+    u = Coefficient(V)
+
+    δF_u = diff(F, u)
+
+    if lower_alg:
+        δF_u = apply_algebra_lowering(δF_u)
+
+    if lower_geo:
+        δF_u = apply_geometry_lowering(δF_u)
+
+    δF_u = apply_derivatives(δF_u)
+
+    assert δF_u == 0
+    assert δF_u.ufl_shape == (gdim, tdim, gdim, gdim)
