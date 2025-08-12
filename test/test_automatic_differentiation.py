@@ -1,9 +1,17 @@
+# Copyright (C) 2014-2025 Martin Sandve Alnæs and Paul T. Kühner
+#
+# This file is part of UFL (https://www.fenicsproject.org)
+#
+# SPDX-License-Identifier:    LGPL-3.0-or-later
+
 """Automatic differentiation tests.
 
 These tests should cover the behaviour of the automatic differentiation
 algorithm at a technical level, and are thus implementation specific.
 Other tests check for mathematical correctness of diff and derivative.
 """
+
+import sys
 
 import pytest
 from utils import FiniteElement, LagrangeElement
@@ -79,6 +87,9 @@ from ufl import (
     variable,
 )
 from ufl.algorithms import expand_derivatives
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.conditional import Conditional
 from ufl.corealg.traversal import unique_post_traversal
 from ufl.pullback import identity_pullback
@@ -86,10 +97,9 @@ from ufl.sobolevspace import L2
 
 
 class ExpressionCollection:
-    def __init__(self, cell):
+    def __init__(self, cell, geometry_degree, gdim):
         self.cell = cell
-        d = cell.topological_dimension()
-        domain = Mesh(LagrangeElement(cell, 1, (d,)))
+        domain = Mesh(LagrangeElement(cell, geometry_degree, (gdim,)))
 
         x = SpatialCoordinate(domain)
         n = FacetNormal(domain)
@@ -107,12 +117,12 @@ class ExpressionCollection:
         invJ = JacobianInverse(domain)
         # FIXME: Add all new geometry types here!
 
-        ident = Identity(d)
-        eps = PermutationSymbol(d)
+        ident = Identity(gdim)
+        eps = PermutationSymbol(gdim)
 
         U = FiniteElement("Undefined", cell, None, (), identity_pullback, L2)
-        V = FiniteElement("Undefined", cell, None, (d,), identity_pullback, L2)
-        W = FiniteElement("Undefined", cell, None, (d, d), identity_pullback, L2)
+        V = FiniteElement("Undefined", cell, None, (gdim,), identity_pullback, L2)
+        W = FiniteElement("Undefined", cell, None, (gdim, gdim), identity_pullback, L2)
 
         u_space = FunctionSpace(domain, U)
         v_space = FunctionSpace(domain, V)
@@ -180,18 +190,18 @@ class ExpressionCollection:
             3 * variable(w * u),
         ]
 
-        if d == 1:
+        if gdim == 1:
             w2 = as_matrix(((u**2,),))
-        if d == 2:
+        if gdim == 2:
             w2 = as_matrix(((u**2, u**3), (u**4, u**5)))
-        if d == 3:
+        if gdim == 3:
             w2 = as_matrix(((u**2, u**3, u**4), (u**4, u**5, u**6), (u**6, u**7, u**8)))
 
         # Indexed,  ListTensor, ComponentTensor, IndexSum
         i, j, k, l = indices(4)  # noqa: E741
         self.indexing = [
             v[0],
-            w[d - 1, 0],
+            w[gdim - 1, 0],
             v[i],
             w[i, j],
             v[:],
@@ -202,11 +212,11 @@ class ExpressionCollection:
             w[..., 0],
             v[i] * v[j],
             w[i, 0] * v[j],
-            w[d - 1, j] * v[i],
+            w[gdim - 1, j] * v[i],
             v[i] * v[i],
             w[i, 0] * w[0, i],
             v[i] * w[0, i],
-            v[j] * w[d - 1, j],
+            v[j] * w[gdim - 1, j],
             w[i, i],
             w[i, j] * w[j, i],
             as_tensor(v[i] * w[k, 0], (k, i)),
@@ -234,7 +244,7 @@ class ExpressionCollection:
             conditional(le(u, 0.0), u**3, ln(u)),
         ]
         self.restrictions = [u("+"), u("-"), v("+"), v("-"), w("+"), w("-")]
-        if d > 1:
+        if gdim > 1:
             i, j = indices(2)
             self.restrictions += [
                 v("+")[i] * v("+")[i],
@@ -251,7 +261,7 @@ class ExpressionCollection:
         self.noncompounds += self.conditionals
         self.noncompounds += self.restrictions
 
-        if d == 1:
+        if gdim == 1:
             self.tensorproducts = []
         else:
             self.tensorproducts = [
@@ -266,7 +276,7 @@ class ExpressionCollection:
                 outer(w, w),
             ]
 
-        if d == 1:
+        if gdim == 1:
             self.tensoralgebra = []
         else:
             self.tensoralgebra = [
@@ -280,7 +290,7 @@ class ExpressionCollection:
                 inv(w),
             ]
 
-        if d != 3:
+        if gdim != 3:
             self.crossproducts = []
         else:
             self.crossproducts = [
@@ -302,62 +312,38 @@ class ExpressionCollection:
         self.all_expressions += self.compounds
 
 
-@pytest.fixture(params=(1, 2, 3))
+@pytest.fixture(
+    params=[
+        (interval, 1, 1),
+        (interval, 2, 1),
+        (interval, 3, 1),
+        (interval, 1, 2),
+        (interval, 2, 2),
+        (interval, 3, 2),
+        (interval, 1, 3),
+        (interval, 2, 3),
+        (interval, 3, 3),
+        (triangle, 1, 2),
+        (triangle, 2, 2),
+        (triangle, 3, 2),
+        (triangle, 1, 3),
+        (triangle, 2, 3),
+        (triangle, 3, 3),
+        (tetrahedron, 1, 3),
+        (tetrahedron, 2, 3),
+        (tetrahedron, 3, 3),
+    ]
+)
 def d_expr(request):
-    d = request.param
-    cell = {1: interval, 2: triangle, 3: tetrahedron}[d]
-    expr = ExpressionCollection(cell)
-    return d, expr
-
-
-def ad_algorithm(expr):
-    # alt = 1
-    # alt = 4
-    # alt = 6
-    alt = 0
-    if alt == 0:
-        return expand_derivatives(expr)
-    elif alt == 1:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=True,
-            apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=True,
-        )
-    elif alt == 2:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=False,
-            apply_expand_compounds_after=True,
-            use_alternative_wrapper_algorithm=False,
-        )
-    elif alt == 3:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=False,
-            apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=False,
-        )
-    elif alt == 4:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=False,
-            apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=True,
-        )
-    elif alt == 5:
-        return expand_derivatives(
-            expr,
-            apply_expand_compounds_before=False,
-            apply_expand_compounds_after=False,
-            use_alternative_wrapper_algorithm=False,
-        )
+    cell, geometry_degree, gdim = request.param
+    expr = ExpressionCollection(cell, geometry_degree, gdim)
+    return cell, expr
 
 
 def _test_no_derivatives_no_change(self, collection):
     for expr in collection:
         before = expr
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         # print '\n', str(before), '\n', str(after), '\n'
         self.assertEqualTotalShape(before, after)
         assert before == after
@@ -367,7 +353,7 @@ def _test_no_derivatives_but_still_changed(self, collection):
     # Planning to fix these:
     for expr in collection:
         before = expr
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         # print '\n', str(before), '\n', str(after), '\n'
         self.assertEqualTotalShape(before, after)
         # assert before == after # Without expand_compounds
@@ -406,13 +392,13 @@ def _test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(self,
     for t in collection.terminals:
         for var in (u, v, w):
             before = derivative(t, var)  # This will often get preliminary simplified to zero
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             expected = 0 * t
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
             before = derivative(c * t, var)  # This will usually not get simplified to zero
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             expected = 0 * t
             # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
@@ -436,15 +422,13 @@ def _test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, colle
     for t in collection.terminals:
         for var in (vu, vv, vw):
             before = diff(t, var)  # This will often get preliminary simplified to zero
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             expected = 0 * outer(t, var)
-            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
             before = diff(c * t, var)  # This will usually not get simplified to zero
-            after = ad_algorithm(before)
+            after = expand_derivatives(before)
             expected = 0 * outer(t, var)
-            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
             assert after == expected
 
 
@@ -454,33 +438,17 @@ def test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(sel
 
 
 def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
-    debug = 0
-
     u = Coefficient(collection.shared_objects.u_space)
     v = Coefficient(collection.shared_objects.v_space)
     w = Coefficient(collection.shared_objects.w_space)
 
     # for t in chain(collection.noncompounds, collection.compounds):
-    # debug = True
     for t in collection.noncompounds:
         for var in (u, v, w):
-            if debug:
-                print("\n", "shapes:   ", t.ufl_shape, var.ufl_shape, "\n")
-            if debug:
-                print("\n", "t:        ", str(t), "\n")
-            if debug:
-                print("\n", "t ind:    ", str(t.ufl_free_indices), "\n")
-            if debug:
-                print("\n", "var:      ", str(var), "\n")
             before = derivative(t, var)
-            if debug:
-                print("\n", "before:   ", str(before), "\n")
-            after = ad_algorithm(before)
-            if debug:
-                print("\n", "after:    ", str(after), "\n")
+            after = expand_derivatives(before)
             expected = 0 * t
-            if debug:
-                print("\n", "expected: ", str(expected), "\n")
+
             assert after == expected
 
 
@@ -490,8 +458,6 @@ def test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, d_e
 
 
 def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
-    debug = 0
-
     u = Coefficient(collection.shared_objects.u_space)
     v = Coefficient(collection.shared_objects.v_space)
     w = Coefficient(collection.shared_objects.w_space)
@@ -504,15 +470,9 @@ def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, co
     for t in collection.noncompounds:
         for var in (vu, vv, vw):
             before = diff(t, var)
-            if debug:
-                print("\n", "before:   ", str(before), "\n")
-            after = ad_algorithm(before)
-            if debug:
-                print("\n", "after:    ", str(after), "\n")
+            after = expand_derivatives(before)
             expected = 0 * outer(t, var)
-            if debug:
-                print("\n", "expected: ", str(expected), "\n")
-            # print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+
             assert after == expected
 
 
@@ -522,8 +482,6 @@ def test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(
 
 
 def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
-    debug = 0
-
     u = collection.shared_objects.u
     v = collection.shared_objects.v
     w = collection.shared_objects.w
@@ -533,22 +491,11 @@ def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes
         for var in (u, v, w):
             # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
             if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
-                if debug:
-                    print(f"Depends on {var!s} :: {t!s}")
                 continue
 
-            if debug:
-                print(("\n", "...:   ", t.ufl_shape, var.ufl_shape, "\n"))
             before = derivative(t, var)
-            if debug:
-                print(("\n", "before:   ", str(before), "\n"))
-            after = ad_algorithm(before)
-            if debug:
-                print(("\n", "after:    ", str(after), "\n"))
+            after = expand_derivatives(before)
             expected_shape = 0 * t
-            if debug:
-                print(("\n", "expected_shape: ", str(expected_shape), "\n"))
-            # print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
             if var in unique_post_traversal(t):
                 self.assertEqualTotalShape(after, expected_shape)
@@ -563,7 +510,6 @@ def test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, 
 
 
 def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
-    debug = 0
     u = collection.shared_objects.u
     v = collection.shared_objects.v
     w = collection.shared_objects.w
@@ -578,20 +524,11 @@ def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self,
         for var in (vu, vv, vw):
             # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
             if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
-                if debug:
-                    print(f"Depends on {var!s} :: {t!s}")
                 continue
 
             before = diff(t, var)
-            if debug:
-                print(("\n", "before:   ", str(before), "\n"))
-            after = ad_algorithm(before)
-            if debug:
-                print(("\n", "after:    ", str(after), "\n"))
+            after = expand_derivatives(before)
             expected_shape = 0 * outer(t, var)  # expected shape, not necessarily value
-            if debug:
-                print(("\n", "expected_shape: ", str(expected_shape), "\n"))
-            # print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
             if var in unique_post_traversal(t):
                 self.assertEqualTotalShape(after, expected_shape)
@@ -608,23 +545,19 @@ def test_grad_coeff(self, d_expr):
     w = collection.shared_objects.w
     for f in (u, v, w):
         before = grad(f)
-        after = ad_algorithm(before)
-
-        if before.ufl_shape != after.ufl_shape:
-            print(("\n", "shapes:", before.ufl_shape, after.ufl_shape))
-            print(("\n", str(before), "\n", str(after), "\n"))
+        after = expand_derivatives(before)
 
         self.assertEqualTotalShape(before, after)
         if f is u:  # Differing by being wrapped in indexing types
             assert before == after
 
         before = grad(grad(f))
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert before == after # Differing by being wrapped in indexing types
 
         before = grad(grad(grad(f)))
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert before == after # Differing by being wrapped in indexing types
 
@@ -637,23 +570,19 @@ def test_derivative_grad_coeff(self, d_expr):
     w = collection.shared_objects.w
     for f in (u, v, w):
         before = derivative(grad(f), f)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
 
         before = derivative(grad(grad(f)), f)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
 
         before = derivative(grad(grad(grad(f))), f)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
-        if 0:
-            print()
-            print(("B", f, "::", before))
-            print(("A", f, "::", after))
 
 
 def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
@@ -670,20 +599,121 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
         df = dg[ii]
 
         before = derivative(grad(g), f, df)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
 
         before = derivative(grad(grad(g)), f, df)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
 
         before = derivative(grad(grad(grad(g))), f, df)
-        after = ad_algorithm(before)
+        after = expand_derivatives(before)
         self.assertEqualTotalShape(before, after)
         # assert after == expected
-        if 0:
-            print()
-            print(("B", f, "::", before))
-            print(("A", f, "::", after))
+
+
+@pytest.mark.parametrize(
+    "cell,gdim",
+    [
+        (interval, 1),
+        (interval, 2),
+        (interval, 3),
+        (triangle, 2),
+        (triangle, 3),
+        (tetrahedron, 3),
+    ],
+)
+@pytest.mark.parametrize("order", [1, 2, 3])
+@pytest.mark.parametrize("lower_alg", [True, False])
+@pytest.mark.parametrize("lower_geo", [True, False])
+@pytest.mark.parametrize("apply_deriv", [True, False])
+def test_diff_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
+    tdim = cell.topological_dimension()
+
+    domain = Mesh(LagrangeElement(cell, order, (gdim,)))
+
+    J = Jacobian(domain)
+    assert J.ufl_shape == (gdim, tdim)
+
+    F = grad(J)
+    if lower_alg:
+        F = apply_algebra_lowering(F)
+
+    if lower_geo:
+        F = apply_geometry_lowering(F)
+
+    if apply_deriv:
+        F = apply_derivatives(F)
+
+    V = FunctionSpace(domain, LagrangeElement(cell, 1))
+    u = Coefficient(V)
+
+    δF_u = diff(F, u)
+
+    if lower_alg:
+        δF_u = apply_algebra_lowering(δF_u)
+
+    if lower_geo:
+        δF_u = apply_geometry_lowering(δF_u)
+
+    δF_u = apply_derivatives(δF_u)
+
+    assert δF_u == 0
+    assert δF_u.ufl_shape == (gdim, tdim, gdim)
+
+
+@pytest.mark.parametrize(
+    "cell,gdim",
+    [
+        (interval, 1),
+        (interval, 2),
+        (interval, 3),
+        (triangle, 2),
+        (triangle, 3),
+        (tetrahedron, 3),
+    ],
+)
+@pytest.mark.parametrize("order", [2, 3])
+@pytest.mark.parametrize("lower_alg", [True, False])
+@pytest.mark.parametrize("lower_geo", [True, False])
+@pytest.mark.parametrize("apply_deriv", [True, False])
+@pytest.mark.skipif(sys.version_info >= (3, 14), reason="Hits recursion error on Python 3.14.0rc1 ")
+def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
+    tdim = cell.topological_dimension()
+
+    domain = Mesh(LagrangeElement(cell, order, (gdim,)))
+
+    J = Jacobian(domain)
+    assert J.ufl_shape == (gdim, tdim)
+
+    F = grad(grad(J))
+
+    if lower_alg:
+        F = apply_algebra_lowering(F)
+
+    if lower_geo:
+        F = apply_geometry_lowering(F)
+
+    if apply_deriv:
+        F = apply_derivatives(F)
+
+    assert F[:, :, :, :] != 0
+    assert F.ufl_shape == (gdim, tdim, gdim, gdim)
+
+    V = FunctionSpace(domain, LagrangeElement(cell, 1))
+    u = Coefficient(V)
+
+    δF_u = diff(F, u)
+
+    if lower_alg:
+        δF_u = apply_algebra_lowering(δF_u)
+
+    if lower_geo:
+        δF_u = apply_geometry_lowering(δF_u)
+
+    δF_u = apply_derivatives(δF_u)
+
+    assert δF_u == 0
+    assert δF_u.ufl_shape == (gdim, tdim, gdim, gdim)
