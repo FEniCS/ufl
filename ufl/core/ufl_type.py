@@ -15,9 +15,6 @@ from abc import ABC, abstractmethod
 
 from ufl.utils.formatting import camel2underscore
 
-if typing.TYPE_CHECKING:
-    from ufl.core.terminal import FormArgument
-
 
 class UFLObject(ABC):
     """A UFL Object."""
@@ -129,38 +126,11 @@ class UFLType:
 
     __slots__: tuple[str, ...] = ()
 
+    # TODO: ufl_handler_name type name -> remove
     _ufl_handler_name_: str = "ufl_type"
+
+    # TODO: _ufl_is_terminal iff. is Cofunction or Terminal -> remove
     _ufl_is_terminal_: bool = False
+
+    # TODO:_ufl_is_literal_ iff. is Zero, ComplexValue, FloatValue or IntValue -> remove
     _ufl_is_literal_: bool = False
-
-    _ufl_is_terminal_modifier_: bool = False
-    _ufl_is_in_reference_frame_: bool = False
-
-    ufl_operands: tuple[FormArgument, ...]
-    ufl_shape: tuple[int, ...]
-    ufl_free_indices: tuple[int, ...]
-    ufl_index_dimensions: tuple
-
-    # Each subclass of Expr is checked to have these methods in
-    # ufl_type
-    # FIXME: Add more and enable all
-    # _ufl_required_methods_: tuple[str, ...] = (
-    #     # To compute the hash on demand, this method is called.
-    #     "_ufl_compute_hash_",
-    #     # The data returned from this method is used to compute the
-    #     # signature of a form
-    #     "_ufl_signature_data_",
-    #     # The == operator must be implemented to compare for identical
-    #     # representation, used by set() and dict(). The __hash__
-    #     # operator is added by ufl_type.
-    #     "__eq__",
-    #     # To reconstruct an object of the same type with operands or
-    #     # properties changed.
-    #     "_ufl_expr_reconstruct_",  # Implemented in Operator and Terminal so this should never
-    # fail
-    #     "ufl_domains",
-    #     # "ufl_cell",
-    #     # "ufl_domain",
-    #     # "__str__",
-    #     # "__repr__",
-    # )

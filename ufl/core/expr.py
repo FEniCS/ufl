@@ -91,6 +91,13 @@ class Expr(UFLType):
 
     __slots__ = ("__weakref__", "_hash")
     # _ufl_noslots_ = True
+    _ufl_is_terminal_modifier_: bool = False
+    _ufl_is_in_reference_frame_: bool = False
+
+    ufl_operands: tuple["FormArgument", ...]
+    ufl_shape: tuple[int, ...]
+    ufl_free_indices: tuple[int, ...]
+    ufl_index_dimensions: tuple
 
     # --- Basic object behaviour ---
 
@@ -116,10 +123,6 @@ class Expr(UFLType):
     # because Expr is not defined yet at this point.  Note: Boolean
     # type traits that categorize types are mostly set to None for
     # Expr but should be True or False for any non-abstract type.
-
-    # The handler name.  This is the name of the handler function you
-    # implement for this type in a multifunction.
-    _ufl_handler_name_ = "expr"
 
     # --- All subclasses must define these object attributes ---
 
