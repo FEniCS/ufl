@@ -419,7 +419,7 @@ def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True) -> tup
 
 def extract_unique_domain(
     expr: Expr | Form, expand_mesh_sequence: bool = True
-) -> AbstractDomain| None:
+) -> AbstractDomain | None:
     """Return the single unique domain expression is defined on or throw an error.
 
     Args:

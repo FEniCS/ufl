@@ -37,7 +37,7 @@ class RestrictionPropagator(MultiFunction):
     def __init__(
         self,
         side: Literal["+", "-"] | None = None,
-        default_restrictions: dict[Mesh, Literal["+", "-"]|None]|None = None,
+        default_restrictions: dict[Mesh, Literal["+", "-"] | None] | None = None,
     ):
         """Initialise a restriction propagator.
 
