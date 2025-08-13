@@ -15,6 +15,7 @@ from ufl.algorithms.coordinate_derivative_helpers import (
     strip_coordinate_derivatives,
 )
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.protocols import id_or_none
@@ -83,6 +84,10 @@ class IntegralData:
             and self.integrals == other.integrals
             and self.metadata == other.metadata
         )
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __str__(self):
         """Format as a string."""
