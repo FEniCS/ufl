@@ -226,7 +226,7 @@ def test_mixed_function_space_with_mesh_sequence_raise():
     dS1 = Measure("dS", mesh1)
     # Make sure that all mixed functions are split when applying default restrictions.
     form = div(g1("+")) * div(f1("-")) * dS1
-    with pytest.raises(RuntimeError) as e_info:
+    with pytest.raises(ValueError) as e_info:
         _ = compute_form_data(
             form,
             do_apply_function_pullbacks=True,
@@ -240,7 +240,7 @@ def test_mixed_function_space_with_mesh_sequence_raise():
             do_assume_single_integral_type=False,
             complex_mode=False,
         )
-    assert e_info.match("Not expecting a MeshSequence")
+    assert e_info.match("Found multiple domains, cannot return just one.")
     # Make sure that g1 is restricted as f1.
     form = div(g1) * div(f1("-")) * dS1
     with pytest.raises(ValueError) as e_info:

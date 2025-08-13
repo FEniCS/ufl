@@ -39,7 +39,7 @@ from ufl.algorithms.replace import replace
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.constantvalue import Zero
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import extract_domains, extract_unique_domain
+from ufl.domain import extract_unique_domain
 from ufl.utils.sequences import max_degree
 
 
