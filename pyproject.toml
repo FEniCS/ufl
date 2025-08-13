@@ -81,7 +81,7 @@ select = [
 ignore = [
     "RUF005",
     "RUF012",
-    "UP045",  # Ractivate once Python 3.9 EoL
+    "UP045",  # Reactivate once Python 3.9 EoL
 ]
 allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
