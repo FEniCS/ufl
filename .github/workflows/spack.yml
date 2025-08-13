@@ -58,5 +58,4 @@ jobs:
           spack env create release
           spack env activate release
           spack add py-fenics-ufl
-          spack install
-          spack -v test run py-fenics-ufl
+          spack install --test=root
