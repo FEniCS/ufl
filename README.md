@@ -1,5 +1,9 @@
 # UFL - Unified Form Language
 
+[![UFL CI](https://github.com/FEniCS/ufl/actions/workflows/pythonapp.yml/badge.svg)](https://github.com/FEniCS/ufl/actions/workflows/pythonapp.yml)
+[![Spack build](https://github.com/FEniCS/ufl/actions/workflows/spack.yml/badge.svg)](https://github.com/FEniCS/ufl/actions/workflows/spack.yml)
+[![Coverage Status](https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=main)](https://coveralls.io/github/FEniCS/ufl?branch=main)
+
 The Unified Form Language (UFL) is a domain specific language for
 declaration of finite element discretizations of variational forms. More
 precisely, it defines a flexible interface for choosing finite element
@@ -8,9 +12,6 @@ mathematical notation.
 
 UFL is part of the FEniCS Project. For more information, visit
 https://www.fenicsproject.org
-
-[![UFL CI](https://github.com/FEniCS/ufl/workflows/UFL%20CI/badge.svg)](https://github.com/FEniCS/ufl/workflows/UFL%20CI)
-[![Coverage Status](https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=master)](https://coveralls.io/github/FEniCS/ufl?branch=master)
 
 ## Documentation
 
