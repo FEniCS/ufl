@@ -58,6 +58,10 @@ class AbstractDomain:
         """Return the dimension of the topology of this domain."""
         return self._topological_dimension
 
+    def _ufl_sort_key_(self):
+        """Return UFL sort key."""
+        raise NotImplementedError("_ufl_sort_key_() method not implemented")
+
     @property
     def meshes(self):
         """Return the component meshes."""
@@ -336,7 +340,7 @@ def as_domain(domain):
         return domain
 
 
-def sort_domains(domains: Sequence[AbstractDomain]):
+def sort_domains(domains: Sequence[AbstractDomain]) -> tuple[AbstractDomain, ...]:
     """Sort domains in a canonical ordering.
 
     Args:
@@ -384,7 +388,10 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
 # TODO: Move these to an analysis module?
 
 
-def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
+def extract_domains(
+    expr: Expr | Form,
+    expand_mesh_sequence: bool = True,
+) -> tuple[AbstractDomain, ...]:
     """Return all domains expression is defined on.
 
     Args:
@@ -417,7 +424,9 @@ def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
 
 
-def extract_unique_domain(expr, expand_mesh_sequence: bool = True):
+def extract_unique_domain(
+    expr: Expr | Form, expand_mesh_sequence: bool = True
+) -> AbstractDomain | None:
     """Return the single unique domain expression is defined on or throw an error.
 
     Args:
