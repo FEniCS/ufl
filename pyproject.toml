@@ -52,6 +52,7 @@ packages = [
 [tool.ruff]
 line-length = 100
 indent-width = 4
+target-version = "py39"
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -59,8 +60,8 @@ docstring-code-format = true
 [tool.ruff.lint]
 select = [
     # "N", # pep8-naming
-    "E", # pycodestyle
-    "W", # pycodestyle
+    "E",   # pycodestyle
+    "W",   # pycodestyle
     "D",   # pydocstyle
     "F",   # pyflakes
     "I",   # isort
@@ -77,7 +78,7 @@ select = [
 ignore = [
     "RUF005",
     "RUF012",
-    "UP045", # Ractivate once Python 3.9 EoL
+    "UP045",  # Reactivate once Python 3.9 EoL
 ]
 allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
@@ -90,6 +91,4 @@ allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 convention = "google"
 
 [tool.mypy]
-disable_error_code = [
-    "attr-defined",
-]
+disable_error_code = ["attr-defined"]

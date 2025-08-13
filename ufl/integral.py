@@ -9,6 +9,8 @@
 # Modified by Anders Logg, 2008-2009
 # Modified by Massimiliano Leoni, 2016.
 
+from typing import Any
+
 import ufl
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.core.expr import Expr
@@ -34,15 +36,28 @@ class Integral:
 
     def __init__(
         self,
-        integrand,
-        integral_type,
+        integrand: Expr,
+        integral_type: str,
         domain,
-        subdomain_id,
-        metadata,
-        subdomain_data,
-        extra_domain_integral_type_map=None,
+        subdomain_id: int | tuple[int, ...],
+        metadata: dict,
+        subdomain_data: Any,
+        extra_domain_integral_type_map: dict | None,
     ):
-        """Initialise."""
+        """Initialise.
+
+        Args:
+            integrand: Integrand of the integral
+            integral_type: Type of integral, see: `ufl.measure._integral_types` for available types.
+            domain: Integration domain as an `ufl.Mesh`.
+            subdomain_id: Integer or tuple of integer restricting the integral to a subset of
+                entities, marked in some way through `subdomain_data`.
+            metadata: Metadata that is usually passed to the form compiler
+            subdomain_data: Data associated with the subdomain, can be anything
+                (depends on the compiler and user-facing API)
+            extra_domain_integral_type_map: Mapping from other `ufl.Mesh` objects present in
+                `integrand` to specific integral types on this domain.
+        """
         if not isinstance(integrand, Expr):
             raise ValueError("Expecting integrand to be an Expr instance.")
         self._integrand = integrand
