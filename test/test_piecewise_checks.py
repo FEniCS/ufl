@@ -280,14 +280,14 @@ def mappings_are_cellwise_constant(domain, test):
     assert is_cellwise_constant(e) == test
     e = JacobianInverse(domain)
     assert is_cellwise_constant(e) == test
-    if domain.topological_dimension() != 1:
+    if domain.ufl_cell().topological_dimension() != 1:
         e = FacetJacobian(domain)
         assert is_cellwise_constant(e) == test
         e = FacetJacobianDeterminant(domain)
         assert is_cellwise_constant(e) == test
         e = FacetJacobianInverse(domain)
         assert is_cellwise_constant(e) == test
-    if domain.topological_dimension() > 2:
+    if domain.ufl_cell().topological_dimension() > 2:
         e = RidgeJacobian(domain)
         assert is_cellwise_constant(e) == test
         e = RidgeJacobianDeterminant(domain)

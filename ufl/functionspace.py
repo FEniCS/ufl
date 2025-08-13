@@ -9,11 +9,15 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
+from collections.abc import Sequence
+from typing import Union
+
 import numpy as np
 
 from ufl.core.ufl_type import UFLObject
-from ufl.domain import join_domains
+from ufl.domain import AbstractDomain, join_domains
 from ufl.duals import is_dual, is_primal
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.utils.sequences import product
 
 # Export list for ufl.classes
@@ -39,28 +43,24 @@ class AbstractFunctionSpace:
 class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
     """Base function space."""
 
-    def __init__(self, domain, element, label=""):
+    def __init__(
+        self,
+        domain: AbstractDomain,
+        element: Union[Sequence[AbstractFiniteElement], AbstractFiniteElement],
+        label: str = "",
+    ):
         """Initialise."""
-        if domain is None:
-            # DOLFIN hack
-            # TODO: Is anything expected from element.cell in this case?
-            pass
+        if not domain.can_make_function_space(element):
+            raise ValueError(
+                f"Mismatching cell types in domain ({domain}) and element ({element})."
+            )
+        if isinstance(element, AbstractFiniteElement):
+            self._ufl_elements: tuple[AbstractFiniteElement, ...] = (element,)
         else:
-            try:
-                domain_cell = domain.ufl_cell()
-            except AttributeError:
-                raise ValueError(
-                    "Expected non-abstract domain for initalization of function space."
-                )
-            else:
-                if element.cell != domain_cell:
-                    raise ValueError("Non-matching cell of finite element and domain.")
-            if not domain.can_make_function_space(element):
-                raise ValueError(f"Mismatching domain ({domain}) and element ({element}).")
+            self._ufl_elements = tuple(element)
         AbstractFunctionSpace.__init__(self)
-        self._label = label
         self._ufl_domain = domain
-        self._ufl_element = element
+        self._label = label
 
     @property
     def components(self) -> dict[tuple[int, ...], int]:
@@ -72,10 +72,11 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         """
         from ufl.pullback import SymmetricPullback
 
-        if isinstance(self._ufl_element.pullback, SymmetricPullback):
-            return self._ufl_element.pullback._symmetry
+        e = self._ufl_elements[0]
+        if isinstance(e.pullback, SymmetricPullback):
+            return e.pullback._symmetry
 
-        if len(self._ufl_element.sub_elements) == 0:
+        if len(e.sub_elements) == 0:
             return {(): 0}
 
         components: dict[tuple[int, ...], int] = {}
@@ -102,7 +103,13 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def ufl_element(self):
         """Return ufl element."""
-        return self._ufl_element
+        if len(self._ufl_elements) > 1:
+            raise ValueError("Cannot get the element of a function space with multiple elements.")
+        return self._ufl_elements[0]
+
+    def ufl_elements(self):
+        """Return ufl elements."""
+        return self._ufl_elements
 
     def ufl_domains(self):
         """Return ufl domains."""
@@ -144,12 +151,14 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return f"BaseFunctionSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+        return f"BaseFunctionSpace({self._ufl_domain!r}, {self._ufl_elements!r})"
 
     @property
     def value_shape(self) -> tuple[int, ...]:
         """Return the shape of the value space on a physical domain."""
-        return self._ufl_element.pullback.physical_value_shape(self._ufl_element, self._ufl_domain)
+        return self._ufl_elements[0].pullback.physical_value_shape(
+            self._ufl_elements[0], self._ufl_domain
+        )
 
     @property
     def value_size(self) -> int:
@@ -165,7 +174,7 @@ class FunctionSpace(BaseFunctionSpace, UFLObject):
 
     def dual(self):
         """Get the dual of the space."""
-        return DualSpace(self._ufl_domain, self._ufl_element, label=self.label())
+        return DualSpace(self._ufl_domain, self._ufl_elements, label=self.label())
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -177,11 +186,11 @@ class FunctionSpace(BaseFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return f"FunctionSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+        return f"FunctionSpace({self._ufl_domain!r}, {self._ufl_elements!r})"
 
     def __str__(self):
         """String."""
-        return f"FunctionSpace({self._ufl_domain}, {self._ufl_element})"
+        return f"FunctionSpace({self._ufl_domain}, {self._ufl_elements})"
 
 
 class DualSpace(BaseFunctionSpace, UFLObject):
@@ -196,7 +205,7 @@ class DualSpace(BaseFunctionSpace, UFLObject):
 
     def dual(self):
         """Get the dual of the space."""
-        return FunctionSpace(self._ufl_domain, self._ufl_element, label=self.label())
+        return FunctionSpace(self._ufl_domain, self._ufl_elements, label=self.label())
 
     def _ufl_hash_data_(self):
         """UFL hash data."""
@@ -208,11 +217,11 @@ class DualSpace(BaseFunctionSpace, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        return f"DualSpace({self._ufl_domain!r}, {self._ufl_element!r})"
+        return f"DualSpace({self._ufl_domain!r}, {self._ufl_elements!r})"
 
     def __str__(self):
         """String."""
-        return f"DualSpace({self._ufl_domain}, {self._ufl_element})"
+        return f"DualSpace({self._ufl_domain}, {self._ufl_elements})"
 
 
 class TensorProductFunctionSpace(AbstractFunctionSpace, UFLObject):

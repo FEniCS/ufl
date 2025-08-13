@@ -16,9 +16,11 @@ import abc as _abc
 import typing
 from collections.abc import Sequence
 
-from ufl.cell import Cell as _Cell
-from ufl.pullback import AbstractPullback as _AbstractPullback
-from ufl.sobolevspace import SobolevSpace as _SobolevSpace
+if typing.TYPE_CHECKING:
+    # To avoid cyclic import when type-hinting.
+    from ufl.cell import Cell
+    from ufl.pullback import AbstractPullback
+    from ufl.sobolevspace import SobolevSpace
 from ufl.utils.sequences import product
 
 __all_classes__ = ["AbstractFiniteElement"]
@@ -55,11 +57,11 @@ class AbstractFiniteElement(_abc.ABC):
         """Check if this element is equal to another element."""
 
     @_abc.abstractproperty
-    def sobolev_space(self) -> _SobolevSpace:
+    def sobolev_space(self) -> SobolevSpace:
         """Return the underlying Sobolev space."""
 
     @_abc.abstractproperty
-    def pullback(self) -> _AbstractPullback:
+    def pullback(self) -> AbstractPullback:
         """Return the pullback for this element."""
 
     @_abc.abstractproperty
@@ -95,7 +97,7 @@ class AbstractFiniteElement(_abc.ABC):
         """
 
     @_abc.abstractproperty
-    def cell(self) -> _Cell:
+    def cell(self) -> Cell:
         """Return the cell of the finite element."""
 
     @_abc.abstractproperty
