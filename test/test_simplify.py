@@ -14,6 +14,7 @@ from ufl import (
     acos,
     as_tensor,
     as_ufl,
+    as_vector,
     asin,
     atan,
     cos,
@@ -234,7 +235,7 @@ def test_untangle_indexed_component_tensor(self):
     A = as_tensor(Indexed(C, MultiIndex(kk)), jj)
     assert A is not C
 
-    ii = kk
+    ii = indices(len(A.ufl_shape))
     expr = Indexed(A, MultiIndex(ii))
     assert isinstance(expr, Indexed)
     B, ll = expr.ufl_operands
@@ -266,3 +267,24 @@ def test_simplify_indexed(self):
     # ComponentTensor + ListTensor
     c = ComponentTensor(Indexed(ll, MultiIndex((i, j))), MultiIndex((j, i)))
     assert Indexed(c, MultiIndex((FixedIndex(1), FixedIndex(2)))) == l2[1]
+
+
+def test_simplify_indexed_componenttensor_indexed_listtensor():
+    list_item_0 = as_vector([10.0, 11.0, 12.0])
+    list_item_1 = as_vector([20.0, 21.0, 22.0])
+    i = Index()
+    j = Index()
+    value = Indexed(
+        ComponentTensor(
+            Indexed(
+                ListTensor(
+                    Indexed(list_item_0, MultiIndex((j,))),
+                    Indexed(list_item_1, MultiIndex((j,))),
+                ),
+                MultiIndex((i,)),
+            ),
+            MultiIndex((i, j)),
+        ),
+        MultiIndex((FixedIndex(1), FixedIndex(2))),
+    )
+    assert value == list_item_1[2]
