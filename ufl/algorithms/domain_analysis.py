@@ -48,7 +48,7 @@ class IntegralData:
         subdomain_id,
         integrals,
         metadata,
-        domain_integral_type_map=None,
+        domain_integral_type_map,
     ):
         """Initialise."""
         if 1 != len(set(itg.ufl_domain() for itg in integrals)):
@@ -68,11 +68,8 @@ class IntegralData:
         # this stage:
         self.integral_coefficients = None
         self.enabled_coefficients = None
-        if domain_integral_type_map is None:
-            self.domain_integral_type_map = {}
-        else:
-            # This map must have been sorted by domains.
-            self.domain_integral_type_map = domain_integral_type_map
+        # This map must have been sorted by domains.
+        self.domain_integral_type_map = domain_integral_type_map
 
         # TODO: I think we can get rid of this with some refactoring
         # in ffc:
@@ -330,7 +327,7 @@ def build_integral_data(integrals):
                 sid,
                 integrals,
                 {},
-                domain_integral_type_map=dict(d_itype_tuple),
+                dict(d_itype_tuple),
             )
         )
     return integral_datas
