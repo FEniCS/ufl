@@ -68,7 +68,6 @@ def test_mixed_function_space_with_mesh_sequence_cell():
         do_estimate_degrees=True,
         do_replace_functions=True,
         coefficients_to_split=(f, g),
-        do_assume_single_integral_type=False,
         complex_mode=False,
     )
     (id0,) = fd.integral_data
@@ -137,7 +136,6 @@ def test_mixed_function_space_with_mesh_sequence_facet():
         do_estimate_degrees=True,
         do_replace_functions=True,
         coefficients_to_split=(f, g),
-        do_assume_single_integral_type=False,
         complex_mode=False,
     )
     (
@@ -237,7 +235,6 @@ def test_mixed_function_space_with_mesh_sequence_raise():
             do_estimate_degrees=True,
             do_replace_functions=True,
             coefficients_to_split=(f,),
-            do_assume_single_integral_type=False,
             complex_mode=False,
         )
     assert e_info.match("Found multiple domains, cannot return just one.")
@@ -254,7 +251,6 @@ def test_mixed_function_space_with_mesh_sequence_raise():
             do_estimate_degrees=True,
             do_replace_functions=True,
             coefficients_to_split=(f, g),
-            do_assume_single_integral_type=False,
             complex_mode=False,
         )
     assert e_info.match("Discontinuous type Coefficient must be restricted.")
