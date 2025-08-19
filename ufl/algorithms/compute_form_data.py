@@ -39,7 +39,7 @@ from ufl.algorithms.replace import replace
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.constantvalue import Zero
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import extract_unique_domain
+from ufl.domain import extract_domains, extract_unique_domain
 from ufl.utils.sequences import max_degree
 
 
@@ -262,7 +262,6 @@ def compute_form_data(
     do_append_everywhere_integrals=True,
     do_replace_functions=False,
     coefficients_to_split=None,
-    do_assume_single_integral_type=True,
     complex_mode=False,
     do_remove_component_tensors=False,
 ):
@@ -469,22 +468,27 @@ def compute_form_data(
     # Propagate restrictions to terminals
     if do_apply_restrictions:
         for itg_data in self.integral_data:
-            if do_assume_single_integral_type:  # Conventional case
-                if not itg_data.integral_type.startswith("interior_facet"):
-                    continue
+            # Need the following if block in case not all participating domains
+            # have been included in the Measure (backwards compat).
+            if all(
+                not integral_type.startswith("interior_facet")
+                for _, integral_type in itg_data.domain_integral_type_map.items()
+            ):
+                continue
             if do_apply_default_restrictions:
-                if do_assume_single_integral_type:  # Conventional case
-                    domains = set(
-                        domain
-                        for integral in itg_data.integrals
-                        for domain in extract_domains(integral)
-                    )
-                    default_restrictions = {domain: "+" for domain in domains}
-                else:
-                    default_restrictions = {
-                        domain: default_restriction_map[integral_type]
-                        for domain, integral_type in itg_data.domain_integral_type_map.items()
-                    }
+                default_restrictions = {
+                    domain: default_restriction_map[integral_type]
+                    for domain, integral_type in itg_data.domain_integral_type_map.items()
+                }
+                # Need the following dict update in case not all participating domains
+                # have been included in the Measure (backwards compat).
+                extra = {
+                    domain: default_restriction_map[itg_data.integral_type]
+                    for integral in itg_data.integrals
+                    for domain in extract_domains(integral)
+                    if domain not in default_restrictions
+                }
+                default_restrictions.update(extra)
             else:
                 default_restrictions = None
             new_integrals = []
