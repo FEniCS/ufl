@@ -22,7 +22,7 @@ jobs:
       PETSC_ARCH: linux-gnu-real-64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -41,7 +41,7 @@ jobs:
           python3 -m pip install git+https://github.com/FEniCS/basix.git
 
       - name: Clone FFCx
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: ./ffcx
           repository: FEniCS/ffcx
@@ -67,7 +67,7 @@ jobs:
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install UFL
         run: |
@@ -79,7 +79,7 @@ jobs:
           python3 -m pip install --break-system-packages  git+https://github.com/FEniCS/ffcx.git
 
       - name: Clone DOLFINx
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: ./dolfinx
           repository: FEniCS/dolfinx

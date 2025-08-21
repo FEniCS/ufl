@@ -1244,8 +1244,6 @@ class VariableRuleset(GenericDerivativeRuleset):
 
         Variable derivative of a gradient of a terminal must be 0.
         """
-        if not isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue)):
-            raise ValueError("Unexpected argument to reference_grad.")
         return self.independent_terminal(o)
 
     @process.register(CellAvg)
