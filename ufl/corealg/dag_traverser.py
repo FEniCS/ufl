@@ -1,9 +1,10 @@
 """Base class for dag traversers."""
 
 from functools import singledispatchmethod, wraps
-from typing import Union
+from typing import Union, overload
 
 from ufl.classes import Expr
+from ufl.form import BaseForm
 
 
 class DAGTraverser:
@@ -71,7 +72,13 @@ class DAGTraverser:
         """
         raise AssertionError(f"Rule not set for {type(o)}")
 
-    def reuse_if_untouched(self, o: Expr, **kwargs) -> Expr:
+    @overload
+    def reuse_if_untouched(self, o: Expr, **kwargs) -> Expr: ...
+
+    @overload
+    def reuse_if_untouched(self, o: BaseForm, **kwargs) -> BaseForm: ...
+
+    def reuse_if_untouched(self, o: Union[Expr, BaseForm], **kwargs) -> Union[Expr, BaseForm]:
         """Reuse if touched.
 
         Args:
