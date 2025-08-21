@@ -6,6 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import as_domain
@@ -66,6 +67,10 @@ class Constant(Terminal, Counted):
             and self._ufl_domain == other._ufl_domain
             and self._ufl_shape == self._ufl_shape
         )
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def _ufl_signature_data_(self, renumbering):
         """Signature data for constant depends on renumbering."""

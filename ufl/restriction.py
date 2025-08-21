@@ -13,13 +13,7 @@ from ufl.precedence import parstr
 # --- Restriction operators ---
 
 
-@ufl_type(
-    is_abstract=True,
-    num_ops=1,
-    inherit_shape_from_operand=0,
-    inherit_indices_from_operand=0,
-    is_restriction=True,
-)
+@ufl_type()
 class Restricted(Operator):
     """Restriction."""
 
@@ -49,18 +43,35 @@ class Restricted(Operator):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)}({self._side})"
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[0].ufl_shape
 
-@ufl_type(is_terminal_modifier=True)
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class PositiveRestricted(Restricted):
     """Positive restriction."""
 
+    _ufl_is_terminal_modifier_ = True
     __slots__ = ()
     _side = "+"
 
 
-@ufl_type(is_terminal_modifier=True)
+@ufl_type()
 class NegativeRestricted(Restricted):
     """Negative restriction."""
 
+    _ufl_is_terminal_modifier_ = True
     __slots__ = ()
     _side = "-"
