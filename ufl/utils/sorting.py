@@ -8,6 +8,8 @@
 
 import warnings
 
+import numpy as np
+
 
 def topological_sorting(nodes, edges):
     """Return a topologically sorted list of the nodes.
@@ -78,7 +80,7 @@ def canonicalize_metadata(metadata):
 
     newvalues = []
     for value in values:
-        if isinstance(value, (dict, list, tuple)):
+        if isinstance(value, (dict, list, tuple, np.ndarray)):
             value = canonicalize_metadata(value)
         elif isinstance(value, (int, float, str)) or value is None:
             value = str(value)
