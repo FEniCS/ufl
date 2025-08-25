@@ -80,9 +80,9 @@ def canonicalize_metadata(metadata):
 
     newvalues = []
     for value in values:
-        if isinstance(value, (dict, list, tuple, np.ndarray)):
+        if isinstance(value, (dict, list, tuple)):
             value = canonicalize_metadata(value)
-        elif isinstance(value, (int, float, str)) or value is None:
+        elif isinstance(value, (int, float, str, np.ndarray)) or value is None:
             value = str(value)
         elif hasattr(value, "ufl_signature"):
             value = value.ufl_signature
