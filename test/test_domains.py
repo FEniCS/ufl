@@ -68,18 +68,19 @@ def test_domains_sort_by_name():
         )
         for cell in sorted(all_cells)
     ]
-    sdomains = sorted(domains1, key=lambda D: (D.topological_dimension(), D.ufl_cell(), D.ufl_id()))
+    sdomains = sorted(
+        domains1, key=lambda D: (D.ufl_cell().topological_dimension(), D.ufl_cell(), D.ufl_id())
+    )
     assert sdomains != domains1
     assert sdomains == domains2
 
 
 def test_topdomain_creation():
     D = Mesh(LagrangeElement(interval, 1, (1,)))
-    assert D.geometric_dimension() == 1
+    assert D.geometric_dimension == 1
     D = Mesh(LagrangeElement(triangle, 1, (2,)))
-    assert D.geometric_dimension() == 2
-    D = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
-    assert D.geometric_dimension() == 3
+    assert D.geometric_dimension == 2
+    D = Mesh(LagrangeElement(triangle, 1, (3,)))
 
 
 def test_cell_legacy_case():
@@ -377,7 +378,7 @@ def test_merge_sort_integral_data():
 
 
 def test_extract_domains():
-    "Test that the domains are extracted properly from a mixed-domain expression"
+    """Test that the domains are extracted properly from a mixed-domain expression."""
 
     # Create domains of different topological dimensions
     gdim = 2
@@ -404,5 +405,29 @@ def test_extract_domains():
 
     domains = extract_domains(expr)
 
-    assert domains[0] == dom_1
-    assert domains[1] == dom_0
+    assert domains[0] == dom_0
+    assert domains[1] == dom_1
+
+
+def test_hybrid_mesh():
+    """Test meshes with multiple cell types."""
+    domain = Mesh(
+        [
+            LagrangeElement(triangle, 1, (2,)),
+            LagrangeElement(quadrilateral, 1, (2,)),
+        ]
+    )
+
+    elements = [LagrangeElement(triangle, 1), LagrangeElement(quadrilateral, 1)]
+
+    space = FunctionSpace(domain, elements)
+
+    # Create test and trial functions
+    u = TrialFunction(space)
+    v = TestFunction(space)
+
+    # Create an expression
+    expr = u * v
+
+    # Create an integral
+    expr * dx

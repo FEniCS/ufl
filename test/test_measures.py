@@ -75,8 +75,8 @@ def test_foo():
 
     assert cell.topological_dimension() == tdim
     assert cell.cellname() == "triangle"
-    assert mydomain.topological_dimension() == tdim
-    assert mydomain.geometric_dimension() == gdim
+    assert mydomain.ufl_cell().topological_dimension() == tdim
+    assert mydomain.geometric_dimension == gdim
     assert mydomain.ufl_cell() == cell
     assert mydomain.ufl_id() == 9
     assert mydomain.ufl_cargo() == mymesh
