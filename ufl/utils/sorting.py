@@ -6,6 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import typing
 import warnings
 
 import numpy as np
@@ -59,7 +60,9 @@ def sorted_by_key(mapping):
     return sorted(mapping.items(), key=_key)
 
 
-def canonicalize_metadata(metadata):
+def canonicalize_metadata(
+    metadata: typing.Union[None, dict, str, list, tuple, np.ndarray],
+) -> tuple:
     """Assuming metadata to be a dict with string keys and builtin python types as values.
 
     Transform dict to a tuple of (key, value) item tuples ordered by key,
