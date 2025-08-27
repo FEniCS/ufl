@@ -74,6 +74,7 @@ def canonicalize_metadata(
     if metadata is None:
         return ()
 
+    values: typing.Sequence[typing.Any]
     if isinstance(metadata, dict):
         keys = sorted(metadata.keys())
         assert all(isinstance(key, str) for key in keys)
