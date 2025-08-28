@@ -433,7 +433,6 @@ def find_geometric_dimension(expr):
 
 
 class UniqueDomainExtractor(DAGTraverser):
-    # ExternalOperator or Interpolate: Domain is where we are mapping into. These are both BaseFormOperators.
     def __init__(
         self,
         compress: Union[bool, None] = True,
@@ -464,10 +463,7 @@ class UniqueDomainExtractor(DAGTraverser):
     def _(self, o: Expr, *operand_results) -> AbstractDomain:
         """Process Indexed object by extracting the domain corresponding to the index."""
         from ufl.functionspace import FunctionSpace
-        # Get the indexed expression and the multiindex
         expression, multiindex = o.ufl_operands
-
-        # Get the domain from the first operand (the expression being indexed)
         expression_domain = operand_results[0]
 
         if isinstance(expression_domain, MeshSequence):
@@ -475,23 +471,19 @@ class UniqueDomainExtractor(DAGTraverser):
             element = expression.ufl_element()
             if hasattr(element, 'sub_elements'):
                 # Need to do this in case we have sub elements which are vector or tensor valued
-                offset = 0
+                j = 0
                 for i, sub_element in enumerate(element.sub_elements):
                     # Get the value size for this sub-element on its corresponding mesh
                     sub_element_mesh = expression_domain.meshes[i]
                     sub_element_fs = FunctionSpace(sub_element_mesh, sub_element)
                     sub_element_size = sub_element_fs.value_size
 
-                    if index < offset + sub_element_size:
-                        # This index belongs to mesh i
+                    if index < j + sub_element_size:
                         return sub_element_mesh
-                    offset += sub_element_size
+                    j += sub_element_size
                 raise ValueError(f"Index {index} out of range for mixed function space")
             else:
-                # If no sub elements we just grab the mesh
                 return expression_domain.meshes[index]
-
-        # If it's not a MeshSequence, just return the expression domain
         return expression_domain
 
     @process.register(Terminal)
@@ -514,14 +506,11 @@ class UniqueDomainExtractor(DAGTraverser):
     @DAGTraverser.postorder
     def _(self, o: Expr, *operand_results) -> AbstractDomain:
         """Process Operator."""
-        # Filter out None results (from operands that don't have domains)
         domains = [d for d in operand_results if d is not None]
 
         if not domains:
-            # No operands have domains
             return None
         elif len(domains) == 1:
-            # Only one operand has a domain
             return domains[0]
         else:
             # Multiple operands have domains - they should all be the same
@@ -529,7 +518,6 @@ class UniqueDomainExtractor(DAGTraverser):
             if all(d == first_domain for d in domains):
                 return first_domain
             else:
-                # If domains are not none and differ, then we don't have a unique domain
                 raise ValueError(
                     f"Cannot extract unique domain from expression {o!r} with differing domains: {domains!r}"
                 )
@@ -550,6 +538,7 @@ def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
     # TODO: make this work for BaseForm
     # Action - Domain of 0th Argument in result
     # Leave AssembledMatrix and Adjoint for now
+    # ExternalOperator or Interpolate: Domain is where we are mapping into. These are both BaseFormOperators.
     from ufl.form import Form
     from ufl.core.expr import Expr
     from ufl.action import Action
