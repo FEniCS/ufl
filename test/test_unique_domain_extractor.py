@@ -8,13 +8,9 @@ from ufl import (
     MeshSequence,
     SpatialCoordinate,
     Measure,
-    Argument,
-    Interpolate,
     Constant,
     TrialFunction,
-    TrialFunctions,
     TestFunction,
-    TestFunctions,
     split,
     triangle,
     cos,
@@ -23,7 +19,6 @@ from ufl import (
     FacetNormal,
     grad,
     action,
-    MixedFunctionSpace,
     Matrix
 )
 
