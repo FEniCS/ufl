@@ -534,13 +534,6 @@ class UniqueDomainExtractor(DAGTraverser):
                     f"Cannot extract unique domain from expression {o!r} with differing domains: {domains!r}"
                 )
 
-    @process.register(Interpolate)
-    @DAGTraverser.postorder
-    def _(self, o: Expr, *operand_results) -> AbstractDomain:
-        """Process Interpolate."""
-        fs = o.ufl_function_space()
-        return fs.ufl_domain()
-
 
 def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
     """Extract the single unique domain from an expression.
