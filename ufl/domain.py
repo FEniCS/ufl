@@ -542,7 +542,7 @@ class UniqueDomainExtractor(DAGTraverser):
         return fs.ufl_domain()
 
 
-def extract_unique_domain(expr: Union[Expr, Form]) -> AbstractDomain:
+def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
     """Extract the single unique domain from an expression.
 
     This works for expressions containing Indexed Arguments and Coefficients from
