@@ -1,5 +1,8 @@
 [build-system]
-requires = ["setuptools>=62", "wheel"]
+requires = [
+    "setuptools>=77.0.3", # Ensuring license field is correctly parsed
+    "wheel",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -12,7 +15,8 @@ maintainers = [
 ]
 description = "Unified Form Language"
 readme = "README.md"
-license = { file = "COPYING.lesser" }
+license = "LGPL-3.0-or-later"
+license-files = ["COPYING*"]
 requires-python = ">=3.9.0"
 dependencies = ["numpy"]
 
@@ -59,8 +63,8 @@ docstring-code-format = true
 [tool.ruff.lint]
 select = [
     # "N", # pep8-naming
-    "E", # pycodestyle
-    "W", # pycodestyle
+    "E",   # pycodestyle
+    "W",   # pycodestyle
     "D",   # pydocstyle
     "F",   # pyflakes
     "I",   # isort
@@ -77,7 +81,7 @@ select = [
 ignore = [
     "RUF005",
     "RUF012",
-    "UP045", # Ractivate once Python 3.9 EoL
+    "UP045",  # Ractivate once Python 3.9 EoL
 ]
 allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
