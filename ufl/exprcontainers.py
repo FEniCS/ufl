@@ -14,7 +14,7 @@ from ufl.core.ufl_type import ufl_type
 # --- Non-tensor types ---
 
 
-@ufl_type(num_ops="varying")
+@ufl_type()
 class ExprList(Operator):
     """List of Expr objects. For internal use, never to be created by end users."""
 
@@ -72,7 +72,7 @@ class ExprList(Operator):
         raise ValueError("A non-tensor type has no index_dimensions.")
 
 
-@ufl_type(num_ops="varying")
+@ufl_type()
 class ExprMapping(Operator):
     """Mapping of Expr objects. For internal use, never to be created by end users."""
 

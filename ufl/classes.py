@@ -14,7 +14,6 @@ of classes, and for mapping types to different handler functions.
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Paul T. Kühner, 2025
 
-import ufl.core.expr
 from ufl import exproperators as __exproperators
 from ufl.action import Action
 from ufl.adjoint import Adjoint
@@ -65,6 +64,7 @@ from ufl.core.interpolate import Interpolate
 from ufl.core.multiindex import FixedIndex, Index, IndexBase, MultiIndex
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument, Terminal
+from ufl.core.ufl_type import UFLRegistry
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
     BaseFormDerivative,
@@ -426,16 +426,12 @@ __all__ = [
     "ZeroBaseForm",
     "ZeroBaseForm",
     "__exproperators",
-    "abstract_classes",
     "all_ufl_classes",
     "nonterminal_classes",
     "terminal_classes",
-    "ufl_classes",
 ]
 
 # Collect all classes in sets automatically classified by some properties
-all_ufl_classes = set(ufl.core.expr.Expr._ufl_all_classes_)
-abstract_classes = set(c for c in all_ufl_classes if c._ufl_is_abstract_)
-ufl_classes = set(c for c in all_ufl_classes if not c._ufl_is_abstract_)
-terminal_classes = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
-nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
+all_ufl_classes = set(UFLRegistry().all_classes)
+terminal_classes = set(c for c in all_ufl_classes if c._ufl_is_terminal_)  # type: ignore
+nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)  # type: ignore
