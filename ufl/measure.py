@@ -123,18 +123,22 @@ class Measure:
         """Initialise.
 
         Args:
-            integral_type: one of "cell", etc, or short form "dx", etc
-            domain: an AbstractDomain object (most often a Mesh)
+            integral_type: one of "cell", etc, or short form "dx", etc;
+                the integral_type on the primal domain in a multi-domain problem.
+            domain: an AbstractDomain object (most often a Mesh);
+                the primal domain in a multi-domain problem.
             subdomain_id: either string "everywhere", a single subdomain id int, or tuple of ints
             metadata: dict, with additional compiler-specific parameters
                 affecting how code is generated, including parameters
                 for optimization or debugging of generated code
             subdomain_data: object representing data to interpret subdomain_id with
-            intersect_measures: a `tuple` of extra measures that defines
+            intersect_measures: a `tuple` of intersect measures that defines
                 domain-integral_type map for each domain in a multi-domain problem. For instance,
-                if integral_type="dS" on ``domain``, while integral_type="ds" on domainZ, say,
+                if the integral_type is "dS" on the primal domain, while
+                integral_type is "ds" on domainZ, say,
                 one must pass intersect_measures=(Measure("ds", domainZ),). Currently,
-                the extra measures must have "everywhere" subdomain_id.
+                the intersect measures must have "everywhere" subdomain_id; i.e.,
+                subdomain_id can only be specified for the primal domain.
         """
         # Map short name to long name and require a valid one
         self._integral_type = as_integral_type(integral_type)
@@ -173,18 +177,20 @@ class Measure:
             self._intersect_measures = ()
         else:
             if not all(m.subdomain_id() == "everywhere" for m in intersect_measures):
+                # Otherwise grouping integrals by subdomain_ids becomes very complex;
+                # see group_form_integrals() function in algorithms/domain_analysis.py.
                 raise NotImplementedError(
-                    f"Currently, all extra measures must have 'everywhere' subdomain_id: "
+                    f"Currently, all intersect measures must have 'everywhere' subdomain_id: "
                     f"got {intersect_measures}"
                 )
             if not all(m.intersect_measures() == () for m in intersect_measures):
                 raise ValueError(
-                    f"All extra measures must have empty intersect_measures: "
+                    f"All intersect measures must have empty intersect_measures: "
                     f"got {intersect_measures}"
                 )
             if not all(m.metadata() == {} for m in intersect_measures):
                 raise ValueError(
-                    f"All extra measures must have empty metadata: got {intersect_measures}"
+                    f"All intersect measures must have empty metadata: got {intersect_measures}"
                 )
             _intersect_measures = {}
             self._intersect_measures = tuple(
@@ -210,7 +216,7 @@ class Measure:
         return self._subdomain_id
 
     def intersect_measures(self):
-        """Return the extra measures."""
+        """Return the intersect measures."""
         return self._intersect_measures
 
     def metadata(self):
