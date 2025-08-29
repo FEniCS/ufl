@@ -133,7 +133,7 @@ class CoefficientSplitter(DAGTraverser):
     @process.register(Restricted)
     def _(
         self,
-        o: Expr,
+        o: Restricted,
         reference_value: Union[bool, None] = False,
         reference_grad: Union[int, None] = 0,
         restricted: Union[str, None] = None,

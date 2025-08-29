@@ -26,7 +26,7 @@ jobs:
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14-dev']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -72,7 +72,7 @@ jobs:
 
       - name: Checkout FEniCS/docs
         if: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && runner.os == 'Linux' && matrix.python-version == 3.12 }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: "FEniCS/docs"
           path: "docs"

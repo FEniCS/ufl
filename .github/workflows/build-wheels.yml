@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout UFL
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event.inputs.ufl_ref }}
 
@@ -66,7 +66,7 @@ jobs:
       id-token: write
     
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: artifact
           path: dist
@@ -88,7 +88,7 @@ jobs:
       id-token: write
     
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: artifact
           path: dist
