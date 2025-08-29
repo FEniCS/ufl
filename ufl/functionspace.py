@@ -12,7 +12,6 @@
 import numpy as np
 
 from ufl.core.ufl_type import UFLObject
-from ufl.domain import join_domains
 from ufl.duals import is_dual, is_primal
 from ufl.utils.sequences import product
 
@@ -311,6 +310,7 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
 
     def ufl_domains(self):
         """Return ufl domains."""
+        from ufl.domain import join_domains
         domainlist = []
         for s in self._ufl_function_spaces:
             domainlist.extend(s.ufl_domains())
