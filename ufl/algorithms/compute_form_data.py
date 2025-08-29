@@ -436,7 +436,9 @@ def compute_form_data(
         for itg_data in self.integral_data:
             new_integrals = []
             for integral in itg_data.integrals:
-                # Propagate restrictions. Do not yet apply default restrictions.
+                # Propagate restrictions as required by CoefficientSplitter.
+                # Can not yet apply default restrictions at this point
+                # as restrictions can only be applied to the components.
                 new_integral = apply_restrictions(integral)
                 new_integrals.append(new_integral)
             itg_data.integrals = new_integrals

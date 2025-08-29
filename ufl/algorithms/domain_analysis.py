@@ -6,8 +6,11 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from __future__ import annotations
+
 import numbers
 from collections import defaultdict
+from typing import Literal
 
 import ufl
 from ufl.algorithms.coordinate_derivative_helpers import (
@@ -15,6 +18,7 @@ from ufl.algorithms.coordinate_derivative_helpers import (
     strip_coordinate_derivatives,
 )
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.domain import Mesh, sort_domains
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.protocols import id_or_none
@@ -43,14 +47,26 @@ class IntegralData:
 
     def __init__(
         self,
-        domain,
-        integral_type,
-        subdomain_id,
-        integrals,
-        metadata,
-        domain_integral_type_map,
+        domain: Mesh,
+        integral_type: str,
+        subdomain_id: Literal["everywhere"] | numbers.Integral | tuple[numbers.Integral, ...],
+        integrals: list[Integral],
+        metadata: dict,
+        domain_integral_type_map: dict[Mesh, str],
     ):
-        """Initialise."""
+        """Initialise.
+
+        Args:
+            domain: primal domain
+            integral_type: integral type on the primal domain
+            subdomain_id: subdmain id on the primal domain
+            integrals: integrals
+            metadata: metadata
+            domain_integral_type_map: map from domains to the integral types on those domains.
+                First domain must be the primal domain, and the other domains must be sorted.
+                Only significant in multi-domain problems
+
+        """
         if 1 != len(set(itg.ufl_domain() for itg in integrals)):
             raise ValueError("Multiple domains mismatch in integral data.")
         if not all(integral_type == itg.integral_type() for itg in integrals):
@@ -68,7 +84,9 @@ class IntegralData:
         # this stage:
         self.integral_coefficients = None
         self.enabled_coefficients = None
-        # This map must have been sorted by domains.
+        non_primal_domains = tuple(domain_integral_type_map.keys())[1:]
+        if sort_domains(non_primal_domains) != non_primal_domains:
+            raise ValueError("domain_integral_type_map must have been sorted by domains")
         self.domain_integral_type_map = domain_integral_type_map
 
         # TODO: I think we can get rid of this with some refactoring

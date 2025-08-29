@@ -16,7 +16,7 @@ from typing import Any
 import ufl
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.core.expr import Expr
-from ufl.domain import sort_domains
+from ufl.domain import Mesh, sort_domains
 from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
@@ -44,7 +44,7 @@ class Integral:
         subdomain_id: int | tuple[int, ...],
         metadata: dict,
         subdomain_data: Any,
-        extra_domain_integral_type_map: dict | None = None,
+        extra_domain_integral_type_map: dict[Mesh, str] | None = None,
     ):
         """Initialise.
 
@@ -58,7 +58,8 @@ class Integral:
             subdomain_data: Data associated with the subdomain, can be anything
                 (depends on the compiler and user-facing API)
             extra_domain_integral_type_map: Mapping from other `ufl.Mesh` objects present in
-                `integrand` to specific integral types on this domain.
+                `integrand` to specific integral types on this domain;
+                see: `ufl.measure._integral_types` for possible types.
         """
         if not isinstance(integrand, Expr):
             raise ValueError("Expecting integrand to be an Expr instance.")
@@ -71,10 +72,12 @@ class Integral:
         if extra_domain_integral_type_map is None:
             self._extra_domain_integral_type_map = {}
         else:
-            self._extra_domain_integral_type_map = {
-                d: extra_domain_integral_type_map[d]
-                for d in sort_domains(tuple(extra_domain_integral_type_map.keys()))
-            }
+            _extra_domain_integral_type_map = {}
+            for d in sort_domains(tuple(extra_domain_integral_type_map.keys())):
+                if not isinstance(d, Mesh):
+                    raise ValueError(f"Expecting all extra domains to be Mesh: found {d}")
+                _extra_domain_integral_type_map[d] = extra_domain_integral_type_map[d]
+            self._extra_domain_integral_type_map = _extra_domain_integral_type_map
 
     def reconstruct(
         self,
