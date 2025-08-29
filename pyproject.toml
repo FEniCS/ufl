@@ -1,5 +1,8 @@
 [build-system]
-requires = ["setuptools>=62", "wheel"]
+requires = [
+    "setuptools>=77.0.3", # Ensuring license field is correctly parsed
+    "wheel",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -60,8 +63,8 @@ docstring-code-format = true
 [tool.ruff.lint]
 select = [
     # "N", # pep8-naming
-    "E", # pycodestyle
-    "W", # pycodestyle
+    "E",   # pycodestyle
+    "W",   # pycodestyle
     "D",   # pydocstyle
     "F",   # pyflakes
     "I",   # isort
@@ -78,7 +81,7 @@ select = [
 ignore = [
     "RUF005",
     "RUF012",
-    "UP045", # Ractivate once Python 3.9 EoL
+    "UP045",  # Ractivate once Python 3.9 EoL
 ]
 allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
@@ -91,6 +94,4 @@ allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 convention = "google"
 
 [tool.mypy]
-disable_error_code = [
-    "attr-defined",
-]
+disable_error_code = ["attr-defined"]
