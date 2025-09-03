@@ -526,7 +526,8 @@ class UniqueDomainExtractor(DAGTraverser):
     @process.register(BaseFormOperator)
     @DAGTraverser.postorder
     def _(self, o: Expr, *operand_results) -> AbstractDomain:
-        pass 
+        fs = o.ufl_function_space()
+        return fs.ufl_domain() 
 
 
 def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
@@ -541,10 +542,6 @@ def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
     Returns:
         AbstractDomain: The unique domain extracted from the expression.
     """
-    # TODO: make this work for BaseForm
-    # Action - Domain of 0th Argument in result
-    # Leave AssembledMatrix and Adjoint for now
-    # ExternalOperator or Interpolate: Domain is where we are mapping into. These are both BaseFormOperators.
     from ufl.form import Form, BaseForm
     from ufl.core.expr import Expr
 
