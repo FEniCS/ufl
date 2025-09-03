@@ -9,7 +9,6 @@
 
 from itertools import chain
 
-from ufl import matrix  # noqa 401
 from ufl.algebra import Sum
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient
