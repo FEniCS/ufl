@@ -285,6 +285,7 @@ def Arguments(function_space, number):
     Returns a tuple with the function components corresponding to the subelements.
     """
     from ufl.split_functions import split
+
     if isinstance(function_space, MixedFunctionSpace):
         return [
             Argument(function_space.ufl_sub_space(i), number, i)
