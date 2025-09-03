@@ -56,7 +56,7 @@ def extract_type(a, ufl_types):
     Returns:
         All objects found in a whose class is in ufl_type
     """
-    if not isinstance(ufl_types, (list, tuple)):
+    if not isinstance(ufl_types, list | tuple):
         ufl_types = (ufl_types,)
 
     if all(t is not BaseFormOperator for t in ufl_types):
@@ -67,7 +67,7 @@ def extract_type(a, ufl_types):
 
     # BaseForms that aren't forms or base form operators
     # only contain arguments & coefficients
-    if isinstance(a, BaseForm) and not isinstance(a, (Form, BaseFormOperator)):
+    if isinstance(a, BaseForm) and not isinstance(a, Form | BaseFormOperator):
         objects = set()
         arg_types = tuple(t for t in ufl_types if issubclass(t, BaseArgument))
         if arg_types:

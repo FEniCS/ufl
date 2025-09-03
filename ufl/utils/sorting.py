@@ -79,14 +79,14 @@ def canonicalize_metadata(
         keys = sorted(metadata.keys())
         assert all(isinstance(key, str) for key in keys)
         values = [metadata[key] for key in keys]
-    elif isinstance(metadata, (tuple, list)):
+    elif isinstance(metadata, tuple | list):
         values = metadata
 
     newvalues = []
     for value in values:
-        if isinstance(value, (dict, list, tuple)):
+        if isinstance(value, dict | list | tuple):
             value = canonicalize_metadata(value)
-        elif isinstance(value, (int, float, str, np.ndarray)) or value is None:
+        elif isinstance(value, int | float | str | np.ndarray) or value is None:
             value = str(value)
         elif hasattr(value, "ufl_signature"):
             value = value.ufl_signature

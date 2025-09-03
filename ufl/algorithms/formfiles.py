@@ -114,7 +114,7 @@ def interpret_ufl_namespace(namespace):
             ufd.object_names[name] = value
             ufd.object_by_name[name] = value
         elif isinstance(
-            value, (AbstractFiniteElement, Coefficient, Constant, Argument, Form, Expr)
+            value, AbstractFiniteElement | Coefficient | Constant | Argument | Form | Expr
         ):
             # Store instance <-> name mappings for important objects
             # without a reserved name
@@ -144,7 +144,7 @@ def interpret_ufl_namespace(namespace):
     ufd.forms = forms
 
     # Validate types
-    if not isinstance(ufd.forms, (list, tuple)):
+    if not isinstance(ufd.forms, list | tuple):
         raise ValueError(f"Expecting 'forms' to be a list or tuple, not '{type(ufd.forms)}'.")
     if not all(isinstance(a, Form) for a in ufd.forms):
         raise ValueError("Expecting 'forms' to be a list of Form instances.")
@@ -157,7 +157,7 @@ def interpret_ufl_namespace(namespace):
     ufd.elements = elements
 
     # Validate types
-    if not isinstance(ufd.elements, (list, tuple)):
+    if not isinstance(ufd.elements, list | tuple):
         raise ValueError(
             f"Expecting 'elements' to be a list or tuple, not '{type(ufd.elements)}''."
         )
@@ -169,7 +169,7 @@ def interpret_ufl_namespace(namespace):
     ufd.coefficients = namespace.get("coefficients", functions)
 
     # Validate types
-    if not isinstance(ufd.coefficients, (list, tuple)):
+    if not isinstance(ufd.coefficients, list | tuple):
         raise ValueError(
             f"Expecting 'coefficients' to be a list or tuple, not '{type(ufd.coefficients)}'."
         )
@@ -180,7 +180,7 @@ def interpret_ufl_namespace(namespace):
     ufd.expressions = namespace.get("expressions", [])
 
     # Validate types
-    if not isinstance(ufd.expressions, (list, tuple)):
+    if not isinstance(ufd.expressions, list | tuple):
         raise ValueError(
             f"Expecting 'expressions' to be a list or tuple, not '{type(ufd.expressions)}'."
         )

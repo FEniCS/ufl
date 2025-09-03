@@ -893,7 +893,7 @@ class GradRuleset(GenericDerivativeRuleset):
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
         valid_operand = f._ufl_is_in_reference_frame_ or isinstance(
-            f, (JacobianInverse, SpatialCoordinate, Jacobian, JacobianDeterminant, FacetNormal)
+            f, JacobianInverse | SpatialCoordinate | Jacobian | JacobianDeterminant | FacetNormal
         )
         if not valid_operand:
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")
@@ -951,7 +951,7 @@ class GradRuleset(GenericDerivativeRuleset):
         Represent grad(grad(f)) as Grad(Grad(f)).
         """
         # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], (Grad, Terminal)):
+        if not isinstance(o.ufl_operands[0], Grad | Terminal):
             raise ValueError("Expecting only grads applied to a terminal.")
         return Grad(o)
 
@@ -1093,7 +1093,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f)).
         """
         # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue, Terminal)):
+        if not isinstance(o.ufl_operands[0], ReferenceGrad | ReferenceValue | Terminal):
             raise ValueError("Expecting only grads applied to a terminal.")
         return ReferenceGrad(o)
 
@@ -1214,7 +1214,7 @@ class VariableRuleset(GenericDerivativeRuleset):
         Variable derivative of a gradient of a terminal must be 0.
         """
         # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], (Grad, Terminal)):
+        if not isinstance(o.ufl_operands[0], Grad | Terminal):
             raise ValueError("Expecting only grads applied to a terminal.")
         return self.independent_terminal(o)
 
@@ -1448,7 +1448,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             (o,) = o.ufl_operands
             ngrads += 1
         # `grad(N)` where N is a BaseFormOperator is treated as if `N` was a Coefficient.
-        if not isinstance(o, (FormArgument, BaseFormOperator)):
+        if not isinstance(o, FormArgument | BaseFormOperator):
             raise ValueError(f"Expecting gradient of a FormArgument, not {ufl_err_str(o)}.")
 
         def apply_grads(f):
@@ -1502,7 +1502,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             # -- Analyse differentiation variable coefficient -- #
 
             # Can differentiate a Form wrt a BaseFormOperator
-            if isinstance(w, (FormArgument, BaseFormOperator)):
+            if isinstance(w, FormArgument | BaseFormOperator):
                 if not w == o:
                     continue
                 wshape = w.ufl_shape
@@ -1948,7 +1948,7 @@ class BaseFormOperatorDerivativeRecorder:
 
     def __add__(self, other):
         """Add."""
-        if isinstance(other, (list, tuple)):
+        if isinstance(other, list | tuple):
             base_form_ops = self.base_form_ops + other
         elif isinstance(other, BaseFormOperatorDerivativeRecorder):
             if self.der_kwargs != other.der_kwargs:
@@ -1973,7 +1973,7 @@ class BaseFormOperatorDerivativeRecorder:
 
     def __iadd__(self, other):
         """Add."""
-        if isinstance(other, (list, tuple)):
+        if isinstance(other, list | tuple):
             self.base_form_ops += other
         elif isinstance(other, BaseFormOperatorDerivativeRecorder):
             self.base_form_ops += other.base_form_ops

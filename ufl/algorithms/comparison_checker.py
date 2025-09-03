@@ -122,7 +122,7 @@ class CheckComparisons(MultiFunction):
     def terminal(self, term, *ops):
         """Apply to terminal."""
         # default terminals to complex, except the ones we *know* are real
-        if isinstance(term, (RealValue, Zero, Argument, GeometricQuantity)):
+        if isinstance(term, RealValue | Zero | Argument | GeometricQuantity):
             self.nodetype[term] = "real"
         else:
             self.nodetype[term] = "complex"
