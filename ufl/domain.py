@@ -10,7 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 from functools import singledispatchmethod
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
 from ufl.indexed import Indexed
-from ufl.core.interpolate import Interpolate
+from ufl.core.base_form_operator import BaseFormOperator
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
@@ -435,9 +435,9 @@ def find_geometric_dimension(expr):
 class UniqueDomainExtractor(DAGTraverser):
     def __init__(
         self,
-        compress: Union[bool, None] = True,
-        visited_cache: Union[dict[tuple, Expr], None] = None,
-        result_cache: Union[dict[Expr, Expr], None] = None,
+        compress: bool | None = True,
+        visited_cache: dict[tuple, Expr] | None = None,
+        result_cache: dict[Expr, Expr] | None = None,
     ) -> None:
         """Initialise."""
         self._compress = compress
@@ -487,6 +487,7 @@ class UniqueDomainExtractor(DAGTraverser):
         return expression_domain
 
     @process.register(Terminal)
+    @DAGTraverser.postorder
     def _(self, o: Expr) -> AbstractDomain:
         from ufl.coefficient import Coefficient
         from ufl.argument import Argument
@@ -521,6 +522,11 @@ class UniqueDomainExtractor(DAGTraverser):
                 raise ValueError(
                     f"Cannot extract unique domain from expression {o!r} with differing domains: {domains!r}"
                 )
+    
+    @process.register(BaseFormOperator)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operand_results) -> AbstractDomain:
+        pass 
 
 
 def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
@@ -539,9 +545,8 @@ def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
     # Action - Domain of 0th Argument in result
     # Leave AssembledMatrix and Adjoint for now
     # ExternalOperator or Interpolate: Domain is where we are mapping into. These are both BaseFormOperators.
-    from ufl.form import Form
+    from ufl.form import Form, BaseForm
     from ufl.core.expr import Expr
-    from ufl.action import Action
 
     if isinstance(expr, Form):
         domains = set()
@@ -556,8 +561,11 @@ def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
             return domains.pop()
         else:
             raise ValueError(f"Form has multiple domains: {domains}")
-    elif isinstance(expr, Action):
-        return extract_unique_domain(expr.arguments()[0])
+    elif isinstance(expr, BaseForm):
+        if not expr.arguments():
+            return None
+        else:
+            return extract_unique_domain(expr.arguments()[0])
     elif isinstance(expr, Expr):
         extractor = UniqueDomainExtractor()
         return extractor(expr)

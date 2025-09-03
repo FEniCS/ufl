@@ -18,8 +18,10 @@ from ufl import (
     div,
     FacetNormal,
     grad,
-    action,
-    Matrix
+    Action,
+    Matrix,
+    Adjoint,
+    Interpolate
 )
 
 from ufl.domain import extract_unique_domain
@@ -259,31 +261,41 @@ def test_extract_unique_domain_repeated_meshes():
         extract_unique_domain(u1 + u2)
 
 
-def test_extract_unique_domain_action():
+def test_extract_unique_domain_baseform():
     cell = triangle
     mesh1 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=400)
     mesh2 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=401)
-    mesh3 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=402)
-    domain = MeshSequence([mesh1, mesh2, mesh3])
     scalar_elem = LagrangeElement(cell, 1)
-    vector_elem = LagrangeElement(cell, 1, (2,))
-    tensor_elem = LagrangeElement(cell, 1, (2, 2))
-    mixed_elem = MixedElement([scalar_elem, vector_elem, tensor_elem])
 
     V1 = FunctionSpace(mesh1, scalar_elem)
     V2 = FunctionSpace(mesh2, scalar_elem)
     
     A = Matrix(V1, V2)
-    u = Coefficient(V2)
-    
-    action_Au = action(A, u)
-    assert extract_unique_domain(action_Au) == mesh1
-    
-    V_mixed1 = FunctionSpace(domain, mixed_elem)
-    V_mixed2 = FunctionSpace(domain, mixed_elem)
+    assert extract_unique_domain(A) == mesh1
 
-    A_mixed = Matrix(V_mixed1, V_mixed2)
-    u_mixed = Coefficient(V_mixed2)
-    
-    action_mixed = action(A_mixed, u_mixed)
-    assert extract_unique_domain(action_mixed) == domain
+    v = Coefficient(V2)
+    action_Au = Action(A, v)
+    assert extract_unique_domain(action_Au) == mesh1
+
+    Astar = Adjoint(A)
+    assert extract_unique_domain(Astar) == mesh2
+
+    v1 = TrialFunction(V1)
+    v2star = TestFunction(V2.dual())
+    interp = Interpolate(v1, v2star)  # V1 x V2^* -> R, equiv V1 -> V2
+    assert extract_unique_domain(interp) == mesh2
+    adjoint_interp = Adjoint(interp)  # V2^* x V1 -> R, equiv V2^* -> V1^*
+    assert extract_unique_domain(adjoint_interp) == mesh1
+
+    cofunc = Coefficient(V2.dual())
+    scalar = Action(cofunc, v)
+    assert extract_unique_domain(scalar) is None
+
+    v = TestFunction(V2)
+    dx = Measure("dx", mesh2)
+    one_form = v * dx
+    formsum = cofunc + one_form
+    assert extract_unique_domain(formsum) is mesh2
+
+    two_form = interp * v * dx
+    assert extract_unique_domain(two_form) is mesh2
