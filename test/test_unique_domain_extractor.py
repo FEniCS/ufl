@@ -1,32 +1,32 @@
+import pytest
 from utils import FiniteElement, LagrangeElement, MixedElement
 
-import pytest
 from ufl import (
+    Action,
+    Adjoint,
     Coefficient,
+    Constant,
+    FacetNormal,
     FunctionSpace,
+    Interpolate,
+    Matrix,
+    Measure,
     Mesh,
     MeshSequence,
     SpatialCoordinate,
-    Measure,
-    Constant,
-    TrialFunction,
     TestFunction,
+    TrialFunction,
+    cos,
+    div,
+    grad,
+    inner,
     split,
     triangle,
-    cos,
-    inner,
-    div,
-    FacetNormal,
-    grad,
-    Action,
-    Matrix,
-    Adjoint,
-    Interpolate
 )
-
 from ufl.domain import extract_unique_domain
 from ufl.pullback import contravariant_piola, identity_pullback
 from ufl.sobolevspace import L2, HDiv
+
 
 def test_extract_unique_domain():
     cell = triangle
@@ -103,49 +103,49 @@ def test_extract_unique_domain_single_mesh():
     """Test domain extraction for standard function spaces on a single mesh."""
     cell = triangle
     mesh = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=200)
-    
+
     # Test scalar elements
     P1 = LagrangeElement(cell, 1)
     V_scalar = FunctionSpace(mesh, P1)
     u_scalar = TrialFunction(V_scalar)
     f_scalar = Coefficient(V_scalar)
-    
+
     assert extract_unique_domain(u_scalar) == mesh
     assert extract_unique_domain(f_scalar) == mesh
-    
+
     P1_vec = LagrangeElement(cell, 1, (2,))
     V_vector = FunctionSpace(mesh, P1_vec)
     u_vector = TrialFunction(V_vector)
     f_vector = Coefficient(V_vector)
-    
+
     assert extract_unique_domain(u_vector) == mesh
     assert extract_unique_domain(f_vector) == mesh
-    
+
     assert extract_unique_domain(u_vector[0]) == mesh
     assert extract_unique_domain(u_vector[1]) == mesh
     assert extract_unique_domain(f_vector[0]) == mesh
     assert extract_unique_domain(f_vector[1]) == mesh
-    
+
     P1_tensor = LagrangeElement(cell, 1, (2, 2))
     V_tensor = FunctionSpace(mesh, P1_tensor)
     u_tensor = TrialFunction(V_tensor)
     f_tensor = Coefficient(V_tensor)
-    
+
     assert extract_unique_domain(u_tensor) == mesh
     assert extract_unique_domain(f_tensor) == mesh
     assert extract_unique_domain(u_tensor[0, 0]) == mesh
     assert extract_unique_domain(u_tensor[1, 1]) == mesh
     assert extract_unique_domain(f_tensor[0, 1]) == mesh
-    
+
     x, y = SpatialCoordinate(mesh)
     expr1 = u_scalar + f_scalar
     expr2 = u_vector[0] + x
     expr3 = inner(u_vector, f_vector)
-    
+
     assert extract_unique_domain(expr1) == mesh
     assert extract_unique_domain(expr2) == mesh
     assert extract_unique_domain(expr3) == mesh
-    
+
     # Test forms
     dx = Measure("dx", mesh)
     form = inner(u_scalar, f_scalar) * dx
@@ -153,7 +153,7 @@ def test_extract_unique_domain_single_mesh():
 
 
 def test_extract_unique_domain_mixed_scalar_vector_tensor():
-    """Test domain extraction for mixed function spaces 
+    """Test domain extraction for mixed function spaces
     with scalar, vector, and tensor elements."""
     cell = triangle
     mesh1 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=400)
@@ -177,16 +177,16 @@ def test_extract_unique_domain_mixed_scalar_vector_tensor():
         assert extract_unique_domain(u_i) == domain[i]
     for i, f_i in enumerate((f_scalar, f_vector, f_tensor)):
         assert extract_unique_domain(f_i) == domain[i]
-    
+
     for i in range(2):
         assert extract_unique_domain(u_vector[i]) == mesh2
         assert extract_unique_domain(f_vector[i]) == mesh2
-    
+
     for i in range(2):
         for j in range(2):
             assert extract_unique_domain(u_tensor[i, j]) == mesh3
             assert extract_unique_domain(f_tensor[i, j]) == mesh3
-    
+
     x1, y1 = SpatialCoordinate(mesh1)
     x2, y2 = SpatialCoordinate(mesh2)
     x3, y3 = SpatialCoordinate(mesh3)
@@ -269,7 +269,7 @@ def test_extract_unique_domain_baseform():
 
     V1 = FunctionSpace(mesh1, scalar_elem)
     V2 = FunctionSpace(mesh2, scalar_elem)
-    
+
     A = Matrix(V1, V2)
     assert extract_unique_domain(A) == mesh1
 

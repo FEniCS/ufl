@@ -64,6 +64,7 @@ class Matrix(BaseForm, Counted):
     def _analyze_form_arguments(self):
         """Define arguments of a matrix when considered as a form."""
         from ufl.argument import Argument
+
         self._arguments = (
             Argument(self._ufl_function_spaces[0], 0),
             Argument(self._ufl_function_spaces[1], 1),

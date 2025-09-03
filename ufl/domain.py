@@ -10,23 +10,23 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING
 from functools import singledispatchmethod
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ufl.core.expr import Expr
     from ufl.finiteelement import AbstractFiniteElement  # To avoid cyclic import when type-hinting.
     from ufl.form import Form
 from ufl.cell import AbstractCell
-from ufl.core.ufl_id import attach_ufl_id
-from ufl.core.ufl_type import UFLObject
-from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.sobolevspace import H1
-from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
+from ufl.core.ufl_id import attach_ufl_id
+from ufl.core.ufl_type import UFLObject
+from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.indexed import Indexed
-from ufl.core.base_form_operator import BaseFormOperator
+from ufl.sobolevspace import H1
 
 # Export list for ufl.classes
 __all_classes__ = ["AbstractDomain", "Mesh", "MeshView"]
@@ -463,13 +463,14 @@ class UniqueDomainExtractor(DAGTraverser):
     def _(self, o: Expr, *operand_results) -> AbstractDomain:
         """Process Indexed object by extracting the domain corresponding to the index."""
         from ufl.functionspace import FunctionSpace
+
         expression, multiindex = o.ufl_operands
         expression_domain = operand_results[0]
 
         if isinstance(expression_domain, MeshSequence):
             index = multiindex[0]._value
             element = expression.ufl_element()
-            if hasattr(element, 'sub_elements'):
+            if hasattr(element, "sub_elements"):
                 # Need to do this in case we have sub elements which are vector or tensor valued
                 j = 0
                 for i, sub_element in enumerate(element.sub_elements):
@@ -489,10 +490,11 @@ class UniqueDomainExtractor(DAGTraverser):
     @process.register(Terminal)
     @DAGTraverser.postorder
     def _(self, o: Expr) -> AbstractDomain:
-        from ufl.coefficient import Coefficient
         from ufl.argument import Argument
-        from ufl.geometry import GeometricQuantity
+        from ufl.coefficient import Coefficient
         from ufl.constant import Constant
+        from ufl.geometry import GeometricQuantity
+
         if isinstance(o, (Coefficient, Argument)):
             fs = o.ufl_function_space()
             return fs.ufl_domain()
@@ -522,12 +524,12 @@ class UniqueDomainExtractor(DAGTraverser):
                 raise ValueError(
                     f"Cannot extract unique domain from expression {o!r} with differing domains: {domains!r}"
                 )
-    
+
     @process.register(BaseFormOperator)
     @DAGTraverser.postorder
     def _(self, o: Expr, *operand_results) -> AbstractDomain:
         fs = o.ufl_function_space()
-        return fs.ufl_domain() 
+        return fs.ufl_domain()
 
 
 def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
@@ -542,8 +544,8 @@ def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
     Returns:
         AbstractDomain: The unique domain extracted from the expression.
     """
-    from ufl.form import Form, BaseForm
     from ufl.core.expr import Expr
+    from ufl.form import BaseForm, Form
 
     if isinstance(expr, Form):
         domains = set()

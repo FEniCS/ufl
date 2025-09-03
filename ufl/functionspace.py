@@ -311,6 +311,7 @@ class MixedFunctionSpace(AbstractFunctionSpace, UFLObject):
     def ufl_domains(self):
         """Return ufl domains."""
         from ufl.domain import join_domains
+
         domainlist = []
         for s in self._ufl_function_spaces:
             domainlist.extend(s.ufl_domains())

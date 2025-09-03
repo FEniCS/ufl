@@ -32,7 +32,6 @@ class Integral:
 
     def __init__(self, integrand, integral_type, domain, subdomain_id, metadata, subdomain_data):
         """Initialise."""
-        from ufl.domain import sort_domains
         if not isinstance(integrand, Expr):
             raise ValueError("Expecting integrand to be an Expr instance.")
         self._integrand = integrand
