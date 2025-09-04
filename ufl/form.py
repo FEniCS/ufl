@@ -471,7 +471,7 @@ class Form(BaseForm):
             # Create form sum if form is of other type
             return FormSum((self, 1), (other, 1))
 
-        elif isinstance(other, (int, float)) and other == 0:
+        elif isinstance(other, int | float) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
 
@@ -889,7 +889,7 @@ class ZeroBaseForm(BaseForm):
             if self is other:
                 return True
             return self._arguments == other._arguments
-        elif isinstance(other, (int, float)):
+        elif isinstance(other, int | float):
             return other == 0
         else:
             return False

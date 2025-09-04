@@ -303,7 +303,7 @@ class VariableDerivative(Derivative):
         # Checks
         if not isinstance(f, Expr):
             raise ValueError("Expecting an Expr in VariableDerivative.")
-        if not isinstance(v, (Variable, Coefficient)):
+        if not isinstance(v, Variable | Coefficient):
             raise ValueError("Expecting a Variable in VariableDerivative.")
         if v.ufl_free_indices:
             raise ValueError("Differentiation variable cannot have free indices.")

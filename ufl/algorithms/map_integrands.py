@@ -74,7 +74,7 @@ def map_integrands(function, form, only_integral_type=None):
             map_integrands(function, arg, only_integral_type) for arg in form._arguments
         )
         return ZeroBaseForm(arguments)
-    elif isinstance(form, (Expr, BaseForm)):
+    elif isinstance(form, Expr | BaseForm):
         integrand = form
         return function(integrand)
     else:

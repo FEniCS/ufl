@@ -30,8 +30,8 @@ def iter_expressions(a):
         return (itg.integrand() for itg in a.integrals())
     elif isinstance(a, Integral):
         return (a.integrand(),)
-    elif isinstance(a, (FormSum, Adjoint, Action)):
+    elif isinstance(a, FormSum | Adjoint | Action):
         return tuple(e for op in a.ufl_operands for e in iter_expressions(op))
-    elif isinstance(a, (Expr, BaseForm)):
+    elif isinstance(a, Expr | BaseForm):
         return (a,)
     raise ValueError(f"Not an UFL type: {type(a)}")

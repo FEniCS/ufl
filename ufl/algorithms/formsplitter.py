@@ -8,9 +8,6 @@
 #
 # Modified by Cecile Daversin-Catty, 2018
 
-import typing
-from typing import Optional
-
 import numpy as np
 
 from ufl.algorithms.map_integrands import map_expr_dag, map_integrand_dags
@@ -98,9 +95,7 @@ class FormSplitter(MultiFunction):
     expr = MultiFunction.reuse_if_untouched
 
 
-def extract_blocks(
-    form, i: Optional[int] = None, j: Optional[int] = None, arity: Optional[int] = None
-):
+def extract_blocks(form, i: int | None = None, j: int | None = None, arity: int | None = None):
     """Extract blocks of a form.
 
     If arity is 0, returns the form.
@@ -136,7 +131,7 @@ def extract_blocks(
             num_sub_elements = arguments[0].ufl_element().num_sub_elements
             forms = []
             for pi in range(num_sub_elements):
-                form_i: list[typing.Optional[object]] = []
+                form_i: list[object | None] = []
                 for pj in range(num_sub_elements):
                     f = fs.split(form, pi, pj)
                     if f.empty():

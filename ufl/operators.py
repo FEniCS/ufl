@@ -375,7 +375,7 @@ def diff(f, v):
     f = as_ufl(f)
     if isinstance(v, SpatialCoordinate):
         return grad(f)
-    elif isinstance(v, (Variable, Coefficient)):
+    elif isinstance(v, Variable | Coefficient):
         return VariableDerivative(f, v)
     else:
         raise ValueError("Expecting a Variable or SpatialCoordinate in diff.")
@@ -596,9 +596,9 @@ def _mathfunction(f, cls):
     """A mat function."""
     f = as_ufl(f)
     r = cls(f)
-    if isinstance(r, (RealValue, Zero, int, float)):
+    if isinstance(r, RealValue | Zero | int | float):
         return float(r)
-    if isinstance(r, (ComplexValue, complex)):
+    if isinstance(r, ComplexValue | complex):
         return complex(r)
     return r
 
@@ -667,12 +667,12 @@ def atan2(f1, f2):
     """Take the inverse tangent with two the arguments f1 and f2."""
     f1 = as_ufl(f1)
     f2 = as_ufl(f2)
-    if isinstance(f1, (ComplexValue, complex)) or isinstance(f2, (ComplexValue, complex)):
+    if isinstance(f1, ComplexValue | complex) or isinstance(f2, ComplexValue | complex):
         raise TypeError("atan2 is incompatible with complex numbers.")
     r = Atan2(f1, f2)
-    if isinstance(r, (RealValue, Zero, int, float)):
+    if isinstance(r, RealValue | Zero | int | float):
         return float(r)
-    if isinstance(r, (ComplexValue, complex)):
+    if isinstance(r, ComplexValue | complex):
         return complex(r)
     return r
 

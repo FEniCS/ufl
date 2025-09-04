@@ -94,12 +94,12 @@ class Sqrt(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Sqrt."""
-        if isinstance(argument, (RealValue, Zero, numbers.Real)):
+        if isinstance(argument, RealValue | Zero | numbers.Real):
             if float(argument) < 0:
                 return ComplexValue(cmath.sqrt(complex(argument)))
             else:
                 return FloatValue(math.sqrt(float(argument)))
-        if isinstance(argument, (ComplexValue, complex)):
+        if isinstance(argument, ComplexValue | complex):
             return ComplexValue(cmath.sqrt(complex(argument)))
         return MathFunction.__new__(cls)
 
@@ -116,7 +116,7 @@ class Exp(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Exp."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.exp(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.exp(complex(argument)))
@@ -135,7 +135,7 @@ class Ln(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Ln."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.log(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.log(complex(argument)))
@@ -162,7 +162,7 @@ class Cos(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Cos."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.cos(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.cos(complex(argument)))
@@ -181,7 +181,7 @@ class Sin(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Sin."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.sin(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.sin(complex(argument)))
@@ -200,7 +200,7 @@ class Tan(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Tan."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.tan(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.tan(complex(argument)))
@@ -219,7 +219,7 @@ class Cosh(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Cosh."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.cosh(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.cosh(complex(argument)))
@@ -238,7 +238,7 @@ class Sinh(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Sinh."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.sinh(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.sinh(complex(argument)))
@@ -257,7 +257,7 @@ class Tanh(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Tanh."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.tanh(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.tanh(complex(argument)))
@@ -276,7 +276,7 @@ class Acos(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Acos."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.acos(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.acos(complex(argument)))
@@ -295,7 +295,7 @@ class Asin(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Asin."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.asin(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.asin(complex(argument)))
@@ -314,7 +314,7 @@ class Atan(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Atan."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.atan(float(argument)))
         if isinstance(argument, (ComplexValue)):
             return ComplexValue(cmath.atan(complex(argument)))
@@ -336,7 +336,7 @@ class Atan2(Operator):
 
     def __new__(cls, arg1, arg2):
         """Create a new Atan2."""
-        if isinstance(arg1, (RealValue, Zero)) and isinstance(arg2, (RealValue, Zero)):
+        if isinstance(arg1, RealValue | Zero) and isinstance(arg2, RealValue | Zero):
             return FloatValue(math.atan2(float(arg1), float(arg2)))
         if isinstance(arg1, (ComplexValue)) or isinstance(arg2, (ComplexValue)):
             raise TypeError("Atan2 does not support complex numbers.")
@@ -345,7 +345,7 @@ class Atan2(Operator):
     def __init__(self, arg1, arg2):
         """Initialise."""
         Operator.__init__(self, (arg1, arg2))
-        if isinstance(arg1, (ComplexValue, complex)) or isinstance(arg2, (ComplexValue, complex)):
+        if isinstance(arg1, ComplexValue | complex) or isinstance(arg2, ComplexValue | complex):
             raise TypeError("Atan2 does not support complex numbers.")
         if not is_true_ufl_scalar(arg1):
             raise ValueError("Expecting scalar argument 1.")
@@ -378,7 +378,7 @@ class Erf(MathFunction):
 
     def __new__(cls, argument):
         """Create a new Erf."""
-        if isinstance(argument, (RealValue, Zero)):
+        if isinstance(argument, RealValue | Zero):
             return FloatValue(math.erf(float(argument)))
         if isinstance(argument, (ConstantValue)):
             return ComplexValue(math.erf(complex(argument)))

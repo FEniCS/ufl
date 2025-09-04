@@ -24,7 +24,7 @@ class ExprList(Operator):
         """Initialise."""
         Operator.__init__(self, operands)
         # Enable Cofunction/Coargument for BaseForm differentiation
-        if not all(isinstance(i, (Expr, Cofunction, Coargument)) for i in operands):
+        if not all(isinstance(i, Expr | Cofunction | Coargument) for i in operands):
             raise ValueError("Expecting Expr, Cofunction or Coargument in ExprList.")
 
     def __getitem__(self, i):
