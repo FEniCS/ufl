@@ -9,9 +9,14 @@
 # Modified by Anders Logg, 2008-2009
 # Modified by Massimiliano Leoni, 2016.
 
+from __future__ import annotations
+
+from typing import Any
+
 import ufl
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
 from ufl.core.expr import Expr
+from ufl.domain import Mesh, sort_domains
 from ufl.protocols import id_or_none
 
 # Export list for ufl.classes
@@ -22,6 +27,7 @@ class Integral:
     """An integral over a single domain."""
 
     __slots__ = (
+        "_extra_domain_integral_type_map",
         "_integral_type",
         "_integrand",
         "_metadata",
@@ -30,8 +36,31 @@ class Integral:
         "_ufl_domain",
     )
 
-    def __init__(self, integrand, integral_type, domain, subdomain_id, metadata, subdomain_data):
-        """Initialise."""
+    def __init__(
+        self,
+        integrand: Expr,
+        integral_type: str,
+        domain,
+        subdomain_id: int | tuple[int, ...],
+        metadata: dict,
+        subdomain_data: Any,
+        extra_domain_integral_type_map: dict[Mesh, str] | None = None,
+    ):
+        """Initialise.
+
+        Args:
+            integrand: Integrand of the integral
+            integral_type: Type of integral, see: `ufl.measure._integral_types` for available types.
+            domain: Integration domain as an `ufl.Mesh`.
+            subdomain_id: Integer or tuple of integer restricting the integral to a subset of
+                entities, marked in some way through `subdomain_data`.
+            metadata: Metadata that is usually passed to the form compiler
+            subdomain_data: Data associated with the subdomain, can be anything
+                (depends on the compiler and user-facing API)
+            extra_domain_integral_type_map: Mapping from other `ufl.Mesh` objects present in
+                `integrand` to specific integral types on this domain;
+                see: `ufl.measure._integral_types` for possible types.
+        """
         if not isinstance(integrand, Expr):
             raise ValueError("Expecting integrand to be an Expr instance.")
         self._integrand = integrand
@@ -40,6 +69,15 @@ class Integral:
         self._subdomain_id = subdomain_id
         self._metadata = metadata
         self._subdomain_data = subdomain_data
+        if extra_domain_integral_type_map is None:
+            self._extra_domain_integral_type_map = {}
+        else:
+            _extra_domain_integral_type_map = {}
+            for d in sort_domains(tuple(extra_domain_integral_type_map.keys())):
+                if not isinstance(d, Mesh):
+                    raise ValueError(f"Expecting all extra domains to be Mesh: found {d}")
+                _extra_domain_integral_type_map[d] = extra_domain_integral_type_map[d]
+            self._extra_domain_integral_type_map = _extra_domain_integral_type_map
 
     def reconstruct(
         self,
@@ -49,6 +87,7 @@ class Integral:
         subdomain_id=None,
         metadata=None,
         subdomain_data=None,
+        extra_domain_integral_type_map=None,
     ):
         """Construct a new Integral object with some properties replaced with new values.
 
@@ -69,7 +108,17 @@ class Integral:
             metadata = self.metadata()
         if subdomain_data is None:
             subdomain_data = self._subdomain_data
-        return Integral(integrand, integral_type, domain, subdomain_id, metadata, subdomain_data)
+        if extra_domain_integral_type_map is None:
+            extra_domain_integral_type_map = self._extra_domain_integral_type_map
+        return Integral(
+            integrand,
+            integral_type,
+            domain,
+            subdomain_id,
+            metadata,
+            subdomain_data,
+            extra_domain_integral_type_map=extra_domain_integral_type_map,
+        )
 
     def integrand(self):
         """Return the integrand expression, which is an ``Expr`` instance."""
@@ -86,6 +135,10 @@ class Integral:
     def subdomain_id(self):
         """Return the subdomain id of this integral."""
         return self._subdomain_id
+
+    def extra_domain_integral_type_map(self):
+        """Return the extra domain-integral_type map."""
+        return self._extra_domain_integral_type_map
 
     def metadata(self):
         """Return the compiler metadata this integral has been annotated with."""
@@ -115,16 +168,22 @@ class Integral:
 
     def __str__(self):
         """Format as a string."""
-        fmt = "{ %s } * %s(%s[%s], %s)"
         mname = ufl.measure.integral_type_to_measure_name[self._integral_type]
-        s = fmt % (self._integrand, mname, self._ufl_domain, self._subdomain_id, self._metadata)
-        return s
+        temp = {
+            d: ufl.measure.integral_type_to_measure_name[itype]
+            for d, itype in self._extra_domain_integral_type_map.items()
+        }
+        return (
+            f"{{self._integrand}} * "
+            f"{mname}({self._ufl_domain}[{self._subdomain_id}], {self._metadata}, {temp})"
+        )
 
     def __repr__(self):
         """Representation."""
         return (
             f"Integral({self._integrand!r}, {self._integral_type!r}, {self._ufl_domain!r}, "
-            f"{self._subdomain_id!r}, {self._metadata!r}, {self._subdomain_data!r})"
+            f"{self._subdomain_id!r}, {self._metadata!r}, {self._subdomain_data!r}, "
+            f"extra_domain_integral_type_map={self._extra_domain_integral_type_map!r})"
         )
 
     def __eq__(self, other):
@@ -137,6 +196,7 @@ class Integral:
             and self._integrand == other._integrand
             and self._metadata == other._metadata
             and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
+            and self._extra_domain_integral_type_map == other._extra_domain_integral_type_map
         )
 
     def __hash__(self):
@@ -150,5 +210,6 @@ class Integral:
             hash(self._ufl_domain),
             self._subdomain_id,
             id_or_none(self._subdomain_data),
+            tuple((hash(d), itype) for d, itype in self._extra_domain_integral_type_map.items()),
         )
         return hash(hashdata)
