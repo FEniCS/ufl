@@ -374,7 +374,7 @@ class Measure:
         from ufl.integral import Integral
 
         # Allow python literals: 1*dx and 1.0*dx
-        if isinstance(integrand, (int, float)):
+        if isinstance(integrand, int | float):
             integrand = as_ufl(integrand)
 
         # Let other types implement multiplication with Measure if
@@ -409,10 +409,7 @@ class Measure:
         # ("everywhere" or "otherwise", any more?)
         if not isinstance(
             subdomain_id,
-            (
-                str,
-                numbers.Integral,
-            ),
+            str | numbers.Integral,
         ):
             raise ValueError("Expecting integer or string domain id.")
 

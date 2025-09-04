@@ -156,7 +156,7 @@ class Zero(ConstantValue):
                 and self.ufl_free_indices == other.ufl_free_indices
                 and self.ufl_index_dimensions == other.ufl_index_dimensions
             )
-        elif isinstance(other, (int, float)):
+        elif isinstance(other, int | float):
             return other == 0
         else:
             return False
@@ -232,7 +232,7 @@ class ScalarValue(ConstantValue):
         """
         if isinstance(other, self._ufl_class_):
             return self._value == other._value
-        elif isinstance(other, (int, float)):
+        elif isinstance(other, int | float):
             # FIXME: Disallow this, require explicit 'expr ==
             # IntValue(3)' instead to avoid ambiguities!
             return other == self._value
@@ -420,7 +420,7 @@ class Identity(ConstantValue):
         """Get an item."""
         if len(key) != 2:
             raise ValueError("Size mismatch for Identity.")
-        if all(isinstance(k, (int, FixedIndex)) for k in key):
+        if all(isinstance(k, int | FixedIndex) for k in key):
             return IntValue(1) if (int(key[0]) == int(key[1])) else Zero()
         return Expr.__getitem__(self, key)
 
@@ -464,7 +464,7 @@ class PermutationSymbol(ConstantValue):
         """Get an item."""
         if len(key) != self._dim:
             raise ValueError("Size mismatch for PermutationSymbol.")
-        if all(isinstance(k, (int, FixedIndex)) for k in key):
+        if all(isinstance(k, int | FixedIndex) for k in key):
             return self.__eps(key)
         return Expr.__getitem__(self, key)
 
@@ -499,7 +499,7 @@ class PermutationSymbol(ConstantValue):
 
 def as_ufl(expression):
     """Converts expression to an Expr if possible."""
-    if isinstance(expression, (Expr, ufl.BaseForm)):
+    if isinstance(expression, Expr | ufl.BaseForm):
         return expression
     elif isinstance(expression, numbers.Integral):
         return IntValue(expression)
