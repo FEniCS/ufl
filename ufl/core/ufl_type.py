@@ -69,7 +69,7 @@ def ufl_type():
 class UFLRegistry:
     """Maintains global informations of the registered types."""
 
-    _instance: typing.Optional[UFLRegistry] = None
+    _instance: UFLRegistry | None = None
     _all_classes: list[type]
 
     # TODO: profiling should be maintained in an own profiling class/registry
