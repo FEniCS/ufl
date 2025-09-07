@@ -81,7 +81,7 @@ class FormSplitter(MultiFunction):
                     # the position in the flattened vector.
                     if i == self.idx[obj.number()]:
                         if a.ufl_shape == ():
-                            args.append(obj[i])
+                            args.append(obj[counter])
                         else:
                             args.extend(
                                 obj[counter + j] for j, _ in enumerate(np.ndindex(a.ufl_shape))

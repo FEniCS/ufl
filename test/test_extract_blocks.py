@@ -2,7 +2,6 @@ import pytest
 from utils import LagrangeElement, MixedElement
 
 import ufl
-import ufl.algorithms
 
 
 def epsilon(u):
@@ -13,8 +12,9 @@ def sigma(u, p):
     return epsilon(u) - p * ufl.Identity(u.ufl_shape[0])
 
 
+@pytest.mark.parametrize("replace_arguments", [True, False])
 @pytest.mark.parametrize("rank", [0, 1, 2])
-def test_extract_blocks(rank):
+def test_extract_blocks(rank, replace_arguments):
     """Test extractions of blocks from mixed function space."""
     cell = ufl.triangle
     domain = ufl.Mesh(LagrangeElement(cell, 1, (2,)))
@@ -48,14 +48,17 @@ def test_extract_blocks(rank):
         v, q = ufl.TestFunctions(W)
         F = sum(rhs(uh, ph, v, q))
 
-        v_ = ufl.TestFunction(V)
-        q_ = ufl.TestFunction(Q)
-        F_sub = rhs(uh, ph, ufl.as_vector([vi for vi in v_]), q_)
+        # Replacing arguments replaces test function with `ufl.as_vector`
+        if replace_arguments:
+            v_ = ufl.TestFunction(V)
+            q_ = ufl.TestFunction(Q)
+            F_sub = rhs(uh, ph, ufl.as_vector([vi for vi in v_]), q_)
+        else:
+            F_sub = rhs(uh, ph, ufl.as_vector([vi for vi in v]), q)
 
-        F_0_ext = ufl.extract_blocks(F, 0)
+        F_0_ext = ufl.extract_blocks(F, 0, replace_argument=replace_arguments)
+        F_1_ext = ufl.extract_blocks(F, 1, replace_argument=replace_arguments)
         assert F_sub[0].signature() == F_0_ext.signature()
-
-        F_1_ext = ufl.extract_blocks(F, 1)
         assert F_sub[1].signature() == F_1_ext.signature()
     elif rank == 2:
 
@@ -66,19 +69,22 @@ def test_extract_blocks(rank):
             J_11 = ufl.inner(ufl.grad(p), ufl.grad(q)) * ufl.dx
             return J_00, J_01, J_10, J_11
 
-        v_ = ufl.TestFunction(V)
-        q_ = ufl.TestFunction(Q)
-        u_ = ufl.TrialFunction(V)
-        p_ = ufl.TrialFunction(Q)
-        J_sub = lhs(ufl.as_vector([ui for ui in u_]), p_, ufl.as_vector([vi for vi in v_]), q_)
-
         v, q = ufl.TestFunctions(W)
         uh, ph = ufl.TrialFunctions(W)
+        if replace_arguments:
+            u_ = ufl.TrialFunction(V)
+            p_ = ufl.TrialFunction(Q)
+            v_ = ufl.TestFunction(V)
+            q_ = ufl.TestFunction(Q)
+            J_sub = lhs(ufl.as_vector([ui for ui in u_]), p_, ufl.as_vector([vi for vi in v_]), q_)
+        else:
+            J_sub = lhs(ufl.as_vector([ui for ui in uh]), ph, ufl.as_vector([vi for vi in v]), q)
+
         J = sum(lhs(uh, ph, v, q))
 
         for i in range(2):
             for j in range(2):
-                J_ij_ext = ufl.extract_blocks(J, i, j)
+                J_ij_ext = ufl.extract_blocks(J, i, j, replace_argument=replace_arguments)
                 assert J_sub[2 * i + j].signature() == J_ij_ext.signature()
 
 
