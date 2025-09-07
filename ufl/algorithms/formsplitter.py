@@ -83,7 +83,9 @@ class FormSplitter(MultiFunction):
                         if a.ufl_shape == ():
                             args.append(obj[i])
                         else:
-                            args.extend(obj[counter+j] for j, _ in enumerate(np.ndindex(a.ufl_shape)))
+                            args.extend(
+                                obj[counter + j] for j, _ in enumerate(np.ndindex(a.ufl_shape))
+                            )
                     else:
                         args.extend(Zero() for _ in np.ndindex(a.ufl_shape))
                     counter += int(np.prod(a.ufl_shape))
