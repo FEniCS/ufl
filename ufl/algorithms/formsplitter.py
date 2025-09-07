@@ -7,6 +7,7 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Cecile Daversin-Catty, 2018
+# Modified by Jørgen S. Dokken, 2025
 
 import numpy as np
 
@@ -21,6 +22,19 @@ from ufl.tensors import as_vector
 
 class FormSplitter(MultiFunction):
     """Form splitter."""
+
+    def __init__(self, replace_argument: bool = True):
+        """Initialize form splitter.
+
+        Args:
+            replace_argument: If True, replace the argument by a new argument
+                in the sub-function space. If False, keep the original argument.
+                This is useful for instance when diagonalizing a form with a mixed-element
+                form, where we want to keep the original argument.
+        """
+        MultiFunction.__init__(self)
+        self.idx = [None, None]
+        self.replace_argument = replace_argument
 
     def split(self, form, ix, iy=None):
         """Split form based on the argument part/number."""
@@ -51,14 +65,20 @@ class FormSplitter(MultiFunction):
                 return obj
 
             args = []
-            for i, sub_elem in enumerate(sub_elements):
-                Q_i = FunctionSpace(dom, sub_elem)
-                a = Argument(Q_i, obj.number(), part=obj.part())
-
-                if i == self.idx[obj.number()]:
-                    args.extend(a[j] for j in np.ndindex(a.ufl_shape))
-                else:
-                    args.extend(Zero() for j in np.ndindex(a.ufl_shape))
+            if self.replace_argument:
+                for i, sub_elem in enumerate(sub_elements):
+                    Q_i = FunctionSpace(dom, sub_elem)
+                    a = Argument(Q_i, obj.number(), part=obj.part())
+                    if i == self.idx[obj.number()]:
+                        args.extend(a[j] for j in np.ndindex(a.ufl_shape))
+                    else:
+                        args.extend(Zero() for j in np.ndindex(a.ufl_shape))
+            else:
+                for i in range(len(sub_elements)):
+                    if i == self.idx[obj.number()]:
+                        args.extend(obj[i][j] for j in np.ndindex(obj[i].ufl_shape))
+                    else:
+                        args.extend(Zero() for j in np.ndindex(obj[i].ufl_shape))
 
             return as_vector(args)
 
@@ -95,7 +115,13 @@ class FormSplitter(MultiFunction):
     expr = MultiFunction.reuse_if_untouched
 
 
-def extract_blocks(form, i: int | None = None, j: int | None = None, arity: int | None = None):
+def extract_blocks(
+    form,
+    i: int | None = None,
+    j: int | None = None,
+    arity: int | None = None,
+    replace_argument: bool = True,
+):
     """Extract blocks of a form.
 
     If arity is 0, returns the form.
@@ -109,11 +135,13 @@ def extract_blocks(form, i: int | None = None, j: int | None = None, arity: int 
         i: Index of the block to extract. If set to ``None``, ``j`` must be None.
         j: Index of the block to extract.
         arity: Arity of the form. If not set, it will be inferred from the form.
+        replace_argument: If True, replace the argument by a new argument
+            in the (collapsed) sub-function space. If False, keep the original argument.
     """
     if i is None and j is not None:
         raise RuntimeError(f"Cannot extract block with {j=} and {i=}.")
 
-    fs = FormSplitter()
+    fs = FormSplitter(replace_argument=replace_argument)
     arguments = form.arguments()
 
     if arity is None:
@@ -129,6 +157,9 @@ def extract_blocks(form, i: int | None = None, j: int | None = None, arity: int 
     if parts == ():
         if i is None and j is None:
             num_sub_elements = arguments[0].ufl_element().num_sub_elements
+            # If form has no sub elements, return the form itself.
+            if num_sub_elements == 0:
+                return form
             forms = []
             for pi in range(num_sub_elements):
                 form_i: list[object | None] = []
