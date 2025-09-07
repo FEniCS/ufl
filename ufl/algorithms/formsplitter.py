@@ -65,21 +65,28 @@ class FormSplitter(MultiFunction):
                 return obj
 
             args = []
-            if self.replace_argument:
-                for i, sub_elem in enumerate(sub_elements):
-                    Q_i = FunctionSpace(dom, sub_elem)
-                    a = Argument(Q_i, obj.number(), part=obj.part())
+            counter = 0
+            for i, sub_elem in enumerate(sub_elements):
+                Q_i = FunctionSpace(dom, sub_elem)
+                a = Argument(Q_i, obj.number(), part=obj.part())
+                if self.replace_argument:
                     if i == self.idx[obj.number()]:
                         args.extend(a[j] for j in np.ndindex(a.ufl_shape))
                     else:
-                        args.extend(Zero() for j in np.ndindex(a.ufl_shape))
-            else:
-                for i in range(len(sub_elements)):
+                        args.extend(Zero() for _ in np.ndindex(a.ufl_shape))
+                else:
+                    # If we are not replacing the argument, we need to insert
+                    # the original argument at the right place in the vector.
+                    # Mixed elements are flattened, thus we need to keep track of
+                    # the position in the flattened vector.
                     if i == self.idx[obj.number()]:
-                        args.extend(obj[i][j] for j in np.ndindex(obj[i].ufl_shape))
+                        if a.ufl_shape == ():
+                            args.append(obj[i])
+                        else:
+                            args.extend(obj[counter+j] for j, _ in enumerate(np.ndindex(a.ufl_shape)))
                     else:
-                        args.extend(Zero() for j in np.ndindex(obj[i].ufl_shape))
-
+                        args.extend(Zero() for _ in np.ndindex(a.ufl_shape))
+                    counter += int(np.prod(a.ufl_shape))
             return as_vector(args)
 
     def indexed(self, o, child, multiindex):
