@@ -48,7 +48,7 @@ def test_extract_blocks(rank, replace_arguments):
         v, q = ufl.TestFunctions(W)
         F = sum(rhs(uh, ph, v, q))
 
-        # Replacing arguments replaces test function with `ufl.as_vector`
+        # Extracting blocks replaces arguments with `ufl.as_vector`
         if replace_arguments:
             v_ = ufl.TestFunction(V)
             q_ = ufl.TestFunction(Q)
