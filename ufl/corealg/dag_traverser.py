@@ -1,10 +1,12 @@
 """Base class for dag traversers."""
 
+from __future__ import annotations
 from functools import singledispatchmethod, wraps
-from typing import overload
+from typing import overload, TYPE_CHECKING
 
-from ufl.classes import Expr
-from ufl.form import BaseForm
+if TYPE_CHECKING:
+    from ufl.classes import Expr
+    from ufl.form import BaseForm
 
 
 class DAGTraverser:

@@ -522,7 +522,7 @@ class UniqueDomainExtractor(DAGTraverser):
                 return first_domain
             else:
                 raise ValueError(
-                    f"Cannot extract unique domain from expression {o!r} with differing domains: {domains!r}"
+                    f"Expression {o!r} has differing domains: {domains!r}"
                 )
 
     @process.register(BaseFormOperator)
