@@ -1,8 +1,9 @@
 """Base class for dag traversers."""
 
 from __future__ import annotations
+
 from functools import singledispatchmethod, wraps
-from typing import overload, TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 if TYPE_CHECKING:
     from ufl.classes import Expr

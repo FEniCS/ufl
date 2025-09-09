@@ -58,7 +58,7 @@ def test_extract_unique_domain():
     assert extract_unique_domain(expr2) == mesh1
 
     x2, y2 = SpatialCoordinate(mesh2)
-    with pytest.raises(ValueError) as e_info:
+    with pytest.raises(ValueError):
         _ = extract_unique_domain(u1 + u2)
         _ = extract_unique_domain(u1 + u2 + x2 * cos(x2 * u1))
 

@@ -433,6 +433,8 @@ def find_geometric_dimension(expr):
 
 
 class UniqueDomainExtractor(DAGTraverser):
+    """Extract unique domain from an expression or BaseForm."""
+
     def __init__(
         self,
         compress: bool | None = True,
@@ -495,7 +497,7 @@ class UniqueDomainExtractor(DAGTraverser):
         from ufl.constant import Constant
         from ufl.geometry import GeometricQuantity
 
-        if isinstance(o, (Coefficient, Argument)):
+        if isinstance(o, Coefficient | Argument):
             fs = o.ufl_function_space()
             return fs.ufl_domain()
         elif isinstance(o, GeometricQuantity):
