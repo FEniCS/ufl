@@ -284,7 +284,7 @@ def build_integral_data(integrals):
     # Build list with canonical ordering, iteration over dicts
     # is not deterministic across python versions
     def keyfunc(item):
-        (d, itype, sid), integrals = item
+        (d, itype, sid), _integrals = item
         sid_int = tuple(-1 if i == "otherwise" else i for i in sid)
         return (d._ufl_sort_key_(), itype, (type(sid).__name__,), sid_int)
 

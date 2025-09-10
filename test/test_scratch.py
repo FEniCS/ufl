@@ -194,9 +194,9 @@ class MockForwardAD:
 
 
 def test_unit_tensor(self):
-    E2_1, ii = unit_indexed_tensor((2,), (1,))
-    E3_1, ii = unit_indexed_tensor((3,), (1,))
-    E22_10, ii = unit_indexed_tensor((2, 2), (1, 0))
+    _, _ = unit_indexed_tensor((2,), (1,))
+    _, _ = unit_indexed_tensor((3,), (1,))
+    _, _ = unit_indexed_tensor((2, 2), (1, 0))
     # TODO: Evaluate and assert values
 
 

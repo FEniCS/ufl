@@ -108,7 +108,7 @@ def _mult(a, b):
     bfi = b.ufl_free_indices
     afid = a.ufl_index_dimensions
     bfid = b.ufl_index_dimensions
-    fi, fid, ri, rid = merge_overlapping_indices(afi, afid, bfi, bfid)
+    fi, fid, ri, _rid = merge_overlapping_indices(afi, afid, bfi, bfid)
 
     # Pick out valid non-scalar products here (dot products):
     # - matrix-matrix (A*B, M*grad(u)) => A . B

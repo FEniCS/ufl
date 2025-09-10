@@ -269,7 +269,7 @@ class SumDegreeEstimator(MultiFunction):
         If b is a positive integer: degree(a**b) == degree(a)*b
         otherwise use the heuristic: degree(a**b) == degree(a) + 2.
         """
-        f, g = v.ufl_operands
+        _f, g = v.ufl_operands
 
         if isinstance(g, IntValue):
             gi = g.value()
