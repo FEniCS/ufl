@@ -221,7 +221,7 @@ def _radd(self, o):
     return Sum(o, self)
 
 
-Expr.__radd__ = _radd
+Expr.__radd__ = _radd  # type: ignore
 
 
 def _sub(self, o):
@@ -448,4 +448,4 @@ def _dx(self, *ii):
     return d.__getitem__((Ellipsis,) + ii)
 
 
-Expr.dx = _dx
+Expr.dx = _dx  # type: ignore

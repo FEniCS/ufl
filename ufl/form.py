@@ -20,6 +20,7 @@ from ufl.checks import is_scalar_constant_expression
 from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.domain import extract_unique_domain, sort_domains
 from ufl.equation import Equation
@@ -82,6 +83,8 @@ def _sorted_integrals(integrals):
 @ufl_type()
 class BaseForm(metaclass=UFLType):
     """Description of an object containing arguments."""
+
+    ufl_operands: tuple[FormArgument, ...]
 
     # Slots is kept empty to enable multiple inheritance with other
     # classes
@@ -474,7 +477,7 @@ class Form(BaseForm):
             # Create form sum if form is of other type
             return FormSum((self, 1), (other, 1))
 
-        elif isinstance(other, (int, float)) and other == 0:
+        elif isinstance(other, int | float) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
 
@@ -893,7 +896,7 @@ class ZeroBaseForm(BaseForm):
             if self is other:
                 return True
             return self._arguments == other._arguments
-        elif isinstance(other, (int, float)):
+        elif isinstance(other, int | float):
             return other == 0
         else:
             return False

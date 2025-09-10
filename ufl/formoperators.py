@@ -9,8 +9,6 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-import typing
-
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algorithms import (
@@ -94,7 +92,7 @@ class _MixedElement(AbstractFiniteElement):
         return self._pullback
 
     @property
-    def embedded_superdegree(self) -> typing.Optional[int]:
+    def embedded_superdegree(self) -> int | None:
         """Degree of the minimum degree Lagrange space that spans this element."""
         return max(e.embedded_superdegree for e in self._sub_elements)
 
@@ -196,7 +194,7 @@ def action(form, coefficient=None, derivatives_expanded=None):
         isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1
     )
     # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
-    if isinstance(form, (Form, BaseFormOperator)) and is_coefficient_valid:
+    if isinstance(form, Form | BaseFormOperator) and is_coefficient_valid:
         if not derivatives_expanded:
             # For external operators differentiation may turn a Form into a FormSum
             form = expand_derivatives(form)
@@ -270,7 +268,7 @@ def set_list_item(li, i, v):
 def _handle_derivative_arguments(form, coefficient, argument):
     """Handle derivative arguments."""
     # Wrap single coefficient in tuple for uniform treatment below
-    if isinstance(coefficient, (list, tuple, ListTensor)):
+    if isinstance(coefficient, list | tuple | ListTensor):
         coefficients = tuple(coefficient)
     else:
         coefficients = (coefficient,)
@@ -278,7 +276,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     if argument is None:
         # Try to create argument if not provided
         if not all(
-            isinstance(c, (Coefficient, Cofunction, BaseFormOperator)) for c in coefficients
+            isinstance(c, Coefficient | Cofunction | BaseFormOperator) for c in coefficients
         ):
             raise ValueError(
                 "Can only create arguments automatically for non-indexed coefficients."
@@ -317,7 +315,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
             arguments = split(Argument(fs, number, part))
     else:
         # Wrap single argument in tuple for uniform treatment below
-        if isinstance(argument, (list, tuple)):
+        if isinstance(argument, list | tuple):
             arguments = tuple(argument)
         else:
             n = len(coefficients)
@@ -334,7 +332,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     for c, a in zip(coefficients, arguments):
         if c.ufl_shape != a.ufl_shape:
             raise ValueError("Coefficient and argument shapes do not match!")
-        if isinstance(c, (Coefficient, Cofunction, BaseFormOperator, SpatialCoordinate)):
+        if isinstance(c, Coefficient | Cofunction | BaseFormOperator | SpatialCoordinate):
             m[c] = a
         else:
             if not isinstance(c, Indexed):

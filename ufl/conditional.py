@@ -290,7 +290,7 @@ class Conditional(Operator):
         ffi = false_value.ufl_free_indices
         if tfi != ffi:
             raise ValueError("Free index mismatch between conditional branches.")
-        if isinstance(condition, (EQ, NE)):
+        if isinstance(condition, EQ | NE):
             if not all(
                 (
                     condition.ufl_operands[0].ufl_shape == (),
