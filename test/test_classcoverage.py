@@ -722,7 +722,7 @@ def testAll(self):
     # e = action(b)
 
     # --- Check which classes have been created
-    ic, dc = Expr.ufl_disable_profiling()
+    ic, _dc = Expr.ufl_disable_profiling()
 
     constructed = set()
     unused = set(Expr._ufl_all_classes_)

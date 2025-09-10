@@ -33,7 +33,7 @@ def get_variables():
 
 @pytest.fixture
 def v():
-    xv, vv = get_variables()
+    _xv, vv = get_variables()
     return vv
 
 

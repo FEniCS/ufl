@@ -93,7 +93,7 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(f2**3 * v1 + f1 * v1) == 7
 
     # Math functions of constant values are constant values
-    nx, ny = FacetNormal(domain)
+    nx, _ny = FacetNormal(domain)
     e = nx**2
     for f in [sin, cos, tan, abs, lambda z: z**7]:
         assert estimate_total_polynomial_degree(f(e)) == 0
