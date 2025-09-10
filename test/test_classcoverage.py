@@ -725,6 +725,7 @@ def testAll(self):
     # --- Check which classes have been created
     Expr.ufl_disable_profiling()
     ic = UFLRegistry().object_tracking
+
     constructed = set()
     unused = set(UFLRegistry().all_classes)
     for cls in ic.keys():
