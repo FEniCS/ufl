@@ -126,8 +126,8 @@ def test_part_extract():
     a_ref = [[None for _ in range(3)] for _ in range(3)]
     for i, w_i in enumerate(wh):
         for j, x_j in enumerate(xh):
-            a_ij = ufl.inner(w_i, x_j) * ufl.dx
-            a_ref[i][j] = a_ij
+            a_ji = ufl.inner(w_i, x_j) * ufl.dx
+            a_ref[j][i] = a_ji
             print(i, j, a_ij)
 
     # Check that extracting only last element gives an almost empty matrix
