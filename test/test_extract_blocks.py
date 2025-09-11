@@ -148,7 +148,6 @@ def test_part_extract():
             if i < 1 or j < 1 or j < 2:
                 assert a2_blocked[i][j] is None
             else:
-                breakpoint()
                 assert a2_blocked[i][j] == a_ref[i][j]
 
     # Extract first element. Check that we only get the (0,0) block
