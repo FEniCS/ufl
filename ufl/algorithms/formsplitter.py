@@ -180,16 +180,16 @@ def extract_blocks(
                     else:
                         form_i.append(f)
                 forms.append(tuple(form_i))
-            return tuple(forms)
+            return tuple(forms)  # type: ignore[return-value]
         else:
             return fs.split(form, i, j)
 
     # If mixed function space, each argument has sub-elements
     num_parts = max(parts) + 1
-    forms = [None for _ in range(num_parts)]
+    forms = [None] * num_parts  # type: ignore
     if arity == 2:
         for k in range(num_parts):
-            forms[k] = [None for _ in range(num_parts)]
+            forms[k] = [None] * num_parts  # type: ignore
     for pi in range(num_parts):
         if arity > 1:
             for pj in range(num_parts):
@@ -198,7 +198,7 @@ def extract_blocks(
                 if f.empty() or len(f.arguments()) != 2:
                     pass
                 else:
-                    forms[pj][pi] = f
+                    forms[pj][pi] = f  # type: ignore
         else:
             f = fs.split(form, pi)
             # Ignore empty forms and bilinear forms
@@ -215,11 +215,11 @@ def extract_blocks(
                 raise RuntimeError(
                     f"Cannot extract block {i},{j} from form with {num_rows}x{num_cols} blocks."
                 )
-            return forms[i][j]
+            return forms[i][j]  # type: ignore[return-value]
         else:
-            return forms[i]
+            return forms[i]  # type: ignore[return-value]
     else:
         if arity == 1:
-            return tuple(forms)
+            return tuple(forms)  # type: ignore[return-value]
         else:
-            return tuple(tuple(row) for row in forms)
+            return tuple(tuple(row) for row in forms)  # type: ignore[return-value]
