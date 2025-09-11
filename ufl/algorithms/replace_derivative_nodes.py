@@ -60,10 +60,13 @@ def replace_derivative_nodes(expr, mapping, **derivative_kwargs):
         dFdN -> u ** 2 * Nhat * dx
 
     Args:
-        expr: An Expr or BaseForm.
-        mapping: A dict with from:to replacements to perform.
-        derivative_kwargs: A dict containing the keyword arguments for
-            derivative (i.e. `argument` and `coefficient_derivatives`).
+        expr:
+            An Expr or BaseForm.
+        mapping:
+            A dict with from:to replacements to perform.
+        derivative_kwargs:
+            A dict containing the keyword arguments for derivative (i.e. `argument` and
+            `coefficient_derivatives`).
     """
     mapping2 = dict((k, as_ufl(v)) for (k, v) in mapping.items())
     return map_integrand_dags(DerivativeNodeReplacer(mapping2, **derivative_kwargs), expr)
