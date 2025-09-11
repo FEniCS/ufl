@@ -198,7 +198,7 @@ def extract_blocks(
                 if f.empty() or len(f.arguments()) != 2:
                     pass
                 else:
-                    forms[pj][pi] = f  # type: ignore
+                    forms[pi][pj] = f  # type: ignore
         else:
             f = fs.split(form, pi)
             # Ignore empty forms and bilinear forms

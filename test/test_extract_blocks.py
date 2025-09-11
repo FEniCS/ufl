@@ -128,6 +128,7 @@ def test_part_extract():
         for j, x_j in enumerate(xh):
             a_ij = ufl.inner(w_i, x_j) * ufl.dx
             a_ref[i][j] = a_ij
+            print(i, j, a_ij)
 
     # Check that extracting only last element gives an almost empty matrix
     a = a_ref[2][2]
@@ -148,6 +149,7 @@ def test_part_extract():
             if i < 1 or j < 1 or j < 2:
                 assert a2_blocked[i][j] is None
             else:
+                breakpoint()
                 assert a2_blocked[i][j] == a_ref[i][j]
 
     # Extract first element. Check that we only get the (0,0) block
