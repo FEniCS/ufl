@@ -16,6 +16,7 @@ from ufl.argument import Argument
 from ufl.classes import FixedIndex, ListTensor
 from ufl.constantvalue import Zero
 from ufl.corealg.multifunction import MultiFunction
+from ufl.form import Form
 from ufl.functionspace import FunctionSpace
 from ufl.tensors import as_vector
 
@@ -130,7 +131,7 @@ def extract_blocks(
     j: int | None = None,
     arity: int | None = None,
     replace_argument: bool = True,
-):
+) -> Form | tuple[Form | None, ...] | tuple[tuple[Form | None, ...], ...]:
     """Extract blocks of a form.
 
     If arity is 0, returns the form.
@@ -184,42 +185,41 @@ def extract_blocks(
             return fs.split(form, i, j)
 
     # If mixed function space, each argument has sub-elements
-    forms = []
-    num_parts = len(parts)
+    num_parts = max(parts) + 1
+    forms = [None for _ in range(num_parts)]
+    if arity == 2:
+        for k in range(num_parts):
+            forms[k] = [None for _ in range(num_parts)]
     for pi in range(num_parts):
-        form_i = []
         if arity > 1:
             for pj in range(num_parts):
                 f = fs.split(form, pi, pj)
                 # Ignore empty forms and rank 0 or 1 forms
                 if f.empty() or len(f.arguments()) != 2:
-                    form_i.append(None)
+                    pass
                 else:
-                    form_i.append(f)
-            forms.append(tuple(form_i))
+                    forms[pj][pi] = f
         else:
             f = fs.split(form, pi)
             # Ignore empty forms and bilinear forms
             if f.empty() or len(f.arguments()) != 1:
-                forms.append(None)  # type: ignore
+                pass
             else:
-                forms.append(f)
+                forms[pi] = f
 
-    try:
-        forms_tuple = tuple(forms)
-    except TypeError:
-        # Only one form returned
-        forms_tuple = (forms,)  # type: ignore
     if i is not None:
-        if (num_rows := len(forms_tuple)) <= i:
+        if (num_rows := len(forms)) <= i:
             raise RuntimeError(f"Cannot extract block {i} from form with {num_rows} blocks.")
         if arity > 1 and j is not None:
-            if (num_cols := len(forms_tuple[i])) <= j:
+            if (num_cols := len(forms[i])) <= j:
                 raise RuntimeError(
                     f"Cannot extract block {i},{j} from form with {num_rows}x{num_cols} blocks."
                 )
-            return forms_tuple[i][j]
+            return forms[i][j]
         else:
-            return forms_tuple[i]
+            return forms[i]
     else:
-        return forms_tuple
+        if arity == 1:
+            return tuple(forms)
+        else:
+            return tuple(tuple(row) for row in forms)

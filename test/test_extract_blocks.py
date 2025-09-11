@@ -107,3 +107,52 @@ def test_postive_restricted_extract_none():
     a += ufl.inner(u("+"), v("+")) * ufl.dS
     a_blocks = ufl.extract_blocks(a)
     assert a_blocks[1][1] is None
+
+
+def test_part_extract():
+    """Test extraction of a single block from a mixed function space form."""
+    cell = ufl.quadrilateral
+    d = cell.topological_dimension()
+    domain = ufl.Mesh(LagrangeElement(cell, 1, (d,)))
+    el_u = LagrangeElement(cell, 2, (d,))
+    el_p = LagrangeElement(cell, 1, (d,))
+    S = ufl.FunctionSpace(domain, el_u)
+    U = ufl.FunctionSpace(domain, el_p)
+    Q = ufl.FunctionSpace(domain, el_u)
+    W = ufl.MixedFunctionSpace(S, U, Q)
+    wh = ufl.TrialFunctions(W)
+    xh = ufl.TestFunctions(W)
+
+    a_ref = [[None for _ in range(3)] for _ in range(3)]
+    for i, w_i in enumerate(wh):
+        for j, x_j in enumerate(xh):
+            a_ij = ufl.inner(w_i, x_j) * ufl.dx
+            a_ref[i][j] = a_ij
+
+    # Check that extracting only last element gives an almost empty matrix
+    a = a_ref[2][2]
+    a_blocked = ufl.extract_blocks(a)
+    for i in range(3):
+        for j in range(3):
+            if (i, j) == (2, 2):
+                assert a_blocked[i][j] == a_ref[i][j]
+            else:
+                assert a_blocked[i][j] is None
+
+    # Extract the the last two rows and the last column and check
+    # that we get the expected result
+    a2 = sum(a_ref[i][j] for i in [1, 2] for j in [2])
+    a2_blocked = ufl.extract_blocks(a2)
+    for i in range(3):
+        for j in range(3):
+            if i < 1 or j < 1 or j < 2:
+                assert a2_blocked[i][j] is None
+            else:
+                assert a2_blocked[i][j] == a_ref[i][j]
+
+    # Extract first element. Check that we only get the (0,0) block
+    a1 = a_ref[0][0]
+    a1_blocked = ufl.extract_blocks(a1)
+    assert len(a1_blocked) == 1
+    assert len(a1_blocked[0]) == 1
+    assert a1_blocked[0][0] == a_ref[0][0]
