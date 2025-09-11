@@ -245,7 +245,7 @@ def test_indexed(self):
     v = TestFunction(space)
     u = TrialFunction(space)
     Coefficient(space)
-    i, j, k, l = indices(4)  # noqa: E741
+    i, j, _k, _l = indices(4)
 
     a = v[i]
     self.assertSameIndices(a, (i,))
@@ -265,7 +265,7 @@ def test_spatial_derivative(self):
     space = FunctionSpace(domain, element)
     v = TestFunction(space)
     u = TrialFunction(space)
-    i, j, k, l = indices(4)  # noqa: E741
+    i, j, _k, _l = indices(4)
     d = 2
 
     a = v[i].dx(i)

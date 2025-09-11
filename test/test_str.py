@@ -100,7 +100,7 @@ def test_str_list_vector():
 
 def test_str_list_vector_with_zero():
     domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
-    x, y, z = SpatialCoordinate(domain)
+    x, _y, _z = SpatialCoordinate(domain)
     v = as_vector((x, 0, 0))
     assert str(v) == (f"[{x}, 0, 0]")
 

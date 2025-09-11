@@ -373,7 +373,7 @@ def test_apply_single_function_pullbacks_triangle():
     J = Jacobian(domain)
     detJ = JacobianDeterminant(domain)
     Jinv = JacobianInverse(domain)
-    i, j, k, l = indices(4)  # noqa: E741
+    i, j, _k, _l = indices(4)
 
     # Contravariant H(div) Piola mapping:
     M_hdiv = (1.0 / detJ) * J
