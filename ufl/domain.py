@@ -10,6 +10,7 @@ from __future__ import annotations  # To avoid cyclic import when type-hinting.
 
 import numbers
 from collections.abc import Iterable, Sequence
+from functools import singledispatchmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -17,9 +18,14 @@ if TYPE_CHECKING:
     from ufl.finiteelement import AbstractFiniteElement  # To avoid cyclic import when type-hinting.
     from ufl.form import Form
 from ufl.cell import AbstractCell
+from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.operator import Operator
+from ufl.core.terminal import Terminal
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.indexed import Indexed
 from ufl.sobolevspace import H1
 
 # Export list for ufl.classes
@@ -330,7 +336,7 @@ def as_domain(domain):
         return domain
     try:
         return extract_unique_domain(domain)
-    except AttributeError:
+    except (AttributeError, TypeError):
         domain = domain.ufl_domain()
         (domain,) = set(domain.meshes)
         return domain
@@ -410,26 +416,6 @@ def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
 
 
-def extract_unique_domain(expr, expand_mesh_sequence: bool = True):
-    """Return the single unique domain expression is defined on or throw an error.
-
-    Args:
-        expr: Expr or Form.
-        expand_mesh_sequence: If True, MeshSequence components are expanded.
-
-    Returns:
-        domain.
-
-    """
-    domains = extract_domains(expr, expand_mesh_sequence=expand_mesh_sequence)
-    if len(domains) == 1:
-        return domains[0]
-    elif domains:
-        raise ValueError("Found multiple domains, cannot return just one.")
-    else:
-        return None
-
-
 def find_geometric_dimension(expr):
     """Find the geometric dimension of an expression."""
     gdims = set()
@@ -444,3 +430,145 @@ def find_geometric_dimension(expr):
         raise ValueError("Cannot determine geometric dimension from expression.")
     (gdim,) = gdims
     return gdim
+
+
+class UniqueDomainExtractor(DAGTraverser):
+    """Extract unique domain from an expression or BaseForm."""
+
+    def __init__(
+        self,
+        compress: bool | None = True,
+        visited_cache: dict[tuple, Expr] | None = None,
+        result_cache: dict[Expr, Expr] | None = None,
+    ) -> None:
+        """Initialise."""
+        self._compress = compress
+        self._visited_cache = {} if visited_cache is None else visited_cache
+        self._result_cache = {} if result_cache is None else result_cache
+        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
+
+        Args:
+            o: `Expr` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        return super().process(o)
+
+    @process.register(Indexed)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operand_results) -> AbstractDomain:
+        """Process Indexed object by extracting the domain corresponding to the index."""
+        from ufl.functionspace import FunctionSpace
+
+        expression, multiindex = o.ufl_operands
+        expression_domain = operand_results[0]
+
+        if isinstance(expression_domain, MeshSequence):
+            index = multiindex[0]._value
+            element = expression.ufl_element()
+            if hasattr(element, "sub_elements"):
+                # Need to do this in case we have sub elements which are vector or tensor valued
+                j = 0
+                for i, sub_element in enumerate(element.sub_elements):
+                    # Get the value size for this sub-element on its corresponding mesh
+                    sub_element_mesh = expression_domain.meshes[i]
+                    sub_element_fs = FunctionSpace(sub_element_mesh, sub_element)
+                    sub_element_size = sub_element_fs.value_size
+
+                    if index < j + sub_element_size:
+                        return sub_element_mesh
+                    j += sub_element_size
+                raise ValueError(f"Index {index} out of range for mixed function space")
+            else:
+                return expression_domain.meshes[index]
+        return expression_domain
+
+    @process.register(Terminal)
+    @DAGTraverser.postorder
+    def _(self, o: Expr) -> AbstractDomain:
+        from ufl.argument import Argument
+        from ufl.coefficient import Coefficient
+        from ufl.constant import Constant
+        from ufl.geometry import GeometricQuantity
+
+        if isinstance(o, Coefficient | Argument):
+            fs = o.ufl_function_space()
+            return fs.ufl_domain()
+        elif isinstance(o, GeometricQuantity):
+            return o._domain
+        elif isinstance(o, Constant):
+            return o._ufl_domain
+        else:
+            return None
+
+    @process.register(Operator)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operand_results) -> AbstractDomain:
+        """Process Operator."""
+        domains = [d for d in operand_results if d is not None]
+
+        if not domains:
+            return None
+        elif len(domains) == 1:
+            return domains[0]
+        else:
+            # Multiple operands have domains - they should all be the same
+            first_domain = domains[0]
+            if all(d == first_domain for d in domains):
+                return first_domain
+            else:
+                raise ValueError(
+                    f"Expression {o!r} has differing domains: {domains!r}"
+                )
+
+    @process.register(BaseFormOperator)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operand_results) -> AbstractDomain:
+        fs = o.ufl_function_space()
+        return fs.ufl_domain()
+
+
+def extract_unique_domain(expr: Expr | Form) -> AbstractDomain:
+    """Extract the single unique domain from an expression.
+
+    This works for expressions containing Indexed Arguments and Coefficients from
+    split functions on mixed function spaces.
+
+    Args:
+        expr: Expr or Form to extract domain from
+
+    Returns:
+        AbstractDomain: The unique domain extracted from the expression.
+    """
+    from ufl.core.expr import Expr
+    from ufl.form import BaseForm, Form
+
+    if isinstance(expr, Form):
+        domains = set()
+        for integral in expr.integrals():
+            domain = extract_unique_domain(integral.integrand())
+            if domain is not None:
+                domains.add(domain)
+
+        if len(domains) == 0:
+            return None
+        elif len(domains) == 1:
+            return domains.pop()
+        else:
+            raise ValueError(f"Form has multiple domains: {domains}")
+    elif isinstance(expr, BaseForm):
+        if not expr.arguments():
+            return None
+        else:
+            return extract_unique_domain(expr.arguments()[0])
+    elif isinstance(expr, Expr):
+        extractor = UniqueDomainExtractor()
+        return extractor(expr)
+    else:
+        raise TypeError(f"Expected an Expr or Form, not a {type(expr).__name__}.")
