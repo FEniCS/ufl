@@ -29,6 +29,7 @@ class Action(BaseForm):
 
     For example:
         res = Ax
+
     A would be the first argument, left and x would be the second argument,
     right.
 

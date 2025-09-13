@@ -20,8 +20,10 @@ def map_expr_dag(function, expression, compress=True, vcache=None, rcache=None):
     the call, use the arguments vcache and rcache.
 
     Args:
-        function: The function
-        expression: An expression
+        function:
+            The function
+        expression:
+            An expression
         compress: If True (default), the output object from
             the function is cached in a dict and reused such that the
             resulting expression DAG does not contain duplicate objects
@@ -50,13 +52,17 @@ def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None
     the call, use the arguments vcache and rcache.
 
     Args:
-        function: The function
-        expressions: An expression
-        compress: If True (default), the output object from
-            the function is cached in a dict and reused such that the
-            resulting expression DAG does not contain duplicate objects
-        vcache: Optional dict for caching results of intermediate transformations
-        rcache: Optional dict for caching results for compression
+        function:
+            The function
+        expressions:
+            An expression
+        compress:
+            If True (default), the output object from the function is cached in a dict and reused
+            such that the resulting expression DAG does not contain duplicate objects
+        vcache:
+            Optional dict for caching results of intermediate transformations
+        rcache:
+            Optional dict for caching results for compression
 
     Returns:
         a list with the result of the final function call for each expression

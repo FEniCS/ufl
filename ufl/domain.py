@@ -189,7 +189,7 @@ class MeshSequence(AbstractDomain, UFLObject):
     thus the same topological dimension).
 
     Currently, one can only perform cell integrations when
-    :class:`MeshSequence`es are used.
+    :class:`MeshSequence` is used.
 
     .. code-block:: python3
 

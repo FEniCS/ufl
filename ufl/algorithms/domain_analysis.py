@@ -166,10 +166,11 @@ def rearrange_integrals_by_single_subdomains(
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
     Args:
-        integrals: List of integrals
-        do_append_everywhere_integrals: Boolean indicating if integrals
-        defined on the whole domain should
-            just be restricted to the set of input subdomain ids.
+        integrals:
+            List of integrals
+        do_append_everywhere_integrals:
+            Boolean indicating if integrals defined on the whole domain should just be restricted to
+            the set of input subdomain ids.
 
     Returns:
         The integrals reconstructed with single subdomain_id
@@ -298,11 +299,13 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
     """Group integrals by domain and type, performing canonical simplification.
 
     Args:
-        form: the Form to group the integrals of.
-        domains: an iterable of Domains.
-        do_append_everywhere_integrals: Boolean indicating if integrals
-        defined on the whole domain should
-            just be restricted to the set of input subdomain ids.
+        form:
+            the Form to group the integrals of.
+        domains:
+            an iterable of Domains.
+        do_append_everywhere_integrals:
+            Boolean indicating if integrals defined on the whole domain should just be restricted to
+            the set of input subdomain ids.
 
     Returns:
         A new Form with gathered integrands.

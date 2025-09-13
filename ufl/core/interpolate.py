@@ -104,8 +104,11 @@ def interpolate(expr, v):
     """Create symbolic representation of the interpolation operator.
 
     Args:
-        expr: a UFL expression to interpolate.
-        v: the FunctionSpace to interpolate into or the Coargument
+        expr:
+            a UFL expression to interpolate.
+        v:
+            the FunctionSpace to interpolate into or the Coargument
             defined on the dual of the FunctionSpace to interpolate into.
+
     """
     return Interpolate(expr, v)

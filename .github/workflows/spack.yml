@@ -10,39 +10,41 @@ on:
     - cron: "0 2 * * WED"
   workflow_dispatch:
     inputs:
-      spack_repo:
-        description: "Spack repository to test"
-        default: "spack/spack"
+      spack_package_repo:
+        description: "Spack package repository to test"
+        default: "spack/spack-packages"
         type: string
-      spack_ref:
-        description: "Spack repository branch/tag to test"
+      spack_package_ref:
+        description: "Spack package repository branch/tag to test"
         default: "develop"
         type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ubuntu:latest
+    container: ubuntu:24.04
     steps:
       - name: Install Spack requirements
         run: |
           apt-get -y update
-          apt-get install -y bzip2 curl file git gzip make patch python3-minimal tar xz-utils
-          apt-get install -y g++ gfortran  # compilers
+          apt-get install -y bzip2 curl file git gzip make patch python3-minimal tar \
+            xz-utils g++ gfortran  # compilers
 
       - name: Get Spack
-        if: github.event_name != 'workflow_dispatch'
         uses: actions/checkout@v5
         with:
           path: ./spack
           repository: spack/spack
-      - name: Get Spack
+
+      - name: Get Spack packages
         if: github.event_name == 'workflow_dispatch'
-        uses: actions/checkout@v5
-        with:
-          path: ./spack
-          repository: ${{ github.event.inputs.spack_repo }}
-          ref: ${{ github.event.inputs.spack_ref }}
+        run: |
+          . ./spack/share/spack/setup-env.sh
+          spack repo update
+          spack repo add --name test_pkgs https://github.com/${{ github.event.inputs.spack_package_repo }}.git ~/test_pkgs
+          spack repo update --branch ${{ github.event.inputs.spack_package_ref }} test_pkgs
+          spack repo list
+          spack config get repos
 
       - name: Install UFL development version and run tests
         run: |
@@ -50,7 +52,6 @@ jobs:
           spack env create main
           spack env activate main
           spack add py-fenics-ufl@main
-          spack install --test=root
 
       - name: Install UFL release version and run tests
         run: |
@@ -58,4 +59,3 @@ jobs:
           spack env create release
           spack env activate release
           spack add py-fenics-ufl
-          spack install --test=root

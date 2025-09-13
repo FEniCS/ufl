@@ -344,6 +344,7 @@ def Dx(f, *i):
     """Take the partial derivative of f with respect to spatial variable number i.
 
     Equivalent to f.dx(*i).
+
     """
     f = as_ufl(f)
     return f.dx(*i)
@@ -392,6 +393,7 @@ def grad(f):
     and arbitrary rank tensor expressions T.
 
     See also: :py:func:`nabla_grad`
+
     """
     f = as_ufl(f)
     return Grad(f)

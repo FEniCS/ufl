@@ -406,8 +406,8 @@ class Form(BaseForm):
 
         The returned object is mapping from terminal to its number (an integer).
 
-        The numbering is computed per type so :class:`Coefficient`s,
-        :class:`Constant`s, etc will each be numbered from zero.
+        The numbering is computed per type so :class:`Coefficient`,
+        :class:`Constant`, etc will each be numbered from zero.
         """
         # cyclic import
         from ufl.algorithms.analysis import extract_type
