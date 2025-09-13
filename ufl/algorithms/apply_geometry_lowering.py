@@ -343,7 +343,7 @@ class GeometryLoweringApplier(MultiFunction):
             warnings.warn("Only know how to compute cell edge lengths of P1 or Q1 cell.")
             return o
 
-        elif domain.ufl_cell().cellname() == "interval":
+        elif domain.ufl_cell().cellname == "interval":
             # Interval optimization, square root not needed
             return self.cell_volume(CellVolume(domain))
 
