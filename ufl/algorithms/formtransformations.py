@@ -12,7 +12,6 @@
 # Modified by Jørgen S. Dokken, 2025.
 
 import logging
-import warnings
 
 from ufl.algebra import Conj
 from ufl.algorithms.formsplitter import extract_blocks
@@ -309,13 +308,16 @@ class PartExtracter(Transformer):
 
 
 def compute_form_with_arity(form, arity, arguments=None):
-    """Compute parts of form of given arity."""
+    """Compute parts of form of given arity.
+
+    Note:
+        If the form has no parts of the specified arity, this will return 0*form.
+    """
     # Extract all arguments in form
     if arguments is None:
         arguments = form.arguments()
 
     if len(arguments) < arity:
-        warnings.warn(f"Form has no parts with arity {arity}.")
         return 0 * form
 
     # Assuming that the form is not a sum of terms
@@ -495,7 +497,8 @@ def compute_form_adjoint(form, reordered_arguments=None):
     but keeping their elements and places in the integrand expressions.
     """
     arguments = form.arguments()
-
+    if form.empty():
+        return form
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
         J = extract_blocks(form, arity=2)

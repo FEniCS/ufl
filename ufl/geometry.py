@@ -210,7 +210,7 @@ class SpatialCoordinate(GeometricCellQuantity):
     def evaluate(self, x, mapping, component, index_values):
         """Return the value of the coordinate."""
         if component == ():
-            if isinstance(x, (tuple, list)):
+            if isinstance(x, tuple | list):
                 return float(x[0])
             else:
                 return float(x)

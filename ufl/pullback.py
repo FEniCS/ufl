@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod, abstractproperty
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -68,7 +68,7 @@ class AbstractPullback(ABC):
     def is_identity(self) -> bool:
         """Is this pull back the identity (or the identity applied to mutliple components)."""
 
-    def apply(self, expr: Expr, domain: Optional[AbstractDomain] = None) -> Expr:
+    def apply(self, expr: Expr, domain: AbstractDomain | None = None) -> Expr:
         """Apply the pull back.
 
         Args:

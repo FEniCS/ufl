@@ -16,7 +16,11 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 # Modified by Anders Logg, 2008
 # Modified by Massimiliano Leoni, 2016
 
+import typing
 import warnings
+
+if typing.TYPE_CHECKING:
+    from ufl.core.terminal import FormArgument
 
 from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
 
@@ -121,7 +125,7 @@ class Expr(metaclass=UFLType):
     # A reference to the UFL class itself.  This makes it possible to
     # do type(f)._ufl_class_ and be sure you get the actual UFL class
     # instead of a subclass from another library.
-    _ufl_class_ = None
+    _ufl_class_: type = None  # type: ignore
 
     # The handler name.  This is the name of the handler function you
     # implement for this type in a multifunction.
@@ -133,6 +137,8 @@ class Expr(metaclass=UFLType):
 
     # Type trait: If the type is a literal.
     _ufl_is_literal_ = None
+
+    _ufl_is_terminal_: bool
 
     # Type trait: If the type is classified as a 'terminal modifier',
     # for form compiler use.
@@ -176,6 +182,11 @@ class Expr(metaclass=UFLType):
         # A tuple providing the int dimension for each free index.
         "ufl_index_dimensions",
     )
+
+    ufl_operands: tuple["FormArgument", ...]
+    ufl_shape: tuple[int, ...]
+    _ufl_typecode_: int
+    ufl_free_indices: tuple[int, ...]
 
     # Each subclass of Expr is checked to have these methods in
     # ufl_type
@@ -389,6 +400,16 @@ class Expr(metaclass=UFLType):
         return val
 
     # For definitions see exproperators.py
+    T: property
+
+    def dx(self, *ii):
+        """Integral."""
+        pass
+
+    def __call__(self, other):
+        """Evaluate."""
+        pass
+
     def __ne__(self, other):
         """Negate."""
         pass
@@ -421,7 +442,19 @@ class Expr(metaclass=UFLType):
         """Multiply."""
         pass
 
+    def __truediv__(self, other):
+        """Divide."""
+        pass
+
+    def __rtruediv__(self, other):
+        """Divide."""
+        pass
+
     def __add__(self, other):
+        """Add."""
+        pass
+
+    def __radd__(self, other):
         """Add."""
         pass
 
@@ -437,7 +470,7 @@ class Expr(metaclass=UFLType):
         """Divide."""
         pass
 
-    def __truediv__(self, other):
+    def __rdiv__(self, other):
         """Divide."""
         pass
 

@@ -1,7 +1,5 @@
 """UFL test utils."""
 
-import typing
-
 from ufl.cell import Cell
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.pullback import (
@@ -26,9 +24,9 @@ class FiniteElement(AbstractFiniteElement):
         pullback: AbstractPullback,
         sobolev_space: SobolevSpace,
         sub_elements=[],
-        _repr: typing.Optional[str] = None,
-        _str: typing.Optional[str] = None,
-        subdegree: typing.Optional[int] = None,
+        _repr: str | None = None,
+        _str: str | None = None,
+        subdegree: int | None = None,
     ):
         """Initialise a finite element.
 
@@ -102,7 +100,7 @@ class FiniteElement(AbstractFiniteElement):
         return self._pullback
 
     @property
-    def embedded_superdegree(self) -> typing.Union[int, None]:
+    def embedded_superdegree(self) -> int | None:
         """Degree of the minimum degree Lagrange space that spans this element.
 
         This returns the degree of the lowest degree Lagrange space such
@@ -189,7 +187,9 @@ class SymmetricElement(FiniteElement):
         self._sub_elements = sub_elements
         pullback = SymmetricPullback(self, symmetry)
         reference_value_shape = (sum(e.reference_value_size for e in sub_elements),)
-        degree = max(e.embedded_superdegree for e in sub_elements)
+        degree = max(
+            e.embedded_superdegree for e in sub_elements if e.embedded_superdegree is not None
+        )
         cell = sub_elements[0].cell
         for e in sub_elements:
             if e.cell != cell:

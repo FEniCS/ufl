@@ -429,6 +429,6 @@ def testVectorLaplaceGradCurl():
     VectorLagrange = LagrangeElement(shape, order + 1, (3,))
     domain = Mesh(LagrangeElement(shape, 1, (3,)))
 
-    [a, L] = HodgeLaplaceGradCurl(
+    [_a, _L] = HodgeLaplaceGradCurl(
         FunctionSpace(domain, MixedElement([GRAD, CURL])), FunctionSpace(domain, VectorLagrange)
     )

@@ -6,7 +6,6 @@ decomposes mixed coefficients in the given Expr into components.
 """
 
 from functools import singledispatchmethod
-from typing import Union
 
 import numpy as np
 
@@ -33,9 +32,9 @@ class CoefficientSplitter(DAGTraverser):
     def __init__(
         self,
         coefficient_split: dict,
-        compress: Union[bool, None] = True,
-        visited_cache: Union[dict[tuple, Expr], None] = None,
-        result_cache: Union[dict[Expr, Expr], None] = None,
+        compress: bool | None = True,
+        visited_cache: dict[tuple, Expr] | None = None,
+        result_cache: dict[Expr, Expr] | None = None,
     ) -> None:
         """Initialise.
 
@@ -53,9 +52,9 @@ class CoefficientSplitter(DAGTraverser):
     def process(
         self,
         o: Expr,
-        reference_value: Union[bool, None] = False,
-        reference_grad: Union[int, None] = 0,
-        restricted: Union[str, None] = None,
+        reference_value: bool | None = False,
+        reference_grad: int | None = 0,
+        restricted: str | None = None,
     ) -> Expr:
         """Split mixed coefficients.
 
@@ -78,9 +77,9 @@ class CoefficientSplitter(DAGTraverser):
     def _(
         self,
         o: Expr,
-        reference_value: Union[bool, None] = False,
-        reference_grad: Union[int, None] = 0,
-        restricted: Union[str, None] = None,
+        reference_value: bool | None = False,
+        reference_grad: int | None = 0,
+        restricted: str | None = None,
     ) -> Expr:
         """Handle Expr."""
         return self.reuse_if_untouched(
@@ -94,9 +93,9 @@ class CoefficientSplitter(DAGTraverser):
     def _(
         self,
         o: Expr,
-        reference_value: Union[bool, None] = False,
-        reference_grad: Union[int, None] = 0,
-        restricted: Union[str, None] = None,
+        reference_value: bool | None = False,
+        reference_grad: int | None = 0,
+        restricted: str | None = None,
     ) -> Expr:
         """Handle ReferenceValue."""
         if reference_value:
@@ -117,7 +116,7 @@ class CoefficientSplitter(DAGTraverser):
         o: Expr,
         reference_value: bool = False,
         reference_grad: int = 0,
-        restricted: Union[str, None] = None,
+        restricted: str | None = None,
     ) -> Expr:
         """Handle ReferenceGrad."""
         (op,) = o.ufl_operands
@@ -133,10 +132,10 @@ class CoefficientSplitter(DAGTraverser):
     @process.register(Restricted)
     def _(
         self,
-        o: Expr,
-        reference_value: Union[bool, None] = False,
-        reference_grad: Union[int, None] = 0,
-        restricted: Union[str, None] = None,
+        o: Restricted,
+        reference_value: bool | None = False,
+        reference_grad: int | None = 0,
+        restricted: str | None = None,
     ) -> Expr:
         """Handle Restricted."""
         if restricted is not None:
@@ -155,9 +154,9 @@ class CoefficientSplitter(DAGTraverser):
     def _(
         self,
         o: Expr,
-        reference_value: Union[bool, None] = False,
+        reference_value: bool | None = False,
         reference_grad: int = 0,
-        restricted: Union[str, None] = None,
+        restricted: str | None = None,
     ) -> Expr:
         """Handle Terminal."""
         return self._handle_terminal(
@@ -171,9 +170,9 @@ class CoefficientSplitter(DAGTraverser):
     def _(
         self,
         o: Expr,
-        reference_value: Union[bool, None] = False,
+        reference_value: bool | None = False,
         reference_grad: int = 0,
-        restricted: Union[str, None] = None,
+        restricted: str | None = None,
     ) -> Expr:
         """Handle Coefficient."""
         if o not in self._coefficient_split:
@@ -202,9 +201,9 @@ class CoefficientSplitter(DAGTraverser):
     def _handle_terminal(
         self,
         o: Expr,
-        reference_value: Union[bool, None] = False,
+        reference_value: bool | None = False,
         reference_grad: int = 0,
-        restricted: Union[str, None] = None,
+        restricted: str | None = None,
     ) -> Expr:
         """Wrap terminal as needed."""
         c = o

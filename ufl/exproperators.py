@@ -108,7 +108,7 @@ def _mult(a, b):
     bfi = b.ufl_free_indices
     afid = a.ufl_index_dimensions
     bfid = b.ufl_index_dimensions
-    fi, fid, ri, rid = merge_overlapping_indices(afi, afid, bfi, bfid)
+    fi, fid, ri, _rid = merge_overlapping_indices(afi, afid, bfi, bfid)
 
     # Pick out valid non-scalar products here (dot products):
     # - matrix-matrix (A*B, M*grad(u)) => A . B
@@ -221,7 +221,7 @@ def _radd(self, o):
     return Sum(o, self)
 
 
-Expr.__radd__ = _radd
+Expr.__radd__ = _radd  # type: ignore
 
 
 def _sub(self, o):
@@ -267,8 +267,8 @@ def _rdiv(self, o):
     return Division(o, self)
 
 
-Expr.__rdiv__ = _rdiv
-Expr.__rtruediv__ = _rdiv
+Expr.__rdiv__ = _rdiv  # type: ignore
+Expr.__rtruediv__ = _rdiv  # type: ignore
 
 
 def _pow(self, o):
@@ -448,4 +448,4 @@ def _dx(self, *ii):
     return d.__getitem__((Ellipsis,) + ii)
 
 
-Expr.dx = _dx
+Expr.dx = _dx  # type: ignore

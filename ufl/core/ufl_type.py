@@ -416,7 +416,7 @@ class UFLType(type):
     _ufl_handler_name_ = "ufl_type"
 
     # A global array of all Expr and BaseForm subclasses, indexed by typecode
-    _ufl_all_classes_: list[UFLObject] = []
+    _ufl_all_classes_: list[UFLType] = []
 
     # A global set of all handler names added
     _ufl_all_handler_names_: set[str] = set()
@@ -434,4 +434,4 @@ class UFLType(type):
     _ufl_is_abstract_ = True
 
     # Type trait: If the type is terminal.
-    _ufl_is_terminal_ = None
+    _ufl_is_terminal_: bool = None  # type: ignore
