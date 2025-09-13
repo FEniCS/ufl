@@ -397,7 +397,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = extract_unique_domain(o)
 
-        if domain.ufl_cell().topological_dimension() < 3:
+        if domain.ufl_cell().topological_dimension < 3:
             raise ValueError("Facet edge lengths only make sense for topological dimension >= 3.")
 
         elif domain.ufl_coordinate_element().embedded_subdegree > 1:
@@ -453,7 +453,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = extract_unique_domain(o)
-        tdim = domain.topological_dimension()
+        tdim = domain.topological_dimension
 
         if tdim == 1:
             # Special-case 1D (possibly immersed), for which we say

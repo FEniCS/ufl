@@ -280,7 +280,7 @@ class MeshView(AbstractDomain, UFLObject):
         # Derive dimensions from element
         coordinate_element = mesh.ufl_coordinate_element()
         (gdim,) = coordinate_element.value_shape
-        tdim = coordinate_element.cell.topological_dimension()
+        tdim = coordinate_element.cell.topological_dimension
         AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_mesh(self):
