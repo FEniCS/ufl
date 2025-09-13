@@ -680,7 +680,7 @@ class CellEdgeVectors(GeometricCellQuantity):
     def __init__(self, domain):
         """Initialise."""
         GeometricCellQuantity.__init__(self, domain)
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         if t < 2:
             raise ValueError("CellEdgeVectors is only defined for topological dimensions >= 2.")
 
@@ -689,7 +689,7 @@ class CellEdgeVectors(GeometricCellQuantity):
         """Get the UFL shape."""
         domain = extract_unique_domain(self)
         cell = domain.ufl_cell()
-        ne = cell.num_edges()
+        ne = cell.num_edges
         g = domain.geometric_dimension
         return (ne, g)
 
@@ -718,14 +718,14 @@ class FacetEdgeVectors(GeometricFacetQuantity):
         """Get the UFL shape."""
         domain = extract_unique_domain(self)
         cell = domain.ufl_cell()
-        facet_types = cell.facet_types()
+        facet_types = cell.facet_types
 
         # Raise exception for cells with more than one facet type e.g. prisms
         if len(facet_types) > 1:
             raise Exception(f"Cell type {cell} not supported.")
 
-        nfe = facet_types[0].num_edges()
-        g = domain.geometric_dimension()
+        nfe = facet_types[0].num_edges
+        g = domain.geometric_dimension
         return (nfe, g)
 
     def is_cellwise_constant(self):

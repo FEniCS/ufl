@@ -265,7 +265,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = extract_unique_domain(o)
-        tdim = domain.topological_dimension()
+        tdim = domain.topological_dimension
         if not domain.is_piecewise_linear_simplex_domain():
             # Don't lower for non-affine cells, instead leave it to
             # form compiler
@@ -291,7 +291,7 @@ class GeometryLoweringApplier(MultiFunction):
         if not domain.is_piecewise_linear_simplex_domain():
             raise ValueError("Circumradius only makes sense for affine simplex cells")
 
-        cellname = domain.ufl_cell().cellname()
+        cellname = domain.ufl_cell().cellname
         cellvolume = self.cell_volume(CellVolume(domain))
 
         if cellname == "interval":
@@ -461,7 +461,7 @@ class GeometryLoweringApplier(MultiFunction):
             J = self.jacobian(Jacobian(domain))  # dx/dX
             ndir = J[:, 0]
 
-            gdim = domain.geometric_dimension()
+            gdim = domain.geometric_dimension
             if gdim == 1:
                 nlen = abs(ndir[0])
             else:
