@@ -660,8 +660,8 @@ class CellVertices(GeometricCellQuantity):
         """Get the UFL shape."""
         domain = extract_unique_domain(self)
         cell = domain.ufl_cell()
-        nv = cell.num_vertices()
-        g = domain.geometric_dimension()
+        nv = cell.num_vertices
+        g = domain.geometric_dimension
         return (nv, g)
 
     def is_cellwise_constant(self):
