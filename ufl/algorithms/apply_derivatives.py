@@ -834,7 +834,7 @@ class GradRuleset(GenericDerivativeRuleset):
         f = o.ufl_operands[0]
         if not f._ufl_is_terminal_:
             raise ValueError("ReferenceValue can only wrap a terminal")
-        domain = extract_unique_domain(f, expand_mesh_sequence=False)
+        domain = extract_unique_domain(f)
         if isinstance(domain, MeshSequence):
             element = f.ufl_function_space().ufl_element()  # type: ignore
             if element.num_sub_elements != len(domain):
@@ -897,7 +897,7 @@ class GradRuleset(GenericDerivativeRuleset):
         )
         if not valid_operand:
             raise ValueError("ReferenceGrad can only wrap a reference frame type!")
-        domain = extract_unique_domain(f, expand_mesh_sequence=False)
+        domain = extract_unique_domain(f)
         if isinstance(domain, MeshSequence):
             if not f._ufl_is_in_reference_frame_:
                 raise RuntimeError("Expecting a reference frame type")
