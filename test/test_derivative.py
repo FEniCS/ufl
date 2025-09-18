@@ -107,11 +107,11 @@ def assertEqualBySampling(actual, expected):
     acell = adomain.ufl_cell()
     bcell = bdomain.ufl_cell()
     assert acell == bcell
-    if adomain.geometric_dimension() == 1:
+    if adomain.geometric_dimension == 1:
         x = (0.3,)
-    elif adomain.geometric_dimension() == 2:
+    elif adomain.geometric_dimension == 2:
         x = (0.3, 0.4)
-    elif adomain.geometric_dimension() == 3:
+    elif adomain.geometric_dimension == 3:
         x = (0.3, 0.4, 0.5)
     av = a(x, amapping)
     bv = b(x, bmapping)
