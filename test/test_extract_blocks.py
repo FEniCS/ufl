@@ -112,7 +112,7 @@ def test_postive_restricted_extract_none():
 def test_part_extract():
     """Test extraction of a single block from a mixed function space form."""
     cell = ufl.quadrilateral
-    d = cell.topological_dimension()
+    d = cell.topological_dimension
     domain = ufl.Mesh(LagrangeElement(cell, 1, (d,)))
     el_u = LagrangeElement(cell, 2, (d,))
     el_p = LagrangeElement(cell, 1, (d,))
