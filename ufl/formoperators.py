@@ -117,7 +117,9 @@ class _MixedElement(AbstractFiniteElement):
         return self._sub_elements
 
 
-def extract_blocks(form, i=None, j=None):
+def extract_blocks(
+    form: Form, i: int | None = None, j: int | None = None, replace_argument: bool = True
+):
     """Extract blocks.
 
     Given a linear or bilinear form on a mixed space,
@@ -128,7 +130,7 @@ def extract_blocks(form, i=None, j=None):
        extract_blocks(a, 0, 0) -> inner(grad(u), grad(v))*dx
        extract_blocks(a) -> [inner(grad(u), grad(v))*dx, div(v)*p*dx, div(u)*q*dx, 0]
     """
-    return formsplitter.extract_blocks(form, i, j)
+    return formsplitter.extract_blocks(form, i, j, replace_argument=replace_argument)
 
 
 def lhs(form):
