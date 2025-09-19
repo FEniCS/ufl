@@ -68,7 +68,7 @@ def test_symbolic(V1, V2):
 
 
 def test_symbolic_adjoint(V1, V2):
-    u = Argument(V1, 1)
+    u = Argument(V1, 0)
     form = inner(1, Argument(V2, 0)) * dx
     cofun = Cofunction(V2.dual())
 
