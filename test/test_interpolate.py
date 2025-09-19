@@ -212,27 +212,33 @@ def test_operator_derivative_reconstruction(V1, V2):
 
 def test_interpolate_argument_numbering(V1, V2):
     u = Coefficient(V1)
-    vstar = Argument(V2.dual(), 0)
-
-    # Valid numbering
-    Interpolate(u, vstar)
-    Interpolate(u, V2)
-
     u0 = Argument(V1, 0)
     u1 = Argument(V1, 1)
-
-    # Invalid numbering
-    with pytest.raises(ValueError, match="Same argument numbers in first and second operands"):
-        Interpolate(u0, vstar)
-
+    vstar0 = Argument(V2.dual(), 0)
     vstar1 = Argument(V2.dual(), 1)
+    cofunc = Cofunction(V2.dual())
+    one_form = Argument(V2, 0) * dx
+
+    Interpolate(u, cofunc)
+    Interpolate(u, vstar0)
+    Interpolate(u, V2)
+    Interpolate(u0, cofunc)  # adjoint
+    Interpolate(u0, one_form)  # adjoint
+    Interpolate(u1, vstar0)
+    Interpolate(u0, vstar1)  # adjoint
+
+    with pytest.raises(ValueError, match="Same argument numbers in first and second operands"):
+        Interpolate(u0, vstar0)
+
     with pytest.raises(ValueError, match="Non-contiguous argument numbers in interpolate."):
         Interpolate(u, vstar1)
 
-    cofunc = Cofunction(V2.dual())
     with pytest.raises(ValueError, match="Non-contiguous argument numbers in interpolate."):
         Interpolate(u1, cofunc)
 
+    with pytest.raises(ValueError, match="Non-contiguous argument numbers in interpolate."):
+        Interpolate(u1, one_form)
+
     u2 = u0 * u1
     with pytest.raises(ValueError, match="Can only interpolate expressions with zero or one argument."):
-        Interpolate(u2, vstar)
+        Interpolate(u2, vstar0)
