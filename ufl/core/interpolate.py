@@ -48,7 +48,7 @@ class Interpolate(BaseFormOperator):
             dual_arg_numbers = {arg.number() for arg in v.arguments() if is_dual(arg)}
         else:
             raise ValueError(
-                "Expecting the second argument to be FunctionSpace, Coargument, or BaseForm."
+                "Expecting the second argument to be FunctionSpace or BaseForm."
             )
         # Check valid argument numbering
         expr_arg_numbers = {arg.number() for arg in expr_args}
