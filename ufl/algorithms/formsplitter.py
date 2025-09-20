@@ -7,6 +7,7 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Cecile Daversin-Catty, 2018
+# Modified by Jørgen S. Dokken, 2025
 
 import numpy as np
 
@@ -15,12 +16,26 @@ from ufl.argument import Argument
 from ufl.classes import FixedIndex, ListTensor
 from ufl.constantvalue import Zero
 from ufl.corealg.multifunction import MultiFunction
+from ufl.form import Form
 from ufl.functionspace import FunctionSpace
 from ufl.tensors import as_vector
 
 
 class FormSplitter(MultiFunction):
     """Form splitter."""
+
+    def __init__(self, replace_argument: bool = True):
+        """Initialize form splitter.
+
+        Args:
+            replace_argument: If True, replace the argument by a new argument
+                in the sub-function space. If False, keep the original argument.
+                This is useful for instance when diagonalizing a form with a mixed-element
+                form, where we want to keep the original argument.
+        """
+        MultiFunction.__init__(self)
+        self.idx = [None, None]
+        self.replace_argument = replace_argument
 
     def split(self, form, ix, iy=None):
         """Split form based on the argument part/number."""
@@ -51,15 +66,30 @@ class FormSplitter(MultiFunction):
                 return obj
 
             args = []
+            counter = 0
             for i, sub_elem in enumerate(sub_elements):
                 Q_i = FunctionSpace(dom, sub_elem)
                 a = Argument(Q_i, obj.number(), part=obj.part())
-
-                if i == self.idx[obj.number()]:
-                    args.extend(a[j] for j in np.ndindex(a.ufl_shape))
+                if self.replace_argument:
+                    if i == self.idx[obj.number()]:
+                        args.extend(a[j] for j in np.ndindex(a.ufl_shape))
+                    else:
+                        args.extend(Zero() for _ in np.ndindex(a.ufl_shape))
                 else:
-                    args.extend(Zero() for j in np.ndindex(a.ufl_shape))
-
+                    # If we are not replacing the argument, we need to insert
+                    # the original argument at the right place in the vector.
+                    # Mixed elements are flattened, thus we need to keep track of
+                    # the position in the flattened vector.
+                    if i == self.idx[obj.number()]:
+                        if a.ufl_shape == ():
+                            args.append(obj[counter])
+                        else:
+                            args.extend(
+                                obj[counter + j] for j, _ in enumerate(np.ndindex(a.ufl_shape))
+                            )
+                    else:
+                        args.extend(Zero() for _ in np.ndindex(a.ufl_shape))
+                    counter += int(np.prod(a.ufl_shape))
             return as_vector(args)
 
     def indexed(self, o, child, multiindex):
@@ -95,7 +125,13 @@ class FormSplitter(MultiFunction):
     expr = MultiFunction.reuse_if_untouched
 
 
-def extract_blocks(form, i: int | None = None, j: int | None = None, arity: int | None = None):
+def extract_blocks(
+    form,
+    i: int | None = None,
+    j: int | None = None,
+    arity: int | None = None,
+    replace_argument: bool = True,
+) -> Form | tuple[Form | None, ...] | tuple[tuple[Form | None, ...], ...]:
     """Extract blocks of a form.
 
     If arity is 0, returns the form.
@@ -109,11 +145,13 @@ def extract_blocks(form, i: int | None = None, j: int | None = None, arity: int 
         i: Index of the block to extract. If set to ``None``, ``j`` must be None.
         j: Index of the block to extract.
         arity: Arity of the form. If not set, it will be inferred from the form.
+        replace_argument: If True, replace the argument by a new argument
+            in the (collapsed) sub-function space. If False, keep the original argument.
     """
     if i is None and j is not None:
         raise RuntimeError(f"Cannot extract block with {j=} and {i=}.")
 
-    fs = FormSplitter()
+    fs = FormSplitter(replace_argument=replace_argument)
     arguments = form.arguments()
 
     if arity is None:
@@ -129,6 +167,9 @@ def extract_blocks(form, i: int | None = None, j: int | None = None, arity: int 
     if parts == ():
         if i is None and j is None:
             num_sub_elements = arguments[0].ufl_element().num_sub_elements
+            # If form has no sub elements, return the form itself.
+            if num_sub_elements == 0:
+                return form
             forms = []
             for pi in range(num_sub_elements):
                 form_i: list[object | None] = []
@@ -139,47 +180,46 @@ def extract_blocks(form, i: int | None = None, j: int | None = None, arity: int 
                     else:
                         form_i.append(f)
                 forms.append(tuple(form_i))
-            return tuple(forms)
+            return tuple(forms)  # type: ignore[return-value]
         else:
             return fs.split(form, i, j)
 
     # If mixed function space, each argument has sub-elements
-    forms = []
-    num_parts = len(parts)
+    num_parts = max(parts) + 1
+    forms = [None] * num_parts  # type: ignore
+    if arity == 2:
+        for k in range(num_parts):
+            forms[k] = [None] * num_parts  # type: ignore
     for pi in range(num_parts):
-        form_i = []
         if arity > 1:
             for pj in range(num_parts):
                 f = fs.split(form, pi, pj)
                 # Ignore empty forms and rank 0 or 1 forms
                 if f.empty() or len(f.arguments()) != 2:
-                    form_i.append(None)
+                    pass
                 else:
-                    form_i.append(f)
-            forms.append(tuple(form_i))
+                    forms[pi][pj] = f  # type: ignore
         else:
             f = fs.split(form, pi)
             # Ignore empty forms and bilinear forms
             if f.empty() or len(f.arguments()) != 1:
-                forms.append(None)  # type: ignore
+                pass
             else:
-                forms.append(f)
+                forms[pi] = f
 
-    try:
-        forms_tuple = tuple(forms)
-    except TypeError:
-        # Only one form returned
-        forms_tuple = (forms,)  # type: ignore
     if i is not None:
-        if (num_rows := len(forms_tuple)) <= i:
+        if (num_rows := len(forms)) <= i:
             raise RuntimeError(f"Cannot extract block {i} from form with {num_rows} blocks.")
         if arity > 1 and j is not None:
-            if (num_cols := len(forms_tuple[i])) <= j:
+            if (num_cols := len(forms[i])) <= j:
                 raise RuntimeError(
                     f"Cannot extract block {i},{j} from form with {num_rows}x{num_cols} blocks."
                 )
-            return forms_tuple[i][j]
+            return forms[i][j]  # type: ignore[return-value]
         else:
-            return forms_tuple[i]
+            return forms[i]  # type: ignore[return-value]
     else:
-        return forms_tuple
+        if arity == 1:
+            return tuple(forms)  # type: ignore[return-value]
+        else:
+            return tuple(tuple(row) for row in forms)  # type: ignore[return-value]
