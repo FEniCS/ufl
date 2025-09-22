@@ -227,18 +227,20 @@ def test_interpolate_argument_numbering(V1, V2):
     Interpolate(u1, vstar0)
     Interpolate(u0, vstar1)  # adjoint
 
-    with pytest.raises(ValueError, match="Same argument numbers in first and second operands"):
+    with pytest.raises(ValueError, match=r"Same argument numbers in first and second operands"):
         Interpolate(u0, vstar0)
 
-    with pytest.raises(ValueError, match="Non-contiguous argument numbers in interpolate."):
+    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
         Interpolate(u, vstar1)
 
-    with pytest.raises(ValueError, match="Non-contiguous argument numbers in interpolate."):
+    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
         Interpolate(u1, cofunc)
 
-    with pytest.raises(ValueError, match="Non-contiguous argument numbers in interpolate."):
+    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
         Interpolate(u1, one_form)
 
     u2 = u0 * u1
-    with pytest.raises(ValueError, match="Can only interpolate expressions with zero or one argument."):
+    with pytest.raises(
+        ValueError, match=r"Can only interpolate expressions with zero or one argument."
+    ):
         Interpolate(u2, vstar0)

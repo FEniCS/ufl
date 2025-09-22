@@ -8,7 +8,7 @@
 #
 # Modified by Nacime Bouziani, 2021-2022
 
-from ufl.argument import Argument, Coargument
+from ufl.argument import Argument
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
@@ -34,6 +34,7 @@ class Interpolate(BaseFormOperator):
                 defined on the dual of the FunctionSpace to interpolate into.
         """
         from ufl.algorithms import extract_arguments
+
         expr = as_ufl(expr)
         if isinstance(expr, BaseForm):
             raise ValueError("Expecting the first argument to be primal.")
@@ -47,9 +48,7 @@ class Interpolate(BaseFormOperator):
         elif isinstance(v, BaseForm):
             dual_arg_numbers = {arg.number() for arg in v.arguments() if is_dual(arg)}
         else:
-            raise ValueError(
-                "Expecting the second argument to be FunctionSpace or BaseForm."
-            )
+            raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")
         # Check valid argument numbering
         expr_arg_numbers = {arg.number() for arg in expr_args}
         if len(expr_arg_numbers) > 1:
