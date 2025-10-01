@@ -956,7 +956,7 @@ def test_foobar(self):
 
 
 def test_variable_label():
-    """Check that deriviatives respect variable labels"""
+    """Check that derivatives respect variable labels"""
     element = LagrangeElement(triangle, 1, ())
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, element)
