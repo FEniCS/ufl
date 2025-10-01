@@ -439,6 +439,7 @@ from ufl.tensors import (
     unit_vectors,
 )
 from ufl.utils.sequences import product
+from ufl.variable import Label
 
 __all__ = [
     "H1",
@@ -488,6 +489,7 @@ __all__ = [
     "Jacobian",
     "JacobianDeterminant",
     "JacobianInverse",
+    "Label",
     "Matrix",
     "MaxCellEdgeLength",
     "MaxFacetEdgeLength",
