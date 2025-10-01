@@ -9,7 +9,6 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Marie E. Rognes, 2011.
 
-import io
 import os
 import re
 
@@ -22,7 +21,7 @@ from ufl.form import Form
 from ufl.utils.sorting import sorted_by_key
 
 
-class FileData(object):
+class FileData:
     """File data."""
 
     def __init__(self):
@@ -59,7 +58,7 @@ def read_lines_decoded(fn):
         return r.match(line, re.ASCII)
 
     # First read lines as bytes
-    with io.open(fn, "rb") as f:
+    with open(fn, "rb") as f:
         lines = f.readlines()
 
     # Check for coding: in the first two lines
@@ -115,7 +114,7 @@ def interpret_ufl_namespace(namespace):
             ufd.object_names[name] = value
             ufd.object_by_name[name] = value
         elif isinstance(
-            value, (AbstractFiniteElement, Coefficient, Constant, Argument, Form, Expr)
+            value, AbstractFiniteElement | Coefficient | Constant | Argument | Form | Expr
         ):
             # Store instance <-> name mappings for important objects
             # without a reserved name
@@ -145,7 +144,7 @@ def interpret_ufl_namespace(namespace):
     ufd.forms = forms
 
     # Validate types
-    if not isinstance(ufd.forms, (list, tuple)):
+    if not isinstance(ufd.forms, list | tuple):
         raise ValueError(f"Expecting 'forms' to be a list or tuple, not '{type(ufd.forms)}'.")
     if not all(isinstance(a, Form) for a in ufd.forms):
         raise ValueError("Expecting 'forms' to be a list of Form instances.")
@@ -158,7 +157,7 @@ def interpret_ufl_namespace(namespace):
     ufd.elements = elements
 
     # Validate types
-    if not isinstance(ufd.elements, (list, tuple)):
+    if not isinstance(ufd.elements, list | tuple):
         raise ValueError(
             f"Expecting 'elements' to be a list or tuple, not '{type(ufd.elements)}''."
         )
@@ -170,7 +169,7 @@ def interpret_ufl_namespace(namespace):
     ufd.coefficients = namespace.get("coefficients", functions)
 
     # Validate types
-    if not isinstance(ufd.coefficients, (list, tuple)):
+    if not isinstance(ufd.coefficients, list | tuple):
         raise ValueError(
             f"Expecting 'coefficients' to be a list or tuple, not '{type(ufd.coefficients)}'."
         )
@@ -181,7 +180,7 @@ def interpret_ufl_namespace(namespace):
     ufd.expressions = namespace.get("expressions", [])
 
     # Validate types
-    if not isinstance(ufd.expressions, (list, tuple)):
+    if not isinstance(ufd.expressions, list | tuple):
         raise ValueError(
             f"Expecting 'expressions' to be a list or tuple, not '{type(ufd.expressions)}'."
         )

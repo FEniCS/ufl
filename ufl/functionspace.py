@@ -9,8 +9,6 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
-import typing
-
 import numpy as np
 
 from ufl.core.ufl_type import UFLObject
@@ -28,7 +26,7 @@ __all_classes__ = [
 ]
 
 
-class AbstractFunctionSpace(object):
+class AbstractFunctionSpace:
     """Abstract function space."""
 
     def ufl_sub_spaces(self):
@@ -65,7 +63,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         self._ufl_element = element
 
     @property
-    def components(self) -> typing.Dict[typing.Tuple[int, ...], int]:
+    def components(self) -> dict[tuple[int, ...], int]:
         """Get the numbering of the components of the element of this space.
 
         Returns:
@@ -80,7 +78,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         if len(self._ufl_element.sub_elements) == 0:
             return {(): 0}
 
-        components = {}
+        components: dict[tuple[int, ...], int] = {}
         offset = 0
         c_offset = 0
         for s in self.ufl_sub_spaces():
@@ -149,7 +147,7 @@ class BaseFunctionSpace(AbstractFunctionSpace, UFLObject):
         return f"BaseFunctionSpace({self._ufl_domain!r}, {self._ufl_element!r})"
 
     @property
-    def value_shape(self) -> typing.Tuple[int, ...]:
+    def value_shape(self) -> tuple[int, ...]:
         """Return the shape of the value space on a physical domain."""
         return self._ufl_element.pullback.physical_value_shape(self._ufl_element, self._ufl_domain)
 

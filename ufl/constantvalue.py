@@ -30,7 +30,7 @@ def format_float(x):
     if precision:
         return "{:.{prec}}".format(float(x), prec=precision)
     else:
-        return "{}".format(float(x))
+        return f"{float(x)}"
 
 
 # --- Base classes for constant types ---
@@ -65,7 +65,7 @@ class Zero(ConstantValue):
 
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
-    _cache = {}
+    _cache: dict[tuple[int], "Zero"] = {}
 
     def __getnewargs__(self):
         """Get new args."""
@@ -136,18 +136,14 @@ class Zero(ConstantValue):
         if self.ufl_shape == () and self.ufl_free_indices == ():
             return "0"
         if self.ufl_free_indices == ():
-            return "0 (shape %s)" % (self.ufl_shape,)
+            return f"0 (shape {self.ufl_shape})"
         if self.ufl_shape == ():
-            return "0 (index labels %s)" % (self.ufl_free_indices,)
-        return "0 (shape %s, index labels %s)" % (self.ufl_shape, self.ufl_free_indices)
+            return f"0 (index labels {self.ufl_free_indices})"
+        return f"0 (shape {self.ufl_shape}, index labels {self.ufl_free_indices})"
 
     def __repr__(self):
         """Representation."""
-        r = "Zero(%s, %s, %s)" % (
-            repr(self.ufl_shape),
-            repr(self.ufl_free_indices),
-            repr(self.ufl_index_dimensions),
-        )
+        r = f"Zero({self.ufl_shape!r}, {self.ufl_free_indices!r}, {self.ufl_index_dimensions!r})"
         return r
 
     def __eq__(self, other):
@@ -160,7 +156,7 @@ class Zero(ConstantValue):
                 and self.ufl_free_indices == other.ufl_free_indices
                 and self.ufl_index_dimensions == other.ufl_index_dimensions
             )
-        elif isinstance(other, (int, float)):
+        elif isinstance(other, int | float):
             return other == 0
         else:
             return False
@@ -236,7 +232,7 @@ class ScalarValue(ConstantValue):
         """
         if isinstance(other, self._ufl_class_):
             return self._value == other._value
-        elif isinstance(other, (int, float)):
+        elif isinstance(other, int | float):
             # FIXME: Disallow this, require explicit 'expr ==
             # IntValue(3)' instead to avoid ambiguities!
             return other == self._value
@@ -310,7 +306,7 @@ class ComplexValue(ScalarValue):
 
     def __repr__(self):
         """Representation."""
-        r = "%s(%s)" % (type(self).__name__, repr(self._value))
+        r = f"{type(self).__name__}({self._value!r})"
         return r
 
     def __float__(self):
@@ -348,11 +344,11 @@ class FloatValue(RealValue):
 
     def __init__(self, value):
         """Initialise."""
-        super(FloatValue, self).__init__(float(value))
+        super().__init__(float(value))
 
     def __repr__(self):
         """Representation."""
-        r = "%s(%s)" % (type(self).__name__, format_float(self._value))
+        r = f"{type(self).__name__}({format_float(self._value)})"
         return r
 
 
@@ -362,7 +358,7 @@ class IntValue(RealValue):
 
     __slots__ = ()
 
-    _cache = {}
+    _cache: dict[int, "IntValue"] = {}
 
     def __getnewargs__(self):
         """Get new args."""
@@ -388,7 +384,7 @@ class IntValue(RealValue):
 
     def _init(self, value):
         """Initialise."""
-        super(IntValue, self).__init__(int(value))
+        super().__init__(int(value))
 
     def __init__(self, value):
         """Initialise."""
@@ -396,7 +392,7 @@ class IntValue(RealValue):
 
     def __repr__(self):
         """Representation."""
-        r = "%s(%s)" % (type(self).__name__, repr(self._value))
+        r = f"{type(self).__name__}({self._value!r})"
         return r
 
 
@@ -424,7 +420,7 @@ class Identity(ConstantValue):
         """Get an item."""
         if len(key) != 2:
             raise ValueError("Size mismatch for Identity.")
-        if all(isinstance(k, (int, FixedIndex)) for k in key):
+        if all(isinstance(k, int | FixedIndex) for k in key):
             return IntValue(1) if (int(key[0]) == int(key[1])) else Zero()
         return Expr.__getitem__(self, key)
 
@@ -434,8 +430,7 @@ class Identity(ConstantValue):
 
     def __repr__(self):
         """Representation."""
-        r = "Identity(%d)" % self._dim
-        return r
+        return f"Identity({self._dim})"
 
     def __eq__(self, other):
         """Check equalty."""
@@ -469,7 +464,7 @@ class PermutationSymbol(ConstantValue):
         """Get an item."""
         if len(key) != self._dim:
             raise ValueError("Size mismatch for PermutationSymbol.")
-        if all(isinstance(k, (int, FixedIndex)) for k in key):
+        if all(isinstance(k, int | FixedIndex) for k in key):
             return self.__eps(key)
         return Expr.__getitem__(self, key)
 
@@ -479,8 +474,7 @@ class PermutationSymbol(ConstantValue):
 
     def __repr__(self):
         """Representation."""
-        r = "PermutationSymbol(%d)" % self._dim
-        return r
+        return f"PermutationSymbol({self._dim})"
 
     def __eq__(self, other):
         """Check equalty."""
@@ -505,7 +499,7 @@ class PermutationSymbol(ConstantValue):
 
 def as_ufl(expression):
     """Converts expression to an Expr if possible."""
-    if isinstance(expression, (Expr, ufl.BaseForm)):
+    if isinstance(expression, Expr | ufl.BaseForm):
         return expression
     elif isinstance(expression, numbers.Integral):
         return IntValue(expression)

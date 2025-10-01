@@ -14,6 +14,7 @@ from ufl.algebra import Sum
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient
 from ufl.constantvalue import Zero
+from ufl.core.interpolate import Interpolate
 from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
@@ -28,6 +29,7 @@ class Action(BaseForm):
 
     For example:
         res = Ax
+
     A would be the first argument, left and x would be the second argument,
     right.
 
@@ -64,9 +66,9 @@ class Action(BaseForm):
 
         # Coarguments (resp. Argument) from V* to V* (resp. from V to V) are identity matrices,
         # i.e. we have: V* x V -> R (resp. V x V* -> R).
-        if isinstance(left, (Coargument, Argument)):
+        if isinstance(left, Coargument | Argument):
             return right
-        if isinstance(right, (Coargument, Argument)):
+        if isinstance(right, Coargument | Argument):
             return left
 
         # Action distributes over sums on the LHS
@@ -85,7 +87,32 @@ class Action(BaseForm):
                 *((Action(left, c), w) for c, w in zip(right.components(), right.weights()))
             )
 
-        return super(Action, cls).__new__(cls)
+        # Check compatibility of function spaces
+        _check_function_spaces(left, right)
+
+        # Simplify Action(BaseForm, Interpolate(Expr, Coargument))
+        # -> Interpolate(Expr, BaseForm)
+        if (
+            isinstance(right, Interpolate)
+            and isinstance(left, BaseForm)
+            and len(left.arguments()) == 1
+        ):
+            v, operand = right.argument_slots()
+            if v == right.arguments()[0]:
+                return right._ufl_expr_reconstruct_(operand, v=left)
+
+        # Simplify Action(Interpolate(Expr, Coargument), BaseForm)
+        # -> Interpolate(Expr, BaseForm)
+        if (
+            isinstance(left, Interpolate)
+            and isinstance(right, BaseForm)
+            and len(right.arguments()) == 1
+        ):
+            v, operand = left.argument_slots()
+            if v == left.arguments()[-1]:
+                return left._ufl_expr_reconstruct_(operand, v=right)
+
+        return super().__new__(cls)
 
     def __init__(self, left, right):
         """Initialise."""
@@ -96,10 +123,8 @@ class Action(BaseForm):
         self.ufl_operands = (self._left, self._right)
         self._domains = None
 
-        # Check compatibility of function spaces
-        _check_function_spaces(left, right)
+        self._repr = f"Action({self._left!r}, {self._right!r})"
 
-        self._repr = "Action(%s, %s)" % (repr(self._left), repr(self._right))
         self._hash = None
 
     def ufl_function_spaces(self):
@@ -220,7 +245,7 @@ def _get_action_form_arguments(left, right):
         right_args, right_coeffs, _ = extract_terminals_with_domain(right)
         arguments = left_args + tuple(right_args)
         coefficients += tuple(right_coeffs)
-    elif isinstance(right, (BaseCoefficient, Zero)):
+    elif isinstance(right, BaseCoefficient | Zero):
         arguments = left_args
         # When right is ufl.Zero, Action gets simplified so updating
         # coefficients here doesn't matter

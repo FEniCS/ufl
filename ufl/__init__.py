@@ -303,6 +303,7 @@ from ufl.geometry import (
     SpatialCoordinate,
 )
 from ufl.integral import Integral
+from ufl.integral_domain import DSIntegralDomain, DsIntegralDomain, DxIntegralDomain
 from ufl.matrix import Matrix
 from ufl.measure import Measure, custom_integral_types, integral_types, register_integral_type
 from ufl.objects import (
@@ -438,6 +439,7 @@ from ufl.tensors import (
     unit_vectors,
 )
 from ufl.utils.sequences import product
+from ufl.variable import Label
 
 __all__ = [
     "H1",
@@ -463,8 +465,11 @@ __all__ = [
     "Coefficients",
     "Cofunction",
     "Constant",
+    "DSIntegralDomain",
     "Dn",
+    "DsIntegralDomain",
     "Dx",
+    "DxIntegralDomain",
     "ExternalOperator",
     "FacetArea",
     "FacetNormal",
@@ -484,6 +489,7 @@ __all__ = [
     "Jacobian",
     "JacobianDeterminant",
     "JacobianInverse",
+    "Label",
     "Matrix",
     "MaxCellEdgeLength",
     "MaxFacetEdgeLength",

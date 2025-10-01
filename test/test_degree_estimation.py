@@ -1,6 +1,8 @@
 __authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
+from utils import LagrangeElement, MixedElement
+
 from ufl import (
     Argument,
     Coefficient,
@@ -22,18 +24,15 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import estimate_total_polynomial_degree
-from ufl.finiteelement import FiniteElement, MixedElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
 
 
 def test_total_degree_estimation():
-    V1 = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
-    V2 = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
-    VV = FiniteElement("Lagrange", triangle, 3, (2,), identity_pullback, H1)
+    V1 = LagrangeElement(triangle, 1)
+    V2 = LagrangeElement(triangle, 2)
+    VV = LagrangeElement(triangle, 3, (2,))
     VM = MixedElement([V1, V2])
 
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
 
     v1_space = FunctionSpace(domain, V1)
     v2_space = FunctionSpace(domain, V2)
@@ -94,7 +93,7 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(f2**3 * v1 + f1 * v1) == 7
 
     # Math functions of constant values are constant values
-    nx, ny = FacetNormal(domain)
+    nx, _ny = FacetNormal(domain)
     e = nx**2
     for f in [sin, cos, tan, abs, lambda z: z**7]:
         assert estimate_total_polynomial_degree(f(e)) == 0
@@ -114,9 +113,9 @@ def test_some_compound_types():
 
     etpd = estimate_total_polynomial_degree
 
-    P2 = FiniteElement("Lagrange", triangle, 2, (), identity_pullback, H1)
-    V2 = FiniteElement("Lagrange", triangle, 2, (2,), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    P2 = LagrangeElement(triangle, 2)
+    V2 = LagrangeElement(triangle, 2, (2,))
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
 
     u = Coefficient(FunctionSpace(domain, P2))
     v = Coefficient(FunctionSpace(domain, V2))

@@ -1,6 +1,8 @@
 import gc
 import sys
 
+from utils import LagrangeElement
+
 from ufl import (
     Coefficient,
     Constant,
@@ -16,12 +18,6 @@ from ufl import (
 from ufl.algorithms import replace_terminal_data, strip_terminal_data
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
-from ufl.finiteelement import FiniteElement
-from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
-
-MIN_REF_COUNT = 2
-"""The minimum value returned by sys.getrefcount."""
 
 
 @attach_ufl_id
@@ -50,6 +46,16 @@ class AugmentedConstant(Constant):
 
 
 def test_strip_form_arguments_strips_data_refs():
+    # The minimum value returned by sys.getrefcount.
+    # Python 3.14 introduced borrowing references https://docs.python.org/3.14/glossary.html#term-borrowed-reference.
+    # This changed the output of
+    #
+    #   a = object()
+    #   sys.getrefcount(a)
+    #
+    # from 2 to 1. Avoiding the additional temporary reference increase to pass a to getrefcount.
+    MIN_REF_COUNT = 1 if sys.version_info >= (3, 14) else 2
+
     mesh_data = object()
     fs_data = object()
     coeff_data = object()
@@ -62,10 +68,8 @@ def test_strip_form_arguments_strips_data_refs():
     assert sys.getrefcount(const_data) == MIN_REF_COUNT
 
     cell = triangle
-    domain = AugmentedMesh(
-        FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1), data=mesh_data
-    )
-    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    domain = AugmentedMesh(LagrangeElement(cell, 1, (2,)), data=mesh_data)
+    element = LagrangeElement(cell, 1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)
@@ -83,7 +87,7 @@ def test_strip_form_arguments_strips_data_refs():
     assert sys.getrefcount(coeff_data) == MIN_REF_COUNT + 1
     assert sys.getrefcount(const_data) == MIN_REF_COUNT + 1
 
-    stripped_form, mapping = strip_terminal_data(form)
+    _stripped_form, mapping = strip_terminal_data(form)
 
     del form, mapping
     gc.collect()  # This is needed to update the refcounts
@@ -101,10 +105,8 @@ def test_strip_form_arguments_does_not_change_form():
     const_data = object()
 
     cell = triangle
-    domain = AugmentedMesh(
-        FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1), data=mesh_data
-    )
-    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    domain = AugmentedMesh(LagrangeElement(cell, 1, (2,)), data=mesh_data)
+    element = LagrangeElement(cell, 1)
     V = AugmentedFunctionSpace(domain, element, data=fs_data)
 
     v = TestFunction(V)

@@ -172,7 +172,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         J = self.jacobian(Jacobian(domain))
         REJ = CellRidgeJacobian(domain)
         i, j, k = indices(3)
@@ -184,7 +184,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         EJ = self.ridge_jacobian(RidgeJacobian(domain))
         return inverse_expr(EJ)
 
@@ -194,7 +194,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.ufl_domain()
+        domain = extract_unique_domain(o)
         EJ = self.ridge_jacobian(RidgeJacobian(domain))
         detEJ = determinant_expr(EJ)
         return detEJ

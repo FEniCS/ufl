@@ -7,7 +7,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import numbers
-import typing
 from collections import defaultdict
 
 import ufl
@@ -23,7 +22,7 @@ from ufl.sorting import cmp_expr, sorted_expr
 from ufl.utils.sorting import canonicalize_metadata, sorted_by_key
 
 
-class IntegralData(object):
+class IntegralData:
     """Utility class.
 
     This class has members (domain, integral_type, subdomain_id,
@@ -94,7 +93,7 @@ class IntegralData(object):
         return s
 
 
-class ExprTupleKey(object):
+class ExprTupleKey:
     """Tuple comparison helper."""
 
     __slots__ = ("x",)
@@ -157,15 +156,16 @@ def integral_subdomain_ids(integral):
 
 
 def rearrange_integrals_by_single_subdomains(
-    integrals: typing.List[Integral], do_append_everywhere_integrals: bool
-) -> typing.Dict[int, typing.List[Integral]]:
+    integrals: list[Integral], do_append_everywhere_integrals: bool
+) -> dict[int, list[Integral]]:
     """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
     Args:
-        integrals: List of integrals
-        do_append_everywhere_integrals: Boolean indicating if integrals
-        defined on the whole domain should
-            just be restricted to the set of input subdomain ids.
+        integrals:
+            List of integrals
+        do_append_everywhere_integrals:
+            Boolean indicating if integrals defined on the whole domain should just be restricted to
+            the set of input subdomain ids.
 
     Returns:
         The integrals reconstructed with single subdomain_id
@@ -238,7 +238,7 @@ def accumulate_integrands_with_same_metadata(integrals):
     for cdid in by_cdid:
         integrals, cd = by_cdid[cdid]
         # Ensure canonical sorting of more than two integrands
-        integrands = sorted_expr((itg.integrand() for itg in integrals))
+        integrands = sorted_expr(itg.integrand() for itg in integrals)
         integrands_sum = sum(integrands[1:], integrands[0])
         by_cdid[cdid] = (integrands_sum, cd)
 
@@ -280,7 +280,7 @@ def build_integral_data(integrals):
     # Build list with canonical ordering, iteration over dicts
     # is not deterministic across python versions
     def keyfunc(item):
-        (d, itype, sid), integrals = item
+        (d, itype, sid), _integrals = item
         sid_int = tuple(-1 if i == "otherwise" else i for i in sid)
         return (d._ufl_sort_key_(), itype, (type(sid).__name__,), sid_int)
 
@@ -294,11 +294,13 @@ def group_form_integrals(form, domains, do_append_everywhere_integrals=True):
     """Group integrals by domain and type, performing canonical simplification.
 
     Args:
-        form: the Form to group the integrals of.
-        domains: an iterable of Domains.
-        do_append_everywhere_integrals: Boolean indicating if integrals
-        defined on the whole domain should
-            just be restricted to the set of input subdomain ids.
+        form:
+            the Form to group the integrals of.
+        domains:
+            an iterable of Domains.
+        do_append_everywhere_integrals:
+            Boolean indicating if integrals defined on the whole domain should just be restricted to
+            the set of input subdomain ids.
 
     Returns:
         A new Form with gathered integrands.

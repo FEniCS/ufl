@@ -19,18 +19,21 @@ from ufl.classes import (
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 
-modifier_precedence = [
-    ReferenceValue,
-    ReferenceGrad,
-    Grad,
-    CellAvg,
-    FacetAvg,
-    PositiveRestricted,
-    NegativeRestricted,
-    Indexed,
-]
-
-modifier_precedence = {m._ufl_handler_name_: i for i, m in enumerate(modifier_precedence)}
+modifier_precedence = {
+    m._ufl_handler_name_: i
+    for i, m in enumerate(
+        [
+            ReferenceValue,
+            ReferenceGrad,
+            Grad,
+            CellAvg,
+            FacetAvg,
+            PositiveRestricted,
+            NegativeRestricted,
+            Indexed,
+        ]
+    )
+}
 
 
 def balance_modified_terminal(expr):

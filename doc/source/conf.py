@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Unified Form Language (UFL) documentation build configuration file, created by
 # sphinx-quickstart on Tue Nov  3 11:05:14 2015.
@@ -53,7 +52,7 @@ master_doc = "index"
 # General information about the project.
 project = "Unified Form Language (UFL)"
 this_year = datetime.date.today().year
-copyright = "%s, FEniCS Project" % this_year
+copyright = f"{this_year}, FEniCS Project"
 author = "FEniCS Project"
 
 version = importlib.metadata.version("fenics-ufl")
@@ -64,7 +63,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:

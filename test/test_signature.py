@@ -1,5 +1,7 @@
 """Test the computation of form signatures."""
 
+from utils import FiniteElement, LagrangeElement, SymmetricElement
+
 from ufl import (
     Argument,
     CellDiameter,
@@ -29,7 +31,6 @@ from ufl import (
 )
 from ufl.algorithms.signature import compute_multiindex_hashdata, compute_terminal_hashdata
 from ufl.classes import FixedIndex, MultiIndex
-from ufl.finiteelement import FiniteElement, SymmetricElement
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2
 
@@ -46,7 +47,7 @@ def domain_numbering(*cells):
     renumbering = {}
     for i, cell in enumerate(cells):
         d = cell.topological_dimension()
-        domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=i)
+        domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
         renumbering[domain] = i
     return renumbering
 
@@ -82,11 +83,9 @@ def test_terminal_hashdata_depends_on_literals(self):
     hashes = set()
 
     def forms():
-        i, j = indices(2)
+        _i, j = indices(2)
         for d, cell in [(2, triangle), (3, tetrahedron)]:
-            domain = Mesh(
-                FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=d - 2
-            )
+            domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=d - 2)
             x = SpatialCoordinate(domain)
             ident = Identity(d)
             for fv in (1.1, 2.2):
@@ -115,7 +114,7 @@ def test_terminal_hashdata_depends_on_geometry(self):
         cells = (triangle, tetrahedron)
         for i, cell in enumerate(cells):
             d = cell.topological_dimension()
-            domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=i)
+            domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
 
             x = SpatialCoordinate(domain)
             n = FacetNormal(domain)
@@ -160,9 +159,7 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
         for rep in range(nreps):
             for i, cell in enumerate(cells):
                 d = cell.topological_dimension()
-                domain = Mesh(
-                    FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=i
-                )
+                domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
                 for degree in degrees:
                     for family, sobolev in families:
                         V = FiniteElement(family, cell, degree, (), identity_pullback, sobolev)
@@ -243,11 +240,9 @@ def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_orde
         for rep in range(nreps):
             for i, cell in enumerate(cells):
                 d = cell.topological_dimension()
-                domain = Mesh(
-                    FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=i
-                )
+                domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
                 for k in counts:
-                    V = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+                    V = LagrangeElement(cell, 2)
                     space = FunctionSpace(domain, V)
                     f = Coefficient(space, count=k)
                     g = Coefficient(space, count=k + 2)
@@ -284,11 +279,9 @@ def test_terminal_hashdata_does_depend_on_argument_number_values(self):
         for rep in range(nreps):
             for i, cell in enumerate(cells):
                 d = cell.topological_dimension()
-                domain = Mesh(
-                    FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=i
-                )
+                domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
                 for k in counts:
-                    V = FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1)
+                    V = LagrangeElement(cell, 2)
                     space = FunctionSpace(domain, V)
                     f = Argument(space, k)
                     g = Argument(space, k + 2)
@@ -318,7 +311,7 @@ def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
     s2s = set()
     for i, cell in enumerate(cells):
         d = cell.topological_dimension()
-        domain = FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1)
+        domain = LagrangeElement(cell, 1, (d,))
         d0 = Mesh(domain)
         d1 = Mesh(domain, ufl_id=1)
         d2 = Mesh(domain, ufl_id=2)
@@ -358,7 +351,7 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
             for domain in domains:
                 V = FunctionSpace(
                     domain,
-                    FiniteElement("Lagrange", domain.ufl_cell(), 2, (), identity_pullback, H1),
+                    LagrangeElement(domain.ufl_cell(), 2),
                 )
                 f = Coefficient(V, count=0)
                 v = TestFunction(V)
@@ -416,7 +409,7 @@ def test_multiindex_hashdata_depends_on_fixed_index_values(self):
                 hashes.add(hash(expr))
                 yield compute_multiindex_hashdata(expr, {})
 
-    c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
+    c, d, _r, _h = compute_unique_multiindex_hashdatas(hashdatas())
     assert c == 9
     assert d == 9 - 1  # (1,0 is repeated, therefore -1)
     assert len(reprs) == 9 - 1
@@ -442,7 +435,7 @@ def test_multiindex_hashdata_does_not_depend_on_counts(self):
             hashes.add(hash(expr))
             yield compute_multiindex_hashdata(expr, {})
 
-    c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
+    c, d, _r, _h = compute_unique_multiindex_hashdatas(hashdatas())
     assert c == 3 + 9 + 9
     assert d == 1 + 1
     assert len(reprs) == 3 + 9 + 9
@@ -461,7 +454,7 @@ def test_multiindex_hashdata_depends_on_the_order_indices_are_observed(self):
             # and hashes changing because new indices are created each
             # repetition.
             index_numbering = {}
-            i, j, k, l = indices(4)  # noqa: E741
+            i, j, k, _l = indices(4)
             for expr in (
                 MultiIndex((i,)),
                 MultiIndex((i,)),  # r
@@ -476,7 +469,7 @@ def test_multiindex_hashdata_depends_on_the_order_indices_are_observed(self):
                 hashes.add(hash(expr))
                 yield compute_multiindex_hashdata(expr, index_numbering)
 
-    c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
+    c, d, _r, _h = compute_unique_multiindex_hashdatas(hashdatas())
     assert c == nrep * 8
     assert d == 5
     assert len(reprs) == nrep * 5
@@ -509,7 +502,7 @@ def test_signature_is_affected_by_element_properties(self):
         for family, sobolev in (("Lagrange", H1), ("Discontinuous Lagrange", L2)):
             for cell in (triangle, tetrahedron, quadrilateral):
                 d = cell.topological_dimension()
-                domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+                domain = Mesh(LagrangeElement(cell, 1, (d,)))
                 for degree in (1, 2):
                     V = FiniteElement(family, cell, degree, (), identity_pullback, sobolev)
                     space = FunctionSpace(domain, V)
@@ -528,11 +521,11 @@ def test_signature_is_affected_by_domains(self):
     def forms():
         for cell in (triangle, tetrahedron):
             d = cell.topological_dimension()
-            domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+            domain = Mesh(LagrangeElement(cell, 1, (d,)))
             for di in (1, 2):
                 for dj in (1, 2):
                     for dk in (1, 2):
-                        V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+                        V = LagrangeElement(cell, 1)
                         space = FunctionSpace(domain, V)
                         u = Coefficient(space)
                         a = u * dx(di) + 2 * u * dx(dj) + 3 * u * ds(dk)
@@ -545,11 +538,11 @@ def test_signature_of_forms_with_diff(self):
     def forms():
         for i, cell in enumerate([triangle, tetrahedron]):
             d = cell.topological_dimension()
-            domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1), ufl_id=i)
+            domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
             for k in (1, 2, 3):
                 d = cell.topological_dimension()
-                V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-                W = FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1)
+                V = LagrangeElement(cell, 1)
+                W = LagrangeElement(cell, 1, (d,))
                 v_space = FunctionSpace(domain, V)
                 w_space = FunctionSpace(domain, W)
                 u = Coefficient(v_space)
@@ -567,8 +560,8 @@ def test_signature_of_forms_with_diff(self):
 
 def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self):
     cell = triangle
-    V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-    domain = Mesh(FiniteElement("Lagrange", cell, 1, (2,), identity_pullback, H1))
+    V = LagrangeElement(cell, 1)
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
     space = FunctionSpace(domain, V)
     f = Coefficient(space)
     g = Coefficient(space)
@@ -584,8 +577,8 @@ def test_signature_of_forms_change_with_operators(self):
     def forms():
         for cell in (triangle, tetrahedron):
             d = cell.topological_dimension()
-            V = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
-            domain = Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+            V = LagrangeElement(cell, 1)
+            domain = Mesh(LagrangeElement(cell, 1, (d,)))
             space = FunctionSpace(domain, V)
             u = Coefficient(space)
             v = Coefficient(space)

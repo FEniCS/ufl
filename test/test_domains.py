@@ -1,7 +1,9 @@
 """Tests of domain language and attaching domains to forms."""
 
 import pytest
+import utils  # noqa: F401
 from mockobjects import MockMesh
+from utils import FiniteElement, LagrangeElement
 
 import ufl  # noqa: F401
 from ufl import (
@@ -23,7 +25,6 @@ from ufl import (
 )
 from ufl.algorithms import compute_form_data
 from ufl.domain import extract_domains
-from ufl.finiteelement import FiniteElement
 from ufl.pullback import (
     IdentityPullback,  # noqa: F401
     identity_pullback,
@@ -36,13 +37,13 @@ all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 def test_construct_domains_from_cells():
     for cell in all_cells:
         d = cell.topological_dimension()
-        Mesh(FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1))
+        Mesh(LagrangeElement(cell, 1, (d,)))
 
 
 def test_construct_domains_with_names():
     for cell in all_cells:
         d = cell.topological_dimension()
-        e = FiniteElement("Lagrange", cell, 1, (d,), identity_pullback, H1)
+        e = LagrangeElement(cell, 1, (d,))
         D2 = Mesh(e, ufl_id=2)
         D3 = Mesh(e, ufl_id=3)
         D3b = Mesh(e, ufl_id=3)
@@ -55,18 +56,14 @@ def test_domains_sort_by_name():
     # working
     domains1 = [
         Mesh(
-            FiniteElement(
-                "Lagrange", cell, 1, (cell.topological_dimension(),), identity_pullback, H1
-            ),
+            LagrangeElement(cell, 1, (cell.topological_dimension(),)),
             ufl_id=hash(cell.cellname()),
         )
         for cell in all_cells
     ]
     domains2 = [
         Mesh(
-            FiniteElement(
-                "Lagrange", cell, 1, (cell.topological_dimension(),), identity_pullback, H1
-            ),
+            LagrangeElement(cell, 1, (cell.topological_dimension(),)),
             ufl_id=hash(cell.cellname()),
         )
         for cell in sorted(all_cells)
@@ -77,19 +74,19 @@ def test_domains_sort_by_name():
 
 
 def test_topdomain_creation():
-    D = Mesh(FiniteElement("Lagrange", interval, 1, (1,), identity_pullback, H1))
+    D = Mesh(LagrangeElement(interval, 1, (1,)))
     assert D.geometric_dimension() == 1
-    D = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    D = Mesh(LagrangeElement(triangle, 1, (2,)))
     assert D.geometric_dimension() == 2
-    D = Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1))
+    D = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
     assert D.geometric_dimension() == 3
 
 
 def test_cell_legacy_case():
     # Passing cell like old code does
-    D = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    D = Mesh(LagrangeElement(triangle, 1, (2,)))
 
-    V = FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1)
+    V = LagrangeElement(triangle, 1)
     f = Coefficient(FunctionSpace(D, V))
     assert f.ufl_domains() == (D,)
 
@@ -99,9 +96,9 @@ def test_cell_legacy_case():
 
 def test_simple_domain_case():
     # Creating domain from just cell with label like new dolfin will do
-    D = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=3)
+    D = Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=3)
 
-    V = FunctionSpace(D, FiniteElement("Lagrange", D.ufl_cell(), 1, (), identity_pullback, "H1"))
+    V = FunctionSpace(D, LagrangeElement(D.ufl_cell(), 1))
     f = Coefficient(V)
     assert f.ufl_domains() == (D,)
 
@@ -114,11 +111,11 @@ def test_creating_domains_with_coordinate_fields():  # FIXME: Rewrite for new ap
 
     # Mesh with P2 representation of coordinates
     cell = triangle
-    P2 = FiniteElement("Lagrange", cell, 2, (2,), identity_pullback, H1)
+    P2 = LagrangeElement(cell, 2, (2,))
     domain = Mesh(P2)
 
     # Piecewise linear function space over quadratic mesh
-    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    element = LagrangeElement(cell, 1)
     V = FunctionSpace(domain, element)
 
     f = Coefficient(V)
@@ -141,15 +138,15 @@ def test_join_domains():
     mesh7 = MockMesh(7)
     mesh8 = MockMesh(8)
     triangle = Cell("triangle")
-    xa = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
-    xb = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    xa = LagrangeElement(triangle, 1, (2,))
+    xb = LagrangeElement(triangle, 1, (2,))
 
     # Equal domains are joined
     assert 1 == len(
         join_domains(
             [
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=7),
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=7),
+                Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=7),
+                Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=7),
             ]
         )
     )
@@ -157,12 +154,12 @@ def test_join_domains():
         join_domains(
             [
                 Mesh(
-                    FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1),
+                    LagrangeElement(triangle, 1, (2,)),
                     ufl_id=7,
                     cargo=mesh7,
                 ),
                 Mesh(
-                    FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1),
+                    LagrangeElement(triangle, 1, (2,)),
                     ufl_id=7,
                     cargo=mesh7,
                 ),
@@ -175,25 +172,25 @@ def test_join_domains():
     assert 2 == len(
         join_domains(
             [
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
+                Mesh(LagrangeElement(triangle, 1, (2,))),
+                Mesh(LagrangeElement(triangle, 1, (2,))),
             ]
         )
     )
     assert 2 == len(
         join_domains(
             [
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=7),
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=8),
+                Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=7),
+                Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=8),
             ]
         )
     )
     assert 2 == len(
         join_domains(
             [
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=7),
+                Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=7),
                 Mesh(
-                    FiniteElement("Lagrange", quadrilateral, 1, (2,), identity_pullback, H1),
+                    LagrangeElement(quadrilateral, 1, (2,)),
                     ufl_id=8,
                 ),
             ]
@@ -205,14 +202,14 @@ def test_join_domains():
     # Incompatible coordinates require labeling
     xc = Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))),
+            LagrangeElement(triangle, 1, (2,)),
         )
     )
     xd = Coefficient(
         FunctionSpace(
-            Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-            FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1),
+            Mesh(LagrangeElement(triangle, 1, (2,))),
+            LagrangeElement(triangle, 1, (2,)),
         )
     )
     with pytest.raises(BaseException):
@@ -223,12 +220,12 @@ def test_join_domains():
         join_domains(
             [
                 Mesh(
-                    FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1),
+                    LagrangeElement(triangle, 1, (2,)),
                     ufl_id=7,
                     cargo=mesh7,
                 ),
                 Mesh(
-                    FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1),
+                    LagrangeElement(triangle, 1, (2,)),
                     ufl_id=8,
                     cargo=mesh8,
                 ),
@@ -239,12 +236,12 @@ def test_join_domains():
         join_domains(
             [
                 Mesh(
-                    FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1),
+                    LagrangeElement(triangle, 1, (2,)),
                     ufl_id=7,
                     cargo=mesh7,
                 ),
                 Mesh(
-                    FiniteElement("Lagrange", quadrilateral, 1, (2,), identity_pullback, H1),
+                    LagrangeElement(quadrilateral, 1, (2,)),
                     ufl_id=8,
                     cargo=mesh8,
                 ),
@@ -255,20 +252,20 @@ def test_join_domains():
     with pytest.raises(BaseException):
         join_domains(
             [
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)),
-                Mesh(FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1)),
+                Mesh(LagrangeElement(triangle, 1, (2,))),
+                Mesh(LagrangeElement(triangle, 1, (3,))),
             ]
         )
     with pytest.raises(BaseException):
         join_domains(
             [
                 Mesh(
-                    FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1),
+                    LagrangeElement(triangle, 1, (2,)),
                     ufl_id=7,
                     cargo=mesh7,
                 ),
                 Mesh(
-                    FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1),
+                    LagrangeElement(triangle, 1, (3,)),
                     ufl_id=8,
                     cargo=mesh8,
                 ),
@@ -277,7 +274,7 @@ def test_join_domains():
     # Cargo and mesh ids must match
     with pytest.raises(BaseException):
         Mesh(
-            FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1),
+            LagrangeElement(triangle, 1, (2,)),
             ufl_id=7,
             cargo=mesh8,
         )
@@ -287,21 +284,21 @@ def test_join_domains():
         join_domains(
             [
                 None,
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=3),
+                Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=3),
                 None,
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=3),
+                Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=3),
                 None,
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=4),
+                Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=4),
             ]
         )
     )
     assert 2 == len(
         join_domains(
             [
-                Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1), ufl_id=7),
+                Mesh(LagrangeElement(triangle, 1, (2,)), ufl_id=7),
                 None,
                 Mesh(
-                    FiniteElement("Lagrange", quadrilateral, 1, (2,), identity_pullback, H1),
+                    LagrangeElement(quadrilateral, 1, (2,)),
                     ufl_id=8,
                 ),
             ]
@@ -309,17 +306,17 @@ def test_join_domains():
     )
     assert None not in join_domains(
         [
-            Mesh(FiniteElement("Lagrange", triangle, 1, (3,), identity_pullback, H1), ufl_id=7),
+            Mesh(LagrangeElement(triangle, 1, (3,)), ufl_id=7),
             None,
-            Mesh(FiniteElement("Lagrange", tetrahedron, 1, (3,), identity_pullback, H1), ufl_id=8),
+            Mesh(LagrangeElement(tetrahedron, 1, (3,)), ufl_id=8),
         ]
     )
 
 
 def test_everywhere_integrals_with_backwards_compatibility():
-    D = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    D = Mesh(LagrangeElement(triangle, 1, (2,)))
 
-    V = FunctionSpace(D, FiniteElement("Lagrange", triangle, 1, (), identity_pullback, H1))
+    V = FunctionSpace(D, LagrangeElement(triangle, 1))
     f = Coefficient(V)
 
     a = f * dx
@@ -339,7 +336,7 @@ def test_everywhere_integrals_with_backwards_compatibility():
 
 
 def test_merge_sort_integral_data():
-    D = Mesh(FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1))
+    D = Mesh(LagrangeElement(triangle, 1, (2,)))
 
     V = FunctionSpace(D, FiniteElement("CG", triangle, 1, (), identity_pullback, H1))
 
@@ -386,8 +383,8 @@ def test_extract_domains():
     gdim = 2
     cell_type_0 = triangle
     cell_type_1 = interval
-    dom_0 = Mesh(FiniteElement("Lagrange", cell_type_0, 1, (gdim,), identity_pullback, H1))
-    dom_1 = Mesh(FiniteElement("Lagrange", cell_type_1, 1, (gdim,), identity_pullback, H1))
+    dom_0 = Mesh(LagrangeElement(cell_type_0, 1, (gdim,)))
+    dom_1 = Mesh(LagrangeElement(cell_type_1, 1, (gdim,)))
 
     # Define some finite element spaces
     k = 1

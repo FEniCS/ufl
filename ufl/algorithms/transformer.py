@@ -28,14 +28,14 @@ def is_post_handler(function):
     return visit_children_first
 
 
-class Transformer(object):
+class Transformer:
     """Transformer.
 
     Base class for a visitor-like algorithm design pattern used to
     transform expression trees from one representation to another.
     """
 
-    _handlers_cache = {}
+    _handlers_cache: dict[type, tuple[str, bool]] = {}
 
     def __init__(self, variable_cache=None):
         """Initialise."""

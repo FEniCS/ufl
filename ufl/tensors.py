@@ -151,7 +151,7 @@ class ListTensor(Operator):
         if len(key) == 0:
             return self
         k = key[0]
-        if isinstance(k, (int, FixedIndex)):
+        if isinstance(k, int | FixedIndex):
             sub = self.ufl_operands[int(k)]
             return sub if len(key) == 1 else sub[key[1:]]
 
@@ -170,10 +170,10 @@ class ListTensor(Operator):
                     else:
                         substrings.append(str(e))
                 s = (",\n" + ind).join(substrings)
-                return "%s[\n%s%s\n%s]" % (ind, ind, s, ind)
+                return f"{ind}[\n{ind}{s}\n{ind}]"
             else:
                 s = ", ".join(map(str, expressions))
-                return "%s[%s]" % (ind, s)
+                return f"{ind}[{s}]"
 
         return substring(self.ufl_operands, 0)
 
@@ -269,7 +269,7 @@ class ComponentTensor(Operator):
 
     def __str__(self):
         """Format as a string."""
-        return "{ A | A_{%s} = %s }" % (self.ufl_operands[1], self.ufl_operands[0])
+        return f"{{ A | A_{{{self.ufl_operands[1]}}} = {self.ufl_operands[0]} }}"
 
 
 # --- User-level functions to wrap expressions in the correct way ---
@@ -286,7 +286,7 @@ def numpy2nestedlists(arr):
 
 def _as_list_tensor(expressions):
     """Convert to a list tensor."""
-    if isinstance(expressions, (list, tuple)):
+    if isinstance(expressions, list | tuple):
         expressions = [_as_list_tensor(e) for e in expressions]
         return ListTensor(*expressions)
     else:
@@ -332,11 +332,11 @@ def as_tensor(expressions, indices=None):
             return expressions
 
         # Support numpy array, but avoid importing numpy if not needed
-        if not isinstance(expressions, (list, tuple)):
+        if not isinstance(expressions, list | tuple):
             expressions = from_numpy_to_lists(expressions)
 
         # Sanity check
-        if not isinstance(expressions, (list, tuple, Expr)):
+        if not isinstance(expressions, list | tuple | Expr):
             raise ValueError("Expecting nested list or tuple.")
 
         # Recursive conversion from nested lists to nested ListTensor
@@ -375,13 +375,13 @@ def as_matrix(expressions, indices=None):
             return expressions
 
         # To avoid importing numpy unneeded, it's quite slow...
-        if not isinstance(expressions, (list, tuple)):
+        if not isinstance(expressions, list | tuple):
             expressions = from_numpy_to_lists(expressions)
 
         # Check for expected list structure
-        if not isinstance(expressions, (list, tuple)):
+        if not isinstance(expressions, list | tuple):
             raise ValueError("Expecting nested list or tuple of Exprs.")
-        if not isinstance(expressions[0], (list, tuple)):
+        if not isinstance(expressions[0], list | tuple):
             raise ValueError("Expecting nested list or tuple of Exprs.")
     else:
         if len(indices) != 2:
@@ -400,11 +400,11 @@ def as_vector(expressions, index=None):
             return expressions
 
         # To avoid importing numpy unneeded, it's quite slow...
-        if not isinstance(expressions, (list, tuple)):
+        if not isinstance(expressions, list | tuple):
             expressions = from_numpy_to_lists(expressions)
 
         # Check for expected list structure
-        if not isinstance(expressions, (list, tuple)):
+        if not isinstance(expressions, list | tuple):
             raise ValueError("Expecting nested list or tuple of Exprs.")
     else:
         if not isinstance(index, Index):

@@ -13,4 +13,3 @@ User manual
    manual/examples
    manual/internal_representation
    manual/algorithms
-   manual/command_line_utils

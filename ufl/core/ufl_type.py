@@ -416,22 +416,22 @@ class UFLType(type):
     _ufl_handler_name_ = "ufl_type"
 
     # A global array of all Expr and BaseForm subclasses, indexed by typecode
-    _ufl_all_classes_ = []
+    _ufl_all_classes_: list[UFLType] = []
 
     # A global set of all handler names added
-    _ufl_all_handler_names_ = set()
+    _ufl_all_handler_names_: set[str] = set()
 
     # A global array of the number of initialized objects for each
     # typecode
-    _ufl_obj_init_counts_ = []
+    _ufl_obj_init_counts_: list[int] = []
 
     # A global array of the number of deleted objects for each
     # typecode
-    _ufl_obj_del_counts_ = []
+    _ufl_obj_del_counts_: list[int] = []
 
     # Type trait: If the type is abstract.  An abstract class cannot
     # be instantiated and does not need all properties specified.
     _ufl_is_abstract_ = True
 
     # Type trait: If the type is terminal.
-    _ufl_is_terminal_ = None
+    _ufl_is_terminal_: bool = None  # type: ignore
