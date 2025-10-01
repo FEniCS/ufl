@@ -223,7 +223,7 @@ class IndexExpander(ReuseTransformer):
     def grad(self, x):
         """Apply to grad."""
         (f,) = x.ufl_operands
-        if not isinstance(f, (Terminal, Grad)):
+        if not isinstance(f, Terminal | Grad):
             raise ValueError("Expecting expand_derivatives to have been applied.")
         # No need to visit child as long as it is on the form [Grad]([Grad](terminal))
         return x[self.component()]

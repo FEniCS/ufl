@@ -68,7 +68,7 @@ def generic_pseudo_inverse_expr(A):
 
 def pseudo_inverse_expr(A):
     """Compute the Penrose-Moore pseudo-inverse of A: (A.T*A)^-1 * A.T."""
-    m, n = A.ufl_shape
+    _m, n = A.ufl_shape
     if n == 1:
         # Simpler special case for 1d
         i, j, k = indices(3)

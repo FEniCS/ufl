@@ -87,7 +87,7 @@ def test_strip_form_arguments_strips_data_refs():
     assert sys.getrefcount(coeff_data) == MIN_REF_COUNT + 1
     assert sys.getrefcount(const_data) == MIN_REF_COUNT + 1
 
-    stripped_form, mapping = strip_terminal_data(form)
+    _stripped_form, mapping = strip_terminal_data(form)
 
     del form, mapping
     gc.collect()  # This is needed to update the refcounts

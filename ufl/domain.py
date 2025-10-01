@@ -109,7 +109,7 @@ class Mesh(AbstractDomain, UFLObject):
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
 
-        if isinstance(coordinate_element, (Coefficient, AbstractCell)):
+        if isinstance(coordinate_element, Coefficient | AbstractCell):
             raise ValueError("Expecting a coordinate element in the ufl.Mesh construct.")
 
         # Store coordinate element
@@ -189,7 +189,7 @@ class MeshSequence(AbstractDomain, UFLObject):
     thus the same topological dimension).
 
     Currently, one can only perform cell integrations when
-    :class:`MeshSequence`es are used.
+    :class:`MeshSequence` is used.
 
     .. code-block:: python3
 

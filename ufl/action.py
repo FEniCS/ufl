@@ -29,6 +29,7 @@ class Action(BaseForm):
 
     For example:
         res = Ax
+
     A would be the first argument, left and x would be the second argument,
     right.
 
@@ -65,9 +66,9 @@ class Action(BaseForm):
 
         # Coarguments (resp. Argument) from V* to V* (resp. from V to V) are identity matrices,
         # i.e. we have: V* x V -> R (resp. V x V* -> R).
-        if isinstance(left, (Coargument, Argument)):
+        if isinstance(left, Coargument | Argument):
             return right
-        if isinstance(right, (Coargument, Argument)):
+        if isinstance(right, Coargument | Argument):
             return left
 
         # Action distributes over sums on the LHS
@@ -244,7 +245,7 @@ def _get_action_form_arguments(left, right):
         right_args, right_coeffs, _ = extract_terminals_with_domain(right)
         arguments = left_args + tuple(right_args)
         coefficients += tuple(right_coeffs)
-    elif isinstance(right, (BaseCoefficient, Zero)):
+    elif isinstance(right, BaseCoefficient | Zero):
         arguments = left_args
         # When right is ufl.Zero, Action gets simplified so updating
         # coefficients here doesn't matter

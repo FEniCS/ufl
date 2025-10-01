@@ -83,7 +83,7 @@ def test_terminal_hashdata_depends_on_literals(self):
     hashes = set()
 
     def forms():
-        i, j = indices(2)
+        _i, j = indices(2)
         for d, cell in [(2, triangle), (3, tetrahedron)]:
             domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=d - 2)
             x = SpatialCoordinate(domain)
@@ -409,7 +409,7 @@ def test_multiindex_hashdata_depends_on_fixed_index_values(self):
                 hashes.add(hash(expr))
                 yield compute_multiindex_hashdata(expr, {})
 
-    c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
+    c, d, _r, _h = compute_unique_multiindex_hashdatas(hashdatas())
     assert c == 9
     assert d == 9 - 1  # (1,0 is repeated, therefore -1)
     assert len(reprs) == 9 - 1
@@ -435,7 +435,7 @@ def test_multiindex_hashdata_does_not_depend_on_counts(self):
             hashes.add(hash(expr))
             yield compute_multiindex_hashdata(expr, {})
 
-    c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
+    c, d, _r, _h = compute_unique_multiindex_hashdatas(hashdatas())
     assert c == 3 + 9 + 9
     assert d == 1 + 1
     assert len(reprs) == 3 + 9 + 9
@@ -454,7 +454,7 @@ def test_multiindex_hashdata_depends_on_the_order_indices_are_observed(self):
             # and hashes changing because new indices are created each
             # repetition.
             index_numbering = {}
-            i, j, k, l = indices(4)  # noqa: E741
+            i, j, k, _l = indices(4)
             for expr in (
                 MultiIndex((i,)),
                 MultiIndex((i,)),  # r
@@ -469,7 +469,7 @@ def test_multiindex_hashdata_depends_on_the_order_indices_are_observed(self):
                 hashes.add(hash(expr))
                 yield compute_multiindex_hashdata(expr, index_numbering)
 
-    c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
+    c, d, _r, _h = compute_unique_multiindex_hashdatas(hashdatas())
     assert c == nrep * 8
     assert d == 5
     assert len(reprs) == nrep * 5

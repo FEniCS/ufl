@@ -568,7 +568,7 @@ class Expression2UnicodeHandler(MultiFunction):
 
     def indexed(self, o, A, ii):
         """Format an indexed."""
-        op0, op1 = o.ufl_operands
+        op0, _op1 = o.ufl_operands
         Aprec = precedence(op0)
         oprec = precedence(o)
         if Aprec > oprec:

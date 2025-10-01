@@ -1,7 +1,7 @@
 """Base class for dag traversers."""
 
 from functools import singledispatchmethod, wraps
-from typing import Union, overload
+from typing import overload
 
 from ufl.classes import Expr
 from ufl.form import BaseForm
@@ -19,9 +19,9 @@ class DAGTraverser:
 
     def __init__(
         self,
-        compress: Union[bool, None] = True,
-        visited_cache: Union[dict[tuple, Expr], None] = None,
-        result_cache: Union[dict[Expr, Expr], None] = None,
+        compress: bool | None = True,
+        visited_cache: dict[tuple, Expr] | None = None,
+        result_cache: dict[Expr, Expr] | None = None,
     ) -> None:
         """Initialise."""
         self._compress = compress
@@ -78,7 +78,7 @@ class DAGTraverser:
     @overload
     def reuse_if_untouched(self, o: BaseForm, **kwargs) -> BaseForm: ...
 
-    def reuse_if_untouched(self, o: Union[Expr, BaseForm], **kwargs) -> Union[Expr, BaseForm]:
+    def reuse_if_untouched(self, o: Expr | BaseForm, **kwargs) -> Expr | BaseForm:
         """Reuse if touched.
 
         Args:

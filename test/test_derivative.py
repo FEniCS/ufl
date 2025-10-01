@@ -18,6 +18,7 @@ from ufl import (
     Index,
     Jacobian,
     JacobianInverse,
+    Label,
     Mesh,
     SpatialCoordinate,
     TestFunction,
@@ -64,6 +65,7 @@ from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.classes import Indexed, MultiIndex, ReferenceGrad
 from ufl.domain import extract_unique_domain
+from ufl.operators import Variable
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1, L2
 
@@ -657,7 +659,7 @@ def test_vector_coefficient_scalar_derivatives(self):
 
     integrand = inner(f, g)
 
-    i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
+    i0, i1, _i2, _i3, _i4 = [Index(count=c) for c in range(5)]
     expected = as_tensor(df[i1] * dv, (i1,))[i0] * g[i0]
 
     F = integrand * dx
@@ -685,7 +687,7 @@ def test_vector_coefficient_derivatives(self):
 
     integrand = inner(f, g)
 
-    i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
+    i0, i1, i2, _i3, _i4 = [Index(count=c) for c in range(5)]
     expected = as_tensor(df[i2, i1] * dv[i1], (i2,))[i0] * g[i0]
 
     F = integrand * dx
@@ -951,3 +953,34 @@ def test_foobar(self):
     L = NS_a(U, v) * dx
     _ = derivative(L, U, du)
     # TODO: assert something
+
+
+def test_variable_label():
+    """Check that derivatives respect variable labels"""
+    element = LagrangeElement(triangle, 1, ())
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    space = FunctionSpace(domain, element)
+    u = TrialFunction(space)
+    F = sin(u)
+    F_var = variable(F)
+    C = F_var**2
+
+    # Check that standard variable gives correct result
+    ref_expr = 2.0 * F_var
+    dCdF = apply_derivatives(diff(C, F_var))
+    assert dCdF == ref_expr
+
+    # Check that variable with same label gives same result
+    F_var_2 = Variable(F, label=F_var.label())
+    dCdF_2 = apply_derivatives(diff(C, F_var_2))
+    assert dCdF_2 == ref_expr
+
+    # Check that new variable gives 0 result
+    F_var_3 = variable(F)
+    dCdF_3 = apply_derivatives(diff(C, F_var_3))
+    assert dCdF_3 == 0
+
+    # Check that variable with different label gives 0 result
+    F_var_4 = Variable(F, label=Label(888))
+    dCdF_4 = apply_derivatives(diff(C, F_var_4))
+    assert dCdF_4 == 0

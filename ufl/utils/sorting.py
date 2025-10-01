@@ -6,7 +6,10 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+import typing
 import warnings
+
+import numpy as np
 
 
 def topological_sorting(nodes, edges):
@@ -57,7 +60,9 @@ def sorted_by_key(mapping):
     return sorted(mapping.items(), key=_key)
 
 
-def canonicalize_metadata(metadata):
+def canonicalize_metadata(
+    metadata: None | dict | str | list | tuple | np.ndarray,
+) -> tuple:
     """Assuming metadata to be a dict with string keys and builtin python types as values.
 
     Transform dict to a tuple of (key, value) item tuples ordered by key,
@@ -69,18 +74,19 @@ def canonicalize_metadata(metadata):
     if metadata is None:
         return ()
 
+    values: typing.Sequence[typing.Any]
     if isinstance(metadata, dict):
         keys = sorted(metadata.keys())
         assert all(isinstance(key, str) for key in keys)
         values = [metadata[key] for key in keys]
-    elif isinstance(metadata, (tuple, list)):
+    elif isinstance(metadata, tuple | list):
         values = metadata
 
     newvalues = []
     for value in values:
-        if isinstance(value, (dict, list, tuple)):
+        if isinstance(value, dict | list | tuple):
             value = canonicalize_metadata(value)
-        elif isinstance(value, (int, float, str)) or value is None:
+        elif isinstance(value, int | float | str | np.ndarray) or value is None:
             value = str(value)
         elif hasattr(value, "ufl_signature"):
             value = value.ufl_signature
