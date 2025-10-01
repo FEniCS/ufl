@@ -157,7 +157,7 @@ def _check_facet_geometry(integral_data):
             if not ("facet" in it or "custom" in it or "interface" in it):
                 # Not a facet integral
                 for expr in traverse_unique_terminals(itg.integrand()):
-                    cls = expr._ufl_class_
+                    cls = type(expr)
                     if issubclass(cls, GeometricFacetQuantity):
                         raise ValueError(f"Integral of type {it} cannot contain a {cls.__name__}.")
 
