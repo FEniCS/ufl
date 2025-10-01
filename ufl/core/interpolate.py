@@ -8,7 +8,7 @@
 #
 # Modified by Nacime Bouziani, 2021-2022
 
-from ufl.argument import Argument, Coargument
+from ufl.argument import Argument
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.compute_expr_hash import compute_expr_hash
@@ -34,24 +34,30 @@ class Interpolate(BaseFormOperator):
             v: the FunctionSpace to interpolate into or the Coargument
                 defined on the dual of the FunctionSpace to interpolate into.
         """
-        dual_args = (Coargument, BaseForm)
+        from ufl.algorithms import extract_arguments
 
         expr = as_ufl(expr)
-        if isinstance(expr, dual_args):
+        if isinstance(expr, BaseForm):
             raise ValueError("Expecting the first argument to be primal.")
-
+        expr_args = extract_arguments(expr)
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
                 raise ValueError("Expecting a primal function space.")
-            from ufl.algorithms import extract_arguments
-
-            expr_args = extract_arguments(expr)
             is_adjoint = len(expr_args) and expr_args[0].number() == 0
             v = Argument(v.dual(), 1 if is_adjoint else 0)
-        elif not isinstance(v, dual_args):
-            raise ValueError(
-                "Expecting the second argument to be FunctionSpace, Coargument, or BaseForm."
-            )
+            dual_arg_numbers = {0}
+        elif isinstance(v, BaseForm):
+            dual_arg_numbers = {arg.number() for arg in v.arguments() if is_dual(arg)}
+        else:
+            raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")
+        # Check valid argument numbering
+        expr_arg_numbers = {arg.number() for arg in expr_args}
+        if len(expr_arg_numbers) > 1:
+            raise ValueError("Can only interpolate expressions with zero or one argument.")
+        if expr_arg_numbers & dual_arg_numbers:
+            raise ValueError("Same argument numbers in first and second operands to interpolate.")
+        if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
+            raise ValueError("Non-contiguous argument numbers in interpolate.")
 
         # Reversed order convention
         argument_slots = (v, expr)
