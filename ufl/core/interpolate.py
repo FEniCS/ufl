@@ -12,6 +12,7 @@ from ufl.argument import Argument
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
+from ufl.core.expr import Expr
 from ufl.duals import is_dual
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
@@ -25,7 +26,7 @@ class Interpolate(BaseFormOperator):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    def __init__(self, expr, v):
+    def __init__(self, expr: Expr, v: AbstractFunctionSpace | BaseForm):
         """Initialise.
 
         Args:
@@ -36,27 +37,36 @@ class Interpolate(BaseFormOperator):
         from ufl.algorithms import extract_arguments
 
         expr = as_ufl(expr)
-        if isinstance(expr, BaseForm):
+
+        if isinstance(expr, BaseForm) and not isinstance(expr, BaseFormOperator):
             raise ValueError("Expecting the first argument to be primal.")
-        expr_args = extract_arguments(expr)
+
+        expr_arg_numbers = {arg.number() for arg in extract_arguments(expr) if not is_dual(arg)}
+        if len(expr_arg_numbers) > 1:
+            raise ValueError("Can only interpolate expressions with zero or one argument.")
+
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
                 raise ValueError("Expecting a primal function space.")
-            is_adjoint = len(expr_args) and expr_args[0].number() == 0
+            is_adjoint = len(expr_arg_numbers) and expr_arg_numbers == {0}
             v = Argument(v.dual(), 1 if is_adjoint else 0)
             dual_arg_numbers = {0}
         elif isinstance(v, BaseForm):
             dual_arg_numbers = {arg.number() for arg in v.arguments() if is_dual(arg)}
         else:
             raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")
+
         # Check valid argument numbering
-        expr_arg_numbers = {arg.number() for arg in expr_args}
-        if len(expr_arg_numbers) > 1:
-            raise ValueError("Can only interpolate expressions with zero or one argument.")
         if expr_arg_numbers & dual_arg_numbers:
             raise ValueError("Same argument numbers in first and second operands to interpolate.")
         if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
             raise ValueError("Non-contiguous argument numbers in interpolate.")
+
+        V = v.arguments()[0].ufl_function_space()
+        if len(expr.ufl_shape) != len(V.value_shape):
+            raise ValueError(f"Rank mismatch: Expression rank {len(expr.ufl_shape)}, FunctionSpace rank {len(V.value_shape)}")
+        if expr.ufl_shape != V.value_shape:
+            raise ValueError(f"Shape mismatch: Expression shape {expr.ufl_shape}, FunctionSpace shape {V.value_shape}")
 
         # Reversed order convention
         argument_slots = (v, expr)
