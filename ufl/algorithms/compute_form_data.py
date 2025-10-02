@@ -188,7 +188,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
         # coefficient had a domain, the new one does too.
         # This should be overhauled with requirement that Expressions
         # always have a domain.
-        domain = extract_unique_domain(f, expand_mesh_sequence=False)
+        domain = extract_unique_domain(f)
         if domain is not None:
             new_e = FunctionSpace(domain, new_e)
         new_f = Coefficient(new_e, count=i)
@@ -454,7 +454,7 @@ def compute_form_data(
         for o in self.reduced_coefficients:
             if o in coefficients_to_split:
                 c = self.function_replace_map[o]
-                mesh = extract_unique_domain(c, expand_mesh_sequence=False)
+                mesh = extract_unique_domain(c)
                 elem = c.ufl_element()
                 coefficient_split[c] = [
                     Coefficient(FunctionSpace(m, e))

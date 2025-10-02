@@ -17,12 +17,10 @@ from collections import defaultdict
 from itertools import chain
 
 from ufl.checks import is_scalar_constant_expression
-from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLType, ufl_type
-from ufl.domain import extract_unique_domain, sort_domains
 from ufl.equation import Equation
 from ufl.integral import Integral
 from ufl.utils.counted import Counted
@@ -40,6 +38,8 @@ def _sorted_integrals(integrals):
     Sort integrals by domain id, integral type, subdomain id for a more
     stable signature computation.
     """
+    from ufl.domain import sort_domains
+
     # Group integrals in multilevel dict by keys
     # [domain][integral_type][subdomain_id]
     integrals_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
@@ -399,6 +399,8 @@ class Form(BaseForm):
 
     def constant_numbering(self):
         """Return a contiguous numbering of constants in a mapping ``{constant:number}``."""
+        from ufl.constant import Constant
+
         if self._constant_numbering is None:
             self._constant_numbering = {
                 expr: num
@@ -594,7 +596,7 @@ class Form(BaseForm):
 
     def _analyze_domains(self):
         """Analyze domains."""
-        from ufl.domain import join_domains, sort_domains
+        from ufl.domain import extract_unique_domain, join_domains, sort_domains
 
         # Collect integration domains.
         self._integration_domains = sort_domains(
@@ -605,7 +607,7 @@ class Form(BaseForm):
         for o in chain(
             self.arguments(), self.coefficients(), self.constants(), self.geometric_quantities()
         ):
-            domain = extract_unique_domain(o, expand_mesh_sequence=False)
+            domain = extract_unique_domain(o)
             domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
         all_domains = self._integration_domains + sort_domains(join_domains(domains_in_integrands))

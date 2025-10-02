@@ -7,7 +7,6 @@
 #
 # Modified by Anders Logg, 2008
 
-from ufl.domain import extract_unique_domain
 from ufl.functionspace import FunctionSpace
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
@@ -60,7 +59,7 @@ def split(v):
             "Don't know how to split tensor valued mixed functions without flattened index space."
         )
 
-    domain = extract_unique_domain(v, expand_mesh_sequence=False)
+    domain = v.ufl_function_space().ufl_domain()
 
     # Compute value size and set default range end
     value_size = v.ufl_function_space().value_size
