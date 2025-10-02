@@ -55,6 +55,12 @@ def V2(domain_2d):
     return FunctionSpace(domain_2d, f1)
 
 
+@pytest.fixture
+def V3(domain_2d):
+    f1 = FiniteElement("CG", triangle, 3, (), identity_pullback, H1)
+    return FunctionSpace(domain_2d, f1)
+
+
 def test_symbolic(V1, V2):
     u = Coefficient(V1)
     vstar = Argument(V2.dual(), 0)
@@ -244,3 +250,39 @@ def test_interpolate_argument_numbering(V1, V2):
         ValueError, match=r"Can only interpolate expressions with zero or one argument."
     ):
         Interpolate(u2, vstar0)
+
+
+def test_interpolate_composition(V1, V2, V3):
+    u1 = Coefficient(V1)
+    u2 = Interpolate(u1, V2)
+    u3 = Interpolate(u2, V3)
+
+    assert u3.ufl_function_space() == V3
+    assert u3.arguments()[0] == Argument(V3.dual(), 0)
+
+
+def test_interpolate_shape_rank(domain_2d):
+    f_scalar = FiniteElement("CG", triangle, 3, (), identity_pullback, H1)
+    f_vector2 = FiniteElement("CG", triangle, 3, (2,), identity_pullback, H1)
+    f_vector3 = FiniteElement("CG", triangle, 3, (3,), identity_pullback, H1)
+
+    V_scalar = FunctionSpace(domain_2d, f_scalar)
+    V_vector2 = FunctionSpace(domain_2d, f_vector2)
+    V_vector3 = FunctionSpace(domain_2d, f_vector3)
+
+    u_scalar = Coefficient(V_scalar)
+    u_vector2 = Coefficient(V_vector2)
+
+    with pytest.raises(
+        ValueError,
+        match=rf"Rank mismatch: Expression rank {len(u_scalar.ufl_shape)}, "
+        rf"FunctionSpace rank {len(V_vector2.value_shape)}",
+    ):
+        Interpolate(u_scalar, V_vector2)
+
+    with pytest.raises(
+        ValueError,
+        match=rf"Shape mismatch: Expression shape \({u_vector2.ufl_shape}\), "
+        rf"FunctionSpace shape \({V_vector3.value_shape}\)",
+    ):
+        Interpolate(u_vector2, V_vector3)
