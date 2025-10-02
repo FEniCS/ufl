@@ -12,7 +12,6 @@ from ufl import (
     Argument,
     Coefficient,
     Cofunction,
-    Coargument,
     FunctionSpace,
     Mesh,
     TestFunction,
@@ -54,6 +53,7 @@ def V1(domain_2d):
 def V2(domain_2d):
     f1 = FiniteElement("CG", triangle, 2, (), identity_pullback, H1)
     return FunctionSpace(domain_2d, f1)
+
 
 @pytest.fixture
 def V3(domain_2d):
@@ -256,9 +256,10 @@ def test_interpolate_composition(V1, V2, V3):
     u1 = Coefficient(V1)
     u2 = Interpolate(u1, V2)
     u3 = Interpolate(u2, V3)
- 
+
     assert u3.ufl_function_space() == V3
     assert u3.arguments()[0] == Argument(V3.dual(), 0)
+
 
 def test_interpolate_shape_rank(domain_2d):
     f_scalar = FiniteElement("CG", triangle, 3, (), identity_pullback, H1)
@@ -272,8 +273,16 @@ def test_interpolate_shape_rank(domain_2d):
     u_scalar = Coefficient(V_scalar)
     u_vector2 = Coefficient(V_vector2)
 
-    with pytest.raises(ValueError, match=fr"Rank mismatch: Expression rank {len(u_scalar.ufl_shape)}, FunctionSpace rank {len(V_vector2.value_shape)}"):
+    with pytest.raises(
+        ValueError,
+        match=rf"Rank mismatch: Expression rank {len(u_scalar.ufl_shape)}, "
+        rf"FunctionSpace rank {len(V_vector2.value_shape)}",
+    ):
         Interpolate(u_scalar, V_vector2)
 
-    with pytest.raises(ValueError, match=fr"Shape mismatch: Expression shape \({u_vector2.ufl_shape}\), FunctionSpace shape \({V_vector3.value_shape}\)"):
+    with pytest.raises(
+        ValueError,
+        match=rf"Shape mismatch: Expression shape \({u_vector2.ufl_shape}\), "
+        rf"FunctionSpace shape \({V_vector3.value_shape}\)",
+    ):
         Interpolate(u_vector2, V_vector3)

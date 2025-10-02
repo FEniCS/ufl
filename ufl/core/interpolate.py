@@ -12,7 +12,6 @@ from ufl.argument import Argument
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
-from ufl.core.expr import Expr
 from ufl.duals import is_dual
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
@@ -26,7 +25,7 @@ class Interpolate(BaseFormOperator):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    def __init__(self, expr: Expr, v: AbstractFunctionSpace | BaseForm):
+    def __init__(self, expr, v):
         """Initialise.
 
         Args:
@@ -64,9 +63,15 @@ class Interpolate(BaseFormOperator):
 
         V = v.arguments()[0].ufl_function_space()
         if len(expr.ufl_shape) != len(V.value_shape):
-            raise ValueError(f"Rank mismatch: Expression rank {len(expr.ufl_shape)}, FunctionSpace rank {len(V.value_shape)}")
+            raise ValueError(
+                f"Rank mismatch: Expression rank {len(expr.ufl_shape)}, "
+                f"FunctionSpace rank {len(V.value_shape)}"
+            )
         if expr.ufl_shape != V.value_shape:
-            raise ValueError(f"Shape mismatch: Expression shape {expr.ufl_shape}, FunctionSpace shape {V.value_shape}")
+            raise ValueError(
+                f"Shape mismatch: Expression shape {expr.ufl_shape}, "
+                f"FunctionSpace shape {V.value_shape}"
+            )
 
         # Reversed order convention
         argument_slots = (v, expr)
