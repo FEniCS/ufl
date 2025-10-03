@@ -61,18 +61,6 @@ class Interpolate(BaseFormOperator):
         if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
             raise ValueError("Non-contiguous argument numbers in interpolate.")
 
-        V = v.arguments()[0].ufl_function_space()
-        if len(expr.ufl_shape) != len(V.value_shape):
-            raise ValueError(
-                f"Rank mismatch: Expression rank {len(expr.ufl_shape)}, "
-                f"FunctionSpace rank {len(V.value_shape)}"
-            )
-        if expr.ufl_shape != V.value_shape:
-            raise ValueError(
-                f"Shape mismatch: Expression shape {expr.ufl_shape}, "
-                f"FunctionSpace shape {V.value_shape}"
-            )
-
         # Reversed order convention
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
