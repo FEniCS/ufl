@@ -537,7 +537,7 @@ def test_ZeroDerivative(V1):
     assert isinstance(dN1, ZeroBaseForm)
 
 
-def test_external_operator_composition(V1, V2, V3, V4, V5):
+def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
     from ufl.algorithms.analysis import extract_arguments
 
     u5 = Coefficient(V5)
@@ -567,3 +567,7 @@ def test_external_operator_composition(V1, V2, V3, V4, V5):
     args = extract_arguments(e4)
 
     assert all(isinstance(arg, Argument | Coargument) for arg in args)
+    assert set(args) == {arg1, vstar1, arg2, arg3, arg4}
+
+    args1 = e4.arguments()
+    assert set(args1) == set(args)
