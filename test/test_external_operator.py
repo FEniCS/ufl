@@ -59,6 +59,18 @@ def V3(domain_2d):
     return FunctionSpace(domain_2d, f1)
 
 
+@pytest.fixture
+def V4(domain_2d):
+    f1 = FiniteElement("CG", triangle, 4, (), identity_pullback, H1)
+    return FunctionSpace(domain_2d, f1)
+
+
+@pytest.fixture
+def V5(domain_2d):
+    f1 = FiniteElement("CG", triangle, 5, (), identity_pullback, H1)
+    return FunctionSpace(domain_2d, f1)
+
+
 def test_properties(V1):
     u = Coefficient(V1, count=0)
     r = Coefficient(V1, count=1)
@@ -523,3 +535,35 @@ def test_ZeroDerivative(V1):
     N = ExternalOperator(Coefficient(V1, count=0), function_space=V1)
     dN1 = expand_derivatives(derivative(N, u))
     assert isinstance(dN1, ZeroBaseForm)
+
+
+def test_external_operator_composition(V1, V2, V3, V4, V5):
+    from ufl.algorithms.analysis import extract_arguments
+
+    u5 = Coefficient(V5)
+    u4 = ExternalOperator(u5, function_space=V4)
+    u3 = ExternalOperator(u4, function_space=V3)
+    u2 = ExternalOperator(u3, function_space=V2)
+    u1 = ExternalOperator(u2, function_space=V1)
+
+    assert u4.ufl_function_space() == V4
+    assert u3.ufl_function_space() == V3
+    assert u2.ufl_function_space() == V2
+    assert u1.ufl_function_space() == V1
+
+    arg1 = Argument(V1, 0)
+    vstar1 = Argument(V1.dual(), 0)
+    e1 = ExternalOperator(arg1, function_space=V1, argument_slots=(vstar1, arg1))
+
+    arg2 = Argument(V2, 0)
+    e2 = ExternalOperator(arg2, function_space=V2, argument_slots=(e1, arg2))
+
+    arg3 = Argument(V3, 0)
+    e3 = ExternalOperator(arg3, function_space=V3, argument_slots=(e2, arg3))
+
+    arg4 = Argument(V4, 0)
+    e4 = ExternalOperator(arg4, function_space=V4, argument_slots=(e3, arg4))
+
+    args = extract_arguments(e4)
+
+    assert all(isinstance(arg, Argument | Coargument) for arg in args)
