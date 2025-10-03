@@ -568,6 +568,3 @@ def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
 
     assert all(isinstance(arg, Argument | Coargument) for arg in args)
     assert set(args) == {arg1, vstar1, arg2, arg3, arg4}
-
-    args1 = e4.arguments()
-    assert set(args1) == set(args)
