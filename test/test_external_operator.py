@@ -30,6 +30,7 @@ from ufl import (
 )
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.coefficient import Cofunction
 from ufl.core.external_operator import ExternalOperator
 from ufl.form import BaseForm, ZeroBaseForm
 from ufl.pullback import identity_pullback
@@ -551,20 +552,24 @@ def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
     assert u2.ufl_function_space() == V2
     assert u1.ufl_function_space() == V1
 
-    arg1 = Argument(V1, 0)
-    vstar1 = Argument(V1.dual(), 0)
-    e1 = ExternalOperator(arg1, function_space=V1, argument_slots=(vstar1, arg1))
-
+    u1 = Cofunction(V1.dual())
     arg2 = Argument(V2, 0)
-    e2 = ExternalOperator(arg2, function_space=V2, argument_slots=(e1, arg2))
+    e1 = ExternalOperator(arg2, function_space=V1, argument_slots=(u1, arg2))
 
     arg3 = Argument(V3, 0)
-    e3 = ExternalOperator(arg3, function_space=V3, argument_slots=(e2, arg3))
+    e2 = ExternalOperator(arg3, function_space=V2, argument_slots=(e1, arg3))
 
     arg4 = Argument(V4, 0)
-    e4 = ExternalOperator(arg4, function_space=V4, argument_slots=(e3, arg4))
+    e3 = ExternalOperator(arg4, function_space=V3, argument_slots=(e2, arg4))
+
+    arg5 = Argument(V5, 0)
+    e4 = ExternalOperator(arg5, function_space=V4, argument_slots=(e3, arg5))
 
     args = extract_arguments(e4)
 
-    assert all(isinstance(arg, Argument | Coargument) for arg in args)
-    assert set(args) == {arg1, vstar1, arg2, arg3, arg4}
+    assert e1.ufl_function_space() == V2.dual()
+    assert e2.ufl_function_space() == V3.dual()
+    assert e3.ufl_function_space() == V4.dual()
+    assert e4.ufl_function_space() == V5.dual()
+
+    assert set(args) == {arg2, arg3, arg4, arg5, Argument(V1, 0)}
