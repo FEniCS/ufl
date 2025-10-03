@@ -100,9 +100,14 @@ def extract_type(a, ufl_types):
             # argument of the Coargument and not its primal argument.
             if isinstance(ai, Coargument):
                 new_types = tuple(Coargument if t is BaseArgument else t for t in ufl_types)
-                base_form_objects.extend(extract_type(ai, new_types))
+                extracted = extract_type(ai, new_types)
             else:
-                base_form_objects.extend(extract_type(ai, ufl_types))
+                extracted = extract_type(ai, ufl_types)
+            # Filter out any BaseFormOperators if necessary
+            # from the recursively extracted results
+            if remove_base_form_ops:
+                extracted = [obj for obj in extracted if not isinstance(obj, BaseFormOperator)]
+            base_form_objects.extend(extracted)
         # Look for BaseArguments in BaseFormOperator's argument slots
         # only since that's where they are by definition. Don't look
         # into operands, which is convenient for external operator
