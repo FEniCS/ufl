@@ -27,7 +27,7 @@ def compute_integrand_scaling_factor(integral):
     # co = CellOrientation(domain)
     weight = QuadratureWeight(domain)
     tdim = domain.topological_dimension
-    # gdim = domain.geometric_dimension()
+    # gdim = domain.geometric_dimension
 
     # Polynomial degree of integrand scaling
     degree = 0

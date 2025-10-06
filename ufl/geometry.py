@@ -268,21 +268,21 @@ class FacetCoordinate(GeometricFacetQuantity):
     def __init__(self, domain):
         """Initialise."""
         GeometricFacetQuantity.__init__(self, domain)
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         if t < 2:
             raise ValueError("FacetCoordinate is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         return (t - 1,)
 
     def is_cellwise_constant(self):
         """Return whether this expression is spatially constant over each cell."""
         # Only case this is true is if the domain is an interval cell
         # (with a vertex facet).
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         return t <= 1
 
 
@@ -303,14 +303,14 @@ class RidgeCoordinate(GeometricRidgeQuantity):
     def __init__(self, domain):
         """Initialise."""
         GeometricRidgeQuantity.__init__(self, domain)
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         if t < 2:
             raise ValueError("RidgeCoordinate is only defined for topological dimensions >= 2.")
 
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         return (t - 2,)
 
     def is_cellwise_constant(self):
@@ -331,7 +331,7 @@ class CellOrigin(GeometricCellQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        g = self._domain.geometric_dimension()
+        g = self._domain.geometric_dimension
         return (g,)
 
     def is_cellwise_constant(self):
@@ -349,7 +349,7 @@ class FacetOrigin(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        g = self._domain.geometric_dimension()
+        g = self._domain.geometric_dimension
         return (g,)
 
 
@@ -363,7 +363,7 @@ class RidgeOrigin(GeometricRidgeQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        g = self._domain.geometric_dimension()
+        g = self._domain.geometric_dimension
         return (g,)
 
 
@@ -377,7 +377,7 @@ class CellFacetOrigin(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         return (t,)
 
 
@@ -391,7 +391,7 @@ class CellRidgeOrigin(GeometricRidgeQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         return (t,)
 
 
@@ -907,7 +907,7 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
     def __init__(self, domain):
         """Initialise."""
         GeometricFacetQuantity.__init__(self, domain)
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         if t < 2:
             raise ValueError(
                 "CellFacetJacobianInverse is only defined for topological dimensions >= 2."
@@ -916,7 +916,7 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         return (t - 1, t)
 
     def is_cellwise_constant(self):
@@ -935,7 +935,7 @@ class CellRidgeJacobianInverse(GeometricRidgeQuantity):
     def __init__(self, domain):
         """Initialise."""
         GeometricRidgeQuantity.__init__(self, domain)
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         if t < 2:
             raise ValueError(
                 "CellRidgeJacobianInverse is only defined for topological dimensions >= 2."
@@ -944,7 +944,7 @@ class CellRidgeJacobianInverse(GeometricRidgeQuantity):
     @property
     def ufl_shape(self):
         """Get the UFL shape."""
-        t = self._domain.topological_dimension()
+        t = self._domain.topological_dimension
         return (t - 2, t)
 
     def is_cellwise_constant(self):
@@ -990,8 +990,8 @@ class CellNormal(GeometricCellQuantity):
     @property
     def ufl_shape(self):
         """Return the number of coordinates defined (i.e. the geometric dimension of the domain)."""
-        g = self._domain.geometric_dimension()
-        # t = self._domain.topological_dimension()
+        g = self._domain.geometric_dimension
+        # t = self._domain.topological_dimension
         # return (g-t,g) # TODO: Should it be CellNormals? For interval in 3D we have two!
         return (g,)
 

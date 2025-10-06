@@ -377,7 +377,7 @@ class CovariantContravariantPiola(AbstractPullback):
         Returns:
             The value shape when the pull back is applied to the given element
         """
-        gdim = domain.geometric_dimension()
+        gdim = domain.geometric_dimension
         return element.reference_value_shape[:-2] + (gdim, gdim)
 
 

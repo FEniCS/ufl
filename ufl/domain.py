@@ -297,14 +297,14 @@ class MeshView(AbstractDomain, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         r = f"MeshView({self._ufl_mesh!r}, {tdim!r}, {self._ufl_id!r})"
         return r
 
     def __str__(self):
         """Format as a string."""
         return (
-            f"<MeshView #{self._ufl_id} of dimension {self.topological_dimension()} over"
+            f"<MeshView #{self._ufl_id} of dimension {self.topological_dimension} over"
             f" mesh {self._ufl_mesh}>"
         )
 
@@ -321,7 +321,7 @@ class MeshView(AbstractDomain, UFLObject):
     def _ufl_sort_key_(self):
         """UFL sort key."""
         typespecific = (self._ufl_id, self._ufl_mesh)
-        return (self.geometric_dimension(), self.topological_dimension(), "MeshView", typespecific)
+        return (self.geometric_dimension, self.topological_dimension, "MeshView", typespecific)
 
 
 def as_domain(domain):
