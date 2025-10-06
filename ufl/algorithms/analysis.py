@@ -106,7 +106,7 @@ def extract_type(a, ufl_types):
             # Filter out any BaseFormOperators if necessary
             # from the recursively extracted results
             if remove_base_form_ops:
-                extracted = [obj for obj in extracted if not isinstance(obj, BaseFormOperator)]
+                extracted = {obj for obj in extracted if not isinstance(obj, BaseFormOperator)}
             base_form_objects.extend(extracted)
         # Look for BaseArguments in BaseFormOperator's argument slots
         # only since that's where they are by definition. Don't look
