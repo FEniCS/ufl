@@ -296,6 +296,7 @@ def test_interpolate_composition(V1, V2, V3, V4, V5):
         Argument(V2, 0),
         Argument(V1, 0),
     }
+    assert u5.arguments() == (Argument(V5, 0),)
 
 
 def test_interpolate_sum(V1, V2, V3, V4):
@@ -321,3 +322,4 @@ def test_interpolate_sum(V1, V2, V3, V4):
     assert u4.ufl_function_space() == V4.dual()
     args = extract_arguments(u4)
     assert set(args) == {Argument(V2, 0), Argument(V3, 0), Argument(V4, 0)}
+    assert u4.arguments() == (Argument(V4, 0),)
