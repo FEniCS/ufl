@@ -318,7 +318,7 @@ class ReferenceGrad(CompoundDerivative):
         # Return zero if expression is trivially constant
         if is_cellwise_constant(f):
             # TODO: Use max topological dimension if there are multiple topological dimensions.
-            dim = extract_unique_domain(f, expand_mesh_sequence=False).topological_dimension()
+            dim = extract_unique_domain(f, expand_mesh_sequence=False).topological_dimension
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 

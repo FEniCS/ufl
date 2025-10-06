@@ -758,7 +758,7 @@ def exterior_derivative(f):
 
     domain = f.ufl_domain()
 
-    gdim = domain.geometric_dimension()
+    gdim = domain.geometric_dimension
     space = element.sobolev_space
 
     if space == sobolevspace.L2:

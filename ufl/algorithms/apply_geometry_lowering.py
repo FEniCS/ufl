@@ -160,7 +160,7 @@ class GeometryLoweringApplier(MultiFunction):
         # TODO: Should we "sign" the facet jacobian determinant for
         #       manifolds?  It's currently used unsigned in
         #       apply_integral_scaling.
-        # if domain.topological_dimension() < domain.geometric_dimension():
+        # if domain.topological_dimension < domain.geometric_dimension:
         #     co = CellOrientation(domain)
         #     detFJ = co*detFJ
 
@@ -420,8 +420,8 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = extract_unique_domain(o)
-        gdim = domain.geometric_dimension()
-        tdim = domain.topological_dimension()
+        gdim = domain.geometric_dimension
+        tdim = domain.topological_dimension
 
         if tdim == gdim - 1:  # n-manifold embedded in n-1 space
             i = Index()
