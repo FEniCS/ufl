@@ -130,7 +130,7 @@ def strip_domain(domain):
         return Mesh(domain.ufl_coordinate_element(), domain.ufl_id())
     elif isinstance(domain, MeshView):
         return MeshView(
-            strip_domain(domain.ufl_mesh()), domain.topological_dimension(), domain.ufl_id()
+            strip_domain(domain.ufl_mesh()), domain.topological_dimension, domain.ufl_id()
         )
     else:
         raise NotImplementedError(f"{type(domain)} cannot be stripped")
