@@ -259,7 +259,7 @@ def test_interpolate_argument_numbering(V1, V2):
 
     u2 = u0 * u1
     with pytest.raises(
-        ValueError, match=r"Can only interpolate expressions with zero or one argument."
+        ValueError, match=r"Same argument numbers in first and second operands to interpolate."
     ):
         Interpolate(u2, vstar0)
 
@@ -275,6 +275,17 @@ def test_interpolate_composition(V1, V2, V3, V4, V5):
     assert u3.ufl_function_space() == V3
     assert u2.ufl_function_space() == V2
     assert u1.ufl_function_space() == V1
+
+    args = extract_arguments(u1)
+    assert set(args) == {
+        Argument(V4.dual(), 0),
+        Argument(V3.dual(), 0),
+        Argument(V2.dual(), 0),
+        Argument(V1.dual(), 0),
+    }
+    assert set(u1.arguments()) == set(args)
+
+    # assert u1.arguments() == (Argument(V1.dual(), 0),)
 
     # adjoint
     u1 = Cofunction(V1.dual())

@@ -101,7 +101,6 @@ def extract_type(a, ufl_types):
             if isinstance(ai, Coargument):
                 new_types = tuple(Coargument if t is BaseArgument else t for t in ufl_types)
                 extracted = extract_type(ai, new_types)
-                extracted = extract_type(ai, new_types)
             else:
                 extracted = extract_type(ai, ufl_types)
             # Filter out any BaseFormOperators if necessary

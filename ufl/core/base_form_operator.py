@@ -116,7 +116,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # are different depending on whether the BaseFormOperator is
         # used in an outer form or not.
         arguments = tuple(extract_type(dual_arg, Coargument)) + tuple(
-            a for arg in arguments for a in extract_arguments(arg)
+            a for arg in arguments for a in extract_type(arg, Argument)
         )
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
