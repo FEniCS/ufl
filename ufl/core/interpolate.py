@@ -8,7 +8,9 @@
 #
 # Modified by Nacime Bouziani, 2021-2022
 
-from ufl.argument import Argument
+from itertools import count
+
+from ufl.argument import Argument, Coargument
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
@@ -37,19 +39,20 @@ class Interpolate(BaseFormOperator):
 
         expr = as_ufl(expr)
 
-        if isinstance(expr, BaseForm) and not isinstance(expr, BaseFormOperator):
-            raise ValueError("Expecting the first argument to be primal.")
-
-        expr_arg_numbers = {arg.number() for arg in extract_arguments(expr) if not is_dual(arg)}
-        if len(expr_arg_numbers) > 1:
-            raise ValueError("Can only interpolate expressions with zero or one argument.")
+        if isinstance(expr, BaseForm):
+            *expr_args, source_coarg = expr.arguments()
+            if not isinstance(source_coarg, Coargument):
+                raise ValueError("Expecting the first argument to be primal.")
+        else:
+            expr_args = extract_arguments(expr)
+        expr_arg_numbers = {arg.number() for arg in expr_args if not is_dual(arg)}
 
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
                 raise ValueError("Expecting a primal function space.")
-            is_adjoint = len(expr_arg_numbers) and expr_arg_numbers == {0}
-            v = Argument(v.dual(), 1 if is_adjoint else 0)
-            dual_arg_numbers = {0}
+            n = next(i for i in count() if i not in expr_arg_numbers)
+            v = Argument(v.dual(), n)
+            dual_arg_numbers = {n}
         elif isinstance(v, BaseForm):
             dual_arg_numbers = {arg.number() for arg in extract_arguments(v) if is_dual(arg)}
         else:
@@ -61,11 +64,11 @@ class Interpolate(BaseFormOperator):
         if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
             raise ValueError("Non-contiguous argument numbers in interpolate.")
 
-        # Reversed order convention
+        target_arg, *v_args = v.arguments()
+
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
-        arg, *_ = v.arguments()
-        function_space = arg.ufl_function_space()
+        function_space = target_arg.ufl_function_space()
 
         # Set the operand as `expr` for DAG traversal purpose.
         operand = expr
