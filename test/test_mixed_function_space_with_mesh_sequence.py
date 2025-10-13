@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 from utils import FiniteElement, LagrangeElement, MixedElement
 
@@ -27,7 +25,6 @@ from ufl.pullback import contravariant_piola, identity_pullback
 from ufl.sobolevspace import H1, L2, HDiv
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 14), reason="Hits recursion error on Python 3.14.0rc1 ")
 def test_mixed_function_space_with_mesh_sequence_cell():
     cell = triangle
     elem0 = LagrangeElement(cell, 1)
@@ -86,9 +83,6 @@ def test_mixed_function_space_with_mesh_sequence_cell():
     assert id0.enabled_coefficients == [True, True]
 
 
-@pytest.mark.skipif(
-    sys.version_info >= (3, 14), reason="node not properly terminated on Python 3.14.0rc1"
-)
 def test_mixed_function_space_with_mesh_sequence_facet():
     cell = triangle
     elem0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
@@ -203,9 +197,6 @@ def test_mixed_function_space_with_mesh_sequence_hash():
     assert u_ == u
 
 
-@pytest.mark.skipif(
-    sys.version_info >= (3, 14), reason="node not properly terminated on Python 3.14.0rc1"
-)
 def test_mixed_function_space_with_mesh_sequence_raise():
     cell = triangle
     elem0 = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
