@@ -296,7 +296,7 @@ integral_postfixes = {
 
 def get_integral_symbol(integral_type, domain, subdomain_id):
     """Get the symbol for an integral."""
-    tdim = domain.topological_dimension()
+    tdim = domain.topological_dimension
     codim = integral_type_to_codim[integral_type]
     itgdim = tdim - codim
 

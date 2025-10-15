@@ -628,7 +628,7 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
 @pytest.mark.parametrize("lower_geo", [True, False])
 @pytest.mark.parametrize("apply_deriv", [True, False])
 def test_diff_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
-    tdim = cell.topological_dimension()
+    tdim = cell.topological_dimension
 
     domain = Mesh(LagrangeElement(cell, order, (gdim,)))
 
@@ -678,7 +678,7 @@ def test_diff_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv
 @pytest.mark.parametrize("lower_geo", [True, False])
 @pytest.mark.parametrize("apply_deriv", [True, False])
 def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
-    tdim = cell.topological_dimension()
+    tdim = cell.topological_dimension
 
     domain = Mesh(LagrangeElement(cell, order, (gdim,)))
 

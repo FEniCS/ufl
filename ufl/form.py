@@ -356,7 +356,7 @@ class Form(BaseForm):
 
     def geometric_dimension(self):
         """Return the geometric dimension shared by all domains and functions in this form."""
-        gdims = tuple(set(domain.geometric_dimension() for domain in self.ufl_domains()))
+        gdims = tuple(set(domain.geometric_dimension for domain in self.ufl_domains()))
         if len(gdims) != 1:
             raise ValueError(
                 "Expecting all domains and functions in a form "
