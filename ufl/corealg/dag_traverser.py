@@ -1,5 +1,7 @@
 """Base class for dag traversers."""
 
+from __future__ import annotations
+
 from functools import singledispatchmethod, wraps
 from typing import overload
 

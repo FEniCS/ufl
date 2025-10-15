@@ -58,6 +58,10 @@ class AbstractDomain:
         """Return the dimension of the topology of this domain."""
         return self._topological_dimension
 
+    def _ufl_sort_key_(self):
+        """Return UFL sort key."""
+        raise NotImplementedError("_ufl_sort_key_() method not implemented")
+
     @property
     def meshes(self):
         """Return the component meshes."""
@@ -336,7 +340,7 @@ def as_domain(domain):
         return domain
 
 
-def sort_domains(domains: Sequence[AbstractDomain]):
+def sort_domains(domains: Sequence[AbstractDomain]) -> tuple[AbstractDomain, ...]:
     """Sort domains in a canonical ordering.
 
     Args:
@@ -369,7 +373,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
         joined_domains = unrolled_joined_domains
 
     if not joined_domains:
-        return ()
+        return set()
 
     # Check geometric dimension compatibility
     gdims = set()
@@ -384,7 +388,10 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
 # TODO: Move these to an analysis module?
 
 
-def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
+def extract_domains(
+    expr: Expr | Form,
+    expand_mesh_sequence: bool = True,
+) -> tuple[AbstractDomain, ...]:
     """Return all domains expression is defined on.
 
     Args:
@@ -396,6 +403,7 @@ def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
 
     """
     from ufl.form import Form
+    from ufl.integral import Integral
 
     if isinstance(expr, Form):
         if not expand_mesh_sequence:
@@ -403,6 +411,12 @@ def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
                 Currently, can only extract domains from a Form with expand_mesh_sequence=True""")
         # Be consistent with the numbering used in signature.
         return tuple(expr.domain_numbering().keys())
+    elif isinstance(expr, Integral):
+        domainlist = [expr.ufl_domain()]
+        domainlist.extend(
+            extract_domains(expr.integrand(), expand_mesh_sequence=expand_mesh_sequence)
+        )
+        return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
     else:
         domainlist = []
         for t in traverse_unique_terminals(expr):
@@ -410,7 +424,9 @@ def extract_domains(expr: Expr | Form, expand_mesh_sequence: bool = True):
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
 
 
-def extract_unique_domain(expr, expand_mesh_sequence: bool = True):
+def extract_unique_domain(
+    expr: Expr | Form, expand_mesh_sequence: bool = True
+) -> AbstractDomain | None:
     """Return the single unique domain expression is defined on or throw an error.
 
     Args:
