@@ -5,6 +5,8 @@ decomposes mixed coefficients in the given Expr into components.
 
 """
 
+from __future__ import annotations
+
 from functools import singledispatchmethod
 
 import numpy as np

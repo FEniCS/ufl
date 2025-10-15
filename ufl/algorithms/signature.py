@@ -144,6 +144,11 @@ def compute_form_signature(form, renumbering):  # FIXME: Fix callers
         integrand_hashdata = compute_expression_hashdata(integral.integrand(), terminal_hashdata)
 
         domain_hashdata = integral.ufl_domain()._ufl_signature_data_(renumbering)
+        # Note that integral.extra_domain_integral_type_map() has been sorted by domain.
+        extra_domain_integral_type_map_hashdata = tuple(
+            (d._ufl_signature_data_(renumbering), it)
+            for d, it in integral.extra_domain_integral_type_map().items()
+        )
 
         # Collect all data about integral that should be reflected in
         # signature, including compiler data but not domain data,
@@ -154,6 +159,7 @@ def compute_form_signature(form, renumbering):  # FIXME: Fix callers
             integrand_hashdata,
             domain_hashdata,
             integral.integral_type(),
+            extra_domain_integral_type_map_hashdata,
             integral.subdomain_id(),
             canonicalize_metadata(integral.metadata()),
         )
