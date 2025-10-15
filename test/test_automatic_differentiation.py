@@ -11,8 +11,6 @@ algorithm at a technical level, and are thus implementation specific.
 Other tests check for mathematical correctness of diff and derivative.
 """
 
-import sys
-
 import pytest
 from utils import FiniteElement, LagrangeElement
 
@@ -679,7 +677,6 @@ def test_diff_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv
 @pytest.mark.parametrize("lower_alg", [True, False])
 @pytest.mark.parametrize("lower_geo", [True, False])
 @pytest.mark.parametrize("apply_deriv", [True, False])
-@pytest.mark.skipif(sys.version_info >= (3, 14), reason="Hits recursion error on Python 3.14.0rc1 ")
 def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_deriv):
     tdim = cell.topological_dimension
 
