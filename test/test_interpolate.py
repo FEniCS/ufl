@@ -55,6 +55,24 @@ def V2(domain_2d):
     return FunctionSpace(domain_2d, f1)
 
 
+@pytest.fixture
+def V3(domain_2d):
+    f1 = FiniteElement("CG", triangle, 3, (), identity_pullback, H1)
+    return FunctionSpace(domain_2d, f1)
+
+
+@pytest.fixture
+def V4(domain_2d):
+    f1 = FiniteElement("CG", triangle, 4, (), identity_pullback, H1)
+    return FunctionSpace(domain_2d, f1)
+
+
+@pytest.fixture
+def V5(domain_2d):
+    f1 = FiniteElement("CG", triangle, 5, (), identity_pullback, H1)
+    return FunctionSpace(domain_2d, f1)
+
+
 def test_symbolic(V1, V2):
     u = Coefficient(V1)
     vstar = Argument(V2.dual(), 0)
@@ -241,6 +259,76 @@ def test_interpolate_argument_numbering(V1, V2):
 
     u2 = u0 * u1
     with pytest.raises(
-        ValueError, match=r"Can only interpolate expressions with zero or one argument."
+        ValueError, match=r"Same argument numbers in first and second operands to interpolate."
     ):
         Interpolate(u2, vstar0)
+
+
+def test_interpolate_composition(V1, V2, V3, V4, V5):
+    u5 = Coefficient(V5)
+    u4 = Interpolate(u5, V4)
+    u3 = Interpolate(u4, V3)
+    u2 = Interpolate(u3, V2)
+    u1 = Interpolate(u2, V1)
+
+    assert u4.ufl_function_space() == V4
+    assert u3.ufl_function_space() == V3
+    assert u2.ufl_function_space() == V2
+    assert u1.ufl_function_space() == V1
+
+    args = extract_arguments(u1)
+    assert set(args) == {
+        Argument(V4.dual(), 0),
+        Argument(V3.dual(), 0),
+        Argument(V2.dual(), 0),
+        Argument(V1.dual(), 0),
+    }
+    assert set(u1.arguments()) == set(args)
+
+    # adjoint
+    u1 = Cofunction(V1.dual())
+    u2 = Interpolate(Argument(V2, 0), u1)
+    u3 = Interpolate(Argument(V3, 0), u2)
+    u4 = Interpolate(Argument(V4, 0), u3)
+    u5 = Interpolate(Argument(V5, 0), u4)
+
+    assert u2.ufl_function_space() == V2.dual()
+    assert u3.ufl_function_space() == V3.dual()
+    assert u4.ufl_function_space() == V4.dual()
+    assert u5.ufl_function_space() == V5.dual()
+
+    args = extract_arguments(u5)
+    assert set(args) == {
+        Argument(V5, 0),
+        Argument(V4, 0),
+        Argument(V3, 0),
+        Argument(V2, 0),
+        Argument(V1, 0),
+    }
+    assert u5.arguments() == (Argument(V5, 0),)
+
+
+def test_interpolate_sum(V1, V2, V3, V4):
+    u4 = Coefficient(V4)
+    u31 = Interpolate(u4, V3)
+    u32 = Interpolate(u4, V3)
+    u3 = u31 + u32
+    u2 = Interpolate(u3, V2)
+    u1 = Interpolate(u2, V1)
+
+    assert u1.ufl_function_space() == V1
+    args = extract_arguments(u1)
+    assert set(args) == {Argument(V3.dual(), 0), Argument(V2.dual(), 0), Argument(V1.dual(), 0)}
+
+    # adjoint
+    u1 = Cofunction(V1.dual())
+    u21 = Interpolate(Argument(V2, 0), u1)
+    u22 = Interpolate(Argument(V2, 0), u1)
+    u2 = u21 + u22
+    u3 = Interpolate(Argument(V3, 0), u2)
+    u4 = Interpolate(Argument(V4, 0), u3)
+
+    assert u4.ufl_function_space() == V4.dual()
+    args = extract_arguments(u4)
+    assert set(args) == {Argument(V2, 0), Argument(V3, 0), Argument(V4, 0)}
+    assert u4.arguments() == (Argument(V4, 0),)
