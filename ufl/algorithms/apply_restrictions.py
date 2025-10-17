@@ -187,7 +187,7 @@ class RestrictionPropagator(MultiFunction):
 
     def _missing_rule(self, o):
         """Raise an error."""
-        raise ValueError(f"Missing rule for {o._ufl_class_.__name__}")
+        raise ValueError(f"Missing rule for {type(o).__name__}")
 
     # --- Rules for operators
 
