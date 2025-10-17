@@ -29,7 +29,7 @@ def test_apply_coefficient_split(self):
     f0 = Coefficient(V0)
     f1 = Coefficient(V1)
     mesh = MeshSequence([mesh0, mesh1])
-    elem = MixedElement([elem0, elem1])
+    elem = MixedElement([elem0, elem1], make_cell_sequence=True)
     V = FunctionSpace(mesh, elem)
     f = Coefficient(V)
     coefficient_split = {f: (f0, f1)}

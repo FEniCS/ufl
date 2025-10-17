@@ -22,6 +22,7 @@ from ufl.classes import (
     ReferenceValue,
     Restricted,
     Terminal,
+    Zero,
 )
 from ufl.core.multiindex import indices
 from ufl.corealg.dag_traverser import DAGTraverser
@@ -94,7 +95,7 @@ class CoefficientSplitter(DAGTraverser):
     @process.register(ReferenceValue)
     def _(
         self,
-        o: Expr,
+        o: ReferenceValue,
         reference_value: bool | None = False,
         reference_grad: int | None = 0,
         restricted: str | None = None,
@@ -115,7 +116,7 @@ class CoefficientSplitter(DAGTraverser):
     @process.register(ReferenceGrad)
     def _(
         self,
-        o: Expr,
+        o: ReferenceGrad,
         reference_value: bool = False,
         reference_grad: int = 0,
         restricted: str | None = None,
@@ -155,7 +156,7 @@ class CoefficientSplitter(DAGTraverser):
     @process.register(Terminal)
     def _(
         self,
-        o: Expr,
+        o: Terminal,
         reference_value: bool | None = False,
         reference_grad: int = 0,
         restricted: str | None = None,
@@ -171,7 +172,7 @@ class CoefficientSplitter(DAGTraverser):
     @process.register(Coefficient)
     def _(
         self,
-        o: Expr,
+        o: Coefficient,
         reference_value: bool | None = False,
         reference_grad: int = 0,
         restricted: str | None = None,
@@ -194,6 +195,7 @@ class CoefficientSplitter(DAGTraverser):
                 reference_value=reference_value,
                 reference_grad=reference_grad,
                 restricted=restricted,
+                tdim=o.ufl_element().cell.topological_dimension(),
             )
             for alpha in np.ndindex(coeff.ufl_element().reference_value_shape):
                 components.append(c[alpha + beta])
@@ -206,6 +208,7 @@ class CoefficientSplitter(DAGTraverser):
         reference_value: bool | None = False,
         reference_grad: int = 0,
         restricted: str | None = None,
+        tdim: int | None = None,
     ) -> Expr:
         """Wrap terminal as needed."""
         c = o
@@ -219,6 +222,23 @@ class CoefficientSplitter(DAGTraverser):
             c = NegativeRestricted(c)
         elif restricted is not None:
             raise RuntimeError(f"Got unknown restriction: {restricted}")
+        if reference_grad > 0 and tdim is not None:
+            # For CellSequence composed of cells
+            # with varying topological dimensions.
+            # Example:
+            # MixedElement([CG(hex), CG(quad)])
+            # tdim = max([3 , 2]) = 3
+            # ref_grad = [
+            #     [rg00, rg01, rg02],
+            #     [rg10, rg11,   0 ],  # <- pad with Zeros.
+            # ]
+            rg_shape_inner = c.ufl_shape
+            rv_shape = c.ufl_shape[:-reference_grad]
+            rg_shape_outer = rv_shape + (tdim,) * reference_grad
+            components = np.full(rg_shape_outer, Zero())
+            for alpha in np.ndindex(rg_shape_inner):
+                components[alpha] = c[alpha]
+            c = as_tensor(components)
         return c
 
 
