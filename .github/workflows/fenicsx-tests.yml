@@ -3,6 +3,7 @@
 name: FEniCSx integration
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -36,14 +37,14 @@ jobs:
 
       - name: Install Basix
         run: |
-          python3 -m pip install git+https://github.com/FEniCS/basix.git
+          python3 -m pip install git+https://github.com/FEniCS/basix.git@release
 
       - name: Clone FFCx
         uses: actions/checkout@v5
         with:
           path: ./ffcx
           repository: FEniCS/ffcx
-          ref: main
+          ref: release
 
       - name: Install FFCx
         run: |
@@ -81,7 +82,7 @@ jobs:
         with:
           path: ./dolfinx
           repository: FEniCS/dolfinx
-          ref: main
+          ref: release
       - name: Install DOLFINx
         run: |
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
