@@ -105,9 +105,7 @@ class RestrictionPropagator(MultiFunction):
                 if r is None:
                     return o
                 else:
-                    raise ValueError(
-                        f"Discontinuous type {type(o).__name__} must be restricted."
-                    )
+                    raise ValueError(f"Discontinuous type {type(o).__name__} must be restricted.")
             elif self.current_restriction in ["+", "-"]:
                 if r not in ["+", "-"]:
                     raise ValueError(
@@ -167,9 +165,7 @@ class RestrictionPropagator(MultiFunction):
                 if r is None:
                     return o
                 else:
-                    raise ValueError(
-                        f"Discontinuous type {type(o).__name__} must be restricted."
-                    )
+                    raise ValueError(f"Discontinuous type {type(o).__name__} must be restricted.")
             elif self.current_restriction in ["+", "-"]:
                 if r is None:
                     raise ValueError(
