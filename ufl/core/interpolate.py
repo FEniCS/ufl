@@ -44,8 +44,8 @@ class Interpolate(BaseFormOperator):
             if not isinstance(source_coarg, Coargument):
                 raise ValueError("Expecting the first argument to be primal.")
         else:
-            expr_args = extract_arguments(expr)
-        expr_arg_numbers = {arg.number() for arg in expr_args if not is_dual(arg)}
+            expr_args = extract_arguments(expr, base_form_ops_as_expr=True)
+        expr_arg_numbers = {arg.number() for arg in expr_args}
 
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
@@ -64,11 +64,9 @@ class Interpolate(BaseFormOperator):
         if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
             raise ValueError("Non-contiguous argument numbers in interpolate.")
 
-        target_arg, *v_args = v.arguments()
-
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
-        function_space = target_arg.ufl_function_space()
+        function_space = v.arguments()[0].ufl_function_space()
 
         # Set the operand as `expr` for DAG traversal purpose.
         operand = expr

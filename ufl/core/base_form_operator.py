@@ -16,7 +16,7 @@ ExternalOperator or Interpolate.
 from collections import OrderedDict
 from numbers import Number
 
-from ufl.argument import Argument, Coargument
+from ufl.argument import Argument, BaseArgument, Coargument
 from ufl.constantvalue import as_ufl
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -104,7 +104,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the base form."""
-        from ufl.algorithms.analysis import extract_arguments, extract_coefficients, extract_type
+        from ufl.algorithms.analysis import extract_coefficients, extract_type
+        from ufl.form import Form
 
         dual_arg, *arguments = self.argument_slots()
         # When coarguments are treated as BaseForms, they have two
@@ -115,9 +116,21 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # exact same situation than BaseFormOperator's arguments which
         # are different depending on whether the BaseFormOperator is
         # used in an outer form or not.
-        arguments = tuple(extract_type(dual_arg, Coargument)) + tuple(
-            a for arg in arguments for a in extract_type(arg, Argument)
+
+        primal_arguments = tuple(
+            a for arg in arguments for a in extract_type(arg, Argument, base_form_ops_as_expr=True)
         )
+        if isinstance(dual_arg, Form):
+            primal_arg_numbers = {arg.number() for arg in primal_arguments}
+            dual_arguments = tuple(
+                arg
+                for arg in extract_type(dual_arg, BaseArgument)
+                if isinstance(arg, Coargument) or arg.number() not in primal_arg_numbers
+            )
+        else:
+            dual_arguments = tuple(extract_type(dual_arg, Coargument))
+
+        arguments = dual_arguments + primal_arguments
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         # 1) Need concept of order since we may have arguments with the same number
