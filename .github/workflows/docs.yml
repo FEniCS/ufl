@@ -3,7 +3,7 @@ on:
   workflow_call:
     inputs:
         deploy:
-            description: 'Whether to deploy documentation'
+            description: 'Deploy documentation'
             required: false
             default: false
             type: boolean
@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
         deploy:
-            description: 'Whether to deploy documentation'
+            description: 'Deploy documentation'
             required: false
             default: false
             type: boolean

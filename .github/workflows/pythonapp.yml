@@ -18,7 +18,7 @@ on:
           default: ''
           type: string
         deploy:
-            description: 'Whether to deploy documentation'
+            description: 'Deploy documentation'
             required: false
             default: false
             type: boolean
@@ -26,12 +26,12 @@ on:
   workflow_dispatch:
     inputs:
         python-version:
-          description: 'Python version to use'
+          description: 'Python version'
           required: false
           default: '3.12'
           type: string
         os:
-          description: 'Operating system to use'
+          description: 'Operating system'
           required: false
           default: 'ubuntu-latest'
           type: string
@@ -41,7 +41,7 @@ on:
             default: ''
             type: string
         deploy:
-            description: 'Whether to deploy documentation'
+            description: 'Deploy documentation'
             required: false
             default: false
             type: boolean
