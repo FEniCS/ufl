@@ -1,8 +1,8 @@
-name: Lint code, tests, build docs and publish if successful
+name: UFL CI
 on:
   push:
     branches: "**"
-    tags: "**"
+    tags: "v*"
 
   schedule:
     - cron: "0 8 * * 1"
@@ -26,10 +26,10 @@ jobs:
     with:
       python-version: ${{ matrix.python-version }}
       os: ${{ matrix.os }}
-      deploy: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && matrix.os == 'ubuntu-latest' && matrix.python-version == 3.12 }}
+      deploy: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') ) && matrix.os == 'ubuntu-latest' && matrix.python-version == 3.12 }}
 
   build-docs:
     needs: [lint-code, run-tests]
     uses: ./.github/workflows/docs.yml
     with:
-      deploy: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') )}}
+      deploy: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') )}}
