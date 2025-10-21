@@ -13,10 +13,6 @@ on:
           required: false
           default: 'ubuntu-latest'
           type: string
-        branch: 
-          required: false
-          default: ''
-          type: string
         deploy:
             description: 'Deploy documentation'
             required: false
@@ -35,11 +31,6 @@ on:
           required: false
           default: 'ubuntu-latest'
           type: string
-        branch:
-            description: 'UFL ref'
-            required: false
-            default: ''
-            type: string
         deploy:
             description: 'Deploy documentation'
             required: false
@@ -51,13 +42,7 @@ jobs:
     runs-on: ${{ inputs.os }}
     steps:
 
-      - if: ${{ inputs.branch == '' }} 
-        uses: actions/checkout@v5
-
-      - if: ${{ inputs.branch != '' }}
-        uses: actions/checkout@v5
-        with:
-            ref: ${{ inputs.branch }}
+      - uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v6
