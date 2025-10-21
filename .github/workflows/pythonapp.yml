@@ -67,7 +67,7 @@ jobs:
       - name: Upload documentation artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ inputs.os }}-${{ inputs.python-version }}
-          path: junit/test-results/
+          name: test-results-${{ inputs.os }}-${{ inputs.python-version }}
+          path: junit/test-results-${{ inputs.os }}-${{ inputs.python-version }}.xml
           retention-days: 2
           if-no-files-found: error

@@ -78,8 +78,8 @@ jobs:
     - name: Download artifact from build-docs
       uses: actions/download-artifact@v4
       with:
-        name: coverage-ubuntu-latest-3.12
-        path: ./junit/test-results
+        name: test-results-ubuntu-latest-3.12
+        path: ./junit/test-results-ubuntu-latest-3.12.xml
 
     - name: Install coveralls
       run: pip install coveralls
