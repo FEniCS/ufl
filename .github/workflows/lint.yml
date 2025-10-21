@@ -1,9 +1,9 @@
-name: Run linters on UFL
+name: Lint
 on:
   workflow_call:
   workflow_dispatch:
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
