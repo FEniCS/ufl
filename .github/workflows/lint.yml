@@ -8,6 +8,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -23,7 +25,7 @@ jobs:
       - name: Install UFL
         run: python -m pip install .[ci]
 
-      - name: Lint with mypy
+      - name: Check with mypy
         run: |
           mypy -p ufl
           mypy test/
