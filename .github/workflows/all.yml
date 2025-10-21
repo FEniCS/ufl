@@ -1,0 +1,35 @@
+name: Lint code, tests, build docs and publish if successful
+on:
+  push:
+    branches: "**"
+    tags: "**"
+
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-code:
+    uses: ./.github/workflows/linting.yml
+
+  run-tests:
+    needs: lint-code
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    uses: ./.github/workflows/pythonapp.yml
+    with:
+      python-version: ${{ matrix.python-version }}
+      os: ${{ matrix.os }}
+      deploy: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && matrix.os == 'ubuntu-latest' && matrix.python-version == 3.12 }}
+
+  build-docs:
+    needs: [lint-code, run-tests]
+    uses: ./.github/workflows/docs.yml
+    with:
+      deploy: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') )}}
