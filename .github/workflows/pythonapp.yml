@@ -17,6 +17,12 @@ on:
           required: false
           default: ''
           type: string
+        deploy:
+            description: 'Whether to deploy documentation'
+            required: false
+            default: false
+            type: boolean
+
   workflow_dispatch:
     inputs:
         python-version:
