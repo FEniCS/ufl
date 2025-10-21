@@ -4,7 +4,6 @@ on:
     inputs:
       deploy:
         description: "Upload to fenicsproject.org"
-        required: false
         default: false
         type: boolean
     secrets:
@@ -15,7 +14,6 @@ on:
     inputs:
       deploy:
         description: "Upload to fenicsproject.org"
-        required: false
         default: false
         type: boolean
 

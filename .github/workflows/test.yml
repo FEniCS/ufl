@@ -6,17 +6,14 @@ on:
     inputs:
       python-version:
         description: "Python version"
-        required: false
         default: "3.12"
         type: string
       os:
         description: "Operating system"
-        required: false
         default: "ubuntu-latest"
         type: string
       deploy:
         description: "Upload to coveralls"
-        required: false
         default: false
         type: boolean
 
@@ -24,17 +21,14 @@ on:
     inputs:
       python-version:
         description: "Python version"
-        required: false
         default: "3.12"
         type: string
       os:
         description: "Operating system"
-        required: false
         default: "ubuntu-latest"
         type: string
       deploy:
         description: "Upload to coveralls"
-        required: false
         default: false
         type: boolean
 
