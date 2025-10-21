@@ -36,5 +36,7 @@ jobs:
   docs:
     needs: [lint, test]
     uses: ./.github/workflows/docs.yml
+    secrets:
+      SSH_GITHUB_DOCS_PRIVATE_KEY: ${{ secrets.SSH_GITHUB_DOCS_PRIVATE_KEY }}
     with:
       deploy: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') )}}
