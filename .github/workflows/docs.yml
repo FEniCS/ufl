@@ -51,6 +51,7 @@ jobs:
           repository: "FEniCS/docs"
           ref: "main"
           path: "docs"
+          ssh-key: "${{ secrets.SSH_GITHUB_DOCS_PRIVATE_KEY }}"
 
       - name: Set version name
         if: ${{ inputs.deploy == true }}
