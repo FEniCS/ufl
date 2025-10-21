@@ -2,54 +2,17 @@
 name: Run linters on UFL
 on:
   workflow_call:
-    inputs:
-        python-version:
-          required: false
-          default: '3.12'
-          type: string
-        os:
-          required: false
-          default: 'ubuntu-latest'
-          type: string
-        branch: 
-          required: false
-          default: ''
-          type: string
   workflow_dispatch:
-    inputs:
-        python-version:
-          description: 'Python version to use'
-          required: false
-          default: '3.12'
-          type: string
-        os:
-          description: 'Operating system to use'
-          required: false
-          default: 'ubuntu-latest'
-          type: string
-        branch:
-            description: 'Branch to checkout'
-            required: false
-            default: ''
-            type: string
 jobs:
   build:
-    runs-on: ${{ inputs.os }}
+    runs-on: ubuntu-latest
 
     steps:
-
-      - if: ${{ inputs.branch == '' }} 
-        uses: actions/checkout@v5
-
-      - if: ${{ inputs.branch != '' }}
-        uses: actions/checkout@v5
-        with:
-            ref: ${{ inputs.branch }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: 3.12
   
       - name: Lint with ruff
         run: |

@@ -2,53 +2,32 @@ name: Build UFL Documentation
 on:
   workflow_call:
     inputs:
-        python-version:
-          required: false
-          default: '3.12'
-          type: string
-        os:
-          required: false
-          default: 'ubuntu-latest'
-          type: string
-        branch: 
-          required: false
-          default: ''
-          type: string
+        deploy:
+            description: 'Whether to deploy documentation'
+            required: false
+            default: false
+            type: boolean
+
   workflow_dispatch:
     inputs:
-        python-version:
-          description: 'Python version to use'
-          required: false
-          default: '3.12'
-          type: string
-        os:
-          description: 'Operating system to use'
-          required: false
-          default: 'ubuntu-latest'
-          type: string
-        branch:
-            description: 'Branch to checkout'
+        deploy:
+            description: 'Whether to deploy documentation'
             required: false
-            default: ''
-            type: string
+            default: false
+            type: boolean
+
 jobs:
   build:
-    runs-on: ${{ inputs.os }}
+    runs-on: ubuntu-latest
 
     steps:
 
-      - if: ${{ inputs.branch == '' }} 
-        uses: actions/checkout@v5
-
-      - if: ${{ inputs.branch != '' }}
-        uses: actions/checkout@v5
-        with:
-            ref: ${{ inputs.branch }}
+      - uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: 3.12
   
       - name: Install UFL
         run: python -m pip install .[docs]
@@ -61,8 +40,38 @@ jobs:
       - name: Upload documentation artifact
         uses: actions/upload-artifact@v4
         with:
-          name: doc-${{ inputs.os }}-${{ inputs.python-version }}
+          name: documentation
           path: doc/build/html/
           retention-days: 2
           if-no-files-found: error
 
+      - name: Checkout FEniCS/docs
+        if: ${{ inputs.deploy == true }}  
+        uses: actions/checkout@v5
+        with:
+            repository: "FEniCS/docs"
+            path: "docs"
+            ssh-key: "${{ secrets.SSH_GITHUB_DOCS_PRIVATE_KEY }}"
+        
+      - name: Set version name
+        if: ${{ inputs.deploy == true }} 
+        run: |
+              echo "VERSION_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        
+      - name: Copy documentation into repository
+        if: ${{ inputs.deploy == true }}          
+        run: |
+            cd docs
+            git rm -r --ignore-unmatch ufl/${{ env.VERSION_NAME }}
+            mkdir -p ufl/${{ env.VERSION_NAME }}
+            cp -r ../doc/build/html/* ufl/${{ env.VERSION_NAME }}
+    
+      - name: Commit and push documentation to FEniCS/docs
+        if: ${{ inputs.deploy == true }}            
+        run: |
+              cd docs
+              git config --global user.email "fenics@github.com"
+              git config --global user.name "FEniCS GitHub Actions"
+              git add --all
+              git commit --allow-empty -m "Python FEniCS/ufl@${{ github.sha }}"
+              git push
