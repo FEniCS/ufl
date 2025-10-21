@@ -2,7 +2,7 @@ name: UFL CI
 on:
   push:
     branches: "**"
-    tags: "v*"
+    tags: "**"
 
   schedule:
     - cron: "0 8 * * 1"
