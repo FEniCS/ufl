@@ -1,4 +1,4 @@
-name: Run linters on UFL
+name: Lint
 on:
   workflow_call:
   workflow_dispatch:
