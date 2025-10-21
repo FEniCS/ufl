@@ -1,10 +1,9 @@
 name: Run all tests, build documentation and publish docs
 
 on:
-  tags: 
-    - "**"
   push:
     branches: "**"
+    tags: "**"
 
   schedule:
     - cron: "0 8 * * 1"
