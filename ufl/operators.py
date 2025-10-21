@@ -343,7 +343,7 @@ def sym(A):
 def Dx(f, *i):
     """Take the partial derivative of f with respect to spatial variable number i.
 
-    Equivalent to f.dx(*i).
+    Equivalent to ``f.dx(*i)``.
 
     """
     f = as_ufl(f)
@@ -386,9 +386,13 @@ def grad(f):
     """Take the gradient of f.
 
     This operator follows the grad convention where
+
+    .. code-block:: python
+
       grad(s)[i] = s.dx(i)
-      grad(v)[i,j] = v[i].dx(j)
-      grad(T)[:,i] = T[:].dx(i)
+      grad(v)[i, j] = v[i].dx(j)
+      grad(T)[:, i] = T[:].dx(i)
+
     for scalar expressions s, vector expressions v,
     and arbitrary rank tensor expressions T.
 
@@ -403,8 +407,12 @@ def div(f):
     """Take the divergence of f.
 
     This operator follows the div convention where
+
+    .. code-block::
+
       div(v) = v[i].dx(i)
       div(T)[:] = T[:,i].dx(i)
+
     for vector expressions v, and
     arbitrary rank tensor expressions T.
 
@@ -418,9 +426,13 @@ def nabla_grad(f):
     """Take the gradient of f.
 
     This operator follows the grad convention where
+
+    .. code-block::
+
       nabla_grad(s)[i] = s.dx(i)
       nabla_grad(v)[i,j] = v[j].dx(i)
       nabla_grad(T)[i,:] = T[:].dx(i)
+
     for scalar expressions s, vector expressions v,
     and arbitrary rank tensor expressions T.
 
@@ -434,8 +446,12 @@ def nabla_div(f):
     """Take the divergence of f.
 
     This operator follows the div convention where
+
+    .. code-block::
+
       nabla_div(v) = v[i].dx(i)
       nabla_div(T)[:] = T[i,:].dx(i)
+
     for vector expressions v, and
     arbitrary rank tensor expressions T.
 

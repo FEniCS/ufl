@@ -427,9 +427,13 @@ def as_vector(expressions, index=None):
 def as_scalar(expression):
     """As scalar.
 
-    Given a scalar or tensor valued expression A, returns either of the tuples::
-      (a,b) = (A, ())
-      (a,b) = (A[indices], indices)
+    Given a scalar or tensor valued expression A, returns either of the tuples
+
+    .. code-block:: python
+
+      (a, b) = (A, ())
+      (a, b) = (A[indices], indices)
+
     such that a is always a scalar valued expression.
     """
     ii = indices(len(expression.ufl_shape))
@@ -441,9 +445,13 @@ def as_scalar(expression):
 def as_scalars(*expressions):
     """As scalars.
 
-    Given multiple scalar or tensor valued expressions A, returns either of the tuples::
-      (a,b) = (A, ())
-      (a,b) = ([A[0][indices], ..., A[-1][indices]], indices)
+    Given multiple scalar or tensor valued expressions A, returns either of the tuples
+
+    .. code-block:: python
+
+        (a, b) = (A, ())
+        (a, b) = ([A[0][indices], ..., A[-1][indices]], indices)
+
     such that a is always a list of scalar valued expressions.
     """
     ii = indices(len(expressions[0].ufl_shape))

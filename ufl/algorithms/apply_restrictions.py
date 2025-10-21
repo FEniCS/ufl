@@ -295,9 +295,11 @@ def apply_restrictions(expression: Expr, default_restrictions: dict | None = Non
     """Propagate restriction nodes to wrap differential terminals directly.
 
     Args:
-        expression: UFL expression.
-        default_restrictions: domain-default_restriction map.
-            If `None`, just propagate restrictions without
+        expression:
+            UFL expression.
+        default_restrictions:
+            domain-default_restriction map.
+            If ``None``, just propagate restrictions without
             applying the default restrictions.
 
     Returns:

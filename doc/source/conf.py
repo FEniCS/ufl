@@ -14,6 +14,8 @@
 import datetime
 import importlib.metadata
 
+import numpy as np
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -33,6 +35,8 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
+    "sphinx_codeautolink",
+    "sphinx.ext.intersphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -50,7 +54,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "Unified Form Language (UFL)"
+project = "UFL"
 this_year = datetime.date.today().year
 copyright = f"{this_year}, FEniCS Project"
 author = "FEniCS Project"
@@ -107,7 +111,7 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-# html_theme = 'alabaster'
+html_theme = "pydata_sphinx_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -288,3 +292,12 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
+
+
+codeautolink_concat_default = True
+intersphinx_mapping = {
+    "numpy": (
+        f"https://numpy.org/doc/{'.'.join(np.__version__.split('.')[:-1])}/",  # major.minor
+        None,
+    ),
+}
