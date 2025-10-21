@@ -5,43 +5,42 @@ name: UFL CI
 on:
   workflow_call:
     inputs:
-        python-version:
-          required: false
-          default: '3.12'
-          type: string
-        os:
-          required: false
-          default: 'ubuntu-latest'
-          type: string
-        deploy:
-            description: 'Deploy documentation'
-            required: false
-            default: false
-            type: boolean
+      python-version:
+        required: false
+        default: "3.12"
+        type: string
+      os:
+        required: false
+        default: "ubuntu-latest"
+        type: string
+      deploy:
+        description: "Deploy documentation"
+        required: false
+        default: false
+        type: boolean
 
   workflow_dispatch:
     inputs:
-        python-version:
-          description: 'Python version'
-          required: false
-          default: '3.12'
-          type: string
-        os:
-          description: 'Operating system'
-          required: false
-          default: 'ubuntu-latest'
-          type: string
-        deploy:
-            description: 'Deploy documentation'
-            required: false
-            default: false
-            type: boolean
+      python-version:
+        description: "Python version"
+        required: false
+        default: "3.12"
+        type: string
+      os:
+        description: "Operating system"
+        required: false
+        default: "ubuntu-latest"
+        type: string
+      deploy:
+        description: "Deploy documentation"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build:
     runs-on: ${{ inputs.os }}
     steps:
-
       - uses: actions/checkout@v5
 
       - name: Set up Python
@@ -74,5 +73,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-        run:
-          coveralls
+        run: coveralls

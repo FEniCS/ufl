@@ -2,33 +2,32 @@ name: Build UFL Documentation
 on:
   workflow_call:
     inputs:
-        deploy:
-            description: 'Deploy documentation'
-            required: false
-            default: false
-            type: boolean
+      deploy:
+        description: "Deploy documentation"
+        required: false
+        default: false
+        type: boolean
 
   workflow_dispatch:
     inputs:
-        deploy:
-            description: 'Deploy documentation'
-            required: false
-            default: false
-            type: boolean
+      deploy:
+        description: "Deploy documentation"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-
       - uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: 3.12
-  
+
       - name: Install UFL
         run: python -m pip install .[docs]
 
@@ -46,32 +45,32 @@ jobs:
           if-no-files-found: error
 
       - name: Checkout FEniCS/docs
-        if: ${{ inputs.deploy == true }}  
+        if: ${{ inputs.deploy == true }}
         uses: actions/checkout@v5
         with:
-            repository: "FEniCS/docs"
-            path: "docs"
-            ssh-key: "${{ secrets.SSH_GITHUB_DOCS_PRIVATE_KEY }}"
-        
+          repository: "FEniCS/docs"
+          path: "docs"
+          ssh-key: "${{ secrets.SSH_GITHUB_DOCS_PRIVATE_KEY }}"
+
       - name: Set version name
-        if: ${{ inputs.deploy == true }} 
+        if: ${{ inputs.deploy == true }}
         run: |
-              echo "VERSION_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-        
+          echo "VERSION_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
       - name: Copy documentation into repository
-        if: ${{ inputs.deploy == true }}          
+        if: ${{ inputs.deploy == true }}
         run: |
-            cd docs
-            git rm -r --ignore-unmatch ufl/${{ env.VERSION_NAME }}
-            mkdir -p ufl/${{ env.VERSION_NAME }}
-            cp -r ../doc/build/html/* ufl/${{ env.VERSION_NAME }}
-    
+          cd docs
+          git rm -r --ignore-unmatch ufl/${{ env.VERSION_NAME }}
+          mkdir -p ufl/${{ env.VERSION_NAME }}
+          cp -r ../doc/build/html/* ufl/${{ env.VERSION_NAME }}
+
       - name: Commit and push documentation to FEniCS/docs
-        if: ${{ inputs.deploy == true }}            
+        if: ${{ inputs.deploy == true }}
         run: |
-              cd docs
-              git config --global user.email "fenics@github.com"
-              git config --global user.name "FEniCS GitHub Actions"
-              git add --all
-              git commit --allow-empty -m "Python FEniCS/ufl@${{ github.sha }}"
-              git push
+          cd docs
+          git config --global user.email "fenics@github.com"
+          git config --global user.name "FEniCS GitHub Actions"
+          git add --all
+          git commit --allow-empty -m "Python FEniCS/ufl@${{ github.sha }}"
+          git push
