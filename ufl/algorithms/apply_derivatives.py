@@ -6,6 +6,8 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from __future__ import annotations
+
 import warnings
 from functools import singledispatchmethod
 from math import pi

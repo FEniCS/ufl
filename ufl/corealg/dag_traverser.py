@@ -1,5 +1,7 @@
 """Base class for dag traversers."""
 
+from __future__ import annotations
+
 from functools import singledispatchmethod, wraps
 from typing import overload
 
@@ -79,7 +81,7 @@ class DAGTraverser:
     def reuse_if_untouched(self, o: BaseForm, **kwargs) -> BaseForm: ...
 
     def reuse_if_untouched(self, o: Expr | BaseForm, **kwargs) -> Expr | BaseForm:
-        """Reuse if touched.
+        """Reuse if untouched.
 
         Args:
             o: `Expr` to start DAG traversal from.

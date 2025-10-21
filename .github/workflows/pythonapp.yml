@@ -40,7 +40,6 @@ on:
 jobs:
   build:
     runs-on: ${{ inputs.os }}
-
     steps:
 
       - if: ${{ inputs.branch == '' }} 
