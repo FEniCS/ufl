@@ -6,6 +6,11 @@ on:
     branches:
       - main
 
+  push:
+    branches:
+      - release
+    tags: "**"
+
 jobs:
   tsfc-tests:
     name: Run TSFC tests

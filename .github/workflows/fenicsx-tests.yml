@@ -7,6 +7,11 @@ on:
     branches:
       - main
 
+  push:
+    branches:
+      - release
+    tags: "**"
+
   # Weekly build on Mondays at 8 am
   schedule:
     - cron: "0 8 * * 1"
