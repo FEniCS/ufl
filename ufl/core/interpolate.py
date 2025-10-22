@@ -40,9 +40,10 @@ class Interpolate(BaseFormOperator):
         expr = as_ufl(expr)
 
         if isinstance(expr, BaseForm):
-            *expr_args, source_coarg = expr.arguments()
-            if not isinstance(source_coarg, Coargument):
+            expr_args = expr.arguments()
+            if not isinstance(expr_args[0], Coargument):
                 raise ValueError("Expecting the first argument to be primal.")
+            expr_args = expr_args[1:]
         else:
             expr_args = extract_arguments(expr, base_form_ops_as_expr=True)
         expr_arg_numbers = {arg.number() for arg in expr_args}
@@ -64,6 +65,7 @@ class Interpolate(BaseFormOperator):
         if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
             raise ValueError("Non-contiguous argument numbers in interpolate.")
 
+        # Reversed order convention
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
         function_space = v.arguments()[0].ufl_function_space()
