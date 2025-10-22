@@ -143,9 +143,8 @@ Elements
 All finite element classes have a common base class
 ``FiniteElementBase``. The class hierarchy looks like this:
 
-..
+
 TODO: Class figure.
-..
 TODO: Describe all FiniteElementBase subclasses here.
 
 
