@@ -311,6 +311,19 @@ def test_interpolate_composition(V1, V2, V3, V4, V5):
     }
     assert u5.arguments() == (Argument(V5, 0),)
 
+    forward_twoform = Interpolate(Argument(V2, 1), V1)  # V2 x V1^* -> R, equiv V2 -> V1
+    Iu = Interpolate(forward_twoform, V3)  # V2 x V3^* -> R, equiv V2 -> V3
+    assert Iu.ufl_function_space() == V3
+    assert Iu.arguments() == (Argument(V3.dual(), 0), Argument(V2, 1))
+
+    adjoint_twoform = Interpolate(
+        Argument(V2, 0), Argument(V1.dual(), 1)
+    )  # V1^* x V2 -> R, equiv V1^* -> V2^*
+    assert adjoint_twoform.ufl_function_space() == V2.dual()
+    Iu_adj = Interpolate(Argument(V3, 0), adjoint_twoform)  # V1^* x V3 -> R, equiv V1^* -> V3^*
+    assert Iu_adj.ufl_function_space() == V3.dual()
+    assert Iu_adj.arguments() == (Argument(V3, 0), Argument(V1.dual(), 1))
+
 
 def test_interpolate_expr(V1, V2, V3, V4):
     u4 = Coefficient(V4)
@@ -414,6 +427,7 @@ def test_interpolate_form(V1, V2):
     assert extract_arguments(G2) == [V2_test, V1_trial]
     assert G2.arguments() == (V2_test, V1_trial)
 
+    # Adjoint interpolation of Form
     G3 = Interpolate(V2_test, F_act)
     assert set(extract_arguments(G3)) == {V1_test, V2_test, V1_trial}
     assert G3.arguments() == (V2_test, V1_trial)
