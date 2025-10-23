@@ -118,7 +118,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # used in an outer form or not.
 
         primal_arguments = tuple(
-            a for arg in arguments for a in extract_type(arg, Argument, base_form_ops_as_expr=True)
+            a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
         if isinstance(dual_arg, Form):
             primal_arg_numbers = {arg.number() for arg in primal_arguments}

@@ -45,7 +45,7 @@ class Interpolate(BaseFormOperator):
                 raise ValueError("Expecting the first argument to be primal.")
             expr_args = expr_args[1:]
         else:
-            expr_args = extract_arguments(expr, base_form_ops_as_expr=True)
+            expr_args = extract_arguments(expr)
         expr_arg_numbers = {arg.number() for arg in expr_args}
 
         if isinstance(v, AbstractFunctionSpace):
