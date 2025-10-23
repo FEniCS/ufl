@@ -430,8 +430,8 @@ def extract_unique_domain(
     """Return the single unique domain expression is defined on or throw an error.
 
     Args:
-        expr: Expr or Form.
-        expand_mesh_sequence: If True, MeshSequence components are expanded.
+        expr: UFL-expression or form to extract domain from.
+        expand_mesh_sequence: If True, :py:class:`ufl.MeshSequence` components are expanded.
 
     Returns:
         domain.

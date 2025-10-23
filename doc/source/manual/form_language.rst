@@ -47,7 +47,7 @@ expression must be a scalar-valued expression integrated exactly once. How
 to define form arguments and integrand expressions is detailed in the
 rest of this chapter.
 
-Integrals are expressed through multiplication with a measure,
+Integrals are expressed through multiplication with a :py:class:`measure<ufl.Measure>`,
 representing an integral over either
 
     * the interior of the domain :math:`\Omega` (``dx``, cell integral);
