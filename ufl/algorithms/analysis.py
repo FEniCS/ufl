@@ -47,13 +47,13 @@ def unique_tuple(objects):
 # --- Utilities to extract information from an expression ---
 
 
-def extract_type(a, ufl_types, base_form_ops_as_expr=None):
+def extract_type(a, ufl_types, base_form_op_as_expr=None):
     """Build a set of all objects found in a whose class is in ufl_types.
 
     Args:
         a: A BaseForm, Integral or Expr
         ufl_types: A list of UFL types
-        base_form_ops_as_expr: If True, treat BaseFormOperators as expressions by
+        base_form_op_as_expr: If True, treat BaseFormOperators as expressions by
             dropping the dual argument. If False, treat them as BaseForms by including
             coarguments. If None (default), decide based on whether `a` is a Form or Expr.
 
@@ -69,8 +69,8 @@ def extract_type(a, ufl_types, base_form_ops_as_expr=None):
     else:
         remove_base_form_ops = False
 
-    if base_form_ops_as_expr is None:
-        base_form_ops_as_expr = isinstance(a, Form | Expr) and not isinstance(a, BaseFormOperator)
+    if base_form_op_as_expr is None:
+        base_form_op_as_expr = isinstance(a, Form | Expr) and not isinstance(a, BaseFormOperator)
 
     # BaseForms that aren't forms or base form operators
     # only contain arguments & coefficients
@@ -101,15 +101,15 @@ def extract_type(a, ufl_types, base_form_ops_as_expr=None):
         # This accounts for having BaseFormOperator in Forms: if N is a BaseFormOperator
         # `N(u; v*) * v * dx` <=> `action(v1 * v * dx, N(...; v*))`
         # where `v`, `v1` are `Argument`s and `v*` a `Coargument`.
-        for ai in tuple(arg for arg in o.argument_slots(outer_form=base_form_ops_as_expr)):
+        for ai in tuple(arg for arg in o.argument_slots(outer_form=base_form_op_as_expr)):
             # Extracting BaseArguments of an object of which a
             # Coargument is an argument, then we just return the dual
             # argument of the Coargument and not its primal argument.
             if isinstance(ai, Coargument):
                 new_types = tuple(Coargument if t is BaseArgument else t for t in ufl_types)
-                extracted = extract_type(ai, new_types, base_form_ops_as_expr)
+                extracted = extract_type(ai, new_types, base_form_op_as_expr)
             else:
-                extracted = extract_type(ai, ufl_types, base_form_ops_as_expr)
+                extracted = extract_type(ai, ufl_types, base_form_op_as_expr)
             # Filter out any BaseFormOperators if necessary
             # from the recursively extracted results
             if remove_base_form_ops:
@@ -122,7 +122,7 @@ def extract_type(a, ufl_types, base_form_ops_as_expr=None):
         # and not a form.
         slots = o.ufl_operands
         for ai in slots:
-            base_form_objects.extend(extract_type(ai, ufl_types_no_args, base_form_ops_as_expr))
+            base_form_objects.extend(extract_type(ai, ufl_types_no_args, base_form_op_as_expr))
     objects.update(base_form_objects)
 
     # `Remove BaseFormOperator` objects if there were initially not in `ufl_types`
@@ -168,16 +168,16 @@ def has_exact_type(a, ufl_type):
     return any(o._ufl_typecode_ == tc for e in iter_expressions(a) for o in traversal(e))
 
 
-def extract_arguments(a, base_form_ops_as_expr=None):
+def extract_arguments(a, base_form_op_as_expr=None):
     """Build a sorted list of all arguments in a.
 
     Args:
         a: A BaseForm, Integral or Expr
-        base_form_ops_as_expr: If True, treat BaseFormOperators as expressions by
+        base_form_op_as_expr: If True, treat BaseFormOperators as expressions by
             dropping the dual argument. If False, treat them as BaseForms by including
             coarguments. If None (default), decide based on whether `a` is a Form or Expr.
     """
-    return _sorted_by_number_and_part(extract_type(a, BaseArgument, base_form_ops_as_expr))
+    return _sorted_by_number_and_part(extract_type(a, BaseArgument, base_form_op_as_expr))
 
 
 def extract_coefficients(a):
