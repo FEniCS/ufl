@@ -22,7 +22,8 @@ from ufl.utils.counted import Counted
 
 # --- The Coefficient class represents a coefficient in a form ---
 
-__all__ = ["Coefficient", "Cofunction", "BaseCoefficient", "Coefficients"]
+__all__ = ["BaseCoefficient", "Coefficient", "Coefficients", "Cofunction"]
+
 
 class BaseCoefficient(Counted):
     """UFL form argument type: Parent Representation of a form coefficient."""
