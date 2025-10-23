@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fenics-ufl"
-version = "2025.2.0.dev0"
+version = "2025.3.0.dev0"
 authors = [{ name = "UFL contributors" }]
 maintainers = [
     { email = "fenics-steering-council@googlegroups.com" },
@@ -30,7 +30,7 @@ funding = "https://numfocus.org/donate"
 [project.optional-dependencies]
 lint = ["mypy", "ruff"]
 typing = ["types-colorama"]
-docs = ["sphinx", "sphinx_rtd_theme"]
+docs = ["sphinx", "pydata-sphinx-theme", "sphinx_codeautolink[ipython]"]
 test = ["pytest"]
 ci = [
     "coveralls",
@@ -78,10 +78,7 @@ select = [
     # "B", # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
     # "A", # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
 ]
-ignore = [
-    "RUF005",
-    "RUF012",
-]
+ignore = ["RUF005", "RUF012"]
 allowed-confusables = ["𝐚", "𝐀", "∕", "γ", "⨯", "∨"]
 
 [tool.ruff.lint.per-file-ignores]

@@ -16,6 +16,27 @@ try:
 except ImportError:
     has_colorama = False
 
+__all__ = _ = [
+    "ufl2unicode",
+    "PrecedenceRules",
+    "precedence",
+    "UC",
+    "bolden_letter",
+    "superscript_digit",
+    "subscript_digit",
+    "bolden_string",
+    "overline_string",
+    "subscript_number",
+    "superscript_number",
+    "opfont",
+    "measure_font",
+    "get_integral_symbol",
+    "par",
+    "is_int",
+    "format_index",
+    "Expression2UnicodeHandler",
+]
+
 
 class PrecedenceRules(MultiFunction):
     """An enum-like class for C operator precedence levels."""
@@ -296,7 +317,7 @@ integral_postfixes = {
 
 def get_integral_symbol(integral_type, domain, subdomain_id):
     """Get the symbol for an integral."""
-    tdim = domain.topological_dimension()
+    tdim = domain.topological_dimension
     codim = integral_type_to_codim[integral_type]
     itgdim = tdim - codim
 

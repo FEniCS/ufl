@@ -25,10 +25,5 @@ Documentation
 
    installation
    manual
-   API reference <api-doc/ufl>
+   api/api
    releases
-
-[FIXME: These links don't belong here, should go under API reference somehow.]
-
-* :ref:`genindex`
-* :ref:`modindex`

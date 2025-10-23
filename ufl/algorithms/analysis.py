@@ -193,16 +193,19 @@ def extract_base_form_operators(a):
 
 
 def extract_terminals_with_domain(a):
-    """Build three sorted lists of all arguments, coefficients, and geometric quantities in `a`.
+    """Build three sorted lists of all arguments, coefficients, and geometric quantities in ``a``.
 
     This function is faster than extracting each type of terminal
     separately for large forms, and has more validation built in.
 
     Args:
-        a: A BaseForm, Integral or Expr
+        a:
+            A {py:class}`ufl.BaseForm`, {py:class}`ufl.Integral` or {py:class}`ufl.core.expr.Expr`.
 
     Returns:
-        Tuples of extracted `Argument`s, `Coefficient`s, and `GeometricQuantity`s.
+        Tuples of extracted {py:class}`Arguments<ufl.Argument>`,
+        {py:class}`Coefficients<ufl.Coefficient>`, and
+        {py:class}`GeometricQuantities<ufl.geometry.GeometricQuantity>`.
 
     """
     # Extract lists of all BaseArgument, BaseCoefficient, and GeometricQuantity instances

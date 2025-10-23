@@ -10,31 +10,54 @@ restrictions in a form towards the terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import Literal
+
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Restricted
+from ufl.classes import Expr, Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
-from ufl.domain import extract_unique_domain
-from ufl.measure import integral_type_to_measure_name
+from ufl.domain import Mesh, extract_unique_domain
 from ufl.sobolevspace import H1
+
+default_restriction_map = {
+    "cell": None,
+    "exterior_facet": None,
+    "exterior_facet_top": None,
+    "exterior_facet_bottom": None,
+    "exterior_facet_vert": None,
+    "interior_facet": "+",
+    "interior_facet_horiz": "+",
+    "interior_facet_vert": "+",
+}
 
 
 class RestrictionPropagator(MultiFunction):
     """Restriction propagator."""
 
-    def __init__(self, side=None, apply_default=True):
-        """Initialise."""
+    def __init__(
+        self,
+        side: Literal["+", "-"] | None = None,
+        default_restrictions: dict[Mesh, Literal["+", "-"] | None] | None = None,
+    ):
+        """Initialise a restriction propagator.
+
+        Args:
+            side: The side of the mesh to restrict to, if `None`, no restriction.
+            default_restrictions: A map between meshes and certain restrictions
+                set by the integration measure.
+        """
         MultiFunction.__init__(self)
-        self.current_restriction = side
-        self.default_restriction = "+"
-        self.apply_default = apply_default
+        self.current_restriction: Literal["+", "-"] | None = side
+        self.default_restrictions = default_restrictions
         # Caches for propagating the restriction with map_expr_dag
-        self.vcaches = {"+": {}, "-": {}}
-        self.rcaches = {"+": {}, "-": {}}
+        self.vcaches: dict[Literal["+", "-"], dict] = {"+": {}, "-": {}}
+        self.rcaches: dict[Literal["+", "-"], dict] = {"+": {}, "-": {}}
         if self.current_restriction is None:
             self._rp = {
-                "+": RestrictionPropagator(side="+", apply_default=apply_default),
-                "-": RestrictionPropagator(side="-", apply_default=apply_default),
+                "+": RestrictionPropagator("+", default_restrictions),
+                "-": RestrictionPropagator("-", default_restrictions),
             }
 
     def restricted(self, o):
@@ -51,6 +74,13 @@ class RestrictionPropagator(MultiFunction):
 
     # --- Reusable rules
 
+    def _extract_and_check_domain(self, o):
+        """Extract single domain from a ufl."""
+        domain = extract_unique_domain(o, expand_mesh_sequence=True)
+        if domain not in self.default_restrictions:
+            raise RuntimeError(f"Integral type on {domain} not known")
+        return domain
+
     def _ignore_restriction(self, o):
         """Ignore current restriction.
 
@@ -61,31 +91,99 @@ class RestrictionPropagator(MultiFunction):
 
     def _require_restriction(self, o):
         """Restrict a discontinuous quantity to current side, require a side to be set."""
-        if self.current_restriction is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-        return o(self.current_restriction)
+        if self.default_restrictions is None:
+            # Just propagate restrictions.
+            if self.current_restriction is None:
+                return o
+            else:
+                return o(self.current_restriction)
+        else:
+            # Propagate restriction while checking validity.
+            domain = self._extract_and_check_domain(o)
+            r = self.default_restrictions[domain]
+            if self.current_restriction is None:
+                if r is None:
+                    return o
+                else:
+                    raise ValueError(
+                        f"Discontinuous type {o._ufl_class_.__name__} must be restricted."
+                    )
+            elif self.current_restriction in ["+", "-"]:
+                if r not in ["+", "-"]:
+                    raise ValueError(
+                        f"Inconsistent restrictions: "
+                        f"current restriction = {self.current_restriction}, while "
+                        f"default restriction = {r}"
+                    )
+                return o(self.current_restriction)
+            else:
+                raise ValueError(f"Unknown restriction: {self.current_restriction}")
 
     def _default_restricted(self, o):
         """Restrict a continuous quantity to default side if no current restriction is set."""
-        r = self.current_restriction
-        if r is not None:
-            return o(r)
-        if self.apply_default:
-            return o(self.default_restriction)
+        if self.default_restrictions is None:
+            # Just propagate restrictions.
+            if self.current_restriction is None:
+                return o
+            else:
+                return o(self.current_restriction)
         else:
-            return o
+            # Propagate restriction while applying default.
+            domain = self._extract_and_check_domain(o)
+            r = self.default_restrictions[domain]
+            if self.current_restriction is None:
+                if r is None:
+                    return o
+                elif r in ["+", "-"]:
+                    return o(r)
+                else:
+                    raise RuntimeError(f"Unknown default restriction {r} on domain {domain}")
+            elif self.current_restriction in ["+", "-"]:
+                if r not in ["+", "-"]:
+                    raise ValueError(
+                        f"Inconsistent restrictions: "
+                        f"current restriction = {self.current_restriction}, while "
+                        f"default restriction = {r}"
+                    )
+                return o(self.current_restriction)
+            else:
+                raise ValueError(f"Unknown restriction: {self.current_restriction}")
 
     def _opposite(self, o):
         """Restrict a quantity to default side.
 
         If the current restriction is different swap the sign, require a side to be set.
         """
-        if self.current_restriction is None:
-            raise ValueError(f"Discontinuous type {o._ufl_class_.__name__} must be restricted.")
-        elif self.current_restriction == self.default_restriction:
-            return o(self.default_restriction)
+        if self.default_restrictions is None:
+            # Just propagate restrictions.
+            if self.current_restriction is None:
+                return o
+            else:
+                return o(self.current_restriction)
         else:
-            return -o(self.default_restriction)
+            domain = self._extract_and_check_domain(o)
+            r = self.default_restrictions[domain]
+            if self.current_restriction is None:
+                if r is None:
+                    return o
+                else:
+                    raise ValueError(
+                        f"Discontinuous type {o._ufl_class_.__name__} must be restricted."
+                    )
+            elif self.current_restriction in ["+", "-"]:
+                if r is None:
+                    raise ValueError(
+                        f"Inconsistent restrictions: "
+                        f"current restriction = {self.current_restriction}, while "
+                        f"default restriction = {r}"
+                    )
+                else:
+                    if self.current_restriction == r:
+                        return o(r)
+                    else:
+                        return -o(r)
+            else:
+                raise ValueError(f"Unknown restriction: {self.current_restriction}")
 
     def _missing_rule(self, o):
         """Raise an error."""
@@ -175,8 +273,8 @@ class RestrictionPropagator(MultiFunction):
         """Restrict a facet_normal."""
         D = extract_unique_domain(o)
         e = D.ufl_coordinate_element()
-        gd = D.geometric_dimension()
-        td = D.topological_dimension()
+        gd = D.geometric_dimension
+        td = D.topological_dimension
 
         if e.embedded_superdegree <= 1 and e in H1 and gd == td:
             # For meshes with a continuous linear non-manifold
@@ -193,10 +291,20 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression, apply_default=True):
-    """Propagate restriction nodes to wrap differential terminals directly."""
-    integral_types = [
-        k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")
-    ]
-    rules = RestrictionPropagator(apply_default=apply_default)
-    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
+def apply_restrictions(expression: Expr, default_restrictions: dict | None = None) -> Expr:
+    """Propagate restriction nodes to wrap differential terminals directly.
+
+    Args:
+        expression:
+            UFL expression.
+        default_restrictions:
+            domain-default_restriction map.
+            If ``None``, just propagate restrictions without
+            applying the default restrictions.
+
+    Returns:
+        expression with the restriction nodes propagated.
+
+    """
+    rules = RestrictionPropagator(default_restrictions=default_restrictions)
+    return map_integrand_dags(rules, expression)

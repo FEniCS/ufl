@@ -1,0 +1,33 @@
+name: Lint
+on:
+  workflow_call:
+  workflow_dispatch:
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
+
+      - name: Lint with ruff
+        run: |
+          pip install ruff
+          ruff check .
+          ruff format --check .
+
+      - name: Install UFL
+        run: python -m pip install .[ci]
+
+      - name: Check with mypy
+        run: |
+          mypy -p ufl
+          mypy test/
+          cd test/
+          mypy ../demo/

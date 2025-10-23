@@ -3,7 +3,7 @@ Algorithms
 **********
 
 Algorithms to work with UFL forms and expressions can be found in the
-submodule ``ufl.algorithms``.  You can import all of them with
+submodule :py:mod:`ufl.algorithms`.  You can import all of them with
 the line
 
 ::
