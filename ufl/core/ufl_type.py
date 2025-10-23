@@ -10,8 +10,9 @@
 
 from __future__ import annotations
 
-import typing
 import abc
+import typing
+
 import ufl.core as core
 from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.utils.formatting import camel2underscore

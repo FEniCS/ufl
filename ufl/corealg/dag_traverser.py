@@ -10,6 +10,7 @@ from ufl.form import BaseForm
 
 __all__ = ["DAGTraverser"]
 
+
 class DAGTraverser:
     """Base class for DAG traversers.
 

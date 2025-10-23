@@ -27,6 +27,7 @@ from ufl.utils.counted import Counted
 
 __all__ = ["BaseFormOperator"]
 
+
 @ufl_type(num_ops="varying", is_differential=True)
 class BaseFormOperator(Operator, BaseForm, Counted):
     """Base form operator."""
