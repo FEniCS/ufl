@@ -36,13 +36,13 @@ all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
 def test_construct_domains_from_cells():
     for cell in all_cells:
-        d = cell.topological_dimension()
+        d = cell.topological_dimension
         Mesh(LagrangeElement(cell, 1, (d,)))
 
 
 def test_construct_domains_with_names():
     for cell in all_cells:
-        d = cell.topological_dimension()
+        d = cell.topological_dimension
         e = LagrangeElement(cell, 1, (d,))
         D2 = Mesh(e, ufl_id=2)
         D3 = Mesh(e, ufl_id=3)
@@ -56,30 +56,30 @@ def test_domains_sort_by_name():
     # working
     domains1 = [
         Mesh(
-            LagrangeElement(cell, 1, (cell.topological_dimension(),)),
-            ufl_id=hash(cell.cellname()),
+            LagrangeElement(cell, 1, (cell.topological_dimension,)),
+            ufl_id=hash(cell.cellname),
         )
         for cell in all_cells
     ]
     domains2 = [
         Mesh(
-            LagrangeElement(cell, 1, (cell.topological_dimension(),)),
-            ufl_id=hash(cell.cellname()),
+            LagrangeElement(cell, 1, (cell.topological_dimension,)),
+            ufl_id=hash(cell.cellname),
         )
         for cell in sorted(all_cells)
     ]
-    sdomains = sorted(domains1, key=lambda D: (D.topological_dimension(), D.ufl_cell(), D.ufl_id()))
+    sdomains = sorted(domains1, key=lambda D: (D.topological_dimension, D.ufl_cell(), D.ufl_id()))
     assert sdomains != domains1
     assert sdomains == domains2
 
 
 def test_topdomain_creation():
     D = Mesh(LagrangeElement(interval, 1, (1,)))
-    assert D.geometric_dimension() == 1
+    assert D.geometric_dimension == 1
     D = Mesh(LagrangeElement(triangle, 1, (2,)))
-    assert D.geometric_dimension() == 2
+    assert D.geometric_dimension == 2
     D = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
-    assert D.geometric_dimension() == 3
+    assert D.geometric_dimension == 3
 
 
 def test_cell_legacy_case():
