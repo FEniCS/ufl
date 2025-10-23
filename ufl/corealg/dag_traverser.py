@@ -8,6 +8,8 @@ from typing import overload
 from ufl.classes import Expr
 from ufl.form import BaseForm
 
+__all__ = ["DAGTraverser"]
+
 
 class DAGTraverser:
     """Base class for DAG traversers.
@@ -34,11 +36,13 @@ class DAGTraverser:
         """Perform memoised DAG traversal with ``process`` singledispatch method.
 
         Args:
-            node: `Expr` to start DAG traversal from.
-            **kwargs: keyword arguments for the ``process`` singledispatchmethod.
+            node:
+                Expression to start DAG traversal from.
+            **kwargs:
+                keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
-            Processed `Expr`.
+            Processed Expression.
 
         """
         cache_key = (node, tuple((k, v) for k, v in kwargs.items()))
@@ -65,12 +69,13 @@ class DAGTraverser:
         """Process node by type.
 
         Args:
-            o: `Expr` to start DAG traversal from.
-            **kwargs: keyword arguments for the ``process`` singledispatchmethod.
+            o:
+                UFL expression to start DAG traversal from.
+            **kwargs:
+                Keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
-            Processed `Expr`.
-
+            Processed :py:class:`Expr`.
         """
         raise AssertionError(f"Rule not set for {type(o)}")
 
@@ -84,11 +89,13 @@ class DAGTraverser:
         """Reuse if untouched.
 
         Args:
-            o: `Expr` to start DAG traversal from.
-            **kwargs: keyword arguments for the ``process`` singledispatchmethod.
+            o:
+                Expression to start DAG traversal from.
+            **kwargs:
+                Keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
-            Processed `Expr`.
+            Processed expression.
 
         """
         new_ufl_operands = [self(operand, **kwargs) for operand in o.ufl_operands]
