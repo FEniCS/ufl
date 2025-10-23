@@ -50,10 +50,12 @@ class AbstractDomain:
         self._topological_dimension = topological_dimension
         self._geometric_dimension = geometric_dimension
 
+    @property
     def geometric_dimension(self):
         """Return the dimension of the space this domain is embedded in."""
         return self._geometric_dimension
 
+    @property
     def topological_dimension(self):
         """Return the dimension of the topology of this domain."""
         return self._topological_dimension
@@ -121,7 +123,7 @@ class Mesh(AbstractDomain, UFLObject):
 
         # Derive dimensions from element
         (gdim,) = coordinate_element.reference_value_shape
-        tdim = coordinate_element.cell.topological_dimension()
+        tdim = coordinate_element.cell.topological_dimension
         AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_cargo(self):
@@ -139,7 +141,7 @@ class Mesh(AbstractDomain, UFLObject):
     def is_piecewise_linear_simplex_domain(self):
         """Check if the domain is a piecewise linear simplex."""
         ce = self._ufl_coordinate_element
-        return ce.embedded_superdegree <= 1 and ce in H1 and self.ufl_cell().is_simplex()
+        return ce.embedded_superdegree <= 1 and ce in H1 and self.ufl_cell().is_simplex
 
     def __repr__(self):
         """Representation."""
@@ -163,7 +165,7 @@ class Mesh(AbstractDomain, UFLObject):
     def _ufl_sort_key_(self):
         """UFL sort key."""
         typespecific = (self._ufl_id, self._ufl_coordinate_element)
-        return (self.geometric_dimension(), self.topological_dimension(), "Mesh", typespecific)
+        return (self.geometric_dimension, self.topological_dimension, "Mesh", typespecific)
 
     @property
     def meshes(self):
@@ -217,9 +219,9 @@ class MeshSequence(AbstractDomain, UFLObject):
                 Currently component meshes can not include MeshSequence instances""")
         # currently only support single cell type.
         (self._ufl_cell,) = set(m.ufl_cell() for m in meshes)
-        (gdim,) = set(m.geometric_dimension() for m in meshes)
+        (gdim,) = set(m.geometric_dimension for m in meshes)
         # TODO: Need to change for more general mixed meshes.
-        (tdim,) = set(m.topological_dimension() for m in meshes)
+        (tdim,) = set(m.topological_dimension for m in meshes)
         AbstractDomain.__init__(self, tdim, gdim)
         self._meshes = tuple(meshes)
 
@@ -282,7 +284,7 @@ class MeshView(AbstractDomain, UFLObject):
         # Derive dimensions from element
         coordinate_element = mesh.ufl_coordinate_element()
         (gdim,) = coordinate_element.value_shape
-        tdim = coordinate_element.cell.topological_dimension()
+        tdim = coordinate_element.cell.topological_dimension
         AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_mesh(self):
@@ -299,14 +301,14 @@ class MeshView(AbstractDomain, UFLObject):
 
     def __repr__(self):
         """Representation."""
-        tdim = self.topological_dimension()
+        tdim = self.topological_dimension
         r = f"MeshView({self._ufl_mesh!r}, {tdim!r}, {self._ufl_id!r})"
         return r
 
     def __str__(self):
         """Format as a string."""
         return (
-            f"<MeshView #{self._ufl_id} of dimension {self.topological_dimension()} over"
+            f"<MeshView #{self._ufl_id} of dimension {self.topological_dimension} over"
             f" mesh {self._ufl_mesh}>"
         )
 
@@ -323,7 +325,7 @@ class MeshView(AbstractDomain, UFLObject):
     def _ufl_sort_key_(self):
         """UFL sort key."""
         typespecific = (self._ufl_id, self._ufl_mesh)
-        return (self.geometric_dimension(), self.topological_dimension(), "MeshView", typespecific)
+        return (self.geometric_dimension, self.topological_dimension, "MeshView", typespecific)
 
 
 def as_domain(domain):
@@ -378,7 +380,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
     # Check geometric dimension compatibility
     gdims = set()
     for domain in joined_domains:
-        gdims.add(domain.geometric_dimension())
+        gdims.add(domain.geometric_dimension)
     if len(gdims) != 1:
         raise ValueError("Found domains with different geometric dimensions.")
 
@@ -430,8 +432,8 @@ def extract_unique_domain(
     """Return the single unique domain expression is defined on or throw an error.
 
     Args:
-        expr: Expr or Form.
-        expand_mesh_sequence: If True, MeshSequence components are expanded.
+        expr: UFL-expression or form to extract domain from.
+        expand_mesh_sequence: If True, :py:class:`ufl.MeshSequence` components are expanded.
 
     Returns:
         domain.
@@ -453,7 +455,7 @@ def find_geometric_dimension(expr):
         # Can have multiple domains of the same cell type.
         domains = extract_domains(t)
         if len(domains) > 0:
-            (gdim,) = set(domain.geometric_dimension() for domain in domains)
+            (gdim,) = set(domain.geometric_dimension for domain in domains)
             gdims.add(gdim)
 
     if len(gdims) != 1:

@@ -46,7 +46,7 @@ from ufl.sobolevspace import H1, L2
 def domain_numbering(*cells):
     renumbering = {}
     for i, cell in enumerate(cells):
-        d = cell.topological_dimension()
+        d = cell.topological_dimension
         domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
         renumbering[domain] = i
     return renumbering
@@ -113,7 +113,7 @@ def test_terminal_hashdata_depends_on_geometry(self):
         i, j = indices(2)
         cells = (triangle, tetrahedron)
         for i, cell in enumerate(cells):
-            d = cell.topological_dimension()
+            d = cell.topological_dimension
             domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
 
             x = SpatialCoordinate(domain)
@@ -158,7 +158,7 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
     def forms():
         for rep in range(nreps):
             for i, cell in enumerate(cells):
-                d = cell.topological_dimension()
+                d = cell.topological_dimension
                 domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
                 for degree in degrees:
                     for family, sobolev in families:
@@ -239,7 +239,7 @@ def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_orde
     def forms():
         for rep in range(nreps):
             for i, cell in enumerate(cells):
-                d = cell.topological_dimension()
+                d = cell.topological_dimension
                 domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
                 for k in counts:
                     V = LagrangeElement(cell, 2)
@@ -278,7 +278,7 @@ def test_terminal_hashdata_does_depend_on_argument_number_values(self):
     def forms():
         for rep in range(nreps):
             for i, cell in enumerate(cells):
-                d = cell.topological_dimension()
+                d = cell.topological_dimension
                 domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
                 for k in counts:
                     V = LagrangeElement(cell, 2)
@@ -310,7 +310,7 @@ def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
     s1s = set()
     s2s = set()
     for i, cell in enumerate(cells):
-        d = cell.topological_dimension()
+        d = cell.topological_dimension
         domain = LagrangeElement(cell, 1, (d,))
         d0 = Mesh(domain)
         d1 = Mesh(domain, ufl_id=1)
@@ -336,7 +336,7 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     domains = [
         Mesh(
             FiniteElement(
-                "Lagrange", cell, 1, (cell.topological_dimension(),), identity_pullback, H1
+                "Lagrange", cell, 1, (cell.topological_dimension,), identity_pullback, H1
             ),
             ufl_id=ufl_id,
         )
@@ -501,7 +501,7 @@ def test_signature_is_affected_by_element_properties(self):
     def forms():
         for family, sobolev in (("Lagrange", H1), ("Discontinuous Lagrange", L2)):
             for cell in (triangle, tetrahedron, quadrilateral):
-                d = cell.topological_dimension()
+                d = cell.topological_dimension
                 domain = Mesh(LagrangeElement(cell, 1, (d,)))
                 for degree in (1, 2):
                     V = FiniteElement(family, cell, degree, (), identity_pullback, sobolev)
@@ -520,7 +520,7 @@ def test_signature_is_affected_by_element_properties(self):
 def test_signature_is_affected_by_domains(self):
     def forms():
         for cell in (triangle, tetrahedron):
-            d = cell.topological_dimension()
+            d = cell.topological_dimension
             domain = Mesh(LagrangeElement(cell, 1, (d,)))
             for di in (1, 2):
                 for dj in (1, 2):
@@ -537,10 +537,10 @@ def test_signature_is_affected_by_domains(self):
 def test_signature_of_forms_with_diff(self):
     def forms():
         for i, cell in enumerate([triangle, tetrahedron]):
-            d = cell.topological_dimension()
+            d = cell.topological_dimension
             domain = Mesh(LagrangeElement(cell, 1, (d,)), ufl_id=i)
             for k in (1, 2, 3):
-                d = cell.topological_dimension()
+                d = cell.topological_dimension
                 V = LagrangeElement(cell, 1)
                 W = LagrangeElement(cell, 1, (d,))
                 v_space = FunctionSpace(domain, V)
@@ -576,7 +576,7 @@ def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self
 def test_signature_of_forms_change_with_operators(self):
     def forms():
         for cell in (triangle, tetrahedron):
-            d = cell.topological_dimension()
+            d = cell.topological_dimension
             V = LagrangeElement(cell, 1)
             domain = Mesh(LagrangeElement(cell, 1, (d,)))
             space = FunctionSpace(domain, V)

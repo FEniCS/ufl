@@ -269,8 +269,8 @@ class RestrictionPropagator(MultiFunction):
         """Restrict a facet_normal."""
         D = extract_unique_domain(o)
         e = D.ufl_coordinate_element()
-        gd = D.geometric_dimension()
-        td = D.topological_dimension()
+        gd = D.geometric_dimension
+        td = D.topological_dimension
 
         if e.embedded_superdegree <= 1 and e in H1 and gd == td:
             # For meshes with a continuous linear non-manifold
@@ -291,9 +291,11 @@ def apply_restrictions(expression: Expr, default_restrictions: dict | None = Non
     """Propagate restriction nodes to wrap differential terminals directly.
 
     Args:
-        expression: UFL expression.
-        default_restrictions: domain-default_restriction map.
-            If `None`, just propagate restrictions without
+        expression:
+            UFL expression.
+        default_restrictions:
+            domain-default_restriction map.
+            If ``None``, just propagate restrictions without
             applying the default restrictions.
 
     Returns:

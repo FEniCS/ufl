@@ -61,14 +61,15 @@ class CoefficientSplitter(DAGTraverser):
         """Split mixed coefficients.
 
         Args:
-            o: `Expr` to be processed.
-            reference_value: Whether `ReferenceValue` has been applied or not.
-            reference_grad: Number of `ReferenceGrad`s that have been applied.
+            o: UFL Expression to be processed.
+            reference_value: Whether :py:class:`ufl.classes.ReferenceValue` has been applied or not.
+            reference_grad: Number of :py:class:`ufl.classes.ReferenceGrad`s that have been applied.
             restricted: '+', '-', or None.
 
         Returns:
-            This ``o`` wrapped with `ReferenceValue` (if ``reference_value``),
-            `ReferenceGrad` (``reference_grad`` times), and `Restricted` (if
+            This ``o`` wrapped with :py:class:`ufl.classes.ReferenceValue` (if ``reference_value``),
+            :py:class:`ufl.classes.ReferenceGrad` (``reference_grad`` times),
+            and :py:class:`ufl.restriction.Restricted` (if
             ``restricted`` is '+' or '-'). The underlying terminal will be
             decomposed into components according to ``self._coefficient_split``.
 

@@ -73,10 +73,10 @@ def test_foo():
     mymesh = MockMesh(9)
     mydomain = Mesh(LagrangeElement(cell, 1, (gdim,)), ufl_id=9, cargo=mymesh)
 
-    assert cell.topological_dimension() == tdim
-    assert cell.cellname() == "triangle"
-    assert mydomain.topological_dimension() == tdim
-    assert mydomain.geometric_dimension() == gdim
+    assert cell.topological_dimension == tdim
+    assert cell.cellname == "triangle"
+    assert mydomain.topological_dimension == tdim
+    assert mydomain.geometric_dimension == gdim
     assert mydomain.ufl_cell() == cell
     assert mydomain.ufl_id() == 9
     assert mydomain.ufl_cargo() == mymesh

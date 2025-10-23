@@ -10,7 +10,7 @@ from ufl.sobolevspace import H1
 
 def test_split(self):
     cell = triangle
-    d = cell.topological_dimension()
+    d = cell.topological_dimension
     domain = Mesh(LagrangeElement(cell, 1, (d,)))
     f = LagrangeElement(cell, 1)
     v = FiniteElement(

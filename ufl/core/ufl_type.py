@@ -10,13 +10,13 @@
 
 from __future__ import annotations
 
+import abc
 import typing
-from abc import ABC, abstractmethod
 
 from ufl.utils.formatting import camel2underscore
 
 
-class UFLObject(ABC):
+class UFLObject(abc.ABC):
     """A UFL Object."""
 
     _ufl_is_terminal_: bool
@@ -24,14 +24,17 @@ class UFLObject(ABC):
     @abstractmethod
     def _ufl_hash_data_(self) -> typing.Hashable:
         """Return hashable data that uniquely defines this object."""
+        ...
 
-    @abstractmethod
+    @abc.abstractmethod
     def __str__(self) -> str:
         """Return a human-readable string representation of the object."""
+        ...
 
-    @abstractmethod
+    @abc.abstractmethod
     def __repr__(self) -> str:
         """Return a string representation of the object."""
+        ...
 
     def __hash__(self) -> int:
         """Hash the object."""
