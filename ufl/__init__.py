@@ -260,7 +260,7 @@ from ufl.argument import (
     TrialFunctions,
 )
 from ufl.cell import AbstractCell, Cell, TensorProductCell, as_cell
-from ufl.coefficient import Coefficient, Coefficients, Cofunction
+from ufl.coefficient import BaseCoefficient, Coefficient, Coefficients, Cofunction
 from ufl.constant import Constant, TensorConstant, VectorConstant
 from ufl.constantvalue import Identity, PermutationSymbol, as_ufl, zero
 from ufl.core.external_operator import ExternalOperator
@@ -454,6 +454,7 @@ __all__ = [
     "And",
     "Argument",
     "Arguments",
+    "BaseCoefficient",
     "BaseForm",
     "Cell",
     "CellDiameter",
