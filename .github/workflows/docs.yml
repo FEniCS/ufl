@@ -37,7 +37,7 @@ jobs:
       - name: Build documentation
         run: |
           cd doc
-          make html
+          python -m sphinx -W -b html source/ build/html/
 
       - name: Upload documentation artifact
         uses: actions/upload-artifact@v4
