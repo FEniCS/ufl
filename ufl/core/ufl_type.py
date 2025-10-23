@@ -21,7 +21,7 @@ class UFLObject(abc.ABC):
 
     _ufl_is_terminal_: bool
 
-    @abstractmethod
+    @abc.abstractmethod
     def _ufl_hash_data_(self) -> typing.Hashable:
         """Return hashable data that uniquely defines this object."""
         ...
