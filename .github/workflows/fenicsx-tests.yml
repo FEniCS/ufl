@@ -43,7 +43,7 @@ jobs:
         with:
           path: ./ffcx
           repository: FEniCS/ffcx
-          ref: schnellerhase/abstract-cell
+          ref: main
 
       - name: Install FFCx
         run: |
@@ -81,7 +81,7 @@ jobs:
         with:
           path: ./dolfinx
           repository: FEniCS/dolfinx
-          ref: schnellerhase/abstract-cell
+          ref: main
       - name: Install DOLFINx
         run: |
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
