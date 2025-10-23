@@ -37,6 +37,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_codeautolink",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.napoleon",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -293,6 +294,16 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
 
+autodoc_default_options = {
+    "members": True,
+    "show-inheritance": True,
+    "imported-members": True,
+    "undoc-members": True,
+}
+autosummary_generate = True
+autosummary_ignore_module_all = False
+autoclass_content = "both"
+
 
 codeautolink_concat_default = True
 intersphinx_mapping = {
@@ -301,3 +312,7 @@ intersphinx_mapping = {
         None,
     ),
 }
+
+
+napoleon_google_docstring = True
+napoleon_use_admonition_for_notes = False

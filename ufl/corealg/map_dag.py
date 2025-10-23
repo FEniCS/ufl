@@ -11,6 +11,8 @@ from ufl.core.expr import Expr
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_post_traversal
 
+__all__ = ["map_expr_dag", "map_expr_dags"]
+
 
 def map_expr_dag(function, expression, compress=True, vcache=None, rcache=None):
     """Apply a function to each subexpression node in an expression DAG.
