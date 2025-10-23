@@ -55,7 +55,7 @@ class Interpolate(BaseFormOperator):
             v = Argument(v.dual(), n)
             dual_arg_numbers = {n}
         elif isinstance(v, BaseForm):
-            dual_arg_numbers = {arg.number() for arg in extract_arguments(v) if is_dual(arg)}
+            dual_arg_numbers = {arg.number() for arg in v.arguments() if is_dual(arg)}
         else:
             raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")
 
