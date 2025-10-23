@@ -20,7 +20,7 @@ import typing
 import warnings
 
 if typing.TYPE_CHECKING:
-    from ufl.core import FormArgument
+    from ufl.core.terminal import FormArgument
 
 from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.ufl_type import UFLRegistry, UFLType, ufl_type
