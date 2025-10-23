@@ -9,3 +9,6 @@ UFL API
    api-ufl
    api-algorithms
    api-core
+   api-core-alg
+   api-formatting
+   api-utils

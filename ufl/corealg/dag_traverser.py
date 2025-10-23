@@ -8,6 +8,7 @@ from typing import overload
 from ufl.classes import Expr
 from ufl.form import BaseForm
 
+__all__ = ["DAGTraverser"]
 
 class DAGTraverser:
     """Base class for DAG traversers.

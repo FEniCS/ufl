@@ -16,6 +16,11 @@ try:
 except ImportError:
     has_colorama = False
 
+__all__ = _ = ["ufl2unicode", "PrecedenceRules", "precedence", "UC", "bolden_letter", "superscript_digit",
+               "subscript_digit", "bolden_string", "overline_string",
+               "subscript_number", "superscript_number", "opfont",
+               "measure_font", "get_integral_symbol", "par", "is_int",
+               "format_index", "Expression2UnicodeHandler"]
 
 class PrecedenceRules(MultiFunction):
     """An enum-like class for C operator precedence levels."""
