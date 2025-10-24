@@ -88,6 +88,7 @@ jobs:
           cmake --build build
           cmake --install build
           python3 -m pip install scikit-build-core
+          cd dolfinx/python
           python3 -m scikit_build_core.build requires | python -c "import sys, json; print(' '.join(json.load(sys.stdin)))" | xargs pip install
           python3 -m pip -v install --break-system-packages --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" dolfinx/python/[ci]
       - name: Run DOLFINx unit tests
