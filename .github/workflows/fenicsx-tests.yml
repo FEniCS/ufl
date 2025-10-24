@@ -87,7 +87,8 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
           cmake --build build
           cmake --install build
-          python -m scikit_build_core.build requires | python -c "import sys, json; print(' '.join(json.load(sys.stdin)))" | xargs pip install
+          python3 -m pip install scikit-build-core
+          python3 -m scikit_build_core.build requires | python -c "import sys, json; print(' '.join(json.load(sys.stdin)))" | xargs pip install
           python3 -m pip -v install --break-system-packages --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" dolfinx/python/[ci]
       - name: Run DOLFINx unit tests
         run: python3 -m pytest -n auto dolfinx/python/test/unit
