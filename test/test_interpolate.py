@@ -20,6 +20,7 @@ from ufl import (
     adjoint,
     derivative,
     dx,
+    exp,
     grad,
     inner,
     replace,
@@ -264,6 +265,14 @@ def test_interpolate_argument_numbering(V1, V2):
     ):
         Interpolate(u2, vstar0)
 
+    with pytest.raises(ValueError, match=r"Expecting a primal function space."):
+        Interpolate(u, V2.dual())
+
+    with pytest.raises(
+        ValueError, match=r"Expecting the second argument to be FunctionSpace or BaseForm."
+    ):
+        Interpolate(u, u0)
+
 
 def test_interpolate_composition(V1, V2, V3, V4, V5):
     u5 = Coefficient(V5)
@@ -291,7 +300,7 @@ def test_interpolate_composition(V1, V2, V3, V4, V5):
 
     # adjoint
     u1 = Cofunction(V1.dual())
-    u2 = Interpolate(Argument(V2, 0), u1)
+    u2 = Interpolate(Argument(V2, 0), u1)  # V1^* x V2 -> R, equiv V1^* -> V2^*
     u3 = Interpolate(Argument(V3, 0), u2)
     u4 = Interpolate(Argument(V4, 0), u3)
     u5 = Interpolate(Argument(V5, 0), u4)
@@ -337,6 +346,9 @@ def test_interpolate_composition(V1, V2, V3, V4, V5):
         Argument(V1.dual(), 1),
     }
 
+    with pytest.raises(ValueError, match=r"Expecting the first argument to be primal."):
+        Interpolate(u2, V3)
+
 
 def test_interpolate_expr(V1, V2, V3, V4):
     u4 = Coefficient(V4)
@@ -363,6 +375,14 @@ def test_interpolate_expr(V1, V2, V3, V4):
     u11 = Interpolate(u21, V1)
     assert u11.arguments() == (Argument(V1.dual(), 0),)
     assert u21.arguments() == (Argument(V2.dual(), 0),)
+
+    # with MathFunction
+    u34 = exp(u31 * u32) + u31 - 1
+    assert extract_arguments(u34) == []
+    u22 = Interpolate(u34, V2)
+    u12 = Interpolate(u22, V1)
+    assert u12.arguments() == (Argument(V1.dual(), 0),)
+    assert u22.arguments() == (Argument(V2.dual(), 0),)
 
     # adjoint
     u1 = Cofunction(V1.dual())
@@ -443,8 +463,8 @@ def test_interpolate_form(V1, V2):
 
     # Adjoint interpolation of Form
     G3 = Interpolate(V2_test, F_act)
-    assert set(extract_arguments(G3)) == {V1_test, V2_test, V1_trial}
     assert G3.arguments() == (V2_test, V1_trial)
+    assert G3.ufl_function_space() == V2.dual()
 
 
 def test_interpolate_adjoint(V1, V2):
@@ -453,6 +473,7 @@ def test_interpolate_adjoint(V1, V2):
     Iu_adjoint = adjoint(Iu_forward)  # V2^* x V1 -> R, equiv V2^* -> V1^*
 
     assert Iu_forward.arguments() == (Argument(V2.dual(), 0), V1_trial)
+    assert Iu_forward.ufl_function_space() == V2
     assert Iu_adjoint.arguments() == (Argument(V1, 0), Argument(V2.dual(), 1))
 
     Iu_adjoint2 = Interpolate(Argument(V1, 0), Argument(V2.dual(), 1))
@@ -471,3 +492,4 @@ def test_interpolate_formsum(V1, V2):
 
     V2_cofunc = Interpolate(Argument(V2, 0), V1_sum)  # Cofunction in V2^*
     assert V2_cofunc.arguments() == (Argument(V2, 0),)
+    assert V2_cofunc.ufl_function_space() == V2.dual()

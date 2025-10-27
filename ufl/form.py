@@ -113,8 +113,7 @@ class BaseForm(metaclass=UFLType):
     # --- Accessor interface ---
     def arguments(self):
         """Return all ``Argument`` objects found in form."""
-        if self._arguments is None:
-            self._analyze_form_arguments()
+        self._analyze_form_arguments()
         return self._arguments
 
     def coefficients(self):

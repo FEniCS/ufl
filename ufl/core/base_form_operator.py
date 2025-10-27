@@ -16,7 +16,7 @@ ExternalOperator or Interpolate.
 from collections import OrderedDict
 from numbers import Number
 
-from ufl.argument import Argument, BaseArgument, Coargument
+from ufl.argument import Argument, Coargument
 from ufl.constantvalue import as_ufl
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -117,20 +117,16 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # are different depending on whether the BaseFormOperator is
         # used in an outer form or not.
 
-        primal_arguments = tuple(
+        primal_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
-        if isinstance(dual_arg, Form):
-            primal_arg_numbers = {arg.number() for arg in primal_arguments}
-            dual_arguments = tuple(
-                arg
-                for arg in extract_type(dual_arg, BaseArgument)
-                if isinstance(arg, Coargument) or arg.number() not in primal_arg_numbers
-            )
-        else:
-            dual_arguments = tuple(extract_type(dual_arg, Coargument))
-
-        arguments = dual_arguments + primal_arguments
+        primal_arg_num = {a.number() for a in primal_args} if isinstance(dual_arg, Form) else {0, 1}
+        dual_args = tuple(
+            arg
+            for arg in dual_arg.arguments()
+            if isinstance(arg, Coargument) or arg.number() not in primal_arg_num
+        )
+        arguments = dual_args + primal_args
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         # 1) Need concept of order since we may have arguments with the same number
