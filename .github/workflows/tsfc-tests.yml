@@ -11,7 +11,7 @@ jobs:
     name: Run TSFC tests
     runs-on: ubuntu-latest
     container:
-      image: firedrakeproject/firedrake-vanilla-default:latest
+      image: firedrakeproject/firedrake-vanilla-default:dev-main
     steps:
       - name: Uninstall existing UFL
         run: |
