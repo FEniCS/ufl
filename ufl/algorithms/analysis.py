@@ -168,16 +168,13 @@ def has_exact_type(a, ufl_type):
     return any(o._ufl_typecode_ == tc for e in iter_expressions(a) for o in traversal(e))
 
 
-def extract_arguments(a, base_form_op_as_expr=None):
+def extract_arguments(a):
     """Build a sorted list of all arguments in a.
 
     Args:
         a: A BaseForm, Integral or Expr
-        base_form_op_as_expr: If True, treat BaseFormOperators as expressions by
-            dropping the dual argument. If False, treat them as BaseForms by including
-            coarguments. If None (default), decide based on whether `a` is a Form or Expr.
     """
-    return _sorted_by_number_and_part(extract_type(a, BaseArgument, base_form_op_as_expr))
+    return _sorted_by_number_and_part(extract_type(a, BaseArgument))
 
 
 def extract_coefficients(a):
