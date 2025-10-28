@@ -18,6 +18,7 @@ from ufl.algorithms.coordinate_derivative_helpers import (
     strip_coordinate_derivatives,
 )
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.domain import Mesh, sort_domains
 from ufl.form import Form
 from ufl.integral import Integral
@@ -124,6 +125,10 @@ class IntegralData:
             and self.metadata == other.metadata
             and self.domain_integral_type_map == other.domain_integral_type_map
         )
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __str__(self):
         """Format as a string."""

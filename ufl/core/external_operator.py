@@ -14,10 +14,11 @@ be evaluated as well as its derivatives from a given set of operands.
 # Modified by Nacime Bouziani, 2023
 
 from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(num_ops="varying", is_differential=True)
+@ufl_type()
 class ExternalOperator(BaseFormOperator):
     """External operator."""
 
@@ -82,9 +83,7 @@ class ExternalOperator(BaseFormOperator):
 
     def assemble(self, *args, **kwargs):
         """Assemble the external operator."""
-        raise NotImplementedError(
-            f"Symbolic evaluation of {self._ufl_class_.__name__} not available."
-        )
+        raise NotImplementedError(f"Symbolic evaluation of {type(self).__name__} not available.")
 
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None, add_kwargs={}
@@ -121,3 +120,7 @@ class ExternalOperator(BaseFormOperator):
             and self.derivatives == other.derivatives
             and self.ufl_function_space() == other.ufl_function_space()
         )
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
