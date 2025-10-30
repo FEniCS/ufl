@@ -8,8 +8,6 @@
 #
 # Modified by Nacime Bouziani, 2021-2022
 
-from itertools import count
-
 from ufl.argument import Argument, Coargument
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
@@ -51,7 +49,7 @@ class Interpolate(BaseFormOperator):
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
                 raise ValueError("Expecting a primal function space.")
-            n = next(i for i in count() if i not in expr_arg_numbers)
+            n = 1 if expr_arg_numbers == {0} else 0
             v = Argument(v.dual(), n)
             dual_arg_numbers = {n}
         elif isinstance(v, BaseForm):
