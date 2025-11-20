@@ -98,6 +98,8 @@ class Action(BaseForm):
             and len(left.arguments()) == 1
         ):
             v, operand = right.argument_slots()
+            # If operands has no arguments we're okay
+            # otherwise operand must have argument numbered 1 and it needs to be replaced with a zero
             if v == right.arguments()[0]:
                 return right._ufl_expr_reconstruct_(operand, v=left)
 
