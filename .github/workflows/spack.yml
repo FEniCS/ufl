@@ -31,7 +31,7 @@ jobs:
             xz-utils g++ gfortran  # compilers
 
       - name: Get Spack
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: ./spack
           repository: spack/spack
