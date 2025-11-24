@@ -35,7 +35,7 @@ from ufl.algorithms.analysis import (
 )
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.core.interpolate import Interpolate
-from ufl.form import FormSum
+from ufl.form import Form, FormSum
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -110,7 +110,7 @@ def test_action_adjoint(V1, V2):
     Iu = Interpolate(u, vstar)
 
     v1 = TrialFunction(V1)
-    Iv = Interpolate(v1, vstar)
+    Iv = Interpolate(v1, vstar)  # V1 -> V2
 
     assert Iv.argument_slots() == (vstar, v1)
     assert Iv.arguments() == (vstar, v1)
@@ -125,6 +125,18 @@ def test_action_adjoint(V1, V2):
 
     # -- Adjoint -- #
     adjoint(Iv) == Adjoint(Iv)
+
+    # action of one-form on interpolation operator
+    one_form = Argument(V2, 0) * dx
+    action_one_form = action(one_form, Iv)  # adjoint interpolation V2^* -> V1^*
+    assert isinstance(action_one_form, Interpolate)
+    assert action_one_form.arguments() == (Argument(V1, 0),)
+    assert action_one_form.ufl_function_space() == V1.dual()
+
+    # zero-form case
+    action_zero_form = action(one_form, Iu)  # a number
+    assert isinstance(action_zero_form, Form)
+    assert action_zero_form.arguments() == ()
 
 
 def test_differentiation(V1, V2):
@@ -179,6 +191,12 @@ def test_differentiation(V1, V2):
 
     # Need to expand indices to be able to match equal (different MultiIndex used for both).
     assert expand_indices(dFdIu) == expand_indices(dFdw)
+
+    # Derivative of form I(u, V2) wrt coefficient u
+    J = Iu * dx
+    dJdu = expand_derivatives(derivative(J, u))
+    assert isinstance(dJdu, Interpolate)
+    assert dJdu.arguments() == (Argument(V1, 0),)
 
 
 def test_extract_base_form_operators(V1, V2):
