@@ -15,7 +15,6 @@ import numpy as np
 from ufl.core.expr import Expr
 from ufl.core.multiindex import indices
 from ufl.domain import AbstractDomain, MeshSequence, extract_unique_domain
-from ufl.functionspace import FunctionSpace
 from ufl.tensors import as_tensor
 
 if TYPE_CHECKING:
@@ -428,15 +427,14 @@ class MixedPullback(AbstractPullback):
             subdomain = domain[i] if isinstance(domain, MeshSequence) else None
             rmapped = subelem.pullback.apply(rsub, domain=subdomain)
             # Flatten into the pulled back expression for the whole thing
-            g_components.extend([rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape)])
+            g_components.extend(rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape))
             offset += subelem.reference_value_size
         # And reshape appropriately
-        space = FunctionSpace(domain, self._element)
-        f = as_tensor(np.asarray(g_components).reshape(space.value_shape))
-        if f.ufl_shape != space.value_shape:
+        value_shape = self.physical_value_shape(self._element, domain)
+        f = as_tensor(np.asarray(g_components).reshape(value_shape))
+        if f.ufl_shape != value_shape:
             raise ValueError(
-                "Expecting pulled back expression with shape "
-                f"'{space.value_shape}', got '{f.ufl_shape}'"
+                f"Expecting pulled back expression with shape '{value_shape}', got '{f.ufl_shape}'"
             )
         return f
 
@@ -453,7 +451,8 @@ class MixedPullback(AbstractPullback):
         assert element == self._element
         domains = domain.iterable_like(element)
         dim = sum(
-            FunctionSpace(d, e).value_size for d, e in zip(domains, self._element.sub_elements)
+            np.prod(e.pullback.physical_value_shape(e, d), dtype=int)
+            for d, e in zip(domains, self._element.sub_elements)
         )
         return (dim,)
 
@@ -496,8 +495,6 @@ class SymmetricPullback(AbstractPullback):
 
         Returns: The function pulled back to the reference cell
         """
-        domain = extract_unique_domain(expr)
-        space = FunctionSpace(domain, self._element)
         rflat = [expr[idx] for idx in np.ndindex(expr.ufl_shape)]
         g_components = []
         offsets = [0]
@@ -520,13 +517,13 @@ class SymmetricPullback(AbstractPullback):
             subdomain = domain[i] if isinstance(domain, MeshSequence) else None
             rmapped = subelem.pullback.apply(rsub, domain=subdomain)
             # Flatten into the pulled back expression for the whole thing
-            g_components.extend([rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape)])
+            g_components.extend(rmapped[idx] for idx in np.ndindex(rmapped.ufl_shape))
         # And reshape appropriately
-        f = as_tensor(np.asarray(g_components).reshape(space.value_shape))
-        if f.ufl_shape != space.value_shape:
+        value_shape = self.physical_value_shape(self._element, domain)
+        f = as_tensor(np.asarray(g_components).reshape(value_shape))
+        if f.ufl_shape != value_shape:
             raise ValueError(
-                f"Expecting pulled back expression with shape "
-                f"'{space.value_shape}', got '{f.ufl_shape}'"
+                f"Expecting pulled back expression with shape '{value_shape}', got '{f.ufl_shape}'"
             )
         return f
 
