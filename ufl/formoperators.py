@@ -9,6 +9,8 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Cecile Daversin-Catty, 2018
 
+import numpy as np
+
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algorithms import (
@@ -270,7 +272,9 @@ def set_list_item(li, i, v):
 def _handle_derivative_arguments(form, coefficient, argument):
     """Handle derivative arguments."""
     # Wrap single coefficient in tuple for uniform treatment below
-    if isinstance(coefficient, list | tuple | ListTensor):
+    if isinstance(coefficient, ListTensor):
+        coefficients = tuple(coefficient[i] for i in np.ndindex(coefficient.ufl_shape))
+    elif isinstance(coefficient, list | tuple):
         coefficients = tuple(coefficient)
     else:
         coefficients = (coefficient,)
