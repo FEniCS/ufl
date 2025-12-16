@@ -79,7 +79,6 @@ def test_derivative_zero_simplication():
     elem = MixedElement([elem0, elem1])
     V = FunctionSpace(mesh, elem)
     f = Coefficient(V)
-    coefficient_split = {f: (f0, f1)}
 
     coefficient_split = {f: (f0, f1)}
     expr = ReferenceGrad(ReferenceGrad(ReferenceValue(f)))
