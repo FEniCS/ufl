@@ -451,7 +451,7 @@ class MixedPullback(AbstractPullback):
         assert element == self._element
         domains = domain.iterable_like(element)
         dim = sum(
-            np.prod(e.pullback.physical_value_shape(e, d), dtype=int)
+            int(np.prod(e.pullback.physical_value_shape(e, d), dtype=int))
             for d, e in zip(domains, self._element.sub_elements)
         )
         return (dim,)
@@ -540,7 +540,7 @@ class SymmetricPullback(AbstractPullback):
         assert isinstance(element, type(self._element))
         subelem = element.sub_elements[0]
         pvs = subelem.pullback.physical_value_shape(subelem, domain)
-        return tuple(i + 1 for i in max(self._symmetry.keys())) + pvs
+        return tuple(int(i) + 1 for i in max(self._symmetry.keys())) + pvs
 
 
 class PhysicalPullback(AbstractPullback):
