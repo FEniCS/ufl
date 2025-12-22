@@ -43,10 +43,10 @@ def test_split(self):
 
     # Shapes of subelements are reproduced:
     g = Coefficient(m_space)
-    (s,) = g.ufl_shape
+    (size,) = g.ufl_shape
     for g2 in split(g):
-        s -= product(g2.ufl_shape)
-    assert s == 0
+        size -= product(g2.ufl_shape)
+    assert size == 0
 
     # Mixed elements of non-scalar subelements are flattened
     v2 = MixedElement([v, v])
@@ -78,3 +78,12 @@ def test_split(self):
     assert split(split(split(t)[0])[1]) == (t[2],)
     assert split(split(split(t)[1])[0]) == (t[3],)
     assert split(split(split(t)[1])[1]) == (t[4], t[5])
+
+    # Split twice on nested mixed elements with symmetry
+    vs = MixedElement([v, s])
+    vs_space = FunctionSpace(domain, vs)
+    vs_test = TestFunction(vs_space)
+
+    v_test, s_test = split(vs_test)
+    assert split(v_test) == (vs_test[0], vs_test[1])
+    assert split(s_test) == (vs_test[2], vs_test[3], vs_test[4], vs_test[5])
