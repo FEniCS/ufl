@@ -20,6 +20,7 @@ from ufl.classes import (
     ReferenceValue,
     Restricted,
     Terminal,
+    Zero,
 )
 from ufl.core.multiindex import indices
 from ufl.corealg.dag_traverser import DAGTraverser
