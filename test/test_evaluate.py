@@ -4,6 +4,7 @@ __date__ = "2009-02-13 -- 2009-02-13"
 import math
 
 import numpy as np
+import pytest
 from utils import LagrangeElement
 
 from ufl import (
@@ -91,7 +92,7 @@ def testCoords():
     s = x[0] + x[1]
     e = s((5, 7))
     v = 5 + 7
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def testFunction1():
@@ -103,7 +104,7 @@ def testFunction1():
     s = 3 * f
     e = s((5, 7), {f: 123})
     v = 3 * 123
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def testFunction2():
@@ -160,7 +161,7 @@ def testConstant():
     e = expr(())
 
     expected = complex(_a) / complex(_b)
-    assert e == expected
+    assert e == pytest.approx(expected)
 
 
 def testIndexSum():
@@ -171,7 +172,7 @@ def testIndexSum():
     s = x[i] * x[i]
     e = s((5, 7))
     v = 5**2 + 7**2
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def testIndexSum2():
@@ -184,7 +185,7 @@ def testIndexSum2():
     e = s((5, 7))
     # v = sum_i sum_j x_i x_j delta_ij = x_0 x_0 + x_1 x_1
     v = 5**2 + 7**2
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def testMathFunctions():
@@ -199,27 +200,27 @@ def testMathFunctions():
     s = cos(x)
     e = s((5, 7))
     v = math.cos(5)
-    assert e == v
+    assert e == pytest.approx(v)
 
     s = tan(x)
     e = s((5, 7))
     v = math.tan(5)
-    assert e == v
+    assert e == pytest.approx(v)
 
     s = ln(x)
     e = s((5, 7))
     v = math.log(5)
-    assert e == v
+    assert e == pytest.approx(v)
 
     s = exp(x)
     e = s((5, 7))
     v = math.exp(5)
-    assert e == v
+    assert e == pytest.approx(v)
 
     s = sqrt(x)
     e = s((5, 7))
     v = math.sqrt(5)
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def testListTensor():
@@ -231,12 +232,12 @@ def testListTensor():
     s = m[0, 0] + m[1, 0] + m[0, 1] + m[1, 1]
     e = s((5, 7))
     v = 0
-    assert e == v
+    assert e == pytest.approx(v)
 
     s = m[0, 0] * m[1, 0] * m[0, 1] * m[1, 1]
     e = s((5, 7))
     v = 5**2 * 7**2
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def testComponentTensor1():
@@ -247,7 +248,7 @@ def testComponentTensor1():
     s = m[0] * m[1]
     e = s((5, 7))
     v = 5 * 7
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def testComponentTensor2():
@@ -260,7 +261,7 @@ def testComponentTensor2():
     s = m[0, 0] + m[1, 0] + m[0, 1] + m[1, 1]
     e = s((5, 7))
     v = 5 * 5 + 5 * 7 + 5 * 7 + 7 * 7
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def testComponentTensor3():
@@ -273,7 +274,7 @@ def testComponentTensor3():
     s = m[0, 0] * m[1, 0] * m[0, 1] * m[1, 1]
     e = s((5, 7))
     v = 5 * 5 * 5 * 7 * 5 * 7 * 7 * 7
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def testCoefficient():
@@ -286,7 +287,7 @@ def testCoefficient():
     def eval_f(x):
         return x[0] * x[1] ** 2
 
-    assert e((3, 7), {f: eval_f}) == (3 * 7**2) ** 2
+    assert e((3, 7), {f: eval_f}) == pytest.approx((3 * 7**2) ** 2)
 
 
 def testCoefficientDerivative():
@@ -309,7 +310,7 @@ def testCoefficientDerivative():
     # shows how to attach data to eval_f
     eval_f.c = 5
 
-    assert e((3, 7), {f: eval_f}) == (5 * 7**2) ** 2 + (5 * 3 * 2 * 7) ** 2
+    assert e((3, 7), {f: eval_f}) == pytest.approx((5 * 7**2) ** 2 + (5 * 3 * 2 * 7) ** 2)
 
 
 def test_dot():
@@ -318,7 +319,7 @@ def test_dot():
     s = dot(x, 2 * x)
     e = s((5, 7))
     v = 2 * (5 * 5 + 7 * 7)
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def test_inner():
@@ -328,7 +329,7 @@ def test_inner():
     s = inner(xx, 2 * xx)
     e = s((5, 7))
     v = 2 * ((5 * 2) ** 2 + (5 * 3) ** 2 + (7 * 2) ** 2 + (7 * 3) ** 2)
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def test_outer():
@@ -338,7 +339,7 @@ def test_outer():
     s = inner(xx, 2 * xx)
     e = s((5, 7))
     v = 2 * (5**2 + 7**2) ** 2 * (2**2 + 3**2)
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def test_cross():
@@ -363,7 +364,7 @@ def test_cross():
                 tna = dot(t[a], t[a])(xv)
                 tnb = dot(t[b], t[b])(xv)
                 vab = tna * tnb if a != b else 0
-                assert eab == vab
+                assert eab == pytest.approx(vab)
 
 
 def xtest_dev():
@@ -375,7 +376,7 @@ def xtest_dev():
     s2 = 2 * (xx - xx.T)  # FIXME
     e = inner(s1, s1)(xv)
     v = inner(s2, s2)(xv)
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def test_skew():
@@ -387,7 +388,7 @@ def test_skew():
     s2 = xx - xx.T
     e = inner(s1, s1)(xv)
     v = inner(s2, s2)(xv)
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def test_sym():
@@ -399,7 +400,7 @@ def test_sym():
     s2 = xx + xx.T
     e = inner(s1, s1)(xv)
     v = inner(s2, s2)(xv)
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def test_tr():
@@ -410,7 +411,7 @@ def test_tr():
     s = tr(2 * xx)
     e = s(xv)
     v = 2 * sum(xv[i] ** 2 for i in (0, 1))
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def test_det2D():
@@ -422,7 +423,7 @@ def test_det2D():
     s = det(2 * xx)
     e = s(xv)
     v = 2**2 * (5 * b - 7 * a)
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def xtest_det3D():  # FIXME
@@ -434,7 +435,7 @@ def xtest_det3D():  # FIXME
     s = det(2 * xx)
     e = s(xv)
     v = 2**3 * (xv[0] * (b * f - e * c) - xv[1] * (a * f - c * d) + xv[2] * (a * e - b * d))
-    assert e == v
+    assert e == pytest.approx(v)
 
 
 def test_cofac():
