@@ -6,6 +6,7 @@ from utils import LagrangeElement
 from ufl import (
     FacetNormal,
     Mesh,
+    Zero,
     as_matrix,
     as_tensor,
     as_vector,
@@ -25,7 +26,6 @@ from ufl import (
     tr,
     transpose,
     triangle,
-    zero,
 )
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 
@@ -116,7 +116,7 @@ def test_cross(self):
     u = as_vector([3, 3, 3])
     v = as_vector([2, 2, 2])
     C = cross(u, v)
-    D = zero(3)
+    D = Zero((3,))
     self.assertEqualValues(C, D)
 
     u = as_vector([3, 3, 0])
@@ -135,7 +135,7 @@ def test_perp(self):
     self.assertEqualValues(v, w)
 
     # Test that a perp does the correct thing to Zero
-    u = zero(2)
+    u = Zero((2,))
     v = perp(u)
     self.assertEqualValues(u, v)
 

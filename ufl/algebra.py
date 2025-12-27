@@ -8,7 +8,7 @@
 # Modified by Anders Logg, 2008
 
 from ufl.checks import is_true_ufl_scalar, is_ufl_scalar
-from ufl.constantvalue import ComplexValue, IntValue, ScalarValue, Zero, as_ufl, zero
+from ufl.constantvalue import ComplexValue, IntValue, ScalarValue, Zero, as_ufl
 from ufl.core.expr import ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -296,7 +296,7 @@ class Power(Operator):
             if bf < 0:
                 raise ValueError("Division by zero, cannot raise 0 to a negative power.")
             else:
-                return zero()
+                return Zero()
         if isinstance(b, ScalarValue) and b._value == 1:
             return a
 

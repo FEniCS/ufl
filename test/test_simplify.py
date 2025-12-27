@@ -11,6 +11,7 @@ from ufl import (
     TestFunction,
     TrialFunction,
     VectorConstant,
+    Zero,
     acos,
     as_tensor,
     as_ufl,
@@ -34,7 +35,6 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import compute_form_data
-from ufl.constantvalue import Zero
 from ufl.core.multiindex import FixedIndex, Index, MultiIndex, indices
 from ufl.indexed import Indexed
 from ufl.tensors import ComponentTensor, ListTensor

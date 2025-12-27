@@ -92,7 +92,7 @@ from ufl import (
 )
 from ufl.algorithms import *  # noqa: F403
 from ufl.classes import *  # noqa: F403
-from ufl.classes import (
+from ufl.classes import (  # type: ignore
     Acos,
     Asin,
     Atan,

@@ -10,6 +10,7 @@
 # Modified by Massimiliano Leoni, 2016.
 
 import numbers
+import warnings
 from math import atan2
 
 import ufl
@@ -20,18 +21,6 @@ from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
-
-# Precision for float formatting
-precision = None
-
-
-def format_float(x):
-    """Format float value based on global UFL precision."""
-    if precision:
-        return "{:.{prec}}".format(float(x), prec=precision)
-    else:
-        return f"{float(x)}"
-
 
 # --- Base classes for constant types ---
 
@@ -190,6 +179,7 @@ class Zero(ConstantValue):
 
 def zero(*shape):
     """UFL literal constant: Return a zero tensor with the given shape."""
+    warnings.warn("ufl.zero is deprecated. Use ufl.Zero instead.", DeprecationWarning)
     if len(shape) == 1 and isinstance(shape[0], tuple):
         return Zero(shape[0])
     else:
@@ -348,8 +338,7 @@ class FloatValue(RealValue):
 
     def __repr__(self):
         """Representation."""
-        r = f"{type(self).__name__}({format_float(self._value)})"
-        return r
+        return f"{type(self).__name__}({float(self._value)})"
 
 
 @ufl_type(wraps_type=int, is_literal=True)
