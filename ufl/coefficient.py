@@ -12,8 +12,9 @@
 # Modified by Ignacia Fierro-Piccardo 2023.
 
 from ufl.argument import Argument
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.terminal import FormArgument
-from ufl.core.ufl_type import ufl_type
+from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
@@ -23,7 +24,7 @@ from ufl.utils.counted import Counted
 # --- The Coefficient class represents a coefficient in a form ---
 
 
-class BaseCoefficient(Counted):
+class BaseCoefficient(UFLType, Counted):
     """UFL form argument type: Parent Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
@@ -31,7 +32,6 @@ class BaseCoefficient(Counted):
     # __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
     _ufl_noslots_ = True
     __slots__ = ()
-    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         """Get new args."""
@@ -99,6 +99,10 @@ class BaseCoefficient(Counted):
         if self is other:
             return True
         return self._count == other._count and self._ufl_function_space == other._ufl_function_space
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
 
 @ufl_type()
@@ -196,6 +200,10 @@ class Coefficient(FormArgument, BaseCoefficient):
         if self is other:
             return True
         return self._count == other._count and self._ufl_function_space == other._ufl_function_space
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __repr__(self):
         """Representation."""

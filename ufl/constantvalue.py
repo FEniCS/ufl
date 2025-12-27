@@ -16,6 +16,7 @@ import ufl
 
 # --- Helper functions imported here for compatibility---
 from ufl.checks import is_python_scalar, is_true_ufl_scalar, is_ufl_scalar  # noqa: F401
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.expr import Expr
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.core.terminal import Terminal
@@ -36,7 +37,7 @@ def format_float(x):
 # --- Base classes for constant types ---
 
 
-@ufl_type(is_abstract=True)
+@ufl_type()
 class ConstantValue(Terminal):
     """Constant value."""
 
@@ -56,13 +57,14 @@ class ConstantValue(Terminal):
 
 
 # TODO: Add geometric dimension/domain and Argument dependencies to Zero?
-@ufl_type(is_literal=True)
+@ufl_type()
 class Zero(ConstantValue):
     """Representation of a zero valued expression.
 
     Class for representing zero tensors of different shapes.
     """
 
+    _ufl_is_literal_ = True
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     _cache: dict[tuple[int], "Zero"] = {}
@@ -161,6 +163,10 @@ class Zero(ConstantValue):
         else:
             return False
 
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
+
     def __neg__(self):
         """Negate."""
         return self
@@ -199,10 +205,13 @@ def zero(*shape):
 # --- Scalar value types ---
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type()
 class ScalarValue(ConstantValue):
     """A constant scalar value."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ("_value",)
 
     def __init__(self, value):
@@ -230,7 +239,7 @@ class ScalarValue(ConstantValue):
         can still succeed. These will however not have the same
         hash value and therefore not collide in a dict.
         """
-        if isinstance(other, self._ufl_class_):
+        if isinstance(other, type(self)):
             return self._value == other._value
         elif isinstance(other, int | float):
             # FIXME: Disallow this, require explicit 'expr ==
@@ -238,6 +247,10 @@ class ScalarValue(ConstantValue):
             return other == self._value
         else:
             return False
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __str__(self):
         """Format as a string."""
@@ -272,10 +285,11 @@ class ScalarValue(ConstantValue):
         return self._value.imag
 
 
-@ufl_type(wraps_type=complex, is_literal=True)
+@ufl_type()
 class ComplexValue(ScalarValue):
     """Representation of a constant, complex scalar."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     def __getnewargs__(self):
@@ -318,17 +332,21 @@ class ComplexValue(ScalarValue):
         raise TypeError("ComplexValues cannot be cast to int")
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type()
 class RealValue(ScalarValue):
     """Abstract class used to differentiate real values from complex ones."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
 
-@ufl_type(wraps_type=float, is_literal=True)
+@ufl_type()
 class FloatValue(RealValue):
     """Representation of a constant scalar floating point value."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     def __getnewargs__(self):
@@ -352,10 +370,11 @@ class FloatValue(RealValue):
         return r
 
 
-@ufl_type(wraps_type=int, is_literal=True)
+@ufl_type()
 class IntValue(RealValue):
     """Representation of a constant scalar integer value."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     _cache: dict[int, "IntValue"] = {}
@@ -436,6 +455,10 @@ class Identity(ConstantValue):
         """Check equalty."""
         return isinstance(other, Identity) and self._dim == other._dim
 
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
+
 
 # --- Permutation symbol ---
 
@@ -479,6 +502,10 @@ class PermutationSymbol(ConstantValue):
     def __eq__(self, other):
         """Check equalty."""
         return isinstance(other, PermutationSymbol) and self._dim == other._dim
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __eps(self, x):
         """Get eps.

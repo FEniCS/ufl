@@ -151,7 +151,7 @@ def _check_facet_geometry(integral_data):
     for itg_data in integral_data:
         for itg in itg_data.integrals:
             for expr in traverse_unique_terminals(itg.integrand()):
-                cls = expr._ufl_class_
+                cls = type(expr)
                 if issubclass(cls, GeometricFacetQuantity):
                     domain = extract_unique_domain(expr, expand_mesh_sequence=False)
                     if isinstance(domain, MeshSequence):

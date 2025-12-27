@@ -9,8 +9,7 @@
 
 from inspect import signature
 
-from ufl.core.expr import Expr
-from ufl.core.ufl_type import UFLType
+from ufl.core.ufl_type import UFLRegistry, UFLType
 
 
 def get_num_args(function):
@@ -56,13 +55,13 @@ class MultiFunction:
         algorithm_class = type(self)
         cache_data = MultiFunction._handlers_cache.get(algorithm_class)
         if not cache_data:
-            handler_names = [None] * len(Expr._ufl_all_classes_)
+            handler_names = [None] * len(UFLRegistry().all_classes)
 
             # Iterate over the inheritance chain for each Expr
             # subclass (NB! This assumes that all UFL classes inherits
             # from a single Expr subclass and that the first
             # superclass is always from the UFL Expr hierarchy!)
-            for classobject in Expr._ufl_all_classes_:
+            for classobject in UFLRegistry().all_classes:
                 for c in classobject.mro():
                     # Register classobject with handler for the first
                     # encountered superclass
@@ -96,7 +95,7 @@ class MultiFunction:
 
     def undefined(self, o, *args):
         """Trigger error for types with missing handlers."""
-        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
+        raise ValueError(f"No handler defined for {type(o).__name__}.")
 
     def reuse_if_untouched(self, o, *ops):
         """Reuse object if operands are the same objects.

@@ -115,6 +115,7 @@ from ufl.classes import (
     Tanh,
     all_ufl_classes,
 )
+from ufl.core.ufl_type import UFLRegistry
 
 has_repr = set()
 has_dict = set()
@@ -722,15 +723,15 @@ def testAll(self):
     # e = action(b)
 
     # --- Check which classes have been created
-    ic, _dc = Expr.ufl_disable_profiling()
+    Expr.ufl_disable_profiling()
+    ic = UFLRegistry().object_tracking
 
     constructed = set()
-    unused = set(Expr._ufl_all_classes_)
-    for cls in Expr._ufl_all_classes_:
-        tc = cls._ufl_typecode_
-        if ic[tc]:
+    unused = set(UFLRegistry().all_classes)
+    for cls in ic.keys():
+        if ic[cls][0] > 0:
             constructed.add(cls)
-        if cls._ufl_is_abstract_:
+        else:
             unused.remove(cls)
 
     if unused:

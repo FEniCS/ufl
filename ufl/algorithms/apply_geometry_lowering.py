@@ -43,6 +43,7 @@ from ufl.classes import (
 )
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
+from ufl.core.ufl_type import UFLRegistry
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.domain import extract_unique_domain
@@ -58,7 +59,7 @@ class GeometryLoweringApplier(MultiFunction):
         """Initialise."""
         MultiFunction.__init__(self)
         # Store preserve_types as boolean lookup table
-        self._preserve_types = [False] * Expr._ufl_num_typecodes_
+        self._preserve_types = [False] * UFLRegistry().number_registered_classes
         for cls in preserve_types:
             self._preserve_types[cls._ufl_typecode_] = True
 

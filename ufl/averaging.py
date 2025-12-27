@@ -11,9 +11,7 @@ from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(
-    inherit_shape_from_operand=0, inherit_indices_from_operand=0, num_ops=1, is_evaluation=True
-)
+@ufl_type()
 class CellAvg(Operator):
     """Cell average."""
 
@@ -42,10 +40,18 @@ class CellAvg(Operator):
         """Format as a string."""
         return f"cell_avg({self.ufl_operands[0]})"
 
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
 
-@ufl_type(
-    inherit_shape_from_operand=0, inherit_indices_from_operand=0, num_ops=1, is_evaluation=True
-)
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions
+
+
+@ufl_type()
 class FacetAvg(Operator):
     """Facet average."""
 
@@ -73,3 +79,13 @@ class FacetAvg(Operator):
     def __str__(self):
         """Format as a string."""
         return f"facet_avg({self.ufl_operands[0]})"
+
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[0].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[0].ufl_index_dimensions

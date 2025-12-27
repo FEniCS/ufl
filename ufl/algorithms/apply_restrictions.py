@@ -105,9 +105,7 @@ class RestrictionPropagator(MultiFunction):
                 if r is None:
                     return o
                 else:
-                    raise ValueError(
-                        f"Discontinuous type {o._ufl_class_.__name__} must be restricted."
-                    )
+                    raise ValueError(f"Discontinuous type {type(o).__name__} must be restricted.")
             elif self.current_restriction in ["+", "-"]:
                 if r not in ["+", "-"]:
                     raise ValueError(
@@ -167,9 +165,7 @@ class RestrictionPropagator(MultiFunction):
                 if r is None:
                     return o
                 else:
-                    raise ValueError(
-                        f"Discontinuous type {o._ufl_class_.__name__} must be restricted."
-                    )
+                    raise ValueError(f"Discontinuous type {type(o).__name__} must be restricted.")
             elif self.current_restriction in ["+", "-"]:
                 if r is None:
                     raise ValueError(
@@ -187,7 +183,7 @@ class RestrictionPropagator(MultiFunction):
 
     def _missing_rule(self, o):
         """Raise an error."""
-        raise ValueError(f"Missing rule for {o._ufl_class_.__name__}")
+        raise ValueError(f"Missing rule for {type(o).__name__}")
 
     # --- Rules for operators
 

@@ -15,7 +15,9 @@ classes (functions), including TestFunction and TrialFunction.
 # Modified by Ignacia Fierro-Piccardo 2023.
 
 import numbers
+from abc import ABC
 
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual, is_primal
@@ -30,11 +32,10 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 # --- Class representing an argument (basis function) in a form ---
 
 
-class BaseArgument:
+class BaseArgument(ABC):
     """UFL value: Representation of an argument to a form."""
 
     __slots__ = ()
-    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         """Get new args."""
@@ -184,6 +185,10 @@ class Argument(FormArgument, BaseArgument):
     def __repr__(self):
         """Representation."""
         return self._repr
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
 
 @ufl_type()

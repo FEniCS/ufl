@@ -138,7 +138,7 @@ class ChangeToReferenceGrad(MultiFunction):
                 rv = True
                 (o,) = o.ufl_operands
             else:
-                raise ValueError(f"Invalid type {o._ufl_class_.__name__}")
+                raise ValueError(f"Invalid type {type(o).__name__}")
         f = o
         if rv:
             f = ReferenceValue(f)

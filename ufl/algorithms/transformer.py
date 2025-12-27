@@ -118,7 +118,7 @@ class Transformer:
 
     def undefined(self, o):
         """Trigger error."""
-        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
+        raise ValueError(f"No handler defined for {type(o).__name__}.")
 
     def reuse(self, o):
         """Reuse Expr (ignore children)."""

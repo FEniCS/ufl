@@ -11,13 +11,14 @@
 from ufl.argument import Argument, Coargument
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.compute_expr_hash import compute_expr_hash
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 
 
-@ufl_type(num_ops="varying", is_differential=True)
+@ufl_type()
 class Interpolate(BaseFormOperator):
     """Symbolic representation of the interpolation operator."""
 
@@ -102,6 +103,10 @@ class Interpolate(BaseFormOperator):
             and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
             and self.ufl_function_space() == other.ufl_function_space()
         )
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
 
 # Helper function

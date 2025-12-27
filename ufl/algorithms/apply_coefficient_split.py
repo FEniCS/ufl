@@ -105,8 +105,9 @@ class CoefficientSplitter(DAGTraverser):
         if reference_value:
             raise RuntimeError(f"Can not apply ReferenceValue on a ReferenceValue: got {o}")
         (op,) = o.ufl_operands
-        if not op._ufl_terminal_modifiers_:
-            raise ValueError(f"Must be a terminal modifier: {op!r}.")
+        # TODO: correct?
+        # if not op._ufl_is_terminal_modifier_:
+        #     raise ValueError(f"Must be a terminal modifier: {op!r}.")
         return self(
             op,
             reference_value=True,
@@ -124,8 +125,9 @@ class CoefficientSplitter(DAGTraverser):
     ) -> Expr:
         """Handle ReferenceGrad."""
         (op,) = o.ufl_operands
-        if not op._ufl_terminal_modifiers_:
-            raise ValueError(f"Must be a terminal modifier: {op!r}.")
+        # TODO:
+        # if not op._ufl_is_terminal_modifier_:
+        #     raise ValueError(f"Must be a terminal modifier: {op!r}.")
         return self(
             op,
             reference_value=reference_value,
@@ -145,8 +147,9 @@ class CoefficientSplitter(DAGTraverser):
         if restricted is not None:
             raise RuntimeError(f"Can not apply Restricted on a Restricted: got {o}")
         (op,) = o.ufl_operands
-        if not op._ufl_terminal_modifiers_:
-            raise ValueError(f"Must be a terminal modifier: {op!r}.")
+        # TODO:
+        # if not op._ufl_is_terminal_modifier_:
+        #     raise ValueError(f"Must be a terminal modifier: {op!r}.")
         return self(
             op,
             reference_value=reference_value,

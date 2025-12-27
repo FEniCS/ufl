@@ -166,13 +166,11 @@ class GenericDerivativeRuleset(DAGTraverser):
 
     def unexpected(self, o):
         """Raise error about unexpected type."""
-        raise ValueError(f"Unexpected type {o._ufl_class_.__name__} in AD rules.")
+        raise ValueError(f"Unexpected type {type(o).__name__} in AD rules.")
 
     def override(self, o):
         """Raise error about overriding."""
-        raise ValueError(
-            f"Type {o._ufl_class_.__name__} must be overridden in specialized AD rule set."
-        )
+        raise ValueError(f"Type {type(o).__name__} must be overridden in specialized AD rule set.")
 
     # --- Some types just don't have any derivative, this is just to
     # --- make algorithm structure generic
@@ -214,7 +212,7 @@ class GenericDerivativeRuleset(DAGTraverser):
     def _(self, o: Expr) -> Expr:
         """Raise error."""
         raise ValueError(
-            f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
+            f"Missing differentiation handler for type {type(o).__name__}. "
             "Have you added a new type?"
         )
 
@@ -222,8 +220,7 @@ class GenericDerivativeRuleset(DAGTraverser):
     def _(self, o: Expr) -> Expr:
         """Raise error."""
         raise ValueError(
-            f"Unhandled derivative type {o._ufl_class_.__name__}, "
-            "nested differentiation has failed."
+            f"Unhandled derivative type {type(o).__name__}, nested differentiation has failed."
         )
 
     @process.register(Label)
@@ -321,7 +318,7 @@ class GenericDerivativeRuleset(DAGTraverser):
 
     @process.register(Indexed)
     @DAGTraverser.postorder
-    def _(self, o: Indexed, Ap: Expr, ii: MultiIndex) -> Expr:
+    def _(self, o: Indexed, Ap: Expr, ii: MultiIndex) -> Indexed:
         """Differentiate an indexed."""
         # Propagate zeros
         if isinstance(Ap, Zero):
@@ -905,8 +902,8 @@ class GradRuleset(GenericDerivativeRuleset):
             if not f._ufl_is_in_reference_frame_:
                 raise RuntimeError("Expecting a reference frame type")
             while not f._ufl_is_terminal_:
-                (f,) = f.ufl_operands
-            element = f.ufl_function_space().ufl_element()
+                (f,) = f.ufl_operands  # type: ignore
+            element = f.ufl_function_space().ufl_element()  # type: ignore
             if element.num_sub_elements != len(domain):
                 raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
             # Get monolithic representation of rgrad(o); o might live in a mixed space.
