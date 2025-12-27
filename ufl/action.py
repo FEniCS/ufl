@@ -51,6 +51,9 @@ class Action(BaseForm):
 
     def __new__(cls, *args, **kw):
         """Create a new Action."""
+        from ufl.algorithms.analysis import extract_arguments
+        from ufl.algorithms.replace import replace
+
         left, right = args
 
         # Check trivial case
@@ -98,6 +101,12 @@ class Action(BaseForm):
             and len(left.arguments()) == 1
         ):
             v, operand = right.argument_slots()
+            # If the operand has an argument, replace it with number 0
+            operand_args = extract_arguments(operand)
+            if operand_args:
+                (old_arg,) = operand_args
+                new_arg = type(old_arg)(old_arg.ufl_function_space(), 0, old_arg.part())
+                operand = replace(operand, {old_arg: new_arg})
             if v == right.arguments()[0]:
                 return right._ufl_expr_reconstruct_(operand, v=left)
 

@@ -174,7 +174,7 @@ class Integral:
             for d, itype in self._extra_domain_integral_type_map.items()
         }
         return (
-            f"{{self._integrand}} * "
+            f"{self._integrand} * "
             f"{mname}({self._ufl_domain}[{self._subdomain_id}], {self._metadata}, {temp})"
         )
 

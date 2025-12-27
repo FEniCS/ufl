@@ -13,6 +13,7 @@ import numbers
 import typing
 import weakref
 from abc import abstractmethod
+from collections.abc import Sequence
 
 from ufl.core.ufl_type import UFLObject
 
@@ -205,6 +206,11 @@ class AbstractCell(UFLObject):
         tdim = self.topological_dimension
         return self.sub_entity_types(tdim - 3)
 
+    @property
+    @abstractmethod
+    def cells(self) -> tuple[AbstractCell, ...]:
+        """Return the component cells in the CellSequence sense."""
+
 
 _sub_entity_celltypes: dict[str, list[tuple[str, ...]]] = {
     "vertex": [("vertex",)],
@@ -365,6 +371,11 @@ class Cell(AbstractCell):
             raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
         return Cell(self._cellname)
 
+    @property
+    def cells(self) -> tuple[AbstractCell, ...]:
+        """Return the component cells in the CellSequence sense."""
+        return (self,)
+
 
 class TensorProductCell(AbstractCell):
     """Tensor product cell."""
@@ -471,6 +482,11 @@ class TensorProductCell(AbstractCell):
             raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
         return TensorProductCell(*self._cells)
 
+    @property
+    def cells(self) -> tuple[AbstractCell, ...]:
+        """Return the component cells in the CellSequence sense."""
+        return (self,)
+
 
 def simplex(topological_dimension: int):
     """Return a simplex cell of the given dimension."""
@@ -515,3 +531,90 @@ def as_cell(cell: AbstractCell | str | tuple[AbstractCell, ...]) -> AbstractCell
         return TensorProductCell(*cell)
     else:
         raise ValueError(f"Invalid cell {cell}.")
+
+
+class CellSequence(AbstractCell):
+    """Representation of a sequence of cells."""
+
+    __slots__ = (
+        "_cells",
+        "_tdim",
+    )
+
+    def __init__(self, cells: Sequence[AbstractCell]):
+        """Initialise.
+
+        Args:
+            cells: Sequence of cells
+        """
+        self._cells = tuple(cells)
+        self._tdim = max(cell.topological_dimension for cell in cells)
+
+    @property
+    def topological_dimension(self) -> int:
+        """Return the maximum dimension of the component cells."""
+        return self._tdim
+
+    @property
+    def is_simplex(self) -> bool:
+        """Return True if this is a simplex cell."""
+        raise RuntimeError(f"is_simplex not defined for {type(self).__name__}")
+
+    @property
+    def has_simplex_facets(self) -> bool:
+        """Return True if all the facets of this cell are simplex cells."""
+        raise RuntimeError(f"has_simplex_facets not defined for {type(self).__name__}")
+
+    def num_sub_entities(self, dim: int) -> int:
+        """Get the number of sub-entities of the given dimension."""
+        raise RuntimeError(f"num_sub_entities not defined for {type(self).__name__}")
+
+    def sub_entities(self, dim: int) -> tuple[AbstractCell, ...]:
+        """Get the sub-entities of the given dimension."""
+        raise RuntimeError(f"sub_entities not defined for {type(self).__name__}")
+
+    def sub_entity_types(self, dim: int) -> tuple[AbstractCell, ...]:
+        """Get the unique sub-entity types of the given dimension."""
+        raise RuntimeError(f"sub_entity_types not defined for {type(self).__name__}")
+
+    def _lt(self, other) -> bool:
+        raise RuntimeError(f"_lt not defined for {type(self).__name__}")
+
+    @property
+    def cellname(self) -> str:
+        """Return the cellname of the cell."""
+        return f"{type(self).__name__}({tuple(c.cellname for c in self._cells)})"
+
+    def reconstruct(self, **kwargs: typing.Any) -> CellSequence:
+        """Reconstruct this cell, overwriting properties by those in kwargs."""
+        cells = kwargs.pop("cells", None)
+        for key, value in kwargs.items():
+            raise TypeError(f"reconstruct() got unexpected keyword argument '{key}'")
+        if cells is None:
+            cells = self._cells
+        return type(self)(cells)
+
+    def __repr__(self):
+        """Representation."""
+        return f"{type(self).__name__}({self._cells!r})"
+
+    def __str__(self):
+        """Format as a string."""
+        return f"<{type(self).__name__} #{self._cells}>"
+
+    def _ufl_hash_data_(self):
+        """UFL hash data."""
+        return ("CellSequence", tuple(c._ufl_hash_data_() for c in self._cells))
+
+    def _ufl_signature_data_(self, renumbering):
+        """UFL signature data."""
+        return ("CellSequence", tuple(c._ufl_signature_data_(renumbering) for c in self._cells))
+
+    def _ufl_sort_key_(self):
+        """UFL sort key."""
+        return ("CellSequence", tuple(c._ufl_sort_key_() for c in self._cells))
+
+    @property
+    def cells(self) -> tuple[AbstractCell, ...]:
+        """Return the component cells in the CellSequence sense."""
+        return self._cells

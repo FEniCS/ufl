@@ -7,6 +7,7 @@ from ufl import (
     MeshSequence,
     triangle,
 )
+from ufl.algorithms import extract_coefficients
 from ufl.algorithms.apply_coefficient_split import apply_coefficient_split
 from ufl.classes import (
     ComponentTensor,
@@ -29,7 +30,7 @@ def test_apply_coefficient_split(self):
     f0 = Coefficient(V0)
     f1 = Coefficient(V1)
     mesh = MeshSequence([mesh0, mesh1])
-    elem = MixedElement([elem0, elem1])
+    elem = MixedElement([elem0, elem1], make_cell_sequence=True)
     V = FunctionSpace(mesh, elem)
     f = Coefficient(V)
     coefficient_split = {f: (f0, f1)}
@@ -64,3 +65,25 @@ def test_apply_coefficient_split(self):
     op1_, (idx1_,) = op1.ufl_operands
     assert op1_ == PositiveRestricted(ReferenceGrad(ReferenceValue(f1)))
     assert idx1_ == idx1
+
+
+def test_derivative_zero_simplication():
+    cell = triangle
+    mesh = Mesh(LagrangeElement(cell, 1, (2,)))
+    elem0 = LagrangeElement(cell, 0)
+    elem1 = LagrangeElement(cell, 3)
+    V0 = FunctionSpace(mesh, elem0)
+    V1 = FunctionSpace(mesh, elem1)
+    f0 = Coefficient(V0)
+    f1 = Coefficient(V1)
+    elem = MixedElement([elem0, elem1])
+    V = FunctionSpace(mesh, elem)
+    f = Coefficient(V)
+
+    coefficient_split = {f: (f0, f1)}
+    expr = ReferenceGrad(ReferenceGrad(ReferenceValue(f)))
+    expr_split = apply_coefficient_split(expr, coefficient_split)
+
+    coefficients = extract_coefficients(expr_split)
+    assert f1 in coefficients
+    assert f0 not in coefficients

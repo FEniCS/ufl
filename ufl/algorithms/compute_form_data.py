@@ -39,7 +39,7 @@ from ufl.algorithms.replace import replace
 from ufl.classes import Coefficient, Form, FunctionSpace, GeometricFacetQuantity
 from ufl.constantvalue import Zero
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import extract_domains, extract_unique_domain
+from ufl.domain import MeshSequence, extract_domains, extract_unique_domain
 from ufl.utils.sequences import max_degree
 
 
@@ -150,15 +150,21 @@ def _check_facet_geometry(integral_data):
     """Check facet geometry."""
     for itg_data in integral_data:
         for itg in itg_data.integrals:
-            it = itg_data.integral_type
-            # Facet geometry is only valid in facet integrals.
-            # Allowing custom integrals to pass as well, although
-            # that's not really strict enough.
-            if not ("facet" in it or "custom" in it or "interface" in it):
-                # Not a facet integral
-                for expr in traverse_unique_terminals(itg.integrand()):
-                    cls = type(expr)
-                    if issubclass(cls, GeometricFacetQuantity):
+            for expr in traverse_unique_terminals(itg.integrand()):
+                cls = type(expr)
+                if issubclass(cls, GeometricFacetQuantity):
+                    domain = extract_unique_domain(expr, expand_mesh_sequence=False)
+                    if isinstance(domain, MeshSequence):
+                        raise RuntimeError(
+                            f"Not expecting a terminal object on a "
+                            f"mesh sequence at this stage: found {expr!r}"
+                        )
+                    it = itg_data.domain_integral_type_map[domain]
+                    # Facet geometry is only valid in facet integrals.
+                    # Allowing custom integrals to pass as well, although
+                    # that's not really strict enough.
+                    if not ("facet" in it or "custom" in it or "interface" in it):
+                        # Not a facet integral
                         raise ValueError(f"Integral of type {it} cannot contain a {cls.__name__}.")
 
 
