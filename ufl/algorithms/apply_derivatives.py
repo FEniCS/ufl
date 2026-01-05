@@ -1,6 +1,6 @@
 """Apply derivatives algorithm which computes the derivatives of a form of expression."""
 
-# Copyright (C) 2008-2016 Martin Sandve Alnæs
+# Copyright (C) 2008-2026 Martin Sandve Alnæs
 #
 # This file is part of UFL (https://www.fenicsproject.org)
 #
@@ -17,6 +17,7 @@ import numpy as np
 from ufl.action import Action
 from ufl.algorithms.analysis import extract_arguments, extract_coefficients
 from ufl.algorithms.map_integrands import map_integrands
+from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
 from ufl.argument import Argument, BaseArgument, Coargument
 from ufl.averaging import CellAvg, FacetAvg
@@ -2204,10 +2205,13 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         # d (grad_X(x))/d x => grad_X(Argument(x.function_space())
         for w, v in zip(self._w, self._v):
             if extract_unique_domain(o) == extract_unique_domain(w) and isinstance(
-                v.ufl_operands[0],  # type: ignore
+                remove_complex_nodes(v).ufl_operands[0],  # type: ignore
                 FormArgument,
             ):
-                return ReferenceGrad(v)
+                if isinstance(v, Conj):
+                    return Conj(ReferenceGrad(remove_complex_nodes(v)))
+                else:
+                    return ReferenceGrad(v)
         return self.independent_terminal(o)
 
 
