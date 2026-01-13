@@ -70,12 +70,15 @@ A very brief overview of the language contents follows:
     -L2
     -H1
     -H2
+    -H3
     -HInf
     -HDiv
     -HCurl
     -HEin
     -HDivDiv
     -HCurlDiv
+    -H1Div
+    -H1Curl
 
 
 * Pull backs::
@@ -427,7 +430,20 @@ from ufl.pullback import (
     identity_pullback,
     l2_piola,
 )
-from ufl.sobolevspace import H1, H2, L2, HCurl, HCurlDiv, HDiv, HDivDiv, HEin, HInf
+from ufl.sobolevspace import (
+    H1,
+    H2,
+    H3,
+    L2,
+    H1Curl,
+    H1Div,
+    HCurl,
+    HCurlDiv,
+    HDiv,
+    HDivDiv,
+    HEin,
+    HInf,
+)
 from ufl.split_functions import split
 from ufl.tensors import (
     as_matrix,
@@ -444,6 +460,7 @@ from ufl.variable import Label
 __all__ = [
     "H1",
     "H2",
+    "H3",
     "L2",
     "AbstractCell",
     "AbstractDomain",
@@ -476,6 +493,8 @@ __all__ = [
     "Form",
     "FormSum",
     "FunctionSpace",
+    "H1Curl",
+    "H1Div",
     "HCurl",
     "HCurlDiv",
     "HDiv",
