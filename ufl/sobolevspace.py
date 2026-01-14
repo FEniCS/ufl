@@ -42,17 +42,12 @@ class SobolevSpace:
         p = frozenset(parents or [])
         # Ensure that the inclusion operations are transitive.
         self.parents = p.union(*[p_.parents for p_ in p])
-        order_dict = {
-            "L2": 0,
-            "H1": 1,
-            "H2": 2,
-            "H3": 3,
-            "HInf": inf,
-        }
+        order_dict = {"L2": 0, "H1": 1, "H2": 2, "H3": 3, "HInf": inf}
         try:
             order = order_dict[self.name]
         except KeyError:
-            # Take the maximum order over all the parents, e.g. H1curl has order=1 because H1 is its parent
+            # Take the maximum order over all the parents
+            # For instance, H1Div has order=1 because it has H1 as parent
             if len(self.parents) == 0:
                 order = 0
             else:
@@ -126,7 +121,7 @@ class DirectionalSobolevSpace(SobolevSpace):
         """Returns the Sobolev space associated with a particular spatial coordinate."""
         if spatial_index not in range(len(self._orders)):
             raise IndexError("Spatial index out of range.")
-        spaces = {0: L2, 1: H1, 2: H2, inf: HInf}
+        spaces = {0: L2, 1: H1, 2: H2, 3: H3, inf: HInf}
         return spaces[self._orders[spatial_index]]
 
     def __contains__(self, other):
