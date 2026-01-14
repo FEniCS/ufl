@@ -52,10 +52,11 @@ class SobolevSpace:
         try:
             order = order_dict[self.name]
         except KeyError:
+            # Take the maximum order over all the parents, e.g. H1curl has order=1 because H1 is its parent
             if len(self.parents) == 0:
                 order = 0
             else:
-                order = max(order_dict.get(p.name, 0) for p in self.parents)
+                order = max(p._order for p in self.parents)
         self._order = order
 
     def __str__(self):
