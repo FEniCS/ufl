@@ -29,9 +29,6 @@ class Tester:
     def assertNotIsInstance(self, obj, cls):
         assert not isinstance(obj, cls)
 
-    def assertRaises(self, e, f):
-        assert pytest.raises(e, f)
-
     def assertEqualTotalShape(self, value, expected):
         self.assertEqual(value.ufl_shape, expected.ufl_shape)
         self.assertEqual(value.ufl_free_indices, expected.ufl_free_indices)
