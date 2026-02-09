@@ -1,4 +1,4 @@
-from pytest import raises
+import pytest
 from utils import LagrangeElement
 
 from ufl import (
@@ -66,11 +66,11 @@ def test_floor_division_fails(self):
     f = as_ufl(2.0)
     r = as_ufl(4)
     s = as_ufl(5)
-    with raises(NotImplementedError) as _:
+    with pytest.raises(NotImplementedError) as _:
         r // 4
-    with raises(NotImplementedError) as _:
+    with pytest.raises(NotImplementedError) as _:
         r // s
-    with raises(NotImplementedError) as _:
+    with pytest.raises(NotImplementedError) as _:
         f // s
 
 
