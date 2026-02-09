@@ -1,4 +1,4 @@
-from pytest import raises
+import pytest
 from utils import FiniteElement, LagrangeElement
 
 from ufl import (
@@ -35,11 +35,12 @@ def test_apply_restrictions():
     n = FacetNormal(domain)
     x = SpatialCoordinate(domain)
 
-    assert raises(BaseException, lambda: apply_restrictions(f0, default_restrictions={domain: "+"}))
-    assert raises(
-        BaseException, lambda: apply_restrictions(grad(f), default_restrictions={domain: "+"})
-    )
-    assert raises(BaseException, lambda: apply_restrictions(n, default_restrictions={domain: "+"}))
+    with pytest.raises(BaseException) as _:
+        apply_restrictions(f0, default_restrictions={domain: "+"})
+    with pytest.raises(BaseException) as _:
+        apply_restrictions(grad(f), default_restrictions={domain: "+"})
+    with pytest.raises(BaseException) as _:
+        apply_restrictions(n, default_restrictions={domain: "+"})
 
     # Continuous function gets default restriction if none
     # provided otherwise the user choice is respected

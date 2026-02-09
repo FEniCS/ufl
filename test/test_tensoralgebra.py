@@ -98,7 +98,8 @@ def test_pow2_inner(self, A, u):
     assert A2 == remove_complex_nodes(inner(A, A))
 
     # Only tensor**2 notation is supported:
-    self.assertRaises(BaseException, lambda: A**3)
+    with pytest.raises(BaseException) as _:
+        A**3
 
 
 def test_dot(self, A, B, u, v):
