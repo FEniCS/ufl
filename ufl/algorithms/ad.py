@@ -18,7 +18,7 @@ from ufl.classes import BaseForm, Expr
 def expand_derivatives(expr: Expr | BaseForm, **kwargs):
     """Expand all derivatives of expr.
 
-    In the returned expression g which is mathematically
+    In the returned expression, which is mathematically
     equivalent to expr, there are no VariableDerivative
     or CoefficientDerivative objects left, and Grad
     objects have been propagated to Terminal nodes.

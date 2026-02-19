@@ -1986,18 +1986,21 @@ class BaseFormOperatorDerivativeRecorder:
         return self
 
 
-def apply_derivatives(expression):
+def apply_derivatives(expression, dag_traverser=None):
     """Apply derivatives to an expression.
 
     Args:
         expression: A Form, an Expr or a BaseFormOperator to be differentiated
 
+        dag_traverser: An optional DerivativeRuleDispatcher or
+                       CoefficientDerivativeRuleDispatcher
+
     Returns:
         A differentiated expression
     """
     # Notation: Let `var` be the thing we are differentating with respect to.
-
-    dag_traverser = DerivativeRuleDispatcher()
+    if dag_traverser is None:
+        dag_traverser = DerivativeRuleDispatcher()
 
     # If we hit a base form operator (bfo), then if `var` is:
     #    - a BaseFormOperator → Return `d(expression)/dw` where `w` is
@@ -2294,25 +2297,8 @@ def apply_coordinate_derivatives(expression):
     return map_integrands(dag_traverser, expression)
 
 
-class CoefficientDerivativeRuleDispatcher(DAGTraverser):
+class CoefficientDerivativeRuleDispatcher(DerivativeRuleDispatcher):
     """Dispatcher."""
-
-    def __init__(
-        self,
-        compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
-    ) -> None:
-        """Initialise."""
-        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
-        # Record the operations delayed to the derivative expansion phase:
-        # Example: dN(u)/du where `N` is a BaseFormOperator and `u` a Coefficient
-        self.pending_operations = ()
-        # Create DAGTraverser caches.
-        self._dag_traverser_cache: dict[
-            tuple[type, Expr] | tuple[type, Expr, Expr, Expr] | tuple[type, Expr, Expr, Expr, Expr],
-            DAGTraverser,
-        ] = {}
 
     @singledispatchmethod
     def process(self, o: Expr) -> Expr:
@@ -2327,16 +2313,10 @@ class CoefficientDerivativeRuleDispatcher(DAGTraverser):
         """
         return super().process(o)
 
-    @process.register(Expr)
-    @process.register(BaseForm)  # type: ignore
-    def _(self, o: Expr | BaseForm) -> Expr | BaseForm:
-        """Apply to expr and base form."""
+    @process.register(Derivative)
+    def _(self, o: Derivative) -> Derivative:
+        """Apply to generic Derivative objects."""
         return self.reuse_if_untouched(o)
-
-    @process.register(Terminal)
-    def _(self, o: Terminal) -> Terminal:
-        """Apply to a terminal."""
-        return o
 
     @process.register(CoefficientDerivative)
     @DAGTraverser.postorder_only_children([0])
@@ -2358,24 +2338,8 @@ class CoefficientDerivativeRuleDispatcher(DAGTraverser):
         self.pending_operations += dag_traverser.pending_operations  # type: ignore
         return mapped_expr
 
-    @process.register(Indexed)
-    @DAGTraverser.postorder
-    def _(self, o: Indexed, Ap: Expr, ii: MultiIndex) -> Expr | BaseForm:
-        """Apply to an indexed."""
-        # Reuse if untouched
-        if Ap is o.ufl_operands[0]:
-            return o
-        r = len(Ap.ufl_shape) - len(ii)
-        if r:
-            kk = indices(r)
-            op = Indexed(Ap, MultiIndex(ii.indices() + kk))
-            op = as_tensor(op, kk)
-        else:
-            op = Indexed(Ap, ii)
-        return op
-
 
 def apply_coefficient_derivatives(expression):
     """Apply coefficient derivatives to an expression."""
     dag_traverser = CoefficientDerivativeRuleDispatcher()
-    return map_integrands(dag_traverser, expression)
+    return apply_derivatives(expression, dag_traverser=dag_traverser)

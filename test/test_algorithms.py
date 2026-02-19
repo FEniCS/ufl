@@ -5,7 +5,7 @@ __date__ = "2008-03-12 -- 2009-01-28"
 # Modified by Garth N. Wells, 2009
 
 import pytest
-from utils import LagrangeElement
+from utils import ForeignDerivative, LagrangeElement
 
 from ufl import (
     Argument,
@@ -17,6 +17,7 @@ from ufl import (
     TestFunction,
     TrialFunction,
     adjoint,
+    derivative,
     div,
     dot,
     ds,
@@ -34,7 +35,10 @@ from ufl.algorithms import (
     extract_coefficients,
     extract_elements,
     extract_unique_elements,
+    replace,
 )
+from ufl.algorithms.analysis import has_exact_type
+from ufl.classes import ComponentTensor
 from ufl.corealg.traversal import (
     post_traversal,
     pre_traversal,
@@ -194,4 +198,19 @@ def test_remove_component_tensors(domain):
 
     fd = compute_form_data(form, do_remove_component_tensors=True)
 
-    assert "ComponentTensor" not in repr(fd.preprocessed_form)
+    assert not has_exact_type(fd.preprocessed_form, ComponentTensor)
+
+
+def test_replace_foreign_derivative(domain, space):
+    """Test that replace only expands CoeffientDerivative and does not break
+    with foreign derivatives (e.g. irksome.TimeDerivative).
+    """
+    f = Coefficient(space)
+    g = Coefficient(space)
+    expr = derivative(f.dx(0) * f, f) + ForeignDerivative(f.dx(0))
+    result = replace(expr, {f: g})
+
+    test = TestFunction(space)
+    expected = test.dx(0) * g + g.dx(0) * test + ForeignDerivative(g.dx(0))
+
+    assert result == expected
