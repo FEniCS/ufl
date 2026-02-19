@@ -26,7 +26,7 @@ def expand_derivatives(expr: Expr | BaseForm, **kwargs):
     # For a deprecation period (I see that dolfin-adjoint passes some
     # args here)
     if kwargs:
-        warnings("Deprecation: expand_derivatives no longer takes any keyword arguments")
+        warnings.warn("Deprecation: expand_derivatives no longer takes any keyword arguments")
 
     # Lower abstractions for tensor-algebra types into index notation
     expr = apply_algebra_lowering(expr)
