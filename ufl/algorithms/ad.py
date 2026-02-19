@@ -11,10 +11,11 @@
 import warnings
 
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
-from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.apply_derivatives import apply_coefficient_derivatives, apply_derivatives
+from ufl.classes import BaseForm, Expr
 
 
-def expand_derivatives(form, **kwargs):
+def expand_derivatives(expr: Expr | BaseForm, **kwargs):
     """Expand all derivatives of expr.
 
     In the returned expression g which is mathematically
@@ -28,9 +29,25 @@ def expand_derivatives(form, **kwargs):
         warnings("Deprecation: expand_derivatives no longer takes any keyword arguments")
 
     # Lower abstractions for tensor-algebra types into index notation
-    form = apply_algebra_lowering(form)
+    expr = apply_algebra_lowering(expr)
 
     # Apply differentiation
-    form = apply_derivatives(form)
+    expr = apply_derivatives(expr)
 
-    return form
+    return expr
+
+
+def expand_coefficient_derivatives(expr: Expr | BaseForm):
+    """Expand only CoefficientDerivative objects within expr.
+
+    In the returned expression, which is mathematically
+    equivalent to expr, there are no CoefficientDerivative
+    objects left.
+    """
+    # Lower abstractions for tensor-algebra types into index notation
+    expr = apply_algebra_lowering(expr)
+
+    # Apply differentiation
+    expr = apply_coefficient_derivatives(expr)
+
+    return expr
