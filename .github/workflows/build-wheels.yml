@@ -50,7 +50,7 @@ jobs:
       - name: Build sdist and wheel
         run: python -m build .
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           path: dist/*
 
@@ -66,7 +66,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: artifact
           path: dist
@@ -88,7 +88,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: artifact
           path: dist

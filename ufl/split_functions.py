@@ -6,12 +6,16 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 #
 # Modified by Anders Logg, 2008
+# Modified by Pablo Brubeck, 2025
+
+import numpy as np
 
 from ufl.domain import extract_unique_domain
 from ufl.functionspace import FunctionSpace
 from ufl.indexed import Indexed
 from ufl.permutation import compute_indices
-from ufl.tensors import ListTensor, as_matrix, as_vector
+from ufl.pullback import SymmetricPullback
+from ufl.tensors import ListTensor, as_tensor
 from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides
 from ufl.utils.sequences import product
 
@@ -33,7 +37,8 @@ def split(v):
 
     elif isinstance(v, ListTensor):
         # Special case: split previous output of split again
-        ops = v.ufl_operands
+        ops = tuple(v[i] for i in np.ndindex(v.ufl_shape))
+
         if all(isinstance(comp, Indexed) for comp in ops):
             args = [comp.ufl_operands[0] for comp in ops]
             if all(args[0] == args[i] for i in range(1, len(args))):
@@ -85,8 +90,18 @@ def split(v):
     # Build expressions representing the subfunction of v for each subelement
     offset = begin
     sub_functions = []
-    domains = domain.iterable_like(element)
-    for i, (d, e) in enumerate(zip(domains, element.sub_elements)):
+
+    # Deal with symmetry
+    if isinstance(element.pullback, SymmetricPullback):
+        symmetry = element.pullback._symmetry
+        indices = (comp for idx, comp in sorted(symmetry.items()))
+    else:
+        indices = range(len(element.sub_elements))
+
+    domains = tuple(domain.iterable_like(element))
+    for i in indices:
+        d = domains[i]
+        e = element.sub_elements[i]
         # Get shape, size, indices, and v components
         # corresponding to subelement value
         shape = FunctionSpace(d, e).value_shape
@@ -99,16 +114,8 @@ def split(v):
         # Shape components into same shape as subelement
         if rank == 0:
             (subv,) = components
-        elif rank <= 1:
-            subv = as_vector(components)
-        elif rank == 2:
-            subv = as_matrix(
-                [components[i * shape[1] : (i + 1) * shape[1]] for i in range(shape[0])]
-            )
         else:
-            raise ValueError(
-                f"Don't know how to split functions with sub functions of rank {rank}."
-            )
+            subv = as_tensor(np.reshape(components, shape))
 
         offset += sub_size
         sub_functions.append(subv)

@@ -215,8 +215,16 @@ class CoefficientSplitter(DAGTraverser):
         c = o
         if reference_value:
             c = ReferenceValue(c)
-        for _ in range(reference_grad):
+        for k in range(reference_grad):
             c = ReferenceGrad(c)
+            if isinstance(c, Zero):
+                gdim = c.ufl_shape[-1]
+                c = Zero(
+                    c.ufl_shape + (gdim,) * (reference_grad - k - 1),
+                    c.ufl_free_indices,
+                    c.ufl_index_dimensions,
+                )
+                break
         if restricted == "+":
             c = PositiveRestricted(c)
         elif restricted == "-":
