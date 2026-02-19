@@ -2314,7 +2314,7 @@ class CoefficientDerivativeRuleDispatcher(DerivativeRuleDispatcher):
         return super().process(o)
 
     @process.register(Derivative)
-    def _(self, o: Derivative) -> Derivative:
+    def _(self, o: Expr) -> Expr:
         """Apply to generic Derivative objects."""
         return self.reuse_if_untouched(o)
 
