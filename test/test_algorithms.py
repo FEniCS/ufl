@@ -5,7 +5,7 @@ __date__ = "2008-03-12 -- 2009-01-28"
 # Modified by Garth N. Wells, 2009
 
 import pytest
-from utils import ForeignDerivative, LagrangeElement
+from utils import ForeignDerivative, LagrangeElement, MixedElement
 
 from ufl import (
     Argument,
@@ -25,6 +25,7 @@ from ufl import (
     grad,
     inner,
     sin,
+    split,
     triangle,
 )
 from ufl.algorithms import (
@@ -207,10 +208,35 @@ def test_replace_foreign_derivative(domain, space):
     """
     f = Coefficient(space)
     g = Coefficient(space)
+    test = TestFunction(space)
+
+    # replace Expr with ForeignDerivative
     expr = derivative(f.dx(0) * f, f) + ForeignDerivative(f.dx(0))
     result = replace(expr, {f: g})
-
-    test = TestFunction(space)
     expected = test.dx(0) * g + g.dx(0) * test + ForeignDerivative(g.dx(0))
+    assert result == expected
 
+    # replace Form with ForeignDerivative
+    Df = ForeignDerivative(f)
+    form =  derivative(inner(f.dx(0), f.dx(0))*dx, f) + inner(Df, test)*dx
+    result = replace(form, {f: g})
+
+    Dg = ForeignDerivative(g)
+    expected = (inner(g.dx(0), test.dx(0)) + inner(test.dx(0), g.dx(0)))*dx +  inner(Dg, test)*dx
+    assert result == expected
+
+
+def test_replace_mixed_element(domain, element):
+    element = MixedElement([element, element])
+    space = FunctionSpace(domain, element)
+    z = Coefficient(space)
+    w = Coefficient(space)
+
+    u, p = split(z)
+    form =  derivative((inner(grad(u), grad(u)) + inner(p, p))*dx, z)
+    result = replace(form, {z: w})
+
+    u, p = split(w)
+    expected = derivative((inner(grad(u), grad(u)) + inner(p, p))*dx, w)
+    expected = expand_derivatives(expected)
     assert result == expected
