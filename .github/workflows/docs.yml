@@ -40,7 +40,7 @@ jobs:
           python -m sphinx -W -b html source/ build/html/
 
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: documentation
           path: doc/build/html/
