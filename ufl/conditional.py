@@ -21,10 +21,13 @@ from ufl.precedence import parstr
 # is a boolean type not a float type
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type()
 class Condition(Operator):
     """Condition."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __init__(self, operands):
@@ -39,7 +42,7 @@ class Condition(Operator):
     __nonzero__ = __bool__
 
 
-@ufl_type(is_abstract=True, num_ops=2)
+@ufl_type()
 class BinaryCondition(Condition):
     """Binary condition."""
 
@@ -130,7 +133,7 @@ class NE(BinaryCondition):
     __nonzero__ = __bool__
 
 
-@ufl_type(binop="__le__")
+@ufl_type()
 class LE(BinaryCondition):
     """Less than or equal condition."""
 
@@ -147,7 +150,7 @@ class LE(BinaryCondition):
         return bool(a <= b)
 
 
-@ufl_type(binop="__ge__")
+@ufl_type()
 class GE(BinaryCondition):
     """Greater than or equal to condition."""
 
@@ -164,7 +167,7 @@ class GE(BinaryCondition):
         return bool(a >= b)
 
 
-@ufl_type(binop="__lt__")
+@ufl_type()
 class LT(BinaryCondition):
     """Less than condition."""
 
@@ -181,7 +184,7 @@ class LT(BinaryCondition):
         return bool(a < b)
 
 
-@ufl_type(binop="__gt__")
+@ufl_type()
 class GT(BinaryCondition):
     """Greater than condition."""
 
@@ -232,7 +235,7 @@ class OrCondition(BinaryCondition):
         return bool(a or b)
 
 
-@ufl_type(num_ops=1)
+@ufl_type()
 class NotCondition(Condition):
     """Not condition."""
 
@@ -254,7 +257,7 @@ class NotCondition(Condition):
         return f"!({self.ufl_operands[0]!s})"
 
 
-@ufl_type(num_ops=3, inherit_shape_from_operand=1, inherit_indices_from_operand=1)
+@ufl_type()
 class Conditional(Operator):
     """Conditional expression.
 
@@ -316,14 +319,32 @@ class Conditional(Operator):
         """Format as a string."""
         return "{} ? {} : {}".format(*tuple(parstr(o, self) for o in self.ufl_operands))
 
+    @property
+    def ufl_shape(self):
+        """Return shape."""
+        return self.ufl_operands[1].ufl_shape
+
+    @property
+    def ufl_free_indices(self):
+        """Return free indices."""
+        return self.ufl_operands[1].ufl_free_indices
+
+    @property
+    def ufl_index_dimensions(self):
+        """Retrun index dimensions."""
+        return self.ufl_operands[1].ufl_index_dimensions
+
 
 # --- Specific functions higher level than a conditional ---
 
 
-@ufl_type(is_scalar=True, num_ops=1)
+@ufl_type()
 class MinValue(Operator):
     """Take the minimum of two values."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __init__(self, left, right):
@@ -352,10 +373,13 @@ class MinValue(Operator):
         return "min_value({}, {})".format(*self.ufl_operands)
 
 
-@ufl_type(is_scalar=True, num_ops=1)
+@ufl_type()
 class MaxValue(Operator):
     """Take the maximum of two values."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __init__(self, left, right):

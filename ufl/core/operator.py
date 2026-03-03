@@ -12,7 +12,7 @@ from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(is_abstract=True, is_terminal=False)
+@ufl_type()
 class Operator(Expr):
     """Base class for all operators, i.e. non-terminal expression types."""
 
@@ -31,7 +31,7 @@ class Operator(Expr):
 
     def _ufl_expr_reconstruct_(self, *operands):
         """Return a new object of the same type with new operands."""
-        return self._ufl_class_(*operands)
+        return type(self)(*operands)
 
     def _ufl_signature_data_(self):
         """Get UFL signature data."""
@@ -44,4 +44,4 @@ class Operator(Expr):
     def __repr__(self):
         """Default repr string construction for operators."""
         # This should work for most cases
-        return f"{self._ufl_class_.__name__}({', '.join(map(repr, self.ufl_operands))})"
+        return f"{type(self).__name__}({', '.join(map(repr, self.ufl_operands))})"
