@@ -265,7 +265,16 @@ from ufl.argument import (
 from ufl.cell import AbstractCell, Cell, TensorProductCell, as_cell
 from ufl.coefficient import Coefficient, Coefficients, Cofunction
 from ufl.constant import Constant, TensorConstant, VectorConstant
-from ufl.constantvalue import Identity, PermutationSymbol, as_ufl, zero
+from ufl.constantvalue import (
+    ComplexValue,
+    FloatValue,
+    Identity,
+    IntValue,
+    PermutationSymbol,
+    Zero,
+    as_ufl,
+    zero,
+)
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate, interpolate
 from ufl.core.multiindex import Index, indices
@@ -481,6 +490,7 @@ __all__ = [
     "Coefficient",
     "Coefficients",
     "Cofunction",
+    "ComplexValue",
     "Constant",
     "DSIntegralDomain",
     "Dn",
@@ -490,6 +500,7 @@ __all__ = [
     "ExternalOperator",
     "FacetArea",
     "FacetNormal",
+    "FloatValue",
     "Form",
     "FormSum",
     "FunctionSpace",
@@ -503,6 +514,7 @@ __all__ = [
     "HInf",
     "Identity",
     "Index",
+    "IntValue",
     "Integral",
     "Interpolate",
     "Jacobian",
@@ -535,6 +547,7 @@ __all__ = [
     "TrialFunction",
     "TrialFunctions",
     "VectorConstant",
+    "Zero",
     "ZeroBaseForm",
     "acos",
     "action",

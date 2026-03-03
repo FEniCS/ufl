@@ -969,7 +969,7 @@ class GradRuleset(GenericDerivativeRuleset):
         # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
         #       if we should make a zero here?
         # 1) n = count number of Grads, get f
-        # 2) if not f.has_derivatives(n): return zero(...)
+        # 2) if not f.has_derivatives(n): return Zero(...)
 
     @process.register(CellAvg)
     @process.register(FacetAvg)
