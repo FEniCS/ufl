@@ -388,6 +388,42 @@ class Erf(MathFunction):
         return math.erf(a)
 
 
+@ufl_type(is_scalar=True, num_ops=4)
+class Hypergeometric2F1(Operator):
+    """Class for hypergeometric 2F1 functions."""
+
+    __slots__ = "_name"
+
+    def __init__(self, a, b, c, argument):
+        """Initialise."""
+        if not all(is_true_ufl_scalar(f) for f in (a, b, c)):
+            raise ValueError("Expecting scalar (a, b, c).")
+        if not is_true_ufl_scalar(argument):
+            raise ValueError("Expecting scalar argument.")
+
+        Operator.__init__(self, (a, b, c, argument))
+
+        self._name = "hyp2f1"
+
+    def evaluate(self, x, mapping, component, index_values):
+        """Evaluate."""
+        try:
+            import scipy.special  # type: ignore
+        except ImportError:
+            raise ValueError(
+                "You must have scipy installed to evaluate hypergeometric functions in python."
+            )
+        func = getattr(scipy.special, self._name)
+        return func(
+            *(arg.evaluate(x, mapping, component, index_values) for arg in self.ufl_operands)
+        )
+
+    def __str__(self):
+        """Format as a string."""
+        a, b, c, arg = self.ufl_operands
+        return f"{self._name}({a}, {b}, {c}, {arg})"
+
+
 @ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
 class BesselFunction(Operator):
     """Base class for all bessel functions."""

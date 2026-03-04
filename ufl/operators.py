@@ -51,6 +51,7 @@ from ufl.mathfunctions import (
     Cosh,
     Erf,
     Exp,
+    Hypergeometric2F1,
     Ln,
     Sin,
     Sinh,
@@ -698,6 +699,15 @@ def atan2(f1, f2):
 def erf(f):
     """Take the error function of f."""
     return _mathfunction(f, Erf)
+
+
+def hyp2f1(a, b, c, f):
+    """The Gaussian hypergeometric function 2F1."""
+    a = as_ufl(a)
+    b = as_ufl(b)
+    c = as_ufl(c)
+    f = as_ufl(f)
+    return Hypergeometric2F1(a, b, c, f)
 
 
 def bessel_J(nu, f):
