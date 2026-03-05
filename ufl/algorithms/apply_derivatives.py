@@ -90,6 +90,7 @@ from ufl.mathfunctions import (
     Cosh,
     Erf,
     Exp,
+    Hypergeometric2F1,
     Ln,
     MathFunction,
     Sin,
@@ -112,6 +113,7 @@ from ufl.operators import (
     cosh,
     exp,
     facet_avg,
+    hyp2f1,
     ln,
     sign,
     sin,
@@ -582,6 +584,19 @@ class GenericDerivativeRuleset(DAGTraverser):
         """Differentiate an erf."""
         (f,) = o.ufl_operands
         return fp * (2.0 / sqrt(pi) * exp(-(f**2)))
+
+    @process.register(Hypergeometric2F1)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, ap: Expr, bp: Expr, cp: Expr, fp: Expr) -> Expr:
+        """Differentiate a hyp2f1."""
+        a, b, c, f = o.ufl_operands
+        if not all(nup is None or isinstance(nup, Zero) for nup in (ap, bp, cp)):
+            raise NotImplementedError(
+                "Differentiation of hypergeometric function w.r.t. (a, b, c) is not supported."
+            )
+
+        op = (a * b / c) * hyp2f1(a + 1, b + 1, c + 1, f)
+        return op * fp
 
     # --- Bessel functions
 
