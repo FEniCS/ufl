@@ -16,6 +16,7 @@ objects.
 
 import operator
 import warnings
+from math import pi
 
 from ufl import sobolevspace
 from ufl.algebra import Conj, Imag, Real
@@ -708,6 +709,26 @@ def hyp2f1(a, b, c, f):
     c = as_ufl(c)
     f = as_ufl(f)
     return Hypergeometric2F1(a, b, c, f)
+
+
+def elliptic_K(k):
+    r"""Complete elliptic integral of the first kind.
+
+    This function is defined as
+
+    .. math:: K(k) = \int_0^{\pi/2} [1 - k^2 sin(t)^2]^{-1/2} dt
+    """
+    return (pi / 2) * hyp2f1(1 / 2, 1 / 2, 1, k**2)
+
+
+def elliptic_E(k):
+    r"""Complete elliptic integral of the second kind.
+
+    This function is defined as
+
+    .. math:: E(k) = \int_0^{\pi/2} [1 - k^2 sin(t)^2]^{1/2} dt
+    """
+    return (pi / 2) * hyp2f1(1 / 2, -1 / 2, 1, k**2)
 
 
 def bessel_J(nu, f):

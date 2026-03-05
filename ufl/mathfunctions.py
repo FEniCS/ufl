@@ -390,7 +390,7 @@ class Erf(MathFunction):
 
 @ufl_type(is_scalar=True, num_ops=4)
 class Hypergeometric2F1(Operator):
-    """Class for hypergeometric 2F1 functions."""
+    """The Gaussian hypergeometric function 2F1."""
 
     __slots__ = "_name"
 
