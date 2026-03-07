@@ -414,12 +414,12 @@ class FormData:
         return _compute_max_subdomain_ids(self.integral_data)
 
     @cached_property
-    def argument_elements(self) -> tuple[Any]:
+    def argument_elements(self) -> tuple[Any, ...]:
         """The set of elements the arguments in the form."""
         return tuple(f.ufl_element() for f in self.original_form.arguments())
 
     @property
-    def coefficient_elements(self) -> tuple[Any]:
+    def coefficient_elements(self) -> tuple[Any, ...]:
         """The set of elements used for coefficients in the form."""
         return self._coefficient_elements
 
