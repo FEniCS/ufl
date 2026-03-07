@@ -11,7 +11,8 @@
 
 from __future__ import annotations
 
-from typing import Any
+import numbers
+from typing import Any, Literal
 
 import ufl
 from ufl.checks import is_python_scalar, is_scalar_constant_expression
@@ -41,7 +42,7 @@ class Integral:
         integrand: Expr,
         integral_type: str,
         domain,
-        subdomain_id: int | tuple[int, ...],
+        subdomain_id: numbers.Integral | tuple[numbers.Integral, ...] | Literal["everywhere"],
         metadata: dict,
         subdomain_data: Any,
         extra_domain_integral_type_map: dict[Mesh, str] | None = None,

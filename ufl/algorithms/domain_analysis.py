@@ -10,7 +10,10 @@ from __future__ import annotations
 
 import numbers
 from collections import defaultdict
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:
+    from ufl.classes import Coefficient
 
 import ufl
 from ufl.algorithms.coordinate_derivative_helpers import (
@@ -82,8 +85,8 @@ class IntegralData:
 
         # This is populated in preprocess using data not available at
         # this stage:
-        self.integral_coefficients = None
-        self.enabled_coefficients = None
+        self.integral_coefficients: set[Coefficient] | None = None
+        self.enabled_coefficients: list[bool] | None = None
         non_primal_domains = tuple(domain_integral_type_map.keys())[1:]
         if sort_domains(non_primal_domains) != non_primal_domains:
             raise ValueError("domain_integral_type_map must have been sorted by domains")
@@ -289,7 +292,7 @@ def accumulate_integrands_with_same_metadata(integrals):
     return sorted(by_cdid.values(), key=ExprTupleKey)
 
 
-def build_integral_data(integrals):
+def build_integral_data(integrals: tuple[Integral, ...]) -> list[IntegralData]:
     """Build integral data given a list of integrals.
 
     The integrals you pass in here must have been rearranged and
@@ -297,10 +300,10 @@ def build_integral_data(integrals):
     should call group_form_integrals.
 
     Args:
-        integrals: An iterable of Integral objects.
+        integrals: A tuple of Integral objects.
 
     Returns:
-        A tuple of IntegralData objects.
+        A list of IntegralData objects.
     """
     itgs = defaultdict(list)
 
@@ -336,14 +339,14 @@ def build_integral_data(integrals):
         )
 
     integral_datas = []
-    for (d, itype, sid, extra_d_itype_tuple), integrals in sorted(itgs.items(), key=keyfunc):
+    for (d, itype, sid, extra_d_itype_tuple), _itgs in sorted(itgs.items(), key=keyfunc):
         d_itype_tuple = ((d, itype),) + extra_d_itype_tuple
         integral_datas.append(
             IntegralData(
                 d,
                 itype,
                 sid,
-                integrals,
+                _itgs,
                 {},
                 dict(d_itype_tuple),
             )
