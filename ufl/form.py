@@ -12,6 +12,7 @@
 # Modified by Jørgen S. Dokken 2023.
 
 import numbers
+import typing
 import warnings
 from collections import defaultdict
 from itertools import chain
@@ -34,7 +35,7 @@ __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
 # --- The Form class, representing a complete variational form or functional ---
 
 
-def _sorted_integrals(integrals):
+def _sorted_integrals(integrals: typing.Iterable[Integral]) -> tuple[Integral, ...]:
     """Sort integrals for a stable signature computation.
 
     Sort integrals by domain id, integral type, subdomain id for a more
@@ -275,7 +276,7 @@ class Form(BaseForm):
         "_terminal_numbering",
     )
 
-    def __init__(self, integrals):
+    def __init__(self, integrals: list[Integral]):
         """Initialise."""
         BaseForm.__init__(self)
         # Basic input checking (further compatibilty analysis happens
@@ -317,7 +318,7 @@ class Form(BaseForm):
 
     # --- Accessor interface ---
 
-    def integrals(self):
+    def integrals(self) -> tuple[Integral, ...]:
         """Return a sequence of all integrals in form."""
         return self._integrals
 

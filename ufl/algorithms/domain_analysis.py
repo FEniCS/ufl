@@ -289,7 +289,7 @@ def accumulate_integrands_with_same_metadata(integrals):
     return sorted(by_cdid.values(), key=ExprTupleKey)
 
 
-def build_integral_data(integrals):
+def build_integral_data(integrals: tuple[Integral, ...]) -> list[IntegralData]:
     """Build integral data given a list of integrals.
 
     The integrals you pass in here must have been rearranged and
@@ -297,10 +297,10 @@ def build_integral_data(integrals):
     should call group_form_integrals.
 
     Args:
-        integrals: An iterable of Integral objects.
+        integrals: A tuple of Integral objects.
 
     Returns:
-        A tuple of IntegralData objects.
+        A list of IntegralData objects.
     """
     itgs = defaultdict(list)
 
