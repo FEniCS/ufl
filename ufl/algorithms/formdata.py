@@ -20,9 +20,8 @@ from ufl.algorithms.check_arities import check_integrand_arity
 from ufl.algorithms.domain_analysis import IntegralData, reconstruct_form_from_integral_data
 from ufl.algorithms.replace import replace
 from ufl.classes import Argument, Coefficient, FunctionSpace, GeometricFacetQuantity
-from ufl.coefficient import BaseCoefficient
 from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.domain import MeshSequence, extract_domains, extract_unique_domain
+from ufl.domain import AbstractDomain, MeshSequence, extract_domains, extract_unique_domain
 from ufl.form import Form, Zero
 from ufl.utils.formatting import estr, lstr, tstr
 from ufl.utils.sequences import max_degree
@@ -99,7 +98,7 @@ def _compute_element_mapping(form: Form):
 
 def _compute_max_subdomain_ids(integral_data: list[IntegralData]) -> dict[str, int]:
     """Compute the maximum subdomain ids."""
-    max_subdomain_ids = {}
+    max_subdomain_ids: dict[str, int] = {}
     for itg_data in integral_data:
         it = itg_data.integral_type
         for integral in itg_data.integrals:
@@ -141,8 +140,8 @@ def _check_facet_geometry(integral_data):
 
 
 def _build_coefficient_replace_map(
-    coefficients: list[BaseCoefficient], element_mapping=None
-) -> tuple[list[BaseCoefficient], dict[BaseCoefficient, BaseCoefficient]]:
+    coefficients: list[Coefficient], element_mapping=None
+) -> tuple[list[Coefficient], dict[Coefficient, Coefficient]]:
     """Create new Coefficient objects with count starting at 0.
 
     Returns:
@@ -175,10 +174,10 @@ class FormData:
 
     _original_form: Form
     _integral_data: list[IntegralData]
-    _reduced_coefficients: list[BaseCoefficient]
-    _original_coefficient_positions: list[tuple[int, BaseCoefficient]]
-    _function_replace_map: dict[BaseCoefficient, BaseCoefficient]
-    _coefficient_elements: list[Any]
+    _reduced_coefficients: list[Coefficient]
+    _original_coefficient_positions: list[int]
+    _function_replace_map: dict[Coefficient, Coefficient]
+    _coefficient_elements: tuple[Any, ...]
     _coefficient_split: dict[Coefficient, list[Coefficient]]
 
     def __init__(
@@ -188,7 +187,7 @@ class FormData:
         do_apply_default_restrictions: bool = True,
         do_apply_restrictions: bool = True,
         do_replace_functions: bool = False,
-        coefficients_to_split: tuple[BaseCoefficient, ...] | None = None,
+        coefficients_to_split: tuple[Coefficient, ...] | None = None,
         complex_mode: bool = False,
     ):
         """Create form-data for a form that has been processed.
@@ -223,8 +222,9 @@ class FormData:
         # Figure out which coefficients from the original form are
         # actually used in any integral (Differentiation may reduce the
         # set of coefficients w.r.t. the original form)
-        reduced_coefficients_set = set()
+        reduced_coefficients_set: set[Coefficient] = set()
         for itg_data in self.integral_data:
+            assert itg_data.integral_coefficients is not None
             reduced_coefficients_set.update(itg_data.integral_coefficients)
         self._reduced_coefficients = sorted(reduced_coefficients_set, key=lambda c: c.count())
         self._original_coefficient_positions = [
@@ -236,6 +236,7 @@ class FormData:
         # Store back into integral data which form coefficients are used
         # by each integral
         for itg_data in self.integral_data:
+            assert itg_data.integral_coefficients is not None
             itg_data.enabled_coefficients = [
                 bool(coeff in itg_data.integral_coefficients) for coeff in self.reduced_coefficients
             ]
@@ -285,7 +286,7 @@ class FormData:
                     elem = c.ufl_element()
                     coefficient_split[c] = [
                         Coefficient(FunctionSpace(m, e))
-                        for m, e in zip(mesh.iterable_like(elem), elem.sub_elements)
+                        for m, e in zip(mesh.iterable_like(elem), elem.sub_elements)  # type: ignore
                     ]
             self._coefficient_split = coefficient_split
             coeff_splitter = CoefficientSplitter(self.coefficient_split)
@@ -309,6 +310,7 @@ class FormData:
                     for _, integral_type in itg_data.domain_integral_type_map.items()
                 ):
                     continue
+                default_restrictions: dict[AbstractDomain, str | None] | None
                 if do_apply_default_restrictions:
                     default_restrictions = {
                         domain: default_restriction_map[integral_type]
@@ -412,12 +414,12 @@ class FormData:
         return _compute_max_subdomain_ids(self.integral_data)
 
     @cached_property
-    def argument_elements(self) -> list[Any]:
+    def argument_elements(self) -> tuple[Any]:
         """The set of elements the arguments in the form."""
         return tuple(f.ufl_element() for f in self.original_form.arguments())
 
     @property
-    def coefficient_elements(self) -> list[Any]:
+    def coefficient_elements(self) -> tuple[Any]:
         """The set of elements used for coefficients in the form."""
         return self._coefficient_elements
 

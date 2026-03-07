@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from ufl.core.expr import Expr
     from ufl.finiteelement import AbstractFiniteElement  # To avoid cyclic import when type-hinting.
     from ufl.form import Form
+    from ufl.integral import Integral
+
 from ufl.cell import AbstractCell, CellSequence
 from ufl.core.ufl_id import attach_ufl_id
 from ufl.core.ufl_type import UFLObject
@@ -339,7 +341,7 @@ def as_domain(domain):
         return domain
 
 
-def sort_domains(domains: Sequence[AbstractDomain]) -> tuple[AbstractDomain, ...]:
+def sort_domains(domains: Iterable[AbstractDomain]) -> tuple[AbstractDomain, ...]:
     """Sort domains in a canonical ordering.
 
     Args:
@@ -388,7 +390,7 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
 
 
 def extract_domains(
-    expr: Expr | Form,
+    expr: Expr | Form | Integral,
     expand_mesh_sequence: bool = True,
 ) -> tuple[AbstractDomain, ...]:
     """Return all domains expression is defined on.

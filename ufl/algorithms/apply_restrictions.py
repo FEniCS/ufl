@@ -19,6 +19,7 @@ from ufl.classes import Expr, Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import Mesh, extract_unique_domain
+from ufl.integral import Integral
 from ufl.sobolevspace import H1
 
 default_restriction_map = {
@@ -291,7 +292,9 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
 
-def apply_restrictions(expression: Expr, default_restrictions: dict | None = None) -> Expr:
+def apply_restrictions(
+    expression: Expr | Integral, default_restrictions: dict | None = None
+) -> Expr:
     """Propagate restriction nodes to wrap differential terminals directly.
 
     Args:

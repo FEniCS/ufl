@@ -43,9 +43,12 @@ def _sorted_integrals(integrals: typing.Iterable[Integral]) -> tuple[Integral, .
     """
     # Group integrals in multilevel dict by keys
     # [domain][integral_type][subdomain_id]
-    integrals_dict = defaultdict(
-        lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-    )
+    from ufl.classes import AbstractDomain
+
+    integrals_dict: dict[
+        AbstractDomain,
+        dict[str, dict[tuple[typing.Any, ...], dict[int | tuple[int, ...], list[Integral]]]],
+    ] = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list))))
     for integral in integrals:
         d = integral.ufl_domain()
         if d is None:
@@ -314,7 +317,7 @@ class Form(BaseForm):
         self._signature = None
 
         # Never use this internally in ufl!
-        self._cache = {}
+        self._cache: dict[typing.Any, typing.Any] = {}
 
     # --- Accessor interface ---
 
