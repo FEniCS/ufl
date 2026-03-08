@@ -381,10 +381,13 @@ class FormData:
         """Rank of the form."""
         return len(self.original_form.arguments())
 
-    @property
+    @cached_property
     def geometric_dimension(self):
         """Geometric dimension of the form."""
-        return self.original_form.integrals()[0].ufl_domain().geometric_dimension
+        domains = extract_domains(self.original_form())
+        gdims = set([domain.geometric_dimension for domain in domains])
+        assert len(gdims) == 1
+        return gdims.pop()
 
     @property
     def function_replace_map(self) -> dict[Coefficient, Coefficient]:

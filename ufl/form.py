@@ -29,6 +29,9 @@ from ufl.integral import Integral
 from ufl.utils.counted import Counted
 from ufl.utils.sorting import sorted_by_count
 
+if typing.TYPE_CHECKING:
+    from ufl.classes import AbstractDomain
+
 # Export list for ufl.classes
 __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
 
@@ -43,8 +46,6 @@ def _sorted_integrals(integrals: typing.Iterable[Integral]) -> tuple[Integral, .
     """
     # Group integrals in multilevel dict by keys
     # [domain][integral_type][subdomain_id]
-    from ufl.classes import AbstractDomain
-
     integrals_dict: dict[
         AbstractDomain,
         dict[str, dict[tuple[typing.Any, ...], dict[int | tuple[int, ...], list[Integral]]]],
