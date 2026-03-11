@@ -31,6 +31,7 @@ __all__ = [
     "compute_form_rhs",
     "compute_form_signature",
     "estimate_total_polynomial_degree",
+    "expand_coefficient_derivatives",
     "expand_derivatives",
     "expand_indices",
     "extract_arguments",
@@ -54,7 +55,7 @@ __all__ = [
     "validate_form",
 ]
 
-from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.ad import expand_coefficient_derivatives, expand_derivatives
 from ufl.algorithms.analysis import (
     extract_arguments,
     extract_base_form_operators,

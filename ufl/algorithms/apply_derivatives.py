@@ -1986,18 +1986,21 @@ class BaseFormOperatorDerivativeRecorder:
         return self
 
 
-def apply_derivatives(expression):
+def apply_derivatives(expression, dag_traverser=None):
     """Apply derivatives to an expression.
 
     Args:
         expression: A Form, an Expr or a BaseFormOperator to be differentiated
 
+        dag_traverser: An optional DerivativeRuleDispatcher or
+                       CoefficientDerivativeRuleDispatcher
+
     Returns:
         A differentiated expression
     """
     # Notation: Let `var` be the thing we are differentating with respect to.
-
-    dag_traverser = DerivativeRuleDispatcher()
+    if dag_traverser is None:
+        dag_traverser = DerivativeRuleDispatcher()
 
     # If we hit a base form operator (bfo), then if `var` is:
     #    - a BaseFormOperator → Return `d(expression)/dw` where `w` is
@@ -2292,3 +2295,51 @@ def apply_coordinate_derivatives(expression):
     """Apply coordinate derivatives to an expression."""
     dag_traverser = CoordinateDerivativeRuleDispatcher()
     return map_integrands(dag_traverser, expression)
+
+
+class CoefficientDerivativeRuleDispatcher(DerivativeRuleDispatcher):
+    """Dispatcher."""
+
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``.
+
+        Args:
+            o: `Expr` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        return super().process(o)
+
+    @process.register(Derivative)
+    def _(self, o: Expr) -> Expr:
+        """Apply to generic Derivative objects."""
+        return self.reuse_if_untouched(o)
+
+    @process.register(CoefficientDerivative)
+    @DAGTraverser.postorder_only_children([0])
+    def _(self, o: CoefficientDerivative, f: Expr | BaseForm) -> Expr | BaseForm:
+        """Apply to a coefficient_derivative."""
+        _, w, v, cd = o.ufl_operands
+        key = (GateauxDerivativeRuleset, w, v, cd)
+        # We need to go through the dag first to record the pending
+        # operations
+        dag_traverser = self._dag_traverser_cache.setdefault(
+            key,
+            GateauxDerivativeRuleset(w, v, cd),  # type: ignore
+        )
+        # If f has been seen by the traverser, it immediately returns
+        # the cached value.
+        mapped_expr = dag_traverser(f)  # type: ignore
+        # Need to account for pending operations that have been stored
+        # in other integrands
+        self.pending_operations += dag_traverser.pending_operations  # type: ignore
+        return mapped_expr
+
+
+def apply_coefficient_derivatives(expression):
+    """Apply coefficient derivatives to an expression."""
+    dag_traverser = CoefficientDerivativeRuleDispatcher()
+    return apply_derivatives(expression, dag_traverser=dag_traverser)
