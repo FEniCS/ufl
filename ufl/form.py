@@ -340,6 +340,11 @@ class Form(BaseForm):
         """Returns whether the form has no integrals."""
         return len(self.integrals()) == 0
 
+    @property
+    def arity(self):
+        """Arity of the form."""
+        return len(self.arguments())
+
     def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
 
