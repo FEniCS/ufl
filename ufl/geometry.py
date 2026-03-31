@@ -593,8 +593,8 @@ class ReferenceCellEdgeVectors(GeometricCellQuantity):
         """Initialise."""
         GeometricCellQuantity.__init__(self, domain)
         t = self._domain.topological_dimension
-        if t < 2:
-            raise ValueError("CellEdgeVectors is only defined for topological dimensions >= 2.")
+        if t < 1:
+            raise ValueError("CellEdgeVectors is only defined for topological dimensions >= 1.")
 
     @property
     def ufl_shape(self):
@@ -681,8 +681,8 @@ class CellEdgeVectors(GeometricCellQuantity):
         """Initialise."""
         GeometricCellQuantity.__init__(self, domain)
         t = self._domain.topological_dimension
-        if t < 2:
-            raise ValueError("CellEdgeVectors is only defined for topological dimensions >= 2.")
+        if t < 1:
+            raise ValueError("CellEdgeVectors is only defined for topological dimensions >= 1.")
 
     @property
     def ufl_shape(self):

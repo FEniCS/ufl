@@ -7,8 +7,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.classes import (
-    CellAvg,
-    FacetAvg,
     Grad,
     Indexed,
     NegativeRestricted,
@@ -26,8 +24,6 @@ modifier_precedence = {
             ReferenceValue,
             ReferenceGrad,
             Grad,
-            CellAvg,
-            FacetAvg,
             PositiveRestricted,
             NegativeRestricted,
             Indexed,
@@ -40,7 +36,6 @@ def balance_modified_terminal(expr):
     """Balance modified terminal."""
     # NB! Assuming e.g. grad(cell_avg(expr)) does not occur,
     # i.e. it is simplified to 0 immediately.
-
     if expr._ufl_is_terminal_:
         return expr
 
@@ -85,8 +80,6 @@ class BalanceModifiers(MultiFunction):
     reference_value = _modifier
     reference_grad = _modifier
     grad = _modifier
-    cell_avg = _modifier
-    facet_avg = _modifier
     positive_restricted = _modifier
     negative_restricted = _modifier
 

@@ -12,6 +12,7 @@
 # Modified by Jørgen S. Dokken 2023.
 
 import numbers
+import typing
 import warnings
 from collections import defaultdict
 from itertools import chain
@@ -28,13 +29,16 @@ from ufl.integral import Integral
 from ufl.utils.counted import Counted
 from ufl.utils.sorting import sorted_by_count
 
+if typing.TYPE_CHECKING:
+    from ufl.classes import AbstractDomain
+
 # Export list for ufl.classes
 __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
 
-def _sorted_integrals(integrals):
+def _sorted_integrals(integrals: typing.Iterable[Integral]) -> tuple[Integral, ...]:
     """Sort integrals for a stable signature computation.
 
     Sort integrals by domain id, integral type, subdomain id for a more
@@ -42,9 +46,10 @@ def _sorted_integrals(integrals):
     """
     # Group integrals in multilevel dict by keys
     # [domain][integral_type][subdomain_id]
-    integrals_dict = defaultdict(
-        lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-    )
+    integrals_dict: dict[
+        AbstractDomain,
+        dict[str, dict[tuple[typing.Any, ...], dict[int | tuple[int, ...], list[Integral]]]],
+    ] = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list))))
     for integral in integrals:
         d = integral.ufl_domain()
         if d is None:
@@ -275,7 +280,7 @@ class Form(BaseForm):
         "_terminal_numbering",
     )
 
-    def __init__(self, integrals):
+    def __init__(self, integrals: list[Integral]):
         """Initialise."""
         BaseForm.__init__(self)
         # Basic input checking (further compatibilty analysis happens
@@ -313,11 +318,11 @@ class Form(BaseForm):
         self._signature = None
 
         # Never use this internally in ufl!
-        self._cache = {}
+        self._cache: dict[typing.Any, typing.Any] = {}
 
     # --- Accessor interface ---
 
-    def integrals(self):
+    def integrals(self) -> tuple[Integral, ...]:
         """Return a sequence of all integrals in form."""
         return self._integrals
 
