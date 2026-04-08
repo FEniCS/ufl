@@ -62,6 +62,7 @@ def extract_type(a, ufl_types, base_form_op_as_expr=None):
     """
     if not isinstance(ufl_types, list | tuple):
         ufl_types = (ufl_types,)
+    original_ufl_types = tuple(list(ufl_types))
 
     if all(t is not BaseFormOperator for t in ufl_types):
         remove_base_form_ops = True
@@ -127,7 +128,7 @@ def extract_type(a, ufl_types, base_form_op_as_expr=None):
 
     # `Remove BaseFormOperator` objects if there were initially not in `ufl_types`
     if remove_base_form_ops:
-        objects -= base_form_ops
+        objects -= {o for o in base_form_ops if not isinstance(o, original_ufl_types)}
     return objects
 
 
