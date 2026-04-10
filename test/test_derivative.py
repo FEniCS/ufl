@@ -16,6 +16,7 @@ from ufl import (
     FunctionSpace,
     Identity,
     Index,
+    Interpolate,
     Jacobian,
     JacobianInverse,
     Label,
@@ -64,6 +65,7 @@ from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.classes import Indexed, MultiIndex, ReferenceGrad
 from ufl.constantvalue import Zero, as_ufl
+from ufl.differentiation import BaseFormDerivative
 from ufl.domain import extract_unique_domain
 from ufl.operators import Variable
 from ufl.pullback import identity_pullback
@@ -1015,3 +1017,23 @@ def test_variable_label():
     F_var_4 = Variable(F, label=Label(888))
     dCdF_4 = apply_derivatives(diff(C, F_var_4))
     assert dCdF_4 == 0
+
+
+def test_base_form_derivative_equality():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    f1 = FiniteElement("CG", triangle, 1, (), identity_pullback, H1)
+    V1 = FunctionSpace(domain, f1)
+    f2 = FiniteElement("CG", triangle, 2, (), identity_pullback, H1)
+    V2 = FunctionSpace(domain, f2)
+
+    u = Coefficient(V1)
+    Iu = Interpolate(u, V2)
+    uhat = TrialFunction(V1)
+
+    dIu = derivative(Iu, u, uhat)
+    assert isinstance(dIu, BaseFormDerivative)
+
+    assert derivative(Iu, u, uhat) == dIu
+
+    v = Coefficient(V1)
+    assert derivative(Iu, v, uhat) != dIu

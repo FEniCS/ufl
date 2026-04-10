@@ -35,7 +35,7 @@ from ufl.algorithms.analysis import (
 )
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.core.interpolate import Interpolate
-from ufl.form import Form, FormSum
+from ufl.form import Form, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -197,6 +197,21 @@ def test_differentiation(V1, V2):
     dJdu = expand_derivatives(derivative(J, u))
     assert isinstance(dJdu, Interpolate)
     assert dJdu.arguments() == (Argument(V1, 0),)
+
+
+def test_differentiation_wrt_independent_variable(V1, V2):
+    u = Coefficient(V1)
+    Iu = Interpolate(u, V2)
+    uhat = TrialFunction(V1)
+
+    independent = Coefficient(V1)
+
+    dIu = derivative(Iu, independent, uhat)
+    dIu_expanded = expand_derivatives(dIu)
+    assert isinstance(dIu_expanded, ZeroBaseForm)
+
+    interp_deriv_sum_expanded = expand_derivatives(dIu + dIu)
+    assert isinstance(interp_deriv_sum_expanded, ZeroBaseForm)
 
 
 def test_extract_base_form_operators(V1, V2):

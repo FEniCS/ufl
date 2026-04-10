@@ -9,7 +9,7 @@
 
 from ufl.checks import is_true_ufl_scalar, is_ufl_scalar
 from ufl.constantvalue import ComplexValue, IntValue, ScalarValue, Zero, as_ufl, zero
-from ufl.core.expr import ufl_err_str
+from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.index_combination_utils import merge_unique_indices
@@ -34,6 +34,16 @@ class Sum(Operator):
 
     def __new__(cls, a, b):
         """Create a new Sum."""
+        from ufl import BaseForm, FormSum
+
+        # Base forms (that aren't also expressions like Interpolate) should
+        # be cast to FormSums instead.
+        if any(
+            isinstance(x, BaseForm) and not isinstance(x, Expr)
+            for x in [a, b]
+        ):
+            return FormSum((a, 1), (b, 1))
+
         # Make sure everything is an Expr
         a = as_ufl(a)
         b = as_ufl(b)
