@@ -38,10 +38,7 @@ class Sum(Operator):
 
         # Base forms (that aren't also expressions like Interpolate) should
         # be cast to FormSums instead.
-        if any(
-            isinstance(x, BaseForm) and not isinstance(x, Expr)
-            for x in [a, b]
-        ):
+        if any(isinstance(x, BaseForm) and not isinstance(x, Expr) for x in [a, b]):
             return FormSum((a, 1), (b, 1))
 
         # Make sure everything is an Expr
