@@ -1,12 +1,14 @@
 """UFL to unicode."""
 
+import functools
 import numbers
+from typing import Any
 
 import ufl
 from ufl.algorithms import compute_form_data
 from ufl.core.multiindex import FixedIndex, Index
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
 from ufl.form import Form
 
 try:
@@ -38,106 +40,93 @@ __all__ = _ = [
 ]
 
 
-class PrecedenceRules(MultiFunction):
+class PrecedenceRules(DAGTraverser):
     """An enum-like class for C operator precedence levels."""
 
-    def __init__(self):
-        """Initialise."""
-        MultiFunction.__init__(self)
+    @functools.singledispatchmethod
+    def process(self, o: ufl.classes.Expr) -> int:
+        """Process node by type."""
+        return super().process(o)
 
-    def highest(self, o):
-        """Return the highest precendence."""
+    @process.register(ufl.classes.Terminal)
+    @process.register(ufl.classes.ListTensor)
+    @process.register(ufl.classes.ComponentTensor)
+    def _(self, o: Any) -> int:
+        # highest precendence
         return 0
 
-    terminal = highest
-    list_tensor = highest
-    component_tensor = highest
-
-    def restricted(self, o):
-        """Return precedence of a restriced."""
+    @process.register(ufl.classes.Restricted)
+    @process.register(ufl.classes.CellAvg)
+    @process.register(ufl.classes.FacetAvg)
+    def _(self, o: Any) -> int:
         return 5
 
-    cell_avg = restricted
-    facet_avg = restricted
-
-    def call(self, o):
-        """Return precedence of a call."""
+    @process.register(ufl.classes.Indexed)
+    @process.register(ufl.classes.MinValue)
+    @process.register(ufl.classes.MaxValue)
+    @process.register(ufl.classes.MathFunction)
+    @process.register(ufl.classes.BesselFunction)
+    def _(self, o: Any) -> int:
         return 10
 
-    indexed = call
-    min_value = call
-    max_value = call
-    math_function = call
-    bessel_function = call
-
-    def power(self, o):
-        """Return precedence of a power."""
+    @process.register(ufl.classes.Power)
+    def _(self, o: Any) -> int:
         return 12
 
-    def mathop(self, o):
-        """Return precedence of a mathop."""
+    @process.register(ufl.classes.Derivative)
+    @process.register(ufl.classes.Trace)
+    @process.register(ufl.classes.Deviatoric)
+    @process.register(ufl.classes.Cofactor)
+    @process.register(ufl.classes.Skew)
+    @process.register(ufl.classes.Sym)
+    def _(self, o: Any) -> int:
         return 15
 
-    derivative = mathop
-    trace = mathop
-    deviatoric = mathop
-    cofactor = mathop
-    skew = mathop
-    sym = mathop
-
-    def not_condition(self, o):
-        """Return precedence of a not_condition."""
+    @process.register(ufl.classes.NotCondition)
+    def _(self, o: ufl.classes.NotCondition) -> int:
         return 20
 
-    def product(self, o):
-        """Return precedence of a product."""
+    @process.register(ufl.classes.Product)
+    @process.register(ufl.classes.Division)
+    @process.register(ufl.classes.Dot)
+    @process.register(ufl.classes.Inner)
+    @process.register(ufl.classes.Outer)
+    @process.register(ufl.classes.Cross)
+    def _(self, o: Any) -> int:
         return 30
 
-    division = product
-    # mod = product
-    dot = product
-    inner = product
-    outer = product
-    cross = product
-
-    def add(self, o):
-        """Return precedence of an add."""
+    @process.register(ufl.classes.Sum)
+    @process.register(ufl.classes.IndexSum)
+    def _(self, o: Any) -> int:
         return 40
 
-    # sub = add
-    index_sum = add
-
-    def lt(self, o):
-        """Return precedence of a lt."""
+    @process.register(ufl.classes.LT)
+    @process.register(ufl.classes.LE)
+    @process.register(ufl.classes.GT)
+    @process.register(ufl.classes.GE)
+    def _(self, o: Any) -> int:
         return 50
 
-    le = lt
-    gt = lt
-    ge = lt
-
-    def eq(self, o):
-        """Return precedence of an eq."""
+    @process.register(ufl.classes.EQ)
+    @process.register(ufl.classes.NE)
+    def _(self, o: Any) -> int:
         return 60
 
-    ne = eq
-
-    def and_condition(self, o):
-        """Return precedence of an and_condition."""
+    @process.register(ufl.classes.AndCondition)
+    def _(self, o: ufl.classes.AndCondition) -> int:
         return 70
 
-    def or_condition(self, o):
-        """Return precedence of an or_condition."""
+    @process.register(ufl.classes.OrCondition)
+    def _(self, o: ufl.classes.OrCondition) -> int:
         return 71
 
-    def conditional(self, o):
-        """Return precedence of a conditional."""
+    @process.register(ufl.classes.Conditional)
+    def _(self, o: ufl.classes.Conditional) -> int:
         return 72
 
-    def lowest(self, o):
-        """Return precedence of a lowest."""
+    @process.register(ufl.classes.Operator)
+    def _(self, o: ufl.classes.Operator) -> int:
         return 80
-
-    operator = lowest
 
 
 _precrules = PrecedenceRules()
@@ -429,25 +418,32 @@ def mathop(expr, arg, opname):
     return f"{op}{sep}{arg}"
 
 
-class Expression2UnicodeHandler(MultiFunction):
+class Expression2UnicodeHandler(DAGTraverser):
     """Convert expressions to unicode."""
 
     def __init__(self, argument_names=None, coefficient_names=None, colorama_bold=False):
         """Initialise."""
-        MultiFunction.__init__(self)
+        super().__init__()
         self.argument_names = argument_names
         self.coefficient_names = coefficient_names
         self.colorama_bold = colorama_bold and has_colorama
 
+    @functools.singledispatchmethod
+    def process(self, o: ufl.classes.Expr) -> str:
+        """Process node by type."""
+        raise ValueError(f"Missing handler for type {type(o).__name__}")
+
     # --- Terminal objects ---
 
-    def scalar_value(self, o):
+    @process.register(ufl.classes.ScalarValue)
+    def _(self, o: ufl.classes.ScalarValue) -> str:
         """Format a scalar_value."""
         if o.ufl_shape and self.colorama_bold:
             return f"{colorama.Style.BRIGHT}{o._value}{colorama.Style.RESET_ALL}"
         return f"{o._value}"
 
-    def zero(self, o):
+    @process.register(ufl.classes.Zero)
+    def _(self, o: ufl.classes.Zero) -> str:
         """Format a zero."""
         if o.ufl_shape and self.colorama_bold:
             if len(o.ufl_shape) == 1:
@@ -455,27 +451,31 @@ class Expression2UnicodeHandler(MultiFunction):
             return f"{colorama.Style.BRIGHT}0{colorama.Style.RESET_ALL}"
         return "0"
 
-    def identity(self, o):
+    @process.register(ufl.classes.Identity)
+    def _(self, o: ufl.classes.Identity) -> str:
         """Format a identity."""
         if self.colorama_bold:
             return f"{colorama.Style.BRIGHT}I{colorama.Style.RESET_ALL}"
         return "I"
 
-    def permutation_symbol(self, o):
+    @process.register(ufl.classes.PermutationSymbol)
+    def _(self, o: ufl.classes.PermutationSymbol) -> str:
         """Format a permutation_symbol."""
         if self.colorama_bold:
             return f"{colorama.Style.BRIGHT}{UC.epsilon}{colorama.Style.RESET_ALL}"
         return UC.epsilon
 
-    def facet_normal(self, o):
+    @process.register(ufl.classes.FacetNormal)
+    def _(self, o: ufl.classes.FacetNormal) -> str:
         """Format a facet_normal."""
         return f"n{UC.combining_right_arrow_above}"
 
-    def spatial_coordinate(self, o):
-        """Format a spatial_coordinate."""
+    @process.register(ufl.classes.SpatialCoordinate)
+    def _(self, o: ufl.classes.SpatialCoordinate) -> str:
         return f"x{UC.combining_right_arrow_above}"
 
-    def argument(self, o):
+    @process.register(ufl.classes.Argument)
+    def _(self, o: ufl.classes.Argument) -> str:
         """Format an argument."""
         # Using ^ for argument numbering and _ for indexing since
         # indexing is more common than exponentiation
@@ -492,7 +492,8 @@ class Expression2UnicodeHandler(MultiFunction):
                 return bfn
         return self.argument_names[(o.number(), o.part())]
 
-    def coefficient(self, o):
+    @process.register(ufl.classes.Coefficient)
+    def _(self, o: ufl.classes.Coefficient) -> str:
         """Format a coefficient."""
         # Using ^ for coefficient numbering and _ for indexing since
         # indexing is more common than exponentiation
@@ -506,7 +507,8 @@ class Expression2UnicodeHandler(MultiFunction):
             return f"{var}{subscript_number(i)}"
         return self.coefficient_names[o.count()]
 
-    def cofunction(self, o):
+    @process.register(ufl.classes.Cofunction)
+    def _(self, o: ufl.classes.Cofunction) -> str:
         """Format a cofunction."""
         if self.coefficient_names is None:
             i = o.count()
@@ -518,15 +520,13 @@ class Expression2UnicodeHandler(MultiFunction):
             return f"{var}{subscript_number(i)}"
         return self.coefficient_names[o.count()]
 
-    def base_form_operator(self, o):
+    @process.register(ufl.classes.BaseFormOperator)
+    def _(self, o: ufl.classes.BaseFormOperator) -> str:
         """Format a base_form_operator."""
         return "BaseFormOperator"
 
-    def action(self, o, a, b):
-        """Format an Action."""
-        return f"Action({a}, {b})"
-
-    def constant(self, o):
+    @process.register(ufl.classes.Constant)
+    def _(self, o: ufl.classes.Constant) -> str:
         """Format a constant."""
         i = o.count()
         var = "c"
@@ -536,35 +536,54 @@ class Expression2UnicodeHandler(MultiFunction):
             var = f"{colorama.Style.BRIGHT}{var}{colorama.Style.RESET_ALL}"
         return f"{var}{superscript_number(i)}"
 
-    def multi_index(self, o):
+    @process.register(ufl.classes.MultiIndex)
+    def _(self, o: ufl.classes.MultiIndex) -> str:
         """Format a multi_index."""
         return ",".join(format_index(i) for i in o)
 
-    def label(self, o):
+    @process.register(ufl.classes.Label)
+    def _(self, o: ufl.classes.Label) -> str:
         """Format a label."""
         return f"l{subscript_number(o.count())}"
 
     # --- Non-terminal objects ---
 
-    def variable(self, o, f, a):
+    @process.register(ufl.classes.Action)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Action, a: str, b: str) -> str:
+        """Format an Action."""
+        return f"Action({a}, {b})"
+
+
+    @process.register(ufl.classes.Variable)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Variable, f: str, a: str) -> str:
         """Format a variable."""
         return f"var({f},{a})"
 
-    def index_sum(self, o, f, i):
+    @process.register(ufl.classes.IndexSum)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.IndexSum, f: str, i: str) -> str:
         """Format a index_sum."""
         if 1:  # prec(o.ufl_operands[0]) >? prec(o):
             f = par(f)
         return f"{UC.sum}[{i}]{f}"
 
-    def sum(self, o, a, b):
+    @process.register(ufl.classes.Sum)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Sum, a: str, b: str) -> str:
         """Format a sum."""
         return binop(o, a, b, "+")
 
-    def product(self, o, a, b):
+    @process.register(ufl.classes.Product)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Product, a: str, b: str) -> str:
         """Format a product."""
         return binop(o, a, b, " ", sep="")
 
-    def division(self, o, a, b):
+    @process.register(ufl.classes.Division)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Division, a: str, b: str) -> str:
         """Format a division."""
         if is_int(b):
             b = subscript_number(int(b))
@@ -578,16 +597,22 @@ class Expression2UnicodeHandler(MultiFunction):
             return f"{a} {UC.division_slash} {b}"
         return binop(o, a, b, UC.division_slash)
 
-    def abs(self, o, a):
+    @process.register(ufl.classes.Abs)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Abs, a: str) -> str:
         """Format an ans."""
         return f"|{a}|"
 
-    def transposed(self, o, a):
+    @process.register(ufl.classes.Transposed)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Transposed, a: str) -> str:
         """Format a transposed."""
         a = par(a)
         return f"{a}{UC.transpose}"
 
-    def indexed(self, o, A, ii):
+    @process.register(ufl.classes.Indexed)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Indexed, A: str, ii: str) -> str:
         """Format an indexed."""
         op0, _op1 = o.ufl_operands
         Aprec = precedence(op0)
@@ -596,7 +621,9 @@ class Expression2UnicodeHandler(MultiFunction):
             A = par(A)
         return f"{A}[{ii}]"
 
-    def variable_derivative(self, o, f, v):
+    @process.register(ufl.classes.VariableDerivative)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.VariableDerivative, f: str, v: str) -> str:
         """Format a variable_derivative."""
         f = par(f)
         v = par(v)
@@ -604,7 +631,9 @@ class Expression2UnicodeHandler(MultiFunction):
         denom = f"{UC.partial}{v}"
         return par(f"{nom}{UC.division_slash}{denom}")
 
-    def coefficient_derivative(self, o, f, w, v, cd):
+    @process.register(ufl.classes.CoefficientDerivative)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.CoefficientDerivative, f: str, w: str, v: str, cd: str) -> str:
         """Format a coefficient_derivative."""
         f = par(f)
         w = par(w)
@@ -612,15 +641,21 @@ class Expression2UnicodeHandler(MultiFunction):
         denom = f"{UC.partial}{w}"
         return par(f"{nom}{UC.division_slash}{denom}[{v}]")
 
-    def grad(self, o, f):
+    @process.register(ufl.classes.Grad)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Grad, f: str) -> str:
         """Format a grad."""
         return mathop(o, f, "grad")
 
-    def div(self, o, f):
+    @process.register(ufl.classes.Div)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Div, f: str) -> str:
         """Format a div."""
         return mathop(o, f, "div")
 
-    def nabla_grad(self, o, f):
+    @process.register(ufl.classes.NablaGrad)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.NablaGrad, f: str) -> str:
         """Format a nabla_grad."""
         oprec = precedence(o)
         fprec = precedence(o.ufl_operands[0])
@@ -628,7 +663,9 @@ class Expression2UnicodeHandler(MultiFunction):
             f = par(f)
         return f"{UC.nabla}{UC.thin_space}{f}"
 
-    def nabla_div(self, o, f):
+    @process.register(ufl.classes.NablaDiv)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.NablaDiv, f: str) -> str:
         """Format a nabla_div."""
         oprec = precedence(o)
         fprec = precedence(o.ufl_operands[0])
@@ -636,7 +673,9 @@ class Expression2UnicodeHandler(MultiFunction):
             f = par(f)
         return f"{UC.nabla}{UC.thin_space}{UC.dot}{UC.thin_space}{f}"
 
-    def curl(self, o, f):
+    @process.register(ufl.classes.Curl)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Curl, f: str) -> str:
         """Format a curl."""
         oprec = precedence(o)
         fprec = precedence(o.ufl_operands[0])
@@ -644,180 +683,258 @@ class Expression2UnicodeHandler(MultiFunction):
             f = par(f)
         return f"{UC.nabla}{UC.thin_space}{UC.cross_product}{UC.thin_space}{f}"
 
-    def math_function(self, o, f):
+    @process.register(ufl.classes.MathFunction)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.MathFunction, f: str) -> str:
         """Format a math_function."""
         op = opfont(o._name)
         return f"{op}{par(f)}"
 
-    def sqrt(self, o, f):
+    @process.register(ufl.classes.Sqrt)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Sqrt, f: str) -> str:
         """Format a sqrt."""
         return f"{UC.sqrt}{par(f)}"
 
-    def exp(self, o, f):
+    @process.register(ufl.classes.Exp)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Exp, f: str) -> str:
         """Format a exp."""
         op = opfont("exp")
         return f"{op}{par(f)}"
 
-    def atan2(self, o, f1, f2):
+    @process.register(ufl.classes.Atan2)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Atan2, f1: str, f2: str) -> str:
         """Format a atan2."""
         f1 = par(f1)
         f2 = par(f2)
         op = opfont("arctan2")
         return f"{op}({f1}, {f2})"
 
-    def bessel_j(self, o, nu, f):
+    @process.register(ufl.classes.BesselJ)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.BesselJ, nu: str, f: str) -> str:
         """Format a bessel_j."""
         op = opfont("J")
         nu = subscript_number(int(nu))
         return f"{op}{nu}{par(f)}"
 
-    def bessel_y(self, o, nu, f):
+    @process.register(ufl.classes.BesselY)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.BesselY, nu: str, f: str) -> str:
         """Format a bessel_y."""
         op = opfont("Y")
         nu = subscript_number(int(nu))
         return f"{op}{nu}{par(f)}"
 
-    def bessel_i(self, o, nu, f):
+    @process.register(ufl.classes.BesselI)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.BesselI, nu: str, f: str) -> str:
         """Format a bessel_i."""
         op = opfont("I")
         nu = subscript_number(int(nu))
         return f"{op}{nu}{par(f)}"
 
-    def bessel_K(self, o, nu, f):
+    @process.register(ufl.classes.BesselK)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.BesselK, nu: str, f: str) -> str:
         """Format a bessel_K."""
         op = opfont("K")
         nu = subscript_number(int(nu))
         return f"{op}{nu}{par(f)}"
 
-    def power(self, o, a, b):
+    @process.register(ufl.classes.Power)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Power, a: str, b: str) -> str:
         """Format a power."""
         if is_int(b):
             b = superscript_number(int(b))
             return binop(o, a, b, "", sep="")
         return binop(o, a, b, "^", sep="")
 
-    def outer(self, o, a, b):
+    @process.register(ufl.classes.Outer)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Outer, a: str, b: str) -> str:
         """Format an outer."""
         return binop(o, a, b, UC.circled_times)
 
-    def inner(self, o, a, b):
+    @process.register(ufl.classes.Inner)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Inner, a: str, b: str) -> str:
         """Format an inner."""
         return f"{UC.left_angled_bracket}{a}, {b}{UC.right_angled_bracket}"
 
-    def dot(self, o, a, b):
+    @process.register(ufl.classes.Dot)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Dot, a: str, b: str) -> str:
         """Format a dot."""
         return binop(o, a, b, UC.dot)
 
-    def cross(self, o, a, b):
+    @process.register(ufl.classes.Cross)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Cross, a: str, b: str) -> str:
         """Format a cross."""
         return binop(o, a, b, UC.cross_product)
 
-    def determinant(self, o, A):
+    @process.register(ufl.classes.Determinant)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Determinant, A: str) -> str:
         """Format a determinant."""
         return f"|{A}|"
 
-    def inverse(self, o, A):
+    @process.register(ufl.classes.Inverse)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Inverse, A: str) -> str:
         """Format an inverse."""
         A = par(A)
         return f"{A}{superscript_number(-1)}"
 
-    def trace(self, o, A):
+    @process.register(ufl.classes.Trace)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Trace, A: str) -> str:
         """Format a trace."""
         return mathop(o, A, "tr")
 
-    def deviatoric(self, o, A):
+    @process.register(ufl.classes.Deviatoric)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Deviatoric, A: str) -> str:
         """Format a deviatoric."""
         return mathop(o, A, "dev")
 
-    def cofactor(self, o, A):
+    @process.register(ufl.classes.Cofactor)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Cofactor, A: str) -> str:
         """Format a cofactor."""
         return mathop(o, A, "cofac")
 
-    def skew(self, o, A):
+    @process.register(ufl.classes.Skew)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Skew, A: str) -> str:
         """Format a skew."""
         return mathop(o, A, "skew")
 
-    def sym(self, o, A):
+    @process.register(ufl.classes.Sym)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Sym, A: str) -> str:
         """Format a sym."""
         return mathop(o, A, "sym")
 
-    def conj(self, o, a):
+    @process.register(ufl.classes.Conj)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Conj, a: str) -> str:
         """Format a conj."""
         # Overbar is already taken for average, and there is no superscript asterix in unicode.
         return mathop(o, a, "conj")
 
-    def real(self, o, a):
+    @process.register(ufl.classes.Real)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Real, a: str) -> str:
         """Format a real."""
         return mathop(o, a, "Re")
 
-    def imag(self, o, a):
+    @process.register(ufl.classes.Imag)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Imag, a: str) -> str:
         """Format a imag."""
         return mathop(o, a, "Im")
 
-    def list_tensor(self, o, *ops):
+    @process.register(ufl.classes.ListTensor)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.ListTensor, *ops: str) -> str:
         """Format a list_tensor."""
         return f"[{', '.join(ops)}]"
 
-    def component_tensor(self, o, A, ii):
+    @process.register(ufl.classes.ComponentTensor)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.ComponentTensor, A: str, ii: str) -> str:
         """Format a component_tensor."""
         return f"[{A} {UC.for_all} {ii}]"
 
-    def positive_restricted(self, o, f):
+    @process.register(ufl.classes.PositiveRestricted)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.PositiveRestricted, f: str) -> str:
         """Format a positive_restriced."""
         return f"{par(f)}{UC.superscript_plus}"
 
-    def negative_restricted(self, o, f):
+    @process.register(ufl.classes.NegativeRestricted)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.NegativeRestricted, f: str) -> str:
         """Format a negative_restriced."""
         return f"{par(f)}{UC.superscript_minus}"
 
-    def cell_avg(self, o, f):
+    @process.register(ufl.classes.CellAvg)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.CellAvg, f: str) -> str:
         """Format a cell_avg."""
         f = overline_string(f)
         return f
 
-    def facet_avg(self, o, f):
+    @process.register(ufl.classes.FacetAvg)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.FacetAvg, f: str) -> str:
         """Format a facet_avg."""
         f = overline_string(f)
         return f
 
-    def eq(self, o, a, b):
+    @process.register(ufl.classes.EQ)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.EQ, a: str, b: str) -> str:
         """Format an eq."""
         return binop(o, a, b, "=")
 
-    def ne(self, o, a, b):
+    @process.register(ufl.classes.NE)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.NE, a: str, b: str) -> str:
         """Format a ne."""
         return binop(o, a, b, UC.ne)
 
-    def le(self, o, a, b):
+    @process.register(ufl.classes.LE)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.LE, a: str, b: str) -> str:
         """Format a le."""
         return binop(o, a, b, UC.le)
 
-    def ge(self, o, a, b):
+    @process.register(ufl.classes.GE)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.GE, a: str, b: str) -> str:
         """Format a ge."""
         return binop(o, a, b, UC.ge)
 
-    def lt(self, o, a, b):
+    @process.register(ufl.classes.LT)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.LT, a: str, b: str) -> str:
         """Format a lt."""
         return binop(o, a, b, UC.lt)
 
-    def gt(self, o, a, b):
+    @process.register(ufl.classes.GT)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.GT, a: str, b: str) -> str:
         """Format a gt."""
         return binop(o, a, b, UC.gt)
 
-    def and_condition(self, o, a, b):
+    @process.register(ufl.classes.AndCondition)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.AndCondition, a: str, b: str) -> str:
         """Format an and_condition."""
         return binop(o, a, b, UC.logical_and)
 
-    def or_condition(self, o, a, b):
+    @process.register(ufl.classes.OrCondition)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.OrCondition, a: str, b: str) -> str:
         """Format an or_condition."""
         return binop(o, a, b, UC.logical_or)
 
-    def not_condition(self, o, a):
+    @process.register(ufl.classes.NotCondition)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.NotCondition, a: str, b: str) -> str:
         """Format a not_condition."""
         a = par(a)
         return f"{UC.logical_not}{a}"
 
-    def conditional(self, o, c, t, f):
+    @process.register(ufl.classes.Conditional)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.Conditional, c: str, t: str, f: str) -> str:
         """Format a conditional."""
         c = par(c)
         t = par(t)
@@ -826,26 +943,30 @@ class Expression2UnicodeHandler(MultiFunction):
         Else = opfont("else")
         return f"{t} {If} {c} {Else} {f}"
 
-    def min_value(self, o, a, b):
+    @process.register(ufl.classes.MinValue)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.MinValue, a: str, b: str) -> str:
         """Format an min_value."""
         op = opfont("min")
         return f"{op}({a}, {b})"
 
-    def max_value(self, o, a, b):
+    @process.register(ufl.classes.MaxValue)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.MaxValue, a: str, b: str) -> str:
         """Format an max_value."""
         op = opfont("max")
         return f"{op}({a}, {b})"
 
-    def expr_list(self, o, *ops):
+    @process.register(ufl.classes.ExprList)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.ExprList, *ops: str) -> str:
         """Format an expr_list."""
         items = ", ".join(ops)
         return f"{UC.left_white_square_bracket} {items} {UC.right_white_squared_bracket}"
 
-    def expr_mapping(self, o, *ops):
+    @process.register(ufl.classes.ExprMapping)
+    @DAGTraverser.postorder
+    def _(self, o: ufl.classes.ExprMapping, *ops: str) -> str:
         """Format an expr_mapping."""
         items = ", ".join(ops)
         return f"{UC.left_double_angled_bracket} {items} {UC.left_double_angled_bracket}"
-
-    def expr(self, o):
-        """Format an expr."""
-        raise ValueError(f"Missing handler for type {type(o)}")
