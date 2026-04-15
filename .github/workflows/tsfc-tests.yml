@@ -16,13 +16,13 @@ jobs:
     name: Run TSFC tests
     runs-on: ubuntu-latest
     container:
-      image: firedrakeproject/firedrake-vanilla-default:latest
+      image: firedrakeproject/firedrake-vanilla-default:dev-main
     steps:
       - name: Uninstall existing UFL
         run: |
           python3 -m pip uninstall -y fenics-ufl
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # Download UFL into a subdirectory not called 'ufl' to make sure
           # that the package installs correctly. Otherwise 'import ufl' may

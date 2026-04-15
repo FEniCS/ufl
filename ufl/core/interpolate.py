@@ -8,7 +8,7 @@
 #
 # Modified by Nacime Bouziani, 2021-2022
 
-from ufl.argument import Argument
+from ufl.argument import Argument, Coargument
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
@@ -36,23 +36,28 @@ class Interpolate(BaseFormOperator):
         from ufl.algorithms import extract_arguments
 
         expr = as_ufl(expr)
+
         if isinstance(expr, BaseForm):
-            raise ValueError("Expecting the first argument to be primal.")
-        expr_args = extract_arguments(expr)
+            expr_args = expr.arguments()
+            if not isinstance(expr_args[0], Coargument):
+                raise ValueError("Expecting the first argument to be primal.")
+            expr_args = expr_args[1:]
+        else:
+            expr_args = extract_arguments(expr)
+        expr_arg_numbers = {arg.number() for arg in expr_args}
+
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
                 raise ValueError("Expecting a primal function space.")
-            is_adjoint = len(expr_args) and expr_args[0].number() == 0
-            v = Argument(v.dual(), 1 if is_adjoint else 0)
-            dual_arg_numbers = {0}
+            n = 1 if expr_arg_numbers == {0} else 0
+            v = Argument(v.dual(), n)
+            dual_arg_numbers = {n}
         elif isinstance(v, BaseForm):
             dual_arg_numbers = {arg.number() for arg in v.arguments() if is_dual(arg)}
         else:
             raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")
+
         # Check valid argument numbering
-        expr_arg_numbers = {arg.number() for arg in expr_args}
-        if len(expr_arg_numbers) > 1:
-            raise ValueError("Can only interpolate expressions with zero or one argument.")
         if expr_arg_numbers & dual_arg_numbers:
             raise ValueError("Same argument numbers in first and second operands to interpolate.")
         if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
@@ -61,8 +66,7 @@ class Interpolate(BaseFormOperator):
         # Reversed order convention
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
-        arg, *_ = v.arguments()
-        function_space = arg.ufl_function_space()
+        function_space = v.arguments()[0].ufl_function_space()
 
         # Set the operand as `expr` for DAG traversal purpose.
         operand = expr

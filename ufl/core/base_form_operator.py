@@ -25,6 +25,8 @@ from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
 
+__all__ = ["BaseFormOperator"]
+
 
 @ufl_type(num_ops="varying", is_differential=True)
 class BaseFormOperator(Operator, BaseForm, Counted):
@@ -102,7 +104,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the base form."""
-        from ufl.algorithms.analysis import extract_arguments, extract_coefficients, extract_type
+        from ufl.algorithms.analysis import extract_coefficients, extract_type
+        from ufl.form import Form
 
         dual_arg, *arguments = self.argument_slots()
         # When coarguments are treated as BaseForms, they have two
@@ -113,9 +116,17 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # exact same situation than BaseFormOperator's arguments which
         # are different depending on whether the BaseFormOperator is
         # used in an outer form or not.
-        arguments = tuple(extract_type(dual_arg, Coargument)) + tuple(
-            a for arg in arguments for a in extract_arguments(arg)
+
+        primal_args = tuple(
+            a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
+        primal_arg_num = {a.number() for a in primal_args} if isinstance(dual_arg, Form) else {0, 1}
+        dual_args = tuple(
+            arg
+            for arg in dual_arg.arguments()
+            if isinstance(arg, Coargument) or arg.number() not in primal_arg_num
+        )
+        arguments = dual_args + primal_args
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         # 1) Need concept of order since we may have arguments with the same number

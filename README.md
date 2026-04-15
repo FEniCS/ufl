@@ -1,6 +1,6 @@
 # UFL - Unified Form Language
 
-[![UFL CI](https://github.com/FEniCS/ufl/actions/workflows/pythonapp.yml/badge.svg)](https://github.com/FEniCS/ufl/actions/workflows/pythonapp.yml)
+[![UFL CI](https://github.com/FEniCS/ufl/actions/workflows/all.yml/badge.svg)](https://github.com/FEniCS/ufl/actions/workflows/all.yml)
 [![Spack build](https://github.com/FEniCS/ufl/actions/workflows/spack.yml/badge.svg)](https://github.com/FEniCS/ufl/actions/workflows/spack.yml)
 [![Coverage Status](https://coveralls.io/repos/github/FEniCS/ufl/badge.svg?branch=main)](https://coveralls.io/github/FEniCS/ufl?branch=main)
 

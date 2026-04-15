@@ -20,7 +20,7 @@ import typing
 import warnings
 
 if typing.TYPE_CHECKING:
-    from ufl.core.terminal import FormArgument
+    import ufl.core.terminal
 
 from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
 
@@ -183,7 +183,7 @@ class Expr(metaclass=UFLType):
         "ufl_index_dimensions",
     )
 
-    ufl_operands: tuple["FormArgument", ...]
+    ufl_operands: tuple["ufl.core.terminal.FormArgument", ...]
     ufl_shape: tuple[int, ...]
     _ufl_typecode_: int
     ufl_free_indices: tuple[int, ...]

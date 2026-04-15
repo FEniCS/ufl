@@ -42,20 +42,17 @@ class SobolevSpace:
         p = frozenset(parents or [])
         # Ensure that the inclusion operations are transitive.
         self.parents = p.union(*[p_.parents for p_ in p])
-        self._order = {
-            "L2": 0,
-            "H1": 1,
-            "H2": 2,
-            "HInf": inf,
-            # Order for the elements below is taken from
-            # its parent Sobolev space
-            "HDiv": 0,
-            "HCurl": 0,
-            "HEin": 0,
-            "HDivDiv": 0,
-            "HCurlDiv": 0,
-            "DirectionalH": 0,
-        }[self.name]
+        order_dict = {"L2": 0, "H1": 1, "H2": 2, "H3": 3, "HInf": inf}
+        try:
+            order = order_dict[self.name]
+        except KeyError:
+            # Take the maximum order over all the parents
+            # For instance, H1Div has order=1 because it has H1 as parent
+            if len(self.parents) == 0:
+                order = 0
+            else:
+                order = max(p._order for p in self.parents)
+        self._order = order
 
     def __str__(self):
         """Format as a string."""
@@ -124,7 +121,7 @@ class DirectionalSobolevSpace(SobolevSpace):
         """Returns the Sobolev space associated with a particular spatial coordinate."""
         if spatial_index not in range(len(self._orders)):
             raise IndexError("Spatial index out of range.")
-        spaces = {0: L2, 1: H1, 2: H2, inf: HInf}
+        spaces = {0: L2, 1: H1, 2: H2, 3: H3, inf: HInf}
         return spaces[self._orders[spatial_index]]
 
     def __contains__(self, other):
@@ -171,9 +168,12 @@ class DirectionalSobolevSpace(SobolevSpace):
 L2 = SobolevSpace("L2")
 HDiv = SobolevSpace("HDiv", [L2])
 HCurl = SobolevSpace("HCurl", [L2])
-H1 = SobolevSpace("H1", [HDiv, HCurl, L2])
-H2 = SobolevSpace("H2", [H1, HDiv, HCurl, L2])
-HInf = SobolevSpace("HInf", [H2, H1, HDiv, HCurl, L2])
+H1 = SobolevSpace("H1", [HCurl, HDiv, L2])
+H1Div = SobolevSpace("H1Div", [H1])
+H1Curl = SobolevSpace("H1Curl", [H1])
+H2 = SobolevSpace("H2", [H1Curl, H1Div, H1])
+H3 = SobolevSpace("H3", [H2])
+HInf = SobolevSpace("HInf", [H3])
 HEin = SobolevSpace("HEin", [L2])
 HDivDiv = SobolevSpace("HDivDiv", [L2])
 HCurlDiv = SobolevSpace("HCurlDiv", [L2])

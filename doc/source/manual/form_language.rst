@@ -47,7 +47,7 @@ expression must be a scalar-valued expression integrated exactly once. How
 to define form arguments and integrand expressions is detailed in the
 rest of this chapter.
 
-Integrals are expressed through multiplication with a measure,
+Integrals are expressed through multiplication with a :py:class:`measure<ufl.Measure>`,
 representing an integral over either
 
     * the interior of the domain :math:`\Omega` (``dx``, cell integral);
@@ -477,7 +477,7 @@ represents an :math:`n\times n` unit matrix of given size :math:`n`,
 as in this example::
 
   # Geometric dimension
-  d = cell.geometric_dimension()
+  d = cell.geometric_dimension
 
   # d x d identiy matrix
   I = Identity(d)
@@ -671,7 +671,7 @@ single expression with free indices that should map to tensor axes,
 like mapping :math:`v_k` to :math:`\mathbf{v}` or :math:`A_{ij}` to
 :math:`\mathbf{A}`, the following examples show how this is done::
 
-  vk = Identity(cell.geometric_dimension())[0,k]
+  vk = Identity(cell.geometric_dimension)[0,k]
   v = as_tensor(vk, (k,))
 
   Aij = v[i]*u[j]

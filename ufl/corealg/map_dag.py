@@ -11,6 +11,8 @@ from ufl.core.expr import Expr
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_post_traversal
 
+__all__ = ["map_expr_dag", "map_expr_dags"]
+
 
 def map_expr_dag(function, expression, compress=True, vcache=None, rcache=None):
     """Apply a function to each subexpression node in an expression DAG.
@@ -24,12 +26,15 @@ def map_expr_dag(function, expression, compress=True, vcache=None, rcache=None):
             The function
         expression:
             An expression
-        compress: If True (default), the output object from
+        compress:
+            If True (default), the output object from
             the function is cached in a dict and reused such that the
             resulting expression DAG does not contain duplicate objects
-        vcache: Optional dict for caching results of intermediate
+        vcache:
+            Optional dict for caching results of intermediate
             transformations
-        rcache: Optional dict for caching results for compression
+        rcache:
+            Optional dict for caching results for compression
 
     Returns:
         The result of the final function call
@@ -65,7 +70,7 @@ def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None
             Optional dict for caching results for compression
 
     Returns:
-        a list with the result of the final function call for each expression
+        A list with the result of the final function call for each expression
     """
     # Temporary data structures
     # expr -> r = function(expr,...),  cache of intermediate results

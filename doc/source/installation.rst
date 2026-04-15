@@ -21,7 +21,7 @@ Requirements and dependencies
 UFL requires Python version 3.5 or later and depends on the
 following Python packages:
 
-* NumPy
+* :py:mod:`NumPy<numpy>`
 
 These packages will be automatically installed as part of the
 installation of UFL, if not already present on your system.

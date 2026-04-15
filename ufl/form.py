@@ -12,6 +12,7 @@
 # Modified by Jørgen S. Dokken 2023.
 
 import numbers
+import typing
 import warnings
 from collections import defaultdict
 from itertools import chain
@@ -28,13 +29,16 @@ from ufl.integral import Integral
 from ufl.utils.counted import Counted
 from ufl.utils.sorting import sorted_by_count
 
+if typing.TYPE_CHECKING:
+    from ufl.classes import AbstractDomain
+
 # Export list for ufl.classes
 __all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
 
-def _sorted_integrals(integrals):
+def _sorted_integrals(integrals: typing.Iterable[Integral]) -> tuple[Integral, ...]:
     """Sort integrals for a stable signature computation.
 
     Sort integrals by domain id, integral type, subdomain id for a more
@@ -42,7 +46,10 @@ def _sorted_integrals(integrals):
     """
     # Group integrals in multilevel dict by keys
     # [domain][integral_type][subdomain_id]
-    integrals_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    integrals_dict: dict[
+        AbstractDomain,
+        dict[str, dict[tuple[typing.Any, ...], dict[int | tuple[int, ...], list[Integral]]]],
+    ] = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list))))
     for integral in integrals:
         d = integral.ufl_domain()
         if d is None:
@@ -51,7 +58,12 @@ def _sorted_integrals(integrals):
             )
         it = integral.integral_type()
         si = integral.subdomain_id()
-        integrals_dict[d][it][si].append(integral)
+        # Make a sortable key.
+        extra_domain_itype_sortable = tuple(
+            (d_._ufl_sort_key_(), itype_)
+            for d_, itype_ in integral.extra_domain_integral_type_map().items()
+        )
+        integrals_dict[d][it][extra_domain_itype_sortable][si].append(integral)
 
     all_integrals = []
 
@@ -66,16 +78,17 @@ def _sorted_integrals(integrals):
     # Order integrals canonically to increase signature stability
     for d in sort_domains(integrals_dict):
         for it in sorted(integrals_dict[d]):  # str is sortable
-            for si in sorted(integrals_dict[d][it], key=keyfunc):
-                unsorted_integrals = integrals_dict[d][it][si]
-                # TODO: At this point we could order integrals by
-                #       metadata and integrand, or even add the
-                #       integrands with the same metadata. This is done
-                #       in accumulate_integrands_with_same_metadata in
-                #       algorithms/domain_analysis.py and would further
-                #       increase the signature stability.
-                all_integrals.extend(unsorted_integrals)
-                # integrals_dict[d][it][si] = unsorted_integrals
+            for extra_domain_itype_sortable in sorted(integrals_dict[d][it]):
+                for si in sorted(integrals_dict[d][it][extra_domain_itype_sortable], key=keyfunc):
+                    unsorted_integrals = integrals_dict[d][it][extra_domain_itype_sortable][si]
+                    # TODO: At this point we could order integrals by
+                    #       metadata and integrand, or even add the
+                    #       integrands with the same metadata. This is done
+                    #       in accumulate_integrands_with_same_metadata in
+                    #       algorithms/domain_analysis.py and would further
+                    #       increase the signature stability.
+                    all_integrals.extend(unsorted_integrals)
+                    # integrals_dict[d][it][extra_domain_itype_sortable][si] = unsorted_integrals
 
     return tuple(all_integrals)  # integrals_dict
 
@@ -267,7 +280,7 @@ class Form(BaseForm):
         "_terminal_numbering",
     )
 
-    def __init__(self, integrals):
+    def __init__(self, integrals: list[Integral]):
         """Initialise."""
         BaseForm.__init__(self)
         # Basic input checking (further compatibilty analysis happens
@@ -305,11 +318,11 @@ class Form(BaseForm):
         self._signature = None
 
         # Never use this internally in ufl!
-        self._cache = {}
+        self._cache: dict[typing.Any, typing.Any] = {}
 
     # --- Accessor interface ---
 
-    def integrals(self):
+    def integrals(self) -> tuple[Integral, ...]:
         """Return a sequence of all integrals in form."""
         return self._integrals
 
@@ -348,7 +361,7 @@ class Form(BaseForm):
 
     def geometric_dimension(self):
         """Return the geometric dimension shared by all domains and functions in this form."""
-        gdims = tuple(set(domain.geometric_dimension() for domain in self.ufl_domains()))
+        gdims = tuple(set(domain.geometric_dimension for domain in self.ufl_domains()))
         if len(gdims) != 1:
             raise ValueError(
                 "Expecting all domains and functions in a form "
@@ -600,6 +613,11 @@ class Form(BaseForm):
         self._integration_domains = sort_domains(
             join_domains([itg.ufl_domain() for itg in self._integrals])
         )
+        # Collect domains in extra_domain_integral_type_map.
+        domains_in_extra_domain_integral_type_map = join_domains(
+            [d for itg in self._integrals for d in itg.extra_domain_integral_type_map()]
+        )
+        domains_in_extra_domain_integral_type_map -= set(self._integration_domains)
         # Collect domains in integrands.
         domains_in_integrands = set()
         for o in chain(
@@ -608,7 +626,9 @@ class Form(BaseForm):
             domain = extract_unique_domain(o, expand_mesh_sequence=False)
             domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
-        all_domains = self._integration_domains + sort_domains(join_domains(domains_in_integrands))
+        all_domains = self._integration_domains + sort_domains(
+            join_domains(domains_in_extra_domain_integral_type_map | domains_in_integrands)
+        )
         # Let problem solving environments access all domains via
         # self._domain_numbering.keys() (wrapped in extract_domains()).
         self._domain_numbering = {d: i for i, d in enumerate(all_domains)}

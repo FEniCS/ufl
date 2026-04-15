@@ -29,13 +29,16 @@ class ExternalOperator(BaseFormOperator):
         """Initialise.
 
         Args:
-            operands: operands on which acts the ExternalOperator.
-            function_space: the FunctionSpace, or MixedFunctionSpace on
+            operands:
+                operands on which acts the ExternalOperator.
+            function_space:
+                the FunctionSpace, or MixedFunctionSpace on
                 which to build this Function.
-            derivatives: tuple specifying the derivative multiindex.
-                argument_slots: tuple composed containing expressions with
-                ufl.Argument or ufl.Coefficient objects.
-            argument_slots: TODO
+            derivatives:
+                tuple specifying the derivative multiindex.
+            argument_slots:
+                tuple composed containing expressions with
+                :py:class:`ufl.Argument` or :py:class:`ufl.Coefficient` objects.
         """
         # -- Derivatives -- #
         if derivatives is not None:

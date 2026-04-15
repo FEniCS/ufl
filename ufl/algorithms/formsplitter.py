@@ -141,11 +141,16 @@ def extract_blocks(
     If neither `i` nor `j` are set, return all blocks (as a scalar, vector or tensor).
 
     Args:
-        form: A form
-        i: Index of the block to extract. If set to ``None``, ``j`` must be None.
-        j: Index of the block to extract.
-        arity: Arity of the form. If not set, it will be inferred from the form.
-        replace_argument: If True, replace the argument by a new argument
+        form:
+            A form
+        i:
+            Index of the block to extract. If set to ``None``, ``j`` must be None.
+        j:
+            Index of the block to extract.
+        arity:
+            Arity of the form. If not set, it will be inferred from the form.
+        replace_argument:
+            If True, replace the argument by a new argument
             in the (collapsed) sub-function space. If False, keep the original argument.
     """
     if i is None and j is not None:

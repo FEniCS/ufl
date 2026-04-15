@@ -1,10 +1,14 @@
 """Base class for dag traversers."""
 
+from __future__ import annotations
+
 from functools import singledispatchmethod, wraps
 from typing import overload
 
 from ufl.classes import Expr
 from ufl.form import BaseForm
+
+__all__ = ["DAGTraverser"]
 
 
 class DAGTraverser:
@@ -32,11 +36,13 @@ class DAGTraverser:
         """Perform memoised DAG traversal with ``process`` singledispatch method.
 
         Args:
-            node: `Expr` to start DAG traversal from.
-            **kwargs: keyword arguments for the ``process`` singledispatchmethod.
+            node:
+                Expression to start DAG traversal from.
+            **kwargs:
+                keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
-            Processed `Expr`.
+            Processed Expression.
 
         """
         cache_key = (node, tuple((k, v) for k, v in kwargs.items()))
@@ -63,12 +69,13 @@ class DAGTraverser:
         """Process node by type.
 
         Args:
-            o: `Expr` to start DAG traversal from.
-            **kwargs: keyword arguments for the ``process`` singledispatchmethod.
+            o:
+                UFL expression to start DAG traversal from.
+            **kwargs:
+                Keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
-            Processed `Expr`.
-
+            Processed :py:class:`Expr`.
         """
         raise AssertionError(f"Rule not set for {type(o)}")
 
@@ -79,14 +86,16 @@ class DAGTraverser:
     def reuse_if_untouched(self, o: BaseForm, **kwargs) -> BaseForm: ...
 
     def reuse_if_untouched(self, o: Expr | BaseForm, **kwargs) -> Expr | BaseForm:
-        """Reuse if touched.
+        """Reuse if untouched.
 
         Args:
-            o: `Expr` to start DAG traversal from.
-            **kwargs: keyword arguments for the ``process`` singledispatchmethod.
+            o:
+                Expression to start DAG traversal from.
+            **kwargs:
+                Keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
-            Processed `Expr`.
+            Processed expression.
 
         """
         new_ufl_operands = [self(operand, **kwargs) for operand in o.ufl_operands]
