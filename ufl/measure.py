@@ -12,9 +12,11 @@
 import numbers
 from itertools import chain
 
+from ufl.algorithms.traversal import iter_expressions
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
+from ufl.corealg.traversal import unique_pre_traversal
 from ufl.domain import AbstractDomain, as_domain, extract_domains
 from ufl.protocols import id_or_none
 
@@ -430,6 +432,7 @@ class Measure:
         Integration properties are taken from this Measure object.
         """
         # Avoid circular imports
+        from ufl.algorithms import replace_function_spaces
         from ufl.form import Form
         from ufl.integral import Integral
 
@@ -486,10 +489,6 @@ class Measure:
                 assert len(set(d.ufl_cell() for d in domains)) == len(domains)
 
         if domain is None:
-            from ufl.algorithms import replace_function_spaces
-            from ufl.algorithms.traversal import iter_expressions
-            from ufl.corealg.traversal import unique_pre_traversal
-
             mixed_spaces = {
                 o.ufl_function_space()
                 for e in iter_expressions(integrand)
