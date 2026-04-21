@@ -6,6 +6,7 @@ from utils import LagrangeElement, MixedElement
 
 import ufl
 from ufl import (
+    H1,  # noqa: F401
     And,
     Argument,
     CellDiameter,
@@ -16,7 +17,6 @@ from ufl import (
     FacetArea,
     FacetNormal,
     FunctionSpace,
-    H1,  # noqa: F401
     Identity,
     Jacobian,
     JacobianDeterminant,
