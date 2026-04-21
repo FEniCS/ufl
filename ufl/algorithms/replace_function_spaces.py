@@ -6,6 +6,7 @@ from ufl import Argument
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.classes import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.functionspace import AbstractFunctionSpace
 
 
 class FunctionSpaceReplacer(DAGTraverser):
@@ -13,8 +14,8 @@ class FunctionSpaceReplacer(DAGTraverser):
 
     def __init__(
         self,
-        replacements: dict,
-        part: int = 0,
+        replacements: dict[AbstractFunctionSpace, AbstractFunctionSpace],
+        part: int,
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr] | None = None,
         result_cache: dict[Expr, Expr] | None = None,
@@ -51,11 +52,18 @@ class FunctionSpaceReplacer(DAGTraverser):
         return self.reuse_if_untouched(o)
 
 
-def replace_function_spaces(integrand, replacements: dict, offset):
+def replace_function_spaces(
+    integrand: Expr,
+    replacements: dict[AbstractFunctionSpace, AbstractFunctionSpace],
+    part: int = 0,
+) -> Expr:
     """Replace all instances of function spaces in an integrand.
 
-    replacements should be a dictionary mapping from function spaces to
-    what the spaces should be replaced with.
+    Args:
+        integrand: The integrand to do the replacements in.
+        replacements: A dictionary mapping function spaces to
+        the spaces they should be replaced with.
+        part: The part to use in the replacement arguments.
     """
-    dag_traverser = FunctionSpaceReplacer(replacements, offset)
+    dag_traverser = FunctionSpaceReplacer(replacements, part)
     return map_integrands(dag_traverser, integrand)
