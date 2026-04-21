@@ -12,9 +12,11 @@
 import numbers
 from itertools import chain
 
+from ufl.algorithms.traversal import iter_expressions
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
+from ufl.corealg.traversal import unique_pre_traversal
 from ufl.domain import AbstractDomain, as_domain, extract_domains
 from ufl.protocols import id_or_none
 
@@ -430,6 +432,7 @@ class Measure:
         Integration properties are taken from this Measure object.
         """
         # Avoid circular imports
+        from ufl.algorithms import replace_function_spaces
         from ufl.form import Form
         from ufl.integral import Integral
 
@@ -483,23 +486,54 @@ class Measure:
             elif len(domains) == 0:
                 raise ValueError("This integral is missing an integration domain.")
             else:
-                raise ValueError(
-                    "Multiple domains found, making the choice of integration domain ambiguous."
+                assert len(set(d.ufl_cell() for d in domains)) == len(domains)
+
+        if domain is None:
+            mixed_spaces = {
+                o.ufl_function_space()
+                for e in iter_expressions(integrand)
+                for o in unique_pre_traversal(e)
+                if hasattr(o, "ufl_function_space")
+            }
+            cells = {e.cell for space in mixed_spaces for e in space.ufl_elements()}
+            cells = sorted(list(cells))
+
+            integrals = []
+            for i, cell in enumerate(cells):
+                cell_domain = next(filter(lambda d: d.ufl_cell() == cell, domains))
+                replacements = {
+                    m: next(filter(lambda s: s.ufl_element().cell == cell, m.ufl_sub_spaces()))
+                    for m in mixed_spaces
+                }
+                integrals.append(
+                    Integral(
+                        integrand=replace_function_spaces(integrand, replacements, i),
+                        integral_type=self.integral_type(),
+                        domain=cell_domain,
+                        subdomain_id=subdomain_id,
+                        metadata=self.metadata(),
+                        subdomain_data=self.subdomain_data(),
+                        extra_domain_integral_type_map={
+                            m.ufl_domain(): m.integral_type() for m in self.intersect_measures()
+                        },
+                    )
                 )
 
-        # Otherwise create and return a one-integral form
-        integral = Integral(
-            integrand=integrand,
-            integral_type=self.integral_type(),
-            domain=domain,
-            subdomain_id=subdomain_id,
-            metadata=self.metadata(),
-            subdomain_data=self.subdomain_data(),
-            extra_domain_integral_type_map={
-                m.ufl_domain(): m.integral_type() for m in self.intersect_measures()
-            },
-        )
-        return Form([integral])
+            return sum(Form([integral]) for integral in integrals)
+        else:
+            # Create and return a one-integral form
+            integral = Integral(
+                integrand=integrand,
+                integral_type=self.integral_type(),
+                domain=domain,
+                subdomain_id=subdomain_id,
+                metadata=self.metadata(),
+                subdomain_data=self.subdomain_data(),
+                extra_domain_integral_type_map={
+                    m.ufl_domain(): m.integral_type() for m in self.intersect_measures()
+                },
+            )
+            return Form([integral])
 
 
 class MeasureSum:
