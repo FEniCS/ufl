@@ -5,7 +5,6 @@ import utils  # noqa: F401
 from utils import LagrangeElement, MixedElement
 
 import ufl
-from ufl import *  # noqa: F403
 from ufl import (
     And,
     Argument,
@@ -17,6 +16,7 @@ from ufl import (
     FacetArea,
     FacetNormal,
     FunctionSpace,
+    H1,
     Identity,
     Jacobian,
     JacobianDeterminant,
