@@ -5,8 +5,8 @@ import utils  # noqa: F401
 from utils import LagrangeElement, MixedElement
 
 import ufl
-from ufl import *  # noqa: F403
 from ufl import (
+    H1,  # noqa: F401
     And,
     Argument,
     CellDiameter,
