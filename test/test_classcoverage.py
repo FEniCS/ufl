@@ -16,7 +16,6 @@ from ufl import (
     FacetArea,
     FacetNormal,
     FunctionSpace,
-    H1,
     Identity,
     Jacobian,
     JacobianDeterminant,
