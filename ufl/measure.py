@@ -499,9 +499,9 @@ class Measure:
 
             integrals = []
             for i, cell in enumerate(cells):
-                cell_domain = next(d for d in domains if d.ufl_cell().cellname == cell.name)
+                cell_domain = next(filter(lambda d: d.ufl_cell().cellname == cell.name, domains))
                 replacements = {
-                    m: next(s for s in m.ufl_sub_spaces() if s.ufl_element().cell_type == cell)
+                    m: next(filter(lambda s: s.ufl_element().cell_type == cell, m.ufl_sub_spaces()))
                     for m in mixed_spaces
                 }
                 integrals.append(
