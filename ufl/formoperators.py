@@ -13,7 +13,7 @@ import numpy as np
 
 from ufl.action import Action
 from ufl.adjoint import Adjoint
-from ufl.algorithms import (
+from ufl.algorithms import (  # type: ignore
     compute_energy_norm,
     compute_form_action,
     compute_form_adjoint,
