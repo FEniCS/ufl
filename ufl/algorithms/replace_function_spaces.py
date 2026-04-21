@@ -44,7 +44,7 @@ class FunctionSpaceReplacer(DAGTraverser):
         return self.reuse_if_untouched(o)
 
     @process.register(Argument)
-    def _(self, o: Argument) -> Argument:
+    def _(self, o: Argument) -> Expr:
         """Apply to argument."""
         if o.ufl_function_space() in self.replacements:
             return Argument(self.replacements[o.ufl_function_space()], o._number, self.part)
