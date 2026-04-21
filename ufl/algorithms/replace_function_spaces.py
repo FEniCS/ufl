@@ -2,8 +2,8 @@
 
 from functools import singledispatchmethod
 
-from ufl.argument import Argument
 from ufl.algorithms.map_integrands import map_integrands
+from ufl.argument import Argument
 from ufl.classes import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.functionspace import AbstractFunctionSpace

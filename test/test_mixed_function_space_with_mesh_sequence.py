@@ -10,14 +10,22 @@ from ufl import (
     Measure,
     Mesh,
     MeshSequence,
+    MixedFunctionSpace,
     SpatialCoordinate,
     TestFunction,
+    TestFunctions,
     TrialFunction,
+    TrialFunctions,
     derivative,
     div,
     dot,
+    dx,
     grad,
+    hexahedron,
     inner,
+    prism,
+    pyramid,
+    quadrilateral,
     split,
     tetrahedron,
     triangle,
@@ -352,3 +360,37 @@ def test_mixed_function_space_with_mesh_sequence_tetrahedron_triangle():
     assert fd.original_form.domain_numbering()[id0.domain] == 0
     assert id0.integral_coefficients == set([f])
     assert id0.enabled_coefficients == [True]
+
+
+@pytest.mark.parametrize(
+    "cells",
+    [
+        [quadrilateral, triangle],
+        [tetrahedron, prism],
+        [tetrahedron, prism, pyramid],
+        [tetrahedron, prism, pyramid, hexahedron],
+    ],
+)
+def test_form(cells):
+    cells = sorted(cells)
+    mesh = MeshSequence(
+        [Mesh(FiniteElement("Lagrange", cell, 1, (3,), identity_pullback, H1)) for cell in cells]
+    )
+
+    elements = {
+        cell: FiniteElement("Lagrange", cell, 2, (), identity_pullback, H1) for cell in cells
+    }
+    V = MixedFunctionSpace(*[FunctionSpace(m, elements[m.ufl_cell()]) for m in mesh])
+
+    # Define forms for cell types separately
+    u_parts = TrialFunctions(V)
+    v_parts = TestFunctions(V)
+    dx_parts = [Measure("dx", domain=domain) for domain in mesh.meshes]
+    a = sum(inner(u_, v_) * dx_ for u_, v_, dx_ in zip(u_parts, v_parts, dx_parts))
+
+    # Check that simpler syntax leads to the same form
+    u = TrialFunction(V)
+    v = TestFunction(V)
+    a2 = inner(u, v) * dx
+
+    assert a == a2

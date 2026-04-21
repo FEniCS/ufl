@@ -495,13 +495,14 @@ class Measure:
                 for o in unique_pre_traversal(e)
                 if hasattr(o, "ufl_function_space")
             }
-            cells = {e.cell_type for space in mixed_spaces for e in space.ufl_elements()}
+            cells = {e.cell for space in mixed_spaces for e in space.ufl_elements()}
+            cells = sorted(list(cells))
 
             integrals = []
             for i, cell in enumerate(cells):
-                cell_domain = next(filter(lambda d: d.ufl_cell().cellname == cell.name, domains))
+                cell_domain = next(filter(lambda d: d.ufl_cell() == cell, domains))
                 replacements = {
-                    m: next(filter(lambda s: s.ufl_element().cell_type == cell, m.ufl_sub_spaces()))
+                    m: next(filter(lambda s: s.ufl_element().cell == cell, m.ufl_sub_spaces()))
                     for m in mixed_spaces
                 }
                 integrals.append(
