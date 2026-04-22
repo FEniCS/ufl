@@ -38,6 +38,11 @@ def domain():
 
 
 @pytest.fixture
+def functional(domain):
+    return 1 * dx(domain)
+
+
+@pytest.fixture
 def mass(domain):
     cell = triangle
     element = LagrangeElement(cell, 1)
@@ -102,6 +107,14 @@ def test_form_arguments(mass, stiffness, convection, load):
     assert (v * dx + f * v * ds).arguments() == (v,)
     assert (u * v * dx(1) + v * u * dx(2)).arguments() == (v, u)
     assert ((f * v) * u * dx + (u * 3) * (v / 2) * dx(2)).arguments() == (v, u)
+
+
+def test_form_arity(functional, mass, stiffness, convection, load) -> None:
+    assert functional.arity == 0
+    assert mass.arity == 2
+    assert stiffness.arity == 2
+    assert convection.arity == 2
+    assert load.arity == 1
 
 
 def test_form_coefficients(element, domain):
