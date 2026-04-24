@@ -8,7 +8,6 @@ import ufl
 from ufl.algorithms import compute_form_data
 from ufl.core.multiindex import FixedIndex, Index
 from ufl.corealg.dag_traverser import DAGTraverser
-from ufl.corealg.map_dag import map_expr_dag
 from ufl.form import Form
 
 try:
@@ -369,7 +368,7 @@ def ufl2unicode(expression):
 def expression2unicode(expression, argument_names=None, coefficient_names=None):
     """Generate Unicode string for a UFL expression."""
     rules = Expression2UnicodeHandler(argument_names, coefficient_names)
-    return map_expr_dag(rules, expression)
+    return rules(expression)
 
 
 def form2unicode(form, formdata):
