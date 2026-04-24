@@ -2,6 +2,7 @@
 
 import functools
 import numbers
+import warnings
 from typing import Any
 
 import ufl
@@ -430,7 +431,11 @@ class Expression2UnicodeHandler(DAGTraverser):
     @functools.singledispatchmethod
     def process(self, o: ufl.classes.Expr) -> str:
         """Process node by type."""
-        raise ValueError(f"Missing handler for type {type(o).__name__}")
+        warnings.warn(
+            f"ufl2unicode does not define a handler for {type(o).__name__}, falling back to str()",
+            stacklevel=2,
+        )
+        return str(o)
 
     # --- Terminal objects ---
 
