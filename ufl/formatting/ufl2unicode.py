@@ -554,7 +554,6 @@ class Expression2UnicodeHandler(DAGTraverser):
         """Format an Action."""
         return f"Action({a}, {b})"
 
-
     @process.register(ufl.classes.Variable)
     @DAGTraverser.postorder
     def _(self, o: ufl.classes.Variable, f: str, a: str) -> str:
