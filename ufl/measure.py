@@ -287,7 +287,7 @@ class Measure:
         subdomain_data=None,
         degree=None,
         scheme=None,
-        max_quadrature_degree=None,
+        max_degree=None,
         intersect_measures=None,
     ):
         """Reconfigure measure with new domain specification or metadata."""
@@ -311,14 +311,14 @@ class Measure:
         # If degree or scheme is set, inject into metadata. This is a
         # quick fix to enable the dx(..., degree=3) notation.
         # TODO: Make degree and scheme properties of integrals instead of adding to metadata.
-        if (degree, scheme, max_quadrature_degree) != (None, None, None):
+        if (degree, scheme, max_degree) != (None, None, None):
             metadata = {} if metadata is None else metadata.copy()
             if degree is not None:
                 metadata["quadrature_degree"] = degree
             if scheme is not None:
                 metadata["quadrature_rule"] = scheme
-            if max_quadrature_degree is not None:
-                metadata["max_quadrature_degree"] = max_quadrature_degree
+            if max_degree is not None:
+                metadata["max_quadrature_degree"] = max_degree
 
         # If we get any keywords, use them to reconstruct Measure.
         # Note that if only one argument is given, it is the
