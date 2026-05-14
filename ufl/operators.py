@@ -16,6 +16,7 @@ objects.
 
 import operator
 import warnings
+from math import pi
 
 from ufl import sobolevspace
 from ufl.algebra import Conj, Imag, Real
@@ -51,6 +52,7 @@ from ufl.mathfunctions import (
     Cosh,
     Erf,
     Exp,
+    Hypergeometric2F1,
     Ln,
     Sin,
     Sinh,
@@ -698,6 +700,35 @@ def atan2(f1, f2):
 def erf(f):
     """Take the error function of f."""
     return _mathfunction(f, Erf)
+
+
+def hyp2f1(a, b, c, f):
+    """The Gaussian hypergeometric function 2F1."""
+    a = as_ufl(a)
+    b = as_ufl(b)
+    c = as_ufl(c)
+    f = as_ufl(f)
+    return Hypergeometric2F1(a, b, c, f)
+
+
+def elliptic_K(k):
+    r"""Complete elliptic integral of the first kind.
+
+    This function is defined as
+
+    .. math:: K(k) = \int_0^{\pi/2} [1 - k^2 sin(t)^2]^{-1/2} dt
+    """
+    return (pi / 2) * hyp2f1(1 / 2, 1 / 2, 1, k**2)
+
+
+def elliptic_E(k):
+    r"""Complete elliptic integral of the second kind.
+
+    This function is defined as
+
+    .. math:: E(k) = \int_0^{\pi/2} [1 - k^2 sin(t)^2]^{1/2} dt
+    """
+    return (pi / 2) * hyp2f1(1 / 2, -1 / 2, 1, k**2)
 
 
 def bessel_J(nu, f):
