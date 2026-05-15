@@ -143,10 +143,21 @@ def test_form_arity_mixed(domain) -> None:
     assert bilinear.arity == 2
     assert (linear + bilinear).arity is None
 
-    linear_combined = (v[0] + sigma[0]) * dx
-    bilinear_combined = (v[0] * u[0] + sigma[0] * tau[0]) * dx
-    assert linear_combined.arity == 1
-    assert bilinear_combined.arity == 2
+    # combined mixed form integrals (unsupported)
+    with pytest.raises(
+        RuntimeError, match=r"Arity does not support mixed arguments in an integral."
+    ):
+        assert ((v[0] + sigma[0]) * dx).arity == 1
+
+    with pytest.raises(
+        RuntimeError, match=r"Arity does not support mixed arguments in an integral."
+    ):
+        assert ((v[0] * u[0] + sigma[0] * tau[0]) * dx).arity == 2
+
+    with pytest.raises(
+        RuntimeError, match=r"Arity does not support mixed arguments in an integral."
+    ):
+        assert ((v[0] + sigma[0] + v[0] * u[0] + sigma[0] * tau[0]) * dx).arity is None
 
 
 def test_form_coefficients(element, domain):

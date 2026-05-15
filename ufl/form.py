@@ -344,6 +344,9 @@ class Form(BaseForm):
     def arity(self) -> int | None:
         """Arity of the form.
 
+        Note:
+            Mixed function spaces are supported if the parts are not mixed in a single integral.
+
         Returns:
             Number of arguments if all integrals share the argument count, otherwise None.
         """
@@ -355,6 +358,10 @@ class Form(BaseForm):
         arity = None
         for integral in self._integrals:
             args, _, _ = extract_terminals_with_domain(integral.integrand())
+
+            if len(set(arg.part() for arg in args)) > 1:
+                raise RuntimeError("Arity does not support mixed arguments in an integral.")
+
             _arity = max((arg.number() + 1 for arg in args), default=0)
 
             if arity is None:
