@@ -361,7 +361,7 @@ def format_index(ii):
     if isinstance(ii, FixedIndex):
         s = f"{ii._value}"
     elif isinstance(ii, Index):
-        s = "i{subscript_number(ii._count)}"
+        s = f"i{subscript_number(ii._count)}"
     else:
         raise ValueError(f"Invalid index type {type(ii)}.")
     return s
