@@ -19,7 +19,6 @@ from ufl import (
     grad,
     inner,
     nabla_grad,
-    tetrahedron,
     triangle,
 )
 from ufl.argument import TestFunctions, TrialFunctions
