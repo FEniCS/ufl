@@ -19,9 +19,12 @@ from ufl import (
     grad,
     inner,
     nabla_grad,
+    tetrahedron,
     triangle,
 )
+from ufl.argument import TestFunctions, TrialFunctions
 from ufl.form import BaseForm
+from ufl.functionspace import MixedFunctionSpace
 
 
 @pytest.fixture
@@ -121,6 +124,24 @@ def test_form_arity(functional, mass, stiffness, convection, load) -> None:
     assert (functional + stiffness).arity is None
     assert (load + mass).arity is None
     assert (load + stiffness).arity is None
+
+
+def test_form_arity_mixed(domain) -> None:
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1, (2,)))
+    W = FunctionSpace(domain, LagrangeElement(triangle, 1, (3,)))
+
+    U = MixedFunctionSpace(V, W)
+
+    v, sigma = TestFunctions(U)
+    u, tau = TrialFunctions(U)
+
+    linear = v[0] * dx + sigma[0] * dx
+    bilinear = v[0] * u[0] * dx + sigma[0] * tau[0] * dx
+
+    assert linear.arity == 1
+    assert bilinear.arity == 2
+    assert (linear + bilinear).arity is None
 
 
 def test_form_coefficients(element, domain):
