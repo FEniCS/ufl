@@ -116,6 +116,12 @@ def test_form_arity(functional, mass, stiffness, convection, load) -> None:
     assert convection.arity == 2
     assert load.arity == 1
 
+    assert (functional + load).arity is None
+    assert (functional + mass).arity is None
+    assert (functional + stiffness).arity is None
+    assert (load + mass).arity is None
+    assert (load + stiffness).arity is None
+
 
 def test_form_coefficients(element, domain):
     space = FunctionSpace(domain, element)

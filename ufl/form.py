@@ -341,9 +341,28 @@ class Form(BaseForm):
         return len(self.integrals()) == 0
 
     @property
-    def arity(self):
-        """Arity of the form."""
-        return len(self.arguments())
+    def arity(self) -> int | None:
+        """Arity of the form.
+
+        Returns:
+            Number of arguments if all integrals share the argument count, otherwise None.
+        """
+        if not self._integrals:
+            return 0
+
+        from ufl.algorithms.analysis import extract_terminals_with_domain
+
+        arity = None
+        for integral in self._integrals:
+            args, _, _ = extract_terminals_with_domain(integral.integrand())
+            _arity = len(set(args))
+
+            if arity is None:
+                arity = _arity
+            elif arity != _arity:
+                return None
+
+        return arity
 
     def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
