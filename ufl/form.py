@@ -355,7 +355,7 @@ class Form(BaseForm):
         arity = None
         for integral in self._integrals:
             args, _, _ = extract_terminals_with_domain(integral.integrand())
-            _arity = len(set(args))
+            _arity = max((arg.number() + 1 for arg in args), default=0)
 
             if arity is None:
                 arity = _arity

@@ -143,6 +143,11 @@ def test_form_arity_mixed(domain) -> None:
     assert bilinear.arity == 2
     assert (linear + bilinear).arity is None
 
+    linear_combined = (v[0] + sigma[0]) * dx
+    bilinear_combined = (v[0] * u[0] + sigma[0] * tau[0]) * dx
+    assert linear_combined.arity == 1
+    assert bilinear_combined.arity == 2
+
 
 def test_form_coefficients(element, domain):
     space = FunctionSpace(domain, element)
