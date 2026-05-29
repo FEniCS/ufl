@@ -474,6 +474,22 @@ class Expression2UnicodeHandler(DAGTraverser):
         """Format a facet_normal."""
         return f"n{UC.combining_right_arrow_above}"
 
+    @process.register(ufl.classes.FacetArea)
+    def _(self, o: ufl.classes.FacetArea) -> str:
+        return "facetarea"
+
+    @process.register(ufl.classes.Circumradius)
+    def _(self, o: ufl.classes.Circumradius) -> str:
+        return "circumradius"
+
+    @process.register(ufl.classes.CellDiameter)
+    def _(self, o: ufl.classes.CellDiameter) -> str:
+        return "⌀"
+
+    @process.register(ufl.classes.CellVolume)
+    def _(self, o: ufl.classes.CellVolume) -> str:
+        return "volume"
+
     @process.register(ufl.classes.SpatialCoordinate)
     def _(self, o: ufl.classes.SpatialCoordinate) -> str:
         return f"x{UC.combining_right_arrow_above}"
