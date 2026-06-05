@@ -353,11 +353,11 @@ class Form(BaseForm):
         if not self._integrals:
             return 0
 
-        from ufl.algorithms.analysis import extract_terminals_with_domain
+        from ufl.algorithms.analysis import extract_arguments
 
         arity = None
         for integral in self._integrals:
-            args, _, _ = extract_terminals_with_domain(integral.integrand())
+            args = extract_arguments(integral.integrand())
 
             if len(set(arg.part() for arg in args)) > 1:
                 raise RuntimeError("Arity does not support mixed arguments in an integral.")
