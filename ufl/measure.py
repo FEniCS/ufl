@@ -287,6 +287,7 @@ class Measure:
         subdomain_data=None,
         degree=None,
         scheme=None,
+        intersect_measures=None,
     ):
         """Reconfigure measure with new domain specification or metadata."""
         # Let syntax dx() mean integral over everywhere
@@ -324,6 +325,7 @@ class Measure:
             domain=domain,
             metadata=metadata,
             subdomain_data=subdomain_data,
+            intersect_measures=intersect_measures,
         )
 
     def __str__(self):
