@@ -21,6 +21,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+      - name: Load environment variables
+        run: cat .github/workflows/fenicsx-refs.env >> $GITHUB_ENV
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -36,14 +38,14 @@ jobs:
 
       - name: Install Basix
         run: |
-          python3 -m pip install git+https://github.com/FEniCS/basix.git
+          python3 -m pip install git+https://github.com/${{ env.basix_repository }}.git@${{ env.basix_ref }}
 
       - name: Clone FFCx
         uses: actions/checkout@v6
         with:
           path: ./ffcx
-          repository: FEniCS/ffcx
-          ref: main
+          repository: ${{ env.ffcx_repository }}
+          ref: ${{ env.ffcx_ref }}
 
       - name: Install FFCx
         run: |
@@ -67,21 +69,24 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Load environment variables
+        run: cat .github/workflows/fenicsx-refs.env >> $GITHUB_ENV
+
       - name: Install UFL
         run: |
           pip3 install --break-system-packages .
 
       - name: Install Basix and FFCx
         run: |
-          python3 -m pip install --break-system-packages  git+https://github.com/FEniCS/basix.git
-          python3 -m pip install --break-system-packages  git+https://github.com/FEniCS/ffcx.git
+          python3 -m pip install --break-system-packages git+https://github.com/${{ env.basix_repository }}.git@${{ env.basix_ref }}
+          python3 -m pip install --break-system-packages git+https://github.com/${{ env.ffcx_repository }}.git@${{ env.ffcx_ref }}
 
       - name: Clone DOLFINx
         uses: actions/checkout@v6
         with:
           path: ./dolfinx
-          repository: FEniCS/dolfinx
-          ref: main
+          repository: ${{ env.dolfinx_repository }}
+          ref: ${{ env.dolfinx_ref }}
       - name: Install DOLFINx
         run: |
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
