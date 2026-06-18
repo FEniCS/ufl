@@ -42,7 +42,7 @@ from ufl.differentiation import (
 )
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.finiteelement import AbstractFiniteElement
-from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm, as_form
+from ufl.form import BaseForm, Form, FormProduct, FormSum, ZeroBaseForm, as_form
 from ufl.functionspace import FunctionSpace
 from ufl.geometry import SpatialCoordinate
 from ufl.indexed import Indexed
@@ -397,6 +397,27 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                 for component, w in zip(form.components(), form.weights())
             ]
         )
+    elif isinstance(form, FormProduct):
+        # Apply the product rule while reusing one derivative argument across all factors.
+        _, arguments = _handle_derivative_arguments(form, coefficient, argument)
+        derivative_argument = tuple(arguments)
+        product_terms = []
+        factors = form.factors()
+        for i, factor in enumerate(factors):
+            differentiated_factor = derivative(
+                factor, coefficient, derivative_argument, coefficient_derivatives
+            )
+            if differentiated_factor == 0 or isinstance(differentiated_factor, ZeroBaseForm):
+                continue
+            if isinstance(differentiated_factor, BaseForm) and differentiated_factor.empty():
+                continue
+            term_factors = list(factors)
+            term_factors[i] = differentiated_factor
+            product_terms.append((FormProduct(*term_factors), 1))
+
+        if not product_terms:
+            return ZeroBaseForm(form.arguments() + derivative_argument)
+        return FormSum(*product_terms)
     elif isinstance(form, Adjoint):
         # Is `derivative(Adjoint(A), ...)` with A a 2-form even legal ?
         # -> If yes, what's the right thing to do here ?

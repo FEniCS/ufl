@@ -271,7 +271,7 @@ from ufl.core.interpolate import Interpolate, interpolate
 from ufl.core.multiindex import Index, indices
 from ufl.domain import AbstractDomain, Mesh, MeshSequence, MeshView
 from ufl.finiteelement import AbstractFiniteElement
-from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
+from ufl.form import BaseForm, Form, FormProduct, FormSum, ZeroBaseForm
 from ufl.formoperators import (
     action,
     adjoint,
@@ -491,6 +491,7 @@ __all__ = [
     "FacetArea",
     "FacetNormal",
     "Form",
+    "FormProduct",
     "FormSum",
     "FunctionSpace",
     "H1Curl",

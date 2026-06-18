@@ -11,7 +11,7 @@
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.core.expr import Expr
-from ufl.form import BaseForm, Form, FormSum
+from ufl.form import BaseForm, Form, FormProduct, FormSum
 from ufl.integral import Integral
 
 
@@ -23,6 +23,7 @@ def iter_expressions(a):
     - a is an Integral:  the integrand expression of a
     - a is a  Form:      all integrand expressions of all integrals
     - a is a  FormSum:   the components of a
+    - a is a  FormProduct: the factors of a
     - a is an Action:    the left and right component of a
     - a is an Adjoint:   the underlying form of a
     """
@@ -30,7 +31,7 @@ def iter_expressions(a):
         return (itg.integrand() for itg in a.integrals())
     elif isinstance(a, Integral):
         return (a.integrand(),)
-    elif isinstance(a, FormSum | Adjoint | Action):
+    elif isinstance(a, FormSum | FormProduct | Adjoint | Action):
         return tuple(e for op in a.ufl_operands for e in iter_expressions(op))
     elif isinstance(a, Expr | BaseForm):
         return (a,)
