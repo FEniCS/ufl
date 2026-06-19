@@ -2,6 +2,7 @@ import pytest
 from utils import LagrangeElement
 
 from ufl import (
+    Adjoint,
     Argument,
     Coefficient,
     Cofunction,
@@ -9,6 +10,7 @@ from ufl import (
     FormProduct,
     FormSum,
     FunctionSpace,
+    Matrix,
     Mesh,
     SpatialCoordinate,
     TestFunction,
@@ -240,6 +242,16 @@ def test_form_product_constructor_and_arguments(domain):
     assert tuple(argument.number() for argument in nested.arguments()) == (0, 1, 2)
 
 
+def test_form_product_of_one_factor_simplifies(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = TestFunction(V)
+    f = Coefficient(V)
+    L = f * v * dx
+
+    assert FormProduct(L) is L
+
+
 def test_form_product_rejects_invalid_inputs(domain):
     element = LagrangeElement(triangle, 1)
     V = FunctionSpace(domain, element)
@@ -248,7 +260,9 @@ def test_form_product_rejects_invalid_inputs(domain):
     L = f * v * dx
 
     with pytest.raises(ValueError):
-        FormProduct(L)
+        FormProduct()
+    with pytest.raises(TypeError):
+        FormProduct(1)
     with pytest.raises(TypeError):
         FormProduct(L, 1)
 
@@ -264,6 +278,38 @@ def test_form_product_is_explicit_not_mul_overload(domain):
 
     with pytest.raises(TypeError):
         Lf * Lg
+
+
+def test_adjoint_form_product_reverses_adjoint_factors(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    A = Matrix(V, V)
+    B = Matrix(V, V)
+    C = Matrix(V, V)
+
+    product = FormProduct(A, B, C)
+    adjoint_product = Adjoint(product)
+
+    assert isinstance(adjoint_product, FormProduct)
+    assert tuple(factor.form() for factor in adjoint_product.factors()) == (C, B, A)
+    assert adjoint_product.factors() == (Adjoint(C), Adjoint(B), Adjoint(A))
+
+
+def test_adjoint_form_product_leaves_rank_zero_and_one_factors_unadjointed(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = TestFunction(V)
+    f = Coefficient(V)
+    functional = f * dx
+    linear = f * v * dx
+    A = Matrix(V, V)
+
+    product = FormProduct(functional, linear, A)
+    adjoint_product = Adjoint(product)
+
+    assert isinstance(adjoint_product, FormProduct)
+    assert adjoint_product.factors() == (Adjoint(A), linear, functional)
+    assert Adjoint(FormProduct(functional, linear)).factors() == (linear, functional)
 
 
 def test_form_product_replace(domain):

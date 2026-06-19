@@ -717,6 +717,15 @@ class FormProduct(BaseForm):
     )
     _ufl_required_methods_ = "_analyze_form_arguments"  # type: ignore
 
+    def __new__(cls, *factors):
+        """Create a new FormProduct."""
+        if len(factors) == 1:
+            (factor,) = factors
+            if isinstance(factor, BaseForm):
+                return factor
+            raise TypeError(f"Expected a UFL BaseForm instance, got {type(factor)}.")
+        return super().__new__(cls)
+
     def __init__(self, *factors):
         """Initialise."""
         BaseForm.__init__(self)
