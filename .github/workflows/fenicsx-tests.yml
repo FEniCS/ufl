@@ -24,7 +24,7 @@ jobs:
       PETSC_ARCH: linux-gnu-real-64
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Load environment variables
         run: cat .github/workflows/fenicsx-refs.env >> $GITHUB_ENV
       - name: Set up Python
@@ -45,7 +45,7 @@ jobs:
           python3 -m pip install git+https://github.com/${{ env.basix_repository }}.git@${{ env.basix_ref }}
 
       - name: Clone FFCx
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: ./ffcx
           repository: ${{ env.ffcx_repository }}
@@ -71,7 +71,7 @@ jobs:
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Load environment variables
         run: cat .github/workflows/fenicsx-refs.env >> $GITHUB_ENV
@@ -86,7 +86,7 @@ jobs:
           python3 -m pip install --break-system-packages git+https://github.com/${{ env.ffcx_repository }}.git@${{ env.ffcx_ref }}
 
       - name: Clone DOLFINx
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: ./dolfinx
           repository: ${{ env.dolfinx_repository }}
