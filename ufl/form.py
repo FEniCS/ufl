@@ -732,6 +732,12 @@ class FormSum(BaseForm):
             arguments = arg.arguments()
             return ZeroBaseForm(arguments)
 
+        # Simplify FormSum((a, 1)) -> a
+        if len(args) == 1:
+            a, w = args[0]
+            if bool(w == 1):
+                return a
+
         return super().__new__(cls)
 
     def __init__(self, *components):
