@@ -2,11 +2,15 @@ import pytest
 from utils import LagrangeElement
 
 from ufl import (
+    Adjoint,
+    Argument,
     Coefficient,
     Cofunction,
     Form,
+    FormProduct,
     FormSum,
     FunctionSpace,
+    Matrix,
     Mesh,
     SpatialCoordinate,
     TestFunction,
@@ -19,6 +23,7 @@ from ufl import (
     grad,
     inner,
     nabla_grad,
+    replace,
     triangle,
 )
 from ufl.form import BaseForm
@@ -203,3 +208,151 @@ def test_formsum(mass):
     assert f.weights()[0] == -1
     assert isinstance(df, FormSum)
     assert df.weights()[0] == -9
+
+
+def test_form_product_constructor_and_arguments(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = TestFunction(V)
+    f = Coefficient(V)
+    g = Coefficient(V)
+    h = Coefficient(V)
+
+    Lf = f * v * dx
+    Lg = g * v * dx
+    Lh = h * v * dx
+
+    product = FormProduct(Lf, Lg)
+    assert isinstance(product, BaseForm)
+    assert product.factors() == (Lf, Lg)
+    assert product.ufl_operands == (Lf, Lg)
+    assert product.factor_arguments() == (Lf.arguments(), Lg.arguments())
+
+    arguments = product.arguments()
+    assert tuple(argument.number() for argument in arguments) == (0, 1)
+    assert tuple(argument.part() for argument in arguments) == (None, None)
+    assert tuple(argument.ufl_function_space() for argument in arguments) == (V, V)
+    assert Lg.arguments()[0].number() == 0
+
+    assert product.coefficients() == (f, g)
+    assert product.ufl_domains() == (domain,)
+
+    nested = FormProduct(Lf, FormProduct(Lg, Lh))
+    assert nested.factors() == (Lf, Lg, Lh)
+    assert tuple(argument.number() for argument in nested.arguments()) == (0, 1, 2)
+
+
+def test_form_product_of_one_factor_simplifies(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = TestFunction(V)
+    f = Coefficient(V)
+    L = f * v * dx
+
+    assert FormProduct(L) is L
+
+
+def test_form_product_rejects_invalid_inputs(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = TestFunction(V)
+    f = Coefficient(V)
+    L = f * v * dx
+
+    with pytest.raises(ValueError):
+        FormProduct()
+    with pytest.raises(TypeError):
+        FormProduct(1)
+    with pytest.raises(TypeError):
+        FormProduct(L, 1)
+
+
+def test_form_product_is_explicit_not_mul_overload(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = TestFunction(V)
+    f = Coefficient(V)
+    g = Coefficient(V)
+    Lf = f * v * dx
+    Lg = g * v * dx
+
+    with pytest.raises(TypeError):
+        Lf * Lg
+
+
+def test_adjoint_form_product_reverses_adjoint_factors(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    A = Matrix(V, V)
+    B = Matrix(V, V)
+    C = Matrix(V, V)
+
+    product = FormProduct(A, B, C)
+    adjoint_product = Adjoint(product)
+
+    assert isinstance(adjoint_product, FormProduct)
+    assert tuple(factor.form() for factor in adjoint_product.factors()) == (C, B, A)
+    assert adjoint_product.factors() == (Adjoint(C), Adjoint(B), Adjoint(A))
+
+
+def test_adjoint_form_product_leaves_rank_zero_and_one_factors_unadjointed(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = TestFunction(V)
+    f = Coefficient(V)
+    functional = f * dx
+    linear = f * v * dx
+    A = Matrix(V, V)
+
+    product = FormProduct(functional, linear, A)
+    adjoint_product = Adjoint(product)
+
+    assert isinstance(adjoint_product, FormProduct)
+    assert adjoint_product.factors() == (Adjoint(A), linear, functional)
+    assert Adjoint(FormProduct(functional, linear)).factors() == (linear, functional)
+
+
+def test_form_product_replace(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = TestFunction(V)
+    f = Coefficient(V)
+    g = Coefficient(V)
+
+    Lf = f * v * dx
+    Lg = g * v * dx
+    product = FormProduct(Lf, Lg)
+    replaced = replace(product, {f: g})
+
+    assert isinstance(replaced, FormProduct)
+    assert bool(replaced.factors()[0] == Lg)
+    assert bool(replaced.factors()[1] == Lg)
+    assert tuple(argument.number() for argument in replaced.arguments()) == (0, 1)
+
+
+def test_form_product_derivative_product_rule(domain):
+    element = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain, element)
+    v = TestFunction(V)
+    f = Coefficient(V)
+    direction = Argument(V, 1)
+
+    L = f * v * dx
+    product = FormProduct(L, L)
+    dproduct = derivative(product, f, direction)
+
+    assert isinstance(dproduct, FormSum)
+    assert len(dproduct.components()) == 2
+    assert all(isinstance(component, FormProduct) for component in dproduct.components())
+
+    dL = derivative(L, f, direction)
+    expected_first = FormProduct(dL, L)
+    expected_second = FormProduct(L, dL)
+    assert bool(dproduct.components()[0] == expected_first)
+    assert bool(dproduct.components()[1] == expected_second)
+
+
+def test_form_product_exported_from_classes():
+    from ufl.classes import FormProduct as ClassesFormProduct
+
+    assert ClassesFormProduct is FormProduct

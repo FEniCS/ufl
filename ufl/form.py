@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
     from ufl.classes import AbstractDomain
 
 # Export list for ufl.classes
-__all_classes__ = ["Form", "BaseForm", "ZeroBaseForm"]
+__all_classes__ = ["Form", "BaseForm", "FormProduct", "ZeroBaseForm"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -695,6 +695,133 @@ def as_form(form):
     if not isinstance(form, BaseForm) and form != 0:
         raise ValueError(f"Unable to convert object to a UFL form: {ufl_err_str(form)}")
     return form
+
+
+@ufl_type()
+class FormProduct(BaseForm):
+    """Form product.
+
+    A structural product of variational forms and form-like objects.
+    Factors are stored unchanged; only the product's aggregate argument
+    list is renumbered cumulatively across factor argument lists.
+    """
+
+    __slots__ = (
+        "_arguments",
+        "_coefficients",
+        "_domains",
+        "_factors",
+        "_geometric_quantities",
+        "_hash",
+        "ufl_operands",
+    )
+    _ufl_required_methods_ = "_analyze_form_arguments"  # type: ignore
+
+    def __new__(cls, *factors):
+        """Create a new FormProduct."""
+        if len(factors) == 1:
+            (factor,) = factors
+            if isinstance(factor, BaseForm):
+                return factor
+            raise TypeError(f"Expected a UFL BaseForm instance, got {type(factor)}.")
+        return super().__new__(cls)
+
+    def __init__(self, *factors):
+        """Initialise."""
+        BaseForm.__init__(self)
+
+        if len(factors) < 2:
+            raise ValueError("FormProduct requires at least two factors.")
+
+        full_factors = []
+        for factor in factors:
+            if isinstance(factor, FormProduct):
+                full_factors.extend(factor.factors())
+            elif isinstance(factor, BaseForm):
+                full_factors.append(factor)
+            else:
+                raise TypeError(f"Expected a UFL BaseForm instance, got {type(factor)}.")
+
+        self._factors = tuple(full_factors)
+        self.ufl_operands = self._factors
+        self._arguments = None
+        self._coefficients = None
+        self._geometric_quantities = None
+        self._domains = None
+        self._hash = None
+
+    def factors(self):
+        """Return the unchanged product factors."""
+        return self._factors
+
+    def factor_arguments(self):
+        """Return original factor-local arguments for each factor."""
+        return tuple(factor.arguments() for factor in self._factors)
+
+    def _analyze_form_arguments(self):
+        """Analyze aggregate arguments and coefficients."""
+        arguments = []
+        coefficients = []
+        cumulative_shift = 0
+
+        for factor in self._factors:
+            factor_arguments = factor.arguments()
+            arguments.extend(
+                type(argument)(
+                    argument.ufl_function_space(),
+                    argument.number() + cumulative_shift,
+                    argument.part(),
+                )
+                for argument in factor_arguments
+            )
+            coefficients.extend(factor.coefficients())
+            cumulative_shift += len(factor_arguments)
+
+        self._arguments = tuple(arguments)
+        self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
+        self._geometric_quantities = ()
+
+    def _analyze_domains(self):
+        """Analyze which domains can be found in FormProduct."""
+        from ufl.domain import join_domains, sort_domains
+
+        self._domains = sort_domains(
+            join_domains(chain.from_iterable(factor.ufl_domains() for factor in self._factors))
+        )
+
+    def ufl_domains(self):
+        """Return all domains found in the base form."""
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
+
+    def equals(self, other):
+        """Evaluate ``bool(lhs_form_product == rhs_form_product)``."""
+        if type(other) is not FormProduct:
+            return False
+        if self is other:
+            return True
+        return len(self.factors()) == len(other.factors()) and all(
+            bool(a == b) for a, b in zip(self.factors(), other.factors())
+        )
+
+    def __hash__(self):
+        """Hash."""
+        if self._hash is None:
+            self._hash = hash(("FormProduct", tuple(hash(factor) for factor in self.factors())))
+        return self._hash
+
+    def empty(self):
+        """Returns whether any product factor is empty."""
+        return any(factor.empty() for factor in self.factors())
+
+    def __str__(self):
+        """Compute shorter string representation of form product."""
+        return "FormProduct({})".format(", ".join(str(factor) for factor in self._factors))
+
+    def __repr__(self):
+        """Representation."""
+        return "FormProduct({})".format(", ".join(repr(factor) for factor in self._factors))
 
 
 @ufl_type()
