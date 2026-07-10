@@ -203,3 +203,5 @@ def test_formsum(mass):
     assert f.weights()[0] == -1
     assert isinstance(df, FormSum)
     assert df.weights()[0] == -9
+
+    assert FormSum((mass, 1)) is mass
