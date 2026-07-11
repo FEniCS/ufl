@@ -161,10 +161,10 @@ class Measure:
         # subdomains
         if isinstance(subdomain_id, tuple):
             for did in subdomain_id:
-                if not isinstance(did, numbers.Integral):
+                if not isinstance(did, (numbers.Integral, str)):
                     raise ValueError(f"Invalid subdomain_id {did}.")
         else:
-            if not (subdomain_id in ("everywhere",) or isinstance(subdomain_id, numbers.Integral)):
+            if not isinstance(subdomain_id, (numbers.Integral, str)):
                 raise ValueError(f"Invalid subdomain_id {subdomain_id}.")
         self._subdomain_id = subdomain_id
 
