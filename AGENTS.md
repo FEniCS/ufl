@@ -56,6 +56,14 @@ form algebra or differentiation; they all lower whatever `compute_form_data` pro
 ## Testing Requirements
 
 * Every PR needs a test demonstrating the fix or feature.
+* **Test mathematical correctness, not just that it runs or looks structurally right.** Neither "no
+  exception was raised" nor `.signature()`/`==` agreement between two expressions proves the result is
+  correct — two independently-built expressions can match structurally while sharing the same wrong
+  derivative or simplification rule, and a simplification can produce something smaller without being
+  equivalent. Verify the actual mathematical claim: evaluate numerically (or `assemble` it in a
+  downstream consumer) and compare against a hand-computed or finite-difference value, or use a Taylor
+  test for anything claiming to be a derivative. Reserve structural/`.signature()` comparisons for
+  checking that two *constructions* agree, never as a stand-in for checking that either one is right.
 * Extend the existing file that already covers the feature (e.g. `test/test_duals.py` for
   `BaseForm`/`Action`/`Adjoint`/`ZeroBaseForm`). Don't create a new file for a single fix.
 * Build elements/domains via `test/utils.py`'s `LagrangeElement`/`FiniteElement` helpers — no
