@@ -21,7 +21,9 @@ from ufl import (
     nabla_grad,
     triangle,
 )
+from ufl.argument import TestFunctions, TrialFunctions
 from ufl.form import BaseForm
+from ufl.functionspace import MixedFunctionSpace
 
 
 @pytest.fixture
@@ -35,6 +37,11 @@ def element():
 def domain():
     cell = triangle
     return Mesh(LagrangeElement(cell, 1, (2,)))
+
+
+@pytest.fixture
+def functional(domain):
+    return 1 * dx(domain)
 
 
 @pytest.fixture
@@ -102,6 +109,54 @@ def test_form_arguments(mass, stiffness, convection, load):
     assert (v * dx + f * v * ds).arguments() == (v,)
     assert (u * v * dx(1) + v * u * dx(2)).arguments() == (v, u)
     assert ((f * v) * u * dx + (u * 3) * (v / 2) * dx(2)).arguments() == (v, u)
+
+
+def test_form_arity(functional, mass, stiffness, convection, load) -> None:
+    assert functional.arity == 0
+    assert mass.arity == 2
+    assert stiffness.arity == 2
+    assert convection.arity == 2
+    assert load.arity == 1
+
+    assert (functional + load).arity is None
+    assert (functional + mass).arity is None
+    assert (functional + stiffness).arity is None
+    assert (load + mass).arity is None
+    assert (load + stiffness).arity is None
+
+
+def test_form_arity_mixed(domain) -> None:
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1, (2,)))
+    W = FunctionSpace(domain, LagrangeElement(triangle, 1, (3,)))
+
+    U = MixedFunctionSpace(V, W)
+
+    v, sigma = TestFunctions(U)
+    u, tau = TrialFunctions(U)
+
+    linear = v[0] * dx + sigma[0] * dx
+    bilinear = v[0] * u[0] * dx + sigma[0] * tau[0] * dx
+
+    assert linear.arity == 1
+    assert bilinear.arity == 2
+    assert (linear + bilinear).arity is None
+
+    # combined mixed form integrals (unsupported)
+    with pytest.raises(
+        RuntimeError, match=r"Arity does not support mixed arguments in an integral."
+    ):
+        assert ((v[0] + sigma[0]) * dx).arity == 1
+
+    with pytest.raises(
+        RuntimeError, match=r"Arity does not support mixed arguments in an integral."
+    ):
+        assert ((v[0] * u[0] + sigma[0] * tau[0]) * dx).arity == 2
+
+    with pytest.raises(
+        RuntimeError, match=r"Arity does not support mixed arguments in an integral."
+    ):
+        assert ((v[0] + sigma[0] + v[0] * u[0] + sigma[0] * tau[0]) * dx).arity is None
 
 
 def test_form_coefficients(element, domain):
