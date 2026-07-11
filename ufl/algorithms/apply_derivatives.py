@@ -2315,17 +2315,28 @@ class CoefficientDerivativeRuleDispatcher(DerivativeRuleDispatcher):
 
     @process.register(Derivative)
     def _(self, o: Expr) -> Expr:
-        """Apply to generic Derivative objects."""
+        """Leave a foreign (non-UFL) Derivative subtype untouched."""
         return self.reuse_if_untouched(o)
 
-    @process.register(CoefficientDerivative)
-    @DAGTraverser.postorder_only_children([0])
-    def _(self, o: CoefficientDerivative, f: Expr | BaseForm) -> Expr | BaseForm:
-        """Apply to a coefficient_derivative."""
-        _, w, v, cd = o.ufl_operands
+    @process.register(CoefficientDerivative)  # type: ignore
+    def _(self, o: CoefficientDerivative) -> Expr | BaseForm:
+        """Apply to a coefficient_derivative.
+
+        Unlike the base DerivativeRuleDispatcher, this does not recurse
+        into the CoefficientDerivative's own content through ``self``:
+        that content is about to be Gateaux-differentiated, so it needs
+        the same full normalization (e.g. a spatial Grad pushed down to
+        a terminal) that GateauxDerivativeRuleset relies on under the
+        full pipeline, not the narrowed, CoefficientDerivative-only
+        treatment `self` gives to everything *outside* this node.
+        """
+        expr, w, v, cd = o.ufl_operands
+        full_dispatcher = self._dag_traverser_cache.setdefault(
+            (DerivativeRuleDispatcher,),  # type: ignore
+            DerivativeRuleDispatcher(),  # type: ignore
+        )
+        f = full_dispatcher(expr)  # type: ignore
         key = (GateauxDerivativeRuleset, w, v, cd)
-        # We need to go through the dag first to record the pending
-        # operations
         dag_traverser = self._dag_traverser_cache.setdefault(
             key,
             GateauxDerivativeRuleset(w, v, cd),  # type: ignore

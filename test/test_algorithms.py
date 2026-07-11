@@ -218,11 +218,11 @@ def test_replace_foreign_derivative(domain, space):
 
     # replace Form with ForeignDerivative
     Df = ForeignDerivative(f)
-    form =  derivative(inner(f.dx(0), f.dx(0))*dx, f) + inner(Df, test)*dx
+    form = derivative(inner(f.dx(0), f.dx(0)) * dx, f) + inner(Df, test) * dx
     result = replace(form, {f: g})
 
     Dg = ForeignDerivative(g)
-    expected = (inner(g.dx(0), test.dx(0)) + inner(test.dx(0), g.dx(0)))*dx +  inner(Dg, test)*dx
+    expected = (inner(g.dx(0), test.dx(0)) + inner(test.dx(0), g.dx(0))) * dx + inner(Dg, test) * dx
     assert result == expected
 
 
@@ -233,10 +233,13 @@ def test_replace_mixed_element(domain, element):
     w = Coefficient(space)
 
     u, p = split(z)
-    form =  derivative((inner(grad(u), grad(u)) + inner(p, p))*dx, z)
+    form = derivative((inner(grad(u), grad(u)) + inner(p, p)) * dx, z)
     result = replace(form, {z: w})
 
     u, p = split(w)
-    expected = derivative((inner(grad(u), grad(u)) + inner(p, p))*dx, w)
+    expected = derivative((inner(grad(u), grad(u)) + inner(p, p)) * dx, w)
     expected = expand_derivatives(expected)
-    assert result == expected
+    # result and expected are built independently, so their dummy
+    # summation indices may be numbered differently; compare signatures
+    # rather than raw equality.
+    assert result.signature() == expected.signature()
