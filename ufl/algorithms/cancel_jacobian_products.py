@@ -40,11 +40,13 @@ as IndexSum nodes over products of indexed terminals.
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from collections import defaultdict
+from functools import singledispatchmethod
 
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_component_tensors import IndexReplacer
 from ufl.classes import (
     Division,
+    Expr,
     Identity,
     Indexed,
     IndexSum,
@@ -55,8 +57,8 @@ from ufl.classes import (
 )
 from ufl.constantvalue import ScalarValue, Zero, as_ufl
 from ufl.core.multiindex import FixedIndex, MultiIndex
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import extract_unique_domain
 
 
@@ -78,7 +80,7 @@ def _make_product(factors):
     return result
 
 
-class IndexSumSimplifier(MultiFunction):
+class IndexSumSimplifier(DAGTraverser):
     """Base class for simplifying contractions in IndexSum nodes.
 
     Subclasses implement the ``match`` method, which rewrites the
@@ -87,12 +89,25 @@ class IndexSumSimplifier(MultiFunction):
     through nested IndexSums by interchanging the order of summation.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        compress: bool | None = True,
+        visited_cache: dict[tuple, Expr] | None = None,
+        result_cache: dict[Expr, Expr] | None = None,
+    ) -> None:
         """Initialise."""
-        MultiFunction.__init__(self)
-        self._rules = {}
+        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+        self._rules: dict[tuple, IndexReplacer] = {}
 
-    expr = MultiFunction.reuse_if_untouched
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``."""
+        return super().process(o)
+
+    @process.register(Expr)
+    def _(self, o: Expr) -> Expr:
+        """Reuse if untouched."""
+        return self.reuse_if_untouched(o)
 
     def _substitute(self, expr, k, a):
         """Replace the index k with a in expr."""
@@ -154,7 +169,9 @@ class IndexSumSimplifier(MultiFunction):
             return result
         return IndexSum(summand, MultiIndex((k,)))
 
-    def index_sum(self, o, summand, multiindex):
+    @process.register(IndexSum)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, summand: Expr, multiindex: MultiIndex) -> Expr:
         """Simplify IndexSum."""
         (k,) = multiindex
         result = self._cancel(_flatten_product(summand, []), k)
@@ -238,13 +255,24 @@ class IdentityEliminator(IndexSumSimplifier):
                 return self._substitute(_make_product(others), k, a)
         return None
 
-    def indexed(self, o, A, ii):
+    # Work around singledispatchmethod inheritance issue;
+    # see https://bugs.python.org/issue36457.
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``."""
+        return super().process(o)
+
+    @process.register(Indexed)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, A: Expr, ii: MultiIndex) -> Expr:
         """Fold Identity entries at fixed indices into scalar constants."""
         if isinstance(A, Identity):
             a, b = tuple(ii)
             if isinstance(a, FixedIndex) and isinstance(b, FixedIndex):
                 return as_ufl(1) if int(a) == int(b) else Zero()
-        return self.expr(o, A, ii)
+        if o.ufl_operands == (A, ii):
+            return o
+        return Indexed(A, ii)
 
 
 def _as_base_exponent(f):
@@ -286,12 +314,22 @@ def _make_power(base, exponent):
         return Power(base, as_ufl(exponent))
 
 
-class ReciprocalCanceller(MultiFunction):
+class ReciprocalCanceller(DAGTraverser):
     """Cancel reciprocal factors within products."""
 
-    expr = MultiFunction.reuse_if_untouched
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process ``o``."""
+        return super().process(o)
 
-    def product(self, o, a, b):
+    @process.register(Expr)
+    def _(self, o: Expr) -> Expr:
+        """Reuse if untouched."""
+        return self.reuse_if_untouched(o)
+
+    @process.register(Product)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, a: Expr, b: Expr) -> Expr:
         """Cancel bases that appear with exponents of opposite signs."""
         factors = _flatten_product(b, _flatten_product(a, []))
 
@@ -349,7 +387,7 @@ def cancel_jacobian_products(o):
     Args:
         o: An Expr or Form.
     """
-    o = map_integrand_dags(JacobianCanceller(), o)
-    o = map_integrand_dags(IdentityEliminator(), o)
-    o = map_integrand_dags(ReciprocalCanceller(), o)
+    o = map_integrands(JacobianCanceller(), o)
+    o = map_integrands(IdentityEliminator(), o)
+    o = map_integrands(ReciprocalCanceller(), o)
     return o
