@@ -28,9 +28,11 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.analysis import extract_type
 from ufl.constantvalue import Zero
+from ufl.differentiation import CoefficientDerivative
 from ufl.duals import is_dual, is_primal
-from ufl.form import ZeroBaseForm
+from ufl.form import Form, ZeroBaseForm
 
 
 def test_mixed_functionspace(self):
@@ -268,6 +270,23 @@ def test_action():
     res = action(a + a2, u)
     assert res == Action(a, u) + Action(a2, u)
 
+    # `action` must expand derivatives even when the top-level object is a
+    # FormSum (not just a bare Form), so that a CoefficientDerivative left
+    # over from an affine residual (here `F - b`, with `b` a Cofunction
+    # independent of `w`) does not survive unexpanded inside the resulting
+    # Action (regression test for compute_form_action choking on a
+    # CoefficientDerivative reachable only through a FormSum).
+    w = Coefficient(U)
+    dw = Argument(U, 1)
+    F = inner(w**3, u_a) * dx
+    residual = F - ustar
+    J = derivative(residual, w, dw)
+    assert isinstance(J, FormSum)
+    dw2 = Coefficient(U)
+    Jw = action(J, dw2)
+    assert isinstance(Jw, Form)
+    assert not extract_type(Jw, CoefficientDerivative)
+
 
 def test_differentiation():
     domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
@@ -315,6 +334,18 @@ def test_differentiation():
     assert dMdu.arguments() == M.arguments() + (Argument(u.ufl_function_space(), 2),)
     # Check compatibility with int/float
     assert dMdu == 0
+    assert dMdu.empty()
+
+    # Second derivative of a Matrix: differentiating an already-zero
+    # ZeroBaseForm must not raise (regression test for a missing
+    # GateauxDerivativeRuleset rule for ZeroBaseForm).
+    d2Mdu2 = expand_derivatives(derivative(derivative(M, u), u))
+    assert isinstance(d2Mdu2, ZeroBaseForm)
+    # One new direction Argument is picked up per differentiation, on top
+    # of the two Arguments of M.
+    assert d2Mdu2.arguments()[:2] == M.arguments()
+    assert len(d2Mdu2.arguments()) == 4
+    assert d2Mdu2.empty()
 
     # -- Action -- #
     Ac = Action(w, u)
@@ -335,6 +366,19 @@ def test_differentiation():
     dFsdu = expand_derivatives(derivative(Fs, u))
     # Distribute differentiation over FormSum components
     assert dFsdu == inner(what * uhat, v) * dx
+
+    # A FormSum whose components all vanish under differentiation must
+    # collapse to a properly shaped ZeroBaseForm rather than a bare `0`
+    # that silently drops the arguments (regression test for
+    # map_integrands losing arguments via `sum([])`).
+    p = Coefficient(U)
+    b1 = Cofunction(U.dual())
+    b2 = Cofunction(U.dual())
+    residual = b1 - b2
+    dresidualdp = expand_derivatives(derivative(residual, p, uhat))
+    assert isinstance(dresidualdp, ZeroBaseForm)
+    assert dresidualdp.arguments() == b1.arguments() + (uhat,)
+    assert dresidualdp.empty()
 
 
 def test_zero_base_form_mult():

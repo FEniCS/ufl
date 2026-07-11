@@ -1650,6 +1650,13 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # the appropriate space
         return ZeroBaseForm(M.arguments() + self._v)
 
+    @process.register(ZeroBaseForm)
+    def _(self, o: BaseForm) -> BaseForm:
+        """Differentiate a zero_base_form."""
+        # ZeroBaseForm is idempotent under differentiation: it stays zero,
+        # gaining the new derivative direction as an extra argument.
+        return ZeroBaseForm(o.arguments() + self._v)
+
 
 class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to BaseFormOperator.
@@ -2013,8 +2020,9 @@ def apply_derivatives(expression):
         and isinstance(dexpression_dvar, int)
         and dexpression_dvar == 0
     ):
-        # The arguments got lost, just keep an empty Form
-        dexpression_dvar = Form([])
+        # Algebraic cancellation collapsed everything to a bare `0`: rebuild
+        # a properly shaped `ZeroBaseForm` rather than an argument-less Form.
+        dexpression_dvar = ZeroBaseForm(expression.arguments())
 
     # Get the recorded delayed operations
     pending_operations = dag_traverser.pending_operations
