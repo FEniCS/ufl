@@ -912,6 +912,10 @@ class ZeroBaseForm(BaseForm):
             self._analyze_domains()
         return self._domains
 
+    def empty(self):
+        """Returns whether the ZeroBaseForm has no components, which is always true."""
+        return True
+
     def __ne__(self, other):
         """Overwrite BaseForm.__neq__ which relies on `equals`."""
         return not self == other
