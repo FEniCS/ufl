@@ -89,8 +89,8 @@ def replace(e, mapping):
     # is not attractive), or make replace lazy too.
     if has_exact_type(e, CoefficientDerivative):
         # Hack to avoid circular dependencies
-        from ufl.algorithms.ad import expand_derivatives
+        from ufl.algorithms.ad import expand_coefficient_derivatives
 
-        e = expand_derivatives(e)
+        e = expand_coefficient_derivatives(e)
 
     return map_integrand_dags(Replacer(mapping2), e)
