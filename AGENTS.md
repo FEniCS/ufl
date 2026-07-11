@@ -79,6 +79,41 @@ differentiation themselves; they all lower whatever `compute_form_data` hands ba
 * **`ruff` line length is 100**, not the flake8 default of 79 — `pyproject.toml`'s `[tool.ruff]` is
   authoritative; do not "fix" lines that are within 100 characters based on a bare `flake8` run.
 
+## Pattern Matching For Planning And Debugging
+
+* **Borrow a design from one layer down the stack before inventing one.** UFL sits below nothing and
+  above several form compilers (FFCx, TSFC/GEM) that lower whatever `compute_form_data` produces. A
+  simplification problem at the UFL layer has often already been solved, in a structurally analogous
+  form, one layer further down — GEM already recognizes and cancels Kronecker-delta-producing index
+  contractions during its own optimization passes. `cancel_jacobian_products.py`'s
+  `JacobianCanceller`/`IdentityEliminator` pair (rewrite a contraction into an indexed `Identity`, then
+  eliminate the `Identity` by substitution) is a deliberate port of that GEM pass, just run earlier —
+  before pullback lowering destroys the structure GEM would otherwise have to rediscover on its own.
+  Before designing a new algorithm for "cancel this recurring pattern", grep the downstream compiler for
+  a pass that already names it; porting a design that has already shipped and been tested is strictly
+  better than re-deriving one, and its existing tests hand you the edge cases for free. Treat this kind
+  of borrowing across the stack as good practice, not a shortcut to apologize for.
+* **Inside UFL, find the nearest *structurally* similar rule, not just the nearest class in the
+  hierarchy.** A new node type needing a dispatch rule should be matched to an existing rule for a type
+  playing the same abstract role (terminal-like dual object, zero-producing simplification,
+  index-contraction rewrite) even if it lives in an unrelated class hierarchy. Copy the boilerplate that
+  comes with it too — the `super().process(o)` fallback redeclaration, the `# type: ignore` on a narrowed
+  `process.register` signature — it exists because of concrete constraints (Python class-body name
+  resolution, `mypy`'s callable variance), not convention for its own sake, and skipping it reproduces
+  failures someone already solved when they wrote the neighbor you copied.
+* **Classify which structural category a fix belongs to before copying it to a sibling code path.** Two
+  branches that look parallel are not automatically the same problem: one may only ever *add* information
+  to a result, where its sibling *replaces* it (see the `map_integrands` `Form`-vs-`FormSum` case in
+  Anti-Patterns below). State in one sentence which category the code you are changing falls into before
+  generalizing a fix to a branch you have not actually exercised — a full local test-suite pass is not
+  proof the generalization is safe; it may take a downstream consumer's own test suite to reveal the
+  mismatch.
+* **When a generalization regresses something only a downstream consumer's tests catch, isolate with a
+  one-delta script before re-reading the whole diff.** Build the smallest example that drives exactly the
+  two competing code paths (e.g. a node's pre-transform vs. post-transform arguments) through the
+  algorithm directly, and `repr()` the result at each step — this localizes which rule produced the wrong
+  answer far faster than reasoning about the full pipeline in the abstract.
+
 ## Testing Requirements
 
 * **Pull Requests:** All PRs must include tests demonstrating the fix or feature.
