@@ -1650,7 +1650,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # the appropriate space
         return ZeroBaseForm(M.arguments() + self._v)
 
-    @process.register(ZeroBaseForm)
+    @process.register(ZeroBaseForm)  # type: ignore
     def _(self, o: BaseForm) -> BaseForm:
         """Differentiate a zero_base_form."""
         # ZeroBaseForm is idempotent under differentiation: it stays zero,
