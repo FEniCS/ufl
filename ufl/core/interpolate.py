@@ -13,6 +13,7 @@ from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 
@@ -73,6 +74,10 @@ class Interpolate(BaseFormOperator):
         BaseFormOperator.__init__(
             self, operand, function_space=function_space, argument_slots=argument_slots
         )
+
+    def ufl_element(self) -> AbstractFiniteElement:
+        """Return the target finite element."""
+        return self.ufl_function_space().ufl_element()
 
     def _ufl_expr_reconstruct_(self, expr, v=None, **add_kwargs):
         """Return a new object of the same type with new operands."""

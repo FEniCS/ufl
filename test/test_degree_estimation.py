@@ -24,6 +24,7 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import estimate_total_polynomial_degree
+from ufl.core.interpolate import Interpolate
 
 
 def test_total_degree_estimation():
@@ -58,6 +59,7 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(vu[i] * vv[i]) == 6
 
     assert estimate_total_polynomial_degree(v1) == 1
+    assert estimate_total_polynomial_degree(Interpolate(Coefficient(v1_space), v2_space)) == 2
     assert estimate_total_polynomial_degree(v2) == 2
 
     # TODO: This should be 1, but 2 is expected behaviour now

@@ -32,8 +32,11 @@ from ufl.algorithms.analysis import (
     extract_base_form_operators,
     extract_coefficients,
     extract_terminals_with_domain,
+    extract_type,
 )
+from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.expand_indices import expand_indices
+from ufl.classes import ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum
 from ufl.pullback import identity_pullback
@@ -85,6 +88,16 @@ def test_symbolic(V1, V2):
     assert Iu.argument_slots() == (vstar, u)
     assert Iu.arguments() == (vstar,)
     assert Iu.ufl_operands == (u,)
+    assert Iu.ufl_element() == V2.ufl_element()
+
+
+def test_reference_value_derivative(V1, V2):
+    Iu = Interpolate(Coefficient(V1), V2)
+    reference_value = ReferenceValue(Iu)
+
+    expression = apply_derivatives(grad(reference_value))
+    reference_grads = extract_type(expression, ReferenceGrad)
+    assert reference_value in {g.ufl_operands[0] for g in reference_grads}
 
 
 def test_symbolic_adjoint(V1, V2):

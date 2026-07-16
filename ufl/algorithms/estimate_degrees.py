@@ -92,6 +92,18 @@ class SumDegreeEstimator(MultiFunction):
             d = self.default_degree
         return d
 
+    def interpolate(self, v, *ops):
+        """Apply to interpolate.
+
+        An interpolated field has the polynomial degree of its target element.
+        """
+        e = v.ufl_element()
+        e = self.element_replace_map.get(e, e)
+        d = e.embedded_superdegree
+        if d is None:
+            d = self.default_degree
+        return d
+
     def _reduce_degree(self, v, f):
         """Reduce the estimated degree by one.
 
