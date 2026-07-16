@@ -74,6 +74,7 @@ class Interpolate(BaseFormOperator):
         BaseFormOperator.__init__(
             self, operand, function_space=function_space, argument_slots=argument_slots
         )
+        self._cache = {}
 
     def ufl_element(self) -> AbstractFiniteElement:
         """Return the target finite element."""

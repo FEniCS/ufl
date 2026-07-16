@@ -89,6 +89,7 @@ def test_symbolic(V1, V2):
     assert Iu.arguments() == (vstar,)
     assert Iu.ufl_operands == (u,)
     assert Iu.ufl_element() == V2.ufl_element()
+    assert Iu._cache == {}
 
 
 def test_reference_value_derivative(V1, V2):
