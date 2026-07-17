@@ -92,6 +92,44 @@ def test_symbolic(V1, V2):
     assert Iu._cache == {}
 
 
+def test_form_compiler_metadata(domain_2d, V1, V2):
+    u = Coefficient(V1)
+    cofunction = Cofunction(V2.dual())
+
+    interpolation = Interpolate(u, V2)
+    assert interpolation.coefficients() == (u,)
+    assert interpolation.ufl_domains() == (domain_2d,)
+    assert interpolation.subdomain_data() == {
+        domain_2d: {"cell": [None]}
+    }
+    assert interpolation.ufl_element() == V2.ufl_element()
+
+    adjoint_interpolation = Interpolate(TestFunction(V1), cofunction)
+    assert adjoint_interpolation.coefficients() == (cofunction,)
+    assert adjoint_interpolation.ufl_function_space() == V1.dual()
+    assert adjoint_interpolation.ufl_element() == V2.ufl_element()
+
+    scalar_interpolation = Interpolate(u, cofunction)
+    assert scalar_interpolation.arguments() == ()
+    assert scalar_interpolation.coefficients() == (u, cofunction)
+    assert scalar_interpolation.ufl_function_space() is None
+    assert scalar_interpolation.ufl_element() == V2.ufl_element()
+
+
+def test_form_compiler_signature(V1, V2, V3):
+    interpolation = Interpolate(Coefficient(V1), V2)
+    equivalent = Interpolate(Coefficient(V1), V2)
+    assert interpolation.signature() == equivalent.signature()
+
+    nested = Interpolate(interpolation, V3)
+    different_inner_target = Interpolate(Interpolate(Coefficient(V1), V1), V3)
+    assert nested.signature() != different_inner_target.signature()
+
+    cofunction_sum = Cofunction(V1.dual()) + Cofunction(V1.dual())
+    adjoint_interpolation = Interpolate(TestFunction(V2), cofunction_sum)
+    assert isinstance(adjoint_interpolation.signature(), str)
+
+
 def test_reference_value_derivative(V1, V2):
     Iu = Interpolate(Coefficient(V1), V2)
     reference_value = ReferenceValue(Iu)
