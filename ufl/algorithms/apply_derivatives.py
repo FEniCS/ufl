@@ -835,7 +835,7 @@ class GradRuleset(GenericDerivativeRuleset):
         """Differentiate a reference_value."""
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
-        if not f._ufl_is_terminal_:
+        if not (f._ufl_is_terminal_ or isinstance(f, Interpolate)):
             raise ValueError("ReferenceValue can only wrap a terminal")
         domain = extract_unique_domain(f, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
@@ -1068,7 +1068,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
     @process.register(ReferenceValue)
     def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
-        if not o.ufl_operands[0]._ufl_is_terminal_:
+        if not (o.ufl_operands[0]._ufl_is_terminal_ or isinstance(o.ufl_operands[0], Interpolate)):
             raise ValueError("ReferenceValue can only wrap a terminal")
         return ReferenceGrad(o)
 

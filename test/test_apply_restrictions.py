@@ -14,6 +14,7 @@ from ufl import (
 )
 from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.core.interpolate import Interpolate
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import L2
 
@@ -46,6 +47,13 @@ def test_apply_restrictions():
     # provided otherwise the user choice is respected
     assert apply_restrictions(f, default_restrictions={domain: "+"}) == f("+")
     assert apply_restrictions(f("-"), default_restrictions={domain: "+"}) == f("-")
+    interpolation = Interpolate(f, v2_space)
+    assert apply_restrictions(interpolation, default_restrictions={domain: "+"}) == interpolation(
+        "+"
+    )
+    discontinuous_interpolation = Interpolate(f, v0_space)
+    with pytest.raises(BaseException):
+        apply_restrictions(discontinuous_interpolation, default_restrictions={domain: "+"})
     assert apply_restrictions(f("+"), default_restrictions={domain: "+"}) == f("+")
 
     # Propagation to terminals

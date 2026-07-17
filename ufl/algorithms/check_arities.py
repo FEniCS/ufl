@@ -122,6 +122,7 @@ class ArityChecker(MultiFunction):
     grad = linear_operator
     reference_grad = linear_operator
     reference_value = linear_operator
+    interpolate = linear_operator
 
     # Conj, is a sesquilinear operator
     def conj(self, o, a):

@@ -4,7 +4,7 @@ __authors__ = "Nacime Bouziani"
 __date__ = "2021-11-19"
 
 import pytest
-from utils import FiniteElement, LagrangeElement
+from utils import FiniteElement, LagrangeElement, MixedElement
 
 from ufl import (
     Action,
@@ -15,7 +15,9 @@ from ufl import (
     FunctionSpace,
     Mesh,
     TestFunction,
+    TestFunctions,
     TrialFunction,
+    TrialFunctions,
     action,
     adjoint,
     derivative,
@@ -32,8 +34,11 @@ from ufl.algorithms.analysis import (
     extract_base_form_operators,
     extract_coefficients,
     extract_terminals_with_domain,
+    extract_type,
 )
+from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.expand_indices import expand_indices
+from ufl.classes import Product, ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum
 from ufl.pullback import identity_pullback
@@ -85,6 +90,76 @@ def test_symbolic(V1, V2):
     assert Iu.argument_slots() == (vstar, u)
     assert Iu.arguments() == (vstar,)
     assert Iu.ufl_operands == (u,)
+    assert Iu.ufl_element() == V2.ufl_element()
+    assert Iu._cache == {}
+
+
+def test_form_compiler_metadata(domain_2d, V1, V2):
+    u = Coefficient(V1)
+    cofunction = Cofunction(V2.dual())
+
+    interpolation = Interpolate(u, V2)
+    assert interpolation.coefficients() == (u,)
+    assert interpolation.ufl_domains() == (domain_2d,)
+    assert interpolation.subdomain_data() == {
+        domain_2d: {"cell": [None]}
+    }
+    assert interpolation.ufl_element() == V2.ufl_element()
+
+    adjoint_interpolation = Interpolate(TestFunction(V1), cofunction)
+    assert adjoint_interpolation.coefficients() == (cofunction,)
+    assert adjoint_interpolation.ufl_function_space() == V1.dual()
+    assert adjoint_interpolation.ufl_element() == V2.ufl_element()
+
+    scalar_interpolation = Interpolate(u, cofunction)
+    assert scalar_interpolation.arguments() == ()
+    assert scalar_interpolation.coefficients() == (u, cofunction)
+    assert scalar_interpolation.ufl_function_space() is None
+    assert scalar_interpolation.ufl_element() == V2.ufl_element()
+
+
+def test_shape_and_negation(domain_2d, V1, V2):
+    scalar_element = V1.ufl_element()
+    vector_element = FiniteElement(
+        "CG", triangle, 1, (2,), identity_pullback, H1
+    )
+    mixed_space = FunctionSpace(
+        domain_2d, MixedElement([scalar_element, vector_element])
+    )
+    target_space = FunctionSpace(domain_2d, vector_element)
+    _, trial = TrialFunctions(mixed_space)
+    _, test = TestFunctions(mixed_space)
+
+    for argument in (trial, test):
+        interpolation = Interpolate(argument, target_space)
+        assert interpolation.ufl_shape == target_space.value_shape
+        assert not isinstance(-interpolation, FormSum)
+
+    assert isinstance(-Interpolate(Coefficient(V1), V2), Product)
+    assert isinstance(-Interpolate(Coefficient(V1), Cofunction(V2.dual())), Product)
+
+
+def test_form_compiler_signature(V1, V2, V3):
+    interpolation = Interpolate(Coefficient(V1), V2)
+    equivalent = Interpolate(Coefficient(V1), V2)
+    assert interpolation.signature() == equivalent.signature()
+
+    nested = Interpolate(interpolation, V3)
+    different_inner_target = Interpolate(Interpolate(Coefficient(V1), V1), V3)
+    assert nested.signature() != different_inner_target.signature()
+
+    cofunction_sum = Cofunction(V1.dual()) + Cofunction(V1.dual())
+    adjoint_interpolation = Interpolate(TestFunction(V2), cofunction_sum)
+    assert isinstance(adjoint_interpolation.signature(), str)
+
+
+def test_reference_value_derivative(V1, V2):
+    Iu = Interpolate(Coefficient(V1), V2)
+    reference_value = ReferenceValue(Iu)
+
+    expression = apply_derivatives(grad(reference_value))
+    reference_grads = extract_type(expression, ReferenceGrad)
+    assert reference_value in {g.ufl_operands[0] for g in reference_grads}
 
 
 def test_symbolic_adjoint(V1, V2):

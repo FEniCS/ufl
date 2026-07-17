@@ -21,8 +21,9 @@ from ufl import (
     inner,
     tetrahedron,
 )
-from ufl.algorithms.check_arities import ArityMismatch
+from ufl.algorithms.check_arities import ArityMismatch, check_integrand_arity
 from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.core.interpolate import Interpolate
 
 
 def test_check_arities():
@@ -48,6 +49,15 @@ def test_check_arities():
     compute_form_data(M)
     compute_form_data(L)
     compute_form_data(a)
+
+
+def test_interpolate_arity():
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
+    V = FunctionSpace(domain, LagrangeElement(tetrahedron, 2))
+    v = TestFunction(V)
+    u = TrialFunction(V)
+
+    check_integrand_arity(inner(Interpolate(u, V), v), (v, u))
 
 
 def test_complex_arities():
