@@ -4,7 +4,7 @@ __authors__ = "Nacime Bouziani"
 __date__ = "2021-11-19"
 
 import pytest
-from utils import FiniteElement, LagrangeElement
+from utils import FiniteElement, LagrangeElement, MixedElement
 
 from ufl import (
     Action,
@@ -15,7 +15,9 @@ from ufl import (
     FunctionSpace,
     Mesh,
     TestFunction,
+    TestFunctions,
     TrialFunction,
+    TrialFunctions,
     action,
     adjoint,
     derivative,
@@ -36,7 +38,7 @@ from ufl.algorithms.analysis import (
 )
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.expand_indices import expand_indices
-from ufl.classes import ReferenceGrad, ReferenceValue
+from ufl.classes import Product, ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum
 from ufl.pullback import identity_pullback
@@ -114,6 +116,27 @@ def test_form_compiler_metadata(domain_2d, V1, V2):
     assert scalar_interpolation.coefficients() == (u, cofunction)
     assert scalar_interpolation.ufl_function_space() is None
     assert scalar_interpolation.ufl_element() == V2.ufl_element()
+
+
+def test_shape_and_negation(domain_2d, V1, V2):
+    scalar_element = V1.ufl_element()
+    vector_element = FiniteElement(
+        "CG", triangle, 1, (2,), identity_pullback, H1
+    )
+    mixed_space = FunctionSpace(
+        domain_2d, MixedElement([scalar_element, vector_element])
+    )
+    target_space = FunctionSpace(domain_2d, vector_element)
+    _, trial = TrialFunctions(mixed_space)
+    _, test = TestFunctions(mixed_space)
+
+    for argument in (trial, test):
+        interpolation = Interpolate(argument, target_space)
+        assert interpolation.ufl_shape == target_space.value_shape
+        assert not isinstance(-interpolation, FormSum)
+
+    assert isinstance(-Interpolate(Coefficient(V1), V2), Product)
+    assert isinstance(-Interpolate(Coefficient(V1), Cofunction(V2.dual())), Product)
 
 
 def test_form_compiler_signature(V1, V2, V3):
