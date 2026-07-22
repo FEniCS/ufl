@@ -16,6 +16,7 @@ from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
+from ufl.algorithms.cancel_jacobian_products import cancel_jacobian_products
 from ufl.algorithms.comparison_checker import do_comparison_check
 
 # See TODOs at the call sites of these below:
@@ -27,7 +28,7 @@ from ufl.algorithms.estimate_degrees import estimate_total_polynomial_degree
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.remove_component_tensors import remove_component_tensors
-from ufl.classes import Form
+from ufl.classes import Form, Jacobian, JacobianDeterminant, JacobianInverse
 
 
 def attach_estimated_degrees(form):
@@ -88,6 +89,7 @@ def compute_form_data(
     do_apply_integral_scaling=False,
     do_apply_geometry_lowering=False,
     preserve_geometry_types=(),
+    do_cancel_jacobian_products=False,
     do_apply_default_restrictions=True,
     do_apply_restrictions=True,
     do_estimate_degrees=True,
@@ -110,6 +112,12 @@ def compute_form_data(
             quantities to a smaller subset of quantities
         preserve_geometry_types: Set of quantities not to lower, and keep
             at its present stage for the form-compiler.
+        do_cancel_jacobian_products: Delay the expansion of the Jacobian
+            inverse into individual matrix entries, and cancel out index
+            contractions of the Jacobian with its inverse.  This
+            simplifies the expressions that Piola-mapped elements
+            generate, before lowering the surviving Jacobian quantities
+            as usual.
         do_apply_default_restrictions: Apply default restrictions, defined in
             {py:mod}`ufl.algorithms.apply_restrictions` to integrals if no
             restriction has been set.
@@ -164,12 +172,25 @@ def compute_form_data(
     if do_apply_integral_scaling:
         form = apply_integral_scaling(form)
 
+    # Keep the Jacobian, its inverse, and its determinant as opaque
+    # terminals while derivatives are expanded, so that contractions
+    # of the Jacobian with its inverse can be cancelled out before the
+    # inverse is expanded into individual matrix entries.
+    if do_cancel_jacobian_products:
+        lowering_preserve_types = set(preserve_geometry_types) | {
+            Jacobian,
+            JacobianInverse,
+            JacobianDeterminant,
+        }
+    else:
+        lowering_preserve_types = preserve_geometry_types
+
     # Lower abstractions for geometric quantities into a smaller set
     # of quantities, allowing the form compiler to deal with a smaller
     # set of types and treating geometric quantities like any other
     # expressions w.r.t. loop-invariant code motion etc.
     if do_apply_geometry_lowering:
-        form = apply_geometry_lowering(form, preserve_geometry_types)
+        form = apply_geometry_lowering(form, lowering_preserve_types)
 
     # Apply differentiation again, because the algorithms above can
     # generate new derivatives or rewrite expressions inside
@@ -180,9 +201,18 @@ def compute_form_data(
         # Neverending story: apply_derivatives introduces new Jinvs,
         # which needs more geometry lowering
         if do_apply_geometry_lowering:
-            form = apply_geometry_lowering(form, preserve_geometry_types)
+            form = apply_geometry_lowering(form, lowering_preserve_types)
             # Lower derivatives that may have appeared
             form = apply_derivatives(form)
+
+            if do_cancel_jacobian_products:
+                # Cancel contractions of the Jacobian with its inverse,
+                # which requires component tensors to be removed first
+                form = remove_component_tensors(form)
+                form = cancel_jacobian_products(form)
+                # Lower the Jacobian quantities that were preserved above
+                form = apply_geometry_lowering(form, preserve_geometry_types)
+                form = apply_derivatives(form)
 
     form = apply_coordinate_derivatives(form)
 
