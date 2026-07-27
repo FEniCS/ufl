@@ -105,7 +105,7 @@ class Interpolate(BaseFormOperator):
 
         expressions = (*self.ufl_operands, *self.argument_slots())
         self._domains = sort_domains(
-            join_domains(chain.from_iterable(extract(e) for e in expressions))
+            join_domains(list(chain.from_iterable(extract(e) for e in expressions)))
         )
 
     def ufl_domains(self):

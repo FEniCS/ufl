@@ -15,6 +15,7 @@ from ufl.classes import (
     Coefficient,
     ComponentTensor,
     Expr,
+    FormArgument,
     Interpolate,
     MultiIndex,
     NegativeRestricted,
@@ -234,6 +235,7 @@ class CoefficientSplitter(DAGTraverser):
         """Wrap terminal as needed."""
         c = o
         if reference_value:
+            assert isinstance(c, FormArgument | Interpolate)
             c = ReferenceValue(c)
         for k in range(reference_grad):
             c = ReferenceGrad(c)
