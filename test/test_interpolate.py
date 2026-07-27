@@ -101,9 +101,7 @@ def test_form_compiler_metadata(domain_2d, V1, V2):
     interpolation = Interpolate(u, V2)
     assert interpolation.coefficients() == (u,)
     assert interpolation.ufl_domains() == (domain_2d,)
-    assert interpolation.subdomain_data() == {
-        domain_2d: {"cell": [None]}
-    }
+    assert interpolation.subdomain_data() == {domain_2d: {"cell": [None]}}
     assert interpolation.ufl_element() == V2.ufl_element()
 
     adjoint_interpolation = Interpolate(TestFunction(V1), cofunction)
@@ -120,12 +118,8 @@ def test_form_compiler_metadata(domain_2d, V1, V2):
 
 def test_shape_and_negation(domain_2d, V1, V2):
     scalar_element = V1.ufl_element()
-    vector_element = FiniteElement(
-        "CG", triangle, 1, (2,), identity_pullback, H1
-    )
-    mixed_space = FunctionSpace(
-        domain_2d, MixedElement([scalar_element, vector_element])
-    )
+    vector_element = FiniteElement("CG", triangle, 1, (2,), identity_pullback, H1)
+    mixed_space = FunctionSpace(domain_2d, MixedElement([scalar_element, vector_element]))
     target_space = FunctionSpace(domain_2d, vector_element)
     _, trial = TrialFunctions(mixed_space)
     _, test = TestFunctions(mixed_space)

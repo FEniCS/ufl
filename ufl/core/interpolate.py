@@ -132,15 +132,8 @@ class Interpolate(BaseFormOperator):
             for counted_expr in extract_type(self, Counted):
                 exprs_by_type[counted_expr._counted_class].add(counted_expr)
 
-            numbering = {
-                expression: i for i, expression in enumerate(self.arguments())
-            }
-            numbering.update(
-                {
-                    expression: i
-                    for i, expression in enumerate(self.coefficients())
-                }
-            )
+            numbering = {expression: i for i, expression in enumerate(self.arguments())}
+            numbering.update({expression: i for i, expression in enumerate(self.coefficients())})
             for expressions in exprs_by_type.values():
                 for i, expression in enumerate(sorted_by_count(expressions)):
                     numbering.setdefault(expression, i)
@@ -164,9 +157,7 @@ class Interpolate(BaseFormOperator):
                 if isinstance(slot, FormSum):
                     return "FormSum", tuple(
                         (signature(component), signature(as_ufl(weight)))
-                        for component, weight in zip(
-                            slot.components(), slot.weights()
-                        )
+                        for component, weight in zip(slot.components(), slot.weights())
                     )
                 if isinstance(slot, Coargument | Cofunction):
                     kind = type(slot).__name__
@@ -179,9 +170,7 @@ class Interpolate(BaseFormOperator):
                     )
                 return compute_expression_signature(slot, renumbering)
 
-            signatures = tuple(
-                signature(slot) for slot in self.argument_slots()
-            )
+            signatures = tuple(signature(slot) for slot in self.argument_slots())
             self._signature = hashlib.sha512(str(signatures).encode("utf-8")).hexdigest()
         return self._signature
 
