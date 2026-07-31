@@ -173,6 +173,21 @@ def test_addition():
     assert res == a_W
 
 
+def test_zero_base_form_list_arguments():
+    # ZeroBaseForm should accept any iterable of arguments, not just tuples,
+    # since `_arguments` must be hashable (e.g. for use in `set`/`dict` or
+    # traversal caches).
+    domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
+    f_2d = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+
+    v = TestFunction(V)
+
+    f = ZeroBaseForm([v])
+    assert f.arguments() == (v,)
+    assert hash(f) == hash(ZeroBaseForm((v,)))
+
+
 def test_scalar_mult():
     domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
     f_2d = LagrangeElement(triangle, 1)

@@ -886,6 +886,7 @@ class ZeroBaseForm(BaseForm):
     def __init__(self, arguments):
         """Initialise."""
         BaseForm.__init__(self)
+        arguments = tuple(arguments)
         self._arguments = arguments
         self.ufl_operands = arguments
         self._hash = None
