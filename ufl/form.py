@@ -893,6 +893,10 @@ class ZeroBaseForm(BaseForm):
         self._domains = None
         self.form = None
 
+    def _ufl_expr_reconstruct_(self, *operands):
+        """Return a new object of the same type with new operands."""
+        return type(self)(operands)
+
     def _analyze_form_arguments(self):
         """Analyze form arguments."""
         # `self._arguments` is already set in `BaseForm.__init__`

@@ -188,6 +188,27 @@ def test_zero_base_form_list_arguments():
     assert hash(f) == hash(ZeroBaseForm((v,)))
 
 
+def test_zero_base_form_reconstruct():
+    # ZeroBaseForm._ufl_expr_reconstruct_ inherited BaseForm's default,
+    # `type(self)(*operands)`, which unpacks `ufl_operands` into positional
+    # args. That's wrong for a constructor taking a single `arguments`
+    # collection: with one argument, `tuple(bare_argument)` raised
+    # NotImplementedError trying to iterate it; with more than one, it
+    # raised TypeError from the extra positional args.
+    domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
+    f_2d = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+
+    v = TestFunction(V)
+    u = TrialFunction(V)
+
+    f1 = ZeroBaseForm((v,))
+    assert f1._ufl_expr_reconstruct_(v) == ZeroBaseForm((v,))
+
+    f2 = ZeroBaseForm((v, u))
+    assert f2._ufl_expr_reconstruct_(v, u) == ZeroBaseForm((v, u))
+
+
 def test_scalar_mult():
     domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
     f_2d = LagrangeElement(triangle, 1)
