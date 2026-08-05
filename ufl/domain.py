@@ -403,7 +403,8 @@ def extract_domains(
         `tuple` of domains.
 
     """
-    from ufl.form import Form
+    from ufl.core.expr import Expr
+    from ufl.form import BaseForm, Form
     from ufl.integral import Integral
 
     if isinstance(expr, Form):
@@ -418,6 +419,8 @@ def extract_domains(
             extract_domains(expr.integrand(), expand_mesh_sequence=expand_mesh_sequence)
         )
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
+    elif isinstance(expr, BaseForm) and not isinstance(expr, Expr):
+        return tuple(expr.ufl_domains())
     else:
         domainlist = []
         for t in traverse_unique_terminals(expr):
