@@ -420,7 +420,9 @@ def extract_domains(
         )
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
     elif isinstance(expr, BaseForm) and not isinstance(expr, Expr):
-        return tuple(expr.ufl_domains())
+        return sort_domains(
+            join_domains(expr.ufl_domains(), expand_mesh_sequence=expand_mesh_sequence)
+        )
     else:
         domainlist = []
         for t in traverse_unique_terminals(expr):
