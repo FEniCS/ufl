@@ -51,6 +51,12 @@ def map_integrands(function, form, only_integral_type=None):
             if component != 0
         ]
 
+        if not nonzero_components:
+            # Every component vanished: preserve the argument shape (which may
+            # include a new derivative direction picked up while mapping)
+            # instead of collapsing to a bare `0` and losing it.
+            return ZeroBaseForm(mapped_components[0].arguments())
+
         # Simplify case with one nonzero component and the corresponding weight is 1
         if len(nonzero_components) == 1 and nonzero_components[0][1] == 1:
             return nonzero_components[0][0]

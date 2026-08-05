@@ -9,15 +9,18 @@ import ufl  # noqa: F401
 from ufl import (
     Cell,
     Coefficient,
+    Cofunction,
     Constant,
     FunctionSpace,
     Mesh,
     TestFunction,
     TrialFunction,
+    action,
     dS,
     ds,
     dx,
     hexahedron,
+    inner,
     interval,
     quadrilateral,
     tetrahedron,
@@ -25,6 +28,7 @@ from ufl import (
 )
 from ufl.algorithms import compute_form_data
 from ufl.domain import extract_domains
+from ufl.form import ZeroBaseForm
 from ufl.pullback import (
     IdentityPullback,  # noqa: F401
     identity_pullback,
@@ -406,3 +410,23 @@ def test_extract_domains():
 
     assert domains[0] == dom_1
     assert domains[1] == dom_0
+
+
+def test_extract_domains_base_form():
+    # extract_domains previously only special-cased Form and Integral, and
+    # fell back to walking expr as an Expr tree of Arguments/Coefficients
+    # otherwise. That crashes on a BaseForm with no such tree (e.g. a bare
+    # ZeroBaseForm, or a FormSum mixing a Form with a Cofunction).
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = FunctionSpace(domain, element)
+    u = TrialFunction(V)
+    v = TestFunction(V)
+
+    assert extract_domains(ZeroBaseForm((v,))) == (domain,)
+
+    a = inner(u, v) * dx
+    L = Cofunction(V.dual())
+    residual = action(a, Coefficient(V)) - L
+    assert extract_domains(residual) == (domain,)
