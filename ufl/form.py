@@ -873,6 +873,12 @@ class ZeroBaseForm(BaseForm):
     used for sake of simplifying base-form expressions.
     """
 
+    # Not an Expr, so this doesn't come from the ufl_type() decorator.
+    # ufl_operands are the placeholder Arguments, which are themselves
+    # real terminals, so generic traversal (e.g. traverse_unique_terminals)
+    # should descend into them rather than stop here.
+    _ufl_is_terminal_ = False
+
     __slots__ = (
         "_arguments",
         "_coefficients",
