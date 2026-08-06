@@ -12,6 +12,7 @@ from ufl import (
     Cofunction,
     Constant,
     FunctionSpace,
+    Matrix,
     Mesh,
     TestFunction,
     TrialFunction,
@@ -26,9 +27,10 @@ from ufl import (
     tetrahedron,
     triangle,
 )
-from ufl.algorithms import compute_form_data
+from ufl.action import Action
+from ufl.algorithms import compute_form_data, extract_arguments, extract_coefficients
 from ufl.domain import extract_domains
-from ufl.form import ZeroBaseForm
+from ufl.form import FormSum, ZeroBaseForm
 from ufl.pullback import (
     IdentityPullback,  # noqa: F401
     identity_pullback,
@@ -430,3 +432,30 @@ def test_extract_domains_base_form():
     L = Cofunction(V.dual())
     residual = action(a, Coefficient(V)) - L
     assert extract_domains(residual) == (domain,)
+
+
+def test_extract_domains_nested_base_form():
+    # Nested BaseForm composition, e.g. Action(Action(Matrix, Coefficient),
+    # Coefficient) reached through a FormSum, exercises recursion through
+    # iter_expressions rather than a single level of unwrapping.
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = FunctionSpace(domain, element)
+
+    A = Matrix(V, V)
+    f = Coefficient(V)
+    g = Coefficient(V)
+    h = Coefficient(V)
+
+    outer_action = action(action(A, f), g)
+    assert isinstance(outer_action, Action)
+    assert isinstance(outer_action.left(), Action)
+
+    outer_action2 = action(action(A, h), f)
+
+    fs = FormSum((outer_action, 1.0), (outer_action2, -1.0))
+
+    assert extract_domains(fs) == (domain,)
+    assert extract_arguments(fs) == []
+    assert set(extract_coefficients(fs)) == {f, g, h}
