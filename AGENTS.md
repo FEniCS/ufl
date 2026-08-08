@@ -41,11 +41,15 @@ form algebra or differentiation; they all lower whatever `compute_form_data` pro
   Trained knowledge describing "a form is a sum of integrals over `Expr`s" predates them and will be
   wrong about duals, `Action`, `Adjoint`. Read the actual class before assuming a method exists.
 * **Document the present, not the past.** Don't explain what a removed workaround used to do; say what
-  is true now and why.
+  is true now and why. The test to apply: a reader who never saw the diff must not be able to tell
+  that anything was removed — see Anti-Patterns for the case that actually gets written.
 
 ## Coding Style And Conventions
 
 * **Type hints + Google-style docstrings** on new code, matching `ufl/algorithms/`.
+* **Plain English (ASD-STE100) in docstrings and comments.** Short sentences, one idea per sentence,
+  active voice, subject named up front instead of buried in a relative clause. Avoid the
+  clause-stacking, inverted phrasing typical of unedited AI-generated prose — see Anti-Patterns.
 * **`# type: ignore` on narrowed `process.register` handlers.** A handler typed
   `(self, o: SomeType) -> BaseForm` fails `mypy` against the base `process(self, o: Expr) -> Expr` even
   when the runtime dispatch is correct — match the existing `Matrix`/`Interpolate`/`ExternalOperator`
@@ -282,3 +286,51 @@ FormArgument"` on `Grad(Indexed(Coefficient, ...))`: `replace()`'s narrowed `exp
 needs `Grad` fully normalized *inside* a `CoefficientDerivative`'s content, but left alone *outside* one
 — a single `Derivative → reuse_if_untouched` registration cannot express both, since dispatch only sees
 a node's type, never which recursive call reached it.
+
+### Clause-Stacked Docstrings And Comments
+
+WRONG — the subject hides inside a relative clause the reader must unwind before finding the verb:
+
+```python
+def split_by_argument(form, number):
+    """Give the integrals a mixed-space splitter produced their collapsed subspace."""
+```
+
+RIGHT — subject named up front, one short sentence, active voice:
+
+```python
+def split_by_argument(form, number):
+    """Collapse the integrals that a mixed-space splitter produced onto their subspace."""
+```
+
+### Documenting Code That Is Not There
+
+A reader has only the file in front of them. A comment can describe a removed approach. It can also
+argue against a branch the code does not take. Either one sends the reader looking for something
+that is not there.
+The obvious form — "this used to call `expand_derivatives`" — is rarely what gets written. The form
+that gets written is an argument against a branch that was just deleted, which reads as present
+tense:
+
+WRONG — the first sentence describes deleted code, and the second argues with an absent branch:
+
+```python
+def arguments(self):
+    # This no longer returns the pre-image Arguments, which was wrong for a
+    # splitter that replaces them. A check for ZeroBaseForm here would lose
+    # the Argument numbering.
+    return self._arguments
+```
+
+RIGHT — say what the present code does, and state the condition it relies on:
+
+```python
+def arguments(self):
+    # The post-image Arguments, recorded when the transform rebuilt the form.
+    # A splitter that replaces Arguments sets these itself.
+    return self._arguments
+```
+
+Some words give this away on sight: "used to", "previously", "no longer", "instead of", "we removed",
+"this replaces". Watch equally for "would" when its subject is code that does not exist. An argument
+against a branch that nobody can see is still a description of the past.
