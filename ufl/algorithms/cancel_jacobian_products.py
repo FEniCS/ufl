@@ -39,6 +39,7 @@ as IndexSum nodes over products of indexed terminals.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from abc import abstractmethod
 from collections import defaultdict
 from functools import singledispatchmethod
 
@@ -117,6 +118,7 @@ class IndexSumSimplifier(DAGTraverser):
             self._rules[(k, a)] = rule
         return map_expr_dag(rule, expr)
 
+    @abstractmethod
     def match(self, with_k, rest, k):
         """Simplify IndexSum(product(with_k + rest), k), or return None.
 
@@ -125,7 +127,7 @@ class IndexSumSimplifier(DAGTraverser):
             rest: factors that do not depend on k.
             k: the summation index.
         """
-        raise NotImplementedError(f"match() not implemented by {type(self).__name__}.")
+        pass
 
     def _cancel(self, factors, k):
         """Simplify IndexSum(product(factors), k), or return None.
