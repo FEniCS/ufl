@@ -11,13 +11,17 @@
 
 import warnings
 
+from ufl.argument import Argument
 from ufl.checks import is_cellwise_constant
+from ufl.coefficient import Coefficient
 from ufl.constantvalue import IntValue
+from ufl.core.multiindex import FixedIndex
 from ufl.corealg.map_dag import map_expr_dags
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import extract_domains, extract_unique_domain
 from ufl.form import Form
 from ufl.integral import Integral
+from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides
 
 
 class SumDegreeEstimator(MultiFunction):
@@ -165,7 +169,36 @@ class SumDegreeEstimator(MultiFunction):
         return A
 
     def indexed(self, v, A, ii):
-        """Apply to indexed."""
+        """Apply to indexed.
+
+        A mixed-element Argument or Coefficient accessed at a fixed
+        (non-free) component belongs to exactly one of the mixed
+        element's sub-elements, which may have a lower degree than the
+        whole mixed element's. Look that sub-element's degree up
+        directly rather than use the whole element's degree computed
+        by argument()/coefficient(), whenever the component is fully
+        resolved to constants.
+        """
+        op = v.ufl_operands[0]
+        multiindex = v.ufl_operands[1]
+        if isinstance(op, (Argument, Coefficient)) and all(
+            isinstance(idx, FixedIndex) for idx in multiindex
+        ):
+            element = op.ufl_element()
+            if isinstance(op, Coefficient):
+                element = self.element_replace_map.get(element, element)
+            sub_elements = element.sub_elements
+            if sub_elements and len(multiindex) == len(op.ufl_shape):
+                component = flatten_multiindex(
+                    [int(idx) for idx in multiindex], shape_to_strides(op.ufl_shape)
+                )
+                offset = 0
+                for sub_element in sub_elements:
+                    sub_size = sub_element.reference_value_size
+                    if component < offset + sub_size:
+                        d = sub_element.embedded_superdegree
+                        return self.default_degree if d is None else d
+                    offset += sub_size
         return A
 
     def component_tensor(self, v, A, ii):
