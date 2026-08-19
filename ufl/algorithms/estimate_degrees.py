@@ -79,9 +79,10 @@ class SumDegreeEstimator(MultiFunction):
         A form argument provides a degree depending on the element,
         or the default degree if the element has no degree.
         """
-        return (
-            v.ufl_element().embedded_superdegree
-        )  # FIXME: Use component to improve accuracy for mixed elements
+        # For a mixed element this is the max degree over all sub-elements;
+        # indexed() refines this to the accessed sub-element's own degree
+        # when the specific component is known.
+        return v.ufl_element().embedded_superdegree
 
     def coefficient(self, v):
         """Apply to coefficient.
@@ -91,7 +92,8 @@ class SumDegreeEstimator(MultiFunction):
         """
         e = v.ufl_element()
         e = self.element_replace_map.get(e, e)
-        d = e.embedded_superdegree  # FIXME: Use component to improve accuracy for mixed elements
+        # See the comment in argument() above.
+        d = e.embedded_superdegree
         if d is None:
             d = self.default_degree
         return d
@@ -171,13 +173,10 @@ class SumDegreeEstimator(MultiFunction):
     def indexed(self, v, A, ii):
         """Apply to indexed.
 
-        A mixed-element Argument or Coefficient accessed at a fixed
-        (non-free) component belongs to exactly one of the mixed
-        element's sub-elements, which may have a lower degree than the
-        whole mixed element's. Look that sub-element's degree up
-        directly rather than use the whole element's degree computed
-        by argument()/coefficient(), whenever the component is fully
-        resolved to constants.
+        A fixed-index component of a mixed-element Argument or
+        Coefficient may belong to a lower-degree sub-element than the
+        whole mixed element, so look up that sub-element's own degree
+        instead of falling back to A, the whole element's degree.
         """
         op = v.ufl_operands[0]
         multiindex = v.ufl_operands[1]
@@ -192,6 +191,8 @@ class SumDegreeEstimator(MultiFunction):
                 component = flatten_multiindex(
                     [int(idx) for idx in multiindex], shape_to_strides(op.ufl_shape)
                 )
+                # Walk the sub-elements in order to find which one covers
+                # this flattened component.
                 offset = 0
                 for sub_element in sub_elements:
                     sub_size = sub_element.reference_value_size

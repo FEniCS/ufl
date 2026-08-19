@@ -60,8 +60,8 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(v1) == 1
     assert estimate_total_polynomial_degree(v2) == 2
 
-    # f1 is the sub-coefficient on the degree-1 sub-element of the mixed
-    # element, so its own degree is 1, not the mixed element's max of 2.
+    # f1 lives on the mixed element's degree-1 sub-element, so its
+    # degree is 1, not the mixed element's max of 2.
     assert estimate_total_polynomial_degree(f1) == 1
 
     assert estimate_total_polynomial_degree(f2) == 2
