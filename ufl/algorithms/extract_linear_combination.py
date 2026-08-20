@@ -99,6 +99,35 @@ class LinearCombinationExtractor(DAGTraverser):
                 )
         return res
 
+    @process.register(ufl.Action)
+    def _(self, o, **kwargs):
+        # An Action node represents a matrix-vector product (e.g., A * u).
+        # This cannot be reduced to a simple algebraic linear combination of arrays.
+        raise ValueError("Non-linear expression detected: product of two spatial functions.")
+
+    @process.register(ufl.classes.FormSum)
+    @process.register(ufl.form.FormSum)
+    def _(self, o, **kwargs):
+        res = []
+        components = o.components()
+        weights = o.weights()
+        for weight, comp in zip(weights, components):
+            # Evaluate the base component (e.g., Matrix or Cofunction)
+            comp_res = self(comp, **kwargs)
+
+            # Evaluate the weight (in case it contains sub-expressions)
+            w_res = self(weight, **kwargs) if isinstance(weight, ufl.classes.Expr) else weight
+
+            if isinstance(comp_res, list):
+                # Distribute this FormSum weight into the component's linear combination
+                res.extend([(w_res * w, f) for w, f in comp_res])
+            else:
+                raise ValueError(
+                    "Cannot directly add a raw scalar expression to a spatial function."
+                )
+
+        return res
+
     @process.register(ufl.classes.Product)
     @DAGTraverser.postorder
     def _(self, o, *operands, **kwargs):
@@ -148,6 +177,13 @@ class LinearCombinationExtractor(DAGTraverser):
         raise NotImplementedError(
             "Direct array assignment of indexed vector components is not supported."
         )
+
+    @process.register(ufl.Cofunction)
+    @process.register(ufl.Matrix)
+    def _(self, o, **kwargs):
+        # Cofunctions and Matrices are symbolic algebraic terminals.
+        # They act purely as spatial fields in linear combinations.
+        return [(ufl.as_ufl(1.0), o)]
 
 
 def extract_linear_combination(

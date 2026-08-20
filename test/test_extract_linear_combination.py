@@ -139,3 +139,46 @@ def test_negative(V, domain):
 
     assert (-r_func, u) in res
     assert (2.0, u) in res
+
+
+def test_matrix_linear_combination(V, domain):
+    """Test linear combinations involving ufl.Matrix."""
+    # Matrix requires a row space and column space
+    A = ufl.Matrix(V, V)
+    c = ufl.Constant(domain)
+    expr = 2.0 * A + (0.3 + c**2) * A
+
+    res = extract_linear_combination(expr)
+
+    assert len(res) == 2
+    # NOTE: Matrices store scalar weights under `weights`
+    assert (2.0, A) in res
+    assert (0.3 + c**2, A) in res
+
+
+def test_cofunction_linear_combination(V):
+    """Test linear combinations involving ufl.Cofunction."""
+    # Cofunction requires a dual space (it will raise an error if given a primal space)
+    V_dual = V.dual()
+    c = ufl.Cofunction(V_dual)
+
+    # NOTE: Cofunctions can only be multiplied by integers
+    expr = -2 * c + 5 * c
+
+    res = extract_linear_combination(expr)
+
+    assert len(res) == 2
+    assert (-2.0, c) in res
+    assert (5.0, c) in res
+
+
+def test_matrix_nonlinear_error(V):
+    """Test that matrices are protected by the same non-linear guardrails."""
+    A = ufl.Matrix(V, V)
+    u = ufl.Coefficient(V)
+
+    with pytest.raises(
+        ValueError, match=r"Non-linear expression detected: product of two spatial functions."
+    ):
+        # Cannot multiply a matrix by a coefficient algebraically in this block
+        extract_linear_combination(A * u)
