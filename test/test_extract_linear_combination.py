@@ -1,3 +1,9 @@
+# Copyright (C) 2026 Jørgen S. Dokken
+#
+# This file is part of UFL (https://www.fenicsproject.org)
+#
+# SPDX-License-Identifier:    LGPL-3.0-or-later
+
 import pytest
 from utils import LagrangeElement
 
