@@ -97,7 +97,9 @@ jobs:
           cmake --build build
           cmake --install build
           cd dolfinx/python
-          python3 -m pip install --group pyproject.toml:ci
+          python3 -m pip install --group pyproject.toml:build --break-system-packages
           python3 -m pip -v install --break-system-packages --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" .
+          python3 -m pip install --group pyproject.toml:ci --break-system-packages
+
       - name: Run DOLFINx unit tests
         run: python3 -m pytest -n auto dolfinx/python/test/unit
