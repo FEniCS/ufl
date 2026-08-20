@@ -1,6 +1,15 @@
+"""Tools to extract linear combinations from UFL expressions."""
+
+# Copyright (C) 2026 Jørgen S. Dokken
+#
+# This file is part of UFL (https://www.fenicsproject.org)
+#
+# SPDX-License-Identifier:    LGPL-3.0-or-later
+
+from functools import singledispatchmethod
+
 import ufl
 from ufl.corealg.dag_traverser import DAGTraverser
-from functools import singledispatchmethod
 
 
 class LinearCombinationExtractor(DAGTraverser):
@@ -28,8 +37,11 @@ class LinearCombinationExtractor(DAGTraverser):
     """
 
     def __init__(self, **kwargs):
-        # Disable compression to avoid hashing unhashable return types (like lists)
-        # while preserving the `_visited_cache` memoization.
+        """Initialize LinearCombinationExtractor with memoization and no compression.
+
+        Compression is disabled to avoid hashing unhashable return types (like lists)
+        while preserving the `_visited_cache` memoization.
+        """
         kwargs["compress"] = False
         super().__init__(**kwargs)
 
@@ -91,17 +103,22 @@ class LinearCombinationExtractor(DAGTraverser):
     @DAGTraverser.postorder
     def _(self, o, *operands, **kwargs):
         op1_res, op2_res = operands
+        # Each of the operands are either a scalar UFL expression (float, Constant, etc.)
+        # or a list of (weight, function) tuples.
+        # The following cases are possible:
+        # 1. Both operands are scalars: return the product of the two UFL expressions.
+        # 2. One operand is a scalar, the other is a list: distribute the scalar across the list.
+        # 3. Both operands are lists: this is a non-linear operation and should raise an error.
         is_list1 = isinstance(op1_res, list)
         is_list2 = isinstance(op2_res, list)
-
         if not is_list1 and not is_list2:
             return op1_res * op2_res  # UFL operator overloading takes over
         elif not is_list1 and is_list2:
             return [(op1_res * w, f) for w, f in op2_res]
         elif not is_list2 and is_list1:
             return [(op2_res * w, f) for w, f in op1_res]
-
-        raise ValueError("Non-linear expression detected: product of two spatial functions.")
+        else:
+            raise ValueError("Non-linear expression detected: product of two spatial functions.")
 
     @process.register(ufl.classes.Division)
     @DAGTraverser.postorder
