@@ -60,16 +60,15 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(v1) == 1
     assert estimate_total_polynomial_degree(v2) == 2
 
-    # TODO: This should be 1, but 2 is expected behaviour now
-    # because f1 is part of a mixed element with max degree 2.
-    assert estimate_total_polynomial_degree(f1) == 2
+    # f1 lives on the mixed element's degree-1 sub-element, so its
+    # degree is 1, not the mixed element's max of 2.
+    assert estimate_total_polynomial_degree(f1) == 1
 
     assert estimate_total_polynomial_degree(f2) == 2
     assert estimate_total_polynomial_degree(v2 * v1) == 3
 
-    # TODO: This should be 2, but 3 is expected behaviour now
-    # because f1 is part of a mixed element with max degree 2.
-    assert estimate_total_polynomial_degree(f1 * v1) == 3
+    # f1's own degree is 1 (see above), so this is 1 + 1 = 2, not 3.
+    assert estimate_total_polynomial_degree(f1 * v1) == 2
 
     assert estimate_total_polynomial_degree(f2 * v1) == 3
     assert estimate_total_polynomial_degree(f2 * v2 * v1) == 5
