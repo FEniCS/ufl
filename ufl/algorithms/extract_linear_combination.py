@@ -76,6 +76,9 @@ class LinearCombinationExtractor(DAGTraverser):
 
     @process.register(ufl.Cofunction)
     @process.register(ufl.Matrix)
+    def _(self, o, **kwargs):
+        return [(ufl.as_ufl(1.0), o)]
+
     @process.register(ufl.classes.Coefficient)
     def _(self, o, **kwargs):
         # Check for real-valued elements
