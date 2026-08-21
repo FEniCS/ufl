@@ -11,13 +11,17 @@
 
 import warnings
 
+from ufl.argument import Argument
 from ufl.checks import is_cellwise_constant
+from ufl.coefficient import Coefficient
 from ufl.constantvalue import IntValue
+from ufl.core.multiindex import FixedIndex
 from ufl.corealg.map_dag import map_expr_dags
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import extract_domains, extract_unique_domain
 from ufl.form import Form
 from ufl.integral import Integral
+from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides
 
 
 class SumDegreeEstimator(MultiFunction):
@@ -75,9 +79,10 @@ class SumDegreeEstimator(MultiFunction):
         A form argument provides a degree depending on the element,
         or the default degree if the element has no degree.
         """
-        return (
-            v.ufl_element().embedded_superdegree
-        )  # FIXME: Use component to improve accuracy for mixed elements
+        # For a mixed element this is the max degree over all sub-elements;
+        # indexed() refines this to the accessed sub-element's own degree
+        # when the specific component is known.
+        return v.ufl_element().embedded_superdegree
 
     def coefficient(self, v):
         """Apply to coefficient.
@@ -87,7 +92,8 @@ class SumDegreeEstimator(MultiFunction):
         """
         e = v.ufl_element()
         e = self.element_replace_map.get(e, e)
-        d = e.embedded_superdegree  # FIXME: Use component to improve accuracy for mixed elements
+        # See the comment in argument() above.
+        d = e.embedded_superdegree
         if d is None:
             d = self.default_degree
         return d
@@ -165,7 +171,35 @@ class SumDegreeEstimator(MultiFunction):
         return A
 
     def indexed(self, v, A, ii):
-        """Apply to indexed."""
+        """Apply to indexed.
+
+        A fixed-index component of a mixed-element Argument or
+        Coefficient may belong to a lower-degree sub-element than the
+        whole mixed element, so look up that sub-element's own degree
+        instead of falling back to A, the whole element's degree.
+        """
+        op = v.ufl_operands[0]
+        multiindex = v.ufl_operands[1]
+        if isinstance(op, (Argument, Coefficient)) and all(
+            isinstance(idx, FixedIndex) for idx in multiindex
+        ):
+            element = op.ufl_element()
+            if isinstance(op, Coefficient):
+                element = self.element_replace_map.get(element, element)
+            sub_elements = element.sub_elements
+            if sub_elements and len(multiindex) == len(op.ufl_shape):
+                component = flatten_multiindex(
+                    [int(idx) for idx in multiindex], shape_to_strides(op.ufl_shape)
+                )
+                # Walk the sub-elements in order to find which one covers
+                # this flattened component.
+                offset = 0
+                for sub_element in sub_elements:
+                    sub_size = sub_element.reference_value_size
+                    if component < offset + sub_size:
+                        d = sub_element.embedded_superdegree
+                        return self.default_degree if d is None else d
+                    offset += sub_size
         return A
 
     def component_tensor(self, v, A, ii):
