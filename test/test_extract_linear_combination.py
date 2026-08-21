@@ -167,14 +167,12 @@ def test_cofunction_linear_combination(V):
     # Cofunction requires a dual space (it will raise an error if given a primal space)
     V_dual = V.dual()
     c = ufl.Cofunction(V_dual)
-
-    # NOTE: Cofunctions can only be multiplied by integers
-    expr = -2 * c + 5 * c
-
+    d = ufl.Constant(V.ufl_domain())
+    expr = -4 * d * c + 5.0 * c
     res = extract_linear_combination(expr)
 
     assert len(res) == 2
-    assert (-2.0, c) in res
+    assert (-4 * d, c) in res
     assert (5.0, c) in res
 
 
