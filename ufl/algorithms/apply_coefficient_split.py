@@ -26,6 +26,7 @@ from ufl.classes import (
 )
 from ufl.core.multiindex import indices
 from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.form import BaseForm
 from ufl.tensors import as_tensor
 
 
@@ -36,8 +37,8 @@ class CoefficientSplitter(DAGTraverser):
         self,
         coefficient_split: dict,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise.
 
