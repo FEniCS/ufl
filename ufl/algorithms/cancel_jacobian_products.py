@@ -61,6 +61,7 @@ from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.domain import extract_unique_domain
+from ufl.form import BaseForm
 
 
 def _flatten_product(expr, factors):
@@ -93,15 +94,15 @@ class IndexSumSimplifier(DAGTraverser):
     def __init__(
         self,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
         self._rules: dict[tuple, IndexReplacer] = {}
 
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``."""
         return super().process(o)
 
@@ -260,7 +261,7 @@ class IdentityEliminator(IndexSumSimplifier):
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``."""
         return super().process(o)
 

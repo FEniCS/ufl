@@ -24,15 +24,15 @@ class DAGTraverser:
     def __init__(
         self,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         self._compress = compress
         self._visited_cache = {} if visited_cache is None else visited_cache
         self._result_cache = {} if result_cache is None else result_cache
 
-    def __call__(self, node: Expr, **kwargs) -> Any:
+    def __call__(self, node: Expr | BaseForm, **kwargs) -> Any:
         """Perform memoised DAG traversal with ``process`` singledispatch method.
 
         Args:
@@ -65,7 +65,7 @@ class DAGTraverser:
             return result
 
     @singledispatchmethod
-    def process(self, o: Expr, **kwargs) -> Any:
+    def process(self, o: Expr | BaseForm, **kwargs) -> Any:
         """Process node by type.
 
         Args:

@@ -50,6 +50,10 @@ class LinearCombinationExtractor(DAGTraverser):
         """Fallback for any unsupported node types."""
         raise ValueError(f"Unsupported UFL node type for linear combinations: {type(o)}")
 
+    @process.register(ufl.coefficient.BaseCoefficient)
+    def _(self, o, **kwargs):
+        raise NotImplementedError(f"Unsupported UFL node type for linear combinations: {type(o)}")
+
     # ---------------------------------------------------------
     # 1. Terminals (Leaves) - No children to evaluate
     # ---------------------------------------------------------
@@ -70,6 +74,8 @@ class LinearCombinationExtractor(DAGTraverser):
             return o
         raise ValueError(f"Only scalar constants are supported, got shape {o.ufl_shape}")
 
+    @process.register(ufl.Cofunction)
+    @process.register(ufl.Matrix)
     @process.register(ufl.classes.Coefficient)
     def _(self, o, **kwargs):
         return [(ufl.as_ufl(1.0), o)]
@@ -178,17 +184,10 @@ class LinearCombinationExtractor(DAGTraverser):
             "Direct array assignment of indexed vector components is not supported."
         )
 
-    @process.register(ufl.Cofunction)
-    @process.register(ufl.Matrix)
-    def _(self, o, **kwargs):
-        # Cofunctions and Matrices are symbolic algebraic terminals.
-        # They act purely as spatial fields in linear combinations.
-        return [(ufl.as_ufl(1.0), o)]
-
 
 def extract_linear_combination(
-    expr: ufl.core.expr.Expr,
-) -> list[tuple[ufl.core.expr.Expr, ufl.classes.Coefficient]]:
+    expr: ufl.core.expr.Expr | ufl.form.BaseForm,
+) -> list[tuple[ufl.core.expr.Expr, ufl.coefficient.BaseCoefficient]]:
     """Wrapper to initialize traverser and extract linear combinations.
 
     Returns:
