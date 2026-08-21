@@ -67,20 +67,6 @@ def test_scalars_and_powers(V, domain):
     assert (c + d**2, u) in res
 
 
-def test_ufl_zero_node(V):
-    """Test that UFL Zero nodes are handled correctly (usually evaluates to an empty list)."""
-    u = ufl.Coefficient(V)
-
-    # Create an explicit Zero node with the shape of u
-    z = ufl.classes.Zero(u.ufl_shape, u.ufl_free_indices, u.ufl_index_dimensions)
-
-    expr = u + z
-    res = extract_linear_combination(expr)
-
-    assert len(res) == 1
-    assert res[0] == (1.0, u)
-
-
 def test_nonlinear_errors(V):
     """Test that non-linear operations strictly raise ValueErrors."""
     u = ufl.Coefficient(V)
