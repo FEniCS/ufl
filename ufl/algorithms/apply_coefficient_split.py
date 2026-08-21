@@ -15,6 +15,8 @@ from ufl.classes import (
     Coefficient,
     ComponentTensor,
     Expr,
+    FormArgument,
+    Interpolate,
     MultiIndex,
     NegativeRestricted,
     PositiveRestricted,
@@ -154,6 +156,25 @@ class CoefficientSplitter(DAGTraverser):
             restricted=o._side,
         )
 
+    @process.register(Interpolate)
+    def _(
+        self,
+        o: Interpolate,
+        reference_value: bool | None = False,
+        reference_grad: int = 0,
+        restricted: str | None = None,
+    ) -> Expr:
+        """Handle Interpolate as a finite element terminal."""
+        dual_arg, operand = o.argument_slots()
+        operand = self(operand)
+        o = o._ufl_expr_reconstruct_(operand, v=dual_arg)
+        return self._handle_terminal(
+            o,
+            reference_value=reference_value,
+            reference_grad=reference_grad,
+            restricted=restricted,
+        )
+
     @process.register(Terminal)
     def _(
         self,
@@ -214,6 +235,7 @@ class CoefficientSplitter(DAGTraverser):
         """Wrap terminal as needed."""
         c = o
         if reference_value:
+            assert isinstance(c, FormArgument | Interpolate)
             c = ReferenceValue(c)
         for k in range(reference_grad):
             c = ReferenceGrad(c)
