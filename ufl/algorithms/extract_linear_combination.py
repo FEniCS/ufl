@@ -50,10 +50,6 @@ class LinearCombinationExtractor(DAGTraverser):
         """Fallback for any unsupported node types."""
         raise ValueError(f"Unsupported UFL node type for linear combinations: {type(o)}")
 
-    @process.register(ufl.coefficient.BaseCoefficient)
-    def _(self, o, **kwargs):
-        raise NotImplementedError(f"Unsupported UFL node type for linear combinations: {type(o)}")
-
     # ---------------------------------------------------------
     # 1. Terminals (Leaves) - No children to evaluate
     # ---------------------------------------------------------
@@ -74,15 +70,11 @@ class LinearCombinationExtractor(DAGTraverser):
             return o
         raise ValueError(f"Only scalar constants are supported, got shape {o.ufl_shape}")
 
-    @process.register(ufl.Cofunction)
     @process.register(ufl.Matrix)
-    def _(self, o, **kwargs):
-        return [(ufl.as_ufl(1.0), o)]
-
-    @process.register(ufl.classes.Coefficient)
+    @process.register(ufl.coefficient.BaseCoefficient)
     def _(self, o, **kwargs):
         # Check for real-valued elements
-        if ufl.checks.is_scalar_constant_expression(o):
+        if isinstance(o, ufl.core.expr.Expr) and ufl.checks.is_scalar_constant_expression(o):
             return o
         return [(ufl.as_ufl(1.0), o)]
 
