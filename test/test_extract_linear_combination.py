@@ -109,16 +109,6 @@ def test_pure_scalar_error(domain):
         extract_linear_combination(expr)
 
 
-def test_forbidden_operations(V_vec):
-    """Test that indexed vectors and component tensors trigger a NotImplementedError."""
-    u = ufl.Coefficient(V_vec)
-
-    with pytest.raises(
-        NotImplementedError, match="Direct array assignment of indexed vector components"
-    ):
-        extract_linear_combination(u[0])
-
-
 def test_negative(V, domain):
     """Test that negative operations are handled correctly."""
     r_func = ufl.Constant(domain)
@@ -172,3 +162,83 @@ def test_matrix_nonlinear_error(V):
     ):
         # Cannot multiply a matrix by a coefficient algebraically in this block
         extract_linear_combination(A * u)
+
+
+def test_vector_scalar_multiplication(V_vec, domain):
+    """Test that UFL's ComponentTensor representation of vector-scalar multiplication
+    is cleanly resolved back into the full operator."""
+    u = ufl.Coefficient(V_vec)
+    dt = ufl.Constant(domain)
+
+    # Multiplying a vector Coefficient by a scalar Constant implicitly wraps
+    # the expression in ComponentTensor(Indexed(...), ...).
+    expr = u * dt
+    res = extract_linear_combination(expr)
+
+    assert len(res) == 1
+    weight, func = res[0]
+
+    # The traverser should have collapsed the implicit indexing back down
+    # to the base coefficient and isolated the scalar weight.
+    assert weight == dt
+    assert func == u
+
+
+def test_explicit_vector_indexing_blocked(V_vec):
+    """Test that explicitly accessing a single component of a vector field is blocked."""
+    u = ufl.Coefficient(V_vec)
+
+    with pytest.raises(
+        ValueError, match=r"Explicit component indexing \(e\.g\., u\[0\]\) is not supported"
+    ):
+        extract_linear_combination(u[0])
+
+
+def test_explicit_vector_indexing_with_weights_blocked(V_vec, domain):
+    """Test that distributing a weight across an explicitly indexed vector field is blocked."""
+    u = ufl.Coefficient(V_vec)
+    dt = ufl.Constant(domain)
+
+    expr = 5.0 * dt * u[1]
+
+    with pytest.raises(
+        ValueError, match=r"Explicit component indexing \(e\.g\., u\[0\]\) is not supported"
+    ):
+        extract_linear_combination(expr)
+
+
+def test_tensor_scalar_multiplication(domain):
+    """Test that matrix-scalar multiplication safely collapses back to the whole operator."""
+    # Create a rank-2 tensor space
+    gdim = domain.geometric_dimension
+    V_tensor = ufl.FunctionSpace(
+        domain,
+        LagrangeElement(domain.ufl_cell(), 2, (gdim, gdim)),
+    )
+    T = ufl.Coefficient(V_tensor)
+    dt = ufl.Constant(domain)
+
+    expr = T * dt
+
+    res = extract_linear_combination(expr)
+
+    assert len(res) == 1
+    weight, func = res[0]
+
+    assert weight == dt
+    assert func == T
+
+
+def test_explicit_tensor_indexing_blocked(domain):
+    """Test that explicitly accessing components of a rank-2 tensor is blocked."""
+    gdim = domain.geometric_dimension
+    V_tensor = ufl.FunctionSpace(
+        domain,
+        LagrangeElement(domain.ufl_cell(), 2, (gdim, gdim)),
+    )
+    T = ufl.Coefficient(V_tensor)
+
+    with pytest.raises(
+        ValueError, match=r"Explicit component indexing \(e\.g\., u\[0\]\) is not supported"
+    ):
+        extract_linear_combination(T[0, 1])
