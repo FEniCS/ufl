@@ -106,9 +106,7 @@ class SumDegreeEstimator(MultiFunction):
         """
         # Can have multiple domains e.g. in mixed cell type problems.
         cells = set(d.ufl_cell() for d in extract_domains(v))
-        if isinstance(f, int) and all(
-            cell.cellname not in ["quadrilateral", "hexahedron"] for cell in cells
-        ):
+        if isinstance(f, int) and all(cell.is_simplex for cell in cells):
             return max(f - 1, 0)
         else:
             return f

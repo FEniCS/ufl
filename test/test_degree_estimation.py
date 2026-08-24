@@ -11,14 +11,17 @@ from ufl import (
     FunctionSpace,
     Mesh,
     SpatialCoordinate,
+    TensorProductCell,
     cos,
     div,
     dot,
     grad,
     i,
     inner,
+    interval,
     nabla_div,
     nabla_grad,
+    quadrilateral,
     sin,
     tan,
     triangle,
@@ -102,6 +105,23 @@ def test_total_degree_estimation():
     e = x**3
     for f in [sin, cos, tan]:
         assert estimate_total_polynomial_degree(f(e)) == 3 + heuristic_add
+
+
+def test_tensor_product_degree_estimation():
+    cell = TensorProductCell(quadrilateral, interval)
+    domain = Mesh(LagrangeElement(cell, 1, (3,)))
+    space = FunctionSpace(domain, LagrangeElement(cell, 7))
+    u = Argument(space, 1)
+    v = Argument(space, 2)
+
+    assert estimate_total_polynomial_degree(u) == 7
+    assert estimate_total_polynomial_degree(u * v) == 14
+
+    assert estimate_total_polynomial_degree(u.dx(0)) == 7
+    assert estimate_total_polynomial_degree(inner(grad(u), grad(v))) == 14
+
+    x = SpatialCoordinate(domain)
+    assert estimate_total_polynomial_degree(x[0]) == 1
 
 
 def test_some_compound_types():
