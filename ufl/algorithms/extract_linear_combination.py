@@ -174,7 +174,7 @@ class LinearCombinationExtractor(DAGTraverser):
         return base_res**exp_res
 
     # ---------------------------------------------------------
-    # 3. Tensor Components (Vector-Scalar multiplication)
+    # 3. Tensor Components (Vector-Scalar multiplication & Slicing)
     # ---------------------------------------------------------
     @process.register(ufl.classes.MultiIndex)
     def _(self, o, **kwargs):
@@ -185,18 +185,8 @@ class LinearCombinationExtractor(DAGTraverser):
     def _(self, o, *operands, **kwargs):
         base_res, indices_res = operands
 
-        # We ONLY allow UFL's free indices. Fixed components (FixedIndex)
-        # or slices (SliceIndex) do not represent the whole operator.
-        if not all(isinstance(idx, ufl.classes.Index) for idx in indices_res.indices()):
-            raise ValueError(
-                "Explicit component indexing (e.g., u[0]) is not supported. "
-                "Only full-operator free indices are allowed."
-            )
-
         if isinstance(base_res, list):
-            # Temporarily return the Indexed spatial field.
-            # The ComponentTensor node higher up the tree will collapse this
-            # back into the un-indexed base operator using remove_component_tensors.
+            # Propagate any valid indexing (free, fixed, or slice) to the spatial field
             return [(w, ufl.classes.Indexed(f, indices_res)) for w, f in base_res]
 
         return ufl.classes.Indexed(base_res, indices_res)
@@ -209,17 +199,13 @@ class LinearCombinationExtractor(DAGTraverser):
         if isinstance(expr_res, list):
             res = []
             for w, f in expr_res:
-                # f is something like Indexed(stage_0, i). Reconstruct the tensor:
+                # 1. Reconstruct the tensor operation around the spatial field
                 reconstructed_func = ufl.classes.ComponentTensor(f, indices_res)
 
-                # Collapse it back to the base operator (e.g., stage_0)
+                # 2. Safely collapse implicit operations (like vector*scalar) back
+                #    down to the base function. Genuine slices (like T[0, :]) will
+                #    naturally be preserved here!
                 simplified_func = remove_component_tensors(reconstructed_func)
-
-                # Enforce that the result actually resolved back to a whole operator
-                if isinstance(simplified_func, (ufl.classes.Indexed, ufl.classes.ComponentTensor)):
-                    raise ValueError(
-                        "Indexing did not cleanly resolve to a complete spatial operator."
-                    )
 
                 res.append((w, simplified_func))
             return res

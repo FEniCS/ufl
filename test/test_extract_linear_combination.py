@@ -5,10 +5,11 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import pytest
-from utils import LagrangeElement
+from utils import LagrangeElement, MixedElement
 
 import ufl
 from ufl.algorithms.extract_linear_combination import extract_linear_combination
+from ufl.algorithms.renumbering import renumber_indices
 
 
 @pytest.fixture
@@ -184,16 +185,6 @@ def test_vector_scalar_multiplication(V_vec, domain):
     assert func == u
 
 
-def test_explicit_vector_indexing_blocked(V_vec):
-    """Test that explicitly accessing a single component of a vector field is blocked."""
-    u = ufl.Coefficient(V_vec)
-
-    with pytest.raises(
-        ValueError, match=r"Explicit component indexing \(e\.g\., u\[0\]\) is not supported"
-    ):
-        extract_linear_combination(u[0])
-
-
 def test_explicit_vector_indexing_with_weights_blocked(V_vec, domain):
     """Test that distributing a weight across an explicitly indexed vector field is blocked."""
     u = ufl.Coefficient(V_vec)
@@ -201,10 +192,9 @@ def test_explicit_vector_indexing_with_weights_blocked(V_vec, domain):
 
     expr = 5.0 * dt * u[1]
 
-    with pytest.raises(
-        ValueError, match=r"Explicit component indexing \(e\.g\., u\[0\]\) is not supported"
-    ):
-        extract_linear_combination(expr)
+    pairs = extract_linear_combination(expr)
+    assert len(pairs) == 1
+    assert pairs[0] == (5.0 * dt, u[1])
 
 
 def test_tensor_scalar_multiplication(domain):
@@ -237,8 +227,66 @@ def test_explicit_tensor_indexing_blocked(domain):
         LagrangeElement(domain.ufl_cell(), 2, (gdim, gdim)),
     )
     T = ufl.Coefficient(V_tensor)
+    res = extract_linear_combination(T[0, 1])
+    assert len(res) == 1
+    assert res[0] == (1.0, T[0, 1])
 
-    with pytest.raises(
-        ValueError, match=r"Explicit component indexing \(e\.g\., u\[0\]\) is not supported"
-    ):
-        extract_linear_combination(T[0, 1])
+
+def test_mixed_element_extraction(domain):
+    """Test extracting a linear combination from a mixed element component."""
+    # Define a mixed element
+    e1 = LagrangeElement(domain.ufl_cell(), 1)
+    e2 = LagrangeElement(domain.ufl_cell(), 2, shape=(2,))
+    mixed_element = MixedElement([e1, e2])
+
+    W = ufl.FunctionSpace(domain, mixed_element)
+    w = ufl.Coefficient(W)
+
+    a = ufl.Constant(domain)
+    b = ufl.Constant(domain)
+    c = ufl.Constant(domain)
+
+    expr = a * w[0] + b * w[1] + c * b * w[2]
+
+    res = extract_linear_combination(expr)
+
+    assert len(res) == 3
+
+    assert (a, w[0]) in res
+    assert (b, w[1]) in res
+    assert (c * b, w[2]) in res
+
+
+def test_explicit_vector_indexing_supported(V_vec, domain):
+    """Test extracting a linear combination from explicitly indexed vector components."""
+    u = ufl.Coefficient(V_vec)
+    a = ufl.Constant(domain)
+    b = ufl.Constant(domain)
+
+    # Extracting standard vector components
+    expr = a * u[0] + b * u[1]
+
+    res = extract_linear_combination(expr)
+
+    assert len(res) == 2
+    assert (a, u[0]) in res
+    assert (b, u[1]) in res
+
+
+def test_explicit_tensor_indexing_supported(domain):
+    """Test extracting a linear combination from explicitly indexed tensor components."""
+    gdim = domain.geometric_dimension
+    V_tensor = ufl.FunctionSpace(
+        domain,
+        LagrangeElement(domain.ufl_cell(), 2, (gdim, gdim)),
+    )
+    T = ufl.Coefficient(V_tensor)
+    dt = ufl.Constant(domain)
+
+    expr = dt * T[0, :] + 5.0 * T[1, :]
+
+    res = extract_linear_combination(expr)
+    res = [(w, renumber_indices(f)) for w, f in res]
+    assert len(res) == 2
+    assert (dt, renumber_indices(T[0, :])) in res
+    assert (5.0, renumber_indices(T[1, :])) in res
