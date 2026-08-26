@@ -504,12 +504,12 @@ def compute_form_adjoint(
     Args:
         form: A UFL bilinear form.
         reordered_arguments: Optional explicit arguments to use for the adjoint form.
-            - For standard finite element spaces: A single tuple `(new_u, new_v)`
-              representing the replacement trial and test functions.
-            - For mixed function spaces: A sequence of tuples, with one `(new_u, new_v)`
-              pair for each *subspace*. For example, `((new_u0, new_v0), (new_u1, new_v1))`.
-              The test function mappings are extracted using the block row index `i`,
-              and the trial function mappings using the block column index `j`.
+            For standard finite element spaces, this is a single tuple `(new_u, new_v)`
+            representing the replacement trial and test functions. For mixed function spaces,
+            this is a sequence of tuples, with one `(new_u, new_v)` pair for each subspace
+            (e.g., `((new_u0, new_v0), (new_u1, new_v1))`). The test function mappings are
+            extracted using the block row index `i`, and the trial function mappings using
+            the block column index `j`.
 
     Returns:
         The adjoint of the bilinear form.
