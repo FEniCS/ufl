@@ -4,6 +4,7 @@ __date__ = "2019-03-26 -- 2019-03-26"
 from utils import LagrangeElement
 
 from ufl import (
+    Argument,
     Coefficient,
     Constant,
     FunctionSpace,
@@ -13,7 +14,6 @@ from ufl import (
     TestFunctions,
     TrialFunctions,
     action,
-    conj,
     dx,
     grad,
     inner,
@@ -200,26 +200,69 @@ def test_action():
 
 def test_adjoint():
     V = LagrangeElement(triangle, 1)
+    V2 = LagrangeElement(triangle, 2)
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space0 = FunctionSpace(domain, V)
-    space1 = FunctionSpace(domain, V)
+    space1 = FunctionSpace(domain, V2)
     mixed_space = MixedFunctionSpace(space0, space1)
 
     u, p = TrialFunctions(mixed_space)
     du, dp = TestFunctions(mixed_space)
     c = Coefficient(space0)
-    Jh = (
-        inner(grad(u), grad(du)) * dx
-        + inner(c * dp.dx(0), u) * dx
-        - inner(du.dx(0), p.dx(1)) * dx
-        + inner(p, dp) * dx
-    )
+    Jh00 = inner(grad(u), grad(du)) * dx
+    Jh01 = -inner(p.dx(1), du.dx(0)) * dx
+    Jh10 = inner(c * dp.dx(0), u) * dx
+    Jh11 = inner(p, dp) * dx
+    Jh = Jh00 + Jh01 + Jh10 + Jh11
     Jh_adj = compute_form_adjoint(Jh)
     blocked_adj = extract_blocks(Jh_adj)
 
     ref_adj = [
-        [conj(inner(grad(du), grad(u))) * dx, conj(-inner(p.dx(0), du.dx(1))) * dx],
-        [conj(inner(c * u.dx(0), dp)) * dx, conj(inner(dp, p)) * dx],
+        [compute_form_adjoint(Jh00), compute_form_adjoint(Jh10)],
+        [compute_form_adjoint(Jh01), compute_form_adjoint(Jh11)],
+    ]
+
+    for i in range(2):
+        for j in range(2):
+            assert ref_adj[i][j] == blocked_adj[i][j]
+
+
+def test_adjoint_mixed_reordered_arguments():
+    V = LagrangeElement(triangle, 1)
+    V2 = LagrangeElement(triangle, 2)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    space0 = FunctionSpace(domain, V)
+    space1 = FunctionSpace(domain, V2)
+    mixed_space = MixedFunctionSpace(space0, space1)
+
+    u, p = TrialFunctions(mixed_space)
+    du, dp = TestFunctions(mixed_space)
+    c = Coefficient(space0)
+
+    Jh00 = inner(grad(u), grad(du)) * dx
+    Jh01 = -inner(p.dx(1), du.dx(0)) * dx
+    Jh10 = inner(c * dp.dx(0), u) * dx
+    Jh11 = inner(p, dp) * dx
+    Jh = Jh00 + Jh01 + Jh10 + Jh11
+
+    # Explicitly create the swapped arguments for both subspaces
+    new_u0 = Argument(space0, number=du.number(), part=u.part())
+    new_v0 = Argument(space0, number=u.number(), part=du.part())
+
+    new_u1 = Argument(space1, number=dp.number(), part=p.part())
+    new_v1 = Argument(space1, number=p.number(), part=dp.part())
+
+    # reordered_arguments expects a sequence of pairs: (new_u, new_v) per subspace
+    reordered = ((new_u0, new_v0), (new_u1, new_v1))
+
+    # Compute adjoint using explicitly provided mappings
+    Jh_adj = compute_form_adjoint(Jh, reordered_arguments=reordered)
+    blocked_adj = extract_blocks(Jh_adj)
+
+    # Reference using the default implicit generation
+    ref_adj = [
+        [compute_form_adjoint(Jh00), compute_form_adjoint(Jh10)],
+        [compute_form_adjoint(Jh01), compute_form_adjoint(Jh11)],
     ]
 
     for i in range(2):
