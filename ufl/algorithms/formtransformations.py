@@ -560,7 +560,9 @@ def compute_form_adjoint(
         form_blocked = extract_blocks(form, arity=2)
         # Apply mapping block-by-block and sum
         form_adj = 0
-        assert isinstance(form_blocked, list) and all(isinstance(row, list) for row in form_blocked)
+        assert isinstance(form_blocked, tuple) and all(
+            isinstance(row, tuple) for row in form_blocked
+        )
         for i, row in enumerate(form_blocked):
             for j, block in enumerate(row):
                 if block is not None:
@@ -569,6 +571,8 @@ def compute_form_adjoint(
                         new_v = reordered_arguments[i][1]
                         new_u = reordered_arguments[j][0]
                     else:
+                        # NOTE: Part relates to the which subspace the argument belonds to
+                        # (to be indexable by extract blocks)
                         new_v = Argument(v.ufl_function_space(), number=u.number(), part=v.part())
                         new_u = Argument(u.ufl_function_space(), number=v.number(), part=u.part())
                     local_map = {v: new_v, u: new_u}
