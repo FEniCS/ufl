@@ -560,10 +560,9 @@ def compute_form_adjoint(
         form_blocked = extract_blocks(form, arity=2)
         # Apply mapping block-by-block and sum
         form_adj = 0
-        assert isinstance(form_blocked, tuple) and all(
-            isinstance(row, tuple) for row in form_blocked
-        )
+        assert isinstance(form_blocked, tuple)
         for i, row in enumerate(form_blocked):
+            assert isinstance(row, tuple)
             for j, block in enumerate(row):
                 if block is not None:
                     v, u = block.arguments()
