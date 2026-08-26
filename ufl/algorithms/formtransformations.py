@@ -543,14 +543,15 @@ def compute_form_adjoint(
         v, u = arguments
         if v.number() >= u.number():
             raise ValueError("Mistaken assumption in code!")
-
         if reordered_arguments is None:
             assert u.part() is None and v.part() is None
             new_u = Argument(u.ufl_function_space(), number=v.number())
             new_v = Argument(v.ufl_function_space(), number=u.number())
         else:
             assert isinstance(reordered_arguments, tuple) and len(reordered_arguments) == 2
-            new_u, new_v = reordered_arguments
+            u_arg, v_arg = reordered_arguments[0], reordered_arguments[1]
+            assert isinstance(u_arg, Argument) and isinstance(v_arg, Argument)
+            new_u, new_v = u_arg, v_arg
 
         validate_mapping(v, u, new_v, new_u, check_parts=True)
 
@@ -559,6 +560,7 @@ def compute_form_adjoint(
         form_blocked = extract_blocks(form, arity=2)
         # Apply mapping block-by-block and sum
         form_adj = 0
+        assert isinstance(form_blocked, list) and all(isinstance(row, list) for row in form_blocked)
         for i, row in enumerate(form_blocked):
             for j, block in enumerate(row):
                 if block is not None:
