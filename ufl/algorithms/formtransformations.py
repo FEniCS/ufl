@@ -545,8 +545,8 @@ def compute_form_adjoint(
             raise ValueError("Mistaken assumption in code!")
         if reordered_arguments is None:
             assert u.part() is None and v.part() is None
-            new_u = Argument(u.ufl_function_space(), number=v.number())
-            new_v = Argument(v.ufl_function_space(), number=u.number())
+            new_u = u.reconstruct(number=v.number())
+            new_v = v.reconstruct(number=u.number())
         else:
             assert isinstance(reordered_arguments, tuple) and len(reordered_arguments) == 2
             u_arg, v_arg = reordered_arguments[0], reordered_arguments[1]
@@ -572,8 +572,8 @@ def compute_form_adjoint(
                     else:
                         # NOTE: Part relates to the which subspace the argument belonds to
                         # (to be indexable by extract blocks)
-                        new_v = Argument(v.ufl_function_space(), number=u.number(), part=v.part())
-                        new_u = Argument(u.ufl_function_space(), number=v.number(), part=u.part())
+                        new_v = v.reconstruct(number=u.number())
+                        new_u = u.reconstruct(number=v.number())
                     local_map = {v: new_v, u: new_u}
                     validate_mapping(v, u, new_v, new_u)
                     form_adj += map_integrands(Conj, replace(block, local_map))
