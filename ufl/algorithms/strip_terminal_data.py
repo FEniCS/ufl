@@ -5,7 +5,6 @@ In the stripped version, any data-carrying objects have been extracted to a mapp
 
 from ufl.algorithms.replace import replace
 from ufl.classes import (
-    Argument,
     Coefficient,
     Constant,
     Form,
