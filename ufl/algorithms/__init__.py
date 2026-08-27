@@ -46,6 +46,7 @@ __all__ = [
     "preprocess_form",
     "read_ufl_file",
     "replace",
+    "replace_function_spaces",
     "replace_terminal_data",
     "sort_elements",
     "strip_terminal_data",
@@ -82,6 +83,7 @@ from ufl.algorithms.formtransformations import (
     compute_form_rhs,
 )
 from ufl.algorithms.replace import replace
+from ufl.algorithms.replace_function_spaces import replace_function_spaces
 from ufl.algorithms.signature import compute_form_signature
 from ufl.algorithms.strip_terminal_data import replace_terminal_data, strip_terminal_data
 from ufl.algorithms.transformer import (
