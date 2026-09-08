@@ -15,6 +15,7 @@ from functools import reduce
 from itertools import combinations
 
 from ufl.classes import (
+    AbstractDomain,
     CellCoordinate,
     CellEdgeVectors,
     CellFacetJacobian,
@@ -34,6 +35,7 @@ from ufl.classes import (
     JacobianDeterminant,
     JacobianInverse,
     MaxCellEdgeLength,
+    Mesh,
     ReferenceCellVolume,
     ReferenceFacetVolume,
     ReferenceGrad,
@@ -45,8 +47,13 @@ from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
-from ufl.domain import extract_unique_domain
-from ufl.measure import custom_integral_types, point_integral_types
+from ufl.domain import MeshSequence, extract_unique_domain
+from ufl.measure import (
+    custom_integral_types,
+    facet_integral_types,
+    point_integral_types,
+    ridge_integral_types,
+)
 from ufl.operators import conj, max_value, min_value, real, sqrt
 from ufl.tensors import as_tensor, as_vector
 
@@ -54,13 +61,31 @@ from ufl.tensors import as_tensor, as_vector
 class GeometryLoweringApplier(MultiFunction):
     """Geometry lowering."""
 
-    def __init__(self, preserve_types=()):
+    def __init__(
+        self,
+        preserve_types=(),
+        integration_domain: AbstractDomain | None = None,
+        integral_type: str | None = None,
+        extra_domains: dict[Mesh, tuple[str]] | None = None,
+    ):
         """Initialise."""
         MultiFunction.__init__(self)
         # Store preserve_types as boolean lookup table
         self._preserve_types = [False] * Expr._ufl_num_typecodes_
         for cls in preserve_types:
             self._preserve_types[cls._ufl_typecode_] = True
+        # The domain and integral type of the integral being lowered, if
+        # known, used to relate a companion (e.g. submesh) domain of
+        # lesser topological dimension to the domain actually being
+        # integrated over.
+        self._integration_domain = integration_domain
+        self._integral_type = integral_type
+        # Domains explicitly declared via `Measure(..., intersect_measures=...)`,
+        # each with its own integral type on this same combined integral --
+        # these already have their own genuine geometry data and must be
+        # lowered normally, not redirected like an undeclared companion
+        # domain only reachable through a Coefficient's function space.
+        self._extra_domains = extra_domains or {}
 
     expr = MultiFunction.reuse_if_untouched
 
@@ -68,14 +93,73 @@ class GeometryLoweringApplier(MultiFunction):
         """Apply to terminal."""
         return t
 
+    def _companion_domain_codim(self, companion_domain: AbstractDomain) -> int | None:
+        """Return the codimension of `domain` relative to the integration domain.
+
+        `domain` is a "companion" domain (e.g. the domain of a
+        coefficient defined on a submesh) needing redirection to the
+        integration domain's own geometry when it differs from the
+        integration domain but names the same physical entity (a
+        facet or ridge of it) -- the only case where a runtime
+        coordinate-dofs buffer for `domain` itself is guaranteed not
+        to exist. Returns `None` when no redirection applies (`domain`
+        *is* the integration domain, no integration domain is known
+        here, either domain is a `MeshSequence` (mixed function spaces
+        spanning co-equal component domains are an unrelated mechanism,
+        already handled elsewhere, not a facet/ridge embedding), or
+        `domain` was explicitly declared via
+        `Measure(..., intersect_measures=...)`: such a domain has its
+        own genuine geometry data and its own declared integral type
+        already, and must be lowered normally).
+        """
+        if (
+            self._integration_domain is None
+            or companion_domain == self._integration_domain
+            or isinstance(companion_domain, MeshSequence)
+            or isinstance(self._integration_domain, MeshSequence)
+            or companion_domain in self._extra_domains
+        ):
+            return None
+        if companion_domain.geometric_dimension != self._integration_domain.geometric_dimension:
+            raise ValueError("Cannot relate domains embedded in different geometric dimensions.")
+        codim = (
+            self._integration_domain.topological_dimension - companion_domain.topological_dimension
+        )
+        if codim == 1 and self._integral_type not in facet_integral_types:
+            raise NotImplementedError(
+                f"Coefficient domain is a facet of the integration domain, but integral "
+                f"type is {self._integral_type!r}, not a facet integral."
+            )
+        elif codim == 2 and self._integral_type not in ridge_integral_types:
+            raise NotImplementedError(
+                f"Coefficient domain is a ridge of the integration domain, but integral "
+                f"type is {self._integral_type!r}, not a ridge integral."
+            )
+        elif codim not in (0, 1, 2):
+            raise NotImplementedError(
+                f"Cannot relate a domain of codimension {codim} to the integration domain."
+            )
+        return codim
+
     @memoized_handler
     def jacobian(self, o):
         """Apply to jacobian."""
-        if self._preserve_types[o._ufl_typecode_]:
-            return o
         domain = extract_unique_domain(o)
         if not domain.ufl_coordinate_element().pullback.is_identity:
             raise ValueError("Piola mapped coordinates are not implemented.")
+        # A companion (e.g. submesh) domain's Jacobian must be redirected
+        # regardless of `preserve_types`: preservation only makes sense
+        # for the domain a form compiler backend can actually codegen
+        # (the integration domain itself), which is what the recursive
+        # calls below fall back to once `domain` no longer differs from
+        # `self._integration_domain`.
+        codim = self._companion_domain_codim(domain)
+        if codim == 1:
+            return self.facet_jacobian(FacetJacobian(self._integration_domain))
+        elif codim == 2:
+            return self.ridge_jacobian(RidgeJacobian(self._integration_domain))
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
         # Note: No longer supporting domain.coordinates(), always
         # preserving SpatialCoordinate object.  However if Jacobians
         # are not preserved, using
@@ -205,10 +289,19 @@ class GeometryLoweringApplier(MultiFunction):
 
         Fall through to coordinate field of domain if it exists.
         """
+        domain = extract_unique_domain(o)
+        if not domain.ufl_coordinate_element().pullback.is_identity:
+            raise ValueError("Piola mapped coordinates are not implemented.")
+        # See the note in `jacobian()`: a companion domain's coordinate
+        # field must be redirected regardless of `preserve_types`.
+        codim = self._companion_domain_codim(domain)
+        if codim in (1, 2):
+            # `domain` names the same physical points as the integration
+            # domain's own facet/ridge. To avoid duplicate storage of
+            # coordinate data, we use the integration domain's own field.
+            return self.spatial_coordinate(SpatialCoordinate(self._integration_domain))
         if self._preserve_types[o._ufl_typecode_]:
             return o
-        if not extract_unique_domain(o).ufl_coordinate_element().pullback.is_identity:
-            raise ValueError("Piola mapped coordinates are not implemented.")
         # No longer supporting domain.coordinates(), always preserving
         # SpatialCoordinate object.
         return o
@@ -512,13 +605,19 @@ def apply_geometry_lowering(form, preserve_types=()):
 
     elif isinstance(form, Integral):
         integral = form
-        if integral.integral_type() in (custom_integral_types + point_integral_types):
+        integral_type = integral.integral_type()
+        if integral_type in (custom_integral_types + point_integral_types):
             automatic_preserve_types = [SpatialCoordinate, Jacobian]
         else:
             automatic_preserve_types = [CellCoordinate]
         preserve_types = set(preserve_types) | set(automatic_preserve_types)
 
-        mf = GeometryLoweringApplier(preserve_types)
+        mf = GeometryLoweringApplier(
+            preserve_types,
+            integration_domain=integral.ufl_domain(),
+            integral_type=integral_type,
+            extra_domains=integral.extra_domain_integral_type_map(),
+        )
         newintegrand = map_expr_dag(mf, integral.integrand())
         return integral.reconstruct(integrand=newintegrand)
 
