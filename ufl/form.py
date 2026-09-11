@@ -11,6 +11,7 @@
 # Modified by Nacime Bouziani, 2020.
 # Modified by Jørgen S. Dokken 2023.
 
+import hashlib
 import numbers
 import typing
 import warnings
@@ -884,6 +885,7 @@ class ZeroBaseForm(BaseForm):
         "_coefficients",
         "_domains",
         "_hash",
+        "_signature",
         # Pyadjoint compatibility
         "form",
         "ufl_operands",
@@ -896,6 +898,7 @@ class ZeroBaseForm(BaseForm):
         self._arguments = arguments
         self.ufl_operands = arguments
         self._hash = None
+        self._signature = None
         self._domains = None
         self.form = None
 
@@ -926,6 +929,16 @@ class ZeroBaseForm(BaseForm):
     def empty(self):
         """Returns whether the ZeroBaseForm has no components, which is always true."""
         return True
+
+    def signature(self):
+        """Return a signature for use with JIT caches."""
+        if self._signature is None:
+            renumbering = {domain: i for i, domain in enumerate(self.ufl_domains())}
+            data = tuple(
+                argument._ufl_signature_data_(renumbering) for argument in self.arguments()
+            )
+            self._signature = hashlib.sha512(str(data).encode("utf-8")).hexdigest()
+        return self._signature
 
     def __ne__(self, other):
         """Overwrite BaseForm.__neq__ which relies on `equals`."""

@@ -188,6 +188,22 @@ def test_zero_base_form_list_arguments():
     assert hash(f) == hash(ZeroBaseForm((v,)))
 
 
+def test_zero_base_form_signature():
+    domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
+    f_2d = LagrangeElement(triangle, 1)
+    V = FunctionSpace(domain_2d, f_2d)
+
+    v = TestFunction(V)
+    f = ZeroBaseForm((v,))
+
+    assert f.signature() == ZeroBaseForm((v,)).signature()
+    assert isinstance(f.signature(), str)
+
+    W = FunctionSpace(domain_2d, LagrangeElement(triangle, 2))
+    w = TestFunction(W)
+    assert f.signature() != ZeroBaseForm((w,)).signature()
+
+
 def test_zero_base_form_reconstruct():
     # ZeroBaseForm._ufl_expr_reconstruct_ inherited BaseForm's default,
     # `type(self)(*operands)`, which unpacks `ufl_operands` into positional
