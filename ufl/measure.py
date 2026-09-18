@@ -127,7 +127,7 @@ class Measure:
                 the integral_type on the primal domain in a multi-domain problem.
             domain: an AbstractDomain object (most often a Mesh);
                 the primal domain in a multi-domain problem.
-            subdomain_id: either string "everywhere", a single subdomain id int, or tuple of ints
+            subdomain_id: a string, a single subdomain id int, or a tuple of ints and strings
             metadata: dict, with additional compiler-specific parameters
                 affecting how code is generated, including parameters
                 for optimization or debugging of generated code
@@ -212,7 +212,7 @@ class Measure:
         return self._domain
 
     def subdomain_id(self):
-        """Return the domain id of this measure (integer)."""
+        """Return the subdomain id of this measure (integer or string)."""
         return self._subdomain_id
 
     def intersect_measures(self):
