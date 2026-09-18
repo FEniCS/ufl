@@ -127,7 +127,7 @@ class Measure:
                 the integral_type on the primal domain in a multi-domain problem.
             domain: an AbstractDomain object (most often a Mesh);
                 the primal domain in a multi-domain problem.
-            subdomain_id: a string, a single subdomain id int, or a tuple of ints and strings
+            subdomain_id: a single subdomain id int or string, or a tuple of ints and strings
             metadata: dict, with additional compiler-specific parameters
                 affecting how code is generated, including parameters
                 for optimization or debugging of generated code
