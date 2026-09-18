@@ -1,9 +1,35 @@
 import numpy as np
+import pytest
 from utils import FiniteElement, LagrangeElement, MixedElement, SymmetricElement
 
-from ufl import Cell, Coefficient, FunctionSpace, Mesh, as_tensor, as_vector, dx, indices, triangle
+from ufl import (
+    Cell,
+    Coefficient,
+    FunctionSpace,
+    Mesh,
+    SpatialCoordinate,
+    TestFunction,
+    TrialFunction,
+    as_tensor,
+    as_vector,
+    dx,
+    grad,
+    indices,
+    inner,
+    triangle,
+)
+from ufl.algorithms.analysis import extract_type
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.algorithms.apply_function_pullbacks import (
+    apply_function_pullbacks,
+    apply_interpolate_pullbacks,
+    apply_inverse_pullback,
+)
+from ufl.algorithms.cancel_jacobian_products import cancel_jacobian_products
+from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.algorithms.remove_component_tensors import remove_component_tensors
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
+from ufl.classes import Interpolate, Jacobian, JacobianDeterminant, JacobianInverse, ReferenceValue
 from ufl.pullback import (
     contravariant_piola,
     covariant_piola,
@@ -12,7 +38,7 @@ from ufl.pullback import (
     identity_pullback,
     l2_piola,
 )
-from ufl.sobolevspace import L2, HCurl, HDiv, HDivDiv, HEin
+from ufl.sobolevspace import H1, L2, HCurl, HDiv, HDivDiv, HEin
 
 
 def check_single_function_pullback(g, mappings):
@@ -495,3 +521,171 @@ def test_apply_single_function_pullbacks_triangle():
 
     # Check the ridiculous mixed element W combining it all
     check_single_function_pullback(w, mappings)
+
+
+def cancel_jacobians(expr):
+    """Cancel the Jacobian factors that a pull back and its inverse insert."""
+    expr = apply_algebra_lowering(expr)
+    expr = remove_component_tensors(expr)
+    expr = cancel_jacobian_products(expr)
+    return renumber_indices(remove_component_tensors(expr))
+
+
+def check_inverse_pullback(element, domain):
+    """Map a physical function onto the reference cell and pull it back again."""
+    physical_value_shape = element.pullback.physical_value_shape(element, domain)
+    P = FiniteElement("Lagrange", domain.ufl_cell(), 2, physical_value_shape, identity_pullback, H1)
+    g = Coefficient(FunctionSpace(domain, P))
+    r = apply_inverse_pullback(g, element, domain)
+    assert r.ufl_shape == element.reference_value_shape
+    back = element.pullback.apply(r, domain)
+    assert back.ufl_shape == physical_value_shape
+    return g, back
+
+
+def test_apply_inverse_pullback_inverts_the_pullback():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    vd = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
+    u0 = FiniteElement("Discontinuous Lagrange", cell, 0, (), identity_pullback, L2)
+    elements = [
+        LagrangeElement(cell, 1, (2,)),
+        vd,
+        FiniteElement("N1curl", cell, 1, (2,), covariant_piola, HCurl),
+        FiniteElement("Regge", cell, 1, (2, 2), double_contravariant_piola, HDivDiv),
+        MixedElement([vd, u0]),
+    ]
+    for element in elements:
+        g, back = check_inverse_pullback(element, domain)
+        assert cancel_jacobians(back) == g
+
+
+def test_apply_inverse_pullback_symmetric_element():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    u1 = FiniteElement("Discontinuous Lagrange", cell, 1, (), identity_pullback, L2)
+    element = SymmetricElement({(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 2}, [u1, u1, u1])
+    # The element carries the independent components only, so the map onto the
+    # reference cell is invertible on a symmetric function alone.
+    U = FunctionSpace(domain, u1)
+    a, b, c = Coefficient(U), Coefficient(U), Coefficient(U)
+    g = as_tensor([[a, b], [b, c]])
+    r = apply_inverse_pullback(g, element, domain)
+    assert r.ufl_shape == element.reference_value_shape
+    back = element.pullback.apply(r, domain)
+    assert cancel_jacobians(back) == cancel_jacobians(g)
+
+
+def test_apply_inverse_pullback_checks_shapes():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
+    scalar = Coefficient(FunctionSpace(domain, LagrangeElement(cell, 1)))
+    with pytest.raises(ValueError):
+        apply_inverse_pullback(scalar, element, domain)
+
+    other_domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    g = Coefficient(FunctionSpace(other_domain, LagrangeElement(cell, 1, (2,))))
+    with pytest.raises(NotImplementedError):
+        apply_inverse_pullback(g, element, domain)
+
+
+def test_apply_interpolate_pullbacks():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
+    V = FunctionSpace(domain, element)
+    W = FunctionSpace(domain, LagrangeElement(cell, 2, (2,)))
+    f = Coefficient(W)
+
+    expr = Interpolate(f, V)
+    r = apply_interpolate_pullbacks(expr)
+    (interpolation,) = extract_type(r, Interpolate)
+    # The interpolation is evaluated on the reference cell of its target
+    # element, and its result pulled back for the expression that holds it.
+    assert renumber_indices(interpolation.ufl_operands[0]) == renumber_indices(
+        apply_inverse_pullback(f, element, domain)
+    )
+    assert renumber_indices(r) == renumber_indices(
+        element.pullback.apply(ReferenceValue(interpolation), domain)
+    )
+    # The dual argument and the physical value shape are those of the original.
+    assert interpolation.argument_slots()[0] is expr.argument_slots()[0]
+    assert r.ufl_shape == expr.ufl_shape
+
+
+def test_apply_interpolate_pullbacks_identity_pullback():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    W = FunctionSpace(domain, LagrangeElement(cell, 2, (2,)))
+    f = Coefficient(W)
+    # Nothing to map: the interpolation is only taken to its reference value.
+    assert apply_interpolate_pullbacks(Interpolate(f, W)) == ReferenceValue(Interpolate(f, W))
+
+
+def test_apply_interpolate_pullbacks_nested():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
+    V = FunctionSpace(domain, element)
+    W = FunctionSpace(domain, LagrangeElement(cell, 2, (2,)))
+    f = Coefficient(W)
+
+    r = apply_interpolate_pullbacks(Interpolate(Interpolate(f, W), V))
+    interpolations = extract_type(r, Interpolate)
+    assert len(interpolations) == 2
+    for interpolation in interpolations:
+        (operand,) = interpolation.ufl_operands
+        assert operand.ufl_shape == interpolation.ufl_element().reference_value_shape
+
+
+def test_apply_interpolate_pullbacks_in_a_form():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
+    V = FunctionSpace(domain, element)
+    W = FunctionSpace(domain, LagrangeElement(cell, 2, (2,)))
+    f = Coefficient(W)
+    v = TestFunction(V)
+
+    form = inner(Interpolate(f, V), v) * dx
+    r = apply_interpolate_pullbacks(form)
+    assert r.arguments() == form.arguments()
+    (integrand,) = (itg.integrand() for itg in r.integrals())
+    (interpolation,) = extract_type(integrand, Interpolate)
+    (operand,) = interpolation.ufl_operands
+    assert operand.ufl_shape == element.reference_value_shape
+    # The lowered form still goes through the rest of the pipeline.
+    compute_form_data(form, do_apply_function_pullbacks=True, do_apply_geometry_lowering=True)
+
+
+def test_apply_interpolate_pullbacks_reuses_untouched_expressions():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    f = Coefficient(FunctionSpace(domain, LagrangeElement(cell, 2)))
+    expr = inner(grad(f), grad(f))
+    assert apply_interpolate_pullbacks(expr) is expr
+
+
+def test_apply_function_pullbacks_in_a_form():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
+    V = FunctionSpace(domain, element)
+    form = inner(TrialFunction(V), TestFunction(V)) * dx
+
+    r = apply_function_pullbacks(form)
+    assert r.arguments() == form.arguments()
+    (integrand,) = (itg.integrand() for itg in r.integrals())
+    # Every form argument is now reached through its reference value.
+    reference_values = extract_type(integrand, ReferenceValue)
+    assert {rv.ufl_operands[0] for rv in reference_values} == set(form.arguments())
+    # Each of them is replaced by the pull back of that reference value.
+    for w in form.arguments():
+        assert renumber_indices(apply_function_pullbacks(w)) == renumber_indices(
+            element.pullback.apply(ReferenceValue(w))
+        )
+
+    # Terminals that are not form arguments are left alone.
+    x = SpatialCoordinate(domain)
+    assert apply_function_pullbacks(x) is x

@@ -156,6 +156,7 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
             self, base_form, coefficients, arguments, coefficient_derivatives
         )
         self._argument_slots = base_form._argument_slots
+        self._domains = None
 
     # Enforce Operator reconstruction as Operator is a parent class of
     # both: BaseFormDerivative and BaseFormOperator.

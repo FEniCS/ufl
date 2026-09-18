@@ -12,6 +12,7 @@ from ufl.algorithms.apply_coefficient_split import apply_coefficient_split
 from ufl.classes import (
     ComponentTensor,
     Indexed,
+    Interpolate,
     ListTensor,
     PositiveRestricted,
     ReferenceGrad,
@@ -65,6 +66,16 @@ def test_apply_coefficient_split(self):
     op1_, (idx1_,) = op1.ufl_operands
     assert op1_ == PositiveRestricted(ReferenceGrad(ReferenceValue(f1)))
     assert idx1_ == idx1
+
+
+def test_interpolate_is_terminal_modifier_boundary():
+    cell = triangle
+    mesh = Mesh(LagrangeElement(cell, 1, (2,)))
+    V = FunctionSpace(mesh, LagrangeElement(cell, 2))
+    interpolation = Interpolate(Coefficient(V), V)
+    expr = PositiveRestricted(ReferenceGrad(ReferenceValue(interpolation)))
+
+    assert apply_coefficient_split(expr, {}) == expr
 
 
 def test_derivative_zero_simplication():

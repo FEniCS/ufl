@@ -11,19 +11,23 @@ from ufl import (
     FunctionSpace,
     Mesh,
     SpatialCoordinate,
+    TensorProductCell,
     cos,
     div,
     dot,
     grad,
     i,
     inner,
+    interval,
     nabla_div,
     nabla_grad,
+    quadrilateral,
     sin,
     tan,
     triangle,
 )
 from ufl.algorithms import estimate_total_polynomial_degree
+from ufl.core.interpolate import Interpolate
 
 
 def test_total_degree_estimation():
@@ -58,18 +62,18 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(vu[i] * vv[i]) == 6
 
     assert estimate_total_polynomial_degree(v1) == 1
+    assert estimate_total_polynomial_degree(Interpolate(Coefficient(v1_space), v2_space)) == 2
     assert estimate_total_polynomial_degree(v2) == 2
 
-    # TODO: This should be 1, but 2 is expected behaviour now
-    # because f1 is part of a mixed element with max degree 2.
-    assert estimate_total_polynomial_degree(f1) == 2
+    # f1 lives on the mixed element's degree-1 sub-element, so its
+    # degree is 1, not the mixed element's max of 2.
+    assert estimate_total_polynomial_degree(f1) == 1
 
     assert estimate_total_polynomial_degree(f2) == 2
     assert estimate_total_polynomial_degree(v2 * v1) == 3
 
-    # TODO: This should be 2, but 3 is expected behaviour now
-    # because f1 is part of a mixed element with max degree 2.
-    assert estimate_total_polynomial_degree(f1 * v1) == 3
+    # f1's own degree is 1 (see above), so this is 1 + 1 = 2, not 3.
+    assert estimate_total_polynomial_degree(f1 * v1) == 2
 
     assert estimate_total_polynomial_degree(f2 * v1) == 3
     assert estimate_total_polynomial_degree(f2 * v2 * v1) == 5
@@ -103,6 +107,23 @@ def test_total_degree_estimation():
     e = x**3
     for f in [sin, cos, tan]:
         assert estimate_total_polynomial_degree(f(e)) == 3 + heuristic_add
+
+
+def test_tensor_product_degree_estimation():
+    cell = TensorProductCell(quadrilateral, interval)
+    domain = Mesh(LagrangeElement(cell, 1, (3,)))
+    space = FunctionSpace(domain, LagrangeElement(cell, 7))
+    u = Argument(space, 1)
+    v = Argument(space, 2)
+
+    assert estimate_total_polynomial_degree(u) == 7
+    assert estimate_total_polynomial_degree(u * v) == 14
+
+    assert estimate_total_polynomial_degree(u.dx(0)) == 7
+    assert estimate_total_polynomial_degree(inner(grad(u), grad(v))) == 14
+
+    x = SpatialCoordinate(domain)
+    assert estimate_total_polynomial_degree(x[0]) == 1
 
 
 def test_some_compound_types():

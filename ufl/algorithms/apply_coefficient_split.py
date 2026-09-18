@@ -15,6 +15,9 @@ from ufl.classes import (
     Coefficient,
     ComponentTensor,
     Expr,
+    FormArgument,
+    FunctionSpace,
+    Interpolate,
     MultiIndex,
     NegativeRestricted,
     PositiveRestricted,
@@ -26,6 +29,8 @@ from ufl.classes import (
 )
 from ufl.core.multiindex import indices
 from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.domain import extract_unique_domain
+from ufl.form import BaseForm
 from ufl.tensors import as_tensor
 
 
@@ -36,8 +41,8 @@ class CoefficientSplitter(DAGTraverser):
         self,
         coefficient_split: dict,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise.
 
@@ -154,6 +159,25 @@ class CoefficientSplitter(DAGTraverser):
             restricted=o._side,
         )
 
+    @process.register(Interpolate)
+    def _(
+        self,
+        o: Interpolate,
+        reference_value: bool | None = False,
+        reference_grad: int = 0,
+        restricted: str | None = None,
+    ) -> Expr:
+        """Handle Interpolate as a finite element terminal."""
+        dual_arg, operand = o.argument_slots()
+        operand = self(operand)
+        o = o._ufl_expr_reconstruct_(operand, v=dual_arg)
+        return self._handle_terminal(
+            o,
+            reference_value=reference_value,
+            reference_grad=reference_grad,
+            restricted=restricted,
+        )
+
     @process.register(Terminal)
     def _(
         self,
@@ -214,6 +238,7 @@ class CoefficientSplitter(DAGTraverser):
         """Wrap terminal as needed."""
         c = o
         if reference_value:
+            assert isinstance(c, FormArgument | Interpolate)
             c = ReferenceValue(c)
         for k in range(reference_grad):
             c = ReferenceGrad(c)
@@ -265,3 +290,26 @@ def apply_coefficient_split(expr: Expr, coefficient_split: dict) -> Expr:
     if not coefficient_split:
         return expr
     return CoefficientSplitter(coefficient_split)(expr)
+
+
+def build_coefficient_split(coefficients_to_split) -> dict:
+    """Map each mixed coefficient in ``coefficients_to_split`` to its per-mesh components.
+
+    Args:
+        coefficients_to_split: Coefficients with a mixed element to split.
+
+    Returns:
+        `dict` that maps each coefficient to its components, suitable for
+        `CoefficientSplitter`/`apply_coefficient_split`.
+
+    """
+    coefficient_split = {}
+    for c in coefficients_to_split:
+        mesh = extract_unique_domain(c, expand_mesh_sequence=False)
+        assert mesh is not None
+        elem = c.ufl_element()
+        coefficient_split[c] = [
+            Coefficient(FunctionSpace(m, e))
+            for m, e in zip(mesh.iterable_like(elem), elem.sub_elements)
+        ]
+    return coefficient_split

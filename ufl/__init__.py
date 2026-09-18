@@ -622,7 +622,6 @@ __all__ = [
     "k",
     "l",
     "l2_piola",
-    "l2_piola",
     "le",
     "lhs",
     "ln",

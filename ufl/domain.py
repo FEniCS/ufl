@@ -403,9 +403,14 @@ def extract_domains(
         `tuple` of domains.
 
     """
+    from ufl.algorithms.traversal import iter_expressions
+    from ufl.core.base_form_operator import BaseFormOperator
     from ufl.form import Form
     from ufl.integral import Integral
 
+    if isinstance(expr, BaseFormOperator) and expand_mesh_sequence:
+        # The argument slots carry domains that the operands cannot reach.
+        return tuple(expr.ufl_domains())
     if isinstance(expr, Form):
         if not expand_mesh_sequence:
             raise NotImplementedError("""
@@ -419,9 +424,20 @@ def extract_domains(
         )
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
     else:
+        # iter_expressions decomposes FormSum/Action/Adjoint (and nested
+        # Forms within them) down to plain Expr trees and leaf BaseForms
+        # (e.g. ZeroBaseForm, Matrix), each of which traverse_unique_terminals
+        # can walk directly. Fall back to the bare expr for anything it
+        # doesn't recognise (e.g. a FunctionSpace), matching the
+        # AttributeError that as_domain() relies on to catch that case.
+        try:
+            exprs = iter_expressions(expr)
+        except ValueError:
+            exprs = (expr,)
         domainlist = []
-        for t in traverse_unique_terminals(expr):
-            domainlist.extend(t.ufl_domains())
+        for e in exprs:
+            for t in traverse_unique_terminals(e):
+                domainlist.extend(t.ufl_domains())
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
 
 
@@ -438,6 +454,12 @@ def extract_unique_domain(
         domain.
 
     """
+    from ufl.core.base_form_operator import BaseFormOperator
+
+    if isinstance(expr, BaseFormOperator):
+        # A base form operator has the domains of its argument slots as well,
+        # but it takes its value on the one its operands are defined over.
+        (expr,) = expr.ufl_operands
     domains = extract_domains(expr, expand_mesh_sequence=expand_mesh_sequence)
     if len(domains) == 1:
         return domains[0]

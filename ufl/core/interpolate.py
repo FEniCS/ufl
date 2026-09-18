@@ -8,11 +8,17 @@
 #
 # Modified by Nacime Bouziani, 2021-2022
 
+import hashlib
+from collections import defaultdict
+
 from ufl.argument import Argument, Coargument
+from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
+from ufl.finiteelement import AbstractFiniteElement
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 
@@ -67,12 +73,123 @@ class Interpolate(BaseFormOperator):
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
         function_space = v.arguments()[0].ufl_function_space()
+        self._function_space = function_space
 
         # Set the operand as `expr` for DAG traversal purpose.
         operand = expr
         BaseFormOperator.__init__(
             self, operand, function_space=function_space, argument_slots=argument_slots
         )
+        self._cache = {}
+        self._signature = None
+        self._subdomain_data = None
+        self._terminal_numbering = None
+
+    def _analyze_form_arguments(self) -> None:
+        """Analyze arguments and coefficients in the interpolation."""
+        from ufl.algorithms.analysis import extract_coefficients
+
+        super()._analyze_form_arguments()
+        self._coefficients = tuple(extract_coefficients(self))
+
+    def subdomain_data(self):
+        """Return cell-iteration subdomain data for the target domain."""
+        if self._subdomain_data is None:
+            domain = self._function_space.ufl_domain()
+            self._subdomain_data = {domain: {"cell": [None]}}
+        return self._subdomain_data
+
+    def terminal_numbering(self):
+        """Return a contiguous numbering for counted interpolation objects."""
+        from ufl.algorithms.analysis import extract_type
+        from ufl.utils.counted import Counted
+        from ufl.utils.sorting import sorted_by_count
+
+        if self._terminal_numbering is None:
+            exprs_by_type = defaultdict(set)
+            for counted_expr in extract_type(self, Counted):
+                exprs_by_type[counted_expr._counted_class].add(counted_expr)
+
+            numbering = {expression: i for i, expression in enumerate(self.arguments())}
+            numbering.update({expression: i for i, expression in enumerate(self.coefficients())})
+            for expressions in exprs_by_type.values():
+                for i, expression in enumerate(sorted_by_count(expressions)):
+                    numbering.setdefault(expression, i)
+            self._terminal_numbering = numbering
+        return self._terminal_numbering
+
+    def signature(self):
+        """Return a numbering-independent signature for compiler caches."""
+        from ufl.algorithms.signature import compute_expression_signature
+        from ufl.form import Form, FormSum
+
+        if self._signature is None:
+            renumbering = {domain: i for i, domain in enumerate(self.ufl_domains())}
+            renumbering.update(self.terminal_numbering())
+
+            def signature(slot):
+                if isinstance(slot, Interpolate):
+                    return "Interpolate", slot.signature()
+                if isinstance(slot, Form):
+                    return "Form", slot.signature()
+                if isinstance(slot, FormSum):
+                    return "FormSum", tuple(
+                        (signature(component), signature(as_ufl(weight)))
+                        for component, weight in zip(slot.components(), slot.weights())
+                    )
+                if isinstance(slot, Coargument | Cofunction):
+                    kind = type(slot).__name__
+                    slot = Argument(slot.ufl_function_space().dual(), 0)
+                    renumbering[slot] = 0
+                    return kind, compute_expression_signature(slot, renumbering)
+                if isinstance(slot, BaseForm):
+                    return type(slot).__name__, tuple(
+                        signature(operand) for operand in slot.ufl_operands
+                    )
+                return compute_expression_signature(slot, renumbering)
+
+            signatures = (
+                repr(self.ufl_element()),
+                *(signature(slot) for slot in self.argument_slots()),
+            )
+            self._signature = hashlib.sha512(str(signatures).encode("utf-8")).hexdigest()
+        return self._signature
+
+    def ufl_element(self) -> AbstractFiniteElement:
+        """Return the target finite element."""
+        return self._function_space.ufl_element()
+
+    @property
+    def ufl_shape(self):
+        """Return the value shape in the interpolation target space."""
+        return self._function_space.value_shape
+
+    def _value_parent_type(self):
+        """Return the type whose arithmetic matches the interpolation's value.
+
+        An interpolation takes its value in the target space, which is the
+        space ``ufl_shape`` reports. Scaling and negation follow that space, so
+        that an interpolation of a test function stays an expression and can be
+        combined with one inside an integrand. ``_parent_type`` instead follows
+        ``ufl_function_space()``, the adjoint's source dual, and still drives
+        addition, where a sum of adjoint interpolations must stay a form.
+        """
+        function_space = self._function_space
+        if function_space is None or not is_dual(function_space):
+            return Operator
+        return BaseForm
+
+    def __neg__(self):
+        """Negate the interpolation result."""
+        return self._value_parent_type().__rmul__(self, -1)
+
+    def __mul__(self, other):
+        """Multiply, agreeing with negation on which space the value is in."""
+        return self._value_parent_type().__mul__(self, other)
+
+    def __rmul__(self, other):
+        """Multiply, agreeing with negation on which space the value is in."""
+        return self._value_parent_type().__rmul__(self, other)
 
     def _ufl_expr_reconstruct_(self, expr, v=None, **add_kwargs):
         """Return a new object of the same type with new operands."""

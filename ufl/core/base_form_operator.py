@@ -14,6 +14,7 @@ ExternalOperator or Interpolate.
 # Modified by Nacime Bouziani, 2021-2022
 
 from collections import OrderedDict
+from itertools import chain
 from numbers import Number
 
 from ufl.argument import Argument, Coargument
@@ -70,8 +71,9 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             argument_slots = (v_star,)
         self._argument_slots = argument_slots
 
-        # Internal variables for caching coefficient data
+        # Internal variables for caching coefficient and domain data
         self._coefficients = None
+        self._domains = None
 
     # BaseFormOperators don't have free indices.
     ufl_free_indices = ()
@@ -95,6 +97,26 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         #   F = N(u; v*) * v * dx can be seen as Action(v1 * v * dx, N(u; v*))
         #   => F.arguments() should return (v,)!
         return tuple(a for a in self._argument_slots[1:] if len(extract_arguments(a)) != 0)
+
+    def _analyze_domains(self) -> None:
+        """Analyze domains in the operands and the argument slots."""
+        from ufl.domain import extract_domains, join_domains, sort_domains
+
+        def extract(expression):
+            if isinstance(expression, BaseForm):
+                return expression.ufl_domains()
+            return extract_domains(expression)
+
+        expressions = (*self.ufl_operands, *self.argument_slots())
+        self._domains = sort_domains(
+            join_domains(list(chain.from_iterable(extract(e) for e in expressions)))
+        )
+
+    def ufl_domains(self):
+        """Return all domains found in the operands and the argument slots."""
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
 
     def coefficients(self):
         """Return all BaseCoefficient objects found in base form operator."""

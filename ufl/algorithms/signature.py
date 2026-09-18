@@ -106,6 +106,13 @@ def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
         else:
             data = [expr._ufl_typecode_]
 
+            # Interpolate's target space is an argument slot rather than a UFL
+            # operand and affects the form signature.
+            from ufl.core.interpolate import Interpolate
+
+            if isinstance(expr, Interpolate):
+                data.append(expr.signature())
+
             for op in expr.ufl_operands:
                 data += [cache[op]]
         cache[expr] = hashlib.sha512(str(data).encode("utf-8")).digest()

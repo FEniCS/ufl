@@ -24,11 +24,11 @@ jobs:
       PETSC_ARCH: linux-gnu-real-64
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Load environment variables
         run: cat .github/workflows/fenicsx-refs.env >> $GITHUB_ENV
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: 3.12
 
@@ -45,7 +45,7 @@ jobs:
           python3 -m pip install git+https://github.com/${{ env.basix_repository }}.git@${{ env.basix_ref }}
 
       - name: Clone FFCx
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: ./ffcx
           repository: ${{ env.ffcx_repository }}
@@ -71,7 +71,7 @@ jobs:
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Load environment variables
         run: cat .github/workflows/fenicsx-refs.env >> $GITHUB_ENV
@@ -86,7 +86,7 @@ jobs:
           python3 -m pip install --break-system-packages git+https://github.com/${{ env.ffcx_repository }}.git@${{ env.ffcx_ref }}
 
       - name: Clone DOLFINx
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: ./dolfinx
           repository: ${{ env.dolfinx_repository }}
@@ -96,9 +96,10 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer -B build -S dolfinx/cpp/
           cmake --build build
           cmake --install build
-          python3 -m pip install scikit-build-core
           cd dolfinx/python
-          python3 -m scikit_build_core.build requires | python -c "import sys, json; print(' '.join(json.load(sys.stdin)))" | xargs pip install
-          python3 -m pip -v install --break-system-packages --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" .[ci]
+          python3 -m pip install --group pyproject.toml:build --break-system-packages
+          python3 -m pip -v install --break-system-packages --no-build-isolation --check-build-dependencies --config-settings=cmake.build-type="Developer" .
+          python3 -m pip install --group pyproject.toml:ci --break-system-packages
+
       - name: Run DOLFINx unit tests
         run: python3 -m pytest -n auto dolfinx/python/test/unit

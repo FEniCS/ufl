@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Literal
 
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Expr, Restricted
+from ufl.classes import Expr, Interpolate, Restricted
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.corealg.multifunction import MultiFunction
 from ufl.domain import Mesh, extract_unique_domain
@@ -208,7 +208,7 @@ class RestrictionPropagator(MultiFunction):
     def reference_value(self, o):
         """Reference value of something follows same restriction rule as the underlying object."""
         (f,) = o.ufl_operands
-        assert f._ufl_is_terminal_
+        assert f._ufl_is_terminal_ or isinstance(f, Interpolate)
         g = self(f)
         if isinstance(g, Restricted):
             side = g.side()
@@ -256,6 +256,13 @@ class RestrictionPropagator(MultiFunction):
     min_facet_edge_length = _default_restricted
     max_facet_edge_length = _default_restricted
     facet_origin = _default_restricted  # FIXME: Is this valid for quads?
+
+    def interpolate(self, o):
+        """Restrict an interpolated finite element field."""
+        if o.ufl_element() in H1:
+            return self._default_restricted(o)
+        else:
+            return self._require_restriction(o)
 
     def coefficient(self, o):
         """Restrict a coefficient.
