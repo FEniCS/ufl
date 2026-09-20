@@ -151,9 +151,7 @@ class ChangeToReferenceGrad(DAGTraverser):
                 raise ValueError(f"Invalid type {current._ufl_class_.__name__}")
         f = current
         if rv:
-            f = ReferenceValue(
-                cast(ufl.classes.FormArgument | ufl.classes.Interpolate, current)
-            )
+            f = ReferenceValue(cast(ufl.classes.FormArgument | ufl.classes.Interpolate, current))
 
         # Get domain and create Jacobian inverse object
         domain = extract_unique_domain(current)
