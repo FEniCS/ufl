@@ -3,6 +3,9 @@
 In the stripped version, any data-carrying objects have been extracted to a mapping.
 """
 
+from functools import singledispatchmethod
+
+import ufl.classes
 from ufl.algorithms.replace import replace
 from ufl.classes import (
     Coefficient,
@@ -15,11 +18,10 @@ from ufl.classes import (
     MixedFunctionSpace,
     TensorProductFunctionSpace,
 )
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 
 
-class TerminalStripper(MultiFunction):
+class TerminalStripper(DAGTraverser):
     """Terminal stripper."""
 
     def __init__(self):
@@ -27,22 +29,33 @@ class TerminalStripper(MultiFunction):
         super().__init__()
         self.mapping = {}
 
-    def argument(self, o):
+    @singledispatchmethod
+    def process(self, o: ufl.classes.Expr | ufl.classes.BaseForm):
+        """Process ``o``."""
+        return super().process(o)
+
+    @process.register(ufl.classes.Expr)
+    @process.register(ufl.classes.BaseForm)
+    def _(self, o):
+        return self.reuse_if_untouched(o)
+
+    @process.register(ufl.classes.Argument)
+    def _(self, o):
         """Apply to argument."""
         o_new = o.reconstruct(function_space=strip_function_space(o.ufl_function_space()))
         return self.mapping.setdefault(o, o_new)
 
-    def coefficient(self, o):
+    @process.register(ufl.classes.Coefficient)
+    def _(self, o):
         """Apply to coefficient."""
         o_new = Coefficient(strip_function_space(o.ufl_function_space()), o.count())
         return self.mapping.setdefault(o, o_new)
 
-    def constant(self, o):
+    @process.register(ufl.classes.Constant)
+    def _(self, o):
         """Apply to constant."""
         o_new = Constant(strip_domain(o.ufl_domain()), o.ufl_shape, o.count())
         return self.mapping.setdefault(o, o_new)
-
-    expr = MultiFunction.reuse_if_untouched
 
 
 def strip_terminal_data(o):
@@ -74,7 +87,7 @@ def strip_terminal_data(o):
         return Form(integrals), (expr_map, domain_map)
     elif isinstance(o, Integral):
         handler = TerminalStripper()
-        integrand = map_expr_dag(handler, o.integrand())
+        integrand = handler(o.integrand())
         domain = strip_domain(o.ufl_domain())
         # invert the mapping so it can be passed straight into replace_terminal_data
         expr_map = {v: k for k, v in handler.mapping.items()}
