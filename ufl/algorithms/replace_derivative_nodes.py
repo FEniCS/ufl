@@ -1,14 +1,17 @@
 """Algorithm for replacing derivative nodes in a BaseForm or Expr."""
 
+from functools import singledispatchmethod
+
 import ufl
+import ufl.classes
 from ufl.algorithms.analysis import extract_arguments
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrands
 from ufl.constantvalue import as_ufl
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.tensors import ListTensor
 
 
-class DerivativeNodeReplacer(MultiFunction):
+class DerivativeNodeReplacer(DAGTraverser):
     """Replace derivative nodes with new derivative nodes."""
 
     def __init__(self, mapping, **derivative_kwargs):
@@ -17,9 +20,19 @@ class DerivativeNodeReplacer(MultiFunction):
         self.mapping = mapping
         self.der_kwargs = derivative_kwargs
 
-    ufl_type = MultiFunction.reuse_if_untouched
+    @singledispatchmethod
+    def process(self, o: ufl.classes.Expr | ufl.classes.BaseForm):
+        """Process ``o``."""
+        return super().process(o)
 
-    def coefficient_derivative(self, cd, o, coefficients, arguments, coefficient_derivatives):
+    @process.register(ufl.classes.Expr)
+    @process.register(ufl.classes.BaseForm)
+    def _(self, o):
+        return self.reuse_if_untouched(o)
+
+    @process.register(ufl.classes.CoefficientDerivative)
+    @DAGTraverser.postorder
+    def _(self, cd, o, coefficients, arguments, coefficient_derivatives):
         """Apply to coefficient_derivative."""
         der_kwargs = self.der_kwargs
         new_coefficients = tuple(
@@ -69,4 +82,4 @@ def replace_derivative_nodes(expr, mapping, **derivative_kwargs):
             `coefficient_derivatives`).
     """
     mapping2 = dict((k, as_ufl(v)) for (k, v) in mapping.items())
-    return map_integrand_dags(DerivativeNodeReplacer(mapping2, **derivative_kwargs), expr)
+    return map_integrands(DerivativeNodeReplacer(mapping2, **derivative_kwargs), expr)
