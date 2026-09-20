@@ -1,10 +1,42 @@
 """Check arities."""
 
+from functools import singledispatchmethod
 from itertools import chain
 
-from ufl.classes import Argument, Zero
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl.classes import (
+    Argument,
+    CellAvg,
+    ComponentTensor,
+    Conditional,
+    Conj,
+    Curl,
+    Div,
+    Division,
+    Dot,
+    Expr,
+    FacetAvg,
+    Grad,
+    Indexed,
+    IndexSum,
+    Inner,
+    Interpolate,
+    ListTensor,
+    NablaDiv,
+    NablaGrad,
+    NegativeRestricted,
+    Outer,
+    PositiveRestricted,
+    Product,
+    ReferenceCurl,
+    ReferenceDiv,
+    ReferenceGrad,
+    ReferenceValue,
+    Sum,
+    Terminal,
+    Variable,
+    Zero,
+)
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.corealg.traversal import traverse_unique_terminals
 
 
@@ -20,28 +52,25 @@ def _afmt(atuple: tuple[Argument, bool]) -> str:
     return f"conj({arg})" if conj else str(arg)
 
 
-class ArityChecker(MultiFunction):
+class ArityChecker(DAGTraverser):
     """Arity checker."""
 
     def __init__(self, arguments):
         """Initialise."""
-        MultiFunction.__init__(self)
+        super().__init__(compress=False)
         self.arguments = arguments
         self._et = ()
 
-    def terminal(self, o):
-        """Apply to terminal."""
-        return self._et
+    @singledispatchmethod
+    def process(self, o, **kwargs):
+        """Apply to an expression node."""
+        return super().process(o, **kwargs)
 
-    def argument(self, o):
-        """Apply to argument."""
-        return ((o, False),)
-
-    def nonlinear_operator(self, o):
-        """Apply to nonlinear_operator."""
-        # Cutoff traversal by not having *ops in argument list of this
-        # handler.  Traverse only the terminals under here the fastest
-        # way we know of:
+    @process.register(Expr)
+    def nonlinear_operator(self, o, **kwargs):
+        """Apply to a nonlinear operator."""
+        # Do not traverse children here. Traverse only the terminals under
+        # this node to retain the cutoff behaviour of the old MultiFunction.
         for t in traverse_unique_terminals(o):
             if t._ufl_typecode_ == Argument._ufl_typecode_:
                 raise ArityMismatch(
@@ -50,9 +79,19 @@ class ArityChecker(MultiFunction):
                 )
         return self._et
 
-    expr = nonlinear_operator
+    @process.register(Terminal)
+    def terminal(self, o, **kwargs):
+        """Apply to terminal."""
+        return self._et
 
-    def sum(self, o, a, b):
+    @process.register(Argument)
+    def argument(self, o, **kwargs):
+        """Apply to argument."""
+        return ((o, False),)
+
+    @process.register(Sum)
+    @DAGTraverser.postorder
+    def sum(self, o, a, b, **kwargs):
         """Apply to sum."""
         if a != b:
             raise ArityMismatch(
@@ -61,14 +100,22 @@ class ArityChecker(MultiFunction):
             )
         return a
 
-    def division(self, o, a, b):
+    @process.register(Division)
+    @DAGTraverser.postorder
+    def division(self, o, a, b, **kwargs):
         """Apply to division."""
         if b:
             raise ArityMismatch(f"Cannot divide by form argument {b}.")
         return a
 
-    def product(self, o, a, b):
+    @process.register(Product)
+    @DAGTraverser.postorder
+    def product(self, o, a, b, **kwargs):
         """Apply to product."""
+        return self._product(o, a, b)
+
+    def _product(self, o, a, b):
+        """Apply product arity rules to processed operands."""
         if a and b:
             # Check that we don't have test*test, trial*trial, even
             # for different parts in a block system
@@ -96,47 +143,67 @@ class ArityChecker(MultiFunction):
             return b
 
     # inner, outer and dot all behave as product but for conjugates
-    def inner(self, o, a, b):
+    @process.register(Inner)
+    @DAGTraverser.postorder
+    def inner(self, o, a, b, **kwargs):
         """Apply to inner."""
-        return self.product(o, a, self.conj(None, b))
+        return self._product(o, a, self._conjugate(b))
 
-    dot = inner
+    @process.register(Dot)
+    @DAGTraverser.postorder
+    def dot(self, o, a, b, **kwargs):
+        """Apply to dot."""
+        return self._product(o, a, self._conjugate(b))
 
-    def outer(self, o, a, b):
+    @process.register(Outer)
+    @DAGTraverser.postorder
+    def outer(self, o, a, b, **kwargs):
         """Apply to outer."""
-        return self.product(o, self.conj(None, a), b)
+        return self._product(o, self._conjugate(a), b)
 
-    def linear_operator(self, o, a):
+    @process.register(PositiveRestricted)
+    @process.register(NegativeRestricted)
+    @process.register(CellAvg)
+    @process.register(FacetAvg)
+    @process.register(Grad)
+    @process.register(ReferenceGrad)
+    @process.register(NablaGrad)
+    @process.register(Div)
+    @process.register(ReferenceDiv)
+    @process.register(NablaDiv)
+    @process.register(Curl)
+    @process.register(ReferenceCurl)
+    @process.register(ReferenceValue)
+    @process.register(Interpolate)
+    @DAGTraverser.postorder
+    def linear_operator(self, o, a, **kwargs):
         """Apply to linear_operator."""
         return a
 
-    # Positive and negative restrictions behave as linear operators
-    positive_restricted = linear_operator
-    negative_restricted = linear_operator
-
-    # Cell and facet average are linear operators
-    cell_avg = linear_operator
-    facet_avg = linear_operator
-
-    # Grad is a linear operator
-    grad = linear_operator
-    reference_grad = linear_operator
-    reference_value = linear_operator
-    interpolate = linear_operator
-
     # Conj, is a sesquilinear operator
-    def conj(self, o, a):
+    @process.register(Conj)
+    @DAGTraverser.postorder
+    def conj(self, o, a, **kwargs):
         """Apply to conj."""
+        return self._conjugate(a)
+
+    @staticmethod
+    def _conjugate(a):
+        """Toggle the conjugation state of an arity tuple."""
         return tuple((a_[0], not a_[1]) for a_ in a)
 
     # Does it make sense to have a Variable(Argument)? I see no
     # problem.
-    def variable(self, o, f, a):
+    @process.register(Variable)
+    @DAGTraverser.postorder
+    def variable(self, o, f, a, **kwargs):
         """Apply to variable."""
         return f
 
     # Conditional is linear on each side of the condition
-    def conditional(self, o, c, a, b):
+    @process.register(Conditional)
+    @DAGTraverser.postorder
+    def conditional(self, o, c, a, b, **kwargs):
         """Apply to conditional."""
         if c:
             raise ArityMismatch("Condition cannot depend on form arguments.")
@@ -157,16 +224,17 @@ class ArityChecker(MultiFunction):
                 f"{tuple(map(_afmt, a))} vs {tuple(map(_afmt, b))}."
             )
 
-    def linear_indexed_type(self, o, a, i):
+    @process.register(Indexed)
+    @process.register(IndexSum)
+    @process.register(ComponentTensor)
+    @DAGTraverser.postorder
+    def linear_indexed_type(self, o, a, i, **kwargs):
         """Apply to linear_indexed_type."""
         return a
 
-    # All of these indexed thingies behave as a linear_indexed_type
-    indexed = linear_indexed_type
-    index_sum = linear_indexed_type
-    component_tensor = linear_indexed_type
-
-    def list_tensor(self, o, *ops):
+    @process.register(ListTensor)
+    @DAGTraverser.postorder
+    def list_tensor(self, o, *ops, **kwargs):
         """Apply to list_tensor."""
         args = set(chain(*ops))
         if args:
@@ -192,7 +260,7 @@ def check_integrand_arity(expr, arguments, complex_mode=False):
     """Check the arity of an integrand."""
     arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), x.part())))
     rules = ArityChecker(arguments)
-    arg_tuples = map_expr_dag(rules, expr, compress=False)
+    arg_tuples = rules(expr)
     args = tuple(a[0] for a in arg_tuples)
     if args != arguments:
         raise ArityMismatch(f"Integrand arguments {args} differ from form arguments {arguments}.")
