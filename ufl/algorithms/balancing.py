@@ -6,16 +6,19 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from functools import singledispatchmethod
+
 from ufl.classes import (
+    Expr,
     Grad,
     Indexed,
     NegativeRestricted,
     PositiveRestricted,
     ReferenceGrad,
     ReferenceValue,
+    Terminal,
 )
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 
 modifier_precedence = {
     m._ufl_handler_name_: i
@@ -62,29 +65,37 @@ def balance_modified_terminal(expr):
     return orig if expr == orig else expr
 
 
-class BalanceModifiers(MultiFunction):
+class BalanceModifiers(DAGTraverser):
     """Balance modifiers."""
 
-    def expr(self, expr, *ops):
-        """Apply to expr."""
-        return expr._ufl_expr_reconstruct_(*ops)
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process an expression node."""
+        return super().process(o)
 
-    def terminal(self, expr):
+    @process.register(Expr)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *ops: Expr) -> Expr:
+        """Apply to an expression."""
+        return o._ufl_expr_reconstruct_(*ops)
+
+    @process.register(Terminal)
+    def _(self, expr: Terminal) -> Terminal:
         """Apply to terminal."""
         return expr
 
-    def _modifier(self, expr, *ops):
+    @DAGTraverser.postorder
+    def _modifier(self, expr: Expr, *ops: Expr) -> Expr:
         """Apply to _modifier."""
         return balance_modified_terminal(expr)
 
-    reference_value = _modifier
-    reference_grad = _modifier
-    grad = _modifier
-    positive_restricted = _modifier
-    negative_restricted = _modifier
+    process.register(ReferenceValue)(_modifier)
+    process.register(ReferenceGrad)(_modifier)
+    process.register(Grad)(_modifier)
+    process.register(PositiveRestricted)(_modifier)
+    process.register(NegativeRestricted)(_modifier)
 
 
 def balance_modifiers(expr):
     """Balance modifiers."""
-    mf = BalanceModifiers()
-    return map_expr_dag(mf, expr)
+    return BalanceModifiers()(expr)
