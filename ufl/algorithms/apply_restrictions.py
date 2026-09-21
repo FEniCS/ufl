@@ -12,12 +12,42 @@ restrictions in a form towards the terminals.
 
 from __future__ import annotations
 
-from typing import Literal
+from functools import singledispatchmethod
+from typing import Literal, cast
 
-from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Expr, Interpolate, Restricted
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl.algorithms.map_integrands import map_integrands
+from ufl.classes import (
+    Argument,
+    Coefficient,
+    Constant,
+    ConstantValue,
+    Expr,
+    FacetArea,
+    FacetCoordinate,
+    FacetJacobian,
+    FacetJacobianDeterminant,
+    FacetJacobianInverse,
+    FacetNormal,
+    FacetOrigin,
+    GeometricCellQuantity,
+    GeometricFacetQuantity,
+    Grad,
+    Interpolate,
+    Label,
+    MaxFacetEdgeLength,
+    MinFacetEdgeLength,
+    MultiIndex,
+    Operator,
+    QuadratureWeight,
+    ReferenceCellVolume,
+    ReferenceFacetVolume,
+    ReferenceValue,
+    Restricted,
+    SpatialCoordinate,
+    Terminal,
+    Variable,
+)
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.domain import Mesh, extract_unique_domain
 from ufl.integral import Integral
 from ufl.sobolevspace import H1
@@ -34,7 +64,7 @@ default_restriction_map = {
 }
 
 
-class RestrictionPropagator(MultiFunction):
+class RestrictionPropagator(DAGTraverser):
     """Restriction propagator."""
 
     def __init__(
@@ -49,19 +79,30 @@ class RestrictionPropagator(MultiFunction):
             default_restrictions: A map between meshes and certain restrictions
                 set by the integration measure.
         """
-        MultiFunction.__init__(self)
+        super().__init__()
         self.current_restriction: Literal["+", "-"] | None = side
         self.default_restrictions = default_restrictions
-        # Caches for propagating the restriction with map_expr_dag
-        self.vcaches: dict[Literal["+", "-"], dict] = {"+": {}, "-": {}}
-        self.rcaches: dict[Literal["+", "-"], dict] = {"+": {}, "-": {}}
         if self.current_restriction is None:
             self._rp = {
                 "+": RestrictionPropagator("+", default_restrictions),
                 "-": RestrictionPropagator("-", default_restrictions),
             }
 
-    def restricted(self, o):
+    @singledispatchmethod
+    def process(self, o: Expr):
+        """Process an expression."""
+        return super().process(o)
+
+    @process.register(Operator)
+    @DAGTraverser.postorder
+    def _(self, o: Operator, *operands):
+        """Reconstruct an operator if restriction propagation changed an operand."""
+        if all(new is old for new, old in zip(operands, o.ufl_operands)):
+            return o
+        return o._ufl_expr_reconstruct_(*operands)
+
+    @process.register(Restricted)
+    def _(self, o: Restricted):
         """When hitting a restricted quantity, visit child with a separate restriction algorithm."""
         # Assure that we have only two levels here, inside or outside
         # the Restricted node
@@ -69,9 +110,7 @@ class RestrictionPropagator(MultiFunction):
             raise ValueError("Cannot restrict an expression twice.")
         # Configure a propagator for this side and apply to subtree
         side = o.side()
-        return map_expr_dag(
-            self._rp[side], o.ufl_operands[0], vcache=self.vcaches[side], rcache=self.rcaches[side]
-        )
+        return self._rp[side](o.ufl_operands[0])
 
     # --- Reusable rules
 
@@ -190,22 +229,22 @@ class RestrictionPropagator(MultiFunction):
         """Raise an error."""
         raise ValueError(f"Missing rule for {o._ufl_class_.__name__}")
 
-    # --- Rules for operators
-
-    # Default: Operators should reconstruct only if subtrees are not touched
-    operator = MultiFunction.reuse_if_untouched
-
     # Assuming apply_derivatives has been called,
     # propagating Grad inside the Restricted nodes.
     # Considering all grads to be discontinuous, may
     # want something else for facet functions in future.
-    grad = _require_restriction
+    @process.register(Grad)
+    def _(self, o: Grad):
+        return self._require_restriction(o)
 
-    def variable(self, o, op, label):
+    @process.register(Variable)
+    @DAGTraverser.postorder
+    def _(self, o: Variable, op, label):
         """Strip variable."""
         return op
 
-    def reference_value(self, o):
+    @process.register(ReferenceValue)
+    def _(self, o: ReferenceValue):
         """Reference value of something follows same restriction rule as the underlying object."""
         (f,) = o.ufl_operands
         assert f._ufl_is_terminal_ or isinstance(f, Interpolate)
@@ -219,52 +258,106 @@ class RestrictionPropagator(MultiFunction):
     # --- Rules for terminals
 
     # Require handlers to be specified for all terminals
-    terminal = _missing_rule
+    @process.register(Terminal)
+    def _(self, o: Terminal):
+        return self._missing_rule(o)
 
-    multi_index = _ignore_restriction
-    label = _ignore_restriction
+    @process.register(MultiIndex)
+    def _(self, o: MultiIndex):
+        return self._ignore_restriction(o)
+
+    @process.register(Label)
+    def _(self, o: Label):
+        return self._ignore_restriction(o)
 
     # Default: Literals should ignore restriction
-    constant_value = _ignore_restriction
-    constant = _ignore_restriction
+    @process.register(ConstantValue)
+    def _(self, o: ConstantValue):
+        return self._ignore_restriction(o)
+
+    @process.register(Constant)
+    def _(self, o: Constant):
+        return self._ignore_restriction(o)
 
     # Even arguments with continuous elements such as Lagrange must be
     # restricted to associate with the right part of the element
     # matrix
-    argument = _require_restriction
+    @process.register(Argument)
+    def _(self, o: Argument):
+        return self._require_restriction(o)
 
     # Defaults for geometric quantities
-    geometric_cell_quantity = _require_restriction
-    geometric_facet_quantity = _require_restriction
+    @process.register(GeometricCellQuantity)
+    def _(self, o: GeometricCellQuantity):
+        return self._require_restriction(o)
+
+    @process.register(GeometricFacetQuantity)
+    def _(self, o: GeometricFacetQuantity):
+        return self._require_restriction(o)
 
     # Only a few geometric quantities are independent on the restriction:
-    facet_coordinate = _ignore_restriction
-    quadrature_weight = _ignore_restriction
+    @process.register(FacetCoordinate)
+    def _(self, o: FacetCoordinate):
+        return self._ignore_restriction(o)
+
+    @process.register(QuadratureWeight)
+    def _(self, o: QuadratureWeight):
+        return self._ignore_restriction(o)
 
     # Assuming homogeoneous mesh
-    reference_cell_volume = _ignore_restriction
-    reference_facet_volume = _ignore_restriction
+    @process.register(ReferenceCellVolume)
+    def _(self, o: ReferenceCellVolume):
+        return self._ignore_restriction(o)
+
+    @process.register(ReferenceFacetVolume)
+    def _(self, o: ReferenceFacetVolume):
+        return self._ignore_restriction(o)
 
     # These are the same from either side but to compute them
     # cell (or facet) data from one side must be selected:
-    spatial_coordinate = _default_restricted
-    # Depends on cell only to get to the facet:
-    facet_jacobian = _default_restricted
-    facet_jacobian_determinant = _default_restricted
-    facet_jacobian_inverse = _default_restricted
-    facet_area = _default_restricted
-    min_facet_edge_length = _default_restricted
-    max_facet_edge_length = _default_restricted
-    facet_origin = _default_restricted  # FIXME: Is this valid for quads?
+    @process.register(SpatialCoordinate)
+    def _(self, o: SpatialCoordinate):
+        return self._default_restricted(o)
 
-    def interpolate(self, o):
+    # Depends on cell only to get to the facet:
+    @process.register(FacetJacobian)
+    def _(self, o: FacetJacobian):
+        return self._default_restricted(o)
+
+    @process.register(FacetJacobianDeterminant)
+    def _(self, o: FacetJacobianDeterminant):
+        return self._default_restricted(o)
+
+    @process.register(FacetJacobianInverse)
+    def _(self, o: FacetJacobianInverse):
+        return self._default_restricted(o)
+
+    @process.register(FacetArea)
+    def _(self, o: FacetArea):
+        return self._default_restricted(o)
+
+    @process.register(MinFacetEdgeLength)
+    def _(self, o: MinFacetEdgeLength):
+        return self._default_restricted(o)
+
+    @process.register(MaxFacetEdgeLength)
+    def _(self, o: MaxFacetEdgeLength):
+        return self._default_restricted(o)
+
+    @process.register(FacetOrigin)
+    def _(self, o: FacetOrigin):
+        return self._default_restricted(o)
+
+    @process.register(Interpolate)
+    def _(self, o: Interpolate):
         """Restrict an interpolated finite element field."""
         if o.ufl_element() in H1:
             return self._default_restricted(o)
         else:
             return self._require_restriction(o)
 
-    def coefficient(self, o):
+    @process.register(Coefficient)
+    def _(self, o: Coefficient):
         """Restrict a coefficient.
 
         Allow coefficients to be unrestricted (apply default if so) if
@@ -277,9 +370,10 @@ class RestrictionPropagator(MultiFunction):
         else:
             return self._require_restriction(o)
 
-    def facet_normal(self, o):
+    @process.register(FacetNormal)
+    def _(self, o: FacetNormal):
         """Restrict a facet_normal."""
-        D = extract_unique_domain(o)
+        D = cast(Mesh, extract_unique_domain(o))
         e = D.ufl_coordinate_element()
         gd = D.geometric_dimension
         td = D.topological_dimension
@@ -317,4 +411,4 @@ def apply_restrictions(
 
     """
     rules = RestrictionPropagator(default_restrictions=default_restrictions)
-    return map_integrand_dags(rules, expression)
+    return map_integrands(rules, expression)

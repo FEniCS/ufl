@@ -6,33 +6,53 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from __future__ import annotations
+
+from functools import singledispatchmethod
+
+from ufl.classes import Expr, FacetNormal, FormArgument, Restricted
+from ufl.corealg.dag_traverser import DAGTraverser
 
 
-class RestrictionChecker(MultiFunction):
+class RestrictionChecker(DAGTraverser):
     """Restiction checker."""
 
     def __init__(self, require_restriction):
         """Initialise."""
-        MultiFunction.__init__(self)
+        super().__init__()
         self.current_restriction = None
         self.require_restriction = require_restriction
 
-    def expr(self, o):
-        """Apply to expr."""
+    @singledispatchmethod
+    def process(self, o: Expr):
+        """Process an expression."""
+        return super().process(o)
+
+    @process.register(Expr)
+    def _(self, o: Expr):
+        """Check only explicitly handled nodes.
+
+        This is intentionally a cutoff handler, matching the old
+        ``MultiFunction`` implementation.  Restricted nodes recurse below
+        their operand explicitly so that the state is set only for that
+        subtree.
+        """
         pass
 
-    def restricted(self, o):
+    @process.register(Restricted)
+    def _(self, o: Restricted):
         """Apply to restricted."""
         if self.current_restriction is not None:
             raise ValueError("Not expecting twice restricted expression.")
         self.current_restriction = o._side
         (e,) = o.ufl_operands
-        self.visit(e)
-        self.current_restriction = None
+        try:
+            self(e)
+        finally:
+            self.current_restriction = None
 
-    def facet_normal(self, o):
+    @process.register(FacetNormal)
+    def _(self, o: FacetNormal):
         """Apply to facet_normal."""
         if self.require_restriction:
             if self.current_restriction is None:
@@ -41,7 +61,8 @@ class RestrictionChecker(MultiFunction):
             if self.current_restriction is not None:
                 raise ValueError("Restrictions are only allowed for interior facet integrals.")
 
-    def form_argument(self, o):
+    @process.register(FormArgument)
+    def _(self, o: FormArgument):
         """Apply to form_argument."""
         if self.require_restriction:
             if self.current_restriction is None:
@@ -54,4 +75,4 @@ class RestrictionChecker(MultiFunction):
 def check_restrictions(expression, require_restriction):
     """Check that types that must be restricted are restricted in expression."""
     rules = RestrictionChecker(require_restriction)
-    return map_expr_dag(rules, expression)
+    return rules(expression)
