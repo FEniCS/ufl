@@ -28,7 +28,7 @@ from ufl import (
 )
 from ufl.algorithms.check_arities import ArityMismatch, check_form_arity, check_integrand_arity
 from ufl.algorithms.compute_form_data import compute_form_data
-from ufl.classes import ReferenceCurl, ReferenceDiv, ReferenceGrad
+from ufl.classes import ReferenceCurl, ReferenceDiv, ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
 
 
@@ -63,7 +63,9 @@ def test_interpolate_arity():
     v = TestFunction(V)
     u = TrialFunction(V)
 
-    check_integrand_arity(inner(Interpolate(u, V), v), (v, u), complex_mode=True)
+    integrand = inner(Interpolate(u, V), v)
+    check_integrand_arity(integrand, (v, u))
+    check_integrand_arity(integrand, (v, u), complex_mode=True)
 
 
 def test_complex_arities():
@@ -108,8 +110,9 @@ def test_complex_arities_of_linear_differential_operators(operator, argument_sha
     v = TestFunction(argument_space)
     u = TrialFunction(result_space)
 
-    form = inner(u, operator(v)) * dx
-    check_form_arity(form, form.arguments(), complex_mode=True)
+    operand = ReferenceValue(v) if operator in (ReferenceGrad, ReferenceDiv, ReferenceCurl) else v
+    form = inner(u, operator(operand)) * dx
+    check_form_arity(form, (v, u), complex_mode=True)
 
 
 def test_product_arity():

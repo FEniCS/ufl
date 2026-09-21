@@ -53,7 +53,12 @@ def _afmt(atuple: tuple[Argument, bool]) -> str:
 
 
 class ArityChecker(DAGTraverser):
-    """Arity checker."""
+    """Check which form arguments an expression depends on.
+
+    Each processed expression returns a tuple of ``(argument, is_conjugated)``
+    pairs.  ``is_conjugated`` records whether the corresponding argument is
+    conjugated in the expression.
+    """
 
     def __init__(self, arguments):
         """Initialise."""
@@ -72,7 +77,7 @@ class ArityChecker(DAGTraverser):
         # Do not traverse children here. Traverse only the terminals under
         # this node to retain the cutoff behaviour of the old MultiFunction.
         for t in traverse_unique_terminals(o):
-            if t._ufl_typecode_ == Argument._ufl_typecode_:
+            if isinstance(t, Argument):
                 raise ArityMismatch(
                     f"Applying nonlinear operator {o._ufl_class_.__name__} to "
                     f"expression depending on form argument {t}."
@@ -257,7 +262,12 @@ class ArityChecker(DAGTraverser):
 
 
 def check_integrand_arity(expr, arguments, complex_mode=False):
-    """Check the arity of an integrand."""
+    """Check the arity of an integrand.
+
+    The arity extraction records each argument as an
+    ``(argument, is_conjugated)`` pair so complex-mode checks can validate the
+    required conjugation of test and trial functions.
+    """
     arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), x.part())))
     rules = ArityChecker(arguments)
     arg_tuples = rules(expr)
