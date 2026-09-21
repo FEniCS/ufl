@@ -264,9 +264,9 @@ class ArityChecker(DAGTraverser):
 def check_integrand_arity(expr, arguments, complex_mode=False):
     """Check the arity of an integrand.
 
-    The arity extraction records each argument as an
-    ``(argument, is_conjugated)`` pair so complex-mode checks can validate the
-    required conjugation of test and trial functions.
+    Arity extraction records each argument as an ``(argument, is_conjugated)`` pair. This enables
+    complex-mode checks to validate the required state: test functions are always conjugated, whereas
+    trial functions remain unconjugated.
     """
     arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), x.part())))
     rules = ArityChecker(arguments)
