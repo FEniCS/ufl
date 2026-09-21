@@ -7,7 +7,6 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from functools import singledispatchmethod
-from typing import cast
 
 import ufl.classes
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
@@ -151,7 +150,8 @@ class ChangeToReferenceGrad(DAGTraverser):
                 raise ValueError(f"Invalid type {current._ufl_class_.__name__}")
         f = current
         if rv:
-            f = ReferenceValue(cast(ufl.classes.FormArgument | ufl.classes.Interpolate, current))
+            assert isinstance(current, ufl.classes.FormArgument | ufl.classes.Interpolate)
+            f = ReferenceValue(current)
 
         # Get domain and create Jacobian inverse object
         domain = extract_unique_domain(current)
