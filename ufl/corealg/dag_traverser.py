@@ -98,6 +98,7 @@ class DAGTraverser:
             Processed expression.
 
         """
+
         new_ufl_operands = [self(operand, **kwargs) for operand in o.ufl_operands]
         def unchanged(new, old):
             if new is old:
