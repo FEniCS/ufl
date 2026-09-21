@@ -6,13 +6,16 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from functools import singledispatchmethod
+from typing import cast
+
+import ufl.classes
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.checks import is_cellwise_constant
 from ufl.classes import Grad, JacobianInverse, ReferenceGrad, ReferenceValue, Restricted
 from ufl.core.multiindex import indices
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.domain import extract_unique_domain
 from ufl.tensors import as_tensor
 
@@ -107,44 +110,51 @@ circumradius_tetrahedron = tmp_area / (6*cellvolume)
 """
 
 
-class ChangeToReferenceGrad(MultiFunction):
+class ChangeToReferenceGrad(DAGTraverser):
     """Change to reference grad."""
 
-    def __init__(self):
-        """Initalise."""
-        MultiFunction.__init__(self)
+    @singledispatchmethod
+    def process(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+        """Process ``o``."""
+        return super().process(o)
 
-    expr = MultiFunction.reuse_if_untouched
+    @process.register(ufl.classes.Expr)
+    @process.register(ufl.classes.BaseForm)
+    def _(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+        return self.reuse_if_untouched(o)
 
-    def terminal(self, o):
+    @process.register(ufl.classes.Terminal)
+    def _(self, o: ufl.classes.Terminal) -> ufl.classes.Terminal:
         """Apply to terminal."""
         return o
 
-    def grad(self, o):
+    @process.register(ufl.classes.Grad)
+    def _(self, o: ufl.classes.Grad) -> ufl.classes.Expr:
         """Apply to grad."""
         # Peel off the Grads and count them, and get restriction if
         # it's between the grad and the terminal
         ngrads = 0
         restricted = ""
         rv = False
-        while not o._ufl_is_terminal_:
-            if isinstance(o, Grad):
-                (o,) = o.ufl_operands
+        current: ufl.classes.Expr = o
+        while not current._ufl_is_terminal_:
+            if isinstance(current, Grad):
+                (current,) = current.ufl_operands
                 ngrads += 1
-            elif isinstance(o, Restricted):
-                restricted = o.side()
-                (o,) = o.ufl_operands
-            elif isinstance(o, ReferenceValue):
+            elif isinstance(current, Restricted):
+                restricted = current.side()
+                (current,) = current.ufl_operands
+            elif isinstance(current, ReferenceValue):
                 rv = True
-                (o,) = o.ufl_operands
+                (current,) = current.ufl_operands
             else:
-                raise ValueError(f"Invalid type {o._ufl_class_.__name__}")
-        f = o
+                raise ValueError(f"Invalid type {current._ufl_class_.__name__}")
+        f = current
         if rv:
-            f = ReferenceValue(f)
+            f = ReferenceValue(cast(ufl.classes.FormArgument | ufl.classes.Interpolate, current))
 
         # Get domain and create Jacobian inverse object
-        domain = extract_unique_domain(o)
+        domain = extract_unique_domain(current)
         Jinv = JacobianInverse(domain)
 
         if is_cellwise_constant(Jinv):
@@ -201,11 +211,13 @@ class ChangeToReferenceGrad(MultiFunction):
 
         return jinv_lgrad_f
 
-    def reference_grad(self, o):
+    @process.register(ufl.classes.ReferenceGrad)
+    def _(self, o: ufl.classes.ReferenceGrad) -> ufl.classes.Expr:
         """Apply to reference_grad."""
         raise ValueError("Not expecting reference grad while applying change to reference grad.")
 
-    def coefficient_derivative(self, o):
+    @process.register(ufl.classes.CoefficientDerivative)
+    def _(self, o: ufl.classes.CoefficientDerivative) -> ufl.classes.Expr:
         """Apply to coefficient_derivative."""
         raise ValueError(
             "Coefficient derivatives should be expanded before applying change to reference grad."
@@ -222,7 +234,7 @@ def change_to_reference_grad(e):
         e: An Expr or Form.
     """
     mf = ChangeToReferenceGrad()
-    return map_expr_dag(mf, e)
+    return mf(e)
 
 
 def change_integrand_geometry_representation(integrand, scale, integral_type):

@@ -11,9 +11,10 @@ of mostly the Jacobian and reference cell data.
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 import warnings
-from functools import reduce
+from functools import reduce, singledispatchmethod
 from itertools import combinations
 
+import ufl.classes
 from ufl.classes import (
     CellCoordinate,
     CellEdgeVectors,
@@ -43,33 +44,40 @@ from ufl.classes import (
 )
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction, memoized_handler
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.domain import extract_unique_domain
 from ufl.measure import custom_integral_types, point_integral_types
 from ufl.operators import conj, max_value, min_value, real, sqrt
 from ufl.tensors import as_tensor, as_vector
 
 
-class GeometryLoweringApplier(MultiFunction):
+class GeometryLoweringApplier(DAGTraverser):
     """Geometry lowering."""
 
     def __init__(self, preserve_types=()):
         """Initialise."""
-        MultiFunction.__init__(self)
+        super().__init__()
         # Store preserve_types as boolean lookup table
         self._preserve_types = [False] * Expr._ufl_num_typecodes_
         for cls in preserve_types:
             self._preserve_types[cls._ufl_typecode_] = True
 
-    expr = MultiFunction.reuse_if_untouched
+    @singledispatchmethod
+    def process(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+        """Process ``o``."""
+        return super().process(o)
 
-    def terminal(self, t):
+    @process.register(ufl.classes.Expr)
+    def _(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+        return self.reuse_if_untouched(o)
+
+    @process.register(ufl.classes.Terminal)
+    def _(self, t: ufl.classes.Terminal) -> ufl.classes.Terminal:
         """Apply to terminal."""
         return t
 
-    @memoized_handler
-    def jacobian(self, o):
+    @process.register(ufl.classes.Jacobian)
+    def _(self, o):
         """Apply to jacobian."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
@@ -80,10 +88,9 @@ class GeometryLoweringApplier(MultiFunction):
         # preserving SpatialCoordinate object.  However if Jacobians
         # are not preserved, using
         # ReferenceGrad(SpatialCoordinate(domain)) to represent them.
-        x = self.spatial_coordinate(SpatialCoordinate(domain))
+        x = self(SpatialCoordinate(domain))
         return ReferenceGrad(x)
 
-    @memoized_handler
     def _future_jacobian(self, o):
         """Apply to _future_jacobian."""
         # If we're not using Coefficient to represent the spatial
@@ -92,27 +99,27 @@ class GeometryLoweringApplier(MultiFunction):
         # the ufl layer (which is nice to avoid).
         return o
 
-    @memoized_handler
-    def jacobian_inverse(self, o):
+    @process.register(ufl.classes.JacobianInverse)
+    def _(self, o):
         """Apply to jacobian_inverse."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = extract_unique_domain(o)
-        J = self.jacobian(Jacobian(domain))
+        J = self(Jacobian(domain))
         # TODO: This could in principle use
         # preserve_types[JacobianDeterminant] with minor refactoring:
         K = inverse_expr(J)
         return K
 
-    @memoized_handler
-    def jacobian_determinant(self, o):
+    @process.register(ufl.classes.JacobianDeterminant)
+    def _(self, o):
         """Apply to jacobian_determinant."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = extract_unique_domain(o)
-        J = self.jacobian(Jacobian(domain))
+        J = self(Jacobian(domain))
         detJ = determinant_expr(J)
 
         # TODO: Is "signing" the determinant for manifolds the
@@ -123,38 +130,38 @@ class GeometryLoweringApplier(MultiFunction):
             detJ = co * detJ
         return detJ
 
-    @memoized_handler
-    def facet_jacobian(self, o):
+    @process.register(ufl.classes.FacetJacobian)
+    def _(self, o):
         """Apply to facet_jacobian."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = extract_unique_domain(o)
-        J = self.jacobian(Jacobian(domain))
+        J = self(Jacobian(domain))
         RFJ = CellFacetJacobian(domain)
         i, j, k = indices(3)
         return as_tensor(J[i, k] * RFJ[k, j], (i, j))
 
-    @memoized_handler
-    def facet_jacobian_inverse(self, o):
+    @process.register(ufl.classes.FacetJacobianInverse)
+    def _(self, o):
         """Apply to facet_jacobian_inverse."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = extract_unique_domain(o)
-        FJ = self.facet_jacobian(FacetJacobian(domain))
+        FJ = self(FacetJacobian(domain))
         # This could in principle use
         # preserve_types[JacobianDeterminant] with minor refactoring:
         return inverse_expr(FJ)
 
-    @memoized_handler
-    def facet_jacobian_determinant(self, o):
+    @process.register(ufl.classes.FacetJacobianDeterminant)
+    def _(self, o):
         """Apply to facet_jacobian_determinant."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = extract_unique_domain(o)
-        FJ = self.facet_jacobian(FacetJacobian(domain))
+        FJ = self(FacetJacobian(domain))
         detFJ = determinant_expr(FJ)
 
         # TODO: Should we "sign" the facet jacobian determinant for
@@ -166,41 +173,41 @@ class GeometryLoweringApplier(MultiFunction):
 
         return detFJ
 
-    @memoized_handler
-    def ridge_jacobian(self, o):
+    @process.register(ufl.classes.RidgeJacobian)
+    def _(self, o):
         """Apply to ridge_jacobian."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = extract_unique_domain(o)
-        J = self.jacobian(Jacobian(domain))
+        J = self(Jacobian(domain))
         REJ = CellRidgeJacobian(domain)
         i, j, k = indices(3)
         return as_tensor(J[i, k] * REJ[k, j], (i, j))
 
-    @memoized_handler
-    def ridge_jacobian_inverse(self, o):
+    @process.register(ufl.classes.RidgeJacobianInverse)
+    def _(self, o):
         """Apply to edge_jacobian_inverse."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = extract_unique_domain(o)
-        EJ = self.ridge_jacobian(RidgeJacobian(domain))
+        EJ = self(RidgeJacobian(domain))
         return inverse_expr(EJ)
 
-    @memoized_handler
-    def ridge_jacobian_determinant(self, o):
+    @process.register(ufl.classes.RidgeJacobianDeterminant)
+    def _(self, o):
         """Apply to edge_jacobian_determinant."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
         domain = extract_unique_domain(o)
-        EJ = self.ridge_jacobian(RidgeJacobian(domain))
+        EJ = self(RidgeJacobian(domain))
         detEJ = determinant_expr(EJ)
         return detEJ
 
-    @memoized_handler
-    def spatial_coordinate(self, o):
+    @process.register(ufl.classes.SpatialCoordinate)
+    def _(self, o):
         """Apply to spatial_coordinate.
 
         Fall through to coordinate field of domain if it exists.
@@ -213,8 +220,8 @@ class GeometryLoweringApplier(MultiFunction):
         # SpatialCoordinate object.
         return o
 
-    @memoized_handler
-    def cell_coordinate(self, o):
+    @process.register(ufl.classes.CellCoordinate)
+    def _(self, o):
         """Apply to cell_coordinate.
 
         Compute from physical coordinates if they are known, using the appropriate mappings.
@@ -223,15 +230,15 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = extract_unique_domain(o)
-        K = self.jacobian_inverse(JacobianInverse(domain))
-        x = self.spatial_coordinate(SpatialCoordinate(domain))
+        K = self(JacobianInverse(domain))
+        x = self(SpatialCoordinate(domain))
         x0 = CellOrigin(domain)
         i, j = indices(2)
         X = as_tensor(K[i, j] * (x[j] - x0[j]), (i,))
         return X
 
-    @memoized_handler
-    def facet_cell_coordinate(self, o):
+    @process.register(ufl.classes.FacetCoordinate)
+    def _(self, o):
         """Apply to facet_cell_coordinate."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
@@ -241,8 +248,8 @@ class GeometryLoweringApplier(MultiFunction):
             "from physical coordinates via mappings."
         )
 
-    @memoized_handler
-    def cell_volume(self, o):
+    @process.register(ufl.classes.CellVolume)
+    def _(self, o):
         """Apply to cell_volume."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
@@ -254,12 +261,12 @@ class GeometryLoweringApplier(MultiFunction):
             warnings.warn("Only know how to compute the cell volume of an affine cell.")
             return o
 
-        r = self.jacobian_determinant(JacobianDeterminant(domain))
+        r = self(JacobianDeterminant(domain))
         r0 = ReferenceCellVolume(domain)
         return abs(r * r0)
 
-    @memoized_handler
-    def facet_area(self, o):
+    @process.register(ufl.classes.FacetArea)
+    def _(self, o):
         """Apply to facet_area."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
@@ -276,12 +283,12 @@ class GeometryLoweringApplier(MultiFunction):
         if tdim == 1:
             return FloatValue(1.0)
 
-        r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
+        r = self(FacetJacobianDeterminant(domain))
         r0 = ReferenceFacetVolume(domain)
         return abs(r * r0)
 
-    @memoized_handler
-    def circumradius(self, o):
+    @process.register(ufl.classes.Circumradius)
+    def _(self, o):
         """Apply to circumradius."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
@@ -292,7 +299,7 @@ class GeometryLoweringApplier(MultiFunction):
             raise ValueError("Circumradius only makes sense for affine simplex cells")
 
         cellname = domain.ufl_cell().cellname
-        cellvolume = self.cell_volume(CellVolume(domain))
+        cellvolume = self(CellVolume(domain))
 
         if cellname == "interval":
             # Optimization for square interval; no square root needed
@@ -321,13 +328,13 @@ class GeometryLoweringApplier(MultiFunction):
             triangle_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
             return triangle_area / (6.0 * cellvolume)
 
-    @memoized_handler
-    def max_cell_edge_length(self, o):
+    @process.register(ufl.classes.MaxCellEdgeLength)
+    def _(self, o):
         """Apply to max_cell_edge_length."""
         return self._reduce_cell_edge_length(o, max_value)
 
-    @memoized_handler
-    def min_cell_edge_length(self, o):
+    @process.register(ufl.classes.MinCellEdgeLength)
+    def _(self, o):
         """Apply to min_cell_edge_length."""
         return self._reduce_cell_edge_length(o, min_value)
 
@@ -345,7 +352,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         elif domain.ufl_cell().cellname == "interval":
             # Interval optimization, square root not needed
-            return self.cell_volume(CellVolume(domain))
+            return self(CellVolume(domain))
 
         else:
             # Other P1 or Q1 cells
@@ -355,8 +362,8 @@ class GeometryLoweringApplier(MultiFunction):
             elen2 = [real(edges[e, j] * conj(edges[e, j])) for e in range(num_edges)]
             return real(sqrt(reduce(reduction_op, elen2)))
 
-    @memoized_handler
-    def cell_diameter(self, o):
+    @process.register(ufl.classes.CellDiameter)
+    def _(self, o):
         """Apply to cell_diameter."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
@@ -370,7 +377,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         elif domain.is_piecewise_linear_simplex_domain():
             # Simplices
-            return self.max_cell_edge_length(MaxCellEdgeLength(domain))
+            return self(MaxCellEdgeLength(domain))
 
         else:
             # Q1 cells, maximal distance between any two vertices
@@ -380,13 +387,13 @@ class GeometryLoweringApplier(MultiFunction):
             elen2 = (real((v0 - v1)[j] * conj((v0 - v1)[j])) for v0, v1 in combinations(verts, 2))
             return real(sqrt(reduce(max_value, elen2)))
 
-    @memoized_handler
-    def max_facet_edge_length(self, o):
+    @process.register(ufl.classes.MaxFacetEdgeLength)
+    def _(self, o):
         """Apply to max_facet_edge_length."""
         return self._reduce_facet_edge_length(o, max_value)
 
-    @memoized_handler
-    def min_facet_edge_length(self, o):
+    @process.register(ufl.classes.MinFacetEdgeLength)
+    def _(self, o):
         """Apply to min_facet_edge_length."""
         return self._reduce_facet_edge_length(o, min_value)
 
@@ -413,8 +420,8 @@ class GeometryLoweringApplier(MultiFunction):
             elen2 = [real(edges[e, j] * conj(edges[e, j])) for e in range(num_edges)]
             return real(sqrt(reduce(reduction_op, elen2)))
 
-    @memoized_handler
-    def cell_normal(self, o):
+    @process.register(ufl.classes.CellNormal)
+    def _(self, o):
         """Apply to cell_normal."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
@@ -425,7 +432,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         if tdim == gdim - 1:  # n-manifold embedded in n-1 space
             i = Index()
-            J = self.jacobian(Jacobian(domain))
+            J = self(Jacobian(domain))
 
             if tdim == 2:
                 # Surface in 3D
@@ -446,8 +453,8 @@ class GeometryLoweringApplier(MultiFunction):
         else:
             raise ValueError(f"Cell normal undefined for tdim {tdim}, gdim {gdim}")
 
-    @memoized_handler
-    def facet_normal(self, o):
+    @process.register(ufl.classes.FacetNormal)
+    def _(self, o):
         """Apply to facet_normal."""
         if self._preserve_types[o._ufl_typecode_]:
             return o
@@ -458,7 +465,7 @@ class GeometryLoweringApplier(MultiFunction):
         if tdim == 1:
             # Special-case 1D (possibly immersed), for which we say
             # that n is just in the direction of J.
-            J = self.jacobian(Jacobian(domain))  # dx/dX
+            J = self(Jacobian(domain))  # dx/dX
             ndir = J[:, 0]
 
             gdim = domain.geometric_dimension
@@ -476,7 +483,7 @@ class GeometryLoweringApplier(MultiFunction):
             # preserves tangential components. The normal vector is
             # characterised by having zero tangential component in
             # reference and physical space.
-            Jinv = self.jacobian_inverse(JacobianInverse(domain))
+            Jinv = self(JacobianInverse(domain))
             i, j = indices(2)
 
             rn = ReferenceNormal(domain)
@@ -519,13 +526,13 @@ def apply_geometry_lowering(form, preserve_types=()):
         preserve_types = set(preserve_types) | set(automatic_preserve_types)
 
         mf = GeometryLoweringApplier(preserve_types)
-        newintegrand = map_expr_dag(mf, integral.integrand())
+        newintegrand = mf(integral.integrand())
         return integral.reconstruct(integrand=newintegrand)
 
     elif isinstance(form, Expr):
         expr = form
         mf = GeometryLoweringApplier(preserve_types)
-        return map_expr_dag(mf, expr)
+        return mf(expr)
 
     else:
         raise ValueError(f"Invalid type {form.__class__.__name__}")
