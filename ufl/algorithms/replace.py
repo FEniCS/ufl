@@ -8,21 +8,26 @@
 #
 # Modified by Anders Logg, 2009-2010
 
+from functools import singledispatchmethod
+
+import ufl.classes
 from ufl.algorithms.analysis import has_exact_type
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrands
 from ufl.classes import BaseForm, CoefficientDerivative
 from ufl.constantvalue import as_ufl
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 
 
-class Replacer(MultiFunction):
+class Replacer(DAGTraverser):
     """Replacer."""
 
     def __init__(self, mapping):
         """Initialize."""
-        super().__init__()
+        # Preserve the identity of mapped objects; compression may substitute
+        # an equal but different expression.
+        super().__init__(compress=False)
         self.mapping = mapping
 
         # One can replace Coarguments by 1-Forms
@@ -37,14 +42,25 @@ class Replacer(MultiFunction):
                 "Replacement expressions must have the same shape as what they replace."
             )
 
-    def ufl_type(self, o, *args):
+    @singledispatchmethod
+    def process(self, o: ufl.classes.Expr | ufl.classes.BaseForm):
+        """Process ``o``."""
+        return super().process(o)
+
+    @process.register(ufl.classes.Expr)
+    @process.register(ufl.classes.BaseForm)
+    @DAGTraverser.postorder
+    def _(self, o, *args):
         """Replace a ufl_type."""
         try:
             return self.mapping[o]
         except KeyError:
-            return self.reuse_if_untouched(o, *args)
+            if all(new is old for new, old in zip(args, o.ufl_operands)):
+                return o
+            return o._ufl_expr_reconstruct_(*args)
 
-    def external_operator(self, o):
+    @process.register(ufl.classes.ExternalOperator)
+    def _(self, o):
         """Replace an external_operator."""
         o = self.mapping.get(o) or o
         if isinstance(o, ExternalOperator):
@@ -53,7 +69,8 @@ class Replacer(MultiFunction):
             return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_args)
         return o
 
-    def interpolate(self, o):
+    @process.register(ufl.classes.Interpolate)
+    def _(self, o):
         """Replace an interpolate."""
         o = self.mapping.get(o) or o
         if isinstance(o, Interpolate):
@@ -61,7 +78,8 @@ class Replacer(MultiFunction):
             return o._ufl_expr_reconstruct_(*reversed(new_args))
         return o
 
-    def coefficient_derivative(self, o):
+    @process.register(ufl.classes.CoefficientDerivative)
+    def _(self, o):
         """Replace a coefficient derivative."""
         raise ValueError("Derivatives should be applied before executing replace.")
 
@@ -93,4 +111,4 @@ def replace(e, mapping):
 
         e = expand_derivatives(e)
 
-    return map_integrand_dags(Replacer(mapping2), e)
+    return map_integrands(Replacer(mapping2), e)
