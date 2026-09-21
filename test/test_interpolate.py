@@ -368,6 +368,16 @@ def test_operator_derivative_reconstruction(V1, V2):
     assert dIu == Interpolate(uhat, V2)
 
 
+def test_operator_derivative_equality(V1, V2):
+    u = Coefficient(V1)
+    uhat = TrialFunction(V1)
+    vhat = TestFunction(V1)
+
+    dIu = derivative(Interpolate(u, V2), u, uhat)
+    assert dIu == derivative(Interpolate(u, V2), u, uhat)
+    assert not dIu == derivative(Interpolate(u, V2), u, vhat)
+
+
 def test_interpolate_argument_numbering(V1, V2):
     u = Coefficient(V1)
     u0 = Argument(V1, 0)
