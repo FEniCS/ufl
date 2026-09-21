@@ -237,17 +237,6 @@ class GeometryLoweringApplier(DAGTraverser):
         X = as_tensor(K[i, j] * (x[j] - x0[j]), (i,))
         return X
 
-    @process.register(ufl.classes.FacetCoordinate)
-    def _(self, o):
-        """Apply to facet_cell_coordinate."""
-        if self._preserve_types[o._ufl_typecode_]:
-            return o
-
-        raise ValueError(
-            "Missing computation of facet reference coordinates "
-            "from physical coordinates via mappings."
-        )
-
     @process.register(ufl.classes.CellVolume)
     def _(self, o):
         """Apply to cell_volume."""
