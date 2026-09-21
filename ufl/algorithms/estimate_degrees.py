@@ -8,13 +8,67 @@
 #
 # Modified by Anders Logg, 2009-2010
 # Modified by Jan Blechta, 2012
+# Modified by Pablo Brubeck, Jørgen S. Dokken 2026
 
 import warnings
 from functools import singledispatchmethod
 
-import ufl.classes
 from ufl.argument import Argument
 from ufl.checks import is_cellwise_constant
+from ufl.classes import (
+    Abs,
+    Atan2,
+    BesselFunction,
+    CellAvg,
+    CellCoordinate,
+    ComponentTensor,
+    CompoundTensorOperator,
+    Condition,
+    Conditional,
+    Conj,
+    Constant,
+    ConstantValue,
+    CoordinateDerivative,
+    Cross,
+    Curl,
+    Derivative,
+    Div,
+    Division,
+    Dot,
+    Expr,
+    ExprList,
+    ExprMapping,
+    FacetAvg,
+    GeometricQuantity,
+    Grad,
+    Imag,
+    Indexed,
+    IndexSum,
+    Inner,
+    Interpolate,
+    Label,
+    ListTensor,
+    MathFunction,
+    MaxValue,
+    MinValue,
+    MultiIndex,
+    NablaDiv,
+    NablaGrad,
+    NegativeRestricted,
+    Outer,
+    PositiveRestricted,
+    Power,
+    Product,
+    Real,
+    ReferenceCurl,
+    ReferenceDiv,
+    ReferenceGrad,
+    ReferenceValue,
+    SpatialCoordinate,
+    Sum,
+    Transposed,
+    Variable,
+)
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import IntValue
 from ufl.core.multiindex import FixedIndex
@@ -37,329 +91,7 @@ class SumDegreeEstimator(DAGTraverser):
         self.default_degree = default_degree
         self.element_replace_map = element_replace_map
 
-    @singledispatchmethod
-    def process(self, o: ufl.classes.Expr):
-        """Process ``o``."""
-        return super().process(o)
-
-    # Keep the old handler methods below as the implementation of the
-    # dispatched rules.  These adapters make the child-processing semantics
-    # explicit: ordinary bottom-up rules use ``postorder``, while terminal
-    # rules are cutoff rules just as they were for ``MultiFunction``.
-    @process.register(ufl.classes.Expr)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.expr(o, *ops)
-
-    @process.register(ufl.classes.ConstantValue)
-    def _(self, o):
-        return self.constant_value(o)
-
-    @process.register(ufl.classes.Constant)
-    def _(self, o):
-        return self.constant(o)
-
-    @process.register(ufl.classes.GeometricQuantity)
-    def _(self, o):
-        return self.geometric_quantity(o)
-
-    @process.register(ufl.classes.SpatialCoordinate)
-    def _(self, o):
-        return self.spatial_coordinate(o)
-
-    @process.register(ufl.classes.CellCoordinate)
-    def _(self, o):
-        return self.cell_coordinate(o)
-
-    @process.register(ufl.classes.Argument)
-    def _(self, o):
-        return self.argument(o)
-
-    @process.register(ufl.classes.Coefficient)
-    def _(self, o):
-        return self.coefficient(o)
-
-    @process.register(ufl.classes.Interpolate)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.interpolate(o, *ops)
-
-    @process.register(ufl.classes.MultiIndex)
-    def _(self, o):
-        return self.multi_index(o)
-
-    @process.register(ufl.classes.Label)
-    def _(self, o):
-        return self.label(o)
-
-    @process.register(ufl.classes.ReferenceValue)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.reference_value(o, *ops)
-
-    @process.register(ufl.classes.Variable)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.variable(o, *ops)
-
-    @process.register(ufl.classes.Transposed)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.transposed(o, *ops)
-
-    @process.register(ufl.classes.IndexSum)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.index_sum(o, *ops)
-
-    @process.register(ufl.classes.Indexed)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.indexed(o, *ops)
-
-    @process.register(ufl.classes.ComponentTensor)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.component_tensor(o, *ops)
-
-    @process.register(ufl.classes.ListTensor)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.list_tensor(o, *ops)
-
-    @process.register(ufl.classes.PositiveRestricted)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.positive_restricted(o, *ops)
-
-    @process.register(ufl.classes.NegativeRestricted)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.negative_restricted(o, *ops)
-
-    @process.register(ufl.classes.Conj)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.conj(o, *ops)
-
-    @process.register(ufl.classes.Real)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.real(o, *ops)
-
-    @process.register(ufl.classes.Imag)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.imag(o, *ops)
-
-    @process.register(ufl.classes.Sum)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.sum(o, *ops)
-
-    @process.register(ufl.classes.CellAvg)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.cell_avg(o, *ops)
-
-    @process.register(ufl.classes.FacetAvg)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.facet_avg(o, *ops)
-
-    @process.register(ufl.classes.Product)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.product(o, *ops)
-
-    @process.register(ufl.classes.Inner)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.inner(o, *ops)
-
-    @process.register(ufl.classes.Dot)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.dot(o, *ops)
-
-    @process.register(ufl.classes.Outer)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.outer(o, *ops)
-
-    @process.register(ufl.classes.Cross)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.cross(o, *ops)
-
-    @process.register(ufl.classes.CompoundTensorOperator)
-    @process.register(ufl.classes.Trace)
-    @process.register(ufl.classes.Determinant)
-    @process.register(ufl.classes.Cofactor)
-    @process.register(ufl.classes.Inverse)
-    @process.register(ufl.classes.Deviatoric)
-    @process.register(ufl.classes.Skew)
-    @process.register(ufl.classes.Sym)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self._not_handled(o, *ops)
-
-    @process.register(ufl.classes.Derivative)
-    @process.register(ufl.classes.CompoundDerivative)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self._not_handled(o, *ops)
-
-    @process.register(ufl.classes.Grad)
-    @process.register(ufl.classes.ReferenceGrad)
-    @process.register(ufl.classes.NablaGrad)
-    @process.register(ufl.classes.Div)
-    @process.register(ufl.classes.ReferenceDiv)
-    @process.register(ufl.classes.NablaDiv)
-    @process.register(ufl.classes.Curl)
-    @process.register(ufl.classes.ReferenceCurl)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self._reduce_degree(o, *ops)
-
-    @process.register(ufl.classes.Abs)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.abs(o, *ops)
-
-    @process.register(ufl.classes.Division)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.division(o, *ops)
-
-    @process.register(ufl.classes.Power)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.power(o, *ops)
-
-    @process.register(ufl.classes.Atan2)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.atan2(o, *ops)
-
-    @process.register(ufl.classes.MathFunction)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.math_function(o, *ops)
-
-    @process.register(ufl.classes.BesselFunction)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.bessel_function(o, *ops)
-
-    @process.register(ufl.classes.Condition)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.condition(o, *ops)
-
-    @process.register(ufl.classes.Conditional)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.conditional(o, *ops)
-
-    @process.register(ufl.classes.MinValue)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.min_value(o, *ops)
-
-    @process.register(ufl.classes.MaxValue)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.max_value(o, *ops)
-
-    @process.register(ufl.classes.CoordinateDerivative)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.coordinate_derivative(o, *ops)
-
-    @process.register(ufl.classes.ExprList)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.expr_list(o, *ops)
-
-    @process.register(ufl.classes.ExprMapping)
-    @DAGTraverser.postorder
-    def _(self, o, *ops):
-        return self.expr_mapping(o, *ops)
-
-    def constant_value(self, v):
-        """Apply to constant_value.
-
-        Constant values are constant.
-        """
-        return 0
-
-    def constant(self, v):
-        """Apply to constant."""
-        return 0
-
-    def geometric_quantity(self, v):
-        """Apply to geometric_quantity.
-
-        Some geometric quantities are cellwise constant. Others are
-        nonpolynomial and thus hard to estimate.
-        """
-        if is_cellwise_constant(v):
-            return 0
-        else:
-            # As a heuristic, just returning domain degree to bump up degree somewhat
-            return extract_unique_domain(v).ufl_coordinate_element().embedded_superdegree
-
-    def spatial_coordinate(self, v):
-        """Apply to spatial_coordinate.
-
-        A coordinate provides additional degrees depending on coordinate field of domain.
-        """
-        return extract_unique_domain(v).ufl_coordinate_element().embedded_superdegree
-
-    def cell_coordinate(self, v):
-        """Apply to cell_coordinate.
-
-        A coordinate provides one additional degree.
-        """
-        return 1
-
-    def argument(self, v):
-        """Apply to argument.
-
-        A form argument provides a degree depending on the element,
-        or the default degree if the element has no degree.
-        """
-        # For a mixed element this is the max degree over all sub-elements;
-        # indexed() refines this to the accessed sub-element's own degree
-        # when the specific component is known.
-        return v.ufl_element().embedded_superdegree
-
-    def coefficient(self, v):
-        """Apply to coefficient.
-
-        A form argument provides a degree depending on the element,
-        or the default degree if the element has no degree.
-        """
-        e = v.ufl_element()
-        e = self.element_replace_map.get(e, e)
-        # See the comment in argument() above.
-        d = e.embedded_superdegree
-        if d is None:
-            d = self.default_degree
-        return d
-
-    def interpolate(self, v, *ops):
-        """Apply to interpolate.
-
-        An interpolated field has the polynomial degree of its target element.
-        """
-        e = v.ufl_element()
-        e = self.element_replace_map.get(e, e)
-        d = e.embedded_superdegree
-        if d is None:
-            d = self.default_degree
-        return d
+    # --- Helper functions shared by several rules
 
     def _reduce_degree(self, v, f):
         """Reduce the estimated degree by one.
@@ -397,41 +129,134 @@ class SumDegreeEstimator(DAGTraverser):
         """Apply to _not_handled."""
         raise ValueError(f"Missing degree handler for type {v._ufl_class_.__name__}")
 
-    def expr(self, v, *ops):
+    # --- Default rule for operators without a specific handler
+
+    @singledispatchmethod
+    def process(self, o: Expr):
+        """Process ``o``."""
+        return super().process(o)
+
+    @process.register(Expr)
+    @DAGTraverser.postorder
+    def _(self, o, *ops):
         """Apply to expr.
 
         For most operators we take the max degree of its operands.
         """
-        warnings.warn(f"Missing degree estimation handler for type {v._ufl_class_.__name__}")
-        return self._add_degrees(v, *ops)
+        warnings.warn(f"Missing degree estimation handler for type {o._ufl_class_.__name__}")
+        return self._add_degrees(o, *ops)
+
+    # --- Terminals; these are cutoff rules, i.e. they have no operands to
+    # --- process and therefore are not decorated with ``postorder``
+
+    # Constant values and constants are constant.
+    @process.register(ConstantValue)
+    @process.register(Constant)
+    def _(self, o):
+        return 0
+
+    @process.register(GeometricQuantity)
+    def _(self, o):
+        """Apply to geometric_quantity.
+
+        Some geometric quantities are cellwise constant. Others are
+        nonpolynomial and thus hard to estimate.
+        """
+        if is_cellwise_constant(o):
+            return 0
+        else:
+            # As a heuristic, just returning domain degree to bump up degree somewhat
+            return extract_unique_domain(o).ufl_coordinate_element().embedded_superdegree
+
+    @process.register(SpatialCoordinate)
+    def _(self, o):
+        """Apply to spatial_coordinate.
+
+        A coordinate provides additional degrees depending on coordinate field of domain.
+        """
+        return extract_unique_domain(o).ufl_coordinate_element().embedded_superdegree
+
+    @process.register(CellCoordinate)
+    def _(self, o):
+        """Apply to cell_coordinate.
+
+        A coordinate provides one additional degree.
+        """
+        return 1
+
+    @process.register(Argument)
+    def _(self, o):
+        """Apply to argument.
+
+        A form argument provides a degree depending on the element,
+        or the default degree if the element has no degree.
+        """
+        # For a mixed element this is the max degree over all sub-elements;
+        # the Indexed rule refines this to the accessed sub-element's own
+        # degree when the specific component is known.
+        return o.ufl_element().embedded_superdegree
+
+    @process.register(Coefficient)
+    def _(self, o):
+        """Apply to coefficient.
+
+        A form argument provides a degree depending on the element,
+        or the default degree if the element has no degree.
+        """
+        e = o.ufl_element()
+        e = self.element_replace_map.get(e, e)
+        # See the comment in the Argument rule above.
+        d = e.embedded_superdegree
+        if d is None:
+            d = self.default_degree
+        return d
 
     # Utility types with no degree concept
-    def multi_index(self, v):
-        """Apply to multi_index."""
+    @process.register(MultiIndex)
+    @process.register(Label)
+    def _(self, o):
         return None
 
-    def label(self, v):
-        """Apply to label."""
-        return None
+    # --- Operators
 
-    # Fall-through, indexing and similar types
-    def reference_value(self, rv, f):
-        """Apply to reference_value."""
-        return f
+    @process.register(Interpolate)
+    @DAGTraverser.postorder
+    def _(self, o, *ops):
+        """Apply to interpolate.
 
-    def variable(self, v, e, a):
-        """Apply to variable."""
-        return e
+        An interpolated field has the polynomial degree of its target element.
+        """
+        e = o.ufl_element()
+        e = self.element_replace_map.get(e, e)
+        d = e.embedded_superdegree
+        if d is None:
+            d = self.default_degree
+        return d
 
-    def transposed(self, v, A):
-        """Apply to transposed."""
-        return A
+    # Fall-through types: the degree of the single operand is unchanged.
+    @process.register(ReferenceValue)
+    @process.register(Transposed)
+    @process.register(PositiveRestricted)
+    @process.register(NegativeRestricted)
+    @process.register(Conj)
+    @process.register(Real)
+    @process.register(Imag)
+    @DAGTraverser.postorder
+    def _(self, o, a):
+        return a
 
-    def index_sum(self, v, A, ii):
-        """Apply to index_sum."""
-        return A
+    # Indexing and similar types: the degree of the first operand is
+    # unchanged, the index carries no degree.
+    @process.register(Variable)
+    @process.register(IndexSum)
+    @process.register(ComponentTensor)
+    @DAGTraverser.postorder
+    def _(self, o, a, ii):
+        return a
 
-    def indexed(self, v, A, ii):
+    @process.register(Indexed)
+    @DAGTraverser.postorder
+    def _(self, o, A, ii):
         """Apply to indexed.
 
         A fixed-index component of a mixed-element Argument or
@@ -439,8 +264,8 @@ class SumDegreeEstimator(DAGTraverser):
         whole mixed element, so look up that sub-element's own degree
         instead of falling back to A, the whole element's degree.
         """
-        op = v.ufl_operands[0]
-        multiindex = v.ufl_operands[1]
+        op = o.ufl_operands[0]
+        multiindex = o.ufl_operands[1]
         if isinstance(op, (Argument, Coefficient)) and all(
             isinstance(idx, FixedIndex) for idx in multiindex
         ):
@@ -463,87 +288,66 @@ class SumDegreeEstimator(DAGTraverser):
                     offset += sub_size
         return A
 
-    def component_tensor(self, v, A, ii):
-        """Apply to component_tensor."""
-        return A
+    # A sum takes the max degree of its operands, and so does a list tensor:
+    @process.register(Sum)
+    @process.register(ListTensor)
+    @DAGTraverser.postorder
+    def _(self, o, *ops):
+        return self._max_degrees(o, *ops)
 
-    list_tensor = _max_degrees
-
-    def positive_restricted(self, v, a):
-        """Apply to positive_restricted."""
-        return a
-
-    def negative_restricted(self, v, a):
-        """Apply to negative_restricted."""
-        return a
-
-    def conj(self, v, a):
-        """Apply to conj."""
-        return a
-
-    def real(self, v, a):
-        """Apply to real."""
-        return a
-
-    def imag(self, v, a):
-        """Apply to imag."""
-        return a
-
-    # A sum takes the max degree of its operands:
-    sum = _max_degrees
+    # A product accumulates the degrees of its operands:
+    @process.register(Product)
+    # Handling these types although they should not occur... please
+    # apply preprocessing before using this algorithm:
+    @process.register(Inner)
+    @process.register(Dot)
+    @process.register(Outer)
+    @process.register(Cross)
+    @DAGTraverser.postorder
+    def _(self, o, *ops):
+        return self._add_degrees(o, *ops)
 
     # TODO: Need a new algorithm which considers direction of
     # derivatives of form arguments A spatial derivative reduces the
     # degree with one
-    grad = _reduce_degree
-    reference_grad = _reduce_degree
+    @process.register(Grad)
+    @process.register(ReferenceGrad)
     # Handling these types although they should not occur... please
     # apply preprocessing before using this algorithm:
-    nabla_grad = _reduce_degree
-    div = _reduce_degree
-    reference_div = _reduce_degree
-    nabla_div = _reduce_degree
-    curl = _reduce_degree
-    reference_curl = _reduce_degree
-
-    def cell_avg(self, v, a):
-        """Apply to cell_avg.
-
-        Cell average of a function is always cellwise constant.
-        """
-        return 0
-
-    def facet_avg(self, v, a):
-        """Apply to facet_avg.
-
-        Facet average of a function is always cellwise constant.
-        """
-        return 0
-
-    # A product accumulates the degrees of its operands:
-    product = _add_degrees
-    # Handling these types although they should not occur... please
-    # apply preprocessing before using this algorithm:
-    inner = _add_degrees
-    dot = _add_degrees
-    outer = _add_degrees
-    cross = _add_degrees
+    @process.register(NablaGrad)
+    @process.register(Div)
+    @process.register(ReferenceDiv)
+    @process.register(NablaDiv)
+    @process.register(Curl)
+    @process.register(ReferenceCurl)
+    @DAGTraverser.postorder
+    def _(self, o, f):
+        return self._reduce_degree(o, f)
 
     # Explicitly not handling these types, please apply preprocessing
-    # before using this algorithm:
-    derivative = _not_handled  # base type
-    compound_derivative = _not_handled  # base type
-    compound_tensor_operator = _not_handled  # base class
-    variable_derivative = _not_handled
-    trace = _not_handled
-    determinant = _not_handled
-    cofactor = _not_handled
-    inverse = _not_handled
-    deviatoric = _not_handled
-    skew = _not_handled
-    sym = _not_handled
+    # before using this algorithm. The base types cover the compounds
+    # (Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew, Sym) and
+    # the derivatives (VariableDerivative and the CompoundDerivative
+    # types not handled above).
+    @process.register(CompoundTensorOperator)
+    @process.register(Derivative)
+    @DAGTraverser.postorder
+    def _(self, o, *ops):
+        return self._not_handled(o, *ops)
 
-    def abs(self, v, a):
+    @process.register(CellAvg)
+    @process.register(FacetAvg)
+    @DAGTraverser.postorder
+    def _(self, o, a):
+        """Apply to cell_avg and facet_avg.
+
+        Cell and facet averages of a function are always cellwise constant.
+        """
+        return 0
+
+    @process.register(Abs)
+    @DAGTraverser.postorder
+    def _(self, o, a):
         """Apply to abs.
 
         This is a heuristic, correct if there is no.
@@ -553,20 +357,24 @@ class SumDegreeEstimator(DAGTraverser):
         else:
             return a
 
-    def division(self, v, *ops):
+    @process.register(Division)
+    @DAGTraverser.postorder
+    def _(self, o, *ops):
         """Apply to division.
 
         Using the sum here is a heuristic. Consider e.g. (x+1)/(x-1).
         """
-        return self._add_degrees(v, *ops)
+        return self._add_degrees(o, *ops)
 
-    def power(self, v, a, b):
+    @process.register(Power)
+    @DAGTraverser.postorder
+    def _(self, o, a, b):
         """Apply to power.
 
         If b is a positive integer: degree(a**b) == degree(a)*b
         otherwise use the heuristic: degree(a**b) == degree(a) + 2.
         """
-        _f, g = v.ufl_operands
+        _f, g = o.ufl_operands
 
         if isinstance(g, IntValue):
             gi = g.value()
@@ -578,9 +386,11 @@ class SumDegreeEstimator(DAGTraverser):
 
         # Something to a non-(positive integer) power, e.g. float,
         # negative integer, Coefficient, etc.
-        return self._add_degrees(v, a, 2)
+        return self._add_degrees(o, a, 2)
 
-    def atan2(self, v, a, b):
+    @process.register(Atan2)
+    @DAGTraverser.postorder
+    def _(self, o, a, b):
         """Apply to atan2.
 
         Using the heuristic:
@@ -590,11 +400,13 @@ class SumDegreeEstimator(DAGTraverser):
         high integration degree.
         """
         if a or b:
-            return self._add_degrees(v, self._max_degrees(v, a, b), 2)
+            return self._add_degrees(o, self._max_degrees(o, a, b), 2)
         else:
-            return self._max_degrees(v, a, b)
+            return self._max_degrees(o, a, b)
 
-    def math_function(self, v, a):
+    @process.register(MathFunction)
+    @DAGTraverser.postorder
+    def _(self, o, a):
         """Apply to math_function.
 
         Using the heuristic:
@@ -604,11 +416,13 @@ class SumDegreeEstimator(DAGTraverser):
         high integration degree.
         """
         if a:
-            return self._add_degrees(v, a, 2)
+            return self._add_degrees(o, a, 2)
         else:
             return a
 
-    def bessel_function(self, v, nu, x):
+    @process.register(BesselFunction)
+    @DAGTraverser.postorder
+    def _(self, o, nu, x):
         """Apply to bessel_function.
 
         Using the heuristic
@@ -618,15 +432,18 @@ class SumDegreeEstimator(DAGTraverser):
         high integration degree.
         """
         if x:
-            return self._add_degrees(v, x, 2)
+            return self._add_degrees(o, x, 2)
         else:
             return x
 
-    def condition(self, v, *args):
-        """Apply to condition."""
+    @process.register(Condition)
+    @DAGTraverser.postorder
+    def _(self, o, *ops):
         return None
 
-    def conditional(self, v, c, t, f):
+    @process.register(Conditional)
+    @DAGTraverser.postorder
+    def _(self, o, c, t, f):
         """Apply to conditional.
 
         Degree of condition does not influence degree of values which conditional takes. So
@@ -634,33 +451,34 @@ class SumDegreeEstimator(DAGTraverser):
         where condition takes single value. For improving accuracy of quadrature near
         condition transition surface quadrature order must be adjusted manually.
         """
-        return self._max_degrees(v, t, f)
+        return self._max_degrees(o, t, f)
 
-    def min_value(self, v, a, r):
-        """Apply to min_value.
+    @process.register(MinValue)
+    @process.register(MaxValue)
+    @DAGTraverser.postorder
+    def _(self, o, a, r):
+        """Apply to min_value and max_value.
 
         Same as conditional.
         """
-        return self._max_degrees(v, a, r)
+        return self._max_degrees(o, a, r)
 
-    max_value = min_value
-
-    def coordinate_derivative(self, v, integrand_degree, b, direction_degree, d):
+    @process.register(CoordinateDerivative)
+    @DAGTraverser.postorder
+    def _(self, o, integrand_degree, b, direction_degree, d):
         """Apply to coordinate_derivative.
 
         We use the heuristic that a shape derivative in direction V
         introduces terms V and grad(V) into the integrand. Hence we add the
         degree of the deformation to the estimate.
         """
-        return self._add_degrees(v, integrand_degree, direction_degree)
+        return self._add_degrees(o, integrand_degree, direction_degree)
 
-    def expr_list(self, v, *o):
-        """Apply to expr_list."""
-        return self._max_degrees(v, *o)
-
-    def expr_mapping(self, v, *o):
-        """Apply to expr_mapping."""
-        return self._max_degrees(v, *o)
+    @process.register(ExprList)
+    @process.register(ExprMapping)
+    @DAGTraverser.postorder
+    def _(self, o, *ops):
+        return self._max_degrees(o, *ops)
 
 
 def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}):
