@@ -955,8 +955,9 @@ class GradRuleset(GenericDerivativeRuleset):
 
         Represent grad(grad(f)) as Grad(Grad(f)).
         """
-        # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], Grad | Terminal):
+        # Check that o is a "differential terminal". A base form operator is
+        # one too: the handler above leaves `grad(N)` unevaluated.
+        if not isinstance(o.ufl_operands[0], Grad | Terminal | BaseFormOperator):
             raise ValueError("Expecting only grads applied to a terminal.")
         return Grad(o)
 
@@ -1274,11 +1275,13 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        differentiate_through_operators: bool = False,
     ) -> None:
         """Initialise."""
         super().__init__(
             (), compress=compress, visited_cache=visited_cache, result_cache=result_cache
         )
+        self._differentiate_through_operators = differentiate_through_operators
         # Type checking
         if not isinstance(coefficients, ExprList):
             raise ValueError("Expecting a ExprList of coefficients.")
@@ -1593,6 +1596,20 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                     else:
                         gprimesum += prod
 
+        if isinstance(o, BaseFormOperator) and isinstance(gprimesum, Zero):
+            # `grad(N)` is differentiated as if `N` were a Coefficient, so the
+            # partial derivative above is zero. The chain rule through `N` must
+            # not be dropped: either push the derivative into the operator, or
+            # record it so that `apply_derivatives` adds the
+            # Action(dF/dN, dN/dw) term.
+            if self._differentiate_through_operators:
+                do = self(o)
+                # A zero carries no domain, so it must not be wrapped in `Grad`.
+                if isinstance(do, Zero):
+                    return Zero(g.ufl_shape)
+                return apply_grads(do)
+            self.pending_operations += (o,)
+
         return gprimesum
 
     @process.register(CoordinateDerivative)
@@ -1614,8 +1631,22 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         """
         d_coeff = self._process_coefficient(o)
         # It also handles the non-scalar case
-        if d_coeff == 0:
-            self.pending_operations += (o,)
+        if d_coeff != 0:
+            return d_coeff
+
+        target_space = getattr(o, "target_space", None)
+        if self._differentiate_through_operators and target_space is not None:
+            # A base form operator is linear in its operand, so the Gateaux
+            # derivative commutes with it: D_w[v](N(g(w))) = N(D_w[v](g(w))).
+            # Rebuilding on the target space rather than the existing Coargument
+            # lets the operator number the Coargument away from the new
+            # argument, which higher derivatives need.
+            (df,) = dfs
+            if isinstance(df, Zero):
+                return Zero(o.ufl_shape)
+            return o._ufl_expr_reconstruct_(df, v=target_space())
+
+        self.pending_operations += (o,)
         return d_coeff
 
     # -- Handlers for BaseForm objects -- #
@@ -1780,9 +1811,11 @@ class DerivativeRuleDispatcher(DAGTraverser):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        differentiate_through_operators: bool = False,
     ) -> None:
         """Initialise."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+        self._differentiate_through_operators = differentiate_through_operators
         # Record the operations delayed to the derivative expansion phase:
         # Example: dN(u)/du where `N` is a BaseFormOperator and `u` a Coefficient
         self.pending_operations = ()
@@ -1860,7 +1893,12 @@ class DerivativeRuleDispatcher(DAGTraverser):
         # operations
         dag_traverser = self._dag_traverser_cache.setdefault(
             key,
-            GateauxDerivativeRuleset(w, v, cd),  # type: ignore
+            GateauxDerivativeRuleset(  # type: ignore
+                w,
+                v,
+                cd,  # type: ignore
+                differentiate_through_operators=self._differentiate_through_operators,
+            ),
         )
         # If f has been seen by the traverser, it immediately returns
         # the cached value.
@@ -1996,18 +2034,26 @@ class BaseFormOperatorDerivativeRecorder:
         return self
 
 
-def apply_derivatives(expression):
+def apply_derivatives(expression, differentiate_through_operators: bool = False):
     """Apply derivatives to an expression.
 
     Args:
         expression: A Form, an Expr or a BaseFormOperator to be differentiated
+        differentiate_through_operators: If True, differentiate a base form
+            operator by differentiating its operand, which is exact because the
+            operator is linear in it, instead of recording the derivative as an
+            action to be assembled separately. This composes to higher
+            derivatives and keeps the result an ordinary form, which a form
+            compiler that evaluates the operator cell-locally needs.
 
     Returns:
         A differentiated expression
     """
     # Notation: Let `var` be the thing we are differentating with respect to.
 
-    dag_traverser = DerivativeRuleDispatcher()
+    dag_traverser = DerivativeRuleDispatcher(
+        differentiate_through_operators=differentiate_through_operators
+    )
 
     # If we hit a base form operator (bfo), then if `var` is:
     #    - a BaseFormOperator → Return `d(expression)/dw` where `w` is
