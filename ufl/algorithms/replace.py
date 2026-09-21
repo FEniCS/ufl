@@ -25,7 +25,9 @@ class Replacer(DAGTraverser):
 
     def __init__(self, mapping):
         """Initialize."""
-        super().__init__()
+        # Preserve the identity of mapped objects; compression may substitute
+        # an equal but different expression.
+        super().__init__(compress=False)
         self.mapping = mapping
 
         # One can replace Coarguments by 1-Forms
@@ -53,7 +55,7 @@ class Replacer(DAGTraverser):
         try:
             return self.mapping[o]
         except KeyError:
-            if all(new == old for new, old in zip(args, o.ufl_operands)):
+            if all(new is old for new, old in zip(args, o.ufl_operands)):
                 return o
             return o._ufl_expr_reconstruct_(*args)
 
