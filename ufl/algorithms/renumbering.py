@@ -6,14 +6,16 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from collections import defaultdict
+from functools import singledispatchmethod
 from itertools import count as _count
 
-from ufl.algorithms.map_integrands import map_integrand_dags
+import ufl.classes
+from ufl.algorithms.map_integrands import map_integrands
 from ufl.core.multiindex import Index
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 
 
-class IndexRelabeller(MultiFunction):
+class IndexRelabeller(DAGTraverser):
     """Renumber indices to have a consistent index numbering starting from 0."""
 
     def __init__(self):
@@ -22,15 +24,25 @@ class IndexRelabeller(MultiFunction):
         count = _count()
         self.index_cache = defaultdict(lambda: Index(next(count)))
 
-    expr = MultiFunction.reuse_if_untouched
+    @singledispatchmethod
+    def process(self, o: ufl.classes.Expr | ufl.classes.BaseForm):
+        """Process ``o``."""
+        return super().process(o)
 
-    def multi_index(self, o):
+    @process.register(ufl.classes.Expr)
+    @process.register(ufl.classes.BaseForm)
+    def _(self, o):
+        return self.reuse_if_untouched(o)
+
+    @process.register(ufl.classes.MultiIndex)
+    def _(self, o):
         """Apply to multi-indices."""
         return type(o)(
             tuple(self.index_cache[i] if isinstance(i, Index) else i for i in o.indices())
         )
 
-    def zero(self, o):
+    @process.register(ufl.classes.Zero)
+    def _(self, o):
         """Apply to zero."""
         fi = o.ufl_free_indices
         fid = o.ufl_index_dimensions
@@ -54,4 +66,4 @@ def renumber_indices(form):
         A new form, integral or expression with renumbered indices.
     """
     reindexer = IndexRelabeller()
-    return map_integrand_dags(reindexer, form)
+    return map_integrands(reindexer, form)
