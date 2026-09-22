@@ -25,12 +25,14 @@ from ufl.algorithms import (
     formsplitter,
     replace,  # noqa: F401
 )
-from ufl.argument import Argument
+from ufl.algorithms.analysis import has_type
+from ufl.argument import Argument, Coargument
 from ufl.cell import Cell
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.constantvalue import as_ufl, is_true_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.interpolate import Interpolate
 from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
@@ -402,6 +404,15 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         # Is `derivative(Adjoint(A), ...)` with A a 2-form even legal ?
         # -> If yes, what's the right thing to do here ?
         raise NotImplementedError("Adjoint derivative is not supported.")
+    elif (
+        isinstance(form, Form)
+        and form.base_form_operators()
+        and has_type(form, CoefficientDerivative)
+    ):
+        # The chain rule through a base form operator turns a Form into a BaseForm,
+        # such as an Action, so the inner derivatives are expanded first. The outer
+        # derivative is then pushed through the BaseForm that they produce.
+        return derivative(expand_derivatives(form), coefficient, argument, coefficient_derivatives)
     elif isinstance(form, Action):
         # Push derivative through Action slots
         left, right = form.ufl_operands
@@ -422,6 +433,28 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             )
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
+    if isinstance(form, Interpolate) and not isinstance(
+        form.argument_slots()[0], Coargument | Cofunction
+    ):
+        # Interpolate(expr, F) is the adjoint interpolation Action(F, Interpolate(expr, v*)).
+        # It is linear in F, so the derivative of F contributes the action of the
+        # interpolation matrix on the derivative of F.
+        vstar, expr = form.argument_slots()
+        contracted, *_ = vstar.arguments()
+        vhat = type(contracted)(
+            contracted.ufl_function_space().dual(), len(extract_arguments(expr))
+        )
+        dvstar = expand_derivatives(
+            derivative(
+                vstar, coefficients.ufl_operands, arguments.ufl_operands, coefficient_derivatives
+            )
+        )
+        if isinstance(dvstar, Form) and dvstar.empty():
+            dvstar_term = 0
+        else:
+            dvstar_term = Action(form._ufl_expr_reconstruct_(expr, v=vhat), dvstar)
+    else:
+        dvstar_term = 0
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
     else:
@@ -453,7 +486,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
 
     elif isinstance(form, BaseFormOperator):
         if not isinstance(coefficient, SpatialCoordinate):
-            return BaseFormOperatorDerivative(
+            return dvstar_term + BaseFormOperatorDerivative(
                 form, coefficients, arguments, coefficient_derivatives
             )
         else:
