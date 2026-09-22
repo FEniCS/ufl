@@ -15,7 +15,12 @@ from math import pi
 import numpy as np
 
 from ufl.action import Action
-from ufl.algorithms.analysis import extract_arguments, extract_coefficients
+from ufl.algorithms.analysis import (
+    extract_arguments,
+    extract_coefficients,
+    extract_type,
+    has_type,
+)
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
@@ -77,7 +82,7 @@ from ufl.differentiation import (
     VariableDerivative,
 )
 from ufl.domain import MeshSequence, extract_unique_domain
-from ufl.form import BaseForm, Form, ZeroBaseForm
+from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.mathfunctions import (
     Acos,
     Asin,
@@ -1728,15 +1733,62 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     @process.register(Interpolate)
     @DAGTraverser.postorder
     @pending_operations_recording
-    def _(self, i_op: Interpolate, dw: Expr) -> Expr:
-        """Differentiate an interpolate."""
-        # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
-        if not dw:
-            # i_op doesn't depend on w:
-            #  -> It also covers the Hessian case since Interpolate is linear,
-            #     e.g. D_w[v](D_w[v](i_op(w, v*))) = D_w[v](i_op(v, v*)) = 0 (since w not found).
-            return ZeroBaseForm(i_op.arguments() + self._v)  # type: ignore
-        return i_op._ufl_expr_reconstruct_(expr=dw)
+    def _(self, i_op: Interpolate, dw: Expr) -> Expr | BaseForm:
+        """Differentiate an interpolate.
+
+        Interpolate is linear in its operand, so D_w[v](I(w; v*)) = I(v; v*).
+        The dual argument slot v* can also depend on w: differentiating a
+        form F through an interpolate produces the adjoint interpolation
+        I(uhat; dF/dI), whose dual slot dF/dI is a form in w. That
+        dependence contributes D_w[v](I(uhat; F(w))) = I(uhat; vhat*)
+        applied to D_w[v](F), i.e. the adjoint of the interpolation matrix
+        applied to the derivative of the dual slot.
+        """
+        result: Expr | BaseForm = ZeroBaseForm(i_op.arguments() + self._v)  # type: ignore
+        if dw:
+            result = i_op._ufl_expr_reconstruct_(expr=dw)
+        dvstar = self._differentiate_dual_slot(i_op)
+        if dvstar is None:
+            return result
+        if isinstance(result, ZeroBaseForm):
+            return dvstar
+        return FormSum((result, 1), (dvstar, 1))
+
+    def _differentiate_dual_slot(self, i_op: Interpolate) -> BaseForm | None:
+        """Differentiate the dual argument slot of an interpolate.
+
+        Args:
+            i_op: the interpolate to differentiate.
+
+        Returns:
+            The action of the adjoint of the interpolation matrix on the
+            derivative of the dual slot, or `None` when the dual slot does
+            not depend on the differentiation variable.
+        """
+        from ufl.formoperators import derivative
+
+        vstar, operand = i_op.argument_slots()
+        if isinstance(vstar, Coargument | Cofunction):
+            return None
+        if any(not isinstance(v, BaseArgument) for v in self._v):
+            raise NotImplementedError(
+                "Differentiating the dual slot of an Interpolate in the "
+                "direction of a coefficient is not supported."
+            )
+        # The dual slot is a form whose lowest-numbered primal argument is
+        # contracted with the interpolate output. Differentiate it in the
+        # direction v, which has the next free argument number of i_op.
+        dvstar = apply_derivatives(derivative(vstar, self._w, self._v, self._cd))
+        if isinstance(dvstar, ZeroBaseForm) or (isinstance(dvstar, Form) and dvstar.empty()):
+            return None
+        # Interpolate(expr, vhat*) is the interpolation matrix, with the
+        # output argument vhat* numbered after the arguments of expr and
+        # contracted against the lowest-numbered argument of the dual slot.
+        contracted, *_ = vstar.arguments()
+        vhat = type(contracted)(
+            contracted.ufl_function_space().dual(), len(extract_arguments(operand))
+        )
+        return Action(i_op._ufl_expr_reconstruct_(operand, v=vhat), dvstar)
 
     @process.register(ExternalOperator)
     @DAGTraverser.postorder
@@ -1996,6 +2048,83 @@ class BaseFormOperatorDerivativeRecorder:
         return self
 
 
+def _is_nested_coefficient_derivative(integrand):
+    """Check whether integrand is a coefficient derivative of a coefficient derivative."""
+    return type(integrand) is CoefficientDerivative and has_type(
+        integrand.ufl_operands[0], CoefficientDerivative
+    )
+
+
+def _apply_outer_derivative(expression, coefficients, arguments, coefficient_derivatives):
+    """Differentiate an already expanded expression and expand the result.
+
+    Args:
+        expression: A Form, an Expr or a BaseForm with no derivative nodes left.
+        coefficients: The ExprList of coefficients to differentiate with respect to.
+        arguments: The ExprList of directions of differentiation.
+        coefficient_derivatives: The ExprMapping of user-supplied coefficient derivatives.
+
+    Returns:
+        The expanded derivative of expression.
+    """
+    from ufl.formoperators import derivative
+
+    if isinstance(expression, ZeroBaseForm):
+        return ZeroBaseForm(expression.arguments() + arguments.ufl_operands)
+    cd = coefficient_derivatives.ufl_operands
+    cd = {cd[2 * i]: cd[2 * i + 1] for i in range(len(cd) // 2)}
+    return apply_derivatives(
+        derivative(expression, coefficients.ufl_operands, arguments.ufl_operands, cd)
+    )
+
+
+def _apply_nested_derivatives(expression):
+    """Expand nested derivatives of an expression that contains base form operators.
+
+    Differentiating through a base form operator N(u) applies the chain rule,
+    which turns a Form into a BaseForm such as Action(dF/dN, dN/du). Nested
+    derivative nodes, e.g. the Hessian derivative(derivative(F, u), u), must
+    therefore be expanded one at a time from the inside out, so that the
+    outer derivative sees the BaseForm produced by the inner one.
+
+    Args:
+        expression: A Form or an Expr.
+
+    Returns:
+        The expanded derivative, or None when expression has no nested
+        derivative of a base form operator.
+    """
+    if isinstance(expression, Form):
+        if not expression.base_form_operators():
+            return None
+        # Group the nested integrals by their outer derivative, and keep
+        # the other integrals as they are.
+        groups = {}
+        integrals = []
+        for itg in expression.integrals():
+            integrand = itg.integrand()
+            if _is_nested_coefficient_derivative(integrand):
+                inner, *derivative_operands = integrand.ufl_operands
+                groups.setdefault(tuple(derivative_operands), []).append(itg.reconstruct(inner))
+            else:
+                integrals.append(itg)
+        if not groups:
+            return None
+        terms = [apply_derivatives(Form(integrals))] if integrals else []
+        for derivative_operands, group in groups.items():
+            dinner = apply_derivatives(Form(group))
+            terms.append(_apply_outer_derivative(dinner, *derivative_operands))
+        # Don't take into account empty Forms
+        terms = [t for t in terms if not (isinstance(t, Form) and t.empty())]
+        return sum(terms) if terms else Form([])
+    elif isinstance(expression, Expr) and _is_nested_coefficient_derivative(expression):
+        if not extract_type(expression, BaseFormOperator):
+            return None
+        inner, *derivative_operands = expression.ufl_operands
+        return _apply_outer_derivative(apply_derivatives(inner), *derivative_operands)
+    return None
+
+
 def apply_derivatives(expression):
     """Apply derivatives to an expression.
 
@@ -2006,6 +2135,11 @@ def apply_derivatives(expression):
         A differentiated expression
     """
     # Notation: Let `var` be the thing we are differentating with respect to.
+
+    # Nested derivatives of base form operators are expanded from the inside out.
+    nested = _apply_nested_derivatives(expression)
+    if nested is not None:
+        return nested
 
     dag_traverser = DerivativeRuleDispatcher()
 
