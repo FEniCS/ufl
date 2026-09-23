@@ -19,7 +19,13 @@ from ufl.algorithms.apply_restrictions import apply_restrictions, default_restri
 from ufl.algorithms.check_arities import check_integrand_arity
 from ufl.algorithms.domain_analysis import IntegralData, reconstruct_form_from_integral_data
 from ufl.algorithms.replace import replace
-from ufl.classes import Argument, Coefficient, FunctionSpace, GeometricFacetQuantity
+from ufl.classes import (
+    Argument,
+    Coefficient,
+    FunctionSpace,
+    GeometricFacetQuantity,
+    GeometricRidgeQuantity,
+)
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.domain import AbstractDomain, MeshSequence, extract_domains, extract_unique_domain
 from ufl.form import Form, Zero
@@ -117,13 +123,28 @@ def _check_elements(form_data):
             raise ValueError(f"Found element with undefined cell: {element}")
 
 
-def _check_facet_geometry(integral_data):
-    """Check facet geometry."""
+# Geometry defined on a sub-entity, and the integral types it is valid in.
+# Custom integrals pass as well, although that's not really strict enough.
+_ENTITY_GEOMETRY_INTEGRAL_TYPES = (
+    (GeometricFacetQuantity, ("facet", "custom", "interface")),
+    (GeometricRidgeQuantity, ("ridge", "custom")),
+)
+
+
+def _check_entity_geometry(integral_data):
+    """Check that geometry of a sub-entity only appears in integrals over it.
+
+    Facet geometry is only valid in facet integrals, and ridge geometry in
+    ridge integrals. Each quantity is checked against the integral type as
+    seen from its own domain, so mixed-dimensional integrals are handled.
+    """
     for itg_data in integral_data:
         for itg in itg_data.integrals:
             for expr in traverse_unique_terminals(itg.integrand()):
                 cls = expr._ufl_class_
-                if issubclass(cls, GeometricFacetQuantity):
+                for base, allowed in _ENTITY_GEOMETRY_INTEGRAL_TYPES:
+                    if not issubclass(cls, base):
+                        continue
                     domain = extract_unique_domain(expr, expand_mesh_sequence=False)
                     if isinstance(domain, MeshSequence):
                         raise RuntimeError(
@@ -131,11 +152,7 @@ def _check_facet_geometry(integral_data):
                             f"mesh sequence at this stage: found {expr!r}"
                         )
                     it = itg_data.domain_integral_type_map[domain]
-                    # Facet geometry is only valid in facet integrals.
-                    # Allowing custom integrals to pass as well, although
-                    # that's not really strict enough.
-                    if not ("facet" in it or "custom" in it or "interface" in it):
-                        # Not a facet integral
+                    if not any(kind in it for kind in allowed):
                         raise ValueError(f"Integral of type {it} cannot contain a {cls.__name__}.")
 
 
@@ -331,7 +348,7 @@ class FormData:
                 itg_data.integrals = new_integrals
 
         _check_elements(self)
-        _check_facet_geometry(self.integral_data)
+        _check_entity_geometry(self.integral_data)
         _check_form_arity(self.integral_data, self.original_form.arguments(), complex_mode)
 
     def __str__(self):
