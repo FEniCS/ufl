@@ -25,14 +25,13 @@ from ufl.algorithms import (
     formsplitter,
     replace,  # noqa: F401
 )
-from ufl.algorithms.analysis import has_type
+from ufl.algorithms.analysis import extract_type, has_type
 from ufl.argument import Argument, Coargument
 from ufl.cell import Cell
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.constantvalue import as_ufl, is_true_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.interpolate import Interpolate
 from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
@@ -371,6 +370,33 @@ def _handle_derivative_arguments(form, coefficient, argument):
     return coefficients, arguments
 
 
+def _derivative_dual_slot(form, dform, coefficients, arguments, coefficient_derivatives):
+    """Differentiate the dual slot of a base form operator.
+
+    A base form operator N(u; F) is linear in its dual slot F. If F depends on the
+    coefficient, then the derivative of N has the extra term Action(N(u; v*), dF),
+    where v* is a new coargument in the place of F. The derivative with respect to the
+    other operands, dform, fixes the arguments of the result.
+    """
+    vstar, *slots = form.argument_slots()
+    if isinstance(vstar, Coargument | Cofunction):
+        return ZeroBaseForm(dform.arguments())
+    dvstar = expand_derivatives(
+        derivative(
+            vstar, coefficients.ufl_operands, arguments.ufl_operands, coefficient_derivatives
+        )
+    )
+    if isinstance(dvstar, ZeroBaseForm) or (isinstance(dvstar, Form) and dvstar.empty()):
+        return ZeroBaseForm(dform.arguments())
+    # v* pairs with the lowest-numbered argument of F, and is numbered after the
+    # arguments in the other slots of N.
+    contracted, *_ = vstar.arguments()
+    number = len({a for s in slots for a in extract_type(s, Argument, base_form_op_as_expr=True)})
+    vhat = Argument(contracted.ufl_function_space().dual(), number)
+    N = form._ufl_expr_reconstruct_(*form.ufl_operands, argument_slots=(vhat, *slots))
+    return Action(N, dvstar)
+
+
 def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     """Compute the Gateaux derivative of *form* w.r.t. *coefficient* in direction of *argument*.
 
@@ -433,28 +459,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             )
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
-    if isinstance(form, Interpolate) and not isinstance(
-        form.argument_slots()[0], Coargument | Cofunction
-    ):
-        # Interpolate(expr, F) is the adjoint interpolation Action(F, Interpolate(expr, v*)).
-        # It is linear in F, so the derivative of F contributes the action of the
-        # interpolation matrix on the derivative of F.
-        vstar, expr = form.argument_slots()
-        contracted, *_ = vstar.arguments()
-        vhat = type(contracted)(
-            contracted.ufl_function_space().dual(), len(extract_arguments(expr))
-        )
-        dvstar = expand_derivatives(
-            derivative(
-                vstar, coefficients.ufl_operands, arguments.ufl_operands, coefficient_derivatives
-            )
-        )
-        if isinstance(dvstar, Form) and dvstar.empty():
-            dvstar_term = 0
-        else:
-            dvstar_term = Action(form._ufl_expr_reconstruct_(expr, v=vhat), dvstar)
-    else:
-        dvstar_term = 0
+    user_coefficient_derivatives = coefficient_derivatives
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
     else:
@@ -486,8 +491,9 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
 
     elif isinstance(form, BaseFormOperator):
         if not isinstance(coefficient, SpatialCoordinate):
-            return dvstar_term + BaseFormOperatorDerivative(
-                form, coefficients, arguments, coefficient_derivatives
+            dN = BaseFormOperatorDerivative(form, coefficients, arguments, coefficient_derivatives)
+            return dN + _derivative_dual_slot(
+                form, dN, coefficients, arguments, user_coefficient_derivatives
             )
         else:
             return BaseFormOperatorCoordinateDerivative(
