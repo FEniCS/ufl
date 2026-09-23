@@ -84,16 +84,15 @@ class BalanceModifiers(DAGTraverser):
         """Apply to terminal."""
         return expr
 
+    @process.register(ReferenceValue)
+    @process.register(ReferenceGrad)
+    @process.register(Grad)
+    @process.register(PositiveRestricted)
+    @process.register(NegativeRestricted)
     @DAGTraverser.postorder
-    def _modifier(self, expr: Expr, *ops: Expr) -> Expr:
-        """Apply to _modifier."""
+    def _(self, expr: Expr, *ops: Expr) -> Expr:
+        """Apply to modifier."""
         return balance_modified_terminal(expr)
-
-    process.register(ReferenceValue)(_modifier)
-    process.register(ReferenceGrad)(_modifier)
-    process.register(Grad)(_modifier)
-    process.register(PositiveRestricted)(_modifier)
-    process.register(NegativeRestricted)(_modifier)
 
 
 def balance_modifiers(expr):
