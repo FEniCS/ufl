@@ -16,8 +16,5 @@ jobs:
         with:
           python-version: 3.12
 
-      - name: Install lint dependencies
-        run: python -m pip install .[ci]
-
       - name: Run lint
         run: make lint
