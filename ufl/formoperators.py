@@ -25,8 +25,7 @@ from ufl.algorithms import (
     formsplitter,
     replace,  # noqa: F401
 )
-from ufl.algorithms.analysis import extract_type, has_type
-from ufl.argument import Argument, Coargument
+from ufl.argument import Argument
 from ufl.cell import Cell
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.constantvalue import as_ufl, is_true_ufl_scalar
@@ -370,33 +369,6 @@ def _handle_derivative_arguments(form, coefficient, argument):
     return coefficients, arguments
 
 
-def _derivative_dual_slot(form, dform, coefficients, arguments, coefficient_derivatives):
-    """Differentiate the dual slot of a base form operator.
-
-    A base form operator N(u; F) is linear in its dual slot F. If F depends on the
-    coefficient, then the derivative of N has the extra term Action(N(u; v*), dF),
-    where v* is a new coargument in the place of F. The derivative with respect to the
-    other operands, dform, fixes the arguments of the result.
-    """
-    vstar, *slots = form.argument_slots()
-    if isinstance(vstar, Coargument | Cofunction):
-        return ZeroBaseForm(dform.arguments())
-    dvstar = expand_derivatives(
-        derivative(
-            vstar, coefficients.ufl_operands, arguments.ufl_operands, coefficient_derivatives
-        )
-    )
-    if isinstance(dvstar, ZeroBaseForm) or (isinstance(dvstar, Form) and dvstar.empty()):
-        return ZeroBaseForm(dform.arguments())
-    # v* pairs with the lowest-numbered argument of F, and is numbered after the
-    # arguments in the other slots of N.
-    contracted, *_ = vstar.arguments()
-    number = len({a for s in slots for a in extract_type(s, Argument, base_form_op_as_expr=True)})
-    vhat = Argument(contracted.ufl_function_space().dual(), number)
-    N = form._ufl_expr_reconstruct_(*form.ufl_operands, argument_slots=(vhat, *slots))
-    return Action(N, dvstar)
-
-
 def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     """Compute the Gateaux derivative of *form* w.r.t. *coefficient* in direction of *argument*.
 
@@ -430,15 +402,6 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         # Is `derivative(Adjoint(A), ...)` with A a 2-form even legal ?
         # -> If yes, what's the right thing to do here ?
         raise NotImplementedError("Adjoint derivative is not supported.")
-    elif (
-        isinstance(form, Form)
-        and form.base_form_operators()
-        and has_type(form, CoefficientDerivative)
-    ):
-        # The chain rule through a base form operator turns a Form into a BaseForm,
-        # such as an Action, so the inner derivatives are expanded first. The outer
-        # derivative is then pushed through the BaseForm that they produce.
-        return derivative(expand_derivatives(form), coefficient, argument, coefficient_derivatives)
     elif isinstance(form, Action):
         # Push derivative through Action slots
         left, right = form.ufl_operands
@@ -459,7 +422,6 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             )
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
-    user_coefficient_derivatives = coefficient_derivatives
     if coefficient_derivatives is None:
         coefficient_derivatives = ExprMapping()
     else:
@@ -491,9 +453,8 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
 
     elif isinstance(form, BaseFormOperator):
         if not isinstance(coefficient, SpatialCoordinate):
-            dN = BaseFormOperatorDerivative(form, coefficients, arguments, coefficient_derivatives)
-            return dN + _derivative_dual_slot(
-                form, dN, coefficients, arguments, user_coefficient_derivatives
+            return BaseFormOperatorDerivative(
+                form, coefficients, arguments, coefficient_derivatives
             )
         else:
             return BaseFormOperatorCoordinateDerivative(

@@ -362,6 +362,19 @@ def test_second_derivative(V1, V2):
     assert set(d2Jdu2.components()) == {d2Rdu2, Action(Imat_adj, Action(d2JdIu2, Imat))}
 
 
+def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
+    u = Coefficient(V1)
+    du = Coefficient(V1)
+    v = TestFunction(V2)
+    vstar = inner(u, v) * dx
+    Iu = Interpolate(u, vstar)
+
+    actual = expand_derivatives(derivative(Iu, u, du))
+    expected = Interpolate(du, vstar) + Interpolate(u, inner(du, v) * dx)
+
+    assert actual == expected
+
+
 def test_extract_base_form_operators(V1, V2):
     u = Coefficient(V1)
     uhat = TrialFunction(V1)

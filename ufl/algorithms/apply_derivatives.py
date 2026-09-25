@@ -15,7 +15,12 @@ from math import pi
 import numpy as np
 
 from ufl.action import Action
-from ufl.algorithms.analysis import extract_arguments, extract_coefficients
+from ufl.algorithms.analysis import (
+    extract_arguments,
+    extract_coefficients,
+    extract_type,
+    has_type,
+)
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
@@ -77,7 +82,7 @@ from ufl.differentiation import (
     VariableDerivative,
 )
 from ufl.domain import MeshSequence, extract_unique_domain
-from ufl.form import BaseForm, Form, ZeroBaseForm
+from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.mathfunctions import (
     Acos,
     Asin,
@@ -1772,6 +1777,62 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
         return sum(result)  # type: ignore
 
 
+def _has_nested_derivatives(form: BaseForm) -> bool:
+    if not isinstance(form, Form) or not form.base_form_operators():
+        return False
+    return any(
+        isinstance(d, CoefficientDerivative) and has_type(d.ufl_operands[0], CoefficientDerivative)
+        for itg in form.integrals()
+        for d in (itg.integrand(),)
+    )
+
+
+def _coefficient_derivative_map(cd: ExprMapping) -> dict[Expr, Expr]:
+    operands = cd.ufl_operands
+    return {operands[2 * i]: operands[2 * i + 1] for i in range(len(operands) // 2)}
+
+
+def _expand_nested_derivatives(expression: Expr | BaseForm) -> Expr | BaseForm:
+    """Expand nested derivatives whose inner result can change form shape."""
+    if isinstance(expression, FormSum):
+        if any(_has_nested_derivatives(c) for c in expression.components()):
+            return FormSum(
+                *[
+                    (_expand_nested_derivatives(c), w)
+                    for c, w in zip(expression.components(), expression.weights())
+                ]
+            )
+    elif isinstance(expression, Form) and _has_nested_derivatives(expression):
+        return _expand_nested_form_derivatives(expression)
+    return expression
+
+
+def _expand_nested_form_derivatives(form: Form) -> Expr | BaseForm:
+    from ufl.formoperators import derivative
+
+    integrals = [
+        itg.reconstruct(itg.integrand().ufl_operands[0])
+        if isinstance(itg.integrand(), CoefficientDerivative)
+        else itg
+        for itg in form.integrals()
+    ]
+    inner = apply_derivatives(Form(integrals))
+    d = next(
+        d for itg in form.integrals() if isinstance(d := itg.integrand(), CoefficientDerivative)
+    )
+    _, w, v, cd = d.ufl_operands
+    assert isinstance(w, ExprList)
+    assert isinstance(v, ExprList)
+    assert isinstance(cd, ExprMapping)
+    coefficients = w.ufl_operands
+    arguments = v.ufl_operands
+    coefficient = coefficients[0] if len(coefficients) == 1 else coefficients
+    argument = arguments[0] if len(arguments) == 1 else arguments
+    return apply_derivatives(
+        derivative(inner, coefficient, argument, _coefficient_derivative_map(cd))
+    )
+
+
 class DerivativeRuleDispatcher(DAGTraverser):
     """Dispatch a derivative rule."""
 
@@ -1870,11 +1931,50 @@ class DerivativeRuleDispatcher(DAGTraverser):
         self.pending_operations += dag_traverser.pending_operations  # type: ignore
         return mapped_expr
 
+    def _differentiate_dual_slot(
+        self,
+        N: BaseFormOperator,
+        dN: Expr | BaseForm,
+        w: ExprList,
+        v: ExprList,
+        cd: ExprMapping,
+    ) -> BaseForm:
+        """Add the chain-rule term for a coefficient-dependent dual slot."""
+        from ufl.algorithms.ad import expand_derivatives
+        from ufl.formoperators import derivative
+
+        assert isinstance(dN, BaseForm)
+        vstar, *slots = N.argument_slots()
+        if isinstance(vstar, Coargument | Cofunction):
+            return ZeroBaseForm(dN.arguments())
+
+        dvstar = expand_derivatives(
+            derivative(
+                vstar,
+                w.ufl_operands,
+                v.ufl_operands,
+                _coefficient_derivative_map(cd),
+            )
+        )
+        if isinstance(dvstar, ZeroBaseForm) or (isinstance(dvstar, Form) and dvstar.empty()):
+            return ZeroBaseForm(dN.arguments())
+
+        dual_form_argument, *_ = vstar.arguments()
+        number = len({a for slot in slots for a in extract_type(slot, Argument, True)})
+        vhat = dual_form_argument.reconstruct(
+            function_space=dual_form_argument.ufl_function_space().dual(), number=number
+        )
+        N = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
+        return Action(N, dvstar)
+
     @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
     def _(self, o: BaseFormOperatorDerivative, f: Expr | BaseForm) -> Expr | BaseForm:
         """Apply to a base_form_operator_derivative."""
         _, w, v, cd = o.ufl_operands
+        assert isinstance(w, ExprList)
+        assert isinstance(v, ExprList)
+        assert isinstance(cd, ExprMapping)
         if isinstance(f, ZeroBaseForm):
             (arg,) = v.ufl_operands  # type: ignore
             arguments = f.arguments()
@@ -1902,7 +2002,9 @@ class DerivativeRuleDispatcher(DAGTraverser):
             return mapped_f
         # Need to account for pending operations that have been stored in other integrands
         self.pending_operations += dag_traverser.pending_operations  # type: ignore
-        return mapped_expr
+        assert isinstance(f, BaseFormOperator)
+        assert isinstance(mapped_expr, BaseForm)
+        return mapped_expr + self._differentiate_dual_slot(f, mapped_expr, w, v, cd)
 
     @process.register(CoordinateDerivative)
     @DAGTraverser.postorder_only_children([0])
@@ -2007,6 +2109,7 @@ def apply_derivatives(expression):
     """
     # Notation: Let `var` be the thing we are differentating with respect to.
 
+    expression = _expand_nested_derivatives(expression)
     dag_traverser = DerivativeRuleDispatcher()
 
     # If we hit a base form operator (bfo), then if `var` is:
