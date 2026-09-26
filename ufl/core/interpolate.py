@@ -191,8 +191,11 @@ class Interpolate(BaseFormOperator):
         """Multiply, agreeing with negation on which space the value is in."""
         return self._value_parent_type().__rmul__(self, other)
 
-    def _ufl_expr_reconstruct_(self, expr, v=None, **add_kwargs):
+    def _ufl_expr_reconstruct_(self, expr, v=None, argument_slots=None, **add_kwargs):
         """Return a new object of the same type with new operands."""
+        if argument_slots is not None:
+            # Same signature as BaseFormOperator: (v, expr) in reversed order.
+            v, expr = argument_slots
         v = v or self.argument_slots()[0]
         return type(self)(expr, v, **add_kwargs)
 
