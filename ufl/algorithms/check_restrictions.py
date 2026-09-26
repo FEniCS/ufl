@@ -30,12 +30,9 @@ class RestrictionChecker(DAGTraverser):
 
     @process.register(Expr)
     def _(self, o: Expr):
-        """Check only explicitly handled nodes.
+        """Nodes without a rule are not traversed.
 
-        This is intentionally a cutoff handler, matching the old
-        ``MultiFunction`` implementation.  Restricted nodes recurse below
-        their operand explicitly so that the state is set only for that
-        subtree.
+        Only the integrand root and the operand of a Restricted root are checked.
         """
         pass
 
