@@ -27,8 +27,11 @@ class DerivativeNodeReplacer(DAGTraverser):
 
     @process.register(ufl.classes.Expr)
     @process.register(ufl.classes.BaseForm)
-    def _(self, o):
-        return self.reuse_if_untouched(o)
+    @DAGTraverser.postorder
+    def _(self, o, *ops):
+        if all(a is b for a, b in zip(ops, o.ufl_operands)):
+            return o
+        return o._ufl_expr_reconstruct_(*ops)
 
     @process.register(ufl.classes.CoefficientDerivative)
     @DAGTraverser.postorder

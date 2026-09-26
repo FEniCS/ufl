@@ -111,4 +111,4 @@ def replace(e, mapping):
 
         e = expand_derivatives(e)
 
-    return map_integrands(Replacer(mapping2), e)
+    return map_integrands(lambda expr: Replacer(mapping2)(expr), e)
