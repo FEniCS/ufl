@@ -14,15 +14,21 @@ from ufl import (
     cofac,
     conditional,
     conj,
+    curl,
     derivative,
+    div,
     ds,
     dx,
     grad,
     inner,
+    nabla_div,
+    nabla_grad,
     tetrahedron,
+    triangle,
 )
-from ufl.algorithms.check_arities import ArityMismatch, check_integrand_arity
+from ufl.algorithms.check_arities import ArityMismatch, check_form_arity, check_integrand_arity
 from ufl.algorithms.compute_form_data import compute_form_data
+from ufl.classes import ReferenceCurl, ReferenceDiv, ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
 
 
@@ -57,7 +63,9 @@ def test_interpolate_arity():
     v = TestFunction(V)
     u = TrialFunction(V)
 
-    check_integrand_arity(inner(Interpolate(u, V), v), (v, u))
+    integrand = inner(Interpolate(u, V), v)
+    check_integrand_arity(integrand, (v, u))
+    check_integrand_arity(integrand, (v, u), complex_mode=True)
 
 
 def test_complex_arities():
@@ -78,6 +86,33 @@ def test_complex_arities():
 
     with pytest.raises(ArityMismatch):
         compute_form_data(inner(conj(v), u) * dx, complex_mode=True)
+
+
+@pytest.mark.parametrize(
+    ("operator", "argument_shape", "result_shape"),
+    [
+        (grad, (), (2,)),
+        (ReferenceGrad, (), (2,)),
+        (nabla_grad, (), (2,)),
+        (div, (2,), ()),
+        (ReferenceDiv, (2,), ()),
+        (nabla_div, (2,), ()),
+        (curl, (), (2,)),
+        (ReferenceCurl, (), (2,)),
+    ],
+)
+def test_complex_arities_of_linear_differential_operators(operator, argument_shape, result_shape):
+    """Linear differential operators preserve complex form arity."""
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    argument_space = FunctionSpace(domain, LagrangeElement(cell, 1, argument_shape))
+    result_space = FunctionSpace(domain, LagrangeElement(cell, 1, result_shape))
+    v = TestFunction(argument_space)
+    u = TrialFunction(result_space)
+
+    operand = ReferenceValue(v) if operator in (ReferenceGrad, ReferenceDiv, ReferenceCurl) else v
+    form = inner(u, operator(operand)) * dx
+    check_form_arity(form, (v, u), complex_mode=True)
 
 
 def test_product_arity():
