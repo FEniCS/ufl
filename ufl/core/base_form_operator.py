@@ -216,11 +216,9 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     def __eq__(self, other):
         """Check for equality."""
-        if self is other:
-            return True
         if isinstance(other, Number) and other == 0:
             return self.empty()
-        return type(self) is type(other) and self.ufl_operands == other.ufl_operands
+        raise NotImplementedError()
 
     @property
     def _parent_type(self):
