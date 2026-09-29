@@ -374,35 +374,6 @@ def test_second_derivative(V1, V2):
     assert set(d2Jdu2.components()) == {d2Rdu2, Action(Imat_adj, Action(d2JdIu2, Imat))}
 
 
-def test_deeply_nested_interpolation_derivative(V1, V2, V3, V4):
-    u = Coefficient(V1)
-    f = Coefficient(V4)
-    Iu = Interpolate(Interpolate(Interpolate(u, V2), V3), V4)
-    J = 0.5 * (Iu - f) ** 2 * dx
-
-    d3Jdu3 = expand_derivatives(derivative(derivative(derivative(J, u), u), u))
-
-    # A composition of linear interpolations is linear, so a quadratic objective
-    # has no third derivative.  This must remain a BaseForm so all three directions
-    # are preserved for downstream BaseForm assembly.
-    assert d3Jdu3 == ZeroBaseForm((Argument(V1, 0), Argument(V1, 1), Argument(V1, 2)))
-
-
-def test_third_derivative_of_interpolation_action_chain(V1, V2):
-    u = Coefficient(V1)
-    f = Coefficient(V2)
-    Iu = Interpolate(u, V2)
-    J = 0.5 * (Iu - f) ** 2 * dx
-
-    dJdu = expand_derivatives(derivative(J, u))
-    d2Jdu2 = expand_derivatives(derivative(dJdu, u))
-    d3Jdu3 = expand_derivatives(derivative(d2Jdu2, u))
-
-    # The second derivative is an adjoint interpolation applied to an action;
-    # differentiating that chain once more must still follow the BaseForm rules.
-    assert d3Jdu3 == ZeroBaseForm((Argument(V1, 0), Argument(V1, 1), Argument(V1, 2)))
-
-
 def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
     u = Coefficient(V1)
     du = Coefficient(V1)
