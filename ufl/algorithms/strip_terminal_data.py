@@ -30,12 +30,11 @@ class TerminalStripper(DAGTraverser):
         self.mapping = {}
 
     @singledispatchmethod
-    def process(self, o: ufl.classes.Expr | ufl.classes.BaseForm):
+    def process(self, o: ufl.classes.Expr):
         """Process ``o``."""
         return super().process(o)
 
     @process.register(ufl.classes.Expr)
-    @process.register(ufl.classes.BaseForm)
     def _(self, o):
         return self.reuse_if_untouched(o)
 
