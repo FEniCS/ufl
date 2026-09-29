@@ -221,6 +221,16 @@ def test_symbolic_adjoint(V1, V2):
         assert Iu.ufl_operands == (u,)
 
 
+def test_form_dual_slot_argument_is_contracted(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V2)
+    dual_slot = inner(u, v) * dx
+
+    interpolation = Interpolate(u, dual_slot)
+
+    assert interpolation.arguments() == ()
+
+
 def test_action_adjoint(V1, V2):
     # Set dual of V2
     V2_dual = V2.dual()
