@@ -1785,11 +1785,12 @@ def _derivative(
     from ufl.formoperators import derivative
 
     coefficients, arguments = w.ufl_operands, v.ufl_operands
-    if len(coefficients) == 1:
-        (coefficients,), (arguments,) = coefficients, arguments
+    # `derivative` takes a single coefficient on its own.
+    coefficient = coefficients[0] if len(coefficients) == 1 else coefficients
+    argument = arguments[0] if len(arguments) == 1 else arguments
     operands = cd.ufl_operands
     cd_map = {operands[2 * i]: operands[2 * i + 1] for i in range(len(operands) // 2)}
-    return expand_derivatives(derivative(form, coefficients, arguments, cd_map))
+    return expand_derivatives(derivative(form, coefficient, argument, cd_map))
 
 
 def substitute_dual_slot(N: BaseFormOperator, dvstar: BaseForm) -> BaseForm:
@@ -1941,6 +1942,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
         if isinstance(dvstar, ZeroBaseForm) or (isinstance(dvstar, Form) and dvstar.empty()):
             return ZeroBaseForm(dN.arguments())
 
+        assert isinstance(dvstar, BaseForm)
         return compose_dual_slot(N, dvstar)
 
     def _differentiate_base_form_operator(
@@ -1954,6 +1956,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
         dag_traverser = self._dag_traverser_cache.setdefault(
             key, BaseFormOperatorDerivativeRuleset(w, v, cd, f)
         )
+        assert isinstance(dag_traverser, BaseFormOperatorDerivativeRuleset)
         mapped_expr = dag_traverser(f)
         mapped_f = dag_traverser._process_coefficient(f)
         if mapped_f != 0:
