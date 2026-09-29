@@ -141,6 +141,17 @@ def test_form(V1, V2):
     assert apply_derivatives(actual) == expected
 
 
+def test_form_dual_slot_argument_is_contracted(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V2)
+    dual_slot = inner(u, v) * dx
+
+    operator = ExternalOperator(u, function_space=V2, argument_slots=(dual_slot,))
+
+    assert operator.arguments() == ()
+    assert operator.ufl_element() == V2.ufl_element()
+
+
 def test_differentiation_procedure_action(V1, V2):
     s = Coefficient(V1)
     u = Coefficient(V2)
