@@ -127,7 +127,9 @@ class Measure:
                 the integral_type on the primal domain in a multi-domain problem.
             domain: an AbstractDomain object (most often a Mesh);
                 the primal domain in a multi-domain problem.
-            subdomain_id: a single subdomain id int or string, or a tuple of ints and strings
+            subdomain_id: a single subdomain id int or string, or a list or tuple of ints
+                and strings. Lists are copied to tuples; an empty list or tuple selects
+                no subdomains.
             metadata: dict, with additional compiler-specific parameters
                 affecting how code is generated, including parameters
                 for optimization or debugging of generated code
@@ -159,6 +161,8 @@ class Measure:
 
         # Accept "everywhere", single subdomain, or multiple
         # subdomains
+        if isinstance(subdomain_id, list):
+            subdomain_id = tuple(subdomain_id)
         if isinstance(subdomain_id, tuple):
             for did in subdomain_id:
                 if not isinstance(did, (numbers.Integral, str)):
