@@ -552,18 +552,46 @@ def test_dual_slot_derivative(V1, V2):
         derivatives=(1,),
         argument_slots=(vstar, u_hat),
     )
-    vhat = Argument(V2.dual(), 0)
+    # N is linear in its dual slot, so the product rule substitutes dv* into it.
     dvstar = inner(u_hat, v) * dx
-    Nhat = ExternalOperator(
-        u,
-        function_space=V2,
-        argument_slots=(vhat,),
-    )
-    expected = dNdu + Action(Nhat, dvstar)
+    N_dvstar = ExternalOperator(u, function_space=V2, argument_slots=(dvstar,))
+    expected = dNdu + N_dvstar
 
     dN = derivative(N, u, u_hat)
     assert isinstance(dN, BaseFormOperatorDerivative)
     assert expand_derivatives(dN) == expected
+
+
+def test_dual_slot_second_derivative(V1, V2):
+    u = Coefficient(V1)
+    u1, u2 = Argument(V1, 1), Argument(V1, 2)
+    v = TestFunction(V2)
+    vstar = inner(u, v) * dx
+    N = ExternalOperator(u, function_space=V2, argument_slots=(vstar,))
+
+    def dN(slots, n):
+        return ExternalOperator(u, function_space=V2, derivatives=(n,), argument_slots=slots)
+
+    # D^2 N(u; v*(u))[u1, u2] = d2N(u; v*)[u1, u2] + dN(u; Dv*[u2])[u1] + dN(u; Dv*[u1])[u2]
+    expected = {
+        dN((vstar, u1, u2), 2),
+        dN((inner(u2, v) * dx, u1), 1),
+        dN((inner(u1, v) * dx, u2), 1),
+    }
+    d2N = expand_derivatives(derivative(derivative(N, u, u1), u, u2))
+    assert set(d2N.components()) == expected
+    assert all(c.arguments() == (v, u1, u2) for c in d2N.components())
+
+
+def test_chain_rule_skips_underived_integrals(V1):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    dJ = derivative(N**2 * dx, u)
+    F = u * v * dx
+
+    # F is not differentiated, so it does not contribute to dJ/dN.
+    assert expand_derivatives(dJ + F) == expand_derivatives(dJ) + F
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):

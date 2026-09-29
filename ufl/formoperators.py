@@ -403,8 +403,10 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         # Is `derivative(Adjoint(A), ...)` with A a 2-form even legal ?
         # -> If yes, what's the right thing to do here ?
         raise NotImplementedError("Adjoint derivative is not supported.")
-    elif isinstance(form, Form) and form.base_form_operators() and has_type(
-        form, CoefficientDerivative
+    elif (
+        isinstance(form, Form)
+        and form.base_form_operators()
+        and has_type(form, CoefficientDerivative)
     ):
         return derivative(expand_derivatives(form), coefficient, argument, coefficient_derivatives)
     elif isinstance(form, Action):
@@ -464,13 +466,13 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             dleft = derivative(left, coefficient, argument, coefficient_derivatives)
         dform = action(dleft, right, derivatives_expanded=True)
 
-        dright = derivative(right, coefficient, argument, coefficient_derivatives)
-        if not isinstance(right, BaseForm):
-            # The derivative of a coefficient is the direction or zero, and `action`
-            # needs it in that expanded form.
-            dright = expand_derivatives(dright)
-            if isinstance(dright, Zero):
-                return dform
+        # `action` needs the derivative of `right` expanded: the derivative of a
+        # coefficient is the direction or zero, and that of a form may vanish.
+        dright = expand_derivatives(
+            derivative(right, coefficient, argument, coefficient_derivatives)
+        )
+        if isinstance(dright, Zero | ZeroBaseForm) or (isinstance(dright, Form) and dright.empty()):
+            return dform
         return dform + action(left, dright, derivatives_expanded=True)
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)

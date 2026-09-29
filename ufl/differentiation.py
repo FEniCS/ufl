@@ -6,6 +6,8 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from numbers import Number
+
 from ufl.argument import Argument, Coargument
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
@@ -177,6 +179,17 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
 
     # Set __repr__
     __repr__ = Operator.__repr__
+
+    # The operands, including the differentiated operator, determine the derivative.
+    _ufl_compute_hash_ = Operator._ufl_compute_hash_
+
+    def __eq__(self, other):
+        """Check for equality."""
+        if isinstance(other, Number):
+            return BaseFormOperator.__eq__(self, other)
+        if type(other) is not type(self):
+            return False
+        return self is other or all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands))
 
     def argument_slots(self, outer_form=False):
         """Return a tuple of expressions containing argument and coefficient based expressions."""
