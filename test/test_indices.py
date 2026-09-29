@@ -6,6 +6,7 @@ import ufl.classes
 from ufl import (
     Argument,
     Coefficient,
+    Cofunction,
     FunctionSpace,
     Mesh,
     TestFunction,
@@ -336,3 +337,41 @@ def test_renumbering(self):
     )
 
     assert len(form_data.integral_data) == 1
+
+
+def test_renumber_indices_assigns_numbers_in_operand_order():
+    """Test that index numbering follows forward operand traversal."""
+    element = LagrangeElement(interval, 1, (1,))
+    mesh = Mesh(LagrangeElement(interval, 1, (1,)))
+    V = FunctionSpace(mesh, element)
+    v = TestFunction(V)
+    u = TrialFunction(V)
+    i, j = indices(2)
+
+    renumbered = ufl.algorithms.renumbering.renumber_indices(u[i] * v[j])
+    first_index = renumbered.ufl_operands[0].ufl_operands[1].indices()[0]
+    second_index = renumbered.ufl_operands[1].ufl_operands[1].indices()[0]
+
+    assert first_index.count() == 0
+    assert second_index.count() == 1
+
+
+def test_renumber_indices_accepts_cofunctions():
+    """Test renumbering a cofunction and a sum containing a form."""
+    element = LagrangeElement(interval, 1, (1,))
+    mesh = Mesh(LagrangeElement(interval, 1, (1,)))
+    V = FunctionSpace(mesh, element)
+    cofunction = Cofunction(V.dual())
+    v = TestFunction(V)
+    u = TrialFunction(V)
+    i = indices(1)[0]
+    form = u[i] * v[i] * ufl.dx
+
+    assert ufl.algorithms.renumbering.renumber_indices(cofunction) is cofunction
+
+    result = ufl.algorithms.renumbering.renumber_indices(cofunction + form)
+    assert any(component is cofunction for component in result.components())
+    renumbered_form = next(
+        component for component in result.components() if type(component) is type(form)
+    )
+    assert renumbered_form == ufl.algorithms.renumbering.renumber_indices(form)
