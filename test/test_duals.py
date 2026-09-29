@@ -401,13 +401,7 @@ def test_differentiation():
 
     # -- Action -- #
     Ac = Action(w, u)
-    dAcdu = derivative(Ac, u)
-    assert dAcdu == (
-        action(adjoint(derivative(w, u), derivatives_expanded=True), u, derivatives_expanded=True)
-        + action(w, derivative(u, u), derivatives_expanded=True)
-    )
-
-    dAcdu = expand_derivatives(dAcdu)
+    dAcdu = expand_derivatives(derivative(Ac, u))
     # Since dw/du = 0
     assert dAcdu == Action(w, v)
 
@@ -431,6 +425,34 @@ def test_differentiation():
     assert isinstance(dresidualdp, ZeroBaseForm)
     assert dresidualdp.arguments() == b1.arguments() + (uhat,)
     assert dresidualdp.empty()
+
+
+def test_action_derivative():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    h = Coefficient(V)
+    v = TestFunction(V)
+    L = u**2 * inner(w, v) * dx
+    A = Action(L, w)
+    du = Argument(V, 0)
+
+    # The argument of the direction is numbered after the arguments of the Action,
+    # and not after the argument of the 1-form that the Action contracts.
+    for dA in (derivative(A, u), derivative(A, u, du)):
+        assert expand_derivatives(dA).arguments() == (du,)
+
+    # A coefficient direction adds no argument.
+    assert expand_derivatives(derivative(A, u, h)).arguments() == ()
+
+    # The derivative also reaches a coefficient in the right slot.
+    assert expand_derivatives(derivative(Action(L, u), u)).arguments() == (du,)
+    assert expand_derivatives(derivative(Action(L, u), u, h)).arguments() == ()
+
+    # The derivative of c(u) with respect to the Cofunction c is u, as an element of V**.
+    c = Cofunction(V.dual())
+    assert expand_derivatives(derivative(Action(c, u), c)) == u
 
 
 def test_zero_base_form_mult():

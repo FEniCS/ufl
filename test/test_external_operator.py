@@ -32,6 +32,7 @@ from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.coefficient import Cofunction
 from ufl.core.external_operator import ExternalOperator
+from ufl.differentiation import BaseFormOperatorDerivative
 from ufl.form import BaseForm, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
@@ -536,6 +537,33 @@ def test_ZeroDerivative(V1):
     N = ExternalOperator(Coefficient(V1, count=0), function_space=V1)
     dN1 = expand_derivatives(derivative(N, u))
     assert isinstance(dN1, ZeroBaseForm)
+
+
+def test_dual_slot_derivative(V1, V2):
+    u = Coefficient(V1)
+    u_hat = Argument(V1, 1)
+    v = TestFunction(V2)
+    vstar = inner(u, v) * dx
+    N = ExternalOperator(u, function_space=V2, argument_slots=(vstar,))
+
+    dNdu = ExternalOperator(
+        u,
+        function_space=V2,
+        derivatives=(1,),
+        argument_slots=(vstar, u_hat),
+    )
+    vhat = Argument(V2.dual(), 0)
+    dvstar = inner(u_hat, v) * dx
+    Nhat = ExternalOperator(
+        u,
+        function_space=V2,
+        argument_slots=(vhat,),
+    )
+    expected = dNdu + Action(Nhat, dvstar)
+
+    dN = derivative(N, u, u_hat)
+    assert isinstance(dN, BaseFormOperatorDerivative)
+    assert expand_derivatives(dN) == expected
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):

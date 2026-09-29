@@ -15,7 +15,11 @@ from math import pi
 import numpy as np
 
 from ufl.action import Action
-from ufl.algorithms.analysis import extract_arguments, extract_coefficients
+from ufl.algorithms.analysis import (
+    extract_arguments,
+    extract_coefficients,
+    extract_type,
+)
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
@@ -77,7 +81,7 @@ from ufl.differentiation import (
     VariableDerivative,
 )
 from ufl.domain import MeshSequence, extract_unique_domain
-from ufl.form import BaseForm, Form, ZeroBaseForm
+from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.mathfunctions import (
     Acos,
     Asin,
@@ -1772,6 +1776,11 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
         return sum(result)  # type: ignore
 
 
+def _coefficient_derivative_map(cd: ExprMapping) -> dict[Expr, Expr]:
+    operands = cd.ufl_operands
+    return {operands[2 * i]: operands[2 * i + 1] for i in range(len(operands) // 2)}
+
+
 class DerivativeRuleDispatcher(DAGTraverser):
     """Dispatch a derivative rule."""
 
@@ -1870,11 +1879,68 @@ class DerivativeRuleDispatcher(DAGTraverser):
         self.pending_operations += dag_traverser.pending_operations  # type: ignore
         return mapped_expr
 
+    def _differentiate_dual_slot(
+        self,
+        N: BaseFormOperator,
+        dN: Expr | BaseForm,
+        w: ExprList,
+        v: ExprList,
+        cd: ExprMapping,
+    ) -> BaseForm:
+        from ufl.algorithms.ad import expand_derivatives
+        from ufl.formoperators import derivative
+
+        assert isinstance(dN, BaseForm)
+        vstar, *slots = N.argument_slots()
+        if isinstance(vstar, Coargument | Cofunction):
+            return ZeroBaseForm(dN.arguments())
+
+        dvstar = expand_derivatives(
+            derivative(
+                vstar,
+                w.ufl_operands,
+                v.ufl_operands,
+                _coefficient_derivative_map(cd),
+            )
+        )
+        if isinstance(dvstar, ZeroBaseForm) or (isinstance(dvstar, Form) and dvstar.empty()):
+            return ZeroBaseForm(dN.arguments())
+
+        dual_form_argument, *_ = vstar.arguments()
+        number = len({a for slot in slots for a in extract_type(slot, Argument, True)})
+        vhat = dual_form_argument.reconstruct(
+            function_space=dual_form_argument.ufl_function_space().dual(), number=number
+        )
+        N = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
+        return Action(N, dvstar)
+
+    def _differentiate_base_form_operator(
+        self,
+        f: BaseFormOperator,
+        w: ExprList,
+        v: ExprList,
+        cd: ExprMapping,
+    ) -> Expr | BaseForm:
+        key = (BaseFormOperatorDerivativeRuleset, w, v, cd, f)
+        dag_traverser = self._dag_traverser_cache.setdefault(
+            key, BaseFormOperatorDerivativeRuleset(w, v, cd, f)
+        )
+        mapped_expr = dag_traverser(f)
+        mapped_f = dag_traverser._process_coefficient(f)
+        if mapped_f != 0:
+            return mapped_f
+        self.pending_operations += dag_traverser.pending_operations
+        assert isinstance(mapped_expr, BaseForm)
+        return mapped_expr + self._differentiate_dual_slot(f, mapped_expr, w, v, cd)
+
     @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
     def _(self, o: BaseFormOperatorDerivative, f: Expr | BaseForm) -> Expr | BaseForm:
         """Apply to a base_form_operator_derivative."""
         _, w, v, cd = o.ufl_operands
+        assert isinstance(w, ExprList)
+        assert isinstance(v, ExprList)
+        assert isinstance(cd, ExprMapping)
         if isinstance(f, ZeroBaseForm):
             (arg,) = v.ufl_operands  # type: ignore
             arguments = f.arguments()
@@ -1884,25 +1950,23 @@ class DerivativeRuleDispatcher(DAGTraverser):
             if isinstance(arg, BaseArgument):
                 arguments += (arg,)
             return ZeroBaseForm(arguments)
-        # Need a BaseFormOperatorDerivativeRuleset object
-        # for each outer_base_form_op (= f).
-        key = (BaseFormOperatorDerivativeRuleset, w, v, cd, f)
-        # We need to go through the dag first to record the pending operations
-        dag_traverser = self._dag_traverser_cache.setdefault(
-            key,  # type: ignore
-            BaseFormOperatorDerivativeRuleset(w, v, cd, f),  # type: ignore
-        )
-        # If f has been seen by the traverser, it immediately returns
-        # the cached value.
-        mapped_expr = dag_traverser(f)  # type: ignore
-        mapped_f = dag_traverser._process_coefficient(f)  # type: ignore
-        if mapped_f != 0:
-            # If dN/dN needs to return an Argument in N space
-            # with N a BaseFormOperator.
-            return mapped_f
-        # Need to account for pending operations that have been stored in other integrands
-        self.pending_operations += dag_traverser.pending_operations  # type: ignore
-        return mapped_expr
+        if isinstance(f, FormSum):
+            return FormSum(
+                *[
+                    (
+                        self._differentiate_base_form_operator(component, w, v, cd)
+                        if isinstance(component, BaseFormOperator)
+                        else component,
+                        weight,
+                    )
+                    for component, weight in zip(f.components(), f.weights())
+                ]
+            )
+        if not isinstance(f, BaseFormOperator):
+            raise NotImplementedError(
+                f"Base-form derivative traversal does not support {type(f).__name__}."
+            )
+        return self._differentiate_base_form_operator(f, w, v, cd)
 
     @process.register(CoordinateDerivative)
     @DAGTraverser.postorder_only_children([0])
@@ -2006,6 +2070,12 @@ def apply_derivatives(expression):
         A differentiated expression
     """
     # Notation: Let `var` be the thing we are differentating with respect to.
+
+    if isinstance(expression, FormSum):
+        return sum(
+            weight * apply_derivatives(component)
+            for component, weight in zip(expression.components(), expression.weights())
+        )
 
     dag_traverser = DerivativeRuleDispatcher()
 
