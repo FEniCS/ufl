@@ -17,17 +17,22 @@ from collections import OrderedDict
 from itertools import chain
 from numbers import Number
 
-from ufl.argument import Argument, Coargument
+from ufl.argument import Argument
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
-from ufl.form import BaseForm
+from ufl.form import BaseForm, Form
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
 
 __all__ = ["BaseFormOperator"]
+
+
+def _get_dual_slot_arguments(dual_arg):
+    """Return arguments left free after contracting a dual slot."""
+    return dual_arg.arguments()[1:]
 
 
 @ufl_type(num_ops="varying", is_differential=True)
@@ -60,6 +65,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # -- Function space -- #
         if not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
+        self._function_space = function_space
 
         # -- Derivatives -- #
         # Some BaseFormOperator does have derivatives (e.g. ExternalOperator)
@@ -130,7 +136,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the base form."""
         from ufl.algorithms.analysis import extract_coefficients, extract_type
-        from ufl.form import Form
 
         dual_arg, *arguments = self.argument_slots()
         # When coarguments are treated as BaseForms, they have two
@@ -145,12 +150,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         primal_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
-        primal_arg_num = {a.number() for a in primal_args} if isinstance(dual_arg, Form) else {0, 1}
-        dual_args = tuple(
-            arg
-            for arg in dual_arg.arguments()
-            if isinstance(arg, Coargument) or arg.number() not in primal_arg_num
-        )
+        dual_args = _get_dual_slot_arguments(dual_arg)
         arguments = dual_args + primal_args
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
@@ -192,7 +192,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """Return a new object of the same type with new operands."""
         return type(self)(
             *operands,
-            function_space=function_space or self.ufl_function_space(),
+            function_space=function_space or self._function_space,
             derivatives=derivatives or self.derivatives,
             argument_slots=argument_slots or self.argument_slots(),
         )
@@ -213,7 +213,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             tuple(hash(op) for op in self.ufl_operands),
             tuple(hash(arg) for arg in self._argument_slots),
             self.derivatives,
-            hash(self.ufl_function_space()),
+            hash(self._function_space),
         )
         return hash(hashdata)
 
@@ -226,6 +226,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     @property
     def _parent_type(self):
         """Is this a primal or dual expression?"""
+        if isinstance(self.argument_slots()[0], Form):
+            return BaseForm
         return BaseForm if is_dual(self.ufl_function_space()) else Operator
 
     def __add__(self, other):
