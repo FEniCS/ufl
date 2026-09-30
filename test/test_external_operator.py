@@ -594,6 +594,16 @@ def test_chain_rule_skips_underived_integrals(V1):
     assert expand_derivatives(dJ + F) == expand_derivatives(dJ) + F
 
 
+def test_action_derivative_wrt_base_form_operator(V1):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    A = Action(inner(u, v) * dx, N)
+
+    # N is not a coefficient of A, but A depends on N through the right slot.
+    assert expand_derivatives(derivative(A, N, v)) == inner(u, v) * dx
+
+
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
     from ufl.algorithms.analysis import extract_arguments
 

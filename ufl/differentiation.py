@@ -87,6 +87,8 @@ class CoordinateDerivative(CoefficientDerivative):
 class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
+    ufl_operands: tuple[Expr, ...]
+
     _ufl_noslots_ = True
     _ufl_required_methods_: tuple[str, ...] = (
         CoefficientDerivative._ufl_required_methods_ + BaseForm._ufl_required_methods_
@@ -147,6 +149,8 @@ class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     """Derivative of a base form operator w.r.t the degrees of freedom in a discrete Coefficient."""
+
+    ufl_operands: tuple[BaseFormOperator, ExprList, ExprList, ExprMapping]
 
     _ufl_noslots_ = True
 

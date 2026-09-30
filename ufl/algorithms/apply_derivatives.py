@@ -1368,7 +1368,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             return do
 
         # Look for o among coefficient derivatives
-        dos = self._cd.get(o)  # type: ignore
+        dos: Expr | tuple[Expr, ...] | None = self._cd.get(o)  # type: ignore
         if dos is None:
             # If o is not among coefficient derivatives, return
             # do/dw=0
@@ -1509,6 +1509,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Accumulate contributions from variations in different
         # components
         for w, v in zip(self._w, self._v):
+            wval: Expr
             # -- Analyse differentiation variable coefficient -- #
 
             # Can differentiate a Form wrt a BaseFormOperator
@@ -1928,12 +1929,11 @@ class DerivativeRuleDispatcher(DAGTraverser):
     def _differentiate_dual_slot(
         self,
         N: BaseFormOperator,
-        dN: Expr | BaseForm,
+        dN: BaseForm,
         w: ExprList,
         v: ExprList,
         cd: ExprMapping,
     ) -> BaseForm:
-        assert isinstance(dN, BaseForm)
         vstar, *_ = N.argument_slots()
         if isinstance(vstar, Coargument | Cofunction):
             return ZeroBaseForm(dN.arguments())
@@ -1970,9 +1970,6 @@ class DerivativeRuleDispatcher(DAGTraverser):
     def _(self, o: BaseFormOperatorDerivative, f: Expr | BaseForm) -> Expr | BaseForm:
         """Apply to a base_form_operator_derivative."""
         _, w, v, cd = o.ufl_operands
-        assert isinstance(w, ExprList)
-        assert isinstance(v, ExprList)
-        assert isinstance(cd, ExprMapping)
         if isinstance(f, ZeroBaseForm):
             (arg,) = v.ufl_operands  # type: ignore
             arguments = f.arguments()

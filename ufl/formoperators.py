@@ -26,7 +26,7 @@ from ufl.algorithms import (
     replace,  # noqa: F401
 )
 from ufl.algorithms.analysis import has_type
-from ufl.argument import Argument, BaseArgument
+from ufl.argument import Argument
 from ufl.cell import Cell
 from ufl.coefficient import Coefficient, Cofunction
 from ufl.constantvalue import Zero, as_ufl, is_true_ufl_scalar
@@ -194,7 +194,6 @@ def action(form, coefficient=None, derivatives_expanded=None):
     When `action` is being called multiple times on the same form, expanding derivatives
     become expensive -> `derivatives_expanded` enables to use caching mechanisms to avoid that.
     """
-    form = as_form(form)
     is_coefficient_valid = not isinstance(coefficient, BaseForm) or (
         isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1
     )
@@ -416,26 +415,6 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         if not len(form.arguments()) and isinstance(coefficient, SpatialCoordinate):
             return ZeroBaseForm(())
 
-        if isinstance(coefficient, ListTensor):
-            differentiated_coefficients = coefficient.ufl_operands
-        elif isinstance(coefficient, list | tuple):
-            differentiated_coefficients = tuple(coefficient)
-        else:
-            differentiated_coefficients = (coefficient,)
-        form_coefficients = form.coefficients()
-        has_differentiated_coefficient = any(
-            c in form_coefficients for c in differentiated_coefficients
-        )
-        has_coefficient_derivative = coefficient_derivatives and any(
-            c in form_coefficients for c in coefficient_derivatives
-        )
-        if not has_differentiated_coefficient and not has_coefficient_derivative:
-            _, arguments = _handle_derivative_arguments(form, coefficient, argument)
-            return ZeroBaseForm(
-                form.arguments()
-                + tuple(a for a in arguments.ufl_operands if isinstance(a, BaseArgument))
-            )
-
         if len(left.arguments()) != 1:
             raise NotImplementedError(
                 "Action derivative not supported when the left argument is not a 1-form."
@@ -446,34 +425,42 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             number = max((a.number() for a in form.arguments()), default=-1) + 1
             argument = Argument(coefficient.ufl_function_space(), number)
 
-        # Leibniz formula
+        # Leibniz formula. `action` and `adjoint` need expanded derivatives, and
+        # either slot may not depend on `coefficient`, so drop the vanishing terms.
+        def is_zero(f):
+            return isinstance(f, Zero | ZeroBaseForm) or (isinstance(f, Form) and f.empty())
+
+        terms = []
         (v,) = left.arguments()
         if extract_arguments(argument):
             # The derivative of `left` gains the argument of the direction. This argument
             # is numbered after `v`, so that the two do not clash. The adjoint then gives it
             # the requested number, which comes before `v`. The Action contracts `v`.
             dv = argument.reconstruct(number=max(v.number(), argument.number()) + 1)
-            dleft = derivative(left, coefficient, dv, coefficient_derivatives)
-            if isinstance(dleft, Form) and dleft.base_form_operators():
-                dleft = expand_derivatives(dleft)
-            dleft = adjoint(
-                dleft,
-                reordered_arguments=(argument, v.reconstruct(number=argument.number() + 1)),
-                derivatives_expanded=True,
-            )
+            dleft = expand_derivatives(derivative(left, coefficient, dv, coefficient_derivatives))
+            if not is_zero(dleft):
+                dleft = adjoint(
+                    dleft,
+                    reordered_arguments=(argument, v.reconstruct(number=argument.number() + 1)),
+                    derivatives_expanded=True,
+                )
         else:
             # A coefficient direction adds no argument.
-            dleft = derivative(left, coefficient, argument, coefficient_derivatives)
-        dform = action(dleft, right, derivatives_expanded=True)
+            dleft = expand_derivatives(
+                derivative(left, coefficient, argument, coefficient_derivatives)
+            )
+        if not is_zero(dleft):
+            terms.append(action(dleft, right, derivatives_expanded=True))
 
-        # `action` needs the derivative of `right` expanded: the derivative of a
-        # coefficient is the direction or zero, and that of a form may vanish.
         dright = expand_derivatives(
             derivative(right, coefficient, argument, coefficient_derivatives)
         )
-        if isinstance(dright, Zero | ZeroBaseForm) or (isinstance(dright, Form) and dright.empty()):
-            return dform
-        return dform + action(left, dright, derivatives_expanded=True)
+        if not is_zero(dright):
+            terms.append(action(left, dright, derivatives_expanded=True))
+
+        if not terms:
+            return ZeroBaseForm(form.arguments() + extract_arguments(argument))
+        return sum(terms[1:], terms[0])
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
     if coefficient_derivatives is None:

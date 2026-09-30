@@ -453,6 +453,9 @@ def test_action_derivative():
     # The derivative of c(u) with respect to the Cofunction c is u, as an element of V**.
     c = Cofunction(V.dual())
     assert expand_derivatives(derivative(Action(c, u), c)) == u
+    # As an element of V**, u acts on a Cofunction t, giving t(u).
+    t = Cofunction(V.dual())
+    assert action(expand_derivatives(derivative(Action(c, u), c)), t) == Action(u, t)
 
 
 def test_zero_base_form_mult():
