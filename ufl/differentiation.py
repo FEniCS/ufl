@@ -193,7 +193,7 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
             return BaseFormOperator.__eq__(self, other)
         if type(other) is not type(self):
             return False
-        return self is other or all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands))
+        return self is other or self.ufl_operands == other.ufl_operands
 
     def argument_slots(self, outer_form=False):
         """Return a tuple of expressions containing argument and coefficient based expressions."""
