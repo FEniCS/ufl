@@ -6,6 +6,8 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from numbers import Number
+
 from ufl.argument import Argument, Coargument
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
@@ -85,6 +87,8 @@ class CoordinateDerivative(CoefficientDerivative):
 class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
+    ufl_operands: tuple[Expr, ...]
+
     _ufl_noslots_ = True
     _ufl_required_methods_: tuple[str, ...] = (
         CoefficientDerivative._ufl_required_methods_ + BaseForm._ufl_required_methods_
@@ -146,6 +150,8 @@ class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
 class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     """Derivative of a base form operator w.r.t the degrees of freedom in a discrete Coefficient."""
 
+    ufl_operands: tuple[BaseFormOperator, ExprList, ExprList, ExprMapping]
+
     _ufl_noslots_ = True
 
     # BaseFormOperatorDerivative is only needed because of a different
@@ -177,6 +183,17 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
 
     # Set __repr__
     __repr__ = Operator.__repr__
+
+    # The operands, including the differentiated operator, determine the derivative.
+    _ufl_compute_hash_ = Operator._ufl_compute_hash_
+
+    def __eq__(self, other):
+        """Check for equality."""
+        if isinstance(other, Number):
+            return BaseFormOperator.__eq__(self, other)
+        if type(other) is not type(self):
+            return False
+        return self is other or self.ufl_operands == other.ufl_operands
 
     def argument_slots(self, outer_form=False):
         """Return a tuple of expressions containing argument and coefficient based expressions."""

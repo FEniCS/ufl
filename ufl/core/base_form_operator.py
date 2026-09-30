@@ -19,6 +19,7 @@ from numbers import Number
 
 from ufl.argument import Argument, Coargument
 from ufl.constantvalue import as_ufl
+from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
@@ -32,6 +33,8 @@ __all__ = ["BaseFormOperator"]
 @ufl_type(num_ops="varying", is_differential=True)
 class BaseFormOperator(Operator, BaseForm, Counted):
     """Base form operator."""
+
+    ufl_operands: tuple[Expr, ...]
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
@@ -203,10 +206,10 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         r += f"; derivatives={self.derivatives!r})"
         return r
 
-    def __hash__(self):
+    def _ufl_compute_hash_(self):
         """Hash code for use in dicts."""
         hashdata = (
-            type(self),
+            self._ufl_typecode_,
             tuple(hash(op) for op in self.ufl_operands),
             tuple(hash(arg) for arg in self._argument_slots),
             self.derivatives,
