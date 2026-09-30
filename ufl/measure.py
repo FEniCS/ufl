@@ -10,6 +10,7 @@
 # Modified by Massimiliano Leoni, 2016.
 
 import numbers
+from collections.abc import Sequence
 from itertools import chain
 
 from ufl.checks import is_true_ufl_scalar
@@ -127,8 +128,8 @@ class Measure:
                 the integral_type on the primal domain in a multi-domain problem.
             domain: an AbstractDomain object (most often a Mesh);
                 the primal domain in a multi-domain problem.
-            subdomain_id: a single subdomain id int or string, or a list or tuple of ints
-                and strings. Lists are copied to tuples; an empty list or tuple selects
+            subdomain_id: a single subdomain id int or string, or a sequence of ints
+                and strings. Sequences are stored as tuples; an empty sequence selects
                 no subdomains.
             metadata: dict, with additional compiler-specific parameters
                 affecting how code is generated, including parameters
@@ -161,7 +162,7 @@ class Measure:
 
         # Accept "everywhere", single subdomain, or multiple
         # subdomains
-        if isinstance(subdomain_id, list):
+        if isinstance(subdomain_id, Sequence) and not isinstance(subdomain_id, (str, tuple)):
             subdomain_id = tuple(subdomain_id)
         if isinstance(subdomain_id, tuple):
             for did in subdomain_id:

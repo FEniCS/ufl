@@ -1,5 +1,7 @@
 """Tests of the various ways Measure objects can be created and used."""
 
+from collections import UserList
+
 import pytest
 from mockobjects import MockMesh, MockMeshFunction
 from utils import LagrangeElement
@@ -192,7 +194,9 @@ def test_foo():
 
 
 @pytest.mark.parametrize("ids", [[], [1], [2, 3], ["left", "right"]])
-def test_list_subdomain_ids(ids):
+@pytest.mark.parametrize("sequence_type", [list, tuple, UserList])
+def test_sequence_subdomain_ids(ids, sequence_type):
+    ids = sequence_type(ids)
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     expected = Measure("dx", domain=domain, subdomain_id=tuple(ids))
     direct = Measure("dx", domain=domain, subdomain_id=ids)
@@ -203,6 +207,12 @@ def test_list_subdomain_ids(ids):
         assert hash(measure) == hash(expected)
         assert measure.subdomain_id() == tuple(ids)
         assert as_ufl(1) * measure == as_ufl(1) * expected
+
+
+def test_range_subdomain_ids():
+    assert Measure("dx", subdomain_id=range(1, 4)) == Measure("dx", subdomain_id=(1, 2, 3))
+    assert Measure("dx", subdomain_id="everywhere").subdomain_id() == "everywhere"
+    assert Measure("dx", subdomain_id="left").subdomain_id() == "left"
 
 
 def test_list_subdomain_ids_are_copied():
