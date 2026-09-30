@@ -5,7 +5,6 @@ In the stripped version, any data-carrying objects have been extracted to a mapp
 
 from ufl.algorithms.replace import replace
 from ufl.classes import (
-    Argument,
     Coefficient,
     Constant,
     Form,
@@ -30,7 +29,7 @@ class TerminalStripper(MultiFunction):
 
     def argument(self, o):
         """Apply to argument."""
-        o_new = Argument(strip_function_space(o.ufl_function_space()), o.number(), o.part())
+        o_new = o.reconstruct(function_space=strip_function_space(o.ufl_function_space()))
         return self.mapping.setdefault(o, o_new)
 
     def coefficient(self, o):

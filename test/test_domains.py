@@ -9,22 +9,28 @@ import ufl  # noqa: F401
 from ufl import (
     Cell,
     Coefficient,
+    Cofunction,
     Constant,
     FunctionSpace,
+    Matrix,
     Mesh,
     TestFunction,
     TrialFunction,
+    action,
     dS,
     ds,
     dx,
     hexahedron,
+    inner,
     interval,
     quadrilateral,
     tetrahedron,
     triangle,
 )
-from ufl.algorithms import compute_form_data
+from ufl.action import Action
+from ufl.algorithms import compute_form_data, extract_arguments, extract_coefficients
 from ufl.domain import extract_domains
+from ufl.form import FormSum, ZeroBaseForm
 from ufl.pullback import (
     IdentityPullback,  # noqa: F401
     identity_pullback,
@@ -406,3 +412,50 @@ def test_extract_domains():
 
     assert domains[0] == dom_1
     assert domains[1] == dom_0
+
+
+def test_extract_domains_base_form():
+    # extract_domains previously only special-cased Form and Integral, and
+    # fell back to walking expr as an Expr tree of Arguments/Coefficients
+    # otherwise. That crashes on a BaseForm with no such tree (e.g. a bare
+    # ZeroBaseForm, or a FormSum mixing a Form with a Cofunction).
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = FunctionSpace(domain, element)
+    u = TrialFunction(V)
+    v = TestFunction(V)
+
+    assert extract_domains(ZeroBaseForm((v,))) == (domain,)
+
+    a = inner(u, v) * dx
+    L = Cofunction(V.dual())
+    residual = action(a, Coefficient(V)) - L
+    assert extract_domains(residual) == (domain,)
+
+
+def test_extract_domains_nested_base_form():
+    # Nested BaseForm composition, e.g. Action(Action(Matrix, Coefficient),
+    # Coefficient) reached through a FormSum, exercises recursion through
+    # iter_expressions rather than a single level of unwrapping.
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Lagrange", cell, 1, (), identity_pullback, H1)
+    V = FunctionSpace(domain, element)
+
+    A = Matrix(V, V)
+    f = Coefficient(V)
+    g = Coefficient(V)
+    h = Coefficient(V)
+
+    outer_action = action(action(A, f), g)
+    assert isinstance(outer_action, Action)
+    assert isinstance(outer_action.left(), Action)
+
+    outer_action2 = action(action(A, h), f)
+
+    fs = FormSum((outer_action, 1.0), (outer_action2, -1.0))
+
+    assert extract_domains(fs) == (domain,)
+    assert extract_arguments(fs) == []
+    assert set(extract_coefficients(fs)) == {f, g, h}

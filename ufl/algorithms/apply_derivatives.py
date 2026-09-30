@@ -158,8 +158,8 @@ class GenericDerivativeRuleset(DAGTraverser):
         self,
         var_shape: tuple,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
@@ -199,11 +199,11 @@ class GenericDerivativeRuleset(DAGTraverser):
     # --- Error checking for missing handlers and unexpected types
 
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
-            o: `Expr` to be processed.
+            o: `Expr` or `BaseForm` to be processed.
 
         Returns:
             Processed object.
@@ -723,8 +723,8 @@ class GradRuleset(GenericDerivativeRuleset):
         self,
         geometric_dimension: int,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(
@@ -738,11 +738,11 @@ class GradRuleset(GenericDerivativeRuleset):
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
-            o: `Expr` to be processed.
+            o: `Expr` or `BaseForm` to be processed.
 
         Returns:
             Processed object.
@@ -835,7 +835,7 @@ class GradRuleset(GenericDerivativeRuleset):
         """Differentiate a reference_value."""
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
-        if not f._ufl_is_terminal_:
+        if not (f._ufl_is_terminal_ or isinstance(f, Interpolate)):
             raise ValueError("ReferenceValue can only wrap a terminal")
         domain = extract_unique_domain(f, expand_mesh_sequence=False)
         if isinstance(domain, MeshSequence):
@@ -1001,8 +1001,8 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         self,
         topological_dimension: int,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(
@@ -1016,7 +1016,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
@@ -1068,7 +1068,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
     @process.register(ReferenceValue)
     def _(self, o: Expr) -> Expr:
         """Differentiate a reference_value."""
-        if not o.ufl_operands[0]._ufl_is_terminal_:
+        if not (o.ufl_operands[0]._ufl_is_terminal_ or isinstance(o.ufl_operands[0], Interpolate)):
             raise ValueError("ReferenceValue can only wrap a terminal")
         return ReferenceGrad(o)
 
@@ -1115,8 +1115,8 @@ class VariableRuleset(GenericDerivativeRuleset):
         self,
         var: Expr,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(
@@ -1160,11 +1160,11 @@ class VariableRuleset(GenericDerivativeRuleset):
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
-            o: `Expr` to be processed.
+            o: `Expr` or `BaseForm` to be processed.
 
         Returns:
             Processed object.
@@ -1272,8 +1272,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         arguments: ExprList,
         coefficient_derivatives: ExprMapping,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(
@@ -1306,11 +1306,11 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
-            o: `Expr` to be processed.
+            o: `Expr` or `BaseForm` to be processed.
 
         Returns:
             Processed object.
@@ -1650,6 +1650,13 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # the appropriate space
         return ZeroBaseForm(M.arguments() + self._v)
 
+    @process.register(ZeroBaseForm)  # type: ignore
+    def _(self, o: BaseForm) -> BaseForm:
+        """Differentiate a zero_base_form."""
+        # ZeroBaseForm is idempotent under differentiation: it stays zero,
+        # gaining the new derivative direction as an extra argument.
+        return ZeroBaseForm(o.arguments() + self._v)
+
 
 class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to BaseFormOperator.
@@ -1689,8 +1696,8 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
         coefficient_derivatives: ExprMapping,
         outer_base_form_op: Expr,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(
@@ -1706,11 +1713,11 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
-            o: `Expr` to be processed.
+            o: `Expr` or `BaseForm` to be processed.
 
         Returns:
             Processed object.
@@ -1771,8 +1778,8 @@ class DerivativeRuleDispatcher(DAGTraverser):
     def __init__(
         self,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
@@ -1781,16 +1788,18 @@ class DerivativeRuleDispatcher(DAGTraverser):
         self.pending_operations = ()
         # Create DAGTraverser caches.
         self._dag_traverser_cache: dict[
-            tuple[type, Expr] | tuple[type, Expr, Expr, Expr] | tuple[type, Expr, Expr, Expr, Expr],
+            tuple[type, Expr | BaseForm]
+            | tuple[type, Expr | BaseForm, Expr | BaseForm, Expr | BaseForm]
+            | tuple[type, Expr | BaseForm, Expr | BaseForm, Expr | BaseForm, Expr | BaseForm],
             DAGTraverser,
         ] = {}
 
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
-            o: `Expr` to be processed.
+            o: `Expr` or `BaseForm` to be processed.
 
         Returns:
             Processed object.
@@ -2013,8 +2022,9 @@ def apply_derivatives(expression):
         and isinstance(dexpression_dvar, int)
         and dexpression_dvar == 0
     ):
-        # The arguments got lost, just keep an empty Form
-        dexpression_dvar = Form([])
+        # Algebraic cancellation collapsed everything to a bare `0`: rebuild
+        # a properly shaped `ZeroBaseForm` rather than an argument-less Form.
+        dexpression_dvar = ZeroBaseForm(expression.arguments())
 
     # Get the recorded delayed operations
     pending_operations = dag_traverser.pending_operations
@@ -2087,8 +2097,8 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
         arguments: ExprList,
         coefficient_derivatives: ExprMapping,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(
@@ -2114,11 +2124,11 @@ class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
-            o: `Expr` to be processed.
+            o: `Expr` or `BaseForm` to be processed.
 
         Returns:
             Processed object.
@@ -2221,19 +2231,21 @@ class CoordinateDerivativeRuleDispatcher(DAGTraverser):
     def __init__(
         self,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
-        self._dag_traverser_cache: dict[tuple[type, Expr, Expr, Expr], DAGTraverser] = {}
+        self._dag_traverser_cache: dict[
+            tuple[type, Expr | BaseForm, Expr | BaseForm, Expr | BaseForm], DAGTraverser
+        ] = {}
 
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
-            o: `Expr` to be processed.
+            o: `Expr` or `BaseForm` to be processed.
 
         Returns:
             Processed object.

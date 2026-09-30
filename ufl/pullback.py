@@ -78,6 +78,17 @@ class AbstractPullback(ABC):
         """
         raise NonStandardPullbackException()
 
+    def apply_inverse(self, expr: Expr, domain: AbstractDomain | None = None) -> Expr:
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        raise NonStandardPullbackException()
+
 
 class IdentityPullback(AbstractPullback):
     """The identity pull back."""
@@ -99,6 +110,17 @@ class IdentityPullback(AbstractPullback):
             domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
+        """
+        return expr
+
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
         """
         return expr
 
@@ -147,6 +169,25 @@ class ContravariantPiola(AbstractPullback):
         kj = (*k, j)
         return as_tensor(transform[i, j] * expr[kj], (*k, i))
 
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse
+
+        domain = domain or extract_unique_domain(expr)
+        J = Jacobian(domain)
+        detJ = JacobianDeterminant(J)
+        K = JacobianInverse(domain)
+        *k, i, j = indices(len(expr.ufl_shape) + 1)
+        kj = (*k, j)
+        return as_tensor(detJ * K[i, j] * expr[kj], (*k, i))
+
     def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
@@ -191,6 +232,23 @@ class CovariantPiola(AbstractPullback):
         kj = (*k, j)
         return as_tensor(K[j, i] * expr[kj], (*k, i))
 
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        from ufl.classes import Jacobian
+
+        domain = domain or extract_unique_domain(expr)
+        J = Jacobian(domain)
+        *k, i, j = indices(len(expr.ufl_shape) + 1)
+        kj = (*k, j)
+        return as_tensor(J[j, i] * expr[kj], (*k, i))
+
     def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
@@ -231,6 +289,21 @@ class L2Piola(AbstractPullback):
         domain = domain or extract_unique_domain(expr)
         detJ = JacobianDeterminant(domain)
         return expr / detJ
+
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        from ufl.classes import JacobianDeterminant
+
+        domain = domain or extract_unique_domain(expr)
+        detJ = JacobianDeterminant(domain)
+        return expr * detJ
 
     def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
@@ -276,6 +349,24 @@ class DoubleContravariantPiola(AbstractPullback):
         kmn = (*k, m, n)
         return as_tensor((1.0 / detJ) ** 2 * J[i, m] * expr[kmn] * J[j, n], (*k, i, j))
 
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        from ufl.classes import JacobianDeterminant, JacobianInverse
+
+        domain = domain or extract_unique_domain(expr)
+        detJ = JacobianDeterminant(domain)
+        K = JacobianInverse(domain)
+        *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
+        kmn = (*k, m, n)
+        return as_tensor(detJ**2 * K[i, m] * expr[kmn] * K[j, n], (*k, i, j))
+
     def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
@@ -319,6 +410,23 @@ class DoubleCovariantPiola(AbstractPullback):
         *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
         kmn = (*k, m, n)
         return as_tensor(K[m, i] * expr[kmn] * K[n, j], (*k, i, j))
+
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        from ufl.classes import Jacobian
+
+        domain = domain or extract_unique_domain(expr)
+        J = Jacobian(domain)
+        *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
+        kmn = (*k, m, n)
+        return as_tensor(J[m, i] * expr[kmn] * J[n, j], (*k, i, j))
 
     def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
@@ -365,6 +473,25 @@ class CovariantContravariantPiola(AbstractPullback):
         *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
         kmn = (*k, m, n)
         return as_tensor((1.0 / detJ) * K[m, i] * expr[kmn] * J[j, n], (*k, i, j))
+
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        from ufl.classes import Jacobian, JacobianDeterminant, JacobianInverse
+
+        domain = domain or extract_unique_domain(expr)
+        J = Jacobian(domain)
+        detJ = JacobianDeterminant(J)
+        K = JacobianInverse(domain)
+        *k, i, j, m, n = indices(len(expr.ufl_shape) + 2)
+        kmn = (*k, m, n)
+        return as_tensor(detJ * J[m, i] * expr[kmn] * K[j, n], (*k, i, j))
 
     def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element.
@@ -437,6 +564,33 @@ class MixedPullback(AbstractPullback):
                 f"Expecting pulled back expression with shape '{value_shape}', got '{f.ufl_shape}'"
             )
         return f
+
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        domain = domain or extract_unique_domain(expr, expand_mesh_sequence=False)
+        gflat = [expr[idx] for idx in np.ndindex(expr.ufl_shape)]
+        r_components = []
+        offset = 0
+        # For each piece in physical space, apply the appropriate inverse pullback
+        for subelem, subdomain in zip(
+            self._element.sub_elements, domain.iterable_like(self._element)
+        ):
+            physical_shape = subelem.pullback.physical_value_shape(subelem, subdomain)
+            size = int(np.prod(physical_shape, dtype=int))
+            gsub = as_tensor(np.asarray(gflat[offset : offset + size]).reshape(physical_shape))
+            gmapped = subelem.pullback.apply_inverse(gsub, domain=subdomain)
+            # Flatten into the mapped expression for the whole thing
+            r_components.extend(gmapped[idx] for idx in np.ndindex(gmapped.ufl_shape))
+            offset += size
+        # And reshape appropriately
+        return as_tensor(np.asarray(r_components).reshape(self._element.reference_value_shape))
 
     def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
@@ -527,6 +681,37 @@ class SymmetricPullback(AbstractPullback):
             )
         return f
 
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        domain = domain or extract_unique_domain(expr, expand_mesh_sequence=False)
+        subelem = self._element.sub_elements[0]
+        physical_shape = subelem.pullback.physical_value_shape(subelem, domain)
+        size = int(np.prod(physical_shape, dtype=int))
+        gflat = [expr[idx] for idx in np.ndindex(expr.ufl_shape)]
+        # Symmetry repeats a reference piece across several physical blocks, so
+        # map each piece once, from the first block that carries it.
+        r_pieces = {}
+        for block, component in enumerate(np.ndindex(self._block_shape)):
+            i = self._symmetry[component]
+            if i in r_pieces:
+                continue
+            gsub = as_tensor(
+                np.asarray(gflat[size * block : size * (block + 1)]).reshape(physical_shape)
+            )
+            r_pieces[i] = subelem.pullback.apply_inverse(gsub, domain=domain)
+        r_components = []
+        for i in sorted(r_pieces):
+            gmapped = r_pieces[i]
+            r_components.extend(gmapped[idx] for idx in np.ndindex(gmapped.ufl_shape))
+        return as_tensor(np.asarray(r_components).reshape(self._element.reference_value_shape))
+
     def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
@@ -569,6 +754,17 @@ class PhysicalPullback(AbstractPullback):
         """
         return expr
 
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
+        """
+        return expr
+
     def physical_value_shape(self, element, domain) -> tuple[int, ...]:
         """Get the physical value shape when this pull back is applied to an element on a domain.
 
@@ -605,6 +801,17 @@ class CustomPullback(AbstractPullback):
             domain: The domain on which the function is defined
 
         Returns: The function pulled back to the reference cell
+        """
+        return expr
+
+    def apply_inverse(self, expr, domain=None):
+        """Apply the inverse of the pull back.
+
+        Args:
+            expr: A function on a physical cell
+            domain: The domain on which the function is defined
+
+        Returns: The function mapped to the reference cell
         """
         return expr
 

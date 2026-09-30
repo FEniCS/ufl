@@ -61,7 +61,7 @@ def sorted_by_key(mapping):
 
 
 def canonicalize_metadata(
-    metadata: None | dict | str | list | tuple | np.ndarray,
+    metadata: dict | str | list | tuple | np.ndarray | None,
 ) -> tuple:
     """Assuming metadata to be a dict with string keys and builtin python types as values.
 

@@ -57,6 +57,13 @@ class BaseArgument:
 
         self._repr = f"BaseArgument({self._ufl_function_space}, {self._number}, {self._part})"
 
+    def reconstruct(self, function_space=None, number=None, part=None):
+        """Reconstruct."""
+        function_space = function_space if function_space is not None else self._ufl_function_space
+        number = number if number is not None else self._number
+        part = part if part is not None else self._part
+        return type(self)(function_space, number, part)
+
     @property
     def ufl_shape(self):
         """Return the associated UFL shape."""

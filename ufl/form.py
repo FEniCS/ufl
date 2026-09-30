@@ -11,6 +11,7 @@
 # Modified by Nacime Bouziani, 2020.
 # Modified by Jørgen S. Dokken 2023.
 
+import hashlib
 import numbers
 import typing
 import warnings
@@ -732,6 +733,12 @@ class FormSum(BaseForm):
             arguments = arg.arguments()
             return ZeroBaseForm(arguments)
 
+        # Simplify FormSum((a, 1)) -> a
+        if len(args) == 1:
+            a, w = args[0]
+            if bool(w == 1):
+                return a
+
         return super().__new__(cls)
 
     def __init__(self, *components):
@@ -867,11 +874,18 @@ class ZeroBaseForm(BaseForm):
     used for sake of simplifying base-form expressions.
     """
 
+    # Not an Expr, so this doesn't come from the ufl_type() decorator.
+    # ufl_operands are the placeholder Arguments, which are themselves
+    # real terminals, so generic traversal (e.g. traverse_unique_terminals)
+    # should descend into them rather than stop here.
+    _ufl_is_terminal_ = False
+
     __slots__ = (
         "_arguments",
         "_coefficients",
         "_domains",
         "_hash",
+        "_signature",
         # Pyadjoint compatibility
         "form",
         "ufl_operands",
@@ -880,11 +894,17 @@ class ZeroBaseForm(BaseForm):
     def __init__(self, arguments):
         """Initialise."""
         BaseForm.__init__(self)
+        arguments = tuple(arguments)
         self._arguments = arguments
         self.ufl_operands = arguments
         self._hash = None
+        self._signature = None
         self._domains = None
         self.form = None
+
+    def _ufl_expr_reconstruct_(self, *operands):
+        """Return a new object of the same type with new operands."""
+        return type(self)(operands)
 
     def _analyze_form_arguments(self):
         """Analyze form arguments."""
@@ -905,6 +925,20 @@ class ZeroBaseForm(BaseForm):
         if self._domains is None:
             self._analyze_domains()
         return self._domains
+
+    def empty(self):
+        """Returns whether the ZeroBaseForm has no components, which is always true."""
+        return True
+
+    def signature(self):
+        """Return a signature for use with JIT caches."""
+        if self._signature is None:
+            renumbering = {domain: i for i, domain in enumerate(self.ufl_domains())}
+            data = tuple(
+                argument._ufl_signature_data_(renumbering) for argument in self.arguments()
+            )
+            self._signature = hashlib.sha512(str(data).encode("utf-8")).hexdigest()
+        return self._signature
 
     def __ne__(self, other):
         """Overwrite BaseForm.__neq__ which relies on `equals`."""

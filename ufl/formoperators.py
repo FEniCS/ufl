@@ -197,10 +197,11 @@ def action(form, coefficient=None, derivatives_expanded=None):
     is_coefficient_valid = not isinstance(coefficient, BaseForm) or (
         isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1
     )
-    # Can't expand derivatives on objects that are not Form or Expr (e.g. Matrix)
-    if isinstance(form, Form | BaseFormOperator) and is_coefficient_valid:
+    if isinstance(form, BaseForm) and is_coefficient_valid:
         if not derivatives_expanded:
-            # For external operators differentiation may turn a Form into a FormSum
+            # For external operators differentiation may turn a Form into a FormSum,
+            # and a FormSum's components may themselves simplify back into a single
+            # Form (e.g. a term cancelling against a ZeroBaseForm).
             form = expand_derivatives(form)
         if isinstance(form, Form):
             return compute_form_action(form, coefficient)

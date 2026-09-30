@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from functools import singledispatchmethod, wraps
-from typing import overload
+from typing import Any, overload
 
 from ufl.classes import Expr
 from ufl.form import BaseForm
@@ -24,15 +24,15 @@ class DAGTraverser:
     def __init__(
         self,
         compress: bool | None = True,
-        visited_cache: dict[tuple, Expr] | None = None,
-        result_cache: dict[Expr, Expr] | None = None,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
         """Initialise."""
         self._compress = compress
         self._visited_cache = {} if visited_cache is None else visited_cache
         self._result_cache = {} if result_cache is None else result_cache
 
-    def __call__(self, node: Expr, **kwargs) -> Expr:
+    def __call__(self, node: Expr | BaseForm, **kwargs) -> Any:
         """Perform memoised DAG traversal with ``process`` singledispatch method.
 
         Args:
@@ -42,7 +42,7 @@ class DAGTraverser:
                 keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
-            Processed Expression.
+            Result from processing the Expression.
 
         """
         cache_key = (node, tuple((k, v) for k, v in kwargs.items()))
@@ -65,7 +65,7 @@ class DAGTraverser:
             return result
 
     @singledispatchmethod
-    def process(self, o: Expr, **kwargs) -> Expr:
+    def process(self, o: Expr | BaseForm, **kwargs) -> Any:
         """Process node by type.
 
         Args:
@@ -75,7 +75,7 @@ class DAGTraverser:
                 Keyword arguments for the ``process`` singledispatchmethod.
 
         Returns:
-            Processed :py:class:`Expr`.
+            Result from processing the Expression.
         """
         raise AssertionError(f"Rule not set for {type(o)}")
 

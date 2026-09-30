@@ -4,7 +4,7 @@ __authors__ = "Nacime Bouziani"
 __date__ = "2021-11-19"
 
 import pytest
-from utils import FiniteElement, LagrangeElement
+from utils import FiniteElement, LagrangeElement, MixedElement
 
 from ufl import (
     Action,
@@ -14,8 +14,11 @@ from ufl import (
     Cofunction,
     FunctionSpace,
     Mesh,
+    SpatialCoordinate,
     TestFunction,
+    TestFunctions,
     TrialFunction,
+    TrialFunctions,
     action,
     adjoint,
     derivative,
@@ -32,8 +35,11 @@ from ufl.algorithms.analysis import (
     extract_base_form_operators,
     extract_coefficients,
     extract_terminals_with_domain,
+    extract_type,
 )
+from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.expand_indices import expand_indices
+from ufl.classes import Product, ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum
 from ufl.pullback import identity_pullback
@@ -85,6 +91,120 @@ def test_symbolic(V1, V2):
     assert Iu.argument_slots() == (vstar, u)
     assert Iu.arguments() == (vstar,)
     assert Iu.ufl_operands == (u,)
+    assert Iu.ufl_element() == V2.ufl_element()
+    assert Iu._cache == {}
+
+
+def test_form_compiler_metadata(domain_2d, V1, V2):
+    u = Coefficient(V1)
+    cofunction = Cofunction(V2.dual())
+
+    interpolation = Interpolate(u, V2)
+    assert interpolation.coefficients() == (u,)
+    assert interpolation.ufl_domains() == (domain_2d,)
+    assert interpolation.subdomain_data() == {domain_2d: {"cell": [None]}}
+    assert interpolation.ufl_element() == V2.ufl_element()
+
+    adjoint_interpolation = Interpolate(TestFunction(V1), cofunction)
+    assert adjoint_interpolation.coefficients() == (cofunction,)
+    assert adjoint_interpolation.ufl_function_space() == V1.dual()
+    assert adjoint_interpolation.ufl_element() == V2.ufl_element()
+
+    scalar_interpolation = Interpolate(u, cofunction)
+    assert scalar_interpolation.arguments() == ()
+    assert scalar_interpolation.coefficients() == (u, cofunction)
+    assert scalar_interpolation.ufl_function_space() is None
+    assert scalar_interpolation.ufl_element() == V2.ufl_element()
+
+
+def test_shape_and_negation(domain_2d, V1, V2):
+    scalar_element = V1.ufl_element()
+    vector_element = FiniteElement("CG", triangle, 1, (2,), identity_pullback, H1)
+    mixed_space = FunctionSpace(domain_2d, MixedElement([scalar_element, vector_element]))
+    target_space = FunctionSpace(domain_2d, vector_element)
+    _, trial = TrialFunctions(mixed_space)
+    _, test = TestFunctions(mixed_space)
+
+    for argument in (trial, test):
+        interpolation = Interpolate(argument, target_space)
+        assert interpolation.ufl_shape == target_space.value_shape
+        assert not isinstance(-interpolation, FormSum)
+
+    assert isinstance(-Interpolate(Coefficient(V1), V2), Product)
+    assert isinstance(-Interpolate(Coefficient(V1), Cofunction(V2.dual())), Product)
+
+
+def test_scaling_agrees_with_negation(domain_2d, V1, V2):
+    """Scaling an interpolation must agree with negating it.
+
+    Both follow the target space, the one that ``ufl_shape`` reports, so that an
+    interpolation of a test function stays an expression. Firedrake's fml is
+    what notices a disagreement: it builds ``form - label(form)`` and compares
+    the result against ``-form``.
+    """
+    scalar_element = V1.ufl_element()
+    vector_element = FiniteElement("CG", triangle, 1, (2,), identity_pullback, H1)
+    mixed_space = FunctionSpace(domain_2d, MixedElement([scalar_element, vector_element]))
+    target_space = FunctionSpace(domain_2d, vector_element)
+    _, trial = TrialFunctions(mixed_space)
+    _, test = TestFunctions(mixed_space)
+
+    for argument in (trial, test):
+        interpolation = Interpolate(argument, target_space)
+        assert type(-interpolation) is type(-1 * interpolation)
+        assert type(-interpolation) is type(interpolation * -1)
+        assert not isinstance(2 * interpolation, FormSum)
+        # Scaling preserves the value shape, which a FormSum would not have.
+        assert (2 * interpolation).ufl_shape == target_space.value_shape
+
+    for interpolation in (
+        Interpolate(Coefficient(V1), V2),
+        Interpolate(Coefficient(V1), Cofunction(V2.dual())),
+    ):
+        assert isinstance(-1 * interpolation, Product)
+        assert type(-interpolation) is type(-1 * interpolation)
+
+    # Addition still follows ufl_function_space(), so that a sum of adjoint
+    # interpolations stays a form -- see test_interpolate_expr.
+    adjoint_interpolation = Interpolate(test, target_space)
+    assert isinstance(adjoint_interpolation + adjoint_interpolation, FormSum)
+
+
+def test_form_compiler_signature(V1, V2, V3):
+    interpolation = Interpolate(Coefficient(V1), V2)
+    equivalent = Interpolate(Coefficient(V1), V2)
+    assert interpolation.signature() == equivalent.signature()
+
+    nested = Interpolate(interpolation, V3)
+    different_inner_target = Interpolate(Interpolate(Coefficient(V1), V1), V3)
+    assert nested.signature() != different_inner_target.signature()
+
+    cofunction_sum = Cofunction(V1.dual()) + Cofunction(V1.dual())
+    adjoint_interpolation = Interpolate(TestFunction(V2), cofunction_sum)
+    assert isinstance(adjoint_interpolation.signature(), str)
+
+
+def test_form_compiler_signature_depends_on_interpolation_target(domain_2d):
+    """Different target elements must not share an interpolation signature."""
+    curl_element = FiniteElement("N1curl", triangle, 1, (2,), identity_pullback, H1)
+    lagrange_element = FiniteElement("Lagrange", triangle, 1, (2,), identity_pullback, H1)
+    curl_space = FunctionSpace(domain_2d, curl_element)
+    lagrange_space = FunctionSpace(domain_2d, lagrange_element)
+    x = SpatialCoordinate(domain_2d)
+
+    curl_form = Interpolate(x, curl_space)[0] * dx
+    lagrange_form = Interpolate(x, lagrange_space)[0] * dx
+
+    assert curl_form.signature() != lagrange_form.signature()
+
+
+def test_reference_value_derivative(V1, V2):
+    Iu = Interpolate(Coefficient(V1), V2)
+    reference_value = ReferenceValue(Iu)
+
+    expression = apply_derivatives(grad(reference_value))
+    reference_grads = extract_type(expression, ReferenceGrad)
+    assert reference_value in {g.ufl_operands[0] for g in reference_grads}
 
 
 def test_symbolic_adjoint(V1, V2):
