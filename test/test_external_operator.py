@@ -549,6 +549,17 @@ def test_ZeroDerivative(V1):
     assert isinstance(dN1, ZeroBaseForm)
 
 
+def test_chain_rule_skips_underived_integrals(V1):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    dJ = derivative(N**2 * dx, u)
+    F = u * v * dx
+
+    # F is not differentiated, so it does not contribute to dJ/dN.
+    assert expand_derivatives(dJ + F) == expand_derivatives(dJ) + F
+
+
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
     from ufl.algorithms.analysis import extract_arguments
 
