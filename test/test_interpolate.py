@@ -41,7 +41,7 @@ from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.classes import Product, ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
-from ufl.form import Form, FormSum
+from ufl.form import Form, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -339,6 +339,76 @@ def test_formsum_derivative(V1, V2):
     assert expand_derivatives(FormSum((dJ, 1), (c, 1))) == FormSum(
         (c, 1), (expand_derivatives(dJ), 1)
     )
+
+
+def test_second_derivative(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    Iu = Interpolate(u, V2)
+    v0, v1 = TestFunction(V1), TrialFunction(V1)
+    w0, w1 = TestFunction(V2), TrialFunction(V2)
+
+    # Interpolation matrix I: V1 -> V2 and its adjoint I*: V2* -> V1*
+    Imat = Interpolate(v1, V2)
+    Imat_adj = Interpolate(v0, Argument(V2.dual(), 1))
+
+    # -- Differentiate: J = 0.5 * (Iu - f)**2 * dx -- #
+    J = 0.5 * (Iu - f) ** 2 * dx
+    dJdu = expand_derivatives(derivative(J, u))
+    # dJ/du = I* dJ/dIu, i.e. the adjoint interpolation of the form dJ/dIu
+    dJdIu = expand_derivatives(derivative(J, Iu, w0))
+    assert isinstance(dJdu, Interpolate)
+    assert dJdu.argument_slots() == (dJdIu, v0)
+
+    # Differentiate the adjoint interpolation.
+    # Its dual slot depends on u.
+    d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
+    d2Jdu2 = expand_derivatives(derivative(dJdu, u, v1))
+    assert d2Jdu2 == Action(Imat_adj, Action(d2JdIu2, Imat))
+    assert d2Jdu2.arguments() == (v0, v1)
+
+    # -- Nested derivatives expand one at a time from the inside out -- #
+    assert expand_derivatives(derivative(derivative(J, u), u)) == d2Jdu2
+
+    # -- Adjoint interpolation whose dual slot doesn't depend on u -- #
+    assert expand_derivatives(derivative(Interpolate(v0, f * w0 * dx), u, v1)) == ZeroBaseForm(
+        (v0, v1)
+    )
+
+    # -- Nested derivatives with an integral that doesn't depend on Iu -- #
+    R = 0.5 * u**2 * dx
+    d2Rdu2 = expand_derivatives(derivative(derivative(R, u), u))
+    d2Jdu2 = expand_derivatives(derivative(derivative(J + R, u), u))
+    assert isinstance(d2Jdu2, FormSum)
+    assert d2Jdu2.arguments() == (v0, v1)
+    assert set(d2Jdu2.components()) == {d2Rdu2, Action(Imat_adj, Action(d2JdIu2, Imat))}
+
+
+def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
+    u = Coefficient(V1)
+    du = Coefficient(V1)
+    v = TestFunction(V2)
+    vstar = inner(u, v) * dx
+    Iu = Interpolate(u, vstar)
+
+    actual = expand_derivatives(derivative(Iu, u, du))
+    expected = Interpolate(du, vstar) + Interpolate(u, inner(du, v) * dx)
+
+    assert actual == expected
+
+
+def test_second_derivative_through_nested_formsum(V1, V2):
+    u = Coefficient(V1)
+    du = Coefficient(V1)
+    v = TestFunction(V2)
+    Iu = Interpolate(u, inner(u, v) * dx)
+    term = Interpolate(du, inner(du, v) * dx)
+
+    d2Idu2 = expand_derivatives(derivative(derivative(Iu, u, du), u, du))
+
+    # The first derivative is a FormSum because both the operand and dual slot
+    # depend on u. Differentiating that nested FormSum gives the product rule twice.
+    assert d2Idu2 == FormSum((term, 1), (term, 1))
 
 
 def test_extract_base_form_operators(V1, V2):
