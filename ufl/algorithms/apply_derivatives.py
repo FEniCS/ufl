@@ -15,7 +15,7 @@ from math import pi
 import numpy as np
 
 from ufl.action import Action
-from ufl.algorithms.analysis import extract_arguments, extract_coefficients
+from ufl.algorithms.analysis import extract_arguments, extract_coefficients, has_type
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
@@ -2043,12 +2043,22 @@ def apply_derivatives(expression):
     var = pending_operations.var
     base_form_ops = pending_operations.base_form_ops
     der_kwargs = pending_operations.der_kwargs
+
+    def chain_rule_integrand(integrand):
+        # Only the terms under a derivative node depend on `var` through N.
+        if has_type(integrand, CoefficientDerivative):
+            return dag_traverser(integrand)
+        if isinstance(integrand, BaseForm):
+            return ZeroBaseForm(integrand.arguments())
+        return Zero(integrand.ufl_shape, integrand.ufl_free_indices, integrand.ufl_index_dimensions)
+
     for N in sorted(set(base_form_ops), key=lambda x: x.count()):
         # -- Replace dexpr/dvar by dexpr/dN -- #
         # We don't use `apply_derivatives` since the differentiation is
         # done via `\partial` and not `d`.
         dexpr_dN = map_integrands(
-            dag_traverser, replace_derivative_nodes(expression, {var.ufl_operands[0]: N})
+            chain_rule_integrand,
+            replace_derivative_nodes(expression, {var.ufl_operands[0]: N}),
         )
         # Don't take into account empty Forms
         if isinstance(dexpr_dN, Form) and dexpr_dN.empty():
