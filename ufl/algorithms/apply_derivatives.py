@@ -1363,7 +1363,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             return do
 
         # Look for o among coefficient derivatives
-        dos = self._cd.get(o)  # type: ignore
+        dos: Expr | tuple[Expr, ...] | None = self._cd.get(o)  # type: ignore
         if dos is None:
             # If o is not among coefficient derivatives, return
             # do/dw=0
@@ -1504,6 +1504,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Accumulate contributions from variations in different
         # components
         for w, v in zip(self._w, self._v):
+            wval: Expr
             # -- Analyse differentiation variable coefficient -- #
 
             # Can differentiate a Form wrt a BaseFormOperator
