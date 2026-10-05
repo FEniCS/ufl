@@ -329,6 +329,18 @@ def test_differentiation(V1, V2):
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
+def test_formsum_derivative(V1, V2):
+    u = Coefficient(V1)
+    J = Interpolate(u, V2) ** 2 * dx
+    dJ = derivative(J, u)
+    # The Cofunction is not under a derivative, so the chain rule only
+    # differentiates the interpolation in `dJ`.
+    c = Cofunction(V1.dual())
+    assert expand_derivatives(FormSum((dJ, 1), (c, 1))) == FormSum(
+        (c, 1), (expand_derivatives(dJ), 1)
+    )
+
+
 def test_extract_base_form_operators(V1, V2):
     u = Coefficient(V1)
     uhat = TrialFunction(V1)
