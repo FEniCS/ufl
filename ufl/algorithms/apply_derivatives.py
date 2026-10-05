@@ -15,7 +15,12 @@ from math import pi
 import numpy as np
 
 from ufl.action import Action
-from ufl.algorithms.analysis import extract_arguments, extract_coefficients, has_type
+from ufl.algorithms.analysis import (
+    extract_arguments,
+    extract_coefficients,
+    extract_type,
+    has_type,
+)
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
@@ -1773,6 +1778,56 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
         return sum(result)  # type: ignore
 
 
+def _derivative(
+    form: Expr | BaseForm, w: ExprList, v: ExprList, cd: ExprMapping
+) -> Expr | BaseForm:
+    """Expand the derivative of form with the operands of a derivative node."""
+    from ufl.algorithms.ad import expand_derivatives
+    from ufl.formoperators import derivative
+
+    coefficients, arguments = w.ufl_operands, v.ufl_operands
+    # `derivative` takes a single coefficient on its own.
+    coefficient = coefficients[0] if len(coefficients) == 1 else coefficients
+    argument = arguments[0] if len(arguments) == 1 else arguments
+    operands = cd.ufl_operands
+    cd_map = {operands[2 * i]: operands[2 * i + 1] for i in range(len(operands) // 2)}
+    return expand_derivatives(derivative(form, coefficient, argument, cd_map))
+
+
+def substitute_dual_slot(N: BaseFormOperator, dvstar: BaseForm) -> BaseForm:
+    """Return N(u; dv*), using that N is linear in its dual slot."""
+    _, *slots = N.argument_slots()
+    return N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
+
+
+def act_on_dual_slot(N: BaseFormOperator, dvstar: BaseForm) -> BaseForm:
+    """Return Action(N(u; vhat), dv*), with vhat a new argument in the dual slot."""
+    vstar, *slots = N.argument_slots()
+    dual_form_argument, *_ = vstar.arguments()
+    # The Action contracts the last argument of N, so number vhat after the others.
+    number = 1 + max(
+        (a.number() for slot in slots for a in extract_type(slot, Argument, True)),
+        default=-1,
+    )
+    vhat = dual_form_argument.reconstruct(
+        function_space=dual_form_argument.ufl_function_space().dual(), number=number
+    )
+    N = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
+    return Action(N, dvstar)
+
+
+def compose_dual_slot(N: BaseFormOperator, dvstar: BaseForm) -> BaseForm:
+    """Compose N with the derivative dv* of its dual slot.
+
+    This is the only place that chooses how the product rule term for the
+    dual slot is represented.
+    """
+    if isinstance(dvstar, Form):
+        # A Form is a valid dual slot.
+        return substitute_dual_slot(N, dvstar)
+    return act_on_dual_slot(N, dvstar)
+
+
 class DerivativeRuleDispatcher(DAGTraverser):
     """Dispatch a derivative rule."""
 
@@ -1871,6 +1926,45 @@ class DerivativeRuleDispatcher(DAGTraverser):
         self.pending_operations += dag_traverser.pending_operations  # type: ignore
         return mapped_expr
 
+    def _differentiate_dual_slot(
+        self,
+        N: BaseFormOperator,
+        dN: BaseForm,
+        w: ExprList,
+        v: ExprList,
+        cd: ExprMapping,
+    ) -> BaseForm:
+        vstar, *_ = N.argument_slots()
+        if isinstance(vstar, Coargument | Cofunction):
+            return ZeroBaseForm(dN.arguments())
+
+        dvstar = _derivative(vstar, w, v, cd)
+        if isinstance(dvstar, ZeroBaseForm) or (isinstance(dvstar, Form) and dvstar.empty()):
+            return ZeroBaseForm(dN.arguments())
+
+        assert isinstance(dvstar, BaseForm)
+        return compose_dual_slot(N, dvstar)
+
+    def _differentiate_base_form_operator(
+        self,
+        f: BaseFormOperator,
+        w: ExprList,
+        v: ExprList,
+        cd: ExprMapping,
+    ) -> Expr | BaseForm:
+        key = (BaseFormOperatorDerivativeRuleset, w, v, cd, f)
+        dag_traverser = self._dag_traverser_cache.setdefault(
+            key, BaseFormOperatorDerivativeRuleset(w, v, cd, f)
+        )
+        assert isinstance(dag_traverser, BaseFormOperatorDerivativeRuleset)
+        mapped_expr = dag_traverser(f)
+        mapped_f = dag_traverser._process_coefficient(f)
+        if mapped_f != 0:
+            return mapped_f
+        self.pending_operations += dag_traverser.pending_operations
+        assert isinstance(mapped_expr, BaseForm)
+        return mapped_expr + self._differentiate_dual_slot(f, mapped_expr, w, v, cd)
+
     @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
     def _(self, o: BaseFormOperatorDerivative, f: Expr | BaseForm) -> Expr | BaseForm:
@@ -1885,25 +1979,12 @@ class DerivativeRuleDispatcher(DAGTraverser):
             if isinstance(arg, BaseArgument):
                 arguments += (arg,)
             return ZeroBaseForm(arguments)
-        # Need a BaseFormOperatorDerivativeRuleset object
-        # for each outer_base_form_op (= f).
-        key = (BaseFormOperatorDerivativeRuleset, w, v, cd, f)
-        # We need to go through the dag first to record the pending operations
-        dag_traverser = self._dag_traverser_cache.setdefault(
-            key,  # type: ignore
-            BaseFormOperatorDerivativeRuleset(w, v, cd, f),  # type: ignore
-        )
-        # If f has been seen by the traverser, it immediately returns
-        # the cached value.
-        mapped_expr = dag_traverser(f)  # type: ignore
-        mapped_f = dag_traverser._process_coefficient(f)  # type: ignore
-        if mapped_f != 0:
-            # If dN/dN needs to return an Argument in N space
-            # with N a BaseFormOperator.
-            return mapped_f
-        # Need to account for pending operations that have been stored in other integrands
-        self.pending_operations += dag_traverser.pending_operations  # type: ignore
-        return mapped_expr
+        if isinstance(f, BaseFormOperator):
+            return self._differentiate_base_form_operator(f, w, v, cd)
+        # An inner derivative of an operator whose dual slot depends on `w` is
+        # a FormSum or an Action, which `derivative` differentiates by linearity
+        # and the Leibniz rule.
+        return _derivative(f, w, v, cd)
 
     @process.register(CoordinateDerivative)
     @DAGTraverser.postorder_only_children([0])
