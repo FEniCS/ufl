@@ -32,7 +32,7 @@ from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.coefficient import Cofunction
 from ufl.core.external_operator import ExternalOperator
-from ufl.differentiation import BaseFormOperatorDerivative
+from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
 from ufl.form import BaseForm, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
@@ -612,7 +612,10 @@ def test_action_derivative_wrt_base_form_operator(V1):
     A = Action(inner(u, v) * dx, N)
 
     # N is not a coefficient of A, but A depends on N through the right slot.
-    assert expand_derivatives(derivative(A, N, v)) == inner(u, v) * dx
+    dA = derivative(A, N, v)
+    # The Leibniz rule is applied when the derivative is expanded.
+    assert isinstance(dA, BaseFormDerivative)
+    assert expand_derivatives(dA) == inner(u, v) * dx
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
