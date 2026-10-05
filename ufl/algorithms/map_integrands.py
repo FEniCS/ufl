@@ -15,6 +15,7 @@ from ufl.adjoint import Adjoint
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr
 from ufl.corealg.map_dag import map_expr_dag
+from ufl.differentiation import BaseFormDerivative
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.integral import Integral
 
@@ -75,6 +76,12 @@ def map_integrands(function, form, only_integral_type=None):
         right = map_integrands(function, form._right, only_integral_type)
         # Zeros are caught inside `Action.__new__`
         return Action(left, right)
+    elif isinstance(form, BaseFormDerivative) and isinstance(
+        form.ufl_operands[0], Action | Form | FormSum | ZeroBaseForm
+    ):
+        # A derivative of a BaseForm is mapped through, not into as an integrand.
+        base_form, *operands = form.ufl_operands
+        return type(form)(map_integrands(function, base_form, only_integral_type), *operands)
     elif isinstance(form, ZeroBaseForm):
         arguments = tuple(
             map_integrands(function, arg, only_integral_type) for arg in form._arguments

@@ -368,7 +368,10 @@ def test_second_derivative(V1, V2):
     assert d2Jdu2.arguments() == (v0, v1)
 
     # -- Nested derivatives expand one at a time from the inside out -- #
-    assert expand_derivatives(derivative(derivative(J, u), u)) == d2Jdu2
+    H = derivative(derivative(J, u), u)
+    # `derivative` does not expand, so the Hessian is a Form until it is expanded.
+    assert isinstance(H, Form)
+    assert expand_derivatives(H) == d2Jdu2
 
     # -- Adjoint interpolation whose dual slot doesn't depend on u -- #
     assert expand_derivatives(derivative(Interpolate(v0, f * w0 * dx), u, v1)) == ZeroBaseForm(

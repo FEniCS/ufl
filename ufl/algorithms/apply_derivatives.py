@@ -75,6 +75,7 @@ from ufl.core.terminal import Terminal
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
+    BaseFormDerivative,
     BaseFormOperatorDerivative,
     CoefficientDerivative,
     CoordinateDerivative,
@@ -82,7 +83,7 @@ from ufl.differentiation import (
     VariableDerivative,
 )
 from ufl.domain import MeshSequence, extract_unique_domain
-from ufl.form import BaseForm, Form, ZeroBaseForm
+from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.mathfunctions import (
     Acos,
     Asin,
@@ -1794,6 +1795,121 @@ def _derivative(
     return expand_derivatives(derivative(form, coefficient, argument, cd_map))
 
 
+def _is_zero(f: Expr | BaseForm) -> bool:
+    return isinstance(f, Zero | ZeroBaseForm) or (isinstance(f, Form) and f.empty())
+
+
+def _differentiate_action(
+    form: Action, w: ExprList, v: ExprList, cd: ExprMapping
+) -> Expr | BaseForm:
+    """Expand the derivative of an Action with the Leibniz rule."""
+    from ufl.formoperators import action, adjoint
+
+    left, right = form.ufl_operands
+    assert isinstance(left, BaseForm)
+    if len(left.arguments()) != 1:
+        raise NotImplementedError(
+            "Action derivative not supported when the left argument is not a 1-form."
+        )
+    (argument,) = v.ufl_operands
+    terms = []
+    (vleft,) = left.arguments()
+    if extract_arguments(argument):
+        assert isinstance(argument, BaseArgument)
+        # The derivative of `left` gains the argument of the direction. This argument
+        # is numbered after `vleft`, so that the two do not clash. The adjoint then gives
+        # it the requested number, which comes before `vleft`. The Action contracts `vleft`.
+        dv = argument.reconstruct(number=max(vleft.number(), argument.number()) + 1)
+        dleft = _derivative(left, w, ExprList(dv), cd)
+        if not _is_zero(dleft):
+            dleft = adjoint(
+                dleft,
+                reordered_arguments=(argument, vleft.reconstruct(number=argument.number() + 1)),
+                derivatives_expanded=True,
+            )
+    else:
+        # A coefficient direction adds no argument.
+        dleft = _derivative(left, w, v, cd)
+    if not _is_zero(dleft):
+        terms.append(action(dleft, right, derivatives_expanded=True))
+
+    dright = _derivative(right, w, v, cd)
+    if not _is_zero(dright):
+        terms.append(action(left, dright, derivatives_expanded=True))
+
+    if not terms:
+        return ZeroBaseForm(form.arguments() + extract_arguments(argument))
+    return sum(terms[1:], terms[0])
+
+
+def _differentiate_base_form(
+    form: BaseForm, w: ExprList, v: ExprList, cd: ExprMapping
+) -> Expr | BaseForm:
+    """Differentiate a BaseForm whose own derivatives have been expanded."""
+    if isinstance(form, Action):
+        return _differentiate_action(form, w, v, cd)
+    if isinstance(form, ZeroBaseForm):
+        return ZeroBaseForm(form.arguments() + extract_arguments(v))
+    if isinstance(form, Form) and form.empty():
+        return form
+    return _derivative(form, w, v, cd)
+
+
+def _expand_base_form_derivatives(form: Expr | BaseForm) -> Expr | BaseForm:
+    """Expand the derivatives of Forms, FormSums and Actions, innermost first."""
+    if isinstance(form, BaseFormDerivative) and isinstance(
+        form.ufl_operands[0], Action | Form | FormSum | ZeroBaseForm
+    ):
+        base_form, w, v, cd = form.ufl_operands
+        return _differentiate_base_form(apply_derivatives(base_form), w, v, cd)
+    if isinstance(form, FormSum):
+        components = [_expand_base_form_derivatives(c) for c in form.components()]
+        if all(c is d for c, d in zip(components, form.components())):
+            return form
+        return sum(c * w for c, w in zip(components, form.weights()))
+    if isinstance(form, Action):
+        left, right = (_expand_base_form_derivatives(op) for op in form.ufl_operands)
+        if (left, right) == form.ufl_operands:
+            return form
+        return Action(left, right)
+    return form
+
+
+def _split_nested_derivatives(form: Form) -> Expr | BaseForm | None:
+    """Expand the inner derivatives of a Form with base form operators first.
+
+    The inner derivative of an integrand with a base form operator may be a
+    FormSum or an Action, which cannot live inside an integral. The outer
+    derivative is then applied to the expanded inner derivative.
+    Return None if no integral has such nested derivatives.
+    """
+    nested: dict[tuple[ExprList, ExprList, ExprMapping], list] = {}
+    rest = []
+    for itg in form.integrals():
+        integrand = itg.integrand()
+        if type(integrand) is CoefficientDerivative:
+            inner, w, v, cd = integrand.ufl_operands
+            if has_type(inner, CoefficientDerivative) and has_type(inner, BaseFormOperator):
+                assert isinstance(w, ExprList) and isinstance(v, ExprList)
+                assert isinstance(cd, ExprMapping)
+                nested.setdefault((w, v, cd), []).append(itg.reconstruct(inner))
+                continue
+        rest.append(itg)
+    if not nested:
+        return None
+
+    terms = []
+    if rest:
+        terms.append(apply_derivatives(Form(rest)))
+    for (w, v, cd), integrals in nested.items():
+        inner = apply_derivatives(Form(integrals))
+        terms.append(_differentiate_base_form(inner, w, v, cd))
+    terms = [t for t in terms if not _is_zero(t)]
+    if not terms:
+        return ZeroBaseForm(form.arguments())
+    return sum(terms[1:], terms[0])
+
+
 def substitute_dual_slot(N: BaseFormOperator, dvstar: BaseForm) -> BaseForm:
     """Return N(u; dv*), using that N is linear in its dual slot."""
     _, *slots = N.argument_slots()
@@ -2088,6 +2204,13 @@ def apply_derivatives(expression):
         A differentiated expression
     """
     # Notation: Let `var` be the thing we are differentating with respect to.
+
+    if isinstance(expression, Form):
+        expanded = _split_nested_derivatives(expression)
+        if expanded is not None:
+            return expanded
+    else:
+        expression = _expand_base_form_derivatives(expression)
 
     dag_traverser = DerivativeRuleDispatcher()
 
