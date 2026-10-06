@@ -399,6 +399,9 @@ def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
 
     assert actual == expected
 
+    # The coargument in the dual slot does not depend on u.
+    assert expand_derivatives(derivative(Interpolate(u, V2), u, du)) == Interpolate(du, V2)
+
 
 def test_second_derivative_through_nested_formsum(V1, V2):
     u = Coefficient(V1)

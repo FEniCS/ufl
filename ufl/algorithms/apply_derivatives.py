@@ -1298,6 +1298,13 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         self._w = coefficients.ufl_operands
         self._v = arguments.ufl_operands
         self._w2v = {w: v for w, v in zip(self._w, self._v)}
+        # The arguments that the derivative adds to a BaseForm. A Coefficient
+        # direction, as in a tangent linear model, adds none.
+        self._direction_arguments = tuple(
+            a
+            for v in self._v
+            for a in ((v,) if isinstance(v, BaseArgument) else extract_arguments(v))
+        )
         # Build more convenient dict {f: df/dw} for each coefficient f
         # where df/dw is nonzero
         cd = coefficient_derivatives.ufl_operands
@@ -1637,7 +1644,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         dc = self._process_coefficient(o)  # type: ignore
         if dc == 0:
             # Convert ufl.Zero into ZeroBaseForm
-            return ZeroBaseForm(o.arguments() + self._v)  # type: ignore
+            return ZeroBaseForm(o.arguments() + self._direction_arguments)  # type: ignore
         return dc
 
     @process.register(Coargument)
@@ -1647,7 +1654,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         dc = self._process_argument(o)
         if dc == 0:
             # Convert ufl.Zero into ZeroBaseForm
-            return ZeroBaseForm(o.arguments() + self._v)  # type: ignore
+            return ZeroBaseForm(o.arguments() + self._direction_arguments)  # type: ignore
         return dc
 
     @process.register(Matrix)  # type: ignore
@@ -1656,14 +1663,14 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Matrix rule: D_w[v](M) = v if M == w else 0
         # We can't differentiate wrt a matrix so always return zero in
         # the appropriate space
-        return ZeroBaseForm(M.arguments() + self._v)
+        return ZeroBaseForm(M.arguments() + self._direction_arguments)
 
     @process.register(ZeroBaseForm)  # type: ignore
     def _(self, o: BaseForm) -> BaseForm:
         """Differentiate a zero_base_form."""
         # ZeroBaseForm is idempotent under differentiation: it stays zero,
         # gaining the new derivative direction as an extra argument.
-        return ZeroBaseForm(o.arguments() + self._v)
+        return ZeroBaseForm(o.arguments() + self._direction_arguments)
 
 
 class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
@@ -1743,7 +1750,7 @@ class BaseFormOperatorDerivativeRuleset(GateauxDerivativeRuleset):
             # i_op doesn't depend on w:
             #  -> It also covers the Hessian case since Interpolate is linear,
             #     e.g. D_w[v](D_w[v](i_op(w, v*))) = D_w[v](i_op(v, v*)) = 0 (since w not found).
-            return ZeroBaseForm(i_op.arguments() + self._v)  # type: ignore
+            return ZeroBaseForm(i_op.arguments() + self._direction_arguments)  # type: ignore
         return i_op._ufl_expr_reconstruct_(expr=dw)
 
     @process.register(ExternalOperator)
@@ -1836,8 +1843,7 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         ]
         dform = apply_derivatives(Form(integrals))
         if isinstance(dform, Form) and dform.empty():
-            _, v, _ = self._derivative_operands
-            return ZeroBaseForm(o.arguments() + tuple(extract_arguments(v)))
+            return ZeroBaseForm(o.arguments() + self._direction_arguments)
         return dform
 
     @process.register(FormSum)
@@ -1859,8 +1865,7 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         # Number the argument of `left` after the direction, so that the Action
         # contracts it and not the argument of the direction.
         (vleft,) = left.arguments()
-        _, v, _ = self._derivative_operands
-        number = 1 + max((vleft.number(), *(a.number() for a in extract_arguments(v))))
+        number = 1 + max((vleft.number(), *(a.number() for a in self._direction_arguments)))
         left_after_v = replace(left, {vleft: vleft.reconstruct(number=number)})
         return Action(self(left_after_v), right) + Action(left, self(right))
 
