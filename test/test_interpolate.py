@@ -493,14 +493,10 @@ def test_interpolate_argument_numbering(V1, V2):
     with pytest.raises(ValueError, match=r"Same argument numbers in first and second operands"):
         Interpolate(u0, vstar0)
 
-    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
-        Interpolate(u, vstar1)
-
-    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
-        Interpolate(u1, cofunc)
-
-    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
-        Interpolate(u1, one_form)
+    # Arguments need not be numbered contiguously.
+    Interpolate(u, vstar1)
+    Interpolate(u1, cofunc)
+    Interpolate(u1, one_form)
 
     u2 = u0 * u1
     with pytest.raises(
