@@ -66,8 +66,6 @@ class Interpolate(BaseFormOperator):
         # Check valid argument numbering
         if expr_arg_numbers & dual_arg_numbers:
             raise ValueError("Same argument numbers in first and second operands to interpolate.")
-        if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
-            raise ValueError("Non-contiguous argument numbers in interpolate.")
 
         # Reversed order convention
         argument_slots = (v, expr)
