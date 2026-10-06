@@ -14,6 +14,7 @@ from ufl.algebra import Sum
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient
 from ufl.constantvalue import Zero
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.interpolate import Interpolate
 from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
@@ -110,16 +111,18 @@ class Action(BaseForm):
             if v == right.arguments()[0]:
                 return right._ufl_expr_reconstruct_(operand, v=left)
 
-        # Simplify Action(Interpolate(Expr, Coargument), BaseForm)
-        # -> Interpolate(Expr, BaseForm)
+        # A base form operator is linear in its dual slot:
+        # Action(N(u; Coargument), BaseForm) -> N(u; BaseForm)
         if (
-            isinstance(left, Interpolate)
+            isinstance(left, BaseFormOperator)
             and isinstance(right, BaseForm)
             and len(right.arguments()) == 1
         ):
-            v, operand = left.argument_slots()
+            v, *slots = left.argument_slots()
             if v == left.arguments()[-1]:
-                return left._ufl_expr_reconstruct_(operand, v=right)
+                return left._ufl_expr_reconstruct_(
+                    *left.ufl_operands, argument_slots=(right, *slots)
+                )
 
         return super().__new__(cls)
 
@@ -267,4 +270,5 @@ def _get_action_form_arguments(left, right):
     if isinstance(left, BaseForm):
         coefficients += left.coefficients()
 
-    return arguments, coefficients
+    # Like any other BaseForm, the highest-numbered argument comes last.
+    return tuple(sorted(arguments, key=lambda a: a.number())), coefficients
