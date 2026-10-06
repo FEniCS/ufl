@@ -29,7 +29,9 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import expand_derivatives
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.coefficient import Cofunction
 from ufl.core.external_operator import ExternalOperator
 from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
@@ -541,6 +543,31 @@ def test_replace(V1):
 
     dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(A, uhat))
     assert G == dN_replaced
+
+
+def test_replace_base_form_derivative(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    dJ = derivative(Action(N * u * v * dx, u), u)
+    assert isinstance(dJ, BaseFormDerivative)
+
+    with pytest.raises(ValueError, match="Derivatives should be applied"):
+        replace(dJ, {u: w})
+
+
+def test_base_form_derivative_lowers_compound_algebra(domain_2d):
+    V = FunctionSpace(domain_2d, FiniteElement("CG", triangle, 1, (2,), identity_pullback, H1))
+    u = Coefficient(V)
+    v = TestFunction(V)
+    N = ExternalOperator(u, function_space=V)
+    F = inner(N, v) * dx
+
+    def dJ(F):
+        return renumber_indices(expand_derivatives(derivative(Action(F, u), u)))
+
+    assert dJ(F) == dJ(apply_algebra_lowering(F))
 
 
 def test_ZeroDerivative(V1):

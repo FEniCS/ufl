@@ -21,6 +21,7 @@ from ufl.algorithms.analysis import (
     extract_type,
     has_type,
 )
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace_derivative_nodes import replace_derivative_nodes
@@ -2006,8 +2007,8 @@ class DerivativeRuleDispatcher(DAGTraverser):
             key,
             BaseFormDerivativeRuleset(w, v, cd),  # type: ignore
         )
-        # Expand the inner derivatives first.
-        mapped_expr = dag_traverser(apply_derivatives(base_form))  # type: ignore
+        # Lower compound algebra and expand the inner derivatives first.
+        mapped_expr = dag_traverser(apply_derivatives(apply_algebra_lowering(base_form)))  # type: ignore
         self.pending_operations += dag_traverser.pending_operations  # type: ignore
         return mapped_expr
 
