@@ -76,12 +76,6 @@ def map_integrands(function, form, only_integral_type=None):
         right = map_integrands(function, form._right, only_integral_type)
         # Zeros are caught inside `Action.__new__`
         return Action(left, right)
-    elif isinstance(form, BaseFormDerivative) and isinstance(
-        form.ufl_operands[0], Action | Form | FormSum | ZeroBaseForm
-    ):
-        # A derivative of a BaseForm is mapped through, not into as an integrand.
-        base_form, *operands = form.ufl_operands
-        return type(form)(map_integrands(function, base_form, only_integral_type), *operands)
     elif isinstance(form, ZeroBaseForm):
         arguments = tuple(
             map_integrands(function, arg, only_integral_type) for arg in form._arguments
@@ -96,6 +90,14 @@ def map_integrands(function, form, only_integral_type=None):
 
 def map_integrand_dags(function, form, only_integral_type=None, compress=True):
     """Map integrand dags."""
-    return map_integrands(
-        lambda expr: map_expr_dag(function, expr, compress), form, only_integral_type
-    )
+
+    def map_integrand_dag(expr):
+        if isinstance(expr, BaseFormDerivative) and isinstance(
+            expr.ufl_operands[0], Action | Form | FormSum | ZeroBaseForm
+        ):
+            # The DAG of a derivative of a BaseForm stops at the BaseForm.
+            base_form, *operands = expr.ufl_operands
+            return type(expr)(map_integrand_dags(function, base_form, compress=compress), *operands)
+        return map_expr_dag(function, expr, compress)
+
+    return map_integrands(map_integrand_dag, form, only_integral_type)

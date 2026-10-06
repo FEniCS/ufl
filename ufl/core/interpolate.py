@@ -219,7 +219,7 @@ class Interpolate(BaseFormOperator):
         return (
             type(self) is type(other)
             and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
-            and self.ufl_function_space() == other.ufl_function_space()
+            and self._function_space == other._function_space
         )
 
 

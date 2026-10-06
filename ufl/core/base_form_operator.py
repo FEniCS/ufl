@@ -138,6 +138,9 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         from ufl.algorithms.analysis import extract_coefficients, extract_type
 
         dual_arg, *arguments = self.argument_slots()
+        primal_args = tuple(
+            a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
+        )
         # When coarguments are treated as BaseForms, they have two
         # arguments (one primal and one dual) as they map from V* to V*
         # => V* x V -> R. However, when they are treated as mere
