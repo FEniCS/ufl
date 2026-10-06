@@ -15,7 +15,6 @@ from ufl.adjoint import Adjoint
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr
 from ufl.corealg.map_dag import map_expr_dag
-from ufl.differentiation import BaseFormDerivative
 from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
 from ufl.integral import Integral
 
@@ -90,14 +89,6 @@ def map_integrands(function, form, only_integral_type=None):
 
 def map_integrand_dags(function, form, only_integral_type=None, compress=True):
     """Map integrand dags."""
-
-    def map_integrand_dag(expr):
-        if isinstance(expr, BaseFormDerivative) and isinstance(
-            expr.ufl_operands[0], Action | Form | FormSum | ZeroBaseForm
-        ):
-            # The DAG of a derivative of a BaseForm stops at the BaseForm.
-            base_form, *operands = expr.ufl_operands
-            return type(expr)(map_integrand_dags(function, base_form, compress=compress), *operands)
-        return map_expr_dag(function, expr, compress)
-
-    return map_integrands(map_integrand_dag, form, only_integral_type)
+    return map_integrands(
+        lambda expr: map_expr_dag(function, expr, compress), form, only_integral_type
+    )
