@@ -35,7 +35,10 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.coefficient import Cofunction
+from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
+from ufl.core.interpolate import Interpolate
+from ufl.corealg.traversal import unique_pre_traversal
 from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
 from ufl.form import BaseForm, ZeroBaseForm
 from ufl.pullback import identity_pullback
@@ -547,6 +550,26 @@ def test_replace(V1):
     assert G == dN_replaced
 
 
+def test_replace_base_form_operator(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    M = ExternalOperator(w, function_space=V1)
+    Iw = Interpolate(w, V1)
+    e = N * v + M * v + Iw * v
+
+    # Replacing N by zero drops its term and keeps the operators that don't depend on N.
+    # Check them before comparing r, since == shares the operands of equal expressions.
+    r = replace(e, {N: Zero()})
+    operators = [
+        o for o in unique_pre_traversal(r) if isinstance(o, ExternalOperator | Interpolate)
+    ]
+    assert len(operators) == 2
+    assert all(o is M or o is Iw for o in operators)
+    assert r == M * v + Iw * v
+
+
 def test_replace_base_form_derivative(V1):
     u = Coefficient(V1)
     w = Coefficient(V1)
@@ -662,6 +685,19 @@ def test_chain_rule_for_each_derivative(V1):
     assert expand_derivatives(dF + dG) == expand_derivatives(dF) + expand_derivatives(dG)
 
 
+def test_operator_nested_in_slots_of_slots(V1):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    N1 = ExternalOperator(u, function_space=V1)
+    N3 = ExternalOperator(ExternalOperator(N1, function_space=V1), function_space=V1)
+
+    # dN1/du is in the integrand and in the slot of dN2/dN1 in the slot of dN3/dN2.
+    dF = expand_derivatives(derivative(N1 * v * dx + N3 * v * dx, u))
+    dF1 = expand_derivatives(derivative(N1 * v * dx, u))
+    dF3 = expand_derivatives(derivative(N3 * v * dx, u))
+    assert dF == dF1 + dF3
+
+
 def test_chain_rule_only_differentiates_its_derivative(V1):
     u = Coefficient(V1)
     w = Coefficient(V1)
@@ -740,10 +776,22 @@ def test_functional_hessian_through_composition(V1):
     N = ExternalOperator(M, function_space=V1)
     H = derivative(derivative(N * dx, u), u)
 
-    # dN/dM acts as an adjoint on v0 but dM/du acts forward on v1,
-    # and their Action would contract the wrong argument.
-    with pytest.raises(NotImplementedError, match="Cannot contract"):
-        expand_derivatives(H)
+    def a(number):
+        return Argument(V1, number)
+
+    def c(number):
+        return Coargument(V1.dual(), number)
+
+    def dM(n, *slots):
+        return M._ufl_expr_reconstruct_(u, derivatives=(n,), argument_slots=slots)
+
+    def dN(n, *slots):
+        return N._ufl_expr_reconstruct_(M, derivatives=(n,), argument_slots=slots)
+
+    # H[v0, v1] = d2N/dM2[dM/du[v0], dM/du[v1]] + dN/dM[d2M/du2[v0, v1]]
+    d2N = Action(Action(dM(1, c(1), a(0)), dN(2, c(2), a(0), a(3))), dM(1, c(0), a(1)))
+    d2M = Action(dM(2, c(2), a(0), a(1)), dN(1, c(2), a(0)))
+    assert expand_derivatives(H) == Action(d2N, a(0) * dx) + Action(d2M, a(0) * dx)
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):

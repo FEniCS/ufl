@@ -1647,6 +1647,14 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                 derivatives=derivatives,
                 argument_slots=N.argument_slots() + (df,),
             )
+        # N is linear in its argument slots, as in N(u; DM(u)[v0], v*) for N(M(u)).
+        vstar, *slots = N.argument_slots()
+        for i, slot in enumerate(slots):
+            dslot = self(slot)
+            if dslot == 0:
+                continue
+            dslots = (*slots[:i], dslot, *slots[i + 1 :])
+            dN += N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *dslots))
         return dN
 
     # -- Handlers for BaseForm objects -- #
@@ -1946,143 +1954,71 @@ def _uncontracted_arguments(N: BaseFormOperator) -> tuple[Argument, ...]:
     )
 
 
-class BaseFormOperatorSplitter(DAGTraverser):
-    """Replace a base form operator in an expression, and zero its uncontracted arguments.
-
-    The uncontracted arguments of the base form operator, and the other base
-    form operators with any of them, are replaced by zero.
-    """
-
-    def __init__(
-        self,
-        operator: BaseFormOperator,
-        replacement: Expr,
-        arguments: tuple[Argument, ...] = (),
-        compress: bool | None = True,
-        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
-        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
-    ) -> None:
-        """Initialise."""
-        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
-        self.operator = operator
-        self.replacement = replacement
-        self.arguments = set(arguments)
-
-    @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
-        """Process ``o``.
-
-        Args:
-            o: `Expr` to be processed.
-
-        Returns:
-            Processed object.
-
-        """
-        return super().process(o)
-
-    @process.register(Expr)
-    def _(self, o: Expr) -> Expr:
-        """Apply to expr."""
-        return self.reuse_if_untouched(o)
-
-    @process.register(Argument)
-    def _(self, o: Argument) -> Expr:
-        """Apply to argument."""
-        if o in self.arguments:
-            return Zero(o.ufl_shape)
-        return o
-
-    @process.register(BaseFormOperator)
-    def _(self, o: BaseFormOperator) -> Expr:
-        """Apply to base_form_operator."""
-        if o == self.operator:
-            return self.replacement
-        if self.arguments.intersection(_uncontracted_arguments(o)):
-            return Zero(o.ufl_shape)
-        return o
+def _gateaux_derivative(N: BaseFormOperator, Nhat: Argument) -> GateauxDerivativeRuleset:
+    """Return the rules for the Gateaux derivative with respect to N in the direction Nhat."""
+    return GateauxDerivativeRuleset(ExprList(N), ExprList(Nhat), ExprMapping())
 
 
 def _last_operator(expressions) -> BaseFormOperator | None:
-    """Return the last created base form operator with uncontracted arguments in expressions."""
+    """Return the last created base form operator with uncontracted arguments in expressions.
+
+    An operator is created after the operators in its argument slots, so no
+    other operator has the last one in its slots.
+    """
     operators = [
         o
         for e in expressions
         for o in unique_pre_traversal(e)
         if isinstance(o, BaseFormOperator) and _uncontracted_arguments(o)
     ]
-    # Extracting the last operator first makes the Actions follow the order of creation.
     return max(operators, key=lambda o: o.count(), default=None)
 
 
-def _as_base_form(N: BaseFormOperator) -> BaseForm:
-    """Return a base form operator from an expression as the BaseForm it represents.
-
-    In an expression, the dual argument of N may share its number with its
-    uncontracted arguments, such as the direction v0 of the derivative of a
-    functional. The BaseForm numbers the dual argument before them, or after
-    them when it cannot, as for an adjoint operator.
+def _as_base_form(N: BaseFormOperator, vstar: Coargument) -> BaseForm:
+    """Return a base form operator N with the dual argument vstar as the BaseForm it represents.
 
     N is linear in its argument slots, so a base form operator Q with
-    uncontracted arguments in a slot splits N as N|_{Q=0} + _action(Q, dN/dQ[Qhat]).
+    uncontracted arguments in a slot splits N as N|_{Q=0} + _contract(Q, ..., dN/dQ).
     """
-    vstar, *slots = N.argument_slots()
-    numbers = [a.number() for a in _uncontracted_arguments(N)]
-    if isinstance(vstar, Coargument) and vstar.number() >= min(numbers, default=vstar.number() + 1):
-        vstar = vstar.reconstruct(number=1 + max(numbers))
-
+    vstar_N, *slots = N.argument_slots()
     Q = _last_operator(slots)
     if Q is None:
-        if vstar is N.argument_slots()[0]:
+        if vstar == vstar_N:
             return N
         return N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *slots))
 
-    Q_form = _as_base_form(Q)
-    arguments = _uncontracted_arguments(Q)
-    Qhat = _operator_argument(Q_form, [a for a in N.arguments() if a not in arguments])
-    dN_dQ = [BaseFormOperatorSplitter(Q, Qhat, arguments)(slot) for slot in slots]
-    dN_dQ = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *dN_dQ))
-    term = _action(Q_form, _as_base_form(dN_dQ), Qhat)
+    def dN_dQ(Qhat: Argument) -> BaseForm:
+        return _as_base_form(_gateaux_derivative(Q, Qhat)(N), vstar)
 
-    rest = [BaseFormOperatorSplitter(Q, Zero(Q.ufl_shape))(slot) for slot in slots]
+    arguments = _uncontracted_arguments(Q)
+    others = [vstar, *(a for a in _uncontracted_arguments(N) if a not in arguments)]
+    term = _contract(Q, others, dN_dQ)
+
+    rest = [replace(slot, {Q: Zero(Q.ufl_shape)}) for slot in slots]
     if any(isinstance(slot, Zero) for slot in rest):
         return term
     rest = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *rest))
-    return _as_base_form(rest) + term
+    return _as_base_form(rest, vstar) + term
 
 
-def _is_adjoint(N: BaseForm) -> bool:
-    """Return whether a base form operator numbers its dual argument after its other arguments."""
-    first, *_ = N.arguments()
-    return not isinstance(first, Coargument)
+def _contract(N: BaseFormOperator, others, F) -> BaseForm:
+    """Return the Action contracting the dual argument of N with the argument Nhat of F(Nhat).
 
-
-def _operator_argument(N: BaseForm, others) -> Argument:
-    """Return the argument replacing the base form operator N in a form F.
-
-    _action(N, F) contracts the dual argument of N with the last argument of F,
-    or with its first argument when N numbers its dual argument last.
+    others are the arguments of F(Nhat) other than Nhat. An Action contracts the
+    last argument of its left operand with the first argument of its right
+    operand, so Action(F(Nhat), N) numbers the dual argument of N before its
+    uncontracted arguments, and Action(N, F(Nhat)) numbers Nhat before others.
+    The first is possible unless an uncontracted argument of N is numbered 0.
     """
-    vstar = next(a for a in N.arguments() if isinstance(a, Coargument))
-    # Reconstruct an argument of N, which keeps its Argument class.
+    vstar, *_ = N.argument_slots()
+    numbers = [a.number() for a in _uncontracted_arguments(N)]
     argument = next(a for a in N.arguments() if isinstance(a, Argument))
-    if _is_adjoint(N):
-        number = 0
-    else:
-        number = 1 + max((a.number() for a in others), default=-1)
-    return type(argument)(vstar.ufl_function_space().dual(), number)
-
-
-def _action(N: BaseForm, F: BaseForm, Nhat: Argument) -> BaseForm:
-    """Contract the dual argument of a base form operator N with the argument Nhat of F."""
-    arguments = F.arguments()
-    if _is_adjoint(N) and arguments[0] == Nhat:
-        return Action(N, F)
-    if not _is_adjoint(N) and arguments[-1] == Nhat:
-        return Action(F, N)
-    raise NotImplementedError(
-        f"Cannot contract {ufl_err_str(N)} with the argument {Nhat} of {ufl_err_str(F)}."
-    )
+    space = vstar.ufl_function_space().dual()
+    if min(numbers) > 0:
+        Nhat = type(argument)(space, 1 + max((a.number() for a in others), default=-1))
+        return Action(F(Nhat), _as_base_form(N, vstar.reconstruct(number=0)))
+    Nhat = type(argument)(space, 0)
+    return Action(_as_base_form(N, vstar.reconstruct(number=1 + max(numbers))), F(Nhat))
 
 
 def extract_base_form_operator_actions(form: BaseForm) -> BaseForm:
@@ -2090,10 +2026,7 @@ def extract_base_form_operator_actions(form: BaseForm) -> BaseForm:
 
     An integrand is linear in a base form operator N with an uncontracted
     argument v, such as the Gateaux derivative dN/du[v]. The form F splits as
-    F = F|_{N=0} + _action(N, dF/dN[Nhat]), where dF/dN[Nhat] replaces N by an
-    argument Nhat and drops the terms of F where v appears without N. The Action
-    is Action(dF/dN[Nhat], N), or Action(N, dF/dN[Nhat]) when N numbers its dual
-    argument after its other arguments, as for the derivative of a functional.
+    F = F|_{N=0} + _contract(N, ..., dF/dN).
     """
     if isinstance(form, FormSum):
         return FormSum(
@@ -2110,7 +2043,8 @@ def extract_base_form_operator_actions(form: BaseForm) -> BaseForm:
             )
         )
     if isinstance(form, BaseFormOperator):
-        return _as_base_form(form)
+        vstar, *_ = form.argument_slots()
+        return _as_base_form(form, vstar)
     if not isinstance(form, Form):
         return form
 
@@ -2118,13 +2052,16 @@ def extract_base_form_operator_actions(form: BaseForm) -> BaseForm:
     if N is None:
         return form
 
-    N_form = _as_base_form(N)
-    arguments = _uncontracted_arguments(N)
-    Nhat = _operator_argument(N_form, [a for a in form.arguments() if a not in arguments])
-    dF_dN = map_integrands(BaseFormOperatorSplitter(N, Nhat, arguments), form)
-    term = _action(N_form, extract_base_form_operator_actions(dF_dN), Nhat)
+    def dF_dN(Nhat: Argument) -> BaseForm:
+        return extract_base_form_operator_actions(
+            map_integrands(_gateaux_derivative(N, Nhat), form)
+        )
 
-    rest = map_integrands(BaseFormOperatorSplitter(N, Zero(N.ufl_shape)), form)
+    arguments = _uncontracted_arguments(N)
+    others = [a for a in form.arguments() if a not in arguments]
+    term = _contract(N, others, dF_dN)
+
+    rest = replace(form, {N: Zero(N.ufl_shape)})
     if rest.empty():
         return term
     return extract_base_form_operator_actions(rest) + term
