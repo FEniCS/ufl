@@ -1467,6 +1467,14 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                 f = Grad(f)
             return f
 
+        if isinstance(o, BaseFormOperator) and o not in self._w:
+            # D[grad(N)] = grad(D[N])
+            do = self(o)
+            grad_ruleset = GradRuleset(g.ufl_shape[-1])
+            for i in range(ngrads):
+                do = grad_ruleset(do)
+            return do
+
         # Find o among all w without any indexing, which makes this
         # easy
         for w, v in zip(self._w, self._v):
