@@ -337,7 +337,7 @@ def test_formsum_derivative(V1, V2):
     # differentiates the interpolation in `dJ`.
     c = Cofunction(V1.dual())
     assert expand_derivatives(FormSum((dJ, 1), (c, 1))) == FormSum(
-        (c, 1), (expand_derivatives(dJ), 1)
+        (expand_derivatives(dJ), 1), (c, 1)
     )
 
 
@@ -371,7 +371,8 @@ def test_second_derivative(V1, V2):
     H = derivative(derivative(J, u), u)
     # `derivative` does not expand, so the Hessian is a Form until it is expanded.
     assert isinstance(H, Form)
-    assert expand_derivatives(H) == d2Jdu2
+    # The Actions of the interpolations associate the other way around.
+    assert expand_derivatives(H) == Action(Action(Imat_adj, d2JdIu2), Imat)
 
     # -- Adjoint interpolation whose dual slot doesn't depend on u -- #
     assert expand_derivatives(derivative(Interpolate(v0, f * w0 * dx), u, v1)) == ZeroBaseForm(
@@ -384,7 +385,53 @@ def test_second_derivative(V1, V2):
     d2Jdu2 = expand_derivatives(derivative(derivative(J + R, u), u))
     assert isinstance(d2Jdu2, FormSum)
     assert d2Jdu2.arguments() == (v0, v1)
-    assert set(d2Jdu2.components()) == {d2Rdu2, Action(Imat_adj, Action(d2JdIu2, Imat))}
+    assert set(d2Jdu2.components()) == {d2Rdu2, Action(Action(Imat_adj, d2JdIu2), Imat)}
+
+
+def test_derivative_keeps_interpolate(V1, V2):
+    # Subclasses of Interpolate carry data that reconstruction may drop.
+    Iu = Interpolate(Coefficient(V1), V2)
+    assert apply_derivatives(Iu) is Iu
+
+
+def test_derivative_keeps_argument_class(V1, V2):
+    class DirectionArgument(Argument):
+        pass
+
+    u = Coefficient(V1)
+    v0 = DirectionArgument(V1, 0)
+    dJ = expand_derivatives(derivative(Interpolate(u, V2) ** 2 * dx, u, v0))
+
+    # The argument replacing Iu in dJ/dIu has the class of the direction.
+    dJdIu, _ = dJ.argument_slots()
+    assert all(type(a) is DirectionArgument for a in dJdIu.arguments())
+
+
+def test_coefficient_derivatives(V1, V2):
+    u = Coefficient(V1)
+    g = Coefficient(V1)
+    v = TestFunction(V1)
+    uhat = TrialFunction(V1)
+    Iu = Interpolate(u, V2)
+
+    # The given derivative of Iu replaces the derivative of its operand.
+    dF = derivative(Iu * v * dx, u, uhat, coefficient_derivatives={Iu: g})
+    assert expand_derivatives(dF) == g * uhat * v * dx
+
+
+def test_scaled_second_derivative(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    Iu = Interpolate(u, V2)
+    v0, v1 = TestFunction(V1), TrialFunction(V1)
+    w0, w1 = TestFunction(V2), TrialFunction(V2)
+    Imat = Interpolate(v1, V2)
+    Imat_adj = Interpolate(v0, Argument(V2.dual(), 1))
+    J = 0.5 * (Iu - f) ** 2 * dx
+    d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
+
+    H = derivative(derivative(J, u), u)
+    assert expand_derivatives(2 * H) == Action(Action(Imat_adj, 2 * d2JdIu2), Imat)
 
 
 def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
@@ -493,19 +540,14 @@ def test_interpolate_argument_numbering(V1, V2):
     Interpolate(u1, vstar0)
     Interpolate(u0, vstar1)  # adjoint
 
-    with pytest.raises(ValueError, match=r"Same argument numbers in first and second operands"):
-        Interpolate(u0, vstar0)
+    # The dual argument may share its number with an operand argument, as in
+    # an integrand, which contracts it.
+    assert Interpolate(u0, vstar0).arguments() == (vstar0, u0)
 
     # Arguments need not be numbered contiguously.
     Interpolate(u, vstar1)
     Interpolate(u1, cofunc)
     Interpolate(u1, one_form)
-
-    u2 = u0 * u1
-    with pytest.raises(
-        ValueError, match=r"Same argument numbers in first and second operands to interpolate."
-    ):
-        Interpolate(u2, vstar0)
 
     with pytest.raises(ValueError, match=r"Expecting a primal function space."):
         Interpolate(u, V2.dual())

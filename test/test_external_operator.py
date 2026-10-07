@@ -22,9 +22,11 @@ from ufl import (
     adjoint,
     cos,
     derivative,
+    ds,
     dx,
     inner,
     replace,
+    sign,
     sin,
     triangle,
 )
@@ -644,6 +646,104 @@ def test_action_derivative_wrt_base_form_operator(V1):
     # The Leibniz rule is applied when the derivative is expanded.
     assert isinstance(dA, BaseFormDerivative)
     assert expand_derivatives(dA) == inner(u, v) * dx
+
+
+def test_chain_rule_for_each_derivative(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    uhat = TrialFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    M = ExternalOperator(w, function_space=V1)
+    dF = derivative(N * v * dx, u, uhat)
+    dG = derivative(M * v * ds, w, uhat)
+
+    # Each derivative applies the chain rule through its own base form operators.
+    assert expand_derivatives(dF + dG) == expand_derivatives(dF) + expand_derivatives(dG)
+
+
+def test_chain_rule_only_differentiates_its_derivative(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    uhat = TrialFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    dF = derivative(N * w * v * dx, u, uhat)
+    dG = derivative(w**2 * N * v * ds, w, uhat)
+
+    # dG depends on N(u), but it is not differentiated with respect to u.
+    assert expand_derivatives(dF + dG) == expand_derivatives(dF) + expand_derivatives(dG)
+
+
+def test_action_derivative_through_composition(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    uhat = TrialFunction(V1)
+    M = ExternalOperator(u, function_space=V1)
+    N = ExternalOperator(M, function_space=V1)
+    F = w * v * dx
+
+    # D[Action(F, N(M(u)))] = Action(F, Action(dN/dM, dM/du))
+    dNdM = N._ufl_expr_reconstruct_(M, derivatives=(1,), argument_slots=N.arguments() + (uhat,))
+    dMdu = M._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=M.arguments() + (uhat,))
+    dA = expand_derivatives(derivative(Action(F, N), u, uhat))
+    assert dA == Action(F, Action(dNdM, dMdu))
+
+
+def test_vanishing_derivative(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    uhat = TrialFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    M = ExternalOperator(w, function_space=V1)
+
+    # The derivative keeps its arguments when it vanishes.
+    assert expand_derivatives(derivative(sign(N) * v * dx, u, uhat)) == ZeroBaseForm((v, uhat))
+    assert expand_derivatives(derivative(M * v * dx, u, uhat)) == ZeroBaseForm((v, uhat))
+
+    # An empty Form has no derivative to vanish.
+    assert type(apply_derivatives(Form([]))) is Form
+
+
+def test_coefficient_derivatives(V1):
+    u = Coefficient(V1)
+    g = Coefficient(V1)
+    v = TestFunction(V1)
+    uhat = TrialFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+
+    # The given derivative of N replaces the derivative of its operator.
+    dF = derivative(N * v * dx, u, uhat, coefficient_derivatives={N: g})
+    assert expand_derivatives(dF) == g * uhat * v * dx
+
+
+def test_functional_derivative(V1):
+    u = Coefficient(V1)
+    v0 = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    J = N**2 * dx
+
+    # The direction v0 is numbered first, so dN/du acts as an adjoint
+    # on dJ/dN, which takes the dual slot.
+    dJdN = expand_derivatives(derivative(J, N, v0))
+    dNdu_adj = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(dJdN, v0))
+    dJdu = expand_derivatives(derivative(J, u))
+    assert dJdu == dNdu_adj
+    assert dJdu.arguments() == (v0,)
+
+
+def test_functional_hessian_through_composition(V1):
+    u = Coefficient(V1)
+    M = ExternalOperator(u, function_space=V1)
+    N = ExternalOperator(M, function_space=V1)
+    H = derivative(derivative(N * dx, u), u)
+
+    # dN/dM acts as an adjoint on v0 but dM/du acts forward on v1,
+    # and their Action would contract the wrong argument.
+    with pytest.raises(NotImplementedError, match="Cannot contract"):
+        expand_derivatives(H)
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
