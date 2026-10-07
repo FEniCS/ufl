@@ -20,18 +20,18 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15.0-rc.3"]
         include:
           - os: windows-latest
-            python-version: "3.13"
+            python-version: "3.14"
           - os: macos-latest
-            python-version: "3.13"
+            python-version: "3.14"
 
     uses: ./.github/workflows/test.yml
     with:
       python-version: ${{ matrix.python-version }}
       os: ${{ matrix.os }}
-      deploy: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && matrix.os == 'ubuntu-latest' && matrix.python-version == 3.12 }}
+      deploy: ${{ github.repository == 'FEniCS/ufl' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ) && matrix.os == 'ubuntu-latest' && matrix.python-version == 3.14 }}
 
   docs:
     needs: [lint, test]
