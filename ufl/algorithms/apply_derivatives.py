@@ -1962,11 +1962,6 @@ def _uncontracted_arguments(N: BaseFormOperator) -> tuple[Argument, ...]:
     )
 
 
-def _gateaux_derivative(N: BaseFormOperator, Nhat: Argument) -> GateauxDerivativeRuleset:
-    """Return the rules for the Gateaux derivative with respect to N in the direction Nhat."""
-    return GateauxDerivativeRuleset(ExprList(N), ExprList(Nhat), ExprMapping())
-
-
 def _last_operator(expressions) -> BaseFormOperator | None:
     """Return the last created base form operator with uncontracted arguments in expressions.
 
@@ -2067,7 +2062,8 @@ class BaseFormOperatorActionRestructurer(DAGTraverser):
             others = [a.number() for a in F.arguments() if a not in arguments]
             Nhat_number, vstar_number = 1 + max(others, default=-1), 0
         Nhat = type(arguments[0])(vstar.ufl_function_space().dual(), Nhat_number)
-        dF_dN = self(map_integrands(_gateaux_derivative(N, Nhat), F))
+        rules = GateauxDerivativeRuleset(ExprList(N), ExprList(Nhat), ExprMapping())
+        dF_dN = self(map_integrands(rules, F))
         vstar = vstar.reconstruct(number=vstar_number)
         N = self(N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *slots)))
         if adjoint:
