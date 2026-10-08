@@ -8,50 +8,69 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from ufl.algorithms.map_integrands import map_integrand_dags
+from functools import singledispatchmethod
+
+import ufl.classes
+from ufl.algorithms.map_integrands import map_integrands
 from ufl.classes import Conj, Grad, Product
 from ufl.compound_expressions import cofactor_expr, determinant_expr, deviatoric_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.tensors import as_matrix, as_tensor, as_vector
 
 
-class LowerCompoundAlgebra(MultiFunction):
+class LowerCompoundAlgebra(DAGTraverser):
     """Expands high level compound operators to equivalent representations using basic operators."""
 
-    def __init__(self):
-        """Initialize."""
-        MultiFunction.__init__(self)
+    @singledispatchmethod
+    def process(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+        """Process ``o``."""
+        return super().process(o)
 
-    ufl_type = MultiFunction.reuse_if_untouched
+    @process.register(ufl.classes.Expr)
+    @process.register(ufl.classes.BaseForm)
+    def _(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+        return self.reuse_if_untouched(o)
 
     # ------------ Compound tensor operators
 
-    def trace(self, o, A):
+    @process.register(ufl.classes.Trace)
+    @DAGTraverser.postorder
+    def _(self, o, A):
         """Lower a trace."""
         i = Index()
         return A[i, i]
 
-    def transposed(self, o, A):
+    @process.register(ufl.classes.Transposed)
+    @DAGTraverser.postorder
+    def _(self, o, A):
         """Lower a transposed."""
         i, j = indices(2)
         return as_tensor(A[i, j], (j, i))
 
-    def deviatoric(self, o, A):
+    @process.register(ufl.classes.Deviatoric)
+    @DAGTraverser.postorder
+    def _(self, o, A):
         """Lower a deviatoric."""
         return deviatoric_expr(A)
 
-    def skew(self, o, A):
+    @process.register(ufl.classes.Skew)
+    @DAGTraverser.postorder
+    def _(self, o, A):
         """Lower a skew."""
         i, j = indices(2)
         return as_matrix((A[i, j] - A[j, i]) / 2, (i, j))
 
-    def sym(self, o, A):
+    @process.register(ufl.classes.Sym)
+    @DAGTraverser.postorder
+    def _(self, o, A):
         """Lower a sym."""
         i, j = indices(2)
         return as_matrix((A[i, j] + A[j, i]) / 2, (i, j))
 
-    def cross(self, o, a, b):
+    @process.register(ufl.classes.Cross)
+    @DAGTraverser.postorder
+    def _(self, o, a, b):
         """Lower a cross."""
 
         def c(i, j):
@@ -59,11 +78,15 @@ class LowerCompoundAlgebra(MultiFunction):
 
         return as_vector((c(1, 2), c(2, 0), c(0, 1)))
 
-    def perp(self, o, a):
+    @process.register(ufl.classes.Perp)
+    @DAGTraverser.postorder
+    def _(self, o, a):
         """Lower a perp."""
         return as_vector([-a[1], a[0]])
 
-    def dot(self, o, a, b):
+    @process.register(ufl.classes.Dot)
+    @DAGTraverser.postorder
+    def _(self, o, a, b):
         """Lower a dot."""
         ai = indices(len(a.ufl_shape) - 1)
         bi = indices(len(b.ufl_shape) - 1)
@@ -72,7 +95,9 @@ class LowerCompoundAlgebra(MultiFunction):
         s = a[ai + k] * b[k + bi]
         return as_tensor(s, ai + bi)
 
-    def inner(self, o, a, b):
+    @process.register(ufl.classes.Inner)
+    @DAGTraverser.postorder
+    def _(self, o, a, b):
         """Lower an inner."""
         ash = a.ufl_shape
         bsh = b.ufl_shape
@@ -83,7 +108,9 @@ class LowerCompoundAlgebra(MultiFunction):
         s = a[ii] * Conj(b[ii])
         return s
 
-    def outer(self, o, a, b):
+    @process.register(ufl.classes.Outer)
+    @DAGTraverser.postorder
+    def _(self, o, a, b):
         """Lower an outer."""
         ii = indices(len(a.ufl_shape))
         jj = indices(len(b.ufl_shape))
@@ -91,31 +118,43 @@ class LowerCompoundAlgebra(MultiFunction):
         s = Conj(a[ii]) * b[jj]
         return as_tensor(s, ii + jj)
 
-    def determinant(self, o, A):
+    @process.register(ufl.classes.Determinant)
+    @DAGTraverser.postorder
+    def _(self, o, A):
         """Lower a determinant."""
         return determinant_expr(A)
 
-    def cofactor(self, o, A):
+    @process.register(ufl.classes.Cofactor)
+    @DAGTraverser.postorder
+    def _(self, o, A):
         """Lower a cofactor."""
         return cofactor_expr(A)
 
-    def inverse(self, o, A):
+    @process.register(ufl.classes.Inverse)
+    @DAGTraverser.postorder
+    def _(self, o, A):
         """Lower an inverse."""
         return inverse_expr(A)
 
     # ------------ Compound differential operators
 
-    def div(self, o, a):
+    @process.register(ufl.classes.Div)
+    @DAGTraverser.postorder
+    def _(self, o, a):
         """Lower a div."""
         i = Index()
         return a[..., i].dx(i)
 
-    def nabla_div(self, o, a):
+    @process.register(ufl.classes.NablaDiv)
+    @DAGTraverser.postorder
+    def _(self, o, a):
         """Lower a nabla_div."""
         i = Index()
         return a[i, ...].dx(i)
 
-    def nabla_grad(self, o, a):
+    @process.register(ufl.classes.NablaGrad)
+    @DAGTraverser.postorder
+    def _(self, o, a):
         """Lower a nabla_grad."""
         sh = a.ufl_shape
         if sh == ():
@@ -125,7 +164,9 @@ class LowerCompoundAlgebra(MultiFunction):
             ii = tuple(indices(len(sh)))
             return as_tensor(a[ii].dx(j), (j,) + ii)
 
-    def curl(self, o, a):
+    @process.register(ufl.classes.Curl)
+    @DAGTraverser.postorder
+    def _(self, o, a):
         """Lower a curl."""
 
         # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.ufl_shape == ()
@@ -147,4 +188,4 @@ class LowerCompoundAlgebra(MultiFunction):
 
 def apply_algebra_lowering(expr):
     """Expands high level compound operators to equivalent representations using basic operators."""
-    return map_integrand_dags(LowerCompoundAlgebra(), expr)
+    return map_integrands(LowerCompoundAlgebra(), expr)
