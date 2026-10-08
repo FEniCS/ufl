@@ -14,7 +14,7 @@ from collections import defaultdict
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
-from ufl.core.base_form_operator import BaseFormOperator, _get_dual_slot_arguments
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
