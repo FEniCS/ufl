@@ -24,7 +24,7 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace import replace
-from ufl.argument import Argument, BaseArgument, Coargument
+from ufl.argument import Argument, Coargument
 from ufl.averaging import CellAvg, FacetAvg
 from ufl.checks import is_cellwise_constant
 from ufl.classes import (
@@ -1301,11 +1301,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         self._w2v = {w: v for w, v in zip(self._w, self._v)}
         # The arguments that the derivative adds to a BaseForm. A Coefficient
         # direction, as in a tangent linear model, adds none.
-        self._direction_arguments = tuple(
-            a
-            for v in self._v
-            for a in ((v,) if isinstance(v, BaseArgument) else extract_arguments(v))
-        )
+        self._direction_arguments = tuple(extract_arguments(arguments))
         # Build more convenient dict {f: df/dw} for each coefficient f
         # where df/dw is nonzero
         cd = coefficient_derivatives.ufl_operands
