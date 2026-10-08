@@ -206,12 +206,6 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
         )
         return argument_slots
 
-    def __eq__(self, other):
-        """Check for equality using the derivative operands."""
-        if self is other:
-            return True
-        return type(self) is type(other) and self.ufl_operands == other.ufl_operands
-
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class BaseFormOperatorCoordinateDerivative(BaseFormOperatorDerivative, CoordinateDerivative):
