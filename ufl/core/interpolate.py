@@ -55,7 +55,9 @@ class Interpolate(BaseFormOperator):
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
                 raise ValueError("Expecting a primal function space.")
-            n = 1 if expr_arg_numbers == {0} else 0
+            # Take the lowest free number, so that an expression linear in
+            # several arguments stays representable.
+            n = min(set(range(len(expr_arg_numbers) + 1)) - expr_arg_numbers)
             v = Argument(v.dual(), n)
             dual_arg_numbers = {n}
         elif isinstance(v, BaseForm):
@@ -66,7 +68,8 @@ class Interpolate(BaseFormOperator):
         # Check valid argument numbering
         if expr_arg_numbers & dual_arg_numbers:
             raise ValueError("Same argument numbers in first and second operands to interpolate.")
-        if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
+        argument_numbers = expr_arg_numbers | dual_arg_numbers
+        if argument_numbers and argument_numbers != set(range(len(argument_numbers))):
             raise ValueError("Non-contiguous argument numbers in interpolate.")
 
         # Reversed order convention
@@ -154,6 +157,15 @@ class Interpolate(BaseFormOperator):
             )
             self._signature = hashlib.sha512(str(signatures).encode("utf-8")).hexdigest()
         return self._signature
+
+    def target_space(self) -> AbstractFunctionSpace:
+        """Return the function space that the expression is interpolated into.
+
+        Unlike `ufl_function_space` this does not depend on the argument
+        numbering, so it stays correct when the interpolated expression holds an
+        argument of the enclosing form.
+        """
+        return self._function_space
 
     def ufl_element(self) -> AbstractFiniteElement:
         """Return the target finite element."""

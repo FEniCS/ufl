@@ -19,6 +19,7 @@ from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.form import BaseForm
 from ufl.precedence import parstr
+from ufl.utils.counted import Counted
 from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
@@ -157,6 +158,11 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
         )
         self._argument_slots = base_form._argument_slots
         self._domains = None
+        # `BaseFormOperator` is a `Counted`, but the `BaseFormDerivative.__init__`
+        # above does not reach `Counted.__init__`, so initialise the count here.
+        # Without it `Form.terminal_numbering` (and hence `Form.signature`) fails
+        # on any form holding a derivative of a base form operator.
+        Counted.__init__(self, counted_class=BaseFormOperator)
 
     # Enforce Operator reconstruction as Operator is a parent class of
     # both: BaseFormDerivative and BaseFormOperator.
