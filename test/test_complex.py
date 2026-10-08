@@ -7,6 +7,7 @@ from ufl import (
     Coefficient,
     FunctionSpace,
     Mesh,
+    SpatialCoordinate,
     TestFunction,
     TrialFunction,
     as_tensor,
@@ -201,6 +202,19 @@ def test_comparison_checker(self):
     assert do_comparison_check(e) == max_value(real(as_ufl(0)), real(real(u)))
     assert do_comparison_check(f) == min_value(real(sin(u)), real(cos(v)))
     assert do_comparison_check(g) == min_value(real(sin(pow(u, 3))), real(cos(abs(v))))
+
+
+def test_comparison_checker_real_matrix_after_lowering(self):
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+
+    x = SpatialCoordinate(domain)
+    rotation = as_tensor(((1, 0), (0, 1)))
+    expression = dot(rotation, x)
+    lowered_expression = apply_algebra_lowering(expression)
+    condition = conditional(lowered_expression[0] < 0.001, 1, 0)
+
+    do_comparison_check(condition)
 
 
 def test_complex_degree_handling(self):
