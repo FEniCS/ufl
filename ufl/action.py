@@ -206,9 +206,10 @@ def _check_function_spaces(left, right):
     """Check if the function spaces of left and right match."""
     # Action differentiation pushes differentiation through
     # right as a consequence of Leibniz formula.
-    if isinstance(right, CoefficientDerivative):
+    # The derivative of a BaseForm has its own arguments, which include the direction.
+    if isinstance(right, CoefficientDerivative) and not isinstance(right, BaseForm):
         right, *_ = right.ufl_operands
-    if isinstance(left, CoefficientDerivative):
+    if isinstance(left, CoefficientDerivative) and not isinstance(left, BaseForm):
         left, *_ = left.ufl_operands
 
     # `Zero` doesn't contain any information about the function space.
