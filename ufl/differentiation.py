@@ -188,14 +188,6 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     # The operands, including the differentiated operator, determine the derivative.
     _ufl_compute_hash_ = Operator._ufl_compute_hash_
 
-    def __eq__(self, other):
-        """Check for equality."""
-        if isinstance(other, Number):
-            return BaseFormOperator.__eq__(self, other)
-        if type(other) is not type(self):
-            return False
-        return self is other or self.ufl_operands == other.ufl_operands
-
     def argument_slots(self, outer_form=False):
         """Return a tuple of expressions containing argument and coefficient based expressions."""
         from ufl.algorithms.analysis import extract_arguments
@@ -205,6 +197,14 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
             arg for a in arguments for arg in extract_arguments(a)
         )
         return argument_slots
+
+    def __eq__(self, other):
+        """Check for equality using the derivative operands."""
+        if isinstance(other, Number):
+            return BaseFormOperator.__eq__(self, other)
+        if type(other) is not type(self):
+            return False
+        return self is other or self.ufl_operands == other.ufl_operands
 
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
