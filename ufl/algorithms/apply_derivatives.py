@@ -73,7 +73,6 @@ from ufl.core.interpolate import Interpolate
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
 from ufl.core.terminal import Terminal
 from ufl.corealg.dag_traverser import DAGTraverser
-from ufl.corealg.traversal import unique_pre_traversal
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
     BaseFormDerivative,
@@ -1948,129 +1947,6 @@ class DerivativeRuleDispatcher(DAGTraverser):
         return op
 
 
-def _uncontracted_arguments(N: BaseFormOperator) -> tuple[Argument, ...]:
-    """Return the arguments of a base form operator that a form using it does not contract.
-
-    A form contracts the dual argument of a base form operator in its integrand,
-    N(u; v*) * v * dx = Action(v1 * v * dx, N(u; v*)), but not the arguments in its
-    other slots, e.g. v in the Gateaux derivative dN/du[v] = dNdu(u; v, v*).
-    """
-    return tuple(
-        a
-        for slot in N.argument_slots(outer_form=True)
-        for a in extract_type(slot, Argument, base_form_op_as_expr=True)
-    )
-
-
-def _last_operator(expressions) -> BaseFormOperator | None:
-    """Return the last created base form operator with uncontracted arguments in expressions.
-
-    An operator is created after the operators in its argument slots, so no
-    other operator has the last one in its slots.
-    """
-    operators = [
-        o
-        for e in expressions
-        for o in unique_pre_traversal(e)
-        if isinstance(o, BaseFormOperator) and _uncontracted_arguments(o)
-    ]
-    return max(operators, key=lambda o: o.count(), default=None)
-
-
-class BaseFormOperatorActionRestructurer(DAGTraverser):
-    """Restructure a BaseForm into Actions on its base form operators with uncontracted arguments.
-
-    A form F is linear in a base form operator N with an uncontracted argument
-    v, such as the Gateaux derivative dN/du[v], so F is restructured as
-    F = F|_{N=0} + Action(dF/dN, N). Since N is linear in its argument slots, N
-    is restructured in the same way around a base form operator Q with
-    uncontracted arguments in a slot. The result is an equal BaseForm whose integrands and argument
-    slots contain no base form operators with uncontracted arguments.
-    """
-
-    @singledispatchmethod
-    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
-        """Process ``o``.
-
-        Args:
-            o: `Expr` or `BaseForm` to be processed.
-
-        Returns:
-            Processed object.
-
-        """
-        return super().process(o)
-
-    @process.register(Expr)
-    @process.register(BaseForm)
-    def _(self, o: Expr | BaseForm) -> Expr | BaseForm:
-        """Apply to expr and base_form."""
-        return o
-
-    @process.register(Action)
-    def _(self, o: Action) -> BaseForm:
-        """Apply to action."""
-        return self.reuse_if_untouched(o)
-
-    @process.register(FormSum)
-    def _(self, o: FormSum) -> BaseForm:
-        """Apply to form_sum."""
-        return FormSum(*((self(c), w) for c, w in zip(o.components(), o.weights())))
-
-    @process.register(Form)
-    def _(self, o: Form) -> BaseForm:
-        """Apply to form."""
-        N = _last_operator(itg.integrand() for itg in o.integrals())
-        if N is None:
-            return o
-        term = self._contract(N, o)
-        rest = replace(o, {N: Zero(N.ufl_shape)})
-        if rest.empty():
-            return term
-        return self(rest) + term
-
-    @process.register(BaseFormOperator)
-    def _(self, o: BaseFormOperator) -> BaseForm:
-        """Apply to base_form_operator."""
-        vstar, *slots = o.argument_slots()
-        N = _last_operator(slots)
-        if N is None:
-            return o
-        term = self._contract(N, o)
-        rest = [replace(slot, {N: Zero(N.ufl_shape)}) for slot in slots]
-        if any(isinstance(slot, Zero) for slot in rest):
-            return term
-        rest = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *rest))
-        return self(rest) + term
-
-    def _contract(self, N: BaseFormOperator, F: BaseForm) -> BaseForm:
-        """Return the Action contracting the dual argument of N with the argument Nhat of dF/dN.
-
-        An Action contracts the last argument of its left operand with the first
-        argument of its right operand, so Action(dF/dN, N) numbers the dual
-        argument of N before its uncontracted arguments, and Action(N, dF/dN)
-        numbers Nhat before the other arguments of dF/dN. The first is possible
-        unless an uncontracted argument of N is numbered 0.
-        """
-        vstar, *slots = N.argument_slots()
-        arguments = _uncontracted_arguments(N)
-        numbers = [a.number() for a in arguments]
-        adjoint = min(numbers) == 0
-        if adjoint:
-            Nhat_number, vstar_number = 0, 1 + max(numbers)
-        else:
-            others = [a.number() for a in F.arguments() if a not in arguments]
-            Nhat_number, vstar_number = 1 + max(others, default=-1), 0
-        Nhat = type(arguments[0])(vstar.ufl_function_space().dual(), Nhat_number)
-        rules = GateauxDerivativeRuleset(ExprList(N), ExprList(Nhat), ExprMapping())
-        dF_dN = self(map_integrands(rules, F))
-        vstar = vstar.reconstruct(number=vstar_number)
-        N = self(N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *slots)))
-        if adjoint:
-            return Action(N, dF_dN)
-        return Action(dF_dN, N)
-
-
 def apply_derivatives(expression):
     """Apply derivatives to an expression.
 
@@ -2088,7 +1964,7 @@ def apply_derivatives(expression):
     ):
         # The derivative vanishes: keep its arguments, which an empty Form has lost.
         return ZeroBaseForm(expression.arguments())
-    return BaseFormOperatorActionRestructurer()(dexpression)
+    return dexpression
 
 
 class CoordinateDerivativeRuleset(GenericDerivativeRuleset):

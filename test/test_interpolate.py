@@ -39,6 +39,7 @@ from ufl.algorithms.analysis import (
 )
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.expand_indices import expand_indices
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Product, ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
@@ -293,29 +294,23 @@ def test_differentiation(V1, V2):
     F = Iu * v * dx
     Ihat = TrialFunction(Iu.ufl_function_space())
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # Compute dFdu = ∂F/∂u + Action(dFdIu, dIu/du)
-    #              = Action(dFdIu, Iu(uhat, v*))
+    # dF/du[uhat] = dF/dIu[dIu/du[uhat]]
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
     assert dFdIu == Ihat * v * dx
-    assert dFdu == Action(dFdIu, dIu)
+    assert dFdu == dIu * v * dx
 
     # -- Differentiate: u * I(u, V2) * v * dx -- #
     F = u * Iu * v * dx
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # Compute dFdu = ∂F/∂u + Action(dFdIu, dIu/du)
-    #              = ∂F/∂u + Action(dFdIu, Iu(uhat, v*))
-    dFdu_partial = uhat * Iu * v * dx
-    dFdIu = Ihat * u * v * dx
-    assert dFdu == dFdu_partial + Action(dFdIu, dIu)
+    # dF/du[uhat] = ∂F/∂u[uhat] + ∂F/∂Iu[dIu/du[uhat]]
+    assert dFdu == (uhat * Iu + u * dIu) * v * dx
 
     # -- Differentiate (wrt Iu): <Iu, v> + <grad(Iu), grad(v)> - <f, v>
     f = Coefficient(V1)
     F = inner(Iu, v) * dx + inner(grad(Iu), grad(v)) * dx - inner(f, v) * dx
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    assert isinstance(dFdu, Action)
-    assert expand_indices(dFdu.left()) == expand_indices(dFdIu)
-    assert dFdu.right() == dIu
+    assert renumber_indices(dFdu) == renumber_indices(replace(dFdIu, {Ihat: dIu}))
 
     # BaseFormOperators are treated as coefficients when a form is differentiated wrt them.
     # -> dFdIu <=> dFdw
@@ -329,7 +324,7 @@ def test_differentiation(V1, V2):
     # Derivative of form I(u, V2) wrt coefficient u
     J = Iu * dx
     dJdu = expand_derivatives(derivative(J, u))
-    assert isinstance(dJdu, Interpolate)
+    assert dJdu == Interpolate(Argument(V1, 0), Argument(V2.dual(), 0)) * dx
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
@@ -352,31 +347,28 @@ def test_second_derivative(V1, V2):
     v0, v1 = TestFunction(V1), TrialFunction(V1)
     w0, w1 = TestFunction(V2), TrialFunction(V2)
 
-    # Interpolation matrix I: V1 -> V2 and its adjoint I*: V2* -> V1*
-    Imat = Interpolate(v1, V2)
-    Imat_adj = Interpolate(v0, Argument(V2.dual(), 1))
+    # Interpolation matrices I: V1 -> V2, whose dual arguments J contracts
+    I0 = Interpolate(v0, Argument(V2.dual(), 0))
+    I1 = Interpolate(v1, Argument(V2.dual(), 0))
 
     # -- Differentiate: J = 0.5 * (Iu - f)**2 * dx -- #
     J = 0.5 * (Iu - f) ** 2 * dx
     dJdu = expand_derivatives(derivative(J, u))
-    # dJ/du = I* dJ/dIu, i.e. the adjoint interpolation of the form dJ/dIu
+    # dJ/du[v0] = dJ/dIu[I v0]
     dJdIu = expand_derivatives(derivative(J, Iu, w0))
-    assert isinstance(dJdu, Interpolate)
-    assert dJdu.argument_slots() == (dJdIu, v0)
+    assert dJdu == replace(dJdIu, {w0: I0})
 
-    # Differentiate the adjoint interpolation.
-    # Its dual slot depends on u.
+    # d2J/du2[v0, v1] = d2J/dIu2[I v0, I v1], since I is linear
     d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
     d2Jdu2 = expand_derivatives(derivative(dJdu, u, v1))
-    assert d2Jdu2 == Action(Imat_adj, Action(d2JdIu2, Imat))
+    assert d2Jdu2 == replace(d2JdIu2, {w0: I0, w1: I1})
     assert d2Jdu2.arguments() == (v0, v1)
 
     # -- Nested derivatives expand one at a time from the inside out -- #
     H = derivative(derivative(J, u), u)
     # `derivative` does not expand, so the Hessian is a Form until it is expanded.
     assert isinstance(H, Form)
-    # The Actions of the interpolations associate the other way around.
-    assert expand_derivatives(H) == Action(Action(Imat_adj, d2JdIu2), Imat)
+    assert expand_derivatives(H) == d2Jdu2
 
     # -- Adjoint interpolation whose dual slot doesn't depend on u -- #
     assert expand_derivatives(derivative(Interpolate(v0, f * w0 * dx), u, v1)) == ZeroBaseForm(
@@ -386,29 +378,14 @@ def test_second_derivative(V1, V2):
     # -- Nested derivatives with an integral that doesn't depend on Iu -- #
     R = 0.5 * u**2 * dx
     d2Rdu2 = expand_derivatives(derivative(derivative(R, u), u))
-    d2Jdu2 = expand_derivatives(derivative(derivative(J + R, u), u))
-    assert isinstance(d2Jdu2, FormSum)
-    assert d2Jdu2.arguments() == (v0, v1)
-    assert set(d2Jdu2.components()) == {d2Rdu2, Action(Action(Imat_adj, d2JdIu2), Imat)}
+    d2JRdu2 = expand_derivatives(derivative(derivative(J + R, u), u))
+    assert d2JRdu2 == d2Jdu2 + d2Rdu2
 
 
 def test_derivative_keeps_interpolate(V1, V2):
     # Subclasses of Interpolate carry data that reconstruction may drop.
     Iu = Interpolate(Coefficient(V1), V2)
     assert apply_derivatives(Iu) is Iu
-
-
-def test_derivative_keeps_argument_class(V1, V2):
-    class DirectionArgument(Argument):
-        pass
-
-    u = Coefficient(V1)
-    v0 = DirectionArgument(V1, 0)
-    dJ = expand_derivatives(derivative(Interpolate(u, V2) ** 2 * dx, u, v0))
-
-    # The argument replacing Iu in dJ/dIu has the class of the direction.
-    dJdIu, _ = dJ.argument_slots()
-    assert all(type(a) is DirectionArgument for a in dJdIu.arguments())
 
 
 def test_coefficient_derivatives(V1, V2):
@@ -429,13 +406,13 @@ def test_scaled_second_derivative(V1, V2):
     Iu = Interpolate(u, V2)
     v0, v1 = TestFunction(V1), TrialFunction(V1)
     w0, w1 = TestFunction(V2), TrialFunction(V2)
-    Imat = Interpolate(v1, V2)
-    Imat_adj = Interpolate(v0, Argument(V2.dual(), 1))
+    I0 = Interpolate(v0, Argument(V2.dual(), 0))
+    I1 = Interpolate(v1, Argument(V2.dual(), 0))
     J = 0.5 * (Iu - f) ** 2 * dx
     d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
 
     H = derivative(derivative(J, u), u)
-    assert expand_derivatives(2 * H) == Action(Action(Imat_adj, 2 * d2JdIu2), Imat)
+    assert expand_derivatives(2 * H) == replace(2 * d2JdIu2, {w0: I0, w1: I1})
 
 
 def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
