@@ -47,8 +47,8 @@ def map_integrands(function, form, only_integral_type=None):
         nonzero_components = [
             (component, w)
             for component, w in zip(mapped_components, form.weights())
-            # Catch ufl.Zero, ZeroBaseForm and empty Forms
-            if component != 0 and not (isinstance(component, Form) and component.empty())
+            # Catch ufl.Zero and ZeroBaseForm
+            if component != 0
         ]
 
         if not nonzero_components:
