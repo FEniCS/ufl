@@ -1291,9 +1291,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             raise ValueError("Expecting a ExprList of arguments.")
         if not isinstance(coefficient_derivatives, ExprMapping):
             raise ValueError("Expecting a coefficient-coefficient ExprMapping.")
-        # The coefficient(s) to differentiate w.r.t. and the
-        # argument(s) s.t. D_w[v](e) = d/dtau e(w+tau v)|tau=0
+        # The coefficient(s) w to differentiate w.r.t. and the direction(s) v
+        # s.t. D_w[v](e) = d/dtau e(w+tau v)|tau=0
         self._w = coefficients.ufl_operands
+        # Each v is substituted for dw in the result, so v is not necessarily
+        # an Argument: it can be an expression of Arguments (e.g. a component
+        # of a mixed Argument) or a Coefficient (e.g. a tangent linear model).
         self._v = arguments.ufl_operands
         self._w2v = {w: v for w, v in zip(self._w, self._v)}
         # The arguments that the derivative adds to a BaseForm. A Coefficient
