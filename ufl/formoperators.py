@@ -416,8 +416,11 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             cd += [as_ufl(k), as_ufl(coefficient_derivatives[k])]
         coefficient_derivatives = ExprMapping(*cd)
 
-    # Got a form? Apply derivatives to the integrands in turn.
-    if isinstance(form, Form):
+    # Got a form? Apply derivatives to the integrands in turn, unless the
+    # chain rule through base form operators requires the whole form.
+    if isinstance(form, Form) and (
+        isinstance(coefficient, SpatialCoordinate) or not form.base_form_operators()
+    ):
         integrals = []
         for itg in form.integrals():
             if isinstance(coefficient, SpatialCoordinate):

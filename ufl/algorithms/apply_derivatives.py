@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import warnings
 from functools import singledispatchmethod
-from math import pi
+from math import inf, pi
 
 import numpy as np
 
@@ -1703,12 +1703,41 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return ZeroBaseForm(o.arguments() + self._direction_arguments)
 
 
+class PartialDerivativeRuleset(GateauxDerivativeRuleset):
+    """Apply the partial Gateaux derivative to an integrand.
+
+    Base form operators are held fixed, like coefficients, since the chain
+    rule through them gives a BaseForm, which an integrand cannot contain.
+    """
+
+    # Work around singledispatchmethod inheritance issue;
+    # see https://bugs.python.org/issue36457.
+    @singledispatchmethod
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
+        """Process ``o``.
+
+        Args:
+            o: `Expr` or `BaseForm` to be processed.
+
+        Returns:
+            Processed object.
+
+        """
+        return super().process(o)
+
+    @process.register(BaseFormOperator)
+    def _(self, o: BaseFormOperator) -> Expr:
+        """Differentiate a base_form_operator."""
+        return self._process_coefficient(o)
+
+
 class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to BaseForm.
 
     Implements rules for the Gateaux derivative D_w[v](B) where B is a
-    BaseForm whose own derivatives have been expanded. The expressions in B,
-    such as integrands, are differentiated with the GateauxDerivativeRuleset.
+    BaseForm whose own derivatives have been expanded. The integrands of B
+    are differentiated with the PartialDerivativeRuleset, and the other
+    expressions in B with the GateauxDerivativeRuleset.
     """
 
     def __init__(
@@ -1730,6 +1759,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             result_cache=result_cache,
         )
         self._expression_rules = GateauxDerivativeRuleset(
+            coefficients, arguments, coefficient_derivatives
+        )
+        self._integrand_rules = PartialDerivativeRuleset(
             coefficients, arguments, coefficient_derivatives
         )
 
@@ -1755,10 +1787,46 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
 
     @process.register(Form)
     def _(self, o: Form) -> BaseForm:
-        """Differentiate a form."""
-        dform = map_integrands(self._expression_rules, o)
-        if isinstance(dform, Form) and dform.empty():
-            return ZeroBaseForm(o.arguments() + self._direction_arguments)
+        """Differentiate a form with the chain rule through its base form operators.
+
+        D[F(u, N(u; v*))] = ∂F/∂u + ∂F/∂N[DN(u; v*)], where ∂F/∂N[DN] is the
+        contraction of ∂F/∂N[Nhat] and DN(u; vhat) over a new argument Nhat for N
+        and a new coargument vhat in the dual slot of N.
+        """
+        dform = map_integrands(self._integrand_rules, o)
+        if dform.empty():
+            dform = ZeroBaseForm(o.arguments() + self._direction_arguments)
+
+        # The Action lists the arguments of its left operand first,
+        # so the operand with the lowest-numbered arguments goes on the left.
+        numbers = [a.number() for a in o.arguments()]
+        direction_numbers = [a.number() for a in self._direction_arguments]
+        direction_first = min(direction_numbers, default=inf) < min(numbers, default=inf)
+        for N in o.base_form_operators():
+            if N in self._w2v or N in self._cd:
+                # The integrand rules differentiate N as a coefficient.
+                continue
+            vstar, *slots = N.argument_slots()
+            primal_argument, *_ = vstar.arguments()
+            if direction_first:
+                Nhat = primal_argument.reconstruct(number=0)
+                vhat = vstar.reconstruct(number=1 + max(direction_numbers))
+            else:
+                Nhat = primal_argument.reconstruct(number=1 + max(numbers, default=-1))
+                vhat = vstar.reconstruct(number=0)
+
+            partial_rules = PartialDerivativeRuleset(ExprList(N), ExprList(Nhat), ExprMapping())
+            dform_dN = map_integrands(partial_rules, o)
+            if dform_dN.empty():
+                # F depends on N only through another base form operator.
+                continue
+            dN = self._expression_rules(
+                N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
+            )
+            if direction_first:
+                dform += Action(dN, dform_dN)
+            else:
+                dform += Action(dform_dN, dN)
         return dform
 
     @process.register(FormSum)

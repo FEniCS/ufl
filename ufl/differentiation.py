@@ -19,6 +19,7 @@ from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.exprequals import expr_equals
 from ufl.form import BaseForm
 from ufl.precedence import parstr
 from ufl.variable import Variable
@@ -100,6 +101,17 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
             self, base_form, coefficients, arguments, coefficient_derivatives
         )
         BaseForm.__init__(self)
+
+    # The derivative of a BaseForm is a BaseForm, not an Expr.
+    __eq__ = BaseForm.__eq__
+    equals = expr_equals
+    __add__ = BaseForm.__add__
+    __radd__ = BaseForm.__radd__
+    __sub__ = BaseForm.__sub__
+    __rsub__ = BaseForm.__rsub__
+    __neg__ = BaseForm.__neg__
+    __mul__ = BaseForm.__mul__
+    __rmul__ = BaseForm.__rmul__
 
     def _analyze_form_arguments(self):
         """Collect the arguments of the corresponding BaseForm."""
@@ -184,6 +196,15 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
 
     # Set __repr__
     __repr__ = Operator.__repr__
+
+    # The derivative of a base form operator is a base form operator.
+    __add__ = BaseFormOperator.__add__
+    __radd__ = BaseFormOperator.__radd__
+    __sub__ = BaseFormOperator.__sub__
+    __rsub__ = BaseFormOperator.__rsub__
+    __neg__ = BaseFormOperator.__neg__
+    __mul__ = BaseFormOperator.__mul__
+    __rmul__ = BaseFormOperator.__rmul__
 
     # The operands, including the differentiated operator, determine the derivative.
     _ufl_compute_hash_ = Operator._ufl_compute_hash_
