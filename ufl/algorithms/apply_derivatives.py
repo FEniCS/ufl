@@ -1838,14 +1838,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     def _(self, o: Action) -> BaseForm:
         """Differentiate an action with the Leibniz rule."""
         left, right = o.ufl_operands
-        assert isinstance(left, BaseForm)
-        if len(left.arguments()) != 1:
-            raise NotImplementedError(
-                "Action derivative not supported when the left argument is not a 1-form."
-            )
-        # Number the argument of `left` after the direction, so that the Action
+        # Number the last argument of `left` after the direction, so that the Action
         # contracts it and not the argument of the direction.
-        (vleft,) = left.arguments()
+        *_, vleft = left.arguments()
         number = 1 + max((vleft.number(), *(a.number() for a in self._direction_arguments)))
         left_after_v = replace(left, {vleft: vleft.reconstruct(number=number)})
         return Action(self(left_after_v), right) + Action(left, self(right))
