@@ -29,6 +29,7 @@ from ufl import (
 )
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.analysis import extract_type
+from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.constantvalue import Zero
 from ufl.differentiation import CoefficientDerivative
 from ufl.duals import is_dual, is_primal
@@ -255,11 +256,14 @@ def test_adjoint():
     assert res
 
     res = adjoint(2 * a)
+    assert isinstance(res, Adjoint)
+    # Adjoint distributes over sums
+    res = restructure_base_form(res)
     assert isinstance(res, FormSum)
     assert isinstance(res.components()[0], Adjoint)
 
     # Adjoint(Adjoint(.)) = Id
-    assert adjoint(adj) == a
+    assert restructure_base_form(adjoint(adj)) == a
 
 
 def test_action():
@@ -287,7 +291,7 @@ def test_action():
     assert repeat
     assert len(repeat.arguments()) < len(res.arguments())
 
-    res = action(2 * a, u)
+    res = restructure_base_form(action(2 * a, u))
     assert isinstance(res, FormSum)
     assert isinstance(res.components()[0], Action)
 
@@ -304,10 +308,10 @@ def test_action():
     b2 = Matrix(V, U.dual())
     ustar2 = Cofunction(U.dual())
     # Check Action left-distributivity with FormSum
-    res = action(b, ustar + ustar2)
+    res = restructure_base_form(action(b, ustar + ustar2))
     assert res == Action(b, ustar) + Action(b, ustar2)
     # Check Action right-distributivity with FormSum
-    res = action(b + b2, ustar)
+    res = restructure_base_form(action(b + b2, ustar))
     assert res == Action(b, ustar) + Action(b2, ustar)
 
     a2 = Matrix(V, U)
@@ -316,10 +320,10 @@ def test_action():
     # Check Action left-distributivity with Sum
     # Add 3 Coefficients to check composition of Sum works fine since u
     # + u2 + u3 => Sum(u, Sum(u2, u3))
-    res = action(a, u + u2 + u3)
+    res = restructure_base_form(action(a, u + u2 + u3))
     assert res == Action(a, u3) + Action(a, u) + Action(a, u2)
     # Check Action right-distributivity with Sum
-    res = action(a + a2, u)
+    res = restructure_base_form(action(a + a2, u))
     assert res == Action(a, u) + Action(a2, u)
 
     # `action` must expand derivatives even when the top-level object is a

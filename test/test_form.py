@@ -21,6 +21,7 @@ from ufl import (
     nabla_grad,
     triangle,
 )
+from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.form import BaseForm
 
 
@@ -197,7 +198,7 @@ def test_formsum(mass):
     assert isinstance(2 * v, BaseForm)
     assert (2 * v).weights()[0] == 2
 
-    f = action(-v, u)
+    f = restructure_base_form(action(-v, u))
     df = derivative(9 * f, u)
     assert isinstance(f, FormSum)
     assert f.weights()[0] == -1

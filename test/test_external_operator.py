@@ -33,6 +33,7 @@ from ufl import (
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
@@ -188,11 +189,11 @@ def test_differentiation_procedure_action(V1, V2):
     # Bilinear forms
     a1 = inner(N1, m) * dx
     Ja1 = derivative(a1, u, u_hat)
-    Ja1 = expand_derivatives(Ja1)
+    Ja1 = restructure_base_form(expand_derivatives(Ja1))
 
     a2 = inner(N2, m) * dx
     Ja2 = derivative(a2, s, s_hat)
-    Ja2 = expand_derivatives(Ja2)
+    Ja2 = restructure_base_form(expand_derivatives(Ja2))
 
     # Ja = dN/du(..; dF/dN, u_hat), the action of dN/du(..; v*, u_hat) on dF/dN
     da1dN1 = expand_derivatives(derivative(a1, N1, Argument(V1, 0)))
@@ -706,6 +707,18 @@ def test_coefficient_derivatives(V1):
     assert expand_derivatives(dF) == g * uhat * v * dx
 
 
+def test_restructure_dual_slot_on_the_right(V1):
+    u = Coefficient(V1)
+    N = ExternalOperator(u, function_space=V1)
+    vstar = Coargument(V1.dual(), 0)
+    dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(vstar, Argument(V1, 1)))
+    L = TestFunction(V1) * dx
+
+    # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), since N is linear in its dual slot
+    expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(L, Argument(V1, 0)))
+    assert restructure_base_form(Action(L, dNdu)) == expected
+
+
 def test_functional_derivative(V1):
     u = Coefficient(V1)
     v0 = TestFunction(V1)
@@ -714,7 +727,7 @@ def test_functional_derivative(V1):
 
     # dJ/du[v0] = dN/du(u; dJ/dN, v0), since N is linear in its dual slot
     dJdN = expand_derivatives(derivative(J, N, v0))
-    dJdu = expand_derivatives(derivative(J, u))
+    dJdu = restructure_base_form(expand_derivatives(derivative(J, u)))
     assert dJdu == N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(dJdN, v0))
     assert dJdu.arguments() == (v0,)
 
@@ -742,7 +755,7 @@ def test_functional_hessian_through_composition(V1):
     dFdN = a(0) * dx
     d2N = dN(2, dFdN, dM(1, c(0), a(0)), dM(1, c(0), a(1)))
     d2M = dN(1, dFdN, dM(2, c(0), a(0), a(1)))
-    assert expand_derivatives(H) == d2N + d2M
+    assert restructure_base_form(expand_derivatives(H)) == d2N + d2M
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):

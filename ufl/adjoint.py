@@ -11,9 +11,8 @@
 from itertools import chain
 
 from ufl.argument import Coargument
-from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
-from ufl.form import BaseForm, FormSum, ZeroBaseForm
+from ufl.form import BaseForm, ZeroBaseForm
 
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
@@ -46,12 +45,7 @@ class Adjoint(BaseForm):
             # Swap the arguments
             return ZeroBaseForm(form.arguments()[::-1])
 
-        if isinstance(form, Adjoint):
-            return form._form
-        elif isinstance(form, FormSum):
-            # Adjoint distributes over sums
-            return FormSum(*((Adjoint(c), w) for c, w in zip(form.components(), form.weights())))
-        elif isinstance(form, Coargument):
+        if isinstance(form, Coargument):
             # The adjoint of a coargument `c: V* -> V*` is the identity
             # matrix mapping from V to V (i.e. V x V* -> R).
             # Equivalently, the adjoint of `c` is its first argument,
@@ -62,14 +56,6 @@ class Adjoint(BaseForm):
             # reconstruction, making it a robust strategy for handling
             # subclasses of `ufl.Coargument`.
             return primal_arg
-        elif isinstance(form, BaseFormOperator):
-            # The adjoint of a base form operator swaps the numbers of its arguments.
-            from ufl.algorithms.replace import replace
-
-            u, v = form.arguments()
-            return replace(
-                form, {u: u.reconstruct(number=v.number()), v: v.reconstruct(number=u.number())}
-            )
 
         return super().__new__(cls)
 

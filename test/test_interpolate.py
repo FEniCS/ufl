@@ -41,6 +41,7 @@ from ufl.algorithms.analysis import (
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.classes import Product, ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
@@ -251,41 +252,16 @@ def test_action_adjoint(V1, V2):
     v = TestFunction(V1)
     v2 = TrialFunction(V2)
     F = v2 * v * dx
-    # Interpolate is linear in its operand: Action(I(v1; v*), u) -> I(u; v*)
-    assert action(Iv, u) == Iu
+    assert action(Iv, u) == Action(Iv, u)
     assert action(F, Iv) == Action(F, Iv)
     assert action(F, Iu) == Iu * v * dx
-    # Action is associative: Action(Action(F, Iv), u) -> Action(F, Action(Iv, u))
-    assert Action(Action(F, Iv), u) == Action(F, Iu)
-
-    A = Matrix(V1.dual(), V2)
-    f = Argument(V1, 0) * dx
-    assert action(adjoint(A), f) == Action(f, A)
-    x_coefficient = Coefficient(V1.dual())
-    assert action(adjoint(A), x_coefficient) == Action(x_coefficient, A)
-    matrix_action = action(adjoint(A), Matrix(V1, V2))
-    assert isinstance(matrix_action.left(), Adjoint)
-
-    B = Matrix(V2.dual(), V1.dual())
-    C = Matrix(V1, V2)
-    composed = Action(B, C)
-    x = Coefficient(V2.dual())
-    assert action(adjoint(composed), x) == Action(x, composed)
-
-    form = TestFunction(V1) * TrialFunction(V2) * dx
-    form_adjoint = adjoint(form)
-    assert isinstance(form_adjoint, Form)
-    x_form = Coefficient(V1)
-    assert isinstance(action(form_adjoint, x_form), Form)
-    assert action(Adjoint(form), x_form) == Action(x_form, form)
 
     # -- Adjoint -- #
-    # The adjoint of a base form operator swaps the numbers of its arguments.
-    assert adjoint(Iv) == Interpolate(Argument(V1, 0), Argument(V2_dual, 1))
+    assert adjoint(Iv) == Adjoint(Iv)
 
     # action of one-form on interpolation operator
     one_form = Argument(V2, 0) * dx
-    action_one_form = action(one_form, Iv)  # adjoint interpolation V2^* -> V1^*
+    action_one_form = restructure_base_form(action(one_form, Iv))  # V2^* -> V1^*
     assert isinstance(action_one_form, Interpolate)
     assert action_one_form.arguments() == (Argument(V1, 0),)
     assert action_one_form.ufl_function_space() == V1.dual()
@@ -294,6 +270,49 @@ def test_action_adjoint(V1, V2):
     action_zero_form = action(one_form, Iu)  # a number
     assert isinstance(action_zero_form, Form)
     assert action_zero_form.arguments() == ()
+
+
+def test_restructure_base_form(V1, V2):
+    vstar = Argument(V2.dual(), 0)
+    u = Coefficient(V1)
+    Iu = Interpolate(u, vstar)
+    Iv = Interpolate(TrialFunction(V1), vstar)  # V1 -> V2
+    F = TrialFunction(V2) * TestFunction(V1) * dx
+
+    # Interpolate is linear in its operand: Action(I(v1; v*), u) -> I(u; v*)
+    assert restructure_base_form(Action(Iv, u)) == Iu
+    # Action is associative: Action(Action(F, Iv), u) -> Action(F, Action(Iv, u))
+    assert restructure_base_form(Action(Action(F, Iv), u)) == Action(F, Iu)
+    # The adjoint of a base form operator swaps the numbers of its arguments.
+    assert restructure_base_form(Adjoint(Iv)) == Interpolate(
+        Argument(V1, 0), Argument(V2.dual(), 1)
+    )
+
+    # Action(Adjoint(A), x) -> Action(x, A)
+    A = Matrix(V1.dual(), V2)
+    f = Argument(V1, 0) * dx
+    assert restructure_base_form(Action(Adjoint(A), f)) == Action(f, A)
+    x_cofunction = Coefficient(V1.dual())
+    assert restructure_base_form(Action(Adjoint(A), x_cofunction)) == Action(x_cofunction, A)
+    matrix_action = restructure_base_form(Action(Adjoint(A), Matrix(V1, V2)))
+    assert isinstance(matrix_action.left(), Adjoint)
+
+    composed = Action(Matrix(V2.dual(), V1.dual()), Matrix(V1, V2))
+    x = Coefficient(V2.dual())
+    assert restructure_base_form(Action(Adjoint(composed), x)) == Action(x, composed)
+
+    form = TestFunction(V1) * TrialFunction(V2) * dx
+    x_function = Coefficient(V1)
+    assert restructure_base_form(Action(Adjoint(form), x_function)) == Action(x_function, form)
+
+    # Operands are restructured before their Action:
+    # Action(Adjoint(Iv), w) -> Action(I(v0; v1*), w) -> I(v0; w)
+    w = Cofunction(V2.dual())
+    assert restructure_base_form(Action(Adjoint(Iv), w)) == Interpolate(Argument(V1, 0), w)
+
+    # A FormSum fills the dual slot without distributing the Action over it.
+    L = TestFunction(V2) * dx + w
+    assert restructure_base_form(Action(Iu, L)) == Interpolate(u, L)
 
 
 def test_differentiation(V1, V2):
@@ -351,7 +370,7 @@ def test_differentiation(V1, V2):
     J = Iu * dx
     dJdu = expand_derivatives(derivative(J, u))
     # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu), where I is linear in its dual slot
-    assert dJdu == Interpolate(Argument(V1, 0), Argument(V2, 0) * dx)
+    assert restructure_base_form(dJdu) == Interpolate(Argument(V1, 0), Argument(V2, 0) * dx)
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
@@ -379,7 +398,7 @@ def test_second_derivative(V1, V2):
     dJdu = expand_derivatives(derivative(J, u))
     # dJ/du[v0] = I^T dJ/dIu, the adjoint interpolation of dJ/dIu
     dJdIu = expand_derivatives(derivative(J, Iu, w0))
-    assert dJdu == Interpolate(v0, dJdIu)
+    assert restructure_base_form(dJdu) == Interpolate(v0, dJdIu)
 
     # d2J/du2[v0, v1] = I^T d2J/dIu2 I, since I is linear
     d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
@@ -445,7 +464,7 @@ def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
     vstar = inner(u, v) * dx
     Iu = Interpolate(u, vstar)
 
-    actual = expand_derivatives(derivative(Iu, u, du))
+    actual = restructure_base_form(expand_derivatives(derivative(Iu, u, du)))
     expected = Interpolate(du, vstar) + Interpolate(u, inner(du, v) * dx)
 
     assert actual == expected
@@ -461,7 +480,7 @@ def test_second_derivative_through_nested_formsum(V1, V2):
     Iu = Interpolate(u, inner(u, v) * dx)
     term = Interpolate(du, inner(du, v) * dx)
 
-    d2Idu2 = expand_derivatives(derivative(derivative(Iu, u, du), u, du))
+    d2Idu2 = restructure_base_form(expand_derivatives(derivative(derivative(Iu, u, du), u, du)))
 
     # The first derivative is a FormSum because both the operand and dual slot
     # depend on u. Differentiating that nested FormSum gives the product rule twice.
