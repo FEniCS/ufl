@@ -65,7 +65,7 @@ class ExternalOperator(BaseFormOperator):
     def ufl_element(self):
         """Shortcut to get the finite element of the function space of the external operator."""
         # Useful when applying split on an ExternalOperator
-        return self.arguments()[0].ufl_element()
+        return self._function_space.ufl_element()
 
     def grad(self):
         """Returns the symbolic grad of the external operator."""
@@ -92,7 +92,7 @@ class ExternalOperator(BaseFormOperator):
         """Return a new object of the same type with new operands."""
         return type(self)(
             *operands,
-            function_space=function_space or self.ufl_function_space(),
+            function_space=function_space or self._function_space,
             derivatives=derivatives or self.derivatives,
             argument_slots=argument_slots or self.argument_slots(),
             **add_kwargs,
@@ -119,5 +119,5 @@ class ExternalOperator(BaseFormOperator):
             and all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands))
             and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
             and self.derivatives == other.derivatives
-            and self.ufl_function_space() == other.ufl_function_space()
+            and self._function_space == other._function_space
         )
