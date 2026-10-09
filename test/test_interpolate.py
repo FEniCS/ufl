@@ -8,10 +8,12 @@ from utils import FiniteElement, LagrangeElement, MixedElement
 
 from ufl import (
     Action,
+    Adjoint,
     Argument,
     Coefficient,
     Cofunction,
     FunctionSpace,
+    Matrix,
     Mesh,
     SpatialCoordinate,
     TestFunction,
@@ -255,6 +257,27 @@ def test_action_adjoint(V1, V2):
     assert action(F, Iu) == Iu * v * dx
     # Action is associative: Action(Action(F, Iv), u) -> Action(F, Action(Iv, u))
     assert Action(Action(F, Iv), u) == Action(F, Iu)
+
+    A = Matrix(V1.dual(), V2)
+    f = Argument(V1, 0) * dx
+    assert action(adjoint(A), f) == Action(f, A)
+    x_coefficient = Coefficient(V1.dual())
+    assert action(adjoint(A), x_coefficient) == Action(x_coefficient, A)
+    matrix_action = action(adjoint(A), Matrix(V1, V2))
+    assert isinstance(matrix_action.left(), Adjoint)
+
+    B = Matrix(V2.dual(), V1.dual())
+    C = Matrix(V1, V2)
+    composed = Action(B, C)
+    x = Coefficient(V2.dual())
+    assert action(adjoint(composed), x) == Action(x, composed)
+
+    form = TestFunction(V1) * TrialFunction(V2) * dx
+    form_adjoint = adjoint(form)
+    assert isinstance(form_adjoint, Form)
+    x_form = Coefficient(V1)
+    assert isinstance(action(form_adjoint, x_form), Form)
+    assert action(Adjoint(form), x_form) == Action(x_form, form)
 
     # -- Adjoint -- #
     # The adjoint of a base form operator swaps the numbers of its arguments.

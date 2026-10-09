@@ -159,7 +159,7 @@ class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
 
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
+class BaseFormOperatorDerivative(BaseFormOperator, BaseFormDerivative):
     """Derivative of a base form operator w.r.t the degrees of freedom in a discrete Coefficient."""
 
     ufl_operands: tuple[BaseFormOperator, ExprList, ExprList, ExprMapping]
@@ -196,15 +196,6 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
 
     # Set __repr__
     __repr__ = Operator.__repr__
-
-    # The derivative of a base form operator is a base form operator.
-    __add__ = BaseFormOperator.__add__
-    __radd__ = BaseFormOperator.__radd__
-    __sub__ = BaseFormOperator.__sub__
-    __rsub__ = BaseFormOperator.__rsub__
-    __neg__ = BaseFormOperator.__neg__
-    __mul__ = BaseFormOperator.__mul__
-    __rmul__ = BaseFormOperator.__rmul__
 
     # The operands, including the differentiated operator, determine the derivative.
     _ufl_compute_hash_ = Operator._ufl_compute_hash_
