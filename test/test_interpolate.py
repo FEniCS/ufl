@@ -314,6 +314,12 @@ def test_restructure_base_form(V1, V2):
     L = TestFunction(V2) * dx + w
     assert restructure_base_form(Action(Iu, L)) == Interpolate(u, L)
 
+    # A rank 2 dual slot is split off: I(u; A) -> Action(I(u; v*), A)
+    A = Matrix(V2, V1)
+    assert restructure_base_form(Interpolate(u, A)) == Action(
+        Interpolate(u, Argument(V2.dual(), 0)), A
+    )
+
 
 def test_differentiation(V1, V2):
     u = Coefficient(V1)

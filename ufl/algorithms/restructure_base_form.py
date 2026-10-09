@@ -12,6 +12,7 @@ from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algebra import Sum
 from ufl.algorithms.replace import replace
+from ufl.argument import Coargument
 from ufl.coefficient import Coefficient
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr
@@ -32,6 +33,29 @@ class BaseFormRestructurer(DAGTraverser):
     def _(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Leave any other node unchanged."""
         return o
+
+    @process.register(BaseFormOperator)
+    def _(self, o: BaseFormOperator) -> Expr | BaseForm:
+        """Restructure the dual slot of a base form operator."""
+        v, *slots = o.argument_slots()
+        if isinstance(v, Coargument):
+            return o
+
+        dual = self(v)
+        if len(dual.arguments()) > 1:
+            # A base form operator is linear in its dual slot:
+            # N(u; A) -> Action(N(u; v*), A), where v* is numbered after the
+            # arguments of the other slots so that the Action contracts it with
+            # the first argument of A.
+            others = (a for a in o.arguments() if a not in dual.arguments())
+            number = max((a.number() for a in others), default=-1) + 1
+            test = dual.arguments()[0]
+            vstar = test.reconstruct(function_space=test.ufl_function_space().dual(), number=number)
+            left = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
+            return self.action(left, dual)
+        if dual is v:
+            return o
+        return o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(dual, *slots))
 
     @process.register(FormSum)
     @DAGTraverser.postorder
