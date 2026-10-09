@@ -11,6 +11,7 @@
 from itertools import chain
 
 from ufl.argument import Coargument
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
 
@@ -61,6 +62,14 @@ class Adjoint(BaseForm):
             # reconstruction, making it a robust strategy for handling
             # subclasses of `ufl.Coargument`.
             return primal_arg
+        elif isinstance(form, BaseFormOperator):
+            # The adjoint of a base form operator swaps the numbers of its arguments.
+            from ufl.algorithms.replace import replace
+
+            u, v = form.arguments()
+            return replace(
+                form, {u: u.reconstruct(number=v.number()), v: v.reconstruct(number=u.number())}
+            )
 
         return super().__new__(cls)
 

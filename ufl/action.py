@@ -44,6 +44,7 @@ class Action(BaseForm):
         "_coefficients",
         "_domains",
         "_hash",
+        "_initialised",
         "_left",
         "_repr",
         "_right",
@@ -94,6 +95,15 @@ class Action(BaseForm):
         # Check compatibility of function spaces
         _check_function_spaces(left, right)
 
+        # Action is associative when the last argument of the left Action is that of
+        # its right operand: Action(Action(A, B), C) -> Action(A, Action(B, C))
+        if (
+            isinstance(left, Action)
+            and isinstance(left.right(), BaseForm)
+            and len(left.right().arguments()) > 1
+        ):
+            return Action(left.left(), Action(left.right(), right))
+
         # Simplify Action(BaseForm, Interpolate(Expr, Coargument))
         # -> Interpolate(Expr, BaseForm)
         if (
@@ -124,10 +134,23 @@ class Action(BaseForm):
                     *left.ufl_operands, argument_slots=(right, *slots)
                 )
 
-        return super().__new__(cls)
+        # A base form operator is linear in its other argument slots:
+        # Action(N(u; v*, uhat), w) -> N(u; v*, w)
+        if isinstance(left, BaseFormOperator) and isinstance(right, Coefficient):
+            v, *_ = left.argument_slots()
+            uhat = left.arguments()[-1]
+            if v != uhat:
+                return replace(left, {uhat: right})
+
+        # Construct a new instance to be initialised
+        self = super().__new__(cls)
+        self._initialised = False
+        return self
 
     def __init__(self, left, right):
         """Initialise."""
+        if self._initialised:
+            return
         BaseForm.__init__(self)
 
         self._left = left
@@ -138,6 +161,7 @@ class Action(BaseForm):
         self._repr = f"Action({self._left!r}, {self._right!r})"
 
         self._hash = None
+        self._initialised = True
 
     def ufl_function_spaces(self):
         """Get the tuple of function spaces of the underlying form."""
