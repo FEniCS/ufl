@@ -10,6 +10,7 @@
 from itertools import chain
 
 from ufl import matrix  # noqa 401
+from ufl.adjoint import Adjoint
 from ufl.algebra import Sum
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient
@@ -94,6 +95,14 @@ class Action(BaseForm):
 
         # Check compatibility of function spaces
         _check_function_spaces(left, right)
+
+        # Action(Adjoint(A), x) is the same contraction as Action(x, A).
+        # Coefficients are vector inputs even though they have no form arguments.
+        if isinstance(left, Adjoint) and (
+            isinstance(right, Coefficient)
+            or (isinstance(right, BaseForm) and len(right.arguments()) == 1)
+        ):
+            return Action(right, left.form())
 
         # Action is associative when the last argument of the left Action is that of
         # its right operand: Action(Action(A, B), C) -> Action(A, Action(B, C))
