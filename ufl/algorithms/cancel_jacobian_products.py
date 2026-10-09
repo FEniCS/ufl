@@ -59,7 +59,6 @@ from ufl.classes import (
 from ufl.constantvalue import ScalarValue, Zero, as_ufl
 from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.corealg.dag_traverser import DAGTraverser
-from ufl.corealg.map_dag import map_expr_dag
 from ufl.domain import extract_unique_domain
 from ufl.form import BaseForm
 
@@ -117,7 +116,7 @@ class IndexSumSimplifier(DAGTraverser):
         if rule is None:
             rule = IndexReplacer({k: a})
             self._rules[(k, a)] = rule
-        return map_expr_dag(rule, expr)
+        return rule(expr)
 
     @abstractmethod
     def match(self, with_k, rest, k):
