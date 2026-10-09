@@ -53,9 +53,6 @@ class BaseFormRestructurer(DAGTraverser):
 
     def adjoint(self, form: BaseForm) -> Expr | BaseForm:
         """Restructure the Adjoint of a restructured form."""
-        if isinstance(form, Adjoint):
-            return form.form()
-
         if isinstance(form, FormSum):
             return FormSum(
                 *((self.adjoint(c), w) for c, w in zip(form.components(), form.weights()))
