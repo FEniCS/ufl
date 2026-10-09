@@ -263,7 +263,7 @@ def test_adjoint():
     assert isinstance(res.components()[0], Adjoint)
 
     # Adjoint(Adjoint(.)) = Id
-    assert restructure_base_form(adjoint(adj)) == a
+    assert adjoint(adj) == a
 
 
 def test_action():

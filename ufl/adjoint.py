@@ -45,7 +45,9 @@ class Adjoint(BaseForm):
             # Swap the arguments
             return ZeroBaseForm(form.arguments()[::-1])
 
-        if isinstance(form, Coargument):
+        if isinstance(form, Adjoint):
+            return form._form
+        elif isinstance(form, Coargument):
             # The adjoint of a coargument `c: V* -> V*` is the identity
             # matrix mapping from V to V (i.e. V x V* -> R).
             # Equivalently, the adjoint of `c` is its first argument,
