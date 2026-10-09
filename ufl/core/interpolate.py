@@ -66,8 +66,6 @@ class Interpolate(BaseFormOperator):
         # Check valid argument numbering
         if expr_arg_numbers & dual_arg_numbers:
             raise ValueError("Same argument numbers in first and second operands to interpolate.")
-        if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
-            raise ValueError("Non-contiguous argument numbers in interpolate.")
 
         # Reversed order convention
         argument_slots = (v, expr)
@@ -191,8 +189,10 @@ class Interpolate(BaseFormOperator):
         """Multiply, agreeing with negation on which space the value is in."""
         return self._value_parent_type().__rmul__(self, other)
 
-    def _ufl_expr_reconstruct_(self, expr, v=None, **add_kwargs):
+    def _ufl_expr_reconstruct_(self, expr, v=None, argument_slots=None, **add_kwargs):
         """Return a new object of the same type with new operands."""
+        if argument_slots is not None:
+            v, expr = argument_slots
         v = v or self.argument_slots()[0]
         return type(self)(expr, v, **add_kwargs)
 

@@ -6,6 +6,8 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from numbers import Number
+
 from ufl.argument import Argument, Coargument
 from ufl.checks import is_cellwise_constant
 from ufl.coefficient import Coefficient
@@ -17,6 +19,7 @@ from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import ufl_type
 from ufl.domain import extract_unique_domain, find_geometric_dimension
 from ufl.exprcontainers import ExprList, ExprMapping
+from ufl.exprequals import expr_equals
 from ufl.form import BaseForm
 from ufl.precedence import parstr
 from ufl.variable import Variable
@@ -99,6 +102,17 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
         )
         BaseForm.__init__(self)
 
+    # The derivative of a BaseForm is a BaseForm, not an Expr.
+    __eq__ = BaseForm.__eq__
+    equals = expr_equals
+    __add__ = BaseForm.__add__
+    __radd__ = BaseForm.__radd__
+    __sub__ = BaseForm.__sub__
+    __rsub__ = BaseForm.__rsub__
+    __neg__ = BaseForm.__neg__
+    __mul__ = BaseForm.__mul__
+    __rmul__ = BaseForm.__rmul__
+
     def _analyze_form_arguments(self):
         """Collect the arguments of the corresponding BaseForm."""
         from ufl.algorithms.analysis import extract_coefficients, extract_type
@@ -145,7 +159,7 @@ class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
 
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
+class BaseFormOperatorDerivative(BaseFormOperator, BaseFormDerivative):
     """Derivative of a base form operator w.r.t the degrees of freedom in a discrete Coefficient."""
 
     ufl_operands: tuple[BaseFormOperator, ExprList, ExprList, ExprMapping]
@@ -160,6 +174,7 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
             self, base_form, coefficients, arguments, coefficient_derivatives
         )
         self._argument_slots = base_form._argument_slots
+        self._function_space = base_form._function_space
         self._domains = None
 
     # Enforce Operator reconstruction as Operator is a parent class of
@@ -182,6 +197,9 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     # Set __repr__
     __repr__ = Operator.__repr__
 
+    # The operands, including the differentiated operator, determine the derivative.
+    _ufl_compute_hash_ = Operator._ufl_compute_hash_
+
     def argument_slots(self, outer_form=False):
         """Return a tuple of expressions containing argument and coefficient based expressions."""
         from ufl.algorithms.analysis import extract_arguments
@@ -194,9 +212,11 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
 
     def __eq__(self, other):
         """Check for equality using the derivative operands."""
-        if self is other:
-            return True
-        return type(self) is type(other) and self.ufl_operands == other.ufl_operands
+        if isinstance(other, Number):
+            return BaseFormOperator.__eq__(self, other)
+        if type(other) is not type(self):
+            return False
+        return self is other or self.ufl_operands == other.ufl_operands
 
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)

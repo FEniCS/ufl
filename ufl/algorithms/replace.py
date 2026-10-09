@@ -62,19 +62,23 @@ class Replacer(DAGTraverser):
     @process.register(ufl.classes.ExternalOperator)
     def _(self, o):
         """Replace an external_operator."""
-        o = self.mapping.get(o) or o
+        o = self.mapping.get(o, o)
         if isinstance(o, ExternalOperator):
             new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
             new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+            if new_ops == o.ufl_operands and new_args == o.argument_slots():
+                return o
             return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_args)
         return o
 
     @process.register(ufl.classes.Interpolate)
     def _(self, o):
         """Replace an interpolate."""
-        o = self.mapping.get(o) or o
+        o = self.mapping.get(o, o)
         if isinstance(o, Interpolate):
             new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+            if new_args == o.argument_slots():
+                return o
             return o._ufl_expr_reconstruct_(*reversed(new_args))
         return o
 

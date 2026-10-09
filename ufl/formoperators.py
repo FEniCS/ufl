@@ -193,7 +193,6 @@ def action(form, coefficient=None, derivatives_expanded=None):
     When `action` is being called multiple times on the same form, expanding derivatives
     become expensive -> `derivatives_expanded` enables to use caching mechanisms to avoid that.
     """
-    form = as_form(form)
     is_coefficient_valid = not isinstance(coefficient, BaseForm) or (
         isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1
     )
@@ -403,23 +402,10 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         # -> If yes, what's the right thing to do here ?
         raise NotImplementedError("Adjoint derivative is not supported.")
     elif isinstance(form, Action):
-        # Push derivative through Action slots
-        left, right = form.ufl_operands
         # Eagerly simplify spatial derivatives when Action results in a scalar.
         if not len(form.arguments()) and isinstance(coefficient, SpatialCoordinate):
             return ZeroBaseForm(())
-
-        if len(left.arguments()) == 1:
-            dleft = derivative(left, coefficient, argument, coefficient_derivatives)
-            dright = derivative(right, coefficient, argument, coefficient_derivatives)
-            # Leibniz formula
-            return action(
-                adjoint(dleft, derivatives_expanded=True), right, derivatives_expanded=True
-            ) + action(left, dright, derivatives_expanded=True)
-        else:
-            raise NotImplementedError(
-                "Action derivative not supported when the left argument is not a 1-form."
-            )
+        # The Leibniz rule for Action is applied by `expand_derivatives`.
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
     if coefficient_derivatives is None:
@@ -430,8 +416,11 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             cd += [as_ufl(k), as_ufl(coefficient_derivatives[k])]
         coefficient_derivatives = ExprMapping(*cd)
 
-    # Got a form? Apply derivatives to the integrands in turn.
-    if isinstance(form, Form):
+    # Got a form? Apply derivatives to the integrands in turn, unless the
+    # chain rule through base form operators requires the whole form.
+    if isinstance(form, Form) and (
+        isinstance(coefficient, SpatialCoordinate) or not form.base_form_operators()
+    ):
         integrals = []
         for itg in form.integrals():
             if isinstance(coefficient, SpatialCoordinate):

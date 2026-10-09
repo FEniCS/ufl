@@ -14,10 +14,9 @@ from ufl.algebra import Sum
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import BaseCoefficient, Coefficient
 from ufl.constantvalue import Zero
-from ufl.core.interpolate import Interpolate
 from ufl.core.ufl_type import ufl_type
 from ufl.differentiation import CoefficientDerivative
-from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
+from ufl.form import BaseForm, Form, ZeroBaseForm
 
 # --- The Action class represents the action of a numerical object that needs
 #     to be computed at assembly time ---
@@ -43,6 +42,7 @@ class Action(BaseForm):
         "_coefficients",
         "_domains",
         "_hash",
+        "_initialised",
         "_left",
         "_repr",
         "_right",
@@ -51,9 +51,6 @@ class Action(BaseForm):
 
     def __new__(cls, *args, **kw):
         """Create a new Action."""
-        from ufl.algorithms.analysis import extract_arguments
-        from ufl.algorithms.replace import replace
-
         left, right = args
 
         # Check trivial case
@@ -74,57 +71,16 @@ class Action(BaseForm):
         if isinstance(right, Coargument | Argument):
             return left
 
-        # Action distributes over sums on the LHS
-        if isinstance(left, Sum):
-            return FormSum(*((Action(component, right), 1) for component in left.ufl_operands))
-        elif isinstance(left, FormSum):
-            return FormSum(
-                *((Action(c, right), w) for c, w in zip(left.components(), left.weights()))
-            )
-
-        # Action also distributes over sums on the RHS
-        if isinstance(right, Sum):
-            return FormSum(*((Action(left, component), 1) for component in right.ufl_operands))
-        elif isinstance(right, FormSum):
-            return FormSum(
-                *((Action(left, c), w) for c, w in zip(right.components(), right.weights()))
-            )
-
-        # Check compatibility of function spaces
-        _check_function_spaces(left, right)
-
-        # Simplify Action(BaseForm, Interpolate(Expr, Coargument))
-        # -> Interpolate(Expr, BaseForm)
-        if (
-            isinstance(right, Interpolate)
-            and isinstance(left, BaseForm)
-            and len(left.arguments()) == 1
-        ):
-            v, operand = right.argument_slots()
-            # If the operand has an argument, replace it with number 0
-            operand_args = extract_arguments(operand)
-            if operand_args:
-                (old_arg,) = operand_args
-                new_arg = type(old_arg)(old_arg.ufl_function_space(), 0, old_arg.part())
-                operand = replace(operand, {old_arg: new_arg})
-            if v == right.arguments()[0]:
-                return right._ufl_expr_reconstruct_(operand, v=left)
-
-        # Simplify Action(Interpolate(Expr, Coargument), BaseForm)
-        # -> Interpolate(Expr, BaseForm)
-        if (
-            isinstance(left, Interpolate)
-            and isinstance(right, BaseForm)
-            and len(right.arguments()) == 1
-        ):
-            v, operand = left.argument_slots()
-            if v == left.arguments()[-1]:
-                return left._ufl_expr_reconstruct_(operand, v=right)
-
-        return super().__new__(cls)
+        # Construct a new instance to be initialised
+        self = super().__new__(cls)
+        self._initialised = False
+        return self
 
     def __init__(self, left, right):
         """Initialise."""
+        if self._initialised:
+            return
+        _check_function_spaces(left, right)
         BaseForm.__init__(self)
 
         self._left = left
@@ -135,6 +91,7 @@ class Action(BaseForm):
         self._repr = f"Action({self._left!r}, {self._right!r})"
 
         self._hash = None
+        self._initialised = True
 
     def ufl_function_spaces(self):
         """Get the tuple of function spaces of the underlying form."""
@@ -201,11 +158,21 @@ class Action(BaseForm):
 
 def _check_function_spaces(left, right):
     """Check if the function spaces of left and right match."""
+    if isinstance(left, Sum):
+        for summand in left.ufl_operands:
+            _check_function_spaces(summand, right)
+        return
+    if isinstance(right, Sum):
+        for summand in right.ufl_operands:
+            _check_function_spaces(left, summand)
+        return
+
     # Action differentiation pushes differentiation through
     # right as a consequence of Leibniz formula.
-    if isinstance(right, CoefficientDerivative):
+    # The derivative of a BaseForm has its own arguments, which include the direction.
+    if isinstance(right, CoefficientDerivative) and not isinstance(right, BaseForm):
         right, *_ = right.ufl_operands
-    if isinstance(left, CoefficientDerivative):
+    if isinstance(left, CoefficientDerivative) and not isinstance(left, BaseForm):
         left, *_ = left.ufl_operands
 
     # `Zero` doesn't contain any information about the function space.
@@ -239,6 +206,14 @@ def _check_function_spaces(left, right):
 
 def _get_action_form_arguments(left, right):
     """Perform argument contraction to work out the arguments of Action."""
+    if isinstance(left, Sum) or isinstance(right, Sum):
+        # All the summands have the same arguments.
+        lefts = left.ufl_operands if isinstance(left, Sum) else (left,)
+        rights = right.ufl_operands if isinstance(right, Sum) else (right,)
+        terms = [_get_action_form_arguments(a, b) for a in lefts for b in rights]
+        (arguments, _), *_ = terms
+        return arguments, tuple(c for _, coefficients in terms for c in coefficients)
+
     coefficients = ()
     # `left` can also be a Coefficient in V (= V**), e.g.
     # `action(Coefficient(V), Cofunction(V.dual()))`.
@@ -267,4 +242,5 @@ def _get_action_form_arguments(left, right):
     if isinstance(left, BaseForm):
         coefficients += left.coefficients()
 
-    return arguments, coefficients
+    # Like any other BaseForm, the highest-numbered argument comes last.
+    return tuple(sorted(arguments, key=lambda a: a.number())), coefficients

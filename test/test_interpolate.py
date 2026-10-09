@@ -13,6 +13,7 @@ from ufl import (
     Coefficient,
     Cofunction,
     FunctionSpace,
+    Matrix,
     Mesh,
     SpatialCoordinate,
     TestFunction,
@@ -39,9 +40,11 @@ from ufl.algorithms.analysis import (
 )
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.expand_indices import expand_indices
+from ufl.algorithms.renumbering import renumber_indices
+from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.classes import Product, ReferenceGrad, ReferenceValue
 from ufl.core.interpolate import Interpolate
-from ufl.form import Form, FormSum
+from ufl.form import Form, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -254,11 +257,11 @@ def test_action_adjoint(V1, V2):
     assert action(F, Iu) == Iu * v * dx
 
     # -- Adjoint -- #
-    adjoint(Iv) == Adjoint(Iv)
+    assert adjoint(Iv) == Adjoint(Iv)
 
     # action of one-form on interpolation operator
     one_form = Argument(V2, 0) * dx
-    action_one_form = action(one_form, Iv)  # adjoint interpolation V2^* -> V1^*
+    action_one_form = restructure_base_form(action(one_form, Iv))  # V2^* -> V1^*
     assert isinstance(action_one_form, Interpolate)
     assert action_one_form.arguments() == (Argument(V1, 0),)
     assert action_one_form.ufl_function_space() == V1.dual()
@@ -267,6 +270,55 @@ def test_action_adjoint(V1, V2):
     action_zero_form = action(one_form, Iu)  # a number
     assert isinstance(action_zero_form, Form)
     assert action_zero_form.arguments() == ()
+
+
+def test_restructure_base_form(V1, V2):
+    vstar = Argument(V2.dual(), 0)
+    u = Coefficient(V1)
+    Iu = Interpolate(u, vstar)
+    Iv = Interpolate(TrialFunction(V1), vstar)  # V1 -> V2
+    F = TrialFunction(V2) * TestFunction(V1) * dx
+
+    # Interpolate is linear in its operand: Action(I(v1; v*), u) -> I(u; v*)
+    assert restructure_base_form(Action(Iv, u)) == Iu
+    # Action is associative: Action(Action(F, Iv), u) -> Action(F, Action(Iv, u))
+    assert restructure_base_form(Action(Action(F, Iv), u)) == Action(F, Iu)
+    # The adjoint of a base form operator swaps the numbers of its arguments.
+    assert restructure_base_form(Adjoint(Iv)) == Interpolate(
+        Argument(V1, 0), Argument(V2.dual(), 1)
+    )
+
+    # Action(Adjoint(A), x) -> Action(x, A)
+    A = Matrix(V1.dual(), V2)
+    f = Argument(V1, 0) * dx
+    assert restructure_base_form(Action(Adjoint(A), f)) == Action(f, A)
+    x_cofunction = Coefficient(V1.dual())
+    assert restructure_base_form(Action(Adjoint(A), x_cofunction)) == Action(x_cofunction, A)
+    matrix_action = restructure_base_form(Action(Adjoint(A), Matrix(V1, V2)))
+    assert isinstance(matrix_action.left(), Adjoint)
+
+    composed = Action(Matrix(V2.dual(), V1.dual()), Matrix(V1, V2))
+    x = Coefficient(V2.dual())
+    assert restructure_base_form(Action(Adjoint(composed), x)) == Action(x, composed)
+
+    form = TestFunction(V1) * TrialFunction(V2) * dx
+    x_function = Coefficient(V1)
+    assert restructure_base_form(Action(Adjoint(form), x_function)) == Action(x_function, form)
+
+    # Operands are restructured before their Action:
+    # Action(Adjoint(Iv), w) -> Action(I(v0; v1*), w) -> I(v0; w)
+    w = Cofunction(V2.dual())
+    assert restructure_base_form(Action(Adjoint(Iv), w)) == Interpolate(Argument(V1, 0), w)
+
+    # A FormSum fills the dual slot without distributing the Action over it.
+    L = TestFunction(V2) * dx + w
+    assert restructure_base_form(Action(Iu, L)) == Interpolate(u, L)
+
+    # A rank 2 dual slot is split off: I(u; A) -> Action(I(u; v*), A)
+    A = Matrix(V2, V1)
+    assert restructure_base_form(Interpolate(u, A)) == Action(
+        Interpolate(u, Argument(V2.dual(), 0)), A
+    )
 
 
 def test_differentiation(V1, V2):
@@ -293,8 +345,7 @@ def test_differentiation(V1, V2):
     F = Iu * v * dx
     Ihat = TrialFunction(Iu.ufl_function_space())
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # Compute dFdu = ∂F/∂u + Action(dFdIu, dIu/du)
-    #              = Action(dFdIu, Iu(uhat, v*))
+    # dF/du[uhat] = Action(dF/dIu, dIu/du[uhat])
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
     assert dFdIu == Ihat * v * dx
     assert dFdu == Action(dFdIu, dIu)
@@ -302,16 +353,15 @@ def test_differentiation(V1, V2):
     # -- Differentiate: u * I(u, V2) * v * dx -- #
     F = u * Iu * v * dx
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # Compute dFdu = ∂F/∂u + Action(dFdIu, dIu/du)
-    #              = ∂F/∂u + Action(dFdIu, Iu(uhat, v*))
-    dFdu_partial = uhat * Iu * v * dx
-    dFdIu = Ihat * u * v * dx
-    assert dFdu == dFdu_partial + Action(dFdIu, dIu)
+    # dF/du[uhat] = ∂F/∂u[uhat] + Action(∂F/∂Iu, dIu/du[uhat])
+    assert dFdu == uhat * Iu * v * dx + Action(Ihat * u * v * dx, dIu)
 
     # -- Differentiate (wrt Iu): <Iu, v> + <grad(Iu), grad(v)> - <f, v>
     f = Coefficient(V1)
     F = inner(Iu, v) * dx + inner(grad(Iu), grad(v)) * dx - inner(f, v) * dx
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
+    dFdu = expand_derivatives(derivative(F, u, uhat))
+    assert renumber_indices(dFdu) == renumber_indices(Action(dFdIu, dIu))
 
     # BaseFormOperators are treated as coefficients when a form is differentiated wrt them.
     # -> dFdIu <=> dFdw
@@ -325,8 +375,122 @@ def test_differentiation(V1, V2):
     # Derivative of form I(u, V2) wrt coefficient u
     J = Iu * dx
     dJdu = expand_derivatives(derivative(J, u))
-    assert isinstance(dJdu, Interpolate)
+    # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu), where I is linear in its dual slot
+    assert restructure_base_form(dJdu) == Interpolate(Argument(V1, 0), Argument(V2, 0) * dx)
     assert dJdu.arguments() == (Argument(V1, 0),)
+
+
+def test_formsum_derivative(V1, V2):
+    u = Coefficient(V1)
+    J = Interpolate(u, V2) ** 2 * dx
+    dJ = derivative(J, u)
+    # The Cofunction is not under a derivative, so the chain rule only
+    # differentiates the interpolation in `dJ`.
+    c = Cofunction(V1.dual())
+    assert expand_derivatives(FormSum((dJ, 1), (c, 1))) == FormSum(
+        (expand_derivatives(dJ), 1), (c, 1)
+    )
+
+
+def test_second_derivative(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    Iu = Interpolate(u, V2)
+    v0, v1 = TestFunction(V1), TrialFunction(V1)
+    w0, w1 = TestFunction(V2), TrialFunction(V2)
+
+    # -- Differentiate: J = 0.5 * (Iu - f)**2 * dx -- #
+    J = 0.5 * (Iu - f) ** 2 * dx
+    dJdu = expand_derivatives(derivative(J, u))
+    # dJ/du[v0] = I^T dJ/dIu, the adjoint interpolation of dJ/dIu
+    dJdIu = expand_derivatives(derivative(J, Iu, w0))
+    assert restructure_base_form(dJdu) == Interpolate(v0, dJdIu)
+
+    # d2J/du2[v0, v1] = I^T d2J/dIu2 I, since I is linear
+    d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
+    d2Jdu2 = expand_derivatives(derivative(dJdu, u, v1))
+    vhat = Argument(V2.dual(), 1)
+    assert d2Jdu2 == Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    assert d2Jdu2.arguments() == (v0, v1)
+
+    # -- Nested derivatives expand one at a time from the inside out -- #
+    H = derivative(derivative(J, u), u)
+    assert expand_derivatives(H) == d2Jdu2
+
+    # -- Adjoint interpolation whose dual slot doesn't depend on u -- #
+    assert expand_derivatives(derivative(Interpolate(v0, f * w0 * dx), u, v1)) == ZeroBaseForm(
+        (v0, v1)
+    )
+
+    # -- Nested derivatives with an integral that doesn't depend on Iu -- #
+    R = 0.5 * u**2 * dx
+    d2Rdu2 = expand_derivatives(derivative(derivative(R, u), u))
+    d2JRdu2 = expand_derivatives(derivative(derivative(J + R, u), u))
+    assert d2JRdu2 == d2Jdu2 + d2Rdu2
+
+
+def test_derivative_keeps_interpolate(V1, V2):
+    # Subclasses of Interpolate carry data that reconstruction may drop.
+    Iu = Interpolate(Coefficient(V1), V2)
+    assert apply_derivatives(Iu) is Iu
+
+
+def test_coefficient_derivatives(V1, V2):
+    u = Coefficient(V1)
+    g = Coefficient(V1)
+    v = TestFunction(V1)
+    uhat = TrialFunction(V1)
+    Iu = Interpolate(u, V2)
+
+    # The given derivative of Iu replaces the derivative of its operand.
+    dF = derivative(Iu * v * dx, u, uhat, coefficient_derivatives={Iu: g})
+    assert expand_derivatives(dF) == g * uhat * v * dx
+
+
+def test_scaled_second_derivative(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    Iu = Interpolate(u, V2)
+    v0, v1 = TestFunction(V1), TrialFunction(V1)
+    w0, w1 = TestFunction(V2), TrialFunction(V2)
+    J = 0.5 * (Iu - f) ** 2 * dx
+    d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
+    # d2J/du2[v0, v1] = I^T d2J/dIu2 I
+    vhat = Argument(V2.dual(), 1)
+    d2Jdu2 = Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+
+    H = derivative(derivative(J, u), u)
+    assert expand_derivatives(2 * H) == 2 * d2Jdu2
+
+
+def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
+    u = Coefficient(V1)
+    du = Coefficient(V1)
+    v = TestFunction(V2)
+    vstar = inner(u, v) * dx
+    Iu = Interpolate(u, vstar)
+
+    actual = restructure_base_form(expand_derivatives(derivative(Iu, u, du)))
+    expected = Interpolate(du, vstar) + Interpolate(u, inner(du, v) * dx)
+
+    assert actual == expected
+
+    # The coargument in the dual slot does not depend on u.
+    assert expand_derivatives(derivative(Interpolate(u, V2), u, du)) == Interpolate(du, V2)
+
+
+def test_second_derivative_through_nested_formsum(V1, V2):
+    u = Coefficient(V1)
+    du = Coefficient(V1)
+    v = TestFunction(V2)
+    Iu = Interpolate(u, inner(u, v) * dx)
+    term = Interpolate(du, inner(du, v) * dx)
+
+    d2Idu2 = restructure_base_form(expand_derivatives(derivative(derivative(Iu, u, du), u, du)))
+
+    # The first derivative is a FormSum because both the operand and dual slot
+    # depend on u. Differentiating that nested FormSum gives the product rule twice.
+    assert d2Idu2 == FormSum((term, 1), (term, 1))
 
 
 def test_extract_base_form_operators(V1, V2):
@@ -408,20 +572,13 @@ def test_interpolate_argument_numbering(V1, V2):
     with pytest.raises(ValueError, match=r"Same argument numbers in first and second operands"):
         Interpolate(u0, vstar0)
 
-    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
-        Interpolate(u, vstar1)
+    with pytest.raises(ValueError, match=r"Same argument numbers in first and second operands"):
+        Interpolate(u0 * u1, vstar0)
 
-    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
-        Interpolate(u1, cofunc)
-
-    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
-        Interpolate(u1, one_form)
-
-    u2 = u0 * u1
-    with pytest.raises(
-        ValueError, match=r"Same argument numbers in first and second operands to interpolate."
-    ):
-        Interpolate(u2, vstar0)
+    # Arguments need not be numbered contiguously.
+    Interpolate(u, vstar1)
+    Interpolate(u1, cofunc)
+    Interpolate(u1, one_form)
 
     with pytest.raises(ValueError, match=r"Expecting a primal function space."):
         Interpolate(u, V2.dual())
