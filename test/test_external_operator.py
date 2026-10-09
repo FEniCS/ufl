@@ -33,7 +33,6 @@ from ufl import (
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
-from ufl.algorithms.renumbering import renumber_indices
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
@@ -127,9 +126,10 @@ def test_form(V1, V2):
 
     (vstar,) = N.arguments()
 
-    # dF/du[u_hat] = dN/du[u_hat] * v * dx
+    # dF/du[u_hat] = Action(dF/dN, dN/du[u_hat])
     dNdu = N._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=(vstar, u_hat))
-    assert apply_derivatives(actual) == dNdu * v * dx
+    N_hat = Argument(V2, 1)
+    assert apply_derivatives(actual) == Action(N_hat * v * dx, dNdu)
 
     # F = N * u * v * dx
     N = ExternalOperator(u, m, function_space=V1)
@@ -138,9 +138,10 @@ def test_form(V1, V2):
 
     (vstar,) = N.arguments()
 
-    # dF/du[u_hat] = (N * u_hat + dN/du[u_hat] * u) * v * dx
+    # dF/du[u_hat] = ∂F/∂u[u_hat] + Action(∂F/∂N, dN/du[u_hat])
     dNdu = N._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=(vstar, u_hat))
-    assert apply_derivatives(actual) == (u_hat * N + u * dNdu) * v * dx
+    N_hat = Argument(V1, 1)
+    assert apply_derivatives(actual) == u_hat * N * v * dx + Action(N_hat * u * v * dx, dNdu)
 
 
 def test_form_dual_slot_argument_is_contracted(V1, V2):
@@ -193,11 +194,17 @@ def test_differentiation_procedure_action(V1, V2):
     Ja2 = derivative(a2, s, s_hat)
     Ja2 = expand_derivatives(Ja2)
 
-    # Get external operators
-    (dN1du,) = Ja1.base_form_operators()
+    # Ja = dN/du(..; dF/dN, u_hat), the action of dN/du(..; v*, u_hat) on dF/dN
+    da1dN1 = expand_derivatives(derivative(a1, N1, Argument(V1, 0)))
+    dN1du = N1._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=(vstar_N1, u_hat))
+    assert Ja1 == dN1du._ufl_expr_reconstruct_(u, m, argument_slots=(da1dN1, u_hat))
     dN1du_action = Action(dN1du, w)
 
-    (dN2du,) = Ja2.base_form_operators()
+    da2dN2 = expand_derivatives(derivative(a2, N2, Argument(V1, 0)))
+    dN2du = N2._ufl_expr_reconstruct_(
+        cos(s), derivatives=(1,), argument_slots=(vstar_N2, -sin(s) * s_hat)
+    )
+    assert Ja2 == dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=(da2dN2, -sin(s) * s_hat))
     dN2du_action = Action(dN2du, r)
 
     # Check shape
@@ -310,9 +317,6 @@ def test_adjoint_action_jacobian(V1, V2, V3):
     def m_hat(number):
         return Argument(V2, number)  # V2: degree 2 # dFdm.arguments()[-1]
 
-    def vstar_N(number):
-        return Argument(V3.dual(), number)  # V3: degree 3
-
     # Coefficients for the action
     w = Coefficient(V1)  # for u
     p = Coefficient(V2)  # for m
@@ -323,14 +327,8 @@ def test_adjoint_action_jacobian(V1, V2, V3):
 
     for F in form_base_expressions:
         # Get test function
-        v_F = F.arguments() if isinstance(F, Form) else ()
-        # If we have a 0-form with an ExternalOperator: e.g. F = N * dx
-        # => F.arguments() = (), because of form composition.
-        # But we still need to make arguments with number 1 (i.e. n_arg = 1)
-        # since at the external operator level, argument numbering is based on
-        # the external operator arguments and not on the outer form arguments.
-        n_arg = len(v_F) if len(v_F) else 1
-        assert n_arg < 2
+        v_F = F.arguments()
+        n_arg = len(v_F)
 
         # Differentiate
         dFdu = expand_derivatives(derivative(F, u, u_hat(n_arg)))
@@ -338,18 +336,6 @@ def test_adjoint_action_jacobian(V1, V2, V3):
 
         assert dFdu.arguments() == v_F + (u_hat(n_arg),)
         assert dFdm.arguments() == v_F + (m_hat(n_arg),)
-
-        # dNdu(u, m; u_hat, v*)
-        (dNdu,) = dFdu.base_form_operators()
-        # dNdm(u, m; m_hat, v*)
-        (dNdm,) = dFdm.base_form_operators()
-
-        assert dNdu.derivatives == (1, 0)
-        assert dNdm.derivatives == (0, 1)
-        assert dNdu.arguments() == (vstar_N(0), u_hat(n_arg))
-        assert dNdm.arguments() == (vstar_N(0), m_hat(n_arg))
-        assert dNdu.argument_slots() == dNdu.arguments()
-        assert dNdm.argument_slots() == dNdm.arguments()
 
         # Action
         action_dFdu = action(dFdu, w)
@@ -405,34 +391,38 @@ def test_multiple_external_operators(V1, V2):
 
     F = (inner(N1, v) + inner(N2, v) + inner(N3, v)) * dx
 
-    # dFdu = < dN1/du, v > + < dN3/du, v >
+    # dF/dN[Nhat] = < Nhat, v >, with Nhat numbered after v
+    dFdN1 = apply_algebra_lowering(inner(v_hat, v) * dx)
+    dFdN2 = apply_algebra_lowering(inner(w_hat, v) * dx)
+
+    # dFdu = Action(dF/dN1, dN1/du) + Action(dF/dN3, dN3/du)
     dFdu = expand_derivatives(derivative(F, u))
     dN1du = N1._ufl_expr_reconstruct_(
         u, m, derivatives=(1, 0), argument_slots=N1.arguments() + (v_hat,)
     )
     dN3du = N3._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=N3.arguments() + (v_hat,))
 
-    assert dFdu == apply_algebra_lowering((inner(dN1du, v) + inner(dN3du, v)) * dx)
+    assert dFdu == Action(dFdN1, dN1du) + Action(dFdN1, dN3du)
 
-    # dFdm = < dN1/dm, v >
+    # dFdm = Action(dF/dN1, dN1/dm)
     dFdm = expand_derivatives(derivative(F, m))
     dN1dm = N1._ufl_expr_reconstruct_(
         u, m, derivatives=(0, 1), argument_slots=N1.arguments() + (v_hat,)
     )
 
-    assert dFdm == apply_algebra_lowering(inner(dN1dm, v) * dx)
+    assert dFdm == Action(dFdN1, dN1dm)
 
-    # dFdw = < dN2/dw, v >
+    # dFdw = Action(dF/dN2, dN2/dw)
     dFdw = expand_derivatives(derivative(F, w))
     dN2dw = N2._ufl_expr_reconstruct_(w, derivatives=(1,), argument_slots=N2.arguments() + (w_hat,))
 
-    assert dFdw == apply_algebra_lowering(inner(dN2dw, v) * dx)
+    assert dFdw == Action(dFdN2, dN2dw)
 
     # --- F = < N4(N1(u, m), u; v*), v > --- #
 
     F = inner(N4, v) * dx
 
-    # dFdu = < dN4/du, v >, where the chain rule gives
+    # dFdu = Action(dF/dN4, dN4/du), where the chain rule gives
     # dN4/du = ∂N4/∂N1[dN1/du] + ∂N4/∂u
     def dN4dN1(dN1):
         return N4._ufl_expr_reconstruct_(
@@ -445,11 +435,11 @@ def test_multiple_external_operators(V1, V2):
     dN4du = dN4dN1(dN1du) + dN4du_partial
 
     dFdu = expand_derivatives(derivative(F, u))
-    assert dFdu == apply_algebra_lowering(inner(dN4du, v) * dx)
+    assert dFdu == Action(dFdN1, dN4du)
 
-    # dFdm = < ∂N4/∂N1[dN1/dm], v >
+    # dFdm = Action(dF/dN4, ∂N4/∂N1[dN1/dm])
     dFdm = expand_derivatives(derivative(F, m))
-    assert dFdm == apply_algebra_lowering(inner(dN4dN1(dN1dm), v) * dx)
+    assert dFdm == Action(dFdN1, dN4dN1(dN1dm))
 
     # --- F = < N1(u, m; v*), v > + <N2(w; v*), v> + <N3(u; v*), v> + <
     # N4(N1(u, m), u; v*), v > --- #
@@ -457,22 +447,20 @@ def test_multiple_external_operators(V1, V2):
     F = (inner(N1, v) + inner(N2, v) + inner(N3, v) + inner(N4, v)) * dx
 
     dFdu = expand_derivatives(derivative(F, u))
-    assert dFdu == apply_algebra_lowering(
-        (inner(dN1du, v) + inner(dN3du, v) + inner(dN4du, v)) * dx
-    )
+    assert dFdu == Action(dFdN1, dN1du) + Action(dFdN1, dN3du) + Action(dFdN1, dN4du)
 
     dFdm = expand_derivatives(derivative(F, m))
-    assert dFdm == apply_algebra_lowering((inner(dN1dm, v) + inner(dN4dN1(dN1dm), v)) * dx)
+    assert dFdm == Action(dFdN1, dN1dm) + Action(dFdN1, dN4dN1(dN1dm))
 
     dFdw = expand_derivatives(derivative(F, w))
-    assert dFdw == apply_algebra_lowering(inner(dN2dw, v) * dx)
+    assert dFdw == Action(dFdN2, dN2dw)
 
     # --- F = < N5(N4(N1(u, m), u), u; v*), v > + < N1(u, m; v*), v > +
     # < u * N5(N4(N1(u, m), u), u; v*), v >--- #
 
     F = (inner(N5, v) + inner(N1, v) + inner(u * N5, v)) * dx
 
-    # dFdu = < dN5/du, v > + < dN1/du, v > + < v_hat * N5 + u * dN5/du, v >,
+    # dFdu = ∂F/∂u + Action(dF/dN1, dN1/du) + Action(dF/dN5, dN5/du),
     # where the chain rule gives dN5/du = ∂N5/∂N4[dN4/du] + ∂N5/∂u
     dN5dN4 = N5._ufl_expr_reconstruct_(
         N4, u, derivatives=(1, 0), argument_slots=N5.arguments() + (dN4du,)
@@ -483,9 +471,9 @@ def test_multiple_external_operators(V1, V2):
     dN5du = dN5dN4 + dN5du_partial
 
     dFdu = expand_derivatives(derivative(F, u))
-    assert dFdu == apply_algebra_lowering(
-        (inner(dN5du, v) + inner(dN1du, v) + inner(v_hat * N5 + u * dN5du, v)) * dx
-    )
+    dFdu_partial = apply_algebra_lowering(inner(v_hat * N5, v) * dx)
+    dFdN5 = expand_derivatives(derivative(F, N5, v_hat))
+    assert dFdu == dFdu_partial + Action(dFdN1, dN1du) + Action(dFdN5, dN5du)
 
 
 def test_replace(V1):
@@ -546,15 +534,14 @@ def test_replace_base_form_derivative(V1):
         replace(dJ, {u: w})
 
 
-def test_base_form_derivative_lowers_compound_algebra(domain_2d):
-    V = FunctionSpace(domain_2d, FiniteElement("CG", triangle, 1, (2,), identity_pullback, H1))
-    u = Coefficient(V)
-    v = TestFunction(V)
-    N = ExternalOperator(u, function_space=V)
+def test_base_form_derivative_lowers_compound_algebra(V1):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
     F = inner(N, v) * dx
 
     def dJ(F):
-        return renumber_indices(expand_derivatives(derivative(Action(F, u), u)))
+        return expand_derivatives(derivative(Action(F, u), u))
 
     assert dJ(F) == dJ(apply_algebra_lowering(F))
 
@@ -725,10 +712,10 @@ def test_functional_derivative(V1):
     N = ExternalOperator(u, function_space=V1)
     J = N**2 * dx
 
-    # dJ/du[v0] = 2 * N * dN/du[v0] * dx
-    dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=N.arguments() + (v0,))
+    # dJ/du[v0] = dN/du(u; dJ/dN, v0), since N is linear in its dual slot
+    dJdN = expand_derivatives(derivative(J, N, v0))
     dJdu = expand_derivatives(derivative(J, u))
-    assert dJdu == 2 * dNdu * N * dx
+    assert dJdu == N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(dJdN, v0))
     assert dJdu.arguments() == (v0,)
 
 
@@ -750,10 +737,12 @@ def test_functional_hessian_through_composition(V1):
     def dN(n, *slots):
         return N._ufl_expr_reconstruct_(M, derivatives=(n,), argument_slots=slots)
 
-    # H[v0, v1] = d2N/dM2[dM/du[v0], dM/du[v1]] + dN/dM[d2M/du2[v0, v1]]
-    d2N = dN(2, c(0), dM(1, c(0), a(0)), dM(1, c(0), a(1)))
-    d2M = dN(1, c(0), dM(2, c(0), a(0), a(1)))
-    assert expand_derivatives(H) == (d2N + d2M) * dx
+    # H[v0, v1] = d2N/dM2[dM/du[v0], dM/du[v1]] + dN/dM[d2M/du2[v0, v1]],
+    # in the dual slot dF/dN[Nhat] = Nhat * dx
+    dFdN = a(0) * dx
+    d2N = dN(2, dFdN, dM(1, c(0), a(0)), dM(1, c(0), a(1)))
+    d2M = dN(1, dFdN, dM(2, c(0), a(0), a(1)))
+    assert expand_derivatives(H) == d2N + d2M
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
