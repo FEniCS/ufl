@@ -117,9 +117,10 @@ class GeometricQuantity(Terminal):
         """Initialise."""
         Terminal.__init__(self)
         if isinstance(domain, MeshSequence) and len(set(domain)) > 1:
-            # Can not make GeometricQuantity if multiple domains exist.
-            raise TypeError(f"Can not create a GeometricQuantity on {domain}")
-        self._domain = as_domain(domain)
+            self._domain = domain
+            # raise TypeError(f"Can not create a GeometricQuantity on {domain}")
+        else:
+            self._domain = as_domain(domain)
 
     def ufl_domains(self):
         """Get the UFL domains."""
