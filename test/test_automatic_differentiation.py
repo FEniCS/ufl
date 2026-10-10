@@ -12,7 +12,7 @@ Other tests check for mathematical correctness of diff and derivative.
 """
 
 import pytest
-from utils import FiniteElement, LagrangeElement
+from utils import FiniteElement, ForeignDerivative, LagrangeElement
 
 from ufl import (
     And,
@@ -38,6 +38,7 @@ from ufl import (
     Or,
     PermutationSymbol,
     SpatialCoordinate,
+    TestFunction,
     acos,
     as_matrix,
     as_tensor,
@@ -84,7 +85,7 @@ from ufl import (
     triangle,
     variable,
 )
-from ufl.algorithms import expand_derivatives
+from ufl.algorithms import expand_coefficient_derivatives, expand_derivatives
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
@@ -714,3 +715,63 @@ def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_
 
     assert δF_u == 0
     assert δF_u.ufl_shape == (gdim, tdim, gdim, gdim)
+
+
+def test_coefficient_derivative_grad_coeff(self, d_expr):
+    """Test that CoefficientDerivative expansion"""
+    _d, collection = d_expr
+
+    u = collection.shared_objects.u
+    v = collection.shared_objects.v
+    w = collection.shared_objects.w
+    for f in (u, v, w):
+        test = TestFunction(f.ufl_function_space())
+
+        expected = grad(test)
+        before = derivative(grad(f), f)
+        after = expand_coefficient_derivatives(before)
+        self.assertEqualTotalShape(before, after)
+        assert after == expected
+
+        expected = grad(grad(test))
+        before = derivative(grad(grad(f)), f)
+        after = expand_coefficient_derivatives(before)
+        self.assertEqualTotalShape(before, after)
+        assert after == expected
+
+        expected = grad(grad(grad(test)))
+        before = derivative(grad(grad(grad(f))), f)
+        after = expand_coefficient_derivatives(before)
+        self.assertEqualTotalShape(before, after)
+        assert after == expected
+
+
+def test_coefficient_derivative_grad_coordinate(self):
+    """Test that CoordinateDerivative objects do not get expanded"""
+    cell = triangle
+    gdim = cell.topological_dimension
+    geometry_degree = 1
+    domain = Mesh(LagrangeElement(cell, geometry_degree, (gdim,)))
+    x = SpatialCoordinate(domain)
+
+    expected = grad(x)
+    before = grad(x)
+    after = expand_coefficient_derivatives(before)
+    self.assertEqualTotalShape(before, after)
+    assert after == expected
+
+
+def test_coefficient_derivative_foreign_derivative(self):
+    """Test that foreign Derivative objects do not get expanded"""
+    cell = triangle
+    gdim = cell.topological_dimension
+    geometry_degree = 1
+    domain = Mesh(LagrangeElement(cell, geometry_degree, (gdim,)))
+
+    x = SpatialCoordinate(domain)
+
+    expected = ForeignDerivative(x)
+    before = ForeignDerivative(x)
+    after = expand_coefficient_derivatives(before)
+    self.assertEqualTotalShape(before, after)
+    assert after == expected
