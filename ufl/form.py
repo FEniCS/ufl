@@ -22,7 +22,6 @@ from ufl.checks import is_scalar_constant_expression
 from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
-from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.domain import extract_unique_domain, sort_domains
 from ufl.equation import Equation
@@ -98,7 +97,7 @@ def _sorted_integrals(integrals: typing.Iterable[Integral]) -> tuple[Integral, .
 class BaseForm(metaclass=UFLType):
     """Description of an object containing arguments."""
 
-    ufl_operands: tuple[FormArgument, ...]
+    ufl_operands: tuple["Expr | BaseForm", ...]
 
     # Slots is kept empty to enable multiple inheritance with other
     # classes

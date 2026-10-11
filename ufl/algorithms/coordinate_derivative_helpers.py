@@ -9,27 +9,38 @@ This is used in compute_form_data.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from functools import singledispatchmethod
+
+import ufl.classes
 from ufl.classes import Integral
-from ufl.corealg.map_dag import map_expr_dags
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.differentiation import CoordinateDerivative
 
 
-class CoordinateDerivativeIsOutermostChecker(MultiFunction):
+class CoordinateDerivativeIsOutermostChecker(DAGTraverser):
     """Traverses the tree to make sure that CoordinateDerivatives are only on the outside.
 
     The visitor returns False as long as no CoordinateDerivative has been seen.
     """
 
-    def multi_index(self, o):
+    @singledispatchmethod
+    def process(self, o: ufl.classes.Expr):
+        """Process ``o``."""
+        return super().process(o)
+
+    @process.register(ufl.classes.MultiIndex)
+    def _(self, o):
         """Apply to multi_index."""
         return False
 
-    def terminal(self, o):
+    @process.register(ufl.classes.Terminal)
+    def _(self, o):
         """Apply to terminal."""
         return False
 
-    def expr(self, o, *operands):
+    @process.register(ufl.classes.Expr)
+    @DAGTraverser.postorder
+    def _(self, o, *operands):
         """Apply to expr.
 
         If we have already seen a CoordinateDerivative, then no other
@@ -40,7 +51,9 @@ class CoordinateDerivativeIsOutermostChecker(MultiFunction):
             raise ValueError("CoordinateDerivative(s) must be outermost")
         return False
 
-    def coordinate_derivative(self, o, expr, *_):
+    @process.register(ufl.classes.CoordinateDerivative)
+    @DAGTraverser.postorder
+    def _(self, o, expr, *_):
         """Apply to coordinate derivative."""
         return True
 
@@ -60,7 +73,7 @@ def strip_coordinate_derivatives(integrals):
         integral = integrals
         integrand = integral.integrand()
         checker = CoordinateDerivativeIsOutermostChecker()
-        map_expr_dags(checker, [integrand])
+        checker(integrand)
         coordinate_derivatives = []
 
         def take_top_coordinate_derivatives(o):

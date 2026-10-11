@@ -9,19 +9,21 @@
 # Modified by Cecile Daversin-Catty, 2018
 # Modified by Jørgen S. Dokken, 2025
 
+from functools import singledispatchmethod
+
 import numpy as np
 
-from ufl.algorithms.map_integrands import map_expr_dag, map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrands
 from ufl.argument import Argument
-from ufl.classes import FixedIndex, ListTensor
+from ufl.classes import Expr, FixedIndex, Indexed, ListTensor, MultiIndex, Restricted
 from ufl.constantvalue import Zero
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.form import Form
 from ufl.functionspace import FunctionSpace
 from ufl.tensors import as_vector
 
 
-class FormSplitter(MultiFunction):
+class FormSplitter(DAGTraverser):
     """Form splitter."""
 
     def __init__(self, replace_argument: bool = True):
@@ -33,7 +35,7 @@ class FormSplitter(MultiFunction):
                 This is useful for instance when diagonalizing a form with a mixed-element
                 form, where we want to keep the original argument.
         """
-        MultiFunction.__init__(self)
+        super().__init__()
         self.idx = [None, None]
         self.replace_argument = replace_argument
 
@@ -41,9 +43,27 @@ class FormSplitter(MultiFunction):
         """Split form based on the argument part/number."""
         # Remember which block to extract
         self.idx = [ix, iy]
-        return map_integrand_dags(self, form)
+        # ``idx`` is mutable state, so no result from a previous split may be
+        # reused for this traversal.
+        self._visited_cache.clear()
+        self._result_cache.clear()
+        return map_integrands(self, form)
 
-    def argument(self, obj):
+    @singledispatchmethod
+    def process(self, o: Expr):
+        """Process an expression."""
+        return super().process(o)
+
+    @process.register(Expr)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operands):
+        """Reconstruct an expression if any operand changed."""
+        if all(new is old for new, old in zip(operands, o.ufl_operands)):
+            return o
+        return o._ufl_expr_reconstruct_(*operands)
+
+    @process.register(Argument)
+    def _(self, obj: Argument):
         """Apply to argument."""
         if obj.part() is not None:
             # Mixed element built from MixedFunctionSpace,
@@ -65,7 +85,7 @@ class FormSplitter(MultiFunction):
             if len(sub_elements) == 0:
                 return obj
 
-            args = []
+            args: list[Expr] = []
             counter = 0
             for i, sub_elem in enumerate(sub_elements):
                 Q_i = FunctionSpace(dom, sub_elem)
@@ -92,7 +112,9 @@ class FormSplitter(MultiFunction):
                     counter += int(np.prod(a.ufl_shape))
             return as_vector(args)
 
-    def indexed(self, o, child, multiindex):
+    @process.register(Indexed)
+    @DAGTraverser.postorder
+    def _(self, o: Indexed, child: Expr, multiindex: MultiIndex):
         """Extract indexed entry if multindices are fixed.
 
         This avoids tensors like (v_0, 0)[1] to be created.
@@ -107,22 +129,24 @@ class FormSplitter(MultiFunction):
                 return child
             else:
                 return ListTensor(*(child[i] for i in indices))
-        return self.expr(o, child, multiindex)
+        if all(new is old for new, old in zip((child, multiindex), o.ufl_operands)):
+            return o
+        return o._ufl_expr_reconstruct_(child, multiindex)
 
-    def multi_index(self, obj):
+    @process.register(MultiIndex)
+    def _(self, obj: MultiIndex):
         """Apply to multi_index."""
         return obj
 
-    def restricted(self, o):
+    @process.register(Restricted)
+    @DAGTraverser.postorder
+    def _(self, o: Restricted, op_split: Expr):
         """Apply to a restricted function."""
         # If we hit a restriction first apply form splitter to argument, then check for zero
-        op_split = map_expr_dag(self, o.ufl_operands[0])
         if isinstance(op_split, Zero):
             return op_split
         else:
             return op_split(o._side)
-
-    expr = MultiFunction.reuse_if_untouched
 
 
 def extract_blocks(

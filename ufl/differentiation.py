@@ -85,6 +85,8 @@ class CoordinateDerivative(CoefficientDerivative):
 class BaseFormDerivative(CoefficientDerivative, BaseForm):
     """Derivative of a base form w.r.t the degrees of freedom in a discrete Coefficient."""
 
+    ufl_operands: tuple[Expr, ...]
+
     _ufl_noslots_ = True
     _ufl_required_methods_: tuple[str, ...] = (
         CoefficientDerivative._ufl_required_methods_ + BaseForm._ufl_required_methods_
@@ -146,6 +148,8 @@ class BaseFormCoordinateDerivative(BaseFormDerivative, CoordinateDerivative):
 class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     """Derivative of a base form operator w.r.t the degrees of freedom in a discrete Coefficient."""
 
+    ufl_operands: tuple[BaseFormOperator, ExprList, ExprList, ExprMapping]
+
     _ufl_noslots_ = True
 
     # BaseFormOperatorDerivative is only needed because of a different
@@ -187,6 +191,12 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
             arg for a in arguments for arg in extract_arguments(a)
         )
         return argument_slots
+
+    def __eq__(self, other):
+        """Check for equality using the derivative operands."""
+        if self is other:
+            return True
+        return type(self) is type(other) and self.ufl_operands == other.ufl_operands
 
 
 @ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
