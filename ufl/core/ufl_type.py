@@ -8,8 +8,6 @@
 # Modified by Massimiliano Leoni, 2016
 # Modified by Matthew Scroggs, 2023
 
-from __future__ import annotations
-
 import abc
 import typing
 
@@ -419,7 +417,7 @@ class UFLType(type):
     _ufl_handler_name_ = "ufl_type"
 
     # A global array of all Expr and BaseForm subclasses, indexed by typecode
-    _ufl_all_classes_: list[UFLType] = []
+    _ufl_all_classes_: list["UFLType"] = []
 
     # A global set of all handler names added
     _ufl_all_handler_names_: set[str] = set()
