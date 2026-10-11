@@ -303,6 +303,7 @@ autodoc_default_options = {
 autosummary_generate = True
 autosummary_ignore_module_all = False
 autoclass_content = "both"
+autodoc_use_type_comments = False
 
 
 codeautolink_concat_default = True
