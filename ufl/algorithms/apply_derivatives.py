@@ -1840,9 +1840,12 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         left, right = o.ufl_operands
         # Number the last argument of `left` after the direction, so that the Action
         # contracts it and not the argument of the direction.
-        *_, vleft = left.arguments()
-        number = 1 + max((vleft.number(), *(a.number() for a in self._direction_arguments)))
-        left_after_v = replace(left, {vleft: vleft.reconstruct(number=number)})
+        left_after_v = left
+        left_arguments = left.arguments() if isinstance(left, BaseForm) else extract_arguments(left)
+        if left_arguments:
+            *_, vleft = left_arguments
+            number = 1 + max((vleft.number(), *(a.number() for a in self._direction_arguments)))
+            left_after_v = replace(left, {vleft: vleft.reconstruct(number=number)})
         return Action(self(left_after_v), right) + Action(left, self(right))
 
     @process.register(BaseFormOperator)
