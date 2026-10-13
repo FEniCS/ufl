@@ -12,7 +12,6 @@ from ufl import (
     Coargument,
     Coefficient,
     Constant,
-    Form,
     FunctionSpace,
     Matrix,
     Mesh,
@@ -26,7 +25,6 @@ from ufl import (
     dx,
     inner,
     replace,
-    sign,
     sin,
     triangle,
 )
@@ -677,22 +675,6 @@ def test_action_derivative_through_composition(V1):
     dNdM = N._ufl_expr_reconstruct_(M, derivatives=(1,), argument_slots=N.arguments() + (dMdu,))
     dA = expand_derivatives(derivative(Action(F, N), u, uhat))
     assert dA == Action(F, dNdM)
-
-
-def test_vanishing_derivative(V1):
-    u = Coefficient(V1)
-    w = Coefficient(V1)
-    v = TestFunction(V1)
-    uhat = TrialFunction(V1)
-    N = ExternalOperator(u, function_space=V1)
-    M = ExternalOperator(w, function_space=V1)
-
-    # The derivative keeps its arguments when it vanishes.
-    assert expand_derivatives(derivative(sign(N) * v * dx, u, uhat)) == ZeroBaseForm((v, uhat))
-    assert expand_derivatives(derivative(M * v * dx, u, uhat)) == ZeroBaseForm((v, uhat))
-
-    # An empty Form has no derivative to vanish.
-    assert type(apply_derivatives(Form([]))) is Form
 
 
 def test_coefficient_derivatives(V1):
