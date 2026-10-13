@@ -1789,9 +1789,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     def _(self, o: Form) -> BaseForm:
         """Differentiate a form with the chain rule through its base form operators.
 
-        D[F(u, N(u; v*))] = ∂F/∂u + ∂F/∂N[DN(u; v*)], where ∂F/∂N[DN] is the
-        contraction of ∂F/∂N[Nhat] and DN(u; vhat) over a new argument Nhat for N
-        and a new coargument vhat in the dual slot of N.
+        D_w[F] = ∂F/∂w + Σ_N ∂F/∂N[D_w[N]], where each ∂F/∂N[D_w[N]] is
+        the contraction of ∂F/∂N[Nhat] and D_w[N](u; vhat) over a new argument
+        Nhat for N and a new coargument vhat in the dual slot of N.
         """
         dform = map_integrands(self._integrand_rules, o)
         if dform.empty():
@@ -1806,6 +1806,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             if N in self._w2v or N in self._cd:
                 # The integrand rules differentiate N as a coefficient.
                 continue
+            # Add the chain-rule contribution for this N. The partial derivative
+            # dform_dN follows occurrences of N through outer operators, while
+            # holding N's own operands and slots fixed; dN differentiates N.
             vstar, *slots = N.argument_slots()
             primal_argument, *_ = vstar.arguments()
             if direction_first:
