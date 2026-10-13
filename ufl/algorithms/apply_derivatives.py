@@ -2027,6 +2027,9 @@ def apply_derivatives(expression):
     dexpression = map_integrands(DerivativeRuleDispatcher(), expression)
     if not isinstance(expression, BaseForm):
         return dexpression
+    if isinstance(dexpression, Form) and dexpression.empty() and not expression.empty():
+        # The derivative vanishes: keep its arguments, which an empty Form has lost.
+        return ZeroBaseForm(expression.arguments())
     return dexpression
 
 
