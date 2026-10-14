@@ -222,6 +222,30 @@ class PartExtracter(Transformer):
 
         return (x, provides)
 
+    def conditional(self, x):
+        """Extract parts from both branches of an argument-independent conditional."""
+        condition, true_value, false_value = x.ufl_operands
+        if _expr_has_terminal_types(condition, Argument):
+            raise ValueError("Condition cannot depend on form arguments.")
+
+        true_part, true_provides = self.visit(true_value)
+        false_part, false_provides = self.visit(false_value)
+
+        # As for sums, retain the parts providing the most arguments.
+        if true_provides > false_provides:
+            false_part = zero_expr(x)
+            provides = true_provides
+        elif false_provides > true_provides:
+            true_part = zero_expr(x)
+            provides = false_provides
+        elif true_provides == false_provides:
+            provides = true_provides
+        else:
+            raise ValueError("Don't know what to do with conditionals with different Arguments.")
+
+        x = self.reuse_if_possible(x, condition, true_part, false_part)
+        return (x, provides)
+
     def linear_operator(self, x, arg):
         """Apply to linear_operator.
 
