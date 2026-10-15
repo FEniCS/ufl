@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import datetime
+import datetime as dt
 import importlib.metadata
 
 import numpy as np
@@ -56,7 +56,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "UFL"
-this_year = datetime.date.today().year
+this_year = dt.date.today().year
 copyright = f"{this_year}, FEniCS Project"
 author = "FEniCS Project"
 
@@ -303,7 +303,6 @@ autodoc_default_options = {
 autosummary_generate = True
 autosummary_ignore_module_all = False
 autoclass_content = "both"
-
 
 codeautolink_concat_default = True
 intersphinx_mapping = {

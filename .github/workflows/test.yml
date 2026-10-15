@@ -6,7 +6,7 @@ on:
     inputs:
       python-version:
         description: "Python version"
-        default: "3.12"
+        default: "3.14"
         type: string
       os:
         description: "Operating system"
@@ -21,7 +21,7 @@ on:
     inputs:
       python-version:
         description: "Python version"
-        default: "3.12"
+        default: "3.14"
         type: string
       os:
         description: "Operating system"
