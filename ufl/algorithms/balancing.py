@@ -12,6 +12,7 @@ from ufl.classes import (
     Expr,
     Grad,
     Indexed,
+    Interpolate,
     NegativeRestricted,
     PositiveRestricted,
     ReferenceGrad,
@@ -35,11 +36,21 @@ modifier_precedence = {
 }
 
 
+def _is_modifiable(expr):
+    """Check whether modifiers may be applied to ``expr``.
+
+    An interpolation is modifiable like a terminal: it is a finite element field
+    of its target space, and the expression it interpolates is evaluated
+    separately.
+    """
+    return expr._ufl_is_terminal_ or isinstance(expr, Interpolate)
+
+
 def balance_modified_terminal(expr):
     """Balance modified terminal."""
     # NB! Assuming e.g. grad(cell_avg(expr)) does not occur,
     # i.e. it is simplified to 0 immediately.
-    if expr._ufl_is_terminal_:
+    if _is_modifiable(expr):
         return expr
 
     assert expr._ufl_is_terminal_modifier_
@@ -48,12 +59,12 @@ def balance_modified_terminal(expr):
 
     # Build list of modifier layers
     layers = [expr]
-    while not expr._ufl_is_terminal_:
+    while not _is_modifiable(expr):
         assert expr._ufl_is_terminal_modifier_
         expr = expr.ufl_operands[0]
         layers.append(expr)
     assert layers[-1] is expr
-    assert expr._ufl_is_terminal_
+    assert _is_modifiable(expr)
 
     # Apply modifiers in order
     layers = sorted(layers[:-1], key=lambda e: modifier_precedence[e._ufl_handler_name_])
