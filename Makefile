@@ -15,6 +15,12 @@ ruff-format:
 ruff-check:
 	. $(VENV_LINT)/bin/activate && ruff check .
 
+ruff-fix:
+	. $(VENV_LINT)/bin/activate && ruff check . --fix
+
+ruff-fix-unsafe:
+	. $(VENV_LINT)/bin/activate && ruff check . --fix --unsafe-fixes
+
 mypy:
 	. $(VENV_LINT)/bin/activate && mypy -p ufl
 	. $(VENV_LINT)/bin/activate && mypy test/
