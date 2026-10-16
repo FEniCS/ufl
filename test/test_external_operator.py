@@ -141,6 +141,41 @@ def test_form(V1, V2):
     assert apply_derivatives(actual) == expected
 
 
+def test_form_dual_slot_argument_is_contracted(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V2)
+    dual_slot = inner(u, v) * dx
+
+    operator = ExternalOperator(u, function_space=V2, argument_slots=(dual_slot,))
+
+    assert operator.arguments() == ()
+    assert operator.ufl_element() == V2.ufl_element()
+
+    with pytest.raises(ValueError, match="lowest-numbered argument"):
+        ExternalOperator(u, function_space=V1, argument_slots=(dual_slot,))
+
+    cofunction = Cofunction(V2.dual())
+    with pytest.raises(ValueError, match="lowest-numbered argument"):
+        ExternalOperator(u, function_space=V1, argument_slots=(cofunction,))
+
+
+def test_derivative_of_contracted_dual_slot(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    form = inner(f, TestFunction(V2)) * dx
+    cofunction = Cofunction(V2.dual())
+    uhat = TestFunction(V1)
+
+    form_operator = ExternalOperator(u, function_space=V2, argument_slots=(form,))
+    cofunction_operator = ExternalOperator(u, function_space=V2, argument_slots=(cofunction,))
+
+    assert (
+        derivative(form_operator, u, uhat).arguments()
+        == derivative(cofunction_operator, u, uhat).arguments()
+        == (uhat,)
+    )
+
+
 def test_differentiation_procedure_action(V1, V2):
     s = Coefficient(V1)
     u = Coefficient(V2)
