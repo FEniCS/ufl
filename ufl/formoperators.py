@@ -397,10 +397,6 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                 for component, w in zip(form.components(), form.weights())
             ]
         )
-    elif isinstance(form, Adjoint):
-        # Is `derivative(Adjoint(A), ...)` with A a 2-form even legal ?
-        # -> If yes, what's the right thing to do here ?
-        raise NotImplementedError("Adjoint derivative is not supported.")
     elif isinstance(form, Action):
         # Eagerly simplify spatial derivatives when Action results in a scalar.
         if not len(form.arguments()) and isinstance(coefficient, SpatialCoordinate):

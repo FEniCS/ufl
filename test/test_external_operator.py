@@ -585,6 +585,25 @@ def test_replace_base_form_derivative_aliasing(V1):
         replace(dJ, {u: w})
 
 
+def test_adjoint_derivative(V1, V2):
+    u = Coefficient(V1)
+    w = Coefficient(V2)
+    v1 = TestFunction(V1)
+    u2 = TrialFunction(V2)
+    N = ExternalOperator(w, function_space=V1)
+    A = adjoint(Action(N * u2 * v1 * dx, Interpolate(TrialFunction(V2), Coargument(V2.dual(), 0))))
+    assert isinstance(A, BaseForm)
+
+    # The adjoint does not depend on u, so its derivative vanishes.
+    dA = expand_derivatives(derivative(A, u))
+    assert isinstance(dA, ZeroBaseForm)
+    assert dA.arguments() == (*A.arguments(), Argument(V1, 2))
+
+    # The adjoint of the 3-form derivative is not defined.
+    with pytest.raises(NotImplementedError, match="Cannot differentiate an Adjoint"):
+        expand_derivatives(derivative(A, w))
+
+
 def test_base_form_derivative_lowers_compound_algebra(V1):
     u = Coefficient(V1)
     v = TestFunction(V1)
