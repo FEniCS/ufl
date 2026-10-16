@@ -363,6 +363,25 @@ def test_restructure_keeps_operand_arguments(V1, V2):
     assert applied.argument_slots() == (vstar, u)
 
 
+def test_restructure_splits_rank_2_operand_slot(V1, V2):
+    # The chain rule puts the rank 2 derivative B of the operand into an
+    # argument slot. A base form operator is linear in that slot, so the
+    # restructurer splits it off: N(u; v*, B) -> Action(N(u; v*, uhat), B).
+    u = Coefficient(V1)
+    operand = Interpolate(u, V2)
+    N = ExternalOperator(operand, function_space=V2)
+    vstar = Argument(V2.dual(), 0)
+    B = Interpolate(TrialFunction(V1), V2)
+
+    dN = expand_derivatives(derivative(N, u))
+    assert dN == N._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=(vstar, B))
+
+    left = N._ufl_expr_reconstruct_(
+        operand, derivatives=(1,), argument_slots=(vstar, Argument(V2, 1))
+    )
+    assert restructure_base_form(dN) == Action(left, B)
+
+
 def test_differentiation(V1, V2):
     u = Coefficient(V1)
     v = TestFunction(V1)

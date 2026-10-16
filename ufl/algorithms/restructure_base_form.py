@@ -55,8 +55,34 @@ class BaseFormRestructurer(DAGTraverser):
 
     @process.register(BaseFormOperator)
     def _(self, o: BaseFormOperator) -> Expr | BaseForm:
-        """Restructure the dual slot of a base form operator."""
+        """Restructure the argument slots of a base form operator."""
         v, *slots = o.argument_slots()
+        operator_slots = [
+            i
+            for i, slot in enumerate(slots)
+            if isinstance(slot, BaseFormOperator) and len(slot.arguments()) == 2
+        ]
+        if len(operator_slots) == 1:
+            # A base form operator is linear in its other argument slots:
+            # N(u; v*, B) -> Action(N(u; v*, uhat), B), where uhat is numbered
+            # after the other arguments of N so that the Action contracts it
+            # with the Coargument of B. An Action contracts one argument, so
+            # an operator with more than one such slot is not split.
+            (i,) = operator_slots
+            B = slots[i]
+            # The Coargument of B is bound inside B, so only the other
+            # argument of B moves out of N.
+            Bstar, *_ = B.argument_slots()
+            (moved,) = (a for a in B.arguments() if a != Bstar)
+            others = (a for a in o.arguments() if a != moved)
+            number = max((a.number() for a in others), default=-1) + 1
+            space = Bstar.ufl_function_space().dual()
+            uhat = moved.reconstruct(function_space=space, number=number)
+            left = o._ufl_expr_reconstruct_(
+                *o.ufl_operands, argument_slots=(v, *slots[:i], uhat, *slots[i + 1 :])
+            )
+            return self.action(self(left), self(B))
+
         if isinstance(v, Coargument):
             return o
 
