@@ -226,6 +226,30 @@ def test_zero_base_form_reconstruct():
     assert f2._ufl_expr_reconstruct_(v, u) == ZeroBaseForm((v, u))
 
 
+def test_matrix_subclass_equality():
+    class AssembledMatrix(Matrix):
+        """An assembled operator supplied by another package."""
+
+    mesh = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(mesh, LagrangeElement(triangle, 1))
+    matrix = AssembledMatrix(V.dual(), V)
+    same = AssembledMatrix(V.dual(), V, count=matrix.count())
+    different = AssembledMatrix(V.dual(), V)
+    base = Matrix(V.dual(), V, count=matrix.count())
+
+    assert matrix == matrix
+    assert not (matrix != matrix)
+    assert matrix == same
+    assert same == matrix
+    assert hash(matrix) == hash(same)
+    assert len({matrix, same}) == 1
+    assert matrix != different
+    assert different != matrix
+    assert not matrix.equals(base)
+    assert not base.equals(matrix)
+    assert matrix != AssembledMatrix(V, V, count=matrix.count())
+
+
 def test_scalar_mult():
     domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
     f_2d = LagrangeElement(triangle, 1)
@@ -257,10 +281,9 @@ def test_adjoint():
 
     res = adjoint(2 * a)
     assert isinstance(res, Adjoint)
-    # Adjoint distributes over sums
+    # Keep the matrix sum factored: distributing would add adjoint operations.
     res = restructure_base_form(res)
-    assert isinstance(res, FormSum)
-    assert isinstance(res.components()[0], Adjoint)
+    assert res == Adjoint(2 * a)
 
     # Adjoint(Adjoint(.)) = Id
     assert adjoint(adj) == a
@@ -307,10 +330,10 @@ def test_action():
 
     b2 = Matrix(V, U.dual())
     ustar2 = Cofunction(U.dual())
-    # Check Action left-distributivity with FormSum
+    # Assemble the rank-one FormSum before taking its Action.
     res = restructure_base_form(action(b, ustar + ustar2))
-    assert res == Action(b, ustar) + Action(b, ustar2)
-    # Check Action right-distributivity with FormSum
+    assert res == Action(b, ustar + ustar2)
+    # A matrix FormSum distributes to avoid assembling the matrix sum.
     res = restructure_base_form(action(b + b2, ustar))
     assert res == Action(b, ustar) + Action(b2, ustar)
 
