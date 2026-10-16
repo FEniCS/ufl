@@ -562,6 +562,25 @@ def test_replace_base_form_derivative(V1):
     dJ = derivative(Action(N * u * v * dx, u), u)
     assert isinstance(dJ, BaseFormDerivative)
 
+    # The derivative is not applied, and the replacement is applied to the
+    # differentiation variable as well as to the base form.
+    Nw = ExternalOperator(w, function_space=V1)
+    expected = derivative(Action(Nw * w * v * dx, w), w)
+    result = replace(dJ, {u: w})
+    assert isinstance(result, BaseFormDerivative)
+    assert result.ufl_operands == expected.ufl_operands
+    assert expand_derivatives(result) == expand_derivatives(expected)
+
+
+def test_replace_base_form_derivative_aliasing(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    dJ = derivative(Action(N * w * v * dx, u), u)
+
+    # Mapping the differentiation variable to another coefficient of the
+    # form does not commute with the derivative.
     with pytest.raises(ValueError, match="Derivatives should be applied"):
         replace(dJ, {u: w})
 
