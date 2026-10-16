@@ -1,24 +1,26 @@
-.PHONY: venv lint clean
+.PHONY: lint clean
 
 PYTHON ?= python3
-VENV ?= .venv
-VENV_PYTHON := $(VENV)/bin/python
-VENV_STAMP := $(VENV)/.installed
 
-venv: $(VENV_STAMP)
+VENV_LINT = .venv-lint
 
-$(VENV_STAMP):
-	$(PYTHON) -m venv $(VENV)
-	$(VENV_PYTHON) -m pip install --upgrade pip
-	$(VENV_PYTHON) -m pip install ".[ci]"
-	touch $(VENV_STAMP)
+$(VENV_LINT):
+	$(PYTHON) -m venv $(VENV_LINT)
+# 	TODO: make .[lint]
+	. $(VENV_LINT)/bin/activate && pip install .[ci]
 
-lint: venv
-	$(VENV_PYTHON) -m ruff check .
-	$(VENV_PYTHON) -m ruff format --check .
-	$(VENV_PYTHON) -m mypy -p ufl
-	$(VENV_PYTHON) -m mypy test/
-	MYPYPATH=test $(VENV_PYTHON) -m mypy demo/
+ruff-format:
+	. $(VENV_LINT)/bin/activate && ruff format --check .
+
+ruff-check:
+	. $(VENV_LINT)/bin/activate && ruff check .
+
+mypy:
+	. $(VENV_LINT)/bin/activate && mypy -p ufl
+	. $(VENV_LINT)/bin/activate && mypy test/
+	. $(VENV_LINT)/bin/activate && MYPYPATH=test mypy demo/
+
+lint: $(VENV_LINT) ruff-format ruff-check mypy
 
 clean:
-	rm -rf $(VENV) .mypy_cache .pytest_cache .ruff_cache build dist *.egg-info
+	rm -rf $(VENV_LINT) .mypy_cache .pytest_cache .ruff_cache
