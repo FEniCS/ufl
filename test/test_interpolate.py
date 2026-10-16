@@ -231,6 +231,24 @@ def test_form_dual_slot_argument_is_contracted(V1, V2):
     assert interpolation.arguments() == ()
 
 
+def test_form_dual_slot_arguments_are_renumbered(V1, V2, V3):
+    u = Coefficient(V1)
+    dual_slot = inner(TrialFunction(V3), TestFunction(V2)) * dx
+
+    interpolation = Interpolate(u, dual_slot)
+
+    assert interpolation.arguments() == (Argument(V3, 0),)
+
+
+def test_form_dual_slot_arguments_avoid_expression_numbers(V1, V2, V3):
+    u = Argument(V1, 1)
+    dual_slot = inner(TrialFunction(V3), TestFunction(V2)) * dx
+
+    interpolation = Interpolate(u, dual_slot)
+
+    assert interpolation.arguments() == (Argument(V3, 0), u)
+
+
 def test_action_adjoint(V1, V2):
     # Set dual of V2
     V2_dual = V2.dual()
