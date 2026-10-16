@@ -1,6 +1,6 @@
 *.pyc
 *.py~
-.venv/
+.venv-lint/
 build/
 doc/source/api-doc
 test/*_debug.py
