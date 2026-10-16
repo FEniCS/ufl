@@ -149,12 +149,29 @@ class BaseFormRestructurer(DAGTraverser):
             # Action(Adjoint(A), x) is the same contraction as Action(x, A).
             return self.action(right, left.form())
 
+        is_rank_1 = isinstance(left, Coefficient) or (
+            isinstance(left, BaseForm) and len(left.arguments()) == 1
+        )
+        if (
+            is_rank_1
+            and isinstance(right, Action)
+            and isinstance(right.left(), BaseForm)
+            and len(right.left().arguments()) > 1
+        ):
+            # A rank 1 operand is contracted first, so that every Action in the
+            # chain gives another rank 1 operand:
+            # Action(x, Action(A, B)) -> Action(Action(x, A), B)
+            return self.action(self.action(left, right.left()), right.right())
+
         if (
             isinstance(left, Action)
+            and isinstance(left.left(), BaseForm)
+            and len(left.left().arguments()) > 1
             and isinstance(left.right(), BaseForm)
             and len(left.right().arguments()) > 1
         ):
-            # Action(Action(A, B), C) -> Action(A, Action(B, C))
+            # Action(Action(A, B), C) -> Action(A, Action(B, C)), unless A is
+            # rank 1, which the rule above contracts first.
             return self.action(left.left(), self.action(left.right(), right))
 
         if (

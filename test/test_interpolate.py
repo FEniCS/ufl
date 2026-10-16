@@ -316,9 +316,10 @@ def test_restructure_base_form(V1, V2):
     matrix_action = restructure_base_form(Action(Adjoint(A), Matrix(V1, V2)))
     assert isinstance(matrix_action.left(), Adjoint)
 
-    composed = Action(Matrix(V2.dual(), V1.dual()), Matrix(V1, V2))
+    # Action(Adjoint(Action(A, B)), x) -> Action(x, Action(A, B)) -> Action(Action(x, A), B)
+    A, B = Matrix(V2.dual(), V1.dual()), Matrix(V1, V2)
     x = Coefficient(V2.dual())
-    assert restructure_base_form(Action(Adjoint(composed), x)) == Action(x, composed)
+    assert restructure_base_form(Action(Adjoint(Action(A, B)), x)) == Action(Action(x, A), B)
 
     form = TestFunction(V1) * TrialFunction(V2) * dx
     x_function = Coefficient(V1)
@@ -380,6 +381,25 @@ def test_restructure_splits_rank_2_operand_slot(V1, V2):
         operand, derivatives=(1,), argument_slots=(vstar, Argument(V2, 1))
     )
     assert restructure_base_form(dN) == Action(left, B)
+
+
+def test_restructure_contracts_covector_first(V1, V2):
+    # A rank 1 operand on the left of a chain of Actions is contracted first:
+    # Action(x, Action(A, dN)) -> Action(Action(x, A), dN) -> dN(u; Action(x, A), uhat),
+    # so that dN is assembled as the action of its adjoint.
+    u = Coefficient(V1)
+    N = ExternalOperator(u, function_space=V2)
+    dN = N._ufl_expr_reconstruct_(
+        u, derivatives=(1,), argument_slots=(Argument(V2.dual(), 0), Argument(V1, 1))
+    )
+    A = inner(TrialFunction(V2), TestFunction(V1)) * dx
+    x = Coefficient(V1)
+
+    expected = N._ufl_expr_reconstruct_(
+        u, derivatives=(1,), argument_slots=(Action(x, A), Argument(V1, 0))
+    )
+    assert restructure_base_form(Action(x, Action(A, dN))) == expected
+    assert restructure_base_form(Action(Adjoint(Action(A, dN)), x)) == expected
 
 
 def test_differentiation(V1, V2):
