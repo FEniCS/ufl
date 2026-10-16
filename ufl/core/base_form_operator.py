@@ -191,9 +191,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # => V* x V -> R. However, when they are treated as mere
         # "arguments", the primal space argument is discarded and we
         # only have the dual space argument (Coargument). This is the
-        # exact same situation than BaseFormOperator's arguments which
-        # are different depending on whether the BaseFormOperator is
-        # used in an outer form or not.
+        # same distinction as for BaseFormOperator arguments: the
+        # contracted dual-slot argument is not exposed by an outer form.
 
         primal_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
@@ -253,6 +252,17 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         r += ", ".join(repr(arg) for arg in self.argument_slots())
         r += f"; derivatives={self.derivatives!r})"
         return r
+
+    def _ufl_compute_hash_(self):
+        """Hash code for use in dicts."""
+        hashdata = (
+            self._ufl_typecode_,
+            tuple(hash(op) for op in self.ufl_operands),
+            tuple(hash(arg) for arg in self._argument_slots),
+            self.derivatives,
+            hash(self._function_space),
+        )
+        return hash(hashdata)
 
     def __eq__(self, other):
         """Check for equality."""
