@@ -43,6 +43,7 @@ from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.classes import Product, ReferenceGrad, ReferenceValue
+from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
@@ -337,6 +338,29 @@ def test_restructure_base_form(V1, V2):
     assert restructure_base_form(Interpolate(u, A)) == Action(
         Interpolate(u, Argument(V2.dual(), 0)), A
     )
+
+
+def test_restructure_keeps_operand_arguments(V1, V2):
+    # The Coargument of an operand Interpolate is bound inside that operand.
+    # Restructuring renumbers or contracts only the arguments in the argument
+    # slots of the outer operator, so the operand stays the same.
+    operand = Interpolate(Coefficient(V1), V2)
+    vstar, uhat = Argument(V2.dual(), 0), Argument(V2, 1)
+    N = ExternalOperator(operand, function_space=V2, argument_slots=(vstar, uhat))
+
+    swapped = restructure_base_form(Adjoint(N))
+    assert swapped.ufl_operands == (operand,)
+    assert swapped.argument_slots() == (Argument(V2.dual(), 1), Argument(V2, 0))
+
+    w = Cofunction(V2.dual())
+    contracted = restructure_base_form(Action(w, N))
+    assert contracted.ufl_operands == (operand,)
+    assert contracted.argument_slots() == (w, Argument(V2, 0))
+
+    u = Coefficient(V2)
+    applied = restructure_base_form(Action(N, u))
+    assert applied.ufl_operands == (operand,)
+    assert applied.argument_slots() == (vstar, u)
 
 
 def test_differentiation(V1, V2):

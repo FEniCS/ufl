@@ -21,6 +21,24 @@ from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.form import BaseForm, FormSum
 
 
+def _replace_argument_slots(o: BaseFormOperator, mapping: dict) -> BaseFormOperator:
+    """Replace the arguments in the argument slots of a base form operator.
+
+    An argument inside an operand of ``o``, such as the Coargument of an
+    operand Interpolate, is bound inside that operand. This function does not
+    replace it, even if it is equal to a key of ``mapping``.
+
+    Args:
+        o: The base form operator.
+        mapping: The replacements for the arguments in the argument slots of ``o``.
+
+    Returns:
+        The base form operator with the replaced argument slots.
+    """
+    slots = tuple(replace(slot, mapping) for slot in o.argument_slots())
+    return o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=slots)
+
+
 class BaseFormRestructurer(DAGTraverser):
     """Simplify Actions and Adjoints so that each operand can be assembled on its own."""
 
@@ -90,7 +108,7 @@ class BaseFormRestructurer(DAGTraverser):
         if isinstance(form, BaseFormOperator):
             # The adjoint of a base form operator swaps the numbers of its arguments.
             u, v = form.arguments()
-            return replace(
+            return _replace_argument_slots(
                 form, {u: u.reconstruct(number=v.number()), v: v.reconstruct(number=u.number())}
             )
 
@@ -124,7 +142,7 @@ class BaseFormRestructurer(DAGTraverser):
             if right.argument_slots()[0] == vstar:
                 # The other arguments are renumbered after the contracted v*.
                 mapping = {a: a.reconstruct(number=a.number() - 1) for a in others}
-                return replace(right, {vstar: left, **mapping})
+                return _replace_argument_slots(right, {vstar: left, **mapping})
 
         if isinstance(left, BaseFormOperator):
             v, *slots = left.argument_slots()
@@ -140,7 +158,7 @@ class BaseFormRestructurer(DAGTraverser):
                 # Action(N(u; v*, uhat), w) -> N(u; v*, w)
                 uhat = left.arguments()[-1]
                 if v != uhat:
-                    return replace(left, {uhat: right})
+                    return _replace_argument_slots(left, {uhat: right})
 
         # Otherwise, Action distributes over sums, so that the rules above
         # apply to each term. This enlarges the DAG, so it is the last resort.
