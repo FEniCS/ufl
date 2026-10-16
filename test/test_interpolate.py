@@ -22,6 +22,7 @@ from ufl import (
     TrialFunctions,
     action,
     adjoint,
+    conj,
     derivative,
     dx,
     exp,
@@ -300,8 +301,8 @@ def test_restructure_base_form(V1, V2):
 
     # Interpolate is linear in its operand: Action(I(v1; v*), u) -> I(u; v*)
     assert restructure_base_form(Action(Iv, u)) == Iu
-    # Action is associative: Action(Action(F, Iv), u) -> Action(F, Action(Iv, u))
-    assert restructure_base_form(Action(Action(F, Iv), u)) == Action(F, Iu)
+    # Associate before absorption, then assemble the resulting one-form directly.
+    assert restructure_base_form(Action(Action(F, Iv), u)) == Iu * TestFunction(V1) * dx
     # The adjoint of a base form operator swaps the numbers of its arguments.
     assert restructure_base_form(Adjoint(Iv)) == Interpolate(
         Argument(V1, 0), Argument(V2.dual(), 1)
@@ -323,7 +324,9 @@ def test_restructure_base_form(V1, V2):
 
     form = TestFunction(V1) * TrialFunction(V2) * dx
     x_function = Coefficient(V1)
-    assert restructure_base_form(Action(Adjoint(form), x_function)) == Action(x_function, form)
+    assert restructure_base_form(Action(Adjoint(form), x_function)) == (
+        conj(x_function * TrialFunction(V2)) * dx
+    )
 
     # Operands are restructured before their Action:
     # Action(Adjoint(Iv), w) -> Action(I(v0; v1*), w) -> I(v0; w)
@@ -385,8 +388,8 @@ def test_restructure_splits_rank_2_operand_slot(V1, V2):
 
 def test_restructure_contracts_covector_first(V1, V2):
     # A rank 1 operand on the left of a chain of Actions is contracted first:
-    # Action(x, Action(A, dN)) -> Action(Action(x, A), dN) -> dN(u; Action(x, A), uhat),
-    # so that dN is assembled as the action of its adjoint.
+    # Action(x, Action(A, dN)) contracts x into A before filling dN's dual
+    # slot, so neither operand needs a rank-two assembly.
     u = Coefficient(V1)
     N = ExternalOperator(u, function_space=V2)
     dN = N._ufl_expr_reconstruct_(
@@ -396,7 +399,9 @@ def test_restructure_contracts_covector_first(V1, V2):
     x = Coefficient(V1)
 
     expected = N._ufl_expr_reconstruct_(
-        u, derivatives=(1,), argument_slots=(Action(x, A), Argument(V1, 0))
+        u,
+        derivatives=(1,),
+        argument_slots=(conj(inner(TrialFunction(V2), x)) * dx, Argument(V1, 0)),
     )
     assert restructure_base_form(Action(x, Action(A, dN))) == expected
     assert restructure_base_form(Action(Adjoint(Action(A, dN)), x)) == expected
