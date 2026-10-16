@@ -33,7 +33,15 @@ from ufl.conditional import (
     OrCondition,
 )
 from ufl.constantvalue import ComplexValue, RealValue, Zero, as_ufl
-from ufl.differentiation import Curl, Div, Grad, NablaDiv, NablaGrad, VariableDerivative
+from ufl.differentiation import (
+    Curl,
+    Div,
+    Grad,
+    NablaDiv,
+    NablaGrad,
+    ReferenceGrad,
+    VariableDerivative,
+)
 from ufl.domain import extract_domains
 from ufl.form import Form
 from ufl.geometry import FacetNormal, SpatialCoordinate
@@ -401,6 +409,24 @@ def grad(f):
     """
     f = as_ufl(f)
     return Grad(f)
+
+
+def reference_grad(f):
+    """Take the gradient of f with respect to reference cell coordinates.
+
+    Unlike :py:func:`grad`, which differentiates with respect to physical
+    coordinates, ``reference_grad`` differentiates with respect to the
+    coordinates of the reference cell.
+
+    The operand must already be in the reference frame; for example,
+    a :py:class:`Coefficient` should be wrapped in
+    :py:class:`ReferenceValue` before applying ``reference_grad``.
+
+    See also: :py:func:`grad`
+
+    """
+    f = as_ufl(f)
+    return ReferenceGrad(f)
 
 
 def div(f):
