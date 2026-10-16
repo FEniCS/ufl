@@ -15,6 +15,7 @@ from math import inf, pi
 import numpy as np
 
 from ufl.action import Action
+from ufl.adjoint import Adjoint
 from ufl.algorithms.analysis import (
     extract_arguments,
     extract_coefficients,
@@ -1836,6 +1837,19 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     def _(self, o: FormSum) -> BaseForm:
         """Differentiate a form sum."""
         return FormSum(*((self(c), w) for c, w in zip(o.components(), o.weights())))
+
+    @process.register(Adjoint)
+    def _(self, o: Adjoint) -> BaseForm:
+        """Differentiate an adjoint.
+
+        The derivative of a 2-form is a 3-form, and the adjoint of a 3-form is
+        not defined. Thus only an adjoint that does not depend on the
+        differentiation variable can be differentiated.
+        """
+        (form,) = o.ufl_operands
+        if isinstance(self(form), ZeroBaseForm):
+            return ZeroBaseForm(o.arguments() + self._direction_arguments)
+        raise NotImplementedError("Cannot differentiate an Adjoint that depends on the variable.")
 
     @process.register(Action)
     def _(self, o: Action) -> BaseForm:
