@@ -14,6 +14,7 @@ on:
   # Weekly build on Mondays at 8 am
   schedule:
     - cron: "0 8 * * 1"
+  workflow_dispatch:
 
 jobs:
   ffcx-tests:
