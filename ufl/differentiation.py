@@ -125,9 +125,7 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
             arg for a in arguments.ufl_operands for arg in extract_coefficients(a)
         )
         # Reconstruct arguments for correct numbering
-        self._arguments = tuple(
-            type(arg)(arg.ufl_function_space(), arg.number(), arg.part()) for arg in base_form_args
-        )
+        self._arguments = tuple(arg.reconstruct() for arg in base_form_args)
         self._coefficients = base_form_coeffs
 
 

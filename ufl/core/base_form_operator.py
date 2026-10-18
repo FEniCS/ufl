@@ -14,20 +14,39 @@ ExternalOperator or Interpolate.
 # Modified by Nacime Bouziani, 2021-2022
 
 from collections import OrderedDict
-from itertools import chain
+from itertools import chain, count, islice
 from numbers import Number
 
 from ufl.argument import Argument, Coargument
+from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.duals import is_dual
+from ufl.duals import is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
 
 __all__ = ["BaseFormOperator"]
+
+
+def _is_nonterminal_base_form_dual_slot(dual_arg):
+    """Return whether a dual slot is a non-terminal BaseForm."""
+    return isinstance(dual_arg, BaseForm) and not isinstance(dual_arg, (Coargument, Cofunction))
+
+
+def _renumber_dual_slot_arguments(dual_arg, occupied_numbers):
+    """Renumber free arguments in a non-terminal BaseForm dual slot."""
+    arguments = dual_arg.arguments()[1:]
+    if not _is_nonterminal_base_form_dual_slot(dual_arg):
+        return arguments
+    occupied_numbers = set(occupied_numbers)
+    numbers = (number for number in count() if number not in occupied_numbers)
+    return tuple(
+        argument.reconstruct(number=number)
+        for argument, number in zip(arguments, islice(numbers, len(arguments)), strict=True)
+    )
 
 
 @ufl_type(num_ops="varying", is_differential=True)
@@ -44,12 +63,33 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """Initialise.
 
         Args:
-            operands: operands on which acts the operator.
-            function_space: the FunctionSpace or MixedFunctionSpace on
-                which to build this Function.
-            derivatives: tuple specifying the derivative multiindex.
-            argument_slots: tuple composed containing expressions with
-                ufl.Argument or ufl.Coefficient objects.
+            operands:
+                The expressions that the operator acts on. The operator can be
+                nonlinear in them.
+            function_space:
+                The FunctionSpace or MixedFunctionSpace of the operator output.
+            derivatives:
+                The derivative multi-index: the number of times that the
+                operator is differentiated with respect to each operand.
+            argument_slots:
+                The slots in which the operator is linear, given as
+                ``(dual_slot, *primal_slots)``. The dual slot is paired with the
+                operator output, and it can be one of these:
+
+                - A Coargument on the dual of ``function_space``. The output
+                  stays free, so the operator is a function in
+                  ``function_space``.
+                - A Cofunction on the dual of ``function_space``, which
+                  contracts the output to the number ``<c, N(u)>``.
+                - A Form whose lowest-numbered Argument is on
+                  ``function_space``. The output takes the place of that
+                  Argument, which gives ``F(N(u))``. The other Arguments of the
+                  form stay free.
+
+                Each primal slot holds a direction of differentiation: an
+                expression of an Argument, or of a Coefficient after an action.
+                If ``argument_slots`` is empty, the dual slot is a new Coargument
+                with number 0 on the dual of ``function_space``.
         """
         BaseForm.__init__(self)
         ufl_operands = tuple(map(as_ufl, operands))
@@ -60,6 +100,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # -- Function space -- #
         if not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
+        self._function_space = function_space
 
         # -- Derivatives -- #
         # Some BaseFormOperator does have derivatives (e.g. ExternalOperator)
@@ -73,6 +114,19 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             v_star = Argument(function_space.dual(), 0)
             argument_slots = (v_star,)
         self._argument_slots = argument_slots
+
+        dual_slot_arguments = (
+            argument_slots[0].arguments() if isinstance(argument_slots[0], BaseForm) else ()
+        )
+        dual_slot_function_space = (
+            min(dual_slot_arguments, key=lambda argument: argument.number()).ufl_function_space()
+            if dual_slot_arguments
+            else None
+        )
+        if dual_slot_function_space is not None and dual_slot_function_space != function_space:
+            raise ValueError(
+                "The lowest-numbered argument in the dual slot must be on function_space."
+            )
 
         # Internal variables for caching coefficient and domain data
         self._coefficients = None
@@ -130,7 +184,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the base form."""
         from ufl.algorithms.analysis import extract_coefficients, extract_type
-        from ufl.form import Form
 
         dual_arg, *arguments = self.argument_slots()
         # When coarguments are treated as BaseForms, they have two
@@ -145,12 +198,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         primal_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
-        primal_arg_num = {a.number() for a in primal_args} if isinstance(dual_arg, Form) else {0, 1}
-        dual_args = tuple(
-            arg
-            for arg in dual_arg.arguments()
-            if isinstance(arg, Coargument) or arg.number() not in primal_arg_num
-        )
+        dual_args = _renumber_dual_slot_arguments(dual_arg, (a.number() for a in primal_args))
         arguments = dual_args + primal_args
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
@@ -192,7 +240,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """Return a new object of the same type with new operands."""
         return type(self)(
             *operands,
-            function_space=function_space or self.ufl_function_space(),
+            function_space=function_space or self._function_space,
             derivatives=derivatives or self.derivatives,
             argument_slots=argument_slots or self.argument_slots(),
         )
@@ -206,17 +254,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         r += f"; derivatives={self.derivatives!r})"
         return r
 
-    def __hash__(self):
-        """Hash code for use in dicts."""
-        hashdata = (
-            type(self),
-            tuple(hash(op) for op in self.ufl_operands),
-            tuple(hash(arg) for arg in self._argument_slots),
-            self.derivatives,
-            hash(self.ufl_function_space()),
-        )
-        return hash(hashdata)
-
     def __eq__(self, other):
         """Check for equality."""
         if isinstance(other, Number) and other == 0:
@@ -226,7 +263,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     @property
     def _parent_type(self):
         """Is this a primal or dual expression?"""
-        return BaseForm if is_dual(self.ufl_function_space()) else Operator
+        return Operator if is_primal(self.ufl_function_space()) else BaseForm
 
     def __add__(self, other):
         """Add."""

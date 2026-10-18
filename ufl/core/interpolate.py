@@ -14,7 +14,10 @@ from collections import defaultdict
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
-from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.base_form_operator import (
+    BaseFormOperator,
+    _renumber_dual_slot_arguments,
+)
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
@@ -59,7 +62,8 @@ class Interpolate(BaseFormOperator):
             v = Argument(v.dual(), n)
             dual_arg_numbers = {n}
         elif isinstance(v, BaseForm):
-            dual_arg_numbers = {arg.number() for arg in v.arguments() if is_dual(arg)}
+            dual_slot_arguments = _renumber_dual_slot_arguments(v, expr_arg_numbers)
+            dual_arg_numbers = {arg.number() for arg in dual_slot_arguments}
         else:
             raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")
 
@@ -217,7 +221,7 @@ class Interpolate(BaseFormOperator):
         return (
             type(self) is type(other)
             and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
-            and self.ufl_function_space() == other.ufl_function_space()
+            and self._function_space == other._function_space
         )
 
 
