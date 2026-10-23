@@ -46,7 +46,7 @@ from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.domain import extract_unique_domain
-from ufl.measure import custom_integral_types, point_integral_types
+from ufl.measure import custom_integral_types, peak_integral_types
 from ufl.operators import conj, max_value, min_value, real, sqrt
 from ufl.tensors import as_tensor, as_vector
 
@@ -508,7 +508,7 @@ def apply_geometry_lowering(form, preserve_types=()):
 
     elif isinstance(form, Integral):
         integral = form
-        if integral.integral_type() in (custom_integral_types + point_integral_types):
+        if integral.integral_type() in (custom_integral_types + peak_integral_types):
             automatic_preserve_types = [SpatialCoordinate, Jacobian]
         else:
             automatic_preserve_types = [CellCoordinate]
