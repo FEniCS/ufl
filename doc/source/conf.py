@@ -114,6 +114,8 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = "pydata_sphinx_theme"
+# The version is shown by the version switcher
+html_title = f"{project} documentation"
 
 # Version switcher. FEniCS/docs generates the version list from the
 # published documentation. CI sets DOCS_VERSION to the branch or tag
