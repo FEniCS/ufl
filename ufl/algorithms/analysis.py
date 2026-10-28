@@ -22,6 +22,7 @@ from ufl.corealg.traversal import traverse_unique_terminals, unique_pre_traversa
 from ufl.domain import Mesh
 from ufl.form import BaseForm, Form
 from ufl.geometry import GeometricQuantity
+from ufl.integral import Integral
 from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 # TODO: Some of these can possibly be optimised by implementing
@@ -71,7 +72,11 @@ def extract_type(a, ufl_types, base_form_op_as_expr=None):
         remove_base_form_ops = False
 
     if base_form_op_as_expr is None:
-        base_form_op_as_expr = isinstance(a, Form | Expr) and not isinstance(a, BaseFormOperator)
+        # An integral is part of a form, so a base form operator in one has its
+        # Coargument bound just as it does in the form.
+        base_form_op_as_expr = isinstance(a, Form | Integral | Expr) and not isinstance(
+            a, BaseFormOperator
+        )
 
     # BaseForms that aren't forms or base form operators
     # only contain arguments & coefficients
