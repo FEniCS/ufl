@@ -34,8 +34,8 @@ _integral_types = [
     ("interior_facet", "dS"),  # Over two-sided facets between pairs of adjacent cells of a mesh
     # === Integration over topological dimension - 2:
     ("ridge", "dr"),  # Over ridges of a mesh
-    # === Integration over topological dimension 0
-    ("vertex", "dP"),  # Over vertices of a mesh
+    # === Integration over topological dimension - 3:
+    ("peak", "dp"),
     # === Integration over custom domains
     ("custom", "dc"),  # Over custom user-defined domains (run-time quadrature points)
     ("cutcell", "dC"),  # Over a cell with some part cut away (run-time quadrature points)
@@ -59,9 +59,9 @@ integral_type_to_measure_name = {i: s for i, s in _integral_types}
 measure_name_to_integral_type = {s: i for i, s in _integral_types}
 
 custom_integral_types = ("custom", "cutcell", "interface", "overlap")
-point_integral_types = ("vertex",)  # "point")
 facet_integral_types = ("exterior_facet", "interior_facet")
 ridge_integral_types = ("ridge",)
+peak_integral_types = ("peak",)
 
 
 def register_integral_type(integral_type, measure_name):
