@@ -22,6 +22,7 @@ from ufl.classes import (
 )
 from ufl.core.ufl_type import UFLObject
 from ufl.corealg.traversal import traverse_unique_terminals, unique_post_traversal
+from ufl.protocols import id_or_none
 
 
 def compute_multiindex_hashdata(expr, index_numbering):
@@ -157,11 +158,7 @@ def compute_form_signature(form, renumbering):  # FIXME: Fix callers
             for d, it in integral.extra_domain_integral_type_map().items()
         )
 
-        # Collect all data about integral that should be reflected in
-        # signature, including compiler data but not domain data,
-        # because compiler data affects the way the integral is
-        # compiled while domain data is only carried for convenience
-        # in the problem solving environment.
+        # Collect compiler data and the identity of runtime integration data.
         integral_hashdata = (
             integrand_hashdata,
             domain_hashdata,
@@ -170,6 +167,10 @@ def compute_form_signature(form, renumbering):  # FIXME: Fix callers
             integral.subdomain_id(),
             canonicalize_metadata(integral.metadata()),
         )
+        # Match Integral equality without requiring the data to be hashable.
+        # Leave signatures of integrals without subdomain data unchanged.
+        if integral.subdomain_data() is not None:
+            integral_hashdata += (id_or_none(integral.subdomain_data()),)
 
         hashdata.append(integral_hashdata)
 

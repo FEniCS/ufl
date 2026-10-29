@@ -446,9 +446,9 @@ class Form(BaseForm):
     def signature(self):
         """Signature for use with JIT caches, independent of incidental numbering.
 
-        Subdomain data is excluded because it does not affect the compiled
-        kernel. Caches of runtime assembly objects must account for subdomain
-        data separately.
+        Integral subdomain data is identified by its ``ufl_id()`` when available,
+        otherwise by its Python object identity, as in integral equality.
+        Signatures containing Python object identities are process-local.
         """
         if self._signature is None:
             self._compute_signature()
