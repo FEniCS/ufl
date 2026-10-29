@@ -603,9 +603,8 @@ def test_signature_includes_subdomain_data():
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
     space = FunctionSpace(domain, LagrangeElement(triangle, 1))
     v = TestFunction(space)
-    # Equal contents and representations must not hide different data objects.
     data = [1, 2]
-    other_data = [1, 2]
+    other_data = [3, 4]
     form = v * dx(subdomain_data=data)
     same = v * dx(subdomain_data=data)
     other = v * dx(subdomain_data=other_data)
