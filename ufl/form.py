@@ -444,7 +444,12 @@ class Form(BaseForm):
         return self._terminal_numbering
 
     def signature(self):
-        """Signature for use with jit cache (independent of incidental numbering of indices etc)."""
+        """Signature for use with JIT caches, independent of incidental numbering.
+
+        Subdomain data is excluded because it does not affect the compiled
+        kernel. Caches of runtime assembly objects must account for subdomain
+        data separately.
+        """
         if self._signature is None:
             self._compute_signature()
         return self._signature

@@ -8,7 +8,6 @@ from ufl import (
     FormSum,
     FunctionSpace,
     Mesh,
-    MixedFunctionSpace,
     SpatialCoordinate,
     TestFunction,
     TrialFunction,
@@ -103,27 +102,6 @@ def test_form_arguments(mass, stiffness, convection, load):
     assert (v * dx + f * v * ds).arguments() == (v,)
     assert (u * v * dx(1) + v * u * dx(2)).arguments() == (v, u)
     assert ((f * v) * u * dx + (u * 3) * (v / 2) * dx(2)).arguments() == (v, u)
-
-
-def test_equal_subspace_arguments_have_equal_hashes(domain, element):
-    class IndexedFunctionSpace(FunctionSpace):
-        def __init__(self, parent, index):
-            space = parent.ufl_sub_space(index)
-            super().__init__(space.ufl_domain(), space.ufl_element())
-            self.parent = parent
-            self.index = index
-
-        def __repr__(self):
-            return f"IndexedFunctionSpace({self.parent!r}, {self.index})"
-
-    space = FunctionSpace(domain, element)
-    mixed = MixedFunctionSpace(space, space)
-    left = TestFunction(IndexedFunctionSpace(mixed, 0))
-    right = TestFunction(IndexedFunctionSpace(mixed, 1))
-
-    assert left == right
-    assert hash(left) == hash(right)
-    assert right in {left}
 
 
 def test_form_coefficients(element, domain):

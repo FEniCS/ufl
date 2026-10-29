@@ -596,3 +596,27 @@ def test_signature_of_forms_change_with_operators(self):
                 yield a
 
     check_unique_signatures(forms())
+
+
+def test_signature_excludes_subdomain_data():
+    """JIT signatures ignore runtime data; form identity must retain it."""
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    space = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    v = TestFunction(space)
+    data = object()
+    other_data = object()
+    form = v * dx(subdomain_data=data)
+    same = v * dx(subdomain_data=data)
+    other = v * dx(subdomain_data=other_data)
+    plain = v * dx
+
+    # These forms require the same compiled kernel.
+    assert form.signature() == same.signature() == other.signature() == plain.signature()
+    assert form.equals(same)
+    assert hash(form) == hash(same)
+
+    # Runtime caches must additionally distinguish the integration data.
+    assert not form.equals(other)
+    assert not form.equals(plain)
+    assert form.subdomain_data()[domain]["cell"] == [data]
+    assert other.subdomain_data()[domain]["cell"] == [other_data]

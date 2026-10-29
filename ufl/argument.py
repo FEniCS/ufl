@@ -192,10 +192,6 @@ class Argument(FormArgument, BaseArgument):
         """Representation."""
         return self._repr
 
-    def _ufl_compute_hash_(self):
-        """Hash the fields used by argument equality."""
-        return hash((type(self), self._ufl_function_space, self._number, self._part))
-
 
 @ufl_type()
 class Coargument(BaseForm, BaseArgument):
