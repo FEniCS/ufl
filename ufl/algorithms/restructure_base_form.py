@@ -266,16 +266,10 @@ class ActionContractor(BaseFormTraversal):
     ) -> None:
         """Store the dispatcher used to restructure changed operators."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+        # The dispatcher splits rank-two slots into Actions. Contractions fill
+        # slots with rank-one forms or coefficient expressions, so restructuring
+        # a contracted operator does not reverse those splits.
         self._restructure = restructure
-
-    def _restructure_contracted_operator(self, o: BaseFormOperator) -> Expr | BaseForm:
-        """Restructure an operator after consuming one of its free arguments.
-
-        The dispatcher splits rank-two slots into Actions. Contractions fill
-        slots with rank-one forms or coefficient expressions, so they do not
-        reverse those splits.
-        """
-        return self._restructure(o)
 
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
@@ -307,7 +301,7 @@ class ActionContractor(BaseFormTraversal):
                 # The other arguments are renumbered after the contracted v*.
                 mapping = {a: a.reconstruct(number=a.number() - 1) for a in others}
                 contracted = _replace_argument_slots(right, {vstar: left, **mapping})
-                return self._restructure_contracted_operator(contracted)
+                return self._restructure(contracted)
 
         if isinstance(left, BaseFormOperator):
             v, *slots = left.argument_slots()
@@ -318,14 +312,14 @@ class ActionContractor(BaseFormTraversal):
                     contracted = left._ufl_expr_reconstruct_(
                         *left.ufl_operands, argument_slots=(right, *slots)
                     )
-                    return self._restructure_contracted_operator(contracted)
+                    return self._restructure(contracted)
             if isinstance(right, Expr) and _rank(right) == 1:
                 # A base form operator is linear in its other argument slots:
                 # Action(N(u; v*, uhat), w) -> N(u; v*, w)
                 uhat = left.arguments()[-1]
                 if v != uhat:
                     contracted = _replace_argument_slots(left, {uhat: right})
-                    return self._restructure_contracted_operator(contracted)
+                    return self._restructure(contracted)
 
         if isinstance(left, Form) and isinstance(right, Expr) and _rank(right) == 1:
             return replace(left, {left.arguments()[-1]: right})
