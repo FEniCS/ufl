@@ -97,7 +97,7 @@ def test_properties(V1):
     # Test __str__
     s = Coefficient(V1, count=2)
     t = Coefficient(V1, count=3)
-    v0 = Argument(V1, 0)
+    v0 = Coargument(V1.dual(), 0)
     v1 = Argument(V1, 1)
 
     e = ExternalOperator(u, function_space=V1)
@@ -110,6 +110,13 @@ def test_properties(V1):
         u, r, 2 * s, t, function_space=V1, derivatives=(1, 0, 1, 2), argument_slots=(v0, v1)
     )
     assert str(e) == "∂e(w_0, w_1, 2 * w_2, w_3; v_1, v_0)/∂o1∂o3∂o4∂o4"
+
+
+def test_dual_slot_must_be_a_base_form(V1):
+    u = Coefficient(V1)
+
+    with pytest.raises(ValueError, match="dual slot must be a BaseForm"):
+        ExternalOperator(u, function_space=V1, argument_slots=(u,))
 
 
 def test_form(V1, V2):
