@@ -161,9 +161,16 @@ class BaseFormRestructurer(BaseFormTraversal):
             # contracts the highest-numbered argument of A, with the lowest of N(u; v*).
             contracted, free = _split_dual_slot_arguments(dual)
             primal_numbers = {a.number() for a in o.arguments() if a not in free}
-            if 0 in primal_numbers:
-                raise NotImplementedError("Cannot number v* below the primal slot arguments.")
             space = contracted.ufl_function_space().dual()
+            if 0 in primal_numbers:
+                # v* cannot be the lowest argument of N(u; v*), but the free
+                # arguments of A avoid the primal numbers, so the contracted
+                # argument can be the lowest of A instead:
+                # N(u; A) -> Action(N(u; v*), A'), where v* is numbered last.
+                vstar = contracted.reconstruct(function_space=space, number=1 + max(primal_numbers))
+                left = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
+                lowest = replace(dual, {contracted: contracted.reconstruct(number=0)})
+                return self(Action(left, lowest))
             vstar = contracted.reconstruct(function_space=space, number=0)
             right = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
             return self(Action(dual, right))
