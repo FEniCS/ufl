@@ -136,7 +136,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     ufl_free_indices = ()
     ufl_index_dimensions = ()
 
-    def argument_slots(self, outer_form=False):
+    def argument_slots(self):
         """Returns a tuple of expressions containing argument and coefficient based expressions.
 
         We get an argument uhat when we take the Gateaux derivative in
@@ -145,15 +145,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         replace the last argument by coefficient: action(dNdu(u; uhat,
         v*), w) = dNdu(u; w, v*) where du is a ufl.Coefficient.
         """
-        from ufl.algorithms.analysis import extract_arguments
-
-        if not outer_form:
-            return self._argument_slots
-        # Takes into account argument contraction when a base form operator is in an outer form:
-        # For example:
-        #   F = N(u; v*) * v * dx can be seen as Action(v1 * v * dx, N(u; v*))
-        #   => F.arguments() should return (v,)!
-        return tuple(a for a in self._argument_slots[1:] if len(extract_arguments(a)) != 0)
+        return self._argument_slots
 
     def _analyze_domains(self) -> None:
         """Analyze domains in the operands and the argument slots."""
@@ -186,14 +178,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         from ufl.algorithms.analysis import extract_coefficients, extract_type
 
         dual_arg, *arguments = self.argument_slots()
-        # When coarguments are treated as BaseForms, they have two
-        # arguments (one primal and one dual) as they map from V* to V*
-        # => V* x V -> R. However, when they are treated as mere
-        # "arguments", the primal space argument is discarded and we
-        # only have the dual space argument (Coargument). This is the
-        # exact same situation than BaseFormOperator's arguments which
-        # are different depending on whether the BaseFormOperator is
-        # used in an outer form or not.
+        # When a Coargument is used as the dual slot, its primal argument
+        # is contracted and only the Coargument remains free.
 
         primal_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
@@ -203,7 +189,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         # 1) Need concept of order since we may have arguments with the same number
-        #    because of form composition (`argument_slots(outer_form=True)`):
+        #    because of form composition:
         #    Example: Let u \in V1 and N \in V2 and F = N(u; v*) * dx, then
         #    `derivative(F, u)` will contain dNdu(u; uhat, v*) with v* = Argument(0, V2)
         #    and uhat = Argument(0, V1) (since F.arguments() = ())
