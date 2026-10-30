@@ -13,11 +13,10 @@ from numbers import Complex
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algebra import Conj, Sum
-from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
-from ufl.argument import Argument, Coargument
-from ufl.core.base_form_operator import BaseFormOperator, _renumber_dual_slot_arguments
+from ufl.argument import Coargument
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.form import BaseForm, Form, FormSum
@@ -161,10 +160,8 @@ class BaseFormRestructurer(BaseFormTraversal):
             # N(u; A) -> Action(N(u; v*), A), where v* is numbered after the
             # arguments of the other slots so that the Action contracts it with
             # the first argument of A.
-            primal_args = tuple(
-                a for slot in slots for a in extract_type(slot, Argument, base_form_op_as_expr=True)
-            )
-            dual_slot_args = _renumber_dual_slot_arguments(v, (a.number() for a in primal_args))
+            # The constructor of o has already renumbered the arguments in v.
+            dual_slot_args = v.arguments()[1:]
             others = (a for a in o.arguments() if a not in dual_slot_args)
             number = max((a.number() for a in others), default=-1) + 1
             test = dual.arguments()[0]

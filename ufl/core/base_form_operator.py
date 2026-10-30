@@ -203,8 +203,9 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
         # When a Coargument is used as the dual slot, its primal argument
-        # is contracted and only the Coargument remains free.
-        dual_args = _renumber_dual_slot_arguments(dual_arg, (a.number() for a in primal_args))
+        # is contracted and only the Coargument remains free. The constructor
+        # has already renumbered the other arguments in the dual slot.
+        dual_args = dual_arg.arguments()[1:]
         arguments = dual_args + primal_args
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
