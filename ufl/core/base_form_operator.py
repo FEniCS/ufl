@@ -14,20 +14,91 @@ ExternalOperator or Interpolate.
 # Modified by Nacime Bouziani, 2021-2022
 
 from collections import OrderedDict
-from itertools import chain
+from itertools import chain, count
 from numbers import Number
 
-from ufl.argument import Argument, Coargument
+from ufl.argument import Argument, BaseArgument, Coargument
+from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.duals import is_dual
+from ufl.duals import is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
 
 __all__ = ["BaseFormOperator"]
+
+
+def _is_nonterminal_base_form_dual_slot(dual_arg):
+    """Return whether a dual slot is a non-terminal BaseForm."""
+    return isinstance(dual_arg, BaseForm) and not isinstance(dual_arg, (Coargument, Cofunction))
+
+
+def _split_dual_slot_arguments(dual_arg):
+    """Return the contracted argument and the free arguments of a dual slot.
+
+    A Coargument or a Cofunction contracts its primal argument, which comes
+    first. Any other BaseForm contracts its highest-numbered primal argument,
+    as the left operand of an Action does. Its Coarguments are outputs, so
+    they stay free.
+    """
+    arguments = dual_arg.arguments()
+    if not _is_nonterminal_base_form_dual_slot(dual_arg):
+        return (arguments[0], arguments[1:]) if arguments else (None, ())
+    primal_arguments = [a for a in arguments if not isinstance(a, Coargument)]
+    if not primal_arguments:
+        return None, arguments
+    contracted = primal_arguments[-1]
+    return contracted, tuple(a for a in arguments if a != contracted)
+
+
+def _contained_arguments(o):
+    """Return every argument in o, including those that its Actions contract."""
+    from ufl.corealg.traversal import unique_pre_traversal
+    from ufl.form import Form
+
+    if isinstance(o, BaseArgument):
+        return {o}
+    if isinstance(o, Form):
+        return set().union(*(_contained_arguments(itg.integrand()) for itg in o.integrals()))
+    if isinstance(o, BaseFormOperator):
+        return set().union(*map(_contained_arguments, (*o.ufl_operands, *o.argument_slots())))
+    if isinstance(o, Expr):
+        return set().union(
+            *(_contained_arguments(e) for e in unique_pre_traversal(o) if e is not o)
+        )
+    if o.ufl_operands:
+        return set().union(*map(_contained_arguments, o.ufl_operands))
+    return set(o.arguments())
+
+
+def _renumber_dual_slot_arguments(dual_arg, primal_args):
+    """Return the renumbering of the arguments in a non-terminal BaseForm dual slot.
+
+    The free arguments take, in order, the lowest numbers that the primal
+    arguments do not use. The contracted argument takes the lowest number
+    above them that does not make it equal to an argument of the operator, so
+    it stays the highest-numbered primal argument of the slot. No argument
+    takes the place of an argument that an Action in the slot contracts.
+    """
+    contracted, free = _split_dual_slot_arguments(dual_arg)
+    bound = _contained_arguments(dual_arg) - set(dual_arg.arguments())
+    used = {argument.number() for argument in primal_args}
+    renumbered = []
+    for argument in free:
+        number = next(
+            n for n in count() if n not in used and argument.reconstruct(number=n) not in bound
+        )
+        used.add(number)
+        renumbered.append(argument.reconstruct(number=number))
+    exposed = {*renumbered, *primal_args, *bound}
+    lowest = max((a.number() + 1 for a in renumbered if not isinstance(a, Coargument)), default=0)
+    number = next(n for n in count(lowest) if contracted.reconstruct(number=n) not in exposed)
+    renumbering = dict(zip(free, renumbered))
+    renumbering[contracted] = contracted.reconstruct(number=number)
+    return {old: new for old, new in renumbering.items() if old != new}
 
 
 @ufl_type(num_ops="varying", is_differential=True)
@@ -44,13 +115,41 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """Initialise.
 
         Args:
-            operands: operands on which acts the operator.
-            function_space: the FunctionSpace or MixedFunctionSpace on
-                which to build this Function.
-            derivatives: tuple specifying the derivative multiindex.
-            argument_slots: tuple composed containing expressions with
-                ufl.Argument or ufl.Coefficient objects.
+            operands:
+                The expressions that the operator acts on. The operator can be
+                nonlinear in them.
+            function_space:
+                The FunctionSpace or MixedFunctionSpace of the operator output.
+            derivatives:
+                The derivative multi-index: the number of times that the
+                operator is differentiated with respect to each operand.
+            argument_slots:
+                The slots in which the operator is linear, given as
+                ``(dual_slot, *primal_slots)``. The dual slot is paired with the
+                operator output, and it can be one of these:
+
+                - A Coargument on the dual of ``function_space``. The output
+                  stays free, so the operator is a function in
+                  ``function_space``.
+                - A Cofunction on the dual of ``function_space``, which
+                  contracts the output to the number ``<c, N(u)>``.
+                - A Form whose highest-numbered Argument is on
+                  ``function_space``. The output takes the place of that
+                  Argument, which gives ``F(N(u))``, as in
+                  ``Action(F, N(u))``. The other Arguments of the form stay
+                  free. They are renumbered to the lowest numbers that the
+                  primal slots do not use, so replacing an Argument in a
+                  primal slot can change their numbers.
+
+                Each primal slot holds a direction of differentiation: an
+                expression of an Argument, or of a Coefficient after an action.
+                If ``argument_slots`` is empty, the dual slot is a new Coargument
+                with number 0 on the dual of ``function_space``.
         """
+        # Avoid cyclic import
+        from ufl.algorithms.analysis import extract_type
+        from ufl.algorithms.replace import replace
+
         BaseForm.__init__(self)
         ufl_operands = tuple(map(as_ufl, operands))
         argument_slots = tuple(map(as_ufl, argument_slots))
@@ -60,6 +159,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         # -- Function space -- #
         if not isinstance(function_space, AbstractFunctionSpace):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
+        self._function_space = function_space
 
         # -- Derivatives -- #
         # Some BaseFormOperator does have derivatives (e.g. ExternalOperator)
@@ -72,7 +172,27 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             # Make v*
             v_star = Argument(function_space.dual(), 0)
             argument_slots = (v_star,)
+
+        dual_slot = argument_slots[0]
+        if not isinstance(dual_slot, BaseForm):
+            raise ValueError("The dual slot must be a BaseForm.")
+
+        if _is_nonterminal_base_form_dual_slot(dual_slot) and dual_slot.arguments():
+            primal_args = {
+                a
+                for slot in argument_slots[1:]
+                for a in extract_type(slot, Argument, base_form_op_as_expr=True)
+            }
+            renumbering = _renumber_dual_slot_arguments(dual_slot, primal_args)
+            if renumbering:
+                # Keep the arguments exposed by this operator in its stored slot.
+                dual_slot = replace(dual_slot, renumbering)
+                argument_slots = (dual_slot, *argument_slots[1:])
         self._argument_slots = argument_slots
+
+        contracted, _ = _split_dual_slot_arguments(dual_slot)
+        if contracted is not None and contracted.ufl_function_space() != function_space:
+            raise ValueError("The contracted argument in the dual slot must be on function_space.")
 
         # Internal variables for caching coefficient and domain data
         self._coefficients = None
@@ -82,7 +202,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     ufl_free_indices = ()
     ufl_index_dimensions = ()
 
-    def argument_slots(self, outer_form=False):
+    def argument_slots(self):
         """Returns a tuple of expressions containing argument and coefficient based expressions.
 
         We get an argument uhat when we take the Gateaux derivative in
@@ -91,15 +211,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         replace the last argument by coefficient: action(dNdu(u; uhat,
         v*), w) = dNdu(u; w, v*) where du is a ufl.Coefficient.
         """
-        from ufl.algorithms.analysis import extract_arguments
-
-        if not outer_form:
-            return self._argument_slots
-        # Takes into account argument contraction when a base form operator is in an outer form:
-        # For example:
-        #   F = N(u; v*) * v * dx can be seen as Action(v1 * v * dx, N(u; v*))
-        #   => F.arguments() should return (v,)!
-        return tuple(a for a in self._argument_slots[1:] if len(extract_arguments(a)) != 0)
+        return self._argument_slots
 
     def _analyze_domains(self) -> None:
         """Analyze domains in the operands and the argument slots."""
@@ -130,32 +242,21 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the base form."""
         from ufl.algorithms.analysis import extract_coefficients, extract_type
-        from ufl.form import Form
 
         dual_arg, *arguments = self.argument_slots()
-        # When coarguments are treated as BaseForms, they have two
-        # arguments (one primal and one dual) as they map from V* to V*
-        # => V* x V -> R. However, when they are treated as mere
-        # "arguments", the primal space argument is discarded and we
-        # only have the dual space argument (Coargument). This is the
-        # exact same situation than BaseFormOperator's arguments which
-        # are different depending on whether the BaseFormOperator is
-        # used in an outer form or not.
+        # When a Coargument is used as the dual slot, its primal argument
+        # is contracted and only the Coargument remains free.
 
         primal_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
-        primal_arg_num = {a.number() for a in primal_args} if isinstance(dual_arg, Form) else {0, 1}
-        dual_args = tuple(
-            arg
-            for arg in dual_arg.arguments()
-            if isinstance(arg, Coargument) or arg.number() not in primal_arg_num
-        )
+        # The stored dual slot is already renumbered.
+        _, dual_args = _split_dual_slot_arguments(dual_arg)
         arguments = dual_args + primal_args
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         # 1) Need concept of order since we may have arguments with the same number
-        #    because of form composition (`argument_slots(outer_form=True)`):
+        #    because of form composition:
         #    Example: Let u \in V1 and N \in V2 and F = N(u; v*) * dx, then
         #    `derivative(F, u)` will contain dNdu(u; uhat, v*) with v* = Argument(0, V2)
         #    and uhat = Argument(0, V1) (since F.arguments() = ())
@@ -192,7 +293,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """Return a new object of the same type with new operands."""
         return type(self)(
             *operands,
-            function_space=function_space or self.ufl_function_space(),
+            function_space=function_space or self._function_space,
             derivatives=derivatives or self.derivatives,
             argument_slots=argument_slots or self.argument_slots(),
         )
@@ -206,17 +307,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         r += f"; derivatives={self.derivatives!r})"
         return r
 
-    def __hash__(self):
-        """Hash code for use in dicts."""
-        hashdata = (
-            type(self),
-            tuple(hash(op) for op in self.ufl_operands),
-            tuple(hash(arg) for arg in self._argument_slots),
-            self.derivatives,
-            hash(self.ufl_function_space()),
-        )
-        return hash(hashdata)
-
     def __eq__(self, other):
         """Check for equality."""
         if isinstance(other, Number) and other == 0:
@@ -226,7 +316,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     @property
     def _parent_type(self):
         """Is this a primal or dual expression?"""
-        return BaseForm if is_dual(self.ufl_function_space()) else Operator
+        return Operator if is_primal(self.ufl_function_space()) else BaseForm
 
     def __add__(self, other):
         """Add."""

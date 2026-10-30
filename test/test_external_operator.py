@@ -91,7 +91,7 @@ def test_properties(V1):
     # Test __str__
     s = Coefficient(V1, count=2)
     t = Coefficient(V1, count=3)
-    v0 = Argument(V1, 0)
+    v0 = Coargument(V1.dual(), 0)
     v1 = Argument(V1, 1)
 
     e = ExternalOperator(u, function_space=V1)
@@ -104,6 +104,13 @@ def test_properties(V1):
         u, r, 2 * s, t, function_space=V1, derivatives=(1, 0, 1, 2), argument_slots=(v0, v1)
     )
     assert str(e) == "∂e(w_0, w_1, 2 * w_2, w_3; v_1, v_0)/∂o1∂o3∂o4∂o4"
+
+
+def test_dual_slot_must_be_a_base_form(V1):
+    u = Coefficient(V1)
+
+    with pytest.raises(ValueError, match="dual slot must be a BaseForm"):
+        ExternalOperator(u, function_space=V1, argument_slots=(u,))
 
 
 def test_form(V1, V2):
@@ -139,6 +146,41 @@ def test_form(V1, V2):
     dFdN = Nhat * u * v * dx
     expected = dFdu_partial + Action(dFdN, dNdu)
     assert apply_derivatives(actual) == expected
+
+
+def test_form_dual_slot_argument_is_contracted(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V2)
+    dual_slot = inner(u, v) * dx
+
+    operator = ExternalOperator(u, function_space=V2, argument_slots=(dual_slot,))
+
+    assert operator.arguments() == ()
+    assert operator.ufl_element() == V2.ufl_element()
+
+    with pytest.raises(ValueError, match="contracted argument"):
+        ExternalOperator(u, function_space=V1, argument_slots=(dual_slot,))
+
+    cofunction = Cofunction(V2.dual())
+    with pytest.raises(ValueError, match="contracted argument"):
+        ExternalOperator(u, function_space=V1, argument_slots=(cofunction,))
+
+
+def test_derivative_of_contracted_dual_slot(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    form = inner(f, TestFunction(V2)) * dx
+    cofunction = Cofunction(V2.dual())
+    uhat = TestFunction(V1)
+
+    form_operator = ExternalOperator(u, function_space=V2, argument_slots=(form,))
+    cofunction_operator = ExternalOperator(u, function_space=V2, argument_slots=(cofunction,))
+
+    assert (
+        derivative(form_operator, u, uhat).arguments()
+        == derivative(cofunction_operator, u, uhat).arguments()
+        == (uhat,)
+    )
 
 
 def test_differentiation_procedure_action(V1, V2):
