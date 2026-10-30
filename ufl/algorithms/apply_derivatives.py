@@ -2038,10 +2038,7 @@ def apply_derivatives(expression):
     Returns:
         A differentiated expression
     """
-    dexpression = map_integrands(DerivativeRuleDispatcher(), expression)
-    if not isinstance(expression, BaseForm):
-        return dexpression
-    return dexpression
+    return map_integrands(DerivativeRuleDispatcher(), expression)
 
 
 class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
