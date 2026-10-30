@@ -230,25 +230,19 @@ class Coargument(BaseForm, BaseArgument):
         self._hash = None
         self._repr = f"Coargument({self._ufl_function_space!r}, {self._number!r}, {self._part!r})"
 
-    def arguments(self, outer_form=None):
+    def arguments(self):
         """Return all Argument objects found in form."""
         if self._arguments is None:
-            self._analyze_form_arguments(outer_form=outer_form)
+            self._analyze_form_arguments()
         return self._arguments
 
-    def _analyze_form_arguments(self, outer_form=None):
+    def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the form."""
         # Define canonical numbering of arguments and coefficients
         self._coefficients = ()
         # Coarguments map from V* to V*, i.e. V* -> V*, or equivalently V* x V -> R.
         # So they have one argument in the primal space and one in the dual space.
-        # However, when they are composed with linear forms with dual
-        # arguments, such as BaseFormOperators, the primal argument is
-        # discarded when analysing the argument as Coarguments.
-        if not outer_form:
-            self._arguments = (Argument(self.ufl_function_space().dual(), 0), self)
-        else:
-            self._arguments = (self,)
+        self._arguments = (Argument(self.ufl_function_space().dual(), 0), self)
 
     def ufl_domain(self):
         """Return the UFL domain."""

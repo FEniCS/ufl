@@ -180,12 +180,12 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
     # Set __repr__
     __repr__ = Operator.__repr__
 
-    def argument_slots(self, outer_form=False):
+    def argument_slots(self):
         """Return a tuple of expressions containing argument and coefficient based expressions."""
         from ufl.algorithms.analysis import extract_arguments
 
         base_form, _, arguments, _ = self.ufl_operands
-        argument_slots = base_form.argument_slots(outer_form) + tuple(
+        argument_slots = base_form.argument_slots() + tuple(
             arg for a in arguments for arg in extract_arguments(a)
         )
         return argument_slots
