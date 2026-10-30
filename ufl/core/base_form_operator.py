@@ -58,21 +58,16 @@ def _renumber_dual_slot_arguments(dual_arg, primal_args):
     """Return the renumbering of the arguments in a non-terminal BaseForm dual slot.
 
     The free arguments take, in order, the lowest numbers that the primal
-    arguments do not use. The contracted argument keeps its number unless it
-    would no longer be the highest-numbered primal argument of the slot, or
-    would equal an argument of the operator.
+    arguments do not use. The contracted argument takes the lowest number
+    above them that does not make it equal to an argument of the operator, so
+    it stays the highest-numbered primal argument of the slot.
     """
     contracted, free = _split_dual_slot_arguments(dual_arg)
     primal_numbers = {argument.number() for argument in primal_args}
     numbers = (number for number in count() if number not in primal_numbers)
     renumbered = tuple(argument.reconstruct(number=n) for argument, n in zip(free, numbers))
     exposed = {*renumbered, *primal_args}
-    lowest = max(
-        (
-            contracted.number(),
-            *(a.number() + 1 for a in renumbered if not isinstance(a, Coargument)),
-        )
-    )
+    lowest = max((a.number() + 1 for a in renumbered if not isinstance(a, Coargument)), default=0)
     number = next(n for n in count(lowest) if contracted.reconstruct(number=n) not in exposed)
     renumbering = dict(zip(free, renumbered))
     renumbering[contracted] = contracted.reconstruct(number=number)
