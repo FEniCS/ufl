@@ -280,6 +280,9 @@ class Form(BaseForm):
         "_terminal_numbering",
     )
 
+    # The integrals of a Form are mapped by map_integrands, not as operands.
+    ufl_operands = ()
+
     def __init__(self, integrals: list[Integral]):
         """Initialise."""
         BaseForm.__init__(self)

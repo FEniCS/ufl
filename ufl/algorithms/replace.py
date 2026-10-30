@@ -11,7 +11,7 @@
 from functools import singledispatchmethod
 
 import ufl.classes
-from ufl.algorithms.analysis import has_exact_type
+from ufl.algorithms.analysis import extract_coefficients, has_exact_type
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.classes import BaseForm, CoefficientDerivative
 from ufl.constantvalue import as_ufl
@@ -62,19 +62,23 @@ class Replacer(DAGTraverser):
     @process.register(ufl.classes.ExternalOperator)
     def _(self, o):
         """Replace an external_operator."""
-        o = self.mapping.get(o) or o
+        o = self.mapping.get(o, o)
         if isinstance(o, ExternalOperator):
             new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
             new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+            if new_ops == o.ufl_operands and new_args == o.argument_slots():
+                return o
             return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_args)
         return o
 
     @process.register(ufl.classes.Interpolate)
     def _(self, o):
         """Replace an interpolate."""
-        o = self.mapping.get(o) or o
+        o = self.mapping.get(o, o)
         if isinstance(o, Interpolate):
             new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
+            if new_args == o.argument_slots():
+                return o
             return o._ufl_expr_reconstruct_(*reversed(new_args))
         return o
 
@@ -82,6 +86,32 @@ class Replacer(DAGTraverser):
     def _(self, o):
         """Replace a coefficient derivative."""
         raise ValueError("Derivatives should be applied before executing replace.")
+
+    @process.register(ufl.classes.BaseFormDerivative)
+    def _(self, o):
+        """Replace a base form derivative without applying the derivative.
+
+        The replacement commutes with the derivative only if no other
+        coefficient of the base form maps to the same expression as a
+        differentiation variable. For example, replace(derivative(f(g, h), g), {g: h})
+        is not equal to derivative(f(h, h), h).
+        """
+        if o in self.mapping:
+            return self.mapping[o]
+        base_form, coefficients, arguments, coefficient_derivatives = o.ufl_operands
+        others = set(extract_coefficients(base_form)) - set(coefficients)
+        images = {self.mapping.get(c, c) for c in others}
+        if any(self.mapping.get(c, c) in images for c in coefficients):
+            raise ValueError(
+                "Derivatives should be applied before executing replace, "
+                "if a differentiation variable maps to another coefficient of the form."
+            )
+        return o._ufl_expr_reconstruct_(
+            replace(base_form, self.mapping),
+            self(coefficients),
+            self(arguments),
+            self(coefficient_derivatives),
+        )
 
 
 def replace(e, mapping):
