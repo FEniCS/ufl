@@ -10,6 +10,7 @@ from ufl import (
     Action,
     Adjoint,
     Argument,
+    Coargument,
     Coefficient,
     Cofunction,
     FunctionSpace,
@@ -257,6 +258,19 @@ def test_form_dual_slot_contraction_ignores_numbering_gaps(V1, V2, free, contrac
     v, w = Argument(V2, 0), Argument(V2, 1)
     assert interpolation.argument_slots()[0] == w.dx(0) * v * dx
     assert interpolation.arguments() == (v,)
+
+
+def test_form_dual_slot_renumbering_keeps_contracted_arguments(V1, V2):
+    # The inner Actions contract Argument(V2, 0), so the slot cannot renumber
+    # its own argument Argument(V2, 1) to 0.
+    w = Coefficient(V1)
+    inner_action = Action(w, Interpolate(Argument(V1, 0), Coargument(V2.dual(), 1)))
+    dual_slot = Action(inner_action, Argument(V2, 1) * Argument(V2, 0) * dx)
+
+    interpolation = Interpolate(Argument(V1, 0), dual_slot)
+
+    assert interpolation.argument_slots()[0] == dual_slot
+    assert interpolation.arguments() == (Argument(V1, 0),)
 
 
 def test_form_dual_slot_numbering_matches_action(V1, V2, V3):
