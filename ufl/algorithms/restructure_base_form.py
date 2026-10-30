@@ -16,7 +16,7 @@ from ufl.algebra import Conj, Sum
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
 from ufl.argument import Coargument
-from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.base_form_operator import BaseFormOperator, _split_dual_slot_arguments
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.form import BaseForm, Form, FormSum
@@ -157,17 +157,16 @@ class BaseFormRestructurer(BaseFormTraversal):
         dual = self(v)
         if len(dual.arguments()) > 1:
             # A base form operator is linear in its dual slot:
-            # N(u; A) -> Action(N(u; v*), A), where v* is numbered after the
-            # arguments of the other slots so that the Action contracts it with
-            # the first argument of A.
-            # The constructor of o has already renumbered the arguments in v.
-            dual_slot_args = v.arguments()[1:]
-            others = (a for a in o.arguments() if a not in dual_slot_args)
-            number = max((a.number() for a in others), default=-1) + 1
-            test = dual.arguments()[0]
-            vstar = test.reconstruct(function_space=test.ufl_function_space().dual(), number=number)
-            left = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
-            return self(Action(left, dual))
+            # N(u; A) -> Action(A, N(u; v*)). Like the dual slot, the Action
+            # contracts the highest-numbered argument of A, with the lowest of N(u; v*).
+            contracted, free = _split_dual_slot_arguments(dual)
+            primal_numbers = {a.number() for a in o.arguments() if a not in free}
+            if 0 in primal_numbers:
+                raise NotImplementedError("Cannot number v* below the primal slot arguments.")
+            space = contracted.ufl_function_space().dual()
+            vstar = contracted.reconstruct(function_space=space, number=0)
+            right = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
+            return self(Action(dual, right))
         if dual is v:
             return o
         return o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(dual, *slots))
