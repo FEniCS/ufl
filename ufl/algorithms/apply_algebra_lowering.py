@@ -12,7 +12,7 @@ from functools import singledispatchmethod
 
 import ufl.classes
 from ufl.algorithms.map_integrands import map_integrands
-from ufl.classes import Conj, Derivative, Grad, Product
+from ufl.classes import Conj, Grad, Product
 from ufl.compound_expressions import cofactor_expr, determinant_expr, deviatoric_expr, inverse_expr
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.multiindex import Index, indices
@@ -208,35 +208,17 @@ class LowerCompoundAlgebra(DAGTraverser):
         raise ValueError(f"Invalid shape {sh} of curl argument.")
 
 
-class LowerCompoundAlgebraPreservingDerivatives(LowerCompoundAlgebra):
-    """Lower tensor algebra while preserving differential operators."""
-
-    @singledispatchmethod
-    def process(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
-        """Lower tensor algebra with the shared rules."""
-        return super().process(o)
-
-    @process.register(Derivative)
-    def _(self, o: Derivative) -> ufl.classes.Expr:
-        """Traverse a derivative without lowering the operator itself."""
-        return self.reuse_if_untouched(o)
-
-
 def apply_algebra_lowering(
-    expr: ufl.classes.Expr | ufl.classes.BaseForm, *, preserve_derivatives: bool = False
+    expr: ufl.classes.Expr | ufl.classes.BaseForm, preserve_types: tuple[type, ...] = ()
 ) -> ufl.classes.Expr | ufl.classes.BaseForm:
     """Expand tensor algebra into index notation.
 
     Args:
         expr: The expression whose compound operators are to be lowered.
-        preserve_derivatives: Whether to preserve differential operators, including div and curl.
+        preserve_types: Types whose operators are preserved while their operands are lowered.
+            Subclasses of these types are also preserved.
 
     Returns:
         The expression with compound tensor operators lowered.
     """
-    rules = (
-        LowerCompoundAlgebraPreservingDerivatives()
-        if preserve_derivatives
-        else LowerCompoundAlgebra()
-    )
-    return map_integrands(rules, expr)
+    return map_integrands(LowerCompoundAlgebra(preserve_types=preserve_types), expr)

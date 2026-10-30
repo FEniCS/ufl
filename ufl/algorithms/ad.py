@@ -12,7 +12,7 @@ import warnings
 
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_coefficient_derivatives, apply_derivatives
-from ufl.classes import BaseForm, Expr
+from ufl.classes import BaseForm, Derivative, Expr
 
 
 def expand_derivatives(expr: Expr | BaseForm, **kwargs):
@@ -50,7 +50,7 @@ def expand_coefficient_derivatives(expr: Expr | BaseForm) -> Expr | BaseForm:
         The expression with coefficient and BaseForm derivatives expanded.
     """
     # Lower abstractions for tensor-algebra types into index notation
-    expr = apply_algebra_lowering(expr, preserve_derivatives=True)
+    expr = apply_algebra_lowering(expr, preserve_types=(Derivative,))
 
     # Apply differentiation
     expr = apply_coefficient_derivatives(expr)

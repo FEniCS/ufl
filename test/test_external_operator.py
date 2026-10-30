@@ -39,7 +39,7 @@ from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.corealg.traversal import unique_pre_traversal
-from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
+from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative, Derivative
 from ufl.form import BaseForm, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
@@ -877,7 +877,7 @@ def test_expand_coefficient_derivatives_in_operator_slot(V1, tensor_algebra):
     expected = N._ufl_expr_reconstruct_(
         u,
         derivatives=(1,),
-        argument_slots=(vstar, apply_algebra_lowering(expected, preserve_derivatives=True)),
+        argument_slots=(vstar, apply_algebra_lowering(expected, preserve_types=(Derivative,))),
     )
 
     actual = expand_coefficient_derivatives(expression)

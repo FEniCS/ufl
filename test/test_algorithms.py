@@ -39,7 +39,8 @@ from ufl.algorithms import (
     replace,
 )
 from ufl.algorithms.analysis import has_exact_type
-from ufl.classes import ComponentTensor
+from ufl.algorithms.apply_algebra_lowering import LowerCompoundAlgebra
+from ufl.classes import ComponentTensor, Derivative, Div
 from ufl.corealg.traversal import (
     post_traversal,
     pre_traversal,
@@ -243,3 +244,12 @@ def test_replace_mixed_element(domain, element):
     # summation indices may be numbered differently; compare signatures
     # rather than raw equality.
     assert expand_derivatives(result).signature() == expected.signature()
+
+
+@pytest.mark.parametrize("preserve_type", [Div, Derivative])
+def test_lower_algebra_preserves_selected_types(domain, preserve_type):
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V)
+    expression = div(u)
+
+    assert LowerCompoundAlgebra(preserve_types=(preserve_type,))(expression) is expression
