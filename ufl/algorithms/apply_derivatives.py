@@ -77,7 +77,9 @@ from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
     BaseFormDerivative,
+    BaseFormOperatorDerivative,
     CoefficientDerivative,
+    CompoundDerivative,
     CoordinateDerivative,
     Derivative,
     VariableDerivative,
@@ -166,9 +168,16 @@ class GenericDerivativeRuleset(DAGTraverser):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        *,
+        preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
-        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+        super().__init__(
+            compress=compress,
+            visited_cache=visited_cache,
+            result_cache=result_cache,
+            preserve_types=preserve_types,
+        )
         self._var_shape = var_shape
 
     def unexpected(self, o):
@@ -1280,10 +1289,16 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        *,
+        preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
         super().__init__(
-            (), compress=compress, visited_cache=visited_cache, result_cache=result_cache
+            (),
+            compress=compress,
+            visited_cache=visited_cache,
+            result_cache=result_cache,
+            preserve_types=preserve_types,
         )
         # Type checking
         if not isinstance(coefficients, ExprList):
@@ -1736,7 +1751,7 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to BaseForm.
 
     Implements rules for the Gateaux derivative D_w[v](B) where B is a
-    BaseForm whose own derivatives have been expanded. The integrands of B
+    BaseForm whose coefficient derivatives have been expanded. The integrands of B
     are differentiated with the PartialDerivativeRuleset, and the other
     expressions in B with the GateauxDerivativeRuleset.
     """
@@ -1749,6 +1764,8 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        *,
+        preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
         super().__init__(
@@ -1758,12 +1775,13 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             compress=compress,
             visited_cache=visited_cache,
             result_cache=result_cache,
+            preserve_types=preserve_types,
         )
         self._expression_rules = GateauxDerivativeRuleset(
-            coefficients, arguments, coefficient_derivatives
+            coefficients, arguments, coefficient_derivatives, preserve_types=preserve_types
         )
         self._integrand_rules = PartialDerivativeRuleset(
-            coefficients, arguments, coefficient_derivatives
+            coefficients, arguments, coefficient_derivatives, preserve_types=preserve_types
         )
 
     # Work around singledispatchmethod inheritance issue;
@@ -1819,7 +1837,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
                 Nhat = primal_argument.reconstruct(number=1 + max(numbers, default=-1))
                 vhat = vstar.reconstruct(number=0)
 
-            partial_rules = PartialDerivativeRuleset(ExprList(N), ExprList(Nhat), ExprMapping())
+            partial_rules = PartialDerivativeRuleset(
+                ExprList(N), ExprList(Nhat), ExprMapping(), preserve_types=self._preserved_types
+            )
             dform_dN = map_integrands(partial_rules, o)
             if dform_dN.empty():
                 # F depends on N only through another base form operator.
@@ -1901,9 +1921,20 @@ class DerivativeRuleDispatcher(DAGTraverser):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        *,
+        preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
-        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+        super().__init__(
+            compress=compress,
+            visited_cache=visited_cache,
+            result_cache=result_cache,
+            preserve_types=preserve_types,
+        )
+        # Coefficient differentiation commutes with linear spatial operators.
+        self._gateaux_preserve_types = tuple(
+            cls for cls in preserve_types if issubclass(cls, CompoundDerivative)
+        )
         # Create DAGTraverser caches.
         self._dag_traverser_cache: dict[
             tuple[type, Expr | BaseForm]
@@ -1931,6 +1962,15 @@ class DerivativeRuleDispatcher(DAGTraverser):
         """Apply to expr and base form."""
         return self.reuse_if_untouched(o)
 
+    @process.register(BaseFormOperator)
+    def _(self, o: BaseFormOperator) -> Expr | BaseForm:
+        """Expand derivatives in an operator's operands and argument slots."""
+        operands = tuple(self(op) for op in o.ufl_operands)
+        slots = tuple(self(slot) for slot in o.argument_slots())
+        if operands == o.ufl_operands and slots == o.argument_slots():
+            return o
+        return o._ufl_expr_reconstruct_(*operands, argument_slots=slots)
+
     @process.register(Terminal)
     def _(self, o: Terminal) -> Terminal:
         """Apply to a terminal."""
@@ -1940,7 +1980,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
     def _(self, o: Form) -> Form:
         """Apply to a form in an operand of a base form."""
         # The integrals of a Form are not operands.
-        return map_integrands(self, apply_algebra_lowering(o))
+        return map_integrands(self, apply_algebra_lowering(o, preserve_types=self._preserved_types))
 
     @process.register(Derivative)
     def _(self, o: Derivative) -> Expr:
@@ -1982,11 +2022,12 @@ class DerivativeRuleDispatcher(DAGTraverser):
         key = (GateauxDerivativeRuleset, w, v, cd)
         dag_traverser = self._dag_traverser_cache.setdefault(
             key,
-            GateauxDerivativeRuleset(w, v, cd),  # type: ignore
+            GateauxDerivativeRuleset(w, v, cd, preserve_types=self._gateaux_preserve_types),  # type: ignore
         )
         return dag_traverser(f)  # type: ignore
 
     @process.register(BaseFormDerivative)
+    @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
     def _(self, o: BaseFormDerivative, f: BaseForm) -> Expr | BaseForm:
         """Apply to a base_form_derivative."""
@@ -1994,7 +2035,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
         key = (BaseFormDerivativeRuleset, w, v, cd)
         dag_traverser = self._dag_traverser_cache.setdefault(
             key,
-            BaseFormDerivativeRuleset(w, v, cd),  # type: ignore
+            BaseFormDerivativeRuleset(w, v, cd, preserve_types=self._gateaux_preserve_types),  # type: ignore
         )
         return dag_traverser(f)  # type: ignore
 
@@ -2266,3 +2307,22 @@ def apply_coordinate_derivatives(expression):
     """Apply coordinate derivatives to an expression."""
     dag_traverser = CoordinateDerivativeRuleDispatcher()
     return map_integrands(dag_traverser, expression)
+
+
+def apply_coefficient_derivatives(expression: Expr | BaseForm) -> Expr | BaseForm:
+    """Expand coefficient and BaseForm derivatives while preserving other derivatives.
+
+    Args:
+        expression: The expression whose coefficient derivatives are to be expanded.
+
+    Returns:
+        The expression with coefficient and BaseForm derivatives expanded.
+    """
+    preserve_types = tuple(
+        cls
+        for cls in Expr._ufl_all_classes_
+        if not cls._ufl_is_abstract_
+        and issubclass(cls, Derivative)
+        and (not issubclass(cls, CoefficientDerivative) or issubclass(cls, CoordinateDerivative))
+    )
+    return map_integrands(DerivativeRuleDispatcher(preserve_types=preserve_types), expression)
