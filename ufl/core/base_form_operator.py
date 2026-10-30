@@ -94,6 +94,10 @@ class BaseFormOperator(Operator, BaseForm, Counted):
                 If ``argument_slots`` is empty, the dual slot is a new Coargument
                 with number 0 on the dual of ``function_space``.
         """
+        # Avoid cyclic import
+        from ufl.algorithms.analysis import extract_type
+        from ufl.algorithms.replace import replace
+
         BaseForm.__init__(self)
         ufl_operands = tuple(map(as_ufl, operands))
         argument_slots = tuple(map(as_ufl, argument_slots))
@@ -121,8 +125,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         if not isinstance(dual_slot, BaseForm):
             raise ValueError("The dual slot must be a BaseForm.")
 
-        from ufl.algorithms.analysis import extract_type
-
         primal_args = tuple(
             a
             for slot in argument_slots[1:]
@@ -134,8 +136,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         )
         if dual_slot_arguments != original_dual_slot_arguments:
             # Keep the arguments exposed by this operator in its stored slot.
-            from ufl.algorithms.replace import replace
-
             dual_slot = replace(
                 dual_slot, dict(zip(original_dual_slot_arguments, dual_slot_arguments))
             )
