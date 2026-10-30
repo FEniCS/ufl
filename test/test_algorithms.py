@@ -204,9 +204,7 @@ def test_remove_component_tensors(domain):
 
 
 def test_replace_foreign_derivative(domain, space):
-    """Test that replace only expands CoeffientDerivative and does not break
-    with foreign derivatives (e.g. irksome.TimeDerivative).
-    """
+    """Replacement preserves derivatives supplied by other packages."""
     f = Coefficient(space)
     g = Coefficient(space)
     test = TestFunction(space)

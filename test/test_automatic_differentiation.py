@@ -720,7 +720,7 @@ def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_
 
 
 def test_coefficient_derivative_grad_coeff(self, d_expr):
-    """Test that CoefficientDerivative expansion"""
+    """Coefficient differentiation commutes with repeated gradients."""
     _d, collection = d_expr
 
     u = collection.shared_objects.u
@@ -749,7 +749,7 @@ def test_coefficient_derivative_grad_coeff(self, d_expr):
 
 
 def test_coefficient_derivative_grad_coordinate(self):
-    """Test that CoordinateDerivative objects do not get expanded"""
+    """Gradients of spatial coordinates remain unexpanded."""
     cell = triangle
     gdim = cell.topological_dimension
     geometry_degree = 1
@@ -764,7 +764,7 @@ def test_coefficient_derivative_grad_coordinate(self):
 
 
 def test_coefficient_derivative_foreign_derivative(self):
-    """Test that foreign Derivative objects do not get expanded"""
+    """Derivatives supplied by other packages remain unexpanded."""
     cell = triangle
     gdim = cell.topological_dimension
     geometry_degree = 1
