@@ -2038,7 +2038,11 @@ def apply_derivatives(expression):
     Returns:
         A differentiated expression
     """
-    return map_integrands(DerivativeRuleDispatcher(), expression)
+    dexpression = map_integrands(DerivativeRuleDispatcher(), expression)
+    if isinstance(dexpression, Form) and dexpression.empty() and not expression.empty():
+        # The derivative vanishes: keep its arguments, which an empty Form has lost.
+        return ZeroBaseForm(expression.arguments())
+    return dexpression
 
 
 class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
