@@ -67,7 +67,7 @@ from ufl.classes import (
 )
 from ufl.conditional import BinaryCondition, Conditional, NotCondition
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
-from ufl.core.base_form_operator import BaseFormOperator
+from ufl.core.base_form_operator import BaseFormOperator, _split_dual_slot_arguments
 from ufl.core.expr import ufl_err_str
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
@@ -1885,9 +1885,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             (a.number() for slot in slots for a in extract_type(slot, Argument, True)),
             default=-1,
         )
-        primal_argument, *_ = vstar.arguments()
-        vhat = primal_argument.reconstruct(
-            function_space=primal_argument.ufl_function_space().dual(), number=number
+        contracted, _ = _split_dual_slot_arguments(vstar)
+        vhat = contracted.reconstruct(
+            function_space=contracted.ufl_function_space().dual(), number=number
         )
         Nhat = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
         return dN + Action(Nhat, self(vstar))
