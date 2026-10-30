@@ -231,33 +231,78 @@ def test_form_dual_slot_argument_is_contracted(V1, V2):
     assert interpolation.arguments() == ()
 
 
-def test_form_dual_slot_arguments_are_renumbered(V1, V2, V3):
+def test_form_dual_slot_contracts_highest_numbered_argument(V1, V2, V3):
     u = Coefficient(V1)
-    dual_slot = inner(TrialFunction(V3), TestFunction(V2)) * dx
+    dual_slot = inner(TrialFunction(V2), TestFunction(V3)) * dx
 
     interpolation = Interpolate(u, dual_slot)
 
-    assert interpolation.arguments() == (Argument(V3, 1),)
+    assert interpolation.ufl_element() == V2.ufl_element()
+    assert interpolation.arguments() == (Argument(V3, 0),)
+
+
+def test_form_dual_slot_numbering_matches_action(V1, V2, V3):
+    u = Coefficient(V1)
+    A = inner(TrialFunction(V3), TestFunction(V2)) * dx
+
+    interpolation = Interpolate(u, adjoint(A))
+    composition = Action(adjoint(A), Interpolate(u, V2))
+
+    assert interpolation.arguments() == composition.arguments() == (Argument(V3, 0),)
+    assert len((interpolation + composition).arguments()) == 1
 
 
 def test_form_dual_slot_arguments_are_replaceable(V1, V2, V3, V4):
     u = Coefficient(V1)
-    dual_slot = inner(TrialFunction(V3), TestFunction(V2)) * dx
+    dual_slot = inner(TrialFunction(V2), TestFunction(V3)) * dx
     interpolation = Interpolate(u, dual_slot)
-    w = Argument(V4, 1)
+    w = Argument(V4, 0)
 
     replaced = replace(interpolation, {interpolation.arguments()[0]: w})
 
-    assert replaced == Interpolate(u, inner(w, TestFunction(V2)) * dx)
+    assert replaced == Interpolate(u, inner(TrialFunction(V2), w) * dx)
 
 
 def test_form_dual_slot_arguments_avoid_expression_numbers(V1, V2, V3):
-    u = Argument(V1, 1)
-    dual_slot = inner(TrialFunction(V3), TestFunction(V2)) * dx
+    u = Argument(V1, 0)
+    dual_slot = inner(TrialFunction(V2), TestFunction(V3)) * dx
 
     interpolation = Interpolate(u, dual_slot)
 
-    assert interpolation.arguments() == (u, Argument(V3, 2))
+    assert interpolation.arguments() == (u, Argument(V3, 1))
+
+
+def test_form_dual_slot_contracted_argument_stays_distinct(V1, V2, V4):
+    u = Argument(V1, 0)
+    dual_slot = inner(Argument(V2, 1), Argument(V2, 0)) * dx
+    interpolation = Interpolate(u, dual_slot)
+    w = Argument(V4, 1)
+
+    # The free argument moves to 1, so the contracted one moves to 2.
+    assert interpolation.arguments() == (u, Argument(V2, 1))
+    assert interpolation.argument_slots()[0] == inner(Argument(V2, 2), Argument(V2, 1)) * dx
+
+    replaced = replace(interpolation, {Argument(V2, 1): w})
+
+    assert replaced.argument_slots()[0] == inner(Argument(V2, 2), w) * dx
+
+
+def test_derivative_direction_with_same_argument_number_raises(V1, V2, V3):
+    u = Coefficient(V1)
+    dual_slot = inner(TrialFunction(V2), TestFunction(V3)) * dx
+    dIu = derivative(Interpolate(u, dual_slot), u, Argument(V1, 0))
+
+    with pytest.raises(ValueError, match=r"Same argument numbers in the operator"):
+        dIu.arguments()
+
+
+def test_derivative_with_gapped_coargument(V1, V2):
+    u = Coefficient(V1)
+    J = Interpolate(u, Argument(V2.dual(), 1)) * dx
+
+    dJdu = expand_derivatives(derivative(J, u))
+
+    assert dJdu.arguments() == (Argument(V1, 0),)
 
 
 def test_action_adjoint(V1, V2):

@@ -2073,7 +2073,9 @@ def apply_derivatives(expression):
             # result in `dNdu(u; vhat, v*)`, i.e. the 2-forms `dNdu`
             # would have two 0-numbered arguments. Instead we increment
             # the argument number of `vhat` to form `v1`.
-            var_arg = var_arg.reconstruct(number=len(N.arguments()))
+            var_arg = var_arg.reconstruct(
+                number=max((a.number() for a in N.arguments()), default=-1) + 1
+            )
         dN_dvar = apply_derivatives(BaseFormOperatorDerivative(N, var, ExprList(var_arg), cd))
         # -- Sum the Action: dF/du = ∂F/∂u + \sum_{i=1,...} Action(∂F/∂Ni, dNi/du) -- #
         # In this case: Action <=> ufl.action since `dN_var` has 2 arguments.

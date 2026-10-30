@@ -158,11 +158,11 @@ def test_form_dual_slot_argument_is_contracted(V1, V2):
     assert operator.arguments() == ()
     assert operator.ufl_element() == V2.ufl_element()
 
-    with pytest.raises(ValueError, match="lowest-numbered argument"):
+    with pytest.raises(ValueError, match="contracted argument"):
         ExternalOperator(u, function_space=V1, argument_slots=(dual_slot,))
 
     cofunction = Cofunction(V2.dual())
-    with pytest.raises(ValueError, match="lowest-numbered argument"):
+    with pytest.raises(ValueError, match="contracted argument"):
         ExternalOperator(u, function_space=V1, argument_slots=(cofunction,))
 
 

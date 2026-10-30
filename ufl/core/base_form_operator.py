@@ -14,7 +14,7 @@ ExternalOperator or Interpolate.
 # Modified by Nacime Bouziani, 2021-2022
 
 from collections import OrderedDict
-from itertools import chain, count, islice
+from itertools import chain, count
 from numbers import Number
 
 from ufl.argument import Argument, Coargument
@@ -36,20 +36,47 @@ def _is_nonterminal_base_form_dual_slot(dual_arg):
     return isinstance(dual_arg, BaseForm) and not isinstance(dual_arg, (Coargument, Cofunction))
 
 
-def _renumber_dual_slot_arguments(dual_arg, occupied_numbers):
-    """Renumber free arguments in a non-terminal BaseForm dual slot."""
-    all_arguments = dual_arg.arguments()
-    arguments = all_arguments[1:]
-    if not all_arguments or not _is_nonterminal_base_form_dual_slot(dual_arg):
-        return arguments
-    occupied_numbers = set(occupied_numbers)
-    # Keep the contracted argument's number available in the stored slot.
-    occupied_numbers.add(all_arguments[0].number())
-    numbers = (number for number in count() if number not in occupied_numbers)
-    return tuple(
-        argument.reconstruct(number=number)
-        for argument, number in zip(arguments, islice(numbers, len(arguments)), strict=True)
+def _split_dual_slot_arguments(dual_arg):
+    """Return the contracted argument and the free arguments of a dual slot.
+
+    A Coargument or a Cofunction contracts its primal argument, which comes
+    first. Any other BaseForm contracts its highest-numbered primal argument,
+    as the left operand of an Action does. Its Coarguments are outputs, so
+    they stay free.
+    """
+    arguments = dual_arg.arguments()
+    if not _is_nonterminal_base_form_dual_slot(dual_arg):
+        return (arguments[0], arguments[1:]) if arguments else (None, ())
+    primal_arguments = [a for a in arguments if not isinstance(a, Coargument)]
+    if not primal_arguments:
+        return None, arguments
+    contracted = primal_arguments[-1]
+    return contracted, tuple(a for a in arguments if a != contracted)
+
+
+def _renumber_dual_slot_arguments(dual_arg, primal_args):
+    """Return the renumbering of the arguments in a non-terminal BaseForm dual slot.
+
+    The free arguments take, in order, the lowest numbers that the primal
+    arguments do not use. The contracted argument keeps its number unless it
+    would no longer be the highest-numbered primal argument of the slot, or
+    would equal an argument of the operator.
+    """
+    contracted, free = _split_dual_slot_arguments(dual_arg)
+    primal_numbers = {argument.number() for argument in primal_args}
+    numbers = (number for number in count() if number not in primal_numbers)
+    renumbered = tuple(argument.reconstruct(number=n) for argument, n in zip(free, numbers))
+    exposed = {*renumbered, *primal_args}
+    lowest = max(
+        (
+            contracted.number(),
+            *(a.number() + 1 for a in renumbered if not isinstance(a, Coargument)),
+        )
     )
+    number = next(n for n in count(lowest) if contracted.reconstruct(number=n) not in exposed)
+    renumbering = dict(zip(free, renumbered))
+    renumbering[contracted] = contracted.reconstruct(number=number)
+    return {old: new for old, new in renumbering.items() if old != new}
 
 
 @ufl_type(num_ops="varying", is_differential=True)
@@ -84,10 +111,13 @@ class BaseFormOperator(Operator, BaseForm, Counted):
                   ``function_space``.
                 - A Cofunction on the dual of ``function_space``, which
                   contracts the output to the number ``<c, N(u)>``.
-                - A Form whose lowest-numbered Argument is on
+                - A Form whose highest-numbered Argument is on
                   ``function_space``. The output takes the place of that
-                  Argument, which gives ``F(N(u))``. The other Arguments of the
-                  form stay free.
+                  Argument, which gives ``F(N(u))``, as in
+                  ``Action(F, N(u))``. The other Arguments of the form stay
+                  free. They are renumbered to the lowest numbers that the
+                  primal slots do not use, so replacing an Argument in a
+                  primal slot can change their numbers.
 
                 Each primal slot holds a direction of differentiation: an
                 expression of an Argument, or of a Coefficient after an action.
@@ -125,33 +155,22 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         if not isinstance(dual_slot, BaseForm):
             raise ValueError("The dual slot must be a BaseForm.")
 
-        primal_args = tuple(
-            a
-            for slot in argument_slots[1:]
-            for a in extract_type(slot, Argument, base_form_op_as_expr=True)
-        )
-        original_dual_slot_arguments = dual_slot.arguments()[1:]
-        dual_slot_arguments = _renumber_dual_slot_arguments(
-            dual_slot, (a.number() for a in primal_args)
-        )
-        if dual_slot_arguments != original_dual_slot_arguments:
-            # Keep the arguments exposed by this operator in its stored slot.
-            dual_slot = replace(
-                dual_slot, dict(zip(original_dual_slot_arguments, dual_slot_arguments))
-            )
-            argument_slots = (dual_slot, *argument_slots[1:])
+        if _is_nonterminal_base_form_dual_slot(dual_slot) and dual_slot.arguments():
+            primal_args = {
+                a
+                for slot in argument_slots[1:]
+                for a in extract_type(slot, Argument, base_form_op_as_expr=True)
+            }
+            renumbering = _renumber_dual_slot_arguments(dual_slot, primal_args)
+            if renumbering:
+                # Keep the arguments exposed by this operator in its stored slot.
+                dual_slot = replace(dual_slot, renumbering)
+                argument_slots = (dual_slot, *argument_slots[1:])
         self._argument_slots = argument_slots
 
-        dual_slot_arguments = argument_slots[0].arguments()
-        dual_slot_function_space = (
-            min(dual_slot_arguments, key=lambda argument: argument.number()).ufl_function_space()
-            if dual_slot_arguments
-            else None
-        )
-        if dual_slot_function_space is not None and dual_slot_function_space != function_space:
-            raise ValueError(
-                "The lowest-numbered argument in the dual slot must be on function_space."
-            )
+        contracted, _ = _split_dual_slot_arguments(dual_slot)
+        if contracted is not None and contracted.ufl_function_space() != function_space:
+            raise ValueError("The contracted argument in the dual slot must be on function_space.")
 
         # Internal variables for caching coefficient and domain data
         self._coefficients = None
@@ -209,7 +228,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         primal_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
-        dual_args = _renumber_dual_slot_arguments(dual_arg, (a.number() for a in primal_args))
+        # The stored dual slot is already renumbered.
+        _, dual_args = _split_dual_slot_arguments(dual_arg)
         arguments = dual_args + primal_args
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients

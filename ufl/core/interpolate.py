@@ -14,10 +14,7 @@ from collections import defaultdict
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
-from ufl.core.base_form_operator import (
-    BaseFormOperator,
-    _renumber_dual_slot_arguments,
-)
+from ufl.core.base_form_operator import BaseFormOperator, _split_dual_slot_arguments
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
@@ -61,9 +58,11 @@ class Interpolate(BaseFormOperator):
             n = 1 if expr_arg_numbers == {0} else 0
             v = Argument(v.dual(), n)
             dual_arg_numbers = {n}
+        elif isinstance(v, Coargument | Cofunction):
+            dual_arg_numbers = {arg.number() for arg in v.arguments()[1:]}
         elif isinstance(v, BaseForm):
-            dual_slot_arguments = _renumber_dual_slot_arguments(v, expr_arg_numbers)
-            dual_arg_numbers = {arg.number() for arg in dual_slot_arguments}
+            # BaseFormOperator renumbers the free arguments of a form around expr.
+            dual_arg_numbers = set()
         else:
             raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")
 
@@ -74,7 +73,8 @@ class Interpolate(BaseFormOperator):
         # Reversed order convention
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
-        function_space = v.arguments()[0].ufl_function_space()
+        contracted, _ = _split_dual_slot_arguments(v)
+        function_space = contracted.ufl_function_space()
         self._function_space = function_space
 
         # Set the operand as `expr` for DAG traversal purpose.
