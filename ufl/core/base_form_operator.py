@@ -244,9 +244,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         from ufl.algorithms.analysis import extract_coefficients, extract_type
 
         dual_arg, *arguments = self.argument_slots()
-        # When a Coargument is used as the dual slot, its primal argument
-        # is contracted and only the Coargument remains free.
-
         primal_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
@@ -306,6 +303,17 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         r += ", ".join(repr(arg) for arg in self.argument_slots())
         r += f"; derivatives={self.derivatives!r})"
         return r
+
+    def _ufl_compute_hash_(self):
+        """Hash code for use in dicts."""
+        hashdata = (
+            self._ufl_typecode_,
+            tuple(hash(op) for op in self.ufl_operands),
+            tuple(hash(arg) for arg in self._argument_slots),
+            self.derivatives,
+            hash(self._function_space),
+        )
+        return hash(hashdata)
 
     def __eq__(self, other):
         """Check for equality."""
