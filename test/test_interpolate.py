@@ -241,6 +241,19 @@ def test_form_dual_slot_contracts_highest_numbered_argument(V1, V2, V3):
     assert interpolation.arguments() == (Argument(V3, 0),)
 
 
+@pytest.mark.parametrize("free, contracted", [(0, 1), (1, 2), (0, 2), (2, 5)])
+def test_form_dual_slot_contraction_ignores_numbering_gaps(V1, V2, free, contracted):
+    # Both arguments are on V2, so only their numbers tell them apart.
+    u = Coefficient(V1)
+    dual_slot = Argument(V2, contracted).dx(0) * Argument(V2, free) * dx
+
+    interpolation = Interpolate(u, dual_slot)
+
+    v, w = Argument(V2, 0), Argument(V2, 1)
+    assert interpolation.argument_slots()[0] == w.dx(0) * v * dx
+    assert interpolation.arguments() == (v,)
+
+
 def test_form_dual_slot_numbering_matches_action(V1, V2, V3):
     u = Coefficient(V1)
     A = inner(TrialFunction(V3), TestFunction(V2)) * dx
