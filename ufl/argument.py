@@ -230,12 +230,6 @@ class Coargument(BaseForm, BaseArgument):
         self._hash = None
         self._repr = f"Coargument({self._ufl_function_space!r}, {self._number!r}, {self._part!r})"
 
-    def arguments(self):
-        """Return all Argument objects found in form."""
-        if self._arguments is None:
-            self._analyze_form_arguments()
-        return self._arguments
-
     def _analyze_form_arguments(self):
         """Analyze which Argument and Coefficient objects can be found in the form."""
         # Define canonical numbering of arguments and coefficients
