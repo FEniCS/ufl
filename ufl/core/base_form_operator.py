@@ -142,16 +142,12 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             argument_slots = (dual_slot, *argument_slots[1:])
         self._argument_slots = argument_slots
 
-        dual_slot_arguments = argument_slots[0].arguments()
-        dual_slot_function_space = (
-            min(dual_slot_arguments, key=lambda argument: argument.number()).ufl_function_space()
-            if dual_slot_arguments
-            else None
-        )
-        if dual_slot_function_space is not None and dual_slot_function_space != function_space:
-            raise ValueError(
-                "The lowest-numbered argument in the dual slot must be on function_space."
-            )
+        if dual_slot.arguments():
+            lowest = min(dual_slot.arguments(), key=lambda argument: argument.number())
+            if lowest.ufl_function_space() != function_space:
+                raise ValueError(
+                    "The lowest-numbered argument in the dual slot must be on function_space."
+                )
 
         # Internal variables for caching coefficient and domain data
         self._coefficients = None
@@ -203,12 +199,11 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         from ufl.algorithms.analysis import extract_coefficients, extract_type
 
         dual_arg, *arguments = self.argument_slots()
-        # When a Coargument is used as the dual slot, its primal argument
-        # is contracted and only the Coargument remains free.
-
         primal_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
+        # When a Coargument is used as the dual slot, its primal argument
+        # is contracted and only the Coargument remains free.
         dual_args = _renumber_dual_slot_arguments(dual_arg, (a.number() for a in primal_args))
         arguments = dual_args + primal_args
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
