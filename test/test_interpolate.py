@@ -289,6 +289,14 @@ def test_form_dual_slot_arguments_avoid_expression_numbers(V1, V2, V3):
 
     assert interpolation.arguments() == (u, Argument(V3, 1))
 
+    # v* cannot be numbered below u, so the contracted argument is numbered first instead.
+    restructured = restructure_base_form(interpolation)
+    assert restructured == Action(
+        Interpolate(u, Argument(V2.dual(), 1)),
+        inner(Argument(V2, 0), Argument(V3, 1)) * dx,
+    )
+    assert restructured.arguments() == interpolation.arguments()
+
 
 def test_form_dual_slot_contracted_argument_stays_distinct(V1, V2, V4):
     u = Argument(V1, 0)
