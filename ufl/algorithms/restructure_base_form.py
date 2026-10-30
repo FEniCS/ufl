@@ -13,6 +13,8 @@ from numbers import Complex
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algebra import Conj, Sum
+from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.compute_form_data import preprocess_form
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
 from ufl.argument import Coargument
@@ -340,17 +342,25 @@ class ActionContractor(BaseFormTraversal):
         return Action(left, right)
 
 
-def restructure_base_form(form: Expr | BaseForm) -> Expr | BaseForm:
-    """Restructure a BaseForm so each operand can be assembled independently.
+def restructure_base_form(form: Expr | BaseForm, complex_mode: bool = False) -> Expr | BaseForm:
+    """Expand derivatives and restructure a BaseForm for independent assembly.
 
+    Leave Forms without base form operators unchanged for the form compiler.
     Split compositions in argument slots into Actions, associate rank-one
     contractions first, and replace contracted arguments in Forms and operator
     slots. Revisit only operators and Actions changed by those contractions.
 
     Args:
-        form: The BaseForm, with its derivatives expanded.
+        form: The expression or BaseForm to restructure.
+        complex_mode: Whether to preserve complex expressions when preprocessing a Form.
 
     Returns:
         The restructured BaseForm.
     """
+    if isinstance(form, Form):
+        if not form.base_form_operators():
+            return form
+        form = preprocess_form(form, complex_mode)
+    else:
+        form = expand_derivatives(form)
     return BaseFormRestructurer()(form)
