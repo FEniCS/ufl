@@ -37,15 +37,20 @@ def expand_derivatives(expr: Expr | BaseForm, **kwargs):
     return expr
 
 
-def expand_coefficient_derivatives(expr: Expr | BaseForm):
-    """Expand only CoefficientDerivative objects within expr.
+def expand_coefficient_derivatives(expr: Expr | BaseForm) -> Expr | BaseForm:
+    """Expand coefficient and BaseForm derivatives, preserving other derivatives.
 
-    In the returned expression, which is mathematically
-    equivalent to expr, there are no CoefficientDerivative
-    objects left.
+    Spatial derivatives are left on compound expressions for the form compiler.
+    Tensor algebra is lowered to index notation before differentiation.
+
+    Args:
+        expr: The expression whose coefficient derivatives are to be expanded.
+
+    Returns:
+        The expression with coefficient and BaseForm derivatives expanded.
     """
     # Lower abstractions for tensor-algebra types into index notation
-    expr = apply_algebra_lowering(expr)
+    expr = apply_algebra_lowering(expr, preserve_derivatives=True)
 
     # Apply differentiation
     expr = apply_coefficient_derivatives(expr)

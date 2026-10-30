@@ -12,10 +12,13 @@ from functools import singledispatchmethod
 
 import ufl.classes
 from ufl.algorithms.map_integrands import map_integrands
-from ufl.classes import Conj, Grad, Product
+from ufl.classes import Conj, Derivative, Grad, Product
 from ufl.compound_expressions import cofactor_expr, determinant_expr, deviatoric_expr, inverse_expr
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.multiindex import Index, indices
 from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.differentiation import BaseFormOperatorDerivative
+from ufl.form import Form
 from ufl.tensors import as_matrix, as_tensor, as_vector
 
 
@@ -30,6 +33,25 @@ class LowerCompoundAlgebra(DAGTraverser):
     @process.register(ufl.classes.Expr)
     @process.register(ufl.classes.BaseForm)
     def _(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+        return self.reuse_if_untouched(o)
+
+    @process.register(Form)
+    def _(self, o: Form) -> Form:
+        """Lower tensor algebra in the integrands of a nested Form."""
+        return map_integrands(self, o)
+
+    @process.register(BaseFormOperator)
+    def _(self, o: BaseFormOperator) -> BaseFormOperator:
+        """Lower tensor algebra in an operator's operands and argument slots."""
+        operands = tuple(self(op) for op in o.ufl_operands)
+        slots = tuple(self(slot) for slot in o.argument_slots())
+        if operands == o.ufl_operands and slots == o.argument_slots():
+            return o
+        return o._ufl_expr_reconstruct_(*operands, argument_slots=slots)
+
+    @process.register(BaseFormOperatorDerivative)
+    def _(self, o: BaseFormOperatorDerivative) -> BaseFormOperatorDerivative:
+        """Traverse the operands that define an operator derivative."""
         return self.reuse_if_untouched(o)
 
     # ------------ Compound tensor operators
@@ -186,6 +208,35 @@ class LowerCompoundAlgebra(DAGTraverser):
         raise ValueError(f"Invalid shape {sh} of curl argument.")
 
 
-def apply_algebra_lowering(expr):
-    """Expands high level compound operators to equivalent representations using basic operators."""
-    return map_integrands(LowerCompoundAlgebra(), expr)
+class LowerCompoundAlgebraPreservingDerivatives(LowerCompoundAlgebra):
+    """Lower tensor algebra while preserving differential operators."""
+
+    @singledispatchmethod
+    def process(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+        """Lower tensor algebra with the shared rules."""
+        return super().process(o)
+
+    @process.register(Derivative)
+    def _(self, o: Derivative) -> ufl.classes.Expr:
+        """Traverse a derivative without lowering the operator itself."""
+        return self.reuse_if_untouched(o)
+
+
+def apply_algebra_lowering(
+    expr: ufl.classes.Expr | ufl.classes.BaseForm, *, preserve_derivatives: bool = False
+) -> ufl.classes.Expr | ufl.classes.BaseForm:
+    """Expand tensor algebra into index notation.
+
+    Args:
+        expr: The expression whose compound operators are to be lowered.
+        preserve_derivatives: Whether to preserve differential operators, including div and curl.
+
+    Returns:
+        The expression with compound tensor operators lowered.
+    """
+    rules = (
+        LowerCompoundAlgebraPreservingDerivatives()
+        if preserve_derivatives
+        else LowerCompoundAlgebra()
+    )
+    return map_integrands(rules, expr)

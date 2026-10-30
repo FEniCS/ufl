@@ -23,14 +23,16 @@ from ufl import (
     derivative,
     ds,
     dx,
+    grad,
     inner,
     replace,
     sin,
     triangle,
 )
-from ufl.algorithms import expand_derivatives
+from ufl.algorithms import expand_coefficient_derivatives, expand_derivatives
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import Zero
@@ -858,3 +860,28 @@ def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
     assert e4.ufl_function_space() == V5.dual()
 
     assert set(args) == {arg2, arg3, arg4, arg5, Argument(V1, 0)}
+
+
+@pytest.mark.parametrize("tensor_algebra", [False, True])
+def test_expand_coefficient_derivatives_in_operator_slot(V1, tensor_algebra):
+    u, h = Coefficient(V1), Coefficient(V1)
+    N = ExternalOperator(u, function_space=V1)
+    (vstar,) = N.argument_slots()
+    expression, expected = u**2, 2 * h * u
+    if tensor_algebra:
+        expression = inner(grad(u), grad(h))
+        expected = inner(grad(h), grad(h))
+    expression = N._ufl_expr_reconstruct_(
+        u, derivatives=(1,), argument_slots=(vstar, derivative(expression, u, h))
+    )
+    expected = N._ufl_expr_reconstruct_(
+        u,
+        derivatives=(1,),
+        argument_slots=(vstar, apply_algebra_lowering(expected, preserve_derivatives=True)),
+    )
+
+    actual = expand_coefficient_derivatives(expression)
+    assert actual.ufl_operands == expected.ufl_operands
+    assert tuple(renumber_indices(slot) for slot in actual.argument_slots()) == tuple(
+        renumber_indices(slot) for slot in expected.argument_slots()
+    )

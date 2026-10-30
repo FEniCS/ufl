@@ -384,3 +384,10 @@ def test_restructure_conjugates_weights_when_contracting_a_matrix_sum_from_the_l
     actual = restructure_base_form(expression)
     assert actual == witness
     assert _optimal_assembly_cost(actual) == (0, 3)
+
+
+def test_restructure_preserves_compound_gradient(V):
+    u, h = Coefficient(V), Coefficient(V)
+    expression = derivative(Interpolate(grad(u**2)[0], V), u, h)
+
+    assert restructure_base_form(expression) == Interpolate(grad(2 * h * u)[0], V)

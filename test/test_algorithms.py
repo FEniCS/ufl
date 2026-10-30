@@ -242,4 +242,4 @@ def test_replace_mixed_element(domain, element):
     # result and expected are built independently, so their dummy
     # summation indices may be numbered differently; compare signatures
     # rather than raw equality.
-    assert result.signature() == expected.signature()
+    assert expand_derivatives(result).signature() == expected.signature()

@@ -59,6 +59,8 @@ from ufl import (
     dev,
     diff,
     dot,
+    ds,
+    dx,
     eq,
     erf,
     exp,
@@ -775,3 +777,29 @@ def test_coefficient_derivative_foreign_derivative(self):
     after = expand_coefficient_derivatives(before)
     self.assertEqualTotalShape(before, after)
     assert after == expected
+
+
+@pytest.mark.parametrize("order", [1, 2])
+def test_coefficient_derivative_preserves_compound_gradient(order):
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u, h, k = Coefficient(V), Coefficient(V), Coefficient(V)
+    expression = derivative(grad(u**2), u, h)
+    expected = grad(2 * h * u)
+    if order == 2:
+        expression = derivative(expression, u, k)
+        expected = grad(2 * h * k)
+
+    assert expand_coefficient_derivatives(expression) == expected
+
+
+def test_coefficient_derivative_preserves_shared_integrands():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u, h = Coefficient(V), Coefficient(V)
+    shared = derivative(inner(grad(u**2), grad(u**2)), u, h)
+    form = shared * dx + shared * ds
+
+    first, second = expand_coefficient_derivatives(form).integrals()
+
+    assert first.integrand() is second.integrand()
