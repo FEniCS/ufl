@@ -1,6 +1,8 @@
 """UFL test utils."""
 
 from ufl.cell import AbstractCell, Cell, CellSequence
+from ufl.classes import Derivative
+from ufl.core.ufl_type import ufl_type
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.pullback import (
     AbstractPullback,
@@ -249,3 +251,19 @@ class MixedElement(FiniteElement):
             _repr=f"utils.MixedElement({sub_elements!r})",
             _str=f"<MixedElement with {len(sub_elements)} sub-element(s)>",
         )
+
+
+@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+class ForeignDerivative(Derivative):
+    """Mock class for irksome.TimeDerivative"""
+
+    __slots__ = ()
+
+    def __new__(cls, f):
+        return Derivative.__new__(cls)
+
+    def __init__(self, f):
+        Derivative.__init__(self, (f,))
+
+    def __str__(self):
+        return f"d{{{self.ufl_operands[0]}}}/dt"
