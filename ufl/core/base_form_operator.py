@@ -17,7 +17,7 @@ from collections import OrderedDict
 from itertools import chain, count
 from numbers import Number
 
-from ufl.argument import Argument, Coargument
+from ufl.argument import Argument, BaseArgument, Coargument
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
@@ -54,19 +54,46 @@ def _split_dual_slot_arguments(dual_arg):
     return contracted, tuple(a for a in arguments if a != contracted)
 
 
+def _contained_arguments(o):
+    """Return every argument in o, including those that its Actions contract."""
+    from ufl.corealg.traversal import unique_pre_traversal
+    from ufl.form import Form
+
+    if isinstance(o, BaseArgument):
+        return {o}
+    if isinstance(o, Form):
+        return set().union(*(_contained_arguments(itg.integrand()) for itg in o.integrals()))
+    if isinstance(o, BaseFormOperator):
+        return set().union(*map(_contained_arguments, (*o.ufl_operands, *o.argument_slots())))
+    if isinstance(o, Expr):
+        return set().union(
+            *(_contained_arguments(e) for e in unique_pre_traversal(o) if e is not o)
+        )
+    if o.ufl_operands:
+        return set().union(*map(_contained_arguments, o.ufl_operands))
+    return set(o.arguments())
+
+
 def _renumber_dual_slot_arguments(dual_arg, primal_args):
     """Return the renumbering of the arguments in a non-terminal BaseForm dual slot.
 
     The free arguments take, in order, the lowest numbers that the primal
     arguments do not use. The contracted argument takes the lowest number
     above them that does not make it equal to an argument of the operator, so
-    it stays the highest-numbered primal argument of the slot.
+    it stays the highest-numbered primal argument of the slot. No argument
+    takes the place of an argument that an Action in the slot contracts.
     """
     contracted, free = _split_dual_slot_arguments(dual_arg)
-    primal_numbers = {argument.number() for argument in primal_args}
-    numbers = (number for number in count() if number not in primal_numbers)
-    renumbered = tuple(argument.reconstruct(number=n) for argument, n in zip(free, numbers))
-    exposed = {*renumbered, *primal_args}
+    bound = _contained_arguments(dual_arg) - set(dual_arg.arguments())
+    used = {argument.number() for argument in primal_args}
+    renumbered = []
+    for argument in free:
+        number = next(
+            n for n in count() if n not in used and argument.reconstruct(number=n) not in bound
+        )
+        used.add(number)
+        renumbered.append(argument.reconstruct(number=number))
+    exposed = {*renumbered, *primal_args, *bound}
     lowest = max((a.number() + 1 for a in renumbered if not isinstance(a, Coargument)), default=0)
     number = next(n for n in count(lowest) if contracted.reconstruct(number=n) not in exposed)
     renumbering = dict(zip(free, renumbered))
