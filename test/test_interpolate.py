@@ -237,7 +237,18 @@ def test_form_dual_slot_arguments_are_renumbered(V1, V2, V3):
 
     interpolation = Interpolate(u, dual_slot)
 
-    assert interpolation.arguments() == (Argument(V3, 0),)
+    assert interpolation.arguments() == (Argument(V3, 1),)
+
+
+def test_form_dual_slot_arguments_are_replaceable(V1, V2, V3, V4):
+    u = Coefficient(V1)
+    dual_slot = inner(TrialFunction(V3), TestFunction(V2)) * dx
+    interpolation = Interpolate(u, dual_slot)
+    w = Argument(V4, 1)
+
+    replaced = replace(interpolation, {interpolation.arguments()[0]: w})
+
+    assert replaced == Interpolate(u, inner(w, TestFunction(V2)) * dx)
 
 
 def test_form_dual_slot_arguments_avoid_expression_numbers(V1, V2, V3):
@@ -246,7 +257,7 @@ def test_form_dual_slot_arguments_avoid_expression_numbers(V1, V2, V3):
 
     interpolation = Interpolate(u, dual_slot)
 
-    assert interpolation.arguments() == (Argument(V3, 0), u)
+    assert interpolation.arguments() == (u, Argument(V3, 2))
 
 
 def test_action_adjoint(V1, V2):
@@ -426,14 +437,13 @@ def test_interpolate_argument_numbering(V1, V2):
     with pytest.raises(ValueError, match=r"Same argument numbers in first and second operands"):
         Interpolate(u0, vstar0)
 
-    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
-        Interpolate(u, vstar1)
-
-    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
-        Interpolate(u1, cofunc)
-
-    with pytest.raises(ValueError, match=r"Non-contiguous argument numbers in interpolate."):
-        Interpolate(u1, one_form)
+    # Arguments need not be numbered contiguously.
+    for interpolation in (
+        Interpolate(u, vstar1),
+        Interpolate(u1, cofunc),
+        Interpolate(u1, one_form),
+    ):
+        assert tuple(argument.number() for argument in interpolation.arguments()) == (1,)
 
     u2 = u0 * u1
     with pytest.raises(

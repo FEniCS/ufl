@@ -38,10 +38,13 @@ def _is_nonterminal_base_form_dual_slot(dual_arg):
 
 def _renumber_dual_slot_arguments(dual_arg, occupied_numbers):
     """Renumber free arguments in a non-terminal BaseForm dual slot."""
-    arguments = dual_arg.arguments()[1:]
-    if not _is_nonterminal_base_form_dual_slot(dual_arg):
+    all_arguments = dual_arg.arguments()
+    arguments = all_arguments[1:]
+    if not all_arguments or not _is_nonterminal_base_form_dual_slot(dual_arg):
         return arguments
     occupied_numbers = set(occupied_numbers)
+    # Keep the contracted argument's number available in the stored slot.
+    occupied_numbers.add(all_arguments[0].number())
     numbers = (number for number in count() if number not in occupied_numbers)
     return tuple(
         argument.reconstruct(number=number)
@@ -113,11 +116,33 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             # Make v*
             v_star = Argument(function_space.dual(), 0)
             argument_slots = (v_star,)
+
+        dual_slot = argument_slots[0]
+        if not isinstance(dual_slot, BaseForm):
+            raise ValueError("The dual slot must be a BaseForm.")
+
+        from ufl.algorithms.analysis import extract_type
+
+        primal_args = tuple(
+            a
+            for slot in argument_slots[1:]
+            for a in extract_type(slot, Argument, base_form_op_as_expr=True)
+        )
+        original_dual_slot_arguments = dual_slot.arguments()[1:]
+        dual_slot_arguments = _renumber_dual_slot_arguments(
+            dual_slot, (a.number() for a in primal_args)
+        )
+        if dual_slot_arguments != original_dual_slot_arguments:
+            # Keep the arguments exposed by this operator in its stored slot.
+            from ufl.algorithms.replace import replace
+
+            dual_slot = replace(
+                dual_slot, dict(zip(original_dual_slot_arguments, dual_slot_arguments))
+            )
+            argument_slots = (dual_slot, *argument_slots[1:])
         self._argument_slots = argument_slots
 
-        dual_slot_arguments = (
-            argument_slots[0].arguments() if isinstance(argument_slots[0], BaseForm) else ()
-        )
+        dual_slot_arguments = argument_slots[0].arguments()
         dual_slot_function_space = (
             min(dual_slot_arguments, key=lambda argument: argument.number()).ufl_function_space()
             if dual_slot_arguments
