@@ -177,6 +177,11 @@ class BaseFormRestructurer(BaseFormTraversal):
             vstar = contracted.reconstruct(function_space=space, number=0)
             right = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
             return self(Action(dual, right))
+        if isinstance(dual, Form) and dual.arguments()[0].number() != 0:
+            # The contracted argument of a one-form is bound in the dual slot, so its
+            # number is free. Forms are assembled with arguments numbered from zero.
+            (contracted,) = dual.arguments()
+            dual = replace(dual, {contracted: contracted.reconstruct(number=0)})
         if dual is v:
             return o
         return o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(dual, *slots))

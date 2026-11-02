@@ -324,6 +324,17 @@ def test_form_dual_slot_contracted_argument_can_share_expression_number(V1, V2):
     assert interpolation.arguments() == (Argument(V2, 0), u)
 
 
+def test_adjoint_action_of_form_dual_slot_is_numbered_from_zero(V1, V2):
+    w = Coefficient(V2)
+    A = Argument(V2, 1).dx(0) * Argument(V2, 0) * dx
+    N = Interpolate(Argument(V1, 1), A)
+
+    restructured = restructure_base_form(Action(Adjoint(N), w))
+
+    assert restructured.arguments() == (Argument(V1, 0),)
+    assert [a.number() for a in restructured.argument_slots()[0].arguments()] == [0]
+
+
 def test_form_dual_slot_with_deep_shared_integrand(V1, V2):
     # Each level reuses the previous one twice. A traversal that restarts at every
     # node takes time exponential in the depth.
@@ -502,7 +513,7 @@ def test_restructure_contracts_covector_first(V1, V2):
     expected = N._ufl_expr_reconstruct_(
         u,
         derivatives=(1,),
-        argument_slots=(conj(inner(TrialFunction(V2), x)) * dx, Argument(V1, 0)),
+        argument_slots=(conj(inner(Argument(V2, 0), x)) * dx, Argument(V1, 0)),
     )
     assert restructure_base_form(Action(x, Action(A, dN))) == expected
     assert restructure_base_form(Action(Adjoint(Action(A, dN)), x)) == expected
