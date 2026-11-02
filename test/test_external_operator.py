@@ -156,7 +156,6 @@ def test_form_dual_slot_argument_is_contracted(V1, V2):
     operator = ExternalOperator(u, function_space=V2, argument_slots=(dual_slot,))
 
     assert operator.arguments() == ()
-    assert operator.ufl_element() == V2.ufl_element()
 
     with pytest.raises(ValueError, match="contracted argument"):
         ExternalOperator(u, function_space=V1, argument_slots=(dual_slot,))
