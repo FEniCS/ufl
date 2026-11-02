@@ -5,7 +5,7 @@ from math import inf
 
 from utils import FiniteElement, LagrangeElement
 
-from ufl import H1, H2, L2, HCurl, HDiv, HInf, triangle
+from ufl import H1, H2, L2, H1Curl, HCurl, HDiv, HGradCurl, HInf, tetrahedron, triangle
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
 from ufl.sobolevspace import (
     DirectionalSobolevSpace,
@@ -35,6 +35,16 @@ def test_inclusion():
     assert H2 < L2  # Transitivity
     assert H1 > H2
     assert L2 > H1
+
+
+def test_hgradcurl_inclusion():
+    assert H1Curl < HGradCurl < HCurl < L2
+    assert H2 < HGradCurl
+    assert not H1 <= HGradCurl
+    assert not HGradCurl <= H1
+    assert not HDiv <= HGradCurl
+    assert H2dx2dy <= HGradCurl
+    assert not H1dx1dy <= HGradCurl
 
 
 def test_directional_space_relations():
@@ -162,3 +172,14 @@ def test_contains_hcurl():
         assert hcurl_element not in HDiv
         assert hcurl_element not in H2
         assert hcurl_element not in H2dx2dy
+
+
+def test_contains_hgradcurl():
+    element = FiniteElement("HZZ", tetrahedron, 1, (3,), covariant_piola, HGradCurl)
+    assert element in HGradCurl
+    assert element in HCurl
+    assert element in L2
+    assert element not in H1
+    assert element not in HDiv
+    assert element not in H1Curl
+    assert element not in H1dx1dy
