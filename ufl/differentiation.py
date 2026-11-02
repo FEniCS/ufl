@@ -124,10 +124,7 @@ class BaseFormDerivative(CoefficientDerivative, BaseForm):
         base_form_coeffs = base_form.coefficients() + tuple(
             arg for a in arguments.ufl_operands for arg in extract_coefficients(a)
         )
-        # Reconstruct arguments for correct numbering
-        self._arguments = tuple(
-            type(arg)(arg.ufl_function_space(), arg.number(), arg.part()) for arg in base_form_args
-        )
+        self._arguments = base_form_args
         self._coefficients = base_form_coeffs
 
 
@@ -179,15 +176,22 @@ class BaseFormOperatorDerivative(BaseFormDerivative, BaseFormOperator):
 
         return Operator._ufl_expr_reconstruct_(self, *operands)
 
+    def _analyze_form_arguments(self):
+        """Collect the arguments of the derivative, which must have distinct numbers."""
+        BaseFormDerivative._analyze_form_arguments(self)
+        numbers = [a.number() for a in self._arguments]
+        if len(set(numbers)) != len(numbers):
+            raise ValueError("Same argument numbers in the operator and the derivative direction.")
+
     # Set __repr__
     __repr__ = Operator.__repr__
 
-    def argument_slots(self, outer_form=False):
+    def argument_slots(self):
         """Return a tuple of expressions containing argument and coefficient based expressions."""
         from ufl.algorithms.analysis import extract_arguments
 
         base_form, _, arguments, _ = self.ufl_operands
-        argument_slots = base_form.argument_slots(outer_form) + tuple(
+        argument_slots = base_form.argument_slots() + tuple(
             arg for a in arguments for arg in extract_arguments(a)
         )
         return argument_slots
